@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/08/01 17:59:36  sueh
+ * <p> bug# 532 Added static command name.
+ * <p>
  * <p> Revision 3.15  2005/07/29 19:45:43  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
@@ -576,27 +579,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     excludeList.setNElements(0);
   }
   
-  public void setMontageFullImage(String userDir, int binning) {
-    //Try to get the montage size from .ali file
-    try {
-      File aliFile = new File(userDir, datasetName + axisID.getExtension()
-          + BlendmontParam.OUTPUT_FILE_EXTENSION);
-      if (aliFile.exists()) {
-        MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-            aliFile.getAbsolutePath(), axisID);
-        header.read();
-        fullImageX = header.getNColumns();
-        fullImageY = header.getNRows();
-        return;
-      }
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-    }
-    //If the .ali file is not available, use the .st file and adjust it with
-    //goodframe
+  public void setMontageFullImage() {
     Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     try {
       montagesize.read();
@@ -605,8 +588,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
             axisID);
         goodframe.run(montagesize.getX().getInt(), montagesize.getY()
             .getInt());
-        fullImageX = goodframe.getFirstOutput().getInt() / binning;
-        fullImageY = goodframe.getSecondOutput().getInt() / binning;
+        fullImageX = goodframe.getFirstOutput().getInt();
+        fullImageY = goodframe.getSecondOutput().getInt();
       }
     }
     catch (InvalidParameterException e) {
@@ -615,8 +598,24 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     catch (IOException e) {
       e.printStackTrace();
     }
-
   }
+  
+  public void setFullImage(File stack) {
+    try {
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+          stack.getName(), axisID);
+      header.read();
+      fullImageX = header.getNColumns();
+      fullImageY = header.getNRows();
+      return;
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+    }
+  }
+
 
   /**
    * @param i
