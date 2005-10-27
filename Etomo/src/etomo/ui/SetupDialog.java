@@ -44,6 +44,7 @@ import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
+import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -399,6 +400,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 
   public MetaData getFields() {
     MetaData metaData = getDataset();
+    AxisType axisType = getAxisType();
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
     metaData.setDistortionFile(ltfDistortionFile.getText());
     metaData.setMagGradientFile(ltfMagGradientFile.getText());
@@ -415,7 +417,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       currentField = "Image Rotation";
       metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
       AxisID.FIRST);
-      if (getAxisType() == AxisType.DUAL_AXIS) {
+      if (axisType == AxisType.DUAL_AXIS) {
         metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
           AxisID.SECOND);
       } 
@@ -432,6 +434,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
     metaData.setExcludeProjectionsA(ltfExcludeListA.getText());
     metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
+    if (axisType == AxisType.DUAL_AXIS) {
+      File bStack = DatasetFiles.getStack(applicationManager
+          .getPropertyUserDir(), metaData, AxisID.SECOND);
+      metaData.setBStackProcessed(bStack.exists());
+    }
     return metaData;
   }
   
@@ -1036,6 +1043,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.36  2005/08/22 22:10:27  sueh
+ * <p> bug# 714 For dataset name and backup directory, open file chooser in the
+ * <p> director in Etomo opened.
+ * <p>
  * <p> Revision 3.35  2005/08/12 00:00:10  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
