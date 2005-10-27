@@ -21,6 +21,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2005/10/21 19:54:53  sueh
+ * <p> bug# 742 Added getCurrentStdError().
+ * <p>
  * <p> Revision 3.17  2005/09/22 20:46:04  sueh
  * <p> bug# 532 Fixed bug in setProcessEndState().  EndState may come from
  * <p> the endState in the monitor, so it should be set there.
@@ -233,6 +236,16 @@ public class BackgroundProcess
     this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+  
+  public BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.commandArray = commandArray;
+    this.processManager = processManager;
+    this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
   }
   
