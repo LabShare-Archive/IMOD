@@ -23,6 +23,9 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.ExtractmagradParam;
+import etomo.comscript.ExtractpiecesParam;
+import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
 import etomo.comscript.MTFFilterParam;
@@ -61,6 +64,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
@@ -74,6 +78,7 @@ import etomo.type.ProcessTrack;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
+import etomo.type.TiltAngleType;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.ui.AlignmentEstimationDialog;
@@ -668,7 +673,7 @@ public class ApplicationManager extends BaseManager {
    * Run the eraser script for the specified axis
    * @param axisID
    */
-  public void eraser(AxisID axisID) {
+  private void eraser(AxisID axisID) {
     updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -1176,7 +1181,7 @@ public class ApplicationManager extends BaseManager {
   /**
    * Get the parameters from dialog box and run the cross correlation script
    */
-  public void crossCorrelate(AxisID axisID) {
+  private void crossCorrelate(AxisID axisID) {
     // Get the parameters from the dialog box
     ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(axisID);
     if (tiltxcorrParam != null) {
@@ -1203,6 +1208,157 @@ public class ApplicationManager extends BaseManager {
       }
       setThreadName(threadName, axisID);
     }
+  }
+  
+  /**
+   * if the b stack hasn't been processed, run extracttilts before running
+   * crossCorrelate().
+   * @param axisID
+   */
+  public final void preCrossCorrelate(AxisID axisID) {
+    if (axisID == AxisID.SECOND && processBStack()) {
+      setLastProcess(axisID, ProcessName.XCORR.toString());
+      extracttilts(axisID);
+      return;
+    }
+    crossCorrelate(axisID);
+  }
+  
+  /**
+   * if the b stack hasn't been processed, run extracttilts before running
+   * eraser().
+   * @param axisID
+   */
+  public void preEraser(AxisID axisID) {
+    if (axisID == AxisID.SECOND && processBStack()) {
+      setLastProcess(axisID, ProcessName.ERASER.toString());
+      extracttilts(axisID);
+      return;
+    }
+    eraser(axisID);
+  }
+  
+  private final boolean processBStack() {
+    AxisID axisID = AxisID.SECOND;
+    ConstEtomoNumber bStackProcessed = metaData.getBStackProcessed();
+    if (bStackProcessed == null || bStackProcessed.is()) {
+      return false;
+    }
+    File bStack = DatasetFiles.getStack(propertyUserDir, metaData,
+        axisID);
+    if (!bStack.exists()) {
+      return false;
+    }
+    comScriptMgr.loadTilt(axisID);
+    TiltParam param = comScriptMgr.getTiltParam(axisID);
+    if (metaData.getViewType() == ViewType.MONTAGE) {
+      param.setMontageFullImage();
+    }
+    else {
+      param.setFullImage(bStack);
+    }
+    comScriptMgr.saveTilt(param, axisID);
+    metaData.setBStackProcessed(true);
+    saveIntermediateParamFile(axisID);
+    return true;
+  }
+  
+  private final void extracttilts(AxisID axisID) {
+    setNextProcess(axisID, ExtractpiecesParam.COMMAND_NAME);
+    if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.EXTRACT) {
+      startNextProcess(axisID);
+      return;
+    }
+    File rawTiltFile = DatasetFiles.getRawTilt(this, axisID);
+    if (rawTiltFile.exists()) {
+      startNextProcess(axisID);
+      return;
+    }
+    String threadName;
+    try {
+      threadName = processMgr.extracttilts(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ExtracttiltsParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      startNextProcess(axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel
+        .startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME, axisID);
+  }
+  
+  private final void extractpieces(AxisID axisID) {
+    setNextProcess(axisID, ExtractmagradParam.COMMAND_NAME);
+    if (metaData.getViewType() != ViewType.MONTAGE) {
+      startNextProcess(axisID);
+      return;
+    }
+    File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
+    if (pieceListFile.exists()) {
+      startNextProcess(axisID);
+      return;
+    }
+    String threadName;
+    try {
+      threadName = processMgr.extractpieces(axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      startNextProcess(axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel
+        .startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID);
+  }
+  
+  private final void extractmagrad(AxisID axisID) {
+    if (isLastProcessSet(axisID)) {
+      setNextProcess(axisID, getLastProcess(axisID));
+      resetLastProcess(axisID);
+    }
+    else {
+      resetNextProcess(axisID);
+    }
+    String magGradientFileName = metaData.getMagGradientFile();
+    if (magGradientFileName == null || magGradientFileName.matches("\\s++")) {
+      startNextProcess(axisID);
+      return;
+    }
+    File magGradientFile = DatasetFiles.getMagGradient(this, axisID);
+    if (magGradientFile.exists()) {
+      startNextProcess(axisID);
+      return;
+    }
+    ExtractmagradParam param = new ExtractmagradParam(this, axisID);
+    param.setRotationAngle(metaData.getImageRotation(axisID));
+    param.setGradientTable(metaData.getMagGradientFile());
+    String threadName;
+    try {
+      threadName = processMgr.extractmagrad(param, axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ExtractmagradParam.COMMAND_NAME;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      startNextProcess(axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel
+        .startProgressBar("Running " + ExtractmagradParam.COMMAND_NAME, axisID);
+    return;
   }
 
   /**
@@ -5167,6 +5323,18 @@ public class ApplicationManager extends BaseManager {
     else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
       splitcombine();
     }
+    else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
+      extractpieces(axisID);
+    }
+    else if (nextProcess.equals(ExtractmagradParam.COMMAND_NAME)) {
+      extractmagrad(axisID);
+    }
+    else if (nextProcess.equals(ProcessName.XCORR.toString())) {
+      crossCorrelate(axisID);
+    }
+    else if (nextProcess.equals(ProcessName.ERASER.toString())) {
+      eraser(axisID);
+    }
   }
 
   protected void updateDialog(ProcessName processName, AxisID axisID) {
@@ -5736,6 +5904,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.188  2005/10/19 00:17:43  sueh
+ * <p> bug# 673 Added updateArchiveDisplay() to update the display of the
+ * <p> archive button on the clean up panel.
+ * <p>
  * <p> Revision 3.187  2005/10/18 22:09:54  sueh
  * <p> bug# 737 Setting nextProcess after running process, because the axis
  * <p> busy test is run when running process.  bug# 727 Can't reproduce this
