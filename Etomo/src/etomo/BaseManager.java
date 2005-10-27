@@ -50,6 +50,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.38  2005/10/15 00:27:42  sueh
+* <p> bug# 532 Changed showParallelStatus() to setParallelDialog().  Removed
+* <p> currentParallelDialogsA and B.  Simplified setParallelDialog() to just call
+* <p> MainPanel.setParallelDialog() with  dialog.isParallel().  isParallel() is true
+* <p> if any parallel processing check boxes are true on the dialog.
+* <p>
 * <p> Revision 1.37  2005/10/14 21:04:57  sueh
 * <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
 * <p>
@@ -326,10 +332,10 @@ public abstract class BaseManager {
   //FIXME homeDirectory may not have to be visible
   protected String homeDirectory;
   // Control variable for process execution
-  // FIXME: this going to need to expand to handle both axis
   private String nextProcessA = "";
   private String nextProcessB = "";
-
+  private String lastProcessA = "";
+  private String lastProcessB = "";
   protected String threadNameA = "none";
 
   protected String threadNameB = "none";
@@ -791,6 +797,39 @@ public abstract class BaseManager {
     }
     return !nextProcessA.equals("");
   }
+  
+  protected void setLastProcess(AxisID axisID, String lastProcess) {
+    if (axisID == AxisID.SECOND) {
+      lastProcessB = lastProcess;
+    }
+    else {
+      lastProcessA = lastProcess;
+    }
+  }
+  
+  protected void resetLastProcess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      lastProcessB = "";
+    }
+    else {
+      lastProcessA = "";
+    }
+  }
+  
+  protected String getLastProcess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return lastProcessB;
+    }
+    return lastProcessA;
+  }
+  
+  protected boolean isLastProcessSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !lastProcessB.equals("");
+    }
+    return !lastProcessA.equals("");
+  }
+  
   /*
   public void packMainWindow(AxisID axisID) {
     uiHarness.repaint(axisID);
