@@ -702,6 +702,10 @@ public class ConstEtomoNumberTest extends TestCase {
   //TODO
   public final void testValidateInputType_double() {
   }
+  
+  //TODO
+  public final void testNewNumber_float() {
+  }
 
   public final void testNewNumber_double() {
     //double
@@ -959,6 +963,10 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2005/07/29 19:46:37  sueh
+ * <p> bug# 692 Added tests.  Changed ConstEtomoNumber.getInteger() to
+ * <p> getInt.
+ * <p>
  * <p> Revision 1.11  2005/07/29 00:53:09  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
