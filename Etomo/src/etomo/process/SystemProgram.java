@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/09/10 02:13:27  sueh
+ * <p> bug# 532 putting the creation of stdout and stderr in different functions so
+ * <p> they can be handled differently in child classes.
+ * <p>
  * <p> Revision 3.25  2005/09/10 01:53:00  sueh
  * <p> bug# 532 Changed IntermittentSystemProgram to
  * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
@@ -238,13 +242,17 @@ public class SystemProgram implements Runnable {
   private String exceptionMessage = "";
   private boolean started = false;
   private boolean done = false;
-  private ArrayList warningList = new ArrayList();
+  private ArrayList errorList = null;
+  private ArrayList warningList = null;
+  private ArrayList infoList = null;
   private Date runTimestamp = null;
   private AxisID axisID;
   private final String propertyUserDir;
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
+  //multi line error, warning, or info string; terminated by an empty line
+  private boolean multiLineMessages = false;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -259,6 +267,13 @@ public class SystemProgram implements Runnable {
   public SystemProgram(String propertyUserDir, String command, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
+    commandArray = command.split("\\s+");
+  }
+  
+  public SystemProgram(String propertyUserDir, String command, AxisID axisID, boolean multiLineMessages) {
+    this.propertyUserDir = propertyUserDir;
+    this.axisID = axisID;
+    this.multiLineMessages = multiLineMessages;
     commandArray = command.split("\\s+");
   }
 
@@ -495,24 +510,11 @@ public class SystemProgram implements Runnable {
     }
 
     if (stdout.size() > 0) {
-      for (int i = 0; i < stdout.size(); i++) {
-        String output = (String) stdout.get(i);
-        if (output.startsWith("WARNING:")) {
-          warningList.add(output);
-          //System.out.println("warning=" + warningList.get(warningList.size() - 1));
-        }
-      }
+      parse(stdout);
+
     }
     if (stderr.size() > 0) {
-      //System.out.println("stderr");
-      for (int i = 0; i < stderr.size(); i++) {
-        String error = (String) stderr.get(i);
-        //System.out.println(error);
-        if (error.startsWith("WARNING:")) {
-          warningList.add(error);
-          //System.out.println("warning=" + warningList.get(warningList.size() - 1));
-        }
-      }
+      parse(stderr);
     }
 
     if (debug) {
@@ -534,6 +536,23 @@ public class SystemProgram implements Runnable {
           System.err.println(stderr.get(i));
         }
         System.err.println("");
+      }
+    }
+    else {
+      if (errorList != null) {
+        for (int i = 0; i < errorList.size(); i++) {
+          System.err.println((String) errorList.get(i));
+        }
+      }
+      if (warningList != null) {
+        for (int i = 0; i < warningList.size(); i++) {
+          System.err.println((String) warningList.get(i));
+        }
+      }
+      if (infoList != null) {
+        for (int i = 0; i < infoList.size(); i++) {
+          System.err.println((String) infoList.get(i));
+        }
       }
     }
 
@@ -670,75 +689,160 @@ public class SystemProgram implements Runnable {
     return new Timestamp(runTimestamp.getTime());
   }
  
-  public static ArrayList parseError(String[] output) {  
-   ArrayList errors = new ArrayList();
-   for (int i = 0; i < output.length; i++) {
-     int index = output[i].indexOf("ERROR:");
-     if (index != -1) {
-       errors.add(output[i].substring(index));
-     }
-   }
-   return errors;
- }
- 
- /**
-  * Finds warnings in output and returns them in an array list.
-  * @param output
-  * @return
-  */
- public static ArrayList parseWarning(String[] output) {
-   return SystemProgram.parseWarning(output, false);
- }
- 
- /**
-  * Finds warnings in output and returns them in an array list, one element per
-  * warning.  Handles multi-line warnings when multiLine is true.  Puts "\n"
-  * between the lines.  WARNING:  When multiLine is true, this function will not
-  * work with warnings that are not separated at the end by a blank line.
-  * @param output
-  * @param multiLine
-  * @return
-  */
-  public static ArrayList parseWarning(String[] output, boolean multiLine) {
-   ArrayList warnings = new ArrayList();
-   boolean found = false;
-   StringBuffer warning = null;
-   boolean done = false;
-   int index = 0;
-   if (output == null) {
-     return warnings;
-   }
-   do {
-     int labelIndex = -1;
-     boolean emptyLine = true;
-     if (!(done = index >= output.length)) {
-       labelIndex = output[index].indexOf("WARNING:");
-       emptyLine = output[index].trim().length() == 0;
-     }
-     //If end of current warning, save it in warnings
-     if (found && (!multiLine || (labelIndex != -1 || (labelIndex == -1 && emptyLine)))) {
-       if (warning == null) {
-         throw new IllegalStateException("buffer is null when found is true");
-       }
-       warnings.add(warning.toString());
-       found = false;
-       warning = null;
-     }
-     //build warning string
-     if (labelIndex != -1) {
-       if (found) {
-         throw new IllegalStateException("found is true when a new warning buffer is about to be created");
-       }
-       found = true;
-       warning = new StringBuffer(output[index].substring(labelIndex));
-     }
-     else if (found && multiLine && !emptyLine) {
-       warning.append("\n" + output[index].trim());
-     }
-     index++;
-   } while (!done);
-   return warnings;
- }
+  public final ArrayList getErrors() {
+    return errorList;
+  }
+
+  /**
+   * Finds warnings in output and returns them in an array list.
+   * @param output
+   * @return
+   */
+  public final ArrayList getWarnings() {
+    return warningList;
+  }
+
+  /**
+   * Finds errors, warnings, and info in output and returns them in an array
+   * list, one element per
+   * warning.  Handles multi-line warnings when multiLine is true.  Puts "\n"
+   * between the lines.  WARNING:  When multiLine is true, this function will not
+   * work with warnings that are not separated at the end by a blank line.
+   * @param output
+   * @param multiLine
+   * @return
+   */
+  private final boolean parse(OutputBufferManager output) {
+    ArrayList errors = new ArrayList();
+    ArrayList warnings = new ArrayList();
+    ArrayList information = new ArrayList();
+    boolean newLabel = false;
+    boolean currentError = false;
+    boolean currentWarning = false;
+    boolean currentInfo = false;
+    StringBuffer error = null;
+    StringBuffer warning = null;
+    StringBuffer info = null;
+    boolean found = false;    
+    if (output == null) {
+      return false;
+    }
+    for (int i = 0; i < output.size(); i++) {
+      String line = ((String) output.get(i)).trim();
+      if (line.length() == 0) {
+        //empty line
+        if (currentError || currentWarning || currentInfo) {
+          //just finished an error, warning, or info string - save it
+          if (currentError) {
+            errors.add(error.toString());
+          }
+          else if (currentWarning) {
+            warnings.add(warning.toString());
+          }
+          else if (currentInfo) {
+            information.add(info.toString());
+          }
+          currentError = currentWarning = currentInfo = false;
+        }
+      }
+      else {
+        //look for a new error, warning, or info string
+        newLabel = true;
+        if (line.indexOf("ERROR:") != -1) {
+          currentError = true;
+        }
+        else if (line.indexOf("WARNING:") != -1) {
+          currentWarning = true;
+        }
+        else if (line.indexOf("INFO:") != -1) {
+          currentInfo = true;
+        }
+        else {
+          newLabel = false;
+        }
+      }
+      if (newLabel) {
+        //save a new error, warning, or info string
+        if (currentError) {
+          error = new StringBuffer(line);
+        }
+        else if (currentWarning) {
+          warning = new StringBuffer(line);
+        }
+        else if (currentInfo) {
+          info = new StringBuffer(line);
+        }
+        newLabel = false;
+      }
+      else if (currentError || currentWarning || currentInfo) {
+        if (multiLineMessages) {
+          //in a multi-line error, warning, or info string
+          if (currentError) {
+            error.append(" " + line);
+          }
+          else if (currentWarning) {
+            warning.append(" " + line);
+          }
+          else if (currentInfo) {
+            info.append(" " + line);
+          }
+        }
+        else {
+          //just finished a one line error, warning, or info string - save it
+          currentError = currentWarning = currentInfo = false;
+          if (currentError) {
+            errors.add(error.toString());
+          }
+          else if (currentWarning) {
+            warnings.add(warning.toString());
+          }
+          else if (currentInfo) {
+            information.add(info.toString());
+          }
+        }
+      }
+    }
+    if (currentError || currentWarning || currentInfo) {
+      //just finished an error, warning, or info string - save it
+      if (currentError) {
+        errors.add(error.toString());
+      }
+      else if (currentWarning) {
+        warnings.add(warning.toString());
+      }
+      else if (currentInfo) {
+        information.add(info.toString());
+      }
+    }
+    if (errors.size() > 0) {
+      found = true;
+      errorList = append(errors, errorList);
+    }
+    if (warnings.size() > 0) {
+      found = true;
+      warningList = append(warnings, warningList);
+    }
+    if (information.size() > 0) {
+      found = true;
+      infoList = append(information, infoList);
+    }
+    return found;
+  }
+  
+  private final ArrayList append(ArrayList fromList, ArrayList toList) {
+    if (fromList == null || fromList.size() == 0) {
+      return toList;
+    }
+    if (toList == null) {
+      toList = new ArrayList(fromList);
+    }
+    else {
+      for (int i = 0; i < fromList.size(); i++) {
+        toList.add(fromList.get(i));
+      }
+    }
+    return toList;
+  }
  
   /**
    * 
