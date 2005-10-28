@@ -473,9 +473,7 @@ public class ApplicationManager extends BaseManager {
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
         try {
-          if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
-            return;
-          }
+          processMgr.setupComScripts(metaData, AxisID.ONLY);
         }
         catch (BadComScriptException except) {
           except.printStackTrace();
@@ -5893,6 +5891,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.190  2005/10/28 18:44:56  sueh
+ * <p> bug# 746, bug# 725 deleted updateSplitcombineParam().
+ * <p>
  * <p> Revision 3.189  2005/10/27 00:05:27  sueh
  * <p> bug# 725 Processing the b stack when it is added late.  Added functions:
  * <p> extractmagrad, extractpieces, extracttilts, preCrossCorrelate, preEraser,

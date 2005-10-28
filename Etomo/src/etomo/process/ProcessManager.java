@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.84  2005/10/28 18:50:31  sueh
+ * bug# 725 In setupComScripts, checking for error messages and returning
+ * false if any are found.
+ *
  * Revision 3.83  2005/10/27 00:30:33  sueh
  * bug# 725 Added functions:  extracttilts, extractpieces, and extractmagrad.
  * Each runs a backgroundProcess with forceNextProcess turned on.
@@ -772,7 +776,7 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  public boolean setupComScripts(ConstMetaData metaData, AxisID axisID)
+  public void setupComScripts(ConstMetaData metaData, AxisID axisID)
       throws BadComScriptException, IOException {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
@@ -809,7 +813,6 @@ public class ProcessManager extends BaseProcessManager {
           UIHarness.INSTANCE.openMessageDialog(errors[i],
               "Copytomocoms Error", axisID);
         }
-        return false;
       }
       String[] warnings = copyTomoComs.getWarnings();
       if (warnings != null) {
@@ -819,7 +822,6 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
     }
-    return true;
   }
 
   /**
