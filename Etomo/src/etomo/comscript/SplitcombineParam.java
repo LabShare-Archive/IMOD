@@ -22,7 +22,6 @@ public class SplitcombineParam {
   public static final String COMMAND_NAME = "splitcombine";
   
   private String[] commandArray = null;
-  private String tempDirectory;
   
   public final String[] getCommand() {
     if (commandArray == null) {
@@ -37,18 +36,16 @@ public class SplitcombineParam {
     command.add("-f");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     command.add("volcombine");
-    command.add(tempDirectory);
     int commandSize = command.size();
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
       commandArray[i] = (String) command.get(i);
     }
   }
-  
-  public void setTempDirectory(String tempDirectory) {
-    this.tempDirectory = tempDirectory;
-  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/09/16 17:48:46  sueh
+* <p> bug# 532 A param for splitcombine.
+* <p> </p>
 */
