@@ -19,7 +19,6 @@ import javax.swing.JRadioButton;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
-import etomo.comscript.SplitcombineParam;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
@@ -49,6 +48,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2005/10/15 00:36:33  sueh
+ * bug# 532 Standardized is and set parallel processing checkbox functions
+ * to setParallel() and isParallel().
+ *
  * Revision 3.22  2005/10/13 22:36:14  sueh
  * bug# 532 parallel process check box and no volcombine check box are on
  * both setup and final now.  Getting the text for no volcombine from final.
@@ -578,10 +581,6 @@ public class SetupCombinePanel
       pnlTempDirectoryBody.setVisible(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
-  }
-  
-  public final void setParameters(SplitcombineParam param) {
-    param.setTempDirectory(ltfTempDirectory.getText());
   }
 
   /**

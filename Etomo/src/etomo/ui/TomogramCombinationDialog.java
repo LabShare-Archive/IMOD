@@ -22,7 +22,6 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
-import etomo.comscript.SplitcombineParam;
 
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
@@ -48,6 +47,10 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2005/10/15 00:36:46  sueh
+ * <p> bug# 532 Standardized is and set parallel processing checkbox functions
+ * <p> to setParallel() and isParallel().
+ * <p>
  * <p> Revision 3.28  2005/10/13 22:36:57  sueh
  * <p> bug# 532 parallel process check box and no volcombine check box are on
  * <p> both setup and final now.  Getting the text for no volcombine from final.
@@ -386,10 +389,6 @@ public class TomogramCombinationDialog
   public final void getParameters(MetaData metaData) {
     synchronize(lblSetup, false);
     pnlSetup.getParameters(metaData);
-  }
-  
-  public final void getParameters(SplitcombineParam param) {
-    pnlSetup.setParameters(param);
   }
   
   public final void setParameters(ConstMetaData metaData) {
