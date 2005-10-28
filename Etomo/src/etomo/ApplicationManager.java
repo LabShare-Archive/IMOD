@@ -473,7 +473,9 @@ public class ApplicationManager extends BaseManager {
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
         try {
-          processMgr.setupComScripts(metaData, AxisID.ONLY);
+          if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
+            return;
+          }
         }
         catch (BadComScriptException except) {
           except.printStackTrace();
@@ -1330,7 +1332,7 @@ public class ApplicationManager extends BaseManager {
       resetNextProcess(axisID);
     }
     String magGradientFileName = metaData.getMagGradientFile();
-    if (magGradientFileName == null || magGradientFileName.matches("\\s++")) {
+    if (magGradientFileName == null || magGradientFileName.matches("\\s*+")) {
       startNextProcess(axisID);
       return;
     }
@@ -5807,28 +5809,15 @@ public class ApplicationManager extends BaseManager {
     return;
   }
   
-  private final SplitcombineParam updateSplitcombineParam() {
-    if (tomogramCombinationDialog == null) {
-      return null;
-    }
-    SplitcombineParam param = new SplitcombineParam();
-    tomogramCombinationDialog.getParameters(param);
-    return param;
-  }
-  
   public void splitcombine() {
     if (!updateVolcombineCom()) {
-      return;
-    }
-    SplitcombineParam param = updateSplitcombineParam();
-    if (param == null) {
       return;
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     String threadName;
     try {
-      threadName = processMgr.splitcombine(param);
+      threadName = processMgr.splitcombine();
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5904,6 +5893,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.189  2005/10/27 00:05:27  sueh
+ * <p> bug# 725 Processing the b stack when it is added late.  Added functions:
+ * <p> extractmagrad, extractpieces, extracttilts, preCrossCorrelate, preEraser,
+ * <p> and processBStack.
+ * <p>
  * <p> Revision 3.188  2005/10/19 00:17:43  sueh
  * <p> bug# 673 Added updateArchiveDisplay() to update the display of the
  * <p> archive button on the clean up panel.
