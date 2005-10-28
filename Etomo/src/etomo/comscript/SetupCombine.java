@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.8  2005/09/09 21:21:41  sueh
+ * bug# 532 Handling null from stderr and stdout.
+ *
  * Revision 3.7  2005/07/29 00:49:34  sueh
  * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * because the current manager changes when the user changes the tab.
@@ -363,7 +366,7 @@ public class SetupCombine {
    * @return
    */
   public String[] getWarnings() {
-    ArrayList warnings = SystemProgram.parseWarning(setupcombine.getStdError());
+    ArrayList warnings = setupcombine.getWarnings(/*setupcombine.getStdError()*/);
     if (warnings == null || warnings.size() == 0) {
       return null;
     }

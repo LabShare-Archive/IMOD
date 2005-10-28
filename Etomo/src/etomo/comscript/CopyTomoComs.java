@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2005/10/27 00:11:47  sueh
+ * bug# 725 Putting warnings into error log when debug is off.
+ *
  * Revision 3.12  2005/07/29 00:44:59  sueh
  * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * because the current manager changes when the user changes the tab.
@@ -211,7 +214,7 @@ public class CopyTomoComs {
       commandLine.append(" " + options.get(i));
     }
     copytomocoms = new SystemProgram(manager.getPropertyUserDir(), commandLine
-        .toString(), AxisID.ONLY);
+        .toString(), AxisID.ONLY, true);
     //genStdInputSequence();
   }
 
@@ -495,24 +498,31 @@ public class CopyTomoComs {
    * make sure that warnings get into the error log
    * @return
    */
-  public String[] getWarnings() {
-    ArrayList warnings = SystemProgram.parseWarning(copytomocoms.getStdError(),
-        true);
-    if (warnings == null || warnings.size() == 0) {
+  public String[] getErrors() {
+    ArrayList errors = copytomocoms.getErrors();
+    if (errors == null || errors.size() == 0) {
       return null;
     }
-    if (!debug) {
-      System.err.println("Copytomocoms warnings:");
+    String[] errorStrings = new String[errors.size()];
+    for (int i = 0; i < errors.size(); i++) {
+      errorStrings[i] = (String) errors.get(i);
+    }
+    return errorStrings;
+  }
+  
+  /**
+   * returns a String array of warnings - one warning per element
+   * make sure that warnings get into the error log
+   * @return
+   */
+  public String[] getWarnings() {
+    ArrayList warnings = copytomocoms.getWarnings();
+    if (warnings == null || warnings.size() == 0) {
+      return null;
     }
     String[] warningStrings = new String[warnings.size()];
     for (int i = 0; i < warnings.size(); i++) {
       warningStrings[i] = (String) warnings.get(i);
-      if (!debug) {
-        System.err.println(warningStrings[i]);
-      }
-    }
-    if (!debug) {
-      System.err.println();
     }
     return warningStrings;
   }
