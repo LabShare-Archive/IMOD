@@ -6,6 +6,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
+import etomo.util.MRCHeader;
 
 /**
 * <p>Description: </p>
@@ -32,6 +33,7 @@ public class ExtractmagradParam {
 
   private String gradientTable = null;
   private String[] commandArray = null;
+  private EtomoNumber pixelSize = null;
   
   public ExtractmagradParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
@@ -69,7 +71,21 @@ public class ExtractmagradParam {
   public final void setRotationAngle(float rotationAngle) {
     this.rotationAngle.set(rotationAngle);
   }
+  
+  public final void setPixelSize(double pixelSize) {
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getStackName(manager, axisID), axisID);
+    if (header.getXPixelSpacing() == 1) {
+      if (this.pixelSize == null) {
+        this.pixelSize = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+      }
+      this.pixelSize.set(pixelSize);
+    }
+  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/10/27 00:12:21  sueh
+* <p> bug# 725 Param to create a extractmagrad command line.
+* <p> </p>
 */
