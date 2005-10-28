@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.83  2005/10/27 00:30:33  sueh
+ * bug# 725 Added functions:  extracttilts, extractpieces, and extractmagrad.
+ * Each runs a backgroundProcess with forceNextProcess turned on.
+ *
  * Revision 3.82  2005/09/29 18:39:28  sueh
  * bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
  * over during exit.  Added BaseManager.exiting and
@@ -768,7 +772,7 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  public void setupComScripts(ConstMetaData metaData, AxisID axisID)
+  public boolean setupComScripts(ConstMetaData metaData, AxisID axisID)
       throws BadComScriptException, IOException {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
@@ -799,6 +803,14 @@ public class ProcessManager extends BaseProcessManager {
       throw (new BadComScriptException(buffer.toString()));
     }
     else {
+      String[] errors = copyTomoComs.getErrors();
+      if (errors != null && errors.length > 0) {
+        for (int i = 0; i < errors.length; i++) {
+          UIHarness.INSTANCE.openMessageDialog(errors[i],
+              "Copytomocoms Error", axisID);
+        }
+        return false;
+      }
       String[] warnings = copyTomoComs.getWarnings();
       if (warnings != null) {
         for (int i = 0; i < warnings.length; i++) {
@@ -807,6 +819,7 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
     }
+    return true;
   }
 
   /**
@@ -1335,9 +1348,9 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run splitcombine
    */
-  public String splitcombine(SplitcombineParam param) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), AxisID.ONLY);
+  public String splitcombine() throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        new SplitcombineParam().getCommand(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
