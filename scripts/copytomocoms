@@ -53,6 +53,7 @@ set bFocusAdj = 0
 set binning = 1
 set distort = ""
 set subdistort = gibberish
+set pixsize = ""
 
 if ($#argv > 0) then
 
@@ -631,8 +632,11 @@ while ($iaxis < $numax)
             set gradok = "1"
 	    if (! -e $gradspec) then
                 if (-e $stackname) then
+                    set pixarg = ""
+                    set pixhead = `header $stackname | sed -n '/Pixel sp/p' | awk '{print $4}'`
+                    if ("$pixhead" == "1.000" && $pixsize != "") set pixarg = "-pixel $pixsize"
                     echo "Extracting mag gradients from the image file..."
-                    extractmagrad -rot $axisangle -grad "$gradient" $stackname $gradspec | tail -n 2
+                    extractmagrad -rot $axisangle $pixarg -grad "$gradient" $stackname $gradspec | tail -n 2
                     if ($status) then
                         echo2 " "
                         echo2 "WARNING: Could not extract mag gradients from $stackname"
@@ -1352,6 +1356,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.42  2005/10/27 14:15:41  mast
+#  Changed WARNING to INFO for actions that etomo will take care of
+#
 #  Revision 3.41  2005/10/05 17:46:37  mast
 #  Got b axis size from b axis data, gave warning about FULLIMAGE if no
 #  b axis yet
