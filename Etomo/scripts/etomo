@@ -65,24 +65,32 @@ if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
   . ${IMOD_DIR}/bin/setlibpath
 fi
 
-# If ETOMO_LOG_DIR is defined, set up log files there with date/time stamp
+# set up error log file with date/time stamp
+# If ETOMO_LOG_DIR is defined, set up both with it and 
 # purge the directory to 60 files (30 sessions)
 
+timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
 outlog=etomo_out.log
-errlog=etomo_err.log
+errlog=etomo_err_${timestamp}.log
+keeplines=+13
+purgedir=.
 if [ ! -z ${ETOMO_LOG_DIR} ] ; then
   if [ -w ${ETOMO_LOG_DIR} ] ; then
-    timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
     outlog=${ETOMO_LOG_DIR}/etomo_out_${timestamp}.log
-    errlog=${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log
-    anypurge=`cd ${ETOMO_LOG_DIR} ; find . -name 'etomo_*.log' -print`
-    if [ ! -z "${anypurge}" ] ; then
-      purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t etomo_*.log | tail -n +61`
-      # echo $purgelist
-      if [ ! -z "${purgelist}" ] ; then 
-        (cd ${ETOMO_LOG_DIR} ; rm -f ${purgelist})
-      fi
-    fi
+    errlog=${ETOMO_LOG_DIR}/${errlog}
+    keeplines=+61
+    purgedir=${ETOMO_LOG_DIR}
+  fi
+fi
+
+# Purge the current or defined directory
+#
+anypurge=`cd ${purgedir} ; find . -name 'etomo_*.log*' -print`
+if [ ! -z "${anypurge}" ] ; then
+  purgelist=`cd ${purgedir} ; ls -t etomo_*.log* | tail -n $keeplines`
+  # echo $purgelist
+  if [ ! -z "${purgelist}" ] ; then 
+    (cd ${purgedir} ; rm -f ${purgelist})
   fi
 fi
 
@@ -100,6 +108,9 @@ java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
 
 
 # $Log$
+# Revision 1.14  2005/10/03 18:56:34  mast
+# Added test for GNU java
+#
 # Revision 1.13  2005/05/19 23:00:33  mast
 # Added variable for setting memory limit higher, default 128 now
 #
