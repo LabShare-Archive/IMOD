@@ -190,7 +190,7 @@ public class Montagesize {
     if (montagesize.getExitValue() != 0) {
       String[] stdOutput = montagesize.getStdOutput();
       if (stdOutput != null && stdOutput.length > 0) {
-        ArrayList errorList = SystemProgram.parseError(stdOutput);
+        ArrayList errorList = montagesize.getErrors(/*stdOutput*/);
         if (errorList.size() > 0) {
           String message = "montagesize returned an error:\n";
           for (int i = 0; i < errorList.size(); i++) {
@@ -315,6 +315,9 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/10/27 00:38:32  sueh
+ * <p> bug# 725 Added buildCommand().  Changed String filename to File file.
+ * <p>
  * <p> Revision 1.9  2005/09/09 21:48:24  sueh
  * <p> bug# 532 Handling null from stderr and stdout.
  * <p>

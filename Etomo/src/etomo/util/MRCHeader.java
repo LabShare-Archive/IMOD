@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/09/09 21:48:35  sueh
+ * <p> bug# 532 Handling null from stderr and stdout.
+ * <p>
  * <p> Revision 3.15  2005/08/27 22:44:10  sueh
  * <p> bug# 532 In Utilities.timestamp() change the int status to String status,
  * <p> since it doesn't have to be compared.
@@ -244,17 +247,15 @@ public class MRCHeader {
     header.run();
 
     if (header.getExitValue() != 0) {
-      String[] stdOutput = header.getStdOutput();
-      if (stdOutput != null && stdOutput.length > 0) {
-        ArrayList errorList = SystemProgram.parseError(stdOutput);
-        if (errorList.size() > 0) {
-          String message = "header returned an error:\n";
-          for (int i = 0; i < errorList.size(); i++) {
-            message = message + errorList.get(i) + "\n";
-          }
-          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-          throw new InvalidParameterException(message);
+      ArrayList errorList = header.getErrors(/*stdOutput*/);
+      if (errorList.size() > 0) {
+        String message = "header returned an error:\n";
+        for (int i = 0; i < errorList.size(); i++) {
+          message = message + errorList.get(i) + "\n";
         }
+        Utilities
+            .timestamp("read", "header", filename, Utilities.FAILED_STATUS);
+        throw new InvalidParameterException(message);
       }
     }
     // Throw an exception if the file can not be read

@@ -54,17 +54,14 @@ public class Goodframe {
     groupframe.run();
 
     if (groupframe.getExitValue() != 0) {
-      String[] stdOutput = groupframe.getStdOutput();
-      if (stdOutput != null && stdOutput.length > 0) {
-        ArrayList errorList = SystemProgram.parseError(stdOutput);
-        if (errorList.size() > 0) {
-          String message = "groupframe returned an error:\n";
-          for (int i = 0; i < errorList.size(); i++) {
-            message = message + errorList.get(i) + "\n";
-          }
-          Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
-          throw new InvalidParameterException(message);
+      ArrayList errorList = groupframe.getErrors(/*stdOutput*/);
+      if (errorList.size() > 0) {
+        String message = "groupframe returned an error:\n";
+        for (int i = 0; i < errorList.size(); i++) {
+          message = message + errorList.get(i) + "\n";
         }
+        Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
+        throw new InvalidParameterException(message);
       }
     }
     // Throw an exception if the file can not be read
@@ -125,6 +122,9 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/09/09 21:48:06  sueh
+* <p> bug# 532 Handling null from stderr and stdout.
+* <p>
 * <p> Revision 1.5  2005/08/27 22:43:40  sueh
 * <p> bug# 532 In Utilities.timestamp() change the int status to String status,
 * <p> since it doesn't have to be compared.
