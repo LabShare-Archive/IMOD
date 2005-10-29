@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.29  2005/10/21 19:55:08  sueh
+ * bug# 742 Added getCurrentStdError().
+ *
  * Revision 3.28  2005/08/30 18:41:15  sueh
  * bug# 532 Made processMonitor protected so it can be used by the child
  * class.
@@ -740,6 +743,9 @@ public class ComScriptProcess
       }
     }
     fileReader.close();
+    for (int i = 0; i < errors.size(); i++) {
+      System.err.println((String) errors.get(i));
+    }
     return errors;
   }
 
@@ -805,6 +811,9 @@ public class ComScriptProcess
       }
     }
     fileBuffer.close();
+    for (int i = 0; i < errors.size(); i++) {
+      System.err.println((String) errors.get(i));
+    }
     return errors;
   }
 
