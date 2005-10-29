@@ -1,9 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/05: IMOD_3-6-16
 10/28/05: Fixed a problem in Tomogram Combination when processchunks is being
-run for volcombine.  Computers where reporting a failure when the temporary
-directory was used.  Splitcombine and processchunks are no longer affected by
-the temporary directory.
+run for volcombine.  Splitcombine was being told to use the user's temporary
+directory, instead of a local temp directory.  Splitcombine and processchunks
+are no longer affected by the temporary directory.
 
 10/28/05: Fixed a problem in the B axis when the B stack was added after Setup
 Tomogram was completed.  Processchunks might fail on the last chunk in this
@@ -29,9 +30,9 @@ for all cases except section-by-section 2D transformations.
 10/18/05: Disabling the Archive Original Stacks button when it is are not
 needed.
 
-10/18/05: Fixed a problem which caused whole tomogram in Tomogram Positioning to
-run more then once when the Create Sample Tomograms button was pressed while a
-process was running.
+10/18/05: Fixed a problem which caused whole tomogram in Tomogram Positioning
+to run more then once when the Create Sample Tomograms button was pressed
+while a process was running.
 
 10/18/05: Disabled the archive button in the Clean Up dialog when it is not
 needed.
