@@ -674,6 +674,7 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   private void eraser(AxisID axisID) {
+    resetNextProcess(axisID);
     updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -1182,6 +1183,7 @@ public class ApplicationManager extends BaseManager {
    * Get the parameters from dialog box and run the cross correlation script
    */
   private void crossCorrelate(AxisID axisID) {
+    resetNextProcess(axisID);
     // Get the parameters from the dialog box
     ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(axisID);
     if (tiltxcorrParam != null) {
@@ -5891,6 +5893,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.191  2005/10/28 21:46:15  sueh
+ * <p> bug# 725 setComScripts() do not fail on error messages if exitValue is 0.
+ * <p> This means that copytomocoms succeeded but a process it called printed
+ * <p> an error message.
+ * <p>
  * <p> Revision 3.190  2005/10/28 18:44:56  sueh
  * <p> bug# 746, bug# 725 deleted updateSplitcombineParam().
  * <p>
