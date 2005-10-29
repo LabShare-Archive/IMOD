@@ -27,6 +27,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/09/21 16:44:30  sueh
+* <p> bug# 532 Added setState(ProcessState, AxisID, ParallelDialog) and
+* <p> setState(ProcessState, AxisID, DialogType) so that one processchunks
+* <p> function in BaseManager can handle multiple dialogs.
+* <p>
 * <p> Revision 1.15  2005/08/04 20:12:43  sueh
 * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
 * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -445,6 +450,7 @@ public class MainTomogramPanel extends MainPanel {
   public void showBlankProcess(AxisID axisID) {
     ((ApplicationManager) manager).setCurrentDialogType(null, axisID);
     super.showBlankProcess(axisID);
+    setParallelDialog(axisID, false);
   }
   
   /**
