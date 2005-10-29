@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/05: Fixed a problem in Tomogram Combination when processchunks is being
+run for volcombine.  Computers where reporting a failure when the temporary
+directory was used.  Splitcombine and processchunks are no longer affected by
+the temporary directory.
+
+10/28/05: Fixed a problem in the B axis when the B stack was added after Setup
+Tomogram was completed.  Processchunks might fail on the last chunk in this
+situation.  Etomo is automatically fixing IMAGESIZE in tiltb.com when either
+Create Fixed Stack or Calculate Cross-Correlation is pressed in the B axis.  At
+this time Etomo will also extract tilt angles, the piece list (montage only),
+and magnification gradients as necessary.
+
 10/24/05: Added option to Xfmodel to transform a model by applying one
 transform per chunk of Z values for a set of chunks.
 
@@ -13,6 +25,13 @@ Refinematch, and Findwarp.
 2D transform, manipulating the flipped state of a model, and transforming it to
 match an image file.  Made transformation of mesh normals and clip planes work
 for all cases except section-by-section 2D transformations.
+
+10/18/05: Disabling the Archive Original Stacks button when it is are not
+needed.
+
+10/18/05: Fixed a problem which caused whole tomogram in Tomogram Positioning to
+run more then once when the Create Sample Tomograms button was pressed while a
+process was running.
 
 10/18/05: Disabled the archive button in the Clean Up dialog when it is not
 needed.
