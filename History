@@ -1,9 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/31/05: Fixed the Save menu option in Join so that it work whether or not
+10/31/05: Fixed Imodtrans, which was transforming the model twice.
+
+10/31/05: Implemented some workarounds to problems with loading many files
+through the 3dmod startup dialog when the paths total > 32767 characters: 
+removed current directory from names, warned user not to edit a truncated list.
+
+10/31/05: Fixed the Save menu option in Join so that it works whether or not
 Make Samples has been run.  Fixed the Save menu option in tomogram
 reconstruction so that it saves the state of the current dialog.  Prevented the
-use of Save As during Setup Tomogram.  Returning a error message when Save
+use of Save As during Setup Tomogram.  An error message is given when Save
 fails.
 
 10/28/05: IMOD_3-6-16
