@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/31/05: Fixed the Save menu option in Join so that it work whether or not
+Make Samples has been run.  Fixed the Save menu option in tomogram
+reconstruction so that it saves the state of the current dialog.  Prevented the
+use of Save As during Setup Tomogram.  Returning a error message when Save
+fails.
+
 10/28/05: IMOD_3-6-16
 10/28/05: Fixed a problem in Tomogram Combination when processchunks is being
 run for volcombine.  Splitcombine was being told to use the user's temporary
