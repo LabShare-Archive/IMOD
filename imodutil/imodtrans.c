@@ -12,6 +12,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2005/10/19 16:00:36  mast
+    Needed to transpose inverse to apply normal matrix in usual direction
+
     Revision 3.4  2005/10/19 14:30:01  mast
     Fixed handling of normals, and added options for transforming whole volume
     with 2D transform, manipulating flip state, and transforming to match an
@@ -601,40 +604,6 @@ static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
   imodMatScale(clipMat, &tmpPt);
 
   imodTransFromMats(model, matUse, normMat, clipMat);
-  for (ob = 0; ob < model->objsize; ob++) {
-    obj = &(model->obj[ob]);
-
-    /* Transform points in contours */
-    for (co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        imodMatTransform(matUse, &cont->pts[pt], &tmpPt);
-        cont->pts[pt] = tmpPt;
-      }
-    }
-
-    imodClipsTrans(&obj->clips, matUse, clipMat);
-
-    /* Transform points and normals in meshes */
-    for (me = 0; me < obj->meshsize; me++) {
-      mesh = &obj->mesh[me];
-      for (pt = 0; pt < mesh->vsize; pt++) {
-        imodMatTransform(matUse, &mesh->vert[pt], &tmpPt);
-        mesh->vert[pt++] = tmpPt;
-        imodMatTransform(normMat, &mesh->vert[pt], &tmpPt);
-        imodPointNormalize(&tmpPt);
-        mesh->vert[pt] = tmpPt;
-      }
-    }
-  }
-
-  /* Now transform clip points in views and object views */
-  for (i = 0; i < model->viewsize; i++) {
-    imodClipsTrans(&model->view[i].clips, matUse, clipMat);
-    for (ob = 0; ob < model->view[i].objvsize; ob++) {
-      imodClipsTrans(&model->view[i].objview[ob].clips, matUse, clipMat);
-    }
-  }
 
   return 0;
 }
