@@ -97,21 +97,25 @@ public abstract class EtomoFrame extends JFrame {
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileSave())) {
-      //  Check to see if there is a current parameter file chosen
-      //  if not open a dialog box to select the name
-      boolean haveTestParamFilename = true;
-      if (currentManager.getTestParamFile() == null) {
-        haveTestParamFilename = getTestParamFilename();
+      if (currentManager.save(axisID)) {
+        return;
       }
-      if (haveTestParamFilename) {
-        currentManager.saveIntermediateParamFile(axisID);
+      //Don't allow the user to do the equivalent of a Save As without checking.
+      if (!currentManager.canChangeParamFileName()) {
+        openMessageDialog(
+            "Please set the name of dataset or the join before saving",
+            "Cannot Save");
+        return;
+      }
+      //Do a Save As
+      if (getTestParamFilename()) {
+        currentManager.save(axisID);
       }
     }
 
     if (event.getActionCommand().equals(menu.getActionCommandFileSaveAs())) {
-      boolean haveTestParamFilename = getTestParamFilename();
-      if (haveTestParamFilename) {
-        currentManager.saveIntermediateParamFile(axisID);
+      if (getTestParamFilename()) {
+        currentManager.save(axisID);
       }
     }
 
@@ -616,6 +620,14 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.13  2005/09/29 18:48:00  sueh
+* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+* <p> over during exit.  Added BaseManager.exiting and
+* <p> saveIntermediateParamFile(), which will not save when exiting it true.
+* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+* <p> saveParamFile() to the child exitProgram functions so that the param file
+* <p> is saved after all the done functions are run.
+* <p>
 * <p> Revision 1.12  2005/08/11 23:48:28  sueh
 * <p> bug# 711  Add is and set functions from menu3dmodStartupWindow and
 * <p> menu3dmodBinBy2.  In menuOptionsAction() handle the coordination of
