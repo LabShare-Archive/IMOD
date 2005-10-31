@@ -544,8 +544,7 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Closes preprocessing dialog.  Updates comscripts and edf file and deletes
-   * dialog.
+   * Closes preprocessing dialog and deletes dialog.
    */
   public void donePreProcDialog(AxisID axisID) {
     PreProcessingDialog preProcDialog;
@@ -561,6 +560,24 @@ public class ApplicationManager extends BaseManager {
               + "preprocessing dialog", "Program logic error", axisID);
       return;
     }
+    savePreProcDialog(preProcDialog, axisID);
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      preProcDialogB = null;
+    }
+    else {
+      preProcDialogA = null;
+    }
+    preProcDialog = null;
+  }
+  
+  
+  /**
+   * Updates comscripts and edf file 
+   * @param preProcDialog
+   * @param axisID
+   */
+  public void savePreProcDialog(PreProcessingDialog preProcDialog, AxisID axisID) {
     setAdvanced(preProcDialog.getDialogType(), axisID, preProcDialog
         .isAdvanced());
 
@@ -608,15 +625,8 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(axisID);
     }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      preProcDialogB = null;
-    }
-    else {
-      preProcDialogA = null;
-    }
-    preProcDialog = null;
   }
+
 
   /**
    * Open 3dmod to create the manual erase model
@@ -1110,6 +1120,21 @@ public class ApplicationManager extends BaseManager {
           "Program logic error", axisID);
       return;
     }
+    saveCoarseAlignDialog(coarseAlignDialog, axisID);
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      coarseAlignDialogB = null;
+    }
+    else {
+      coarseAlignDialogA = null;
+    }
+    coarseAlignDialog = null;
+  }
+  
+  /**
+   * Get the parameters from the coarse align process dialog box
+   */
+  public void saveCoarseAlignDialog(CoarseAlignDialog coarseAlignDialog, AxisID axisID) {
     setAdvanced(coarseAlignDialog.getDialogType(), axisID, coarseAlignDialog
         .isAdvanced());
     DialogExitState exitState = coarseAlignDialog.getExitState();
@@ -1169,15 +1194,8 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(axisID);
     }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      coarseAlignDialogB = null;
-    }
-    else {
-      coarseAlignDialogA = null;
-    }
-    coarseAlignDialog = null;
   }
+
 
   /**
    * Get the parameters from dialog box and run the cross correlation script
@@ -1725,6 +1743,21 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", axisID);
       return;
     }
+    saveFiducialModelDialog(fiducialModelDialog, axisID);
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      fiducialModelDialogB = null;
+    }
+    else {
+      fiducialModelDialogA = null;
+    }
+    fiducialModelDialog = null;
+  }
+  
+  /**
+   * Save comscripts and the .edf file and delete the dialog.
+   */
+  public void saveFiducialModelDialog(FiducialModelDialog fiducialModelDialog, AxisID axisID) {
     setAdvanced(fiducialModelDialog.getDialogType(), axisID,
         fiducialModelDialog.isAdvanced());
     DialogExitState exitState = fiducialModelDialog.getExitState();
@@ -1749,14 +1782,6 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(axisID);
     }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      fiducialModelDialogB = null;
-    }
-    else {
-      fiducialModelDialogA = null;
-    }
-    fiducialModelDialog = null;
   }
 
   /**
@@ -2078,9 +2103,7 @@ public class ApplicationManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        mainPanel.done();
-        saveDialog();
-        saveParamFile(axisID);
+        save(axisID);
         return true;
       }
       return false;
@@ -2089,6 +2112,12 @@ public class ApplicationManager extends BaseManager {
       e.printStackTrace();
       return true;
     }
+  }
+  
+  public boolean save(AxisID axisID) {
+    mainPanel.done();
+    saveDialog();
+    return saveParamFile(axisID);
   }
 
   /**
@@ -2099,49 +2128,49 @@ public class ApplicationManager extends BaseManager {
     AxisID firstAxisID = metaData.getAxisType() == AxisType.DUAL_AXIS ? AxisID.FIRST
         : AxisID.ONLY;
     if (preProcDialogA != null) {
-      donePreProcDialog(firstAxisID);
+      savePreProcDialog(preProcDialogA, firstAxisID);
     }
     if (preProcDialogB != null) {
-      donePreProcDialog(AxisID.SECOND);
+      savePreProcDialog(preProcDialogB, AxisID.SECOND);
     }
     if (coarseAlignDialogA != null) {
-      doneCoarseAlignDialog(firstAxisID);
+      saveCoarseAlignDialog(coarseAlignDialogA, firstAxisID);
     }
     if (coarseAlignDialogB != null) {
-      doneCoarseAlignDialog(AxisID.SECOND);
+      saveCoarseAlignDialog(coarseAlignDialogB, AxisID.SECOND);
     }
     if (fiducialModelDialogA != null) {
-      doneFiducialModelDialog(firstAxisID);
+      saveFiducialModelDialog(fiducialModelDialogA, firstAxisID);
     }
     if (fiducialModelDialogB != null) {
-      doneFiducialModelDialog(AxisID.SECOND);
+      saveFiducialModelDialog(fiducialModelDialogB, AxisID.SECOND);
     }
     if (fineAlignmentDialogA != null) {
-      doneAlignmentEstimationDialog(firstAxisID);
+      saveAlignmentEstimationDialog(fineAlignmentDialogA, firstAxisID);
     }
     if (fineAlignmentDialogB != null) {
-      doneAlignmentEstimationDialog(AxisID.SECOND);
+      saveAlignmentEstimationDialog(fineAlignmentDialogB, AxisID.SECOND);
     }
     if (tomogramPositioningDialogA != null) {
-      doneTomogramPositioningDialog(firstAxisID);
+      saveTomogramPositioningDialog(tomogramPositioningDialogA, firstAxisID);
     }
     if (tomogramPositioningDialogB != null) {
-      doneTomogramPositioningDialog(AxisID.SECOND);
+      saveTomogramPositioningDialog(tomogramPositioningDialogB, AxisID.SECOND);
     }
     if (tomogramGenerationDialogA != null) {
-      doneTomogramGenerationDialog(firstAxisID);
+      saveTomogramGenerationDialog(tomogramGenerationDialogA, firstAxisID);
     }
     if (tomogramGenerationDialogB != null) {
-      doneTomogramGenerationDialog(AxisID.SECOND);
+      saveTomogramGenerationDialog(tomogramGenerationDialogB, AxisID.SECOND);
     }
     if (tomogramCombinationDialog != null) {
-      doneTomogramCombinationDialog();
+      saveTomogramCombinationDialog(tomogramCombinationDialog);
     }
     if (postProcessingDialog != null) {
-      donePostProcessing();
+      savePostProcessing(postProcessingDialog);
     }
     if (cleanUpDialog != null) {
-      doneCleanUp();
+      saveCleanUp(cleanUpDialog);
     }
   }
 
@@ -2217,6 +2246,21 @@ public class ApplicationManager extends BaseManager {
           "Program logic error", axisID);
       return;
     }
+    saveAlignmentEstimationDialog(fineAlignmentDialog, axisID);
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      fineAlignmentDialogB = null;
+    }
+    else {
+      fineAlignmentDialogA = null;
+    }
+    fineAlignmentDialog = null;
+  }
+
+  /**
+   * 
+   */
+  public void saveAlignmentEstimationDialog(AlignmentEstimationDialog fineAlignmentDialog, AxisID axisID) {
     setAdvanced(fineAlignmentDialog.getDialogType(), axisID,
         fineAlignmentDialog.isAdvanced());
     DialogExitState exitState = fineAlignmentDialog.getExitState();
@@ -2263,16 +2307,8 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(axisID);
     }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      fineAlignmentDialogB = null;
-    }
-    else {
-      fineAlignmentDialogA = null;
-    }
-    fineAlignmentDialog = null;
   }
-
+  
   /**
    * Execute the fine alignment script (align.com) for the appropriate axis
    * This will also reset the fiducialess alignment flag, setFiducialAlign
@@ -2619,6 +2655,21 @@ public class ApplicationManager extends BaseManager {
           "Program logic error", axisID);
       return;
     }
+    saveTomogramPositioningDialog(tomogramPositioningDialog, axisID);
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      tomogramPositioningDialogB = null;
+    }
+    else {
+      tomogramPositioningDialogA = null;
+    }
+    tomogramPositioningDialog = null;
+  }
+
+  /**
+   *  
+   */
+  public void saveTomogramPositioningDialog(TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
     setAdvanced(tomogramPositioningDialog.getDialogType(), axisID,
         tomogramPositioningDialog.isAdvanced());
     DialogExitState exitState = tomogramPositioningDialog.getExitState();
@@ -2677,17 +2728,8 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(axisID);
     }
-
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      tomogramPositioningDialogB = null;
-    }
-    else {
-      tomogramPositioningDialogA = null;
-    }
-    tomogramPositioningDialog = null;
   }
-
+  
   /**
    * Run the sample com script
    */
@@ -3357,6 +3399,21 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", axisID);
       return;
     }
+    saveTomogramGenerationDialog(tomogramGenerationDialog, axisID);
+    //  Clean up the existing dialog
+    if (axisID == AxisID.SECOND) {
+      tomogramGenerationDialogB = null;
+    }
+    else {
+      tomogramGenerationDialogA = null;
+    }
+    tomogramGenerationDialog = null;
+  }
+
+  /**
+   *  
+   */
+  public void saveTomogramGenerationDialog(TomogramGenerationDialog tomogramGenerationDialog, AxisID axisID) {
     setAdvanced(tomogramGenerationDialog.getDialogType(), axisID,
         tomogramGenerationDialog.isAdvanced());
     DialogExitState exitState = tomogramGenerationDialog.getExitState();
@@ -3406,14 +3463,6 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(axisID);
     }
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      tomogramGenerationDialogB = null;
-    }
-    else {
-      tomogramGenerationDialogA = null;
-    }
-    tomogramGenerationDialog = null;
   }
 
   /**
@@ -4174,6 +4223,13 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", AxisID.ONLY);
       return;
     }
+    saveTomogramCombinationDialog(tomogramCombinationDialog);
+  }
+  
+  /**
+   * Tomogram combination done method, move on to the post processing window
+   */
+  public void saveTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
     setAdvanced(tomogramCombinationDialog.getDialogType(),
         tomogramCombinationDialog.isAdvanced());
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
@@ -4993,6 +5049,14 @@ public class ApplicationManager extends BaseManager {
           "Program logic error", AxisID.ONLY);
       return;
     }
+    savePostProcessing(postProcessingDialog);
+    postProcessingDialog = null;
+  }
+  
+  /**
+   * Close the post processing dialog panel
+   */
+  public void savePostProcessing(PostProcessingDialog postProcessingDialog) {
     setAdvanced(postProcessingDialog.getDialogType(), postProcessingDialog
         .isAdvanced());
     DialogExitState exitState = postProcessingDialog.getExitState();
@@ -5014,7 +5078,6 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(AxisID.ONLY);
     }
-    postProcessingDialog = null;
   }
 
   /**
@@ -5026,6 +5089,15 @@ public class ApplicationManager extends BaseManager {
           "Program logic error", AxisID.ONLY);
       return;
     }
+    saveCleanUp(cleanUpDialog);
+    cleanUpDialog = null;
+    mainPanel.showBlankProcess(AxisID.ONLY);
+  }
+  
+  /**
+   * Close the clean up dialog panel
+   */
+  public void saveCleanUp(CleanUpDialog cleanUpDialog) {
     setAdvanced(cleanUpDialog.getDialogType(), cleanUpDialog.isAdvanced());
     DialogExitState exitState = cleanUpDialog.getExitState();
     if (exitState != DialogExitState.CANCEL) {
@@ -5039,8 +5111,6 @@ public class ApplicationManager extends BaseManager {
       }
       saveIntermediateParamFile(AxisID.ONLY);
     }
-    cleanUpDialog = null;
-    mainPanel.showBlankProcess(AxisID.ONLY);
   }
 
   /**
@@ -5890,9 +5960,20 @@ public class ApplicationManager extends BaseManager {
   public final BaseScreenState getBaseScreenState(AxisID axisID) {
     return (BaseScreenState) getScreenState(axisID);
   }
+  
+  public boolean canChangeParamFileName() {
+    //if the param file hasn't been loaded, any param name that is added while
+    //be overwritten when Setup Tomogram is complete, so don't allow the user to
+    //do a Save As.
+    return this.loadedParamFile;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.192  2005/10/29 00:01:29  sueh
+ * <p> bug# 725 reseting next processing when running crossCorrelate and
+ * <p> eraser to prevent an infinite loop.
+ * <p>
  * <p> Revision 3.191  2005/10/28 21:46:15  sueh
  * <p> bug# 725 setComScripts() do not fail on error messages if exitValue is 0.
  * <p> This means that copytomocoms succeeded but a process it called printed
