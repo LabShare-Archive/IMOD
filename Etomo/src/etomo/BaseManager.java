@@ -50,6 +50,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.39  2005/10/27 00:07:26  sueh
+* <p> bug# 725 Allowing multiple paths when running nextProcess.  Added
+* <p> lastProcessA and B.  Added functions:  getLastProcess,
+* <p> isLastProcessSet, resetLastProcess, and setLastProcess.
+* <p>
 * <p> Revision 1.38  2005/10/15 00:27:42  sueh
 * <p> bug# 532 Changed showParallelStatus() to setParallelDialog().  Removed
 * <p> currentParallelDialogsA and B.  Simplified setParallelDialog() to just call
@@ -367,7 +372,9 @@ public abstract class BaseManager {
   public abstract void touch(File file);
   protected abstract BaseProcessManager getProcessManager();
   public abstract BaseScreenState getBaseScreenState(AxisID axisID);
-
+  public abstract boolean save(AxisID axisID);
+  public abstract boolean canChangeParamFileName();
+  
   //FIXME needs to be public?
   public abstract boolean isNewManager();
   public abstract void setTestParamFile(File paramFile);
@@ -413,10 +420,6 @@ public abstract class BaseManager {
     }
   }
   
-  public boolean canChangeParamFileName() {
-    return true;
-  }
-  
   public final void saveIntermediateParamFile(AxisID axisID) {
     if (exiting) {
       return;
@@ -428,9 +431,12 @@ public abstract class BaseManager {
    * A message asking the ApplicationManager to save the test parameter
    * information to a file.
    */
-  protected final void saveParamFile(AxisID axisID) {
-    if (paramFile == null || !EtomoDirector.getInstance().isMemoryAvailable()) {
-      return;
+  protected final boolean saveParamFile(AxisID axisID) {
+    if (paramFile == null) {
+      return false;
+    }
+    if (!EtomoDirector.getInstance().isMemoryAvailable()) {
+      return true;
     }
     save(getParamFileStorableArray(true), axisID);
     //  Update the MRU test data filename list
@@ -441,6 +447,7 @@ public abstract class BaseManager {
     if (processTrack != null) {
       processTrack.resetModified();
     }
+    return true;
   }
   
   /** 
@@ -629,10 +636,10 @@ public abstract class BaseManager {
   }
   
   /**
-   * Return the test parameter file as a File object
+   * Return the parameter file as a File object
    * @return a File object specifying the data set parameter file.
    */
-  public File getTestParamFile() {
+  public File getParamFile() {
     return paramFile;
   }
   
