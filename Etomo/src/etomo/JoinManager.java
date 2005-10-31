@@ -50,6 +50,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.25  2005/10/18 22:10:15  sueh
+* <p> bug# 737 Setting nextProcess after running process, because the axis
+* <p> busy test is run when running process.
+* <p>
 * <p> Revision 1.24  2005/10/14 21:05:48  sueh
 * <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.  Added
 * <p> doneJoinDialog(); calling it from exitProgram().
@@ -342,6 +346,17 @@ public class JoinManager extends BaseManager {
       createEmptyXfFile(metaData.getRootName());
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
+  }
+  
+  /**
+   * Return the test parameter file as a File object
+   * @return a File object specifying the data set parameter file.
+   */
+  public File getParamFile() {
+    if (paramFile == null) {
+      doneJoinDialog();
+    }
+    return paramFile;
   }
   
   private void doneJoinDialog() {
@@ -995,5 +1010,11 @@ public class JoinManager extends BaseManager {
       e.printStackTrace();
       return true;
     }
+  }
+  
+  public boolean save(AxisID axisID) {
+    doneJoinDialog();
+    mainPanel.done();
+    return saveParamFile(axisID);
   }
 }
