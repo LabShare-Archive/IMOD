@@ -1,7 +1,5 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/31/05: Fixed Imodtrans, which was transforming the model twice.
-
 10/31/05: Implemented some workarounds to problems with loading many files
 through the 3dmod startup dialog when the paths total > 32767 characters: 
 removed current directory from names, warned user not to edit a truncated list.
@@ -13,6 +11,9 @@ use of Save As during Setup Tomogram.  An error message is given when Save
 fails.
 
 10/28/05: IMOD_3-6-16
+10/31/05: Fixed Imodtrans, which was transforming the model twice (forced 
+into 3.6.16).
+
 10/28/05: Fixed a problem in Tomogram Combination when processchunks is being
 run for volcombine.  Splitcombine was being told to use the user's temporary
 directory, instead of a local temp directory.  Splitcombine and processchunks
