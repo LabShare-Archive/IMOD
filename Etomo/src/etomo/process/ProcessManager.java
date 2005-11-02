@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.85  2005/10/28 21:46:05  sueh
+ * bug# 725 setComScripts() do not fail on error messages if exitValue is 0.
+ * This means that copytomocoms succeeded but a process it called printed
+ * an error message.
+ *
  * Revision 3.84  2005/10/28 18:50:31  sueh
  * bug# 725 In setupComScripts, checking for error messages and returning
  * false if any are found.
@@ -807,19 +812,14 @@ public class ProcessManager extends BaseProcessManager {
       throw (new BadComScriptException(buffer.toString()));
     }
     else {
-      String[] errors = copyTomoComs.getErrors();
-      if (errors != null && errors.length > 0) {
-        for (int i = 0; i < errors.length; i++) {
-          UIHarness.INSTANCE.openMessageDialog(errors[i],
-              "Copytomocoms Error", axisID);
-        }
+      ProcessMessages messages = copyTomoComs.getProcessMessages();
+      for (int i = 0; i < messages.errorListSize(); i++) {
+        UIHarness.INSTANCE.openMessageDialog(messages.getError(i),
+            "Copytomocoms Error", axisID);
       }
-      String[] warnings = copyTomoComs.getWarnings();
-      if (warnings != null) {
-        for (int i = 0; i < warnings.length; i++) {
-          UIHarness.INSTANCE.openMessageDialog(warnings[i],
-              "Copytomocoms Warning", axisID);
-        }
+      for (int i = 0; i < messages.warningListSize(); i++) {
+        UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
+            "Copytomocoms Warning", axisID);
       }
     }
   }
@@ -861,10 +861,11 @@ public class ProcessManager extends BaseProcessManager {
     XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
         appManager, axisID, true);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(param, xcorrProcessWatcher, axisID);
+    ComScriptProcess comScriptProcess = startComScript(param,
+        xcorrProcessWatcher, axisID);
     return comScriptProcess.getName();
   }
-  
+
   public String crossCorrelate(ConstTiltxcorrParam param, AxisID axisID)
       throws SystemProcessException {
     //  Create the required command string
@@ -872,15 +873,16 @@ public class ProcessManager extends BaseProcessManager {
     TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
         appManager, axisID);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(param, tiltxcorrProcessWatcher, axisID);
+    ComScriptProcess comScriptProcess = startComScript(param,
+        tiltxcorrProcessWatcher, axisID);
     return comScriptProcess.getName();
   }
 
   public String makeDistortionCorrectedStack(AxisID axisID)
       throws SystemProcessException {
     //  Create the required tiltalign command
-    String command = BlendmontParam
-        .getProcessName(BlendmontParam.UNDISTORT_MODE).getCommand(axisID);
+    String command = BlendmontParam.getProcessName(
+        BlendmontParam.UNDISTORT_MODE).getCommand(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.UNDISTORT_MODE);
@@ -917,7 +919,8 @@ public class ProcessManager extends BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  public String preblend(BlendmontParam param, AxisID axisID) throws SystemProcessException {
+  public String preblend(BlendmontParam param, AxisID axisID)
+      throws SystemProcessException {
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.PREBLEND_MODE);
@@ -1318,7 +1321,7 @@ public class ProcessManager extends BaseProcessManager {
         .getCommand(), axisID);
     return backgroundProcess.getName();
   }
-  
+
   /**
    * Run extracttilts
    */
@@ -1327,7 +1330,7 @@ public class ProcessManager extends BaseProcessManager {
         new ExtracttiltsParam(appManager, axisID).getCommand(), axisID, true);
     return backgroundProcess.getName();
   }
-  
+
   /**
    * Run extractpieces
    */
@@ -1336,7 +1339,7 @@ public class ProcessManager extends BaseProcessManager {
         new ExtractpiecesParam(appManager, axisID).getCommand(), axisID, true);
     return backgroundProcess.getName();
   }
-  
+
   /**
    * Run extractmagrad
    */
@@ -1346,7 +1349,7 @@ public class ProcessManager extends BaseProcessManager {
         .getCommand(), axisID, true);
     return backgroundProcess.getName();
   }
-  
+
   /**
    * Run splitcombine
    */
@@ -1355,7 +1358,7 @@ public class ProcessManager extends BaseProcessManager {
         new SplitcombineParam().getCommand(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
-  
+
   /**
    * Execute the setupcombine script
    * 
@@ -1363,42 +1366,26 @@ public class ProcessManager extends BaseProcessManager {
    *          A read-only object containing the parameters for setupcombine
    *          script
    */
-  public void setupCombineScripts(ConstMetaData metaData)
-      throws BadComScriptException, IOException {
-
+  public boolean setupCombineScripts(ConstMetaData metaData)
+      throws IOException {
     SetupCombine setupCombine = new SetupCombine(appManager);
     appManager.saveIntermediateParamFile(AxisID.ONLY);
     int exitValue = setupCombine.run();
-
+    ProcessMessages messages = setupCombine.getProcessMessages();
+    for (int i = 0; i < messages.errorListSize(); i++) {
+      UIHarness.INSTANCE.openMessageDialog(messages.getError(i),
+          "Setup Combine Error", AxisID.ONLY);
+    }
+    for (int i = 0; i < messages.warningListSize(); i++) {
+      UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
+          "Setup Combine Warning", AxisID.ONLY);
+    }
     if (exitValue != 0) {
-      System.err.println("Exit value: " + String.valueOf(exitValue));
-
-      //  Compile the exception message from the stderr stream
-      String[] stdError = setupCombine.getStdError();
-      if (stdError == null || stdError.length < 1) {
-        stdError = new String[1];
-        stdError[0] = "Get David to add some std error reporting to setupCombine";
-      }
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("SetupCombine Error\n");
-      buffer.append("Standard error output:\n");
-      for (int i = 0; i < stdError.length; i++) {
-        buffer.append(stdError[i]);
-        buffer.append("\n");
-      }
-
-      throw (new BadComScriptException(buffer.toString()));
+      UIHarness.INSTANCE.openMessageDialog("Setup combine failed.  Exit value = " + exitValue,
+          "Setup Combine Failed", AxisID.ONLY);
+      return false;
     }
-    else {
-      String[] warnings = setupCombine.getWarnings();
-      if (warnings != null) {
-        for (int i = 0; i < warnings.length; i++) {
-          UIHarness.INSTANCE.openMessageDialog(warnings[i],
-              "Setup Combine Warning", AxisID.ONLY);
-        }
-      }
-    }
-
+    return true;
   }
 
   /**
@@ -1705,13 +1692,13 @@ public class ProcessManager extends BaseProcessManager {
   protected void errorProcess(ComScriptProcess script) {
     ProcessName processName = script.getProcessName();
     if (processName == ProcessName.XCORR) {
-        setInvalidEdgeFunctions(script.getCommand(), false);
+      setInvalidEdgeFunctions(script.getCommand(), false);
     }
     else if (processName == ProcessName.PREBLEND) {
       setInvalidEdgeFunctions(script.getCommand(), false);
     }
   }
-  
+
   private void setInvalidEdgeFunctions(Command command, boolean succeeded) {
     if (appManager.getConstMetaData().getViewType() == ViewType.MONTAGE
         && command.getCommandName().equals(BlendmontParam.COMMAND_NAME)
