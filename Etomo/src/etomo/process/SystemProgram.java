@@ -17,6 +17,13 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/10/28 18:53:36  sueh
+ * <p> bug# 747 Rewrote parseWarnings() and renamed it parse().  Always parse
+ * <p> all types of messages:  errors, warnings, and info (new).  Call parse in
+ * <p> run().  Save messages in warningList, errorList, and infoList.  Pass
+ * <p> multiLineMessages to the constructor so that multi-line messages can be
+ * <p> handled.
+ * <p>
  * <p> Revision 3.26  2005/09/10 02:13:27  sueh
  * <p> bug# 532 putting the creation of stdout and stderr in different functions so
  * <p> they can be handled differently in child classes.
@@ -221,7 +228,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 
 import etomo.type.AxisID;
@@ -242,17 +248,13 @@ public class SystemProgram implements Runnable {
   private String exceptionMessage = "";
   private boolean started = false;
   private boolean done = false;
-  private ArrayList errorList = null;
-  private ArrayList warningList = null;
-  private ArrayList infoList = null;
   private Date runTimestamp = null;
   private AxisID axisID;
   private final String propertyUserDir;
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
-  //multi line error, warning, or info string; terminated by an empty line
-  private boolean multiLineMessages = false;
+  private final ProcessMessages processMessages;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -267,13 +269,14 @@ public class SystemProgram implements Runnable {
   public SystemProgram(String propertyUserDir, String command, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
+    processMessages = new ProcessMessages();
     commandArray = command.split("\\s+");
   }
   
   public SystemProgram(String propertyUserDir, String command, AxisID axisID, boolean multiLineMessages) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    this.multiLineMessages = multiLineMessages;
+    processMessages = new ProcessMessages(multiLineMessages);
     commandArray = command.split("\\s+");
   }
 
@@ -287,6 +290,7 @@ public class SystemProgram implements Runnable {
   public SystemProgram(String propertyUserDir, String[] cmdArray, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
+    processMessages = new ProcessMessages();
     commandArray = cmdArray;
   }
 
@@ -307,6 +311,7 @@ public class SystemProgram implements Runnable {
       String[] programInput, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
+    processMessages = new ProcessMessages();
 		commandArray = command.split("\\s+");
     stdInput = programInput;
   }
@@ -508,14 +513,8 @@ public class SystemProgram implements Runnable {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
     }
-
-    if (stdout.size() > 0) {
-      parse(stdout);
-
-    }
-    if (stderr.size() > 0) {
-      parse(stderr);
-    }
+    processMessages.addProcessOutput(stdout);
+    processMessages.addProcessOutput(stderr);
 
     if (debug) {
       if (stdout.size() > 0) {
@@ -539,21 +538,7 @@ public class SystemProgram implements Runnable {
       }
     }
     else {
-      if (errorList != null) {
-        for (int i = 0; i < errorList.size(); i++) {
-          System.err.println((String) errorList.get(i));
-        }
-      }
-      if (warningList != null) {
-        for (int i = 0; i < warningList.size(); i++) {
-          System.err.println((String) warningList.get(i));
-        }
-      }
-      if (infoList != null) {
-        for (int i = 0; i < infoList.size(); i++) {
-          System.err.println((String) infoList.get(i));
-        }
-      }
+      processMessages.print();
     }
 
     //close standard input if it wasn't closed before
@@ -689,159 +674,8 @@ public class SystemProgram implements Runnable {
     return new Timestamp(runTimestamp.getTime());
   }
  
-  public final ArrayList getErrors() {
-    return errorList;
-  }
-
-  /**
-   * Finds warnings in output and returns them in an array list.
-   * @param output
-   * @return
-   */
-  public final ArrayList getWarnings() {
-    return warningList;
-  }
-
-  /**
-   * Finds errors, warnings, and info in output and returns them in an array
-   * list, one element per
-   * warning.  Handles multi-line warnings when multiLine is true.  Puts "\n"
-   * between the lines.  WARNING:  When multiLine is true, this function will not
-   * work with warnings that are not separated at the end by a blank line.
-   * @param output
-   * @param multiLine
-   * @return
-   */
-  private final boolean parse(OutputBufferManager output) {
-    ArrayList errors = new ArrayList();
-    ArrayList warnings = new ArrayList();
-    ArrayList information = new ArrayList();
-    boolean newLabel = false;
-    boolean currentError = false;
-    boolean currentWarning = false;
-    boolean currentInfo = false;
-    StringBuffer error = null;
-    StringBuffer warning = null;
-    StringBuffer info = null;
-    boolean found = false;    
-    if (output == null) {
-      return false;
-    }
-    for (int i = 0; i < output.size(); i++) {
-      String line = ((String) output.get(i)).trim();
-      if (line.length() == 0) {
-        //empty line
-        if (currentError || currentWarning || currentInfo) {
-          //just finished an error, warning, or info string - save it
-          if (currentError) {
-            errors.add(error.toString());
-          }
-          else if (currentWarning) {
-            warnings.add(warning.toString());
-          }
-          else if (currentInfo) {
-            information.add(info.toString());
-          }
-          currentError = currentWarning = currentInfo = false;
-        }
-      }
-      else {
-        //look for a new error, warning, or info string
-        newLabel = true;
-        if (line.indexOf("ERROR:") != -1) {
-          currentError = true;
-        }
-        else if (line.indexOf("WARNING:") != -1) {
-          currentWarning = true;
-        }
-        else if (line.indexOf("INFO:") != -1) {
-          currentInfo = true;
-        }
-        else {
-          newLabel = false;
-        }
-      }
-      if (newLabel) {
-        //save a new error, warning, or info string
-        if (currentError) {
-          error = new StringBuffer(line);
-        }
-        else if (currentWarning) {
-          warning = new StringBuffer(line);
-        }
-        else if (currentInfo) {
-          info = new StringBuffer(line);
-        }
-        newLabel = false;
-      }
-      else if (currentError || currentWarning || currentInfo) {
-        if (multiLineMessages) {
-          //in a multi-line error, warning, or info string
-          if (currentError) {
-            error.append(" " + line);
-          }
-          else if (currentWarning) {
-            warning.append(" " + line);
-          }
-          else if (currentInfo) {
-            info.append(" " + line);
-          }
-        }
-        else {
-          //just finished a one line error, warning, or info string - save it
-          currentError = currentWarning = currentInfo = false;
-          if (currentError) {
-            errors.add(error.toString());
-          }
-          else if (currentWarning) {
-            warnings.add(warning.toString());
-          }
-          else if (currentInfo) {
-            information.add(info.toString());
-          }
-        }
-      }
-    }
-    if (currentError || currentWarning || currentInfo) {
-      //just finished an error, warning, or info string - save it
-      if (currentError) {
-        errors.add(error.toString());
-      }
-      else if (currentWarning) {
-        warnings.add(warning.toString());
-      }
-      else if (currentInfo) {
-        information.add(info.toString());
-      }
-    }
-    if (errors.size() > 0) {
-      found = true;
-      errorList = append(errors, errorList);
-    }
-    if (warnings.size() > 0) {
-      found = true;
-      warningList = append(warnings, warningList);
-    }
-    if (information.size() > 0) {
-      found = true;
-      infoList = append(information, infoList);
-    }
-    return found;
-  }
-  
-  private final ArrayList append(ArrayList fromList, ArrayList toList) {
-    if (fromList == null || fromList.size() == 0) {
-      return toList;
-    }
-    if (toList == null) {
-      toList = new ArrayList(fromList);
-    }
-    else {
-      for (int i = 0; i < fromList.size(); i++) {
-        toList.add(fromList.get(i));
-      }
-    }
-    return toList;
+  public final ProcessMessages getProcessMessages() {
+    return processMessages;
   }
  
   /**
