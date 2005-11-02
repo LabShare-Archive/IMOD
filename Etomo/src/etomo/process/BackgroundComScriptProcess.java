@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.comscript.ComscriptState;
@@ -31,6 +30,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2005/08/30 18:30:55  sueh
+ * <p> bug# 532 Changed BackgroundProcessMonitor to
+ * <p> BackgroundComScriptMonitor.  Using BackgroundProcessMonitor for
+ * <p> BackgroundProcess's that need monitors.
+ * <p>
  * <p> Revision 1.16  2005/07/29 00:50:48  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -212,9 +216,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       renameFiles(name, watchedFileName, workingDirectory);
     }
     catch (IOException e) {
-      errorMessage = new String[2];
-      errorMessage[0] = e.getMessage();
-      errorMessage[1] = name + " may already be running.  Check the log file.";
+      processMessages.addError(e.getMessage());
+      processMessages.addError(name + " may already be running.  Check the log file.");
       e.printStackTrace();
       return false;
     }
@@ -227,10 +230,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
           comscriptState.getWatchedFile(index), workingDirectory);
       }
       catch (IOException e) {
-        errorMessage = new String[2];
-        errorMessage[0] = e.getMessage();
-        errorMessage[1] = 
-          name + " may already be running.  Check the log file.";
+        processMessages.addError(e.getMessage());
+        processMessages.addError(name + " may already be running.  Check the log file.");
         e.printStackTrace();
         return false;
       }
@@ -325,39 +326,19 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
   }
   
   /**
-   * Parses errors from log files.
-   * Parses errors from the comscript and all child comscripts found in
+   * Parses errors and warnings from log files.
+   * Parses errors and warnings from the comscript and all child comscripts found in
    * comscriptState that may have been executed.
    */
-  protected String[] parseError() throws IOException {
-    ArrayList errors = parseError(name, true);
+  protected void parse() throws FileNotFoundException {
+    parse(name, true);
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
     int index = startCommand;
     while (index <= endCommand) {
-      errors.addAll(
-          parseError(comscriptState.getCommand(index) + ".com", false));
+      parse(comscriptState.getCommand(index) + ".com", false);
       index++;
     }
-    return (String[]) errors.toArray(new String[errors.size()]);
-  }
- 
-  /**
-   * Parses warnings from log files.
-   * Parses warnings from the comscript and all child comscripts found in
-   * comscriptState that may have been executed.
-   */
-  protected String[] parseWarning() throws IOException {
-    ArrayList errors = parseWarning(name, true);
-    int startCommand = comscriptState.getStartCommand();
-    int endCommand = comscriptState.getEndCommand();
-    int index = startCommand;
-    while (index <= endCommand) {
-      errors.addAll(
-          parseWarning(comscriptState.getCommand(index) + ".com", false));
-      index++;
-    }
-    return (String[]) errors.toArray(new String[errors.size()]);
   }
   
   /** 
@@ -367,7 +348,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @return
    */
   private String parsePIDString(File outFile) {
-
     StringBuffer PID = new StringBuffer();
     BufferedReader bufferedReader = null;
     try {
