@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2005/10/28 18:46:06  sueh
+ * bug# 725 standardizing message parsing in SystemProgram.  Passing
+ * multilineError to SystemProgram constructor.
+ *
  * Revision 3.13  2005/10/27 00:11:47  sueh
  * bug# 725 Putting warnings into error log when debug is off.
  *
@@ -172,12 +176,12 @@ package etomo.comscript;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -498,33 +502,8 @@ public class CopyTomoComs {
    * make sure that warnings get into the error log
    * @return
    */
-  public String[] getErrors() {
-    ArrayList errors = copytomocoms.getErrors();
-    if (errors == null || errors.size() == 0) {
-      return null;
-    }
-    String[] errorStrings = new String[errors.size()];
-    for (int i = 0; i < errors.size(); i++) {
-      errorStrings[i] = (String) errors.get(i);
-    }
-    return errorStrings;
-  }
-  
-  /**
-   * returns a String array of warnings - one warning per element
-   * make sure that warnings get into the error log
-   * @return
-   */
-  public String[] getWarnings() {
-    ArrayList warnings = copytomocoms.getWarnings();
-    if (warnings == null || warnings.size() == 0) {
-      return null;
-    }
-    String[] warningStrings = new String[warnings.size()];
-    for (int i = 0; i < warnings.size(); i++) {
-      warningStrings[i] = (String) warnings.get(i);
-    }
-    return warningStrings;
+  public final ProcessMessages getProcessMessages() {
+    return copytomocoms.getProcessMessages();
   }
 
   /**
