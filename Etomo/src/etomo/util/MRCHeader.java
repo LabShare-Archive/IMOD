@@ -2,10 +2,10 @@ package etomo.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 
 import etomo.ApplicationManager;
+import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 
@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/10/28 18:58:17  sueh
+ * <p> bug# 747 Standardizing SystemProgram message parsing.
+ * <p>
  * <p> Revision 3.16  2005/09/09 21:48:35  sueh
  * <p> bug# 532 Handling null from stderr and stdout.
  * <p>
@@ -247,11 +250,11 @@ public class MRCHeader {
     header.run();
 
     if (header.getExitValue() != 0) {
-      ArrayList errorList = header.getErrors(/*stdOutput*/);
-      if (errorList.size() > 0) {
+      ProcessMessages messages = header.getProcessMessages();
+      if (messages.errorListSize() > 0) {
         String message = "header returned an error:\n";
-        for (int i = 0; i < errorList.size(); i++) {
-          message = message + errorList.get(i) + "\n";
+        for (int i = 0; i < messages.errorListSize(); i++) {
+          message = message + messages.getError(i) + "\n";
         }
         Utilities
             .timestamp("read", "header", filename, Utilities.FAILED_STATUS);

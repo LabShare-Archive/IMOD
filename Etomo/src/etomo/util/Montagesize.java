@@ -2,12 +2,12 @@ package etomo.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -190,11 +190,11 @@ public class Montagesize {
     if (montagesize.getExitValue() != 0) {
       String[] stdOutput = montagesize.getStdOutput();
       if (stdOutput != null && stdOutput.length > 0) {
-        ArrayList errorList = montagesize.getErrors(/*stdOutput*/);
-        if (errorList.size() > 0) {
+        ProcessMessages messages = montagesize.getProcessMessages();
+        if (messages.errorListSize() > 0) {
           String message = "montagesize returned an error:\n";
-          for (int i = 0; i < errorList.size(); i++) {
-            message = message + errorList.get(i) + "\n";
+          for (int i = 0; i < messages.errorListSize(); i++) {
+            message = message + messages.getError(i) + "\n";
           }
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
@@ -315,6 +315,9 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/10/28 18:58:09  sueh
+ * <p> bug# 747 Standardizing SystemProgram message parsing.
+ * <p>
  * <p> Revision 1.10  2005/10/27 00:38:32  sueh
  * <p> bug# 725 Added buildCommand().  Changed String filename to File file.
  * <p>

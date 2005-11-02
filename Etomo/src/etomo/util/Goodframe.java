@@ -1,10 +1,10 @@
 package etomo.util;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -54,11 +54,11 @@ public class Goodframe {
     groupframe.run();
 
     if (groupframe.getExitValue() != 0) {
-      ArrayList errorList = groupframe.getErrors(/*stdOutput*/);
-      if (errorList.size() > 0) {
+      ProcessMessages messages = groupframe.getProcessMessages();
+      if (messages.errorListSize() > 0) {
         String message = "groupframe returned an error:\n";
-        for (int i = 0; i < errorList.size(); i++) {
-          message = message + errorList.get(i) + "\n";
+        for (int i = 0; i < messages.errorListSize(); i++) {
+          message = message + messages.getError(i) + "\n";
         }
         Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
         throw new InvalidParameterException(message);
@@ -122,6 +122,9 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/10/28 18:57:59  sueh
+* <p> bug# 747 Standardizing SystemProgram message parsing.
+* <p>
 * <p> Revision 1.6  2005/09/09 21:48:06  sueh
 * <p> bug# 532 Handling null from stderr and stdout.
 * <p>
