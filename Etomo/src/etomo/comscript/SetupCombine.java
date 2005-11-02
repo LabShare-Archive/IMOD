@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.9  2005/10/28 18:49:33  sueh
+ * bug# 725 standardizing message parsing in SystemProgram.  Passing
+ * multilineError to SystemProgram constructor.
+ *
  * Revision 3.8  2005/09/09 21:21:41  sueh
  * bug# 532 Handling null from stderr and stdout.
  *
@@ -153,12 +157,11 @@
 package etomo.comscript;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
@@ -169,11 +172,10 @@ public class SetupCombine {
 	public static final String rcsid =
 		"$Id$";
 
-  SystemProgram setupcombine;
+  private final SystemProgram setupcombine;
   String commandLine;
   int exitValue;
   ConstMetaData metaData;
-  Vector warningMessage;
   boolean debug;
   private final BaseManager manager;
 
@@ -296,17 +298,10 @@ public class SetupCombine {
 
   public int run() throws IOException {
     int exitValue;
-
     //  Execute the script
     setupcombine.setDebug(debug);
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
-
-    //  TODO we really need to find out what the exception/error condition was
-    if (exitValue != 0) {
-      throw (new IOException(setupcombine.getExceptionMessage()));
-    }
-    parseWarning();
     return exitValue;
   }
 
@@ -314,66 +309,7 @@ public class SetupCombine {
     return setupcombine.getStdError();
   }
 
-  public String[] getWarningMessage() {
-    return (String[]) warningMessage.toArray(new String[warningMessage.size()]);
-}  
-/**
-   * Parse the log file for warnings. Since the fortran code is no smart enough
-   * handle formatted output we need find WARNING: in the middle of the output
-   * stream. The error report starts with the WARNING: text instead of the
-   * whole line.
-   * 
-   * @return A String[] containing any errors. If the com script has not been
-   *         run then null is returned. If the com script ran with no warnings
-   *         then zero length array will be returned.
-   */
-  private void parseWarning() throws IOException {
-    boolean nextLineIsWarning = false;
-    String[] stdError = getStdError();
-    warningMessage = new Vector();
-    warningMessage.add("SetupCombine Warnings");
-    warningMessage.add("Standard error output:");
-    if (stdError != null) {
-      for (int i = 0; i < stdError.length; i++) {
-        int index = stdError[i].indexOf("WARNING:");
-        if (index != -1) {
-          nextLineIsWarning = false;
-          int trimIndex = stdError[i].trim().indexOf("PIP WARNING:");
-          if (trimIndex != -1
-              && stdError[i].trim().length() <= trimIndex + 1
-                  + "PIP WARNING:".length()) {
-            nextLineIsWarning = true;
-          }
-          warningMessage.add(stdError[i].substring(index));
-        }
-        else if (nextLineIsWarning) {
-          if (!stdError[i].matches("\\s+")) {
-            warningMessage.add(stdError[i].trim());
-            if (stdError[i].indexOf("Using fallback options in Fortran code") != -1) {
-              nextLineIsWarning = false;
-            }
-          }
-          else {
-            nextLineIsWarning = false;
-          }
-        }
-      }
-    }
+  public final ProcessMessages getProcessMessages() {
+    return setupcombine.getProcessMessages();
   }
-  
-  /**
-   * returns a String array of warnings - one warning per element
-   * @return
-   */
-  public String[] getWarnings() {
-    ArrayList warnings = setupcombine.getWarnings(/*setupcombine.getStdError()*/);
-    if (warnings == null || warnings.size() == 0) {
-      return null;
-    }
-    if (warnings.size() == 1) {
-      return new String[] { (String) warnings.get(0) };
-    }
-    return (String[]) warnings.toArray(new String[warnings.size()]);
-  }
-
 }
