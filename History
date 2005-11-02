@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/05: Added error messages for Setup Combine.
+
 10/31/05: Implemented some workarounds to problems with loading many files
 through the 3dmod startup dialog when the paths total > 32767 characters: 
 removed current directory from names, warned user not to edit a truncated list.
