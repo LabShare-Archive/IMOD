@@ -4305,23 +4305,20 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
     updateCombineParams();
     try {
-      processMgr.setupCombineScripts(metaData);
+      if (!processMgr.setupCombineScripts(metaData)) {
+        mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+        return;
+      }
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't run setupcombine", AxisID.ONLY);
-      return;
-    }
     catch (IOException except) {
+      mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run setupcombine\n"
           + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
       return;
     }
-
     // Reload the initial and final match paramaters from the newly created
     // scripts
 
@@ -5970,6 +5967,14 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.193  2005/10/31 17:51:34  sueh
+ * <p> bug# 730 Added saveDialog which gets the data from the dialogs and
+ * <p> saves it to the .edf file.  Calling saveDialog() from exitProgram().  Split
+ * <p> the done functions into done and save functions.  The save functions
+ * <p> save the dialog data and the done functions call the save functions and
+ * <p> then quit the dialog.  Added canChangeParamFileName() - enabling Save
+ * <p> As based on whether the param file has been loaded.
+ * <p>
  * <p> Revision 3.192  2005/10/29 00:01:29  sueh
  * <p> bug# 725 reseting next processing when running crossCorrelate and
  * <p> eraser to prevent an infinite loop.
