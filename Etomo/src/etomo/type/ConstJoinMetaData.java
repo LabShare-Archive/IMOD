@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import etomo.comscript.MakejoincomParam;
 import etomo.ui.JoinDialog;
 import etomo.util.Utilities;
 
@@ -21,6 +22,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2005/07/29 19:46:49  sueh
+* <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+* <p>
 * <p> Revision 1.7  2005/05/10 02:24:23  sueh
 * <p> bug# 658 Added ScriptParameter.useDefaultAsDisplayValue() to set
 * <p> displayValue equal to defaultValue.  When default is used, these are
@@ -173,7 +177,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected EtomoNumber useEveryNSlices = new EtomoNumber(
       EtomoNumber.INTEGER_TYPE, "UseEveryNSlices");
   protected ScriptParameter trialBinning = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "TrialBinning");  
+      EtomoNumber.INTEGER_TYPE, "TrialBinning");
+  protected final EtomoNumber midasLimit = new EtomoNumber("MidasLimit");
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -188,6 +193,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
     cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
     sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
+    midasLimit.setDisplayValue(MakejoincomParam.MIDAS_LIMIT_DEFAULT);
   }
   
   public String toString() {
@@ -198,27 +204,25 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     StringBuffer buffer = new StringBuffer(super.paramString()
         + ",\nlatestRevisionNumber=" + latestRevisionNumber
         + ",\nnewJoinTitle=" + newJoinTitle + ",\ngroupString=" + groupString
-        + ",\n" + densityRefSection.getDescription() + "="
-        + densityRefSection + ",\n" + rootNameString + "="
-        + rootName + ",\n" + sigmaLowFrequency.getDescription() + "="
-        + sigmaLowFrequency + ",\n"
-        + cutoffHighFrequency.getDescription() + "="
-        + cutoffHighFrequency + ",\n"
-        + sigmaHighFrequency.getDescription() + "="
-        + sigmaHighFrequency + ",\n"
-        + fullLinearTransformationString + "=" + fullLinearTransformation
-        + ",\n" + rotationTranslationMagnificationString + "="
+        + ",\n" + densityRefSection.getDescription() + "=" + densityRefSection
+        + ",\n" + rootNameString + "=" + rootName + ",\n"
+        + sigmaLowFrequency.getDescription() + "=" + sigmaLowFrequency + ",\n"
+        + cutoffHighFrequency.getDescription() + "=" + cutoffHighFrequency
+        + ",\n" + sigmaHighFrequency.getDescription() + "="
+        + sigmaHighFrequency + ",\n" + fullLinearTransformationString + "="
+        + fullLinearTransformation + ",\n"
+        + rotationTranslationMagnificationString + "="
         + rotationTranslationMagnification + ",\n" + rotationTranslationString
         + "=" + rotationTranslation + ",\n" + useAlignmentRefSectionString
         + "=" + useAlignmentRefSection + ",\n"
-        + alignmentRefSection.getDescription() + "="
-        + alignmentRefSection + ",\n" + sizeInX.getDescription()
-        + "=" + sizeInX + ",\n" + sizeInY.getDescription() + "="
-        + sizeInY + ",\n" + shiftInX.getDescription() + "="
-        + shiftInX + ",\n" + shiftInY.getDescription() + "="
-        + shiftInY + ",\n" + useEveryNSlices.getDescription() + "="
-        + useEveryNSlices + ",\n" + trialBinning.getDescription() + "="
-        + trialBinning);
+        + alignmentRefSection.getDescription() + "=" + alignmentRefSection
+        + ",\n" + sizeInX.getDescription() + "=" + sizeInX + ",\n"
+        + sizeInY.getDescription() + "=" + sizeInY + ",\n"
+        + shiftInX.getDescription() + "=" + shiftInX + ",\n"
+        + shiftInY.getDescription() + "=" + shiftInY + ",\n"
+        + useEveryNSlices.getDescription() + "=" + useEveryNSlices + ",\n"
+        + trialBinning.getDescription() + "=" + trialBinning + ","
+        + midasLimit.getDescription() + "=" + midasLimit.toString());
     if (sectionTableData != null) {
       buffer.append(",\n" + sectionTableDataSizeString + "="
           + sectionTableData.size());
@@ -263,7 +267,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     shiftInY.store(props, prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
-    
+    midasLimit.store(props, prepend);
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
@@ -372,6 +376,9 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
       return null;
     }
     return rootName + fileExtension;
+  }
+  public final ConstEtomoNumber getMidasLimit() {
+    return midasLimit;
   }
 
   public String getName() {

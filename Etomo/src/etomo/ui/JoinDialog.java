@@ -36,6 +36,14 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.20  2005/09/29 19:10:07  sueh
+ * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+ * <p> over during exit.  Added BaseManager.exiting and
+ * <p> saveIntermediateParamFile(), which will not save when exiting it true.
+ * <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+ * <p> saveParamFile() to the child exitProgram functions so that the param file
+ * <p> is saved after all the done functions are run.
+ * <p>
  * <p> Revision 1.19  2005/08/11 23:56:49  sueh
  * <p> bug# 711  Change 3dmod buttons to Run3dmodButton.  Implement
  * <p> Run3dmodButtonContainer.  Change enum Run3dmodMenuOption to
@@ -302,6 +310,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private SpacedPanel alignPanel2;
   private SpacedPanel pnlXfalign;
   private SpacedPanel pnlFinishJoin;
+  private SpacedPanel pnlMidasLimit = new SpacedPanel();
   
   private JButton btnWorkingDir;
   private MultiLineButton btnMakeSamples;
@@ -330,6 +339,8 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private LabeledTextField ltfSizeInY;
   private LabeledTextField ltfShiftInX;
   private LabeledTextField ltfShiftInY;
+  private LabeledTextField ltfMidasLimit = new LabeledTextField("Squeeze samples to ");
+  private JLabel lblMidasLimit = new JLabel("pixels if bigger.");
   private JRadioButton rbFullLinearTransformation;
   private JRadioButton rbRotationTranslationMagnification;
   private JRadioButton rbRotationTranslation;
@@ -511,6 +522,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     case SAMPLE_NOT_PRODUCED_MODE:
       tabPane.setEnabledAt(1, false);
       tabPane.setEnabledAt(2, false);
+      ltfMidasLimit.setEnabled(true);
       spinDensityRefSection.setEnabled(true);
       btnChangeSetup.setEnabled(false);
       btnRevertToLastSetup.setEnabled(false);
@@ -519,6 +531,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     case SAMPLE_PRODUCED_MODE:
       tabPane.setEnabledAt(1, true);
       tabPane.setEnabledAt(2, true);
+      ltfMidasLimit.setEnabled(false);
       spinDensityRefSection.setEnabled(false);
       btnChangeSetup.setEnabled(true);
       btnRevertToLastSetup.setEnabled(false);
@@ -527,6 +540,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     case CHANGING_SAMPLE_MODE:
       tabPane.setEnabledAt(1, false);
       tabPane.setEnabledAt(2, false);
+      ltfMidasLimit.setEnabled(true);
       spinDensityRefSection.setEnabled(true);
       btnChangeSetup.setEnabled(false);
       btnRevertToLastSetup.setEnabled(true);
@@ -556,13 +570,17 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfRootName = new LabeledTextField("Root name for output file: ");
     //third component    
     pnlSectionTable = new SectionTablePanel(this, joinManager, curTab);
-    //fourth component
+    //midas limit panel
+    pnlMidasLimit.setBoxLayout(BoxLayout.X_AXIS);
+    pnlMidasLimit.add(ltfMidasLimit.getContainer());
+    pnlMidasLimit.add(lblMidasLimit);
+    //fifth component
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel);
     spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
-    //fifth component
+    //sixth component
     setupPanel2 = new SpacedPanel();
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
     setupPanel2.setBorder(BorderFactory.createEtchedBorder());
@@ -572,7 +590,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
     btnRevertToLastSetup.addActionListener(joinActionListener);
     setupPanel2.add(btnRevertToLastSetup);
-    //sixth component
+    //seventh component
     btnMakeSamples = new MultiLineButton("Make Samples");
     btnMakeSamples.addActionListener(joinActionListener);
     btnMakeSamples.setSize();
@@ -585,6 +603,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlSetup.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.setCurTab(SETUP_TAB);
     pnlSectionTable.displayCurTab();
+    pnlSetup.add(pnlMidasLimit);
     pnlSetup.add(spinDensityRefSection);
     pnlSetup.add(setupPanel2);
     pnlSetup.add(btnMakeSamples);
@@ -895,6 +914,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     metaData.setShiftInY(ltfShiftInY.getText());
     metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
     metaData.setTrialBinning(spinTrialBinning.getValue());
+    metaData.setMidasLimit(ltfMidasLimit.getText());
     return pnlSectionTable.getMetaData(metaData);
   }
   
@@ -917,6 +937,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfShiftInY.setText(metaData.getShiftInY().toString());
     spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices().getNumber());
     spinTrialBinning.setValue(metaData.getTrialBinning().getNumber());
+    ltfMidasLimit.setText(metaData.getMidasLimit().toString());
     pnlSectionTable.setMetaData(metaData);
   }
 

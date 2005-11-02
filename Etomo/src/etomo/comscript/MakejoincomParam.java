@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.ScriptParameter;
@@ -31,6 +32,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/05/12 01:22:35  sueh
+* <p> bug# 520 Take rotation angle defaults from ConstEtomoNumber variables.
+* <p>
 * <p> Revision 1.10  2005/05/09 22:59:33  sueh
 * <p> bug# 658 Removed ScriptParameter.addToScript because is was only
 * <p> being use in one place.  In genOptions() replaced addToScript with code
@@ -119,6 +123,8 @@ import etomo.type.SectionTableRowData;
 */
 public class MakejoincomParam implements Command {
   public static  final String  rcsid =  "$Id$";
+  
+  public static final int MIDAS_LIMIT_DEFAULT = 1024;
   
   private static final int commandSize = 3;
   private static final String commandName = "makejoincom";
@@ -209,6 +215,11 @@ public class MakejoincomParam implements Command {
     if (densityRefSection.isUseInScript()) {
       options.add("-ref");
       options.add(densityRefSection.toString());
+    }
+    ConstEtomoNumber number = metaData.getMidasLimit();
+    if (!number.isNull()) {
+      options.add("-midaslim");
+      options.add(metaData.getMidasLimit().toString());
     }
     options.add(metaData.getRootName());
     return options;

@@ -19,6 +19,17 @@ import etomo.ui.UIHarness;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/04/25 20:51:29  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.  All Frame functions will use UIHarness as a
+* <p> public interface.
+* <p>
 * <p> Revision 1.3  2004/12/14 21:45:49  sueh
 * <p> bug# 572:  Removing state object from meta data and managing it with a
 * <p> manager class.  All state variables saved after a process is run belong in
@@ -131,6 +142,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     shiftInY.load(props, prepend);
     useEveryNSlices.load(props, prepend);
     trialBinning.load(props, prepend);
+    midasLimit.load(props, prepend);
     
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
@@ -188,6 +200,9 @@ public class JoinMetaData extends ConstJoinMetaData {
   }
   public void setFullLinearTransformation(boolean fullLinearTransformation) {
     this.fullLinearTransformation = fullLinearTransformation;
+  }
+  public void setMidasLimit(String midasLimit) {
+    this.midasLimit.set(midasLimit);
   }
   public void setRotationTranslationMagnification(boolean rotationTranslationMagnification) {
     this.rotationTranslationMagnification = rotationTranslationMagnification;
