@@ -32,6 +32,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.12  2005/11/02 23:57:01  sueh
+* <p> bug# 738 Added midas limit.
+* <p>
 * <p> Revision 1.11  2005/05/12 01:22:35  sueh
 * <p> bug# 520 Take rotation angle defaults from ConstEtomoNumber variables.
 * <p>
@@ -217,10 +220,8 @@ public class MakejoincomParam implements Command {
       options.add(densityRefSection.toString());
     }
     ConstEtomoNumber number = metaData.getMidasLimit();
-    if (!number.isNull()) {
-      options.add("-midaslim");
-      options.add(metaData.getMidasLimit().toString());
-    }
+    options.add("-midaslim");
+    options.add(metaData.getMidasLimit().toString());
     options.add(metaData.getRootName());
     return options;
   }
