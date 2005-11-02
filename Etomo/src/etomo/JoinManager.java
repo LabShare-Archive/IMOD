@@ -51,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.27  2005/11/02 21:34:12  sueh
+* <p> bug# 754 Getting error and warning tags from ProcessMessages.
+* <p>
 * <p> Revision 1.26  2005/10/31 17:53:05  sueh
 * <p> bug# 730 Added getParamFile() and save().
 * <p>
@@ -915,7 +918,6 @@ public class JoinManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   protected void startNextProcess(AxisID axisID) {
-    System.out.println("nextProcess="+getNextProcess(axisID));
     if (getNextProcess(axisID).equals("startjoin")) {
       startjoin();
       return;
