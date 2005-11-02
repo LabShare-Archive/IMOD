@@ -26,6 +26,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2005/08/15 18:21:26  sueh
+ * <p> bug# 532 commenting print statements
+ * <p>
  * <p> Revision 3.27  2005/08/11 23:38:42  sueh
  * <p> bug# 711  Pass Run3dmodMenuOptions to ImodManager.open(),
  * <p> ImodState.open(), and ImodProcess.open().  It should not be saved,
@@ -251,8 +254,6 @@ public class ImodProcess {
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
   public static final String MESSAGE_SLICER_ANGLES = "13";
   
-  public static final String ERROR_STRING = "ERROR:";
-  public static final String WARNING_STRING = "WARNING:";
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
   public static final String SLICER_ANGLES_RESULTS_STRING1 = "Slicer";
@@ -793,12 +794,12 @@ public class ImodProcess {
   protected boolean parseError(String line, Vector errorMessage) {
     //Currently assuming that an error or warning message will be only one
     //line and contain ERROR_STRING or WARNING_STRING.
-    int index = line.indexOf(ERROR_STRING);
+    int index = line.indexOf(ProcessMessages.ERROR_TAG);
     if (index != -1) {
       errorMessage.add(line.substring(index));
       return true;
     }
-    index = line.indexOf(WARNING_STRING);
+    index = line.indexOf(ProcessMessages.WARNING_TAG);
     if (index != -1) {
       errorMessage.add(line.substring(index));
       return true;
