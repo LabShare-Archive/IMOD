@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.30  2005/10/29 00:04:54  sueh
+ * bug# 747 Sending error and warning messages to the error log.
+ *
  * Revision 3.29  2005/10/21 19:55:08  sueh
  * bug# 742 Added getCurrentStdError().
  *
@@ -317,6 +320,7 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -344,8 +348,6 @@ public class ComScriptProcess
   private boolean demoMode = false;
   private int demoTime = 5000;
   protected boolean debug = false;
-  protected String[] errorMessage;
-  private String[] warningMessage;
   private SystemProgram vmstocsh;
   protected SystemProgram csh;
   protected StringBuffer cshProcessID;
@@ -359,6 +361,7 @@ public class ComScriptProcess
   protected final ProcessMonitor processMonitor;
   private ProcessEndState endState = null;//used when processMonitor is null
   protected final BaseManager manager;
+  protected final ProcessMessages processMessages = new ProcessMessages();
 
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
@@ -413,8 +416,7 @@ public class ComScriptProcess
     else {
       if (isComScriptBusy()) {
         error = true;
-        errorMessage = new String[1];
-        errorMessage[0] = name + " is already running";
+        processMessages.addError(name + " is already running");
         processManager.msgComScriptDone(this, 1);
         return;
       }
@@ -435,8 +437,7 @@ public class ComScriptProcess
       }
       catch (IOException except) {
         error = true;
-        errorMessage = new String[1];
-        errorMessage[0] = except.getMessage();
+        processMessages.addError(except.getMessage());
         processManager.msgComScriptDone(this, vmstocsh.getExitValue());
         return;
       }
@@ -448,25 +449,14 @@ public class ComScriptProcess
       }
       catch (SystemProcessException except) {
         try {
-          errorMessage = parseError();
+          parse();
         }
-        catch (IOException except2) {
-          errorMessage = new String[1];
-          errorMessage[0] = except2.getMessage();
+        catch (FileNotFoundException except2) {
+          processMessages.addError(except2.getMessage());
         }
       }
       catch (IOException except) {
-        errorMessage = new String[1];
-        errorMessage[0] = except.getMessage();
-      }
-
-      // Get any warnings from the log file
-      try {
-        warningMessage = parseWarning();
-      }
-      catch (IOException except2) {
-        errorMessage = new String[1];
-        errorMessage[0] = except2.getMessage();
+        processMessages.addError(except.getMessage());
       }
     }
     
@@ -523,17 +513,10 @@ public class ComScriptProcess
   }
 
   /**
-   * Get the error message, if any from the run method.
+   * Get the messages, if any from the run method.
    */
-  public String[] getErrorMessage() {
-    return errorMessage;
-  }
-
-  /**
-   * Get the warning message, if any from the run method.
-   */
-  public String[] getWarningMessage() {
-    return warningMessage;
+  public ProcessMessages getProcessMessages() {
+    return processMessages;
   }
 
   /**
@@ -659,8 +642,7 @@ public class ComScriptProcess
     vmstocsh.run();
 
     if (vmstocsh.getExitValue() != 0) {
-      errorMessage = new String[1];
-      errorMessage[0] = "Running vmstocsh against " + name + " failed";
+      processMessages.addError("Running vmstocsh against " + name + " failed");
       throw new SystemProcessException("");
     }
 
@@ -678,7 +660,6 @@ public class ComScriptProcess
    * @return a String[] with each element containing a line of the com script
    */
   private String[] loadFile() throws IOException {
-
     //  Open the file as a stream
     InputStream fileStream = new FileInputStream(workingDirectory
       .getAbsolutePath()
@@ -695,68 +676,13 @@ public class ComScriptProcess
     return (String[]) lines.toArray(new String[lines.size()]);
   }
 
-  /**
-   * call parseError with the name member variable
-   * @return
-   * @throws IOException
-   */
-  protected String[] parseError() throws IOException {
-    ArrayList errors = parseError(name, true);
-    return (String[]) errors.toArray(new String[errors.size()]);
-  }
-  
-  /**
-    * Parse the log file for errors. Since the fortran code is not smart enough
-    * handle formatted output we need find ERROR: in the middle of the output
-    * stream. The error report starts with the ERROR: text instead of the whole
-    * line.
-    */
-  protected ArrayList parseError(String name, boolean mustExist) 
-      throws IOException {
-        
-    ArrayList errors = new ArrayList();
-    
-    File file = 
-        new File(workingDirectory, parseBaseName(name, ".com") + ".log");
-    if (!file.exists() && !mustExist) {
-      return errors;
-    }
-    
-    //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(file);
-
-    BufferedReader fileReader = new BufferedReader(new InputStreamReader(
-      fileStream));
-
-    String line;
-    boolean foundError = false;
-    while ((line = fileReader.readLine()) != null) {
-      if (!foundError) {
-        int index = line.indexOf("ERROR:");
-        if (index != -1) {
-          foundError = true;
-          errors.add(line.substring(index));
-        }
-      }
-      else {
-        errors.add(line);
-      }
-    }
-    fileReader.close();
-    for (int i = 0; i < errors.size(); i++) {
-      System.err.println((String) errors.get(i));
-    }
-    return errors;
-  }
-
-  /**
+   /**
    * 
    * @return
    * @throws IOException
    */
-  protected String[] parseWarning() throws IOException {
-    ArrayList errors = parseWarning(name, true);
-    return (String[]) errors.toArray(new String[errors.size()]);
+  protected void parse() throws FileNotFoundException {
+    parse(name, true);
   }
   
   /**
@@ -769,52 +695,14 @@ public class ComScriptProcess
    *         run then null is returned. If the com script ran with no warnings
    *         then zero length array will be returned.
    */
-  protected ArrayList parseWarning(String name, boolean mustExist) throws IOException {
-    boolean nextLineIsWarning = false;
-    
+  protected final void parse(String name, boolean mustExist) throws FileNotFoundException {
     ArrayList errors = new ArrayList();
-    
-    File file = 
-        new File(workingDirectory, parseBaseName(name, ".com") + ".log");
+    File file = new File(workingDirectory, parseBaseName(name, ".com") + ".log");
     if (!file.exists() && !mustExist) {
-      return errors;
+      return;
     }
-    //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(file);
-
-    BufferedReader fileBuffer = new BufferedReader(new InputStreamReader(
-      fileStream));
-
-    String line;
-    while ((line = fileBuffer.readLine()) != null) {
-      int index = line.indexOf("WARNING:");
-      if (index != -1) {
-        nextLineIsWarning = false;
-        int trimIndex = line.trim().indexOf("PIP WARNING:");
-        if (trimIndex != -1
-            && line.trim().length() 
-              <= trimIndex + 1 + "PIP WARNING:".length()) {
-          nextLineIsWarning = true;
-        }
-        errors.add(line.substring(index));
-      }
-      else if (nextLineIsWarning) {
-        if (!line.matches("\\s+")) {
-          errors.add(line.trim());
-          if (line.indexOf("Using fallback options in Fortran code") != -1) {
-            nextLineIsWarning = false;
-          }
-        }
-        else {
-          nextLineIsWarning = false;
-        }
-      }
-    }
-    fileBuffer.close();
-    for (int i = 0; i < errors.size(); i++) {
-      System.err.println((String) errors.get(i));
-    }
-    return errors;
+    processMessages.addProcessOutput(file);
+    processMessages.print();
   }
 
   /**
