@@ -30,6 +30,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.29  2005/10/27 00:29:27  sueh
+* <p> bug# 725 Added another startBackgroundProcess() function with a
+* <p> forceNextProcess parameter.
+* <p>
 * <p> Revision 1.28  2005/09/29 18:39:17  sueh
 * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
 * <p> over during exit.  Added BaseManager.exiting and
@@ -754,36 +758,25 @@ public abstract class BaseProcessManager {
       + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
-      String[] combined;
+      ProcessMessages combinedMessages = new ProcessMessages();
       //    Is the last string "Killed"
-      if (stdError == null) {
-        stdError = new String[0];
-      }
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combined = new String[1];
-        combined[0] = "<html>Terminated: " + script.getScriptName();
+        combinedMessages.addError("<html>Terminated: " + script.getScriptName());
       }
       else {
-        String[] message = script.getErrorMessage();
-        combined = new String[message.length + stdError.length + 5];
+        ProcessMessages messages = script.getProcessMessages();/*Error*/
         int j = 0;
-        combined[j++] = "<html>Com script failed: " + script.getScriptName();
-        combined[j++] = "  ";
-        combined[j++] = "<html><U>Log file errors:</U>";
-
-        for (int i = 0; i < message.length; i++, j++) {
-          combined[j] = message[i];
-        }
-        combined[j++] = "  ";
-        combined[j++] = "<html><U>Standard error output:</U>";
-        for (int i = 0; i < stdError.length; i++, j++) {
-          combined[j] = stdError[i];
-        }
+        combinedMessages.addError("<html>Com script failed: "
+            + script.getScriptName());
+        combinedMessages.addError("\n<html><U>Log file errors:</U>");
+        combinedMessages.addError(messages);
+        combinedMessages.addError("\n<html><U>Standard error output:</U>");
+        combinedMessages.addError(stdError);
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
-        uiHarness.openMessageDialog(combined, script.getScriptName()
+        uiHarness.openErrorMessageDialog(combinedMessages, script.getScriptName()
             + " terminated", script.getAxisID());
         //make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
@@ -792,21 +785,13 @@ public abstract class BaseProcessManager {
     }
     else {
       postProcess(script);
-
-      String[] warningMessages = script.getWarningMessage();
-      String[] dialogMessage;
-      if (warningMessages != null && warningMessages.length > 0) {
-        dialogMessage = new String[warningMessages.length + 2];
-        dialogMessage[0] = "Com script: " + script.getScriptName();
-        dialogMessage[1] = "<html><U>Warnings:</U>";
-        int j = 2;
-        for (int i = 0; i < warningMessages.length; i++) {
-          dialogMessage[j++] = warningMessages[i];
-        }
-        uiHarness.openMessageDialog(dialogMessage, script.getScriptName()
+      ProcessMessages messages = script.getProcessMessages();/*Warning*/
+      if (messages.warningListSize() > 0) {
+        messages.addWarning("Com script: " + script.getScriptName());
+        messages.addWarning("<html><U>Warnings:</U>");
+        uiHarness.openWarningMessageDialog(messages, script.getScriptName()
             + " warnings", script.getAxisID());
       }
-
     }
     getManager().saveIntermediateParamFile(script.getAxisID());
     //  Null out the correct thread
