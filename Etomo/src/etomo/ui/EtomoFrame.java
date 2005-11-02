@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -310,6 +311,14 @@ public abstract class EtomoFrame extends JFrame {
     getFrame(axisID).openMessageDialog(message, title);
   }
   
+  void displayErrorMessage(ProcessMessages processMessages, String title, AxisID axisID) {
+    getFrame(axisID).openErrorMessageDialog(processMessages, title);
+  }
+  
+  void displayWarningMessage(ProcessMessages processMessages, String title, AxisID axisID) {
+    getFrame(axisID).openWarningMessageDialog(processMessages, title);
+  }
+  
   int displayYesNoCancelMessage(String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoCancelDialog(message);
   }
@@ -344,6 +353,16 @@ public abstract class EtomoFrame extends JFrame {
    */
   private void openMessageDialog(String[] message, String title) {
     JOptionPane.showMessageDialog(this, wrap(message), title,
+        JOptionPane.ERROR_MESSAGE);
+  }
+  
+  private void openErrorMessageDialog(ProcessMessages processMessages, String title) {
+    JOptionPane.showMessageDialog(this, wrapError(processMessages), title,
+        JOptionPane.ERROR_MESSAGE);
+  }
+  
+  private void openWarningMessageDialog(ProcessMessages processMessages, String title) {
+    JOptionPane.showMessageDialog(this, wrapWarning(processMessages), title,
         JOptionPane.ERROR_MESSAGE);
   }
   
@@ -398,16 +417,9 @@ public abstract class EtomoFrame extends JFrame {
    * @return
    */
   private String[] wrap(String message) {
-    ArrayList messageArray = new ArrayList();
-    if (currentManager != null) {
-      messageArray.add(currentManager.getBaseMetaData().getName() + ":");
-    }
+    ArrayList messageArray = setupMessageArray();
     messageArray = wrap(message, messageArray);
-    if (messageArray.size() == 1) {
-      String[] returnArray = {message};
-      return returnArray;
-    }
-    return (String[]) messageArray.toArray(new String[messageArray.size()]);
+    return toStringArray(messageArray);
   }
   
   /**
@@ -416,18 +428,48 @@ public abstract class EtomoFrame extends JFrame {
    * @return
    */
   private String[] wrap(String[] message) {
+    ArrayList messageArray = setupMessageArray();
+    for (int i = 0; i < message.length; i++) {
+      messageArray = wrap(message[i], messageArray);
+    }
+    return toStringArray(messageArray);
+  }
+  
+  /**
+   * Add the current dataset name to the message and wrap
+   * @param message
+   * @return
+   */
+  private final String[] wrapError(ProcessMessages processMessages) {
+    ArrayList messageArray = setupMessageArray();
+    for (int i = 0; i < processMessages.errorListSize(); i++) {
+      messageArray = wrap(processMessages.getError(i), messageArray);
+    }
+    return toStringArray(messageArray);
+  }
+  
+  private final String[] wrapWarning(ProcessMessages processMessages) {
+    ArrayList messageArray = setupMessageArray();
+    for (int i = 0; i < processMessages.warningListSize(); i++) {
+      messageArray = wrap(processMessages.getWarning(i), messageArray);
+    }
+    return toStringArray(messageArray);
+  }
+  
+  private final ArrayList setupMessageArray() {
     ArrayList messageArray = new ArrayList();
     if (currentManager != null) {
       messageArray.add(currentManager.getBaseMetaData().getName() + ":");
     }
-    for (int i = 0; i < message.length; i++) {
-      messageArray = wrap(message[i], messageArray);
-    }
-    if (messageArray.size() == 1) {
-      String[] returnArray = {(String) messageArray.get(0)};
+    return messageArray;
+  }
+  
+  private final String[] toStringArray(ArrayList arrayList) {
+    if (arrayList.size() == 1) {
+      String[] returnArray = {(String) arrayList.get(0)};
       return returnArray;
     }
-    return (String[]) messageArray.toArray(new String[messageArray.size()]);
+    return (String[]) arrayList.toArray(new String[arrayList.size()]);
   }
   
   /**
@@ -620,6 +662,10 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.14  2005/10/31 17:54:32  sueh
+* <p> bug# 730 Pop up error message if Save fails and cannot do Save As.
+* <p> Prevent Save As functionality in Save when Save As is disabled.
+* <p>
 * <p> Revision 1.13  2005/09/29 18:48:00  sueh
 * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
 * <p> over during exit.  Added BaseManager.exiting and
