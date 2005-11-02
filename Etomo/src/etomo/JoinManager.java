@@ -15,6 +15,7 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
+import etomo.process.ProcessMessages;
 import etomo.process.SystemProcessException;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -50,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.26  2005/10/31 17:53:05  sueh
+* <p> bug# 730 Added getParamFile() and save().
+* <p>
 * <p> Revision 1.25  2005/10/18 22:10:15  sueh
 * <p> bug# 737 Setting nextProcess after running process, because the axis
 * <p> busy test is run when running process.
@@ -497,8 +501,8 @@ public class JoinManager extends BaseManager {
       for (int i = 0; i < results.size(); i++) {
         result = (String) results.get(i);
         if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
-            || result.indexOf(ImodProcess.ERROR_STRING) != -1
-            || result.indexOf(ImodProcess.WARNING_STRING) != -1) {
+            || result.indexOf(ProcessMessages.ERROR_TAG) != -1
+            || result.indexOf(ProcessMessages.WARNING_TAG) != -1) {
           messageArray.add(result);
         }
         else if (!foundResultLine1 && !foundResult

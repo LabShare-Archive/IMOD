@@ -15,6 +15,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.process.ProcessMessages;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
@@ -50,6 +51,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.40  2005/10/31 17:52:40  sueh
+* <p> bug# 730 Renamed getTestParamFile to getParamFile.  Made
+* <p> canChangeParamFileName() abstract.
+* <p>
 * <p> Revision 1.39  2005/10/27 00:07:26  sueh
 * <p> bug# 725 Allowing multiple paths when running nextProcess.  Added
 * <p> lastProcessA and B.  Added functions:  getLastProcess,
@@ -582,8 +587,8 @@ public abstract class BaseManager {
       while (i.hasNext()) {
         result = (String) i.next();
         if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
-          || result.indexOf(ImodProcess.ERROR_STRING) != -1
-          || result.indexOf(ImodProcess.WARNING_STRING) != -1) {
+          || result.indexOf(ProcessMessages.ERROR_TAG) != -1
+          || result.indexOf(ProcessMessages.WARNING_TAG) != -1) {
           messageArray.add(result);
           i.remove();
         }
