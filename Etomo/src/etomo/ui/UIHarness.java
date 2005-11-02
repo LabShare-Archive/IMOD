@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
 import etomo.util.UniqueKey;
 
@@ -51,6 +52,34 @@ public class UIHarness {
     }
     else {
       log("openMessageDialog", message, title, axisID);
+    }
+  }
+  
+  /**
+   * open one dialog and display all error messages in messages.
+   * @param messages
+   * @param title
+   */
+  public synchronized void openErrorMessageDialog(ProcessMessages message, String title, AxisID axisID) {
+    if (isHead()) {
+      mainFrame.displayErrorMessage(message, title, axisID);
+    }
+    else {
+      logError("openMessageDialog", message, title, axisID);
+    }
+  }
+  
+  /**
+   * open one dialog and display all warning messages in messages.
+   * @param messages
+   * @param title
+   */
+  public synchronized void openWarningMessageDialog(ProcessMessages messages, String title, AxisID axisID) {
+    if (isHead()) {
+      mainFrame.displayWarningMessage(messages, title, axisID);
+    }
+    else {
+      logWarning("openMessageDialog", messages, title, axisID);
     }
   }
   
@@ -354,6 +383,20 @@ public class UIHarness {
     System.err.flush();
   }
   
+  private void logError(String function, ProcessMessages processMessages, String title, AxisID axisID) {
+    System.err.println();
+    System.err.println(function + ", " + axisID + ", " + title + ":");
+    processMessages.printError();
+    System.err.flush();
+  }
+  
+  private void logWarning(String function, ProcessMessages processMessages, String title, AxisID axisID) {
+    System.err.println();
+    System.err.println(function + ", " + axisID + ", " + title + ":");
+    processMessages.printWarning();
+    System.err.flush();
+  }
+  
   /**
    * Log the parameters in testLog with logWriter.
    * @param function
@@ -391,6 +434,10 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.15  2005/09/22 21:34:42  sueh
+* <p> bug# 532 Moved ApplicationManager.packDialogs functions to
+* <p> BaseManager and renamed them packPanel.
+* <p>
 * <p> Revision 1.14  2005/08/12 00:21:26  sueh
 * <p> bug# 711 changed StartUpWindow to StartupWindow.
 * <p>
