@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/3/05: Fixed bug where the parallel processing panel displays incorrectly in
+Tomogram Combination.  No long opening Tomogram Combination automatically.
+
 11/2/05: Fixed MTF filter monitor:  it now works with montages and takes
 starting and ending views in account.
 
