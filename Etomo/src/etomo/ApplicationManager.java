@@ -3452,10 +3452,7 @@ public class ApplicationManager extends BaseManager {
         processTrack.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         mainPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         if (isDualAxis()) {
-          openTomogramCombinationDialog();
-          if (axisID == AxisID.SECOND) {
-            mainPanel.showBlankProcess(axisID);
-          }
+          mainPanel.showBlankProcess(axisID);
         }
         else {
           openPostProcessingDialog();
@@ -5967,6 +5964,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.194  2005/11/02 21:31:18  sueh
+ * <p> bug# 731 In createCombineScripts():  Setting process end state to failed
+ * <p> if combine setup fails.
+ * <p>
  * <p> Revision 3.193  2005/10/31 17:51:34  sueh
  * <p> bug# 730 Added saveDialog which gets the data from the dialogs and
  * <p> saves it to the .edf file.  Calling saveDialog() from exitProgram().  Split
