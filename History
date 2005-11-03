@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/05: Fixed MTF filter monitor:  it now works with montages and takes
+starting and ending views in account.
+
 11/2/05: Added midas limit to the Join Setup tab.
 
 11/2/05: Added error messages for Setup Combine.
