@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.8  2005/01/26 04:26:37  sueh
+ * <p> $bug# 83 Added getOutputFile().
+ * <p> $
  * <p> $Revision 1.7  2004/06/14 23:25:55  rickg
  * <p> $Bug #383  ParamUtilities interface change.
  * <p> $$
@@ -77,11 +80,23 @@ public class ConstMTFFilterParam {
   public String getLowPassRadiusSigmaString() {
     return lowPassRadiusSigma.toString(true);
   }
-  public String getInverseRolloffRadiusSigmaString() {
-    return inverseRolloffRadiusSigma.toString(true);
-  }
   public String getStartingAndEndingZString() {
     return startingAndEndingZ.toString(true);
+  }
+  public boolean isStartingZSet() {
+    return !startingAndEndingZ.isDefault(0) && !startingAndEndingZ.isEmpty(0);
+  }
+  public boolean isEndingZSet() {
+    return !startingAndEndingZ.isDefault(1) && !startingAndEndingZ.isEmpty(1);
+  }
+  public int getStartingZ() {
+    return startingAndEndingZ.getInt(0);
+  }
+  public int getEndingZ() {
+    return startingAndEndingZ.getInt(1);
+  }
+  public String getInverseRolloffRadiusSigmaString() {
+    return inverseRolloffRadiusSigma.toString(true);
   }
   public String getOutputFile() {
     return outputFile;
