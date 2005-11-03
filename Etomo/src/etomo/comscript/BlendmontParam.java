@@ -206,6 +206,10 @@ public class BlendmontParam implements CommandParam, Command {
     return new File(manager.getPropertyUserDir(), imageOutputFile);
   }
   
+  public String getImageOutputFile() {
+    return imageOutputFile;
+  }
+  
   public int getIntegerValue(int name) {
     return EtomoNumber.INTEGER_NULL_VALUE;
   }
@@ -270,6 +274,10 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/09/01 17:45:12  sueh
+ * <p> bug# 688 putting temporary prints (for finding cause of undistort
+ * <p> parameters being set in xcorr) into the error log
+ * <p>
  * <p> Revision 1.13  2005/08/24 22:30:00  sueh
  * <p> bug# 715 Implementing Command so BlendmontParam it can be used in
  * <p> postProcess() and errorProcess().  Change setBlendmontState() to check
