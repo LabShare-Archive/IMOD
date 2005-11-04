@@ -23,7 +23,7 @@ import etomo.util.HashedArray;
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
- *<p>Organization:
+ * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  * 
@@ -40,40 +40,35 @@ final class ProcessorTable implements Storable {
   private static final String MEMORY_ADOC_KEY = "memory";
   private static final String STORE_PREPEND = "ProcessorTable";
   
-  private static final int maxRows = 15;
-  private static final double initialHeight = (maxRows + 2) * 20;//initially estimate the row height to be 20 pixels
-  private static final double maxWidth = UIUtilities.getScreenSize().getWidth();
-  private double maxHeight = 0;
-  private double lastWidth = 0;
-  private int scrollBarWidth = 0;
+  private static final int MAXIMUM_ROWS = 15;
   private JScrollPane scrollPane;
   private JPanel tablePanel;
 
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
-  private HeaderCell header1Computer = null;
-  private HeaderCell header1NumberCPUs = null;
-  private HeaderCell header1Load = null;
+  private final HeaderCell header1Computer = new HeaderCell("Computer");
+  private final HeaderCell header1NumberCPUs =  new HeaderCell("# CPUs");
+  private final HeaderCell header1Load = new HeaderCell("Load Average");
   private HeaderCell header1CPUType = null;
   private HeaderCell header1Speed = null;
   private HeaderCell header1RAM = null;
   private HeaderCell header1OS = null;
-  private HeaderCell header1Restarts = null;
-  private HeaderCell header1Finished = null;
-  private HeaderCell header1Failure = null;
-  private HeaderCell header2Computer = null;
-  private HeaderCell header2NumberCPUsUsed = null;
+  private final HeaderCell header1Restarts = new HeaderCell("Restarts");
+  private final HeaderCell header1Finished = new HeaderCell("Finished");
+  private final HeaderCell header1Failure = new HeaderCell("Failure");
+  private final HeaderCell header2Computer = new HeaderCell();
+  private final HeaderCell header2NumberCPUsUsed = new HeaderCell("Used");
   private HeaderCell header2NumberCPUsMax = null;
-  private HeaderCell header2Load1 = null;
-  private HeaderCell header2Load5 = null;
-  private HeaderCell header2Load15 = null;
+  private final HeaderCell header2Load1 = new HeaderCell("1 Min.");
+  private final HeaderCell header2Load5 = new HeaderCell("5 Min.");
+  private final HeaderCell header2Load15 = new HeaderCell("15 Min.");
   private HeaderCell header2CPUType = null;
   private HeaderCell header2Speed = null;
   private HeaderCell header2RAM = null;
   private HeaderCell header2OS = null;
-  private HeaderCell header2Restarts = null;
-  private HeaderCell header2Finished = null;
-  private HeaderCell header2Failure = null;
+  private final HeaderCell header2Restarts = new HeaderCell();
+  private final HeaderCell header2Finished = new HeaderCell("Chunks");
+  private final HeaderCell header2Failure = new HeaderCell("Reason");
 
   private final HashedArray rows = new HashedArray();
   private final ParallelPanel parent;
@@ -87,13 +82,14 @@ final class ProcessorTable implements Storable {
   private boolean osColumn = false;
   private String speedUnits = null;
   private String memoryUnits = null;
+  private boolean scrolling = false;
 
-  ProcessorTable(ParallelPanel parent, AxisID axisID){//, boolean expanded) {
+  ProcessorTable(ParallelPanel parent, AxisID axisID) {
     this.parent = parent;
     this.axisID = axisID;
-    this.expanded = true;//expanded;
+    expanded = true;
     initTable();
-    buildScrollPane(initialHeight);
+    buildScrollPane();
   }
   
   final void setExpanded(boolean expanded) {
@@ -101,16 +97,15 @@ final class ProcessorTable implements Storable {
       return;
     }
     this.expanded = expanded;
-    buildScrollPane(getMinimumHeight());
+    buildScrollPane();
   }
   
-  final void buildScrollPane(double height) {
+  final void buildScrollPane() {
     buildTable();
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
-    //configure
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-    setMaximumSize(height);
+    //configure
     UIHarness.INSTANCE.repaintWindow();
   }
   
@@ -199,9 +194,6 @@ final class ProcessorTable implements Storable {
     }
     //create headers
     //header 1
-    header1Computer = new HeaderCell("Computer");
-    header1NumberCPUs = new HeaderCell("# CPUs");
-    header1Load = new HeaderCell("Load Average");
     if (typeColumn) {
       header1CPUType = new HeaderCell("CPU Type");
     }
@@ -214,18 +206,10 @@ final class ProcessorTable implements Storable {
     if (osColumn) {
       header1OS = new HeaderCell("OS");
     }
-    header1Restarts = new HeaderCell("Restarts");
-    header1Finished = new HeaderCell("Finished");
-    header1Failure = new HeaderCell("Failure");
     //header row 2
-    header2Computer = new HeaderCell();
-    header2NumberCPUsUsed = new HeaderCell("Used");
     if (numberColumn) {
       header2NumberCPUsMax = new HeaderCell("Max.");
     }
-    header2Load1 = new HeaderCell("1 Min.");
-    header2Load5 = new HeaderCell("5 Min.");
-    header2Load15 = new HeaderCell("15 Min.");
     if (typeColumn) {
       header2CPUType = new HeaderCell();
     }
@@ -238,9 +222,6 @@ final class ProcessorTable implements Storable {
     if (osColumn) {
       header2OS = new HeaderCell();
     }
-    header2Restarts = new HeaderCell();
-    header2Finished = new HeaderCell("Chunks");
-    header2Failure = new HeaderCell("Reason");
     EtomoDirector.getInstance().loadPreferences(this, axisID);
   }
 
@@ -269,16 +250,16 @@ final class ProcessorTable implements Storable {
     constraints.gridwidth = 3;
     header1Load.add(tablePanel, layout, constraints);
     constraints.gridwidth = 1;
-    if (typeColumn && expanded) {
+    if (useTypeColumn()) {
       header1CPUType.add(tablePanel, layout, constraints);
     }
-    if (speedColumn && expanded) {
+    if (useSpeedColumn()) {
       header1Speed.add(tablePanel, layout, constraints);
     }
-    if (memoryColumn && expanded) {
+    if (useMemoryColumn()) {
       header1RAM.add(tablePanel, layout, constraints);
     }
-    if (osColumn && expanded) {
+    if (useOSColumn()) {
       header1OS.add(tablePanel, layout, constraints);
     }
     header1Restarts.add(tablePanel, layout, constraints);
@@ -293,22 +274,22 @@ final class ProcessorTable implements Storable {
     constraints.gridwidth = 1;
     header2Computer.add(tablePanel, layout, constraints);
     header2NumberCPUsUsed.add(tablePanel, layout, constraints);
-    if (numberColumn && expanded) {
+    if (useNumberColumn()) {
       header2NumberCPUsMax.add(tablePanel, layout, constraints);
     }
     header2Load1.add(tablePanel, layout, constraints);
     header2Load5.add(tablePanel, layout, constraints);
     header2Load15.add(tablePanel, layout, constraints);
-    if (typeColumn && expanded) {
+    if (useTypeColumn()) {
       header2CPUType.add(tablePanel, layout, constraints);
     }
-    if (speedColumn && expanded) {
+    if (useSpeedColumn()) {
       header2Speed.add(tablePanel, layout, constraints);
     }
-    if (memoryColumn && expanded) {
+    if (useMemoryColumn()) {
       header2RAM.add(tablePanel, layout, constraints);
     }
-    if (osColumn && expanded) {
+    if (useOSColumn()) {
       header2OS.add(tablePanel, layout, constraints);
     }
     header2Restarts.add(tablePanel, layout, constraints);
@@ -319,6 +300,7 @@ final class ProcessorTable implements Storable {
     //loop on rows
     for (int i = 0; i < rows.size(); i++) {
       ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
+      row.deleteRow();
       if (expanded || row.isSelected()) {
         row.setNumberColumn(numberColumn && expanded);
         row.setTypeColumn(typeColumn && expanded);
@@ -378,49 +360,27 @@ final class ProcessorTable implements Storable {
     return cpusSelected;
   }
   
-  private final void setMaximumSize(double height) {
-    if (height == 0) {
-      return;
-    }
-    Dimension maxSize = new Dimension();
-    maxSize.setSize(maxWidth, height);
-    scrollPane.setMaximumSize(maxSize);
-  }
-  
-  private final void setPreferredSize(double width, double height) {
-    if (width == 0 || height == 0) {
-      return;
-    }
-    Dimension maxSize = new Dimension();
-    maxSize.setSize(width, height);
-    scrollPane.setPreferredSize(maxSize);
-    lastWidth = width;
-  }
-  
   private class RunPack implements Runnable {
     public void run() {
       if (scrollPane == null) {
         return;
       }
-      //set maximum height
-      if (maxHeight == 0) {
-        calcMaximumHeight();
-      }
-      //reset maximum height if table is too small for the the current tableHeight
-      int height = getMinimumHeight();
-      if (height < maxHeight) {
-        setMaximumSize(height);
-      }
-      //to prevent an empty space at the bottom of the parallel panel when the
-      //vertical scroll bar is used, set the preferred size
+      //get width
       double width = getWidth();
-      if (width > 0) {
-        //add scroll bar width to width
-        if (scrollBarWidth == 0) {
-          scrollBarWidth = scrollBarWidth = scrollPane.getVerticalScrollBar().getWidth() + 1;
-        }
-        width += scrollBarWidth;
-        setPreferredSize(width, Math.min(height, maxHeight));
+      if (width == 0) {
+        width = 250;
+      }
+      double height = getHeight();
+      //adjust width by scroll bar width
+      width += scrollPane.getVerticalScrollBar().getWidth() + 5;
+      //set current size
+      Dimension size = new Dimension();
+      size.setSize(width, height);
+      scrollPane.setMaximumSize(size);
+      if (scrolling) {
+        //to prevent an empty space at the bottom of the parallel panel when
+        //scrolling, set the preferred size
+        scrollPane.setPreferredSize(size);
       }
     }
   }
@@ -429,23 +389,48 @@ final class ProcessorTable implements Storable {
     SwingUtilities.invokeLater(new RunPack());
   }
   
-  private final int getMinimumHeight() {
-    if (header2NumberCPUsUsed == null) {
-      return 0;
+  /**
+   * Get the total height of the table
+   * Get the expanded height if getExpandedHeight is true
+   * @param getExpandedHeight
+   * @return
+   */
+  private final double getHeight() {
+    int height = header1Computer.getHeight();
+    if (height == 1) {
+      height = 21;//guess the height if the top header cell is not displayed
     }
-    int height = 0;
-    int fieldHeight = header2NumberCPUsUsed.getHeight();
-    height = fieldHeight * 2;
-    if (rows == null) {
-      return height;
-    }
-    if (expanded) {
-      height += fieldHeight * rows.size();
+    int approxCellheight = height;//save an approximate cell height
+    //add the height of the second header
+    int cellHeight = header2Computer.getHeight();
+    if (cellHeight == 1) {
+      height += approxCellheight;
     }
     else {
-      for (int i = 0; i < rows.size(); i++) {
-        if (((ProcessorTableRow) rows.get(i)).isSelected()) {
-          height += fieldHeight;
+      height += header2Computer.getHeight();
+    }
+    if (rows == null || rows.size() == 0) {
+      return height;
+    }
+    //add the height of each row
+    int totalRows = 0;
+    scrolling = false;
+    for (int i = 0; i < rows.size(); i++) {
+      //limit the size of the table
+      if (totalRows >= MAXIMUM_ROWS) {
+        scrolling = true;
+        break;
+      }
+      ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
+      //check if row is currently displayed
+      if (row.isDisplayed()) {
+        totalRows++;
+        cellHeight = row.getHeight();
+        if (cellHeight == 1) {
+          height += approxCellheight;
+        }
+        else {
+          height += row.getHeight();
         }
       }
     }
@@ -453,28 +438,54 @@ final class ProcessorTable implements Storable {
   }
   
   private final void calcMaximumHeight() {
-    if (header2NumberCPUsUsed == null) {
-      maxHeight = 0;
-    }
-    maxHeight = header2NumberCPUsUsed.getHeight() * (2 + maxRows);
+
   }
   
   private final double getWidth() {
-    if (rows == null || rows.size() == 0) {
-      return 0;
+    int width = header2Computer.getWidth();
+    width += header2NumberCPUsUsed.getWidth();
+    if (useNumberColumn()) {
+      width += header2NumberCPUsMax.getWidth();
     }
-    if (expanded) {
-      return ((ProcessorTableRow) rows.get(0)).getWidth();
+    width += header2Load1.getWidth();
+    width += header2Load5.getWidth();
+    width += header2Load15.getWidth();
+    if (useTypeColumn()) {
+      width += header2CPUType.getWidth();
     }
-    else {
-      for (int i = 0; i < rows.size(); i++) {
-        ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
-        if (row.isSelected()) {
-          return row.getWidth();
-        }
-      }
-      return ((ProcessorTableRow) rows.get(0)).getWidth();
+    if (useSpeedColumn()) {
+      width += header2Speed.getWidth();
     }
+    if (useMemoryColumn()) {
+      width += header2RAM.getWidth();
+    }
+    if (useOSColumn()) {
+      width += header2OS.getWidth();
+    }
+    width += header2Restarts.getWidth();
+    width += header2Finished.getWidth();
+    width += header2Failure.getWidth();   
+    return width;
+  }
+  
+  private final boolean useNumberColumn() {
+    return numberColumn && expanded;
+  }
+  
+  private final boolean useTypeColumn() {
+    return typeColumn && expanded;
+  }
+  
+  private final boolean useSpeedColumn() {
+    return speedColumn && expanded;
+  }
+  
+  private final boolean useMemoryColumn() {
+    return memoryColumn && expanded;
+  }
+  
+  private final boolean useOSColumn() {
+    return osColumn && expanded;
   }
 
   final int getFirstSelectedIndex() {
@@ -639,6 +650,10 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2005/10/12 22:46:17  sueh
+ * <p> bug# 532 Moved the section type string to a public static final, so it can
+ * <p> be used by ParallelPanel.
+ * <p>
  * <p> Revision 1.19  2005/09/27 23:44:29  sueh
  * <p> bug# 532 Moved loading prefererences to the end of initTable() from
  * <p> ParallelPanel.
