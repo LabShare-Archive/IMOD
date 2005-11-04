@@ -40,7 +40,7 @@ import etomo.util.Utilities;
 /**
 * <p>Description: Base class for ApplicationManager and JoinManager</p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2005</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -49,276 +49,6 @@ import etomo.util.Utilities;
 * @author $Author$
 * 
 * @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.40  2005/10/31 17:52:40  sueh
-* <p> bug# 730 Renamed getTestParamFile to getParamFile.  Made
-* <p> canChangeParamFileName() abstract.
-* <p>
-* <p> Revision 1.39  2005/10/27 00:07:26  sueh
-* <p> bug# 725 Allowing multiple paths when running nextProcess.  Added
-* <p> lastProcessA and B.  Added functions:  getLastProcess,
-* <p> isLastProcessSet, resetLastProcess, and setLastProcess.
-* <p>
-* <p> Revision 1.38  2005/10/15 00:27:42  sueh
-* <p> bug# 532 Changed showParallelStatus() to setParallelDialog().  Removed
-* <p> currentParallelDialogsA and B.  Simplified setParallelDialog() to just call
-* <p> MainPanel.setParallelDialog() with  dialog.isParallel().  isParallel() is true
-* <p> if any parallel processing check boxes are true on the dialog.
-* <p>
-* <p> Revision 1.37  2005/10/14 21:04:57  sueh
-* <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
-* <p>
-* <p> Revision 1.36  2005/09/29 18:38:48  sueh
-* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
-* <p> over during exit.  Added BaseManager.exiting and
-* <p> saveIntermediateParamFile(), which will not save when exiting it true.
-* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
-* <p> saveParamFile() to the child exitProgram functions so that the param file
-* <p> is saved after all the done functions are run.
-* <p>
-* <p> Revision 1.35  2005/09/27 21:12:38  sueh
-* <p> bug# 532 Moved the creation of the the .edf file Storable array to the child
-* <p> classes because the classes the go into the array vary.  Moved the
-* <p> parallel panels to the axis level panels.
-* <p>
-* <p> Revision 1.34  2005/09/22 20:43:38  sueh
-* <p> bug# 532 Added showParallelStatus(), which is called when a parallel
-* <p> processing checkbox is checked.
-* <p>
-* <p> Revision 1.33  2005/09/21 16:04:34  sueh
-* <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
-* <p>
-* <p> Revision 1.32  2005/09/19 16:38:29  sueh
-* <p> bug# 532 In getParallelPanel(), calling
-* <p> ParallelPanel.setContainer(ParallelDialog).
-* <p>
-* <p> Revision 1.31  2005/09/13 00:27:25  sueh
-* <p> bug# 532 Removed unecessary import.
-* <p>
-* <p> Revision 1.30  2005/09/13 00:13:46  sueh
-* <p> bug# 532 Modified savePreferences() to check whether the axis is busy.
-* <p>
-* <p> Revision 1.29  2005/09/12 23:56:50  sueh
-* <p> bug# 532 Added savePreferences() to save a Storable class to the .etomo
-* <p> file without overwriting preference entries from other Storable classes.
-* <p>
-* <p> Revision 1.28  2005/09/09 21:20:24  sueh
-* <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
-* <p> that there aren't IntermittentSystemPrograms then computers.  This allows
-* <p> IntermittentSystemProgram to be used for other things and conforms to
-* <p> it definition of having one instance per IntermittentCommand, instead of
-* <p> one instance per computer.
-* <p>
-* <p> Revision 1.27  2005/09/01 18:34:42  sueh
-* <p> bug# 532 Made the parallel panels manager level.  Added parallelPanelA
-* <p> and B.  Added getParallPanel(), which constructs the panel if necessary
-* <p> and returns it.
-* <p>
-* <p> Revision 1.26  2005/08/22 22:04:35  sueh
-* <p> bug# 714 Added makeCurrent() to set the user.dir property when the
-* <p> manager is switched.
-* <p>
-* <p> Revision 1.25  2005/08/22 15:57:13  sueh
-* <p> bug# 532 Added start and stop GetLoadAverage() to send load
-* <p> information to a LoadAverageDisplay.
-* <p>
-* <p> Revision 1.24  2005/08/10 20:38:29  sueh
-* <p> bug# 711 Made UIParameters constructor private.  Can't force it no be
-* <p> called since this is mostly static functions.
-* <p>
-* <p> Revision 1.23  2005/08/04 19:05:42  sueh
-* <p> bug# 532  Sending the manager to UIHarness.pack() so that
-* <p> packDialogs() can be called.
-* <p>
-* <p> Revision 1.22  2005/08/01 17:57:59  sueh
-* <p> Removed unnecessary FIXME
-* <p>
-* <p> Revision 1.21  2005/07/29 00:38:52  sueh
-* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
-* <p> because the current manager changes when the user changes the tab.
-* <p> Passing the manager where its needed.
-* <p>
-* <p> Revision 1.20  2005/07/26 17:03:16  sueh
-* <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
-* <p>
-* <p> Revision 1.19  2005/06/21 00:03:37  sueh
-* <p> bug# 522 Added pass-through function call to
-* <p> BaseProcessManager.touch() for MRCHeaderTest.  Added toString()
-* <p> overide.
-* <p>
-* <p> Revision 1.18  2005/06/03 20:09:18  sueh
-* <p> bug# 671 processDone():  Removed code changing the axisID because it
-* <p> doesn't seem be necessary and it causes single axis file names to have
-* <p> an incorrect "a" added to them.
-* <p>
-* <p> Revision 1.17  2005/05/20 21:11:01  sueh
-* <p> bug# 664 saveTestParamFile(): do not attempt to save to a file if the
-* <p> memory is very low.  If the save fails, the file may be truncated.
-* <p>
-* <p> Revision 1.16  2005/05/18 22:30:37  sueh
-* <p> bug# 622 Made nextProcessA and B private because they are set using
-* <p> reset and setProcess functions.  Added a new parameter to
-* <p> processDone():  boolean forceNextProcess (default is false).
-* <p> ForceNextProcess is for when the next process is independent of the
-* <p> outcome of the previous process and makes startNextProcess() run
-* <p> regardless of value of exitValue.  It is used for archiveorig, to get the
-* <p> second axis.
-* <p>
-* <p> Revision 1.15  2005/05/17 19:08:40  sueh
-* <p> bug# 520 Fixed some recently introduced bugs in join.  We are saving to
-* <p> .ejf file more often.  When the first section is needs to be flipped, the
-* <p> join manager isn't ready to flip, because the paramFile isn't set.  So don't
-* <p> both to save in this situation.
-* <p>
-* <p> Revision 1.14  2005/04/26 17:34:35  sueh
-* <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
-* <p> functionality is handled through UIHarness to make Etomo more
-* <p> compatible with JUnit.  Removing the mainFrame member variable.
-* <p>
-* <p> Revision 1.13  2005/04/25 20:32:08  sueh
-* <p> bug# 615 Passing the axis where the command originated to the message
-* <p> functions so that the message will be popped up in the correct window.
-* <p> This requires adding AxisID to many objects.  Move the interface for
-* <p> popping up message dialogs to UIHarness.  It prevents headless
-* <p> exceptions during a test execution.  It also allows logging of dialog
-* <p> messages during a test.  It also centralizes the dialog interface and
-* <p> allows the dialog functions to be synchronized to prevent dialogs popping
-* <p> up in both windows at once.
-* <p>
-* <p> Revision 1.12  2005/04/21 20:28:13  sueh
-* <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
-* <p> that requires it.
-* <p>
-* <p> Revision 1.11  2005/03/19 01:09:52  sueh
-* <p> adding comments
-* <p>
-* <p> Revision 1.10  2005/03/11 01:57:43  sueh
-* <p> bug# 612 Change nextProcess to support axis A and B.
-* <p>
-* <p> Revision 1.9  2005/03/01 20:50:37  sueh
-* <p> bug# 607 Catching Throwable in exitProgram and returning true to make
-* <p> sure that Etomo can always exit.
-* <p>
-* <p> Revision 1.8  2005/02/09 18:39:41  sueh
-* <p> bug# 595 There is no way to stop the user from running combine when
-* <p> another combine is still running from a previous Etomo session in the same
-* <p> dataset.  So warn the user that they won't receive a warning if they do
-* <p> this.
-* <p>
-* <p> Revision 1.7  2005/01/21 22:07:29  sueh
-* <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
-* <p> class.
-* <p>
-* <p> Revision 1.6  2004/12/14 21:23:39  sueh
-* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
-* <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
-* <p> bug# 572:  Removing state object from meta data and managing it with a
-* <p> manager class.
-* <p> Saving all objects to the .edf/ejf file each time a save is done.
-* <p>
-* <p> Revision 1.5  2004/12/09 04:49:17  sueh
-* <p> bug# 565 Removed isDataParamDirty.  Synchronized storage of param
-* <p> file with store(Storable[]).  Automatically saving to param file on exit.
-* <p> Changed saveTestParamIfNecessary() to saveTestParamOnExit().
-* <p>
-* <p> Revision 1.4  2004/12/03 02:30:44  sueh
-* <p> bug# 568 Added setDataParamDirty() so that meta data can be changed
-* <p> in other objects.
-* <p>
-* <p> Revision 1.3  2004/11/23 00:14:11  sueh
-* <p> bug# 520 Allowed propertyUserDir to be set.  Prevented the construction
-* <p> of mainPanel when test is true.
-* <p>
-* <p> Revision 1.2  2004/11/19 22:33:55  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 1.1.2.19  2004/11/18 23:57:20  sueh
-* <p> bug# 520 Added saveMetaData to save only meta data.  Added
-* <p> boolean canChangePAramFileName to tell MainFrame whether Save As
-* <p> should be enabled.
-* <p>
-* <p> Revision 1.1.2.18  2004/11/17 02:18:27  sueh
-* <p> bug# 520 Fixed a comment.
-* <p>
-* <p> Revision 1.1.2.17  2004/11/15 22:04:42  sueh
-* <p> bug# 520 Removed the function isFileValid() because it is only called once.
-* <p> Placed the code from isFileValid() into loadTestParamFile().
-* <p>
-* <p> Revision 1.1.2.16  2004/11/12 22:43:34  sueh
-* <p> bug# 520 Moved imodGetRubberbandCoordinates from ApplicationManager.
-* <p>
-* <p> Revision 1.1.2.15  2004/10/29 01:15:23  sueh
-* <p> bug# 520 Removing unecessary functions that provided services to
-* <p> BaseManager.  BaseManager can use get... functions to get the
-* <p> mainPanel, metaData, and processTrack.
-* <p>
-* <p> Revision 1.1.2.14  2004/10/22 03:18:05  sueh
-* <p> bug# 520 Removed a FIXME comment.
-* <p>
-* <p> Revision 1.1.2.13  2004/10/21 17:49:56  sueh
-* <p> bug# 520 In loadTestParamFile() converted paramFile to a file created with
-* <p> an absolute path, so metaData validation would not fail.
-* <p>
-* <p> Revision 1.1.2.12  2004/10/15 00:00:02  sueh
-* <p> bug# 520 Moving getTestParamFilename() to mainPanel.  It is used for
-* <p> saving existing data files, so knows which type (.edf or .ejf) it is saving.
-* <p>
-* <p> Revision 1.1.2.11  2004/10/11 01:55:43  sueh
-* <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
-* <p> and progressManager to child classes.  Used abstract functions to use
-* <p> these variables in the base classes.  This is more reliable and doesn't
-* <p> require casting.
-* <p>
-* <p> Revision 1.1.2.10  2004/10/08 21:12:27  sueh
-* <p> bug# 520 Backed out conversion from properties user.dir to workingDir
-* <p>
-* <p> Revision 1.1.2.9  2004/10/08 15:40:48  sueh
-* <p> bug# 520 Set workingDirName instead of system property for manager-
-* <p> level working directory.  Moved SettingsDialog to EtomoDirector.  Since
-* <p> EtomoDirector is a singleton, made all functions and member variables
-* <p> non-static.  The singleton code controls how many EtomoDirector
-* <p> instances can exist.  Moved application-level code in initProgram and
-* <p> exitProgram to EtomoDirector.
-* <p>
-* <p> Revision 1.1.2.8  2004/10/01 20:58:02  sueh
-* <p> bug# 520 Changed getMetaDAta() to getBaseMetaData() so it can return
-* <p> the abstract base class for objects that don't know which type of manager
-* <p> they are using.
-* <p>
-* <p> Revision 1.1.2.7  2004/09/29 17:37:09  sueh
-* <p> bug# 520 Using BaseMetaData, BaseProcessTrack, and
-* <p> BaseProcessManager.  Moved processDone() from app mgr to base mgr.
-* <p> Created abstract startNextProcess() and
-* <p> updateDialog(ProcessName, AxisID).  Removed resetState(),
-* <p> openNewDataset() and openExistingDataset().  Managers will not be
-* <p> reset and this functionality will be handled by EtomoDirector.
-* <p>
-* <p> Revision 1.1.2.6  2004/09/15 22:33:39  sueh
-* <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
-* <p> Move packMainWindow and setPanel from ApplicationMAnager to
-* <p> BaseManager.
-* <p>
-* <p> Revision 1.1.2.5  2004/09/13 16:26:46  sueh
-* <p> bug# 520 Adding abstract isNewManager.  Each manager would have a
-* <p> different way to tell whether they had a file open.
-* <p>
-* <p> Revision 1.1.2.4  2004/09/09 17:28:38  sueh
-* <p> bug# 520 MRU file labels already being set from EtomoDirector
-* <p>
-* <p> Revision 1.1.2.3  2004/09/08 19:27:19  sueh
-* <p> bug# 520 putting initialize UI parameters into a separate function
-* <p>
-* <p> Revision 1.1.2.2  2004/09/07 17:51:00  sueh
-* <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
-* <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
-* <p> moved exitProgram() and processing variables to BaseManager, split
-* <p> MainPanel off from MainFrame
-* <p>
-* <p> Revision 1.1.2.1  2004/09/03 20:37:24  sueh
-* <p> bug# 520 Base class for ApplicationManager and JoinManager.  Transfering
-* <p> constructor functionality from AppMgr
-* <p> </p>
 */
 public abstract class BaseManager {
   public static  final String  rcsid =  "$Id$";
@@ -998,3 +728,277 @@ public abstract class BaseManager {
     packPanel(AxisID.SECOND);
   }
 }
+/**
+* <p> $Log$
+* <p> Revision 1.41  2005/11/02 21:33:39  sueh
+* <p> bug# 754 Getting error and warning tags from ProcessMessages.
+* <p>
+* <p> Revision 1.40  2005/10/31 17:52:40  sueh
+* <p> bug# 730 Renamed getTestParamFile to getParamFile.  Made
+* <p> canChangeParamFileName() abstract.
+* <p>
+* <p> Revision 1.39  2005/10/27 00:07:26  sueh
+* <p> bug# 725 Allowing multiple paths when running nextProcess.  Added
+* <p> lastProcessA and B.  Added functions:  getLastProcess,
+* <p> isLastProcessSet, resetLastProcess, and setLastProcess.
+* <p>
+* <p> Revision 1.38  2005/10/15 00:27:42  sueh
+* <p> bug# 532 Changed showParallelStatus() to setParallelDialog().  Removed
+* <p> currentParallelDialogsA and B.  Simplified setParallelDialog() to just call
+* <p> MainPanel.setParallelDialog() with  dialog.isParallel().  isParallel() is true
+* <p> if any parallel processing check boxes are true on the dialog.
+* <p>
+* <p> Revision 1.37  2005/10/14 21:04:57  sueh
+* <p> bug# 730 Changed loadedTestParamFile to loadedParamFile.
+* <p>
+* <p> Revision 1.36  2005/09/29 18:38:48  sueh
+* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+* <p> over during exit.  Added BaseManager.exiting and
+* <p> saveIntermediateParamFile(), which will not save when exiting it true.
+* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+* <p> saveParamFile() to the child exitProgram functions so that the param file
+* <p> is saved after all the done functions are run.
+* <p>
+* <p> Revision 1.35  2005/09/27 21:12:38  sueh
+* <p> bug# 532 Moved the creation of the the .edf file Storable array to the child
+* <p> classes because the classes the go into the array vary.  Moved the
+* <p> parallel panels to the axis level panels.
+* <p>
+* <p> Revision 1.34  2005/09/22 20:43:38  sueh
+* <p> bug# 532 Added showParallelStatus(), which is called when a parallel
+* <p> processing checkbox is checked.
+* <p>
+* <p> Revision 1.33  2005/09/21 16:04:34  sueh
+* <p> bug# 532 Moved processchunks() and setThreadName() to BaseManager.
+* <p>
+* <p> Revision 1.32  2005/09/19 16:38:29  sueh
+* <p> bug# 532 In getParallelPanel(), calling
+* <p> ParallelPanel.setContainer(ParallelDialog).
+* <p>
+* <p> Revision 1.31  2005/09/13 00:27:25  sueh
+* <p> bug# 532 Removed unecessary import.
+* <p>
+* <p> Revision 1.30  2005/09/13 00:13:46  sueh
+* <p> bug# 532 Modified savePreferences() to check whether the axis is busy.
+* <p>
+* <p> Revision 1.29  2005/09/12 23:56:50  sueh
+* <p> bug# 532 Added savePreferences() to save a Storable class to the .etomo
+* <p> file without overwriting preference entries from other Storable classes.
+* <p>
+* <p> Revision 1.28  2005/09/09 21:20:24  sueh
+* <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
+* <p> that there aren't IntermittentSystemPrograms then computers.  This allows
+* <p> IntermittentSystemProgram to be used for other things and conforms to
+* <p> it definition of having one instance per IntermittentCommand, instead of
+* <p> one instance per computer.
+* <p>
+* <p> Revision 1.27  2005/09/01 18:34:42  sueh
+* <p> bug# 532 Made the parallel panels manager level.  Added parallelPanelA
+* <p> and B.  Added getParallPanel(), which constructs the panel if necessary
+* <p> and returns it.
+* <p>
+* <p> Revision 1.26  2005/08/22 22:04:35  sueh
+* <p> bug# 714 Added makeCurrent() to set the user.dir property when the
+* <p> manager is switched.
+* <p>
+* <p> Revision 1.25  2005/08/22 15:57:13  sueh
+* <p> bug# 532 Added start and stop GetLoadAverage() to send load
+* <p> information to a LoadAverageDisplay.
+* <p>
+* <p> Revision 1.24  2005/08/10 20:38:29  sueh
+* <p> bug# 711 Made UIParameters constructor private.  Can't force it no be
+* <p> called since this is mostly static functions.
+* <p>
+* <p> Revision 1.23  2005/08/04 19:05:42  sueh
+* <p> bug# 532  Sending the manager to UIHarness.pack() so that
+* <p> packDialogs() can be called.
+* <p>
+* <p> Revision 1.22  2005/08/01 17:57:59  sueh
+* <p> Removed unnecessary FIXME
+* <p>
+* <p> Revision 1.21  2005/07/29 00:38:52  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
+* <p> Revision 1.20  2005/07/26 17:03:16  sueh
+* <p> bug# 701 Pass ProcessEndState to the progress bar when stopping it.
+* <p>
+* <p> Revision 1.19  2005/06/21 00:03:37  sueh
+* <p> bug# 522 Added pass-through function call to
+* <p> BaseProcessManager.touch() for MRCHeaderTest.  Added toString()
+* <p> overide.
+* <p>
+* <p> Revision 1.18  2005/06/03 20:09:18  sueh
+* <p> bug# 671 processDone():  Removed code changing the axisID because it
+* <p> doesn't seem be necessary and it causes single axis file names to have
+* <p> an incorrect "a" added to them.
+* <p>
+* <p> Revision 1.17  2005/05/20 21:11:01  sueh
+* <p> bug# 664 saveTestParamFile(): do not attempt to save to a file if the
+* <p> memory is very low.  If the save fails, the file may be truncated.
+* <p>
+* <p> Revision 1.16  2005/05/18 22:30:37  sueh
+* <p> bug# 622 Made nextProcessA and B private because they are set using
+* <p> reset and setProcess functions.  Added a new parameter to
+* <p> processDone():  boolean forceNextProcess (default is false).
+* <p> ForceNextProcess is for when the next process is independent of the
+* <p> outcome of the previous process and makes startNextProcess() run
+* <p> regardless of value of exitValue.  It is used for archiveorig, to get the
+* <p> second axis.
+* <p>
+* <p> Revision 1.15  2005/05/17 19:08:40  sueh
+* <p> bug# 520 Fixed some recently introduced bugs in join.  We are saving to
+* <p> .ejf file more often.  When the first section is needs to be flipped, the
+* <p> join manager isn't ready to flip, because the paramFile isn't set.  So don't
+* <p> both to save in this situation.
+* <p>
+* <p> Revision 1.14  2005/04/26 17:34:35  sueh
+* <p> bug# 615 Made MainFrame a package-level class.  All MainFrame
+* <p> functionality is handled through UIHarness to make Etomo more
+* <p> compatible with JUnit.  Removing the mainFrame member variable.
+* <p>
+* <p> Revision 1.13  2005/04/25 20:32:08  sueh
+* <p> bug# 615 Passing the axis where the command originated to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.  Move the interface for
+* <p> popping up message dialogs to UIHarness.  It prevents headless
+* <p> exceptions during a test execution.  It also allows logging of dialog
+* <p> messages during a test.  It also centralizes the dialog interface and
+* <p> allows the dialog functions to be synchronized to prevent dialogs popping
+* <p> up in both windows at once.
+* <p>
+* <p> Revision 1.12  2005/04/21 20:28:13  sueh
+* <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+* <p> that requires it.
+* <p>
+* <p> Revision 1.11  2005/03/19 01:09:52  sueh
+* <p> adding comments
+* <p>
+* <p> Revision 1.10  2005/03/11 01:57:43  sueh
+* <p> bug# 612 Change nextProcess to support axis A and B.
+* <p>
+* <p> Revision 1.9  2005/03/01 20:50:37  sueh
+* <p> bug# 607 Catching Throwable in exitProgram and returning true to make
+* <p> sure that Etomo can always exit.
+* <p>
+* <p> Revision 1.8  2005/02/09 18:39:41  sueh
+* <p> bug# 595 There is no way to stop the user from running combine when
+* <p> another combine is still running from a previous Etomo session in the same
+* <p> dataset.  So warn the user that they won't receive a warning if they do
+* <p> this.
+* <p>
+* <p> Revision 1.7  2005/01/21 22:07:29  sueh
+* <p> bug# 509 bug# 591  Moved the management of MetaData to the Controller
+* <p> class.
+* <p>
+* <p> Revision 1.6  2004/12/14 21:23:39  sueh
+* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+* <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
+* <p> bug# 572:  Removing state object from meta data and managing it with a
+* <p> manager class.
+* <p> Saving all objects to the .edf/ejf file each time a save is done.
+* <p>
+* <p> Revision 1.5  2004/12/09 04:49:17  sueh
+* <p> bug# 565 Removed isDataParamDirty.  Synchronized storage of param
+* <p> file with store(Storable[]).  Automatically saving to param file on exit.
+* <p> Changed saveTestParamIfNecessary() to saveTestParamOnExit().
+* <p>
+* <p> Revision 1.4  2004/12/03 02:30:44  sueh
+* <p> bug# 568 Added setDataParamDirty() so that meta data can be changed
+* <p> in other objects.
+* <p>
+* <p> Revision 1.3  2004/11/23 00:14:11  sueh
+* <p> bug# 520 Allowed propertyUserDir to be set.  Prevented the construction
+* <p> of mainPanel when test is true.
+* <p>
+* <p> Revision 1.2  2004/11/19 22:33:55  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
+* <p> Revision 1.1.2.19  2004/11/18 23:57:20  sueh
+* <p> bug# 520 Added saveMetaData to save only meta data.  Added
+* <p> boolean canChangePAramFileName to tell MainFrame whether Save As
+* <p> should be enabled.
+* <p>
+* <p> Revision 1.1.2.18  2004/11/17 02:18:27  sueh
+* <p> bug# 520 Fixed a comment.
+* <p>
+* <p> Revision 1.1.2.17  2004/11/15 22:04:42  sueh
+* <p> bug# 520 Removed the function isFileValid() because it is only called once.
+* <p> Placed the code from isFileValid() into loadTestParamFile().
+* <p>
+* <p> Revision 1.1.2.16  2004/11/12 22:43:34  sueh
+* <p> bug# 520 Moved imodGetRubberbandCoordinates from ApplicationManager.
+* <p>
+* <p> Revision 1.1.2.15  2004/10/29 01:15:23  sueh
+* <p> bug# 520 Removing unecessary functions that provided services to
+* <p> BaseManager.  BaseManager can use get... functions to get the
+* <p> mainPanel, metaData, and processTrack.
+* <p>
+* <p> Revision 1.1.2.14  2004/10/22 03:18:05  sueh
+* <p> bug# 520 Removed a FIXME comment.
+* <p>
+* <p> Revision 1.1.2.13  2004/10/21 17:49:56  sueh
+* <p> bug# 520 In loadTestParamFile() converted paramFile to a file created with
+* <p> an absolute path, so metaData validation would not fail.
+* <p>
+* <p> Revision 1.1.2.12  2004/10/15 00:00:02  sueh
+* <p> bug# 520 Moving getTestParamFilename() to mainPanel.  It is used for
+* <p> saving existing data files, so knows which type (.edf or .ejf) it is saving.
+* <p>
+* <p> Revision 1.1.2.11  2004/10/11 01:55:43  sueh
+* <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
+* <p> and progressManager to child classes.  Used abstract functions to use
+* <p> these variables in the base classes.  This is more reliable and doesn't
+* <p> require casting.
+* <p>
+* <p> Revision 1.1.2.10  2004/10/08 21:12:27  sueh
+* <p> bug# 520 Backed out conversion from properties user.dir to workingDir
+* <p>
+* <p> Revision 1.1.2.9  2004/10/08 15:40:48  sueh
+* <p> bug# 520 Set workingDirName instead of system property for manager-
+* <p> level working directory.  Moved SettingsDialog to EtomoDirector.  Since
+* <p> EtomoDirector is a singleton, made all functions and member variables
+* <p> non-static.  The singleton code controls how many EtomoDirector
+* <p> instances can exist.  Moved application-level code in initProgram and
+* <p> exitProgram to EtomoDirector.
+* <p>
+* <p> Revision 1.1.2.8  2004/10/01 20:58:02  sueh
+* <p> bug# 520 Changed getMetaDAta() to getBaseMetaData() so it can return
+* <p> the abstract base class for objects that don't know which type of manager
+* <p> they are using.
+* <p>
+* <p> Revision 1.1.2.7  2004/09/29 17:37:09  sueh
+* <p> bug# 520 Using BaseMetaData, BaseProcessTrack, and
+* <p> BaseProcessManager.  Moved processDone() from app mgr to base mgr.
+* <p> Created abstract startNextProcess() and
+* <p> updateDialog(ProcessName, AxisID).  Removed resetState(),
+* <p> openNewDataset() and openExistingDataset().  Managers will not be
+* <p> reset and this functionality will be handled by EtomoDirector.
+* <p>
+* <p> Revision 1.1.2.6  2004/09/15 22:33:39  sueh
+* <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
+* <p> Move packMainWindow and setPanel from ApplicationMAnager to
+* <p> BaseManager.
+* <p>
+* <p> Revision 1.1.2.5  2004/09/13 16:26:46  sueh
+* <p> bug# 520 Adding abstract isNewManager.  Each manager would have a
+* <p> different way to tell whether they had a file open.
+* <p>
+* <p> Revision 1.1.2.4  2004/09/09 17:28:38  sueh
+* <p> bug# 520 MRU file labels already being set from EtomoDirector
+* <p>
+* <p> Revision 1.1.2.3  2004/09/08 19:27:19  sueh
+* <p> bug# 520 putting initialize UI parameters into a separate function
+* <p>
+* <p> Revision 1.1.2.2  2004/09/07 17:51:00  sueh
+* <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
+* <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
+* <p> moved exitProgram() and processing variables to BaseManager, split
+* <p> MainPanel off from MainFrame
+* <p>
+* <p> Revision 1.1.2.1  2004/09/03 20:37:24  sueh
+* <p> bug# 520 Base class for ApplicationManager and JoinManager.  Transfering
+* <p> constructor functionality from AppMgr
+* <p> </p>
+*/

@@ -107,7 +107,7 @@ import etomo.util.Utilities;
  *  processing, management of other high-level objects and signal routing for
  *  tomogram reconstructions.</p>
  *
- * <p>Copyright: Copyright (c) 2002-2005</p>
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -5964,6 +5964,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.195  2005/11/03 21:20:38  sueh
+ * <p> bug# 755 Stop opening combine when tomo gen is done.
+ * <p>
  * <p> Revision 3.194  2005/11/02 21:31:18  sueh
  * <p> bug# 731 In createCombineScripts():  Setting process end state to failed
  * <p> if combine setup fails.
