@@ -1,4 +1,4 @@
-/*
+/**
  * <p>Description: Newstack command model</p>
  *
  * <p>Copyright: Copyright (c) 2002,2003,2004</p>
@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/09/02 18:56:08  sueh
+ * <p> bug# 721 Adding magGradientFile.
+ * <p>
  * <p> Revision 3.9  2005/01/08 01:40:34  sueh
  * <p> bug# 578 Create 2 modes - whole tomo sample and full aligned stack.
  * <p> Implement Command.  Add fiducialessAlignment variable and make it

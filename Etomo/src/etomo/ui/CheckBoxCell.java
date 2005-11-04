@@ -14,7 +14,7 @@ import etomo.type.EtomoBoolean2;
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
- *<p>Organization:
+ * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  * 
@@ -93,7 +93,6 @@ final class CheckBoxCell extends InputCell {
   
   final int getWidth() {
     return checkBox.getWidth();
-       // + checkBox.getBorder().getBorderInsets(checkBox).right / 2;
   }
   
   final int getLeftBorder() {
@@ -102,6 +101,9 @@ final class CheckBoxCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/08/04 20:07:52  sueh
+ * <p> bug# 532 added setSelected() and getWidth().
+ * <p>
  * <p> Revision 1.4  2005/08/01 18:07:07  sueh
  * <p> bug# 532 fixed getLabel(), which was returning the checkbox text instead
  * <p> of the unformatted label.
