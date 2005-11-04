@@ -19,7 +19,7 @@ import etomo.type.EtomoNumber;
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
- *<p>Organization:
+ * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  * 
@@ -60,6 +60,7 @@ final class ProcessorTableRow implements Storable {
   private boolean speedColumn = false;
   private boolean memoryColumn = false;
   private boolean osColumn = false;
+  private boolean displayed = false;
   
   ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
       String cpuType, String speed, String memory, String os) {
@@ -195,8 +196,17 @@ final class ProcessorTableRow implements Storable {
   final void setOSColumn(boolean osColumn) {
     this.osColumn = osColumn;
   }
+  
+  final boolean isDisplayed() {
+    return displayed;
+  }
+  
+  final void deleteRow() {
+    displayed = false;
+  }
 
   void addRow() {
+    displayed = true;
     //create row
     JPanel panel = table.getTablePanel();
     GridBagLayout layout = table.getTableLayout();
@@ -440,6 +450,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2005/09/27 23:46:56  sueh
+ * <p> bug# 532 Moved call to initRow() to the constructor so that the cells will
+ * <p> all be constructed before that perferences are read.
+ * <p>
  * <p> Revision 1.15  2005/09/22 21:32:55  sueh
  * <p> bug# 532 Removed restartsError.  Taking error level from ParallelPanel in
  * <p> ProcessorTableRow.
