@@ -208,7 +208,7 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       title.append(":  reassembling");
     }
     if (endState == ProcessEndState.PAUSED) {
-      title.append(" - finishing current chunks");
+      title.append(" - pausing:  finishing current chunks");
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID, !reassembling);
   }
@@ -327,6 +327,9 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2005/10/21 19:55:54  sueh
+* <p> bug# 742 Sending text from standard error to the error log.
+* <p>
 * <p> Revision 1.11  2005/09/27 21:16:18  sueh
 * <p> bug# 532 Temporarily printing the processchunks output to the error log
 * <p> without the debug setting.
