@@ -203,7 +203,9 @@ void StartupForm::imageSelectClicked()
     dia_err("WARNING: The file list will be truncated in the Image file(s) edit box.\n"
             "All files should load OK if you do not try to edit the list.");
 
+  imageFilesEdit->blockSignals(true);
   imageFilesEdit->setText(mImageFiles);
+  imageFilesEdit->blockSignals(false);
   mFilesChanged = false;
 }
 
@@ -414,11 +416,18 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
     mImageFiles = "";
     for (int i = firstfile; i < argc; i++)
       mImageFiles += QString(argv[i]) + ";";
+    mImageFileList = QStringList::split(";", mImageFiles);
     if (mImageFiles.find(' ') < 0) {
       mImageFiles.replace(';', " ");
       mJoinedWithSpace = true;
     }
+    if (mImageFiles.length() > 32760)
+      dia_err("WARNING: The file list will be truncated in the Image file(s) edit box.\n"
+              "All files should load OK if you do not try to edit the list.");
+
+    imageFilesEdit->blockSignals(true);
     imageFilesEdit->setText(mImageFiles);
+    imageFilesEdit->blockSignals(false);
   }
   if (plistfname)
     pieceFileEdit->setText(QString(plistfname));
