@@ -20,7 +20,10 @@ c	  up the CTF
 c
         subroutine setctfwsr(SIGMA1,SIGMA2,RADIUS1,RADIUS2,ctf,nx,ny,
      &	    delta)
-        dimension ctf(*)
+	implicit none
+        real*4 ctf(*),SIGMA1,SIGMA2,RADIUS1,RADIUS2,delta
+	integer*4 nx,ny,nsize,j
+	real*4 alpha,beta1,beta2,asize,s,scl,sum,radius1p, radius1n, ssqrd
 
 	delta=0.
 	if(sigma1.eq.0..and.sigma2.eq.0.)return
@@ -36,11 +39,22 @@ C
         IF (abs(SIGMA1) .GT. 1.E-6) ALPHA = -0.5/SIGMA1**2
         IF (abs(SIGMA2) .GT. 1.E-6) BETA1  = -0.5/SIGMA2**2
         beta2=beta1
+c	  
+c	  Yes, delta is twice as big as it should be and values are generated
+c	  out to 1.41.  It should really be 0.71/asize.  What to do?
+c
         DELTA = 1.0/(.71*ASIZE)
+	if (radius1 .ge. 0.) then
+	  radius1p = radius1
+	  radius1n = 0.
+	else
+	  radius1n = -radius1
+	  radius1p = 0.
+	endif
 	S = 0.0
 	DO J = 1,NSIZE
-	  IF (S .LT. RADIUS1) THEN
-	    CTF(J) = EXP(BETA1*(S - RADIUS1)**2)
+	  IF (S .LT. RADIUS1P) THEN
+	    CTF(J) = EXP(BETA1*(S - RADIUS1P)**2)
 	  ELSE IF (S .GT. RADIUS2) THEN
 	    CTF(J) = EXP(BETA2*(S - RADIUS2)**2)
 	  ELSE
@@ -52,7 +66,11 @@ C
         IF (SIGMA1 .GT. 1.E-6)then
           s=0.
           do j=1,nsize
-            CTF(J) = CTF(J)*(1.0 - EXP(ALPHA*S*S))
+	    if (s .lt. radius1n) then
+	      ctf(j) = 0.
+	    else
+	      CTF(J) = CTF(J)*(1.0 - EXP(ALPHA*(S - radius1n)**2))
+	    endif
             S = S + DELTA
           enddo
         else if (sigma1 .lt. -1.e-6)then
