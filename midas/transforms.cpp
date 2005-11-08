@@ -1418,7 +1418,7 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
   /*   printf ("%d %d %d %d\n", basesize, ndivShort, divSizeShort, shortsize); */
 
   /* Now long size can have bigger divisions if short side is small */
-  basesize = (MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) / shortsize -  
+  basesize = (MAX_GAUSSJ_VARS * MAX_GAUSSJ_VARS) / shortsize -
     2 * LOCAL_BORDER - 1;
   ndivLong = (nlong + basesize - 2) / basesize;
   divSizeLong = (nlong - 1) / ndivLong;
@@ -1467,9 +1467,10 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
           indvar[ipc] = -1;
       for (iy = iyst; iy <= iynd; iy++) {
         for (ix = ixst; ix <= ixnd; ix++) {
-          ipc = vw->montmap[ix + iy * vw->nxpieces + 
-                            vw->montcz * limvar];
-
+          ipc = vw->montmap[ix + iy * vw->nxpieces + vw->montcz * limvar];
+          if (ipc < 0)
+            continue;
+          
           ind = ipc * 2;
           elx = vw->edgelower[ind];
           ely = vw->edgelower[ind + 1];
@@ -1490,28 +1491,24 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
              being computed */
           if (localind > -1 &&
               (ix > ixstin && elx > -1 && elx*2 == localind) ||
-              (iy > iystin && ely > -1 && 
-               ely * 2 + 1 == localind) ||
+              (iy > iystin && ely > -1 && ely * 2 + 1 == localind) ||
               (ix < ixndin && eux > -1 && eux* 2 == localind) ||
-              (iy < iyndin && euy > -1 && 
-               euy * 2 + 1 == localind))
+              (iy < iyndin && euy > -1 && euy * 2 + 1 == localind))
             doarea = 1;
         }
       }
       /*  printf("X: %d %d %d %d %d   Y: %d %d %d %d %d   leave %d %d\n",
           divX, ixst, ixnd, ixstin, ixndin, divY, iyst, iynd, iystin, iyndin, leavind, doarea); */
       if (nvar >= 2 && doarea) {
-        solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, 
-                         leavind);
+        solve_for_shifts(vw, a, b, ivarpc, indvar, nvar, limvar, leavind);
 
         /* evaluate errors for ones in the inner area */
         for (iy = iystin; iy <= iyndin; iy++) {
           for (ix = ixstin; ix <= ixndin; ix++) {
-            ipc = vw->montmap[ix + iy * vw->nxpieces + 
-                              vw->montcz * limvar];
-            ivar = indvar[ipc];
-            if (ivar < 0)
+            ipc = vw->montmap[ix + iy * vw->nxpieces + vw->montcz * limvar];
+            if (ipc < 0)
               continue;
+            ivar = indvar[ipc];
 
             for (ixy = 0; ixy < 2; ixy++) {
               edge = vw->edgelower[ipc * 2 + ixy];
@@ -1522,19 +1519,14 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
                  Y or the very last piece in Y */
               if (edge > -1 && 
                   ((!ixy && ix > ixstin &&
-                    (iy < iyndin || 
-                     iynd == vw->nypieces - 1))
+                    (iy < iyndin || iynd == vw->nypieces - 1))
                    || (ixy && iy > iystin &&
-                       (ix < ixndin || 
-                        ixnd == vw->nxpieces -1)))){
+                       (ix < ixndin || ixnd == vw->nxpieces -1)))){
                 ipclo = vw->piecelower[ind];
-                adx = b[ivar * 2] - b[indvar[ipclo]* 2]
-                  - vw->edgedx[ind];
+                adx = b[ivar * 2] - b[indvar[ipclo]* 2] - vw->edgedx[ind];
                 ady = b[ivar * 2 + 1] - 
-                  b[indvar[ipclo] * 2 + 1] -
-                  vw->edgedy[ind];
-                adist = sqrt((double)
-                             (adx * adx + ady * ady));
+                  b[indvar[ipclo] * 2 + 1] - vw->edgedy[ind];
+                adist = sqrt((double)(adx * adx + ady * ady));
                 if (ind == vw->edgeind * 2 + vw->xory){
                   *curerrx = adx;
                   *curerry = ady;
@@ -1544,12 +1536,9 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
                   nsum++;
                   for (i = 0; i < ntoperr; i++) {
                     if (adist > amax[i]) {
-                      for (j = ntoperr - 1;
-                           j > i; j--) {
-                        amax[j] = 
-                          amax[j - 1];
-                        indmax[j] = 
-                          indmax[j - 1];
+                      for (j = ntoperr - 1; j > i; j--) {
+                        amax[j] = amax[j - 1];
+                        indmax[j] = indmax[j - 1];
                       }
                       amax[i] = adist;
                       indmax[i] = ind;
@@ -1681,6 +1670,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.13  2005/03/10 21:04:15  mast
+Added -q option for use from etomo
+
 Revision 3.12  2004/11/05 18:53:22  mast
 Include local files with quotes, not brackets
 
