@@ -104,7 +104,7 @@ void MidasSlots::update_parameters()
 	  
     for (i = 0; i < 4; i++) {
       edge = index_to_edgeno(VW->topind[i], &topxy);
-      str.sprintf("%s %d: %.2f  ", topxy ? "X" : "Y", edge, toperr[i]);
+      str.sprintf("%s %d: %.2f  ", topxy ? "Y" : "X", edge, toperr[i]);
       VW->wToperr[i]->setText(str);
     }
 
@@ -1909,6 +1909,9 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
 
 /*
 $Log$
+Revision 3.11  2005/03/10 21:04:15  mast
+Added -q option for use from etomo
+
 Revision 3.10  2004/09/23 14:29:13  mast
 Fixed bug from block mode that crashed reference mode
 
