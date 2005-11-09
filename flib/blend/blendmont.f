@@ -82,6 +82,7 @@ c
 	logical edgedone(limedge,2),multineg(limsect),active4(3,2)
 	logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
 	logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
+	logical xcorrDebug,verySloppy
 	real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
 	real*4 edgedispx(limedge,2),edgedispy(limedge,2)
 	real*4 aftermean(2),aftermax(2)
@@ -146,7 +147,7 @@ c
 c	  cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c
 	integer numOptions
-	parameter (numOptions = 37)
+	parameter (numOptions = 48)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -159,11 +160,12 @@ c
      &      'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
      &      'addgrad:AddToGradient:FP:@tilt:TiltGeometry:FT:@'//
      &      'justUndistort:JustUndistort:B:@test:TestMode:B:@'//
-     &      'sloppy:SloppyMontage:B:@shift:ShiftPieces:B:@'//
-     &      'edge:ShiftFromEdges:B:@xcorr:ShiftFromXcorrs:B:@'//
-     &      'readxcorr:ReadInXcorrs:B:@sections:SectionsToDo:LI:@'//
+     &      'sloppy:SloppyMontage:B:@very:VerySloppyMontage:B:@'//
+     &      'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
+     &      'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
+     &      'sections:SectionsToDo:LI:@'//
      &      'xminmax:StartingAndEndingX:IP:@'//
-     &      'yminmax:StartingAndEndingY:IP:@'//
+     &      'yminmax:StartingAndEndingY:IP:@bin:BinByFactor:I:@'//
      &      'maxsize:MaximumNewSizeXandY:IP:@'//
      &      'minoverlap:MinimumOverlapXandY:IP:@'//
      &      'oldedge:OldEdgeFunctions:B:@'//
@@ -172,8 +174,12 @@ c
      &      'width:BlendingWidthXandY:IP:@'//
      &      'boxsize:BoxSizeShortAndLong:IP:@'//
      &      'grid:GridSpacingShortAndLong:IP:@'//
-     &      'indents:IndentShortAndLong:IP:@param:ParameterFile:PF:@'//
-     &      'help:usage:B:'
+     &      'indents:IndentShortAndLong:IP:@'//
+     &      'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@'//
+     &      'taper:TaperFraction:F:@extra:ExtraXcorrWidth:F:@'//
+     &      'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
+     &      'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
+     &      'xcdbg:XcorrDebug:B:@param:ParameterFile:PF:@help:usage:B:'
 c
 c	  initialization of elements in common
 c
@@ -203,7 +209,23 @@ c
 	testMode = .false.
 	undistortOnly = .false.
 	iBinning = 1
+c	  
+c	  Xcorr parameters
+c	  11/5/05: increased taper fraction 0.05->0.1 to protect against
+c	  edge effects with default filter
 c
+	xcorrDebug = .false.
+	ifDumpXY(1) = -1
+	ifDumpXY(2) = -1
+	aspectmax=2.0				!maximum aspect ratio of block
+	taperFrac = 0.1
+	padFrac = 0.45
+	extraWidth = 0.
+	radius1 = 0.
+	radius2 = 0.
+	sigma1 = 0.05
+	sigma2 = 0.
+	verySloppy = .false.
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
 c
@@ -318,17 +340,36 @@ c
 	if (pipinput) print *,'Input file:'
 	write(*,115)nxtotpix,'X',nxpieces,nxin,nxoverlap
 	write(*,115)nytotpix,'Y',nypieces,nyin,nyoverlap
-115	format(i6,' total ',a1,' pixels in',i3,' pieces of',
-     &	    i5, ' pixels, with overlap of',i4)
+115	format(i7,' total ',a1,' pixels in',i4,' pieces of',
+     &	    i6, ' pixels, with overlap of',i5)
 c	  
 c	  find out if global multi-neg specifications are needed or desired
-c	  
+c	  But first deal with correlation control parameters
+c	  Here are the defaults for VerySloppy
+c
 	if (pipinput) then
-	  ierr = PipGetBoolean('SloppyMontage', ifsloppy)
+	  ierr = PipGetLogical('VerySloppyMontage', verySloppy)
+	  if (verySloppy) then
+	    ifsloppy = 1
+	    aspectMax = 5.
+	    radius1 = -0.01
+	    taperFrac = 0.2
+	    extraWidth = 0.25
+	  else
+	    ierr = PipGetBoolean('SloppyMontage', ifsloppy)
+	  endif
+	  ierr = PipGetFloat('AspectRatio', aspectMax)
+	  ierr = PipGetFloat('TaperFraction', taperFrac)
+	  ierr = PipGetFloat('PadFraction', padFrac)
+	  ierr = PipGetFloat('ExtraXcorrWidth', extraWidth)
+	  ierr = PipGetFloat('FilterSigma1', sigma1)
+	  ierr = PipGetFloat('FilterSigma2', sigma2)
+	  ierr = PipGetFloat('FilterRadius1', radius1)
+	  ierr = PipGetFloat('FilterRadius2', radius2)
 	  shifteach = ifsloppy.ne.0
 	  if (PipGetTwoIntegers('FramesPerNegativeXandY', nxfrmpneg,
      &		nyfrmpneg) .eq. 0) ioptabs = 1
-	  ierr = PipGetLogical('ShiftPieces', shifteach)
+	  if (.not.shifteach) ierr = PipGetLogical('ShiftPieces', shifteach)
 	  ierr = PipGetLogical('ShiftFromEdges', fromedge)
 	  ierr = PipGetLogical('ShiftFromXcorrs', xclegacy)
 	  ierr = PipGetLogical('ReadInXcorrs', xcreadin)
@@ -852,6 +893,22 @@ c
 	      enddo
 	    enddo
 	  endif
+c	    
+c	    Handle debug output - open files and set flags
+c
+	  ierr = PipGetLogical('XcorrDebug', xcorrDebug)
+	  if (xcorrDebug) then
+	    if (nxpieces .gt. 1) then
+	      edgenam = concat(rootname,'.xdbg')
+	      call imopen(3,edgenam,'new')
+	      ifDumpXY(1) = 0
+	    endif
+	    if (nypieces .gt. 1) then
+	      edgenam = concat(rootname,'.ydbg')
+	      call imopen(4,edgenam,'new')
+	      ifDumpXY(2) = 0
+	    endif
+	  endif
 	endif
 	doFields = undistort .or. doMagGrad
 	if (undistortOnly .and. .not. doFields) call errorexit('YOU MUST'//
@@ -1313,9 +1370,9 @@ c
      &		  nbestedge,beforemean,beforemax,aftermean(1),aftermax(1))
 	      indbest=1
 	    endif
-	    write(*,'(i4,a,2f6.2,a,a,2f6.2)')nbestedge,
-     &		' edges, mean, max error before:', beforemean,beforemax,
-     &		', after from ', edgexcorrtext(indbest),
+	    write(*,'(i4,a,2f7.2,a,a,2f7.2)')nbestedge,
+     &		' edges, mean&max error before:', beforemean,beforemax,
+     &		', after by ', edgexcorrtext(indbest),
      &		aftermean(indbest),aftermax(indbest)
 	    if (testMode)then
 	      write(*,'(a,i4,a,2f8.3,a,2f9.4)')' section:',
@@ -2444,7 +2501,7 @@ c
 	  edgenam=concat(rootname,xcorrext)
 	  call dopen(4,edgenam,'new','f')
 	  write(4,'(2i7)')nedge(1),nedge(2)
-	  write(4,'(f8.3,f9.3)')((edgedispx(i,ixy),edgedispy(i,ixy),
+	  write(4,'(f9.3,f10.3)')((edgedispx(i,ixy),edgedispy(i,ixy),
      &	      i=1,nedge(ixy)),ixy=1,2)
 	  close(4)
 	endif
@@ -2456,6 +2513,11 @@ c
 	  if (ifoldedge .eq. 0) write(iunedge(ixy),rec=1)nedge(ixy),
      &	      nxgrid(ixy),nygrid(ixy) ,intgrid(ixy),intgrid(3-ixy)
 	  close(iunedge(ixy))
+
+	  if (ifDumpXY(ixy) .gt. 0) then
+	    call iwrhdr(2+ixy,title,-1,0.,255.,128.)
+	    call imclose(2+ixy)
+	  endif
 	enddo
 c
 	call exit(0)
@@ -2471,6 +2533,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.19  2005/08/22 16:19:59  mast
+c	  Preliminary - finding gradients from displacements
+c	
 c	  Revision 3.18  2005/08/22 16:15:59  mast
 c	
 c	  Revision 3.17  2005/08/20 05:10:48  mast
