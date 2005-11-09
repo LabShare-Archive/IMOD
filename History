@@ -1,13 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/3/05: Fixed a problem with the parllel processing panel.  It was displaying
-incorrectly when it came up contracted with no rows checked.
+11/8/05: Added options to Blendmont to control cross-correlation parameters,
+including a VerySloppyMontage option that sets most of them appropriately, so
+the program will work better with montages done by moving the stage.
 
-11/3/05: Fixed bug where the parallel processing panel displays incorrectly in
-Tomogram Combination.  No longer opening Tomogram Combination automatically.
+11/3/05: Fixed display of the parallel processing panel when it is first
+opened in contracted state with no rows checked.
 
-11/2/05: Fixed MTF filter monitor:  it now works with montages and takes
-starting and ending views in account.
+11/3/05: Stopped opening Tomogram Combination automatically after Done is
+pressed in Tomogram Generation to prevent bad display of parallel processing
+panel.
+
+11/2/05: Fixed MTF filter monitor: it now works with montages and takes
+starting and ending views into account.
 
 11/2/05: Added midas limit to the Join Setup tab.
 
