@@ -19,6 +19,7 @@ c	  PEAKFIND
 c	  FIND_BEST_SHIFTS
 c	  IWRBINNED
 c	  GETEXTRAINDENTS
+c	  DUMPEDGE
 c
 c
 c	  $Author$
@@ -28,6 +29,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.13  2005/08/22 16:19:59  mast
+c	  Preliminary - finding gradients from displacements
+c	
 c	  Revision 3.12  2005/08/22 16:15:59  mast
 c	
 c	  Revision 3.11  2005/08/20 05:10:48  mast
@@ -826,6 +830,7 @@ c
 	intscan=6
 	ipclo=ipiecelower(iedge,ixy)
 	ipcup=ipieceupper(iedge,ixy)
+	ipcBelowEdge = ipclo
 	if(neglist(ipclo).ne.neglist(ipcup))then
 c	    
 c	    if edge is across a negative boundary, need to look for all such
@@ -923,16 +928,15 @@ c
 		if (delIndent(ixy) .gt. 0.)
      &		    indentXcorr = int(delIndent(ixy)) + 1
 		call xcorredge(array(indlow),array(indup),
-     &		    nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXcorr)
+     &		    ixy,xdisp,ydisp,xclegacy,indentXcorr)
 		edgedispx(jedge,ixy)=xdisp
 		edgedispy(jedge,ixy)=ydisp
 	      endif
 	      ixdisp=nint(xdisp)
 	      iydisp=nint(ydisp)
-c	      write(*,'(1x,a,2i4,a,2i4)')
-c     &	      char(ixy+ichar('W'))//' edge, pieces'
+c	      write(*,'(1x,a,2i4,a,2i5)') char(ixy+ichar('W'))//' edge, pieces'
 c     &	      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-c     &	      '  ixydisp:',ixdisp,iydisp
+c     &		  '  ixydisp:',ixdisp,iydisp
 	    endif
 	    ixdispmid=ixdisp
 	    iydispmid=iydisp
@@ -1382,23 +1386,20 @@ c
 	end
 
 
-	subroutine xcorredge(crray,drray,nxy,noverlap,ixy,xdisp,ydisp,
-     &	    legacy, indentXC)
-	real*4 crray(*),drray(*)
-	integer*4 nxy(*),noverlap(*)
-c	  
-c	  idimt must be (max overlap)**2 * aspectmax; idimc must be 
-c	  1.9**2 times that unless padding is reduced
-c
-	parameter (idimt=600*1200, idimc=1150*2300)
-	real*4 trray(idimt)
-	complex*8 array(idimc/2), brray(idimc/2)
-	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), indentXC, indentUse
-	real*4 ctf(8193),rdispl(2)
+	subroutine xcorredge(crray,drray,ixy,xdisp,ydisp, legacy, indentXC)
+	implicit none
+	include 'blend.inc'
+	real*4 crray(*),drray(*),xdisp,ydisp
+	integer*4 indentXC,ixy
 	logical legacy
+	integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), nxybord(2)
+	real*4 ctf(8193),rdispl(2)
+	real*4 overfrac,delta,xpeak,ypeak,peak,sdmin,ddenmin
+	integer*4 indentSD,niter,limstep,iyx,nxpad,nypad,nxtap, indentUse
+	integer*4 nytap,jx,ixdispl,iydispl,i,nExtra(2)
+	integer*4 niceframe
 
-	aspectmax=2.0				!maximum aspect ratio of block
-	indent=5				!indent for sdsearch
+	indentSD=5				!indent for sdsearch
 	overfrac=0.9				!fraction of overlap to use
 	niter=4					!iterations for sdsearch
 	limstep=10				!limiting distance
@@ -1407,65 +1408,76 @@ c	  find size and limits of box in overlap zone to cut out
 c
 	iyx=3-ixy
 	indentUse = min(indentXC, (noverlap(ixy) - 8) / 2)
-	indent = indent + indentUse
+	indentSD = indentSD + indentUse
 	nxybox(ixy)=noverlap(ixy) - indentUse * 2
-	nxybox(iyx)=min(nxy(iyx), int(aspectmax*noverlap(ixy)))
-c	nxybox(iyx)=nxy(iyx)
-	ind0(iyx)=nxy(iyx)/2 - nxybox(iyx)/2 
-	ind1(iyx)=nxy(iyx)/2 + nxybox(iyx)/2 - 1
-	ind0(ixy)=nxy(ixy) - noverlap(ixy) + indentUse
-	ind1(ixy)=nxy(ixy) - 1 - indentUse
+	nxybox(iyx)=min(nxyzin(iyx), int(aspectmax*noverlap(ixy)))
+c	nxybox(iyx)=nxyzin(iyx)
+	nExtra(iyx)=0
+	nExtra(ixy) = 2 * (nint(extraWidth * nxybox(ixy)) / 2)
+	nxybox(ixy) = nxybox(ixy) + nExtra(ixy)
+	ind0(iyx)=nxyzin(iyx)/2 - nxybox(iyx)/2 
+	ind1(iyx)=nxyzin(iyx)/2 + nxybox(iyx)/2 - 1
+	ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nExtra(ixy)
+	ind1(ixy)=nxyzin(ixy) - 1 - indentUse
 c	  
 c	  get the padded size and the taper extents
+c	  Limit the long dimension padding to twice the default short dim
+c	  padding
 c
-	nxbord=max(5,nint(0.45*nxybox(1)))
-	nybord=max(5,nint(0.45*nxybox(2)))
-	nxpad=niceframe(nxybox(1)+2*nxbord,2,19)
-	nypad=niceframe(nxybox(2)+2*nybord,2,19)
-	nxtap=max(5,nint(0.05*nxybox(1)))
-	nytap=max(5,nint(0.05*nxybox(2)))
+	nxybord(ixy)=max(5,nint(padFrac*nxybox(ixy)))
+	nxybord(iyx)=min(max(5,nint(padFrac*nxybox(iyx))), 
+     &	    max(5, nint(0.45 * 2 * nxybox(ixy))))
+c	nxybord(iyx)=max(5,nint(padFrac*nxybox(iyx)))
+	nxpad=niceframe(nxybox(1)+2*nxybord(1),2,19)
+	nypad=niceframe(nxybox(2)+2*nxybord(2),2,19)
+	nxtap=max(5,nint(taperFrac*nxybox(1)))
+	nytap=max(5,nint(taperFrac*nxybox(2)))
 
-	if(nxybox(1)*nxybox(2).gt.idimt.or.nxpad*nypad.gt.idimc)call errorexit
-     &	    ('Overlap area too big for cross-correlation array')
+	if(nxybox(1)*nxybox(2).gt.maxbsiz.or.nxpad*nypad.gt.idimc)call
+     &	    errorexit('Overlap too big for correlation arrays, reduce '//
+     &	    'padding or aspect ratio')
 c	  
 c	  get the first image, lower piece
 c
-	call irepak(trray, crray,nxy(1),nxy(2),ind0(1),ind1(1),ind0(2),
+	call irepak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
      &	    ind1(2))
-	call taperinpad(trray,nxybox(1),nxybox(2),array,nxpad+2,nxpad,
+	call taperinpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
      &	    nypad,nxtap,nytap)
-	call meanzero(array,nxpad+2,nxpad,nypad)
-	call todfft(array,nxpad,nypad,0)
+	call meanzero(xcray,nxpad+2,nxpad,nypad)
+	call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,0)
+	call todfft(xcray,nxpad,nypad,0)
 c
 c	  get the second image, upper piece
 c
 	ind0(ixy)=indentUse
-	ind1(ixy)=noverlap(ixy) - 1 - indentUse
+	ind1(ixy)=noverlap(ixy) - 1 - indentUse + nExtra(ixy)
 c
-	call irepak(trray, drray,nxy(1),nxy(2),ind0(1),ind1(1),ind0(2),
+	call irepak(brray, drray,nxin,nyin,ind0(1),ind1(1),ind0(2),
      &	    ind1(2))
-	call taperinpad(trray,nxybox(1),nxybox(2),brray,nxpad+2,nxpad,
+	call taperinpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
      &	    nypad,nxtap,nytap)
-	call meanzero(brray,nxpad+2,nxpad,nypad)
-	call todfft(brray,nxpad,nypad,0)
+	call meanzero(xdray,nxpad+2,nxpad,nypad)
+	call dumpedge(xdray,nxpad+2,nxpad,nypad,ixy,0)
+	call todfft(xdray,nxpad,nypad,0)
 c	    
-c	    multiply array by complex conjugate of brray, put back in array
+c	    multiply xcray by complex conjugate of xdray, put back in xcray
 c	    
 	do jx=1,nypad*(nxpad+2)/2
-	  array(jx)=array(jx)*conjg(brray(jx))
+	  xcray(jx)=xcray(jx)*conjg(xdray(jx))
 	enddo
 
-	call setctfwsr(0.05,0.,0.,0.,ctf,nxpad,nypad,delta)
+	call setctfwsr(sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,delta)
 c
-	if(delta.ne.0.)call filterpart(array,array,nxpad,nypad,ctf,
-     &	    delta)
-	call todfft(array,nxpad,nypad,1)
-	call peakfind(array,nxpad+2,nypad,xpeak,ypeak,peak)
+	if(delta.ne.0.)call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
+	call todfft(xcray,nxpad,nypad,1)
+	call peakfind(xcray,nxpad+2,nypad,xpeak,ypeak,peak)
+	call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,1)
 c	  
 c	  return the amount to shift upper to align it to lower (verified)
 c
-	xdisp=xpeak
-	ydisp=ypeak
+	xdisp=xpeak - nExtra(1)
+	ydisp=ypeak - nExtra(2)
+c	write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
 	if(legacy)return
 c	  
 c	  the following is adopted largely from setgridchars
@@ -1473,22 +1485,22 @@ c
 	ixdispl=nint(xdisp)
 	iydispl=nint(ydisp)
 	if(ixy.eq.1)then
-	  idispl(1)=nxy(1)-noverlap(1)+ixdispl
+	  idispl(1)=nxin-nxoverlap+ixdispl
 	  idispl(2)=iydispl
 	else
 	  idispl(1)=ixdispl
-	  idispl(2)=nxy(2)-noverlap(2)+iydispl
+	  idispl(2)=nyin-nyoverlap+iydispl
 	endif
 	iyx=3-ixy
 c
 c	  get size of box, limit to size of overlap zone
 c	  
-	nxybox(ixy)=min(noverlap(ixy),nxy(ixy)-idispl(ixy))
-	nxybox(ixy)=min(nxybox(ixy)-indent*2, nint(overfrac*nxybox(ixy)))
-	nxybox(iyx)=nxy(iyx)-abs(idispl(iyx))
-	nxybox(iyx)=min(nxybox(iyx)-indent*2, nint(aspectmax*nxybox(ixy)))
+	nxybox(ixy)=min(noverlap(ixy),nxyzin(ixy)-idispl(ixy))
+	nxybox(ixy)=min(nxybox(ixy)-indentSD*2, nint(overfrac*nxybox(ixy)))
+	nxybox(iyx)=nxyzin(iyx)-abs(idispl(iyx))
+	nxybox(iyx)=min(nxybox(iyx)-indentSD*2, nint(aspectmax*nxybox(ixy)))
 	do i=1,2
-	  ind0(i)=(nxy(i)+idispl(i)-nxybox(i))/2
+	  ind0(i)=(nxyzin(i)+idispl(i)-nxybox(i))/2
 	  ind1(i)=ind0(i)+nxybox(i)
 	  rdispl(i)=-idispl(i)
 	enddo
@@ -1496,22 +1508,22 @@ c
 c	  integer scan is not needed, but to use it uncomment this 
 c
 c	intscan=6
-c	call sdintscan(crray,drray,nxy(1),nxy(2),ind0(1),ind0(2),ind1(1),
+c	call sdintscan(crray,drray,nxin,nyin,ind0(1),ind0(2),ind1(1),
 c     &	    ind1(2),-idispl(1)-intscan,-idispl(2)-intscan,
 c     &	    -idispl(1)+intscan,-idispl(2)+intscan,sdmin,ddenmin,
 c     &	    idxmin,idymin)
 c	rdispl(1)=idxmin
 c	rdispl(2)=idymin
 c
-	call bigsearch(crray,drray,nxy(1),nxy(2),ind0(1),ind0(2),ind1(1),
+	call bigsearch(crray,drray,nxin,nyin,ind0(1),ind0(2),ind1(1),
      &	    ind1(2),rdispl(1),rdispl(2),sdmin,ddenmin,niter,limstep)
 	
 	if(ixy.eq.1)then
-	  xdisp=-rdispl(1)-(nxy(1)-noverlap(1))
+	  xdisp=-rdispl(1)-(nxin-nxoverlap)
 	  ydisp=-rdispl(2)
 	else
 	  xdisp=-rdispl(1)
-	  ydisp=-rdispl(2)-(nxy(2)-noverlap(2))
+	  ydisp=-rdispl(2)-(nyin-nyoverlap)
 	endif
 c	write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
 	return
@@ -2078,5 +2090,59 @@ c
      &	      -fieldDx(1, 1, memup), fieldDx(nxField, nyField, memlow),
      &	      fieldDx(nxField, 1, memup))
 	endif
+	return
+	end
+
+c	  dumpEdge writes a padded image or correlation to a file.  The
+c	  image in CRRAY, NXDIM is the X array dimension and NXPAD and NYPAD
+c	  are image sizes.  IXY is 1 for X or 2 for Y edge.
+c
+	subroutine dumpedge(crray,nxdim,nxpad,nypad,ixy,ifcorr)
+	implicit none
+	include 'blend.inc'
+	integer*4 nxdim,nxpad,nypad,ixy,ifcorr
+	real*4 crray(nxdim,nypad)
+	real*4 title(20), scale, dmin, dmax, dmt
+	integer*4 kxyz(3), ix, iy
+c
+	if (ifDumpXY(ixy) .lt. 0) return
+	if (ifDumpXY(ixy) .eq. 0) then
+	  nzOutXY(ixy) = 0
+	  kxyz(1) = nxpad
+	  kxyz(2) = nypad
+	  kxyz(3) = 0
+	  call icrhdr(2+ixy, kxyz, kxyz, 2, title, 0)
+	  ifDumpXY(ixy) = 1
+	endif
+	call imposn(2 + ixy, nzOutXY(ixy), 0)
+	nzOutXY(ixy) = nzOutXY(ixy) + 1
+	call ialsiz_sam_cel(2 + ixy, nxpad,nypad, nzOutXY(ixy))
+
+	call iclden(crray,nxdim,nypad,1,nxpad,1,nypad,dmin,dmax,dmt)
+	scale = 255. / (dmax - dmin)
+	do iy = 1, nypad
+	  if (ifcorr .eq. 0) then
+	    do ix = 1, nxpad
+	      brray(ix) = scale *(crray(ix,iy) - dmin)
+	    enddo
+	  else
+	    do ix = 1, nxpad
+	      brray(ix) = scale *(crray(mod(ix+nxpad/2-1,nxpad)+1,
+     &		  mod(iy+nypad/2-1,nypad)+1) - dmin)
+	    enddo
+	  endif
+	  call iwrlin(2+ixy, brray)
+	enddo
+	if (ifcorr .ne. 0) then
+	  ix = (ixpclist(ipcBelowEdge)-minxpiece)/(nxin-nxoverlap)
+	  iy = (iypclist(ipcBelowEdge)-minypiece)/(nyin-nyoverlap)
+	  if (ixy .eq. 1) ix = iy * (nxpieces - 1) + ix + 1
+	  if (ixy .eq. 2) ix = ix * (nypieces - 1) + iy + 1
+	  write (*,'(1x,a,i4,a,i5)')char(ixy+ichar('W'))//' edge',ix,
+     &	      ' corr at Z',nzOutXY(ixy)
+	  call flush(6)
+	endif
+c
+	call iwrhdr(2+ixy,title,-1,0.,255.,128.)
 	return
 	end
