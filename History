@@ -4,6 +4,9 @@ IMOD History
 including a VerySloppyMontage option that sets most of them appropriately, so
 the program will work better with montages done by moving the stage.
 
+11/7/05: Fixed bug that crashed Midas when trying to fix edges in a large
+montage with missing pieces.
+
 11/3/05: Fixed display of the parallel processing panel when it is first
 opened in contracted state with no rows checked.
 
