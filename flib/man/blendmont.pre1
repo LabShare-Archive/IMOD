@@ -76,6 +76,18 @@ DDEESSCCRRIIPPTTIIOONN
   edit bad displacements with Midas, then use Blendmont to get a
   stack with pieces properly shifted into register.
 
+  If your montage frames have large displacements from their nominal
+  positions, then a number of parameter changes can be needed to get
+  reliable correlations.  Select the VerySloppyMontage option to get
+  these parameter settings (see below for full listing).  If there are
+  still numerous bad displacements in edges where there appears to be
+  usable image information, then two of these parameters can be varied
+  further.  Experiment with larger values of AspectRatio, the ratio of
+  length to width of the overlap areas being correlated (up to 10), and
+  with a larger value of ExtraXcorrWidth, which makes the areas being
+  correlated wider than the nominal overlap zone (up to 0.5 has been
+  tried with good results).
+
   If sections come from more than one negative, this may be specified
   in either of two ways.  If every section has the same division of
   pieces into negatives, then one can specify this universal division 

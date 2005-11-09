@@ -1,15 +1,20 @@
 	integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc,maxbin
 	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
+        integer maxbsiz,idimc
 	parameter (maxsiz=1024*1024*48)		!# of pixels
 c	  
 c	  set limvar to LESS THAN the square root of maxsiz
 c	  
 	parameter (limvar=3000)
 c
-	real*4 array(maxsiz)
-	parameter (ifastsiz=32,maxlinelength=40960,maxbin=8)
-	real brray((ifastsiz+maxbin)*maxlinelength)
-	common /bigarr/ array,brray
+c         With default padding (0.45) and aspectmax (2), idimc must be
+c         (max overlap * 1.9) * (max overlap * 3.8)
+c
+	parameter (ifastsiz=32,maxlinelength=40960,maxbin=8,idimc=1150*2300)
+        parameter (maxbsiz=(ifastsiz+maxbin)*maxlinelength)
+	real*4 array(maxsiz), brray(maxbsiz)
+	complex*8 xcray(idimc/2), xdray(idimc/2)
+	common /bigarr/ array,brray,xcray,xdray
 c
 	parameter (limxypc=80,limnpc=50000,limedge=50000,limsect=1000)
 	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
@@ -87,3 +92,9 @@ c
      &	    doingEdgeFunc,pixelMagGrad, axisRot,ixFieldStrt, iyFieldStrt,
      &	    nxField, nyField, numMagGrad,xFieldIntrv, yFieldIntrv,
      &	    distDx,distDy,fieldDx,fieldDy,tiltAngles,dmagPerUm,rotPerUm
+
+	integer*4 ifDumpXY(2),nzOutXY(2),ipcBelowEdge
+        real*4 taperFrac, padFrac, aspectMax, extraWidth
+	real*4 radius1, radius2, sigma1, sigma2
+	common /xcparm/ ifDumpXY,nzOutXY, taperFrac, padFrac, aspectMax,
+     &	    radius1,radius2,sigma1,sigma2,ipcBelowEdge, extraWidth

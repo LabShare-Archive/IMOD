@@ -172,6 +172,21 @@ tooltip =
 manpage = Do initial cross-correlations for finding edge functions and shift
 pieces to minimize displacements in the overlap zones
 
+[Field = VerySloppyMontage]
+short = very
+type = B
+usage = Do correlations with parameters for finding very big displacements
+tooltip = 
+manpage = This option acts like SloppyMontage and also sets several parameters
+for dealing with very sloppy montages with displacements potentially bigger
+than half the width of the overlap zones.  The aspect ratio of the area used
+for correlating the overlap zones is increased from 2 to 5 and the filter
+parameter radius1 is set to -0.01 to eliminate more low frequencies from the
+correlation.  The fraction of the area over which images are tapered is 
+increased from 0.1 to 0.2 to further reduce the frequencies of edge effects,
+and the area being correlated is made wider by setting the extra width
+fraction to 0.25.  
+
 [Field = ShiftPieces]
 short = shift
 type = B
@@ -322,6 +337,106 @@ manpage = Borders at the edge of the overlap zone in the short and long
 directions which will be excluded when finding edge functions.  The default
 size is 5 pixels in each direction for frame sizes up to 1024 pixels,
 increasing proportional to the maximum dimension of the frame above 1024.
+
+[SectionHeader = XCOptions]
+usage = CROSS-CORRELATION CONTROL OPTIONS 
+manpage = CROSS-CORRELATION CONTROL OPTIONS
+^  These options control the cross-correlations used to find
+the initial alignment in the overlap zones when montages are sloppy.
+
+[Field = AspectRatioForXcorr]
+short = aspect
+type = F
+usage = Maximum aspect ratio of areas cross-correlated in overlap zones
+tooltip = 
+manpage = Maximum aspect ratio of areas cross-correlated in overlap zones.
+The default is 2, which is generally adequate.  Larger values are required if
+the displacements can be very large, but the value should not be made much
+larger than necessary because the correlations will take longer to compute and 
+may be poorer quality if there is substantial distortion between the two images
+in an overlap zone.
+
+[Field = PadFraction]
+short = pad
+type = F
+usage = Fraction to pad areas correlated in overlap zones
+tooltip = 
+manpage = Areas from the overlap zones will be padded by this fraction on
+each side for correlation.  The default value is 0.45, which allows large
+shifts to be measured unambiguously.  Padding for the short dimension will be 
+this fraction times the size in that dimension; padding in the long dimension
+will be either this fraction times the long dimension size, or 0.9 times the
+size in the short dimension, whichever is smaller.
+
+[Field = TaperFraction]
+short = taper
+type = F
+usage = Fraction to taper inside of areas correlated in overlap zones
+tooltip = 
+manpage = Areas from the overlap zones will be tapered down to their mean
+intensities over a distance equal to this fraction times the size in the
+respective dimension.  
+
+[Field = ExtraXcorrWidth]
+short = extra
+type = F
+usage = Fraction to increase width of areas correlated in overlap zones
+tooltip = 
+manpage = This entry will increase the width of the areas correlated in
+overlap zones by including image area in the interior of each frame, i.e.,
+outside the overlap zone.  The width of the extra area is this fraction times
+the width of the area within the overlap zone.  This option is appropriate if
+montages are very sloppy, particularly if they tend to overlap by much more
+than the nominal amount.
+
+[Field = FilterRadius1]
+short = radius1
+type = F
+usage = Left cutoff radius for correlation filter
+tooltip = 
+manpage = When this entry is positive, low spatial frequencies in the overlap
+zone cross-correlations will be attenuated by a Gaussian curve that is 1 at
+this cutoff radius and falls off below this radius with a standard deviation
+specified by FilterSigma2.  Spatial frequency units range from 0 to 0.5.
+A negative entry is used to set the starting point of the filter specified
+by FilterSigma1, which gives a more predictable attenuation of low frequencies.
+
+[Field = FilterRadius2]
+short = radius2
+type = F
+usage = Right cutoff radius for correlation filter
+tooltip = 
+manpage = High spatial frequencies in the cross-correlation will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off above this
+radius with a standard deviation specified by FilterSigma2.
+
+[Field = FilterSigma1]
+short = sigma1
+type = F
+usage = Sigma for low-frequency inverted Gaussian correlation filter
+tooltip = 
+manpage = Sigma value to filter low frequencies in the correlations with a
+curve that is an inverted Gaussian.  This filter is 0 at 0 frequency and decays
+up to 1 with the given sigma value.  However, if a negative value of radius1
+is entered, this filter will be zero from 0 to |radius1| then decay up to 1.
+The default is 0.05.
+
+[Field = FilterSigma2]
+short = sigma2
+type = F
+usage = Sigma for Gaussian rolloff below radius1 and above radius2
+tooltip =
+manpage = Sigma value for the Gaussian rolloff below and above the cutoff
+frequencies specified by FilterRadius1 and FilterRadius2
+
+[Field = XcorrDebug]
+short = xcdbg
+type = B
+usage = Output image files with overlap zones and cross-correlations
+tooltip = 
+manpage = Output image files with the padded images being correlated in the
+overlap zones and with the cross-correlations.  Separate files are generated
+for X and Y edges, with extensions .xdbg and .ydbg.
 
 [Field = ParameterFile]
 short = param
