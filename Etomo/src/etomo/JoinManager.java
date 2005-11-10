@@ -40,9 +40,9 @@ import etomo.util.Utilities;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2005</p>
 *
-*<p>Organization:
+* <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
 * University of Colorado</p>
 * 
@@ -51,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.28  2005/11/02 23:56:28  sueh
+* <p> Removed temporary print statement.
+* <p>
 * <p> Revision 1.27  2005/11/02 21:34:12  sueh
 * <p> bug# 754 Getting error and warning tags from ProcessMessages.
 * <p>
@@ -294,7 +297,7 @@ import etomo.util.Utilities;
 * <p> bug# 520 adding place holders for create functions for now
 * <p> </p>
 */
-public class JoinManager extends BaseManager {
+public final class JoinManager extends BaseManager {
   public static  final String  rcsid =  "$Id$";
   
   //  Process dialog references
@@ -307,7 +310,7 @@ public class JoinManager extends BaseManager {
   private JoinProcessManager processMgr;
   private JoinState state;
   
-  public JoinManager(String paramFileName, AxisID axisID) {
+  JoinManager(String paramFileName, AxisID axisID) {
     super();
     this.metaData = new JoinMetaData();
     initializeUIParameters(paramFileName, axisID);

@@ -169,7 +169,7 @@ public class ApplicationManager extends BaseManager {
    * Does initialization and loads the .edf file.  Opens the setup dialog
    * if there is no .edf file.
    */
-  public ApplicationManager(String paramFileName, AxisID axisID) {
+  ApplicationManager(String paramFileName, AxisID axisID) {
     super();
     this.metaData = new MetaData(this);
     initializeUIParameters(paramFileName, axisID);
@@ -5964,6 +5964,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.196  2005/11/04 00:52:14  sueh
+ * <p> fixed copyright
+ * <p>
  * <p> Revision 3.195  2005/11/03 21:20:38  sueh
  * <p> bug# 755 Stop opening combine when tomo gen is done.
  * <p>
