@@ -65,6 +65,9 @@ import java.lang.IllegalStateException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.6  2005/02/21 23:03:22  sueh
+* <p> $update comment.
+* <p> $
 * <p> $Revision 1.5  2005/02/15 19:53:12  sueh
 * <p> $bug# 602 Tokenizing BREAK.  "^" is now a matched character.
 * <p> $
@@ -91,11 +94,11 @@ public class AutodocTokenizer {
   public static final char OPEN_CHAR = '[';
   public static final char CLOSE_CHAR = ']';
   public static final char BREAK_CHAR = '^';
-  public static final String defaultDelimiter = "=";
+  public static final String DEFAULT_DELIMITER = "=";
   public static final String VERSION_KEYWORD = "Version";
   public static final String PIP_KEYWORD = "Pip";
   public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
-  private String delimiterString = defaultDelimiter;
+  private String delimiterString = DEFAULT_DELIMITER;
   private StringBuffer restrictedSymbols =
     new StringBuffer(COMMENT_CHAR + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR + BREAK_CHAR);
   private PrimativeTokenizer primative = null;
