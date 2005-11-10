@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.EtomoDirectorTestHarness;
+import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
@@ -24,6 +24,11 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2005/07/29 00:55:35  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.16  2005/06/22 23:39:48  sueh
  * <p> bug# 522 New tests are failing - will fix later.  changed testRead().
  * <p>
@@ -107,8 +112,9 @@ public class MRCHeaderTest extends TestCase {
   private final MRCHeader badFilename;
   private final MRCHeader mrcHeader;
   private final MRCHeader mrcWithSpaces;
-  
-  private final BaseManager manager;
+  private final BaseManager manager = EtomoDirector.getInstance().getCurrentTestManager();
+  private final File testDir = new File(UtilTests.TEST_ROOT_DIR, "MRCHeader");
+  private final String testDirPath = testDir.getAbsolutePath();
 
   /**
    * Constructor for MRCHeaderTest.
@@ -116,13 +122,18 @@ public class MRCHeaderTest extends TestCase {
    */
   public MRCHeaderTest(String arg0) {
     super(arg0);
-    manager = EtomoDirectorTestHarness.getCurrentManager();
-    emptyFilename = MRCHeader.getInstance(manager.getPropertyUserDir(), "", AxisID.ONLY);
-    badFilename = MRCHeader.getInstance(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory1
+    if (testDir.isFile()) {
+      testDir.delete();
+    }
+    if (!testDir.exists()) {
+      testDir.mkdirs();
+    }
+    emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY);
+    badFilename = MRCHeader.getInstance(testDirPath, testDirectory1
         + "/non_existant_image_file", AxisID.ONLY);
-    mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory1
+    mrcHeader = MRCHeader.getInstance(testDirPath, testDirectory1
         + "/headerTest.st", AxisID.ONLY);
-    mrcWithSpaces = MRCHeader.getInstance(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory2
+    mrcWithSpaces = MRCHeader.getInstance(testDirPath, testDirectory2
         + "/headerTest.st", AxisID.ONLY);
   }
 
@@ -166,12 +177,18 @@ public class MRCHeaderTest extends TestCase {
 
   public void testRead() throws IOException, InvalidParameterException {
     //  Create the test directory
-    TestUtilites.makeDirectories(manager.getPropertyUserDir(), UtilTests.testRoot + testDirectory1);
+    
+    File testDir1 = new File(testDir, testDirectory1);
+    if (testDir1.isFile()) {
+      testDir1.delete();
+    }
+    if (!testDir1.exists()) {
+      testDir1.mkdirs();
+    }
 
     // Check out the test header stack into the required directories
-    File testDir = new File(manager.getPropertyUserDir(), UtilTests.testRoot);
     try {
-      TestUtilites.checkoutVector(manager, testDir.getAbsolutePath(), testDirectory1,
+      TestUtilites.getVector(manager, testDirPath, testDirectory1,
           headerTestStack);
     }
     catch (SystemProcessException except) {
@@ -208,13 +225,16 @@ public class MRCHeaderTest extends TestCase {
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
     //  Create the test directory
-    TestUtilites.makeDirectories(manager.getPropertyUserDir(),
-        UtilTests.testRoot + testDirectory2);
-
+    File testDir2 = new File(testDir, testDirectory2);
+    if (testDir2.isFile()) {
+      testDir2.delete();
+    }
+    if (!testDir2.exists()) {
+      testDir2.mkdirs();
+    }
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.checkoutVector(manager, manager.getPropertyUserDir()
-          + File.separator + UtilTests.testRoot, testDirectory2,
+      TestUtilites.getVector(manager, testDirPath, testDirectory2,
           "headerTest.st");
     }
     catch (SystemProcessException except) {
