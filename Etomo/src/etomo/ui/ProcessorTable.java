@@ -31,7 +31,7 @@ import etomo.util.HashedArray;
  * 
  * @version $Revision$
  */
-final class ProcessorTable implements Storable {
+public final class ProcessorTable implements Storable {
   public static final String rcsid = "$Id$";
 
   public static final String SECTION_TYPE = "Computer";
@@ -650,6 +650,20 @@ final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2005/11/04 01:03:46  sueh
+ * <p> bug# 732 Cleaned up RunPack.run().  Moved the code from
+ * <p> setMaximumSize() and setPreferredSize() into RunPack.run().  Made
+ * <p> getWidth() look at the second header instead of a row which might not be
+ * <p> displayed.  Made getHeight() look at each header and row to get an
+ * <p> accurate size.  Removed calcMaximumHeight() because it was
+ * <p> unecessary.  Correct the scrollbar width to get the width right and remove
+ * <p> the horizontal scrollbar.  Recalculating size and resizing each time
+ * <p> RunPack.run() is run, so that fit works on the table.  Made
+ * <p> ProcessorTableRow keep track of whether it was displayed to that a fit of
+ * <p> a contracted table will show all displayed rows.  Took the maximum
+ * <p> number of rows into account in getHeight().  Only setting preferred size
+ * <p> when the number of row is greater then MAXIMUM_ROWS.
+ * <p>
  * <p> Revision 1.20  2005/10/12 22:46:17  sueh
  * <p> bug# 532 Moved the section type string to a public static final, so it can
  * <p> be used by ParallelPanel.
