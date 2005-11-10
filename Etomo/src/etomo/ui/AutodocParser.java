@@ -101,6 +101,9 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.8  2005/09/21 16:36:58  sueh
+* <p> $bug# 532 Changed Autodoc.getFile() to getAutodocFile().
+* <p> $
 * <p> $Revision 1.7  2005/09/01 17:59:47  sueh
 * <p> $bug# 532 Allow a comment inside a section.  Changed the language
 * <p> $definition and section().
@@ -725,9 +728,7 @@ public class AutodocParser {
 
   private void postprocess() {
     if (!versionFound) {
-      System.err.println();
-      System.err.println("Missing meta data:  Version not found.");
-      System.err.println();
+      System.err.println("Warning:  missing meta data - Version not found.");
     }
   }
 
