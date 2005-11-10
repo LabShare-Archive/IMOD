@@ -45,6 +45,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.32  2005/09/14 20:15:30  sueh
+ * bug# 532 Added thread to print the memory usage at intervals.
+ *
  * Revision 1.31  2005/09/13 00:27:50  sueh
  * bug# 532 Added timestamp option.
  *
@@ -314,7 +317,7 @@ public class EtomoDirector {
    */
   public static EtomoDirector getInstance() {
     if (!initialized) {
-      String[] args = {"--test","--selftest","--debug"};
+      String[] args = {"--test","--selftest"};
       return createInstance(args);
     }
     return theEtomoDirector;
@@ -481,16 +484,23 @@ public class EtomoDirector {
     }
     return (BaseManager) managerList.get(currentManagerKey);
   }
+  
+  public BaseManager getCurrentTestManager() {
+    if (!test) {
+      throw new IllegalStateException("test-only function");
+    }
+    return getCurrentManager();
+  }
 
   /**
-   * Sets the property user dir for the current manager.  It is important that
-   * this function remain package level because the current manager changes when
-   * the user switches tabs, which would change the functionality of code
-   * executed after a process is finished.  Used only by test.
+   * for testing.
    * @param propertyUserDir
    * @return the old property user dir
    */
-  String setCurrentPropertyUserDir(String propertyUserDir) {
+  public String setCurrentPropertyUserDir(String propertyUserDir) {
+    if (!test) {
+      throw new IllegalStateException("test-only function");
+    }
     if (currentManagerKey == null) {
       return System.setProperty("user.dir", propertyUserDir);
     }
