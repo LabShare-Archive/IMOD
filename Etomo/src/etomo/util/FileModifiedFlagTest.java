@@ -23,29 +23,17 @@ public class FileModifiedFlagTest extends TestCase {
   File testDir;
   File testFile;
   
-  /*
-   * @see TestCase#setUp()
-   */
   protected void setUp() throws Exception {
     super.setUp();
+    testDir = new File(UtilTests.TEST_ROOT_DIR, "FileModifiedFlag");
+    if (!testDir.exists()) {
+      testDir.mkdirs();
+    }
+    testFile = new File(testDir, "testfile");
   }
 
-  /*
-   * @see TestCase#tearDown()
-   */
   protected void tearDown() throws Exception {
     super.tearDown();
-  }
-
-  /**
-   * Constructor for FileModifiedFlagTest.
-   * @param arg0
-   */
-  public FileModifiedFlagTest(String arg0) {
-    super(arg0);
-    testDir = new File(UtilTests.testRoot, "FileModifiedFlag");
-    testDir.mkdirs();
-    testFile = new File(testDir, "testfile");
   }
   
   public final void testfileModifiedFlag() {
@@ -53,48 +41,19 @@ public class FileModifiedFlagTest extends TestCase {
     fileModifiedFlag.selfTestInvariants();
   }
   
+  //TODO
   public final void testIsModifiedSinceLastRead() throws IOException {
-    FileModifiedFlag fileModifiedFlag = new FileModifiedFlag(testFile);
-    testFile.createNewFile();
-    //test: returns true when never read
-    assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
-    //test: returns false when file hasn't changed after setReadingNow() call
-    fileModifiedFlag.setReadingNow();
-    assertFalse(fileModifiedFlag.isModifiedSinceLastRead());
-    //TEMP test failing - fix later
-    /*
-    //test: return true when file has changed after setReadingNow() call
-    try {
-      Thread.sleep(10);
-    }
-    catch (InterruptedException e) {
-    }
-    //System.err.println("before touch");
-    //System.err.println("testFile="+testFile.getAbsolutePath());
-    //System.err.println("testFile last modified="+testFile.lastModified());
-    EtomoDirector.getInstance().getCurrentManager().touch(testFile);
-    try {
-      Thread.sleep(1000);
-    }
-    catch (InterruptedException e) {
-    }
-    //System.err.println("after touch");
-    //System.err.println("testFile="+testFile.getAbsolutePath());
-    //System.err.println("testFile last modified="+testFile.lastModified());
-    assertTrue(fileModifiedFlag.isModifiedSinceLastRead());
-    */
   }
   
+  //TODO
   public final void testSetReadingNow() throws IOException {
-    FileModifiedFlag fileModifiedFlag = new FileModifiedFlag(testFile);
-    testFile.createNewFile();
-    long fileLastModified = testFile.lastModified();
-    fileModifiedFlag.setReadingNow();
-    assertEquals(fileModifiedFlag.getLastModified(), fileLastModified);
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2005/07/01 21:27:26  sueh
+* <p> Removed an unnecessary import.
+* <p>
 * <p> Revision 1.11  2005/06/22 23:41:27  sueh
 * <p> bug# 522 New tests are failing - will fix later.  changed
 * <p> testIsModifiedSinceLastRead().
