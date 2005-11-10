@@ -17,6 +17,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2005/11/02 22:13:01  sueh
+ * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
+ * <p> Removed errorList, infoList, multiLineMessages, and warningList.  Added
+ * <p> processMessages.  Removed functions append, getErrors, getWarnings,
+ * <p> and parse.  Added getProcessMessages.
+ * <p>
  * <p> Revision 3.27  2005/10/28 18:53:36  sueh
  * <p> bug# 747 Rewrote parseWarnings() and renamed it parse().  Always parse
  * <p> all types of messages:  errors, warnings, and info (new).  Call parse in
@@ -363,7 +369,7 @@ public class SystemProgram implements Runnable {
       System.err.print("SystemProgram: working directory: ");
       if (workingDirectory == null) {
         System.err.println("null");
-        System.err.println("SystemProgram: using current user.dir "
+        System.err.println("SystemProgram: using:  "
             + propertyUserDir);
       }
       else {
