@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/11/10 18:21:38  sueh
+ * <p> bug# 748 Added getVector, a function that tries to get the test vector from
+ * <p> the workspace directory tree before checking them out.
+ * <p>
  * <p> Revision 1.10  2005/07/29 00:56:26  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -99,11 +103,6 @@ public class TestUtilites {
   public static void getVector(BaseManager manager, String testRootDirName,
       String testDirName, String vectorName) throws SystemProcessException,
       InvalidParameterException {
-    System.out.println();
-    System.out.println("user dir=" + manager.getPropertyUserDir());
-    System.out.println("testRootDir=" + testRootDirName);
-    System.out.println("testDirName=" + testDirName);
-    System.out.println("vectorName=" + vectorName);
     //check vector
     if (vectorName.indexOf(File.separator) != -1) {
       throw new InvalidParameterException(
@@ -121,7 +120,6 @@ public class TestUtilites {
       if (homeDir.exists() && homeDir.canRead()) {
         File vector = new File(
             new File(homeDir, "workspace/" + VECTOR_LOCATION), vectorName);
-        System.out.println("vector=" + vector.getAbsolutePath());
         if (vector.exists()) {
           //delete target
           if (target.exists() && !target.delete()) {
@@ -200,7 +198,6 @@ public class TestUtilites {
     // (CVS directory is created) instead of an export when using the -d flag
     // This is a work around to handle that case
     File badDirectory = new File(testDir, "CVS");
-    System.out.println("badDirectory=" + badDirectory.getAbsolutePath());
     if (badDirectory.exists()) {
       String[] rmCommand = new String[3];
       rmCommand[0] = "rm";
