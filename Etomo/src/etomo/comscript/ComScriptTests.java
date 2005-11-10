@@ -14,6 +14,9 @@ package etomo.comscript;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.4  2005/07/29 00:44:10  sueh
+* <p> bug# 709 Removed SetupCombineTest because is has no tests.
+* <p>
 * <p> Revision 3.3  2004/08/31 16:46:25  sueh
 * <p> bug# 508 removing JUnit tests that require an X server
 * <p>
@@ -21,17 +24,24 @@ package etomo.comscript;
 * <p> bug# 508 Added CombineComscriptStateTest and log.
 * <p> </p>
 */
+import java.io.File;
+
+import etomo.JUnitTests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 public class ComScriptTests {
   public static final String rcsid = "$$Id$$";
 
+  private static final String TEST_DIR = "etomo/comscript";
+  static final File TEST_ROOT_DIR = new File(JUnitTests.TEST_ROOT_DIR, TEST_DIR);
+  
   public static Test suite() {
-    TestSuite suite = new TestSuite("Test for etomo.comscript");
+    TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     suite.addTestSuite(StringListTest.class);
     suite.addTestSuite(NewstParamTest.class);
     suite.addTestSuite(FortranInputStringTest.class);
+    
     //suite.addTestSuite(CombineComscriptStateTest.class);
     //suite.addTest(new NewstParamTest("testParseComScriptCommand"));
     return suite;

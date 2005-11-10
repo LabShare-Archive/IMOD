@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import etomo.EtomoDirectorTestHarness;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import junit.framework.TestCase;
@@ -35,10 +34,8 @@ public class ConstEtomoNumberTest extends TestCase {
   private static final int bigInteger = 999999999;
   private static final int smallInteger = -999999999;
 
-  private File testDir = new File(new File(EtomoDirectorTestHarness
-      .getCurrentManager().getPropertyUserDir(), TypeTests.testRoot),
-      "ConstEtomoNumber");
-  private File propertiesFile = new File(testDir, "properties");
+  private static final File testDir = new File(TypeTests.TEST_ROOT_DIR, "ConstEtomoNumber");
+  private static final File propertiesFile = new File(testDir, "properties");
 
   /*
    * @see TestCase#setUp()
@@ -963,6 +960,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2005/10/27 00:31:54  sueh
+ * <p> bug# 725 Added testNewNumber_float().
+ * <p>
  * <p> Revision 1.12  2005/07/29 19:46:37  sueh
  * <p> bug# 692 Added tests.  Changed ConstEtomoNumber.getInteger() to
  * <p> getInt.
