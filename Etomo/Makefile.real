@@ -1,4 +1,3 @@
-# THIS FILE WAS COPIED BY SETUP FROM Makefile.real - DO NOT EDIT
 # Makefile for building Etomo under the IMOD structure
 #
 # NOTE: that this Makefile only works if run under the IMOD directory
@@ -9,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.10  2005/05/13 22:22:20  mast
+# Added dependencies so build only occurs when needed
+#
 # Revision 2.9  2005/01/18 22:08:53  mast
 # Use new variables for testing under windows
 #
@@ -77,9 +79,7 @@ all: $(JAR_FILE)
 # and moved "Make completed" here so make gives the "nothing to do" message
 #
 #$(JAR_FILE): cpimages compile
-$(JAR_FILE): src/etomo/*.java src/etomo/comscript/*.java src/etomo/ui/*.java \
- src/etomo/process/*.java src/etomo/storage/*.java src/etomo/type/*.java \
- src/etomo/util/*.java src/images/*.* 
+$(JAR_FILE): src/etomo/*.java src/etomo/*/*.java src/images/*.* 
 	mkdir -p $(CLASSPATH)
 	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
