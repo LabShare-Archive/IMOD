@@ -13,6 +13,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2005/07/29 00:56:26  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 1.9  2005/04/25 21:44:13  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -56,13 +61,15 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.EtomoDirectorTestHarness;
+import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 
 public class TestUtilites {
   public static final String rcsid = "$Id$";
+
+  private static final String VECTOR_LOCATION = "ImodTests/EtomoTests/vectors/";
 
   /**
    * Make all of the directories on on the specified path if necessary.  If the
@@ -71,7 +78,8 @@ public class TestUtilites {
    * EtomoDirector. 
    * @param newDirectory
    */
-  public static void makeDirectories(String propertyUserDir, String newDirectory) throws IOException {
+  public static void makeDirectories(String propertyUserDir, String newDirectory)
+      throws IOException {
     //  Create the test directories
     File directory;
     if (newDirectory.startsWith(File.separator)) {
@@ -88,6 +96,56 @@ public class TestUtilites {
     }
   }
 
+  public static void getVector(BaseManager manager, String testRootDirName,
+      String testDirName, String vectorName) throws SystemProcessException,
+      InvalidParameterException {
+    System.out.println();
+    System.out.println("user dir=" + manager.getPropertyUserDir());
+    System.out.println("testRootDir=" + testRootDirName);
+    System.out.println("testDirName=" + testDirName);
+    System.out.println("vectorName=" + vectorName);
+    //check vector
+    if (vectorName.indexOf(File.separator) != -1) {
+      throw new InvalidParameterException(
+          "vector can not contain path separators");
+    }
+    File testRootDir = new File(testRootDirName);
+    File testDir = new File(testRootDir, testDirName);
+    File target = new File(testDir, vectorName);
+    //save time by looking for already checked out files in workspace directory
+    String homeDirName = Utilities.getEnvironmentVariable(null, "HOME",
+        AxisID.ONLY);
+    if (homeDirName != null && !homeDirName.matches("\\s*+")) {
+      File homeDir = new File(Utilities.getEnvironmentVariable(null, "HOME",
+          AxisID.ONLY));
+      if (homeDir.exists() && homeDir.canRead()) {
+        File vector = new File(
+            new File(homeDir, "workspace/" + VECTOR_LOCATION), vectorName);
+        System.out.println("vector=" + vector.getAbsolutePath());
+        if (vector.exists()) {
+          //delete target
+          if (target.exists() && !target.delete()) {
+            throw new SystemProcessException("Cannot delete target: "
+                + target.getAbsolutePath());
+          }
+          //copy vector to target
+          String[] copyCommand = new String[3];
+          copyCommand[0] = "cp";
+          copyCommand[1] = vector.getAbsolutePath();
+          copyCommand[2] = testDir.getAbsolutePath();
+          SystemProgram copy = new SystemProgram(manager.getPropertyUserDir(),
+              copyCommand, AxisID.ONLY);
+          copy.setDebug(true);
+          copy.run();
+          if (target.exists()) {
+            return;
+          }
+        }
+      }
+    }
+    checkoutVector(manager, testRootDir, testDir, target);
+  }
+
   /**
    * Check out the specified test vector into the specified directory. Note the
    * cvs export cannot handle a full path as an argument to -d.  The directory
@@ -97,35 +155,29 @@ public class TestUtilites {
    * @param dirName - Directory name with no path.
    * @param vector - File to be added to the dirName directory.
    */
-  public static void checkoutVector(BaseManager manager, String workingDirName,
-      String dirName, String vector) throws SystemProcessException,
+  private static void checkoutVector(BaseManager manager, File testRootDir,
+      File testDir, File target) throws SystemProcessException,
       InvalidParameterException {
     //set working directory
-    File workingDir = new File(workingDirName);
-    String originalDirName = EtomoDirectorTestHarness
-        .setCurrentPropertyUserDir(workingDir.getAbsolutePath());
-    //check vector
-    if (vector.indexOf(File.separator) != -1) {
-      throw new InvalidParameterException(
-          "vector can not contain path separators");
+    String originalDirName = EtomoDirector.getInstance()
+        .setCurrentPropertyUserDir(testRootDir.getAbsolutePath());
+    //delete existing target
+    if (target.exists() && !target.delete()) {
+      //unable to delete - reset working directory and throw exception
+      EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
+      throw new SystemProcessException("Cannot delete target: " + target.getAbsolutePath());
     }
-    //delete existing vector
-    File checkoutDir = new File(workingDir, dirName);
-    File fileVector = new File(checkoutDir, vector);
-    if (fileVector.exists() && !fileVector.delete()) {
-      EtomoDirectorTestHarness.setCurrentPropertyUserDir(originalDirName);
-      throw new SystemProcessException("Cannot delete vector: " + vector);
-    }
+    //run cvs export
     String[] cvsCommand = new String[7];
     cvsCommand[0] = "cvs";
     cvsCommand[1] = "export";
     cvsCommand[2] = "-D";
     cvsCommand[3] = "today";
     cvsCommand[4] = "-d";
-    cvsCommand[5] = dirName;
-    cvsCommand[6] = "ImodTests/EtomoTests/vectors/" + vector;
-    SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(), cvsCommand,
-        AxisID.ONLY);
+    cvsCommand[5] = testDir.getName();
+    cvsCommand[6] = VECTOR_LOCATION + target.getName();
+    SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(),
+        cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
     cvs.run();
     for (int i = 0; i < cvsCommand.length; i++) {
@@ -133,18 +185,22 @@ public class TestUtilites {
     }
     System.err.println();
     if (cvs.getExitValue() > 0) {
+      //report error
       String message = cvs.getStdErrorString()
           + "\nCVSROOT="
-          + Utilities.getEnvironmentVariable(manager.getPropertyUserDir(), "CVSROOT",
-              AxisID.ONLY) + "\nworkingDirName=" + manager.getPropertyUserDir()
-          + "\ndirName=" + dirName + "\nvector=" + vector;
-      EtomoDirectorTestHarness.setCurrentPropertyUserDir(originalDirName);
+          + Utilities.getEnvironmentVariable(manager.getPropertyUserDir(),
+              "CVSROOT", AxisID.ONLY) + "manager.getPropertyUserDir()="
+          + manager.getPropertyUserDir() + ",testRootDir="
+          + testRootDir.getAbsolutePath() + "\ntestDir="
+          + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath();
+      EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException(message);
     }
     // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
     // (CVS directory is created) instead of an export when using the -d flag
     // This is a work around to handle that case
-    File badDirectory = new File(checkoutDir, "CVS");
+    File badDirectory = new File(testDir, "CVS");
+    System.out.println("badDirectory=" + badDirectory.getAbsolutePath());
     if (badDirectory.exists()) {
       String[] rmCommand = new String[3];
       rmCommand[0] = "rm";
@@ -154,7 +210,7 @@ public class TestUtilites {
           rmCommand, AxisID.ONLY);
       rm.run();
     }
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(originalDirName);
+    //reset working directory
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
   }
-
 }
