@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.EtomoDirectorTestHarness;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -27,6 +26,11 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2005/07/29 00:53:41  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.12  2004/12/09 04:58:13  sueh
  * <p> bug# 520 Removed unnecessary import.
  * <p>
@@ -85,15 +89,13 @@ public class MetaDataTest extends TestCase {
   
   public MetaDataTest() {
     EtomoDirector.createInstance(new String[] {"--test"});
-    manager = (ApplicationManager) EtomoDirectorTestHarness.getCurrentManager();
+    manager = (ApplicationManager) EtomoDirector.getInstance().getCurrentTestManager();
   }
 
   protected void setUp() throws Exception {
     super.setUp();
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    File checkoutDirectory = new File(manager.getPropertyUserDir(),
-        TypeTests.testRoot);
-    testDir = new File(checkoutDirectory, testDirectory);
+    testDir = new File(TypeTests.TEST_ROOT_DIR, testDirectory);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());
     }
@@ -102,7 +104,7 @@ public class MetaDataTest extends TestCase {
     //  Check out the test vectors from the CVS repository
     for (int i = 0; i < edfList.length; i++) {
       try {
-        TestUtilites.checkoutVector(manager, checkoutDirectory
+        TestUtilites.getVector(manager, TypeTests.TEST_ROOT_DIR
             .getAbsolutePath(), testDirectory, edfList[i]);
       }
       catch (SystemProcessException except) {
