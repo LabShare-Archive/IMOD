@@ -12,6 +12,11 @@
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/07/29 00:43:30  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.2  2004/11/19 22:42:48  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -32,7 +37,6 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.EtomoDirectorTestHarness;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import junit.framework.TestCase;
@@ -45,7 +49,7 @@ public class ComScriptManagerTest extends TestCase {
   public void testUseTemplate() {
     //  Need an application manger to get the IMOD_DIR environment
     // variable
-    BaseManager manager = EtomoDirectorTestHarness.getCurrentManager();
+    BaseManager manager = EtomoDirector.getInstance().getCurrentTestManager();
     System.out.println(EtomoDirector.getInstance().getIMODDirectory().getAbsolutePath());
     ComScriptManager comScriptManager = manager.getComScriptManager();
     try {
