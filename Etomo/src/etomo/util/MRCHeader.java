@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/11/02 22:16:05  sueh
+ * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
+ * <p>
  * <p> Revision 3.17  2005/10/28 18:58:17  sueh
  * <p> bug# 747 Standardizing SystemProgram message parsing.
  * <p>
@@ -165,10 +168,10 @@ public class MRCHeader {
   private double imageRotation = Double.NaN;
   private int binning = Integer.MIN_VALUE;
   private AxisID axisID;
-  private final String propertyUserDir;
+  private final String fileLocation;
 
-  private MRCHeader(String propertyUserDir, File file, AxisID axisID) {
-    this.propertyUserDir = propertyUserDir;
+  private MRCHeader(String fileLocation, File file, AxisID axisID) {
+    this.fileLocation = fileLocation;
     filename = file.getAbsolutePath();
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
@@ -181,13 +184,13 @@ public class MRCHeader {
    * @param axisID
    * @return
    */
-  public static MRCHeader getInstance(String propertyUserDir, String filename,
+  public static MRCHeader getInstance(String fileLocation, String filename,
       AxisID axisID) {
-    File keyFile = Utilities.getFile(propertyUserDir, filename);
+    File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null) {
-      return createInstance(propertyUserDir, key, keyFile, axisID);
+      return createInstance(fileLocation, key, keyFile, axisID);
     }
     return mrcHeader;
   }
@@ -199,13 +202,13 @@ public class MRCHeader {
    * @param axisID
    * @return
    */
-  private static synchronized MRCHeader createInstance(String propertyUserDir,
+  private static synchronized MRCHeader createInstance(String fileLocation,
       String key, File file, AxisID axisID) {
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader != null) {
       return mrcHeader;
     }
-    mrcHeader = new MRCHeader(propertyUserDir, file, axisID);
+    mrcHeader = new MRCHeader(fileLocation, file, axisID);
     instances.put(key, mrcHeader);
     mrcHeader.selfTestInvariants();
     return mrcHeader;
@@ -225,7 +228,7 @@ public class MRCHeader {
    * @returns true if a read was attempted
    */
   public synchronized boolean read() throws IOException, InvalidParameterException {
-    File file = Utilities.getFile(propertyUserDir, filename);
+    File file = Utilities.getFile(fileLocation, filename);
     if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
       throw new IOException("No filename specified");
     }
@@ -243,7 +246,7 @@ public class MRCHeader {
 		String[] commandArray = new String[2];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
-    SystemProgram header = new SystemProgram(propertyUserDir,
+    SystemProgram header = new SystemProgram(fileLocation,
         commandArray, axisID);
     header.setDebug(Utilities.isDebug());
     modifiedFlag.setReadingNow();
@@ -488,7 +491,7 @@ public class MRCHeader {
     if (filename == null || filename.matches("\\s*")) {
       throw new IllegalStateException("file is null");
     }
-    String key = makeKey(Utilities.getFile(propertyUserDir, filename));
+    String key = makeKey(Utilities.getFile(fileLocation, filename));
     if (key == null || key.matches("\\s*")) {
       throw new IllegalStateException("unable to make key: filename=" + filename);
     }
