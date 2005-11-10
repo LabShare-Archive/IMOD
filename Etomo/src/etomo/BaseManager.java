@@ -685,7 +685,7 @@ public abstract class BaseManager {
     if (dialog == null) {
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(axisID);
+    ProcesschunksParam param = new ProcesschunksParam(this, axisID);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
     parallelPanel.getParameters(param);
@@ -730,6 +730,9 @@ public abstract class BaseManager {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.42  2005/11/04 00:52:26  sueh
+* <p> fixed copyright
+* <p>
 * <p> Revision 1.41  2005/11/02 21:33:39  sueh
 * <p> bug# 754 Getting error and warning tags from ProcessMessages.
 * <p>
