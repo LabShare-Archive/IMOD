@@ -6,7 +6,6 @@ import junit.framework.TestCase;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.EtomoDirectorTestHarness;
 import etomo.process.SystemProgram;
 
 /**
@@ -22,6 +21,11 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.11  2005/07/29 00:53:20  sueh
+ * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> $because the current manager changes when the user changes the tab.
+ * <p> $Passing the manager where its needed.
+ * <p> $
  * <p> $Revision 3.10  2005/04/25 20:51:08  sueh
  * <p> $bug# 615 Passing the axis where a command originates to the message
  * <p> $functions so that the message will be popped up in the correct window.
@@ -43,7 +47,7 @@ import etomo.process.SystemProgram;
  * <p> $Revision 3.5  2004/05/26 17:16:39  sueh
  * <p> $bug# 355 correcting tests
  * <p> $$ </p>
-*/
+ */
 
 public class ConstMetaDataTest extends TestCase {
   public static final String rcsid = "$$Id$$";
@@ -63,35 +67,34 @@ public class ConstMetaDataTest extends TestCase {
   private File validFile;
   private File validAFile;
   private static final String dummyDirName = new String("ConstMetaData_dummy");
-  private static final String dummyDir2Name =
-    new String("ConstMetaData_dummy2");
+  private static final String dummyDir2Name = new String("ConstMetaData_dummy2");
   private static final String emptyDirName = new String("ConstMetaData_empty");
-  private static final String emptyDir2Name =
-    new String("ConstMetaData_empty2");
-  private static final String unreadableDirName =
-    new String("ConstMetaData_unrdable");
-  private static final String unwritableDirName =
-    new String("ConstMetaData_unwrtable");
-  private static final String unreadableFileDirName =
-    new String("ConstMetaData_unrdableFile");
-  private static final String unreadableBFileDirName =
-    new String("ConstMetaData_unrdableBFile");
-  private static final String validFileDirName =
-    new String("ConstMetaData_validFile");
+  private static final String emptyDir2Name = new String("ConstMetaData_empty2");
+  private static final String unreadableDirName = new String(
+      "ConstMetaData_unrdable");
+  private static final String unwritableDirName = new String(
+      "ConstMetaData_unwrtable");
+  private static final String unreadableFileDirName = new String(
+      "ConstMetaData_unrdableFile");
+  private static final String unreadableBFileDirName = new String(
+      "ConstMetaData_unrdableBFile");
+  private static final String validFileDirName = new String(
+      "ConstMetaData_validFile");
   private static final String dummyFileName = new String("dummy");
   private static final String unreadableDatasetName = new String("unrdable");
-  private static final String unreadableFileName =
-    new String(unreadableDatasetName + ".st");
-  private static final String unreadableAFileName =
-    new String(unreadableDatasetName + "a.st");
+  private static final String unreadableFileName = new String(
+      unreadableDatasetName + ".st");
+  private static final String unreadableAFileName = new String(
+      unreadableDatasetName + "a.st");
   private static final String validDatasetName = new String("valid");
-  private static final String validFileName =
-    new String(validDatasetName + ".st");
-  private static final String validAFileName =
-    new String(validDatasetName + "a.st");
+  private static final String validFileName = new String(validDatasetName
+      + ".st");
+  private static final String validAFileName = new String(validDatasetName
+      + "a.st");
   private boolean windowsOs = false;
-  private final ApplicationManager manager = (ApplicationManager) EtomoDirectorTestHarness.getCurrentManager();
-    
+  private final ApplicationManager manager = (ApplicationManager) EtomoDirector
+      .getInstance().getCurrentTestManager();
+
   private SystemProgram program;
 
   /*
@@ -104,14 +107,15 @@ public class ConstMetaDataTest extends TestCase {
     String osName = System.getProperty("os.name").toLowerCase();
     windowsOs = osName.indexOf("windows") != -1;
     //create test site
-    EtomoDirector.createInstance(new String[] {"--test"});
     testInst = new MetaData(manager);
-    testDir = new File(manager.getPropertyUserDir(), TypeTests.testRoot);
-    if (!testDir.exists()) {
-      assertTrue(testDir.mkdirs());
+    testDir = new File(TypeTests.TEST_ROOT_DIR, "ConstMetaData");
+    if (testDir.isFile()) {
+      testDir.delete();
     }
-    assertTrue(
-      testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
+    if (!testDir.exists()) {
+      testDir.mkdirs();
+    }
+    assertTrue(testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
 
     //make instance of a non-existant directory
     dummyDir = new File(testDir, dummyDirName);
@@ -128,16 +132,16 @@ public class ConstMetaDataTest extends TestCase {
     if (!emptyDir.exists()) {
       assertTrue(emptyDir.mkdir());
     }
-    assertTrue(
-      emptyDir.isDirectory() && emptyDir.canRead() && emptyDir.canWrite());
+    assertTrue(emptyDir.isDirectory() && emptyDir.canRead()
+        && emptyDir.canWrite());
 
     //create a second empty directory
     emptyDir2 = new File(testDir, emptyDir2Name);
     if (!emptyDir2.exists()) {
       assertTrue(emptyDir2.mkdir());
     }
-    assertTrue(
-      emptyDir2.isDirectory() && emptyDir2.canRead() && emptyDir2.canWrite());
+    assertTrue(emptyDir2.isDirectory() && emptyDir2.canRead()
+        && emptyDir2.canWrite());
 
     //create unreadable directory
     unreadableDir = new File(testDir, unreadableDirName);
@@ -145,7 +149,7 @@ public class ConstMetaDataTest extends TestCase {
       assertTrue(unreadableDir.mkdir());
     }
     assertTrue(unreadableDir.isDirectory() && unreadableDir.canWrite());
-    
+
     if (unreadableDir.canRead()) {
       SystemProgram program = new SystemProgram(manager.getPropertyUserDir(),
           "chmod 244 " + unreadableDirName, AxisID.ONLY);
@@ -170,24 +174,19 @@ public class ConstMetaDataTest extends TestCase {
     if (!unreadableFileDir.exists()) {
       assertTrue(unreadableFileDir.mkdir());
     }
-    assertTrue(
-      unreadableFileDir.isDirectory()
-        && unreadableFileDir.canRead()
+    assertTrue(unreadableFileDir.isDirectory() && unreadableFileDir.canRead()
         && unreadableFileDir.canWrite());
     //create unreadable files
-    unreadableFile =
-      createUnreadableFile(unreadableFileDir, unreadableFileName);
-    unreadableAFile =
-      createUnreadableFile(unreadableFileDir, unreadableAFileName);
+    unreadableFile = createUnreadableFile(unreadableFileDir, unreadableFileName);
+    unreadableAFile = createUnreadableFile(unreadableFileDir,
+        unreadableAFileName);
 
     //create a directory containing valid files
     validFileDir = new File(testDir, validFileDirName);
     if (!validFileDir.exists()) {
       assertTrue(validFileDir.mkdir());
     }
-    assertTrue(
-      validFileDir.isDirectory()
-        && validFileDir.canRead()
+    assertTrue(validFileDir.isDirectory() && validFileDir.canRead()
         && validFileDir.canWrite());
     //create valid files
     validFile = createValidFile(validFileDir, validFileName);
@@ -199,25 +198,12 @@ public class ConstMetaDataTest extends TestCase {
    */
   protected void tearDown() throws Exception {
     super.tearDown();
-    System.out.println();
-    unreadableFile.delete();
-    unreadableAFile.delete();
-    validFile.delete();
-    validAFile.delete();
-    emptyDir.delete();
-    emptyDir2.delete();
-    unreadableDir.delete();
-    unwritableDir.delete();
-    unreadableFileDir.delete();
-    validFileDir.delete();
   }
 
-  protected File createUnreadableFile(File dir, String name)
-    throws IOException {
+  protected File createUnreadableFile(File dir, String name) throws IOException {
     File file = new File(dir, name);
-    if (!file.exists()) {
-      assertTrue(file.createNewFile());
-    }
+    file.delete();
+    file.createNewFile();
     assertTrue(file.isFile());
     if (file.canRead()) {
       SystemProgram program = new SystemProgram(manager.getPropertyUserDir(),
@@ -234,9 +220,8 @@ public class ConstMetaDataTest extends TestCase {
   protected File createValidFile(File dir, String name) throws IOException {
     //create a valid file
     File file = new File(dir, name);
-    if (!file.exists()) {
-      assertTrue(file.createNewFile());
-    }
+    file.delete();
+    file.createNewFile();
     assertTrue(file.isFile() && file.canRead());
     return file;
   }
@@ -272,6 +257,7 @@ public class ConstMetaDataTest extends TestCase {
     //file writable
     assertTrue(ConstMetaData.isValid(validFileDir, true));
   }
+
   /*
    * Class to test for File findValidFile(String, File)
    */
@@ -298,17 +284,17 @@ public class ConstMetaDataTest extends TestCase {
       try {
         testInst.findValidFile(validFileName, dummyDir);
         fail("Should raise an IllegalArgumentException");
-      } catch (IllegalArgumentException success) {
+      }
+      catch (IllegalArgumentException success) {
       }
     }
 
     //file doesn't exist
     assertNull(testInst.findValidFile(validFileName, emptyDir));
     invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("exist") == -1
-      || invalidReason.indexOf(validFileName) == -1
-      || invalidReason.indexOf(emptyDirName) == -1) {
+    if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
+        || invalidReason.indexOf(validFileName) == -1
+        || invalidReason.indexOf(emptyDirName) == -1) {
       fail("invalidReason =" + invalidReason);
     }
     //file not readable
@@ -324,9 +310,8 @@ public class ConstMetaDataTest extends TestCase {
     //Test successes
 
     //file exists & readable
-    assertEquals(
-      testInst.findValidFile(validFileName, validFileDir),
-      validFileDir);
+    assertEquals(testInst.findValidFile(validFileName, validFileDir),
+        validFileDir);
   }
 
   /*
@@ -361,7 +346,8 @@ public class ConstMetaDataTest extends TestCase {
       try {
         testInst.findValidFile(validFileName, dummyDir, validFileDir);
         fail("Should raise an IllegalArgumentException");
-      } catch (IllegalArgumentException success) {
+      }
+      catch (IllegalArgumentException success) {
       }
     }
 
@@ -379,19 +365,17 @@ public class ConstMetaDataTest extends TestCase {
     //check one directory
     assertNull(testInst.findValidFile(validFileName, emptyDir, emptyDir));
     invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("exist") == -1
-      || invalidReason.indexOf(validFileName) == -1
-      || invalidReason.indexOf(emptyDirName) == -1) {
+    if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
+        || invalidReason.indexOf(validFileName) == -1
+        || invalidReason.indexOf(emptyDirName) == -1) {
       fail("invalidReason =" + invalidReason);
     }
     //check two directories
     assertNull(testInst.findValidFile(validFileName, emptyDir, emptyDir2));
     invalidReason = testInst.getInvalidReason();
-    if (invalidReason.equals("")
-      || invalidReason.indexOf("exist") == -1
-      || invalidReason.indexOf(validFileName) == -1
-      || invalidReason.indexOf(emptyDir2Name) == -1) {
+    if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
+        || invalidReason.indexOf(validFileName) == -1
+        || invalidReason.indexOf(emptyDir2Name) == -1) {
       fail("invalidReason =" + invalidReason);
     }
 
@@ -421,13 +405,11 @@ public class ConstMetaDataTest extends TestCase {
 
     //file exists & readable
     //file found in first directory
-    assertEquals(
-      testInst.findValidFile(validFileName, validFileDir, emptyDir),
-      validFileDir);
+    assertEquals(testInst.findValidFile(validFileName, validFileDir, emptyDir),
+        validFileDir);
     //file found in second directory
-    assertEquals(
-      testInst.findValidFile(validFileName, emptyDir, validFileDir),
-      validFileDir);
+    assertEquals(testInst.findValidFile(validFileName, emptyDir, validFileDir),
+        validFileDir);
   }
 
   /*
@@ -439,7 +421,8 @@ public class ConstMetaDataTest extends TestCase {
 
     //invalid directories
     //non-existant directories
-    String workingDir = EtomoDirectorTestHarness.setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
+    String workingDir = EtomoDirector.getInstance()
+        .setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
     testInst.setDatasetName(validDatasetName);
     if (!windowsOs) {
@@ -454,7 +437,8 @@ public class ConstMetaDataTest extends TestCase {
     //problems with the working directory
     //invalid backup directory is ignored while invalid working directory exists
     //unreadable working directory
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(unreadableDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(unreadableDir
+        .getAbsolutePath());
     testInst.setBackupDirectory(unwritableDir.getAbsolutePath());
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
@@ -465,7 +449,8 @@ public class ConstMetaDataTest extends TestCase {
       }
     }
     //unwritable working directory
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(unwritableDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(unwritableDir
+        .getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
@@ -477,7 +462,8 @@ public class ConstMetaDataTest extends TestCase {
     }
     //problems with the backup directory
     //unreadable backup directory
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(dummyDir
+        .getAbsolutePath());
     testInst.setBackupDirectory(unreadableDir.getAbsolutePath());
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
@@ -503,45 +489,48 @@ public class ConstMetaDataTest extends TestCase {
     //file A not found
     testInst.setAxisType(AxisType.DUAL_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(unreadableFileDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(unreadableFileDir
+        .getAbsolutePath());
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
     }
     //single axis
     testInst.setAxisType(AxisType.SINGLE_AXIS);
     testInst.setDatasetName(unreadableDatasetName);
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(unreadableFileDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(unreadableFileDir
+        .getAbsolutePath());
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
     }
-    
+
     //Test successes
     testInst.setDatasetName(validDatasetName);
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(validFileDir
+        .getAbsolutePath());
 
     //working dir, single axis
     assertTrue(testInst.isDatasetNameValid());
 
     //backup dir, dual axis
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(emptyDir.getAbsolutePath());
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(emptyDir
+        .getAbsolutePath());
     testInst.setBackupDirectory(validFileDir.getAbsolutePath());
     testInst.setAxisType(AxisType.DUAL_AXIS);
     assertTrue(testInst.isDatasetNameValid());
 
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(workingDir);
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(workingDir);
 
   }
-
 
   /*
    * Class to test for boolean isValid()
    */
   final public void testIsValid() {
     String invalidReason;
-    String workingDir = EtomoDirectorTestHarness
+    String workingDir = EtomoDirector.getInstance()
         .setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
     //Test failures
-    
+
     //Testing boolean isValid(boolean fromSetupScreen)
     //order of tests:
     //Axis type
@@ -553,13 +542,13 @@ public class ConstMetaDataTest extends TestCase {
     assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
-      || invalidReason.toLowerCase().indexOf("axis type") == -1) {
+        || invalidReason.toLowerCase().indexOf("axis type") == -1) {
       fail("invalidReason=" + invalidReason);
     }
     assertFalse(testInst.isValid(false));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
-      || invalidReason.toLowerCase().indexOf("axis type") == -1) {
+        || invalidReason.toLowerCase().indexOf("axis type") == -1) {
       fail("invalidReason=" + invalidReason);
     }
 
@@ -568,16 +557,16 @@ public class ConstMetaDataTest extends TestCase {
     assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
-      || invalidReason.toLowerCase().indexOf("dataset name") == -1) {
+        || invalidReason.toLowerCase().indexOf("dataset name") == -1) {
       fail("invalidReason=" + invalidReason);
     }
     assertFalse(testInst.isValid(false));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
-      || invalidReason.toLowerCase().indexOf("dataset name") == -1) {
+        || invalidReason.toLowerCase().indexOf("dataset name") == -1) {
       fail("invalidReason=" + invalidReason);
     }
-    
+
     //pixel size must be > 0
     //pixel is only checked for the Setup dialog
     testInst.setDatasetName(validDatasetName);
@@ -585,9 +574,9 @@ public class ConstMetaDataTest extends TestCase {
     assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
-      || invalidReason.toLowerCase().indexOf("pixel") == -1
-      || invalidReason.indexOf("size") == -1
-      || invalidReason.indexOf("zero") == -1) {
+        || invalidReason.toLowerCase().indexOf("pixel") == -1
+        || invalidReason.indexOf("size") == -1
+        || invalidReason.indexOf("zero") == -1) {
       fail("invalidReason=" + invalidReason);
     }
     assertTrue(testInst.isValid(false));
@@ -599,8 +588,8 @@ public class ConstMetaDataTest extends TestCase {
     assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
-      || invalidReason.toLowerCase().indexOf("fiducial") == -1
-      || invalidReason.indexOf("diameter") == -1) {
+        || invalidReason.toLowerCase().indexOf("fiducial") == -1
+        || invalidReason.indexOf("diameter") == -1) {
       fail("invalidReason=" + invalidReason);
     }
     assertTrue(testInst.isValid(false));
@@ -611,7 +600,7 @@ public class ConstMetaDataTest extends TestCase {
     testInst.setFiducialDiameter(15);
     assertTrue(testInst.isValid(true));
 
-    EtomoDirectorTestHarness.setCurrentPropertyUserDir(workingDir);
+    EtomoDirector.getInstance().setCurrentPropertyUserDir(workingDir);
 
   }
 }
