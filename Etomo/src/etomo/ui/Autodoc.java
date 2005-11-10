@@ -63,6 +63,7 @@ import java.util.Iterator;
 public class Autodoc implements AttributeCollection {
   public static final String rcsid = "$$Id$$";
 
+  public static final String VERSION = "1.1";
   public static final String AUTODOC_DIR = "AUTODOC_DIR";
   public static final String IMOD_DIR = "IMOD_DIR";
   public static final String DEFAULT_AUTODOC_DIR = "autodoc";
@@ -538,6 +539,12 @@ public class Autodoc implements AttributeCollection {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.21  2005/11/10 18:14:16  sueh
+ *<p> $bug# 733 added setTestDir(), which sets the autodoc directory directly and
+ *<p> $can only be used in test mode.  Rewrote getTestAutodocDir() to let it use
+ *<p> $the test directory and to break it up into a group of less complicated
+ *<p> $functions.
+ *<p> $
  *<p> $Revision 1.20  2005/10/12 22:43:12  sueh
  *<p> $bug# 532 Added isSectionExists(String type) to find out if a type of
  *<p> $section is in the autodoc.
