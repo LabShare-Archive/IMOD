@@ -5,7 +5,6 @@ import junit.framework.TestCase;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.EtomoDirectorTestHarness;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -59,8 +58,7 @@ public class ImodManagerTest extends TestCase {
    */
   public ImodManagerTest(String arg0) {
     super(arg0);
-    manager = EtomoDirectorTestHarness.getCurrentManager();
-    EtomoDirector.createInstance(new String[] {"--test"});
+    manager = EtomoDirector.getInstance().getCurrentTestManager();
     metaData = new MetaData((ApplicationManager) manager);
   }
 
