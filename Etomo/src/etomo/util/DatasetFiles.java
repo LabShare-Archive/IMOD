@@ -77,15 +77,7 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), metaData.getName() + axisID.getExtension() + TOMO_EXT);
   }
   
-  //Other files
-  
-  public final static File getCommandsFile(BaseManager manager, String rootName) {
-    return new File(manager.getPropertyUserDir(), getCommandsFileName(rootName));
-  }
-  
-  public final static String getCommandsFileName(String rootName) {
-    return rootName + ".cmds";
-  }
+  //Other dataset files
     
   public final static File getRawTilt(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getRawTiltName(manager, axisID));
@@ -117,6 +109,24 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + ".maggrad";
   }
   
+  //other etomo files
+  
+  public final static File getCommandsFile(BaseManager manager, String rootName) {
+    return new File(manager.getPropertyUserDir(), getCommandsFileName(rootName));
+  }
+
+  public final static String getCommandsFileName(String rootName) {
+    return rootName + ".cmds";
+  }
+  
+  public final static File getAutodoc(File dir, String name) {
+    return new File(dir, getAutodocName(name));
+  }
+  
+  final static String getAutodocName(String name) {
+    return name + ".adoc";
+  }
+  
   //private
   
   private final static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
@@ -136,6 +146,11 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/10/27 00:37:37  sueh
+ * <p> bug# 725 Added functions:  private correctAxisID, getMagGradientName,
+ * <p> getPieceListFile, getPieceListFileName, getRawTilt, getRawTiltName,
+ * <p> getStack, getStackName.
+ * <p>
  * <p> Revision 1.4  2005/10/19 00:21:18  sueh
  * <p> bug# 673 Added getOriginalStack() to return the File object for the
  * <p> original stack (_orig.st).
