@@ -20,6 +20,9 @@ import etomo.type.EtomoNumber;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2005/09/21 16:22:56  sueh
+* <p> $bug# 532 Added getUnformattedValue(EtomoNumber)
+* <p> $
 * <p> $Revision 1.4  2005/05/17 19:31:59  sueh
 * <p> $bug# 372 Reducing the visibility of functions and member variables.
 * <p> $Removing unused function getValue().
@@ -81,6 +84,10 @@ public class Attribute implements AttributeCollection {
   
   void setValue(Token value) {
     this.value = value;
+  }
+  
+  public Attribute getAttribute(int name) {
+    return getAttribute(String.valueOf(name));
   }
 
   public Attribute getAttribute(String name) {
