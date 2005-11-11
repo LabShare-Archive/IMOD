@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2004/04/24 04:41:12  mast
+c	  initialized spityp
+c	
 c	  Revision 3.3  2002/07/31 17:57:41  mast
 c	  Finished standardizing error output, added implicit none, changed
 c	  line spacing for output, used lnblnk instead of len to truncate
@@ -31,7 +34,7 @@ c
 	CHARACTER*120 FULLNAME
 	integer*4 istream
 	include 'imsubs.inc'
-	DATA NBHDR/1024/, NBW/4/, NBW3/12/, NB/1,2,4,4,8/, NBL/800/
+	DATA NBHDR/1024/, NBW/4/, NBW3/12/, NB/1,2,4,4,8,2,2/, NBL/800/
 	DATA FLAG/maxunit*.TRUE./, NOCON/maxunit*.FALSE./, numopen/0/
 	data spider/maxunit*.false./, print/.true./
         data ibleft/maxunit*0/
@@ -69,11 +72,11 @@ c
 c	  DNM 7/30/02: initialize flip here for all open units
 c
 	mrcflip(j) = .false.
-	spider(j)=at2(1:2).eq.'RO'.or.at2(1:3).eq.'OLD'
+	spider(j)= .false.
 c	  
-c	  check if it's a SPIDER file or a flipped file
+c	  if it an existing file, check if it's a SPIDER file or a flipped file
 c
-	if(spider(j))then
+	if(at2(1:2).eq.'RO'.or.at2(1:3).eq.'OLD')then
 	  CALL QSEEK(J,1,1,1)
 	  CALL QREAD(J,buf,NBW3,IER)
 	  IF (IER .NE. 0) then
@@ -81,26 +84,25 @@ c
 	    print *, 'ERROR: IMOPEN - ERROR READING FILE'
 	    call exit(1)
 	  endif
-	  mrctyp=.true.
+c	    
+c	    DNM 11/10/05: Require only one dimension less than 65536
+c
 	  spityp = .false.
-	  do i=1,3
-	    mrctyp=mrctyp.and.(intbuf(i).ge.0.and.intbuf(i).le.60000)
-	  enddo
-	  if(mrctyp)then
-	    mrcflip(j)=.false.
-	  else
-	    mrctyp=.true.
-	    do i=1,3
-	      intflip=intbuf(i)
-	      call convert_longs(intflip,1)
-	      mrctyp=mrctyp.and.(intflip.ge.0.and.intflip.le.60000)
-	    enddo
+	  mrctyp = intbuf(1) .gt. 0 .and. intbuf(2) .gt. 0 .and.
+     &	      intbuf(3) .gt. 0 .and. (intbuf(1) .lt. 65536 .or.
+     &	      intbuf(2) .lt. 65536 .or. intbuf(3) .lt. 65536)
+	  if (.not.mrctyp) then
+	    call convert_longs(intbuf,3)
+	    mrctyp = intbuf(1) .gt. 0 .and. intbuf(2) .gt. 0 .and.
+     &		intbuf(3) .gt. 0 .and. (intbuf(1) .lt. 65536 .or.
+     &		intbuf(2) .lt. 65536 .or. intbuf(3) .lt. 65536)
+	    call convert_longs(intbuf,3)
 	    mrcflip(j)=mrctyp
 	  endif
 	  if(.not.mrctyp)
-     &	      spityp=abs(buf(1)).gt.0.5.and.abs(buf(1)).lt.60000..and.
-     &	      buf(2).gt.0.5.and.buf(2).lt.60000..and.
-     &	      buf(3).gt.0.5.and.buf(3).lt.60000.
+     &	      spityp=abs(buf(1)).gt.0.5.and. buf(2).gt.0.5.and.
+     &	      buf(3).gt.0.5.and. ( abs(buf(1)).lt.65536..or.
+     &	      buf(2).lt.65536..or. buf(3).lt.65536.)
 	  spider(j)=spityp.and..not.mrctyp
 	  if(.not.(mrctyp.or.spityp))then
 	    print *
