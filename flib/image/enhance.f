@@ -7,11 +7,11 @@ C	is separately bandpass filtered.				*
 C									*
 C	  The filter is in the form of a gaussian highpass filter	*
 C	given by:  (if Sigma1 is positive)				*
-C	   (1. - exp(-r**2/(2*Sigma1**2)				*
+C	   (1. - exp(-r**2/(2*Sigma1**2)))				*
 C	multiplied by a gaussian-edged band-pass filter. This		*
 C	filter is flat between Radius1 --> Radius2 and decays		*
 C	symmetrically as a gaussian:					*
-C	   exp(-(r-Radius)**2)/(2.*sigma2**2)				*
+C	   exp(-(r-Radius)**2/(2.*sigma2**2))				*
 C									*
 C	The units are in fractional reciprocal lattice units,		*
 C	that is r goes from 0-->sqrt(2)   (0-->.5 on each axis)		*
@@ -28,6 +28,11 @@ C	If Sigma2 is negative, the second filter is inverted (1 minus	*
 C	the Gaussian band-pass filter).  This filter is then multiplied	*
 C	by the filter specified by sigma1 (if any).			*
 C									*
+c	If Radius1 is negative, then the first filter is 0 out to 
+c       |Radius1| and rises as an inverted gaussian from that point:
+c          (1. - exp(-(r-|Radius1|)**2/(2.*Sigma1**2)))
+c	The effective Radius1 for the second filter is then 0.		*
+C									*
 C	Several modes of operation are possible:			*
 C									*
 C	Gaussian low-pass filter (temperature factor)			*
@@ -36,33 +41,13 @@ C									*
 C	Gaussian bandpass centered at Radius				*
 C		:  Sigma1=0, 		use Radius1=Radius2 & Sigma2	*
 C									*
-C	Gaussian-edged badpass between Radius1 & Radius2		*
+C	Gaussian-edged bandpass between Radius1 & Radius2		*
 C		:  Sigma1=0, 		use Radius1,Radius2 & Sigma2	*
 C									*
 C	Gaussian bandpass (low-pass + high-pass)			*
 C		: Radii = 0,		use Sigma1 & Sigma2		*
 C									*
-C									*
-C	Can now handle quite large images (8192 x 8192) using		*
-C	the disk-based BIGFILT routine. The switch point is determined	*
-C	by the current working set size.				*
-C									*
-C       The program will accept file names either from the command line *
-C       or as entries to the program after it is started.  If there are *
-C       two names on the command line, they will be taken as the input  *
-C       and output file names; if there is one name, it will be taken   *
-C       as the input file name and the program will ask for the output  *
-C       file name; if there are no command line arguments, the program  *
-C       will ask for both input and output file names.                  *
-C									*
-C	Input parameters are:						*
-C									*
-C	SIGMA1,SIGMA2,RADIUS1,RADIUS2					*
-C				as described above			*
-C									*
-C	IORIG 			if IORIG = 1 then the F(0,0) is		*
-C				unchanged by filter operation!!		*
-C									*
+c	  See man page for other details                                *
 C									*
 C									*
 C	Version 1.10	27.MAY.82	DAA		FOR VAX		*
@@ -77,6 +62,13 @@ C	Inverted filter	26.April.89	DNM		FOR uVAX	*
 C       Ported to unix	07.December.94  DNM		FOR SGI		*
 C									*
 C************************************************************************
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 C
 	COMMON//NX,NY,NZ
 	include 'ftbuf.inc'
@@ -197,5 +189,6 @@ C
 	CALL IMCLOSE(2)
 C
 	CALL EXIT(0)
-99	STOP 'ENHANCE: END-OF-FILE ERROR ON READ'
+99	print *,'ERROR: ENHANCE - END-OF-FILE ERROR ON READ'
+	call exit(1)
 	END
