@@ -42,6 +42,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.11  2004/06/10 22:48:14  mast
+c	  Added workaround to FEI bug in nint-nreal definition
+c	
 c	  Revision 3.10  2003/06/05 00:15:00  mast
 c	  Add (Angstroms) to pixel spacing output
 c	
@@ -270,9 +273,9 @@ C         from 6f6.1 to f5.1,5f6.1, eliminated 1X before titles, eliminated 80th
 C         char by changing 20A4 to 19A4,A3
 C
 1000	FORMAT(/,
-     .  1X,'Number of columns, rows, sections .........',3I6,/,
+     .  1X,'Number of columns, rows, sections .........',3I7,/,
      .  1X,'Map mode ..................................',I5,/,
-     .  1X,'Start cols, rows, sects, grid x,y,z .......',3I5,2X,3i5,/,
+     .  1X,'Start cols, rows, sects, grid x,y,z .......',3I5,2X,3i6,/,
      .  1X,'Pixel spacing (Angstroms)..................',3G11.4,/,
      .  1X,'Cell angles ...............................',3F9.3,/,
      .  1X,'Fast, medium, slow axes ...................',3(4X,A1),/,

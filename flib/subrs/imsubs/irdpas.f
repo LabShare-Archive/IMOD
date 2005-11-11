@@ -24,7 +24,7 @@ C
 	J = LSTREAM(ISTREAM)
 	JMODE = MODE(J)
         jb=1
-        if(jmode.le.4) JB = NB(JMODE + 1)
+        if(jmode.le.6) JB = NB(JMODE + 1)
 	NCB = NCRS(1,J)*JB
 	CALL ZERO(ARRAY,MX*MY*NBW)
 	NSKIP = NY1*NCB				!NY1 IS RELATIVE OFFSET

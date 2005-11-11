@@ -5,6 +5,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2002/07/31 17:42:59  mast
+c	  For new format, defined cmap,rms, and stamp, changed origxy to
+c	  origxyz, changed size of stuff to 27
+c	
 c	  Revision 3.2  2002/06/26 00:24:59  mast
 c	  *** empty log message ***
 c	
@@ -17,7 +21,7 @@ c       number of units
 
 	integer maxunit,maxstream
 	parameter (maxunit=20,maxstream=30)
-	integer*4 LSTREAM(maxstream),NBHDR,NBW,NBW3,NB(5),NBL,
+	integer*4 LSTREAM(maxstream),NBHDR,NBW,NBW3,NB(7),NBL,
      &      NCRS(3,maxunit),MODE(maxunit),NCRST(3,maxunit),
      &	    NXYZ(3,maxunit),MAPCRS(3,maxunit),NLAB(maxunit),
      &	    LABLS(20,10,maxunit),nbsym(maxunit),numopen,

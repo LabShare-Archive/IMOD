@@ -83,7 +83,7 @@ c   JB is either the number of bytes per pixel for regular modes, or 1 for bit
 c   modes: this makes calculations of NREAD work because the resulting value
 c   is variously interpreted as number of bytes OR number of pixels to read
         jb=1
-        if(jmode.le.4) JB = NB(JMODE + 1)
+        if(jmode.le.6) JB = NB(JMODE + 1)
 	QB(3-lowbyte) = 0
 C   DNM: eliminate this because qlocate gives suspect results for giant files
 C  and it's not needed anymore because irdhdr and iwrhdr take care of it
@@ -119,11 +119,11 @@ C   DNM: straight no-conversion is silly for bit modes, will return integer*2
 	  CALL QREAD(J,BLINE,N,IER)
 	  IF (IER .NE. 0) GOTO 99
 	  QB(3-lowbyte) = 0
-	  DO 100 K = 1,N
+	  DO K = 1,N
 	    QB(lowbyte) = BLINE(K)
 	    ARRAY(INDEX) = IB
 	    INDEX = INDEX + 1
-100	  CONTINUE
+	  enddo
 	  NREAD = NREAD - 8192
 	  IF (NREAD .GT. 0) GOTO 10
 	ELSEIF(jmode.le.8)then             !ELSE INTEGER*2
@@ -133,10 +133,20 @@ C   DNM: straight no-conversion is silly for bit modes, will return integer*2
 	  CALL QREAD(J,LINE,N*2,IER)
 	  IF (IER .NE. 0) GOTO 99
 	  if(mrcflip(j))call convert_shorts(line,n)
-	  DO 150 K = 1,N
-	    ARRAY(INDEX) = LINE(K)
-	    INDEX = INDEX + 1
-150	  CONTINUE
+	  if (jmode .ne. 6) then		! SIGNED
+	    DO  K = 1,N
+	      ARRAY(INDEX) = LINE(K)
+	      INDEX = INDEX + 1
+	    enddo
+	  else					! UNSIGNED
+	    lcompos = 0
+	    DO K = 1,N
+	      bstore(longb1) = BLINE(2 * K - 1)
+	      bstore(longb2) = BLINE(2 * K)
+	      ARRAY(INDEX) = lcompos
+	      INDEX = INDEX + 1
+	    enddo
+	  endif
 	  NREAD = NREAD - 4096
 	  IF (NREAD .GT. 0) GOTO 15
         else                           !bit modes

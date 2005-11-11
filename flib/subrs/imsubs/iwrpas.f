@@ -24,7 +24,7 @@ C
 	J = LSTREAM(ISTREAM)
 	JMODE = MODE(J)
         jb=1
-        if(jmode.le.4) JB = NB(JMODE + 1)
+        if(jmode.le.6) JB = NB(JMODE + 1)
 	NCB = NCRS(1,J)*JB
 C
 	DO 100 JY = NY1+1,NY2+1				!FOR START @ 0

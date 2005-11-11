@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/07/21 19:17:20  mast
+c	  Standardized error output to ERROR: ROUTINE
+c	
 c	  Revision 3.1  2002/06/26 00:27:51  mast
 c	  Added ability to write back to byte swapped files, and changed STOPs
 c	  to call exit(1)
@@ -62,7 +65,7 @@ C
 
 	JMODE = MODE(J)
         jb=1
-        if(jmode.le.4) JB = NB(JMODE + 1)
+        if(jmode.le.6) JB = NB(JMODE + 1)
 	INDEX = 1
 C   DNM: eliminate this because qlocate gives suspect results for giant files
 C  and it's not needed anymore because irdhdr and iwrhdr take care of it
@@ -148,17 +151,33 @@ c		denval, use a single if statement
 	  NWRITE = NWRITE/2
 	  do while (NWRITE .GT. 0)
 	    N = MIN(linesize/2,NWRITE)
-	    DO K = 1,N
-c		DNM: similar changes, also make limit 32767 instead of 32700.
-	      denval=array(index)
-	      if (denval .gt. 32767. .or. denval .lt. -32767.) then
-		denval = min(32767.,max(denval,-32767.))
-		if (bad) print *,'** overflow on integer truncation ***'
-		bad = .false.
-	      endif	      
-	      LINE(K) = NINT(denval)
-	      INDEX = INDEX + 1
-	    enddo
+	    if (jmode .ne. 6) then		! SIGNED
+	      DO K = 1,N
+c		  DNM: similar changes, also make limit 32767 instead of 32700.
+		denval=array(index)
+		if (denval .gt. 32767. .or. denval .lt. -32767.) then
+		  denval = min(32767.,max(denval,-32767.))
+		  if (bad) print *,'** overflow on integer truncation ***'
+		  bad = .false.
+		endif	      
+		LINE(K) = NINT(denval)
+		INDEX = INDEX + 1
+	      enddo
+
+	    else				! UNSIGNED
+	      DO K = 1,N
+		denval=array(index)
+		if (denval .gt. 65535.4 .or. denval .lt. -0.4) then
+		  denval = min(65535.,max(denval,0.))
+		  if (bad) print *,'** overflow on integer truncation ***'
+		  bad = .false.
+		endif	      
+		lcompos = NINT(denval)
+		bline(2 * k - 1) = bstore(longb1)
+		bline(2 * k) = bstore(longb2)
+		INDEX = INDEX + 1
+	      enddo
+	    endif
 	    if (mrcflip(j))call convert_shorts(line, n)
 	    CALL QWRITE(J,LINE,N*2)
 	    NWRITE = NWRITE - n
