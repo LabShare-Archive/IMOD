@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/05/26 04:35:58  mast
+c	  Used double precision to get rms correct
+c	
 c	  Revision 3.3  2002/08/18 23:13:28  mast
 c	  Changed to cal iclavgsd in library
 c	
@@ -29,7 +32,7 @@ c
 C   
 	implicit none
 	integer nfunc,idim,nx,ny,nz
-        parameter (nfunc=16)
+        parameter (nfunc=17)
 	parameter (idim=4100)
 	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),mcrs(3),listdel(1000)
 	real*4 delt(3),tilt(3),
@@ -41,7 +44,7 @@ C
         character*8 param(nfunc)
         data param/'ORG','CEL','DAT','DEL','MAP','SAM','TLT'
      &      ,'TLT_ORIG','TLT_ROT','LAB','MMM','RMS','FIXPIXEL',
-     &	    'FIXEXTRA','HELP','DONE'/
+     &	    'FIXEXTRA','FIXMODE','HELP','DONE'/
 C   
 C   
 	DATA NXYZST/0,0,0/
@@ -63,7 +66,7 @@ C
 30      write(*,102)
 102     format(1x,'Options: org, cel, dat, del, map, sam, tlt, ',
      &	    'tlt_orig, tlt_rot, lab, mmm,',/,
-     &	    ' rms, fixpixel, fixextra, help, OR done')
+     &	    ' rms, fixpixel, fixextra, fixmode, help, OR done')
 	write(*,'(1x,a,$)')'Enter option: '
         read(5,101)funcin
 101	FORMAT(A)
@@ -72,7 +75,7 @@ C
         do i=1,nfunc
           if(funcup.eq.param(i))iwhich=i
         enddo
-        go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,14,15),iwhich
+        go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,17,14,15),iwhich
         print *,'Not a legal entry, try again'
         go to 30
 C   
@@ -326,12 +329,34 @@ c
 	call ialsam(2,nxyz)
 	go to 30
 c
+c	  FIXPIECES - Remove flag for piece coordinates from header
+c
 13	write(*,123)
 123	format(' Marking header as not containing any ',
      &	    'piece coordinates.')
 	call irtsymtyp(2,nbytex,iflag)
 	if (mod(iflag/2,2).gt.0)iflag = iflag-2
 	call ialsymtyp(2,nbytex,iflag)
+	go to 30
+c	  
+c	FIXMODE - change between 1 and 6  
+c	  
+17	if (mode .ne. 6 .and. mode .ne. 1) then
+	  print *,'Only mode 6 can be changed to mode 1, or 1 to 6'
+	  go to 30
+	endif
+c	  
+	mode = 7 - mode
+	write(*,1124)mode
+1124	format(/,'Changing mode to',i2)
+	call ialmod(2,mode)
+	if (dmax .gt. 32767 .and. mode .eq. 1) write(*,124) dmax
+124	format(/,'The file maximum is', f12.1, ' and numbers bigger than',
+     &	    ' 32767 will not be',/,
+     &	    ' represented correctly in this mode.')
+	if (dmin .lt. 0 .and. mode .eq. 6) write(*,2124) dmin
+2124	format(/,'The file minimum is', f12.1, ' and negative numbers',
+     &	    ' will not be',/, ' represented correctly in this mode.')
 	go to 30
 c
 14	write(*,201)
@@ -353,6 +378,8 @@ c
      &	    ' sample sizes to image size',
      &	    /,' fixextra = fix extra header so that file',
      &	    ' does not look like a montage'
+     &	    /,' fixmode = change mode from 6 to 1 (unsigned to signed ',
+     &	    'integer) or 1 to 6',
      &	    /,' help = type this again',
      &	    /,' done = exit',/)
 	go to 30
