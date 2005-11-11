@@ -7,52 +7,7 @@
 #
 # $Revision$
 #
-# $Log$
-# Revision 2.11  2005/11/10 20:43:00  mast
-# Simplified dependency to use */*.java
-#
-# Revision 2.10  2005/05/13 22:22:20  mast
-# Added dependencies so build only occurs when needed
-#
-# Revision 2.9  2005/01/18 22:08:53  mast
-# Use new variables for testing under windows
-#
-# Revision 2.8  2005/01/17 19:34:28  mast
-# Switched from if statement to mkdir -p
-#
-# Revision 2.7  2004/02/10 04:52:18  rickg
-# Clean up JUnitTest directory
-#
-# Revision 2.6  2004/02/09 21:15:23  rickg
-# Swtiched rm and cp to explict commands instead of macros
-#
-# Revision 2.5  2004/01/22 21:08:13  rickg
-# Use headless mode when running tests.
-#
-# Revision 2.4  2003/10/31 17:19:38  mast
-# *** empty log message ***
-#
-# Revision 2.3  2003/10/29 16:22:23  sueh
-# added automatic testing during build
-#
-# Revision 2.2  2003/08/26 15:36:49  rickg
-# Added comments
-#
-# Revision 2.1  2003/08/10 01:21:59  mast
-# Changing to dummy/real Makefiles
-#
-# Revision 2.9  2003/08/09 23:02:40  mast
-# renamed jar directory to jar_dir to avoid bizarre failure on SGI
-#
-# Revision 2.8  2003/08/08 23:57:15  mast
-# *** empty log message ***
-#
-# Revision 2.7  2003/08/08 19:05:17  rickg
-# Fixed cp and rm invokations
-#
-# Revision 2.6  2003/08/08 05:13:52  rickg
-# Mods to support IMOD make structure
-#
+# Log at end of file
 
 include ../configure
 
@@ -61,6 +16,7 @@ JAVAC_EXE = javac
 # CLASSPATH and SOURCEPATH definitions match Eclipse structure
 SOURCEPATH = src
 CLASSPATH = bin
+SE = src/etomo
 
 CLASS_FILES = $(CLASSPATH)/etomo/ApplicationManager.class
 JAR_FILE = jar_dir/etomo.jar
@@ -82,7 +38,9 @@ all: $(JAR_FILE)
 # and moved "Make completed" here so make gives the "nothing to do" message
 #
 #$(JAR_FILE): cpimages compile
-$(JAR_FILE): src/etomo/*.java src/etomo/*/*.java src/images/*.* 
+$(JAR_FILE): $(SE)/*.java $(SE)/comscript/*.java $(SE)/ui/*.java \
+             $(SE)/process/*.java $(SE)/storage/*.java $(SE)/type/*.java \
+             $(SE)/util/*.java src/images/*.* 
 	mkdir -p $(CLASSPATH)
 	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
@@ -154,3 +112,52 @@ linecount:
 	grep "^\s*$$" src/etomo/ui/*.java | wc -l
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
+# $Log$
+# Revision 2.12  2005/11/11 18:01:49  sueh
+# bug# 758 Changed EtomoTests to JUnitTests.
+#
+# Revision 2.11  2005/11/10 20:43:00  mast
+# Simplified dependency to use */*.java
+#
+# Revision 2.10  2005/05/13 22:22:20  mast
+# Added dependencies so build only occurs when needed
+#
+# Revision 2.9  2005/01/18 22:08:53  mast
+# Use new variables for testing under windows
+#
+# Revision 2.8  2005/01/17 19:34:28  mast
+# Switched from if statement to mkdir -p
+#
+# Revision 2.7  2004/02/10 04:52:18  rickg
+# Clean up JUnitTest directory
+#
+# Revision 2.6  2004/02/09 21:15:23  rickg
+# Swtiched rm and cp to explict commands instead of macros
+#
+# Revision 2.5  2004/01/22 21:08:13  rickg
+# Use headless mode when running tests.
+#
+# Revision 2.4  2003/10/31 17:19:38  mast
+# *** empty log message ***
+#
+# Revision 2.3  2003/10/29 16:22:23  sueh
+# added automatic testing during build
+#
+# Revision 2.2  2003/08/26 15:36:49  rickg
+# Added comments
+#
+# Revision 2.1  2003/08/10 01:21:59  mast
+# Changing to dummy/real Makefiles
+#
+# Revision 2.9  2003/08/09 23:02:40  mast
+# renamed jar directory to jar_dir to avoid bizarre failure on SGI
+#
+# Revision 2.8  2003/08/08 23:57:15  mast
+# *** empty log message ***
+#
+# Revision 2.7  2003/08/08 19:05:17  rickg
+# Fixed cp and rm invokations
+#
+# Revision 2.6  2003/08/08 05:13:52  rickg
+# Mods to support IMOD make structure
+#
