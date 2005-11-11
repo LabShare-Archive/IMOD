@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2005/10/13 20:06:26  mast
+Fixed scale setting when mx/my/mz are zero
+
 Revision 3.10  2004/11/05 18:53:04  mast
 Include local files with quotes, not brackets
 
@@ -133,6 +136,7 @@ int iiMRCCheck(ImodImageFile *i)
     free(hdr);
     return(1);
   }
+
   i->nx   = hdr->nx;
   i->ny   = hdr->ny;
   i->nz   = hdr->nz;
@@ -146,6 +150,10 @@ int iiMRCCheck(ImodImageFile *i)
   case MRC_MODE_SHORT:
     i->format = IIFORMAT_LUMINANCE;
     i->type   = IITYPE_SHORT;
+    break;
+  case MRC_MODE_USHORT:
+    i->format = IIFORMAT_LUMINANCE;
+    i->type   = IITYPE_USHORT;
     break;
   case MRC_MODE_FLOAT:
     i->format = IIFORMAT_LUMINANCE;

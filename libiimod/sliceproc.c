@@ -388,6 +388,7 @@ int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
   b3dFloat *fin;
   b3dUByte *bin;
   b3dInt16 *sin;
+  b3dUInt16 *usin;
 
   /* Get array for data, make sure mode is legal */
   if (sl->mode == SLICE_MODE_FLOAT) {
@@ -395,7 +396,8 @@ int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
     if (!fVals)
       return (-1);
     isFloat = 1;
-  } else if (sl->mode == SLICE_MODE_BYTE || sl->mode == SLICE_MODE_SHORT) {
+  } else if (sl->mode == SLICE_MODE_BYTE || sl->mode == SLICE_MODE_SHORT ||
+             sl->mode == SLICE_MODE_USHORT) {
     iVals = (int *)malloc(blockSize * sizeof(int));
     if (!iVals)
       return (-1);
@@ -437,6 +439,19 @@ int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
             sin = &v->vol[z]->data.s[xs + iy * sl->xsize];
             for (ix = xs; ix < xe; ix++)
               *iout++ = *sin++;
+          }
+        val[0] =selectInt(select, iVals, nVals);
+        if (!(nVals % 2))
+          val[0] = 0.5f * (val[0] + selectInt(select + 1, iVals, nVals));
+        break;
+        
+      case SLICE_MODE_USHORT:
+        iout = iVals;
+        for (z = 0; z < v->zsize; z++) 
+          for (iy = ys; iy < ye; iy++) {
+            usin = &v->vol[z]->data.us[xs + iy * sl->xsize];
+            for (ix = xs; ix < xe; ix++)
+              *iout++ = *usin++;
           }
         val[0] =selectInt(select, iVals, nVals);
         if (!(nVals % 2))
@@ -657,6 +672,19 @@ int sliceMinMax(Islice *s)
     s->max = imax;
     break;
 
+  case SLICE_MODE_USHORT:
+    imin = imax = s->data.us[0];
+    for (i = 1; i < s->xsize * s->ysize; i++) {
+      ival = s->data.us[i];
+      if (imin > ival)
+        imin = ival;
+      if (imax < ival)
+        imax = ival;
+    }
+    s->min = imin;
+    s->max = imax;
+    break;
+
   case SLICE_MODE_FLOAT:
     fmin = fmax = s->data.f[0];
     for (i = 1; i < s->xsize * s->ysize; i++) {
@@ -688,16 +716,24 @@ static void sliceScaleAndFree(Islice *sout, Islice *sin)
   imax = sin->xsize * sin->ysize;
   mval = (sin->max - sin->min) / (sout->max - sout->min);
   aval = sin->min - mval * sout->min;
-  if (sout->mode == SLICE_MODE_FLOAT)
+  switch (sout->mode) {
+  case SLICE_MODE_FLOAT:
     for(i = 0; i < imax; i++)
       sin->data.b[i] = (unsigned char)(sout->data.f[i] * mval + aval);
-  else if (sout->mode == SLICE_MODE_SHORT)
+    break;
+  case SLICE_MODE_SHORT:
     for(i = 0; i < imax; i++)
       sin->data.b[i] = (unsigned char)(sout->data.s[i] * mval + aval);
-  else
+    break;
+  case SLICE_MODE_USHORT:
+    for(i = 0; i < imax; i++)
+      sin->data.b[i] = (unsigned char)(sout->data.us[i] * mval + aval);
+    break;
+  case SLICE_MODE_BYTE:
     for(i = 0; i < imax; i++)
       sin->data.b[i] = (unsigned char)(sout->data.b[i] * mval + aval);
-
+    break;
+  }
   sliceFree(sout);
 }
 
@@ -771,6 +807,9 @@ static int selectInt(int s, int *r, int num)
 
 /*
     $Log$
+    Revision 3.5  2005/03/09 21:17:15  mast
+    Converted diffusion to float, removed processor argument
+
     Revision 3.4  2005/02/10 22:03:30  mast
     Need to include stdlib.h for mallocs to work in 64-bit land
 

@@ -565,6 +565,8 @@ int mrc_head_print(MrcHeader *data)
     printf("mode = Byte\n"); break ;
   case MRC_MODE_SHORT :
     printf("mode = Short\n"); break ;
+  case MRC_MODE_USHORT :
+    printf("mode = Unsigned Short\n"); break ;
   case MRC_MODE_FLOAT :
     printf("mode = Float\n");  break ;
   case MRC_MODE_COMPLEX_SHORT :
@@ -644,6 +646,9 @@ int mrc_head_print(MrcHeader *data)
 
 /*
 $Log$
+Revision 3.7  2005/01/17 17:10:33  mast
+Fully implemented 2D processing scheme to match 3D behavior
+
 Revision 3.6  2005/01/07 20:08:55  mast
 Set up section list for 3D case; do not adjust Z origin in 2D case
 

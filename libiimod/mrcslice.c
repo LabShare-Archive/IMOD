@@ -91,6 +91,10 @@ int sliceMode(char *mst)
     return(SLICE_MODE_COMPLEX_FLOAT);
   if (strcmp(mst, "4") == 0)
     return(SLICE_MODE_COMPLEX_FLOAT);
+  if (strcmp(mst, "ushort") == 0)
+    return(SLICE_MODE_USHORT);
+  if (strcmp(mst, "6") == 0)
+    return(SLICE_MODE_USHORT);
   if (strcmp(mst, "16") == 0)
     return(SLICE_MODE_RGB);
   if (strcmp(mst, "rgb") == 0)
@@ -116,22 +120,23 @@ int sliceInit(Islice *s, int xsize, int ysize, int mode, void *data)
     s->data.b = data;
     break;
   case MRC_MODE_SHORT:
-    s->dsize = sizeof(short);
+  case MRC_MODE_USHORT:
+    s->dsize = sizeof(b3dInt16);
     s->csize = 1;
-    s->data.s = data;
+    s->data.us = data;
     break;
   case MRC_MODE_FLOAT:
-    s->dsize = sizeof(float);
+    s->dsize = sizeof(b3dFloat);
     s->csize = 1;
     s->data.f = data;
     break;
   case MRC_MODE_COMPLEX_SHORT:
-    s->dsize = sizeof(short);
+    s->dsize = sizeof(b3dInt16);
     s->csize = 2;
     s->data.s = data;
     break;
   case MRC_MODE_COMPLEX_FLOAT:
-    s->dsize = sizeof(float);
+    s->dsize = sizeof(b3dFloat);
     s->csize = 2;
     s->data.f = data;
     break;
@@ -180,9 +185,10 @@ Islice *mrc_slice_create(int xsize, int ysize, int mode)
     break;
 
   case MRC_MODE_SHORT:
-    s->dsize = sizeof(short);
+  case MRC_MODE_USHORT:
+    s->dsize = sizeof(b3dInt16);
     s->csize = 1;
-    s->data.s = (short *)
+    s->data.s = (b3dInt16 *)
       malloc(s->xsize * s->ysize * s->dsize * s->csize);
     break;
       
@@ -194,9 +200,9 @@ Islice *mrc_slice_create(int xsize, int ysize, int mode)
     break;
 
   case MRC_MODE_COMPLEX_SHORT:
-    s->dsize = sizeof(short);
+    s->dsize = sizeof(b3dInt16);
     s->csize = 2;
-    s->data.s = (short *)
+    s->data.s = (b3dInt16 *)
       malloc(s->xsize * s->ysize * s->dsize * s->csize);
     break;
 
@@ -278,15 +284,18 @@ int slicePutVal(Islice *s, int x, int y, Ival val)
       s->data.b[index] = (unsigned char)val[0];
       break;
     case MRC_MODE_SHORT:
-      s->data.s[index] = (short)val[0];
+      s->data.s[index] = (b3dInt16)val[0];
+      break;
+    case MRC_MODE_USHORT:
+      s->data.us[index] = (b3dUInt16)val[0];
       break;
     case MRC_MODE_FLOAT:
       s->data.f[index] = val[0];
       break;
     case MRC_MODE_COMPLEX_SHORT:
       index *= 2;
-      s->data.s[index]     = (short)val[0];
-      s->data.s[index + 1] = (short)val[1];
+      s->data.s[index]     = (b3dInt16)val[0];
+      s->data.s[index + 1] = (b3dInt16)val[1];
       break;
     case MRC_MODE_COMPLEX_FLOAT:
       index *= 2;
@@ -332,6 +341,9 @@ int sliceGetVal(Islice *s, int x, int y, Ival val)
       break;
     case MRC_MODE_SHORT:
       val[0] = (float)s->data.s[index];
+      break;
+    case MRC_MODE_USHORT:
+      val[0] = (float)s->data.us[index];
       break;
     case MRC_MODE_FLOAT:
       val[0] = s->data.f[index];
@@ -963,6 +975,7 @@ Islice *slice_mat_filter(Islice *sin, float *mat, int dim)
   return(sout);
 }
 
+/* Unused 11/10/05 */
 int mrc_slice_lie_img(Islice *sin, 
                       Islice *mask, double alpha)
 {
@@ -992,6 +1005,12 @@ int mrc_slice_lie_img(Islice *sin,
         if (val1[0] < -32768)
           val1[0] = -32768;
         break;
+      case MRC_MODE_USHORT:
+        if (val1[0] > 65535)
+          val1[0] = 65535;
+        if (val1[0] < 0)
+          val1[0] = 0;
+        break;
       }
 
       if (sin->csize == 3){
@@ -1009,29 +1028,37 @@ int mrc_slice_lie(Islice *sin, double in, double alpha)
 {
   int i, j, c;
   Ival val;
-  float scale, offset;
-
+  float scale, offset, minval, maxval;
+  
+  minval = maxval = 0.;
   scale = (float)alpha;
   offset = (1.0f - scale) * (float)in;
 
+  switch(sin->mode) {
+  case MRC_MODE_BYTE:
+  case MRC_MODE_RGB:
+    maxval = 255.;
+    break;
+  case MRC_MODE_SHORT:
+  case MRC_MODE_COMPLEX_SHORT:
+    minval = -32768.;
+    maxval = 32767.;
+    break;
+  case MRC_MODE_USHORT:
+    maxval = 65535.;
+    break;
+  }
+
   if (sin->csize == 1) {
-    for(j = 0; j < sin->ysize; j++)
-      for(i = 0; i < sin->xsize; i++) {
+    for (j = 0; j < sin->ysize; j++)
+      for (i = 0; i < sin->xsize; i++) {
         sliceGetVal(sin, i, j, val);
         val[0] = (offset + (scale * val[0]));
-        switch(sin->mode) {
-        case MRC_MODE_BYTE:
-          if (val[0] > 255)
-            val[0] = 255;
-          if (val[0] < 0)
-            val[0] = 0;
-          break;
-        case MRC_MODE_SHORT:
-          if (val[0] > 32767)
-            val[0] = 32767;
-          if (val[0] < -32768)
-            val[0] = -32768;
-          break;
+        if (maxval) {
+          if (val[0] > maxval)
+            val[0] = maxval;
+          if (val[0] < minval)
+            val[0] = minval;
         }
         slicePutVal(sin, i, j, val);
       }
@@ -1039,18 +1066,13 @@ int mrc_slice_lie(Islice *sin, double in, double alpha)
     for (j = 0; j < sin->ysize; j++)
       for (i = 0; i < sin->xsize; i++) {
         sliceGetVal(sin, i, j, val);
-        for(c = 0; c < sin->csize; c++) {
+        for (c = 0; c < sin->csize; c++) {
           val[c] = (offset + (scale * val[c]));
-          if (sin->mode == MRC_MODE_RGB) {
-            if (val[c] > 255)
-              val[c] = 255;
-            if (val[c] < 0)
-              val[c] = 0;
-          } else if (sin->mode == MRC_MODE_COMPLEX_SHORT) {
-            if (val[c] > 32767)
-              val[c] = 32767;
-            if (val[c] < -32768)
-              val[c] = -32768;
+          if (maxval) {
+            if (val[c] > maxval)
+              val[c] = maxval;
+            if (val[c] < minval)
+              val[c] = minval;
           }
         }
         slicePutVal(sin, i, j, val);
@@ -1247,7 +1269,10 @@ Islice *sliceReadMRC(MrcHeader *hin, int sno, char axis)
   default:
     break;
   }
-  mrc_slice_init(slice, nx, ny, hin->mode, buf);
+  if (mrc_slice_init(slice, nx, ny, hin->mode, buf)) {
+    free(slice);
+    return NULL;
+  }
   return(slice);
 }
 
@@ -1498,6 +1523,10 @@ int sliceNewMode(Islice *s, int mode)
     limit_val = 1;
     minval = -32768.;
     maxval = 32767.;
+  } else if (mode == MRC_MODE_USHORT) {
+    limit_val = 1;
+    minval = 0.;
+    maxval = 65535.;
   }
 
   if (!ns)
@@ -1506,10 +1535,12 @@ int sliceNewMode(Islice *s, int mode)
   switch(s->mode){
   case MRC_MODE_BYTE:
   case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
   case MRC_MODE_FLOAT:
     switch(mode){
     case MRC_MODE_BYTE:
     case MRC_MODE_SHORT:
+    case MRC_MODE_USHORT:
     case MRC_MODE_FLOAT:
       default_copy = 1;
       break;
@@ -1539,6 +1570,7 @@ int sliceNewMode(Islice *s, int mode)
     switch(mode){
     case MRC_MODE_BYTE:
     case MRC_MODE_SHORT:
+    case MRC_MODE_USHORT:
     case MRC_MODE_FLOAT:
       for(j = 0; j < s->ysize; j++)
         for(i = 0; i < s->xsize; i++){
@@ -1577,6 +1609,7 @@ int sliceNewMode(Islice *s, int mode)
     switch(mode){
     case MRC_MODE_BYTE:
     case MRC_MODE_SHORT:
+    case MRC_MODE_USHORT:
     case MRC_MODE_FLOAT:
       for(j = 0; j < s->ysize; j++)
         for(i = 0; i < s->xsize; i++){
@@ -1631,6 +1664,9 @@ int sliceNewMode(Islice *s, int mode)
 
 /*
 $Log$
+Revision 3.11  2005/05/23 23:45:19  mast
+Changed calculation of slice mean to use doubles and temp sums
+
 Revision 3.10  2005/01/17 17:13:34  mast
 Used typedefs for structures, fixed new mode conversion to truncate
 bytes and ints

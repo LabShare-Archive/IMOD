@@ -174,10 +174,12 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
     break;
 
   case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
     pixSize = 2;
     if (byte) {
-      map= get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN,
-                         hdata->swapped, 1);
+      map= get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 
+                         hdata->swapped, 
+                         (hdata->mode == MRC_MODE_SHORT) ? 1 : 0);
       freeMap = 1;
       if (!map)
         return 2;
@@ -278,6 +280,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
         break;
         
       case MRC_MODE_SHORT:
+      case MRC_MODE_USHORT:
         for (i = 0; i < xsize; i++, pindex++)
           buf[pindex] = map[usdata[i]];
         break;
@@ -402,6 +405,7 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
       if (hdata->swapped)
         switch(hdata->mode) {
         case MRC_MODE_SHORT:
+        case MRC_MODE_USHORT:
         case MRC_MODE_COMPLEX_SHORT:
           mrc_swap_shorts((b3dInt16 *)bdata, xsize * pixSize / 2);
         break;
@@ -429,6 +433,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.9  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.8  2004/12/02 21:53:27  mast
 Removed setting of header size to min of 1024 so raw reader can use
 

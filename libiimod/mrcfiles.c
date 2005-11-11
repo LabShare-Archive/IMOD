@@ -68,17 +68,10 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 
   hdata->swapped = 0;
 
-  /* Test for byte-swapped data with image size and the map numbers */
-  if (hdata->nx <= 0 || hdata->nx > 60000 ||
-      hdata->ny <= 0 || hdata->ny > 60000 ||
-      hdata->nz <= 0 || hdata->nz > 60000 ||
-      hdata->mapc < 0 || hdata->mapc > 4 ||
-      hdata->mapr < 0 || hdata->mapr > 4 ||
-      hdata->maps < 0 || hdata->maps > 4) {
-
-    /* Mark data as swapped*/
+  /* Test for byte-swapped data with image size and the map numbers and 
+     mark data as swapped if it fails */
+  if (mrc_test_size(hdata))
     hdata->swapped = 1;
-  }
 
   /* DNM 7/30/02: test for old style header and rearrange origin info */
   if (hdata->cmap[0] != 'M' || hdata->cmap[1] != 'A' || 
@@ -97,14 +90,8 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 
     /* Test that this swapping makes values acceptable */
     /* Let calling program issue error message */
-    if (hdata->nx <= 0 || hdata->nx > 60000 ||
-        hdata->ny <= 0 || hdata->ny > 60000 ||
-        hdata->nz <= 0 || hdata->nz > 60000 ||
-        hdata->mapc < 0 || hdata->mapc > 4 ||
-        hdata->mapr < 0 || hdata->mapr > 4 ||
-        hdata->maps < 0 || hdata->maps > 4) {
+    if (mrc_test_size(hdata))
       return(1);
-    }
   }
           
 
@@ -137,19 +124,20 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
      a bad idea anyway, so comment out the test below */
   datasize = hdata->nx * hdata->ny * hdata->nz;
   switch(hdata->mode){
-  case 0:
+  case MRC_MODE_BYTE:
     break;
-  case 1:
+  case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
     datasize *= 2;
     break;
-  case 2:
-  case 3:
+  case MRC_MODE_FLOAT:
+  case MRC_MODE_COMPLEX_SHORT:
     datasize *= 4;
     break;
-  case 4:
+  case MRC_MODE_COMPLEX_FLOAT:
     datasize *= 8;
     break;
-  case 16:
+  case MRC_MODE_RGB:
     datasize *= 3;
     break;
   default:
@@ -172,6 +160,22 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
   return(retval);
 }
 
+/*!
+ * Tests the image size and map entries in MRC header [hdata] to see if they
+ * are within allowed ranges: {nx}, {ny}, and {nz} all positive, and at least 
+ * one of them less than 65536; and map values between 0 and 3.  Returns 0 if
+ * that is the case, 1 if not.
+ */
+int mrc_test_size(MrcHeader *hdata)
+{
+  if (hdata->nx <= 0 || hdata->ny <= 0 || hdata->nz <= 0 || 
+      (hdata->nx > 65535 && hdata->ny > 65535 && hdata->nz > 65535) ||
+      hdata->mapc < 0 || hdata->mapc > 4 ||
+      hdata->mapr < 0 || hdata->mapr > 4 ||
+      hdata->maps < 0 || hdata->maps > 4)
+    return 1;
+  return 0;
+}
 
 /*!
  * Write the MRC header in [hdata] to the file with pointer [fout].  Returns
@@ -543,6 +547,7 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
       break;
 
     case MRC_MODE_SHORT:
+    case MRC_MODE_USHORT:
       sdata = (short **)data;
       for (k = 0; k < hdata->nz; k++)
         fwrite(&(sdata[k][j]), sizeof(short), xysize, fout);
@@ -572,8 +577,9 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
 {
   int pixsize = 1;
   unsigned char bdata;
-  short sdata;
-  short sidata, srdata;
+  b3dInt16 sdata;
+  b3dInt16 sidata, srdata;
+  b3dUInt16 usdata;
   float fdata = hdata->amin;
   float fidata, frdata;
   double rdata;
@@ -584,13 +590,13 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
       x >= hdata->nx || y >= hdata->ny || z >= hdata->nz)
     return(fdata);
 
-  if ((hdata->mode == MRC_MODE_SHORT) ||
+  if ((hdata->mode == MRC_MODE_SHORT) || (hdata->mode == MRC_MODE_USHORT) ||
       (hdata->mode == MRC_MODE_COMPLEX_SHORT))
-    pixsize = sizeof(short);
+    pixsize = sizeof(b3dInt16);
      
   if ((hdata->mode == MRC_MODE_FLOAT) || 
       (hdata->mode == MRC_MODE_COMPLEX_FLOAT))
-    pixsize = sizeof(float);
+    pixsize = sizeof(b3dFloat);
 
   if ((hdata->mode == MRC_MODE_COMPLEX_FLOAT) || 
       (hdata->mode == MRC_MODE_COMPLEX_SHORT))
@@ -604,22 +610,28 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
                (y * hdata->nx + x), channel * pixsize * z, 
                hdata->nx * hdata->ny, SEEK_CUR);
   switch(hdata->mode){
-  case 0:
+  case MRC_MODE_BYTE:
     fread(&bdata, pixsize, 1, fin);     
     fdata = bdata;
     break;
-  case 1:
+  case MRC_MODE_SHORT:
     fread(&sdata, pixsize, 1, fin);
     if (hdata->swapped)
       mrc_swap_shorts(&sdata, 1);
     fdata = sdata;
     break;
-  case 2:
+  case MRC_MODE_USHORT:
+    fread(&usdata, pixsize, 1, fin);
+    if (hdata->swapped)
+      mrc_swap_shorts(&usdata, 1);
+    fdata = usdata;
+    break;
+  case MRC_MODE_FLOAT:
     fread(&fdata, pixsize, 1, fin);
     if (hdata->swapped)
       mrc_swap_floats(&fdata, 1);
     break;
-  case 3:
+  case MRC_MODE_COMPLEX_SHORT:
     fread(&srdata, pixsize, 1, fin);
     fread(&sidata, pixsize, 1, fin);
     if (hdata->swapped) {
@@ -630,7 +642,7 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
       ((double)sidata * (double)sidata);
     fdata = (float)sqrt(rdata);
     break;
-  case 4:
+  case MRC_MODE_COMPLEX_FLOAT:
     fread(&frdata, pixsize, 1, fin);
     fread(&fidata, pixsize, 1, fin);
     if (hdata->swapped) {
@@ -793,6 +805,7 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata,
   if (hdata->swapped)
     switch (hdata->mode){
     case MRC_MODE_SHORT:
+    case MRC_MODE_USHORT:
     case MRC_MODE_COMPLEX_SHORT:
       mrc_swap_shorts((short int *)buf, slicesize * csize);
       break;
@@ -1304,8 +1317,10 @@ unsigned char **mrc_read_byte(FILE *fin,
       map = get_byte_map(slope, offset, 0, 255);
     break;
   case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
     dsize = 2;
-    map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped, 1);
+    map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped, 
+                        (hdata->mode == MRC_MODE_SHORT) ? 1 : 0);
     freeMap = 1;
     doscale = 1;
     break;
@@ -1418,6 +1433,7 @@ unsigned char **mrc_read_byte(FILE *fin,
         break;
                   
       case MRC_MODE_SHORT:
+      case MRC_MODE_USHORT:
         for(i = 0; i < xsize; i++, pindex++){
           idata[k][pindex] = map[usdata[i]];
         }
@@ -1849,27 +1865,28 @@ int mrc_getdcsize(int mode, int *dsize, int *csize)
 {
   switch (mode){
   case MRC_MODE_BYTE:
-    *dsize = sizeof(unsigned char);
+    *dsize = sizeof(b3dUByte);
     *csize = 1;
     break;
   case MRC_MODE_SHORT:
-    *dsize = sizeof(short);
+  case MRC_MODE_USHORT:
+    *dsize = sizeof(b3dInt16);
     *csize = 1;
     break;
   case MRC_MODE_FLOAT:
-    *dsize = sizeof(float);
+    *dsize = sizeof(b3dFloat);
     *csize = 1;
     break;
   case MRC_MODE_COMPLEX_SHORT:
-    *dsize = sizeof(short);
+    *dsize = sizeof(b3dInt16);
     *csize = 2;
     break;
   case MRC_MODE_COMPLEX_FLOAT:
-    *dsize = sizeof(float);
+    *dsize = sizeof(b3dFloat);
     *csize = 2;
     break;
   case MRC_MODE_RGB:
-    *dsize = sizeof(unsigned char);
+    *dsize = sizeof(b3dUByte);
     *csize = 3;
     break;
   default:
@@ -2060,6 +2077,9 @@ void mrc_swap_floats(float *data, int amt)
 
 /*
 $Log$
+Revision 3.25  2005/08/19 22:38:41  mast
+Added status output to read_mrc_byte periodically during big images
+
 Revision 3.24  2005/05/09 15:16:05  mast
 Documentation - not finished
 

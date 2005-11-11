@@ -123,7 +123,7 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout,
     opt->mode = (process == IP_GRADIENT) ? hin->mode : MRC_MODE_BYTE;
 
   if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
-      hin->mode != MRC_MODE_FLOAT) {
+      hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT) {
     show_error("clip edge: only byte, integer and float modes can be used");
     return -1;
   }
@@ -287,7 +287,7 @@ int clipMedian(MrcHeader *hin, MrcHeader *hout,
   int numInVol, firstInVol, lastInVol, firstNeed, lastNeed, depth, size;
 
   if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
-      hin->mode != MRC_MODE_FLOAT) {
+      hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT) {
     show_error("clip median: only byte, integer and float modes can be used");
     return -1;
   }
@@ -299,7 +299,7 @@ int clipMedian(MrcHeader *hin, MrcHeader *hout,
   if (opt->val == IP_DEFAULT)
     opt->val = 3;
   if (opt->mode != MRC_MODE_BYTE && opt->mode != MRC_MODE_SHORT && 
-      opt->mode != MRC_MODE_FLOAT)
+      hin->mode != MRC_MODE_USHORT && opt->mode != MRC_MODE_FLOAT)
     opt->mode = hin->mode;
   size = (int)B3DMAX(2, opt->val);
 
@@ -381,7 +381,7 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   int iterations, CC;
 
   if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
-      hin->mode != MRC_MODE_FLOAT) {
+      hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT) {
     show_error("clip diffusion: only byte, integer and float modes can "
                "be used");
     return -1;
@@ -441,6 +441,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   if ((!strncmp(opt->command, "flipxy",6)) || 
       (!strncmp(opt->command, "flipyx",6))){
+    mrc_head_label(hout, "clip: flipxy");
     hout->nz = hin->nz;
     hout->nx = hin->ny;
     hout->ny = hin->nx;
@@ -468,6 +469,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   if ((!strncmp(opt->command, "flipzx",6)) ||
       (!strncmp(opt->command, "flipxz",6))){
+    mrc_head_label(hout, "clip: flipxz");
     hout->nx = hin->nz;
     hout->mx = hin->mz;
     hout->xlen = hin->zlen;
@@ -502,6 +504,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   }
   if ((!strncmp(opt->command, "flipyz",6)) ||
       (!strncmp(opt->command, "flipzy",6))){
+    mrc_head_label(hout, "clip: flipyz");
     hout->nx = hin->nx;
     hout->mx = hin->mx;
     hout->xlen = hin->xlen;
@@ -526,6 +529,10 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   }
   if ((!strncmp(opt->command, "flipx",5)) ||
       (!strncmp(opt->command, "flipy",5))){
+    if (!strncmp(opt->command, "flipx",5))
+      mrc_head_label(hout, "clip: flipx");
+    else
+      mrc_head_label(hout, "clip: flipy");
     hout->nx = hin->nx;
     hout->ny = hin->ny;
     hout->nz = hin->nz;
@@ -545,6 +552,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     return(0);
   }
   if (!strncmp(opt->command, "flipz",5)){
+    mrc_head_label(hout, "clip: flipz");
     hout->nx = hin->nx;
     hout->ny = hin->ny;
     hout->nz = hin->nz;
@@ -1436,6 +1444,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.13  2005/05/23 23:31:29  mast
+Switched mean and SD computation to use doubles
+
 Revision 3.12  2005/02/11 01:42:32  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 

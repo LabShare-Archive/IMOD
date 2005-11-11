@@ -56,6 +56,7 @@
 #define MRC_MODE_FLOAT         2
 #define MRC_MODE_COMPLEX_SHORT 3
 #define MRC_MODE_COMPLEX_FLOAT 4
+#define MRC_MODE_USHORT        6
 #define MRC_MODE_RGB           16
 #define MRC_MODE_COMPRESS_RGB  17
 
@@ -272,6 +273,7 @@ int mrc_head_label(MrcHeader *hdata, char *label);
 int mrc_head_new  (MrcHeader *hdata, int x, int y, int z, int mode);
 int mrc_byte_mmm  (MrcHeader *hdata, unsigned char **idata);
 int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout);
+int mrc_test_size(MrcHeader *hdata);
 
 void mrc_get_scale(MrcHeader *h, float *xs, float *ys, float *zs);
 void mrc_set_scale(MrcHeader *h, double x, double y, double z);
@@ -359,6 +361,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 /*
     $Log$
+    Revision 3.13  2005/05/09 15:15:38  mast
+    Removed mrc_read_image
+
     Revision 3.12  2005/01/14 23:19:21  mast
     Added typedef for MRCheader
 

@@ -18,9 +18,9 @@
 #define SLICE_MODE_FLOAT         2   /* type float                           */
 #define SLICE_MODE_COMPLEX_SHORT 3   /* 2 channels of short                  */
 #define SLICE_MODE_COMPLEX_FLOAT 4   /* 2 channels of floats                 */
+#define SLICE_MODE_USHORT        6   /* unsigned short                       */
 #define SLICE_MODE_RGB           16  /* 3 channels of bytes                  */
 
-#define SLICE_MODE_USHORT        98  /* unsigned short                       */
 #define SLICE_MODE_MAX           99  /* float data with max channels.        */
 #define SLICE_MODE_UNDEFINED     -1  /* float data with max channels.        */
 
@@ -33,15 +33,17 @@ typedef float Ival[SLICE_MAX_CSIZE];
 union MRCdata
 {
   unsigned char *b;
-  short         *s;
-  float         *f;
+  b3dInt16      *s;
+  b3dUInt16     *us;
+  b3dFloat      *f;
 };
 
 union VOLdata
 {
   unsigned char **b;
-  short         **s;
-  float         **f;
+  b3dInt16      **s;
+  b3dUInt16     **us;
+  b3dFloat      **f;
 };
 
 typedef struct MRCslice
