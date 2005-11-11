@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2005/05/08 03:11:24  mast
+#  Use hexdump instead of od if it exists; it's needed on Mac
+#
 #  Revision 3.6  2004/08/27 05:46:12  mast
 #  Switched to head -n
 #
@@ -42,6 +45,7 @@ Usage: dm2mrc [options] Input_files Output_file
              one for header offset, size, and type
     -s    Treat unsigned data as signed (use if < 32768)
     -r    Reduce (divide by 2) unsigned 16-bit data or 32-bit integer data
+    -u    Save unsigned data in unsigned 16-bit file mode
     -c    Convert 32-bit integer data to 16-bit integers instead of floats
 EOF
 	exit 0
@@ -50,8 +54,10 @@ endif
 set scan = 0
 set divide
 set convert
+set unsigned
 set done = 0
 set signed = 0
+@ signopt = 0
 
 while ($#argv > 2 && $done == 0)
     switch ($argv[1])
@@ -67,11 +73,19 @@ while ($#argv > 2 && $done == 0)
 
     case -r:
         set divide = "-d"
+        @ signopt++
+        shift
+        breaksw
+
+    case -u:
+        set unsigned = "-u"
+        @ signopt++
         shift
         breaksw
 
     case -s:
         set signed = 1
+        @ signopt++
         shift
         breaksw
 
@@ -80,7 +94,11 @@ while ($#argv > 2 && $done == 0)
         breaksw
     endsw
 end
-        
+
+if ($signopt > 1) then
+    echo "You can enter only one of -r, -u, and -s"
+    exit 1
+endif
 
 # Build a wordlist of critical values if we do scan the data
 
@@ -255,7 +273,7 @@ endif
 
 if ($differ == 0) then
     raw2mrc -f -o $offset $swap -t $type -x $xsize -y $ysize $convert $divide \
-      $argv
+      $unsigned $argv
     exit 0
 endif
 
@@ -271,7 +289,7 @@ echo $num >! $newstfil
 while ($i < $#argv)
     set outfil = $tmpdir/$argv[$i].$$
     raw2mrc -f -o $offsets[$i] $swap -t $types[$i] -x $xsizes[$i] \
-      -y $ysizes[$i] $convert $divide $argv[$i] $outfil
+      -y $ysizes[$i] $convert $divide $unsigned $argv[$i] $outfil
     echo $outfil >> $newstfil
     echo 0 >> $newstfil
     @ i++
