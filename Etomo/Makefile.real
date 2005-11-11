@@ -8,6 +8,9 @@
 # $Revision$
 #
 # $Log$
+# Revision 2.11  2005/11/10 20:43:00  mast
+# Simplified dependency to use */*.java
+#
 # Revision 2.10  2005/05/13 22:22:20  mast
 # Added dependencies so build only occurs when needed
 #
@@ -101,7 +104,7 @@ compile:
 	$(JAVAC)  $(SOURCEPATH)/etomo/ApplicationManager.java
 
 testcompile: 
-	$(JAVAC) -classpath $(TESTPATH) $(SOURCEPATH)/etomo/EtomoTests.java
+	$(JAVAC) -classpath $(TESTPATH) $(SOURCEPATH)/etomo/JUnitTests.java
 
 install: $(JAR_FILE)
 	\cp -p $(JAR_FILE) $(INSTBINDIR)
@@ -109,7 +112,7 @@ install: $(JAR_FILE)
 	\cp -p scripts/etomo $(INSTBINDIR)
 
 tests: testjarfile
-	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.EtomoTests
+	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
 	echo "Make tests completed"
 
 javadocs:
