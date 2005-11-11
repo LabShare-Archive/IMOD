@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.11  2005/02/11 01:42:34  mast
+    Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
     Revision 3.10  2004/11/05 18:53:10  mast
     Include local files with quotes, not brackets
 
@@ -61,8 +64,10 @@ int main( int argc, char *argv[])
   int i,x,y,tmpdata;
   int bg = FALSE;
   int makegray = FALSE;
-  int unsign = FALSE;
-  int divide = FALSE;
+  int unsign = 0;
+  int divide = 0;
+  int keepUshort = 0;
+  int forceSigned = 0;
   int xsize = XSIZE, ysize = YSIZE;
   int mrcxsize, mrcysize, mrcsizeset;
   int bpix;
@@ -81,8 +86,6 @@ int main( int argc, char *argv[])
   min = 100000;
   max = -100000;
 
-
-
   if (argc < 3){
     fprintf(stderr, "Tif2mrc Version %s %s %s\n" , VERSION_NAME,
             __DATE__, __TIME__);
@@ -96,13 +99,14 @@ int main( int argc, char *argv[])
             "subtracting 32768\n");
     fprintf(stderr, "\t-d      Convert unsigned 16-bit values by "
             "dividing by 2\n");
+    fprintf(stderr, "\t-k      Keep unsigned 16-bit values; store in unsigned "
+            "integer mode\n");
+    fprintf(stderr, "\t-s      Store as signed integers (mode 1) even if data "
+            "are unsigned\n");
     fprintf(stderr, "\t-b file Background subtract image in given file\n");
 
     exit(3);
   }
-
-
-
 
   for (i = 1; i < argc - 1 ; i++){
     if (argv[i][0] == '-'){
@@ -121,20 +125,24 @@ int main( int argc, char *argv[])
       case 'm': /* float to given mean */
         break;
 
-      case 's': /* stretch data out to min and max */
-        break;
-
       case 'g': /* convert rgb to gray scale */
         makegray = TRUE;
         break;
  
       case 'u': /* treat ints as unsigned */
-        unsign = TRUE;
+        unsign = 1;
         break;
  
       case 'd': /* treat ints as unsigned and divide by 2*/
-        divide = TRUE;
-        unsign = TRUE;
+        divide = 1;
+        break;
+ 
+      case 'k': /* save as unsigned */
+        keepUshort = 1;
+        break;
+ 
+      case 's': /* save unsigned as signed */
+        forceSigned = 1;
         break;
  
       case 'b':
@@ -158,6 +166,15 @@ int main( int argc, char *argv[])
     exit(3);
   }
 
+  if (divide + unsign + keepUshort + forceSigned > 1) {
+    fprintf(stderr, "%s: You must select only one of -u, -d, -k, or -s.\n",
+            progname);
+    exit(3);
+  }
+  if (divide)
+    unsign = 1;
+  if (unsign)
+    forceSigned = 1;
 
   if (i == (argc - 2)){
 
@@ -220,6 +237,14 @@ int main( int argc, char *argv[])
         mode = MRC_MODE_SHORT;
         pixSize = 2;
       }
+
+      /* Use unsigned mode either if user requested it or if the file 
+         specifies unsigned and the user did not request signed */
+      if (mode == MRC_MODE_SHORT && 
+          (keepUshort || (!forceSigned && tiff.iifile && 
+                          tiff.iifile->type == IITYPE_USHORT)))
+        mode = MRC_MODE_USHORT;
+
       if (tiff.PhotometricInterpretation == 2 && !makegray){
         mode = MRC_MODE_RGB;
         pixSize = 3;
@@ -278,6 +303,7 @@ int main( int argc, char *argv[])
         hdata.amax = max;
         hdata.amean = mean / hdata.nz;
         hdata.amin = min;
+        printf("Min = %d, Max = %d, Mean = %g\n", min, max, hdata.amean);
       }
       hdata.mode = mode;
       mrc_head_label(&hdata, "tif2mrc: Converted to mrc format.");
@@ -394,13 +420,22 @@ int main( int argc, char *argv[])
         mode = MRC_MODE_SHORT;
         pixSize = 2;
       }
+
+      /* Use unsigned mode either if user requested it or if the file 
+         specifies unsigned and the user did not request signed */
+      if (mode == MRC_MODE_SHORT && 
+          (keepUshort || (!forceSigned && tiff.iifile && 
+                          tiff.iifile->type == IITYPE_USHORT)))
+        mode = MRC_MODE_USHORT;
+      
       if (tiff.PhotometricInterpretation == 2 && !makegray){
         mode = MRC_MODE_RGB;
         pixSize = 3;
       }
     }
 
-    if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT) ||
+    if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && mode != 
+         MRC_MODE_USHORT) ||
         (tiff.PhotometricInterpretation == 2 && !makegray 
         && mode != MRC_MODE_RGB)) {
       fprintf(stderr, "tif2mrc Error: All files must have the same"
@@ -505,6 +540,7 @@ int main( int argc, char *argv[])
     hdata.amax = max;
     hdata.amean = mean / hdata.nz;
     hdata.amin = min;
+    printf("Min = %d, Max = %d, Mean = %g\n", min, max, hdata.amean);
   }
   hdata.mode = mode;
   mrc_head_label(&hdata, "tif2mrc: Converted to MRC format.");
@@ -573,6 +609,17 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
     }
     for (x = 0; x < xsize * ysize; x++) {
       pixel = sptr[x];
+      if (pixel < *min)
+        *min = pixel;
+      if(pixel > *max)
+        *max = pixel;
+      tmean += pixel;
+    }
+  }
+  if (mode == MRC_MODE_USHORT) {
+    usptr = (unsigned short int *)tifdata;
+    for (x = 0; x < xsize * ysize; x++) {
+      pixel = usptr[x];
       if (pixel < *min)
         *min = pixel;
       if(pixel > *max)
