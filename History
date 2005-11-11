@@ -1,9 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/10/05: Etomo can automatically translate from local directory paths to remote
-directory paths in a shared file system when running processchunks.  The
-translation information (mount rules) should be placed in the cpu.adoc file.
-Etomo will pass the remote directory path to processchunks using the -w option.
+11/11/05: Implemented support for an unsigned 16-bit integer mode (6) for
+MRC files, including in raw2mrc and tif2mrc.
+
+11/11/05: Changed test for byte-swapped files so that image files can now be 
+bigger than 60000 in 2 dimensions.
+
+11/10/05: Etomo can automatically translate from local directory paths to
+remote directory paths in a shared file system when running processchunks.
+The translation information (mount rules) should be placed in the cpu.adoc
+file.  Etomo will pass the remote directory path to processchunks using the -w
+option.
 
 11/8/05: Added options to Blendmont to control cross-correlation parameters,
 including a VerySloppyMontage option that sets most of them appropriately, so
