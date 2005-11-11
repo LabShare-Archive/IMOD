@@ -70,6 +70,7 @@ void usage(void)
           "default 0\n");
   fprintf(stderr, "\t-f      Flip image around X axis\n");
   fprintf(stderr, "\t-d      Divide unsigned shorts by 2 instead of subtracting 32767\n");
+  fprintf(stderr, "\t-u      Save unsigned shorts in unsigned file mode (6) \n");
   fprintf(stderr, "\t-c      Convert long or ulong input to 16-bit"
           " integers, not floats\n");
   return;
@@ -91,6 +92,7 @@ int main( int argc, char *argv[] )
   int    nfiles, nsecs;
   int    flip = 0;   /* flag whether to flip about X axis */
   int    divide = 0; /* flag to divide unsigned short by 2 */
+  int    keepUshort = 0;  /* Flag to keep unsigned shorts */
   int    hsize = 0;  /* amount of data to skip */
   int    convert = 0; /* Flag to convert long to short */
   int    csize = 1;
@@ -159,6 +161,9 @@ int main( int argc, char *argv[] )
       case 'd':
         divide = 1;
         break;
+      case 'u':
+        keepUshort = 1;
+        break;
       case 'c':
         convert = 1;
         break;
@@ -183,10 +188,25 @@ int main( int argc, char *argv[] )
       fprintf(stderr, "WARNING: %s - conversion option -c ignored with "
              "specified input type\n", progname);
   }
+
+  if (divide && keepUshort) {
+    fprintf(stderr, "ERROR: %s - You cannot divide by 2 and keep mode as "
+            "unsigned\n", progname);
+    exit(3);
+  }
+
   if (intype < 0)
     intype = setintype("byte", &pixsize, &outtype);
   if (outPixsize < 0)
     outPixsize = pixsize;
+
+  if (keepUshort) {
+    if (intype == DTYPE_USHORT || intype == DTYPE_ULONG2SHORT)
+      outtype = MRC_MODE_USHORT;
+    else
+      fprintf(stderr, "WARNING: %s - option -u ignored with "
+             "specified input type\n", progname);
+  }
 
   nfiles = argc - (i + 1);
   nsecs = z *nfiles;
@@ -260,7 +280,7 @@ int main( int argc, char *argv[] )
         if (divide) 
           for (i = 0; i < xysize; i++)
             sdata[i] = (b3dInt16)((int)(usdata[i]) / 2);
-        else
+        else if (!keepUshort)
           for (i = 0; i < xysize; i++)
             sdata[i] = (b3dInt16)((int)(usdata[i]) - 32767);
         break;
@@ -282,9 +302,13 @@ int main( int argc, char *argv[] )
       case DTYPE_ULONG2SHORT:
         uldata = (b3dUInt32 *)indata;
         sdata = (b3dInt16 *)indata;
+        usdata = (b3dUInt16 *)indata;
         if (divide) 
           for (i = 0; i < xysize; i++)
             sdata[i] = (b3dInt16)(uldata[i] / 2);
+        else if (keepUshort)
+          for (i = 0; i < xysize; i++)
+            usdata[i] = (b3dUInt16)uldata[i];
         else
           for (i = 0; i < xysize; i++)
             sdata[i] = (b3dInt16)(uldata[i] - 32767);
@@ -325,6 +349,18 @@ int main( int argc, char *argv[] )
         sdata = (b3dInt16 *)indata;
         for (i = 0; i < xysize; i++) {
           pixel = sdata[i];
+          tmean += pixel;
+          if (min > pixel)
+            min = pixel;
+          if (max < pixel)
+            max = pixel;
+        }
+        break;
+
+      case MRC_MODE_USHORT:
+        usdata = (b3dUInt16 *)indata;
+        for (i = 0; i < xysize; i++) {
+          pixel = usdata[i];
           tmean += pixel;
           if (min > pixel)
             min = pixel;
@@ -510,6 +546,9 @@ int setintype(char *stype, int *size, int *otype)
 
 /*
 $Log$
+Revision 3.15  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.14  2004/09/10 21:33:31  mast
 Eliminated long variables
 
