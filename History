@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/10/05: Etomo can automatically translate from local directory paths to remote
+directory paths in a shared file system when running processchunks.  The
+translation information (mount rules) should be placed in the cpu.adoc file.
+Etomo will pass the remote directory path to processchunks using the -w option.
+
 11/8/05: Added options to Blendmont to control cross-correlation parameters,
 including a VerySloppyMontage option that sets most of them appropriately, so
 the program will work better with montages done by moving the stage.
