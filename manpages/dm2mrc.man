@@ -45,6 +45,12 @@ Reduce (divide) unsigned data by 2 instead of subtracting 32767.  Use this
 option for data that are to be written as 16-bit values if the values range
 above 32767 and you prefer to lose one bit of precision to having negative 
 numbers.
+.TP
+.B -u
+Store unsigned data in a 16-bit unsigned MRC file (mode 6, not a standard 
+mode) instead of subtracting 32768.  These files may be less portable but
+should be usable within current versions of IMOD.
+.TP
 .B -c
 Convert 32-bit integers to 16-bit (short) integers instead of to floating
 point numbers.

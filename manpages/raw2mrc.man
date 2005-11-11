@@ -52,12 +52,17 @@ Flip the images around the X axis.
 Divide unsigned 16-bit values or any 32-bit values by 2.  The default 
 for unsigned short values is to subtract 32767, which
 allows all unsigned short values to be stored as signed short integers in the
-MRC file.  Use this option if you do not want negative numbers and do not
-care about the loss of precision.  If the values in the input files are all
+MRC file of mode 1.  Use this option if you do not want negative numbers and
+do not care about the loss of precision.  If the values in the input files are
+all
 less than 32768, then specify that the input data are short rather than ushort.
 .TP
+.B -u
+Store unsigned 16-bit values without modification in an MRC file of mode 6,
+which is a non-standard mode that may not be completely supported.
+.TP
 .B -c
-Convert 32-bit integers to signed 16-bit integers instead of to floating point
+Convert 32-bit integers to 16-bit integers instead of to floating point
 numbers.  If the type is long, you can use this option alone if values are 
 between -32768 and 32767; or you can use the option with
 .B -d
@@ -66,7 +71,10 @@ type as ulong, then by default 32767 will be subtracted from the input values,
 so that values from 0 to 65534 can be stored as -32767 to 32767.  Again,
 .B -d
 can be used to divide by 2 instead, so that values from 0 to 65534 can be
-stored as 0 to 32767.  If values in the input files are all less than 32768, 
+stored as 0 to 32767.  Also, 
+.B -u
+can be used to store the numbers as unsigned integers in a file of mode 6.
+If values in the input files are all less than 32768, 
 then specify the type as long instead of ulong.
 
 .SH FILES
