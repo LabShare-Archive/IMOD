@@ -44,6 +44,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.11  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.10  2004/11/05 18:53:10  mast
 Include local files with quotes, not brackets
 
@@ -208,12 +211,7 @@ int main( int argc, char *argv[])
   hdata.swapped = 0;
 
   /* Test for byte-swapped data with image size and the map numbers */
-  if (hdata.nx <= 0 || hdata.nx > 60000 ||
-      hdata.ny <= 0 || hdata.ny > 60000 ||
-      hdata.nz <= 0 || hdata.nz > 60000 ||
-      hdata.mapc < 0 || hdata.mapc > 4 ||
-      hdata.mapr < 0 || hdata.mapr > 4 ||
-      hdata.maps < 0 || hdata.maps > 4) {
+  if (mrc_test_size(&hdata)) {
 
     /* Mark data as swapped and do the swaps of critical data */
     hdata.swapped = 1;
@@ -224,12 +222,7 @@ int main( int argc, char *argv[])
     mrc_swap_longs(&hdata.nlabl, 1);
 
   }
-  if (hdata.nx <= 0 || hdata.nx > 60000 ||
-      hdata.ny <= 0 || hdata.ny > 60000 ||
-      hdata.nz <= 0 || hdata.nz > 60000 ||
-      hdata.mapc < 0 || hdata.mapc > 4 ||
-      hdata.mapr < 0 || hdata.mapr > 4 ||
-      hdata.maps < 0 || hdata.maps > 4 ||
+  if (mrc_test_size(&hdata) ||
       hdata.mode > 16 || hdata.mode < 0) {
     fprintf(stderr, "%s: This is not an MRC file, even after "
             "swapping bytes in header.\n", progname);
