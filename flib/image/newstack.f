@@ -49,8 +49,8 @@ C
 	integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
 	real*4 scaleFacs(lmfil), scaleConsts(lmfil)
 	byte extrain(maxextra),extraout(maxextra)
-	data optmax/255.,32767.,7*255.,511.,1023.,2047.,4095.,8191.,
-     &      16383.,32767./
+	data optmax/255.,32767.,255.,32767.,255.,255.,65535.,255.,255.,
+     &	    511.,1023.,2047.,4095.,8191., 16383.,32767./
 c	  
 	integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
 	integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
@@ -1713,6 +1713,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.33  2005/10/11 21:03:52  mast
+c	  Added option to use one transform per file
+c	
 c	  Revision 3.32  2005/07/27 03:29:51  mast
 c	  Redimensioned maxextra to handle mistakenly large extra header
 c	
