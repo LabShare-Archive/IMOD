@@ -425,6 +425,7 @@ int ivwGetPixelBytes(int mode)
   case MRC_MODE_BYTE:
     return 1;
   case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
     return 2;
   case MRC_MODE_FLOAT:
   case MRC_MODE_COMPLEX_SHORT:
@@ -2414,6 +2415,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.39  2005/10/16 20:26:42  mast
+Changed name of transformation function
+
 Revision 4.38  2005/10/14 22:03:56  mast
 Initialized reloadable, removed setting of maxes and bin values in model
 

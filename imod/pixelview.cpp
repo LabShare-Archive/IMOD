@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.42
- *
+/*  
  *  pixelview.c -- view numerical values of pixels in an image.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -83,7 +65,8 @@ int open_pixelview(struct ViewInfo *vi)
   // Adjust for the buttons that are too large if the current file is ints
   // The minimum size setting of the buttons will keep this from getting
   // too small
-  if (vi->image->mode == MRC_MODE_BYTE || vi->image->mode == MRC_MODE_SHORT) {
+  if (vi->image->mode == MRC_MODE_BYTE || vi->image->mode == MRC_MODE_SHORT ||
+      vi->image->mode == MRC_MODE_USHORT) {
     QSize hint = PixelViewDialog->sizeHint();
     PixelViewDialog->resize((int)(0.7 * hint.width()), hint.height());
   }
@@ -193,7 +176,8 @@ void PixelView::update()
         /* First time after getting a pixel, see if floats are needed */
         if (floats < 0) {
           if (vi->image->mode == MRC_MODE_BYTE || 
-              vi->image->mode == MRC_MODE_SHORT)
+              vi->image->mode == MRC_MODE_SHORT ||
+              vi->image->mode == MRC_MODE_USHORT)
             floats = 0;
           else
             floats = 1;
@@ -281,6 +265,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.8  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.7  2004/01/22 19:12:43  mast
 changed from pressed() to clicked() or accomodated change to actionClicked
 

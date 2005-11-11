@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>225</width>
-            <height>514</height>
+            <height>613</height>
         </rect>
     </property>
     <property name="caption">
@@ -52,6 +52,14 @@
                     </property>
                     <property name="text">
                         <string>Signed 16-bit integers</string>
+                    </property>
+                </widget>
+                <widget class="QRadioButton">
+                    <property name="name">
+                        <cstring>uintButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Unsigned 16-bit integers</string>
                     </property>
                 </widget>
                 <widget class="QRadioButton">

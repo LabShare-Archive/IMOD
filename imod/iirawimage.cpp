@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 4.1  2004/12/02 21:40:08  mast
+    Addition to program
+
 */
 
 #include <qlabel.h>
@@ -46,14 +49,17 @@ int iiRawSetMode(int mode)
   case MRC_MODE_SHORT:
     info.type = 1;
     break;
-  case MRC_MODE_FLOAT:
+  case MRC_MODE_USHORT:
     info.type = 2;
     break;
-  case MRC_MODE_COMPLEX_FLOAT:
+  case MRC_MODE_FLOAT:
     info.type = 3;
     break;
-  case MRC_MODE_RGB:
+  case MRC_MODE_COMPLEX_FLOAT:
     info.type = 4;
+    break;
+  case MRC_MODE_RGB:
+    info.type = 5;
     break;
   default:
     return 1;
@@ -138,16 +144,21 @@ int iiRawCheck(ImodImageFile *inFile)
     inFile->type   = IITYPE_SHORT;
     break;
   case 2:
+    hdr->mode = MRC_MODE_USHORT;
+    inFile->format = IIFORMAT_LUMINANCE;
+    inFile->type   = IITYPE_USHORT;
+    break;
+  case 3:
     hdr->mode = MRC_MODE_FLOAT;
     inFile->format = IIFORMAT_LUMINANCE;
     inFile->type   = IITYPE_FLOAT;
     break;
-  case 3:
+  case 4:
     hdr->mode = MRC_MODE_COMPLEX_FLOAT;
     inFile->format = IIFORMAT_COMPLEX;
     inFile->type   = IITYPE_FLOAT;
     break;
-  case 4:
+  case 5:
     hdr->mode = MRC_MODE_RGB;
     inFile->format = IIFORMAT_RGB;
     inFile->type   = IITYPE_UBYTE;
