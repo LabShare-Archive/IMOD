@@ -153,6 +153,7 @@ EXPORTS
 	iiMRCreadSection
 	get_loadinfo
 	mrc_translate
+	mrc_test_size
 	mrc_read_slice
 	sliceInit
 	mrc_byte_mmm
