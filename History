@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/11/05: Changed Splittilt to make more chunks when the X axis tilt requires
+only a minimal number of extra slices in each chunk.
+
 11/11/05: Implemented support for an unsigned 16-bit integer mode (6) for
 MRC files, including in raw2mrc and tif2mrc.
 
