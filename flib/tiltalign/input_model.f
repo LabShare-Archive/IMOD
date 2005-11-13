@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2005/04/12 20:12:33  mast
+c	  Made it set object colors to standard colors when there are two groups
+c	
 c	  Revision 3.13  2004/10/24 22:49:34  mast
 c	  fixed line length and lnblnk declaration problems
 c	
@@ -391,7 +394,7 @@ c
 		do i = nprojpt + 1, nprojtmp
 		  if (.not.stereopair .and. inlist .eq. isecview(i)) then
 		    call objtocont(iobject,obj_color,ibase,ninobj)
-		    write(*,'(/,a,i5,a,i4,ai5)')
+		    write(*,'(/,a,i5,a,i4,a,i5)')
      &			'ERROR: TILTALIGN - TWO POINTS ON VIEW',
      &			iz + 1,' IN CONTOUR', ninobj,' OF OBJECT',ibase
 		    call exit(1)
