@@ -33,8 +33,7 @@ c
 c	  
 	close(5)
 c 7/14/00 CER remove carriagecontrol for  g77
-	open(5,file='ndamtk.tmp',status='new',
-     &	    )
+	open(5,file='ndamtk.tmp',status='new')
 	ifanytmp=ifanyplot
 	irow=1
 	icol=1
