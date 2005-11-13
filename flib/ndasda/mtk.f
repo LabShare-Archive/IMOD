@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2004/04/20 05:41:41  mast
+c	  fix some misprinted variables
+c	
 c	  Revision 3.6  2004/04/20 04:26:49  mast
 c	  Fixed some uninitialized variables
 c	
@@ -233,7 +236,7 @@ c
 	      write(*,'(i5,2x,a,i8,4x,a)')ity,'  lines',ninclass(i,nregion),
      &		  objname
 	    else
-	      write(*,'(i5,2x,a,i8,4x,a,)')ity,' points',ninclass(i,nregion),
+	      write(*,'(i5,2x,a,i8,4x,a)')ity,' points',ninclass(i,nregion),
      &		  objname
 	    endif
 	  endif
