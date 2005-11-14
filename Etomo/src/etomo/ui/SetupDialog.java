@@ -583,7 +583,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
   //
   //  Action functions for buttons
   //
-  private void btnDatasetAction(ActionEvent event) {
+  protected void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(EtomoDirector.getInstance().getOriginalUserDir()));
     StackFileFilter stackFilter = new StackFileFilter();
@@ -602,7 +602,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
   }
 
-  private void btnBackupDirectoryAction(ActionEvent event) {
+  protected void btnBackupDirectoryAction(ActionEvent event) {
 
     //  Open up the file chooser in the working directory
     String currentBackupDirectory = ltfBackupDirectory.getText();
@@ -624,7 +624,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
   }
 
-  private void btnDistortionFileAction(ActionEvent event) {
+  protected void btnDistortionFileAction(ActionEvent event) {
     //Open up the file chooser in the calibration directory, if available,
     //otherwise open in the working directory
     String currentDistortionDirectory = ltfDistortionFile.getText();
@@ -661,7 +661,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
    * Lets the user choose the mag gradients correction file.
    * @param event
    */
-  private void btnMagGradientFileAction(ActionEvent event) {
+  protected void btnMagGradientFileAction(ActionEvent event) {
     //Open up the file chooser in the calibration directory, if available,
     //otherwise open in the working directory
     String currentMagGradientDirectory = ltfMagGradientFile.getText();
@@ -694,30 +694,30 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
   }
 
-  private void rbSingleAxisAction(ActionEvent event) {
+  protected void rbSingleAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(false);
     ltfExcludeListB.setEnabled(false);
     btnViewRawStackB.setEnabled(false);
   }
 
-  private void rbDualAxisAction(ActionEvent event) {
+  protected void rbDualAxisAction(ActionEvent event) {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
     btnViewRawStackB.setEnabled(true);
   }
   
-  private void rbSingleViewAction(ActionEvent event) {
+  protected void rbSingleViewAction(ActionEvent event) {
     cbAdjustedFocusA.setEnabled(false);
     cbAdjustedFocusB.setEnabled(false);
   }
 
-  private void rbMontageAction(ActionEvent event) {
+  protected void rbMontageAction(ActionEvent event) {
     cbAdjustedFocusA.setEnabled(true);
     cbAdjustedFocusB.setEnabled(true);
   }
 
 
-  private void btnScanHeaderAction(ActionEvent event) {
+  protected void btnScanHeaderAction(ActionEvent event) {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
@@ -798,7 +798,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
   }
   
-  private void btnViewRawStackAAction(Run3dmodMenuOptions menuOptions) {
+  protected void btnViewRawStackAAction(Run3dmodMenuOptions menuOptions) {
     if (getAxisType() == AxisType.SINGLE_AXIS) {
       applicationManager.imodPreview(AxisID.ONLY, menuOptions);
     }
@@ -807,7 +807,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
   }
 
-  private void btnViewRawStackBAction(Run3dmodMenuOptions menuOptions) {
+  protected void btnViewRawStackBAction(Run3dmodMenuOptions menuOptions) {
     applicationManager.imodPreview(AxisID.SECOND, menuOptions);
   }
 
@@ -1043,6 +1043,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.37  2005/10/27 00:35:39  sueh
+ * <p> bug# 725 Setting metadata.bStackProcessed.
+ * <p>
  * <p> Revision 3.36  2005/08/22 22:10:27  sueh
  * <p> bug# 714 For dataset name and backup directory, open file chooser in the
  * <p> director in Etomo opened.
