@@ -36,12 +36,12 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
       while (!isStopped()) {
         for (int i = 0; i < programs.size(); i++) {
           ProgramState programState = (ProgramState) programs.get(i);
-          if (!programState.program.isStopped()) {
+          if (!programState.isStopped()) {
             processData(programState);
-            if (programState.waitForCommand > 12) {
-              programState.waitForCommand = 0;
-              msgIntermittentCommandFailed(programState.program.getCommand());
-              programState.program.stop(this);
+            if (programState.getWaitForCommand() > 12) {
+              programState.setWaitForCommand(0);
+              msgIntermittentCommandFailed(programState.getCommand());
+              programState.stop(this);
             }
           }
         }
@@ -61,7 +61,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
       programs.add(key, new ProgramState(program));
     }
     else {
-      programState.waitForCommand = 0;
+      programState.setWaitForCommand(0);
     }
     synchronized (programs) {
       if (!running) {
@@ -77,7 +77,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
       return false;
     }
     for (int i = 0; i < programs.size(); i++) {
-      if(!((ProgramState) programs.get(i)).program.isStopped()) {
+      if(!((ProgramState) programs.get(i)).isStopped()) {
         return false;
       }
     }
@@ -86,15 +86,15 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
   
   private void processData(ProgramState programState) {
     //process standard out
-    String[] stdout = programState.program.getStdOutput(this);
+    String[] stdout = programState.getStdOutput(this);
     if (stdout == null) {
       return;
     }
     for (int i = 0; i < stdout.length; i++) {
       if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
-        programState.waitForCommand = 0;
+        programState.setWaitForCommand(0);
         String[] array = stdout[i].trim().split("\\s+");
-        display.setLoadAverage(programState.program.getCommand().getKey(),
+        display.setLoadAverage(programState.getCommand().getKey(),
             getLoad(array[array.length - 3]), getLoad(array[array.length - 2]),
             getLoad(array[array.length - 1]));
       }
@@ -125,7 +125,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
     if (programState == null) {
       return;
     }
-    programState.waitForCommand++;
+    programState.incrementWaitForCommand();
   }
   
   private final class ProgramState {
@@ -136,14 +136,53 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
       this.program = program;
     }
     
-    public String toString() {
+    public final String toString() {
       return "[program=" + program + ",\nwaitForCommand="
           + waitForCommand + "," + super.toString() + "]";
+    }
+    
+    protected final boolean isStopped() {
+      return program.isStopped();
+    }
+    
+    protected final int getWaitForCommand() {
+      return waitForCommand;
+    }
+    
+    protected final void incrementWaitForCommand() {
+      waitForCommand++;
+    }
+    
+    protected final void setWaitForCommand(int waitForCommand) {
+      this.waitForCommand = waitForCommand;
+    }
+    
+    protected final IntermittentCommand getCommand() {
+      return program.getCommand();
+    }
+    
+    protected final void stop(IntermittentProcessMonitor monitor) {
+      program.stop(monitor);
+    }
+    
+    protected final String[] getStdOutput(IntermittentProcessMonitor monitor) {
+      return program.getStdOutput(monitor);
     }
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/09/10 01:50:59  sueh
+* <p> bug# 532 Changed IntermittentSystemProgram to
+* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+* <p> of SystemProgram.  Made OutputBufferManager in independent class
+* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+* <p> use OutputBufferManager to do things only necessary for intermittent
+* <p> programs, such as deleting standard output after it is processed,
+* <p> keeping separate lists of standard output for separate monitors, and
+* <p> setting a key phrase in OutputBufferManager so that only useful lines from
+* <p> standard output will be saved.
+* <p>
 * <p> Revision 1.7  2005/09/09 21:40:56  sueh
 * <p> bug# 532 Checked program.isStopped() before running processData().
 * <p> Set waitForCommand back to 0 everytime it succeeds and when it restarts.
