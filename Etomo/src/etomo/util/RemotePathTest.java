@@ -735,6 +735,7 @@ public class RemotePathTest extends TestCase {
   public final void test_getRemotePath_localHost() throws IOException {
     writeNewFile("test_getRemotePath_localHost", true, true, true, false,
         false, true);
+    System.out.println("test_getRemotePath_localHost:hostName="+hostName+",strippedHostName="+strippedHostName);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
   }
@@ -826,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/11/14 23:12:55  sueh
+ * <p> bug# 733 testing
+ * <p>
  * <p> Revision 1.2  2005/11/10 22:21:41  sueh
  * <p> bug# 748 Add rcsid to file and check it before recreating file.
  * <p>
