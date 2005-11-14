@@ -381,6 +381,7 @@ public class RemotePathTest extends TestCase {
     //set the hostname
     hostName = RemotePath.INSTANCE.getHostName_test(MANAGER, AxisID.ONLY);
     strippedHostName = hostName.substring(0, hostName.indexOf('.'));
+    System.out.println("hostName="+hostName+",strippedHostName="+strippedHostName);
   }
 
   /**
@@ -825,6 +826,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/11/10 22:21:41  sueh
+ * <p> bug# 748 Add rcsid to file and check it before recreating file.
+ * <p>
  * <p> Revision 1.1  2005/11/10 18:20:44  sueh
  * <p> bug# 733 Class to test RemotePath.
  * <p> </p>
