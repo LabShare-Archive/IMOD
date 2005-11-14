@@ -155,7 +155,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     applicationManager.doneCleanUp();
   }
   
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnArchiveStack.getText())) {
       applicationManager.archiveOriginalStack();
@@ -196,6 +196,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/10/19 00:18:15  sueh
+ * <p> bug# 673 Added updateArchiveDisplay() to enable/disable the archive
+ * <p> button.
+ * <p>
  * <p> Revision 1.7  2005/08/10 20:40:31  sueh
  * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * <p> of MultiLineButton.

@@ -37,6 +37,10 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2005/08/10 20:41:37  sueh
+ * bug# 711 Moved button sizing to MultiLineButton.  Made clean up buttons
+ * the standard size.
+ *
  * Revision 3.10  2005/08/09 20:20:15  sueh
  * bug# 711  No longer inheriting JButton in MultiLineButton.  This allows
  * MultiLineButton to treate toggling as an attribute.  Then we can get rid of
@@ -229,7 +233,7 @@ public class CleanupPanel {
   /**
    * @param event
    */
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     if (event.getActionCommand() == btnDelete.getActionCommand()) {
       deleteSelected();
     }
