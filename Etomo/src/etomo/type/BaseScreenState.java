@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import etomo.storage.Storable;
 import etomo.util.Utilities;
-;
+
 /**
 * <p>Description: AxisID level storable object for the .edf and .ejf files.
 * Should be used to store non-metadata.  Anything that is needed to run a
@@ -112,6 +112,9 @@ public class BaseScreenState implements Storable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/10/21 21:11:32  sueh
+* <p> bug# 743 fixed bug in BaseScreenState().
+* <p>
 * <p> Revision 1.3  2005/09/29 18:44:44  sueh
 * <p> bug# 532 Improved the handling of the different axis'.  Setting the axisID
 * <p> according to the axisType; so a single axis tomogram uses axis.ONLY

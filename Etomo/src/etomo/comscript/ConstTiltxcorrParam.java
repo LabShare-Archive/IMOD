@@ -22,6 +22,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/08/24 22:33:18  sueh
+ * <p> bug# 715 Implemented Command to allow param to be checked in
+ * <p> postProcess() and errorProcess().
+ * <p>
  * <p> Revision 3.9  2005/03/04 00:09:35  sueh
  * <p> bug# 533 Added the label for the tiltxcorr command in the xcorr.com file.
  * <p>
@@ -191,17 +195,17 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   }
   public String getFirstTiltAngleString() {
     return ParamUtilities.valueOf(firstTiltAngle);
-  };
+  }
 
   public String getTiltIncrementString() {
     return ParamUtilities.valueOf(tiltIncrement);
-  };
+  }
   public String getTiltFile() {
     return tiltFile;
-  };
+  }
   public String[] getTiltAnglesString() {
     return ParamUtilities.valueOf(tiltAngles);
-  };
+  }
   public String getRotationAngleString() {
     return ParamUtilities.valueOf(rotationAngle);
   }

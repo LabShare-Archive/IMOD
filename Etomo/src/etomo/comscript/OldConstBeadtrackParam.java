@@ -191,7 +191,7 @@ public class OldConstBeadtrackParam {
 
   public TiltAngleSpec getTiltAngleSpec() {
     return new TiltAngleSpec(tiltAngleSpec);
-  };
+  }
 
   /**
    * @deprecated
@@ -328,5 +328,11 @@ public class OldConstBeadtrackParam {
 
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/05/09 23:07:41  sueh
+* <p> bug# 658 This class used to be ConstBeadtrackParam before the the PIP
+* <p> upgrade.  Set functions that get member variables that are not used by
+* <p> the new BeadtrackParam are deprecated.  Other then this sort of change,
+* <p> this class should not be changed.
+* <p> </p>
 */

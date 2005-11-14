@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.2  2004/05/14 00:51:50  sueh
  * <p> bug# 434 set matchBToA from toFiducialCoordinatesFile.
  * <p> Set matchBToA in both parse and update when toFiducialCoordinatesFile
@@ -87,7 +90,7 @@ public class SolvematchshiftParam
     }
     else {
       fiducialMatchListB.parseString(inputArgs[i++].getArgument());
-      fiducialMatchListA.parseString(inputArgs[i++].getArgument());;
+      fiducialMatchListA.parseString(inputArgs[i++].getArgument());
     }
     xAxistTilt.validateAndSet(inputArgs[i++].getArgument());
     residualThreshold = Float.parseFloat(inputArgs[i++].getArgument());
