@@ -48,6 +48,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2005/10/28 18:56:48  sueh
+ * bug# 746 don't add temp directory to splitcombine
+ *
  * Revision 3.23  2005/10/15 00:36:33  sueh
  * bug# 532 Standardized is and set parallel processing checkbox functions
  * to setParallel() and isParallel().
@@ -796,7 +799,7 @@ public class SetupCombinePanel
   }
   
   //  Action functions for setup panel buttons
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup,
       true);
@@ -824,7 +827,7 @@ public class SetupCombinePanel
    * 
    * @param event
    */
-  private void rbMatchToAction(ActionEvent event) {
+  protected void rbMatchToAction(ActionEvent event) {
     updateMatchTo();
   }
 
@@ -853,7 +856,7 @@ public class SetupCombinePanel
    * Manage patch region check box actions
    * @param event
    */
-  private void cbPatchRegionAction(ActionEvent event) {
+  protected void cbPatchRegionAction(ActionEvent event) {
     updatePatchRegionModel();
   }
 

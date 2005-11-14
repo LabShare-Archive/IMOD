@@ -30,6 +30,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/08/10 20:46:49  sueh
+* <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+* <p> of MultiLineButton.
+* <p>
 * <p> Revision 1.8  2005/07/29 19:47:55  sueh
 * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
 * <p>
@@ -692,7 +696,7 @@ public class SectionTableRow {
    * Handle button actions
    * @param event
    */
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
 
     if (command.equals(highlighterButton.getActionCommand())) {

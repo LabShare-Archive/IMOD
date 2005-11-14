@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2005/10/13 22:36:24  sueh
+ * <p> Bug# 532 In synchronized(), always copying all fields
+ * <p>
  * <p> Revision 3.13  2005/09/29 19:11:02  sueh
  * <p> bug# 532 Add panel headers to all of the sections in Combine.  Hide the
  * <p> sections in the tabs that are not visible so that the visible tab can become
@@ -390,7 +393,7 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
   }
   
   //  Action functions for setup panel buttons
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(parentTitle, true);
 
@@ -411,7 +414,7 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
    * 
    * @param event
    */
-  private void rbFiducialAction(ActionEvent event) {
+  protected void rbFiducialAction(ActionEvent event) {
     updateUseFiducialModel();
   }
 
