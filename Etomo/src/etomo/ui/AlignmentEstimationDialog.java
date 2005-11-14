@@ -31,6 +31,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/08/11 23:44:08  sueh
+ * <p> bug# 711  Get rid of duplicate code by running the 3dmods from a private
+ * <p> function called run3dmod(String, Run3dmodMenuOptions).  It can be
+ * <p> called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and the
+ * <p> action function.
+ * <p>
  * <p> Revision 3.15  2005/08/10 20:40:06  sueh
  * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * <p> of MultiLineButton.
@@ -397,7 +403,7 @@ public class AlignmentEstimationDialog extends ProcessDialog
   }
   
   //  Event handler for panel buttons
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID);

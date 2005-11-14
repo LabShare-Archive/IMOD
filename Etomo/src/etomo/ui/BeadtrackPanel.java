@@ -27,6 +27,9 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/08/27 22:35:17  sueh
+ * <p> bug# 532 Changed Autodoc.get() to getInstance().
+ * <p>
  * <p> Revision 3.8  2005/05/17 19:36:41  sueh
  * <p> bug# 658 Preventing null pointer exception by exiting if autodoc is null.
  * <p>
@@ -431,7 +434,7 @@ public class BeadtrackPanel {
     return panelBeadtrack;
   }
   
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(cbLocalAreaTracking.getText())) {
       setEnabled();
