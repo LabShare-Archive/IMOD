@@ -12,6 +12,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/08/22 18:19:26  sueh
+ * <p> bug# 532  Added an optional status string to be appended to the end
+ * <p> state.
+ * <p>
  * <p> Revision 3.7  2005/07/26 23:08:12  sueh
  * <p> bug# 701 When stopping the progress bar, pass the process end state.
  * <p>
@@ -125,9 +129,9 @@ public class ProgressPanel {
   private class SetLabelLater implements Runnable {
     public void run() {
       //System.out.println("SetLabelLater.run()");
-      taskLabel.setText(label);
-      panel.revalidate();
-      panel.repaint();
+      setTaskLabel();
+      revalidate();
+      repaint();
     }
   }
 
@@ -142,10 +146,11 @@ public class ProgressPanel {
   private class StartLater implements Runnable {
     public void run() {
       //System.out.println("StartLater.run()");
+      JProgressBar progressBar = getProgressBar();
       progressBar.setIndeterminate(true);
       progressBar.setString("");
       progressBar.setStringPainted(true);
-      timer.start();
+      startTimer();
     }
   }
 
@@ -169,8 +174,9 @@ public class ProgressPanel {
     
     public void run() {
       //System.out.println("StopLater.run()");
-      timer.stop();
-      progressBar.setValue(counter);
+      stopTimer();
+      JProgressBar progressBar = getProgressBar();
+      setProgressBarCounter();
       progressBar.setIndeterminate(false);
       StringBuffer message = new StringBuffer(state.toString());
       if (statusString != null) {
@@ -203,15 +209,15 @@ public class ProgressPanel {
       if (stopped) {
         return;
       }
-      progressBar.setValue(counter);
+      setProgressBarValue();
        //  Put the elapsed time into the progress bar string
-      progressBar.setString("Elapsed time: "
+      getProgressBar().setString("Elapsed time: "
           + Utilities
-            .millisToMinAndSecs(System.currentTimeMillis() - startTime));
-      panel.validate();
-      panel.repaint();
-      counter++;
-      timer.restart();
+            .millisToMinAndSecs(System.currentTimeMillis() - getStartTime()));
+      validate();
+      repaint();
+      incrementCounter();
+      restartTimer();
     }
   }
 
@@ -227,9 +233,9 @@ public class ProgressPanel {
   private class SetMaximumLater implements Runnable {
     public void run() {
       //System.out.println("SetMaximumLater.run()");
-      progressBar.setMaximum(maximum);
-      progressBar.setIndeterminate(false);
-      progressBar.setStringPainted(true);
+      setProgressBarMaximum();
+      getProgressBar().setIndeterminate(false);
+      getProgressBar().setStringPainted(true);
     }
   }
 
@@ -242,7 +248,7 @@ public class ProgressPanel {
   private class SetMinimumLater implements Runnable {
     public void run() {
       //System.out.println("SetMinimumLater.run()");
-      progressBar.setMinimum(minimum);
+      setProgressBarMinimum();
     }
   }
 
@@ -255,7 +261,7 @@ public class ProgressPanel {
   private class SetValueLater implements Runnable {
     public void run() {
       //System.out.println("SetValueLater.run()");
-      progressBar.setValue(value);
+      setProgressBarValue();
     }
   }
 
@@ -274,8 +280,8 @@ public class ProgressPanel {
   private class SetValueAndStringLater implements Runnable {
     public void run() {
       //System.out.println("SetValueAndStringLater.run()");
-      progressBar.setValue(value);
-      progressBar.setString(barString);
+      setProgressBarValue();
+      setProgressBarString();
     }
   }
 
@@ -302,6 +308,66 @@ public class ProgressPanel {
    */
   public int getValue() {
     return progressBar.getValue();
+  }
+  
+  protected final void setTaskLabel() {
+    taskLabel.setText(label);
+  }
+  
+  protected final void revalidate() {
+    panel.revalidate();
+  }
+  
+  protected final void repaint() {
+    panel.repaint();
+  }
+  
+  protected final void validate() {
+    panel.validate();
+  }
+  
+  protected final JProgressBar getProgressBar() {
+    return progressBar;
+  }
+  
+  protected final void restartTimer() {
+    timer.restart();
+  }
+  
+  protected final void startTimer() {
+    timer.start();
+  }
+  
+  protected final void stopTimer() {
+    timer.stop();
+  }
+  
+  protected final void setProgressBarCounter() {
+    progressBar.setValue(counter);
+  }
+  
+  protected final void setProgressBarValue() {
+    progressBar.setValue(value);
+  }
+  
+  protected final void incrementCounter() {
+    counter++;
+  }
+  
+  protected final void setProgressBarMaximum() {
+    progressBar.setMaximum(maximum);
+  }
+  
+  protected final void setProgressBarMinimum() {
+    progressBar.setMinimum(minimum);
+  }
+  
+  protected final void setProgressBarString() {
+    progressBar.setString(barString);
+  }
+  
+  protected final long getStartTime() {
+    return startTime;
   }
 
   class ProgressTimerActionListener implements ActionListener {

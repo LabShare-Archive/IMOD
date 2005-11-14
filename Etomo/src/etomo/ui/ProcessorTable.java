@@ -362,6 +362,7 @@ public final class ProcessorTable implements Storable {
   
   private class RunPack implements Runnable {
     public void run() {
+      JScrollPane scrollPane = getScrollPane();
       if (scrollPane == null) {
         return;
       }
@@ -377,7 +378,7 @@ public final class ProcessorTable implements Storable {
       Dimension size = new Dimension();
       size.setSize(width, height);
       scrollPane.setMaximumSize(size);
-      if (scrolling) {
+      if (isScrolling()) {
         //to prevent an empty space at the bottom of the parallel panel when
         //scrolling, set the preferred size
         scrollPane.setPreferredSize(size);
@@ -395,7 +396,7 @@ public final class ProcessorTable implements Storable {
    * @param getExpandedHeight
    * @return
    */
-  private final double getHeight() {
+  protected final double getHeight() {
     int height = header1Computer.getHeight();
     if (height == 1) {
       height = 21;//guess the height if the top header cell is not displayed
@@ -441,7 +442,7 @@ public final class ProcessorTable implements Storable {
 
   }
   
-  private final double getWidth() {
+  protected final double getWidth() {
     int width = header2Computer.getWidth();
     width += header2NumberCPUsUsed.getWidth();
     if (useNumberColumn()) {
@@ -628,11 +629,11 @@ public final class ProcessorTable implements Storable {
   /**
    *  Get the objects attributes from the properties object.
    */
-  public void load(Properties props) {
+  public final void load(Properties props) {
     load(props, "");
   }
 
-  public void load(Properties props, String prepend) {
+  public final void load(Properties props, String prepend) {
     if (rows == null) {
       return;
     }
@@ -647,9 +648,21 @@ public final class ProcessorTable implements Storable {
       ((ProcessorTableRow) rows.get(i)).load(props, prepend);
     }
   }
+  
+  protected final JScrollPane getScrollPane() {
+    return scrollPane;
+  }
+  
+  protected final boolean isScrolling() {
+    return scrolling;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2005/11/10 18:16:57  sueh
+ * <p> bug# 733 Made the class public so that its constance SECTION_TYPE
+ * <p> could be used.
+ * <p>
  * <p> Revision 1.21  2005/11/04 01:03:46  sueh
  * <p> bug# 732 Cleaned up RunPack.run().  Moved the code from
  * <p> setMaximumSize() and setPreferredSize() into RunPack.run().  Made
