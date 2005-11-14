@@ -31,6 +31,13 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/05/20 21:18:16  sueh
+ * <p> bug# 664 Attempting to recover from OutOfMemoryError, version 2:
+ * <p> call logFileWindow.dispose() when an OutOfMemoryError is caught.
+ * <p> There is no guarentee that this will solve the problem or that the error will
+ * <p> be caught in this place.  Tell the user to close windows or Etomo and
+ * <p> rethrow the error.
+ * <p>
  * <p> Revision 3.7  2005/05/20 03:22:38  sueh
  * <p> bug# 664 Attempting to recover from an OutOfMemoryError in the
  * <p> ContextPopup which displays the fine alignment tabbed text window.
@@ -166,12 +173,12 @@ public class ContextPopup {
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String tomoGuideLocation = "tomoguide.html";
-
+        String anchor = getAnchor();
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
         }
         globalItemAction(actionEvent, tomoGuideLocation);
-        contextMenu.setVisible(false);
+        setVisible(false);
       }
     };
 
@@ -212,14 +219,15 @@ public class ContextPopup {
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String guideLocation = guideToAnchor;
+        String anchor = getAnchor();
         if (anchor != null && !anchor.equals("")) {
           guideLocation += "#" + anchor;
         }
 
-        for (int i = 0; i < manPageItem.length; i++) {
-          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+        for (int i = 0; i < getManPageItem().length; i++) {
+          if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
             HTMLPageWindow manpage = new HTMLPageWindow();
-            manpage.openURL(imodURL + "man/" + manPageName[i]);
+            manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
             manpage.setVisible(true);
           }
         }
@@ -227,7 +235,7 @@ public class ContextPopup {
         globalItemAction(actionEvent, guideLocation, guideToAnchor);
 
         //  Close the menu
-        contextMenu.setVisible(false);
+        setVisible(false);
       }
     };
 
@@ -258,12 +266,13 @@ public class ContextPopup {
       actionListener = new ActionListener() {
         public void actionPerformed(ActionEvent actionEvent) {
           String guideLocation = guideToAnchor;
+          String anchor = getAnchor();
           if (anchor != null && !anchor.equals("")) {
             guideLocation += "#" + anchor;
           }
           globalItemAction(actionEvent, guideLocation, guideToAnchor);
           //  Close the menu
-          contextMenu.setVisible(false);
+          setVisible(false);
         }
       };
       
@@ -316,25 +325,27 @@ public class ContextPopup {
       actionListener = new ActionListener() {
         public void actionPerformed(ActionEvent actionEvent) {
           String guideLocation = guideToAnchor;
+          String anchor = getAnchor();
           if (anchor != null && !anchor.equals("")) {
             guideLocation += "#" + anchor;
           }
-
+          JMenuItem[] manPageItem = getManPageItem();
           for (int i = 0; i < manPageItem.length; i++) {
             if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
               HTMLPageWindow manpage = new HTMLPageWindow();
-              manpage.openURL(imodURL + "man/" + manPageName[i]);
+              manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
               manpage.setVisible(true);
             }
           }
 
           //  Search the logfile items
+          JMenuItem[] logFileItem = getLogFileItem();
           for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(logFileWindow.setFile(manager
                 .getPropertyUserDir()
-                + File.separator + logFileName[i]));
+                + File.separator + getLogFileName()[i]));
           }
         }
 
@@ -342,7 +353,7 @@ public class ContextPopup {
           globalItemAction(actionEvent, guideLocation, guideToAnchor);
 
           //  Close the  the menu
-          contextMenu.setVisible(false);
+          setVisible(false);
         }
       };
 
@@ -406,21 +417,22 @@ public class ContextPopup {
 
       public void actionPerformed(ActionEvent actionEvent) {
         String tomoGuideLocation = "tomoguide.html";
+        String anchor = getAnchor();
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
         }
 
-        for (int i = 0; i < manPageItem.length; i++) {
-          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+        for (int i = 0; i < getManPageItem().length; i++) {
+          if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
             HTMLPageWindow manpage = new HTMLPageWindow();
-            manpage.openURL(imodURL + "man/" + manPageName[i]);
+            manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
             manpage.setVisible(true);
           }
         }
 
         //  Search the logfile items
-        for (int i = 0; i < logFileItem.length; i++) {
-          if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+        for (int i = 0; i < getLogFileItem().length; i++) {
+          if (actionEvent.getActionCommand() == getLogFileItem()[i].getText()) {
             if (actionEvent
               .getActionCommand()
               .startsWith(updateLogCommandName)) {
@@ -469,7 +481,7 @@ public class ContextPopup {
         globalItemAction(actionEvent, tomoGuideLocation);
 
         //  Close the  the menu
-        contextMenu.setVisible(false);
+        setVisible(false);
       }
     };
 
@@ -515,7 +527,7 @@ public class ContextPopup {
     }
   }
 
-  private void globalItemAction(
+  protected void globalItemAction(
       ActionEvent actionEvent,
       String tomoGuideLocation) {
     globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE);
@@ -526,7 +538,7 @@ public class ContextPopup {
    * @param actionEvent
    * @param tomoGuideLocation
    */
-  private void globalItemAction(
+  protected void globalItemAction(
     ActionEvent actionEvent,
     String guideLocation, String guide) {
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
@@ -620,5 +632,33 @@ public class ContextPopup {
       System.err.println("Malformed URL:");
       System.err.println(EtomoDirector.getInstance().getIMODDirectory().toString());
     }
+  }
+  
+  protected final String getAnchor() {
+    return anchor;
+  }
+  
+  protected final void setVisible(boolean visible) {
+    contextMenu.setVisible(visible);
+  }
+  
+  protected final JMenuItem[] getManPageItem() {
+    return manPageItem;
+  }
+  
+  protected final String[] getManPageName() {
+    return manPageName;
+  }
+  
+  protected final String getImodURL() {
+    return imodURL;
+  }
+  
+  protected final JMenuItem[] getLogFileItem() {
+    return logFileItem;
+  }
+  
+  protected final String[] getLogFileName() {
+    return logFileName;
   }
 }
