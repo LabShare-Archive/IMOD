@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2005/08/27 22:35:36  sueh
+ * <p> bug# 532 Changed Autodoc.get() to getInstance().
+ * <p>
  * <p> Revision 3.13  2005/04/25 20:55:02  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -308,7 +311,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   }
 
   //  Action functions for setup panel buttons
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     updateCrossCorrelationPanel();
   }
 
