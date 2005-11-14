@@ -18,6 +18,7 @@ import etomo.ui.Section;
  * <p>Description: A singleton class which loads mount rules from the cpu.adoc
  * file and uses them to translate local paths into paths which can be used on
  * remote computers which share a file system with the current host computer.
+ * Currently this class only works with Linux and MacIntosh.
  * 
  * Example:
  * 
@@ -68,10 +69,9 @@ import etomo.ui.Section;
  * Return:  remote path = /scratch/frodo
  * 
  * 
- * Mount rules must start with a "/" or "\" (depending on the OS).  They
- * represent absolute directory paths.  However mount rules do not have to end
- * at the end of a directory name.  This allows a single rule to be used in a
- * wider variety of cases.
+ * Mount rules must start with a "/".  They represent absolute directory paths.
+ * However mount rules do not have to end at the end of a directory name.  This
+ * allows a single rule to be used in a wider variety of cases.
  * 
  * Example:
 
@@ -624,5 +624,9 @@ public final class RemotePath {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/11/10 18:20:29  sueh
+ * <p> bug# 733 Class to translate a local directory path to a remote directory
+ * <p> path.
+ * <p> </p>
  */
