@@ -261,7 +261,7 @@ public class WindowSwitch {
    * Open the specified window when the user chooses a window menu item.
    * @param event
    */
-  private void menuAction(ActionEvent event) {
+  protected void menuAction(ActionEvent event) {
     String menuChoice = event.getActionCommand();
     int newIndex = Integer.parseInt(menuChoice.substring(0, menuChoice.indexOf(menuItemDividerChar))) - 1;
     selectMenuItem(newIndex);
@@ -272,7 +272,7 @@ public class WindowSwitch {
    * Open the specified window when the user chooses a tab.
    * @param event
    */
-  private void tabChanged(ChangeEvent event) {
+  protected void tabChanged(ChangeEvent event) {
     int newIndex = tabbedPane.getSelectedIndex();
     selectMenuItem(newIndex);
     EtomoDirector.getInstance().setCurrentManager(menuList.getKey(newIndex));
@@ -306,6 +306,10 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.9  2005/08/22 18:21:35  sueh
+ * <p>bug# 532 Moved HashedArray to UniqueHashedArray.  Added a simpler
+ * <p>HashedArray class which does not use UniqueKey.
+ * <p>
  * <p>Revision 1.8  2005/06/21 00:50:23  sueh
  * <p>bug# 522 In order to get a current manager when --test is set, moved call
  * <p>to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
