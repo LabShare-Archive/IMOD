@@ -47,6 +47,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/10/28 18:57:03  sueh
+ * <p> bug# 746 don't add temp directory to splitcombine
+ * <p>
  * <p> Revision 3.29  2005/10/15 00:36:46  sueh
  * <p> bug# 532 Standardized is and set parallel processing checkbox functions
  * <p> to setParallel() and isParallel().
@@ -483,7 +486,6 @@ public class TomogramCombinationDialog
       else {
         synchronize(pnlSetup, pnlInitial);
       }
-      ;
     }
     else if (tabTitle.equals(lblFinal)) {
       if (copyFromCurrentTab) {

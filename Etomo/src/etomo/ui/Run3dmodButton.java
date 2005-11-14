@@ -25,7 +25,7 @@ import etomo.type.Run3dmodMenuOptions;
 class Run3dmodButton extends MultiLineButton implements ContextMenu {
   public static  final String  rcsid =  "$Id$";
   
-  private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");;
+  private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
   private final JMenuItem startupWindow = new JMenuItem("Open with start up window");
   private final JMenuItem binBy2 = new JMenuItem("Open binned by 2");
   private final Run3dmodButtonContainer container;
@@ -58,7 +58,7 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
     contextMenu.setVisible(true);
   }
   
-  private final void performMenuAction(ActionEvent event) {
+  protected final void performMenuAction(ActionEvent event) {
     Run3dmodMenuOptions menuOptions = new Run3dmodMenuOptions();
     if (event.getActionCommand().equals(startupWindow.getText())) {
       menuOptions.setStartupWindow(true);
@@ -84,6 +84,13 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/08/11 23:58:00  sueh
+* <p> bug# 711  Change enum Run3dmodMenuOption to
+* <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+* <p> This allows ImodState to combine input from the context menu and the
+* <p> pulldown menu.  Prevent context menu from popping up when button is
+* <p> disabled.
+* <p>
 * <p> Revision 1.2  2005/08/10 20:46:10  sueh
 * <p> bug# 711 Changed context menu to starting caps instead of all caps.
 * <p>
