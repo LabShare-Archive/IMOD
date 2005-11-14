@@ -33,6 +33,16 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2005/08/12 00:01:38  sueh
+ * <p> bug# 711  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Prevent context menu from popping up when button is
+ * <p> disabled.  Get rid of duplicate code by running the 3dmods from a private
+ * <p> function called run3dmod(String, Run3dmodMenuOptions).  It can be
+ * <p> called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and the
+ * <p> action function.
+ * <p>
  * <p> Revision 3.8  2005/08/10 20:48:56  sueh
  * <p> bug# 711 Moved button sizing to MultiLineButton.  SetSize() sets the
  * <p> standard button size.
@@ -359,7 +369,7 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
    * Call setScaleState when the radio buttons change
    * @param event
    */
-  private void scaleAction(ActionEvent event) {
+  protected void scaleAction(ActionEvent event) {
     setScaleState();
   }
   
@@ -376,7 +386,7 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     }
   }
 
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnTrimvol.getActionCommand()) {
       applicationManager.trimVolume();
