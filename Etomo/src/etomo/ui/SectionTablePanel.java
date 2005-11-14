@@ -52,6 +52,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2005/09/20 19:13:14  sueh
+* <p> bug# 532 Using static get instance functions instead of the constructor
+* <p> because the options that must be passed to the constructor are getting
+* <p> too complicated.  Made the join expanding button the same size as the
+* <p> other expander buttons.
+* <p>
 * <p> Revision 1.16  2005/08/11 23:58:38  sueh
 * <p> bug# 711  Change 3dmod buttons to Run3dmodButton.  Implement
 * <p> Run3dmodButtonContainer.  Change enum Run3dmodMenuOption to
@@ -1305,7 +1311,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    * Handle actions
    * @param event
    */
-  private void action(ActionEvent event) {
+  protected void action(ActionEvent event) {
     String command = event.getActionCommand();
 
     if (command.equals(btnMoveSectionUp.getActionCommand())) {

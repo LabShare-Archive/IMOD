@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.21  2005/11/02 23:59:53  sueh
+ * <p> bug# 738 Added midas limit.
+ * <p>
  * <p> Revision 1.20  2005/09/29 19:10:07  sueh
  * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
  * <p> over during exit.  Added BaseManager.exiting and
@@ -1105,7 +1108,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * Handle actions
    * @param event
    */
-  private void action(ActionEvent event) {
+  protected void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnMakeSamples.getActionCommand())) {
       joinManager.makejoincom();
@@ -1187,7 +1190,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
 
-  private void workingDirAction() {
+  protected void workingDirAction() {
     //  Open up the file chooser in the current working directory
     JFileChooser chooser = new JFileChooser(new File(joinManager.getPropertyUserDir()));
     chooser.setPreferredSize(FixedDim.fileChooser);
@@ -1204,7 +1207,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
     
-  private void useAlignmentRefSectionAction() {
+  protected void useAlignmentRefSectionAction() {
     spinAlignmentRefSection.setEnabled(cbUseAlignmentRefSection.isSelected());
   }
 
