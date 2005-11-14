@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2005/09/22 21:33:33  sueh
+ * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.16  2005/06/17 19:18:26  sueh
  * <p> bug# 685 Put all timestamp functionality into one function.  Added
  * <p> buttonTimestamp to provide an interface to the main timestamp function.
@@ -160,7 +163,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     manager.kill(axisID);
   }
   
-  private void buttonAxisAction(ActionEvent event) {
+  protected void buttonAxisAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(bothAxisString)) {
       uiHarness.showBothAxis();
@@ -176,7 +179,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   /**
    * Invoke the appropriate ApplicationManager method for the button press
    */
-  private void buttonProcessAction(ActionEvent event) {
+  protected void buttonProcessAction(ActionEvent event) {
     String command = event.getActionCommand();
     Utilities.buttonTimestamp(command);
     applicationManager.saveCurrentDialog(axisID);
