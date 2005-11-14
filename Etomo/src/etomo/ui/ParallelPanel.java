@@ -190,7 +190,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
   }
 
-  private final void performAction(ActionEvent event) {
+  protected final void performAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getText()) {
       manager.resume(axisID, processchunksParam);
@@ -407,6 +407,10 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2005/10/15 00:35:45  sueh
+ * <p> bug# 532 Added isInUse().  In setPauseEnabled() calling
+ * <p> AxisProcessPanel.setParallelInUse().
+ * <p>
  * <p> Revision 1.22  2005/10/13 22:35:59  sueh
  * <p> bug# 532 Fixed parallel processing title.
  * <p>
