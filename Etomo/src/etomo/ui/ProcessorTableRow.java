@@ -243,11 +243,11 @@ final class ProcessorTableRow implements Storable {
     cellFailureReason.add(panel, layout, constraints);
   }
 
-  private void performAction(ActionEvent event) {
+  protected void performAction(ActionEvent event) {
     setSelected(cellComputer.isSelected());
   }
   
-  private void stateChanged(ChangeEvent event) {
+  protected void stateChanged(ChangeEvent event) {
     table.msgCPUsSelectedChanged();
   }
   
@@ -450,6 +450,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2005/11/04 00:55:08  sueh
+ * <p> bug# 732 Added isDisplayed() and deleteRow().  The resize functionality
+ * <p> needs to know what rows are displayed.
+ * <p>
  * <p> Revision 1.16  2005/09/27 23:46:56  sueh
  * <p> bug# 532 Moved call to initRow() to the constructor so that the cells will
  * <p> all be constructed before that perferences are read.
