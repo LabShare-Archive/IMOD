@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.33  2005/11/10 17:53:55  sueh
+ * bug# 733 Added getCurrentTestManager for getting a manager for testing.
+ * Removed --debug option from test because it clutters up the error log.
+ *
  * Revision 1.32  2005/09/14 20:15:30  sueh
  * bug# 532 Added thread to print the memory usage at intervals.
  *
@@ -491,6 +495,14 @@ public class EtomoDirector {
     }
     return getCurrentManager();
   }
+  
+  protected final int getDisplayMemoryInterval() {
+    return displayMemoryInterval;
+  }
+  
+  protected final boolean isDisplayMemory() {
+    return displayMemory;
+  }
 
   /**
    * for testing.
@@ -677,7 +689,7 @@ public class EtomoDirector {
    * @return
    */
   public boolean exitProgram(AxisID axisID) {
-    memoryThread.stop = true;
+    memoryThread.setStop(true);
     try {
       while (managerList.size() != 0) {
         if (!closeCurrentManager(axisID)) {
@@ -1076,12 +1088,13 @@ public class EtomoDirector {
     isAdvanced = state;
   }
 
-  class MemoryThread implements Runnable {
+  protected final class MemoryThread implements Runnable {
 
-    public boolean stop = false;
+    private boolean stop = false;
     
-    public void run() {
-      if (!displayMemory || displayMemoryInterval < 1) {
+    public final void run() {
+      int displayMemoryInterval = getDisplayMemoryInterval();
+      if (!isDisplayMemory() || displayMemoryInterval < 1) {
         return;
       }
       try {
@@ -1096,6 +1109,10 @@ public class EtomoDirector {
       catch (InterruptedException e) {
         e.printStackTrace();
       }
+    }
+    
+    protected final void setStop(boolean stop) {
+      this.stop = stop;
     }
   }
 }
