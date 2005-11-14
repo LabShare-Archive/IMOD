@@ -70,6 +70,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.74  2005/10/15 00:37:10  sueh
+ * bug# 532 Changed BaseManager.showParallelStatus() to
+ * setParallelDialog().
+ *
  * Revision 3.73  2005/10/12 22:46:31  sueh
  * bug# 532 If parallel is not set in meta data, then the default for the parallel
  * checkboxes is based on the existance and validity of cpu.adoc.
@@ -1318,7 +1322,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     return trialPanel;
   }
 
-  private void btnMtfFileAction(ActionEvent event) {
+  protected void btnMtfFileAction(ActionEvent event) {
     //Open up the file chooser in the $IMOD_CALIB_DIR/Camera, if available,
     //otherwise open in the working directory
     String currentMtfDirectory = ltfMtfFile.getText();
