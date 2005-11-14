@@ -29,6 +29,11 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/09/27 23:28:16  sueh
+ * <p> bug# 532 Added a expanded state string and a contracted state string.
+ * <p> Added getState() which returns the string respresenting the current state.
+ * <p> Added setState() which calls setExpanded() based on a state string.
+ * <p>
  * <p> Revision 1.7  2005/09/20 18:35:21  sueh
  * <p> bug# 532 Using static get instance functions instead of the constructor
  * <p> because the options that must be passed to the constructor are getting
@@ -220,7 +225,7 @@ public class ExpandButton extends MultiLineButton {
    * expanded.  Calls the Expandable.expand(ExpandButton) when finished setting
    * the expand state.
    */
-  private void buttonAction() {
+  protected void buttonAction() {
     if (expanded) {
       expanded = false;
       super.setText(expandSymbol);

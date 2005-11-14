@@ -26,6 +26,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/08/30 19:05:28  sueh
+ * <p> bug# 718 fixed a null pointer bug that happended when
+ * <p> btnTransferFiducials is not set.
+ * <p>
  * <p> Revision 3.16  2005/08/11 23:50:31  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -385,7 +389,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
   }
 
   //  Action function for buttons
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnTrack.getActionCommand())) {
       applicationManager.fiducialModelTrack(axisID);

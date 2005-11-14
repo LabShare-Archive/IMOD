@@ -54,6 +54,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.34  2005/10/15 00:33:34  sueh
+ * bug# 532 Standardized is and set parallel processing checkbox functions
+ * to setParallel() and isParallel().
+ *
  * Revision 3.33  2005/10/13 22:35:17  sueh
  * bug# 532 parallel process check box and no volcombine check box are on
  * both setup and final now.  Getting the text for no volcombine from final.
@@ -939,7 +943,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     param.setRootName(ProcessName.VOLCOMBINE.toString());
   }
 
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal,
       true);

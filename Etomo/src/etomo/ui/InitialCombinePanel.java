@@ -30,6 +30,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/10/13 22:35:40  sueh
+ * <p> Bug# 532 In synchronized(), always copying all fields
+ * <p>
  * <p> Revision 3.20  2005/09/29 19:09:56  sueh
  * <p> bug# 532 Add panel headers to all of the sections in Combine.  Hide the
  * <p> sections in the tabs that are not visible so that the visible tab can become
@@ -322,7 +325,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
    * Respond to button actions
    * @param event
    */
-  private void buttonAction(ActionEvent event) {
+  protected void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
       true);
