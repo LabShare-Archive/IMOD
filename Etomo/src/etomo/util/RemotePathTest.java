@@ -475,25 +475,25 @@ public class RemotePathTest extends TestCase {
   /**
    * Tests getRemotePath().
    * getRemotePath only loads rules once
-   */
+   *//*
   public final void test_getRemotePath_onlyLoadRulesOnce() throws IOException {
     deleteTestFile("test_getRemotePath_onlyLoadRulesOnce");
     assertNoRulesLoaded();
     writeNewFile("test_getRemotePath_onlyLoadRulesOnce", true, true, true,
         true, false, false);
     assertNoRulesLoaded();
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
    * getRemotePath returns null when no autodoc
    * 
    * getRemotePath does not throw an exception when no autodoc
-   */
+   *//*
   public final void test_getRemotePath_noAutodoc() throws IOException {
     setUpTestDirectory("test_getRemotePath_noAutodoc");
     assertNoRulesLoaded();
-  }
+  }*/
 
   /**
    * Asserts the no rules have been loaded and running getRemotePath() fails.
@@ -523,17 +523,17 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns null when no rules in autodoc
    * 
    * getRemotePath does not throw an exception when no rules in autodoc
-   */
+   *//*
   public final void test_getRemotePath_noRules() throws IOException {
     writeNewFile("test_getRemotePath_noRules", false, false, true, true, false,
         false);
     assertNoRulesLoaded();
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
    * getRemotePath returns null when fails to translate the path
-   */
+   *//*
   public final void test_getRemotePath_unknownPath()
       throws InvalidParameterException, SystemProcessException, IOException {
     writeNewFile("test_getRemotePath_unknownPath", true, false, true, true,
@@ -542,7 +542,7 @@ public class RemotePathTest extends TestCase {
     assertNull(RemotePath.INSTANCE.getRemotePath(MANAGER, UNKNOWN_LOCAL_PATH,
         AxisID.ONLY));
     assertRulesLoaded();
-  }
+  }*/
 
   /**
    * Asserts that mount rules have been loaded into RemotePath.
@@ -562,13 +562,13 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can search for section with stripped hostname
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
-   */
+   *//*
   public final void test_getRemotePath_globalRules() throws IOException {
     writeNewFile("test_getRemotePath_globalRules", true, false, true, true,
         false, false);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -577,14 +577,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find global rules
    * getRemotePath can search for section with stripped hostname
    * getRemotePath returns remote path when local path is found
-   */
+   *//*
   public final void test_getRemotePath_globalRulesNoSection()
       throws IOException {
     writeNewFile("test_getRemotePath_globalRulesNoSection", true, false, false,
         true, false, false);
     assertPathsFound();
     assertMountNameFailed();
-  }
+  }*/
 
   /**
    * Asserts that paths which do not contain %mountname can be found and turned
@@ -678,14 +678,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can search for section with stripped hostname
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
-   */
+   *//*
   public final void test_getRemotePath_sectionRules() throws IOException {
     System.out.println();
     writeNewFile("test_getRemotePath_sectionRules", false, true, true, true,
         false, false);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -694,14 +694,14 @@ public class RemotePathTest extends TestCase {
    * 
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
-   */
+   *//*
   public final void test_getRemotePath_sectionRulesFullHostName()
       throws IOException {
     writeNewFile("test_getRemotePath_sectionRulesFullHostName", false, true,
         true, true, true, false);
     assertPathsFound();
     assertMountNameFound(hostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -712,14 +712,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can search for section with stripped hostname
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
-   */
+   *//*
   public final void test_getRemotePath_globalAndSectionRules()
       throws IOException {
     writeNewFile("test_getRemotePath_globalAndSectionRules", true, true, true,
         true, false, false);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -731,14 +731,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
    * getRemotePath tests local rules before global rules
-   */
+   *//*
   public final void test_getRemotePath_localHost() throws IOException {
     writeNewFile("test_getRemotePath_localHost", true, true, true, false,
         false, true);
     System.out.println("test_getRemotePath_localHost:hostName="+hostName+",strippedHostName="+strippedHostName);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -750,14 +750,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find section-level rules
    * getRemotePath returns remote path when local path is found
    * getRemotePath tests local rules before global rules
-   */
+   *//*
   public final void test_getRemotePath_localHostWithoutMountName()
       throws IOException {
     writeNewFile("test_getRemotePath_localHostWithoutMountName", true, true,
         true, false, false, false);
     assertPathsFound();
     assertMountNameFailed();
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -768,13 +768,13 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find section-level rules
    * getRemotePath returns remote path when local path is found
    * getRemotePath tests local rules before global rules
-   */
+   *//*
   public final void test_getRemotePath_fullSectionName() throws IOException {
     writeNewFile("test_getRemotePath_fullSectionName", true, true, true, true,
         true, false);
     assertPathsFound();
     assertMountNameFound(hostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
@@ -784,27 +784,27 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find section-level rules
    * getRemotePath can search on hostname
    * getRemotePath tests local rules before global rules
-   */
+   *//*
   public final void test_getRemotePath_mountName() throws IOException {
     writeNewFile("test_getRemotePath_mountName", true, true, true, true, true,
         true);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
    * bad mount rules are not loaded
-   */
+   *//*
   public final void test_getRemotePath_badRules() throws IOException {
     writeNewBadFile("test_getRemotePath_badRules");
     assertNoRulesLoaded();
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
    * a global mount rule can be overridden by a section-level mount rule
-   */
+   *//*
   public final void test_getRemotePath_overrideMountRule() throws IOException {
     writeNewOverrideFile("test_getRemotePath_overrideMountRule");
     assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
@@ -813,20 +813,23 @@ public class RemotePathTest extends TestCase {
     assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
         LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10" + PATH, AxisID.ONLY),
         LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10" + PATH);
-  }
+  }*/
 
   /**
    * Tests getRemotePath().
    * mount rule numbers must start from 1 in each area
-   */
+   *//*
   public final void test_getRemotePath_ruleNumbers() throws IOException {
     writeNewFile("test_getRemotePath_ruleNumbers", 2, true, true, true, true,
         true, true);
     assertNoRulesLoaded();
-  }
+  }*/
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/11/14 23:31:48  sueh
+ * <p> bug# 733 testing
+ * <p>
  * <p> Revision 1.3  2005/11/14 23:12:55  sueh
  * <p> bug# 733 testing
  * <p>

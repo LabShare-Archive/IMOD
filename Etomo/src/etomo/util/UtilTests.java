@@ -26,15 +26,21 @@ public class UtilTests {
   
   public static Test suite() {
     TestSuite suite = new TestSuite("Test:  " + TEST_DIR);
-    suite.addTestSuite(FileModifiedFlagTest.class);
-		suite.addTestSuite(MRCHeaderTest.class);
-		suite.addTestSuite(CircularBufferTest.class);
+    //suite.addTestSuite(FileModifiedFlagTest.class);
+		//suite.addTestSuite(MRCHeaderTest.class);
+		//suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
 		return suite;
 	}
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2005/11/10 18:22:26  sueh
+ * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+ * <p> instanciated once so there won't be a problem if the working directory is
+ * <p> changed.  Added a root test directory File object to each of the suites,
+ * <p> which is based on the JUnitTests root test directory.
+ * <p>
  * <p> Revision 1.3  2005/06/20 17:10:08  sueh
  * <p> bug# 522 Added FileModifiedFlag tests.
  * <p>
