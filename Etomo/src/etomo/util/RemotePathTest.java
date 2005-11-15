@@ -741,14 +741,15 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
    * getRemotePath tests local rules before global rules
-   *//*
+   */
   public final void test_getRemotePath_localHost() throws IOException {
+    System.err.println("test 11");
     writeNewFile("test_getRemotePath_localHost", true, true, true, false,
         false, true);
     System.out.println("test_getRemotePath_localHost:hostName="+hostName+",strippedHostName="+strippedHostName);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -837,6 +838,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2005/11/15 19:47:52  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.16  2005/11/15 19:01:19  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
