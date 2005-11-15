@@ -448,12 +448,12 @@ public class RemotePathTest extends TestCase {
     catch (NullPointerException e) {
       savedRcsid = null;
     }
-    if (savedRcsid == null || !savedRcsid.equals(rcsid)) {
+    //if (savedRcsid == null || !savedRcsid.equals(rcsid)) {
       File testFile = new File(testDir, TEST_FILE_NAME);
       testFile.delete();
       return new BufferedWriter(new FileWriter(testFile));
-    }
-    return null;
+    //}
+    //return null;
   }
 
   private final void deleteTestFile(String testDirName) throws IOException {
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/11/15 18:05:25  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.13  2005/11/15 01:33:21  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
