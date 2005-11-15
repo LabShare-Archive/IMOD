@@ -523,12 +523,12 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns null when no rules in autodoc
    * 
    * getRemotePath does not throw an exception when no rules in autodoc
-   *//*
+   */
   public final void test_getRemotePath_noRules() throws IOException {
     writeNewFile("test_getRemotePath_noRules", false, false, true, true, false,
         false);
     assertNoRulesLoaded();
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/11/15 00:54:23  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.6  2005/11/15 00:40:12  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
