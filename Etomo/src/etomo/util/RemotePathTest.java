@@ -381,7 +381,6 @@ public class RemotePathTest extends TestCase {
     //set the hostname
     hostName = RemotePath.INSTANCE.getHostName_test(MANAGER, AxisID.ONLY);
     strippedHostName = hostName.substring(0, hostName.indexOf('.'));
-    System.out.println("hostName="+hostName+",strippedHostName="+strippedHostName);
   }
 
   /**
@@ -448,12 +447,14 @@ public class RemotePathTest extends TestCase {
     catch (NullPointerException e) {
       savedRcsid = null;
     }
-    //if (savedRcsid == null || !savedRcsid.equals(rcsid)) {
+    if (savedRcsid == null || !savedRcsid.equals(rcsid)) {
+      System.err.println("writing file");
       File testFile = new File(testDir, TEST_FILE_NAME);
       testFile.delete();
       return new BufferedWriter(new FileWriter(testFile));
-    //}
-    //return null;
+    }
+    System.err.println("skipping write file");
+    return null;
   }
 
   private final void deleteTestFile(String testDirName) throws IOException {
@@ -467,7 +468,7 @@ public class RemotePathTest extends TestCase {
    * RemotePath doesn't load mount rules
    */
   public final void test_RemotePath() {
-    System.out.println("test 1");
+    System.err.println("test 1");
     assertFalse(RemotePath.INSTANCE.isMountRulesLoaded_test());
     assertTrue(RemotePath.INSTANCE.localMountRulesIsNull_test());
     assertTrue(RemotePath.INSTANCE.remoteMountRulesIsNull_test());
@@ -478,7 +479,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath only loads rules once
    */
   public final void test_getRemotePath_onlyLoadRulesOnce() throws IOException {
-    System.out.println("test 2");
+    System.err.println("test 2");
     deleteTestFile("test_getRemotePath_onlyLoadRulesOnce");
     assertNoRulesLoaded();
     writeNewFile("test_getRemotePath_onlyLoadRulesOnce", true, true, true,
@@ -493,7 +494,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath does not throw an exception when no autodoc
    */
   public final void test_getRemotePath_noAutodoc() throws IOException {
-    System.out.println("test 3");
+    System.err.println("test 3");
     setUpTestDirectory("test_getRemotePath_noAutodoc");
     assertNoRulesLoaded();
   }
@@ -528,7 +529,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath does not throw an exception when no rules in autodoc
    */
   public final void test_getRemotePath_noRules() throws IOException {
-    System.out.println("test 4");
+    System.err.println("test 4");
     writeNewFile("test_getRemotePath_noRules", false, false, true, true, false,
         false);
     assertNoRulesLoaded();
@@ -540,7 +541,7 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_unknownPath()
       throws InvalidParameterException, SystemProcessException, IOException {
-    System.out.println("test 5");
+    System.err.println("test 5");
     writeNewFile("test_getRemotePath_unknownPath", true, false, true, true,
         false, false);
     //check general rule
@@ -569,7 +570,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_globalRules() throws IOException {
-    System.out.println("test 6");
+    System.err.println("test 6");
     writeNewFile("test_getRemotePath_globalRules", true, false, true, true,
         false, false);
     assertPathsFound();
@@ -586,7 +587,7 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_globalRulesNoSection()
       throws IOException {
-    System.out.println("test 7");
+    System.err.println("test 7");
     writeNewFile("test_getRemotePath_globalRulesNoSection", true, false, false,
         true, false, false);
     assertPathsFound();
@@ -687,7 +688,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_sectionRules() throws IOException {
-    System.out.println("test 8");
+    System.err.println("test 8");
     writeNewFile("test_getRemotePath_sectionRules", false, true, true, true,
         false, false);
     assertPathsFound();
@@ -704,7 +705,7 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_sectionRulesFullHostName()
       throws IOException {
-    System.out.println("test 9");
+    System.err.println("test 9");
     writeNewFile("test_getRemotePath_sectionRulesFullHostName", false, true,
         true, true, true, false);
     assertPathsFound();
@@ -723,7 +724,7 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_globalAndSectionRules()
       throws IOException {
-    System.out.println("test 10");
+    System.err.println("test 10");
     writeNewFile("test_getRemotePath_globalAndSectionRules", true, true, true,
         true, false, false);
     assertPathsFound();
@@ -836,6 +837,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2005/11/15 19:01:19  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.15  2005/11/15 18:54:14  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
