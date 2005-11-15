@@ -1345,6 +1345,7 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
     if (k == 0){
       vmin  = min;
       vmax  = max;
+      vmean = 0.;
     }else{
       if (min < vmin) vmin = min;
       if (max > vmax) vmax = max;
@@ -1444,6 +1445,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.14  2005/11/11 22:14:56  mast
+Changes for unsigned file mode
+
 Revision 3.13  2005/05/23 23:31:29  mast
 Switched mean and SD computation to use doubles
 
