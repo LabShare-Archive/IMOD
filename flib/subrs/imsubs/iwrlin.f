@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/11/11 22:36:22  mast
+c	  Changes for unsigned mode
+c	
 c	  Revision 3.2  2002/07/21 19:17:20  mast
 c	  Standardized error output to ERROR: ROUTINE
 c	
@@ -173,8 +176,8 @@ c		  DNM: similar changes, also make limit 32767 instead of 32700.
 		  bad = .false.
 		endif	      
 		lcompos = NINT(denval)
-		bline(2 * k - 1) = bstore(longb1)
-		bline(2 * k) = bstore(longb2)
+		bline(2 * k + lowbyte - 2) = bstore(longb1)
+		bline(2 * k + 1 - lowbyte) = bstore(longb2)
 		INDEX = INDEX + 1
 	      enddo
 	    endif
