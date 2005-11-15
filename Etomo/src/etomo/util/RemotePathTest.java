@@ -694,14 +694,14 @@ public class RemotePathTest extends TestCase {
    * 
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
-   *//*
+   */
   public final void test_getRemotePath_sectionRulesFullHostName()
       throws IOException {
     writeNewFile("test_getRemotePath_sectionRulesFullHostName", false, true,
         true, true, true, false);
     assertPathsFound();
     assertMountNameFound(hostName);
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2005/11/15 01:29:48  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.11  2005/11/15 01:26:12  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
