@@ -141,8 +141,8 @@ C   DNM: straight no-conversion is silly for bit modes, will return integer*2
 	  else					! UNSIGNED
 	    lcompos = 0
 	    DO K = 1,N
-	      bstore(longb1) = BLINE(2 * K - 1)
-	      bstore(longb2) = BLINE(2 * K)
+	      bstore(longb1) = BLINE(2 * K + lowbyte - 2)
+	      bstore(longb2) = BLINE(2 * K + 1 - lowbyte)
 	      ARRAY(INDEX) = lcompos
 	      INDEX = INDEX + 1
 	    enddo
