@@ -533,7 +533,7 @@ public class RemotePathTest extends TestCase {
   /**
    * Tests getRemotePath().
    * getRemotePath returns null when fails to translate the path
-   *//*
+   */
   public final void test_getRemotePath_unknownPath()
       throws InvalidParameterException, SystemProcessException, IOException {
     writeNewFile("test_getRemotePath_unknownPath", true, false, true, true,
@@ -542,7 +542,7 @@ public class RemotePathTest extends TestCase {
     assertNull(RemotePath.INSTANCE.getRemotePath(MANAGER, UNKNOWN_LOCAL_PATH,
         AxisID.ONLY));
     assertRulesLoaded();
-  }*/
+  }
 
   /**
    * Asserts that mount rules have been loaded into RemotePath.
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/11/15 01:02:00  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.7  2005/11/15 00:54:23  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
