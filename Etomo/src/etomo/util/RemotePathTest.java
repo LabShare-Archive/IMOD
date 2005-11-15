@@ -372,7 +372,7 @@ public class RemotePathTest extends TestCase {
     //set the mount name
     String mountName = strippedHostName;
     //write the mount name
-    bufferedWriter.write(RemotePath.MOUNT_NAME + +' '
+    bufferedWriter.write(RemotePath.MOUNT_NAME + ' '
         + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + mountName);
     bufferedWriter.newLine();
   }
@@ -746,7 +746,6 @@ public class RemotePathTest extends TestCase {
     System.err.println("test 11");
     writeNewFile("test_getRemotePath_localHost", true, true, true, false,
         false, true);
-    System.out.println("test_getRemotePath_localHost:hostName="+hostName+",strippedHostName="+strippedHostName);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
   }
@@ -838,6 +837,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2005/11/15 20:09:57  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.17  2005/11/15 19:47:52  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
