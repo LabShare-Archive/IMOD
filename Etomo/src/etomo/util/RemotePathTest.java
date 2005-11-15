@@ -712,14 +712,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can search for section with stripped hostname
    * getRemotePath returns remote path when local path is found
    * getRemotePath returns section name as mount name
-   *//*
+   */
   public final void test_getRemotePath_globalAndSectionRules()
       throws IOException {
     writeNewFile("test_getRemotePath_globalAndSectionRules", true, true, true,
         true, false, false);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2005/11/15 01:33:21  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.12  2005/11/15 01:29:48  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
