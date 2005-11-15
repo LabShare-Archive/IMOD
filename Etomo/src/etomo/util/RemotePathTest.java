@@ -760,14 +760,15 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find section-level rules
    * getRemotePath returns remote path when local path is found
    * getRemotePath tests local rules before global rules
-   *//*
+   */
   public final void test_getRemotePath_localHostWithoutMountName()
       throws IOException {
+    System.err.println("test 12");
     writeNewFile("test_getRemotePath_localHostWithoutMountName", true, true,
         true, false, false, false);
     assertPathsFound();
     assertMountNameFailed();
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -778,13 +779,14 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find section-level rules
    * getRemotePath returns remote path when local path is found
    * getRemotePath tests local rules before global rules
-   *//*
+   */
   public final void test_getRemotePath_fullSectionName() throws IOException {
+    System.err.println("test 13");
     writeNewFile("test_getRemotePath_fullSectionName", true, true, true, true,
         true, false);
     assertPathsFound();
     assertMountNameFound(hostName);
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -794,28 +796,31 @@ public class RemotePathTest extends TestCase {
    * getRemotePath can find section-level rules
    * getRemotePath can search on hostname
    * getRemotePath tests local rules before global rules
-   *//*
+   */
   public final void test_getRemotePath_mountName() throws IOException {
+    System.err.println("test 14");
     writeNewFile("test_getRemotePath_mountName", true, true, true, true, true,
         true);
     assertPathsFound();
     assertMountNameFound(strippedHostName);
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
    * bad mount rules are not loaded
-   *//*
+   */
   public final void test_getRemotePath_badRules() throws IOException {
+    System.err.println("test 15");
     writeNewBadFile("test_getRemotePath_badRules");
     assertNoRulesLoaded();
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
    * a global mount rule can be overridden by a section-level mount rule
-   *//*
+   */
   public final void test_getRemotePath_overrideMountRule() throws IOException {
+    System.err.println("test 16");
     writeNewOverrideFile("test_getRemotePath_overrideMountRule");
     assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
         LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH, AxisID.ONLY),
@@ -823,20 +828,24 @@ public class RemotePathTest extends TestCase {
     assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
         LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10" + PATH, AxisID.ONLY),
         LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10" + PATH);
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
    * mount rule numbers must start from 1 in each area
-   *//*
+   */
   public final void test_getRemotePath_ruleNumbers() throws IOException {
+    System.err.println("test 17");
     writeNewFile("test_getRemotePath_ruleNumbers", 2, true, true, true, true,
         true, true);
     assertNoRulesLoaded();
-  }*/
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2005/11/15 20:45:02  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.18  2005/11/15 20:09:57  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
