@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>794</width>
-            <height>482</height>
+            <height>547</height>
         </rect>
     </property>
     <property name="caption">
@@ -1406,6 +1406,9 @@
     <include location="global" impldecl="in implementation">string.h</include>
     <include location="local" impldecl="in implementation">imod.h</include>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="global" impldecl="in implementation">qregexp.h</include>
+    <include location="global" impldecl="in implementation">qstring.h</include>
+    <include location="global" impldecl="in implementation">qstringlist.h</include>
     <include location="local" impldecl="in implementation">form_startup.ui.h</include>
 </includes>
 <forwards>

@@ -382,6 +382,8 @@ char ** StartupForm::getArguments( int & argc )
 
 void StartupForm::addImageFiles()
 {
+  QString path, file;
+  int sepInd, i;
   // If text box was changed, need to recreate a string list
   // If they were joined with ; or contain a ;, split with that
   if (mFilesChanged) {
@@ -395,7 +397,29 @@ void StartupForm::addImageFiles()
   QStringList list = mImageFileList;
   QStringList::Iterator it = list.begin();
   while( it != list.end() ) {
-    addArg((*it).latin1());
+    
+    // Split the file into a path and filename
+    sepInd = (*it).findRev(QRegExp("[\\\\/]"));
+    if (sepInd < 0) {
+      path = "./";
+      file = (*it).stripWhiteSpace();
+    } else {
+      path = ((*it).left(sepInd + 1)).stripWhiteSpace();
+      file = ((*it).mid(sepInd + 1)).stripWhiteSpace();
+    }
+    //imodPrintStderr("sepInd %d  path =<%s>   file =<%s>\n", sepInd, path.latin1(), file.latin1());
+    // If there are no wildcards, just add the whole filename
+    if (file.find(QRegExp("[\\*\\?]")) < 0) {
+      addArg((*it).latin1());
+    } else {
+      
+      // Otherwise get a file list that matches the filename
+      QDir dir(path, file);
+      for (i = 0; i < dir.count(); i++) {
+        file = path +dir[i];
+        addArg(file.latin1());
+      }
+    }
     ++it;
   }
 }

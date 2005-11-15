@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/14/05: Added ability to put wildcards (* and ?) on image filenames in 3dmod
+startup window.
+
 11/11/05: Changed Splittilt to make more chunks when the X axis tilt requires
 only a minimal number of extra slices in each chunk.
 
