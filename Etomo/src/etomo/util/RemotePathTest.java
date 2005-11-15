@@ -489,11 +489,11 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns null when no autodoc
    * 
    * getRemotePath does not throw an exception when no autodoc
-   *//*
+   */
   public final void test_getRemotePath_noAutodoc() throws IOException {
     setUpTestDirectory("test_getRemotePath_noAutodoc");
     assertNoRulesLoaded();
-  }*/
+  }
 
   /**
    * Asserts the no rules have been loaded and running getRemotePath() fails.
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/11/15 00:40:12  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.5  2005/11/15 00:30:36  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
