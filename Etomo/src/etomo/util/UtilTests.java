@@ -26,15 +26,18 @@ public class UtilTests {
   
   public static Test suite() {
     TestSuite suite = new TestSuite("Test:  " + TEST_DIR);
-    //suite.addTestSuite(FileModifiedFlagTest.class);
-		//suite.addTestSuite(MRCHeaderTest.class);
-		//suite.addTestSuite(CircularBufferTest.class);
+    suite.addTestSuite(FileModifiedFlagTest.class);
+		suite.addTestSuite(MRCHeaderTest.class);
+		suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
 		return suite;
 	}
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/11/15 00:30:46  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.4  2005/11/10 18:22:26  sueh
  * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
  * <p> instanciated once so there won't be a problem if the working directory is

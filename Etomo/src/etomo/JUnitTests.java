@@ -38,7 +38,7 @@ public class JUnitTests {
     
     //$JUnit-BEGIN$
     //$JUnit-END$
-    /*
+    
     testSuite = (TestSuite) TypeTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
@@ -65,7 +65,7 @@ public class JUnitTests {
         suite.addTest((Test) test);
       }
     }
-*/
+
     testSuite = (TestSuite) UtilTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
@@ -80,6 +80,9 @@ public class JUnitTests {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/11/15 00:29:11  sueh
+* <p> bug# 733 fixing IMODBuild
+* <p>
 * <p> Revision 1.1  2005/11/10 17:58:18  sueh
 * <p> bug# 758 Renamed EtomoTests.
 * <p> </p>
