@@ -475,14 +475,14 @@ public class RemotePathTest extends TestCase {
   /**
    * Tests getRemotePath().
    * getRemotePath only loads rules once
-   *//*
+   */
   public final void test_getRemotePath_onlyLoadRulesOnce() throws IOException {
     deleteTestFile("test_getRemotePath_onlyLoadRulesOnce");
     assertNoRulesLoaded();
     writeNewFile("test_getRemotePath_onlyLoadRulesOnce", true, true, true,
         true, false, false);
     assertNoRulesLoaded();
-  }*/
+  }
 
   /**
    * Tests getRemotePath().
@@ -827,6 +827,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2005/11/15 00:30:36  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.4  2005/11/14 23:31:48  sueh
  * <p> bug# 733 testing
  * <p>
