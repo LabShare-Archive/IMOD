@@ -603,13 +603,21 @@ int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize)
 int PipPrintHelp(char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
-  int i, j, lastOpt, optLen, numOut = 0;
+  int i, j, lastOpt, optLen, numOut = 0, numReal = 0;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
   char indent4[] = "    ";
   char *indentStr;
   int linePos = 13;
+
+  /* Get correct number of options for Fotran fallback */
+  for (i = 0; i < numOptions; i++) {
+    sname = optTable[i].shortName;
+    lname = optTable[i].longName;
+    if ((lname && *lname) || (sname && *sname))
+      numReal++;
+  }
 
   if (!outputManpage) {
     fprintf(out, "Usage: %s ", progName);
@@ -625,7 +633,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       fprintf(out, "s...");
     fprintf(out,"\n");
 
-    if (!numOptions)
+    if (!numReal)
       return 0;
     fprintf(out, "Options:\n");
   }
@@ -645,7 +653,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
                         "       integer numOptions\n"
                         "       parameter (numOptions = %d)\n"
                         "       character*(40 * numOptions) options(1)\n"
-                        "       options(1) =\n     &      '", numOptions);
+                        "       options(1) =\n     &      '", numReal);
         
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4;
         
@@ -1598,6 +1606,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.15  2005/10/11 17:49:03  mast
+Fixed fallback output to add back M to type when multiple set
+
 Revision 3.14  2005/05/14 00:59:29  mast
 Implemented field value as default long option, allowed multiple entries of
 keyword to override previous entry, restricted to Field and SectionHeader
