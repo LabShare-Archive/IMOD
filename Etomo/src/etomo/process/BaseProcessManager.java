@@ -7,6 +7,7 @@ import java.util.HashMap;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
@@ -17,215 +18,219 @@ import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2002 - 2005</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.29  2005/10/27 00:29:27  sueh
-* <p> bug# 725 Added another startBackgroundProcess() function with a
-* <p> forceNextProcess parameter.
-* <p>
-* <p> Revision 1.28  2005/09/29 18:39:17  sueh
-* <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
-* <p> over during exit.  Added BaseManager.exiting and
-* <p> saveIntermediateParamFile(), which will not save when exiting it true.
-* <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
-* <p> saveParamFile() to the child exitProgram functions so that the param file
-* <p> is saved after all the done functions are run.
-* <p>
-* <p> Revision 1.27  2005/09/22 20:52:25  sueh
-* <p> bug# 532 for processchunks, added the status string to "killed", which can
-* <p> be resumed just like "paused".
-* <p>
-* <p> Revision 1.26  2005/09/21 16:09:30  sueh
-* <p> bug# 532 moved processchunks() from processManager to
-* <p> BaseProcessManager.  This allows BaseManager to handle
-* <p> processchunks.
-* <p>
-* <p> Revision 1.25  2005/09/13 00:14:46  sueh
-* <p> bug# 532 Made isAxisBusy() public so that BaseManager can use it.
-* <p>
-* <p> Revision 1.24  2005/09/10 01:48:39  sueh
-* <p> bug# 532 Changed IntermittentSystemProgram to
-* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
-* <p> of SystemProgram.  Made OutputBufferManager in independent class
-* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
-* <p> use OutputBufferManager to do things only necessary for intermittent
-* <p> programs, such as deleting standard output after it is processed and
-* <p> keeping separate lists of standard output for separate monitors.
-* <p>
-* <p> Revision 1.23  2005/09/09 21:21:52  sueh
-* <p> bug# 532 Handling null from stderr and stdout.
-* <p>
-* <p> Revision 1.22  2005/08/30 18:37:38  sueh
-* <p> bug# 532 Changing monitor interfaces for
-* <p> startInteractiveBackgroundProcess() because the combine monitor now
-* <p> implements BackgroundComScriptMonitor.
-* <p>
-* <p> Revision 1.21  2005/08/27 22:23:50  sueh
-* <p> bug# 532 In msgBackgroundPRocessDone() exclude errors starting with
-* <p> "CHUNK ERROR:".  These error may be repeats many times and should
-* <p> be handled by the monitor.  Also try to append an error string from the
-* <p> monitor.  This allows the processchunks monitor to supply the last chunk
-* <p> error it found.
-* <p>
-* <p> Revision 1.20  2005/08/22 16:17:46  sueh
-* <p> bug# 532 Added start and stopGetLoadAverage().
-* <p>
-* <p> Revision 1.19  2005/08/15 17:55:29  sueh
-* <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
-* <p> a kill, so a processchunks specific class has to make the decision of
-* <p> what type of signal to send.  Change BaseProcessManager.kill() to call
-* <p> SystemProcessInterface.kill().  When the correct signal is chosen,
-* <p> SystemProcessInterface will call either signalInterrupt or signalKill.  Also
-* <p> added pause(), which will be associaated with the Pause button and will
-* <p> work like kill.  Added functions:  getThread, interruptProcess, pause,
-* <p> signalInterrupt, signalKill.
-* <p>
-* <p> Revision 1.18  2005/08/04 19:42:50  sueh
-* <p> bug# 532 Passing monitor to BackgroundProcess when necessary.
-* <p>
-* <p> Revision 1.17  2005/08/01 18:00:42  sueh
-* <p> bug# 532 In msgBackgroundProcessDone() passed process.axisID
-* <p> instead of null to processDone().
-* <p>
-* <p> Revision 1.16  2005/07/29 00:51:13  sueh
-* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
-* <p> because the current manager changes when the user changes the tab.
-* <p> Passing the manager where its needed.
-* <p>
-* <p> Revision 1.15  2005/07/26 17:57:12  sueh
-* <p> bug# 701 Changing all comscript monitors to implement ProcessMonitor
-* <p> so that they call all be passed to the ComScriptProcess constructor.
-* <p> Changed kill(AxisID).  Before killing, call
-* <p> SystemProcessInterface.setProcessEndState().  After killing call
-* <p> SystemProcessInterface.notifyKilled().  This sets the end state to kill as
-* <p> soon as possible.  NotifyKilled() (was notifyKill) is used to stop monitors
-* <p> that can't receives interruption from the processes they are monitoring.
-* <p> Modify msgComScriptDone() and msgBackgroundProcessDone().  Do not
-* <p> open an error dialog if a kill or pause ProcessEndState is set.  Set the
-* <p> process's ProcessEndState to FAILED if an error dialo is being opened.
-* <p> The process may or may not find out about the error, so the function that
-* <p> finds the problem needs to set ProcessEndState.
-* <p>
-* <p> Revision 1.14  2005/07/01 21:08:00  sueh
-* <p> bug# 619 demo:  temporarily made isAxisBusy public
-* <p>
-* <p> Revision 1.13  2005/06/21 00:42:24  sueh
-* <p> bug# 522 Added moved touch() from JoinProcessManager to
-* <p> BaseProcessManager for MRCHeaderTest.
-* <p>
-* <p> Revision 1.12  2005/05/18 22:34:19  sueh
-* <p> bug# 662 Added member variable boolean forceNextProcess to force
-* <p> BaseManager.startNextProcess() to be run regardless of the value of
-* <p> exitValue.
-* <p>
-* <p> Revision 1.11  2005/04/26 17:36:26  sueh
-* <p> bug# 615 Change the name of the UIHarness member variable to
-* <p> uiHarness.
-* <p>
-* <p> Revision 1.10  2005/04/25 20:44:28  sueh
-* <p> bug# 615 Passing the axis where a command originates to the message
-* <p> functions so that the message will be popped up in the correct window.
-* <p> This requires adding AxisID to many objects.  Move the interface for
-* <p> popping up message dialogs to UIHarness.  It prevents headless
-* <p> exceptions during a test execution.  It also allows logging of dialog
-* <p> messages during a test.  It also centralizes the dialog interface and
-* <p> allows the dialog functions to be synchronized to prevent dialogs popping
-* <p> up in both windows at once.  All Frame functions will use UIHarness as a
-* <p> public interface.
-* <p>
-* <p> Revision 1.9  2005/01/05 19:52:39  sueh
-* <p> bug# 578 Moved startBackgroundComScript(String, Runnable, AxisID,
-* <p> ComscriptState, String) and startComScript(String, Runnable, AxisID,
-* <p> String) from ProcessManager to BaseProcessManager since they are
-* <p> generic.  Added startComScript(Command, Runnable, AxisID) to handle
-* <p> situations where postProcess(ComScriptProcess) needs to query the
-* <p> command.
-* <p>
-* <p> Revision 1.8  2004/12/14 21:33:25  sueh
-* <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
-* <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
-* <p> bug# 572:  Removing state object from meta data and managing it with a
-* <p> manager class.
-* <p> Saving all objects to the .edf/ejf file each time a save is done.
-* <p>
-* <p> Revision 1.7  2004/12/13 19:08:56  sueh
-* <p> bug# 565 Saving process track to edf file as well as meta data in the
-* <p> start... functions.
-* <p>
-* <p> Revision 1.6  2004/12/09 05:04:34  sueh
-* <p> bug# 565 Added save meta data to each msg...Done function regardless
-* <p> of success or failure.
-* <p>
-* <p> Revision 1.5  2004/12/09 04:52:54  sueh
-* <p> bug# 565 Saving meta data on each top of start function.
-* <p>
-* <p> Revision 1.4  2004/11/24 00:59:23  sueh
-* <p> bug# 520 msgBackgroundProcess:  call errorProcess is exitValue != 0.
-* <p>
-* <p> Revision 1.3  2004/11/20 01:58:22  sueh
-* <p> bug# 520 Passing exitValue to postProcess(BackgroundProcess).
-* <p>
-* <p> Revision 1.2  2004/11/19 23:17:50  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 1.1.2.8  2004/11/12 22:52:59  sueh
-* <p> bug# 520 Using overloading to simiplify the postProcess function names.
-* <p>
-* <p> Revision 1.1.2.7  2004/10/25 23:10:39  sueh
-* <p> bug# 520 Added a call to backgroundErrorProcess() for post processing
-* <p> when BackgroundProcess fails.
-* <p>
-* <p> Revision 1.1.2.6  2004/10/21 02:39:49  sueh
-* <p> bug# 520 Created functions to manager InteractiveSystemProgram:
-* <p> startInteractiveSystemProgram, msgInteractivesystemProgramDone,
-* <p> interactiveSystemProgramPostProcess.
-* <p>
-* <p> Revision 1.1.2.5  2004/10/18 19:08:18  sueh
-* <p> bug# 520 Replaced manager with abstract BaseManager getManager().
-* <p> The type of manager that is stored will be decided by
-* <p> BaseProcessManager's children.  Moved startSystemProgramThread() to
-* <p> the base class.  Added an interface to this function to handle
-* <p> String[] command.
-* <p>
-* <p> Revision 1.1.2.4  2004/10/11 02:02:37  sueh
-* <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
-* <p> property.  This property would need a different value for each manager.
-* <p> This variable can be retrieved from the manager if the object knows its
-* <p> manager.  Otherwise it can retrieve it from the current manager using the
-* <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
-* <p> gets the value from the "user.dir" property.
-* <p>
-* <p> Revision 1.1.2.3  2004/10/08 15:55:17  sueh
-* <p> bug# 520 Handled command array in BackgroundProcess.  Since
-* <p> EtomoDirector is a singleton, made all functions and member variables
-* <p> non-static.
-* <p>
-* <p> Revision 1.1.2.2  2004/10/06 01:38:00  sueh
-* <p> bug# 520 Added abstract backgroundPostProcessing to handle
-* <p> non-generic processing during msgBackgroundProcessDone().  Added
-* <p> startBackgroundProcess() functions to handle constructing
-* <p> BackgroundProcess with a Command rather then a String.
-* <p>
-* <p> Revision 1.1.2.1  2004/09/29 17:48:18  sueh
-* <p> bug# 520 Contains functionality that is command for ProcessManager and
-* <p> JoinProcessManager.
-* <p> </p>
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.30  2005/11/02 21:43:39  sueh
+ * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.  Put
+ * <p> error messages created in msgComScriptDone() directly into
+ * <p> processMessages.
+ * <p>
+ * <p> Revision 1.29  2005/10/27 00:29:27  sueh
+ * <p> bug# 725 Added another startBackgroundProcess() function with a
+ * <p> forceNextProcess parameter.
+ * <p>
+ * <p> Revision 1.28  2005/09/29 18:39:17  sueh
+ * <p> bug# 532 Preventing Etomo from saving to the .edf or .ejf file over and
+ * <p> over during exit.  Added BaseManager.exiting and
+ * <p> saveIntermediateParamFile(), which will not save when exiting it true.
+ * <p> Setting exiting to true in BaseManager.exitProgram().  Moved call to
+ * <p> saveParamFile() to the child exitProgram functions so that the param file
+ * <p> is saved after all the done functions are run.
+ * <p>
+ * <p> Revision 1.27  2005/09/22 20:52:25  sueh
+ * <p> bug# 532 for processchunks, added the status string to "killed", which can
+ * <p> be resumed just like "paused".
+ * <p>
+ * <p> Revision 1.26  2005/09/21 16:09:30  sueh
+ * <p> bug# 532 moved processchunks() from processManager to
+ * <p> BaseProcessManager.  This allows BaseManager to handle
+ * <p> processchunks.
+ * <p>
+ * <p> Revision 1.25  2005/09/13 00:14:46  sueh
+ * <p> bug# 532 Made isAxisBusy() public so that BaseManager can use it.
+ * <p>
+ * <p> Revision 1.24  2005/09/10 01:48:39  sueh
+ * <p> bug# 532 Changed IntermittentSystemProgram to
+ * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+ * <p> of SystemProgram.  Made OutputBufferManager in independent class
+ * <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+ * <p> use OutputBufferManager to do things only necessary for intermittent
+ * <p> programs, such as deleting standard output after it is processed and
+ * <p> keeping separate lists of standard output for separate monitors.
+ * <p>
+ * <p> Revision 1.23  2005/09/09 21:21:52  sueh
+ * <p> bug# 532 Handling null from stderr and stdout.
+ * <p>
+ * <p> Revision 1.22  2005/08/30 18:37:38  sueh
+ * <p> bug# 532 Changing monitor interfaces for
+ * <p> startInteractiveBackgroundProcess() because the combine monitor now
+ * <p> implements BackgroundComScriptMonitor.
+ * <p>
+ * <p> Revision 1.21  2005/08/27 22:23:50  sueh
+ * <p> bug# 532 In msgBackgroundPRocessDone() exclude errors starting with
+ * <p> "CHUNK ERROR:".  These error may be repeats many times and should
+ * <p> be handled by the monitor.  Also try to append an error string from the
+ * <p> monitor.  This allows the processchunks monitor to supply the last chunk
+ * <p> error it found.
+ * <p>
+ * <p> Revision 1.20  2005/08/22 16:17:46  sueh
+ * <p> bug# 532 Added start and stopGetLoadAverage().
+ * <p>
+ * <p> Revision 1.19  2005/08/15 17:55:29  sueh
+ * <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
+ * <p> a kill, so a processchunks specific class has to make the decision of
+ * <p> what type of signal to send.  Change BaseProcessManager.kill() to call
+ * <p> SystemProcessInterface.kill().  When the correct signal is chosen,
+ * <p> SystemProcessInterface will call either signalInterrupt or signalKill.  Also
+ * <p> added pause(), which will be associaated with the Pause button and will
+ * <p> work like kill.  Added functions:  getThread, interruptProcess, pause,
+ * <p> signalInterrupt, signalKill.
+ * <p>
+ * <p> Revision 1.18  2005/08/04 19:42:50  sueh
+ * <p> bug# 532 Passing monitor to BackgroundProcess when necessary.
+ * <p>
+ * <p> Revision 1.17  2005/08/01 18:00:42  sueh
+ * <p> bug# 532 In msgBackgroundProcessDone() passed process.axisID
+ * <p> instead of null to processDone().
+ * <p>
+ * <p> Revision 1.16  2005/07/29 00:51:13  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
+ * <p> Revision 1.15  2005/07/26 17:57:12  sueh
+ * <p> bug# 701 Changing all comscript monitors to implement ProcessMonitor
+ * <p> so that they call all be passed to the ComScriptProcess constructor.
+ * <p> Changed kill(AxisID).  Before killing, call
+ * <p> SystemProcessInterface.setProcessEndState().  After killing call
+ * <p> SystemProcessInterface.notifyKilled().  This sets the end state to kill as
+ * <p> soon as possible.  NotifyKilled() (was notifyKill) is used to stop monitors
+ * <p> that can't receives interruption from the processes they are monitoring.
+ * <p> Modify msgComScriptDone() and msgBackgroundProcessDone().  Do not
+ * <p> open an error dialog if a kill or pause ProcessEndState is set.  Set the
+ * <p> process's ProcessEndState to FAILED if an error dialo is being opened.
+ * <p> The process may or may not find out about the error, so the function that
+ * <p> finds the problem needs to set ProcessEndState.
+ * <p>
+ * <p> Revision 1.14  2005/07/01 21:08:00  sueh
+ * <p> bug# 619 demo:  temporarily made isAxisBusy public
+ * <p>
+ * <p> Revision 1.13  2005/06/21 00:42:24  sueh
+ * <p> bug# 522 Added moved touch() from JoinProcessManager to
+ * <p> BaseProcessManager for MRCHeaderTest.
+ * <p>
+ * <p> Revision 1.12  2005/05/18 22:34:19  sueh
+ * <p> bug# 662 Added member variable boolean forceNextProcess to force
+ * <p> BaseManager.startNextProcess() to be run regardless of the value of
+ * <p> exitValue.
+ * <p>
+ * <p> Revision 1.11  2005/04/26 17:36:26  sueh
+ * <p> bug# 615 Change the name of the UIHarness member variable to
+ * <p> uiHarness.
+ * <p>
+ * <p> Revision 1.10  2005/04/25 20:44:28  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.  Move the interface for
+ * <p> popping up message dialogs to UIHarness.  It prevents headless
+ * <p> exceptions during a test execution.  It also allows logging of dialog
+ * <p> messages during a test.  It also centralizes the dialog interface and
+ * <p> allows the dialog functions to be synchronized to prevent dialogs popping
+ * <p> up in both windows at once.  All Frame functions will use UIHarness as a
+ * <p> public interface.
+ * <p>
+ * <p> Revision 1.9  2005/01/05 19:52:39  sueh
+ * <p> bug# 578 Moved startBackgroundComScript(String, Runnable, AxisID,
+ * <p> ComscriptState, String) and startComScript(String, Runnable, AxisID,
+ * <p> String) from ProcessManager to BaseProcessManager since they are
+ * <p> generic.  Added startComScript(Command, Runnable, AxisID) to handle
+ * <p> situations where postProcess(ComScriptProcess) needs to query the
+ * <p> command.
+ * <p>
+ * <p> Revision 1.8  2004/12/14 21:33:25  sueh
+ * <p> bug# 565: Fixed bug:  Losing process track when backing up .edf file and
+ * <p> only saving metadata.  Removed unnecessary class JoinProcessTrack.
+ * <p> bug# 572:  Removing state object from meta data and managing it with a
+ * <p> manager class.
+ * <p> Saving all objects to the .edf/ejf file each time a save is done.
+ * <p>
+ * <p> Revision 1.7  2004/12/13 19:08:56  sueh
+ * <p> bug# 565 Saving process track to edf file as well as meta data in the
+ * <p> start... functions.
+ * <p>
+ * <p> Revision 1.6  2004/12/09 05:04:34  sueh
+ * <p> bug# 565 Added save meta data to each msg...Done function regardless
+ * <p> of success or failure.
+ * <p>
+ * <p> Revision 1.5  2004/12/09 04:52:54  sueh
+ * <p> bug# 565 Saving meta data on each top of start function.
+ * <p>
+ * <p> Revision 1.4  2004/11/24 00:59:23  sueh
+ * <p> bug# 520 msgBackgroundProcess:  call errorProcess is exitValue != 0.
+ * <p>
+ * <p> Revision 1.3  2004/11/20 01:58:22  sueh
+ * <p> bug# 520 Passing exitValue to postProcess(BackgroundProcess).
+ * <p>
+ * <p> Revision 1.2  2004/11/19 23:17:50  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 1.1.2.8  2004/11/12 22:52:59  sueh
+ * <p> bug# 520 Using overloading to simiplify the postProcess function names.
+ * <p>
+ * <p> Revision 1.1.2.7  2004/10/25 23:10:39  sueh
+ * <p> bug# 520 Added a call to backgroundErrorProcess() for post processing
+ * <p> when BackgroundProcess fails.
+ * <p>
+ * <p> Revision 1.1.2.6  2004/10/21 02:39:49  sueh
+ * <p> bug# 520 Created functions to manager InteractiveSystemProgram:
+ * <p> startInteractiveSystemProgram, msgInteractivesystemProgramDone,
+ * <p> interactiveSystemProgramPostProcess.
+ * <p>
+ * <p> Revision 1.1.2.5  2004/10/18 19:08:18  sueh
+ * <p> bug# 520 Replaced manager with abstract BaseManager getManager().
+ * <p> The type of manager that is stored will be decided by
+ * <p> BaseProcessManager's children.  Moved startSystemProgramThread() to
+ * <p> the base class.  Added an interface to this function to handle
+ * <p> String[] command.
+ * <p>
+ * <p> Revision 1.1.2.4  2004/10/11 02:02:37  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
+ * <p> Revision 1.1.2.3  2004/10/08 15:55:17  sueh
+ * <p> bug# 520 Handled command array in BackgroundProcess.  Since
+ * <p> EtomoDirector is a singleton, made all functions and member variables
+ * <p> non-static.
+ * <p>
+ * <p> Revision 1.1.2.2  2004/10/06 01:38:00  sueh
+ * <p> bug# 520 Added abstract backgroundPostProcessing to handle
+ * <p> non-generic processing during msgBackgroundProcessDone().  Added
+ * <p> startBackgroundProcess() functions to handle constructing
+ * <p> BackgroundProcess with a Command rather then a String.
+ * <p>
+ * <p> Revision 1.1.2.1  2004/09/29 17:48:18  sueh
+ * <p> bug# 520 Contains functionality that is command for ProcessManager and
+ * <p> JoinProcessManager.
+ * <p> </p>
+ */
 public abstract class BaseProcessManager {
-  public static  final String  rcsid =  "$Id$";
-  
-  final static String CHUNK_ERROR_TAG = "CHUNK ERROR:";
+  public static final String rcsid = "$Id$";
+
   SystemProcessInterface threadAxisA = null;
   SystemProcessInterface threadAxisB = null;
   Thread processMonitorA = null;
@@ -233,26 +238,32 @@ public abstract class BaseProcessManager {
   private HashMap killedList = new HashMap();
   EtomoDirector etomoDirector = EtomoDirector.getInstance();
   protected UIHarness uiHarness = UIHarness.INSTANCE;
-  
+
   protected abstract void postProcess(ComScriptProcess script);
+
   protected abstract void postProcess(BackgroundProcess process);
+
   protected abstract void errorProcess(BackgroundProcess process);
+
   protected abstract BaseManager getManager();
+
   protected abstract void postProcess(InteractiveSystemProgram program);
+
   protected abstract void errorProcess(ComScriptProcess process);
-  
+
   public BaseProcessManager() {
   }
-  
 
-  public final void startGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
+  public final void startGetLoadAverage(LoadAverageParam param,
+      LoadAverageMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(getManager(), param, monitor);
   }
-  
-  public final void stopGetLoadAverage(LoadAverageParam param, LoadAverageMonitor monitor) {
+
+  public final void stopGetLoadAverage(LoadAverageParam param,
+      LoadAverageMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(getManager(), param, monitor);
   }
-  
+
   /**
    * run processchunks
    * @param axisID
@@ -265,13 +276,13 @@ public abstract class BaseProcessManager {
       throws SystemProcessException {
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
-        getManager(), axisID, parallelProgressDisplay, param.getRootName(), param.getMachineList());
+        getManager(), axisID, parallelProgressDisplay, param.getRootName(),
+        param.getMachineList());
 
-    BackgroundProcess process = startInteractiveBackgroundProcess(param.getCommand(), axisID,
-        monitor);
+    BackgroundProcess process = startDetachedProcess(param, axisID, monitor);
     return process.getName();
   }
-  
+
   /**
    * run touch command on file
    * @param file
@@ -280,7 +291,7 @@ public abstract class BaseProcessManager {
     String[] commandArray = { "touch", file.getAbsolutePath() };
     startSystemProgramThread(commandArray, AxisID.ONLY);
   }
-  
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -289,18 +300,13 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startComScript(
-    String command,
-    ProcessMonitor processMonitor,
-    AxisID axisID)
-    throws SystemProcessException {
-    return startComScript(
-      new ComScriptProcess(getManager(), command, this, axisID, null, processMonitor),
-      command,
-      processMonitor,
-      axisID);
+  protected ComScriptProcess startComScript(String command,
+      ProcessMonitor processMonitor, AxisID axisID)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), command, this,
+        axisID, null, processMonitor), command, processMonitor, axisID);
   }
-  
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -309,12 +315,14 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startComScript(Command command,
-      ProcessMonitor processMonitor, AxisID axisID) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(getManager(), command, this, axisID, null, processMonitor),
-        command.getCommandLine(), processMonitor, axisID);
+  protected ComScriptProcess startComScript(ProcessDetails processDetails,
+      ProcessMonitor processMonitor, AxisID axisID)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), processDetails,
+        this, axisID, null, processMonitor), processDetails.getCommandLine(),
+        processMonitor, axisID);
   }
-  
+
   /**
    * Start a managed background command script for the specified axis
    * @param command
@@ -323,13 +331,13 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startBackgroundComScript(String command, 
-      BackgroundComScriptMonitor processMonitor, AxisID axisID, 
-    ComscriptState comscriptState, String watchedFileName)
-    throws SystemProcessException {
-    return startComScript(new BackgroundComScriptProcess(getManager(), command, this, axisID,
-      watchedFileName, processMonitor, comscriptState),
-      command, processMonitor, axisID);
+  protected ComScriptProcess startBackgroundComScript(String command,
+      DetachedProcessMonitor processMonitor, AxisID axisID,
+      ComscriptState comscriptState, String watchedFileName)
+      throws SystemProcessException {
+    return startComScript(new BackgroundComScriptProcess(getManager(), command,
+        this, axisID, watchedFileName, processMonitor, comscriptState),
+        command, processMonitor, axisID);
   }
 
   /**
@@ -341,19 +349,14 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startComScript(
-    String command,
-    ProcessMonitor processMonitor,
-    AxisID axisID,
-    String watchedFileName)
-    throws SystemProcessException {
-    return startComScript(
-      new ComScriptProcess(getManager(), command, this, axisID, watchedFileName, processMonitor),
-      command,
-      processMonitor,
-      axisID);
+  protected ComScriptProcess startComScript(String command,
+      ProcessMonitor processMonitor, AxisID axisID, String watchedFileName)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), command, this,
+        axisID, watchedFileName, processMonitor), command, processMonitor,
+        axisID);
   }
-  
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -363,16 +366,15 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startComScript(ComScriptProcess comScriptProcess, 
-    String command,
-    Runnable processMonitor,
-    AxisID axisID)
-    throws SystemProcessException {
+  protected ComScriptProcess startComScript(ComScriptProcess comScriptProcess,
+      String command, Runnable processMonitor, AxisID axisID)
+      throws SystemProcessException {
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID);
 
     // Run the script as a thread in the background
-    comScriptProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
+    comScriptProcess.setWorkingDirectory(new File(getManager()
+        .getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.isDebug());
     comScriptProcess.setDemoMode(etomoDirector.isDemo());
     getManager().saveIntermediateParamFile(axisID);
@@ -390,7 +392,7 @@ public abstract class BaseProcessManager {
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
     if (etomoDirector.isDemo()) {
       processMonitor = new DemoProcessMonitor(getManager(), axisID, command,
-        comScriptProcess.getDemoTime());
+          comScriptProcess.getDemoTime());
     }
 
     //  Start the process monitor thread if a runnable process is provided
@@ -412,7 +414,7 @@ public abstract class BaseProcessManager {
 
     return comScriptProcess;
   }
-  
+
   /**
    * Check to see if specified axis is busy, throw a system a
    * ProcessProcessException if it is.
@@ -426,13 +428,13 @@ public abstract class BaseProcessManager {
     if (axisID == AxisID.SECOND) {
       if (threadAxisB != null) {
         throw new SystemProcessException(
-          "A process is already executing in the current axis");
+            "A process is already executing in the current axis");
       }
     }
     else {
       if (threadAxisA != null) {
         throw new SystemProcessException(
-          "A process is already executing in the current axis");
+            "A process is already executing in the current axis");
       }
     }
   }
@@ -451,7 +453,7 @@ public abstract class BaseProcessManager {
       threadAxisA = thread;
     }
   }
-  
+
   /**
    * Save the process monitor thread reference for the appropriate axis
    * 
@@ -466,7 +468,7 @@ public abstract class BaseProcessManager {
       processMonitorA = processMonitor;
     }
   }
-  
+
   private SystemProcessInterface getThread(AxisID axisID) {
     SystemProcessInterface thread = null;
     if (axisID == AxisID.SECOND) {
@@ -477,7 +479,7 @@ public abstract class BaseProcessManager {
     }
     return thread;
   }
-  
+
   public void pause(AxisID axisID) {
     SystemProcessInterface thread = getThread(axisID);
     if (thread == null) {
@@ -485,7 +487,7 @@ public abstract class BaseProcessManager {
     }
     thread.pause(axisID);
   }
-  
+
   public void kill(AxisID axisID) {
     SystemProcessInterface thread = getThread(axisID);
     if (thread == null) {
@@ -494,21 +496,17 @@ public abstract class BaseProcessManager {
     thread.kill(axisID);
   }
 
-  void signalInterrupt(SystemProcessInterface thread, AxisID axisID) { 
-    interruptProcess(thread.getShellProcessID(), axisID);
-  }
-  
   /**
    * Kill the thread for the specified axis
    */
   void signalKill(SystemProcessInterface thread, AxisID axisID) {
     String processID = "";
     thread.setProcessEndState(ProcessEndState.KILLED);
-    
-    processID = thread.getShellProcessID();  
+
+    processID = thread.getShellProcessID();
     killProcessGroup(processID, axisID);
     killProcessAndDescendants(processID, axisID);
-    
+
     thread.notifyKilled();
   }
 
@@ -525,18 +523,7 @@ public abstract class BaseProcessManager {
     kill("-19", groupProcessID, axisID);
     kill("-9", groupProcessID, axisID);
   }
-  
-  protected void interruptProcess(String processID, AxisID axisID) {
-    if (processID == null || processID.equals("")) {
-      return;
-    }
-    long pid = Long.parseLong(processID);
-    if (pid == 0 || pid == 1) {
-      return;
-    }
-    kill("-2", processID, axisID);
-  }
-  
+
   /**
    * Recursively kill all the descendents of a process and then kill the
    * process.  Function assumes that the process will continue spawning while
@@ -586,7 +573,8 @@ public abstract class BaseProcessManager {
         .getPropertyUserDir(), "kill " + signal + " " + processID, axisID);
     killShell.run();
     //System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
+    Utilities.debugPrint("kill " + signal + " " + processID + " at "
+        + killShell.getRunTimestamp());
   }
 
   /**
@@ -650,15 +638,10 @@ public abstract class BaseProcessManager {
       //System.out.println(stdout[i]);
       fields = stdout[i].trim().split("\\s+");
       if (fields[idxPPID].equals(processID)
-        && !killedList.containsKey(fields[idxPID])) {
+          && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
-          Utilities.debugPrint(
-          "child found:PID="
-            + fields[idxPID]
-            + ",PPID="
-            + fields[idxPPID]
-            + ",name="
-            + fields[idxCMD]);
+          Utilities.debugPrint("child found:PID=" + fields[idxPID] + ",PPID="
+              + fields[idxPPID] + ",name=" + fields[idxCMD]);
         }
         childrenPID.add(fields[idxPID]);
       }
@@ -671,10 +654,10 @@ public abstract class BaseProcessManager {
 
     // Connvert the ArrayList into a String[]
     String[] children = (String[]) childrenPID.toArray(new String[childrenPID
-      .size()]);
+        .size()]);
     return children;
   }
-  
+
   /**
    * Return a PID of a child process for the specified parent process.  A new
    * ps command is run each time this function is called so that the most
@@ -729,15 +712,10 @@ public abstract class BaseProcessManager {
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
       if (fields[idxPPID].equals(processID)
-        && !killedList.containsKey(fields[idxPID])) {
+          && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
-          Utilities.debugPrint(
-            "child found:PID="
-              + fields[idxPID]
-              + ",PPID="
-              + fields[idxPPID]
-              + ",name="
-              + fields[idxCMD]);
+          Utilities.debugPrint("child found:PID=" + fields[idxPID] + ",PPID="
+              + fields[idxPPID] + ",name=" + fields[idxCMD]);
         }
         return fields[idxPID];
       }
@@ -754,21 +732,23 @@ public abstract class BaseProcessManager {
    *          the exit value for the com script
    */
   public void msgComScriptDone(ComScriptProcess script, int exitValue) {
-    System.err.println("msgComScriptDone:scriptName=" + script.getScriptName()
-      + ",processName=" + script.getProcessName());
+    System.err
+        .println("msgComScriptDone:scriptName=" + script.getComScriptName()
+            + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
-      ProcessMessages combinedMessages = new ProcessMessages();
+      ProcessMessages combinedMessages = ProcessMessages.getInstance();
       //    Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: " + script.getScriptName());
+        combinedMessages.addError("<html>Terminated: "
+            + script.getComScriptName());
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/*Error*/
         int j = 0;
         combinedMessages.addError("<html>Com script failed: "
-            + script.getScriptName());
+            + script.getComScriptName());
         combinedMessages.addError("\n<html><U>Log file errors:</U>");
         combinedMessages.addError(messages);
         combinedMessages.addError("\n<html><U>Standard error output:</U>");
@@ -776,7 +756,8 @@ public abstract class BaseProcessManager {
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
-        uiHarness.openErrorMessageDialog(combinedMessages, script.getScriptName()
+        uiHarness.openErrorMessageDialog(combinedMessages, script
+            .getComScriptName()
             + " terminated", script.getAxisID());
         //make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
@@ -787,9 +768,9 @@ public abstract class BaseProcessManager {
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/*Warning*/
       if (messages.warningListSize() > 0) {
-        messages.addWarning("Com script: " + script.getScriptName());
+        messages.addWarning("Com script: " + script.getComScriptName());
         messages.addWarning("<html><U>Warnings:</U>");
-        uiHarness.openWarningMessageDialog(messages, script.getScriptName()
+        uiHarness.openWarningMessageDialog(messages, script.getComScriptName()
             + " warnings", script.getAxisID());
       }
     }
@@ -813,9 +794,10 @@ public abstract class BaseProcessManager {
 
     //  Inform the app manager that this process is complete
     getManager().processDone(script.getName(), exitValue,
-      script.getProcessName(), script.getAxisID(), script.getProcessEndState());
+        script.getProcessName(), script.getAxisID(),
+        script.getProcessEndState());
   }
-  
+
   /**
    * Start a managed background process
    * 
@@ -832,7 +814,7 @@ public abstract class BaseProcessManager {
         commandLine, this, axisID);
     return startBackgroundProcess(backgroundProcess, commandLine, axisID, null);
   }
-  
+
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
       AxisID axisID) throws SystemProcessException {
 
@@ -843,7 +825,7 @@ public abstract class BaseProcessManager {
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
         axisID, null);
   }
-  
+
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
       AxisID axisID, boolean forceNextProcess) throws SystemProcessException {
 
@@ -854,41 +836,44 @@ public abstract class BaseProcessManager {
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
         axisID, null);
   }
-  
-  protected BackgroundProcess startInteractiveBackgroundProcess(String[] commandArray,
-      AxisID axisID, BackgroundProcessMonitor monitor) throws SystemProcessException {
+
+  protected BackgroundProcess startDetachedProcess(Command command,
+      AxisID axisID, DetachedProcessMonitor monitor)
+      throws SystemProcessException {
 
     isAxisBusy(axisID);
 
-    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        commandArray, this, axisID, monitor);
-    backgroundProcess.setAcceptInputWhileRunning(true);
-    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+    DetachedProcess detachedProcess = new DetachedProcess(getManager(),
+        command, this, axisID, monitor);
+    return startBackgroundProcess(detachedProcess, command.getCommandLine(),
         axisID, monitor);
   }
 
-  protected BackgroundProcess startBackgroundProcess(Command command,
-      AxisID axisID) throws SystemProcessException {
+  protected BackgroundProcess startBackgroundProcess(
+      ProcessDetails processDetails, AxisID axisID)
+      throws SystemProcessException {
     isAxisBusy(axisID);
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        command, this, axisID);
-    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
-        axisID, null);
+        processDetails, this, axisID);
+    return startBackgroundProcess(backgroundProcess, processDetails
+        .getCommandLine(), axisID, null);
   }
-  
-  protected BackgroundProcess startBackgroundProcess(Command command,
-      AxisID axisID, boolean forceNextProcess) throws SystemProcessException {
+
+  protected BackgroundProcess startBackgroundProcess(
+      ProcessDetails processDetails, AxisID axisID, boolean forceNextProcess)
+      throws SystemProcessException {
     isAxisBusy(axisID);
-    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(), command, this,
-        axisID, forceNextProcess);
-    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
-        axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        processDetails, this, axisID, forceNextProcess);
+    return startBackgroundProcess(backgroundProcess, processDetails
+        .getCommandLine(), axisID, null);
   }
 
   private BackgroundProcess startBackgroundProcess(
-      BackgroundProcess backgroundProcess, String commandLine, AxisID axisID, Runnable processMonitor)
-      throws SystemProcessException {
-    backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
+      BackgroundProcess backgroundProcess, String commandLine, AxisID axisID,
+      Runnable processMonitor) throws SystemProcessException {
+    backgroundProcess.setWorkingDirectory(new File(getManager()
+        .getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
     backgroundProcess.setDebug(etomoDirector.isDebug());
     getManager().saveIntermediateParamFile(axisID);
@@ -916,14 +901,14 @@ public abstract class BaseProcessManager {
 
     return backgroundProcess;
   }
-  
+
   protected InteractiveSystemProgram startInteractiveSystemProgram(
-      Command commandParam) throws SystemProcessException {
+      ProcessDetails processDetails) throws SystemProcessException {
     InteractiveSystemProgram program = new InteractiveSystemProgram(
-        getManager(), commandParam, this, commandParam.getAxisID());
+        getManager(), processDetails, this, processDetails.getAxisID());
     program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     Thread thread = new Thread(program);
-    getManager().saveIntermediateParamFile(commandParam.getAxisID());
+    getManager().saveIntermediateParamFile(processDetails.getAxisID());
     thread.start();
     program.setName(thread.getName());
     if (etomoDirector.isDebug()) {
@@ -932,7 +917,7 @@ public abstract class BaseProcessManager {
     }
     return program;
   }
-  
+
   /**
    * Start an arbitrary command as an unmanaged background thread
    */
@@ -942,15 +927,15 @@ public abstract class BaseProcessManager {
         .getPropertyUserDir(), command, axisID);
     startSystemProgramThread(sysProgram);
   }
-  
+
   protected void startSystemProgramThread(String command, AxisID axisID) {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(getManager()
         .getPropertyUserDir(), command, axisID);
     startSystemProgramThread(sysProgram);
   }
-  
-  private void startSystemProgramThread(SystemProgram sysProgram) { 
+
+  private void startSystemProgramThread(SystemProgram sysProgram) {
     sysProgram.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     sysProgram.setDebug(etomoDirector.isDebug());
 
@@ -961,7 +946,7 @@ public abstract class BaseProcessManager {
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
       System.err.println("  working directory: "
-        + getManager().getPropertyUserDir());
+          + getManager().getPropertyUserDir());
     }
   }
 
@@ -973,87 +958,15 @@ public abstract class BaseProcessManager {
    * @param exitValue
    *          the exit value for the process
    */
-  public void msgBackgroundProcessDone(BackgroundProcess process, int exitValue) {
-    String statusString = null;
-    //  Check to see if the exit value is non-zero
-    if (exitValue != 0) {
-      String[] stdError = process.getStdError();
-      ArrayList message = new ArrayList();
-
-      // Is the last string "Killed"
-      if ((stdError != null && stdError.length > 0)
-        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
-        message.add("<html>Terminated: " + process.getCommandLine());
-      }
-      else {
-        int j = 0;
-        message.add("<html>Command failed: " + process.getCommandLine());
-        message.add("  ");
-        message.add("<html><U>Standard error output:</U>");
-        for (int i = 0; i < stdError.length; i++, j++) {
-          message.add(stdError[i]);
-        }
-      }
-      ProcessEndState endState = process.getProcessEndState();
-      if (endState != ProcessEndState.KILLED
-          && endState != ProcessEndState.PAUSED) {
-        String monitorErrorMessage = process.getMonitorErrorMessage();
-        if (monitorErrorMessage != null) {
-          message.add(monitorErrorMessage);
-        }
-        int messageSize = message.size();
-        String[] messageArray = new String[messageSize];
-        for (int i = 0; i < messageSize; i++) {
-          messageArray[i] = (String) message.get(i);
-        }
-        uiHarness.openMessageDialog(messageArray,
-            process.getCommandName() + " terminated", process.getAxisID());
-        //make sure script knows about failure
-        process.setProcessEndState(ProcessEndState.FAILED);
-      }
-      else {
-        statusString = process.getStatusString();
-      }
-    }
-    // Another possible error message source is ERROR: in the stdout stream
-    String[] stdOutput = process.getStdOutput();
-    ArrayList errors = new ArrayList();
-    boolean foundError = false;
-    if (stdOutput != null) {
-      for (int i = 0; i < stdOutput.length; i++) {
-        if (!foundError) {
-          int index = stdOutput[i].indexOf("ERROR:");
-          int chunkIndex = stdOutput[i].indexOf(CHUNK_ERROR_TAG);
-          if (index != -1 && chunkIndex == -1) {
-            foundError = true;
-            errors.add(stdOutput[i]);
-          }
-        }
-        else {
-          errors.add(stdOutput[i]);
-        }
-      }
-    }
-    String[] errorMessage = (String[]) errors
-      .toArray(new String[errors.size()]);
-
-    if (errorMessage.length > 0) {
-      uiHarness.openMessageDialog(errorMessage,
-          "Background Process Error", process.getAxisID());
+  public final void msgProcessDone(BackgroundProcess process, int exitValue,
+      boolean errorFound) {
+    if (exitValue != 0 || errorFound) {
       errorProcess(process);
     }
-
-    // Command succeeded, check to see if we need to show any application
-    // specific info
     else {
-      if (exitValue != 0) {
-        errorProcess(process);
-      }
-      else {
-        postProcess(process);
-      }
-      getManager().saveIntermediateParamFile(process.getAxisID());
+      postProcess(process);
     }
+    getManager().saveIntermediateParamFile(process.getAxisID());
 
     // Null the reference to the appropriate thread
     if (process == threadAxisA) {
@@ -1062,13 +975,22 @@ public abstract class BaseProcessManager {
     if (process == threadAxisB) {
       threadAxisB = null;
     }
-
-    //  Inform the app manager that this process is complete
-    getManager().processDone(process.getName(), exitValue, null, process.getAxisID(),
-        process.isForceNextProcess(), process.getProcessEndState(), statusString);
+    //  Inform the manager that this process is complete
+    ProcessEndState endState = process.getProcessEndState();
+    if (endState == null || endState == ProcessEndState.DONE) {
+      getManager().processDone(process.getName(), exitValue, null,
+          process.getAxisID(), process.isForceNextProcess(),
+          process.getProcessEndState());
+    }
+    else {
+      getManager().processDone(process.getName(), exitValue, null,
+          process.getAxisID(), process.isForceNextProcess(),
+          process.getProcessEndState(), process.getStatusString());
+    }
   }
-  
-  public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
+
+  public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program,
+      int exitValue) {
     postProcess(program);
     getManager().saveIntermediateParamFile(program.getAxisID());
   }
