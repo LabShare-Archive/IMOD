@@ -21,10 +21,14 @@ public interface LoadAverageDisplay {
   public LoadAverageMonitor getLoadAverageMonitor();
   public void setLoadAverage(String computer, double load1, double load5, double load15);
   public void msgLoadAverageFailed(String computer, String reason);
-  public void clearFailureReason(String computer);
+  public void msgStartingProcess(String computer);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/09/10 01:54:40  sueh
+* <p> bug# 532 Added clearFailureReason() so that the failure reason can be
+* <p> cleared when a new connection to the computer is attempted.
+* <p>
 * <p> Revision 1.4  2005/09/09 21:46:52  sueh
 * <p> bug# 532 moved call to clearLoadAverage() to msgLoadAverageFailed().
 * <p>
