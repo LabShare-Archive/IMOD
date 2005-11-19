@@ -21,26 +21,20 @@ public interface SystemProcessInterface {
   public static  final String  rcsid =  "$Id$";
   
   public String[] getStdOutput();
-  /**
-   * Get standard output while the process is running
-   * @return
-   */
-  public String[] getCurrentStdOutput();
-  public String[] getCurrentStdError();
   public String[] getStdError();
   public boolean isStarted();
-  public boolean isDone();
   public String getShellProcessID();
   public void notifyKilled();
   public void setProcessEndState(ProcessEndState endState);
   public void pause(AxisID axisID);
   public void kill(AxisID axisID);
   public void signalKill(AxisID axisID);
-  public void signalInterrupt(AxisID axisID);
-  public void setCurrentStdInput(String input);
 }
 /**
 * <p> $Log$
+* <p> Revision 3.5  2005/10/21 19:56:04  sueh
+* <p> bug# 742 Added getCurrentStdError().
+* <p>
 * <p> Revision 3.4  2005/08/15 17:59:34  sueh
 * <p> bug# 532   Processchunks needs to be killed with an interrupt instead of
 * <p> a kill, so a processchunks specific class has to make the decision of
