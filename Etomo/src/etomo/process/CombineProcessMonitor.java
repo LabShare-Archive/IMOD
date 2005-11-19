@@ -31,6 +31,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.15  2005/08/30 18:38:04  sueh
+ * <p> $bug# 532 Changed BackgroundProcessMonitor to
+ * <p> $BackgroundComScriptMonitor.  Using BackgroundProcessMonitor for
+ * <p> $BackgroundProcess's that need monitors.
+ * <p> $
  * <p> $Revision 1.14  2005/08/27 22:25:19  sueh
  * <p> $bug# 532 Add empty getErrorMessage() to implement ProcessMonitor.
  * <p> $This is used by ProcesschunksProcessMonitor.
@@ -121,7 +126,7 @@ import etomo.util.Utilities;
  * <p> $process.
  * <p> $$ </p>
  */
-public class CombineProcessMonitor implements BackgroundComScriptMonitor {
+public class CombineProcessMonitor implements DetachedProcessMonitor {
   public static final String rcsid = "$$Id$$";
   public static final String COMBINE_LABEL = "Combine";
   private static final long SLEEP = 100;
@@ -141,7 +146,6 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
   private File logFile = null;
   private LogFileProcessMonitor childMonitor = null;
   Thread childThread = null;
-  private boolean success = false;
   private CombineComscriptState combineComscriptState = null;
   private int currentCommandIndex = CombineComscriptState.NULL_INDEX;
   
@@ -185,19 +189,8 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
     return true;
   }
   
-  /**
-   * true if finished successfully
-   */
-  public boolean isSuccessful() {
-    return success;
-  }
-  
-  /**
-   * called when the process is killed by the user
-   */
-  public void kill() {
-    setProcessEndState(ProcessEndState.KILLED);
-    endMonitor();
+  public void kill(SystemProcessInterface process, AxisID axisID) {
+    endMonitor(ProcessEndState.KILLED);
   }
   
   /**
@@ -240,15 +233,11 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
         }
       }
       else if (line.startsWith("ERROR:")) {
-        setProcessEndState(ProcessEndState.FAILED);
-        endMonitor();
+        endMonitor(ProcessEndState.FAILED);
       }
       else if (
         line.startsWith(CombineComscriptState.getSuccessText())) {
-        success = true;
-        setProcessEndState(ProcessEndState.DONE);
-        endMonitor();
-
+        endMonitor(ProcessEndState.DONE);
       }
     }
   }
@@ -331,14 +320,15 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
    * end this monitor
    *
    */
-  private void endMonitor() {
+  private void endMonitor(ProcessEndState endState) {
+    setProcessEndState(endState);
     endCurrentChildMonitor();
     applicationManager.progressBarDone(axisID, endState);
     if (runThread != null) {
       runThread.interrupt();
       runThread = null;
     }
-    processRunning = false;
+    processRunning = false;//the only place that this should be changed
   }
   
   /**
@@ -382,19 +372,20 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
       }
     }
     catch (FileNotFoundException e) {
+      endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
     catch (InterruptedException e) {
-      processRunning = false;
+      endMonitor(ProcessEndState.DONE);
     }
     catch (NumberFormatException e) {
+      endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
     catch (IOException e) {
+      endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
-    setProcessEndState(ProcessEndState.DONE);
-
     //  Close the log file reader
     try {
       Utilities
@@ -407,7 +398,6 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
     catch (IOException e1) {
       e1.printStackTrace();
     }
-    endMonitor();
     runSelfTest(RAN_STATE);
   }
   
@@ -500,11 +490,6 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
     //process is not required
   }
   
-  public void kill(SystemProcessInterface process, AxisID axisID) {
-    endState = ProcessEndState.KILLED;
-    process.signalKill(axisID);
-  }
-  
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("can't pause a combine process");
   }
@@ -514,6 +499,14 @@ public class CombineProcessMonitor implements BackgroundComScriptMonitor {
   }
   
   public final String getErrorMessage() {
+    return null;
+  }
+  
+  public ProcessMessages getProcessMessages() {
+    return null;
+  }
+  
+  public final String getProcessOutputFileName() {
     return null;
   }
 }
