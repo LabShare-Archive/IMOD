@@ -1,6 +1,8 @@
 package etomo.process;
 
 import etomo.BaseManager;
+import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 
 /**
  * <p>
@@ -19,6 +21,10 @@ import etomo.BaseManager;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.7  2005/08/30 18:36:38  sueh
+ * <p> $bug# 532 Changing monitor interface because the combine monitor now
+ * <p> $implements BackgroundComScriptMonitor.
+ * <p> $
  * <p> $Revision 1.6  2005/07/29 00:51:04  sueh
  * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> $because the current manager changes when the user changes the tab.
@@ -49,32 +55,28 @@ import etomo.BaseManager;
  */
 public class BackgroundSystemProgram extends SystemProgram {
   public static final String rcsid = "$$Id$$";
-  
+
   private static final int SLEEP = 100;
-  
-  BackgroundComScriptMonitor monitor = null;
-  
-  /**
-   * 
-   */
-  public BackgroundSystemProgram(BaseManager manager, String command,
-    BackgroundComScriptMonitor monitor) {
-    super(manager.getPropertyUserDir(), command, monitor
-        .getAxisID());
+
+  private final DetachedProcessMonitor monitor;
+
+  public BackgroundSystemProgram(BaseManager manager, String[] command,
+      DetachedProcessMonitor monitor, AxisID axisID) {
+    super(manager.getPropertyUserDir(), command, axisID);
     this.monitor = monitor;
   }
-  
-  public BackgroundSystemProgram(BaseManager manager, String[] command,
-      BackgroundComScriptMonitor monitor) {
-      super(manager.getPropertyUserDir(), command, monitor.getAxisID());
-      this.monitor = monitor;
-    }
+
+  public BackgroundSystemProgram(String propertyUserDir, String[] cmdArray,
+      DetachedProcessMonitor monitor, AxisID axisID) {
+    super(propertyUserDir, cmdArray, axisID);
+    this.monitor = monitor;
+  }
 
   /**
    * use process monitor to wait for a background process to finish
    * 
    */
-  protected void waitForProcess() {
+  protected  void waitForProcess() {
     //wait until process is finished
     try {
       while (monitor.isProcessRunning()) {
@@ -84,7 +86,7 @@ public class BackgroundSystemProgram extends SystemProgram {
     catch (InterruptedException e) {
     }
   }
-  
+
   /**
    * 
    * @param process
@@ -93,9 +95,9 @@ public class BackgroundSystemProgram extends SystemProgram {
   protected int getProcessExitValue(Process process) {
     if (monitor.isProcessRunning()) {
       throw new IllegalStateException(
-        "getExitValue() called while process is running.");
+          "getExitValue() called while process is running.");
     }
-    if (monitor.isSuccessful()) {
+    if (monitor.getProcessEndState() == ProcessEndState.DONE) {
       return 0;
     }
     return 1;
