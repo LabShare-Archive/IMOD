@@ -16,6 +16,10 @@ import etomo.process.ParallelProcessMonitor;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/09/27 23:40:55  sueh
+* <p> bug# 532 Removed some responsibility from ParallelProgressDisplay
+* <p> because AxisProgressPanel is not using this interface anymore.
+* <p>
 * <p> Revision 1.8  2005/09/22 21:28:49  sueh
 * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
 * <p>
@@ -54,13 +58,7 @@ public interface ParallelProgressDisplay {
   public void msgDropped(String computer, String reason);
   public void addSuccess(String computer);
   public void addRestart(String computer);
-  public void msgInterruptingProcess();
-  /*
-  public int getCPUsSelected();
-  public void setPauseEnabled(boolean pauseEnabled);
-  public Container getContainer();
-  public void pack();
-  public void start();
-  public void stop();
-  public Storable getHeader();*/
+  public void msgKillingProcess();
+  public void msgPausingProcess();
+  public void msgStartingProcessOnSelectedComputers();
 }
