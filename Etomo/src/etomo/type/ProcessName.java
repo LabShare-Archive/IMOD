@@ -13,6 +13,9 @@ package etomo.type;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2005/08/31 19:11:41  sueh
+ * <p> $bug# 719 Added startjoin.
+ * <p> $
  * <p> $Revision 1.4  2005/08/25 01:49:04  sueh
  * <p> $bug# 715 added solvematch to ProcessName.
  * <p> $
@@ -55,6 +58,7 @@ public class ProcessName {
   private static final String undistort = "undistort";
   private static final String solvematch = "solvematch";
   private static final String startjoin = "startjoin";
+  private static final String processchunks = "processchunks";
   
   private final String name;
   
@@ -84,6 +88,7 @@ public class ProcessName {
   public static final ProcessName UNDISTORT = new ProcessName(undistort);
   public static final ProcessName SOLVEMATCH = new ProcessName(solvematch);
   public static final ProcessName STARTJOIN = new ProcessName(startjoin);
+  public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks);
   
   /**
    * Returns a string representation of the object.
@@ -164,6 +169,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(startjoin) == 0) {
       return STARTJOIN;
+    }
+    if (name.compareToIgnoreCase(processchunks) == 0) {
+      return PROCESSCHUNKS;
     }
     throw new IllegalArgumentException("name="+name);
   }
