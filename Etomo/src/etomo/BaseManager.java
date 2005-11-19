@@ -464,9 +464,14 @@ public abstract class BaseManager {
    * @param processName
    * @param axisID
    */
-  public void processDone(String threadName, int exitValue,
+  public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState) {
     processDone(threadName, exitValue, processName, axisID, false, endState, null);
+  }
+  public final void processDone(String threadName, int exitValue,
+      ProcessName processName, AxisID axisID, boolean forceNextProcess,
+      ProcessEndState endState) {
+    processDone(threadName, exitValue, processName, axisID, forceNextProcess, endState, null);
   }
   
   /**
@@ -475,7 +480,7 @@ public abstract class BaseManager {
    * @param threadName
    *            The name of the thread that has finished
    */
-  public void processDone(String threadName, int exitValue,
+  public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, String statusString) {
     if (threadName.equals(threadNameA)) {
@@ -667,7 +672,7 @@ public abstract class BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
+      message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
       return;
@@ -700,7 +705,7 @@ public abstract class BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
-      message[0] = "Can not execute " + ProcesschunksParam.COMMAND_NAME;
+      message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
       return;
@@ -730,6 +735,9 @@ public abstract class BaseManager {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.43  2005/11/10 17:52:23  sueh
+* <p> bug# 733 Added manager parameters to ProcesschunksParam constructor.
+* <p>
 * <p> Revision 1.42  2005/11/04 00:52:26  sueh
 * <p> fixed copyright
 * <p>
