@@ -249,9 +249,9 @@ static void imodvSetModelTrans(Imod *imod)
 
   glTranslatef(0.0f, 0.0f, -depthShift);
 
-  vw->rot.x = fmod(vw->rot.x, 360.0);
-  vw->rot.y = fmod(vw->rot.y, 360.0);
-  vw->rot.z = fmod(vw->rot.z, 360.0);
+  vw->rot.x = fmod(vw->rot.x, 360.0f);
+  vw->rot.y = fmod(vw->rot.y, 360.0f);
+  vw->rot.z = fmod(vw->rot.z, 360.0f);
 
   glRotatef(vw->rot.x, 1.0f, 0.0f, 0.0f);
   glRotatef(vw->rot.y, 0.0f, 1.0f, 0.0f); 
@@ -2356,6 +2356,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.25  2005/10/21 23:58:08  mast
+Provide alternate define of GLU_CALLBACK for Mac for gcc 4
+
 Revision 4.24  2005/10/13 20:11:59  mast
 Handled model display correctly when data are read in binned, without
 requiring a change in user-specified Z-scale.
