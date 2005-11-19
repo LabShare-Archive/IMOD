@@ -19,6 +19,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.31  2005/11/02 21:57:21  sueh
+ * bug# 754 Parsing errors and warnings inside ProcessMessages.
+ * Removed errorMessage and warningMessage.  Added processMessages.
+ * Removed functions getErrorMessage, parseError, and parseWarning.
+ * Added functions getProcessMessages, and parse.
+ *
  * Revision 3.30  2005/10/29 00:04:54  sueh
  * bug# 747 Sending error and warning messages to the error log.
  *
@@ -328,7 +334,7 @@ import java.util.ArrayList;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -341,33 +347,32 @@ public class ComScriptProcess
   public static final String rcsid =
     "$Id$";
 
-  protected String name = null;
-  protected File workingDirectory = null;
+  private String comScriptName = null;
+  private File workingDirectory = null;
   private BaseProcessManager processManager;
 
   private boolean demoMode = false;
   private int demoTime = 5000;
-  protected boolean debug = false;
+  private boolean debug = false;
   private SystemProgram vmstocsh;
-  protected SystemProgram csh;
-  protected StringBuffer cshProcessID;
-  protected AxisID axisID;
-  protected String watchedFileName;
-  private Command command = null;
+  private SystemProgram csh;
+  private StringBuffer cshProcessID;
+  private AxisID axisID;
+  private String watchedFileName;
+  private ProcessDetails processDetails = null;
 
   private boolean started = false;
-  private boolean done = false;
   private boolean error = false;
-  protected final ProcessMonitor processMonitor;
+  private final ProcessMonitor processMonitor;
   private ProcessEndState endState = null;//used when processMonitor is null
-  protected final BaseManager manager;
-  protected final ProcessMessages processMessages = new ProcessMessages();
+  private final BaseManager manager;
+  private final ProcessMessages processMessages = ProcessMessages.getInstance();
 
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor) {
     this.manager = manager;
-    this.name = comScript;
+    this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
@@ -375,16 +380,16 @@ public class ComScriptProcess
     this.processMonitor = processMonitor;
   }
 
-  public ComScriptProcess(BaseManager manager, Command comScriptCommand,
+  public ComScriptProcess(BaseManager manager, ProcessDetails processDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor) {
     this.manager = manager;
-    this.name = comScriptCommand.getCommandLine();
+    this.comScriptName = processDetails.getCommandLine();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
-    command = comScriptCommand;
+    this.processDetails = processDetails;
     this.processMonitor = processMonitor;
   }
 
@@ -416,7 +421,7 @@ public class ComScriptProcess
     else {
       if (isComScriptBusy()) {
         error = true;
-        processMessages.addError(name + " is already running");
+        processMessages.addError(comScriptName + " is already running");
         processManager.msgComScriptDone(this, 1);
         return;
       }
@@ -463,12 +468,11 @@ public class ComScriptProcess
     // Send a message back to the ProcessManager that this thread is done.
     //  FIXME this modifies swing element within this thread!!!
     processManager.msgComScriptDone(this, csh.getExitValue());
-    done = true;
   }
   
   protected boolean renameFiles() {
     try {
-      renameFiles(name, watchedFileName, workingDirectory);
+      renameFiles(comScriptName, watchedFileName, workingDirectory);
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -492,20 +496,13 @@ public class ComScriptProcess
       Utilities.renameFile(watchedFile, oldWatchedFile);
     }
   }
-
-  /**
-   * Get the name of the com script
-   */
-  public String getScriptName() {
-    return name;
-  }
   
-  public Command getCommand() {
-    return command;
+  public ProcessDetails getProcessDetails() {
+    return processDetails;
   }
 
   public ProcessName getProcessName() {
-    return ProcessName.fromFileName(name, axisID, ".com");
+    return ProcessName.fromFileName(comScriptName, axisID, ".com");
   }
 
   public AxisID getAxisID() {
@@ -529,22 +526,6 @@ public class ComScriptProcess
     else {
       return null;
     }
-  }
-  
-  /**
-   * Get the standard output while the process is running
-   * getStdOutput() is already doing this
-   */
-  public String[] getCurrentStdOutput() {
-    return getStdOutput();
-  }
-  
-  /**
-   * Get the standard error while the process is running
-   * getStdError() is already doing this
-   */
-  public String[] getCurrentStdError() {
-    return getStdError();
   }
 
   /**
@@ -633,7 +614,7 @@ public class ComScriptProcess
     // called, need to pump the com file directly into the stdin of vmstocsh
     String[] comSequence = loadFile();
     String commandLine = ApplicationManager.getIMODBinPath() + "vmstocsh "
-        + parseBaseName(name, ".com") + ".log";
+        + parseBaseName(comScriptName, ".com") + ".log";
     vmstocsh = new SystemProgram(manager.getPropertyUserDir(), commandLine,
         axisID);
     vmstocsh.setWorkingDirectory(workingDirectory);
@@ -642,7 +623,7 @@ public class ComScriptProcess
     vmstocsh.run();
 
     if (vmstocsh.getExitValue() != 0) {
-      processMessages.addError("Running vmstocsh against " + name + " failed");
+      processMessages.addError("Running vmstocsh against " + comScriptName + " failed");
       throw new SystemProcessException("");
     }
 
@@ -650,7 +631,7 @@ public class ComScriptProcess
   }
   
   String getComScriptName() {
-    return name;
+    return comScriptName;
   }
 
   /**
@@ -663,7 +644,7 @@ public class ComScriptProcess
     //  Open the file as a stream
     InputStream fileStream = new FileInputStream(workingDirectory
       .getAbsolutePath()
-        + "/" + name);
+        + "/" + comScriptName);
 
     BufferedReader fileReader = new BufferedReader(new InputStreamReader(
       fileStream));
@@ -682,7 +663,7 @@ public class ComScriptProcess
    * @throws IOException
    */
   protected void parse() throws FileNotFoundException {
-    parse(name, true);
+    parse(comScriptName, true);
   }
   
   /**
@@ -719,15 +700,6 @@ public class ComScriptProcess
    */
   public boolean isError() {
     return error;
-  }
-
-
-  /**
-   * Returns true if the com script process has completed and the process
-   * manager has been notifified.
-   */
-  public boolean isDone() {
-    return done;
   }
 
   /**
@@ -771,6 +743,7 @@ public class ComScriptProcess
    * nothing to do
    */
   public void notifyKilled() {
+    setProcessEndState(ProcessEndState.KILLED);
   }
   
   public final void setProcessEndState(ProcessEndState endState) {
@@ -789,7 +762,7 @@ public class ComScriptProcess
     return processMonitor.getProcessEndState();
   }
   
-  public void kill(AxisID axisID) {
+  public final void kill(AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
   
@@ -801,11 +774,19 @@ public class ComScriptProcess
     processManager.signalKill(this, axisID);
   }
   
-  public void signalInterrupt(AxisID axisID) {
-    throw new IllegalStateException("signalInterrupt is not used by any ComScriptProcess");
+  protected final ProcessMonitor getMonitor() {
+    return processMonitor;
   }
   
-  public void setCurrentStdInput(String input) {
-    throw new IllegalStateException("no ComScriptProcess writes to standard input while the process is running");
+  protected final File getWorkingDirectory() {
+    return workingDirectory;
+  }
+  
+  protected final String getWatchedFileName() {
+    return watchedFileName;
+  }
+  
+  protected final void setSystemProgram(SystemProgram systemProgram) {
+    csh = systemProgram;
   }
 }
