@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/07/24 16:47:25  mast
+c	  Added ability to escape $ at start of non-command line
+c	
 c	  Revision 3.4  2004/06/29 03:30:48  mast
 c	  Fixed path-setting command, added nohup at front
 c	
@@ -48,7 +51,7 @@ c	  logfile=' | cat  > '//logfile(1:lenlog)
 	endif
 
 	write(6,101)'if ($?IMOD_DIR) then'
-	write(6,101)'    set path = ($IMOD_DIR/bin $path)'
+	write(6,101)'    setenv PATH "$IMOD_DIR/bin:$PATH"'
 	write(6,101)'endif'
 	write(6,101)'echo2 Shell PID: $$'
 
