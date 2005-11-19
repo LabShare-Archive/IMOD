@@ -12,11 +12,15 @@ package etomo.process;
 * 
 * @version $Revision$
 */
-public interface ParallelProcessMonitor extends BackgroundProcessMonitor {
+public interface ParallelProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   public void drop(String computer);
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/08/30 18:46:06  sueh
+* <p> bug# 532 Interface for ProcesschunksProcessMonitor.  Allows another
+* <p> class to tell monitor to drop a computer.
+* <p> </p>
 */
