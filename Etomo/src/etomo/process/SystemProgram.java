@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2005/11/10 18:06:58  sueh
+ * <p> bug# 758 Correcting a line that prints in the error log.  propertyUserDir
+ * <p> may not always be the same as user.dir.
+ * <p>
  * <p> Revision 3.28  2005/11/02 22:13:01  sueh
  * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
  * <p> Removed errorList, infoList, multiLineMessages, and warningList.  Added
@@ -275,14 +279,14 @@ public class SystemProgram implements Runnable {
   public SystemProgram(String propertyUserDir, String command, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = new ProcessMessages();
+    processMessages = ProcessMessages.getInstance();
     commandArray = command.split("\\s+");
   }
   
   public SystemProgram(String propertyUserDir, String command, AxisID axisID, boolean multiLineMessages) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = new ProcessMessages(multiLineMessages);
+    processMessages = ProcessMessages.getMultiLineInstance();
     commandArray = command.split("\\s+");
   }
 
@@ -296,7 +300,7 @@ public class SystemProgram implements Runnable {
   public SystemProgram(String propertyUserDir, String[] cmdArray, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = new ProcessMessages();
+    processMessages = ProcessMessages.getInstance();
     commandArray = cmdArray;
   }
 
@@ -317,7 +321,7 @@ public class SystemProgram implements Runnable {
       String[] programInput, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = new ProcessMessages();
+    processMessages = ProcessMessages.getInstance();
 		commandArray = command.split("\\s+");
     stdInput = programInput;
   }
