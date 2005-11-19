@@ -28,8 +28,28 @@ if ($compiler == intel) then
     set inc_dir = `cygpath --mixed $inc_dir`
     set rgbprogs = 
     set ldfflags = "/C90 /4Yportlib"
+    set fortcomp = ifl
+    set delayload = gibberish
+    
+    # Get the version from icl, assuming we have matched c++/fortran compilers
+    #
+    icl >&! icl.tmp
+    set iclnum = `sed -n '/Version/s/.*Version \([0-9]*\).*/\1/p' icl.tmp`
+    \rm -f icl.tmp
+    @ iclversion = 7
+    if ("$iclnum" != "") @ iclversion = $iclnum
+
+    # version 8 and above: remove /C90, set record length to 4 bytes
+    # The delayload may be a temporary bug in the 9.0 that was tested 11/18/05
+    if ($iclversion > 7) then
+        set fortcomp = ifort
+        set ldfflags = "/4Yportlib"
+        if ($iclversion == 9) set delayload = "DELAYLOAD"
+        echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+    endif
+    
 cat << EOF >> $configure
-LDFLAGS = /nologo /MD -link -LIBPATH"$cyg_lib" /NODEFAULTLIB:libc.lib
+LDFLAGS = /nologo /MD -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:libc.lib
 .SUFFIXES: .cpp .obj .f .c
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$<
@@ -56,7 +76,7 @@ endif
 if ($compiler == intel) then
     echo "CC        = icl"              >> $configure
     echo "CXX       = icl"              >> $configure
-    echo "FC        = ifl"              >> $configure
+    echo "FC        = $fortcomp"              >> $configure
    # set usfftdir = $source_dir/USFFTlib/pc-intel
     echo '#define F77FUNCAP' >> $hconfigure
 else
@@ -276,6 +296,7 @@ while ($i < 5)
         -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
         -e '/.SUFFIXES.*$/s//.SUFFIXES: .c .cpp .obj/'  \
         -e "/^C.*FLAGS[ 	]*=/s/-Od/$qopt/" \
+        -e "/\/${delayload}[^ ]*/s///g" \
         -e '/^install/a\	/usr/bin/cp \$(TARGET) '"$inst_bin_dir" \
         -e '/QMAKE.*Makefile/d' \
         < $qdir[$i]/makefile.tmp >! $qdir[$i]/Makefile
@@ -348,10 +369,16 @@ EOF
 
     # Output variables for libraries to copy to bin
     #
-    echo 'DLLSOURCEDIR1 = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
-    echo 'DLLSTOCOPY1 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
-    echo 'DLLSOURCEDIR2 = C:/Program Files/GnuWin32/bin' >> $configure
-    echo 'DLLSTOCOPY2 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
+    echo 'DLLSOURCEDIR1 = C:/Program Files/GnuWin32/bin' >> $configure
+    echo 'DLLSTOCOPY1 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
+    if ($iclversion == 7) then
+        echo 'DLLSOURCEDIR2 = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
+        echo 'DLLSTOCOPY2 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
+    else
+        set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
+        echo "DLLSOURCEDIR2 = $fortbin" >> $configure
+        echo 'DLLSTOCOPY2 = libifcoremd.dll libifportmd.dll libmmd.dll' >> $configure
+    endif
 
     # Build imodwincpu
     #
