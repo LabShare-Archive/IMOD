@@ -94,9 +94,26 @@ public class XcorrProcessWatcher implements ProcessMonitor {
     endState = ProcessEndState.KILLED;
     process.signalKill(axisID);
   }
+  
+  public ProcessMessages getProcessMessages() {
+    return null;
+  }
+  
+  public String getStatusString() {
+    return null;
+  }
+  
+  public void pause(SystemProcessInterface process, AxisID axisID) {
+    throw new IllegalStateException("pause illegal in this monitor");
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.14  2005/08/30 18:53:21  sueh
+ * <p> bug# 532 Removed functions that only belong to
+ * <p> BackgroundProcessMonitor:  getErrorMessage, getStatusString, pause,
+ * <p> and setProcess.
+ * <p>
  * <p> Revision 3.13  2005/08/27 22:33:52  sueh
  * <p> bug# 532 Add an empty getErrorMessage() to implement ProcessMonitor.
  * <p> This is used by ProcesschunksProcessMonitor.
