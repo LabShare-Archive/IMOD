@@ -1,13 +1,14 @@
 package etomo.process;
 
 import java.io.File;
-import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.ui.UIHarness;
+
 /**
  * <p>Description: </p>
  * 
@@ -21,6 +22,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2005/10/27 00:24:37  sueh
+ * <p> bug# 725 Added another constructor which passes forceNextProcess.
+ * <p>
  * <p> Revision 3.18  2005/10/21 19:54:53  sueh
  * <p> bug# 742 Added getCurrentStdError().
  * <p>
@@ -167,12 +171,9 @@ import etomo.type.ProcessEndState;
  * <p>
  * <p> </p>
  */
-public class BackgroundProcess
-  extends Thread
-  implements SystemProcessInterface {
-    
-  public static final String rcsid =
-    "$Id$";
+public class BackgroundProcess extends Thread implements SystemProcessInterface {
+
+  public static final String rcsid = "$Id$";
   private String commandLine = null;
   private String[] commandArray = null;
   private File workingDirectory = null;
@@ -184,20 +185,18 @@ public class BackgroundProcess
   private StringBuffer commandProcessID;
   private File outputFile = null;
   private Command command = null;
+  private ProcessDetails processDetails = null;
   private AxisID axisID;
   private boolean forceNextProcess = false;
-  
+
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
 
   private boolean started = false;
-  private boolean done = false;
   private ProcessEndState endState = null;
   private final BaseManager manager;
   private SystemProgram program = null;
-  private BackgroundProcessMonitor monitor = null;
-  private boolean acceptInputWhileRunning = false;
-  
+
   public BackgroundProcess(BaseManager manager, String commandLine,
       BaseProcessManager processManager, AxisID axisID) {
     this.manager = manager;
@@ -207,22 +206,24 @@ public class BackgroundProcess
     commandProcessID = new StringBuffer("");
   }
 
-  public BackgroundProcess(BaseManager manager, Command command,
+  public BackgroundProcess(BaseManager manager, ProcessDetails processDetails,
       BaseProcessManager processManager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.command = command;
+    this.processDetails = processDetails;
+    this.command = processDetails;
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
 
-  public BackgroundProcess(BaseManager manager, Command command,
+  public BackgroundProcess(BaseManager manager, ProcessDetails processDetails,
       BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
     this.manager = manager;
     this.axisID = axisID;
-    this.command = command;
+    this.processDetails = processDetails;
+    this.command = processDetails;
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
@@ -238,7 +239,18 @@ public class BackgroundProcess
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
-  
+
+  public BackgroundProcess(BaseManager manager, Command command,
+      BaseProcessManager processManager, AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.command = command;
+    this.commandArray = command.getCommandArray();
+    this.commandLine = command.getCommandLine().trim();
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+
   public BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
     this.manager = manager;
@@ -248,18 +260,8 @@ public class BackgroundProcess
     this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
   }
-  
-  public BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, BackgroundProcessMonitor monitor) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.commandArray = commandArray;
-    this.processManager = processManager;
-    this.monitor = monitor;
-    commandProcessID = new StringBuffer("");
-  }
-  
-  public AxisID getAxisID() {
+
+  public final AxisID getAxisID() {
     return axisID;
   }
 
@@ -267,7 +269,7 @@ public class BackgroundProcess
    * Returns the demoMode.
    * @return boolean
    */
-  public boolean isDemoMode() {
+  public final boolean isDemoMode() {
     return demoMode;
   }
 
@@ -275,11 +277,11 @@ public class BackgroundProcess
    * Returns the enableDebug.
    * @return boolean
    */
-  public boolean isDebug() {
+  public final boolean isDebug() {
     return debug;
   }
-  
-  boolean isForceNextProcess() {
+
+  final boolean isForceNextProcess() {
     return forceNextProcess;
   }
 
@@ -287,7 +289,7 @@ public class BackgroundProcess
    * Returns the workingDirectory.
    * @return File
    */
-  public File getWorkingDirectory() {
+  public final File getWorkingDirectory() {
     return workingDirectory;
   }
 
@@ -295,7 +297,7 @@ public class BackgroundProcess
    * Returns the full command line.
    * @return File
    */
-  public String getCommandLine() {
+  public final String getCommandLine() {
     if (commandLine != null) {
       return commandLine;
     }
@@ -311,16 +313,16 @@ public class BackgroundProcess
     }
     return null;
   }
-  
-  public Command getCommand() {
-    return command;
+
+  public final ProcessDetails getProcessDetails() {
+    return processDetails;
   }
 
   /**
    * Returns command name of the process
    * @return File
    */
-  public String getCommandName() {
+  public final String getCommandName() {
     if (command != null) {
       return command.getCommandName();
     }
@@ -333,10 +335,11 @@ public class BackgroundProcess
     }
     return null;
   }
+
   /**
    * Set the working directory in which the com script is to be run.
    */
-  public void setWorkingDirectory(File workingDirectory) {
+  public final void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
 
@@ -344,26 +347,18 @@ public class BackgroundProcess
    * Sets the demoMode.
    * @param demoMode The demoMode to set
    */
-  public void setDemoMode(boolean demoMode) {
+  public final void setDemoMode(boolean demoMode) {
     this.demoMode = demoMode;
   }
 
   /**
-   * Sets the enableDebug.
-   * @param enableDebug The enableDebug to set
+   * @param debug
    */
-  public void setDebug(boolean debug) {
+  public final void setDebug(boolean debug) {
     this.debug = debug;
   }
 
-  /**
-   * Execute the command and notify the ProcessManager when it is done
-   */
-  public void run() {
-    if (monitor != null) {
-      monitor.setProcess(this);
-    }
-    started = true;
+  protected boolean newProgram() {
     if (commandArray != null) {
       program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
           axisID);
@@ -377,10 +372,24 @@ public class BackgroundProcess
           axisID);
     }
     else {
-      processManager.msgBackgroundProcessDone(this, 1);
+      processDone(1);
+      return false;
+    }
+    return true;
+  }
+
+  String getStatusString() {
+    return null;
+  }
+
+  /**
+   * Execute the command and notify the ProcessManager when it is done
+   */
+  public final void run() {
+    started = true;
+    if (!newProgram()) {
       return;
     }
-    program.setAcceptInputWhileRunning(acceptInputWhileRunning);
     program.setWorkingDirectory(workingDirectory);
     program.setDebug(debug);
 
@@ -407,22 +416,82 @@ public class BackgroundProcess
     stdOutput = program.getStdOutput();
 
     // Send a message back to the ProcessManager that this thread is done.
-    processManager.msgBackgroundProcessDone(this, program.getExitValue());
-    done = true;
+    processDone(getProgram().getExitValue());
   }
-  
-  final String getMonitorErrorMessage() {
-    if (monitor == null) {
-      return null;
+
+  protected final void processDone(int exitValue) {
+    ProcessMessages processMessages = getProcessMessages();
+    ProcessMessages monitorMessages = getMonitorMessages();
+    //  Check to see if the exit value is non-zero
+    ProcessEndState endState = getProcessEndState();
+    boolean errorFound = false;
+    if (exitValue == 0) {
+      //treate any error message as a failure
+      //popup error messages from the process
+      if (processMessages.isError()) {
+        errorFound = true;
+        UIHarness.INSTANCE.openErrorMessageDialog(processMessages,
+            "Process Error", axisID);
+      }
+      //popup error messages from the monitor
+      if (monitorMessages != null && monitorMessages.isError()) {
+        errorFound = true;
+        UIHarness.INSTANCE.openErrorMessageDialog(monitorMessages,
+            "Process Monitor Error", axisID);
+      }
     }
-    return monitor.getErrorMessage();
+    else if (endState != ProcessEndState.KILLED
+        && endState != ProcessEndState.PAUSED) {
+      errorFound = true;
+      ProcessMessages errorMessage = ProcessMessages.getInstance();
+      //add the stderr
+      errorMessage.addError("<html>Command failed: " + getCommandLine());
+      if (stdError != null && stdError.length > 0) {
+        errorMessage.addError();
+        errorMessage.addError("<html><U>Standard error output:</U>");
+        errorMessage.addError(stdError);
+      }
+      //add the last chunk error
+      if (monitorMessages != null) {
+        String chunkErrorMessage = monitorMessages.getLastChunkError();
+        if (chunkErrorMessage != null) {
+          errorMessage.addError();
+          errorMessage.addError("<html><U>Last chunk error:</U>");
+          errorMessage.addError(chunkErrorMessage);
+        }
+        //add any monitor error messages
+        if (monitorMessages.isError()) {
+          errorMessage.addError();
+          errorMessage.addError("<html><U>Monitor error messages:</U>");
+          errorMessage.addError(monitorMessages);
+        }
+      }
+      //make sure script knows about failure
+      setProcessEndState(ProcessEndState.FAILED);
+      //popup error messages
+      UIHarness.INSTANCE.openErrorMessageDialog(errorMessage, getCommandName()
+          + " terminated", axisID);
+    }
+    processManager.msgProcessDone(this, exitValue, errorFound);
+  }
+
+  private final ProcessMessages getProcessMessages() {
+    return program.getProcessMessages();
+  }
+
+  protected ProcessMessages getMonitorMessages() {
+    return null;
+  }
+
+  protected final SystemProgram getProgram() {
+    return program;
   }
 
   /**
    * Returns the stdError.
    * @return String[]
    */
-  public String[] getStdError() {
+  public final String[] getStdError() {
     return stdError;
   }
 
@@ -430,115 +499,57 @@ public class BackgroundProcess
    * Returns the stdOutput.
    * @return String[]
    */
-  public String[] getStdOutput() {
+  public final String[] getStdOutput() {
     return stdOutput;
   }
-  
-  public String[] getCurrentStdOutput() {
-    if (program == null) {
-      return null;
-    }
-    return program.getStdOutput();
-  }
-  
-  public String[] getCurrentStdError() {
-    if (program == null) {
-      return null;
-    }
-    return program.getStdError();
-  }
-  
-  public boolean isStarted() {
-    return started;    
+
+  public final boolean isStarted() {
+    return started;
   }
 
-  public boolean isDone() {
-    return done;
-  }
-    
   /**
    * Get the shell process ID if it is available
    * @return
    */
-  public String getShellProcessID() {
+  public final String getShellProcessID() {
     if (commandProcessID == null) {
       return "";
     }
     return commandProcessID.toString();
   }
-  
+
   /**
    * nothing to do
    */
-  public void notifyKilled() {
+  public final void notifyKilled() {
+    setProcessEndState(ProcessEndState.KILLED);
   }
-  
+
   /**
    * set end state
    * @param endState
    */
-  public synchronized final void setProcessEndState(ProcessEndState endState) {
+  public synchronized void setProcessEndState(ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
-    if (monitor != null) {
-      monitor.setProcessEndState(endState);
-    }
   }
-  
-  final ProcessEndState getProcessEndState() {
-    if (monitor == null) {
-      return endState;
-    }
-    return monitor.getProcessEndState();
+
+  ProcessEndState getProcessEndState() {
+    return endState;
   }
-  
+
   public void kill(AxisID axisID) {
-    if (monitor != null) {
-      monitor.kill(this, axisID);
-    }
-    else {
-      processManager.signalKill(this, axisID);
-    }
+    processManager.signalKill(this, axisID);
   }
-  
+
   public void pause(AxisID axisID) {
-    if (monitor != null) {
-      monitor.pause(this, axisID);
-    }
-    else {
-      throw new IllegalStateException("pause is only used by processchunks, which must set a monitor");
-    }
+    throw new IllegalStateException("pause is not valid in BackgroundProcess");
   }
-  
+
   public void signalKill(AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
-  
-  public void signalInterrupt(AxisID axisID) {
-    processManager.signalInterrupt(this, axisID);
-  }
-  
-  public void setCurrentStdInput(String input) {
-    if (EtomoDirector.getInstance().isDebug()) {
-      System.err.println(input);
-    }
-    try {
-      if (program != null) {
-        program.setCurrentStdInput(input);
-      }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-  
-  void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
-    this.acceptInputWhileRunning = acceptInputWhileRunning;
-  }
-  
-  String getStatusString() {
-    if (monitor == null) {
-      return null;
-    }
-    return monitor.getStatusString();
+
+  protected final void setProgram(SystemProgram program) {
+    this.program = program;
   }
 }
