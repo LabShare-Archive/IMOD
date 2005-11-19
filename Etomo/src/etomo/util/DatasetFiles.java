@@ -25,43 +25,46 @@ public final class DatasetFiles {
 
   private static final String TOMO_EXT = ".rec";
   private static final String STACK_EXT = ".st";
-  
+
   //Stacks
-  
+
   public final static File getOriginalStack(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), metaData.getName()
         + axisID.getExtension() + "_orig" + STACK_EXT);
   }
-  
+
   public final static File getStack(BaseManager manager, AxisID axisID) {
-    return getStack(manager.getPropertyUserDir(), manager.getBaseMetaData(), axisID);
+    return getStack(manager.getPropertyUserDir(), manager.getBaseMetaData(),
+        axisID);
   }
-  
+
   public final static File getStack(String propertyUserDir,
       BaseMetaData metaData, AxisID axisID) {
     return new File(propertyUserDir, getStackName(metaData, axisID));
   }
-  
+
   public final static String getStackName(BaseManager manager, AxisID axisID) {
     return getStackName(manager.getBaseMetaData(), axisID);
   }
-  
+
   private final static String getStackName(BaseMetaData metaData, AxisID axisID) {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + STACK_EXT;
   }
 
   //Tomograms
-  
+
   public final static File getTomogram(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     if (axisID == AxisID.ONLY) {
-      return new File(manager.getPropertyUserDir(), metaData.getName() + "_full" + TOMO_EXT);
+      return new File(manager.getPropertyUserDir(), metaData.getName()
+          + "_full" + TOMO_EXT);
     }
-    return new File(manager.getPropertyUserDir(), metaData.getName() + axisID.getExtension() + TOMO_EXT);
+    return new File(manager.getPropertyUserDir(), metaData.getName()
+        + axisID.getExtension() + TOMO_EXT);
   }
 
   public final static File getCombinedTomogram(BaseManager manager) {
@@ -70,47 +73,53 @@ public final class DatasetFiles {
     }
     return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT);
   }
-  
+
   public final static File getTrimmedTomogram(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), metaData.getName() + axisID.getExtension() + TOMO_EXT);
+    return new File(manager.getPropertyUserDir(), metaData.getName()
+        + axisID.getExtension() + TOMO_EXT);
   }
-  
+
   //Other dataset files
-    
+
   public final static File getRawTilt(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getRawTiltName(manager, axisID));
+    return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
+        axisID));
   }
-  
+
   public final static String getRawTiltName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
-  
+
   public final static File getPieceListFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getPieceListFileName(manager, axisID));
+    return new File(manager.getPropertyUserDir(), getPieceListFileName(manager,
+        axisID));
   }
-  
-  public final static String getPieceListFileName(BaseManager manager, AxisID axisID) {
+
+  public final static String getPieceListFileName(BaseManager manager,
+      AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".pl";
   }
-  
+
   public final static File getMagGradient(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getMagGradientName(manager, axisID));
+    return new File(manager.getPropertyUserDir(), getMagGradientName(manager,
+        axisID));
   }
-  
-  public final static String getMagGradientName(BaseManager manager, AxisID axisID) {
+
+  public final static String getMagGradientName(BaseManager manager,
+      AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".maggrad";
   }
-  
+
   //other etomo files
-  
+
   public final static File getCommandsFile(BaseManager manager, String rootName) {
     return new File(manager.getPropertyUserDir(), getCommandsFileName(rootName));
   }
@@ -118,17 +127,31 @@ public final class DatasetFiles {
   public final static String getCommandsFileName(String rootName) {
     return rootName + ".cmds";
   }
-  
+
   public final static File getAutodoc(File dir, String name) {
     return new File(dir, getAutodocName(name));
   }
-  
+
   final static String getAutodocName(String name) {
     return name + ".adoc";
   }
-  
+
+  public final static File getShellScript(BaseManager manager,
+      String commandName, AxisID axisID) {
+    axisID = correctAxisID(manager.getBaseMetaData(), axisID);
+    return new File(manager.getPropertyUserDir(), commandName
+        + axisID.getExtension() + ".csh");
+  }
+
+  public final static File getOutFile(BaseManager manager, String commandName,
+      AxisID axisID) {
+    axisID = correctAxisID(manager.getBaseMetaData(), axisID);
+    return new File(manager.getPropertyUserDir(), commandName
+        + axisID.getExtension() + ".out");
+  }
+
   //private
-  
+
   private final static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
     AxisType axisType = metaData.getAxisType();
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
@@ -146,6 +169,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/11/10 18:17:38  sueh
+ * <p> bug# 733 Added getAutodoc and getAutodocName
+ * <p>
  * <p> Revision 1.5  2005/10/27 00:37:37  sueh
  * <p> bug# 725 Added functions:  private correctAxisID, getMagGradientName,
  * <p> getPieceListFile, getPieceListFileName, getRawTilt, getRawTiltName,
