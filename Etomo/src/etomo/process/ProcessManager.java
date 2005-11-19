@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.86  2005/11/02 21:58:17  sueh
+ * bug# 754 Parsing errors and warnings inside ProcessMessages.
+ *
  * Revision 3.85  2005/10/28 21:46:05  sueh
  * bug# 725 setComScripts() do not fail on error messages if exitValue is 0.
  * This means that copytomocoms succeeded but a process it called printed
@@ -733,7 +736,7 @@ import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CombineComscriptState;
-import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
@@ -1653,16 +1656,16 @@ public class ProcessManager extends BaseProcessManager {
   protected void postProcess(ComScriptProcess script) {
     // Script specific post processing
     ProcessName processName = script.getProcessName();
-    Command command = script.getCommand();
+    ProcessDetails processDetails = script.getProcessDetails();
     TomogramState state = appManager.getState();
     AxisID axisID = script.getAxisID();
     if (processName == ProcessName.ALIGN) {
       generateAlignLogs(axisID);
       copyFiducialAlignFiles(axisID);
-      if (command != null) {
-        state.setMadeZFactors(axisID, command
+      if (processDetails != null) {
+        state.setMadeZFactors(axisID, processDetails
             .getBooleanValue(TiltalignParam.GET_USE_OUTPUT_Z_FACTOR_FILE));
-        state.setUsedLocalAlignments(axisID, command
+        state.setUsedLocalAlignments(axisID, processDetails
             .getBooleanValue(TiltalignParam.GET_LOCAL_ALIGNMENTS));
         appManager.setEnabledTiltParameters(script.getAxisID());
       }
@@ -1671,10 +1674,10 @@ public class ProcessManager extends BaseProcessManager {
       appManager.openTomopitchLog(script.getAxisID());
     }
     else if (processName == ProcessName.NEWST) {
-      if (command != null
-          && command.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
+      if (processDetails != null
+          && processDetails.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
         appManager.getState().setNewstFiducialessAlignment(axisID,
-            command.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
+            processDetails.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
         appManager.setEnabledTiltParameters(script.getAxisID());
       }
     }
@@ -1682,29 +1685,29 @@ public class ProcessManager extends BaseProcessManager {
       appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
     }
     else if (processName == ProcessName.XCORR) {
-      setInvalidEdgeFunctions(script.getCommand(), true);
+      setInvalidEdgeFunctions(script.getProcessDetails(), true);
     }
     else if (processName == ProcessName.PREBLEND) {
-      setInvalidEdgeFunctions(script.getCommand(), true);
+      setInvalidEdgeFunctions(script.getProcessDetails(), true);
     }
   }
 
   protected void errorProcess(ComScriptProcess script) {
     ProcessName processName = script.getProcessName();
     if (processName == ProcessName.XCORR) {
-      setInvalidEdgeFunctions(script.getCommand(), false);
+      setInvalidEdgeFunctions(script.getProcessDetails(), false);
     }
     else if (processName == ProcessName.PREBLEND) {
-      setInvalidEdgeFunctions(script.getCommand(), false);
+      setInvalidEdgeFunctions(script.getProcessDetails(), false);
     }
   }
 
-  private void setInvalidEdgeFunctions(Command command, boolean succeeded) {
+  private void setInvalidEdgeFunctions(ProcessDetails processDetails, boolean succeeded) {
     if (appManager.getConstMetaData().getViewType() == ViewType.MONTAGE
-        && command.getCommandName().equals(BlendmontParam.COMMAND_NAME)
-        && (command.getCommandMode() == BlendmontParam.XCORR_MODE || command
+        && processDetails.getCommandName().equals(BlendmontParam.COMMAND_NAME)
+        && (processDetails.getCommandMode() == BlendmontParam.XCORR_MODE || processDetails
             .getCommandMode() == BlendmontParam.PREBLEND_MODE)) {
-      appManager.getState().setInvalidEdgeFunctions(command.getAxisID(),
+      appManager.getState().setInvalidEdgeFunctions(processDetails.getAxisID(),
           !succeeded);
     }
   }
@@ -1718,20 +1721,20 @@ public class ProcessManager extends BaseProcessManager {
       if (commandName == null) {
         return;
       }
-      Command command = process.getCommand();
-      if (command == null) {
+      ProcessDetails processDetails = process.getProcessDetails();
+      if (processDetails == null) {
         return;
       }
       if (commandName.equals(TrimvolParam.getName())) {
         appManager.getState().setTrimvolFlipped(
-            command.getBooleanValue(TrimvolParam.GET_SWAPYZ));
+            processDetails.getBooleanValue(TrimvolParam.GET_SWAPYZ));
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
         appManager.getState().setSqueezevolFlipped(
-            command.getBooleanValue(SqueezevolParam.GET_FLIPPED));
+            processDetails.getBooleanValue(SqueezevolParam.GET_FLIPPED));
       }
       else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
-        appManager.deleteOriginalStack(command, process.getStdOutput());
+        appManager.deleteOriginalStack(processDetails, process.getStdOutput());
       }
     }
   }
