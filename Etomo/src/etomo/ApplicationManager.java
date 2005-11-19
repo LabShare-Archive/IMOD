@@ -15,7 +15,7 @@ import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
-import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
@@ -33,7 +33,6 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
@@ -842,7 +841,7 @@ public class ApplicationManager extends BaseManager {
     }
   }
 
-  public void deleteOriginalStack(Command archiveorigParam, String[] output) {
+  public void deleteOriginalStack(ProcessDetails archiveorigParam, String[] output) {
     AxisID axisID;
     int mode = archiveorigParam.getCommandMode();
     if (mode == ArchiveorigParam.AXIS_A_MODE) {
@@ -5899,7 +5898,7 @@ public class ApplicationManager extends BaseManager {
   }
   
   private final String getNextProcessProcesschunksString(ProcessName processName) {
-    return ProcesschunksParam.COMMAND_NAME + " " + processName;
+    return ProcessName.PROCESSCHUNKS + " " + processName;
   }
   
   public final void processchunksTilt(AxisID axisID) {
@@ -5964,6 +5963,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.197  2005/11/10 17:49:52  sueh
+ * <p> Constructor should not be public
+ * <p>
  * <p> Revision 3.196  2005/11/04 00:52:14  sueh
  * <p> fixed copyright
  * <p>
