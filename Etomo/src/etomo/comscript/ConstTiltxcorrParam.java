@@ -22,6 +22,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/11/14 21:19:20  sueh
+ * <p> removed extra ;'s.
+ * <p>
  * <p> Revision 3.10  2005/08/24 22:33:18  sueh
  * <p> bug# 715 Implemented Command to allow param to be checked in
  * <p> postProcess() and errorProcess().
@@ -74,7 +77,7 @@ import etomo.type.TiltAngleSpec;
  * <p> </p>
  */
 
-public class ConstTiltxcorrParam implements ConstCommandParam, Command {
+public class ConstTiltxcorrParam implements ConstCommandParam, ProcessDetails {
   public static final String rcsid =
     "$Id$";
 

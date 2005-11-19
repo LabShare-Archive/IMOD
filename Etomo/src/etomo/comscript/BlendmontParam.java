@@ -24,7 +24,7 @@ import etomo.type.ScriptParameter;
  * 
  * @version $Revision$
  */
-public class BlendmontParam implements CommandParam, Command {
+public class BlendmontParam implements CommandParam, ProcessDetails {
   public static final String rcsid = "$Id$";
 
   public static final String GOTO_LABEL = "doblend";
@@ -274,6 +274,9 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2005/11/03 00:49:07  sueh
+ * <p> bug# 740 Added getImageOutputFile().
+ * <p>
  * <p> Revision 1.14  2005/09/01 17:45:12  sueh
  * <p> bug# 688 putting temporary prints (for finding cause of undistort
  * <p> parameters being set in xcorr) into the error log

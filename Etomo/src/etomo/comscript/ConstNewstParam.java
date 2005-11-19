@@ -20,6 +20,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/09/02 18:55:55  sueh
+ * <p> bug# 721 Adding magGradientFile.
+ * <p>
  * <p> Revision 3.8  2005/08/25 01:47:18  sueh
  * <p> bug# 716 preventing index error in getOutputFile()
  * <p>
@@ -86,7 +89,7 @@ import etomo.type.EtomoNumber;
  * <p> </p>
  */
 
-public class ConstNewstParam implements Command {
+public class ConstNewstParam implements ProcessDetails {
   public static final String rcsid = 
   "$Id$";
   

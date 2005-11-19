@@ -23,6 +23,11 @@ import etomo.type.ScriptParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/07/29 00:50:29  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.9  2005/04/25 20:41:52  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -90,7 +95,7 @@ import etomo.type.ScriptParameter;
 * <p> bug# 520 Added a param to create the xfalign command.
 * <p> </p>
 */
-public class XfalignParam implements Command {
+public class XfalignParam implements ProcessDetails {
   public static final String  rcsid =  "$Id$";
   
   private static final int commandSize = 3;

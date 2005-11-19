@@ -20,6 +20,11 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/04/25 20:39:53  sueh
+* <p> bug# 615 Passing the axis where a command originates to the message
+* <p> functions so that the message will be popped up in the correct window.
+* <p> This requires adding AxisID to many objects.
+* <p>
 * <p> Revision 1.5  2005/01/08 01:39:25  sueh
 * <p> bug# 578 Updated Command
 * <p> interface.
@@ -55,7 +60,7 @@ import etomo.type.AxisID;
 * <p> bug# 520 Object that creates a command line to run clipflipyz.
 * <p> </p>
 */
-public class FlipyzParam implements Command {
+public class FlipyzParam implements ProcessDetails {
   public static  final String  rcsid =  "$Id$";
   
   public static final String command = "clipflipyz";

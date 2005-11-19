@@ -32,6 +32,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/11/02 23:58:36  sueh
+* <p> bug# 738 Midas limit has a display value, so don't test for null.
+* <p>
 * <p> Revision 1.12  2005/11/02 23:57:01  sueh
 * <p> bug# 738 Added midas limit.
 * <p>
@@ -124,7 +127,7 @@ import etomo.type.SectionTableRowData;
 * <p> within parameters.
 * <p> </p>
 */
-public class MakejoincomParam implements Command {
+public class MakejoincomParam implements ProcessDetails {
   public static  final String  rcsid =  "$Id$";
   
   public static final int MIDAS_LIMIT_DEFAULT = 1024;

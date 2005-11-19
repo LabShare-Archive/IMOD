@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/07/29 19:45:31  sueh
+* <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+* <p>
 * <p> Revision 1.13  2005/07/29 00:47:49  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -112,7 +115,7 @@ import etomo.type.SectionTableRowData;
 * <p> bug# 520 Param for finishjoin.
 * <p> </p>
 */
-public class FinishjoinParam implements Command {
+public class FinishjoinParam implements ProcessDetails {
   public static final String  rcsid =  "$Id$";
   
   public static final int FINISH_JOIN_MODE = -1;

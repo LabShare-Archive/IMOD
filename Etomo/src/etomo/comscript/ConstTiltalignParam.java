@@ -23,7 +23,7 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  */
-public class ConstTiltalignParam implements Command {
+public class ConstTiltalignParam implements ProcessDetails {
   public static final String rcsid =
     "$Id$";
 
@@ -787,6 +787,10 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2005/07/21 21:32:14  sueh
+ * <p> bug# 532 ConstEtomoNumber.getInvalidReason() is no longer returning
+ * <p> the description.
+ * <p>
  * <p> Revision 3.20  2005/06/14 21:54:21  sueh
  * <p> bug# 681 Changed fiXYZCoordinates to displayAsInteger.
  * <p>

@@ -25,6 +25,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/07/29 00:49:27  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.5  2005/04/25 20:40:31  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -67,7 +72,7 @@ import etomo.type.SectionTableRowData;
 * <p> bug# 520 Param for running Midas.
 * <p> </p>
 */
-public class MidasParam implements Command {
+public class MidasParam implements ProcessDetails {
   public static  final String  rcsid =  "$Id$";
   
   private static final int commandSize = 1;

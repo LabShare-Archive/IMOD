@@ -26,6 +26,10 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/10/27 00:10:07  sueh
+* <p> bug# 708 Squeezevol gets it input file only from TrimvolParam's output
+* <p> file.
+* <p>
 * <p> Revision 1.9  2005/07/29 00:44:36  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -63,7 +67,7 @@ import etomo.type.EtomoNumber;
 * <p> Stores parameters.
 * <p> </p>
 */
-public abstract class ConstSqueezevolParam implements Command, Storable {
+public abstract class ConstSqueezevolParam implements ProcessDetails, Storable {
   public static  final String  rcsid =  "$Id$";
   
   public static final int GET_FLIPPED = -1;
