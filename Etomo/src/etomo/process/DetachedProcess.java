@@ -1,18 +1,16 @@
 package etomo.process;
-/*
-import java.io.BufferedReader;
+
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
 import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
 import etomo.ui.UIHarness;
-import etomo.util.DatasetFiles;*/
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -27,22 +25,20 @@ import etomo.util.DatasetFiles;*/
  * 
  * @version $Revision$
  */
-public class DetachedProcess/* extends BackgroundProcess */{
+final class DetachedProcess extends BackgroundProcess {
   public static final String rcsid = "$Id$";
-/*
-  private File outFile = null;
-  
-  private final DetachedProcessMonitor monitor;
+
   private final AxisID axisID;
   private final BaseManager manager;
+  private final DetachedProcessMonitor monitor;
 
   public DetachedProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID,
       DetachedProcessMonitor monitor) {
     super(manager, command, processManager, axisID);
-    this.monitor = monitor;
     this.axisID = axisID;
     this.manager = manager;
+    this.monitor = monitor;
   }
 
   protected final boolean newProgram() {
@@ -55,12 +51,13 @@ public class DetachedProcess/* extends BackgroundProcess */{
           + getCommandName());
       return false;
     }
-    setProgram(new SystemProgram(manager.getPropertyUserDir(), runCommand,
-        getAxisID()));
-    //program.setAcceptInputWhileRunning(true);
+    SystemProgram program = new BackgroundSystemProgram(manager
+        .getPropertyUserDir(), runCommand, monitor, axisID);
+    program.setAcceptInputWhileRunning(true);
+    setProgram(program);
     return true;
   }
-  
+
   private final String[] makeRunFile() throws IOException {
     String commandName = getCommandName();
     AxisID axisID = getAxisID();
@@ -68,7 +65,6 @@ public class DetachedProcess/* extends BackgroundProcess */{
     if (runFile.exists()) {
       runFile.delete();
     }
-    outFile = DatasetFiles.getOutFile(manager, commandName, axisID);
     if (runFile.exists()) {
       runFile.delete();
     }
@@ -78,12 +74,12 @@ public class DetachedProcess/* extends BackgroundProcess */{
     }
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
-    bufferedWriter.write(command.getCommandLine() + " >& " + outFile.getName()
-        + "&");
+    bufferedWriter.write(getCommandLine() + " >& "
+        + monitor.getProcessOutputFileName() + "&");
     bufferedWriter.newLine();
     bufferedWriter.close();
-    if (workingDirectory == null) {
-      workingDirectory = new File(manager.getPropertyUserDir());
+    if (getWorkingDirectory() == null) {
+      setWorkingDirectory(new File(manager.getPropertyUserDir()));
     }
     String[] runCommand = new String[3];
     runCommand[0] = "tcsh";
@@ -92,19 +88,35 @@ public class DetachedProcess/* extends BackgroundProcess */{
     return runCommand;
   }
   
-  final BufferedReader getOutputFileReader() {
-    if (outFile == null || !outFile.exists()) {
-      return null;
-    }
-    try {
-      return new BufferedReader(new FileReader(outFile));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }*/
+  protected ProcessMessages getMonitorMessages() {
+    return monitor.getProcessMessages();
+  }
+
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    super.setProcessEndState(endState);
+    monitor.setProcessEndState(endState);
+  }
+
+  final ProcessEndState getProcessEndState() {
+    return monitor.getProcessEndState();
+  }
+
+  public final void kill(AxisID axisID) {
+    monitor.kill(this, axisID);
+  }
+
+  public final void pause(AxisID axisID) {
+    monitor.pause(this, axisID);
+  }
+
+  final String getStatusString() {
+    return monitor.getStatusString();
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/11/14 21:24:28  sueh
+ * <p> bug 744 A class that extends BackgroundProcess and runs detached so
+ * <p> that Etomo can exit while the process is running.
+ * <p> </p>
  */
