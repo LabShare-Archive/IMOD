@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/08/29 17:01:05  mast
+c	  Added an actual erase call to plax routines so they will clear stack
+c	
 
 c
 	subroutine erase(ix)
@@ -229,3 +232,15 @@ c	call updat(1)
 	entry logax(ix,iy,rx,ry,rz,iz)
 	return
 	end
+
+	subroutine fortgetarg(i, string)
+	character*(*) string
+	call getarg(i, string)
+	return
+	end
+
+	integer*4 function fortiargc()
+	mainiargc = iargc()
+	return
+	end
+
