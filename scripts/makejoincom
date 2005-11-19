@@ -34,7 +34,7 @@ set scalelist = ""
 set newmode = 0
 
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 if ($#argv > 0) then
@@ -752,6 +752,10 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.10  2005/10/08 22:31:23  mast
+#  Adjusted sample slices properly for case of rotation that inverts volume
+#  by rotation of Z axis vector
+#
 #  Revision 3.9  2005/08/03 23:22:01  mast
 #  Made sample sizes be suitable for filtering in enhance using goodframe,
 #  and add option to modify MIDASLIMT

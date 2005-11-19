@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2004/06/29 03:54:37  mast
+#  Fixed path-setting
+#
 #  Revision 3.1  2003/11/13 19:49:32  mast
 #  Inserted -f flags on csh invocations
 #
@@ -20,7 +23,7 @@ if ($#argv < 1) then
   exit 0
 endif
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 #
 # GET BASE NAME = BN

@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/06/29 03:49:13  mast
+#  Added nohup
+#
 #  Revision 3.4  2003/12/12 21:40:13  mast
 #  Fix change in alterheader entry
 #
@@ -49,7 +52,7 @@ end
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 

@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2004/06/29 03:50:39  mast
+#  Added nohup
+#
 #  Revision 3.7  2003/12/25 00:49:30  mast
 #  Change newst to newstack
 #
@@ -58,7 +61,7 @@ endif
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 

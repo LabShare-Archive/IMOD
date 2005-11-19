@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/11/11 21:51:08  mast
+#  Changes to use unsigned output mode
+#
 #  Revision 3.7  2005/05/08 03:11:24  mast
 #  Use hexdump instead of od if it exists; it's needed on Mac
 #
@@ -33,7 +36,7 @@
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 

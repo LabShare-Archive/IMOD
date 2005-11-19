@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.11  2003/12/27 21:37:24  mast
+#  needed to keep path-setting
+#
 #  Revision 3.10  2003/12/25 00:33:51  mast
 #  Discontinued!
 #
@@ -57,7 +60,7 @@ exit 0
 endif
 
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 newstack $*

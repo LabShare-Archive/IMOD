@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/06/29 03:54:10  mast
+#  Fixed better
+#
 #  Revision 3.3  2004/06/29 03:53:37  mast
 #  Fixed path-setting
 #
@@ -38,7 +41,7 @@ if ($#argv < 1) then
 endif
 #
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 set P1 = $argv[1]
 set SELF = "0"

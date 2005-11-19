@@ -37,7 +37,7 @@ exit 0
 endif
 
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 set retain = 0
@@ -634,6 +634,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.20  2005/11/16 05:52:32  mast
+#  *** empty log message ***
+#
 #  Revision 3.19  2005/10/06 16:47:25  mast
 #  Removed extra character
 #

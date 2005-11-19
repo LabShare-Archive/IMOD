@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2004/06/29 03:48:15  mast
+#  Added nohup, fixed path setting
+#
 #  Revision 3.3  2003/10/11 00:03:38  mast
 #  Switched to new input method for matchvol/warpvol, added linear
 #  interpolation option
@@ -41,7 +44,7 @@ set zupper = "0"
 set trial = ""
 set pn = "matchorwarp"
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 if ($#argv == 0) then

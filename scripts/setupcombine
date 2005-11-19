@@ -45,7 +45,7 @@ set volcombine = volcombine.com
 
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
     exit 1
@@ -622,6 +622,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.30  2005/10/20 19:36:36  mast
+#  Exit with error if temp directory is not usable to avoid etomo hangup
+#
 #  Revision 3.29  2005/08/30 01:55:48  mast
 #  Allowed / input to the correspondence list
 #

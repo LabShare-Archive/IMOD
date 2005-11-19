@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/05/12 20:59:08  mast
+#  Handle case of missing newline in master com  file
+#
 #  Revision 3.7  2004/07/22 18:17:20  mast
 #  Change to better sed command for stripping Ctrl M
 #
@@ -59,7 +62,7 @@ endif
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 

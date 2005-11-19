@@ -14,7 +14,7 @@ endif
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 

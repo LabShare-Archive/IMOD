@@ -46,7 +46,7 @@ endif
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 
@@ -381,6 +381,10 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.13  2005/10/11 21:03:14  mast
+#  Implemented rotation range for xftoxg and took advantage of new one
+#  transform per file option in Newstack
+#
 #  Revision 3.12  2005/05/27 15:46:08  mast
 #  Changed to output transform line numbers on multiple lines to avoid
 #  line length limits in shell

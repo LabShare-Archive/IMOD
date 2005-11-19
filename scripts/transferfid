@@ -29,7 +29,7 @@ set radius2 = 0.25
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 
@@ -810,6 +810,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.22  2005/10/07 17:59:31  mast
+#  Fixed tracka.com sed lines to turn tabs to spaces before they get stripped
+#
 #  Revision 3.21  2005/05/11 15:05:02  mast
 #  Fixed bugs with light beads
 #

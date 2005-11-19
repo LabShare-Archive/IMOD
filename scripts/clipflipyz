@@ -20,7 +20,7 @@ if ($#argv < 2)then
 endif
 
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 echo2 Shell PID: $$

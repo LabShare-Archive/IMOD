@@ -27,7 +27,7 @@ set pn = "copytomocoms"
 #
 if ($?IMOD_DIR) then
     set srcdir = "$IMOD_DIR/com"
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
     exit 1
@@ -1356,6 +1356,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.43  2005/10/28 04:32:49  mast
+#  Fixed error in testing for non-entered pixel size, and added a useless
+#  sending of pixel size to extractmagrad when header has none.
+#
 #  Revision 3.42  2005/10/27 14:15:41  mast
 #  Changed WARNING to INFO for actions that etomo will take care of
 #

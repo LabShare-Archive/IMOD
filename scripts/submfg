@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/03/25 18:10:02  mast
+#  Added exitstat setting when com file does not exist
+#
 #  Revision 3.8  2005/03/16 17:27:25  mast
 #  Passed on the error status when exiting
 #
@@ -54,7 +57,7 @@ exit 0
 endif
 
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 nohup

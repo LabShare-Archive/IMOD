@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2005/07/25 21:18:34  mast
+#  Added PID
+#
 #  Revision 3.1  2005/04/22 23:09:02  mast
 #  Addition to package
 #
@@ -52,7 +55,7 @@ end
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
     if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
 endif
 

@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2005/07/25 17:43:58  mast
+#  Added process ID output
+#
 #  Revision 3.6  2005/05/11 19:44:51  mast
 #  Eliminated tail -1 to get progress output.
 #
@@ -50,7 +53,7 @@ if ($#argv == 0)then
 endif
 
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 while ($#argv > 2)

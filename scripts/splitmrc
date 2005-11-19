@@ -17,7 +17,7 @@ EOF
     exit 0
 endif
 if ($?IMOD_DIR) then
-    set path = ($IMOD_DIR/bin $path)
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 while ($#argv > 1)
