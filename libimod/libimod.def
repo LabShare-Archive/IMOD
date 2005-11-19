@@ -1,7 +1,6 @@
 ; libimod.def : Declares the module parameters for the DLL.
 
 LIBRARY      "libimod"
-DESCRIPTION  'libimod Windows Dynamic Link Library'
 
 EXPORTS
 	imodPointIsEqual
@@ -247,6 +246,7 @@ EXPORTS
 	istoreCountObjectItems
 	imodPlaneSetFromClips
 	istoreClearRange
+	imodMatPrint
 	PipMemoryError
 	imodel_contour_invert
 	imodGetFloat

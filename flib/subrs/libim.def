@@ -1,7 +1,6 @@
 ; libim.def : Declares the module parameters for the DLL.
 
 LIBRARY      "libim"
-DESCRIPTION  'libim Windows Dynamic Link Library'
 
 EXPORTS
 	QDINTERP

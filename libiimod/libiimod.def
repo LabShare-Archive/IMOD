@@ -1,7 +1,6 @@
 ; libiimod.def : Declares the module parameters for the DLL.
 
 LIBRARY      "libiimod"
-DESCRIPTION  'libiimod Windows Dynamic Link Library'
 
 EXPORTS
 	sliceByteConvolve

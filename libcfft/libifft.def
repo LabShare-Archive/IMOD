@@ -1,7 +1,6 @@
 ; libifft.def : Declares the module parameters for the DLL.
 
 LIBRARY      "libifft"
-DESCRIPTION  'libifft Windows Dynamic Link Library'
 
 EXPORTS
 	r2cftk
