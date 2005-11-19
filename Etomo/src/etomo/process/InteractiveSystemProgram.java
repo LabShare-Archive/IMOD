@@ -2,7 +2,7 @@ package etomo.process;
 import java.io.*;
 
 import etomo.BaseManager;
-import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
@@ -21,6 +21,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/07/29 00:52:00  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.4  2005/04/25 20:47:39  sueh
  * <p> bug# 615 Passing the axis where a command originates to the message
  * <p> functions so that the message will be popped up in the correct window.
@@ -103,7 +108,7 @@ public class InteractiveSystemProgram implements Runnable {
    */
   private String command = null;
   private String[] commandArray = null;
-  private Command commandParam = null;
+  private ProcessDetails processDetails = null;
 
   /**
    * The buffered IO streams connecting to the commmand.
@@ -138,18 +143,18 @@ public class InteractiveSystemProgram implements Runnable {
     this.commandArray = commandArray;
   }
   
-  public InteractiveSystemProgram(BaseManager manager, Command commandParam,
+  public InteractiveSystemProgram(BaseManager manager, ProcessDetails processDetails,
       BaseProcessManager processManager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.processManager = processManager;
-    this.commandParam = commandParam;
+    this.processDetails = processDetails;
     
-    if (commandParam == null) {
+    if (processDetails == null) {
       throw new IllegalArgumentException("CommandParam is null.");
     }
-    commandArray = commandParam.getCommandArray();
-    command = commandParam.getCommandLine();
+    commandArray = processDetails.getCommandArray();
+    command = processDetails.getCommandLine();
   }
   
   public AxisID getAxisID() {
@@ -174,10 +179,10 @@ public class InteractiveSystemProgram implements Runnable {
   }
   
   public String getCommandName() {
-    if (commandParam == null) {
+    if (processDetails == null) {
       return null;
     }
-    return commandParam.getCommandName();
+    return processDetails.getCommandName();
   }
 
   /**
@@ -188,8 +193,8 @@ public class InteractiveSystemProgram implements Runnable {
     //  Setup the Process object and run the command
     Process process = null;
     File outputFile = null;
-    if (commandParam != null) {
-      outputFile = commandParam.getCommandOutputFile();
+    if (processDetails != null) {
+      outputFile = processDetails.getCommandOutputFile();
       outputFileLastModified.set(outputFile.lastModified());
     }
     try {
@@ -289,8 +294,8 @@ public class InteractiveSystemProgram implements Runnable {
     return line;
   }
   
-  public Command getCommand() {
-    return commandParam;
+  public ProcessDetails getProcessDetails() {
+    return processDetails;
   }
   
   public ConstEtomoNumber getOutputFileLastModified() {

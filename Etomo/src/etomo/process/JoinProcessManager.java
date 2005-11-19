@@ -4,7 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
-import etomo.comscript.Command;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
@@ -27,6 +27,9 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.13  2005/09/09 21:36:56  sueh
+* <p> bug# 532 Handling null from stderr and stdout.
+* <p>
 * <p> Revision 1.12  2005/06/21 00:45:12  sueh
 * <p> bug# 522 Moved touch() from JoinProcessManager to
 * <p> BaseProcessManager for MRCHeaderTest.
@@ -213,19 +216,19 @@ public class JoinProcessManager extends BaseProcessManager {
     if (commandName == null) {
       return;
     }
-    Command command = process.getCommand();
-    if (command == null) {
+    ProcessDetails processDetails = process.getProcessDetails();
+    if (processDetails == null) {
       return;
     }
     if (commandName.equals(FlipyzParam.getName())) {
-      joinManager.addSection(command.getCommandOutputFile());
+      joinManager.addSection(processDetails.getCommandOutputFile());
     }
     else if (commandName.equals(XfalignParam.getName())) {
-      joinManager.copyXfFile(command.getCommandOutputFile());
+      joinManager.copyXfFile(processDetails.getCommandOutputFile());
       joinManager.enableMidas();
     }
     else if (commandName.equals(FinishjoinParam.getName())) {
-      int mode = command.getCommandMode();
+      int mode = processDetails.getCommandMode();
       if (mode == FinishjoinParam.MAX_SIZE_MODE) {
         String[] stdOutput = process.getStdOutput();
         if (stdOutput != null) {
@@ -250,11 +253,11 @@ public class JoinProcessManager extends BaseProcessManager {
       }
       if (mode == FinishjoinParam.TRIAL_MODE) {
         JoinState state = joinManager.getState();
-        state.setTrialBinning(command.getIntegerValue(FinishjoinParam.GET_BINNING));
-        state.setTrialSizeInX(command.getIntegerValue(FinishjoinParam.GET_SIZE_IN_X));
-        state.setTrialSizeInY(command.getIntegerValue(FinishjoinParam.GET_SIZE_IN_Y));
-        state.setTrialShiftInX(command.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_X));
-        state.setTrialShiftInY(command.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_Y));
+        state.setTrialBinning(processDetails.getIntegerValue(FinishjoinParam.GET_BINNING));
+        state.setTrialSizeInX(processDetails.getIntegerValue(FinishjoinParam.GET_SIZE_IN_X));
+        state.setTrialSizeInY(processDetails.getIntegerValue(FinishjoinParam.GET_SIZE_IN_Y));
+        state.setTrialShiftInX(processDetails.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_X));
+        state.setTrialShiftInY(processDetails.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_Y));
       }
     }
   }
@@ -262,10 +265,6 @@ public class JoinProcessManager extends BaseProcessManager {
   protected void errorProcess(BackgroundProcess process) {
     String commandName = process.getCommandName();
     if (commandName == null) {
-      return;
-    }
-    Command command = process.getCommand();
-    if (command == null) {
       return;
     }
     if (commandName.equals(XfalignParam.getName())) {
@@ -276,7 +275,11 @@ public class JoinProcessManager extends BaseProcessManager {
       joinManager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
-      File outputFile = command.getCommandOutputFile();
+      ProcessDetails processDetails = process.getProcessDetails();
+      if (processDetails == null) {
+        return;
+      }
+      File outputFile = processDetails.getCommandOutputFile();
       //A partially created flip file can cause an error when it is opened.
       if (outputFile != null) {
         outputFile.delete();
@@ -302,12 +305,12 @@ public class JoinProcessManager extends BaseProcessManager {
     if (commandName == null) {
       return;
     }
-    Command command = program.getCommand();
-    if (command == null) {
+    ProcessDetails processDetails = program.getProcessDetails();
+    if (processDetails == null) {
       return;
     }
     if (commandName.equals(MidasParam.getName())) {
-      File outputFile = command.getCommandOutputFile();
+      File outputFile = processDetails.getCommandOutputFile();
       if (outputFile != null
           && outputFile.exists()
           && outputFile.lastModified() > program.getOutputFileLastModified()
