@@ -606,6 +606,18 @@ public final class ProcessorTable implements Storable {
     ((ProcessorTableRow) rows.get(computer)).clearFailureReason();
   }
   
+  final void clearFailureReason(boolean selectedComputers) {
+    if (rows == null) {
+      return;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
+      if (!selectedComputers || row.isSelected()) {
+        row.clearFailureReason();
+      }
+    }
+  }
+  
   public void store(Properties props) {
     store(props, "");
   }
@@ -659,6 +671,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2005/11/14 22:16:36  sueh
+ * <p> bug# 762 The internal class is now accessing protected functions instead
+ * <p> of private variables.
+ * <p>
  * <p> Revision 1.22  2005/11/10 18:16:57  sueh
  * <p> bug# 733 Made the class public so that its constance SECTION_TYPE
  * <p> could be used.
