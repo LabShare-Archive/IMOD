@@ -1,7 +1,10 @@
 package etomo.process;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -10,49 +13,55 @@ import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.ui.ParallelProgressDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
-public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
-  public static  final String  rcsid =  "$Id$";
-  
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
+public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
+    ParallelProcessMonitor {
+  public static final String rcsid = "$Id$";
+
   private final static String TITLE = "Processchunks";
-  
+
   private static boolean debug = false;
-  
+
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
-  
+
   private final BaseManager manager;
   private final AxisID axisID;
   private final ParallelProgressDisplay parallelProgressDisplay;
   private final String rootName;
   private final String computerList;
+  private final ProcessMessages messages = ProcessMessages
+  .getInstanceForParallelProcessing();
 
-  private SystemProcessInterface process = null;
-  private int lastOutputLine = -1;
-  private int lastErrorLine = -1;
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
   private ProcessEndState endState = null;
-  private String lastChunkError = null;
   private File commandsPipe = null;
   private BufferedWriter commandsWriter = null;
   private boolean useCommandsPipe = true;
+  private BufferedReader bufferedReader = null;
+  private boolean processRunning = true;
+  private boolean pausing = false;
+  private boolean killing = false;
+  private File processOutputFile = null;
+
 
   /**
    * Default constructor
@@ -71,19 +80,16 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     debug = EtomoDirector.getInstance().isDebug();
     parallelProgressDisplay.setParallelProcessMonitor(this);
   }
-  
-  public final void setProcess(SystemProcessInterface process) {
-    this.process = process;
-  }
-  
+
   public void run() {
     //make sure commmandsPipe is deleted and enable its use
     deleteCommandsPipe(true);
+    parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
     nChunks.set(0);
     chunksFinished.set(0);
     initializeProgressBar();
     try {
-      while (process == null || !process.isDone()) {
+      while (processRunning) {
         Thread.sleep(2000);
         if (updateState() || setProgressBarTitle) {
           updateProgressBar();
@@ -91,33 +97,43 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       }
     }
     catch (InterruptedException e) {
+      endMonitor(ProcessEndState.DONE);
     }
-    catch (Exception e) {
+    catch (IOException e) {
+      endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
     parallelProgressDisplay.setParallelProcessMonitor(null);
-    setProcessEndState(ProcessEndState.DONE);
     //make sure commmandsPipe is deleted and disable its use
     deleteCommandsPipe(false);
   }
-  
-  protected final boolean updateState() {
-    String stdOutput[] = process.getCurrentStdOutput();
+
+  private void endMonitor(ProcessEndState endState) {
+    setProcessEndState(endState);
+    processRunning = false;//the only place that this should be changed
+  }
+
+  protected final boolean updateState() throws IOException {
+    if (bufferedReader == null) {
+      bufferedReader = getProcessOutputBufferedReader();
+    }
     boolean returnValue = false;
-    if (stdOutput == null || lastOutputLine >= stdOutput.length) {
+    if (bufferedReader == null) {
       return returnValue;
     }
-    for (int i = lastOutputLine + 1; i < stdOutput.length; i++) {
-      lastOutputLine = i;
-      String line = stdOutput[i].trim();
+    String line;
+    while ((line = bufferedReader.readLine()) != null) {
+      line = line.trim();
       //TEMP
       //if (debug) {
-        System.err.println(line);
+      System.err.println(line);
       //}
-      if (line.startsWith(BaseProcessManager.CHUNK_ERROR_TAG)) {
-        lastChunkError = line;
+      messages.addProcessOutput(line);
+      if (messages.isError()) {
+        endMonitor(ProcessEndState.FAILED);
+        return false;
       }
-      else if (line.endsWith("to reassemble")) {
+      if (line.endsWith("to reassemble")) {
         //handle all chunks finished, starting the reassemble
         Utilities.timestamp(TITLE, rootName, "reassembling");
         //all chunks finished, turn off pause
@@ -129,7 +145,19 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
         returnValue = true;
       }
       else if (line.indexOf("BAD COMMAND IGNORED") != -1) {
-        throw new IllegalStateException("Bad command sent to processchunks\n" + line);
+        throw new IllegalStateException("Bad command sent to processchunks\n"
+            + line);
+      }
+      else if (line.equals("Finished reassembling")) {
+        endMonitor(ProcessEndState.DONE);
+      }
+      else if (line
+          .equals("When you rerun with a different set of machines, be sure to use")) {
+        endMonitor(ProcessEndState.KILLED);
+      }
+      else if (line
+          .equals("All previously running chunks are done - exiting as requested")) {
+        endMonitor(ProcessEndState.PAUSED);
       }
       else {
         String[] strings = line.split("\\s+");
@@ -158,18 +186,6 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
         }
       }
     }
-    String stdError[] = process.getCurrentStdError();
-    if (stdError == null || lastErrorLine >= stdError.length) {
-      return returnValue;
-    }
-    for (int i = lastErrorLine + 1; i < stdError.length; i++) {
-      lastErrorLine = i;
-      String line = stdError[i].trim();
-      //TEMP
-      //if (debug()) {
-        System.err.println(line);
-      //}
-    }
     return returnValue;
   }
 
@@ -180,16 +196,21 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
   public synchronized final void setProcessEndState(ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
   }
-  
+
   public final ProcessEndState getProcessEndState() {
     return endState;
   }
 
+  public final ProcessMessages getProcessMessages() {
+    return messages;
+  }
+
   private void initializeProgressBar() {
     setProgressBarTitle();
-    manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(), "Starting...", axisID);
+    manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
+        "Starting...", axisID);
   }
-  
+
   private void updateProgressBar() {
     if (setProgressBarTitle) {
       setProgressBarTitle = false;
@@ -197,8 +218,8 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     }
     manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
         getStatusString(), axisID);
- }
-  
+  }
+
   private void setProgressBarTitle() {
     StringBuffer title = new StringBuffer(TITLE);
     if (rootName != null) {
@@ -207,54 +228,49 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     if (reassembling) {
       title.append(":  reassembling");
     }
-    if (endState == ProcessEndState.PAUSED) {
+    else if (killing) {
+      title.append(" - killing:  exiting current chunks");
+    }
+    else if (pausing) {
       title.append(" - pausing:  finishing current chunks");
     }
-    manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID, !reassembling);
+    manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(),
+        axisID, !reassembling && !killing);
   }
-  
+
   public void kill(SystemProcessInterface process, AxisID axisID) {
-    //will write to commands pipe, so must check done
-    endState = ProcessEndState.KILLED;
-    //process.signalInterrupt(axisID);
     try {
       writeCommand("Q");
-      parallelProgressDisplay.msgInterruptingProcess();
+      parallelProgressDisplay.msgKillingProcess();
+      killing = true;
       setProgressBarTitle = true;
     }
     catch (IOException e) {
       e.printStackTrace();
     }
   }
-  
+
   public void pause(SystemProcessInterface process, AxisID axisID) {
-    endState = ProcessEndState.PAUSED;
-    //process.signalInterrupt(axisID);
     try {
       writeCommand("P");
-      parallelProgressDisplay.msgInterruptingProcess();
+      parallelProgressDisplay.msgPausingProcess();
+      pausing = true;
       setProgressBarTitle = true;
     }
     catch (IOException e) {
       e.printStackTrace();
     }
   }
-  
+
   public String getStatusString() {
     return chunksFinished + " of " + nChunks + " completed";
   }
-  
-  public final String getErrorMessage() {
-    return "Last chunk error received:\n" + lastChunkError;
-  }
-  
+
   public final void drop(String computer) {
     if (computerList.indexOf(computer) != -1) {
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.println("try to drop " + computer);
       }
-      //dropComputer = computer;
-      //process.signalInterrupt(axisID);
       try {
         writeCommand("D " + computer);
         setProgressBarTitle = true;
@@ -264,7 +280,7 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       }
     }
   }
-  
+
   /**
    * make sure the commandsPipe file is deleted and enable/disable its use
    * synchronized with createCommandsWriter
@@ -286,7 +302,7 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       useCommandsPipe = true;
     }
   }
-  
+
   /**
    * creates commandsWriter and, if necessary, commandsPipe and the commandsPipe
    * file.
@@ -304,13 +320,13 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
       return true;
     }
     if (commandsPipe == null) {
-      commandsPipe = DatasetFiles.getCommandsFile(manager, rootName); 
+      commandsPipe = DatasetFiles.getCommandsFile(manager, rootName);
     }
     commandsPipe.createNewFile();
     commandsWriter = new BufferedWriter(new FileWriter(commandsPipe));
     return true;
   }
-  
+
   /**
    * create commandsWriter if necessary, write command, add newline, flush
    * @param command
@@ -324,62 +340,105 @@ public class ProcesschunksProcessMonitor implements ParallelProcessMonitor {
     commandsWriter.newLine();
     commandsWriter.flush();
   }
+
+  public final AxisID getAxisID() {
+    return axisID;
+  }
+
+  public final boolean isProcessRunning() {
+    return processRunning;
+  }
+  
+  /**
+   * make sure process output file is new and set processOutputFile.  This
+   * function should be first run before the process starts.
+   */
+  private synchronized final void makeProcessOutputFile() {
+    if (processOutputFile == null) {
+      processOutputFile = DatasetFiles.getOutFile(manager, ProcessName.PROCESSCHUNKS
+          .toString(), axisID);
+      //delete it the first time to avoid looking at a file from a previous run
+      processOutputFile.delete();
+    }
+  }
+  
+  public final String getProcessOutputFileName() {
+    makeProcessOutputFile();
+    return processOutputFile.getName();
+  }
+
+  private final BufferedReader getProcessOutputBufferedReader() {
+    makeProcessOutputFile();
+    if (!processOutputFile.exists()) {
+      return null;
+    }
+    try {
+      return new BufferedReader(new FileReader(processOutputFile));
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.12  2005/10/21 19:55:54  sueh
-* <p> bug# 742 Sending text from standard error to the error log.
-* <p>
-* <p> Revision 1.11  2005/09/27 21:16:18  sueh
-* <p> bug# 532 Temporarily printing the processchunks output to the error log
-* <p> without the debug setting.
-* <p>
-* <p> Revision 1.10  2005/09/10 01:52:41  sueh
-* <p> bug# 532 Setting the reason for all dropped computers to "not responding"
-* <p> to distinguish it from load average timeouts.
-* <p>
-* <p> Revision 1.9  2005/09/09 21:42:22  sueh
-* <p> bug# 532 Throwing an exception if a command is sent that processchunks
-* <p> doesn't recognize.
-* <p>
-* <p> Revision 1.8  2005/09/07 20:51:06  sueh
-* <p> bug# 532 Added commandsPipe and commandsWriter to send commands
-* <p> for processchunks to a file.
-* <p>
-* <p> Revision 1.7  2005/09/01 17:54:58  sueh
-* <p> bug# 532 handle multiple drop reasons.  Fix drop function:  use interrupt
-* <p> signal only when the computer is recognized.
-* <p>
-* <p> Revision 1.6  2005/08/30 22:41:45  sueh
-* <p> bug# 532 Added error log print statement to drop().
-* <p>
-* <p> Revision 1.5  2005/08/30 18:50:23  sueh
-* <p> bug# 532 Added drop(String computer).  Added dropComputer which is set
-* <p> while waiting for the interrupt to happen.  Added computerList so that
-* <p> the monitor can avoid interrupting for computers that processchunks isn't
-* <p> using.  Added code to updateState() to send "D computer_name" to
-* <p> processchunks.
-* <p>
-* <p> Revision 1.4  2005/08/27 22:31:47  sueh
-* <p> bug# 532 In updateState() look for CHUNK ERROR: and save the most
-* <p> recent one found.  Return the last chunk error message with
-* <p> getErrorMessage().
-* <p>
-* <p> Revision 1.3  2005/08/22 17:03:43  sueh
-* <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
-* <p> status string is used to add more information to the progress bar when
-* <p> the process ends.  It is currently being used only for pausing
-* <p> processchunks.  Added "pausing" string to progress title as soon as a
-* <p> pause is detected since pausing takes a lot of time.
-* <p>
-* <p> Revision 1.2  2005/08/15 18:23:54  sueh
-* <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
-* <p> Both kill and pause signal interrupt.  Change updateState to handle the
-* <p> interrupt message and send the correct string, based on whether a kill or
-* <p> a pause was requested.
-* <p>
-* <p> Revision 1.1  2005/08/04 19:46:15  sueh
-* <p> bug# 532 Class to monitor processchunks.  Monitors the standard output.
-* <p> Sends updates to the progress panel and to a parallel process display.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.13  2005/11/04 00:53:00  sueh
+ * <p> fixed pausing message
+ * <p>
+ * <p> Revision 1.12  2005/10/21 19:55:54  sueh
+ * <p> bug# 742 Sending text from standard error to the error log.
+ * <p>
+ * <p> Revision 1.11  2005/09/27 21:16:18  sueh
+ * <p> bug# 532 Temporarily printing the processchunks output to the error log
+ * <p> without the debug setting.
+ * <p>
+ * <p> Revision 1.10  2005/09/10 01:52:41  sueh
+ * <p> bug# 532 Setting the reason for all dropped computers to "not responding"
+ * <p> to distinguish it from load average timeouts.
+ * <p>
+ * <p> Revision 1.9  2005/09/09 21:42:22  sueh
+ * <p> bug# 532 Throwing an exception if a command is sent that processchunks
+ * <p> doesn't recognize.
+ * <p>
+ * <p> Revision 1.8  2005/09/07 20:51:06  sueh
+ * <p> bug# 532 Added commandsPipe and commandsWriter to send commands
+ * <p> for processchunks to a file.
+ * <p>
+ * <p> Revision 1.7  2005/09/01 17:54:58  sueh
+ * <p> bug# 532 handle multiple drop reasons.  Fix drop function:  use interrupt
+ * <p> signal only when the computer is recognized.
+ * <p>
+ * <p> Revision 1.6  2005/08/30 22:41:45  sueh
+ * <p> bug# 532 Added error log print statement to drop().
+ * <p>
+ * <p> Revision 1.5  2005/08/30 18:50:23  sueh
+ * <p> bug# 532 Added drop(String computer).  Added dropComputer which is set
+ * <p> while waiting for the interrupt to happen.  Added computerList so that
+ * <p> the monitor can avoid interrupting for computers that processchunks isn't
+ * <p> using.  Added code to updateState() to send "D computer_name" to
+ * <p> processchunks.
+ * <p>
+ * <p> Revision 1.4  2005/08/27 22:31:47  sueh
+ * <p> bug# 532 In updateState() look for CHUNK ERROR: and save the most
+ * <p> recent one found.  Return the last chunk error message with
+ * <p> getErrorMessage().
+ * <p>
+ * <p> Revision 1.3  2005/08/22 17:03:43  sueh
+ * <p> bug# 532 Added getStatusString() to implement ProcessMonitor.  The
+ * <p> status string is used to add more information to the progress bar when
+ * <p> the process ends.  It is currently being used only for pausing
+ * <p> processchunks.  Added "pausing" string to progress title as soon as a
+ * <p> pause is detected since pausing takes a lot of time.
+ * <p>
+ * <p> Revision 1.2  2005/08/15 18:23:54  sueh
+ * <p> bug# 532  Added kill and pause functions to implement ProcessMonitor.
+ * <p> Both kill and pause signal interrupt.  Change updateState to handle the
+ * <p> interrupt message and send the correct string, based on whether a kill or
+ * <p> a pause was requested.
+ * <p>
+ * <p> Revision 1.1  2005/08/04 19:46:15  sueh
+ * <p> bug# 532 Class to monitor processchunks.  Monitors the standard output.
+ * <p> Sends updates to the progress panel and to a parallel process display.
+ * <p> </p>
+ */
