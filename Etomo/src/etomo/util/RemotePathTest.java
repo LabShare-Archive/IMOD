@@ -448,12 +448,10 @@ public class RemotePathTest extends TestCase {
       savedRcsid = null;
     }
     if (savedRcsid == null || !savedRcsid.equals(rcsid)) {
-      System.err.println("writing file");
       File testFile = new File(testDir, TEST_FILE_NAME);
       testFile.delete();
       return new BufferedWriter(new FileWriter(testFile));
     }
-    System.err.println("skipping write file");
     return null;
   }
 
@@ -468,7 +466,9 @@ public class RemotePathTest extends TestCase {
    * RemotePath doesn't load mount rules
    */
   public final void test_RemotePath() {
-    System.err.println("test 1");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     assertFalse(RemotePath.INSTANCE.isMountRulesLoaded_test());
     assertTrue(RemotePath.INSTANCE.localMountRulesIsNull_test());
     assertTrue(RemotePath.INSTANCE.remoteMountRulesIsNull_test());
@@ -479,7 +479,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath only loads rules once
    */
   public final void test_getRemotePath_onlyLoadRulesOnce() throws IOException {
-    System.err.println("test 2");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     deleteTestFile("test_getRemotePath_onlyLoadRulesOnce");
     assertNoRulesLoaded();
     writeNewFile("test_getRemotePath_onlyLoadRulesOnce", true, true, true,
@@ -494,7 +496,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath does not throw an exception when no autodoc
    */
   public final void test_getRemotePath_noAutodoc() throws IOException {
-    System.err.println("test 3");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     setUpTestDirectory("test_getRemotePath_noAutodoc");
     assertNoRulesLoaded();
   }
@@ -529,7 +533,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath does not throw an exception when no rules in autodoc
    */
   public final void test_getRemotePath_noRules() throws IOException {
-    System.err.println("test 4");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_noRules", false, false, true, true, false,
         false);
     assertNoRulesLoaded();
@@ -541,7 +547,9 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_unknownPath()
       throws InvalidParameterException, SystemProcessException, IOException {
-    System.err.println("test 5");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_unknownPath", true, false, true, true,
         false, false);
     //check general rule
@@ -570,7 +578,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_globalRules() throws IOException {
-    System.err.println("test 6");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_globalRules", true, false, true, true,
         false, false);
     assertPathsFound();
@@ -587,7 +597,9 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_globalRulesNoSection()
       throws IOException {
-    System.err.println("test 7");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_globalRulesNoSection", true, false, false,
         true, false, false);
     assertPathsFound();
@@ -688,7 +700,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_sectionRules() throws IOException {
-    System.err.println("test 8");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_sectionRules", false, true, true, true,
         false, false);
     assertPathsFound();
@@ -705,7 +719,9 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_sectionRulesFullHostName()
       throws IOException {
-    System.err.println("test 9");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_sectionRulesFullHostName", false, true,
         true, true, true, false);
     assertPathsFound();
@@ -724,7 +740,9 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_globalAndSectionRules()
       throws IOException {
-    System.err.println("test 10");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_globalAndSectionRules", true, true, true,
         true, false, false);
     assertPathsFound();
@@ -743,7 +761,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_localHost() throws IOException {
-    System.err.println("test 11");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_localHost", true, true, true, false,
         false, true);
     assertPathsFound();
@@ -763,7 +783,9 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_localHostWithoutMountName()
       throws IOException {
-    System.err.println("test 12");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_localHostWithoutMountName", true, true,
         true, false, false, false);
     assertPathsFound();
@@ -781,7 +803,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_fullSectionName() throws IOException {
-    System.err.println("test 13");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_fullSectionName", true, true, true, true,
         true, false);
     assertPathsFound();
@@ -798,7 +822,9 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_mountName() throws IOException {
-    System.err.println("test 14");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_mountName", true, true, true, true, true,
         true);
     assertPathsFound();
@@ -810,7 +836,9 @@ public class RemotePathTest extends TestCase {
    * bad mount rules are not loaded
    */
   public final void test_getRemotePath_badRules() throws IOException {
-    System.err.println("test 15");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewBadFile("test_getRemotePath_badRules");
     assertNoRulesLoaded();
   }
@@ -820,7 +848,9 @@ public class RemotePathTest extends TestCase {
    * a global mount rule can be overridden by a section-level mount rule
    */
   public final void test_getRemotePath_overrideMountRule() throws IOException {
-    System.err.println("test 16");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewOverrideFile("test_getRemotePath_overrideMountRule");
     assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
         LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH, AxisID.ONLY),
@@ -835,7 +865,9 @@ public class RemotePathTest extends TestCase {
    * mount rule numbers must start from 1 in each area
    */
   public final void test_getRemotePath_ruleNumbers() throws IOException {
-    System.err.println("test 17");
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     writeNewFile("test_getRemotePath_ruleNumbers", 2, true, true, true, true,
         true, true);
     assertNoRulesLoaded();
@@ -843,6 +875,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2005/11/15 21:08:23  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.19  2005/11/15 20:45:02  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
