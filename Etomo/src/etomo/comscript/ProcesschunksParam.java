@@ -7,6 +7,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
 import etomo.util.RemotePath;
 
@@ -24,10 +25,9 @@ import etomo.util.RemotePath;
  * 
  * @version $Revision$
  */
-public final class ProcesschunksParam implements ParallelParam {
+public final class ProcesschunksParam implements Command, ParallelParam {
   public static final String rcsid = "$Id$";
 
-  public static final String COMMAND_NAME = "processchunks";
   public static final int NICE_DEFAULT = 15;
   public static final int NICE_FLOOR = 0;
   public static final int NICE_CEILING = 19;
@@ -63,7 +63,7 @@ public final class ProcesschunksParam implements ParallelParam {
     ArrayList command = new ArrayList();
     command.add("tcsh");
     command.add("-f");
-    command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
+    command.add(BaseManager.getIMODBinPath() + ProcessName.PROCESSCHUNKS);
     if (resume.is()) {
       command.add("-r");
     }
@@ -183,9 +183,33 @@ public final class ProcesschunksParam implements ParallelParam {
     }
     machineNames.add(machineName);
   }
+  
+  public String getCommandName() {
+    return ProcessName.PROCESSCHUNKS.toString();
+  }
+  
+  public String getCommandLine() {
+    String[] commandArray = getCommand();
+    if (commandArray == null || commandArray.length == 0) {
+      return null;
+    }
+    StringBuffer buffer = new StringBuffer(commandArray[0]);
+    for (int i = 1; i < commandArray.length; i++) {
+      buffer.append(' ' + commandArray[i]);
+    }
+    return buffer.toString();
+  }
+  
+  public String[] getCommandArray() {
+    return getCommand();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/11/10 18:03:53  sueh
+ * <p> bug# 733 Added a -w option to processchunks.  The -w option sends the
+ * <p> remote version of the propertyUserDir.
+ * <p>
  * <p> Revision 1.8  2005/09/21 16:07:09  sueh
  * <p> bug# 532 Allowing a used param to be updated by the parallel processing
  * <p> panel and reused.  When resume, nice, or the machine list are changed,
