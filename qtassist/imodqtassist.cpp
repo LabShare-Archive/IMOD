@@ -187,7 +187,7 @@ void AssistantListener::timerEvent(QTimerEvent *e)
   else
     fprintf(stderr, "Page %s displayed\n", line);
   if (err < 0 && !mWarned) {
-    fprintf(stderr, "WARNING: adp file not found\n", line);
+    fprintf(stderr, "WARNING: adp file not found\n");
     mWarned = true;
   }
     
@@ -238,6 +238,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.5  2004/12/24 02:20:46  mast
+    Added usage statement, made warning come out only once
+
 
     Revision 1.4  2004/12/22 23:14:21  mast
     Handle adp not found error message
