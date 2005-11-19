@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.14  2005/02/11 01:42:32  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 1.13  2004/07/07 19:25:31  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -144,14 +147,14 @@ static void draw();
 
 
 #ifdef F77FUNCAP
-#define iargc_ IARGC
-#define getarg_ GETARG
+#define fortiargc_ FORTIARGC
+#define fortgetarg_ FORTGETARG
 #define realgraphicsmain_ REALGRAPHICSMAIN
 #endif
 
 extern "C" {
-  int iargc_();
-  void getarg_(int *i, char *string, int len);
+  int fortiargc_();
+  void fortgetarg_(int *i, char *string, int len);
   void realgraphicsmain_();
 }
 
@@ -259,7 +262,7 @@ void plax_initialize(char *string, int strsize)
   PlaxProgName = f2cString(string, strsize);
 
   // Get the arguments.  Fortran numbers them 0 to iargc()
-  argc = iargc_() + 1;
+  argc = fortiargc_() + 1;
   argv = (char **)malloc((argc + 1) * sizeof(char *));
   if (!argv) {
     fprintf(stderr, "ERROR: %s - getting memory for program arguments.\n",
@@ -268,7 +271,7 @@ void plax_initialize(char *string, int strsize)
   }
   
   for (i = 0; i < argc; i++) {
-    getarg_(&i, fstring, FSTRING_LEN);
+    fortgetarg_(&i, fstring, FSTRING_LEN);
     
     argv[i] = f2cString(fstring, FSTRING_LEN);
     if (!argv[i]) {
