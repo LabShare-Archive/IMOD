@@ -15,7 +15,7 @@ import etomo.comscript.IntermittentCommand;
 * 
 * @version $Revision$
 */
-public interface IntermittentProcessMonitor extends Runnable {
+public interface IntermittentProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   public void setProcess(IntermittentBackgroundProcess intermittentBackgroundProcess);
@@ -24,7 +24,16 @@ public interface IntermittentProcessMonitor extends Runnable {
   public String getOutputKeyPhrase();
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/09/10 01:49:08  sueh
+* <p> bug# 532 Changed IntermittentSystemProgram to
+* <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
+* <p> of SystemProgram.  Made OutputBufferManager in independent class
+* <p> instead of being inside SystemProgram.  IntermittentSystemProgram can
+* <p> use OutputBufferManager to do things only necessary for intermittent
+* <p> programs, such as deleting standard output after it is processed and
+* <p> keeping separate lists of standard output for separate monitors.
+* <p> </p>
 */
 /**
 * Old Log:
