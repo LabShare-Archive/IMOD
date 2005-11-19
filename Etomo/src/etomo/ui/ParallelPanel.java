@@ -305,7 +305,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.resetResults();
   }
   
-  public final void msgInterruptingProcess() {
+  public final void msgKillingProcess() {
+    btnPause.setEnabled(false);
+    btnResume.setEnabled(true);
+  }
+  
+  public final void msgPausingProcess() {
     btnResume.setEnabled(true);
   }
   
@@ -371,8 +376,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.clearLoadAverage(computer, reason);
   }
   
-  public void clearFailureReason(String computer) {
+  public void msgStartingProcess(String computer) {
     processorTable.clearFailureReason(computer);
+  }
+  
+  public void msgStartingProcessOnSelectedComputers() {
+    processorTable.clearFailureReason(true);
   }
   
   /**
@@ -407,6 +416,9 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2005/11/14 22:14:08  sueh
+ * <p> bug# 762 Made performAction() protected.
+ * <p>
  * <p> Revision 1.23  2005/10/15 00:35:45  sueh
  * <p> bug# 532 Added isInUse().  In setPauseEnabled() calling
  * <p> AxisProcessPanel.setParallelInUse().
