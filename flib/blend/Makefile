@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2005/05/12 05:07:40  mast
+#  Use strip variable
+#
 #  Revision 3.3  2003/12/12 20:47:53  mast
 #  Added edgesubs.f
 #
@@ -48,7 +51,7 @@ install: $(PROGS)
 clean:
 	-\rm -f *.o* *~ *.exe blendmont reducemont sloppymont
 
-blendmont.$(O):	blend.inc
+blendmont.$(O):	blend.inc $(INCDIR)/recl_bytes.inc
 bsubs.$(O):	blend.inc
 shuffler.$(O):	blend.inc
 reducemont.$(O):	blend.inc
