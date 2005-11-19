@@ -18,7 +18,7 @@ import etomo.util.HashedArray;
 * @version $Revision$
 */
 
-public class LoadAverageMonitor implements IntermittentProcessMonitor {
+public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable {
   public static  final String  rcsid =  "$Id$";
   
   private static final String OUTPUT_KEY_PHRASE = "load average";
@@ -69,7 +69,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
         new Thread(this).start();
       }
     }
-    display.clearFailureReason(key);
+    display.msgStartingProcess(key);
   }
   
   private boolean isStopped() {
@@ -172,6 +172,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2005/11/14 21:26:49  sueh
+* <p> bug# 762 The internal class is accessing protected functions instead of
+* <p> private variables.
+* <p>
 * <p> Revision 1.8  2005/09/10 01:50:59  sueh
 * <p> bug# 532 Changed IntermittentSystemProgram to
 * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
