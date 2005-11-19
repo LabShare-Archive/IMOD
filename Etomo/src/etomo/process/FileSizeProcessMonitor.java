@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2005/08/30 18:42:16  sueh
+ * <p> bug# Removed functions that only belong to BackgroundProcessMonitor:
+ * <p> getErrorMessage, getStatusString, pause, and setProcess.
+ * <p>
  * <p> Revision 3.15  2005/08/27 22:25:34  sueh
  * <p> bug# 532 Add an empty getErrorMessage() to implement ProcessMonitor.
  * <p> This is used by ProcesschunksProcessMonitor.
@@ -290,5 +294,17 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.KILLED;
     process.signalKill(axisID);
+  }
+  
+  public ProcessMessages getProcessMessages() {
+    return null;
+  }
+  
+  public String getStatusString() {
+    return null;
+  }
+  
+  public void pause(SystemProcessInterface process, AxisID axisID) {
+    throw new IllegalStateException("pause illegal in this monitor");
   }
 }

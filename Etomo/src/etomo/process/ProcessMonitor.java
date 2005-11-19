@@ -22,9 +22,16 @@ public interface ProcessMonitor extends Runnable {
   public void setProcessEndState(ProcessEndState endState);
   public ProcessEndState getProcessEndState();
   public void kill(SystemProcessInterface process, AxisID axisID);
+  public void pause(SystemProcessInterface process, AxisID axisID);
+  public String getStatusString();
+  public ProcessMessages getProcessMessages();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/08/30 18:52:08  sueh
+* <p> bug# Removed functions that only belong to BackgroundProcessMonitor:
+* <p> getErrorMessage, getStatusString, pause, and setProcess.
+* <p>
 * <p> Revision 1.5  2005/08/27 22:32:12  sueh
 * <p> bug# 532 Add getErrorMessage().  This is used by
 * <p> ProcesschunksProcessMonitor.
