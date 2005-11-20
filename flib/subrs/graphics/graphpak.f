@@ -12,6 +12,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/11/19 17:01:13  mast
+c	  Provide routines for calling getarg/iargc since these can be intrinsic
+c	
 c	  Revision 3.2  2003/08/29 17:01:05  mast
 c	  Added an actual erase call to plax routines so they will clear stack
 c	
@@ -240,7 +243,7 @@ c	call updat(1)
 	end
 
 	integer*4 function fortiargc()
-	mainiargc = iargc()
+	fortiargc = iargc()
 	return
 	end
 
