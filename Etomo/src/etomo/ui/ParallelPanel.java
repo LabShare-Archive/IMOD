@@ -319,8 +319,8 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
         .getText());
     if (!numMachines.isValid()) {
       UIHarness.INSTANCE.openMessageDialog(ltfCPUsSelected.getLabel() + " "
-          + numMachines.getInvalidReason() + "\n"
-          + processorTable.getHelpMessage(), "Table Error", axisID);
+          + numMachines.getInvalidReason() + "  "
+          + processorTable.getHelpMessage(), TITLE + " Table Error", axisID);
       return false;
     }
     return true;
@@ -333,9 +333,16 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.getParameters(param);
  }
   
-  public final void getParameters(ProcesschunksParam param) {
+  public final boolean getParameters(ProcesschunksParam param) {
      param.setNice(nice.getValue());
      processorTable.getParameters(param);
+     String error = param.validate();
+     if (error == null) {
+       return true;
+     }
+     UIHarness.INSTANCE.openMessageDialog(error + "  "
+         + processorTable.getHelpMessage(), TITLE + " Table Error", axisID);
+     return false;
   }
   
   public final void pack() {
@@ -416,6 +423,14 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2005/11/19 02:44:08  sueh
+ * <p> bug# 744 Changed parallel processing display clearFailureReason
+ * <p> function to msgStartingProcess.  This hides the implementation.  Turned
+ * <p> msgInterruptingProcess into msgKillingProcess and msgPausingProcess,
+ * <p> so that the kill could turn off the pause button.  Added
+ * <p> msgStartingProcessOnSelectedComputers so that the failure reason
+ * <p> could be erased when running processchunks.
+ * <p>
  * <p> Revision 1.24  2005/11/14 22:14:08  sueh
  * <p> bug# 762 Made performAction() protected.
  * <p>
