@@ -203,9 +203,19 @@ public final class ProcesschunksParam implements Command, ParallelParam {
   public String[] getCommandArray() {
     return getCommand();
   }
+  
+  public final String validate() {
+    if (machineNames == null || machineNames.size() == 0) {
+      return "No CPUs where selected.";
+    }
+    return null;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2005/11/19 01:54:24  sueh
+ * <p> bug# 744 Implementing Command.
+ * <p>
  * <p> Revision 1.9  2005/11/10 18:03:53  sueh
  * <p> bug# 733 Added a -w option to processchunks.  The -w option sends the
  * <p> remote version of the propertyUserDir.
