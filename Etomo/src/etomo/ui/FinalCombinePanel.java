@@ -54,6 +54,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.35  2005/11/14 22:05:50  sueh
+ * bug# 762 Made buttonAction() protected.
+ *
  * Revision 3.34  2005/10/15 00:33:34  sueh
  * bug# 532 Standardized is and set parallel processing checkbox functions
  * to setParallel() and isParallel().
@@ -586,6 +589,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   public boolean isParallel() {
     return cbParallelProcess.isSelected();
   }
+  
+  public boolean isParallelEnabled() {
+    return cbParallelProcess.isEnabled();
+  }
 
   public void setXMin(String xMin) {
     ltfXLow.setText(xMin);
@@ -733,6 +740,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   
   public final void setParallel(boolean parallel) {
     cbParallelProcess.setSelected(parallel);
+  }
+  
+  public final void setParallelEnabled(boolean parallelEnabled) {
+    cbParallelProcess.setEnabled(parallelEnabled);
   }
   
   void getVolcombineParams(SetParam setParam) {

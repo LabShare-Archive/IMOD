@@ -14,6 +14,10 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2005/10/15 00:33:20  sueh
+* <p> $bug# 532 Standardized is and set parallel processing checkbox functions
+* <p> $to setParallel() and isParallel().
+* <p> $
 * <p> $Revision 1.3  2005/10/13 22:33:32  sueh
 * <p> $bug# 532 Added parallelProcess and noVolcombine
 * <p> $
@@ -45,6 +49,8 @@ interface FinalCombineFields {
   public String getZMax();
   public void setParallel(boolean parallel);
   public boolean isParallel();
+  public void setParallelEnabled(boolean parallelEnabled);
+  public boolean isParallelEnabled();
   public void setNoVolcombine(boolean noVolcombine);
   public boolean isNoVolcombine();
 }

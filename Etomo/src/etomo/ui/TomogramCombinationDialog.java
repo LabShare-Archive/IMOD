@@ -47,6 +47,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2005/11/14 22:21:34  sueh
+ * <p> Removed extra ;'s.
+ * <p>
  * <p> Revision 3.30  2005/10/28 18:57:03  sueh
  * <p> bug# 746 don't add temp directory to splitcombine
  * <p>
@@ -527,6 +530,7 @@ public class TomogramCombinationDialog
     toPanel.setZMin(fromPanel.getZMin());
     toPanel.setZMax(fromPanel.getZMax());
     toPanel.setParallel(fromPanel.isParallel());
+    toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
     toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
 

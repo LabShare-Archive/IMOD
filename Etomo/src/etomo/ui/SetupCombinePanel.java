@@ -48,6 +48,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.25  2005/11/14 22:20:04  sueh
+ * bug# 762 Made buttonAction() protected.
+ *
  * Revision 3.24  2005/10/28 18:56:48  sueh
  * bug# 746 don't add temp directory to splitcombine
  *
@@ -533,7 +536,7 @@ public class SetupCombinePanel
       cbParallelProcess.setSelected(validAutodoc);
     }
     else {
-      cbParallelProcess.setSelected(combineVolcombineParallel.is());
+      cbParallelProcess.setSelected(combineVolcombineParallel.is() && validAutodoc);
     }
   }
   
@@ -549,8 +552,16 @@ public class SetupCombinePanel
     cbParallelProcess.setSelected(parallel);
   }
   
+  public final void setParallelEnabled(boolean parallelEnabled) {
+    cbParallelProcess.setEnabled(parallelEnabled);
+  }
+  
   public final boolean isParallel() {
     return cbParallelProcess.isSelected();
+  }
+  
+  public final boolean isParallelEnabled() {
+    return cbParallelProcess.isEnabled();
   }
   
   final void getParameters(ReconScreenState screenState) {
