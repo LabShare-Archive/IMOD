@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/21/05: Fixed a bug in Tomogram Generation and Tomogram Combination which left
+the parallel processing checkbox on when cpu.adoc cannot be found.
+ 
+11/21/05: Can exit Etomo and/or log off while running tilt or volcombine with
+processchunks.
+
 11/14/05: Added ability to put wildcards (* and ?) on image filenames in 3dmod
 startup window.
 
