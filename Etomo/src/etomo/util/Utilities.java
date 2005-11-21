@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.30  2005/09/14 20:27:17  sueh
+ * <p> $bug# 532 Added timestamp(void).
+ * <p> $
  * <p> $Revision 3.29  2005/09/13 00:38:44  sueh
  * <p> $bug# 532 call isDebug() in isTimestamp().
  * <p> $
@@ -757,6 +760,7 @@ public class Utilities {
     if (!retrievedOS) {
       String osName = System.getProperty("os.name").toLowerCase();
       windowsOS = osName.indexOf("windows") != -1;
+      System.err.println("osName="+osName+",windowsOS="+windowsOS);
     }
     return windowsOS;
   }
