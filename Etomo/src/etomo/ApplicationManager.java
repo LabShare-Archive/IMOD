@@ -5835,7 +5835,9 @@ public class ApplicationManager extends BaseManager {
       return null;
     }
     SplittiltParam param = new SplittiltParam(axisID);
-    mainPanel.getParallelPanel(axisID).getParameters(param);
+    if (!mainPanel.getParallelPanel(axisID).getParameters(param)) {
+      return null;
+    }
     return param;
   }
 
@@ -5963,6 +5965,12 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.198  2005/11/19 01:40:07  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetackedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p>
  * <p> Revision 3.197  2005/11/10 17:49:52  sueh
  * <p> Constructor should not be public
  * <p>
