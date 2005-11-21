@@ -693,7 +693,10 @@ public abstract class BaseManager {
     ProcesschunksParam param = new ProcesschunksParam(this, axisID);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
-    parallelPanel.getParameters(param);
+    if (!parallelPanel.getParameters(param)) {
+      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      return;
+    }
     getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
     getMainPanel().setState(ProcessState.INPROGRESS, axisID, dialog);
     //param should never be set to resume
@@ -735,6 +738,10 @@ public abstract class BaseManager {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.44  2005/11/19 01:43:15  sueh
+* <p> bug# 744 Added processDone(String, int, ProcessName, AxisID,
+* <p> boolean, ProcessEndState).
+* <p>
 * <p> Revision 1.43  2005/11/10 17:52:23  sueh
 * <p> bug# 733 Added manager parameters to ProcesschunksParam constructor.
 * <p>
