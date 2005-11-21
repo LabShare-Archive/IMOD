@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.31  2005/11/21 18:17:25  sueh
+ * <p> $bug# 733 problem with unit tests in windows.
+ * <p> $
  * <p> $Revision 3.30  2005/09/14 20:27:17  sueh
  * <p> $bug# 532 Added timestamp(void).
  * <p> $
@@ -190,7 +193,7 @@ public class Utilities {
   private static boolean selfTest = false;
   private static boolean retrievedTimestamp = false;
   private static boolean timestamp = false;
-  private static boolean retrievedOS = false;
+  private static boolean setWindowsOS = false;
   private static boolean windowsOS = false;
   private static long startTime = 0;
   private static DecimalFormat timestampFormat = new DecimalFormat(".000");
@@ -757,10 +760,11 @@ public class Utilities {
   }
 
   public static boolean isWindowsOS() {
-    if (!retrievedOS) {
+    if (!setWindowsOS) {
       String osName = System.getProperty("os.name").toLowerCase();
       windowsOS = osName.indexOf("windows") != -1;
       System.err.println("osName="+osName+",windowsOS="+windowsOS);
+      setWindowsOS = true;
     }
     return windowsOS;
   }
