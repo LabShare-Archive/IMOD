@@ -70,6 +70,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.75  2005/11/14 22:22:05  sueh
+ * bug# 762 Made btnMtfFileAction() and stateChanged() protected.
+ *
  * Revision 3.74  2005/10/15 00:37:10  sueh
  * bug# 532 Changed BaseManager.showParallelStatus() to
  * setParallelDialog().
@@ -721,7 +724,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       cbParallelProcess.setSelected(validAutodoc);
     }
     else {
-      cbParallelProcess.setSelected(tomoGenTiltParallel.is());
+      cbParallelProcess.setSelected(tomoGenTiltParallel.is() && validAutodoc);
     }
     updateParallelProcess();
   }
