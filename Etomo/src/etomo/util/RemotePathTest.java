@@ -390,6 +390,9 @@ public class RemotePathTest extends TestCase {
    * @throws Exception
    */
   protected void setUp() throws Exception {
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     super.setUp();
     setUpDirectory(TEST_DIR);
     RemotePath.INSTANCE.reset_test();
@@ -875,6 +878,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2005/11/19 02:46:02  sueh
+ * <p> bug# 733 Removed unnecessary prints.
+ * <p>
  * <p> Revision 1.20  2005/11/15 21:08:23  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
