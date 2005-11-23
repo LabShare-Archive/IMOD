@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/11/19 17:01:44  mast
+#  Added dependency on recl_bytes.inc
+#
 #  Revision 3.4  2005/05/12 05:07:40  mast
 #  Use strip variable
 #
@@ -51,7 +54,7 @@ install: $(PROGS)
 clean:
 	-\rm -f *.o* *~ *.exe blendmont reducemont sloppymont
 
-blendmont.$(O):	blend.inc $(INCDIR)/recl_bytes.inc
+blendmont.$(O):	blend.inc
 bsubs.$(O):	blend.inc
 shuffler.$(O):	blend.inc
 reducemont.$(O):	blend.inc
