@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2004/10/24 21:21:19  mast
+#  Changes for libifft now being C version
+#
 #  Revision 3.4  2003/11/01 14:36:02  mast
 #  Put libiimod befor libimod because of new error calls
 #
@@ -44,7 +47,7 @@ $(PROG) : $(OBJS)
 	$(LIIMOD) $(LIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS)
 
 install : $(PROG)
-	strip $(PROG)
+	$(STRIP) $(PROG)
 	$(CP) $(PROG) $(INSTBINDIR)
 
 clean : 

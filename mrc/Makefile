@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2005/03/11 19:42:13  mast
+#  Added nad_eed_3d
+#
 #  Revision 3.6  2003/11/01 14:36:14  mast
 #  *** empty log message ***
 #
@@ -90,7 +93,7 @@ mrcv : $(MRCVOBJS)
 # install programs
 
 install : $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean : 

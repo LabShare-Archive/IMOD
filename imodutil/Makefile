@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2005/10/19 14:42:52  mast
+#  Switched imodtrans to using libiimod
+#
 #  Revision 3.11  2005/10/13 20:18:24  mast
 #  Switched imodjoin to using libiimod
 #
@@ -119,7 +122,7 @@ imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
 
 install : $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean : 
