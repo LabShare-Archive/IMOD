@@ -17,6 +17,8 @@ if ($no_xlibs == false) then
     if (!(-e $Xlibdir) || !(-e $Xincdir)) set no_xlibs = true
 endif
 
+set fcompFlags = ""
+
 if ($compiler == intel) then
     set c_includes =  '-I"$(QTDIR)\include"'
     set cyg_lib = `cygpath -w $lib_dir`
@@ -40,12 +42,15 @@ if ($compiler == intel) then
     if ("$iclnum" != "") @ iclversion = $iclnum
 
     # version 8 and above: remove /C90, set record length to 4 bytes
+    # also need to specify that \ is an escape character
+    # Also stack size needs to be set high for a few programs (findwarp and ?)
     # The delayload may be a temporary bug in the 9.0 that was tested 11/18/05
     if ($iclversion > 7) then
         set fortcomp = ifort
-        set ldfflags = "/4Yportlib"
-        if ($iclversion == 9) set delayload = "DELAYLOAD"
+        set ldfflags = "/4Yportlib /F66000000"
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+        set fcompFlags = "/assume:bscc"
+        if ($iclversion == 9) set delayload = "DELAYLOAD"
     endif
     
 cat << EOF >> $configure
@@ -197,10 +202,10 @@ echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
 
 if ($compiler == intel) then
     set optimization = "/O2 /w /nologo"
-    set noop = /Og
+    set noop = /Od
     set qopt = -O2
     if ($debug == true) then
-        set optimization = "/Zi /Og /w /nologo"
+        set optimization = "/Zi /Od /w /nologo"
         set qopt = -Od
     endif
 else
@@ -214,7 +219,7 @@ endif
 
 set flags = "$flags /MD"
 set cflags = "$flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $ldfflags $optimization $include_flags"
+set fflags = "$flags $fcompFlags $ldfflags $optimization $include_flags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
@@ -234,7 +239,11 @@ echo 'TILTOBJS = bpsumnox.$(O) bpsumxtilt.$(O) bpsumlocal.$(O)' >> $configure
 #
 if ($tifflibs == default) set tifflibs = true
 \cp sysdep/win/tiff*.h include
-\cp sysdep/win/libtiff.lib buildlib
+if ($m64bit == true) then
+    \cp sysdep/win/libtiff64.lib buildlib/libtiff.lib
+else
+    \cp sysdep/win/libtiff.lib buildlib
+endif
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt
@@ -242,7 +251,7 @@ if ($tifflibs == default) set tifflibs = true
 set fbpswitch       = fbpswitch-pc.inc
 
 set binext = .exe
-set junit_home      = C:/cygwin/usr/local/junit
+set junit_home      = `cygpath -m /usr/local/junit`
 set class_sep       = ';'
 
 #
@@ -369,10 +378,16 @@ EOF
 
     # Output variables for libraries to copy to bin
     #
-    echo 'DLLSOURCEDIR1 = C:/Program Files/GnuWin32/bin' >> $configure
-    echo 'DLLSTOCOPY1 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
+    if ($m64bit == true) then
+        set strip = true
+        echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files (x86)/GnuWin32/bin" >> $configure
+        echo 'DLLSTOCOPY1 = libtiff.dll' >> $configure
+    else
+        echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files/GnuWin32/bin" >> $configure
+        echo 'DLLSTOCOPY1 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
+    endif
     if ($iclversion == 7) then
-        echo 'DLLSOURCEDIR2 = C:/Program Files/Intel/Compiler70/IA32/Bin' >> $configure
+        echo "DLLSOURCEDIR2 = $SYSTEMDRIVE/Program Files/Intel/Compiler70/IA32/Bin" >> $configure
         echo 'DLLSTOCOPY2 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
     else
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
