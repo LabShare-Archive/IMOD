@@ -336,6 +336,12 @@ switch($target_computer)
                 goto cygwin
                 breaksw
 
+        case x86_64__CYGWIN_NT-5.*__*__*:
+                echo $target_computer is Intel running Cygwin under Windows-64
+                set machine = cygwin64
+                goto cygwin64
+                breaksw
+
 	case Power_Macintosh__Darwin__*__*:
                 echo $target_computer is Power Macintosh running OSX
                 set machine = macosx
@@ -471,6 +477,10 @@ goto standard_defines
 #############################################################################
 # Cygwin on Intel 
 #
+cygwin64:
+set m64bit = true
+set machine = cygwin
+
 cygwin:
 dos2unix machines/cygwin >& /dev/null
 source machines/cygwin
@@ -811,6 +821,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.8  2005/10/16 22:50:01  mast
+#  Added use_etomo option to solve problems with chroot builds
+#
 #  Revision 1.7  2005/09/11 05:44:26  mast
 #  Fixed removal of .version-dependent items for Windows
 #
