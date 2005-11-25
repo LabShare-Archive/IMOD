@@ -15,7 +15,7 @@ if [ -z "$IMOD_DIR" ]; then
     export IMOD_DIR=`/usr/bin/cygpath -w /usr/local/IMOD`
 else
     /usr/bin/echo "$IMOD_DIR" | grep ' $' > /dev/null
-    if [ ! -z $? ] ; then
+    if [ $? -eq 0 ] ; then
         echo "Environment variable IMOD_DIR has a space at the end.  You should fix this."
         export IMOD_DIR=`/usr/bin/cygpath -w "$IMOD_DIR"`
     fi
