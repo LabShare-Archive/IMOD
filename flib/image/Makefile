@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/05/12 05:07:40  mast
+#  Use strip variable
+#
 #  Revision 3.8  2005/04/16 15:35:13  mast
 #  Added numericdiff
 #
@@ -189,6 +192,9 @@ tiltxcorr$(E): tiltxcorr.$(O)
 
 tomopieces$(E): tomopieces.$(O)
 	$(FC) -o tomopieces tomopieces.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+vmstocsh.$(O): vmstocsh.f
+	$(FC) -c $(NOOPFFLAGS) vmstocsh.f
 
 vmstocsh$(E): vmstocsh.$(O)
 	$(FC) -o vmstocsh vmstocsh.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
