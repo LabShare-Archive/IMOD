@@ -1,7 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/21/05: Fixed a bug in Tomogram Generation and Tomogram Combination which left
-the parallel processing checkbox on when cpu.adoc cannot be found.
+11/26/05: Fixed saving of memory to TIFF in 3dmod.
+
+11/21/05: Fixed a bug in Tomogram Generation and Tomogram Combination which
+left the parallel processing checkbox on when cpu.adoc could not be found.
  
 11/21/05: Can exit Etomo and/or log off while running tilt or volcombine with
 processchunks.
