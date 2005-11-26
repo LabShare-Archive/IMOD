@@ -159,7 +159,7 @@ void InfoWindow::fileSlot(int item)
       limits[0] = limits[1] = 0;
       limits[2] = App->cvi->xsize;
       limits[3] = App->cvi->ysize;
-      b3dSnapshot_TIF((char *)qname.latin1(), 0, limits, data);
+      b3dSnapshot_TIF((char *)qname.latin1(), 3, limits, data);
     }
     break;
 
@@ -1188,6 +1188,9 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.26  2005/10/14 22:04:39  mast
+  Changes for Model reload capability
+
   Revision 4.25  2005/06/29 05:38:40  mast
   Changes to manipulate fine grain properties and do undos correctly
 
