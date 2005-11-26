@@ -1613,7 +1613,7 @@ int ivwLoadIMODifd(ImodView *vi)
 
     /* clear the return from the line. */
     for (i = 0; line[i]; i++)
-      if (line[i] == '\n'){
+      if (line[i] == '\n' || line[i] == '\r'){
         line[i] = 0x00;
         break;
       }
@@ -1633,7 +1633,8 @@ int ivwLoadIMODifd(ImodView *vi)
     if (!strncmp("IMGDIR", line, 6)){
       if (imgdir) 
         free(imgdir);
-      imgdir = strdup((curdir->cleanDirPath(QString(&line[7]))).latin1());
+      imgdir = strdup((curdir->cleanDirPath(QString(&line[7]).
+                                            stripWhiteSpace())).latin1());
       continue;
     }
 
@@ -1679,9 +1680,11 @@ int ivwLoadIMODifd(ImodView *vi)
         filename = (char *)malloc(pathlen + 4);
         strcpy(filename, imgdir);
         strcat(filename, "/");
-        strcat(filename, (curdir->cleanDirPath(QString(&line[6]))).latin1());
+        strcat(filename, (curdir->cleanDirPath(QString(&line[6]).
+                                               stripWhiteSpace())).latin1());
       }else{
-        filename = strdup((curdir->cleanDirPath(QString(&line[6]))).latin1());
+        filename = strdup((curdir->cleanDirPath(QString(&line[6]).
+                                                stripWhiteSpace())).latin1());
       }
 
       errno = 0;
@@ -2415,6 +2418,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.40  2005/11/11 23:04:29  mast
+Changes for unsigned integers
+
 Revision 4.39  2005/10/16 20:26:42  mast
 Changed name of transformation function
 
