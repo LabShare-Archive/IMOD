@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/10/05 05:47:21  mast
+#  Captured all com and log files (including ~) except ta*.log
+#
 #  Revision 3.7  2005/06/30 20:25:53  mast
 #  Fixed for SGI (no tar -z) and for spaces in path
 #
@@ -45,8 +48,8 @@ set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
 fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
-patch.out patch_vector.mod patch_region.mod etomo_err.log etomo_err.log~ \
-etomo_out.log lslrt.out uname.out)
+patch.out patch_vector.mod patch_region.mod lslrt.out uname.out \
+processchunks.out)
 
 echo "$pn : enter $pn -h for usage"
 while ($#argv > 0)
