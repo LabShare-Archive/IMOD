@@ -3,6 +3,7 @@ package etomo.type;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import etomo.BaseManager;
 import etomo.ui.UIHarness;
 
 /**
@@ -19,6 +20,9 @@ import etomo.ui.UIHarness;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/11/02 23:59:43  sueh
+* <p> bug# 738 Added midas limit.
+* <p>
 * <p> Revision 1.4  2005/04/25 20:51:29  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -85,7 +89,10 @@ import etomo.ui.UIHarness;
 public class JoinMetaData extends ConstJoinMetaData {
   public static final String rcsid = "$Id$";
 
-  public JoinMetaData() {
+  private final BaseManager manager;
+  
+  public JoinMetaData(BaseManager manager) {
+    this.manager = manager;
     reset();
   }
 
@@ -151,7 +158,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     }
     sectionTableData = new ArrayList(sectionTableRowsSize);
     for (int i = 0; i < sectionTableRowsSize; i++) {
-      SectionTableRowData row = new SectionTableRowData(i + 1);
+      SectionTableRowData row = new SectionTableRowData(manager, i + 1);
       row.load(props, prepend);
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
