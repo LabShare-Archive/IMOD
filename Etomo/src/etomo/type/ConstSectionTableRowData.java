@@ -6,198 +6,269 @@ import java.util.Properties;
 import etomo.storage.Storable;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.9  2005/06/16 20:03:06  sueh
-* <p> bug# 692 Fixed getChunkSize, which was setting the type instead of the
-* <p> value.
-* <p>
-* <p> Revision 1.8  2005/05/10 02:34:51  sueh
-* <p> bug#658 Removed ScriptParameter.setUseScreenDisplayValue()
-* <p> because it is confusing to turn ConstEtomoNumber.displayValue off and
-* <p> on and because this functionality is only used with the rotationAngles.
-* <p>
-* <p> Revision 1.7  2005/01/29 00:18:12  sueh
-* <p> Removed print statements
-* <p>
-* <p> Revision 1.6  2005/01/25 22:08:03  sueh
-* <p> Converting EtomoNumbers parameters to ScriptParameters.
-* <p>
-* <p> Revision 1.5  2005/01/21 23:21:24  sueh
-* <p> bug# 509 bug# 591  Removed initialValue from EtomoNumber constructor.
-* <p> Using set() instead.
-* <p>
-* <p> Revision 1.4  2004/12/16 02:28:11  sueh
-* <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
-* <p> resetValue instead.
-* <p>
-* <p> Revision 1.3  2004/11/23 22:32:17  sueh
-* <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Added
-* <p> description strings to fields that will display error messages.
-* <p>
-* <p> Revision 1.2  2004/11/19 23:34:14  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 1.1.2.15  2004/11/19 00:17:52  sueh
-* <p> bug# 520 Fixed equals function and made it specific to
-* <p> ConstSectionTableRowData.  Added equalsSample to check whether the
-* <p> fields used to create the sample have changed.
-* <p>
-* <p> Revision 1.1.2.14  2004/11/17 02:22:48  sueh
-* <p> bug# 520 Added a copy constructor.just
-* <p>
-* <p> Revision 1.1.2.13  2004/11/16 02:26:35  sueh
-* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
-* <p> EtomoLong with EtomoNumber.
-* <p>
-* <p> Revision 1.1.2.12  2004/11/15 22:23:45  sueh
-* <p> bug# 520 Moving state variables from ConstSectionTableRow to this class
-* <p> so they can be saved in meta data.
-* <p>
-* <p> Revision 1.1.2.11  2004/11/09 15:14:57  sueh
-* <p> bug# 520 Added getZMax().
-* <p>
-* <p> Revision 1.1.2.10  2004/10/30 02:32:47  sueh
-* <p> bug# 520 Converted rotation angles to EtomoSimpleType.
-* <p>
-* <p> Revision 1.1.2.9  2004/10/29 22:13:21  sueh
-* <p> bug# 520  Added remove() to remove section table data
-* <p> rows from the meta data file.  This gets rid of deleted rows.
-* <p>
-* <p> Revision 1.1.2.8  2004/10/25 23:01:37  sueh
-* <p> bug# 520 Fixed chunk size by passing the number of rows to
-* <p> ConstJoinMetaData.getChunkSize and checking the rowNumber when
-* <p> calculating chunk size.  Added xmax and ymax from header.
-* <p>
-* <p> Revision 1.1.2.7  2004/10/22 21:03:21  sueh
-* <p> bug# 520 Simplifying by passing EtomoSimpleType instead of String and
-* <p> int in get functions.  Removed validation.  Converted ints to
-* <p> EtomoInteger as necessary.
-* <p>
-* <p> Revision 1.1.2.6  2004/10/22 03:23:19  sueh
-* <p> bug# 520 Converted rowNumber to an EtomoInteger.
-* <p>
-* <p> Revision 1.1.2.5  2004/10/21 02:52:47  sueh
-* <p> bug# 520 Added get functions.
-* <p>
-* <p> Revision 1.1.2.4  2004/10/15 00:18:24  sueh
-* <p> bug# 520 Fix createPrepend().  Fix store().  Prevent underflow in
-* <p> getRowIndex().
-* <p>
-* <p> Revision 1.1.2.3  2004/10/08 16:11:24  sueh
-* <p> bug# 520 Added toString() and moved initialization of invalidReason to
-* <p> SectionTableRowData.reset().
-* <p>
-* <p> Revision 1.1.2.2  2004/10/06 01:57:57  sueh
-* <p> bug# 520 Added Z max from header.  Added descriptions of the fields for
-* <p> invalidReason.  Added isValidForMakeSamples() - validate when Make
-* <p> Samples is pressed.
-* <p>
-* <p> Revision 1.1.2.1  2004/09/29 19:26:26  sueh
-* <p> bug# 520 Divided the SectionTable row into document and view.  This
-* <p> class is the const part of the document.  It implements Storable with
-* <p> abstract load functions, has an equals function and get functions.
-* <p> </p>
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.10  2005/07/29 19:47:01  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+ * <p>
+ * <p> Revision 1.9  2005/06/16 20:03:06  sueh
+ * <p> bug# 692 Fixed getChunkSize, which was setting the type instead of the
+ * <p> value.
+ * <p>
+ * <p> Revision 1.8  2005/05/10 02:34:51  sueh
+ * <p> bug#658 Removed ScriptParameter.setUseScreenDisplayValue()
+ * <p> because it is confusing to turn ConstEtomoNumber.displayValue off and
+ * <p> on and because this functionality is only used with the rotationAngles.
+ * <p>
+ * <p> Revision 1.7  2005/01/29 00:18:12  sueh
+ * <p> Removed print statements
+ * <p>
+ * <p> Revision 1.6  2005/01/25 22:08:03  sueh
+ * <p> Converting EtomoNumbers parameters to ScriptParameters.
+ * <p>
+ * <p> Revision 1.5  2005/01/21 23:21:24  sueh
+ * <p> bug# 509 bug# 591  Removed initialValue from EtomoNumber constructor.
+ * <p> Using set() instead.
+ * <p>
+ * <p> Revision 1.4  2004/12/16 02:28:11  sueh
+ * <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
+ * <p> resetValue instead.
+ * <p>
+ * <p> Revision 1.3  2004/11/23 22:32:17  sueh
+ * <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Added
+ * <p> description strings to fields that will display error messages.
+ * <p>
+ * <p> Revision 1.2  2004/11/19 23:34:14  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 1.1.2.15  2004/11/19 00:17:52  sueh
+ * <p> bug# 520 Fixed equals function and made it specific to
+ * <p> ConstSectionTableRowData.  Added equalsSample to check whether the
+ * <p> fields used to create the sample have changed.
+ * <p>
+ * <p> Revision 1.1.2.14  2004/11/17 02:22:48  sueh
+ * <p> bug# 520 Added a copy constructor.just
+ * <p>
+ * <p> Revision 1.1.2.13  2004/11/16 02:26:35  sueh
+ * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+ * <p> EtomoLong with EtomoNumber.
+ * <p>
+ * <p> Revision 1.1.2.12  2004/11/15 22:23:45  sueh
+ * <p> bug# 520 Moving state variables from ConstSectionTableRow to this class
+ * <p> so they can be saved in meta data.
+ * <p>
+ * <p> Revision 1.1.2.11  2004/11/09 15:14:57  sueh
+ * <p> bug# 520 Added getZMax().
+ * <p>
+ * <p> Revision 1.1.2.10  2004/10/30 02:32:47  sueh
+ * <p> bug# 520 Converted rotation angles to EtomoSimpleType.
+ * <p>
+ * <p> Revision 1.1.2.9  2004/10/29 22:13:21  sueh
+ * <p> bug# 520  Added remove() to remove section table data
+ * <p> rows from the meta data file.  This gets rid of deleted rows.
+ * <p>
+ * <p> Revision 1.1.2.8  2004/10/25 23:01:37  sueh
+ * <p> bug# 520 Fixed chunk size by passing the number of rows to
+ * <p> ConstJoinMetaData.getChunkSize and checking the rowNumber when
+ * <p> calculating chunk size.  Added xmax and ymax from header.
+ * <p>
+ * <p> Revision 1.1.2.7  2004/10/22 21:03:21  sueh
+ * <p> bug# 520 Simplifying by passing EtomoSimpleType instead of String and
+ * <p> int in get functions.  Removed validation.  Converted ints to
+ * <p> EtomoInteger as necessary.
+ * <p>
+ * <p> Revision 1.1.2.6  2004/10/22 03:23:19  sueh
+ * <p> bug# 520 Converted rowNumber to an EtomoInteger.
+ * <p>
+ * <p> Revision 1.1.2.5  2004/10/21 02:52:47  sueh
+ * <p> bug# 520 Added get functions.
+ * <p>
+ * <p> Revision 1.1.2.4  2004/10/15 00:18:24  sueh
+ * <p> bug# 520 Fix createPrepend().  Fix store().  Prevent underflow in
+ * <p> getRowIndex().
+ * <p>
+ * <p> Revision 1.1.2.3  2004/10/08 16:11:24  sueh
+ * <p> bug# 520 Added toString() and moved initialization of invalidReason to
+ * <p> SectionTableRowData.reset().
+ * <p>
+ * <p> Revision 1.1.2.2  2004/10/06 01:57:57  sueh
+ * <p> bug# 520 Added Z max from header.  Added descriptions of the fields for
+ * <p> invalidReason.  Added isValidForMakeSamples() - validate when Make
+ * <p> Samples is pressed.
+ * <p>
+ * <p> Revision 1.1.2.1  2004/09/29 19:26:26  sueh
+ * <p> bug# 520 Divided the SectionTable row into document and view.  This
+ * <p> class is the const part of the document.  It implements Storable with
+ * <p> abstract load functions, has an equals function and get functions.
+ * <p> </p>
+ */
 public abstract class ConstSectionTableRowData implements Storable {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
+  protected static final String VERSION = "1.1";
+
+  protected static final String VERSION_KEY = "SectionTableRowData.Version";
   protected static final String groupString = "SectionTableRow";
-  protected static final String sectionString = "Section";
-  protected static final String zMaxString = "ZMax";
-  
-  //state - these do not have to be saved to a file, but they are necessary
+  protected static final String setupSectionString = "Section";
+  //For conversin from version 1.0
+  protected static final String setupXMaxString = "XMax";
+  protected static final String setupYMaxString = "YMax";
+  protected static final String setupZMaxString = "ZMax";
+
+  protected final EtomoNumber rowNumber;
+  protected final EtomoNumber sampleBottomStart;
+  protected final EtomoNumber sampleBottomEnd;
+  protected final EtomoNumber sampleTopStart;
+  protected final EtomoNumber sampleTopEnd;
+  protected final EtomoNumber setupFinalStart;
+  protected final EtomoNumber setupFinalEnd;
+  protected final EtomoNumber joinFinalStart;
+  protected final EtomoNumber joinFinalEnd;
+  protected final ScriptParameter rotationAngleX;
+  protected final ScriptParameter rotationAngleY;
+  protected final ScriptParameter rotationAngleZ;
+
+  protected File setupSection = null;
+  protected File joinSection = null;
+  protected int setupXMax = EtomoNumber.INTEGER_NULL_VALUE;
+  protected int joinXMax = EtomoNumber.INTEGER_NULL_VALUE;
+  protected int setupYMax = EtomoNumber.INTEGER_NULL_VALUE;
+  protected int joinYMax = EtomoNumber.INTEGER_NULL_VALUE;
+  protected int setupZMax = EtomoNumber.INTEGER_NULL_VALUE;
+  protected int joinZMax = EtomoNumber.INTEGER_NULL_VALUE;
+
+  //state - these should not be saved to the .ejf file, but they are necessary
   //for remembering the state of a row that is being retrieved from meta data.
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
-  
-  protected EtomoNumber rowNumber = new EtomoNumber("RowNumber");
-  protected File section;
-  protected EtomoNumber sampleBottomStart = new EtomoNumber("SampleBottomStart");
-  protected EtomoNumber sampleBottomEnd = new EtomoNumber("SampleBottomEnd");
-  protected EtomoNumber sampleTopStart = new EtomoNumber("SampleTopStart");
-  protected EtomoNumber sampleTopEnd = new EtomoNumber("SampleTopEnd");
-  protected EtomoNumber finalStart = new EtomoNumber("FinalStart");
-  protected EtomoNumber finalEnd = new EtomoNumber("FinalEnd");
-  protected ScriptParameter rotationAngleX = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleX");
-  protected ScriptParameter rotationAngleY = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleY");
-  protected ScriptParameter rotationAngleZ = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngleZ");
-  protected EtomoNumber xMax = new EtomoNumber("XMax");
-  protected EtomoNumber yMax = new EtomoNumber("YMax");
-  protected int zMax = Integer.MIN_VALUE;
-  
-  protected StringBuffer invalidReason;
-  
+  protected StringBuffer invalidReason = null;
+
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
-  
-  protected ConstSectionTableRowData() {
+
+  /**
+   * Construct an instance with a row number.
+   * @param rowNumber
+   */
+  protected ConstSectionTableRowData(int rowNumber) {
+    //construct
+    this.rowNumber = new EtomoNumber("RowNumber");
+    sampleBottomStart = new EtomoNumber("SampleBottomStart");
+    sampleBottomEnd = new EtomoNumber("SampleBottomEnd");
+    sampleTopStart = new EtomoNumber("SampleTopStart");
+    sampleTopEnd = new EtomoNumber("SampleTopEnd");
+    setupFinalStart = new EtomoNumber(EtomoNumber.LONG_TYPE, "FinalStart");
+    setupFinalEnd = new EtomoNumber(EtomoNumber.LONG_TYPE, "FinalEnd");
+    joinFinalStart = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    joinFinalEnd = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    rotationAngleX = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "RotationAngleX");
+    rotationAngleY = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "RotationAngleY");
+    rotationAngleZ = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+        "RotationAngleZ");
+    //configure
     sampleBottomStart.setDescription("Sample Slices, Bottom, Start");
     sampleBottomEnd.setDescription("Sample Slices, Bottom, End");
     sampleTopStart.setDescription("Sample Slices, Top, Start");
     sampleTopEnd.setDescription("Sample Slices, Top, End");
-    finalStart.setDescription("Final, Start");
-    finalStart.setDisplayValue(1);
-    finalEnd.setDescription("Final, End");
+    setupFinalStart.setDescription("Final, Start");
+    setupFinalStart.setDisplayValue(1);
+    setupFinalEnd.setDescription("Final, End");
+    joinFinalStart.setDescription("Final, Start");
+    joinFinalStart.setDisplayValue(1);
+    joinFinalEnd.setDescription("Final, End");
     rotationAngleX.setDefault(0).setDescription("Rotation Angles, X");
     rotationAngleY.setDefault(0).setDescription("Rotation Angles, Y");
     rotationAngleZ.setDefault(0).setDescription("Rotation Angles, Z");
+    //initialize
+    this.rowNumber.set(rowNumber);
   }
-  
-  protected ConstSectionTableRowData(ConstSectionTableRowData that) {
-    imodIndex = that.imodIndex;
-    imodRotIndex = that.imodRotIndex;
-    sectionExpanded = that.sectionExpanded;
-    rowNumber = new EtomoNumber(that.rowNumber);
-    section = that.section; //Section can't be changed so it can be shared
-    sampleBottomStart = new EtomoNumber(that.sampleBottomStart);
-    sampleBottomEnd = new EtomoNumber(that.sampleBottomEnd);
-    sampleTopStart = new EtomoNumber(that.sampleTopStart);
-    sampleTopEnd = new EtomoNumber(that.sampleTopEnd);
-    finalStart = that.finalStart;
-    finalEnd = that.finalEnd;
-    rotationAngleX = new ScriptParameter(that.rotationAngleX);
-    rotationAngleY = new ScriptParameter(that.rotationAngleY);
-    rotationAngleZ = new ScriptParameter(that.rotationAngleZ);
-    xMax = new EtomoNumber(that.xMax);
-    yMax = new EtomoNumber(that.yMax);
-    zMax = that.zMax;
+
+  /**
+   * Copy constructor.  Does a deep copy.
+   * @param constSectionTableRowData
+   */
+  protected ConstSectionTableRowData(
+      ConstSectionTableRowData constSectionTableRowData) {
+    //deep copy
+    imodIndex = constSectionTableRowData.imodIndex;
+    imodRotIndex = constSectionTableRowData.imodRotIndex;
+    sectionExpanded = constSectionTableRowData.sectionExpanded;
+    rowNumber = new EtomoNumber(constSectionTableRowData.rowNumber);
+    if (constSectionTableRowData.setupSection == null) {
+      setupSection = null;
+    }
+    else {
+      setupSection = new File(constSectionTableRowData.setupSection
+          .getAbsolutePath());
+    }
+    if (constSectionTableRowData.joinSection == null) {
+      joinSection = null;
+    }
+    else {
+      joinSection = new File(constSectionTableRowData.joinSection
+          .getAbsolutePath());
+    }
+    sampleBottomStart = new EtomoNumber(
+        constSectionTableRowData.sampleBottomStart);
+    sampleBottomEnd = new EtomoNumber(constSectionTableRowData.sampleBottomEnd);
+    sampleTopStart = new EtomoNumber(constSectionTableRowData.sampleTopStart);
+    sampleTopEnd = new EtomoNumber(constSectionTableRowData.sampleTopEnd);
+    setupFinalStart = new EtomoNumber(constSectionTableRowData.setupFinalStart);
+    setupFinalEnd = new EtomoNumber(constSectionTableRowData.setupFinalEnd);
+    joinFinalStart = new EtomoNumber(constSectionTableRowData.joinFinalStart);
+    joinFinalEnd = new EtomoNumber(constSectionTableRowData.joinFinalEnd);
+    rotationAngleX = new ScriptParameter(
+        constSectionTableRowData.rotationAngleX);
+    rotationAngleY = new ScriptParameter(
+        constSectionTableRowData.rotationAngleY);
+    rotationAngleZ = new ScriptParameter(
+        constSectionTableRowData.rotationAngleZ);
+    setupXMax = constSectionTableRowData.setupXMax;
+    joinXMax = constSectionTableRowData.joinXMax;
+    setupYMax = constSectionTableRowData.setupYMax;
+    joinYMax = constSectionTableRowData.joinYMax;
+    setupZMax = constSectionTableRowData.setupZMax;
+    joinZMax = constSectionTableRowData.joinZMax;
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
   protected String paramString() {
-    return ",\n" + rowNumber.getDescription() + "=" + rowNumber
-        + ",\n" + sectionString + "=" + section + ",\n"
-        + sampleBottomStart.getDescription() + "="
-        + sampleBottomStart + ",\n"
-        + sampleBottomEnd.getDescription() + "=" + sampleBottomEnd
-        + ",\n" + sampleTopStart.getDescription() + "=" + sampleTopStart
-        + ",\n" + sampleTopEnd.getDescription() + "="
-        + sampleTopEnd + ",\n" + finalStart.getDescription() + "="
-        + finalStart + ",\n" + finalEnd.getDescription() + "=" + finalEnd + ",\n"
-        + rotationAngleX.getDescription() + "=" + rotationAngleX
-        + ",\n" + rotationAngleY.getDescription() + "="
-        + rotationAngleY + ",\n" + rotationAngleZ.getDescription()
-        + "=" + rotationAngleZ + ",\n" + xMax.getDescription()
-        + "=" + xMax + ",\n" + yMax.getDescription() + "="
-        + yMax + ",\n" + zMaxString + "=" + zMax;
-  } 
-  
+    return ",\n" + rowNumber.getDescription() + "=" + rowNumber + ","
+        + setupSectionString + "=" + setupSection + ",\n" + "joinSection="
+        + joinSection + "," + sampleBottomStart.getDescription() + "="
+        + sampleBottomStart + ",\n" + sampleBottomEnd.getDescription() + "="
+        + sampleBottomEnd + "," + sampleTopStart.getDescription() + "="
+        + sampleTopStart + ",\n" + sampleTopEnd.getDescription() + "="
+        + sampleTopEnd + "," + setupFinalStart.getDescription() + "="
+        + setupFinalStart + ",\n" + setupFinalEnd.getDescription() + "="
+        + setupFinalEnd + joinFinalStart.getDescription() + "="
+        + joinFinalStart + ",\n" + joinFinalEnd.getDescription() + "="
+        + joinFinalEnd + "," + rotationAngleX.getDescription() + "="
+        + rotationAngleX + ",\n" + rotationAngleY.getDescription() + "="
+        + rotationAngleY + "," + rotationAngleZ.getDescription() + "="
+        + rotationAngleZ + ",\n" + "setupXMax=" + setupXMax + "joinXMax="
+        + joinXMax + "," + "setupYMax=" + setupYMax + "joinYMax=" + joinYMax
+        + ",\n" + setupZMaxString + "=" + setupZMax + "joinZMax=" + joinZMax
+        + ",\n" + VERSION_KEY + "=" + VERSION;
+  }
+
   public void store(Properties props) {
     store(props, "");
   }
@@ -205,136 +276,128 @@ public abstract class ConstSectionTableRowData implements Storable {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
+    props.setProperty(group + VERSION_KEY, VERSION);
     rowNumber.store(props, prepend);
-    xMax.store(props, prepend);
-    yMax.store(props, prepend);
-    props.setProperty(group + zMaxString, Integer.toString(zMax));
-    props.setProperty(group + sectionString, section.getAbsolutePath());  
+    props.setProperty(group + setupSectionString, setupSection
+        .getAbsolutePath());
     sampleBottomStart.store(props, prepend);
     sampleBottomEnd.store(props, prepend);
     sampleTopStart.store(props, prepend);
     sampleTopEnd.store(props, prepend);
-    finalStart.store(props, prepend);
-    finalEnd.store(props, prepend);
+    setupFinalStart.store(props, prepend);
+    setupFinalEnd.store(props, prepend);
     rotationAngleX.store(props, prepend);
     rotationAngleY.store(props, prepend);
     rotationAngleZ.store(props, prepend);
   }
-  
+
   void remove(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    rowNumber.store(props, prepend);
-    xMax.remove(props, prepend);
-    yMax.remove(props, prepend);
-    props.remove(group + zMaxString);
-    props.remove(group + sectionString);  
+    props.remove(group + VERSION_KEY);
+    rowNumber.remove(props, prepend);
+    props.remove(group + setupSectionString);
     sampleBottomStart.remove(props, prepend);
     sampleBottomEnd.remove(props, prepend);
     sampleTopStart.remove(props, prepend);
     sampleTopEnd.remove(props, prepend);
-    finalStart.remove(props, prepend);
-    finalEnd.remove(props, prepend);
+    setupFinalStart.remove(props, prepend);
+    setupFinalEnd.remove(props, prepend);
     rotationAngleX.remove(props, prepend);
     rotationAngleY.remove(props, prepend);
     rotationAngleZ.remove(props, prepend);
   }
 
-  
   protected String createPrepend(String prepend) {
     if (prepend == "") {
       return groupString + "." + rowNumber.toString();
     }
     return prepend + "." + groupString + "." + rowNumber.toString();
   }
-  
-  public boolean equals(ConstSectionTableRowData that) {
-    if (!rowNumber.equals(that.rowNumber)) {
+
+  public boolean equals(ConstSectionTableRowData constSectionTableRowData) {
+    if (!equalsSample(constSectionTableRowData)) {
       return false;
     }
-    if (!section.equals(that.section)) {
+    if (joinSection == null && constSectionTableRowData.joinSection != null) {
       return false;
     }
-    if (!sampleBottomStart.equals(that.sampleBottomStart)) {
+    if (joinSection != null && constSectionTableRowData.joinSection == null) {
       return false;
     }
-    if (!sampleBottomEnd.equals(that.sampleBottomEnd)) {
+    if (!joinSection.equals(constSectionTableRowData.joinSection)) {
       return false;
     }
-    if (!sampleTopStart.equals(that.sampleTopStart)) {
+    if (!setupFinalStart.equals(constSectionTableRowData.setupFinalStart)) {
       return false;
     }
-    if (!sampleTopEnd.equals(that.sampleTopEnd)) {
+    if (!setupFinalEnd.equals(constSectionTableRowData.setupFinalEnd)) {
       return false;
     }
-    if (!finalStart.equals(that.finalStart)) {
+    if (!joinFinalStart.equals(constSectionTableRowData.joinFinalStart)) {
       return false;
     }
-    if (!finalEnd.equals(that.finalEnd)) {
-      return false;
-    }
-    if (!rotationAngleX.equals(that.rotationAngleX)) {
-      return false;
-    }
-    if (!rotationAngleY.equals(that.rotationAngleY)) {
-      return false;
-    }
-    if (!rotationAngleZ.equals(that.rotationAngleZ)) {
-      return false;
-    }
-    return true;
-  }
-  
-  public boolean equalsSample(ConstSectionTableRowData that) {
-    if (!rowNumber.equals(that.rowNumber)) {
-      return false;
-    }
-    if (!section.equals(that.section)) {
-      return false;
-    }
-    if (!sampleBottomStart.equals(that.sampleBottomStart)) {
-      return false;
-    }
-    if (!sampleBottomEnd.equals(that.sampleBottomEnd)) {
-      return false;
-    }
-    if (!sampleTopStart.equals(that.sampleTopStart)) {
-      return false;
-    }
-    if (!sampleTopEnd.equals(that.sampleTopEnd)) {
-      return false;
-    }
-    if (!rotationAngleX.equals(that.rotationAngleX)) {
-      return false;
-    }
-    if (!rotationAngleY.equals(that.rotationAngleY)) {
-      return false;
-    }
-    if (!rotationAngleZ.equals(that.rotationAngleZ)) {
+    if (!joinFinalEnd.equals(constSectionTableRowData.joinFinalEnd)) {
       return false;
     }
     return true;
   }
 
-  
+  public boolean equalsSample(ConstSectionTableRowData constSectionTableRowData) {
+    if (!rowNumber.equals(constSectionTableRowData.rowNumber)) {
+      return false;
+    }
+    if (setupSection == null && constSectionTableRowData.setupSection != null) {
+      return false;
+    }
+    if (setupSection != null && constSectionTableRowData.setupSection == null) {
+      return false;
+    }
+    if (!setupSection.equals(constSectionTableRowData.setupSection)) {
+      return false;
+    }
+    if (!sampleBottomStart.equals(constSectionTableRowData.sampleBottomStart)) {
+      return false;
+    }
+    if (!sampleBottomEnd.equals(constSectionTableRowData.sampleBottomEnd)) {
+      return false;
+    }
+    if (!sampleTopStart.equals(constSectionTableRowData.sampleTopStart)) {
+      return false;
+    }
+    if (!sampleTopEnd.equals(constSectionTableRowData.sampleTopEnd)) {
+      return false;
+    }
+    if (!rotationAngleX.equals(constSectionTableRowData.rotationAngleX)) {
+      return false;
+    }
+    if (!rotationAngleY.equals(constSectionTableRowData.rotationAngleY)) {
+      return false;
+    }
+    if (!rotationAngleZ.equals(constSectionTableRowData.rotationAngleZ)) {
+      return false;
+    }
+    return true;
+  }
+
   private static String convertToString(int value) {
     if (value == Integer.MIN_VALUE) {
       return "";
     }
     return Integer.toString(value);
   }
-  
+
   private static String convertToString(double value) {
     if (Double.isNaN(value)) {
       return "";
     }
     return Double.toString(value);
   }
-  
+
   public String getInvalidReason() {
     return invalidReason.toString();
   }
-  
+
   public ConstEtomoNumber getRowNumber() {
     return rowNumber;
   }
@@ -345,39 +408,43 @@ public abstract class ConstSectionTableRowData implements Storable {
     }
     return rowNumber.getInt() - 1;
   }
-  
-  public File getSection() {
-    return section;
+
+  public File getSetupSection() {
+    return setupSection;
   }
-  
-  public ConstEtomoNumber getXMax() {
-    return xMax;
+
+  public File getJoinSection() {
+    return joinSection;
   }
-  
-  public ConstEtomoNumber getYMax() {
-    return yMax;
+
+  public int getJoinXMax() {
+    return joinXMax;
   }
-  
-  public int getZMax() {
-    return zMax;
+
+  public int getJoinYMax() {
+    return joinYMax;
   }
-  
+
+  public int getJoinZMax() {
+    return joinZMax;
+  }
+
   public ConstEtomoNumber getSampleBottomStart() {
     return sampleBottomStart;
   }
-  
+
   public ConstEtomoNumber getSampleBottomEnd() {
     return sampleBottomEnd;
   }
-  
+
   public ConstEtomoNumber getSampleTopStart() {
     return sampleTopStart;
   }
-  
+
   public ConstEtomoNumber getSampleTopEnd() {
     return sampleTopEnd;
   }
-  
+
   public int getSampleBottomNumberSlices() {
     int sampleBottomEnd = this.sampleBottomEnd.getInt();
     int sampleBottomStart = this.sampleBottomStart.getInt();
@@ -386,7 +453,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     }
     return 0;
   }
-  
+
   public int getSampleTopNumberSlices() {
     int sampleTopEnd = this.sampleTopEnd.getInt();
     int sampleTopStart = this.sampleTopStart.getInt();
@@ -395,7 +462,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     }
     return 0;
   }
-  
+
   public ConstEtomoNumber getChunkSize(int tableSize) {
     if (tableSize <= 1) {
       return (new EtomoNumber()).set(0);
@@ -406,27 +473,38 @@ public abstract class ConstSectionTableRowData implements Storable {
     if (rowNumber.equals(tableSize)) {
       return (new EtomoNumber()).set(getSampleBottomNumberSlices());
     }
-    return (new EtomoNumber()).set(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
+    return (new EtomoNumber()).set(getSampleBottomNumberSlices()
+        + getSampleTopNumberSlices());
   }
-  
-  public ConstEtomoNumber getFinalStart() {
-    return finalStart;
+
+  public ConstEtomoNumber getSetupFinalStart() {
+    return setupFinalStart;
   }
-  
-  public ConstEtomoNumber getFinalEnd() {
-    return finalEnd;
+
+  public ConstEtomoNumber getSetupFinalEnd() {
+    return setupFinalEnd;
   }
-  
+
+  public ConstEtomoNumber getJoinFinalStart() {
+    return joinFinalStart;
+  }
+
+  public ConstEtomoNumber getJoinFinalEnd() {
+    return joinFinalEnd;
+  }
+
   public ConstEtomoNumber getRotationAngleX() {
     return rotationAngleX;
   }
+
   public ScriptParameter getRotationAngleXParameter() {
     return rotationAngleX;
   }
-  
+
   public ConstEtomoNumber getRotationAngleY() {
     return rotationAngleY;
   }
+
   public ScriptParameter getRotationAngleYParameter() {
     return rotationAngleY;
   }
@@ -434,8 +512,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   public ConstEtomoNumber getRotationAngleZ() {
     return rotationAngleZ;
   }
+
   public ScriptParameter getRotationAngleZParameter() {
     return rotationAngleZ;
   }
-  
+
 }
