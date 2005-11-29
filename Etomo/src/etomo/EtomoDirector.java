@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.34  2005/11/14 21:18:15  sueh
+ * bug# 762 Added functions MemoryThread.setStop,
+ * getDisplayMemoryInterval, and isDisplayMemory.
+ *
  * Revision 1.33  2005/11/10 17:53:55  sueh
  * bug# 733 Added getCurrentTestManager for getting a manager for testing.
  * Removed --debug option from test because it clutters up the error log.
@@ -334,6 +338,7 @@ public class EtomoDirector {
     createUserConfiguration();
     ArrayList paramFileNameList = parseCommandLine(args);
     uiHarness.createMainFrame();
+    initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
     managerList = new UniqueHashedArray();
@@ -410,32 +415,6 @@ public class EtomoDirector {
       uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
       System.exit(1);
     }
-    // Get the IMOD directory so we know where to find documentation
-    // Check to see if is defined on the command line first with -D
-    // Otherwise check to see if we can get it from the environment
-    String imodDirectoryName = System.getProperty("IMOD_DIR");
-    if (imodDirectoryName == null) {
-      imodDirectoryName = Utilities.getEnvironmentVariable(null, "IMOD_DIR",
-          AxisID.ONLY);
-      if (imodDirectoryName.equals("")) {
-        String[] message = new String[3];
-        message[0] = "Can not find IMOD directory!";
-        message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
-        uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
-        System.exit(1);
-      }
-      else {
-        if (debug) {
-          System.err.println("IMOD_DIR (env): " + imodDirectoryName);
-        }
-      }
-    }
-    else {
-      if (debug) {
-        System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
-      }
-    }
-    IMODDirectory = new File(imodDirectoryName);
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
@@ -473,6 +452,35 @@ public class EtomoDirector {
     setUserPreferences();
     memoryThread = new MemoryThread();
     new Thread(memoryThread).start();
+  }
+  
+  private final void initIMODDirectory() {
+    // Get the IMOD directory so we know where to find documentation
+    // Check to see if is defined on the command line first with -D
+    // Otherwise check to see if we can get it from the environment
+    String imodDirectoryName = System.getProperty("IMOD_DIR");
+    if (imodDirectoryName == null) {
+      imodDirectoryName = Utilities.getEnvironmentVariable(null, "IMOD_DIR",
+          AxisID.ONLY);
+      if (imodDirectoryName.equals("")) {
+        String[] message = new String[3];
+        message[0] = "Can not find IMOD directory!";
+        message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
+        uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
+        System.exit(1);
+      }
+      else {
+        if (debug) {
+          System.err.println("IMOD_DIR (env): " + imodDirectoryName);
+        }
+      }
+    }
+    else {
+      if (debug) {
+        System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
+      }
+    }
+    IMODDirectory = new File(imodDirectoryName);
   }
 
   /**
