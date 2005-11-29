@@ -3941,7 +3941,7 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void deleteAlignedStacks(AxisID axisID) {
-    mainPanel.setProgressBar("Deleting aligned image stacks", 1, axisID);
+    mainPanel.setProgressBar("Deleting aligned image stack", 1, axisID);
     //
     // Don't do preali now because users may do upto generation before
     // transfering
@@ -5965,6 +5965,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.199  2005/11/21 21:50:34  sueh
+ * <p> bug# 761 updateSplittiltParam() should fail if
+ * <p> ParallelPanel.getParameters(SplittiltParam) fails.
+ * <p>
  * <p> Revision 3.198  2005/11/19 01:40:07  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
