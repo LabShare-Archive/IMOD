@@ -32,6 +32,12 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.14  2005/11/19 01:52:56  sueh
+* <p> bug# 744 Moved functions only used by process manager post
+* <p> processing and error processing from Commands to ProcessDetails.
+* <p> This allows ProcesschunksParam to be passed to DetackedProcess
+* <p> without having to add unnecessary functions to it.
+* <p>
 * <p> Revision 1.13  2005/11/02 23:58:36  sueh
 * <p> bug# 738 Midas limit has a display value, so don't test for null.
 * <p>
@@ -212,7 +218,7 @@ public class MakejoincomParam implements ProcessDetails {
           }
           options.add(buffer.toString());
         }
-        options.add(data.getSection().getAbsolutePath());
+        options.add(data.getSetupSection().getAbsolutePath());
       }
     }
     options.add("-tmpext");
