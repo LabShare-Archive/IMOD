@@ -1,98 +1,117 @@
 package etomo.type;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
+import etomo.BaseManager;
+import etomo.ui.UIHarness;
+import etomo.util.DatasetFiles;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
+
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.4  2004/12/16 02:29:57  sueh
-* <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
-* <p> resetValue instead.
-* <p>
-* <p> Revision 1.3  2004/11/23 22:32:52  sueh
-* <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Removed
-* <p> unnecessary functions parseDouble and parseInt.
-* <p>
-* <p> Revision 1.2  2004/11/19 23:39:39  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 1.1.2.10  2004/11/17 02:23:18  sueh
-* <p> bug# 520 Added a copy constructor.
-* <p>
-* <p> Revision 1.1.2.9  2004/11/16 02:28:37  sueh
-* <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
-* <p> EtomoFloat, and EtomoLong with EtomoNumber.
-* <p>
-* <p> Revision 1.1.2.8  2004/10/30 02:36:12  sueh
-* <p> bug# 520 Converted rotation angles to EtomoSimpleType.
-* <p>
-* <p> Revision 1.1.2.7  2004/10/25 23:09:45  sueh
-* <p> bug# 520 Added xMax and yMax.
-* <p>
-* <p> Revision 1.1.2.6  2004/10/22 21:07:27  sueh
-* <p> bug# 520 Converting ints to EtomoInteger as necessary.
-* <p>
-* <p> Revision 1.1.2.5  2004/10/22 03:26:02  sueh
-* <p> bug# 520 Converted rowNumber to an EtomoInteger.
-* <p>
-* <p> Revision 1.1.2.4  2004/10/15 00:46:03  sueh
-* <p> bug# 520 Initializing rowNumber on construction so that it can be used in
-* <p> load.
-* <p>
-* <p> Revision 1.1.2.3  2004/10/08 16:24:37  sueh
-* <p> bug# 520 AMoved initialization of invalidReason to
-* <p> SectionTableRowData.reset().
-* <p>
-* <p> Revision 1.1.2.2  2004/10/06 02:18:37  sueh
-* <p> bug# 520 Made the defaults for Final start and end based on Z min and
-* <p> max.  Saved Z Max.  Added a generic parseInt() function to set
-* <p> invalidReason when Integer.parseInt() failed.  Did the same for
-* <p> parseDouble.
-* <p>
-* <p> Revision 1.1.2.1  2004/09/29 19:32:58  sueh
-* <p> bug# 520 Divided the SectionTable row into document and view.  This
-* <p> class is the non-const part of the document.  It implements the Storable
-* <p> load functions, and has set functions.
-* <p> </p>
-*/
+ * <p>Description: Data from SectionTableRow.  Integrated with SectionTableRow.
+ * Can also be stored by JoinMetaData.</p>
+ * 
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p>Version Log:
+ * <p>1.1:  Converted FinalStart and FinalEnd from integers to longs.  The
+ * integer null value from version 1.0 will have to be recongnized and changed
+ * to a long null value.  Stopped saving setupXMax, setupYMax, and setupZMax.
+ * They should come from the header of setupSection.
+ * </p>
+ * 
+ * <p> $Log$
+ * <p> Revision 1.5  2005/01/26 00:00:23  sueh
+ * <p> Converted ConstEtomoNumber.resetValue to displayValue.
+ * <p>
+ * <p> Revision 1.4  2004/12/16 02:29:57  sueh
+ * <p> bug# 564 Remove recommendedValue from EtomoNumber.  Using
+ * <p> resetValue instead.
+ * <p>
+ * <p> Revision 1.3  2004/11/23 22:32:52  sueh
+ * <p> bug# 520 Converted finalStart and end to EtomoNumbers.  Removed
+ * <p> unnecessary functions parseDouble and parseInt.
+ * <p>
+ * <p> Revision 1.2  2004/11/19 23:39:39  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 1.1.2.10  2004/11/17 02:23:18  sueh
+ * <p> bug# 520 Added a copy constructor.
+ * <p>
+ * <p> Revision 1.1.2.9  2004/11/16 02:28:37  sueh
+ * <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
+ * <p> EtomoFloat, and EtomoLong with EtomoNumber.
+ * <p>
+ * <p> Revision 1.1.2.8  2004/10/30 02:36:12  sueh
+ * <p> bug# 520 Converted rotation angles to EtomoSimpleType.
+ * <p>
+ * <p> Revision 1.1.2.7  2004/10/25 23:09:45  sueh
+ * <p> bug# 520 Added xMax and yMax.
+ * <p>
+ * <p> Revision 1.1.2.6  2004/10/22 21:07:27  sueh
+ * <p> bug# 520 Converting ints to EtomoInteger as necessary.
+ * <p>
+ * <p> Revision 1.1.2.5  2004/10/22 03:26:02  sueh
+ * <p> bug# 520 Converted rowNumber to an EtomoInteger.
+ * <p>
+ * <p> Revision 1.1.2.4  2004/10/15 00:46:03  sueh
+ * <p> bug# 520 Initializing rowNumber on construction so that it can be used in
+ * <p> load.
+ * <p>
+ * <p> Revision 1.1.2.3  2004/10/08 16:24:37  sueh
+ * <p> bug# 520 AMoved initialization of invalidReason to
+ * <p> SectionTableRowData.reset().
+ * <p>
+ * <p> Revision 1.1.2.2  2004/10/06 02:18:37  sueh
+ * <p> bug# 520 Made the defaults for Final start and end based on Z min and
+ * <p> max.  Saved Z Max.  Added a generic parseInt() function to set
+ * <p> invalidReason when Integer.parseInt() failed.  Did the same for
+ * <p> parseDouble.
+ * <p>
+ * <p> Revision 1.1.2.1  2004/09/29 19:32:58  sueh
+ * <p> bug# 520 Divided the SectionTable row into document and view.  This
+ * <p> class is the non-const part of the document.  It implements the Storable
+ * <p> load functions, and has set functions.
+ * <p> </p>
+ */
 public class SectionTableRowData extends ConstSectionTableRowData {
   public static final String rcsid = "$Id$";
-  
-  public SectionTableRowData(int rowNumber) {
+
+  private final BaseManager manager;
+
+  /**
+   * Construct an empty instance.  Must be passed a row number.
+   * @param manager
+   * @param rowNumber
+   */
+  public SectionTableRowData(BaseManager manager, int rowNumber) {
+    super(rowNumber);
+    this.manager = manager;
     reset();
-    this.rowNumber.set(rowNumber);
   }
-  
-  public SectionTableRowData(ConstSectionTableRowData that) {
-    super(that);
+
+  /**
+   * Construct an instance from ConstSectionTableRowData.
+   * @param manager
+   * @param constSectionTableRowData
+   */
+  public SectionTableRowData(BaseManager manager,
+      ConstSectionTableRowData constSectionTableRowData) {
+    super(constSectionTableRowData);
+    this.manager = manager;
   }
-  
-  private void reset() {
-    invalidReason = null;
-    section = null;
-    sampleBottomStart.reset();
-    sampleBottomEnd.reset();
-    sampleTopStart.reset();
-    sampleTopEnd.reset();
-    finalStart.reset();
-    finalEnd.reset();
-    rotationAngleX.reset();
-    rotationAngleY.reset();
-    rotationAngleZ.reset();
-  }
-  
+
   /**
    *  Get the objects attributes from the properties object.
    */
@@ -104,51 +123,243 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     reset();
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-
+    String storedVersion = props.getProperty(VERSION_KEY);
     rowNumber.load(props, prepend);
-    xMax.load(props, prepend);
-    yMax.load(props, prepend);
-    zMax = Integer.parseInt(props.getProperty(group + zMaxString,
-        Integer.toString(Integer.MIN_VALUE)));
-    finalEnd.setDisplayValue(zMax);
-    String sectionName = props.getProperty(group + sectionString, null);
+    String sectionName = props.getProperty(group + setupSectionString, null);
     if (sectionName != null) {
-      section = new File(sectionName);
+      setSetupSection(new File(sectionName));
     }
     sampleBottomStart.load(props, prepend);
     sampleBottomEnd.load(props, prepend);
     sampleTopStart.load(props, prepend);
     sampleTopEnd.load(props, prepend);
-    finalStart.load(props, prepend);
-    finalEnd.load(props, prepend);
+    setupFinalStart.load(props, prepend);
+    setupFinalEnd.load(props, prepend);
     rotationAngleX.load(props, prepend);
     rotationAngleY.load(props, prepend);
     rotationAngleZ.load(props, prepend);
+    if (storedVersion == null || !storedVersion.equals(VERSION)) {
+      convertVersion(storedVersion, props, prepend);
+    }
   }
-  
-  
+
+  /**
+   * convert stored version to current version
+   * @param storedVersion
+   */
+  private final void convertVersion(String storedVersion, Properties props,
+      String prepend) {
+    if (storedVersion == null) {
+      //convert from version 1.0 to 1.1
+      if (setupFinalStart.equals(EtomoNumber.INTEGER_NULL_VALUE)) {
+        setupFinalStart.reset();
+      }
+      if (setupFinalEnd.equals(EtomoNumber.INTEGER_NULL_VALUE)) {
+        setupFinalEnd.reset();
+      }
+      String group = prepend + ".";
+      props.remove(group + setupXMaxString);
+      props.remove(group + setupYMaxString);
+      props.remove(group + setupZMaxString);
+    }
+  }
+
+  /**
+   * check for a .rot file
+   * if the .rot file exists then convert the setup data into join data
+   * otherwise copy the setup data to join data
+   * Assumes setupSection is set.
+   */
+  public final void synchronizeSetupToJoin() {
+    File rotatedSection = DatasetFiles.getRotatedTomogram(setupSection);
+    if (rotatedSection.exists()
+        && (!rotationAngleX.isNull() || !rotationAngleY.isNull() || !rotationAngleZ
+            .isNull())) {
+      convertSetupToJoin(rotatedSection);
+    }
+    else {
+      copySetupToJoin();
+    }
+  }
+
+  /**
+   * check whether the join section is a .rot file
+   * if it is, convert the join data into setup data
+   * if it is not then copy the join data to setup data
+   * Assumes joinSection is set.
+   */
+  public final void synchronizeJoinToSetup() {
+    if (DatasetFiles.isRotatedTomogram(joinSection)) {
+      convertJoinToSetup();
+    }
+    else {
+      copyJoinToSetup();
+    }
+  }
+
+  /**
+   * Copies Setup tab variables to Join tab variables.
+   */
+  private final void copySetupToJoin() {
+    joinSection = setupSection;
+    joinFinalStart.set(setupFinalStart);
+    joinFinalEnd.set(setupFinalEnd);
+    joinXMax = setupXMax;
+    joinYMax = setupYMax;
+    joinZMax = setupZMax;
+  }
+
+  /**
+   * Attempts to set the Join tab section and max variables to a rotated
+   * tomogram.  Converts final start and end values from the Setup tab to their
+   * equivalents in the rotated tomogram.
+   * @param rotatedSection
+   */
+  private final void convertSetupToJoin(File rotatedSection) {
+    if (!setJoinSection(rotatedSection)) {
+      return;
+    }
+    joinFinalStart.set(convertZ(setupFinalStart));
+    joinFinalEnd.set(convertZ(setupFinalEnd));
+  }
+
+  /**
+   * Converts final start and end values from a rotated tomogram in the Join tab
+   * to their equivalents in the original tomogram.
+   */
+  private final void convertJoinToSetup() {
+    setupFinalStart.set(convertZ(joinFinalStart));
+    setupFinalEnd.set(convertZ(joinFinalEnd));
+  }
+
+  /**
+   * Copies Join tab final start and end to Setup tab variables.
+   */
+  private final void copyJoinToSetup() {
+    setupFinalStart.set(joinFinalStart);
+    setupFinalEnd.set(joinFinalEnd);
+  }
+
+  /**
+   * Converts final start and end from the original tomogram to the rotated
+   * tomogram and back.
+   * The transformation is:
+   * cos(X angle) * cos(Y angle) * (slice - (Zsize + 1) / 2) + (Zsize + 1) / 2
+   * Compute as floating point then round to nearest integer - i.e. do not do integer
+   * arithmetic with (zsize + 1) / 2
+   * This will work going from .rec to .rot and back
+   * @param z
+   * @return converted z
+   */
+  private final long convertZ(ConstEtomoNumber z) {
+    double xAngle = rotationAngleX.getDouble(true);
+    double yAngle = rotationAngleY.getDouble(true);
+    double zSlice = z.getDouble();
+    double zSize = setupZMax;
+    double convertedZ = Math.cos(Math.toRadians(xAngle))
+        * Math.cos(Math.toRadians(yAngle)) * (zSlice - (zSize + 1) / 2)
+        + (zSize + 1) / 2;
+    return Math.round(convertedZ);
+  }
+
   public void setRowNumber(int rowNumber) {
     this.rowNumber.set(rowNumber);
   }
+
   public void setRowNumber(String rowNumber) {
     this.rowNumber.set(rowNumber);
   }
-  
-  public void setSection(File section) {
-    this.section = section;
+
+  /**
+   * Resets the member variables, except the row number.
+   *
+   */
+  private final void reset() {
+    invalidReason = null;
+    setupSection = null;
+    joinSection = null;
+    sampleBottomStart.reset();
+    sampleBottomEnd.reset();
+    sampleTopStart.reset();
+    sampleTopEnd.reset();
+    setupFinalStart.reset();
+    setupFinalEnd.reset();
+    joinFinalStart.reset();
+    joinFinalEnd.reset();
+    rotationAngleX.reset();
+    rotationAngleY.reset();
+    rotationAngleZ.reset();
+    setupXMax = EtomoNumber.INTEGER_NULL_VALUE;
+    setupYMax = EtomoNumber.INTEGER_NULL_VALUE;
+    setupZMax = EtomoNumber.INTEGER_NULL_VALUE;
+    joinXMax = EtomoNumber.INTEGER_NULL_VALUE;
+    joinYMax = EtomoNumber.INTEGER_NULL_VALUE;
+    joinZMax = EtomoNumber.INTEGER_NULL_VALUE;
   }
-  
-  public void setYMax(int xMax) {
-    this.xMax.set(xMax);
+
+  /**
+   * Set join section.  Also read the join section header and sets joinXMax,
+   * joinYMax, and joinZMax.
+   * @param joinSection
+   * @return
+   */
+  public boolean setJoinSection(File joinSection) {
+    this.joinSection = joinSection;
+    MRCHeader header = readHeader(joinSection.getAbsolutePath());
+    if (header == null) {
+      return false;
+    }
+    joinXMax = header.getNColumns();
+    joinYMax = header.getNRows();
+    joinZMax = header.getNSections();
+    return true;
   }
-  
-  public void setXMax(int yMax) {
-    this.yMax.set(yMax);
+
+  /**
+   * Set setup section.  Also read the setup section header and sets setupXMax,
+   * setupYMax, and setupZMax.
+   * @param setupSection
+   * @return
+   */
+  public boolean setSetupSection(File setupSection) {
+    this.setupSection = setupSection;
+    MRCHeader header = readHeader(setupSection.getAbsolutePath());
+    if (header == null) {
+      return false;
+    }
+    setupXMax = header.getNColumns();
+    setupYMax = header.getNRows();
+    setupZMax = header.getNSections();
+    setupFinalEnd.setDisplayValue(setupZMax);
+    return true;
   }
-  
-  public void setZMax(int zMax) {
-    this.zMax = zMax;
-    finalEnd.setDisplayValue(zMax);
+
+  /**
+   * Reads an mrc header and pops up error messages if there is any kind of
+   * failure.
+   * @param path
+   * @return
+   */
+  private final MRCHeader readHeader(String path) {
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        path, AxisID.ONLY);
+    try {
+      header.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
+          + path + ".\nInvalidParameterException:  " + e.getMessage(),
+          "Setting Max Values Failed");
+      return null;
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to read the header in"
+          + path + ".\nIOException:  " + e.getMessage(),
+          "Setting Max Values Failed");
+      return null;
+    }
+    return header;
   }
 
   public ConstEtomoNumber setSampleBottomStart(String sampleBottomStart) {
@@ -158,31 +369,39 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   public ConstEtomoNumber setSampleBottomEnd(String sampleBottomEnd) {
     return this.sampleBottomEnd.set(sampleBottomEnd);
   }
-  
+
   public ConstEtomoNumber setSampleTopStart(String sampleTopStart) {
     return this.sampleTopStart.set(sampleTopStart);
   }
-  
+
   public ConstEtomoNumber setSampleTopEnd(String sampleTopEnd) {
     return this.sampleTopEnd.set(sampleTopEnd);
   }
-  
-  public ConstEtomoNumber setFinalStart(String finalStart) {
-    return this.finalStart.set(finalStart);
+
+  public ConstEtomoNumber setSetupFinalStart(String setupFinalStart) {
+    return this.setupFinalStart.set(setupFinalStart);
   }
-  
-  public ConstEtomoNumber setFinalEnd(String finalEnd) {
-    return this.finalEnd.set(finalEnd);
+
+  public ConstEtomoNumber setJoinFinalStart(String joinFinalStart) {
+    return this.joinFinalStart.set(joinFinalStart);
   }
-  
+
+  public ConstEtomoNumber setSetupFinalEnd(String setupFinalEnd) {
+    return this.setupFinalEnd.set(setupFinalEnd);
+  }
+
+  public ConstEtomoNumber setJoinFinalEnd(String joinFinalEnd) {
+    return this.joinFinalEnd.set(joinFinalEnd);
+  }
+
   public ConstEtomoNumber setRotationAngleX(String rotationAngleX) {
     return this.rotationAngleX.set(rotationAngleX);
   }
-  
+
   public ConstEtomoNumber setRotationAngleY(String rotationAngleY) {
     return this.rotationAngleY.set(rotationAngleY);
   }
-  
+
   public ConstEtomoNumber setRotationAngleZ(String rotationAngleZ) {
     return this.rotationAngleZ.set(rotationAngleZ);
   }
