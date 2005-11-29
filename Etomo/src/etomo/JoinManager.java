@@ -51,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.29  2005/11/10 17:50:05  sueh
+* <p> Constructor should not be public
+* <p>
 * <p> Revision 1.28  2005/11/02 23:56:28  sueh
 * <p> Removed temporary print statement.
 * <p>
@@ -312,7 +315,7 @@ public final class JoinManager extends BaseManager {
   
   JoinManager(String paramFileName, AxisID axisID) {
     super();
-    this.metaData = new JoinMetaData();
+    this.metaData = new JoinMetaData(this);
     initializeUIParameters(paramFileName, axisID);
     if (!paramFileName.equals("") && loadedParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);
@@ -594,21 +597,6 @@ public final class JoinManager extends BaseManager {
     loadedParamFile = true;
     mainPanel.setStatusBarText(paramFile, metaData);
     return true;
-  }
-  
-  protected void saveTestParamOnExit(AxisID axisID) {
-    if (!joinDialog.equalsSample(metaData)) {
-      state.setSampleProduced(false);
-    }
-    joinDialog.getMetaData(metaData);
-    // If the user selects Yes then try to save the current EDF file
-    if (paramFile == null && !endSetupMode()) {
-      return;
-    }
-    // Be sure the file saving was successful
-    if (paramFile != null) {
-      saveIntermediateParamFile(axisID);
-    }
   }
   
   public boolean canChangeParamFileName() {
