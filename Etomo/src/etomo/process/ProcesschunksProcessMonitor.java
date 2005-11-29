@@ -124,10 +124,7 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
     String line;
     while ((line = bufferedReader.readLine()) != null) {
       line = line.trim();
-      //TEMP
-      //if (debug) {
-      System.err.println(line);
-      //}
+      //System.out.println(line);
       messages.addProcessOutput(line);
       if (messages.isError()) {
         endMonitor(ProcessEndState.FAILED);
@@ -383,6 +380,12 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/11/19 02:36:13  sueh
+ * <p> bug# 744 Converted to a detached program.  Managing the process
+ * <p> output file.  No longer using the process.  Reading the process output file
+ * <p> to update the program display.  Handling kills and pauses in
+ * <p> updateState().  Handling errors and chunk errors with ProcessMessages.
+ * <p>
  * <p> Revision 1.13  2005/11/04 00:53:00  sueh
  * <p> fixed pausing message
  * <p>
