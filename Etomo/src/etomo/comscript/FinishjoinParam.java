@@ -26,6 +26,12 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/11/19 01:52:32  sueh
+* <p> bug# 744 Moved functions only used by process manager post
+* <p> processing and error processing from Commands to ProcessDetails.
+* <p> This allows ProcesschunksParam to be passed to DetackedProcess
+* <p> without having to add unnecessary functions to it.
+* <p>
 * <p> Revision 1.14  2005/07/29 19:45:31  sueh
 * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
 * <p>
@@ -270,7 +276,7 @@ public class FinishjoinParam implements ProcessDetails {
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       //both numbers must exist
-      options.add(data.getFinalStart().toString() + "," + data.getFinalEnd().toString());
+      options.add(data.getJoinFinalStart().toString() + "," + data.getJoinFinalEnd().toString());
     }
     return options;
   }
