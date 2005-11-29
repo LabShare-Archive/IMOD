@@ -23,7 +23,6 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 
 import etomo.JoinManager;
-import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
@@ -31,316 +30,339 @@ import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SectionTableRowData;
-import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
-import etomo.util.JoinInfoFile;
 import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: A panel containing the section table.  Implements Expandable
-* so it can use ExpandButtons. </p>
-* 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.17  2005/09/20 19:13:14  sueh
-* <p> bug# 532 Using static get instance functions instead of the constructor
-* <p> because the options that must be passed to the constructor are getting
-* <p> too complicated.  Made the join expanding button the same size as the
-* <p> other expander buttons.
-* <p>
-* <p> Revision 1.16  2005/08/11 23:58:38  sueh
-* <p> bug# 711  Change 3dmod buttons to Run3dmodButton.  Implement
-* <p> Run3dmodButtonContainer.  Change enum Run3dmodMenuOption to
-* <p> Run3dmodMenuOptions, which can turn on multiple options at once.
-* <p> This allows ImodState to combine input from the context menu and the
-* <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
-* <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
-* <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
-* <p> the action function.
-* <p>
-* <p> Revision 1.15  2005/08/10 20:46:30  sueh
-* <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
-* <p> of MultiLineButton.
-* <p>
-* <p> Revision 1.14  2005/08/09 20:36:07  sueh
-* <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
-* <p> classes.  default setSize() sets the standard button dimension.
-* <p>
-* <p> Revision 1.13  2005/08/04 20:16:50  sueh
-* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
-* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
-* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
-* <p>
-* <p> Revision 1.12  2005/07/29 00:54:35  sueh
-* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
-* <p> because the current manager changes when the user changes the tab.
-* <p> Passing the manager where its needed.
-* <p>
-* <p> Revision 1.11  2005/07/20 17:54:05  sueh
-* <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
-* <p> MRCHeader, because its filling up the error log with exceptions that are
-* <p> related to real problems.
-* <p>
-* <p> Revision 1.10  2005/07/06 23:46:35  sueh
-* <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
-* <p> their functionality in SpacedPanel.  Simplified the construction of
-* <p> SpacedPanel.
-* <p>
-* <p> Revision 1.9  2005/06/20 16:55:55  sueh
-* <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
-* <p> constructing in addSection().
-* <p>
-* <p> Revision 1.8  2005/06/16 21:20:56  sueh
-* <p> bug# 614 Fixed 3dmod button name.
-* <p>
-* <p> Revision 1.7  2005/04/26 17:41:15  sueh
-* <p> bug# 615 Change the name of the UIHarness member variable to
-* <p> uiHarness.
-* <p>
-* <p> Revision 1.6  2005/04/25 21:12:09  sueh
-* <p> bug# 615 Passing the axis where a command originates to the message
-* <p> functions so that the message will be popped up in the correct window.
-* <p> This requires adding AxisID to many objects.  Move the interface for
-* <p> popping up message dialogs to UIHarness.  It prevents headless
-* <p> exceptions during a test execution.  It also allows logging of dialog
-* <p> messages during a test.  It also centralizes the dialog interface and
-* <p> allows the dialog functions to be synchronized to prevent dialogs popping
-* <p> up in both windows at once.  All Frame functions will use UIHarness as a
-* <p> public interface.
-* <p>
-* <p> Revision 1.5  2005/04/21 20:46:39  sueh
-* <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
-* <p> that requires it.
-* <p>
-* <p> Revision 1.4  2004/11/23 22:34:32  sueh
-* <p> bug# 520 getMetaData() returning a success boolean.
-* <p>
-* <p> Revision 1.3  2004/11/23 00:29:55  sueh
-* <p> bug# 520 Prevented Add Section from coming on  during a flip.
-* <p>
-* <p> Revision 1.2  2004/11/20 00:03:36  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 1.1.2.28  2004/11/19 00:25:55  sueh
-* <p> bug# 520 Added equals function to check whether the screen fields have
-* <p> changed since meta data was updated.  Added equalsSample to check
-* <p> whether the fields used to create the sample have changed.  Removed
-* <p> open3dmod and expand sections from setMode so they can be on all the
-* <p> time.
-* <p>
-* <p> Revision 1.1.2.27  2004/11/15 22:26:07  sueh
-* <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
-* <p>
-* <p> Revision 1.1.2.26  2004/11/12 23:01:12  sueh
-* <p> bug# 520 Fixed bug where deleting all rows did not work.
-* <p>
-* <p> Revision 1.1.2.25  2004/11/11 01:43:00  sueh
-* <p> bug# 520 Adding binning to open 3dmod functions.
-* <p>
-* <p> Revision 1.1.2.24  2004/11/09 16:19:55  sueh
-* <p> bug# 520 Removed small functions that where only being called once from
-* <p> one member function: createRootPanel, displayCurTabInRows,
-* <p> enableRowButtons(), flipSection, setCurTabInRows.  Using function in
-* <p> JoinDialog to create open in 3dmod panel, removing createImodPanel
-* <p>
-* <p> Revision 1.1.2.23  2004/11/08 22:29:27  sueh
-* <p> bug# 520 Removed excess spacing around table or excess spacing in
-* <p> table by wrapping the whole tabel in a panel with a grid layout with a 2,1
-* <p> layout.  The entire table takes up the top element.  The bottom element is
-* <p> not filled in.  This keeps the table from expanding when the other item
-* <p> on the join panel is taller.  Also tried setting constraints.weighty to zero
-* <p> to prevent the table from expanding.
-* <p>
-* <p> Revision 1.1.2.22  2004/10/30 02:38:24  sueh
-* <p> bug# 520 Stopped deleting .rot file when getting section.  Checking
-* <p> rootname.info file for .rot file when opening the section in the join tab.
-* <p> Will use the .rot name instead of the section, if it is listed in the .info file.
-* <p>
-* <p> Revision 1.1.2.21  2004/10/29 22:17:23  sueh
-* <p> bug# 520 Added .rot file handling.  When a .rot file exists:  Rename the corresponding .rot file when
-* <p> a tomogram file is added with addSection().  Remove the imodRotIndex
-* <p> when a tomogram file is deleted with deleteSection.  Open the .rot file
-* <p> instead of the tomogram file when the current tab is Join.
-* <p>
-* <p> Revision 1.1.2.20  2004/10/28 22:17:45  sueh
-* <p> bug# 520 In addSection(File), used a variable instead of calling
-* <p> rows.size() multiple times.
-* <p>
-* <p> Revision 1.1.2.19  2004/10/25 23:16:11  sueh
-* <p> bug# 520 Changed table in Align tab:  Removed Sample Slices.  Added
-* <p> Slices in Sample.  Added Chunk table.  Also add xMax and yMax.
-* <p>
-* <p> Revision 1.1.2.18  2004/10/22 21:12:04  sueh
-* <p> bug# 520 Changed SectionTableRow.sampleSampleTop() to
-* <p> setSampleTopNumberSlices().
-* <p>
-* <p> Revision 1.1.2.17  2004/10/22 16:40:05  sueh
-* <p> bug# 520 Don't need prevSampleBottom.  This value should come from
-* <p> the current sample.
-* <p>
-* <p> Revision 1.1.2.16  2004/10/22 03:28:05  sueh
-* <p> bug# 520 Added Open 3dmod button to Join tab.  Added Chunk,
-* <p> reference section, and current section to Align tab.
-* <p>
-* <p> Revision 1.1.2.15  2004/10/18 18:11:44  sueh
-* <p> bug# 520 Removed print statement.
-* <p>
-* <p> Revision 1.1.2.14  2004/10/15 00:52:03  sueh
-* <p> bug# 520 Initialized rows to null so that it matches the output of
-* <p> ConstJoinMetaData.getSectionTableData().  Added setMetaData().
-* <p>
-* <p> Revision 1.1.2.13  2004/10/14 03:32:56  sueh
-* <p> bug# 520 Renamed JoinManager.imodOpen() to imodOpenFile.
-* <p>
-* <p> Revision 1.1.2.12  2004/10/13 23:14:13  sueh
-* <p> bug# 520 Allowed the components of the rootPanel and the table panel to
-* <p> be removed and re-added.  This way the table can look different on
-* <p> different tabs.
-* <p>
-* <p> Revision 1.1.2.11  2004/10/11 02:17:09  sueh
-* <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
-* <p> property.  This property would need a different value for each manager.
-* <p> This variable can be retrieved from the manager if the object knows its
-* <p> manager.  Otherwise it can retrieve it from the current manager using the
-* <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
-* <p> gets the value from the "user.dir" property.
-* <p>
-* <p> Revision 1.1.2.10  2004/10/08 16:36:00  sueh
-* <p> bug# Using SectionTableRow.setRowNumber() to change the status of
-* <p> sample slice numbers.
-* <p>
-* <p> Revision 1.1.2.9  2004/10/06 02:29:41  sueh
-* <p> bug# 520 Fixed flip tomogram functionality.  If the user wants to flip the
-* <p> tomogram, call JoinManager flip and exit.  Also disable the Add Section
-* <p> button while the tomogram is being flipped.  When the flip process is
-* <p> done, the process manager will call the function to add the section and
-* <p> enable the Add Section button.
-* <p>
-* <p> Revision 1.1.2.8  2004/10/01 20:04:22  sueh
-* <p> bug# 520 Moved fuctionality to create table headers and fields to
-* <p> HeaderCell and FieldCell.  Fixed enable/disable of buttons.  Added
-* <p> enable/disable of Add Section button.  Added functionality to Add
-* <p> Section: checking for duplicate file paths and flipping tomogram if
-* <p> necessary.  To do: add the flip command.
-* <p>
-* <p> Revision 1.1.2.7  2004/09/29 19:38:29  sueh
-* <p> bug# 520 Added retrieveData() to retrieve data from the screen.
-* <p>
-* <p> Revision 1.1.2.6  2004/09/23 23:39:51  sueh
-* <p> bug# 520 Converted to DoubleSpacedPanel and SpacedPanel.  Sized the
-* <p> spinner.  Calling JoinDialog.setNumSections() when adding or deleting a
-* <p> section.
-* <p>
-* <p> Revision 1.1.2.5  2004/09/22 22:14:43  sueh
-* <p> bug# 520 Enabling and disabling buttons (enableRowButtons() and
-* <p> enableTableButtons()).  Modified calls to work with the more genral
-* <p> JoinManager.imod... functions.  Added get rotation angle functionality.
-* <p>
-* <p> Revision 1.1.2.4  2004/09/21 18:08:40  sueh
-* <p> bug# 520 Moved buttons that affect the section table from JoinDialog to
-* <p> this class.  Added move up, move down, add section, and delete section
-* <p> buttons.  Added a binning spinnner and an open 3dmod button.  Added
-* <p> functions to add existing fields to the table (such as
-* <p> addHeader(JButton, text, width)).  Added removeFromTable and repaint.
-* <p> To add, delete or move rows the grid bag layout, all effected rows and all
-* <p> those below them must be removed and readded.
-* <p>
-* <p> Revision 1.1.2.3  2004/09/17 21:47:20  sueh
-* <p> bug# 520 Added an array of rows.  Encapsulated each row into
-* <p> SectionTableRow.  Encapsulated the expand button into ExpandButton.
-* <p> Implemented row highlighting with highlighting(int), which is called by a
-* <p> row that is turning on its highlighting.  Implemented expanding sections
-* <p> by implementing Expandable with expand(ExpandButton) which tells
-* <p> each row to expand its section display.  Factored cell creation code and
-* <p> changed some cell creation fuctions to package level so they can be
-* <p> called by SectionTableRow.
-* <p>
-* <p> Revision 1.1.2.2  2004/09/16 18:31:26  sueh
-* <p> bug# 520 sized the fields, added a row number, reorganized
-* <p> functions
-* <p>
-* <p> Revision 1.1.2.1  2004/09/15 22:47:26  sueh
-* <p> bug# 520 creates the Sections table for JoinDialog.
-* <p> </p>
-*/
-public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButtonContainer {
+ * <p>Description: A panel containing the section table.  Implements Expandable
+ * so it can use ExpandButtons. </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.18  2005/11/14 22:19:15  sueh
+ * <p> bug# 762 Made action() protected.
+ * <p>
+ * <p> Revision 1.17  2005/09/20 19:13:14  sueh
+ * <p> bug# 532 Using static get instance functions instead of the constructor
+ * <p> because the options that must be passed to the constructor are getting
+ * <p> too complicated.  Made the join expanding button the same size as the
+ * <p> other expander buttons.
+ * <p>
+ * <p> Revision 1.16  2005/08/11 23:58:38  sueh
+ * <p> bug# 711  Change 3dmod buttons to Run3dmodButton.  Implement
+ * <p> Run3dmodButtonContainer.  Change enum Run3dmodMenuOption to
+ * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
+ * <p> This allows ImodState to combine input from the context menu and the
+ * <p> pulldown menu.  Get rid of duplicate code by running the 3dmods from a
+ * <p> private function called run3dmod(String, Run3dmodMenuOptions).  It can
+ * <p> be called from run3dmod(Run3dmodButton, Run3dmodMenuOptions) and
+ * <p> the action function.
+ * <p>
+ * <p> Revision 1.15  2005/08/10 20:46:30  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
+ * <p> Revision 1.14  2005/08/09 20:36:07  sueh
+ * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
+ * <p> classes.  default setSize() sets the standard button dimension.
+ * <p>
+ * <p> Revision 1.13  2005/08/04 20:16:50  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
+ * <p> Revision 1.12  2005/07/29 00:54:35  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
+ * <p> Revision 1.11  2005/07/20 17:54:05  sueh
+ * <p> bug# 705 Stop printing the stack trace for IOException bugs coming from
+ * <p> MRCHeader, because its filling up the error log with exceptions that are
+ * <p> related to real problems.
+ * <p>
+ * <p> Revision 1.10  2005/07/06 23:46:35  sueh
+ * <p> bug# 619 Removed DoubleSpacedPanel and FormattedPanel.  Placed
+ * <p> their functionality in SpacedPanel.  Simplified the construction of
+ * <p> SpacedPanel.
+ * <p>
+ * <p> Revision 1.9  2005/06/20 16:55:55  sueh
+ * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
+ * <p> constructing in addSection().
+ * <p>
+ * <p> Revision 1.8  2005/06/16 21:20:56  sueh
+ * <p> bug# 614 Fixed 3dmod button name.
+ * <p>
+ * <p> Revision 1.7  2005/04/26 17:41:15  sueh
+ * <p> bug# 615 Change the name of the UIHarness member variable to
+ * <p> uiHarness.
+ * <p>
+ * <p> Revision 1.6  2005/04/25 21:12:09  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.  Move the interface for
+ * <p> popping up message dialogs to UIHarness.  It prevents headless
+ * <p> exceptions during a test execution.  It also allows logging of dialog
+ * <p> messages during a test.  It also centralizes the dialog interface and
+ * <p> allows the dialog functions to be synchronized to prevent dialogs popping
+ * <p> up in both windows at once.  All Frame functions will use UIHarness as a
+ * <p> public interface.
+ * <p>
+ * <p> Revision 1.5  2005/04/21 20:46:39  sueh
+ * <p> bug# 615 Pass axisID to packMainWindow so it can pack only the frame
+ * <p> that requires it.
+ * <p>
+ * <p> Revision 1.4  2004/11/23 22:34:32  sueh
+ * <p> bug# 520 getMetaData() returning a success boolean.
+ * <p>
+ * <p> Revision 1.3  2004/11/23 00:29:55  sueh
+ * <p> bug# 520 Prevented Add Section from coming on  during a flip.
+ * <p>
+ * <p> Revision 1.2  2004/11/20 00:03:36  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 1.1.2.28  2004/11/19 00:25:55  sueh
+ * <p> bug# 520 Added equals function to check whether the screen fields have
+ * <p> changed since meta data was updated.  Added equalsSample to check
+ * <p> whether the fields used to create the sample have changed.  Removed
+ * <p> open3dmod and expand sections from setMode so they can be on all the
+ * <p> time.
+ * <p>
+ * <p> Revision 1.1.2.27  2004/11/15 22:26:07  sueh
+ * <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
+ * <p>
+ * <p> Revision 1.1.2.26  2004/11/12 23:01:12  sueh
+ * <p> bug# 520 Fixed bug where deleting all rows did not work.
+ * <p>
+ * <p> Revision 1.1.2.25  2004/11/11 01:43:00  sueh
+ * <p> bug# 520 Adding binning to open 3dmod functions.
+ * <p>
+ * <p> Revision 1.1.2.24  2004/11/09 16:19:55  sueh
+ * <p> bug# 520 Removed small functions that where only being called once from
+ * <p> one member function: createRootPanel, displayCurTabInRows,
+ * <p> enableRowButtons(), flipSection, setCurTabInRows.  Using function in
+ * <p> JoinDialog to create open in 3dmod panel, removing createImodPanel
+ * <p>
+ * <p> Revision 1.1.2.23  2004/11/08 22:29:27  sueh
+ * <p> bug# 520 Removed excess spacing around table or excess spacing in
+ * <p> table by wrapping the whole tabel in a panel with a grid layout with a 2,1
+ * <p> layout.  The entire table takes up the top element.  The bottom element is
+ * <p> not filled in.  This keeps the table from expanding when the other item
+ * <p> on the join panel is taller.  Also tried setting constraints.weighty to zero
+ * <p> to prevent the table from expanding.
+ * <p>
+ * <p> Revision 1.1.2.22  2004/10/30 02:38:24  sueh
+ * <p> bug# 520 Stopped deleting .rot file when getting section.  Checking
+ * <p> rootname.info file for .rot file when opening the section in the join tab.
+ * <p> Will use the .rot name instead of the section, if it is listed in the .info file.
+ * <p>
+ * <p> Revision 1.1.2.21  2004/10/29 22:17:23  sueh
+ * <p> bug# 520 Added .rot file handling.  When a .rot file exists:  Rename the corresponding .rot file when
+ * <p> a tomogram file is added with addSection().  Remove the imodRotIndex
+ * <p> when a tomogram file is deleted with deleteSection.  Open the .rot file
+ * <p> instead of the tomogram file when the current tab is Join.
+ * <p>
+ * <p> Revision 1.1.2.20  2004/10/28 22:17:45  sueh
+ * <p> bug# 520 In addSection(File), used a variable instead of calling
+ * <p> rows.size() multiple times.
+ * <p>
+ * <p> Revision 1.1.2.19  2004/10/25 23:16:11  sueh
+ * <p> bug# 520 Changed table in Align tab:  Removed Sample Slices.  Added
+ * <p> Slices in Sample.  Added Chunk table.  Also add xMax and yMax.
+ * <p>
+ * <p> Revision 1.1.2.18  2004/10/22 21:12:04  sueh
+ * <p> bug# 520 Changed SectionTableRow.sampleSampleTop() to
+ * <p> setSampleTopNumberSlices().
+ * <p>
+ * <p> Revision 1.1.2.17  2004/10/22 16:40:05  sueh
+ * <p> bug# 520 Don't need prevSampleBottom.  This value should come from
+ * <p> the current sample.
+ * <p>
+ * <p> Revision 1.1.2.16  2004/10/22 03:28:05  sueh
+ * <p> bug# 520 Added Open 3dmod button to Join tab.  Added Chunk,
+ * <p> reference section, and current section to Align tab.
+ * <p>
+ * <p> Revision 1.1.2.15  2004/10/18 18:11:44  sueh
+ * <p> bug# 520 Removed print statement.
+ * <p>
+ * <p> Revision 1.1.2.14  2004/10/15 00:52:03  sueh
+ * <p> bug# 520 Initialized rows to null so that it matches the output of
+ * <p> ConstJoinMetaData.getSectionTableData().  Added setMetaData().
+ * <p>
+ * <p> Revision 1.1.2.13  2004/10/14 03:32:56  sueh
+ * <p> bug# 520 Renamed JoinManager.imodOpen() to imodOpenFile.
+ * <p>
+ * <p> Revision 1.1.2.12  2004/10/13 23:14:13  sueh
+ * <p> bug# 520 Allowed the components of the rootPanel and the table panel to
+ * <p> be removed and re-added.  This way the table can look different on
+ * <p> different tabs.
+ * <p>
+ * <p> Revision 1.1.2.11  2004/10/11 02:17:09  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
+ * <p> Revision 1.1.2.10  2004/10/08 16:36:00  sueh
+ * <p> bug# Using SectionTableRow.setRowNumber() to change the status of
+ * <p> sample slice numbers.
+ * <p>
+ * <p> Revision 1.1.2.9  2004/10/06 02:29:41  sueh
+ * <p> bug# 520 Fixed flip tomogram functionality.  If the user wants to flip the
+ * <p> tomogram, call JoinManager flip and exit.  Also disable the Add Section
+ * <p> button while the tomogram is being flipped.  When the flip process is
+ * <p> done, the process manager will call the function to add the section and
+ * <p> enable the Add Section button.
+ * <p>
+ * <p> Revision 1.1.2.8  2004/10/01 20:04:22  sueh
+ * <p> bug# 520 Moved fuctionality to create table headers and fields to
+ * <p> HeaderCell and FieldCell.  Fixed enable/disable of buttons.  Added
+ * <p> enable/disable of Add Section button.  Added functionality to Add
+ * <p> Section: checking for duplicate file paths and flipping tomogram if
+ * <p> necessary.  To do: add the flip command.
+ * <p>
+ * <p> Revision 1.1.2.7  2004/09/29 19:38:29  sueh
+ * <p> bug# 520 Added retrieveData() to retrieve data from the screen.
+ * <p>
+ * <p> Revision 1.1.2.6  2004/09/23 23:39:51  sueh
+ * <p> bug# 520 Converted to DoubleSpacedPanel and SpacedPanel.  Sized the
+ * <p> spinner.  Calling JoinDialog.setNumSections() when adding or deleting a
+ * <p> section.
+ * <p>
+ * <p> Revision 1.1.2.5  2004/09/22 22:14:43  sueh
+ * <p> bug# 520 Enabling and disabling buttons (enableRowButtons() and
+ * <p> enableTableButtons()).  Modified calls to work with the more genral
+ * <p> JoinManager.imod... functions.  Added get rotation angle functionality.
+ * <p>
+ * <p> Revision 1.1.2.4  2004/09/21 18:08:40  sueh
+ * <p> bug# 520 Moved buttons that affect the section table from JoinDialog to
+ * <p> this class.  Added move up, move down, add section, and delete section
+ * <p> buttons.  Added a binning spinnner and an open 3dmod button.  Added
+ * <p> functions to add existing fields to the table (such as
+ * <p> addHeader(JButton, text, width)).  Added removeFromTable and repaint.
+ * <p> To add, delete or move rows the grid bag layout, all effected rows and all
+ * <p> those below them must be removed and readded.
+ * <p>
+ * <p> Revision 1.1.2.3  2004/09/17 21:47:20  sueh
+ * <p> bug# 520 Added an array of rows.  Encapsulated each row into
+ * <p> SectionTableRow.  Encapsulated the expand button into ExpandButton.
+ * <p> Implemented row highlighting with highlighting(int), which is called by a
+ * <p> row that is turning on its highlighting.  Implemented expanding sections
+ * <p> by implementing Expandable with expand(ExpandButton) which tells
+ * <p> each row to expand its section display.  Factored cell creation code and
+ * <p> changed some cell creation fuctions to package level so they can be
+ * <p> called by SectionTableRow.
+ * <p>
+ * <p> Revision 1.1.2.2  2004/09/16 18:31:26  sueh
+ * <p> bug# 520 sized the fields, added a row number, reorganized
+ * <p> functions
+ * <p>
+ * <p> Revision 1.1.2.1  2004/09/15 22:47:26  sueh
+ * <p> bug# 520 creates the Sections table for JoinDialog.
+ * <p> </p>
+ */
+public class SectionTablePanel implements ContextMenu, Expandable,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private static final Dimension buttonDimension = UIParameters
       .getButtonDimension();
-  private static final String flipWarning[] = { "Tomograms have to be flipped after generation",
-  "in order to be in the right orientation for joining serial sections." };
+  private static final String flipWarning[] = {
+      "Tomograms have to be flipped after generation",
+      "in order to be in the right orientation for joining serial sections." };
 
-  private JPanel rootPanel;
-  private SpacedPanel pnlBorder;
-  private JPanel pnlTable;
-  private SpacedPanel pnlButtons;
-  private SpacedPanel pnlImod;
-  private SpacedPanel pnlButtonsComponent1 = null;
-  private SpacedPanel pnlButtonsComponent2 = null;
-  private UIHarness uiHarness = UIHarness.INSTANCE;
-
-  private ExpandButton btnExpandSections;
-  private MultiLineButton btnMoveSectionUp;
-  private MultiLineButton btnMoveSectionDown;
-  private MultiLineButton btnAddSection;
-  private MultiLineButton btnDeleteSection;
-  private LabeledSpinner spinBinning;
-  private Run3dmodButton btnOpen3dmod;
-  private MultiLineButton btnGetAngles;
-  
-  private HeaderCell hdrOrder;
-  private HeaderCell hdrSections;
-  private HeaderCell hdrSampleSlices;
-  private HeaderCell hdrSlicesInSample1;
-  private HeaderCell hdrCurrentChunk1;
-  private HeaderCell hdrReferenceSection1;
-  private HeaderCell hdrCurrentSection1;
-  private HeaderCell hdrFinal;
-  private HeaderCell hdrRotationAngles;
-  private HeaderCell hdr1Row2;
-  private HeaderCell hdr2Row2;
-  private HeaderCell hdrBottom;
-  private HeaderCell hdrTop;
-  private HeaderCell hdrSlicesInSample2;
-  private HeaderCell hdrCurrentChunk2;
-  private HeaderCell hdrReferenceSection2;
-  private HeaderCell hdrCurrentSection2;
-  private HeaderCell hdr3Row2;
-  private HeaderCell hdr4Row2;
-  private HeaderCell hdr1Row3;
-  private HeaderCell hdr2Row3;
-  private HeaderCell hdrSampleSlicesBottomStart;
-  private HeaderCell hdrSampleSlicesBottomEnd;
-  private HeaderCell hdrSampleSlicesTopStart;
-  private HeaderCell hdrSampleSlicesTopEnd;
-  private HeaderCell hdrFinalStart;
-  private HeaderCell hdrFinalEnd;
-  private HeaderCell hdrRotationAnglesX;
-  private HeaderCell hdrRotationAnglesY;
-  private HeaderCell hdrRotationAnglesZ;
-
-  private ArrayList rows = null;
-
-  private GridBagLayout layout = new GridBagLayout();
-  private GridBagConstraints constraints = new GridBagConstraints();
-  private SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(
+  private final JPanel rootPanel = new JPanel();
+  private final SpacedPanel pnlBorder = new SpacedPanel();
+  private final JPanel pnlTable = new JPanel();
+  private final SpacedPanel pnlButtons = new SpacedPanel();
+  private final SpacedPanel pnlButtonsComponent1 = new SpacedPanel();
+  private final SpacedPanel pnlButtonsComponent2 = new SpacedPanel();
+  private final UIHarness uiHarness = UIHarness.INSTANCE;
+  private final MultiLineButton btnMoveSectionUp = new MultiLineButton("Move Section Up");
+  private final MultiLineButton btnMoveSectionDown = new MultiLineButton("Move Section Down");
+  private final MultiLineButton btnAddSection = new MultiLineButton("Add Section");
+  private final MultiLineButton btnDeleteSection = new MultiLineButton("Delete Section");
+  private final MultiLineButton btnGetAngles = new MultiLineButton("Get Angles from Slicer");
+  //first header row
+  private final HeaderCell header1Order = new HeaderCell("Order");
+  private final HeaderCell header1SetupSections = new HeaderCell("Sections",
+      FixedDim.sectionsWidth);
+  private ExpandButton button1ExpandSections = null;
+  private final HeaderCell header1JoinSections = new HeaderCell("Sections",
+      FixedDim.sectionsWidth);
+  private final HeaderCell header1Sample = new HeaderCell("Sample Slices");
+  private final HeaderCell header1SlicesInSample = new HeaderCell("Slices in");
+  private final HeaderCell header1CurrentChunk = new HeaderCell("Current");
+  private final HeaderCell header1ReferenceSection = new HeaderCell("Reference");
+  private final HeaderCell header1CurrentSection = new HeaderCell("Current");
+  private final HeaderCell header1SetupFinal = new HeaderCell("Final");
+  private final HeaderCell header1JoinFinal = new HeaderCell("Final");
+  private final HeaderCell header1Rotation = new HeaderCell("Rotation Angles");
+  //second header row
+  private final HeaderCell header2Order = new HeaderCell();
+  private final HeaderCell header2SetupSections = new HeaderCell();
+  private final HeaderCell header2JoinSections = new HeaderCell();
+  private final HeaderCell header2SampleBottom = new HeaderCell("Bottom");
+  private final HeaderCell header2SampleTop = new HeaderCell("Top");
+  private final HeaderCell header2SlicesInSample = new HeaderCell("Sample");
+  private final HeaderCell header2CurrentChunk = new HeaderCell("Chunk");
+  private final HeaderCell header2ReferenceSection = new HeaderCell("Section");
+  private final HeaderCell header2CurrentSection = new HeaderCell("Section");
+  private final HeaderCell header2SetupFinal = new HeaderCell();
+  private final HeaderCell header2JoinFinal = new HeaderCell();
+  private final HeaderCell header2RotationAngles = new HeaderCell();
+  //third header row
+  private final HeaderCell header3Order = new HeaderCell();
+  private final HeaderCell header3SetupSections = new HeaderCell();
+  private final HeaderCell header3JoinSections = new HeaderCell();
+  private final HeaderCell header3SampleBottomStart = new HeaderCell("Start",
+      FixedDim.numericWidth);
+  private final HeaderCell header3SampleBottomEnd = new HeaderCell("End",
+      FixedDim.numericWidth);
+  private final HeaderCell header3SampleTopStart = new HeaderCell("Start",
+      FixedDim.numericWidth);
+  private final HeaderCell header3SampleTopEnd = new HeaderCell("End",
+      FixedDim.numericWidth);
+  private final HeaderCell header3SetupFinalStart = new HeaderCell("Start",
+      FixedDim.numericWidth);
+  private final HeaderCell header3SetupFinalEnd = new HeaderCell("End",
+      FixedDim.numericWidth);
+  private final HeaderCell header3JoinFinalStart = new HeaderCell("Start",
+      FixedDim.numericWidth);
+  private final HeaderCell header3JoinFinalEnd = new HeaderCell("End",
+      FixedDim.numericWidth);
+  private final HeaderCell header3RotationX = new HeaderCell("X",
+      FixedDim.numericWidth);
+  private final HeaderCell header3RotationY = new HeaderCell("Y",
+      FixedDim.numericWidth);
+  private final HeaderCell header3RotationZ = new HeaderCell("Z",
+      FixedDim.numericWidth);
+  private final ArrayList rows = new ArrayList();
+  private final GridBagLayout layout = new GridBagLayout();
+  private final GridBagConstraints constraints = new GridBagConstraints();
+  private final SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(
       this);
-
+  
   private final JoinManager joinManager;
   private final JoinDialog joinDialog;
+
+  private LabeledSpinner spinBinning;
+  private Run3dmodButton btnOpen3dmod;
+  private SpacedPanel pnlImod;
   
-  private int curTab;
+  private int curTab = JoinDialog.SETUP_TAB;
   private int mode = JoinDialog.SETUP_MODE;
   private boolean flipping = false;
 
@@ -348,25 +370,28 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    * Creates the panel and table.
    *
    */
-  SectionTablePanel(JoinDialog joinDialog, JoinManager joinManager, int curTab) {
+  SectionTablePanel(JoinDialog joinDialog, JoinManager joinManager) {
     this.joinDialog = joinDialog;
     this.joinManager = joinManager;
-    this.curTab = curTab;
     //create root panel
-    rootPanel = new JPanel();
-    pnlBorder = new SpacedPanel();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(BorderFactory.createEtchedBorder());
-    createTablePanel();
+    //table
+    pnlTable.setBorder(LineBorder.createBlackLineBorder());
+    pnlTable.setLayout(layout);
+    constraints.fill = GridBagConstraints.BOTH;
+    button1ExpandSections = ExpandButton.getMoreLessInstance(this);
+    header2JoinSections.setText("In Final");
     addTablePanelComponents();
+    //buttones
     createButtonsPanel();
     addButtonsPanelComponents();
     addRootPanelComponents();
   }
-  
+
   private void addRootPanelComponents() {
     if (curTab == JoinDialog.JOIN_TAB) {
-      rootPanel.setLayout(new GridLayout(2,1));
+      rootPanel.setLayout(new GridLayout(2, 1));
     }
     else {
       rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -377,53 +402,6 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       addButtonsPanelComponents();
       pnlBorder.add(pnlButtons);
     }
-  }
-
-  /**
-   * Creates the panel and table.  Adds the header rows.  Adds SectionTableRows
-   * to rows to create each row.
-   *
-   */
-  private void createTablePanel() {
-    pnlTable = new JPanel();
-    pnlTable.setBorder(LineBorder.createBlackLineBorder());
-    pnlTable.setLayout(layout);
-    constraints.fill = GridBagConstraints.BOTH;
-    //Header
-    //First row
-    hdrOrder = new HeaderCell("Order");
-    hdrSections = new HeaderCell("Sections", FixedDim.sectionsWidth);
-    btnExpandSections = ExpandButton.getMoreLessInstance(this);
-    hdrSampleSlices = new HeaderCell("Sample Slices");
-    hdrSlicesInSample1 = new HeaderCell("Slices in");
-    hdrCurrentChunk1 = new HeaderCell("Current");
-    hdrReferenceSection1 = new HeaderCell("Reference");
-    hdrCurrentSection1 = new HeaderCell("Current");
-    hdrFinal = new HeaderCell("Final");
-    hdrRotationAngles = new HeaderCell("Rotation Angles");
-    //second row
-    hdr1Row2 = new HeaderCell();
-    hdr2Row2 = new HeaderCell();
-    hdrBottom = new HeaderCell("Bottom");
-    hdrTop = new HeaderCell("Top");
-    hdrSlicesInSample2 = new HeaderCell("Sample");
-    hdrCurrentChunk2 = new HeaderCell("Chunk");
-    hdrReferenceSection2 = new HeaderCell("Section");
-    hdrCurrentSection2 = new HeaderCell("Section");
-    hdr3Row2 = new HeaderCell();
-    hdr4Row2 = new HeaderCell();
-    //Third row
-    hdr1Row3 = new HeaderCell();
-    hdr2Row3 = new HeaderCell();
-    hdrSampleSlicesBottomStart = new HeaderCell("Start", FixedDim.numericWidth);
-    hdrSampleSlicesBottomEnd = new HeaderCell("End", FixedDim.numericWidth);
-    hdrSampleSlicesTopStart = new HeaderCell("Start", FixedDim.numericWidth);
-    hdrSampleSlicesTopEnd = new HeaderCell("End", FixedDim.numericWidth);
-    hdrFinalStart = new HeaderCell("Start", FixedDim.numericWidth);
-    hdrFinalEnd = new HeaderCell("End", FixedDim.numericWidth);
-    hdrRotationAnglesX = new HeaderCell("X", FixedDim.numericWidth);
-    hdrRotationAnglesY = new HeaderCell("Y", FixedDim.numericWidth);
-    hdrRotationAnglesZ = new HeaderCell("Z", FixedDim.numericWidth);
   }
 
   private void addTablePanelComponents() {
@@ -438,6 +416,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       addJoinTablePanelComponents();
     }
   }
+
   /**
    * Creates the panel and table.  Adds the header rows.  Adds SectionTableRows
    * to rows to create each row.
@@ -447,139 +426,152 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     //Header
     //First row
     constraints.anchor = GridBagConstraints.CENTER;
-    constraints.weightx = 1.0;
-    constraints.weighty = 1.0;
+    constraints.weightx = 0.0;
+    constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
-    hdrOrder.add(pnlTable, layout, constraints);
-    constraints.weighty = 0.0;
+    header1Order.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdrSections.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.0;
-    btnExpandSections.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
-    constraints.gridwidth = 4;
-    hdrSampleSlices.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 2;
-    hdrFinal.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrRotationAngles.add(pnlTable, layout, constraints);
-    //second row
+    header1SetupSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
+    button1ExpandSections.add(pnlTable, layout, constraints);
+    constraints.gridwidth = 4;
+    header1Sample.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
-    hdr1Row2.add(pnlTable, layout, constraints);
-    hdr2Row2.add(pnlTable, layout, constraints);
-    hdrBottom.add(pnlTable, layout, constraints);
-    hdrTop.add(pnlTable, layout, constraints);
-    hdr3Row2.add(pnlTable, layout, constraints);
+    header1SetupFinal.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdr4Row2.add(pnlTable, layout, constraints);
+    header1Rotation.add(pnlTable, layout, constraints);
+    //second row
+    constraints.weighty = 1.0;
+    constraints.gridwidth = 2;
+    header2Order.add(pnlTable, layout, constraints);
+    header2SetupSections.add(pnlTable, layout, constraints);
+    header2SampleBottom.add(pnlTable, layout, constraints);
+    header2SampleTop.add(pnlTable, layout, constraints);
+    header2SetupFinal.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header2RotationAngles.add(pnlTable, layout, constraints);
     //Third row
     constraints.gridwidth = 2;
-    hdr1Row3.add(pnlTable, layout, constraints);
-    hdr2Row3.add(pnlTable, layout, constraints);
+    header3Order.add(pnlTable, layout, constraints);
+    header3SetupSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdrSampleSlicesBottomStart.add(pnlTable, layout, constraints);
-    hdrSampleSlicesBottomEnd.add(pnlTable, layout, constraints);
-    hdrSampleSlicesTopStart.add(pnlTable, layout, constraints);
-    hdrSampleSlicesTopEnd.add(pnlTable, layout, constraints);
-    hdrFinalStart.add(pnlTable, layout, constraints);
-    hdrFinalEnd.add(pnlTable, layout, constraints);
-    hdrRotationAnglesX.add(pnlTable, layout, constraints);
-    hdrRotationAnglesY.add(pnlTable, layout, constraints);
+    header3SampleBottomStart.add(pnlTable, layout, constraints);
+    header3SampleBottomEnd.add(pnlTable, layout, constraints);
+    header3SampleTopStart.add(pnlTable, layout, constraints);
+    header3SampleTopEnd.add(pnlTable, layout, constraints);
+    header3SetupFinalStart.add(pnlTable, layout, constraints);
+    header3SetupFinalEnd.add(pnlTable, layout, constraints);
+    header3RotationX.add(pnlTable, layout, constraints);
+    header3RotationY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrRotationAnglesZ.add(pnlTable, layout, constraints);
+    header3RotationZ.add(pnlTable, layout, constraints);
   }
-  
+
   private void addAlignTablePanelComponents() {
     //Header
     //First row
     constraints.anchor = GridBagConstraints.CENTER;
-    constraints.weightx = 1.0;
-    constraints.weighty = 1.0;
+    constraints.weightx = 0.0;
+    constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    hdrOrder.add(pnlTable, layout, constraints);
-    constraints.weighty = 0.0;
-    hdrSections.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.0;
-    constraints.gridwidth = 1;
-    btnExpandSections.add(pnlTable, layout, constraints);
+    header1Order.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
-    constraints.gridwidth = 1;
-    hdrSlicesInSample1.add(pnlTable, layout, constraints);
-    hdrCurrentChunk1.add(pnlTable, layout, constraints);
-    hdrReferenceSection1.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrCurrentSection1.add(pnlTable, layout, constraints);
-    
-    //second row
+    header1JoinSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
     constraints.gridwidth = 1;
-    hdr1Row2.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 2;
-    hdr2Row2.add(pnlTable, layout, constraints);
+    button1ExpandSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdrSlicesInSample2.add(pnlTable, layout, constraints);
-    hdrCurrentChunk2.add(pnlTable, layout, constraints);
-    hdrReferenceSection2.add(pnlTable, layout, constraints);
+    header1SlicesInSample.add(pnlTable, layout, constraints);
+    header1CurrentChunk.add(pnlTable, layout, constraints);
+    header1ReferenceSection.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrCurrentSection2.add(pnlTable, layout, constraints);
+    header1CurrentSection.add(pnlTable, layout, constraints);
+    //second row
+    constraints.weighty = 1.0;
+    constraints.gridwidth = 1;
+    header2Order.add(pnlTable, layout, constraints);
+    constraints.gridwidth = 2;
+    header2JoinSections.add(pnlTable, layout, constraints);
+    constraints.gridwidth = 1;
+    header2SlicesInSample.add(pnlTable, layout, constraints);
+    header2CurrentChunk.add(pnlTable, layout, constraints);
+    header2ReferenceSection.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header2CurrentSection.add(pnlTable, layout, constraints);
   }
-  
+
   private void addJoinTablePanelComponents() {
     //Header
     //First row
-    constraints.weightx = 1.0;
+    constraints.weightx = 0.0;
     constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
-    hdrOrder.add(pnlTable, layout, constraints);
-    constraints.weighty = 0.0;
+    header1Order.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdrSections.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.0;
-    btnExpandSections.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
+    header1JoinSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.0;
+    button1ExpandSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrFinal.add(pnlTable, layout, constraints);
-    //Second row
+    header1JoinFinal.add(pnlTable, layout, constraints);
+    if (hasRotatedSection()) {
+      //Second row
+      constraints.weighty = 1.0;
+      constraints.gridwidth = 2;
+      header2Order.add(pnlTable, layout, constraints);
+      constraints.gridwidth = 2;
+      header2JoinSections.add(pnlTable, layout, constraints);
+      constraints.gridwidth = GridBagConstraints.REMAINDER;
+      header2JoinFinal.add(pnlTable, layout, constraints);
+      header3JoinSections.setText("Orientation");
+    }
+    else {
+      header3JoinSections.setText();
+    }
+    //Third row
     constraints.weighty = 1.0;
     constraints.gridwidth = 2;
-    hdr1Row3.add(pnlTable, layout, constraints);
-    constraints.weighty = 0.0;
-    hdr2Row3.add(pnlTable, layout, constraints);
+    header3Order.add(pnlTable, layout, constraints);
+    header3JoinSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdrFinalStart.add(pnlTable, layout, constraints);
+    header3JoinFinalStart.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrFinalEnd.add(pnlTable, layout, constraints);
+    header3JoinFinalEnd.add(pnlTable, layout, constraints);
   }
 
-
+  /**
+   * @return true if at least one row is rotated
+   */
+  private final boolean hasRotatedSection() {
+    for (int i = 0; i < rows.size(); i++) {
+      if (((SectionTableRow) rows.get(i)).isRotated()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   private void createButtonsPanel() {
-    pnlButtons = new SpacedPanel();
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     //first component
-    pnlButtonsComponent1 = new SpacedPanel();
     pnlButtonsComponent1.setBoxLayout(BoxLayout.Y_AXIS);
-    btnMoveSectionUp = new MultiLineButton("Move Section Up");
     btnMoveSectionUp.setSize(true);
     btnMoveSectionUp.addActionListener(sectionTableActionListener);
     pnlButtonsComponent1.add(btnMoveSectionUp);
-    btnAddSection = new MultiLineButton("Add Section");
     btnAddSection.setSize(true);
     btnAddSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent1.add(btnAddSection);
-    UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(), buttonDimension);
+    UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(),
+        buttonDimension);
     //second component
-    pnlButtonsComponent2 = new SpacedPanel();
     pnlButtonsComponent2.setBoxLayout(BoxLayout.Y_AXIS);
-    btnMoveSectionDown = new MultiLineButton("Move Section Down");
     btnMoveSectionDown.setSize(true);
     btnMoveSectionDown.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnMoveSectionDown);
-    btnDeleteSection = new MultiLineButton("Delete Section");
     btnDeleteSection.setSize(true);
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
@@ -591,11 +583,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     pnlImod = joinDialog.createOpen3dmodPanel(spinBinning, btnOpen3dmod);
     //createImodPanel();
     //fourth component
-    btnGetAngles = new MultiLineButton("Get Angles from Slicer");
     btnGetAngles.setSize(true);
     btnGetAngles.addActionListener(sectionTableActionListener);
   }
-  
+
   private void addButtonsPanelComponents() {
     if (curTab == JoinDialog.SETUP_TAB) {
       pnlButtons.add(pnlButtonsComponent1);
@@ -608,11 +599,11 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       pnlButtons.add(btnGetAngles);
     }
   }
-  
+
   void setCurTab(int curTab) {
     this.curTab = curTab;
   }
-  
+
   void displayCurTab() {
     rootPanel.removeAll();
     pnlButtons.removeAll();
@@ -621,9 +612,6 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     addButtonsPanelComponents();
     pnlTable.removeAll();
     addTablePanelComponents();
-    if (rows == null) {
-      return;
-    }
     int rowsSize = rows.size();
     int prevSampleSlice = 0;
     int prevChunkTableSlice = 0;
@@ -648,8 +636,8 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
           prevChunkTableSlice, nextSampleBottomNumberSlices);
     }
   }
-  
-  int getTableSize() {
+
+  final int getTableSize() {
     return rows.size();
   }
 
@@ -675,9 +663,6 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
   }
 
   private int getHighlightedRowIndex() {
-    if (rows == null) {
-      return -1;
-    }
     for (int i = 0; i < rows.size(); i++) {
       if (((SectionTableRow) rows.get(i)).isHighlighted()) {
         return i;
@@ -685,7 +670,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     }
     return -1;
   }
-  
+
   /**
    * enable buttons made on the current mode parameter
    *
@@ -693,7 +678,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
   void setMode() {
     setMode(mode);
   }
-  
+
   /**
    * Enable buttons based on the mode parameter
    * @param mode
@@ -720,10 +705,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       throw new IllegalStateException("mode=" + mode);
     }
     enableRowButtons(getHighlightedRowIndex());
-    if (rows == null) {
-      return;
-    }
-    for (int i= 0; i < rows.size(); i++) {
+    for (int i = 0; i < rows.size(); i++) {
       ((SectionTableRow) rows.get(i)).setMode(mode);
     }
   }
@@ -734,12 +716,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    */
   private void enableRowButtons(int highlightedRowIndex) {
     int rowsSize = 0;
-    if (rows != null) {
-      rowsSize = rows.size();
-    }
-    if (rows == null || rowsSize == 0) {
+    rowsSize = rows.size();
+    if (rowsSize == 0) {
       btnOpen3dmod.setEnabled(false);
-      btnExpandSections.setEnabled(false);
+      button1ExpandSections.setEnabled(false);
       if (mode != JoinDialog.SAMPLE_PRODUCED_MODE) {
         btnMoveSectionUp.setEnabled(false);
         btnMoveSectionDown.setEnabled(false);
@@ -749,7 +729,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       return;
     }
     btnOpen3dmod.setEnabled(highlightedRowIndex > -1);
-    btnExpandSections.setEnabled(true);
+    button1ExpandSections.setEnabled(true);
     if (mode != JoinDialog.SAMPLE_PRODUCED_MODE) {
       btnMoveSectionUp.setEnabled(highlightedRowIndex > 0);
       btnMoveSectionDown.setEnabled(highlightedRowIndex > -1
@@ -766,8 +746,8 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    * @param expandButton
    */
   public void expand(ExpandButton expandButton) {
-    if (expandButton.equals(btnExpandSections)) {
-      boolean expand = btnExpandSections.isExpanded();
+    if (expandButton.equals(button1ExpandSections)) {
+      boolean expand = button1ExpandSections.isExpanded();
       for (int i = 0; i < rows.size(); i++) {
         ((SectionTableRow) rows.get(i)).expandSection(expand);
       }
@@ -785,15 +765,9 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     flipping = false;
     setMode();
   }
-  
+
   public boolean equals(ConstJoinMetaData metaData) {
     ArrayList array = metaData.getSectionTableData();
-    if (rows == null) {
-      if (array == null) {
-        return true;
-      }
-      return false;
-    }
     if (array == null) {
       return false;
     }
@@ -801,21 +775,16 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       return false;
     }
     for (int i = 0; i < rows.size(); i++) {
-      if (!((SectionTableRow) rows.get(i)).equals((ConstSectionTableRowData) array.get(i))) {
+      if (!((SectionTableRow) rows.get(i))
+          .equals((ConstSectionTableRowData) array.get(i))) {
         return false;
       }
     }
     return true;
   }
-  
+
   public boolean equalsSample(ConstJoinMetaData metaData) {
     ArrayList array = metaData.getSectionTableData();
-    if (rows == null) {
-      if (array == null) {
-        return true;
-      }
-      return false;
-    }
     if (array == null) {
       return false;
     }
@@ -823,15 +792,14 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       return false;
     }
     for (int i = 0; i < rows.size(); i++) {
-      if (!((SectionTableRow) rows.get(i)).equalsSample((ConstSectionTableRowData) array.get(i))) {
+      if (!((SectionTableRow) rows.get(i))
+          .equalsSample((ConstSectionTableRowData) array.get(i))) {
         return false;
       }
     }
     return true;
   }
 
-
-  
   public GridBagConstraints getTableConstraints() {
     return constraints;
   }
@@ -858,6 +826,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     rows.add(rowIndex, rowMoveDown);
     addRowsToTable(rowIndex - 1);
     renumberTable(rowIndex - 1);
+    configureRows();
     enableRowButtons(rowIndex - 1);
     repaint();
   }
@@ -874,7 +843,8 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     }
     if (rowIndex == rows.size() - 1) {
       uiHarness.openMessageDialog(
-          "Can't move the row down.  Its at the bottom.", "Wrong Row", AxisID.ONLY);
+          "Can't move the row down.  Its at the bottom.", "Wrong Row",
+          AxisID.ONLY);
       return;
     }
     removeRowsFromTable(rowIndex);
@@ -884,6 +854,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     rows.add(rowIndex + 1, rowMoveDown);
     addRowsToTable(rowIndex);
     renumberTable(rowIndex);
+    configureRows();
     enableRowButtons(rowIndex + 1);
     repaint();
   }
@@ -891,9 +862,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
   private void addSection() {
     StringBuffer invalidBuffer = new StringBuffer();
     if (!Utilities.isValidFile(joinDialog.getWorkingDir(),
-        JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true,
-        true, true, true)) {
-      uiHarness.openMessageDialog(invalidBuffer.toString(), "Unable to Add Section", AxisID.ONLY);
+        JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true, true, true,
+        true)) {
+      uiHarness.openMessageDialog(invalidBuffer.toString(),
+          "Unable to Add Section", AxisID.ONLY);
       return;
     }
     //  Open up the file chooser in the working directory
@@ -934,7 +906,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       uiHarness.pack(AxisID.ONLY, joinManager);
     }
   }
-  
+
   private boolean readHeader(MRCHeader header) {
     try {
       header.read();
@@ -945,8 +917,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
           "The header command returned an error (InvalidParameterException).",
           "This file may not contain a tomogram.",
           "Are you sure you want to open this file?" };
-      if (!uiHarness.openYesNoDialog(
-          msgInvalidParameterException, AxisID.ONLY)) {
+      if (!uiHarness.openYesNoDialog(msgInvalidParameterException, AxisID.ONLY)) {
         return false;
       }
     }
@@ -968,8 +939,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
             "The header command returned an error (NumberFormatException).",
             "Unable to tell if the tomogram is flipped.", flipWarning[0],
             flipWarning[1], "Are you sure you want to open this file?" };
-        if (!uiHarness.openYesNoDialog(
-            msgNumberFormatException, AxisID.ONLY)) {
+        if (!uiHarness.openYesNoDialog(msgNumberFormatException, AxisID.ONLY)) {
           return false;
         }
       }
@@ -978,15 +948,12 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
   }
 
   private boolean isDuplicate(File section) {
-    if (rows == null) {
-      return false;
-    }
     for (int i = 0; i < rows.size(); i++) {
-      if (((SectionTableRow) rows.get(i)).equalsSection(section)) {
+      if (((SectionTableRow) rows.get(i)).equalsSetupSection(section)) {
         String msgDuplicate = "The file, " + section.getAbsolutePath()
             + ", is already in the table.";
-        uiHarness.openMessageDialog(msgDuplicate,
-            "Add Section Failed", AxisID.ONLY);
+        uiHarness.openMessageDialog(msgDuplicate, "Add Section Failed",
+            AxisID.ONLY);
         return true;
       }
     }
@@ -997,41 +964,28 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     flipping = false;
     setMode();
     if (!tomogram.exists()) {
-      uiHarness.openMessageDialog(
-          tomogram.getAbsolutePath() + " does not exist.", "File Error", AxisID.ONLY);
+      uiHarness.openMessageDialog(tomogram.getAbsolutePath()
+          + " does not exist.", "File Error", AxisID.ONLY);
       return;
     }
     if (!tomogram.isFile()) {
-      uiHarness.openMessageDialog(
-          tomogram.getAbsolutePath() + " is not a file.", "File Error", AxisID.ONLY);
+      uiHarness.openMessageDialog(tomogram.getAbsolutePath()
+          + " is not a file.", "File Error", AxisID.ONLY);
       return;
     }
-    MRCHeader header = MRCHeader.getInstance(joinManager.getPropertyUserDir(),
-        tomogram.getAbsolutePath(), AxisID.ONLY);
-    try {
-      header.read();
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-    }
-    if (rows == null) {
-      rows = new ArrayList();
-    }
-    SectionTableRow row = new SectionTableRow(this, rows.size() + 1, tomogram,
-        btnExpandSections.isExpanded(), header, curTab);
-    row.create(mode);
+    //Sections are only added in the Setup tab, so assume that the join
+    //expand button is contracted.
+    SectionTableRow row = new SectionTableRow(joinManager, this,
+        rows.size() + 1, tomogram, button1ExpandSections.isExpanded());
+    row.setMode(mode);
     row.add(pnlTable);
     rows.add(row);
     int tableSize = rows.size();
-    if (tableSize > 1) {
-      ((SectionTableRow) rows.get(tableSize - 2)).configureFields();
-    }
+    configureRows();
     joinDialog.setNumSections(tableSize);
     repaint();
   }
-  
+
   /**
    * Delete the highlighted row.  Remove it in the rows ArrayList.
    * Remove it from the table.  Renumber the row numbers in the table.
@@ -1042,28 +996,20 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
       return;
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    if (!uiHarness.openYesNoDialog(
-        "Really remove " + row.getSectionText() + "?", AxisID.ONLY)) {
+    if (!uiHarness.openYesNoDialog("Really remove " + row.getSetupSectionText()
+        + "?", AxisID.ONLY)) {
       return;
     }
     rows.remove(rowIndex);
-    joinManager.imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
-    joinManager.imodRemove(ImodManager.ROT_TOMOGRAM_KEY, row.getImodRotIndex());
     row.remove();
+    row.removeImod();
     renumberTable(rowIndex);
-    if (rows.size() > 0) {
-      if (rowIndex == 0) {
-        ((SectionTableRow) rows.get(0)).configureFields();
-      }
-      else if (rowIndex == rows.size()) {
-        ((SectionTableRow) rows.get(rows.size() - 1)).configureFields();
-      }
-    }
+    configureRows();
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
     repaint();
   }
-  
+
   void deleteSections() {
     while (rows.size() > 0) {
       SectionTableRow row = (SectionTableRow) rows.remove(0);
@@ -1071,7 +1017,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     }
     repaint();
   }
-  
+
   /**
    * Opens a section in 3dmod
    * May open a .rot file instead of the original section in the join tab.
@@ -1086,30 +1032,12 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     }
     int binning = ((Integer) this.spinBinning.getValue()).intValue();
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    File sectionFile = row.getSectionFile();
-    //if join tab, open .rot file, if it exists and is listed in .info file
-    if (curTab == JoinDialog.JOIN_TAB) {
-      JoinInfoFile infoFile = new JoinInfoFile(
-          joinManager.getPropertyUserDir(), joinDialog.getRootName());
-      if (infoFile.read(rows.size())) {
-        String infoFileSectionName = infoFile.getFileName(rowIndex);
-        if (infoFileSectionName.substring(infoFileSectionName.lastIndexOf("."))
-            .equals(".rot")) {
-          File rotSectionFile = new File(joinManager.getPropertyUserDir(),
-              infoFileSectionName);
-          if (rotSectionFile.exists()) {
-            //open rotTomogram 3dmod and keep track of it
-            row.setImodRotIndex(joinManager.imodOpen(
-                ImodManager.ROT_TOMOGRAM_KEY, row.getImodRotIndex(),
-                rotSectionFile, binning, new Run3dmodMenuOptions()));
-            return;
-          }
-        }
-      }
+    if (curTab == JoinDialog.SETUP_TAB) {
+      row.imodOpenSetupSectionFile(binning);
     }
-    //open tomogram 3dmod and keep track of it
-    row.setImodIndex(joinManager.imodOpen(ImodManager.TOMOGRAM_KEY, row
-        .getImodIndex(), sectionFile, binning, new Run3dmodMenuOptions()));
+    else {
+      row.imodOpenJoinSectionFile(binning);
+    }
   }
 
   private void imodGetAngles() {
@@ -1117,21 +1045,9 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     if (rowIndex == -1) {
       return;
     }
-    SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    int imodIndex = row.getImodIndex();
-    if (imodIndex == -1) {
-      uiHarness.openMessageDialog(
-          "Open in 3dmod and use the Slicer to change the angles.",
-          "Open 3dmod", AxisID.ONLY);
-      return;
+    if (((SectionTableRow) rows.get(rowIndex)).imodGetAngles()) {
+      repaint();
     }
-    SlicerAngles slicerAngles = joinManager.imodGetSlicerAngles(
-        ImodManager.TOMOGRAM_KEY, imodIndex);
-    if (slicerAngles == null || !slicerAngles.isComplete()) {
-      return;
-    }
-    row.setRotationAngles(slicerAngles);
-    repaint();
   }
 
   /**
@@ -1170,42 +1086,46 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
   public boolean getMetaData(JoinMetaData metaData) {
     boolean success = true;
     metaData.resetSectionTableData();
-    if (rows == null) {
-      return success;
-    }
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
       ConstSectionTableRowData rowData = row.getData();
       if (!row.isValid()) {
-        success =  false; //getData() failed
+        success = false; //getData() failed
       }
-      metaData.setSectionTableData(new SectionTableRowData(rowData));
+      metaData
+          .setSectionTableData(new SectionTableRowData(joinManager, rowData));
     }
     return success;
   }
-  
+
   public void setMetaData(ConstJoinMetaData metaData) {
     ArrayList rowData = metaData.getSectionTableData();
     if (rowData == null) {
       return;
     }
-    rows = new ArrayList(rowData.size());
     for (int i = 0; i < rowData.size(); i++) {
       SectionTableRowData data = (SectionTableRowData) rowData.get(i);
-      SectionTableRow row = new SectionTableRow(this, data, false, JoinDialog.SETUP_TAB);
+      SectionTableRow row = new SectionTableRow(joinManager, this, data, false);
       int rowIndex = data.getRowIndex();
       rows.add(rowIndex, row);
     }
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      row.create(mode);
+      row.setMode(mode);
       row.add(pnlTable);
     }
+    configureRows();
     joinDialog.setNumSections(rows.size());
     repaint();
   }
-  
-  public String getInvalidReason() {
+
+  private final void configureRows() {
+    for (int i = 0; i < rows.size(); i++) {
+      ((SectionTableRow) rows.get(i)).setInUse();
+    }
+  }
+
+  final public String getInvalidReason() {
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
       String invalidReason = row.getInvalidReason();
@@ -1215,33 +1135,30 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     }
     return null;
   }
-  
-  int getXMax() {
+
+  final int getJoinXMax() {
     int xMax = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      xMax = Math.max(xMax, row.getXMax());
+      xMax = Math.max(xMax, row.getJoinXMax());
     }
     return xMax;
   }
-  
-  int getYMax() {
+
+  final int getJoinYMax() {
     int yMax = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      yMax = Math.max(yMax, row.getYMax());
+      yMax = Math.max(yMax, row.getJoinYMax());
     }
     return yMax;
   }
-  
-  int getZMax() {
-    if (rows == null) {
-      return 0;
-    }
+
+  final int getJoinZMax() {
     int zMax = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      zMax = Math.max(zMax, row.getZMax());
+      zMax = Math.max(zMax, row.getJoinZMax());
     }
     return zMax;
   }
@@ -1250,12 +1167,12 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    * Add a JComponent to the table.
    * @param cell
    */
-  public void addCell(Component cell) {
+  public final void addCell(Component cell) {
     layout.setConstraints(cell, constraints);
     pnlTable.add(cell);
   }
 
-  public void removeCell(Component cell) {
+  public final void removeCell(Component cell) {
     pnlTable.remove(cell);
   }
 
@@ -1263,7 +1180,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    * Call mainPanel repaint.
    *
    */
-  private void repaint() {
+  private final void repaint() {
     joinManager.getMainPanel().repaint();
   }
 
@@ -1286,22 +1203,23 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public final void popUpContextMenu(MouseEvent mouseEvent) {
   }
 
-  Container getContainer() {
+  final Container getContainer() {
     return rootPanel;
   }
-  
-  JPanel getRootPanel() {
+
+  final JPanel getRootPanel() {
     return rootPanel;
   }
-  
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+
+  public final void run3dmod(Run3dmodButton button,
+      Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+
+  private final void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnOpen3dmod.getActionCommand())) {
       imodSection();
     }
@@ -1311,9 +1229,8 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
    * Handle actions
    * @param event
    */
-  protected void action(ActionEvent event) {
+  protected final void action(ActionEvent event) {
     String command = event.getActionCommand();
-
     if (command.equals(btnMoveSectionUp.getActionCommand())) {
       moveSectionUp();
     }
@@ -1334,10 +1251,36 @@ public class SectionTablePanel implements ContextMenu, Expandable, Run3dmodButto
     }
   }
 
+  /**
+   * Synchronizes when entering or leaving the join tab.  This function should
+   * be called when switching tabs and before any save to the .ejf file.
+   * @param prevTab
+   * @param curTab
+   */
+  final void synchronize(int prevTab, int curTab) {
+    if (rows.size() == 0) {
+      return;
+    }
+    //synchronize setup columns to join columns when the user gets to the join
+    //tab
+    if (curTab == JoinDialog.JOIN_TAB) {
+      for (int i = 0; i < rows.size(); i++) {
+        ((SectionTableRow) rows.get(i)).synchronizeSetupToJoin();
+      }
+    }
+    //synchronize join columns to setup columns when the users leaves the join
+    //tab
+    else if (prevTab == JoinDialog.JOIN_TAB) {
+      for (int i = 0; i < rows.size(); i++) {
+        ((SectionTableRow) rows.get(i)).synchronizeJoinToSetup();
+      }
+    }
+  }
+
   //
   //  Action listener adapters
   //
-  class SectionTableActionListener implements ActionListener {
+  final class SectionTableActionListener implements ActionListener {
 
     SectionTablePanel adaptee;
 
