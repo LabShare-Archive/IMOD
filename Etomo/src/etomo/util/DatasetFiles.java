@@ -24,6 +24,7 @@ public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
   private static final String TOMO_EXT = ".rec";
+  private static final String ROTATED_TOMO_EXT = ".rot";
   private static final String STACK_EXT = ".st";
 
   //Stacks
@@ -79,6 +80,20 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), metaData.getName()
         + axisID.getExtension() + TOMO_EXT);
+  }
+
+  public final static boolean isRotatedTomogram(File tomogram) {
+    String tomogramName = tomogram.getName();
+    if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(ROTATED_TOMO_EXT)) {
+      return true;
+    }
+    return false;
+  }
+
+  public final static File getRotatedTomogram(File tomogram) {
+    String tomogramPath = tomogram.getAbsolutePath();
+    return new File(tomogramPath.substring(0, tomogramPath.lastIndexOf('.'))
+        + ROTATED_TOMO_EXT);
   }
 
   //Other dataset files
@@ -169,6 +184,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/11/19 02:45:37  sueh
+ * <p> bug# 744 Added getOutFile and getShellScript.
+ * <p>
  * <p> Revision 1.6  2005/11/10 18:17:38  sueh
  * <p> bug# 733 Added getAutodoc and getAutodocName
  * <p>
