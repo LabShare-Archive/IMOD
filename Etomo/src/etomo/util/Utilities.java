@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.32  2005/11/21 22:04:07  sueh
+ * <p> $bug# 733 In isWindowOS(), only call System.getProperty("os.name") one
+ * <p> $time per application instance.
+ * <p> $
  * <p> $Revision 3.31  2005/11/21 18:17:25  sueh
  * <p> $bug# 733 problem with unit tests in windows.
  * <p> $
@@ -763,7 +767,6 @@ public class Utilities {
     if (!setWindowsOS) {
       String osName = System.getProperty("os.name").toLowerCase();
       windowsOS = osName.indexOf("windows") != -1;
-      System.err.println("osName="+osName+",windowsOS="+windowsOS);
       setWindowsOS = true;
     }
     return windowsOS;
