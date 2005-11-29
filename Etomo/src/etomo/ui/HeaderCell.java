@@ -80,6 +80,10 @@ class HeaderCell {
     cell.setText("<html><b>" + text + "</b>");
   }
   
+  final void setText() {
+    setText("");
+  }
+  
   final int getHeight() {
     return cell.getHeight() + cell.getBorder().getBorderInsets(cell).bottom - 1;
   }
@@ -90,6 +94,9 @@ class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.7  2005/11/04 00:54:05  sueh
+ * * <p> bug# 732 Added getWidth().
+ * * <p>
 * <p> Revision 1.6  2005/08/04 20:10:46  sueh
 * <p> bug# 532 Fixed getHeight() and removed getBorderHeight().
 * <p>
