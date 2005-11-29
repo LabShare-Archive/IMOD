@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.22  2005/11/14 22:12:57  sueh
+ * <p> bug# 762 Made action() protected.
+ * <p>
  * <p> Revision 1.21  2005/11/02 23:59:53  sueh
  * <p> bug# 738 Added midas limit.
  * <p>
@@ -388,6 +391,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     this.joinManager = joinManager;
     createRootPanel(workingDirName);
     UIHarness.INSTANCE.pack(axisID, joinManager);
+    addListeners();
   }
 
   /**
@@ -399,6 +403,30 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     createTabPane(workingDirName);
     rootPanel.add(tabPane);
   }
+  
+  private void addListeners() {
+    tabPane.addMouseListener(new GenericMouseAdapter(this));
+    TabChangeListener tabChangeListener = new TabChangeListener(this);
+    tabPane.addChangeListener(tabChangeListener);
+    btnWorkingDir.addActionListener(workingDirActionListener);
+    btnChangeSetup.addActionListener(joinActionListener);
+    btnRevertToLastSetup.addActionListener(joinActionListener);
+    btnMakeSamples.addActionListener(joinActionListener);
+    btnOpenSample.addActionListener(joinActionListener);
+    btnOpenSampleAverages.addActionListener(joinActionListener);
+    btnInitialAutoAlignment.addActionListener(joinActionListener);
+    btnMidas.addActionListener(joinActionListener);
+    btnRefineAutoAlignment.addActionListener(joinActionListener);
+    btnRevertToMidas.addActionListener(joinActionListener);
+    btnRevertToEmpty.addActionListener(joinActionListener);
+    cbUseAlignmentRefSection.addActionListener(useAlignmentRefSectionActionListener);
+    btnGetMaxSize.addActionListener(joinActionListener);
+    btnFinishJoin.addActionListener(joinActionListener);
+    btnOpenIn3dmod.addActionListener(joinActionListener);
+    btnTrialJoin.addActionListener(joinActionListener);
+    btnOpenTrialIn3dmod.addActionListener(joinActionListener);
+    btnGetSubarea.addActionListener(joinActionListener);
+  }
 
   /**
    * Create the tabbed pane.
@@ -406,9 +434,9 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   private void createTabPane(String workingDirName) {
     tabPane = new JTabbedPane();
-    TabChangeListener tabChangeListener = new TabChangeListener(this);
-    tabPane.addMouseListener(new GenericMouseAdapter(this));
-    tabPane.addChangeListener(tabChangeListener);
+    //tabPane.addMouseListener(new GenericMouseAdapter(this));
+    //TabChangeListener tabChangeListener = new TabChangeListener(this);
+    //tabPane.addChangeListener(tabChangeListener);
     tabPane.setBorder(new BeveledBorder("Join").getBorder());
     createSetupPanel(workingDirName);
     tabPane.addTab("Setup", pnlSetup.getContainer());
@@ -416,6 +444,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     tabPane.addTab("Align", pnlAlign.getContainer());
     createJoinPanel();
     tabPane.addTab("Join", pnlJoin.getContainer());
+    addPanelComponents(SETUP_TAB);
   }
   
   /**
@@ -502,14 +531,16 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
   
-  void changeTab(ChangeEvent event){
-    removePanelComponents(curTab);
+  final void changeTab(ChangeEvent event) {
+    int prevTab = curTab;
+    removePanelComponents(prevTab);
     curTab = tabPane.getSelectedIndex();
+    synchronize(prevTab);
     addPanelComponents(curTab);
     UIHarness.INSTANCE.pack(joinManager);
   }
   
-  public void setMode(int mode) {
+  public final void setMode(int mode) {
     if (mode == SETUP_MODE) {
       ltfWorkingDir.setEnabled(true);
       btnWorkingDir.setEnabled(true);
@@ -567,12 +598,12 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnWorkingDir = new JButton(iconFolder);
     btnWorkingDir.setPreferredSize(FixedDim.folderButton);
     btnWorkingDir.setMaximumSize(FixedDim.folderButton);
-    btnWorkingDir.addActionListener(workingDirActionListener);
+    //btnWorkingDir.addActionListener(workingDirActionListener);
     setupPanel1.add(btnWorkingDir);
     //second component
     ltfRootName = new LabeledTextField("Root name for output file: ");
     //third component    
-    pnlSectionTable = new SectionTablePanel(this, joinManager, curTab);
+    pnlSectionTable = new SectionTablePanel(this, joinManager);
     //midas limit panel
     pnlMidasLimit.setBoxLayout(BoxLayout.X_AXIS);
     pnlMidasLimit.add(ltfMidasLimit.getContainer());
@@ -588,14 +619,14 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
     setupPanel2.setBorder(BorderFactory.createEtchedBorder());
     btnChangeSetup = new MultiLineButton("Change Setup");
-    btnChangeSetup.addActionListener(joinActionListener);
+    //btnChangeSetup.addActionListener(joinActionListener);
     setupPanel2.add(btnChangeSetup);
     btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
-    btnRevertToLastSetup.addActionListener(joinActionListener);
+    //btnRevertToLastSetup.addActionListener(joinActionListener);
     setupPanel2.add(btnRevertToLastSetup);
     //seventh component
     btnMakeSamples = new MultiLineButton("Make Samples");
-    btnMakeSamples.addActionListener(joinActionListener);
+    //btnMakeSamples.addActionListener(joinActionListener);
     btnMakeSamples.setSize();
     btnMakeSamples.setAlignmentX(Component.CENTER_ALIGNMENT);
   }
@@ -619,9 +650,9 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     alignPanel1 = new SpacedPanel();
     alignPanel1.setBoxLayout(BoxLayout.X_AXIS);
     btnOpenSample = new Run3dmodButton("Open Sample in 3dmod", this);
-    btnOpenSample.addActionListener(joinActionListener);
+    //btnOpenSample.addActionListener(joinActionListener);
     btnOpenSampleAverages = new Run3dmodButton("Open Sample Averages in 3dmod", this);
-    btnOpenSampleAverages.addActionListener(joinActionListener);
+    //btnOpenSampleAverages.addActionListener(joinActionListener);
     alignPanel1.add(btnOpenSample);
     alignPanel1.add(btnOpenSampleAverages);
     //third component
@@ -651,23 +682,23 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel alignPanel2A = new SpacedPanel();
     alignPanel2A.setBoxLayout(BoxLayout.Y_AXIS);
     btnInitialAutoAlignment = new MultiLineButton("Initial Auto Alignment");
-    btnInitialAutoAlignment.addActionListener(joinActionListener);
+    //btnInitialAutoAlignment.addActionListener(joinActionListener);
     alignPanel2A.add(btnInitialAutoAlignment);
     btnMidas = new MultiLineButton(MIDAS_TEXT);
-    btnMidas.addActionListener(joinActionListener);
+    //btnMidas.addActionListener(joinActionListener);
     alignPanel2A.add(btnMidas);
     btnRefineAutoAlignment = new MultiLineButton(REFINE_AUTO_ALIGNMENT_TEXT);
-    btnRefineAutoAlignment.addActionListener(joinActionListener);
+    //btnRefineAutoAlignment.addActionListener(joinActionListener);
     alignPanel2A.add(btnRefineAutoAlignment);
     alignPanel2.add(alignPanel2A);
     SpacedPanel alignPanel2B = new SpacedPanel();
     alignPanel2B.setBoxLayout(BoxLayout.Y_AXIS);
     alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
     btnRevertToMidas = new MultiLineButton("Revert Auto Alignment to Midas");
-    btnRevertToMidas.addActionListener(joinActionListener);
+    //btnRevertToMidas.addActionListener(joinActionListener);
     alignPanel2B.add(btnRevertToMidas);
     btnRevertToEmpty= new MultiLineButton("Revert to No Transforms");
-    btnRevertToEmpty.addActionListener(joinActionListener);
+    //btnRevertToEmpty.addActionListener(joinActionListener);
     alignPanel2B.add(btnRevertToEmpty);
     alignPanel2.add(alignPanel2B);
   }
@@ -710,7 +741,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     JPanel finishJoinPanel1 = new JPanel();
     finishJoinPanel1.setLayout(new BoxLayout(finishJoinPanel1, BoxLayout.X_AXIS));
     cbUseAlignmentRefSection = new JCheckBox("Reference section for alignment: ");
-    cbUseAlignmentRefSection.addActionListener(useAlignmentRefSectionActionListener);
+    //cbUseAlignmentRefSection.addActionListener(useAlignmentRefSectionActionListener);
     finishJoinPanel1.add(cbUseAlignmentRefSection);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
@@ -721,7 +752,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.add(finishJoinPanel1);
     //second component
     btnGetMaxSize = new MultiLineButton(GET_MAX_SIZE_TEXT);
-    btnGetMaxSize.addActionListener(joinActionListener);
+    //btnGetMaxSize.addActionListener(joinActionListener);
     pnlFinishJoin.add(btnGetMaxSize);
     //third component
     SpacedPanel finishJoinPanel2 = new SpacedPanel();
@@ -743,13 +774,13 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     createTrialJoinPanel();
     //sixth component
     btnFinishJoin = new MultiLineButton(FINISH_JOIN_TEXT);
-    btnFinishJoin.addActionListener(joinActionListener);
+    //btnFinishJoin.addActionListener(joinActionListener);
     pnlFinishJoin.add(btnFinishJoin);
     //seventh component
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenBinnedBy = new LabeledSpinner(OPEN_BINNED_BY, spinnerModel);
     btnOpenIn3dmod = new Run3dmodButton(OPEN_IN_3DMOD, this);
-    btnOpenIn3dmod.addActionListener(joinActionListener);
+    //btnOpenIn3dmod.addActionListener(joinActionListener);
     pnlFinishJoin.add(createOpen3dmodPanel(spinOpenBinnedBy, btnOpenIn3dmod));
   }
   
@@ -761,7 +792,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //first component
     SpacedPanel trialJoinPanel1 = new SpacedPanel();
     trialJoinPanel1.setBoxLayout(BoxLayout.X_AXIS);
-    int zMax = pnlSectionTable.getZMax();
+    int zMax = pnlSectionTable.getJoinZMax();
     SpinnerModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
@@ -777,18 +808,18 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialJoin.add(spinTrialBinning);
     //third component
     btnTrialJoin = new MultiLineButton(TRIAL_JOIN_TEXT);
-    btnTrialJoin.addActionListener(joinActionListener);
+    //btnTrialJoin.addActionListener(joinActionListener);
     pnlTrialJoin.add(btnTrialJoin);
     //fourth component
     btnOpenTrialIn3dmod = new Run3dmodButton("Open Trial in 3dmod", this);
-    btnOpenTrialIn3dmod.addActionListener(joinActionListener);
+    //btnOpenTrialIn3dmod.addActionListener(joinActionListener);
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenTrialBinnedBy = new LabeledSpinner(
         OPEN_BINNED_BY, spinnerModel);
     pnlTrialJoin.add(createOpen3dmodPanel(spinOpenTrialBinnedBy, btnOpenTrialIn3dmod));
     //fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
-    btnGetSubarea.addActionListener(joinActionListener);
+    //btnGetSubarea.addActionListener(joinActionListener);
     pnlTrialJoin.add(btnGetSubarea);
     pnlFinishJoin.add(pnlTrialJoin);
   }
@@ -817,21 +848,21 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   void setNumSections(int numSections) {
     this.numSections = numSections;
-    //setup
+    //density matching (setup)
     EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDisplayValue(1);
     SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
-    //align
+    //alignment (join)
     spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue
         .getInt(), 1,
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
-    //every n sections
-    int zMax = pnlSectionTable.getZMax();
+    //every n sections (join)
+    int zMax = pnlSectionTable.getJoinZMax();
     if (zMax == 0) {
       spinnerValue.set(1);
     }
@@ -846,10 +877,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //update size in X and Y defaults
     ConstJoinMetaData metaData = joinManager.getConstMetaData();
     ConstEtomoNumber size = metaData.getSizeInX();
-    size.setDisplayValue(pnlSectionTable.getXMax());
+    size.setDisplayValue(pnlSectionTable.getJoinXMax());
     ltfSizeInX.setText(size.getInt());
     size = metaData.getSizeInY();
-    size.setDisplayValue(pnlSectionTable.getYMax());
+    size.setDisplayValue(pnlSectionTable.getJoinYMax());
     ltfSizeInY.setText(size.getInt());
   }
   
@@ -901,6 +932,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
   
   public boolean getMetaData(JoinMetaData metaData) { 
+    synchronize();
     metaData.setRootName(ltfRootName.getText());
     metaData.setDensityRefSection(spinDensityRefSection.getValue());
     metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
@@ -1059,7 +1091,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return false;
     }
     if (!pnlSectionTable.equalsSample(metaData)) {
-      System.out.println("equalsSample:pnlSectionTable failed");
       return false;
     }
     return true;
@@ -1209,6 +1240,23 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     
   protected void useAlignmentRefSectionAction() {
     spinAlignmentRefSection.setEnabled(cbUseAlignmentRefSection.isSelected());
+  }
+  
+  /**
+   * synchronize when changing tabs
+   * @param prevTab
+   */
+  final void synchronize(int prevTab) {
+    pnlSectionTable.synchronize(prevTab, curTab);
+    setNumSections(pnlSectionTable.getTableSize());
+  }
+  
+  /**
+   * synchronize when saving to the .ejf file
+   */
+  final void synchronize() {
+    pnlSectionTable.synchronize(curTab, -1);
+    setNumSections(pnlSectionTable.getTableSize());
   }
 
   //
