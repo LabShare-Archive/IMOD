@@ -22,6 +22,20 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2005/11/19 02:10:48  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetachedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p> Added storage to BackgroundProcess for ProcessDetails in addition to
+ * <p> Command.  Command is used for all of BackgroundProcess's needs.
+ * <p> ProcessDetails can be passed to postProcess() and errorProcess().
+ * <p> Both are optional.
+ * <p> DetachedProcess inherits BackgroundProcess.  Added get functions to
+ * <p> BackgroundProcess so the member variables can stay private.  Moved
+ * <p> the instanciation of the SystemProgram to newProgram so it can be
+ * <p> overridden.
+ * <p>
  * <p> Revision 3.19  2005/10/27 00:24:37  sueh
  * <p> bug# 725 Added another constructor which passes forceNextProcess.
  * <p>
@@ -466,6 +480,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
           errorMessage.addError(monitorMessages);
         }
       }
+      errorMessage.addProcessOutput(stdOutput);
       //make sure script knows about failure
       setProcessEndState(ProcessEndState.FAILED);
       //popup error messages
