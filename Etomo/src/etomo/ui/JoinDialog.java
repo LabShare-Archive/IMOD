@@ -36,6 +36,13 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.23  2005/11/29 22:49:19  sueh
+ * <p> bug# 757 Listeners where firing while things where being built so moved
+ * <p> all add listener calls to addListeners and calling it after everything is built.
+ * <p> Added synchronize(int prevTab) to move data to/from the setup and join
+ * <p> tabs when changing tabs.  Added synchronize() to move data from the
+ * <p> join tab to the setup tab before saving.
+ * <p>
  * <p> Revision 1.22  2005/11/14 22:12:57  sueh
  * <p> bug# 762 Made action() protected.
  * <p>
@@ -557,6 +564,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       tabPane.setEnabledAt(1, false);
       tabPane.setEnabledAt(2, false);
       ltfMidasLimit.setEnabled(true);
+      lblMidasLimit.setEnabled(true);
       spinDensityRefSection.setEnabled(true);
       btnChangeSetup.setEnabled(false);
       btnRevertToLastSetup.setEnabled(false);
@@ -566,6 +574,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       tabPane.setEnabledAt(1, true);
       tabPane.setEnabledAt(2, true);
       ltfMidasLimit.setEnabled(false);
+      lblMidasLimit.setEnabled(false);
       spinDensityRefSection.setEnabled(false);
       btnChangeSetup.setEnabled(true);
       btnRevertToLastSetup.setEnabled(false);
@@ -575,6 +584,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       tabPane.setEnabledAt(1, false);
       tabPane.setEnabledAt(2, false);
       ltfMidasLimit.setEnabled(true);
+      lblMidasLimit.setEnabled(true);
       spinDensityRefSection.setEnabled(true);
       btnChangeSetup.setEnabled(false);
       btnRevertToLastSetup.setEnabled(true);
@@ -792,7 +802,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //first component
     SpacedPanel trialJoinPanel1 = new SpacedPanel();
     trialJoinPanel1.setBoxLayout(BoxLayout.X_AXIS);
-    int zMax = pnlSectionTable.getJoinZMax();
+    int zMax = pnlSectionTable.getZMax();
     SpinnerModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
@@ -808,18 +818,15 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialJoin.add(spinTrialBinning);
     //third component
     btnTrialJoin = new MultiLineButton(TRIAL_JOIN_TEXT);
-    //btnTrialJoin.addActionListener(joinActionListener);
     pnlTrialJoin.add(btnTrialJoin);
     //fourth component
     btnOpenTrialIn3dmod = new Run3dmodButton("Open Trial in 3dmod", this);
-    //btnOpenTrialIn3dmod.addActionListener(joinActionListener);
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenTrialBinnedBy = new LabeledSpinner(
         OPEN_BINNED_BY, spinnerModel);
     pnlTrialJoin.add(createOpen3dmodPanel(spinOpenTrialBinnedBy, btnOpenTrialIn3dmod));
     //fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
-    //btnGetSubarea.addActionListener(joinActionListener);
     pnlTrialJoin.add(btnGetSubarea);
     pnlFinishJoin.add(pnlTrialJoin);
   }
@@ -862,7 +869,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
     //every n sections (join)
-    int zMax = pnlSectionTable.getJoinZMax();
+    int zMax = pnlSectionTable.getZMax();
     if (zMax == 0) {
       spinnerValue.set(1);
     }
@@ -877,10 +884,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //update size in X and Y defaults
     ConstJoinMetaData metaData = joinManager.getConstMetaData();
     ConstEtomoNumber size = metaData.getSizeInX();
-    size.setDisplayValue(pnlSectionTable.getJoinXMax());
+    size.setDisplayValue(pnlSectionTable.getXMax());
     ltfSizeInX.setText(size.getInt());
     size = metaData.getSizeInY();
-    size.setDisplayValue(pnlSectionTable.getJoinYMax());
+    size.setDisplayValue(pnlSectionTable.getYMax());
     ltfSizeInY.setText(size.getInt());
   }
   
@@ -1256,7 +1263,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   final void synchronize() {
     pnlSectionTable.synchronize(curTab, -1);
-    setNumSections(pnlSectionTable.getTableSize());
   }
 
   //
