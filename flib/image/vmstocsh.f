@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2005/11/19 16:59:55  mast
+c	  Fixed path-setting to preserve spaces
+c	
 c	  Revision 3.5  2005/07/24 16:47:25  mast
 c	  Added ability to escape $ at start of non-command line
 c	
@@ -56,6 +59,7 @@ c	  logfile=' | cat  > '//logfile(1:lenlog)
 	write(6,101)'echo2 Shell PID: $$'
 
 	iffirst=-1
+	lencom = 2
 	reading=.true.
 	do while (reading)
 	  reading=.false.
