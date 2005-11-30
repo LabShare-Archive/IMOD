@@ -49,6 +49,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2005/11/29 22:50:56  sueh
+ * <p> bug# 757 Added another header row to the join tab, which displays when
+ * <p> one of the sections is a .rot file.
+ * <p>
  * <p> Revision 1.18  2005/11/14 22:19:15  sueh
  * <p> bug# 762 Made action() protected.
  * <p>
@@ -1136,29 +1140,29 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return null;
   }
 
-  final int getJoinXMax() {
+  final int getXMax() {
     int xMax = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      xMax = Math.max(xMax, row.getJoinXMax());
+      xMax = Math.max(xMax, row.getXMax());
     }
     return xMax;
   }
 
-  final int getJoinYMax() {
+  final int getYMax() {
     int yMax = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      yMax = Math.max(yMax, row.getJoinYMax());
+      yMax = Math.max(yMax, row.getYMax());
     }
     return yMax;
   }
 
-  final int getJoinZMax() {
+  final int getZMax() {
     int zMax = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      zMax = Math.max(zMax, row.getJoinZMax());
+      zMax = Math.max(zMax, row.getZMax());
     }
     return zMax;
   }
