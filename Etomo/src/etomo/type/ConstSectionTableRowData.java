@@ -19,6 +19,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/11/29 22:33:43  sueh
+ * <p> bug# New file version = 1.1.  Split final fields into setup and join.  Split
+ * <p> section into setup and join.
+ * <p>
  * <p> Revision 1.10  2005/07/29 19:47:01  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
@@ -420,13 +424,25 @@ public abstract class ConstSectionTableRowData implements Storable {
   public int getJoinXMax() {
     return joinXMax;
   }
+  
+  public int getSetupXMax() {
+    return setupXMax;
+  }
 
   public int getJoinYMax() {
     return joinYMax;
   }
+  
+  public int getSetupYMax() {
+    return setupYMax;
+  }
 
   public int getJoinZMax() {
     return joinZMax;
+  }
+  
+  public int getSetupZMax() {
+    return setupZMax;
   }
 
   public ConstEtomoNumber getSampleBottomStart() {
