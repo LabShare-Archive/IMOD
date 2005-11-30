@@ -38,7 +38,8 @@ public final class ProcessMessages {
 
   private OutputBufferManager outputBufferManager = null;
   private BufferedReader bufferedReader = null;
-  private String processOutputLine = null;
+  private String processOutputString = null;
+  private String[] processOutputStringArray = null;
   private int index = -1;
   private String line = null;
   private Vector infoList = null;
@@ -78,6 +79,20 @@ public final class ProcessMessages {
   }
 
   /**
+   * Set processOutput to processOutputStringArray and parse it.
+   * Function must be synchronized because it relies on member variables to
+   * parse processOutput.
+   * @param processOutput: String[]
+   */
+  synchronized final void addProcessOutput(String[] processOutput) {
+    processOutputStringArray = processOutput;
+    nextLine();
+    while (processOutputStringArray != null) {
+      parse();
+    }
+  }
+  
+  /**
    * Set processOutput to bufferedReader and parse it.
    * Function must be synchronized because it relies on member variables to
    * parse processOutput.
@@ -96,7 +111,7 @@ public final class ProcessMessages {
   }
 
   /**
-   * Set processOutput to processOutputLine and parse it.
+   * Set processOutput to processOutputString and parse it.
    * Function must be synchronized because it relies on member variables to
    * parse processOutput.  Does not work with multi line messages.
    * @param processOutput: String
@@ -107,7 +122,7 @@ public final class ProcessMessages {
           "multiLineMessages is true but function can only parse one line at a time");
     }
     //  Open the file as a stream
-    processOutputLine = processOutput;
+    processOutputString = processOutput;
     nextLine();
     if (line != null) {
       parse();
@@ -532,10 +547,13 @@ public final class ProcessMessages {
     if (bufferedReader != null) {
       return nextBufferedReaderLine();
     }
-    if (processOutputLine != null) {
-      line = processOutputLine;
-      processOutputLine = null;
+    if (processOutputString != null) {
+      line = processOutputString;
+      processOutputString = null;
       return true;
+    }
+    if (processOutputStringArray != null) {
+      return nextStringArrayLine();
     }
     return false;
   }
@@ -556,6 +574,25 @@ public final class ProcessMessages {
       return false;
     }
     line = outputBufferManager.get(index).trim();
+    return true;
+  }
+  
+  /**
+   * Increment index and place the entry at index in processOutputStringArray into line.
+   * Trim line.
+   * Return true if line can be set to a new line
+   * Return false, sets processOutputStringArray and line to null, and sets index to
+   * -1 when there is nothing left in processOutputStringArray.
+   */
+  private final boolean nextStringArrayLine() {
+    index++;
+    if (index >= processOutputStringArray.length) {
+      index = -1;
+      processOutputStringArray = null;
+      line = null;
+      return false;
+    }
+    line = processOutputStringArray[index].trim();
     return true;
   }
 
@@ -644,6 +681,11 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/11/19 02:38:58  sueh
+ * <p> bug# 744 Added parsing and separate storage for chunk errors.  Added
+ * <p> addProcessOutput(String) for output that must be handled one line at a
+ * <p> time.
+ * <p>
  * <p> Revision 1.1  2005/11/02 21:59:50  sueh
  * <p> bug# 754 Class to parse and hold error, warning, and information
  * <p> messages.  Message can also be set directly in this class without
