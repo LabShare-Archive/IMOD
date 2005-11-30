@@ -33,6 +33,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2005/11/29 22:53:23  sueh
+ * <p> bug# 757 Split final start and end into setup and join.  Split section into
+ * <p> setup and join.  Display setup fields in setup and align tabs.  Display join
+ * <p> fields in join tab.  Changed configure to setInUse().
+ * <p>
  * <p> Revision 1.10  2005/11/14 22:19:39  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
@@ -688,16 +693,25 @@ public class SectionTableRow {
     return setupSection.getValue();
   }
 
-  int getJoinXMax() {
-    return data.getJoinXMax();
+  int getXMax() {
+    if (curTab == JoinDialog.JOIN_TAB) {
+      return data.getJoinXMax();
+    }
+    return data.getSetupXMax();
   }
 
-  int getJoinYMax() {
-    return data.getJoinYMax();
+  int getYMax() {
+    if (curTab == JoinDialog.JOIN_TAB) {
+      return data.getJoinYMax();
+    }
+    return data.getSetupYMax();
   }
 
-  int getJoinZMax() {
-    return data.getJoinZMax();
+  int getZMax() {
+    if (curTab == JoinDialog.JOIN_TAB) {
+      return data.getJoinZMax();
+    }
+    return data.getSetupZMax();
   }
 
   int getSampleBottomNumberSlices() {
