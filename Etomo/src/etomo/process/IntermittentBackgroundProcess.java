@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.type.AxisID;
 import etomo.util.HashedArray;
+import etomo.util.RemotePath;
 
 /**
 * <p>Description:  This class runs a command and then intermittently sends
@@ -142,8 +143,15 @@ public class IntermittentBackgroundProcess implements Runnable {
   
   public final void run() {
     //use a local SystemProgram because stops and starts may overlap
-    IntermittentSystemProgram localProgram = new IntermittentSystemProgram(manager.getPropertyUserDir(),
-        command.getCommand(), AxisID.ONLY, outputKeyPhrase);
+    IntermittentSystemProgram localProgram;
+    if (RemotePath.INSTANCE.isLocalSection(command.getComputer(), manager, AxisID.ONLY)) {
+      localProgram = new IntermittentSystemProgram(manager.getPropertyUserDir(),
+          command.getLocalCommand(), AxisID.ONLY, outputKeyPhrase); 
+    }
+    else {
+      localProgram = new IntermittentSystemProgram(manager.getPropertyUserDir(),
+          command.getRemoteCommand(), AxisID.ONLY, outputKeyPhrase);
+    }
     //place the most recent local SystemProgram in the member SystemProgram
     //non-local request (getting and setting standard input and output) will go
     //to the most recent local SystemProgram.
@@ -210,6 +218,12 @@ public class IntermittentBackgroundProcess implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/09/14 20:25:58  sueh
+* <p> bug# 532 Added drop() to remove a monitor from the listener list.  It is
+* <p> important for the called to prevent any last-minute gets after the drop() is
+* <p> called; the get() will add the monitor back to the listener list, if it is sent
+* <p> after the drop().
+* <p>
 * <p> Revision 1.1  2005/09/10 01:48:53  sueh
 * <p> bug# 532 Changed IntermittentSystemProgram to
 * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
