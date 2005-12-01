@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.7  2004/06/29 03:42:46  mast
 #  Added nohup
 #
@@ -76,7 +79,7 @@ set modelfile = ""
 set maxshift = $1; shift
 set bsource = ""
 set xffile = ""
-set srcborders = ""
+set srcborders = "0,0,0,0"
 #
 set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
 @ nxt = $nxyz[1]
