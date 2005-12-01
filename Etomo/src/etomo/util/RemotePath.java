@@ -256,24 +256,46 @@ public final class RemotePath {
   private boolean mountRulesLoaded = false;
   private String mountName = null;
   private String hostName = null;
+  private Section localSection = null;
 
   private RemotePath() {
   }
 
   /**
-   * Loads mount rules, if necesasry.  Finds the first local rule which matches
+   * Loads mount rules if necesasry.  Finds the first local rule which matches
    * localPath.  Converts localPath to a remote path.
    * @param localPath
    * @return remote path or null
    */
   public final String getRemotePath(BaseManager manager, String localPath,
       AxisID axisID) {
-    synchronized (this) {
-      if (!mountRulesLoaded) {
-        loadMountRules(manager, axisID);
-      }
-    }
+    loadMountRules(manager, axisID);
     return getRemotePath(getRule(localPath), localPath);
+  }
+
+  /**
+   * Loads mount rules if necesasry.
+   * @param sectionName
+   * @return true if sectionName equals "localhost" or matches the section name
+   * of the local computer
+   */
+  public final boolean isLocalSection(String sectionName, BaseManager manager,
+      AxisID axisID) {
+    if (sectionName == null) {
+      return false;
+    }
+    if (sectionName.equals(LOCAL_HOST)) {
+      return true;
+    }
+    loadMountRules(manager, axisID);
+    //check the local section
+    if (localSection == null) {
+      return false;
+    }
+    if (sectionName.equals(localSection.getName())) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -320,7 +342,7 @@ public final class RemotePath {
    * @param manager
    * @param axisID
    */
-  private final void loadMountRules(BaseManager manager, AxisID axisID) {
+  private synchronized final void loadMountRules(BaseManager manager, AxisID axisID) {
     //only try to load mount rules once
     if (mountRulesLoaded) {
       return;
@@ -343,14 +365,15 @@ public final class RemotePath {
     //first load section-level mount rules
     //look for a section name that is the same as the output of hostname
     hostName = getHostName(manager, axisID);
-    if (!loadMountRules(autodoc, hostName, true)) {
+    if ((localSection = loadMountRules(autodoc, hostName, true)) == null) {
       //try looking for a section name that is the same as the stripped version
       //of the hostname.
       int stripIndex = hostName.indexOf('.');
       if (stripIndex == -1
-          || !loadMountRules(autodoc, hostName.substring(0, stripIndex), true)) {
+          || (localSection = loadMountRules(autodoc, hostName.substring(0,
+              stripIndex), true)) == null) {
         //look for a section name called "localhost"
-        loadMountRules(autodoc, LOCAL_HOST, false);
+        localSection = loadMountRules(autodoc, LOCAL_HOST, false);
       }
     }
     //load global mount rules
@@ -363,12 +386,12 @@ public final class RemotePath {
    * @param sectionName
    * @return false if section doesn't exist
    */
-  private final boolean loadMountRules(Autodoc autodoc, String sectionName,
+  private final Section loadMountRules(Autodoc autodoc, String sectionName,
       boolean sectionNameCanBeMountName) {
     Section section = autodoc.getSection(ProcessorTable.SECTION_TYPE,
         sectionName);
     if (section == null) {
-      return false;
+      return null;
     }
     //set mount name
     Attribute mountName = section.getAttribute(MOUNT_NAME);
@@ -388,7 +411,7 @@ public final class RemotePath {
     }
     //load mount rules
     loadMountRules(section.getAttribute(MOUNT_RULE), sectionName);
-    return true;
+    return section;
   }
 
   /**
@@ -625,6 +648,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/11/14 22:36:45  sueh
+ * <p> bug# 733 updated description.
+ * <p>
  * <p> Revision 1.1  2005/11/10 18:20:29  sueh
  * <p> bug# 733 Class to translate a local directory path to a remote directory
  * <p> path.
