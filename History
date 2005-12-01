@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/29/05: When getting load averages for the parallel processing table only
-using ssh when the computer is remote.
+11/30/05: Added an option to Makejoincom so that rotated volumes could
+automatically be made the right size in X and Y to hold the rotated image.
+
+11/29/05: When getting load averages for the parallel processing table, only
+use ssh when the computer is remote.
 
 11/28/05: IMOD_3-6-17 (etomo unstable)
 11/26/05: Fixed saving of memory to TIFF in 3dmod.
