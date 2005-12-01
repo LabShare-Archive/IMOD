@@ -22,7 +22,8 @@ public class LoadAverageParam implements IntermittentCommand {
   private static Hashtable instances = new Hashtable();//one instance per computer
   
   private final String computer;
-  private String[] commandArray = null;
+  private String[] localCommandArray = null;
+  private String[] remoteCommandArray = null;
   private String intermittentCommand = null;
   private String endCommand = null;
   
@@ -46,11 +47,18 @@ public class LoadAverageParam implements IntermittentCommand {
     this.computer = computer;
   }
   
-  public final String[] getCommand() {
-    if (commandArray == null) {
-      buildCommand();
+  public final String[] getLocalCommand() {
+    if (localCommandArray == null) {
+      buildLocalCommand();
     }
-    return commandArray;
+    return localCommandArray;
+  }
+  
+  public final String[] getRemoteCommand() {
+    if (remoteCommandArray == null) {
+      buildRemoteCommand();
+    }
+    return remoteCommandArray;
   }
   
   public String getIntermittentCommand() {
@@ -71,7 +79,17 @@ public class LoadAverageParam implements IntermittentCommand {
     return 5000;
   }
   
-  private final void buildCommand() {
+  private final void buildLocalCommand() {
+    ArrayList command = new ArrayList();
+    command.add("tcsh");    
+    int commandSize = command.size();
+    localCommandArray = new String[commandSize];
+    for (int i = 0; i < commandSize; i++) {
+      localCommandArray[i] = (String) command.get(i);
+    }
+  }
+  
+  private final void buildRemoteCommand() {
     ArrayList command = new ArrayList();
     command.add("ssh");
     //prevents ssh from waiting for an answer when connecting to a computer for
@@ -83,9 +101,9 @@ public class LoadAverageParam implements IntermittentCommand {
     command.add(computer);
     
     int commandSize = command.size();
-    commandArray = new String[commandSize];
+    remoteCommandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
-      commandArray[i] = (String) command.get(i);
+      remoteCommandArray[i] = (String) command.get(i);
     }
   }
   
@@ -101,12 +119,16 @@ public class LoadAverageParam implements IntermittentCommand {
     endCommand = "exit";
   }
 
-  public final String getKey() {
+  public final String getComputer() {
     return computer;
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/10/27 00:21:57  sueh
+* <p> bug# 745 ssh should be run with -x.  Hoping this will solve the XServer
+* <p> problem.
+* <p>
 * <p> Revision 1.4  2005/09/14 20:20:40  sueh
 * <p> bug# 532 Added notifySentIntermittentCommand() so that notifying the
 * <p> monitor that the intermittent command was sent can be optional.

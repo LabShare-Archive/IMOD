@@ -15,15 +15,20 @@ package etomo.comscript;
 public interface IntermittentCommand {
   public static  final String  rcsid =  "$Id$";
   
-  public String[] getCommand();
+  public String[] getLocalCommand();
+  public String[] getRemoteCommand();
   public String getIntermittentCommand();
   public String getEndCommand();
   public int getInterval();
-  public String getKey();
+  public String getComputer();
   public boolean notifySentIntermittentCommand();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/09/14 20:20:27  sueh
+* <p> bug# 532 Added notifySentIntermittentCommand() so that notifying the
+* <p> monitor that the intermittent command was sent can be optional.
+* <p>
 * <p> Revision 1.2  2005/08/24 00:19:17  sueh
 * <p> bug #532 Added getEndCommand().  The exit command used in
 * <p> IntermittentSystemProgram should be generic.
