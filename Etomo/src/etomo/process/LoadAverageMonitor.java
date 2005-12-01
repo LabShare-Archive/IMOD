@@ -55,7 +55,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   }
   
   public void setProcess(IntermittentBackgroundProcess program) {
-    String key = program.getCommand().getKey();
+    String key = program.getCommand().getComputer();
     ProgramState programState = (ProgramState) programs.get(key);
     if (programState == null) {
       programs.add(key, new ProgramState(program));
@@ -94,7 +94,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
         programState.setWaitForCommand(0);
         String[] array = stdout[i].trim().split("\\s+");
-        display.setLoadAverage(programState.getCommand().getKey(),
+        display.setLoadAverage(programState.getCommand().getComputer(),
             getLoad(array[array.length - 3]), getLoad(array[array.length - 2]),
             getLoad(array[array.length - 1]));
       }
@@ -114,14 +114,14 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   }
   
   public final void msgIntermittentCommandFailed(IntermittentCommand command) {
-    String key = command.getKey();
+    String key = command.getComputer();
     if (programs.containsKey(key)) {
       display.msgLoadAverageFailed(key, "timeout");
     }
   }
   
   public final void msgSentIntermittentCommand(IntermittentCommand command) {
-    ProgramState programState = (ProgramState) programs.get(command.getKey());
+    ProgramState programState = (ProgramState) programs.get(command.getComputer());
     if (programState == null) {
       return;
     }
@@ -172,6 +172,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2005/11/19 02:32:02  sueh
+* <p> bug# 744 Changed parallel processing display clearFailureReason
+* <p> function to msgStartingProcess.  This hides the implementation.
+* <p>
 * <p> Revision 1.9  2005/11/14 21:26:49  sueh
 * <p> bug# 762 The internal class is accessing protected functions instead of
 * <p> private variables.
