@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2005/10/14 21:46:06  mast
+c	  Set header origin correctly if pixel size not = 1
+c	
 c	  Revision 3.6  2004/11/10 02:06:27  mast
 c	  Added argument to call to setup cubes
 c	
@@ -51,7 +54,7 @@ c
 	implicit none
 	include 'rotmatwarp.inc'
 	real*4 cell(6)
-	integer*4 mxyzin(3)
+	integer*4 mxyzin(3),maxdim(3)
 	real*4 cenind(3)
 	real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
 	real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3),delta(3)
@@ -65,14 +68,15 @@ c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
         character*80 titlech
-	integer*4 i, ix, iy, kti, interpOrder, ierr
+	integer*4 i, ix, iy, kti, interpOrder, ierr, idiry, idirz
 	real*4 dminin, dmaxin, devmx, xcen, ycen, zcen
+	logical*4 query
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
 	integer*4 PipGetInteger
 	integer*4 PipGetString,PipGetThreeIntegers,PipGetThreeFloats
-	integer*4 PipGetNonOptionArg, PipGetInOutFile
+	integer*4 PipGetNonOptionArg, PipGetInOutFile, PipGetLogical
 c	  
 c	  fallbacks from ../../manpages/autodoc2man -2 2  rotatevol
 c
@@ -83,13 +87,14 @@ c
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
      &      'tempdir:TemporaryDirectory:CH:@size:OutputSizeXYZ:IT:@'//
      &      'center:RotationCenterXYZ:FT:@'//
-     &      'angles:RotationAnglesZYX:FT:@'//
+     &      'angles:RotationAnglesZYX:FT:@query:QuerySizeNeeded:B:@'//
      &      'order:InterpolationOrder:I:@help:usage:B:'
 c	  
 c	  set defaults here
 c	  
 	interpOrder = 2
 	tempdir = ' '
+	query = .false.
 c
 c	  
 c	  Pip startup: set error, parse options, check help, set flag if used
@@ -102,6 +107,11 @@ c
 	if (PipGetInOutFile('InputFile', 1, 'Name of input file', filein)
      &	    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
 
+	if (pipinput) then
+	  ierr = PipGetLogical('QuerySizeNeeded', query)
+	  if (query) call ialprt(.false.)
+	endif
+
 	call imopen(5,filein,'RO')
 	call irdhdr(5,nxyzin,mxyzin,mode,dminin,dmaxin,dmeanin)
 	do i=1,3
@@ -110,8 +120,9 @@ c
 	  angles(i) = 0.
 	enddo
 c
-	if (PipGetInOutFile('OutputFile', 2, 'Name of output file', fileout)
-     &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+	if (.not.query .and. PipGetInOutFile('OutputFile', 2, 
+     &	    'Name of output file', fileout) .ne. 0)
+     &	    call errorexit('NO OUTPUT FILE SPECIFIED')
 
 	if (pipinput) then
 	  ierr = PipGetString('TemporaryDirectory', tempdir)
@@ -143,6 +154,30 @@ c
 	endif
 c
 	call PipDone()
+c	  
+c	  get matrices for forward and inverse rotations
+c	  
+	call icalc_matrix(angles,mfor)
+	call inv_matrix(mfor,minv)
+c	  
+c	  Compute maximum dimensions required if requested
+c
+	if (query) then
+	  do i = 1, 3
+	    maxdim(i) = 0
+	  enddo
+	  do idiry = -1,1,2
+	    do idirz = -1,1,2
+	      do i = 1, 3
+		maxdim(i) = max(maxdim(i), nint(abs(mfor(i, 1) * nxin +
+     &		    idiry * mfor(i, 2) * nyin + idirz * mfor(i, 3) * nzin)))
+	      enddo
+	    enddo
+	  enddo
+	  write(*,'(3i8)')(maxdim(i), i=1,3)
+	  call exit(0)
+	endif
+c
 	call imopen(6,fileout,'NEW')
 c	  
 c	  get true centers of index coordinate systems
@@ -155,11 +190,6 @@ c
 	  cell(i+3)=90.
 	enddo
 c
-c	  
-c	  get matrices for forward and inverse rotations
-c	  
-	call icalc_matrix(angles,mfor)
-	call inv_matrix(mfor,minv)
 c	  
 	call icrhdr(6,nxyzout,nxyzout,mode,title,0)
 	call ialcel(6,cell)
