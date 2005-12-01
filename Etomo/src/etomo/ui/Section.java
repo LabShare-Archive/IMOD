@@ -18,6 +18,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2005/05/17 19:40:17  sueh
+* <p> $bug# 372 Reducing the visibility of functions.
+* <p> $
 * <p> $Revision 1.2  2004/01/01 00:46:28  sueh
 * <p> $bug# 372 returning null instead of empty section when
 * <p> $section is not found
@@ -93,7 +96,7 @@ public class Section implements AttributeCollection {
     return key;
   }
   
-  String getName() {
+  public final String getName() {
     return name.getValue(true);
   }
   
