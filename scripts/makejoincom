@@ -162,6 +162,11 @@ if ($interactive == 0) then
           shift; shift
           breaksw
 
+        case -ma*:
+          set rotsize = "maxxy"
+          shift
+          breaksw
+
         default:
 
           # Non-option entry should be filename, but check first for bad option
@@ -380,6 +385,16 @@ while ($itomo <= $ntomo)
         else
             if ($sizeoplist[$itomo] == "0") then
                 set rotsize = ($nx $ny $nz)
+            else if ($sizeoplist[$itomo] == "maxxy") then
+                set an
+                set rotangle = `echo $angleoplist[$itomo] | sed 's/,/ /g'`
+                set rotsize = `rotatevol -query -ang $rotangle[3],$rotangle[2],$rotangle[1]  "$recsource"`
+                if ($#rotsize < 3) then
+                    echo "ERROR: makejoincom - rotatevol size query failed on $recsource"
+                    exit 1
+                endif
+                set rotsize[3] = $nz
+                echo "Dimensions of $flipsource will be $rotsize"
             else
                 set rotsize = `echo $sizeoplist[$itomo] | sed 's/,/ /g'`
             endif
@@ -739,6 +754,8 @@ Usage: makejoincom [options] tomogram1 [options] tomogram2 ... root_name
     -rotate #,#,#   Run Rotatevol on tomogram with given rotation around 
                       X, Y, and Z axes
     -xyzsize #,#,#  Set output size from Rotatevol to given values in X, Y, Z
+    -maxxysize      Set Rotatevol output size in X and Y to maximum needed to 
+                      hold volume, keep Z sane size as input
 
   Global options (may be entered anywhere before root_name)
     -dir path       Set the default directory for source tomograms to "path"
@@ -752,6 +769,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.11  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.10  2005/10/08 22:31:23  mast
 #  Adjusted sample slices properly for case of rotation that inverts volume
 #  by rotation of Z axis vector
