@@ -71,6 +71,7 @@ public class RemotePathTest extends TestCase {
           + RemotePath.MOUNT_NAME_TAG
           + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2], "/home", "/scratch",
       "/gen" };
+  private static final String REMOTE_SECTION_NAME = "dummydummy";
 
   private String oldAutodocDirProperty = null;
   private String sectionName = null;
@@ -113,7 +114,7 @@ public class RemotePathTest extends TestCase {
    */
   private final void writeNewFile(String testDirName, int ruleStartNumber,
       boolean globalRules, boolean sectionRules, boolean section,
-      boolean computerName, boolean fullSectionName, boolean useMountName)
+      boolean computerName, boolean fullSectionName, boolean useMountName, boolean remoteSection)
       throws IOException {
     int ruleNumber = ruleStartNumber;
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
@@ -169,6 +170,9 @@ public class RemotePathTest extends TestCase {
     if (section && !sectionRules) {
       addSection(bufferedWriter, computerName, fullSectionName, useMountName);
     }
+    if (remoteSection) {
+      addSection(bufferedWriter, REMOTE_SECTION_NAME);
+    }
     bufferedWriter.close();
   }
 
@@ -188,7 +192,7 @@ public class RemotePathTest extends TestCase {
       boolean sectionRules, boolean section, boolean computerName,
       boolean fullSectionName, boolean useMountName) throws IOException {
     writeNewFile(testDirName, 1, globalRules, sectionRules, section,
-        computerName, fullSectionName, useMountName);
+        computerName, fullSectionName, useMountName, false);
   }
 
   /**
@@ -330,6 +334,14 @@ public class RemotePathTest extends TestCase {
         + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + mountRules[index]);
     bufferedWriter.newLine();
   }
+  
+  private final void addSection(BufferedWriter bufferedWriter, String sectionName) throws IOException {
+    bufferedWriter.write(AutodocTokenizer.OPEN_CHAR
+        + ProcessorTable.SECTION_TYPE + ' '
+        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + sectionName
+        + AutodocTokenizer.CLOSE_CHAR);
+    bufferedWriter.newLine();
+  }
 
   /**
    * Adds a Computer section the bufferWriter for the current host computer.
@@ -361,11 +373,7 @@ public class RemotePathTest extends TestCase {
       sectionName = RemotePath.LOCAL_HOST;
     }
     //write the section
-    bufferedWriter.write(AutodocTokenizer.OPEN_CHAR
-        + ProcessorTable.SECTION_TYPE + ' '
-        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + sectionName
-        + AutodocTokenizer.CLOSE_CHAR);
-    bufferedWriter.newLine();
+    addSection(bufferedWriter, sectionName);
     if (!useMountName) {
       return;
     }
@@ -450,6 +458,7 @@ public class RemotePathTest extends TestCase {
     catch (NullPointerException e) {
       savedRcsid = null;
     }
+    //savedRcsid = null;//sets savedRcsid to null when editing and testing this file
     if (savedRcsid == null || !savedRcsid.equals(rcsid)) {
       File testFile = new File(testDir, TEST_FILE_NAME);
       testFile.delete();
@@ -872,12 +881,90 @@ public class RemotePathTest extends TestCase {
       return;
     }
     writeNewFile("test_getRemotePath_ruleNumbers", 2, true, true, true, true,
-        true, true);
+        true, true, false);
     assertNoRulesLoaded();
+  }
+
+  /**
+   * tests isLocalSection().
+   * can recognize "localhost" without a cpu.adoc
+   * "localhost" must be lower case
+   * @throws IOException
+   */
+  public final void test_isLocalSection_localHost() throws IOException {
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
+    assertTrue(RemotePath.INSTANCE.isLocalSection(RemotePath.LOCAL_HOST,
+        MANAGER, AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(RemotePath.LOCAL_HOST
+        .toUpperCase(), MANAGER, AxisID.ONLY));
+  }
+
+  /**
+   * tests isLocalSection().
+   * always returns false if localSection is not "localhost" and there is no
+   * local section
+   * @throws IOException
+   */
+  public final void test_isLocalSection_missingLocalSection()
+      throws IOException {
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
+    writeNewFile("test_isLocalSection_missingLocalSection", 1, false, false,
+        false, false, false, false, true);
+    assertFalse(RemotePath.INSTANCE.isLocalSection(null, MANAGER, AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(hostName, MANAGER,
+        AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(strippedHostName, MANAGER,
+        AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(REMOTE_SECTION_NAME, MANAGER,
+        AxisID.ONLY));
+  }
+
+  /**
+   * tests isLocalSection().
+   * must match the section name exactly
+   * only returns true if the section is local
+   * @throws IOException
+   */
+  public final void test_isLocalSection_hostName() throws IOException {
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
+    writeNewFile("test_isLocalSection_hostName", 1, false, false, true, true,
+        true, false, true);
+    assertTrue(RemotePath.INSTANCE.isLocalSection(hostName, MANAGER,
+        AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(strippedHostName, MANAGER,
+        AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(REMOTE_SECTION_NAME, MANAGER,
+        AxisID.ONLY));
+  }
+
+  /**
+   * tests isLocalSection().
+   * must match the section name exactly
+   * @throws IOException
+   */
+  public final void test_isLocalSection_strippedHostName() throws IOException {
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
+    writeNewFile("test_isLocalSection_strippedHostName", false, false, true,
+        true, false, false);
+    assertTrue(RemotePath.INSTANCE.isLocalSection(strippedHostName, MANAGER,
+        AxisID.ONLY));
+    assertFalse(RemotePath.INSTANCE.isLocalSection(hostName, MANAGER,
+        AxisID.ONLY));
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2005/11/22 23:06:34  sueh
+ * <p> bug# 733 Fixed test bug
+ * <p>
  * <p> Revision 1.21  2005/11/19 02:46:02  sueh
  * <p> bug# 733 Removed unnecessary prints.
  * <p>
