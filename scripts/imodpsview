@@ -20,9 +20,10 @@ if ("$argv[1]" == '-p') then
     exit 0
 endif
 
+# 12/2/05: Needed two -- on the noanti.  Did it really work with 1 before?
 set test = `which gv`
 if (! $status) then
-    gv -noanti $*
+    gv --noanti $*
     exit 0
 endif
 
