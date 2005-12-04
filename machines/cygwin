@@ -416,11 +416,11 @@ echo 'INSTALL_FILES = IMOD-cygwin.csh IMOD-cygwin.sh' >> $configure
 if ($distname == "") set distname = _win
 
 # Add scripts for running from command line.  The chmod doesn't work but it
-# might be needed in the future
+# might be needed in the future.  12/4/05: seems to be needed for XP???
 #
 echo '3dmod $* &' >! $scripts_dir/3dmodbg
 echo '3dmod -view $* &' >! $scripts_dir/3dmodv
-chmod +x  $scripts_dir/3dmodbg  $scripts_dir/3dmodv
+chmod a+rx  $scripts_dir/3dmodbg  $scripts_dir/3dmodv
 echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
 
 # Make sure critical scripts are in unix mode
