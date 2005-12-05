@@ -47,6 +47,7 @@ import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
+import etomo.util.Utilities;
 
 public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -241,7 +242,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     pnlDataType.add(Box.createHorizontalGlue());
 
     //  Pixel & Alignment panel
-    ltfPixelSize.setColumns(5);
+    ltfPixelSize.setColumns(8);
     ltfFiducialDiameter.setColumns(5);
     ltfImageRotation.setColumns(5);
     btnScanHeader.setSize();
@@ -781,7 +782,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
           "Pixel size is missing", AxisID.ONLY);
       return;
     }
-    ltfPixelSize.setText(xPixelSize / 10.0);
+    xPixelSize = xPixelSize / 10.0;
+    ltfPixelSize.setText(Utilities.round(xPixelSize, 6));
     int binning = header.getBinning();
     if (binning == Integer.MIN_VALUE) {
       binning = 1;
@@ -1043,6 +1045,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.38  2005/11/14 22:20:45  sueh
+ * <p> bug# 762 Made btnDatasetAction() and stateChanged() protected.
+ * <p>
  * <p> Revision 3.37  2005/10/27 00:35:39  sueh
  * <p> bug# 725 Setting metadata.bStackProcessed.
  * <p>
