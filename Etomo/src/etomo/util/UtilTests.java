@@ -30,11 +30,15 @@ public class UtilTests {
 		suite.addTestSuite(MRCHeaderTest.class);
 		suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
+    suite.addTestSuite(UtilitiesTest.class);
 		return suite;
 	}
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/11/15 21:21:14  sueh
+ * <p> bug# 733 fixing IMODBuild
+ * <p>
  * <p> Revision 1.5  2005/11/15 00:30:46  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
