@@ -379,10 +379,12 @@ EOF
     # Output variables for libraries to copy to bin
     #
     if ($m64bit == true) then
+        if ($distname == "") set distname = _win64
         set strip = true
         echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files (x86)/GnuWin32/bin" >> $configure
         echo 'DLLSTOCOPY1 = libtiff.dll' >> $configure
     else
+        if ($distname == "") set distname = _win
         echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files/GnuWin32/bin" >> $configure
         echo 'DLLSTOCOPY1 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
     endif
@@ -413,14 +415,10 @@ echo VCEXEDIR = $vcexedir >> $configure
 #
 echo 'QTINSTLIBDIR = bin' >> $configure
 echo 'INSTALL_FILES = IMOD-cygwin.csh IMOD-cygwin.sh' >> $configure
-if ($distname == "") set distname = _win
 
-# Add scripts for running from command line.  The chmod doesn't work but it
-# might be needed in the future.  12/4/05: seems to be needed for XP???
+# Add scripts for running from command line to the install.  They are no
+# longer generated because of permission problems and to handle spaces in args
 #
-echo '3dmod $* &' >! $scripts_dir/3dmodbg
-echo '3dmod -view $* &' >! $scripts_dir/3dmodv
-chmod a+rx  $scripts_dir/3dmodbg  $scripts_dir/3dmodv
 echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
 
 # Make sure critical scripts are in unix mode
