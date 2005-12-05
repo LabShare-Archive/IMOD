@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/05: Changed 3dmod startup scripts used in Windows to solve a permission
+problem running a W2K build under XP and to preserve spaces in up to 9
+arguments.
+
 11/30/05: Added an option to Makejoincom so that rotated volumes could
 automatically be made the right size in X and Y to hold the rotated image.
 
