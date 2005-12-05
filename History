@@ -2,6 +2,7 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/5/05: On the Etomo Setup screen, rounded the pixel size to 6 significant
 digits.
+
 12/4/05: Changed 3dmod startup scripts used in Windows to solve a permission
 problem running a W2K build under XP and to preserve spaces in up to 9
 arguments.
