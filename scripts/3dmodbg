@@ -1,24 +1,30 @@
 #!/bin/sh
 # Script to run 3dmod in background under Windows and preserve spaces
-arg1=$1
-shift
-arg2=$1
-shift
-arg3=$1
-shift
-arg4=$1
-shift
-arg5=$1
-shift
-arg6=$1
-shift
-arg7=$1
-shift
-arg8=$1
-shift
-arg9=$1
-shift
-arg10=$1
-shift
-
-3dmod "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6" "$arg7" "$arg8" "$arg9" "$arg10" $* &
+#
+if [ $# -eq 1 ] ; then 
+    3dmod "$1" &
+elif [ $# -eq 2 ] ; then 
+    3dmod "$1" "$2" &
+elif [ $# -eq 3 ] ; then 
+    3dmod "$1" "$2" "$3" &
+elif [ $# -eq 4 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" &
+elif [ $# -eq 5 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" &
+elif [ $# -eq 6 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" &
+elif [ $# -eq 7 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" "$7" &
+elif [ $# -eq 8 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" &
+elif [ $# -eq 9 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" &
+elif [ $# -eq 10 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" &
+elif [ $# -eq 11 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" "$11" &
+elif [ $# -eq 12 ] ; then 
+    3dmod "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" "$11" "$12" &
+else
+    3dmod $* &
+fi
