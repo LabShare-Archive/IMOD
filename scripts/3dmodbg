@@ -1,0 +1,24 @@
+#!/bin/sh
+# Script to run 3dmod in background under Windows and preserve spaces
+arg1=$1
+shift
+arg2=$1
+shift
+arg3=$1
+shift
+arg4=$1
+shift
+arg5=$1
+shift
+arg6=$1
+shift
+arg7=$1
+shift
+arg8=$1
+shift
+arg9=$1
+shift
+arg10=$1
+shift
+
+3dmod "$arg1" "$arg2" "$arg3" "$arg4" "$arg5" "$arg6" "$arg7" "$arg8" "$arg9" "$arg10" $* &
