@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.33  2005/11/29 22:54:26  sueh
+ * <p> $Removed print statement.
+ * <p> $
  * <p> $Revision 3.32  2005/11/21 22:04:07  sueh
  * <p> $bug# 733 In isWindowOS(), only call System.getProperty("os.name") one
  * <p> $time per application instance.
@@ -190,7 +193,7 @@ import etomo.comscript.ComScript;
 import etomo.process.SystemProgram;
 
 public class Utilities {
-  
+
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
@@ -204,7 +207,7 @@ public class Utilities {
   public static final String STARTED_STATUS = " started";
   public static final String FINISHED_STATUS = "finished";
   public static final String FAILED_STATUS = "  failed";
-  
+
   private Utilities() {
   }
 
@@ -232,15 +235,17 @@ public class Utilities {
    * @param axisID
    * @return true if the file exist
    */
-  public static boolean fileExists(BaseManager manager, String extension, AxisID axisID) {
-    File file = new File(manager.getPropertyUserDir(), manager.getBaseMetaData().getName()
+  public static boolean fileExists(BaseManager manager, String extension,
+      AxisID axisID) {
+    File file = new File(manager.getPropertyUserDir(), manager
+        .getBaseMetaData().getName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
     return false;
   }
-  
+
   /**
    * Creates a file name and a file.  If the file doesn't exist and mustExist is
    * true, it complains and returns null, otherwise it returns the file.
@@ -250,8 +255,8 @@ public class Utilities {
    * @param fileType A string used in the error dialog
    * @return
    */
-  public static File getFile(BaseManager manager, boolean mustExist, AxisID axisID,
-      String extension, String fileDescription) {
+  public static File getFile(BaseManager manager, boolean mustExist,
+      AxisID axisID, String extension, String fileDescription) {
     File file = new File(manager.getPropertyUserDir(), manager
         .getBaseMetaData().getName()
         + axisID.getExtension() + extension);
@@ -263,7 +268,7 @@ public class Utilities {
     }
     return file;
   }
-  
+
   public static File getFile(BaseManager manager, AxisID axisID,
       String extension) {
     File file = new File(manager.getPropertyUserDir(), manager
@@ -312,7 +317,7 @@ public class Utilities {
         }
         else {
           System.err
-            .println(destination.getAbsolutePath() + " does not exist!");
+              .println(destination.getAbsolutePath() + " does not exist!");
         }
       }
     }
@@ -344,7 +349,7 @@ public class Utilities {
       }
     }
   }
-  
+
   public static File mostRecentFile(String propertyUserDir, String file1Name,
       String file2Name, String file3Name, String file4Name) {
     File file1 = null;
@@ -379,7 +384,8 @@ public class Utilities {
     if (file4 != null && file4.exists()) {
       file4Time = file4.lastModified();
     }
-    if (file1Time >= file2Time && file1Time >= file3Time && file1Time >= file4Time) {
+    if (file1Time >= file2Time && file1Time >= file3Time
+        && file1Time >= file4Time) {
       return file1;
     }
     if (file2Time >= file3Time && file2Time >= file4Time) {
@@ -438,7 +444,7 @@ public class Utilities {
   static public void debugPrint(String string) {
     debugPrint(string, false);
   }
-  
+
   /**
    * Print out the specified string to err or out if the debug flag is set
    *
@@ -455,7 +461,6 @@ public class Utilities {
     }
   }
 
-
   /**
    * Return an environment variable value
    * 
@@ -470,8 +475,8 @@ public class Utilities {
     String osName = System.getProperty("os.name");
 
     if (osName.startsWith("Windows")) {
-      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo %" + varName
-          + "%", axisID);
+      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo %"
+          + varName + "%", axisID);
       try {
         readEnvVar.run();
       }
@@ -540,16 +545,14 @@ public class Utilities {
    * @param file
    * @param strings
    * @throws IOException
-   */  
+   */
   public static void writeFile(File file, String[] strings, boolean newFile)
-    throws IOException {
+      throws IOException {
     if (file == null) {
       throw new IOException();
     }
     if (newFile) {
-      Utilities.renameFile(
-        file,
-        new File(file.getAbsolutePath() + "~"));
+      Utilities.renameFile(file, new File(file.getAbsolutePath() + "~"));
     }
     if (strings == null || strings.length == 0) {
       return;
@@ -563,7 +566,7 @@ public class Utilities {
       bufferedWriter.close();
     }
   }
-  
+
   /**
    * validates a file and appends failure reason to invalidReason
    * @param file
@@ -581,7 +584,7 @@ public class Utilities {
     if (file == null) {
       if (fileDescription != null && !fileDescription.matches("\\s+")) {
         invalidReason.append(fileDescription + " was not entered.\n");
-      } 
+      }
       else if (isDirectory) {
         invalidReason.append("No directory name was entered.\n");
       }
@@ -612,7 +615,7 @@ public class Utilities {
     }
     return isValid;
   }
-  
+
   /**
    * Print timestamp in error log
    * @param command
@@ -642,14 +645,15 @@ public class Utilities {
     }
     timestamp(process, null, container, status);
   }
-  
-  public static void timestamp(String process, ProcessName container, String status) {
+
+  public static void timestamp(String process, ProcessName container,
+      String status) {
     if (!isTimestamp()) {
       return;
     }
     timestamp(process, null, container.toString(), status);
   }
-  
+
   /**
    * Print timestamp in error log
    * @param process
@@ -664,7 +668,7 @@ public class Utilities {
     }
     timestamp(process, command, container.getName(), status);
   }
-  
+
   /**
    * Print timestamp in error log
    * @param process
@@ -672,14 +676,14 @@ public class Utilities {
    * @param container
    * @param status
    */
-  public static void timestamp(String process, String command, ComScript container,
-      String status) {
+  public static void timestamp(String process, String command,
+      ComScript container, String status) {
     if (!isTimestamp()) {
       return;
     }
     timestamp(process, command, container.getName(), status);
   }
-  
+
   public static void timestamp(String command, String status) {
     if (!isTimestamp()) {
       return;
@@ -722,11 +726,10 @@ public class Utilities {
     buffer.append("at " + getTimestamp());
     System.err.println(buffer);
   }
-  
+
   public static void timestamp() {
     System.err.println("TIMESTAMP:  " + getTimestamp());
   }
-
 
   public static boolean isDebug() {
     if (!retrievedDebug) {
@@ -735,7 +738,7 @@ public class Utilities {
     }
     return debug;
   }
-  
+
   public static boolean isTimestamp() {
     if (!retrievedTimestamp) {
       timestamp = EtomoDirector.getInstance().isTimestamp();
@@ -746,7 +749,7 @@ public class Utilities {
     }
     return isDebug();
   }
-  
+
   public static boolean isSelfTest() {
     if (!retrievedSelfTest) {
       selfTest = EtomoDirector.getInstance().isSelfTest();
@@ -754,7 +757,7 @@ public class Utilities {
     }
     return selfTest;
   }
-  
+
   public static void setStartTime() {
     startTime = new Date().getTime();
   }
@@ -770,5 +773,163 @@ public class Utilities {
       setWindowsOS = true;
     }
     return windowsOS;
+  }
+
+  /**
+   * Round a number to a specified number of significant digits
+   * @param number - number to round
+   * @param significantDigits - number of significant digits
+   * @return rounded number
+   */
+  public static final double round(double number, int significantDigits) {
+    if (number == 0 || Double.isInfinite(number) || Double.isNaN(number)
+        || significantDigits <= 0) {
+      return number;
+    }
+    StringBuffer left = new StringBuffer();
+    StringBuffer right = new StringBuffer();
+    String exponent = convertToScientificNotation(number, left, right);
+    //System.out.println("convertToScientificNotation:number=" + number
+    //    + ",left=" + left + ",right=" + right + ",exponent=" + exponent);
+    //shift the number to a power of 10 equal to significantDigits - 1 and round
+    long rounded = Math.round(Double.parseDouble(left.toString() + '.'
+        + right.toString() + 'E' + String.valueOf(significantDigits - 1)));
+    convertToScientificNotation(rounded, left, right);
+    return Double.parseDouble(left.toString() + '.' + right.toString() + 'E'
+        + exponent);
+  }
+
+  private static final String convertToScientificNotation(double number,
+      StringBuffer leftBuffer, StringBuffer rightBuffer) {
+    if (leftBuffer == null || rightBuffer == null) {
+      throw new NullPointerException(
+          "LeftBuffer and rightBuffer are for returning values and must be constructed before they are passed.");
+    }
+    if (number == 0) {
+      throw new IllegalArgumentException(
+          "Function does not handle number == 0.");
+    }
+    String exponent = breakAndTrim(number, leftBuffer, rightBuffer);
+    //System.out.println("breakAndTrim:number=" + number + ",leftBuffer="
+    //    + leftBuffer + ",rightBuffer=" + rightBuffer + ",exponent=" + exponent);
+
+    //Already in scientific notation
+    if (exponent != null) {
+      return exponent;
+    }
+    int leftLength = leftBuffer.length();
+    //left and right are already correct for scientific notation
+    if (leftLength == 1) {
+      return "0";
+    }
+    String left = leftBuffer.toString();
+    leftBuffer.delete(0, leftLength);
+    String right = rightBuffer.toString();
+    rightBuffer.delete(0, rightBuffer.length());
+    //left is too long for scientific notation
+    if (leftLength > 1) {
+      exponent = String.valueOf(leftLength - 1);
+      leftBuffer.append(left.charAt(0));
+      rightBuffer.append(left.substring(1) + right);
+      return exponent;
+    }
+    //left length equals 0
+    int firstSigDigIndex = -1;
+    //must shift the first significant digit in right to the left
+    for (int i = 0; i < right.length(); i++) {
+      if (right.charAt(i) != '0') {
+        firstSigDigIndex = i;
+        break;
+      }
+    }
+    if (firstSigDigIndex == -1) {
+      throw new IllegalArgumentException("BreakAndTrim returned 0.");
+    }
+    exponent = String.valueOf(-1 * (firstSigDigIndex + 1));
+    leftBuffer.append(right.charAt(firstSigDigIndex));
+    rightBuffer.append(right.substring(firstSigDigIndex + 1));
+    return exponent;
+  }
+
+  private static final String breakAndTrim(double number,
+      StringBuffer leftBuffer, StringBuffer rightBuffer) {
+    if (leftBuffer == null || rightBuffer == null) {
+      throw new NullPointerException(
+          "LeftBuffer and rightBuffer are for returning values and must be constructed before they are passed.");
+    }
+    if (number == 0) {
+      throw new IllegalArgumentException(
+          "Function does not handle number == 0.");
+    }
+    leftBuffer.delete(0, leftBuffer.length());
+    rightBuffer.delete(0, rightBuffer.length());
+    StringBuffer exponent = null;
+    boolean getLeft = true;
+    boolean getRight = false;
+    boolean getExponent = false;
+    String sNumber = String.valueOf(number);
+    //break double into left, right, and exponent
+    for (int i = 0; i < sNumber.length(); i++) {
+      char digit = sNumber.charAt(i);
+      if (getLeft) {
+        if (digit == '.') {
+          getLeft = false;
+          getRight = true;
+        }
+        else if (digit == 'E') {
+          getLeft = false;
+          getExponent = true;
+          exponent = new StringBuffer();
+        }
+        else {
+          leftBuffer.append(digit);
+        }
+      }
+      else if (getRight) {
+        if (digit == '.') {
+          throw new IllegalStateException("Already found decimal point.");
+        }
+        if (digit == 'E') {
+          getRight = false;
+          getExponent = true;
+          exponent = new StringBuffer();
+        }
+        else {
+          rightBuffer.append(digit);
+        }
+      }
+      else if (getExponent) {
+        if (digit == '.') {
+          throw new IllegalStateException("Already found decimal point.");
+        }
+        else if (digit == 'E') {
+          throw new IllegalStateException("Already found exponent character.");
+        }
+        exponent.append(digit);
+      }
+      else {
+        throw new IllegalStateException("Unknown state.");
+      }
+    }
+    for (int i = 0; i < leftBuffer.length(); i++) {
+      char digit = leftBuffer.charAt(i);
+      if (digit == '0') {
+        leftBuffer.deleteCharAt(i);
+      }
+      else
+        break;
+    }
+    for (int i = rightBuffer.length() - 1; i >= 0; i--) {
+      char digit = rightBuffer.charAt(i);
+      if (digit == '0') {
+        rightBuffer.deleteCharAt(i);
+      }
+      else
+        break;
+    }
+    if (exponent == null) {
+      return null;
+    }
+    return exponent.toString();
   }
 }
