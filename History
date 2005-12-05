@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/5/05: Increased limits in Ccderaser to allow model output for up to
+200,000 X rays.
+
 12/5/05: On the Etomo Setup screen, rounded the pixel size to 6 significant
 digits.
 
