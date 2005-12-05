@@ -24,9 +24,10 @@ c	  $Revision$
 c	  Log at end of file
 c
 	implicit none
+	include 'model.inc'
 	integer imsiz,mxd,limpatch,limobj,limptout,limdiff,limpatchout
-	parameter (imsiz=4100, limdiff = 512, limpatchout=50000)
-	parameter (mxd=50,limpatch=5000,limobj=1000,limptout=100000)
+	parameter (imsiz=4100, limdiff = 512, limpatchout=max_obj_num)
+	parameter (mxd=50,limpatch=5000,limobj=1000,limptout=25*limpatchout)
 	real*4 array(imsiz*imsiz),title(20),orig(3),delt(3)
 	real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
 	integer*4 nxyz(3),mxyz(3),nx,ny,nz
@@ -36,8 +37,7 @@ c
 	integer*4 ixout(limptout),iyout(limptout),izout(limptout)
 	integer*4 indPatch(limpatchout)
 	integer*4 iobjline(limobj),iobjdoall(limobj)
-	include 'model.inc'
-	common /bigcom/array,diffArr
+	common /bigcom/array,diffArr,exceedCrit,indPatch,ixout,iyout,izout
 	logical readw_or_imod, typeonlist
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
@@ -398,7 +398,7 @@ c
      &	      maxInDiffPatch, limpatchout,
      &	      ixout, iyout, izout, limptout)
 	  if (numPatch .gt. 0)write(*,102)numPixels,numPatch
-102	  format(i5,' pixels replaced in',i4,' peaks -',$)
+102	  format(i7,' pixels replaced in',i6,' peaks -',$)
 
 	  call iclden(array,nx,ny,1,nx,1,ny,dmint,dmaxt,dmeant)
 	  tmin=min(tmin,dmint)
@@ -1084,6 +1084,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.16  2005/05/26 04:35:01  mast
+c	  Made sums args for iclavgsd real*8
+c	
 c	  Revision 3.15  2005/03/24 20:26:25  mast
 c	  Fixed problem with erasing points right on edge
 c	
