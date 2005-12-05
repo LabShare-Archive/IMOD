@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.34  2005/12/05 21:41:17  sueh
+ * <p> $bug# 674 Added round(), convertToScientificNotation(), and
+ * <p> $breakAndTrim().
+ * <p> $
  * <p> $Revision 3.33  2005/11/29 22:54:26  sueh
  * <p> $Removed print statement.
  * <p> $
@@ -776,9 +780,11 @@ public class Utilities {
   }
 
   /**
-   * Round a number to a specified number of significant digits
+   * Rounds a number to a specified number of significant digits
+   * Converts the number to scientific notation.  Changes the power of 10 based
+   * on significantDigits.  Returns the number with the original power of 10. 
    * @param number - number to round
-   * @param significantDigits - number of significant digits
+   * @param significantDigits - number of significant digits to keep
    * @return rounded number
    */
   public static final double round(double number, int significantDigits) {
@@ -798,7 +804,15 @@ public class Utilities {
     return Double.parseDouble(left.toString() + '.' + right.toString() + 'E'
         + exponent);
   }
-
+  
+  /**
+   * Converts a number to scientific notation and breaks it into three strings:
+   * left of the decimal point, right of the decimal point, and the power of 10.
+   * @param number
+   * @param leftBuffer - left of the decimal point, may not be null
+   * @param rightBuffer - right of the decimal point, may not be null
+   * @return a String representing the power of 10
+   */
   private static final String convertToScientificNotation(double number,
       StringBuffer leftBuffer, StringBuffer rightBuffer) {
     if (leftBuffer == null || rightBuffer == null) {
@@ -851,6 +865,16 @@ public class Utilities {
     return exponent;
   }
 
+  /**
+   * Breaks a number into three strings:  left of the decimal point, right of
+   * the decimal point, and the power of 10, if the number is in scientific
+   * notation.  Also removes leading zeros from leftBuffer and trailing zeros
+   * from rightBuffer
+   * @param number
+   * @param leftBuffer - left of the decimal point, may not be null
+   * @param rightBuffer - right of the decimal point, may not be null
+   * @return a String representing the power of 10
+   */
   private static final String breakAndTrim(double number,
       StringBuffer leftBuffer, StringBuffer rightBuffer) {
     if (leftBuffer == null || rightBuffer == null) {
