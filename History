@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/6/05: In Join, when a section is rotated, the final start and end in Z now
+reflect the rotation.
+
 12/5/05: Increased limits in Ccderaser to allow model output for up to
 200,000 X rays.
 
