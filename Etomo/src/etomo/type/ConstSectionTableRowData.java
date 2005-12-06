@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/11/30 21:15:58  sueh
+ * <p> bug# 757 Adding getSetupXMax, YMax, and ZMax().
+ * <p>
  * <p> Revision 1.11  2005/11/29 22:33:43  sueh
  * <p> bug# New file version = 1.1.  Split final fields into setup and join.  Split
  * <p> section into setup and join.
@@ -129,6 +132,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String setupXMaxString = "XMax";
   protected static final String setupYMaxString = "YMax";
   protected static final String setupZMaxString = "ZMax";
+  protected static final double COS_X_Y_THRESHOLD = 0.5;
 
   protected final EtomoNumber rowNumber;
   protected final EtomoNumber sampleBottomStart;
