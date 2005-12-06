@@ -32,6 +32,15 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2005/11/29 22:44:37  sueh
+ * <p> bug# 757 Removed setXMax, YMax, and ZMax() because x, y, and zMax
+ * <p> are derived from the section header.  Added convertSetupToJoin and
+ * <p> convertJoinToSetup.  Added copySetupToJoin and copyJoinToSetup.
+ * <p> Added readHeader.  Split final start and end into setup and join.  Split
+ * <p> section into setup and join.  Only saving and loading setup values
+ * <p> because the join screen only starts in the setup tab and the join values
+ * <p> can be derived from the setup values.
+ * <p>
  * <p> Revision 1.5  2005/01/26 00:00:23  sueh
  * <p> Converted ConstEtomoNumber.resetValue to displayValue.
  * <p>
@@ -219,8 +228,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     if (!setJoinSection(rotatedSection)) {
       return;
     }
-    joinFinalStart.set(convertZ(setupFinalStart));
-    joinFinalEnd.set(convertZ(setupFinalEnd));
+    joinFinalStart.set(convertToRotatedZ(setupFinalStart));
+    joinFinalEnd.set(convertToRotatedZ(setupFinalEnd));
   }
 
   /**
@@ -228,8 +237,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * to their equivalents in the original tomogram.
    */
   private final void convertJoinToSetup() {
-    setupFinalStart.set(convertZ(joinFinalStart));
-    setupFinalEnd.set(convertZ(joinFinalEnd));
+    setupFinalStart.set(convertFromRotatedZ(joinFinalStart));
+    setupFinalEnd.set(convertFromRotatedZ(joinFinalEnd));
   }
 
   /**
@@ -242,23 +251,68 @@ public class SectionTableRowData extends ConstSectionTableRowData {
 
   /**
    * Converts final start and end from the original tomogram to the rotated
-   * tomogram and back.
-   * The transformation is:
-   * cos(X angle) * cos(Y angle) * (slice - (Zsize + 1) / 2) + (Zsize + 1) / 2
+   * tomogram.
    * Compute as floating point then round to nearest integer - i.e. do not do integer
    * arithmetic with (zsize + 1) / 2
-   * This will work going from .rec to .rot and back
+   * Allowing for a different Z size for the rec and the rot, the formula to get
+   * from rec slice to rot slice is:
+   * cos(X angle) * cos(Y angle) * (slice - (Zsize_rec + 1) / 2) + (Zsize_rot + 1) / 2
+   * If cos(X angle) * cos(Y angle) is less then COS_X_Y_THRESHOLD, do not
+   * convert z.
    * @param z
    * @return converted z
    */
-  private final long convertZ(ConstEtomoNumber z) {
-    double xAngle = rotationAngleX.getDouble(true);
-    double yAngle = rotationAngleY.getDouble(true);
+  private final long convertToRotatedZ(ConstEtomoNumber z) {
+    //System.out.println("convertToRotatedZ");
+    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
+        * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
+    System.out.println("rotationAngleX=" + rotationAngleX.getDouble(true)
+        + ",rotationAngleY" + rotationAngleY.getDouble(true) + ",cosXY="
+        + cosXY);
+    if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
+      return z.getLong();
+    }
     double zSlice = z.getDouble();
     double zSize = setupZMax;
-    double convertedZ = Math.cos(Math.toRadians(xAngle))
-        * Math.cos(Math.toRadians(yAngle)) * (zSlice - (zSize + 1) / 2)
-        + (zSize + 1) / 2;
+    double zSizeRotated = joinZMax;
+    //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
+    //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
+    double convertedZ = cosXY * (zSlice - (zSize + 1.) / 2.)
+        + (zSizeRotated + 1.) / 2.;
+    //System.out.println("convertedZ=" + convertedZ);
+    return Math.round(convertedZ);
+  }
+
+  /**
+   * Converts final start and end from the rotated tomogram to the original
+   * tomogram.
+   * Compute as floating point then round to nearest integer - i.e. do not do integer
+   * arithmetic with (zsize + 1) / 2
+   * Allowing for a different Z size for the rec and the rot, the formula to get
+   * The formula to get from rot slice to rec slice is:
+   * (slice - (Zsize_rot + 1) / 2) / (cos(X angle) * cos(Y angle)) + (Zsize_rec + 1) / 2
+   * If cos(X angle) * cos(Y angle) is less then COS_X_Y_THRESHOLD, do not
+   * convert z.
+   * @param z
+   * @return converted z
+   */
+  private final long convertFromRotatedZ(ConstEtomoNumber z) {
+    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
+        * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
+    System.out.println("rotationAngleX=" + rotationAngleX.getDouble(true)
+        + ",rotationAngleY" + rotationAngleY.getDouble(true) + ",cosXY="
+        + cosXY);
+    if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
+      return z.getLong();
+    }
+    double zSlice = z.getDouble();
+    double zSize = setupZMax;
+    double zSizeRotated = joinZMax;
+    //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
+    //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
+    double convertedZ = (zSlice - (zSizeRotated + 1.) / 2.) / cosXY
+        + (zSize + 1.) / 2.;
+    //System.out.println("convertedZ=" + convertedZ);
     return Math.round(convertedZ);
   }
 
