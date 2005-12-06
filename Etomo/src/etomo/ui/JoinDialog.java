@@ -36,6 +36,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.24  2005/11/30 21:17:28  sueh
+ * <p> bug# 757 Not trying to control where XMax, YMax, and ZMax come from.
+ * <p> The section table can decide where to get them, depending on which tab
+ * <p> is displayed.
+ * <p>
  * <p> Revision 1.23  2005/11/29 22:49:19  sueh
  * <p> bug# 757 Listeners where firing while things where being built so moved
  * <p> all add listener calls to addListeners and calling it after everything is built.
@@ -1255,7 +1260,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   final void synchronize(int prevTab) {
     pnlSectionTable.synchronize(prevTab, curTab);
-    setNumSections(pnlSectionTable.getTableSize());
   }
   
   /**
