@@ -32,6 +32,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/11/29 22:21:59  sueh
+* <p> bug# 757 Use setup section for make join.
+* <p>
 * <p> Revision 1.14  2005/11/19 01:52:56  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.
@@ -217,6 +220,7 @@ public class MakejoincomParam implements ProcessDetails {
             buffer.append(rotationAngleZ.getDouble());
           }
           options.add(buffer.toString());
+          options.add("-maxxysize");
         }
         options.add(data.getSetupSection().getAbsolutePath());
       }
