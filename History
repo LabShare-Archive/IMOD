@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/7/05: Fixed a bug which caused the final tomogram to appear on the clean up
+dialog when the dataset name had a dash in it.
+
 12/6/05: In Join, when a section is rotated, the final start and end in Z now
 reflect the rotation.
 
