@@ -24,7 +24,7 @@ Log at end of file
 #include <math.h>
 #include "imodel.h"
 /* These values should match max_obj_num and max_pt in model.inc */
-#define FWRAP_MAX_OBJECT 200000
+#define FWRAP_MAX_OBJECT 750000
 #define FWRAP_MAX_POINTS 10000000
 #define FWRAP_MAX_CLIP_PLANES 100
 
@@ -1545,6 +1545,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.24  2005/09/20 04:37:28  mast
+Fixed getimodnesting cleanup when there are empty contours
+
 Revision 3.23  2005/09/11 19:11:54  mast
 Changed getimodverts for new mesh style
 
