@@ -1,13 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/7/05: Fixed a bug which caused the final tomogram to appear on the clean up
-dialog when the dataset name had a dash in it.
+dialog when the dataset name had an underscore in it.
 
-12/6/05: In Join, when a section is rotated, the final start and end in Z now
-reflect the rotation.
+12/6/05: In Join, when a section is rotated, the final start and end in Z
+entered on the Setup page now reflect the rotation on the Join page, and the
+new volume will be made the right size in X and Y to hold the rotated images.
 
-12/5/05: Increased limits in Ccderaser to allow model output for up to
-200,000 X rays.
+12/7/05: Rewrote Ccderaser to allow model output up to the maximum size for
+models in Fortran programs, and added an option for merging patches in an input
+model, to facilite editing and use of an output model as an input model.
 
 12/5/05: On the Etomo Setup screen, rounded the pixel size to 6 significant
 digits.
