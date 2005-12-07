@@ -15,7 +15,8 @@ LIBS = $(LIBHVEM) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS)
 all : $(LIBS) $(BLOCKIO) $(LIBWMOD)
 
 
-$(LIBHVEM): $(LIBIM) model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
+$(LIBHVEM): $(LIBIM) model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f \
+	$(INCDIR)/model.inc
 	(cd model ; $(MAKE) all)
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
@@ -27,7 +28,7 @@ $(LIBHVEM): $(LIBIM) model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	$(RANLIB) $(LIBHVEM)
 	$(CP) libhvem.$(LIBEXT) $(LIBDIR)
 
-libwmod.lib: model/*.f 
+libwmod.lib: model/*.f $(INCDIR)/model.inc
 	(cd model ; $(MAKE) all)
 	\rm -f $(LIBWMOD)
 	$(MAKENONDLL)$(LIBWMOD) model/*.$(O)
