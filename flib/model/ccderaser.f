@@ -26,7 +26,7 @@ c
 	implicit none
 	include 'model.inc'
 	integer imsiz,mxd,limpatch,limobj,limptout,limdiff,limpatchout
-	parameter (imsiz=4100, limdiff = 512, limpatchout=max_obj_num)
+	parameter (imsiz=8200, limdiff = 512, limpatchout=40000)
 	parameter (mxd=50,limpatch=5000,limobj=1000,limptout=25*limpatchout)
 	real*4 array(imsiz*imsiz),title(20),orig(3),delt(3)
 	real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
@@ -50,13 +50,13 @@ c
 	real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
 	real*4 zmin,zmax,xmin,xmax,ymin,ymax
 	integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj
-	integer*4 ierr,ierr2,ifflip,numPtOut, numPatchOut
+	integer*4 ierr,ierr2,ifflip,numPtOut, numPatchOut,numObjOrig,ifMerge
 	integer*4 getimodhead,getimodscales
 	real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
 	real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
-	real*4 scanOverlap, annulusWidth
-	integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels
-	integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch
+	real*4 scanOverlap, annulusWidth, radSq
+	integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels,ifTouch
+	integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch,ifGrew
 c
 	logical pipinput
 	integer*4 numOptArg, numNonOptArg
@@ -67,7 +67,7 @@ c
 c	  fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
 c
 	integer numOptions
-	parameter (numOptions = 24)
+	parameter (numOptions = 25)
 	character*(40 * numOptions) options(1)
 	options(1) =
      &      'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -78,10 +78,10 @@ c
      &      'width:AnnulusWidth:F:@xyscan:XYScanSize:I:@'//
      &      'edge:EdgeExclusionWidth:I:@points:PointModel:FN:@'//
      &      'model:ModelFile:FN:@lines:LineObjects:LI:@'//
-     &      'allsec:AllSectionObjects:LI:@border:BorderSize:I:@'//
-     &      'order:PolynomialOrder:I:@exclude:ExcludeAdjacent:B:@'//
-     &      'trial:TrialMode:B:@verbose::B:@param:ParameterFile:PF:@'//
-     &      'help:usage:B:'
+     &      'allsec:AllSectionObjects:LI:@merge:MergePatches:B:@'//
+     &      'border:BorderSize:I:@order:PolynomialOrder:I:@'//
+     &      'exclude:ExcludeAdjacent:B:@trial:TrialMode:B:@'//
+     &      'verbose:verbose:B:@param:ParameterFile:PF:@help:usage:B:'
 c
 c	  Set all defaults here
 c
@@ -105,6 +105,8 @@ c
 	ifTrialMode = 0
 	nEdgePixels = 0
 	maxInDiffPatch = 2
+	ifMerge = 0
+	maxObjectsOut = 4
 
 	call date(dat)
 	call time(tim)
@@ -154,6 +156,8 @@ c
 	endif
 c	  
 	max_mod_obj = 0
+	n_point = 0
+	ibase_free = 0
 	if (pipinput) then
 	  ierr = PipGetString('ModelFile', ptfile)
 	else
@@ -161,23 +165,11 @@ c
 	  read(*,'(a)')ptfile
 	endif
 	if (.not. pipinput .or. ierr .eq. 0) then
-	  if(.not.readw_or_imod(ptfile))call errorexit
-     &	      ('READING MODEL FILE')
-
-	  ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
-	  ierr2 = getimodscales(ximscale, yimscale, zimscale)
-	  if (ierr .ne. 0 .or. ierr2 .ne. 0)
-     &	      call errorexit('getting model header')
-
-	  do i=1,n_point
-	    p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
-	    p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
-	    p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
-c	  do j=1,3
-c	    p_coord(j,i)=(p_coord(j,i)+orig(j))/delt(j)
-c	  enddo
-	  enddo
+	  if(.not.readw_or_imod(ptfile))
+     &	      call errorexit('READING MODEL FILE')
+	  call scale_model(0)
 	endif
+	numObjOrig = max_mod_obj
 c	  
 	if (pipinput) then
 c	    
@@ -210,6 +202,7 @@ c
 	  ierr = PipGetFloat('ScanCriterion', critScan)
 	  ierr = PipGetFloat('DiffCriterion', critDiff)
 	  ierr = PipGetInteger('verbose', ifVerbose)
+	  ierr = PipGetInteger('MergePatches', ifMerge)
 	  ierr = PipGetInteger('MaxPixelsInDiffPatch', maxInDiffPatch)
 	  ierr = PipGetFloat('OuterRadius', outerRadius)
 	  ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)
@@ -264,11 +257,7 @@ c
 	critGrow = max(2., critGrow)
 	nEdgePixels = max(0, min(nx / 3, nEdgePixels))
 
-	if (ifPeakSearch .gt. 0) then
-	  numPatchOut = 0
-	  indPatch(1) = 1
-	  numPtOut = 0
-	endif
+	if (ifPeakSearch .gt. 0) indPatch(1) = 1
 
 	print *
 	tmin=1.e10
@@ -349,8 +338,9 @@ c
 	  linefix =0
 c	    
 c	    scan through points to see if any need fixing
+c	    Go backwards in case this model is a peak model
 c	    
-	  do iobj=1,max_mod_obj
+	  do iobj=numObjOrig,1,-1
 	    if(npt_in_obj(iobj).gt.0)then
 	      ibase=ibase_obj(iobj)
 	      itype = 256-obj_color(2,iobj)
@@ -372,7 +362,7 @@ c
 		endif
 	      elseif(nint(p_coord(3,object(ibase+1))).eq.izsect .or.
      &		  typeonlist(itype,iobjdoall,nobjdoall))then
-		ninobj=npt_in_obj(iobj)
+		ninobj=min(npt_in_obj(iobj), limpatch)
 		do ip=1,ninobj
 		  ipt=object(ibase+ip)
 		  ixfix(ip)=p_coord(1,ipt)+1.01
@@ -380,6 +370,69 @@ c
 		enddo
 		if(nfix.eq.0)write(*,'(a,$)')' fixing points -' 
 		nfix=nfix+1
+c		  
+c		  see if there are patches to merge - loop on objects until
+c		  patch stops growing
+c
+		if (.not. typeonlist(itype,iobjdoall,nobjdoall) .and.
+     &		    ifMerge .ne. 0) then
+		  radSq = (2*radiusMax)**2
+		  ifGrew = 1
+		  do while (ifGrew .gt. 0)
+		    ifGrew = 0
+		    do i = 1, numObjOrig
+		      ibase=ibase_obj(i)
+		      itype = 256-obj_color(2,i)
+		      if (i .ne. iobj .and. npt_in_obj(i).gt.0 .and.
+     &			  nint(p_coord(3,object(ibase+1))).eq.izsect .and.
+     &			  .not. typeonlist(itype,iobjline,nobjline) .and.
+     &			  .not. typeonlist(itype,iobjdoall,nobjdoall) .and.
+     &			  ninobj + npt_in_obj(i) .le. limpatch) then
+c			  
+c			  Loop on all pairs of points and make sure none are
+c			  too far and see if one touches
+c			  
+			ifTouch = 0
+			ip1 = 1
+			do while (ip1 .le. npt_in_obj(i) .and. ifTouch .ge. 0)
+			  ipt = object(ibase+ip1)
+			  ix1 = p_coord(1,ipt)+1.01
+			  iy1 = p_coord(2,ipt)+1.01
+			  ip2 = 1
+			  do while (ip2 .le. ninobj .and. ifTouch .ge. 0)
+			    ix2 = (ix1-ixfix(ip2))**2 + (iy1-iyfix(ip2))**2
+			    if (ix2 .le. 2) ifTouch = 1
+			    if (ix2 .gt. radSq) ifTouch = -1
+			    ip2 = ip2 + 1
+			  enddo
+			  ip1 = ip1 + 1
+			enddo
+c			  
+c			  Merge the patch, set # of points to 0, and set # of
+c			  points 0 for starting patch to avoid duplicate hits
+c			  
+			if (ifTouch .gt. 0) then
+			  if (ifVerbose .ne. 0) then
+			    call objtocont(iobj,obj_color,ix1,iy1)
+			    call objtocont(i,obj_color,ix2,iy2)
+			    write (*,'(a,2i5,a,2i5)')'Merging',ix2,iy2,' to',
+     &				ix1,iy1
+			  endif
+			  do ip=1,npt_in_obj(i)
+			    ipt=object(ibase+ip)
+			    ninobj = ninobj + 1
+			    ixfix(ninobj)=p_coord(1,ipt)+1.01
+			    iyfix(ninobj)=p_coord(2,ipt)+1.01
+			  enddo
+			  npt_in_obj(i) = 0
+			  ifGrew = 1
+			endif
+		      endif
+		    enddo
+		  enddo
+		  npt_in_obj(iobj) = 0
+		endif
+c
 		call cleanarea(array,nx,ny,nx,ny,ixfix
      &		  ,iyfix,ninobj,nborder,iorder,ifincadj,ifVerbose)
 	      endif
@@ -389,6 +442,8 @@ c
 c	    do peak search for automatic removal
 c
 	  numPatch = 0
+	  numPatchOut = 0
+	  numPtOut = 0
 	  if (ifPeakSearch .gt. 0) call searchpeaks(array,nx,ny,
      &	      diffArr, limdiff, izsect, iScanSize, scanOverlap,
      &	      nEdgePixels, critMain, critDiff, critGrow, critScan,
@@ -399,7 +454,36 @@ c
      &	      ixout, iyout, izout, limptout)
 	  if (numPatch .gt. 0)write(*,102)numPixels,numPatch
 102	  format(i7,' pixels replaced in',i6,' peaks -',$)
-
+c	    
+c	    Save points from this section in model if requested
+c
+	  if (modelout .ne. ' ')then
+	    do iobj = 1, numPatchOut
+	      numPixels = indPatch(iobj + 1) - indPatch(iobj)
+	      if (n_point + numPixels .le. max_pt .and.
+     &		  max_mod_obj .lt. max_obj_num) then
+c		  
+c		  If there is room for both another object and all the points,
+c		  then set up the object and copy the points
+c		  
+		max_mod_obj = max_mod_obj + 1
+		obj_color(2, max_mod_obj) = 256 - 
+     &		    max(1, min(maxObjectsOut, int(1. + exceedCrit(iobj))))
+		obj_color(1, max_mod_obj) = 1
+		npt_in_obj(max_mod_obj) = numPixels
+		ibase_obj(max_mod_obj) = ibase_free
+		ibase_free = ibase_free + numPixels
+		do i = indPatch(iobj), indPatch(iobj + 1) - 1
+		  n_point = n_point + 1
+		  p_coord(1,n_point) = ixout(i) - 0.5
+		  p_coord(2,n_point) = iyout(i) - 0.5
+		  p_coord(3,n_point) = izout(i)
+		  object(n_point) = n_point
+		enddo
+	      endif
+	    enddo
+	  endif
+c
 	  call iclden(array,nx,ny,1,nx,1,ny,dmint,dmaxt,dmeant)
 	  tmin=min(tmin,dmint)
 	  tmax=max(tmax,dmaxt)
@@ -417,7 +501,6 @@ c
 	enddo
 c
 	tmean=tsum/nz
-
 c
 c 7/7/00 CER: remove the encodes
 c
@@ -433,26 +516,21 @@ c       encode(80,109,title)
 	endif
 	call imclose(imfilout)
 	
-	maxObjectsOut = 4
 c	  
-c	  put out a model, even if there are no points
+c	  put out a model, even if there are no points.  Slide objects down
+c	  over original input model if any
 c
 	if (modelout .ne. ' ')then
-	  max_mod_obj = numPatchOut
-	  n_point = numPtOut
-	  do i = 1, n_point
-	    p_coord(1,i) = ixout(i) - 0.5
-	    p_coord(2,i) = iyout(i) - 0.5
-	    p_coord(3,i) = izout(i)
-	    object(i) = i
-	  enddo
-	  do iobj = 1, numPatchOut
-	    obj_color(2, iobj) = 256 - 
-     &		max(1, min(maxObjectsOut, int(1. + exceedCrit(iobj))))
-	    obj_color(1, iobj) = 1
-	    npt_in_obj(iobj) = indPatch(iobj + 1) - indPatch(iobj)
-	    ibase_obj(iobj) = indPatch(iobj) - 1
-	  enddo
+	  if (numObjOrig .gt. 0) then
+	    do iobj = numObjOrig + 1, max_mod_obj
+	      i = iobj - numObjOrig
+	      obj_color(1, i) = obj_color(1, iobj)
+	      obj_color(2, i) = obj_color(2, iobj)
+	      npt_in_obj(i) = npt_in_obj(iobj)
+	      ibase_obj(i) = ibase_obj(iobj)
+	    enddo
+	  endif
+c
 	  call newimod()
 	  do i = 1, maxObjectsOut
 	    call putimodflag(i, 2)
@@ -460,7 +538,7 @@ c
 	    call putsymsize(i, 5)
 	  enddo
 	  call write_wmod(modelout)
-	  write(*,105)maxObjectsOut,maxObjectsOut,maxObjectsOut
+	  write(*,105)maxObjectsOut,maxObjectsOut,maxObjectsOut-1
 105	  format('In the output model, contours have been sorted into',i3,
      &	      ' objects based on how',/,
      &	      ' much a peak exceeds the criterion.',/,
@@ -1007,8 +1085,8 @@ c
 c	  
 c	  do regession
 c	  
-	if (ifVerbose.gt.0)write (*,104)ninobj,npnts
-104	format(/,i4,' points to fix,',i4,' points being fit')
+	if (ifVerbose.gt.0)write (*,104)ninobj,ixcen,iycen,npnts
+104	format(/,i4,' points to fix at',2i6,',',i4,' points being fit')
 	call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq
      &	    ,fra)
 c	  
@@ -1084,6 +1162,10 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.17  2005/12/05 23:12:11  mast
+c	  Allowed space for as many patches as model.inc will allow, and 25
+c	  points per patch
+c	
 c	  Revision 3.16  2005/05/26 04:35:01  mast
 c	  Made sums args for iclavgsd real*8
 c	
