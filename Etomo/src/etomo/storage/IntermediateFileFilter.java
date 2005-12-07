@@ -17,6 +17,10 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/10/17 23:52:54  sueh
+ * <p> bug# 532 Handling intermediate files created by splittilt, splitcombine, and
+ * <p> processchunks in accept().
+ * <p>
  * <p> Revision 3.2  2005/04/06 21:26:34  sueh
  * <p> bug# 533 Added the .bl file to the clean up panel.
  * <p>
@@ -93,13 +97,9 @@ public class IntermediateFileFilter extends FileFilter {
         return true;
       }
       //handle split... and processchunks files
-      if (path.indexOf('-') != -1) {
+      if (f.getName().matches("\\S+-\\d\\d\\d\\.[logcmre]{3}")) {
         if (f.getName().startsWith(datasetName) && path.endsWith(".rec")) {
           return true;
-        }
-        if (path.endsWith("-start.log") || path.endsWith("-finish.log")
-            || path.endsWith("-start.com") || path.endsWith("-finish.com")) {
-          return false;
         }
         if (path.endsWith(".log") || path.endsWith(".com")) {
           return true;
