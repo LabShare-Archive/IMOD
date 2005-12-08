@@ -331,6 +331,10 @@ public abstract class EtomoFrame extends JFrame {
     return getFrame(axisID).openDeleteDialog(message);
   }
   
+  boolean displayYesNoWarningDialog(String message, AxisID axisID) {
+    return getFrame(axisID).openYesNoWarningDialog(message);
+  }
+  
   boolean displayYesNoMessage(String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoDialog(message);
   }
@@ -397,6 +401,14 @@ public abstract class EtomoFrame extends JFrame {
     int result = JOptionPane.showOptionDialog(this, wrap(message),
         "Delete File?", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
         null, results, null);
+    return result == 0;
+  }
+  
+  private boolean openYesNoWarningDialog(String message) {
+    String[] results = new String[] { "Yes", "No" };
+    int result = JOptionPane.showOptionDialog(this, wrap(message),
+        "Etomo Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+        null, results, "No");
     return result == 0;
   }
   
@@ -662,6 +674,12 @@ public abstract class EtomoFrame extends JFrame {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.15  2005/11/02 22:14:43  sueh
+* <p> bug# 754 Integrating ProcessMessages.  Added functions
+* <p> displayErrorMessage, displayWarningMessage, openErrorMessageDialog,
+* <p> openWarningMessageDialog, setupMessageArray, toStringArray,
+* <p> wrapError, and wrapWarning.
+* <p>
 * <p> Revision 1.14  2005/10/31 17:54:32  sueh
 * <p> bug# 730 Pop up error message if Save fails and cannot do Save As.
 * <p> Prevent Save As functionality in Save when Save As is disabled.
