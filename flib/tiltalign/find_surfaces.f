@@ -21,11 +21,14 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2002/05/07 02:05:53  mast
+c	  Changed output to make it more understandable and readable
+c	
 c
 	subroutine find_surfaces(xyz,nrealpt,nsurface,tiltmax,
      &	    iunit2,tiltnew,igroup,ifcomp,tiltadd)
 	real*4 xyz(3,*)
-	parameter (maxreal=250)
+	parameter (maxreal=2000)
 	real*4 xx(maxreal),yy(maxreal),zz(maxreal),zrot(maxreal)
 	integer*4 igroup(*),icheck(maxreal/2)
 	logical changed
