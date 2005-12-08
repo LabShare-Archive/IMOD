@@ -10,12 +10,14 @@
 </profile>
 
 <DCF ref="./index.html" icon="b3dicon.png" title="3dmod Help Pages">
+    <section ref="./startup.html" title="3dmod Startup Window"/>
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
     <section ref="./contourJoin.html" title="Contour Joining"/>
     <section ref="./contourMove.html" title="Contour Moving"/>
     <section ref="./imageMovie.html" title="Image Movie Control"/>
     <section ref="./imageProc.html" title="Image Processing"/>
+    <section ref="./imageScale.html" title="Rescaling Images"/>
     <section ref="./finegrain.html" title="Fine Grain Control"/>
     <section ref="./beadfix.html" title="Bead Fixer"/>
     <section ref="./modvObjectEdit.html" title="Model View Object Edit"/>

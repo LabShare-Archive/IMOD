@@ -1,0 +1,61 @@
+<head>
+<title>3dmod Startup Window</title>
+</head>
+<H3>3dmod Startup Window</H3>
+When 3dmod is started with no arguments or with the -O argument, this dialog
+is opened to provide the ability to select many of the options that can be
+controlled with command-line arguments.  In addition, input files can
+be selected with a file chooser.
+<P>
+The <B>Start program as</B> radio buttons select the mode in which the
+program will be run; the two choices are equivalent to starting the
+program
+at the command line with "3dmod" or "3dmodv".
+<P>
+The three lines for specifying input files allow you either to type
+file names into the text boxes or to open a file chooser to select the
+files, using a <B>Select</B> button.  The first line is used to
+specify either image files, when running the program as "3dmod", or
+model
+files, when running as "3dmodv".  There are several special features
+for this line:
+<UL>
+<LI> Multiple files can be selected.
+<LI> Multiple file names can always be separated by semicolons, and
+they can usually separated by spaces.  When the names are returned
+from the file chooser, they will be separated by spaces if they do not
+contain any spaces themselves.  When you type names into the edit box,
+you can separate them by spaces if they are just filenames with no
+directory paths.  If you enter any directory paths with the names, you
+must separate multiple names with semicolons.
+<LI> The wild card characters * and ? can be used for file name
+entries; * matches any set of characters and ? matches a single character.
+</UL>
+<P>
+The rest of the items in the window correspond to options documented
+in the <A HREF = "../man/3dmod.html">3dmod</A> or
+<A HREF = "../man/3dmodv.html">3dmodv</A> man pages.  Specifically:
+<UL>
+<LI>The <B>Load image subset</B> group corresponds to the <B>-x</B>, <B>-y</B>,
+and <B>-z</B> options.
+<LI>The <B>Open</B> group specifies which windows to open initially,
+and activates the <B>-Z</B>, <B>-xyz</B>, <B>-S</B>, and <B>-V</B>
+options.
+<LI> The <B>Bin by</B> spin boxes correspond to the <B>-b</B> option.
+<LI> <B>Scale image intensities</B> corresponds to the <B>-s</B> option.
+<LI> The <B>Use cache</B> entries correspond to the <B>-C</B> option.
+<LI> <B>Flip Y and Z</B> activates the <B>-Y</B> option.
+<LI> <B>Fill cache upon startup</B> activates the <B>-F</B> option.
+<LI> <B>Show RGB images as grayscale</B> activates the <B>-G</B> option.
+<LI> <B>Load single-image files as separate times</B> activates the
+<B>-T</B>  option.
+<LI> <B>Load montage as single frames</B> activates the <B>-f</B> option.
+<LI> <B>Load model without scaling</B> activates the <B>-m</B> option.
+<LI> <B>Load FFT without mirroring</B> activates the <B>-M</B> option.
+<LI> The <B>Show images and montage</B> spin boxes correspond to the
+<B>-P</B> option.
+<LI> The <B>Show images and montage</B> spin boxes correspond to the
+<B>-P</B> option.
+<LI> The <B>Overlap pieces</B> spin boxes correspond to the <B>-o</B> option.
+<P>
+<A HREF="index.html">Help Index<A>

@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>794</width>
-            <height>547</height>
+            <width>788</width>
+            <height>487</height>
         </rect>
     </property>
     <property name="caption">
@@ -1198,17 +1198,11 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout11</cstring>
+                <cstring>layout18</cstring>
             </property>
             <hbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
                 </property>
                 <spacer>
                     <property name="name">
@@ -1222,7 +1216,7 @@
                     </property>
                     <property name="sizeHint">
                         <size>
-                            <width>203</width>
+                            <width>200</width>
                             <height>16</height>
                         </size>
                     </property>
@@ -1250,7 +1244,7 @@
                     </property>
                     <property name="sizeHint">
                         <size>
-                            <width>203</width>
+                            <width>100</width>
                             <height>16</height>
                         </size>
                     </property>
@@ -1265,6 +1259,31 @@
                 </widget>
                 <spacer>
                     <property name="name">
+                        <cstring>Spacer1_2</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>100</width>
+                            <height>16</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>helpButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Help</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
                         <cstring>Spacer2</cstring>
                     </property>
                     <property name="orientation">
@@ -1275,7 +1294,7 @@
                     </property>
                     <property name="sizeHint">
                         <size>
-                            <width>203</width>
+                            <width>200</width>
                             <height>16</height>
                         </size>
                     </property>
@@ -1356,6 +1375,12 @@
         <signal>clicked()</signal>
         <receiver>StartupForm</receiver>
         <slot>reject()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>helpClicked()</slot>
     </connection>
 </connections>
 <tabstops>
@@ -1449,6 +1474,7 @@
     <slot returnType="char **">getArguments( int &amp; argc )</slot>
     <slot>addImageFiles()</slot>
     <slot>setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int mirror, int frames, int nframex, int nframey, int overx, int overy, int overEntered )</slot>
+    <slot>helpClicked()</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

@@ -1,0 +1,38 @@
+<head>
+<title>Rescaling Images</title>
+</head>
+<H3>Rescaling Images</H3>
+The Image Scale dialog is used to reload images with a different scaling.  It
+can be used when the data have too great a dynamic range and
+the features of interest are not being displayed with sufficient gray
+levels.  It can also be used to bring multiple image files to a common
+scaling for comparison.
+<P>
+At the top of the window appear the current filename and the minimum,
+maximum, and mean values from the image file header.  If there are
+multiple image files loaded, these entries will be updated when the
+current file is changed.
+<P>
+The <B>Lower limit</B> and <B>Upper limit</B> are used to scale
+the image pixel values linearly to the 8-bit display; values between
+the lower and the upper value are scaled to the range 0 to 255, and
+values outside this range are truncated as black or white.
+When you first open the window, these values are set based upon
+the current position of the contrast sliders, so that if the 
+image is reloaded, it will have the same apparent contrast with 
+the sliders set to 32 and 223.
+<P>
+The <B>Apply</B> button will reload the image with the given limits
+AND set the contrast sliders to 32 and 223.
+<P>
+The <B>Calc</B> button will recalculate suggested lower and upper limits
+based upon new settings of the contrast sliders.
+Thus, you can either type in new lower and upper limits, or use
+the sliders and <B>Calc</B> button to set the limits.
+<P>
+All data for the current file are reloaded with the given scaling, unless
+data are loaded into the image cache and the cache is not being kept
+full.  In that case, the data in the cache are flushed but
+only the current image will be reloaded with the new scaling.
+<P>
+<A HREF="index.html">Help Index<A>

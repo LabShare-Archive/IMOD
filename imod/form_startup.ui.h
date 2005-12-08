@@ -385,9 +385,11 @@ void StartupForm::addImageFiles()
   QString path, file;
   int sepInd, i;
   // If text box was changed, need to recreate a string list
-  // If they were joined with ; or contain a ;, split with that
+  // If the files do not contain a ;, and either were joined with space
+  // or contain no directory names, split with space, otherwise split with ;
   if (mFilesChanged) {
-    if (mJoinedWithSpace && mImageFiles.find(';') < 0)
+    if (mImageFiles.find(';') < 0 && 
+        (mJoinedWithSpace || mImageFiles.find(QRegExp("[\\\\/]"))))
       mImageFileList = QStringList::split(" ", mImageFiles);
     else 
       mImageFileList = QStringList::split(";", mImageFiles);
@@ -522,4 +524,9 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
     yOverlapSpinBox->setValue(overy);
   }
   manageForModView();    
+}
+
+void StartupForm::helpClicked()
+{
+    imodShowHelpPage("startup.html");
 }
