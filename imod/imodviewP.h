@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 1.6  2004/11/07 22:59:52  mast
 Make binning routine global
 
@@ -57,7 +60,7 @@ int  ivwPointVisible(ImodView *vw, Ipoint *pnt);
 int  imodImageFileDesc(FILE *fin);
 int  ivwLoadIMODifd(ImodView *vi);
 int  ivwLoadImage(ImodView *iv);
-void ivwFlushCache(ImodView *vi);
+void ivwFlushCache(ImodView *vi, int time);
 void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, 
 		      int lastimage);
 
