@@ -13,7 +13,7 @@ OBJS = concat.$(O) dopen.$(O) getinout.$(O) mypause.$(O) convexbound.$(O) \
  meanzero.$(O) setctf.$(O) indmap.$(O) ialsiz_sam_cel.$(O) get_nxyz.$(O) \
  get_extra_header_pieces.$(O) get_extra_header_tilts.$(O) temp_filename.$(O) \
  taperinvol.$(O) reduce_by_binning.$(O) parse_input_params.$(O) \
- getbinnedsize.$(O)
+ getbinnedsize.$(O) b3dxor.$(O)
 
 
 all: $(OBJS)
