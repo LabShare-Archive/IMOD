@@ -135,6 +135,14 @@ public class UIHarness {
     return true;
   }
   
+  public synchronized boolean openYesNoWarningDialog(String message, AxisID axisID) {
+    if (isHead()) {
+      return mainFrame.displayYesNoWarningDialog(message, axisID);
+    }
+    log("openYesNoWarningDialog", message, axisID);
+    return true;
+  }
+  
   public synchronized boolean openYesNoDialog(String[] message, AxisID axisID) {
     if (isHead()) {
       return mainFrame.displayYesNoMessage(message, axisID);
@@ -434,6 +442,10 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.16  2005/11/02 22:15:15  sueh
+* <p> bug# 754 Integrating ProcessMessages.  Added functions logError,
+* <p> logWarning, openErrorMessageDialog, openWarningMessageDialog.
+* <p>
 * <p> Revision 1.15  2005/09/22 21:34:42  sueh
 * <p> bug# 532 Moved ApplicationManager.packDialogs functions to
 * <p> BaseManager and renamed them packPanel.
