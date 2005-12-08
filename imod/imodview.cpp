@@ -781,24 +781,35 @@ void ivwFreeCache(ImodView *vi)
 }
 
 /*
- *  Sets the image Cache so that it contains no data. 
+ *  Sets the image Cache so that it contains no data if time < 0, or clears
+ * data from the cache for the given time only
  */
-void ivwFlushCache(ImodView *vi)
+void ivwFlushCache(ImodView *vi, int time)
 {
-  int i;
+  int i, t, tst, tnd;
   int zsize = vi->li->zmax - vi->li->zmin + 1;
   if (vi->li->axis == 2) 
     zsize = vi->li->ymax - vi->li->ymin + 1;
 
   for (i = 0; i < vi->vmSize; i++){
-    vi->vmCache[i].cz = -1;
-    vi->vmCache[i].ct = 0;
-    vi->vmCache[i].used = -1;
+    if (time < 0 || vi->vmCache[i].ct == time) {
+      vi->vmCache[i].cz = -1;
+      vi->vmCache[i].ct = 0;
+      vi->vmCache[i].used = -1;
+    }
   }
-  vi->vmCount = 0;
+  if (time < 0) {
+    vi->vmCount = 0;
+    tst = vi->nt ? 1 : 0;
+    tnd = vi->nt ? vi->nt : 0;
+  } else {
+    tst = time;
+    tnd = time;
+  }
 
-  for (i = 0; i < vi->vmTdim * zsize; i++)
-    vi->cacheIndex[i] = -1;
+  for (t = tst; t <= tnd; t++) 
+    for (i = 0; i < zsize; i++)
+      vi->cacheIndex[i * vi->vmTdim + t - vi->vmTbase] = -1;
 }
 
 /* Initialize the cache to number of slices in vmSize */
@@ -855,7 +866,7 @@ int ivwInitCache(ImodView *vi)
       return(10);
     }
   }
-  ivwFlushCache(vi);
+  ivwFlushCache(vi, -1);
   return(0);
 }
 
@@ -2418,6 +2429,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.41  2005/11/26 16:49:31  mast
+Made image list reading handle DOS ending and strip spaces from names
+
 Revision 4.40  2005/11/11 23:04:29  mast
 Changes for unsigned integers
 
