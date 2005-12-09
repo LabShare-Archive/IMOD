@@ -5,11 +5,14 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.2  2004/06/04 16:55:57  mast
+c	  Eliminated degree-type trig functions
+c	
 c
 	subroutine findangpos(array,nx,ny,bkern,kbase,ksize,nkern,ixofs,
      &	    iyofs,dmean,thetinc,tolpathang,ndxlim,xnd,ynd,ixc,iyc,tbest,
      &	    cxnew,cynew)
-	byte array(nx,ny)
+	integer*1 array(nx,ny)
 	real*4 bkern(*)
 	integer*4 kbase(*),ixofs(*),iyofs(*)
 	parameter (limdx=10,limkern=40)
@@ -189,9 +192,9 @@ c
 	subroutine kernprod(array,nx,ny,ixc,iyc,bkern,nxk,nyk,ixofs,
      &	    iyofs,dmean,prod)
 	real*4 bkern(nxk,nyk)
-	byte array(nx,ny)
+	integer*1 array(nx,ny)
 	include 'endian.inc'
-	byte btmp(2)
+	integer*1 btmp(2)
 	integer*2 i2val
 	equivalence (btmp,i2val)
 c	  
@@ -240,9 +243,9 @@ c
 	end
 
 	subroutine edgemean(array,nx,ny,dmean)
-	byte array(nx,ny)
+	integer*1 array(nx,ny)
 	include 'endian.inc'
-	byte btmp(2)
+	integer*1 btmp(2)
 	integer*2 i2val
 	equivalence (btmp,i2val)
 	ixh1=min(10,nx)
@@ -289,10 +292,10 @@ c
 	end
 
 c$$$	subroutine typearray(array,nx,ny,ixc,iyc)
-c$$$	byte array(nx,ny)
+c$$$	integer*1 array(nx,ny)
 c$$$	integer*4 itmp(10)
 c$$$	include 'endian.inc'
-c$$$	byte btmp(2)
+c$$$	integer*1 btmp(2)
 c$$$	integer*2 i2val
 c$$$	equivalence (btmp,i2val)
 c$$$	ixst=max(1,ixc-4)
