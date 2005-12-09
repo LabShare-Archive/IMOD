@@ -27,6 +27,12 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.14  2005/11/19 02:29:04  sueh
+* <p> bug# 744 Moved functions only used by process manager post
+* <p> processing and error processing from Commands to ProcessDetails.
+* <p> This allows ProcesschunksParam to be passed to DetachedProcess
+* <p> without having to add unnecessary functions to it.
+* <p>
 * <p> Revision 1.13  2005/09/09 21:36:56  sueh
 * <p> bug# 532 Handling null from stderr and stdout.
 * <p>
@@ -212,6 +218,7 @@ public class JoinProcessManager extends BaseProcessManager {
    * non-generic post processing for a successful BackgroundProcess.
    */
   protected void postProcess(BackgroundProcess process) {
+    super.postProcess(process);
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;

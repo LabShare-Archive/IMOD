@@ -20,6 +20,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.87  2005/11/19 02:36:48  sueh
+ * bug# 744 Moved functions only used by process manager post
+ * processing and error processing from Commands to ProcessDetails.
+ * This allows ProcesschunksParam to be passed to DetachedProcess
+ * without having to add unnecessary functions to it.
+ *
  * Revision 3.86  2005/11/02 21:58:17  sueh
  * bug# 754 Parsing errors and warnings inside ProcessMessages.
  *
@@ -1713,6 +1719,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   protected void postProcess(BackgroundProcess process) {
+    super.postProcess(process);
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process, process.getAxisID());
     }
