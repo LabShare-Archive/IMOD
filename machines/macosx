@@ -18,7 +18,7 @@ echo "CC        = gcc"              >> $configure
 
 set fcompFlags = "-ffixed-line-length-0"
 
-gfortran -v >&! gfortran.tmp
+gcc -v >&! gfortran.tmp
 set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
 \rm -f gfortran.tmp
 if ($#fortvers < 2) set fortvers = 3
