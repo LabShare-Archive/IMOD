@@ -17,7 +17,7 @@ c  Variable definition for the common /wmpmod/
 	integer*4 obj_order(max_obj_order)	!list of objects in order
 	integer*4 ndx_order(max_obj_num) !index of object's entry in OBJ_ORDER
 	real*4 p_coord(3,max_pt)		!model coordinates of points
-	byte pt_label(max_pt)			!symbol number for point
+	integer*1 pt_label(max_pt)		!symbol number for point
         character*10 clabel(max_clabel)		!text labels
 	integer*4 label_list(max_clabel)	!list of points with labels
 	integer*4 n_point			!highest point # in p_coord
