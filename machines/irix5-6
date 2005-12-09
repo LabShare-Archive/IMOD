@@ -130,7 +130,7 @@ endif
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
 #
 set cflags = "$optimization $defines $include_flags $c_includes"
-set fflags = "$foptimization $defines $include_flags"
+set fflags = "$foptimization $defines $include_flags -extend_source"
 
 echo "CFLAGS   = $flags $cflags" >> $configure
 echo "CXXFLAGS = $flags $cflags" >> $configure
@@ -201,6 +201,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.31  2005/07/06 21:12:32  mast
+#  Removed fallbacks
+#
 #  Revision 3.30  2005/06/27 19:39:41  mast
 #  Needed to set sendevent retry hack 0
 #
