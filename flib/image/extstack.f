@@ -34,6 +34,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/02/11 01:42:32  mast
+c	  Warning cleanup: implicit declarations, main return type, parentheses, etc.
+c	
 c	  Revision 3.1  2003/03/14 01:07:52  mast
 c	  Add linear argument for interpolation call
 c	
@@ -137,9 +140,9 @@ c	--- Read reference point file ---
 	   if ( ccnt(ztmp) .gt. 0.0 ) then
 	      if ( ccnt(ztmp) .ne. expref ) then
 		 write ( *, '( 3( a, i4 ) )' )
-	2	' ERROR: Section ', (ztmp-1), ' -- expected ',
-	3	int(expref), ' reference points, found ',
-	4	int(ccnt(ztmp))
+     &		    ' ERROR: Section ', (ztmp-1), ' -- expected ',
+     &		    int(expref), ' reference points, found ',
+     &		    int(ccnt(ztmp))
 		 call exit(0)
 	      end if
 	      xcen(ztmp) = xcen(ztmp) / ccnt(ztmp)
@@ -201,18 +204,18 @@ c	      --- Loop over the subsection points for each extraction ---
 		 amat(2,1) = sind(theta)
 		 amat(2,2) = cosd(theta)
 		 xt = -( amat(1,1)*(xtmp(np)-xc) +		!---Translate---
-	2		 amat(1,2)*(ytmp(np)-yc) )
+     &		     amat(1,2)*(ytmp(np)-yc) )
 		 yt = -( amat(2,1)*(xtmp(np)-xc) +
-	2		 amat(2,2)*(ytmp(np)-yc) )
+     &		     amat(2,2)*(ytmp(np)-yc) )
 		 nxb = nlen
 		 nyb = plen
 
 c		 --- Extract the subsection using calculated parameters ---
 		 call cubinterp( array, brray, nxa, nya, nxb, nyb, amat,
-	2			xc, yc, xt, yt, scale, dmean, 0)
+     &		     xc, yc, xt, yt, scale, dmean, 0)
 
 		 call iclden( brray, nxb, nyb, 1, nxb, 1, nyb,
-	2		      dmint, dmaxt, dmeant )
+     &		     dmint, dmaxt, dmeant )
 		 dmintot = min(dmintot,dmint)
 		 dmaxtot = max(dmaxtot,dmaxt)
 		 dmeantot = dmeantot + dmeant
@@ -257,7 +260,7 @@ c       encode ( 80, 3000, title ) dat, tim
 1000	format ( a50 )
 2000	format ( ' Writing new section # ', i4 )
 3000	format ( 'EXTSTACK: Extract subsections from a stack.',
-	2	 9x, a9, 2x, a8 )
+     &	    9x, a9, 2x, a8 )
 
 
 	end

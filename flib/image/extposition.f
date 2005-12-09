@@ -23,7 +23,7 @@ c	--- Working variables ---
      &	    xref(maxpts), yref(maxpts), zref(maxpts), ztmp,
      &	    xpos(maxpts), ypos(maxpts), zpos(maxpts)
 	real	xtmp(maxpts), ytmp(maxpts), amat(2,2),
-	2	xcen(maxpts), ycen(maxpts), ccnt(maxpts)
+     &	    xcen(maxpts), ycen(maxpts), ccnt(maxpts)
 	integer indref(50)
 	real angref(50)
 	logical done
@@ -79,9 +79,9 @@ c	--- Read reference point file ---
 	   if ( ccnt(ztmp) .gt. 0.0 ) then
 	      if ( ccnt(ztmp) .ne. expref ) then
 		 write ( *, '( 3( a, i4 ) )' )
-	2	' ERROR: Section ', (ztmp-1), ' -- expected ',
-	3	int(expref), ' reference points, found ',
-	4	int(ccnt(ztmp))
+     &		    ' ERROR: Section ', (ztmp-1), ' -- expected ',
+     &		    int(expref), ' reference points, found ',
+     &		    int(ccnt(ztmp))
 		 call exit(0)
 	      end if
 	      xcen(ztmp) = xcen(ztmp) / ccnt(ztmp)
