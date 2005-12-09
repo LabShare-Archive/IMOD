@@ -21,7 +21,7 @@ import etomo.util.UniqueKey;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002, 2003, 2004, 2005</p>
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -31,6 +31,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2005/09/22 21:21:02  sueh
+ * <p> bug# 532 In showAxisA, B, and Both:  using UIHarness.pack() to get a
+ * <p> complete pack.
+ * <p>
  * <p> Revision 3.35  2005/08/22 22:08:41  sueh
  * <p> bug# 714 Adding call to makeCurrent() when setCurrentManager is called.
  * <p>
@@ -512,14 +516,13 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
    * @param event
    */
   protected void menuOptionsAction(ActionEvent event) {
-    String command = event.getActionCommand();
-    if (command.equals(menu.getActionCommandAxisA())) {
+    if (menu.equalsAxisA(event)) {
       showAxisA();
     }
-    else if (command.equals(menu.getActionCommandAxisB())) {
+    else if (menu.equalsAxisB(event)) {
       showAxisB();
     }
-    else if (command.equals(menu.getActionCommandAxisBoth())) {
+    else if (menu.equalsAxisBoth(event)) {
       showBothAxis();
     }
     else {
