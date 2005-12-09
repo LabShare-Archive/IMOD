@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/10/11 21:37:48  mast
+c	  Updated fallback PIP options
+c	
 c	  Revision 3.2  2005/04/17 15:25:12  mast
 c	  Had to declare lnblnk
 c	
@@ -58,8 +61,8 @@ c
 	if (PipGetInOutFile('BInputFile', 2, ' ', bfile) .ne. 0)
      &	    bfile = afile(1:lnblnk(afile))//'~'
 c
-	open(1, name=afile, status='OLD',form='formatted', err=98)
-	open(2, name=bfile, status='OLD',form='formatted', err=99)
+	open(1, file=afile, status='OLD',form='formatted', err=98)
+	open(2, file=bfile, status='OLD',form='formatted', err=99)
 c
 	ierr = PipNumberOfEntries('MaxDifferences', numMaxes)
 	ierr = PipGetLogical('GeneralFormat', general)
