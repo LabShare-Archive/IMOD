@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.1  2005/12/08 15:56:46  mast
+c	  Addition for use of gfortran
+c	
 c
 	logical function b3dxor(a, b)
 	logical a, b
