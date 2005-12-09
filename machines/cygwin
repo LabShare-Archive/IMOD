@@ -32,6 +32,7 @@ if ($compiler == intel) then
     set ldfflags = "/C90 /4Yportlib"
     set fortcomp = ifl
     set delayload = gibberish
+    set fcompFlags = "/4L132"
     
     # Get the version from icl, assuming we have matched c++/fortran compilers
     #
@@ -49,7 +50,7 @@ if ($compiler == intel) then
         set fortcomp = ifort
         set ldfflags = "/4Yportlib /F66000000"
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
-        set fcompFlags = "/assume:bscc"
+        set fcompFlags = "/assume:bscc /4L132"
         if ($iclversion == 9) set delayload = "DELAYLOAD"
     endif
     
