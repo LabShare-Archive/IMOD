@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.35  2005/12/05 21:58:35  sueh
+ * <p> $bug# 674 Added comments to the new functions.
+ * <p> $
  * <p> $Revision 3.34  2005/12/05 21:41:17  sueh
  * <p> $bug# 674 Added round(), convertToScientificNotation(), and
  * <p> $breakAndTrim().
@@ -955,5 +958,17 @@ public class Utilities {
       return null;
     }
     return exponent.toString();
+  }
+  
+  public static final void findMessageAndOpenDialog(AxisID axisID,
+      String [] searchLines, String startsWith, String title) {
+    if (searchLines == null) {
+      return;
+    }
+    for (int i = 0; i < searchLines.length; i++) {
+      if (searchLines[i].startsWith(startsWith)) {
+        UIHarness.INSTANCE.openInfoMessageDialog(searchLines[i], title, axisID);
+      }
+    }
   }
 }
