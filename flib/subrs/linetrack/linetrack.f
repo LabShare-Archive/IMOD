@@ -5,13 +5,16 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.2  2004/06/04 16:55:44  mast
+c	  Eliminated degree-type trig functions
+c	
 c
 	subroutine linetrack(array,nx,ny,p_coord,ninobj,iptcur,maxlen,
      &	    inksize,inkern,sigma,h,ifdark,step,redtol,ifreplace,offset,
      &	    ifclose,iffail)
 	parameter (limdx=6,limkern=40,limksize=21,limpath=1000)
 	parameter (maxtry=2)
-	byte array(nx,ny)
+	integer*1 array(nx,ny)
 	real*4 p_coord(3,maxlen)
 c
 	real*4 orig(3),bkern(limkern*limksize**2)

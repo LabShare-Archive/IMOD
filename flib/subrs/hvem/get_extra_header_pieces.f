@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/06/05 00:11:47  mast
+c	  Change STOP to standardized ERROR exit
+c	
 c	  Revision 3.2  2002/02/26 23:08:19  mast
 c	  *** empty log message ***
 c	
@@ -27,7 +30,7 @@ c
 	subroutine get_extra_header_pieces (array,nbsym,nbyte,iflags,nz,
      &	    ixpiece,iypiece,izpiece,npiece,maxpiece)
 	implicit none
-	byte array(*)
+	integer*1 array(*)
 	integer*4 ixpiece(*),iypiece(*),izpiece(*)
 	integer*4 nbsym,nbyte,iflags,nz,npiece,maxpiece
 	integer*2 temp

@@ -68,8 +68,14 @@ c	      call localpolyfit(xt,yt,nfit,iorder,slop,bint)
 		call quadfit(xt,yt,nfit,slop(2),slop(1),bint)
 	      endif
 	      ycen=bint
+c		
+c		11/8/05: change from xt(jcen)**i to avoid gfortran power 
+c		function that 3dmod had trouble linking to
+c
+	      xtmp = 1.
 	      do i=1,iorder
-		ycen=ycen+slop(i)*xt(jcen)**i
+		xtmp = xtmp * xt(jcen)
+		ycen=ycen+slop(i)*xtmp
 	      enddo
 	      if(abs(ycen-yt(jcen)).lt.tol)then
 c		  

@@ -42,6 +42,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2005/11/11 22:36:22  mast
+c	  Changes for unsigned mode
+c	
 c	  Revision 3.11  2004/06/10 22:48:14  mast
 c	  Added workaround to FEI bug in nint-nreal definition
 c	
@@ -86,8 +89,9 @@ c
 c
 	SUBROUTINE IRDHDR(ISTREAM,INXYZ,MXYZ,IMODE,DMIN,DMAX,DMEAN)
 	implicit none
-	integer*4 INXYZ(3),MXYZ(3),LXYZ(3),LABELS(1),NXYZST(3),MCRS(3)
+	integer*4 INXYZ(3),MXYZ(3),LABELS(1),NXYZST(3),MCRS(3)
 	real*4 TITLE(1),CELL(6),EXTRA(1),delta(3),delt(3)
+	character*1 LXYZ(3)
 	DATA LXYZ/'X','Y','Z'/
 C
 	include 'imsubs.inc'
@@ -1256,12 +1260,13 @@ c	  endian or 17 for big-endian file
 	include 'imsubs.inc'
 	include 'endian.inc'
 	integer j
+	logical b3dxor
 c
 	cmap(1,j) = ichar('M')
 	cmap(2,j) = ichar('A')
 	cmap(3,j) = ichar('P')
 	cmap(4,j) = ichar(' ')
-	if (lowbyte.eq.1 .xor. mrcflip(j)) then
+        if (b3dxor(lowbyte.eq.1, mrcflip(j))) then
 	  stamp(1,j) = 68
 	else
 	  stamp(1,j) = 17
@@ -1277,7 +1282,7 @@ c	  Replace any nulls in the title with spaces
 c
 	subroutine fixtitlenulls(label)
 	implicit none
-	byte label(80)
+	integer*1 label(80)
 	integer*4 i
 	do i = 1,80
 	  if (label(i) .eq. 0) label(i) = 32

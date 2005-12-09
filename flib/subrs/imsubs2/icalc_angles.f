@@ -39,7 +39,7 @@ c
 c	first check matrix
 c
 	det = r11*r22*r33 - r11*r23*r32 + r12*r23*r31 - r12*r21*r33
-	1		+ r13*r21*r32 - r13*r22*r31
+     &	    + r13*r21*r32 - r13*r22*r31
 	if (abs(det-1.0).gt.crit) then		! determinant not 1.0
 	   write (6,*) 'icalc_angles - matrix',matrix
 	   write (6,*) 'determinant - ',det
@@ -47,7 +47,7 @@ c
 	end if					! can't be a rotation
 
 	if (abs(r13-1.0).le.small
-	1  .or. abs(r13+1.0).le.small) then	! sinb = 1 or -1
+     &	    .or. abs(r13+1.0).le.small) then	! sinb = 1 or -1
 	   beta = asin(r13)			! beta = 90 or 270
 	   gamma = atan2 (r21,r22)		! can only solve for
 	   alpha = 0.0				! gamma+alpha - set alpha

@@ -23,7 +23,7 @@ C
 C
 	DIMENSION ARRAY(*)
 	INTEGER*2 LINE(4096),IB,iscratch(7300)
-	BYTE BLINE(8192),QB(2),bstore(4),bcur
+	INTEGER*1 BLINE(8192),QB(2),bstore(4),bcur
         integer*4 lcompos
 	real*4 rline(2048)
 	EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1)),

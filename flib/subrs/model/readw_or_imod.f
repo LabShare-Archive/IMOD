@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/05/24 17:53:37  mast
+c	  Added routines for reading selected objects from model
+c	
 c	  Revision 3.1  2001/12/05 16:04:24  mast
 c	  Restored ability to read VMS floats even when package is compiled for
 c	  IEEE floats, and made Wimp models readable from either endian machine
@@ -22,7 +25,7 @@ c
 	character*(*) filename
 	real*4 flt(3)
 	integer*2 int2(26)
-	byte ptbyte
+	integer*1 ptbyte
 c
 	readw_or_imod=.true.
 	ierr=getimod(ibase_obj,npt_in_obj,p_coord,obj_color,n_point,

@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 1.4  2004/11/05 19:03:22  mast
+c	  Skip over bad spot if not needed, use b3dputs for diagnostics
+c	
 c	
 c	  Revision 1.2  2004/06/04 16:56:04  mast
 c	  Eliminated degree-type trig functions
@@ -20,7 +23,7 @@ c
      &	    maxlen, inksize,inkern,sigma,h,ifdark,step,redtol,offset,
      &	    limshift ,inpool,infit)
 	parameter (limkern=5,limksize=21,ndlim=20,limfit=9)
-	byte array(nx,ny)
+	integer*1 array(nx,ny)
 	real*4 p_coord(3,maxlen),p_copy(2,maxlen),xt(limfit),yt(limfit)
 c
 	real*4 orig(3),bkern(limkern*limksize**2)

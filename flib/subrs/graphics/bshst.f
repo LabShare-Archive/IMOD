@@ -223,6 +223,7 @@ c
 	character*240 line
 	character*1 hisymb(22)
 	character*22 pausymb
+	logical b3dxor
 	save xloin,dxin,nbins,ifplt,ifnewp,fsc,iskp,binsin
 	data iskp/0/
 	data hisymb/'-','|','<','>','/','\\','X','+','O','@','v','^'
@@ -446,7 +447,7 @@ c     &		    call chrout(ichar(hisymb(max(1,nsymb(ngx(i))))))
 	      do 63 jb=1,ngbelow
 		if(ngx(i).eq.iginv(jb))ifbelow=1
 63	      continue
-	      if(nupdown.eq.1.xor.ifbelow.eq.1)then
+	      if(b3dxor(nupdown.eq.1, ifbelow.eq.1))then
 		jz(iz(i))=jz(iz(i))+1
 		maxbin=max(maxbin,jz(iz(i)))
 	      endif
@@ -571,7 +572,7 @@ c     &		    call chrout(ichar(hisymb(max(1,nsymb(ngx(i))))))
 		if(ng.eq.iginv(jb))ifbelow=1
 65	      continue
 	    endif
-	    if(nupdown.eq.1.xor.ifbelow.eq.1)then
+	    if(b3dxor(nupdown.eq.1, ifbelow.eq.1))then
 	      do 70 i=1,nx
 		if(ngx(i).eq.ng)then
 		  np=np+1
@@ -617,7 +618,7 @@ c     &		    call chrout(ichar(hisymb(max(1,nsymb(ngx(i))))))
 			  if(ngx(i).eq.iginv(jb))ifbelow=1
 			enddo
 		      endif
-		      if(nupdown.eq.1.xor.ifbelow.eq.1)then
+		      if(b3dxor(nupdown.eq.1, ifbelow.eq.1))then
 			ysum=ysum+(1-((xx(i)-xk)/dx)**2)**3
 		      endif
 		    endif

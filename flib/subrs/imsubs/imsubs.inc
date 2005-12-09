@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/11/11 22:36:22  mast
+c	  Changes for unsigned mode
+c	
 c	  Revision 3.3  2002/07/31 17:42:59  mast
 c	  For new format, defined cmap,rms, and stamp, changed origxy to
 c	  origxyz, changed size of stuff to 27
@@ -29,7 +32,7 @@ c       number of units
 
 	real*4 DENMMM(3,maxunit),STUFF(27,maxunit),ORIGXYZ(3,maxunit),
      &      CEL(6,maxunit),rms(maxunit)
-	byte cmap(4,maxunit),stamp(4,maxunit)
+	integer*1 cmap(4,maxunit),stamp(4,maxunit)
 	logical FLAG(maxunit),NOCON(maxunit),spider(maxunit),
      &      mrcflip(maxunit),print
 C
@@ -41,5 +44,5 @@ C
      &	    lbasspi, mrcflip
 
 	integer*4  ibleft(maxunit)
-        byte bytcur(maxunit)
+        integer*1 bytcur(maxunit)
         common /imGbit/ ibleft,bytcur

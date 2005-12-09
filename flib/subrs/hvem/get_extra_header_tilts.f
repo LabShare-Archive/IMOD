@@ -17,6 +17,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/03/18 17:56:17  mast
+c	  Changed to calling central routine with byte counts
+c	
 c	  Revision 3.2  2003/06/05 00:11:38  mast
 c	  Change STOP to standardized ERROR exit
 c	
@@ -28,7 +31,7 @@ c
 	subroutine get_extra_header_tilts
      &	    (array,nbsym,nbyte,iflags,nz,tilt,ntilt,maxtilts,izpiece)
 	implicit none
-	byte array(*)
+	integer*1 array(*)
 	real*4 tilt(*)
 	integer*4 izpiece(*)
 	integer*4 nbsym,nbyte,iflags,nz,ntilt,maxtilts
@@ -41,7 +44,7 @@ c
 	subroutine get_extra_header_items(array,nbsym,nbyte,iflags,nz,
      &	    itype,val1,val2,nvals,maxvals,izpiece)
 	implicit none
-	byte array(*)
+	integer*1 array(*)
 	real*4 val1(*), val2(*)
 	integer*4 izpiece(*)
 	integer*4 nbsym,nbyte,iflags,nz,nvals,maxvals,itype

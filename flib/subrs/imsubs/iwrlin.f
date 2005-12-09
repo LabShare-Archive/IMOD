@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/11/15 19:56:00  mast
+c	  Fixed unsigned write for big endian
+c	
 c	  Revision 3.3  2005/11/11 22:36:22  mast
 c	  Changes for unsigned mode
 c	
@@ -39,7 +42,7 @@ C
 	DIMENSION ARRAY(*)
 	parameter (linesize = 8192)
 	INTEGER*2 LINE(linesize/2),IB,iscratch(7300)
-        BYTE BLINE(linesize),QB(2),bstore(4),bcur
+        INTEGER*1 BLINE(linesize),QB(2),bstore(4),bcur
 	real*4 fline(linesize/4)
         integer*4 lcompos
 	logical bad /.true./
