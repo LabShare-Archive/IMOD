@@ -13,6 +13,9 @@ package etomo.type;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.6  2005/11/19 02:42:06  sueh
+ * <p> $bug# 744 Added processchunks.
+ * <p> $
  * <p> $Revision 1.5  2005/08/31 19:11:41  sueh
  * <p> $bug# 719 Added startjoin.
  * <p> $
@@ -59,6 +62,7 @@ public class ProcessName {
   private static final String solvematch = "solvematch";
   private static final String startjoin = "startjoin";
   private static final String processchunks = "processchunks";
+  private static final String tomosnapshot = "tomosnapshot";
   
   private final String name;
   
@@ -89,12 +93,20 @@ public class ProcessName {
   public static final ProcessName SOLVEMATCH = new ProcessName(solvematch);
   public static final ProcessName STARTJOIN = new ProcessName(startjoin);
   public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks);
+  public static final ProcessName TOMOSNAPSHOT = new ProcessName(tomosnapshot);
   
   /**
    * Returns a string representation of the object.
    */
   public String toString() {
     return name;
+  }
+  
+  public final boolean equals(String name) {
+    if (fromString(name) == this) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -173,7 +185,10 @@ public class ProcessName {
     if (name.compareToIgnoreCase(processchunks) == 0) {
       return PROCESSCHUNKS;
     }
-    throw new IllegalArgumentException("name="+name);
+    if (name.compareToIgnoreCase(tomosnapshot) == 0) {
+      return TOMOSNAPSHOT;
+    }
+    return null;
   }
   
   public static ProcessName fromFileName(
