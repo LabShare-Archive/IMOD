@@ -1,8 +1,9 @@
 include ../../configure
 
+CFLAGS = $(LIBCFLAGS)
 FFLAGS = $(LIBFFLAGS)
 
-OBJS = degtrig.$(OBJEXT)
+OBJS = ransub.$(OBJEXT) ourrnd.$(OBJEXT) degtrig.$(OBJEXT) $(DATEOBJ)
 
 all: $(OBJS)
 
