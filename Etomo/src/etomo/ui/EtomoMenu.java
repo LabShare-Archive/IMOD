@@ -42,6 +42,7 @@ public class EtomoMenu {
   private JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
   private JMenuItem menuFileClose = new JMenuItem("Close", KeyEvent.VK_C);
   private JMenuItem menuFileExit = new JMenuItem("Exit", KeyEvent.VK_X);
+  private JMenuItem menuFileTomosnapshot = new JMenuItem("Run Tomosnapshot", KeyEvent.VK_R);
   private JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
 
   private JMenu menuOptions = new JMenu("Options");
@@ -95,6 +96,7 @@ public class EtomoMenu {
     menuFileSaveAs.addActionListener(fileActionListener);
     menuFileClose.addActionListener(fileActionListener);
     menuFileExit.addActionListener(fileActionListener);
+    menuFileTomosnapshot.addActionListener(fileActionListener);
 
     OptionsActionListener optionsActionListener = new OptionsActionListener(
         frame);
@@ -122,6 +124,8 @@ public class EtomoMenu {
     menuFile.add(menuFileSaveAs);
     menuFile.add(menuFileClose);
     menuFile.add(menuFileExit);
+    menuFile.addSeparator();
+    menuFile.add(menuFileTomosnapshot);
     menuFile.addSeparator();
 
     //  Initialize all of the MRU file menu items
@@ -182,6 +186,12 @@ public class EtomoMenu {
       menuAxisA.setEnabled(dualAxis);
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
+    }
+    if (currentManager == null || !currentManager.canSnapshot()) {
+      menuFileTomosnapshot.setEnabled(false);
+    }
+    else {
+      menuFileTomosnapshot.setEnabled(true);
     }
   }
   
@@ -248,84 +258,92 @@ public class EtomoMenu {
     menuFileNewJoin.setEnabled(enable);
   }
   
-  String getActionCommandFileNewTomogram() {
-    return menuFileNewTomogram.getActionCommand();
+  final boolean equalsFileNewTomogram(ActionEvent event) {
+    return equals(menuFileNewTomogram, event);
   }
 
-  String getActionCommandFileNewJoin() {
-    return menuFileNewJoin.getActionCommand();
+  final boolean equalsFileNewJoin(ActionEvent event) {
+    return equals(menuFileNewJoin, event);
   }
 
-  String getActionCommandFileOpen() {
-    return menuFileOpen.getActionCommand();
+  final boolean equalsFileOpen(ActionEvent event) {
+    return equals(menuFileOpen, event);
   }
 
-  String getActionCommandFileSave() {
-    return menuFileSave.getActionCommand();
+  final boolean equalsFileSave(ActionEvent event) {
+    return equals(menuFileSave, event);
   }
 
-  String getActionCommandFileSaveAs() {
-    return menuFileSaveAs.getActionCommand();
+  final boolean equalsFileSaveAs(ActionEvent event) {
+    return equals(menuFileSaveAs, event);
   }
 
-  String getActionCommandFileClose() {
-    return menuFileClose.getActionCommand();
+  final boolean equalsFileClose(ActionEvent event) {
+    return equals(menuFileClose, event);
   }
 
-  String getActionCommandFileExit() {
-    return menuFileExit.getActionCommand();
+  final boolean equalsFileExit(ActionEvent event) {
+    return equals(menuFileExit, event);
   }
   
-  String getActionCommandSettings() {
-    return menuSettings.getActionCommand();
+  final boolean equalsFileTomosnapshot(ActionEvent event) {
+    return equals(menuFileTomosnapshot, event);
   }
   
-  String getActionCommandAxisA() {
-    return menuAxisA.getActionCommand();
+  final boolean equalsSettings(ActionEvent event) {
+    return equals(menuSettings, event);
   }
   
-  String getActionCommandAxisB() {
-    return menuAxisB.getActionCommand();
+  final boolean equalsAxisA(ActionEvent event) {
+    return equals(menuAxisA, event);
   }
   
-  String getActionCommandAxisBoth() {
-    return menuAxisBoth.getActionCommand();
+  final boolean equalsAxisB(ActionEvent event) {
+    return equals(menuAxisB, event);
   }
   
-  String getActionCommand3dmodStartUpWindow() {
-    return menu3dmodStartupWindow.getActionCommand();
+  final boolean equalsAxisBoth(ActionEvent event) {
+    return equals(menuAxisBoth, event);
   }
   
-  String getActionCommand3dmodBinBy2 () {
-    return menu3dmodBinBy2.getActionCommand();
+  final boolean equals3dmodStartUpWindow(ActionEvent event) {
+    return equals(menu3dmodStartupWindow, event);
   }
   
-  String getActionCommandFitWindow() {
-    return menuFitWindow.getActionCommand();
+  private final boolean equals(JMenuItem menuItem, ActionEvent event) {
+    return menuItem.getActionCommand().equals(event.getActionCommand());
   }
   
-  String getActionCommandTomoGuide() {
-    return menuTomoGuide.getActionCommand();
+  final boolean equals3dmodBinBy2(ActionEvent event) {
+    return equals(menu3dmodBinBy2, event);
+  }
+  
+  final boolean equalsFitWindow(ActionEvent event) {
+    return equals(menuFitWindow, event);
+  }
+  
+  final boolean equalsTomoGuide(ActionEvent event) {
+    return equals(menuTomoGuide, event);
   }
 
-  String getActionCommandImodGuide() {
-    return menuImodGuide.getActionCommand();
+  final boolean equalsImodGuide(ActionEvent event) {
+    return equals(menuImodGuide, event);
   }
 
-  String getActionCommand3dmodGuide() {
-    return menu3dmodGuide.getActionCommand();
+  final boolean equals3dmodGuide(ActionEvent event) {
+    return equals(menu3dmodGuide, event);
   }
 
-  String getActionCommandEtomoGuide() {
-    return menuEtomoGuide.getActionCommand();
+  final boolean equalsEtomoGuide(ActionEvent event) {
+    return equals(menuEtomoGuide, event);
   }
   
-  String getActionCommandJoinGuide() {
-    return menuJoinGuide.getActionCommand();
+  final boolean equalsJoinGuide(ActionEvent event) {
+    return equals(menuJoinGuide, event);
   }
 
-  String getActionCommandHelpAbout() {
-    return menuHelpAbout.getActionCommand();
+  final boolean equalsHelpAbout(ActionEvent event) {
+    return equals(menuHelpAbout, event);
   }
 
   //  File menu action listener
@@ -382,6 +400,12 @@ public class EtomoMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2005/08/11 23:50:12  sueh
+* <p> bug# 711  Add menu3dmodStartupWindow and menu3dmodBinBy2.  Add
+* <p> is and set functions from menu3dmodStartupWindow and
+* <p> menu3dmodBinBy2.  In menuOptionsAction() handle the coordination of
+* <p> the two frame menus.
+* <p>
 * <p> Revision 1.4  2005/05/12 22:13:01  sueh
 * <p> bug# 615 Change setEnabled(BaseManager) to handle a null
 * <p> BaseManager.
