@@ -509,7 +509,7 @@ goto standard_defines
 standard_defines:
 
 if (($tifflibs == default) || ($tifflibs == false)) then
-    echo 'DUMMYTIFF = libtiff' >> $configure
+    echo 'DUMMYTIFF = libtiff.$(DLLEXT)' >> $configure
     echo "TIFFLIBS = $ltiff" >> $configure
     echo '#define NOTIFFLIBS'  >> $hconfigure
 else
@@ -822,6 +822,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.10  2005/12/09 19:09:47  mast
+#  Updated help text
+#
 #  Revision 1.9  2005/11/25 18:49:31  mast
 #  Added 64-bit cygwin build
 #
