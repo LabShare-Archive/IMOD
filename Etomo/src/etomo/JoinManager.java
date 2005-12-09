@@ -51,6 +51,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.30  2005/11/29 22:19:54  sueh
+* <p> bug# 757 Added the manager to JoinMetaData.  Deleted
+* <p> saveTestParamOnExit(), which wasn't being used.
+* <p>
 * <p> Revision 1.29  2005/11/10 17:50:05  sueh
 * <p> Constructor should not be public
 * <p>
@@ -1013,5 +1017,9 @@ public final class JoinManager extends BaseManager {
     doneJoinDialog();
     mainPanel.done();
     return saveParamFile(axisID);
+  }
+  
+  public final boolean canSnapshot() {
+    return false;
   }
 }

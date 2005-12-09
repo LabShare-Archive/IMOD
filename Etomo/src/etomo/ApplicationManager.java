@@ -5962,9 +5962,17 @@ public class ApplicationManager extends BaseManager {
     //do a Save As.
     return this.loadedParamFile;
   }
+  
+  public final boolean canSnapshot() {
+    return !isNewManager();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.200  2005/11/29 22:17:29  sueh
+ * <p> Deleted aligned image stack:  The process bar said "stacks", which was
+ * <p> misleading.
+ * <p>
  * <p> Revision 3.199  2005/11/21 21:50:34  sueh
  * <p> bug# 761 updateSplittiltParam() should fail if
  * <p> ParallelPanel.getParameters(SplittiltParam) fails.
