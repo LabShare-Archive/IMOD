@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/9/05: Various changes to make programs palatable to gfortran, which seems
+to be usable on the Mac but not yet on FC4.
+
 12/7/05: Change the exit warning, so it would only pop up when exiting would
 prevent the current process from completing.
 
