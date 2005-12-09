@@ -136,6 +136,8 @@ public abstract class BaseManager {
 
   public abstract void setTestParamFile(File paramFile);
 
+  public abstract boolean canSnapshot();
+
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
     createProcessTrack();
@@ -807,9 +809,32 @@ public abstract class BaseManager {
     packPanel(AxisID.FIRST);
     packPanel(AxisID.SECOND);
   }
+
+  public final void tomosnapshot(AxisID axisID) {
+    String threadName;
+    try {
+      threadName = getProcessManager().tomosnapshot(axisID);
+    }
+    catch (SystemProcessException e) {
+      resetNextProcess(axisID);
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.TOMOSNAPSHOT;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute " + ProcessName.TOMOSNAPSHOT,
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
+    getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT, axisID);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2005/12/08 00:53:29  sueh
+ * <p> bug# 504 Changed exitProgram() to only warn the user when exiting would
+ * <p> prevent the process from completing.
+ * <p>
  * <p> Revision 1.45  2005/11/21 21:59:15  sueh
  * <p> bug# 761 In processchunks(), fail if
  * <p> ParallelPanel.getParameters(ProcesschunksParam) fails.
