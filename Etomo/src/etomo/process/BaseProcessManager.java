@@ -11,8 +11,10 @@ import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.TomosnapshotParam;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -31,6 +33,14 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2005/11/19 02:17:33  sueh
+ * <p> bug# 744 Changed msgBackgroundProcessDone to msgProcessDone.
+ * <p> Moved the error message display functionality to BackgroundProcess.
+ * <p> Moved functions only used by process manager post processing and
+ * <p> error processing from Commands to ProcessDetails.  This allows
+ * <p> ProcesschunksParam to be passed to DetachedProcess without having
+ * <p> to add unnecessary functions to it.
+ * <p>
  * <p> Revision 1.30  2005/11/02 21:43:39  sueh
  * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.  Put
  * <p> error messages created in msgComScriptDone() directly into
@@ -240,8 +250,6 @@ public abstract class BaseProcessManager {
   protected UIHarness uiHarness = UIHarness.INSTANCE;
 
   protected abstract void postProcess(ComScriptProcess script);
-
-  protected abstract void postProcess(BackgroundProcess process);
 
   protected abstract void errorProcess(BackgroundProcess process);
 
@@ -858,6 +866,16 @@ public abstract class BaseProcessManager {
     return startBackgroundProcess(backgroundProcess, processDetails
         .getCommandLine(), axisID, null);
   }
+  
+  protected BackgroundProcess startBackgroundProcess(
+      Command command, AxisID axisID)
+      throws SystemProcessException {
+    isAxisBusy(axisID);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        command, this, axisID);
+    return startBackgroundProcess(backgroundProcess, command
+        .getCommandLine(), axisID, null);
+  }
 
   protected BackgroundProcess startBackgroundProcess(
       ProcessDetails processDetails, AxisID axisID, boolean forceNextProcess)
@@ -995,4 +1013,21 @@ public abstract class BaseProcessManager {
     getManager().saveIntermediateParamFile(program.getAxisID());
   }
 
+  public final String tomosnapshot(AxisID axisID) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        new TomosnapshotParam(getManager(), axisID), axisID);
+    return backgroundProcess.getName();
+  }
+
+  protected void postProcess(BackgroundProcess process) {
+    String commandName = process.getCommandName();
+    if (commandName == null) {
+      return;
+    }
+    if (ProcessName.TOMOSNAPSHOT.equals(commandName)) {
+      Utilities.findMessageAndOpenDialog(process.getAxisID(), process
+          .getStdOutput(), TomosnapshotParam.OUTPUT_LINE,
+          "Tomosnapshot Complete");
+    }
+  }
 }
