@@ -157,6 +157,7 @@ c
 	data icontig/5/,ifeatur/8/,ifsecofs/0/
 	data radmax/10./,rzero/0.5/,delr/1./,nring/6/,nsect/8/
 	real*4 desirmean/100./,desirsd/20./
+	logical b3dxor
 C
 C	  Open image file and point file
 C	  
@@ -464,7 +465,7 @@ c
 	do igrp=1,2
 	  nstr(igrp)=ndat+1
 	  do ipk=1,npeaks
-	    if(igrp.eq.1.xor.matchpk(ipk))then
+	    if(b3dxor(igrp.eq.1, matchpk(ipk)))then
 	      izon=izonpeak(ipk)
 	      ixc=ixpeak(ipk)+1-ixzon0(izon)
 	      iyc=iypeak(ipk)+1-iyzon0(izon)

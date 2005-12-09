@@ -240,6 +240,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/01/07 15:57:41  mast
+c	  Fixed to undo effects of pixel size in image file header
+c	
 c	  Revision 3.2  2003/08/29 17:33:56  mast
 c	  Change to use new multithreaded Plax graphics
 c	
@@ -282,6 +285,7 @@ c
 	integer*4 itypcheck(limtyp),listclust(limclust),iord(limpair)
 	integer*4 liststrtuse(limtyp),listenduse(limtyp),itythrs(limtyp)
 	integer*4 itycntrd(limtyp)
+	logical b3dxor
 c
 	ifchange=1
 	iffil=-1
@@ -1188,8 +1192,8 @@ c	    if(newcolor.lt.5)indchg=1
 		  if(typeonlist(itype(ind),itypcheck,ntypcheck).and.
      &		      typeonlist(itype(ind),itypovra,ntypovra))then
 		    critval=datmt(indat(ind),icolm)
-		    if((critval.ge.critlo.and.critval.le.crithi).xor.
-     &			ifoutside.ne.0)
+		    if(b3dxor(critval.ge.critlo.and.critval.le.crithi,
+     &			ifoutside.ne.0))
      &			obj_color(indchg,iobjnum(ind))=newcolor
 		  endif
 		enddo
@@ -1197,8 +1201,8 @@ c	    if(newcolor.lt.5)indchg=1
 	    elseif(icolm.lt.0)then
 	      do ipair=1,npair
 		critval=datpair(ipair,-icolm)
-		if((critval.ge.critlo.and.critval.le.crithi).xor.
-     &		    ifoutside.ne.0)then
+		if(b3dxor(critval.ge.critlo.and.critval.le.crithi,
+     &		    ifoutside.ne.0))then
 		  ind=nint(datpair(ipair,7))
 		  if(typeonlist(itype(ind), itypcheck,ntypcheck))
      &		      obj_color(indchg,iobjnum(ind))=newcolor
@@ -1222,8 +1226,8 @@ c	    if(newcolor.lt.5)indchg=1
      &		    ninclust(iclust)-1
 		  critval=polarity(imt)
 		  if(typeonlist(itype(mtclust(imt)),itypcheck,ntypcheck)
-     &		      .and.((critval.ge.critlo.and.critval.le.crithi)
-     &		      .xor. ifoutside.ne.0))
+     &		      .and.b3dxor(critval.ge.critlo.and.critval.le.crithi,
+     &		      ifoutside.ne.0))
      &		      obj_color(indchg,iobjnum(mtclust(imt)))=newcolor
 		enddo
 	      enddo
@@ -1260,8 +1264,8 @@ c
 	    ind=nint(datmt(i,7))
 	    if(typeonlist(itype(ind),itypcheck,ntypcheck))then
 	      critval=datmt(i,icolm)
-	      if((critval.ge.critlo.and.critval.le.crithi).xor.
-     &		  ifoutside.ne.0)mtout(i)=1
+	      if(b3dxor(critval.ge.critlo.and.critval.le.crithi,
+     &		  ifoutside.ne.0))mtout(i)=1
 	    endif
 	  enddo	    
 	enddo

@@ -56,6 +56,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2002/02/26 22:34:47  mast
+c	  Had to decrease limray size to avoid exceeding stack limit on SGI; it
+c	  only needs to be big enough to allow lots of images or very big images
+c	
 c	  Revision 3.1  2002/01/28 16:14:22  mast
 c	  Increased limit on number of projections and added check on limit.
 c	  Added declarations for implicit none.
@@ -89,6 +93,7 @@ c
 	real*4 sumtmp,rayfac,rayadd,tmin,tmax,tmean
 	integer*4 ixr,iyr,ixy,ixy4,ixy6,ixy8,ixy2,indout,kti,i,ind,iload
 	real*4 sind,cosd
+	logical b3dxor
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
@@ -342,7 +347,7 @@ c		if there are real intersections, use them to set up ray start
 c
  	      if(ngoodinter.gt.0)then
 		indgood=1
-		if(ygood(2).lt.ygood(1).xor.cosang(iproj).lt.0)indgood=2
+		if(b3dxor(ygood(2).lt.ygood(1), cosang(iproj).lt.0))indgood=2
 		xraytmp=xgood(indgood)+nxslice/2+1
 		yraytmp=ygood(indgood)+nyslice/2+1
 		nraytmp=1+

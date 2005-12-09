@@ -60,7 +60,7 @@ c
 	integer*4 ibase_obj2(max_obj_num)	!base index of object in OBJECT
 	integer*2 obj_color2(2,max_obj_num)	!ON/OFF and color indexes
 	real*4 p_coord2(3,less_pt)		!model coordinates of points
-	byte pt_label2(less_pt)			!symbol number for point
+	integer*1 pt_label2(less_pt)			!symbol number for point
 
 	logical exist,readw_or_imod,extended,doesmatch,failed
      &	    ,matched(max_obj_num)

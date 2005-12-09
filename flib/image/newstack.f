@@ -48,7 +48,7 @@ C
 	integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
 	integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
 	real*4 scaleFacs(lmfil), scaleConsts(lmfil)
-	byte extrain(maxextra),extraout(maxextra)
+	integer*1 extrain(maxextra),extraout(maxextra)
 	data optmax/255.,32767.,255.,32767.,255.,255.,65535.,255.,255.,
      &	    511.,1023.,2047.,4095.,8191., 16383.,32767./
 c	  
@@ -1713,6 +1713,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.34  2005/11/11 22:53:17  mast
+c	  Changes for unsigned mode
+c	
 c	  Revision 3.33  2005/10/11 21:03:52  mast
 c	  Added option to use one transform per file
 c	

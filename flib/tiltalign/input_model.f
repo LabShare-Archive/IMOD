@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.15  2005/11/13 23:06:26  mast
+c	  Fixed format
+c	
 c	  Revision 3.14  2005/04/12 20:12:33  mast
 c	  Made it set object colors to standard colors when there are two groups
 c	
@@ -90,6 +93,7 @@ c
 	integer*4 PipGetThreeIntegers
 	integer*4 PipGetString,PipGetTwoIntegers, PipGetTwoFloats
 	character*80 concat
+	logical b3dxor
 c
 c	  read model in
 c
@@ -355,7 +359,7 @@ c
 c	      
 c	      remove points on exclude list or not on include list
 c
-	    if(ifspecify.le.2.xor.ifonlist.eq.1)then
+	    if(b3dxor(ifspecify.le.2, ifonlist.eq.1))then
 	      nzlist=nzlist-1
 	      do j=i,nzlist
 		listz(j)=listz(j+1)

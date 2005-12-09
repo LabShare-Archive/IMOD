@@ -159,6 +159,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2003/08/29 17:32:56  mast
+c	  Change to use new multithreaded Plax graphics
+c	
 c	  Revision 3.2  2003/08/12 19:53:46  mast
 c	  Initialize iflogxin to 0, needed on Mac
 c	
@@ -178,6 +181,7 @@ c
 	real*4 selmin(50),selmax(50)
 	integer*4 icolsel(50),ifselexcl(50)
 	character*80 name
+	logical b3dxor
 c
 	iffil=0
 	iftypes=0
@@ -290,8 +294,8 @@ c	      check that it passes all selections too
 c	      
 	    do isel=1,nselect
 	      selval=dmat((k-1)*ncol+icolsel(isel))
-	      if(ifselexcl(isel).ne.0.xor.(selval.lt.selmin(isel).or.
-     &		  selval.gt.selmax(isel)))ingroup=0
+	      if(b3dxor(ifselexcl(isel).ne.0, (selval.lt.selmin(isel).or.
+     &		  selval.gt.selmax(isel))))ingroup=0
 	    enddo
 	    if(ingroup.gt.0)then
 	      nx=nx+1

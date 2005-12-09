@@ -95,13 +95,13 @@ c
         include 'statsize.inc'
 C
         logical*1 consid(nx,ny)
-        integer*2 ixwind(200),iywind(200)
+        integer*4 ixwind(200),iywind(200)
         dimension ixlo(2),iylo(2),ixhi(2),iyhi(2)
         dimension ninsect(msiz+10)
      &      ,isdx(40,msiz+10),isdy(40,msiz+10),dvector(msiz)
      &      ,bvector(msiz),pctile(npctl)
 C
-	integer*2 ixreal(limpek),iyreal(limpek),izreal(limpek),
+	integer*4 ixreal(limpek),iyreal(limpek),izreal(limpek),
      &	    ixpc(limpek),iypc(limpek),izpc(limpek)
 	integer*4 jxpc(lmteach),jypc(lmteach),jzpc(lmteach),
      &	    jxreal(lmteach),jyreal(lmteach),jzreal(lmteach),
@@ -109,8 +109,9 @@ C
      &	    listz(limpcl)
 	dimension ixzon0(lmzon),ixzon1(lmzon),nxzon(lmzon),izzon(lmzon)
      &	    ,iyzon0(lmzon),iyzon1(lmzon),nyzon(lmzon),indzon(lmzon)
-	integer*2 linkflag(limpek)
+	integer*4 linkflag(limpek)
 	logical notnear,doxforms,anyxforms,skipxforms,nowherenear
+	logical b3dxor
 c
 	character*80 filout,fildat,filteach,xfile,filpcl
 
@@ -255,7 +256,7 @@ c
 c	      
 c	      if alignment of points and images don't agree, need to fix
 c
-	    if(ifimalign.eq.0.xor.ifptalign.eq.0)then
+	    if(b3dxor(ifimalign.eq.0, ifptalign.eq.0))then
 	      do i=1,nreal
 		xx=ixreal(i)
 		yy=iyreal(i)
@@ -751,7 +752,7 @@ c
 	      ixout=ixreal(i)
 	      iyout=iyreal(i)
 	      izout=izreal(i)
-	      if(anyxforms.and.(ifimalign.eq.0.xor.ifoutalign.eq.0))then
+	      if(anyxforms.and.b3dxor(ifimalign.eq.0, ifoutalign.eq.0))then
 		indf=indfl(izreal(i)+1-listz(1))
 		if(ifimalign.eq.0)then
 		  call xfcopy(flist(1,1,indf),ff)	!xform points for output

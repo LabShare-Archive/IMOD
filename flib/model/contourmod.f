@@ -255,7 +255,7 @@ C
 	      IRP = I
 	      ISP = J
 	      CALL CONTUR_C (MAP,IMG,XP,YP,NCOL,NROW,PRINT,SCLX,SCLY,
-	1                    TOUR)
+     &		  TOUR)
 	      PRINT = -1
 	    ENDIF
 	  ENDIF
@@ -270,7 +270,7 @@ C
 	      JRP = I
 	      JSP = J
 	      CALL CONTUR_C (MAP,IMG,XP,YP,NCOL,NROW,PRINT,SCLX,SCLY,
-	1                    TOUR)
+     &		  TOUR)
 	      PRINT = -1
 	    ENDIF
 	  ENDIF
@@ -287,7 +287,7 @@ C
 	      IRP = II
 	      ISP = J
 	      CALL CONTUR_C (MAP,IMG,XP,YP,NCOL,NROW,PRINT,SCLX,SCLY,
-	1                    TOUR)
+     &		  TOUR)
 	      PRINT = -1
 	    ENDIF
 	  ENDIF
@@ -304,7 +304,7 @@ C
 	      JRP = II
 	      JSP = J
 	      CALL CONTUR_C (MAP,IMG,XP,YP,NCOL,NROW,PRINT,SCLX,SCLY,
-	1                    TOUR)
+     &		  TOUR)
 	      PRINT = -1
 	    ENDIF
 	  ENDIF
@@ -321,7 +321,7 @@ C
 	          JRP = I
 	          JSP = I
 	          CALL CONTUR_C (MAP,IMG,XP,YP,NCOL,NROW,PRINT,SCLX,
-	1                        SCLY,TOUR)
+     &		      SCLY,TOUR)
 	          PRINT = -1
 	        ENDIF
 	      ENDIF
@@ -352,7 +352,7 @@ C
 	END
 C  ****************************************************************************
 	SUBROUTINE CONTUR_C (MAP,IMG,XP,YP,NCOL,NROW,PRINT,SCLX,SCLY,
-	1                    TOUR)
+     &	    TOUR)
 C
 	IMPLICIT NONE
 C
@@ -401,7 +401,7 @@ C
 	HTM    = (MAP(IRP,JRP)+MAP(ISP,JSP)+MAP(IN,JN)+MAP(INN,JNN))/4.0
 	IF(HTM.GT.TOUR) GO TO 800
 	CALL CONTUR_D (XP(IRP), YP(JRP), MAP(IRP,JRP), VX, VY, HTM,
-	1            PRINT, SCLX, SCLY, TOUR)
+     &	    PRINT, SCLX, SCLY, TOUR)
 	IF(MAP(INN,JNN).LE.TOUR) THEN
 	  ISP = INN
 	  JSP = JNN
@@ -409,7 +409,7 @@ C
 	ENDIF
 C
 	CALL CONTUR_D (XP(INN), YP(JNN), MAP(INN,JNN), VX, VY, HTM,
-	1            PRINT, SCLX, SCLY, TOUR)
+     &	    PRINT, SCLX, SCLY, TOUR)
 	IF(MAP(IN,JN).LE.TOUR) THEN
 	  IRP = INN
 	  JRP = JNN
@@ -418,17 +418,17 @@ C
 	  GO TO 200
 	ENDIF
 	CALL CONTUR_D (XP(IN), YP(JN), MAP(IN,JN), VX, VY, HTM,
-	1              PRINT, SCLX, SCLY, TOUR)
+     &	    PRINT, SCLX, SCLY, TOUR)
 	GO TO 100
   800	CONTINUE
 	CALL CONTUR_D (VX, VY, HTM, XP(ISP), YP(JSP), MAP(ISP,JSP),
-	1              PRINT, SCLX, SCLY, TOUR)
+     &	    PRINT, SCLX, SCLY, TOUR)
 	IF(MAP(IN,JN).GT.TOUR) GO TO 100
 	CALL CONTUR_D (VX, VY, HTM, XP(IN), YP(JN), MAP(IN,JN),
-	1              PRINT, SCLX, SCLY, TOUR)
+     &	    PRINT, SCLX, SCLY, TOUR)
 	IF(MAP(INN,JNN).GT.TOUR) GO TO 900
 	CALL CONTUR_D (VX, VY, HTM, XP(INN), YP(JNN), MAP(INN,JNN),
-	1              PRINT, SCLX, SCLY, TOUR)
+     &	    PRINT, SCLX, SCLY, TOUR)
 	ISP = INN
 	JSP = JNN
 	GO TO 200

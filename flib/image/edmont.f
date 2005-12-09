@@ -112,6 +112,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2005/07/27 03:31:00  mast
+c	  Redimensioned maxextra to handle mistakenly large extra header
+c	
 *   
 	parameter (idim=2100,lmfil=100,lmsec=1024,limpcl=50000)
 	parameter (maxextra=1500000)
@@ -134,7 +137,7 @@ C
      &	    ,ixpcout(limpcl),iypcout(limpcl),izpcout(limpcl)
 	real*4 optmax(16)
      &	    ,dminsec(lmsec),dmaxsec(lmsec),avgsec(lmsec),sdsec(lmsec)
-	byte extrain(maxextra),extraout(maxextra)
+	integer*1 extrain(maxextra),extraout(maxextra)
 	data optmax/255.,32767.,7*255.,511.,1023.,2047.,4095.,8191.,
      &      16383.,32767./
 	logical rescale,notknock
@@ -703,7 +706,7 @@ C
 	subroutine read_pl_or_header(pifilin,filin,extrain,maxextra,
      &	      ixpclist,iypclist,izpclist,npclist,limpcl)
 	character*(*) pifilin,filin
-	byte extrain(*)
+	integer*1 extrain(*)
 	integer*4 ixpclist(*),iypclist(*),izpclist(*)
 	integer*4 nxyz(3),mxyz(3)
 c	  
