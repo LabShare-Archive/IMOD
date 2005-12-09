@@ -15,12 +15,31 @@ echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
 # qconfigures - it doesn't work anymore on OS 10.3
 
 echo "CC        = gcc"              >> $configure
-echo "FC        = g77"              >> $configure
+
 set fcompFlags = "-ffixed-line-length-0"
 
-# tell the C routines being called by Fortran that they need two __
-#
-echo '#define G77__HACK' >> $hconfigure
+gfortran -v >&! gfortran.tmp
+set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+\rm -f gfortran.tmp
+if ($#fortvers < 2) set fortvers = 3
+if ($fortvers[1] == 3) then
+    echo "FC        = g77"              >> $configure
+
+    # tell the C routines being called by Fortran that they need two __
+    #
+    echo '#define G77__HACK' >> $hconfigure
+    echo "COPYFORTLIB = libg2c" >> $configure
+else
+    #
+    # gfortran needs unlimited fixed format, and date and time subroutines
+    #
+    echo "FC        = gfortran"              >> $configure
+    echo "DATESRC   = compat/datetime.f" >> $configure
+    echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
+    echo "DATEOBJ  = datetime.o" >> $configure
+    echo "COPYFORTLIB = libgfortran" >> $configure
+endif
+
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
@@ -41,6 +60,7 @@ if ($shared_libs != false) then
 	echo "LIBEXT  = dylib"                 >> $configure
         if ($majorrel > 7) then
             set far = "g77"
+            if ($fortvers[1] != 3) set far = "gfortran"
             set makenondll = "ar -sruv "
             set nmcarext = "a"
             if ($tifflibs == true) echo 'LIBIIMODDEF = -ltiff -lSystemStubs' >> $configure
@@ -59,6 +79,7 @@ echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 # No longer needed 5/12/05, and needs to be gone for gcc 4
 # 7/12/05: But needed on 10.4 with gcc 3.3
 set fort_cpplibs = -lstdc++
+if ($fortvers[1] != 3) set fort_cpplibs = "-lstdc++.6"
 
 echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure
@@ -88,6 +109,8 @@ echo '#define SENDEVENT_RETRY_HACK 300' >> $hconfigure
 echo '#define MAC103_BIGFILE' >> $hconfigure
 
 set optimization = "-O3 -w"
+# 12/9/05: hurt more than helped on G5
+#if ($fortvers[1] != 3) set optimization = "-O3 -w -ftree-vectorize -maltivec"
 if ($debug == true) set optimization = "-g -O0"
 
 set cflags = "$flags $optimization $defines $include_flags $c_includes"
