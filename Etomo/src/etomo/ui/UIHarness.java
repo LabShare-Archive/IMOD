@@ -55,6 +55,15 @@ public class UIHarness {
     }
   }
   
+  public synchronized void openInfoMessageDialog(String message, String title, AxisID axisID) {
+    if (isHead()) {
+      mainFrame.displayInfoMessage(message, title, axisID);
+    }
+    else {
+      log("openMessageDialog", message, title, axisID);
+    }
+  }
+  
   /**
    * open one dialog and display all error messages in messages.
    * @param messages
@@ -442,6 +451,10 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.17  2005/12/08 00:59:12  sueh
+* <p> bug# 504 Added openYesNoWarningDialog() which displays a yes/no
+* <p> popup with No selected and a warning icon.
+* <p>
 * <p> Revision 1.16  2005/11/02 22:15:15  sueh
 * <p> bug# 754 Integrating ProcessMessages.  Added functions logError,
 * <p> logWarning, openErrorMessageDialog, openWarningMessageDialog.
