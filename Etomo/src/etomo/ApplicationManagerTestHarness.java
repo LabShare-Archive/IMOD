@@ -14,7 +14,7 @@ import etomo.ui.TomogramCombinationDialog;
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* Univeristy of Colorado</p>
+* University of Colorado</p>
 *
 * @author $Author$
 *
@@ -50,6 +50,9 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/08/11 23:31:03  sueh
+* <p> Reformatting
+* <p>
 * <p> Revision 1.5  2005/06/01 21:22:22  sueh
 * <p> bug# 667 Removed controller classes.
 * <p>

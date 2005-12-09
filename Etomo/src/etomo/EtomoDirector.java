@@ -26,248 +26,19 @@ import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
 /**
- * <p>
- * Description: Directs ApplicationManager and JoinManager through BaseManager.
- * </p>
+ * <p>Description: Directs ApplicationManager and JoinManager through
+ * BaseManager.</p>
  * 
- * <p>
- * Copyright: Copyright (c) 2004
- * </p>
+ * <p>Copyright: Copyright (c) 2004 - 2005</p>
  * 
- * <p>
- * Organization: Boulder Laboratory for 3-Dimensional Electron Microscopy of
- * Cells (BL3DEM), University of Colorado
- * </p>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
  * 
  * @author $Author$
  * 
  * @version $Revision$
- * 
- * <p>
- * $Log$
- * Revision 1.34  2005/11/14 21:18:15  sueh
- * bug# 762 Added functions MemoryThread.setStop,
- * getDisplayMemoryInterval, and isDisplayMemory.
- *
- * Revision 1.33  2005/11/10 17:53:55  sueh
- * bug# 733 Added getCurrentTestManager for getting a manager for testing.
- * Removed --debug option from test because it clutters up the error log.
- *
- * Revision 1.32  2005/09/14 20:15:30  sueh
- * bug# 532 Added thread to print the memory usage at intervals.
- *
- * Revision 1.31  2005/09/13 00:27:50  sueh
- * bug# 532 Added timestamp option.
- *
- * Revision 1.30  2005/09/13 00:14:15  sueh
- * bug# 532 Added --memory option to display memory usage.
- *
- * Revision 1.29  2005/09/12 23:57:32  sueh
- * bug# 532 Added savePreferences() to save a Storable class to the .etomo
- * file without overwriting preference entries from other Storable classes.
- * Added loadPreferences() to load a single storable class from the .etomo
- * file.
- *
- * Revision 1.28  2005/08/22 22:05:45  sueh
- * bug# 714 Added makeCurrent() to set the user.dir property from
- * originalUserDir
- *
- * Revision 1.27  2005/08/22 16:01:56  sueh
- * bug# 532 Moved HashedArray to UniqueHashedArray and created a new
- * version of HashedArray which is simpler and doesn't use UniqueKey.
- *
- * Revision 1.26  2005/08/04 19:07:30  sueh
- * bug# 532  Sending the manager to UIHarness.pack() so that
- * packDialogs() can be called.
- *
- * Revision 1.25  2005/07/29 00:39:11  sueh
- * bug# 709 Going to EtomoDirector to get the current manager is unreliable
- * because the current manager changes when the user changes the tab.
- * Passing the manager where its needed.
- *
- * Revision 1.24  2005/07/14 21:55:57  sueh
- * Fixed bug in parseCommandLine().  Newstuff number parse was wrong.
- *
- * Revision 1.23  2005/06/21 20:32:26  sueh
- * bug# 671 Setting currentManagerKey after all .edf files on the command
- * line are processed.  Since the first one is set to current and the axis type
- * retrieved from EtomoDirector comes from the current manager, an
- * incorrect axis type would be retrieved if the current manager was set
- * before the processing of incoming .edf files was finished.
- *
- * Revision 1.22  2005/06/21 00:40:44  sueh
- * bug# 522 In order to get a current manager when --test is set, moved call
- * to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
- * Now the call follows all the calls to UIHarness.selectWindowMenuItem().
- *
- * Revision 1.21  2005/06/17 17:48:22  sueh
- * bug# 685 Setting relative timestamp start.
- *
- * Revision 1.20  2005/06/01 21:24:28  sueh
- * bug# 667 Removing the Controller classes.  Trying make meta data and
- * app manager equals didn't work very well.  Meta data is created by and
- * managed by app mgr and the class structure should reflect that.
- * Changing controllerList to managerList.  Changing currentControllerKey to
- * current ManagerKey.
- *
- * Revision 1.19  2005/05/31 23:11:28  sueh
- * bug# 667 First step to removing the Controller classes.  Change
- * getCurrentMetaData() to getCurrentName().  getCurrentMetaData() was
- * only used to get the dataset name for utility functions that don't know
- * whether the name comes from a join and a reconstruction.
- *
- * Revision 1.18  2005/05/20 21:51:31  sueh
- * bug# 644 isMemoryAvailable():  improved out of memory message.
- *
- * Revision 1.17  2005/05/20 21:13:38  sueh
- * bug# 664 exitProgram(): do not attempt to save to a file if the
- * memory is very low.  If the save fails, the file may be truncated.  Added
- * isMemoryAvailable() to check available memory: if available memory is
- * too low, display a message (if a message hasn't been displayed for this
- * condition before) and return false.
- *
- * Revision 1.16  2005/04/27 02:11:24  sueh
- * bug# 615 CreateMenus() is being called from EtomoFrame.  Delete
- * createMenus() call to avoid creating an extra menu for MainFrame.
- *
- * Revision 1.15  2005/04/26 18:34:10  sueh
- * bug# 615 Change the name of the UIHarness member variable to
- * uiHarness.  Fixed a null pointer exception the happened when testing with
- * JUnit in initialize().
- *
- * Revision 1.14  2005/04/26 17:35:48  sueh
- * bug# 615 Made MainFrame a package-level class.  All MainFrame
- * functionality is handled through UIHarness to make Etomo more
- * compatible with JUnit.  Removing the mainFrame member variable.
- *
- * Revision 1.13  2005/04/25 20:33:20  sueh
- * bug# 615 Passing the axis where the command originated to the message
- * functions so that the message will be popped up in the correct window.
- * This requires adding AxisID to many objects.  Move the interface for
- * popping up message dialogs to UIHarness.  It prevents headless
- * exceptions during a test execution.  It also allows logging of dialog
- * messages during a test.  It also centralizes the dialog interface and
- * allows the dialog functions to be synchronized to prevent dialogs popping
- * up in both windows at once.  All Frame functions will use UIHarness as a
- * public interface.
- *
- * Revision 1.12  2005/04/21 20:29:22  sueh
- * bug# 615 Removing deprecated function show() and replaced is with
- * setVisible(true).
- *
- * Revision 1.11  2005/04/20 01:36:31  sueh
- * bug# 615 Making the singleton instance pointer final to prevent in from
- * being changed by another object.
- *
- * Revision 1.10  2005/04/16 01:50:17  sueh
- * bug# 615 Adding newstuffNum to look at more then one group of new code.
- *
- * Revision 1.9  2005/03/02 20:24:17  sueh
- * bug# 533 Added --newstuff command line option.  This option can used to
- * to expose transitional work.  This way alpha testing can be done without
- * exposing transitional work.
- *
- * Revision 1.8  2005/03/01 20:58:56  sueh
- * bug# 607 Catching Throwable in exitProgram and returning true to make
- * sure that Etomo can always exit.
- *
- * Revision 1.7  2005/02/09 22:17:48  sueh
- * bug# 594 Calling MainFrame.setCurrentManager with newWindow = true
- * when the window is first opened.  This prevents Setup Tomogram from
- * coming up blank.  It also prevents the use of
- * MainPanel.fitWindow() functionality, which doesn't work when opening
- * Etomo.
- *
- * Revision 1.6  2005/02/08 18:17:01  sueh
- * bug# 596 Added closeDefaultWindow() to close the window that comes
- * by default.  Closing default window when it is not in use and another
- * window is opened.
- *
- * Revision 1.5  2005/02/07 22:07:38  sueh
- * bug# 594 Using WindowSwitch through MainFrame to manage switching
- * between .edf and .ejf files.  Removed
- * MainFrame.setWindowMenuLabels(HashedArray).  Insteading adding,
- * renaming, and removing individually.
- *
- * Revision 1.4  2005/01/21 22:12:38  sueh
- * bug# 509 bug# 591  Managing a list of Controllers instead of a list of
- * managers.  This give better access to controller classes such as
- * MetaData.  Changed managerList to ControllerList and currentManagerKey
- * to currentControllerKey.
- *
- * Revision 1.3  2004/11/23 00:24:15  sueh
- * bug# 520 Prevent mainFrame from being accessed if test is set.  Create
- * instance of EtomoDirector when create hasn't been run.   GetInstance
- * calls createInstance with the test flag set so that unit tests don't have to
- * call createInstance.  Added setCurrentPropertyUserDir.
- *
- * Revision 1.2  2004/11/19 22:34:24  sueh
- * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
- *
- * Revision 1.1.2.11  2004/10/15 00:01:37  sueh
- * bug# 520 Added a public openManager() function to work with the Open..
- * menu item.  It will open either an AppManager or a JoinManager
- * depending on the type of file name it receives.
- *
- * Revision 1.1.2.10  2004/10/11 01:58:57  sueh
- * bug# 520 Moved initProgram to before creating mainFrame menus to that
- * userConfiguration could be initialized.  Using a variable called
- * propertyUserDir instead of the "user.dir" property.  This property would
- * need a different value for each manager.
- *
- * Revision 1.1.2.9  2004/10/08 15:42:50  sueh
- * bug# 520 Moved SettingsDialog to EtomoDirector.  Since EtomoDirector
- * is a singleton, made all functions and member variables non-static.  The
- * singleton code controls how many EtomoDirector instances can exist.
- * Moved application-level code in initProgram and exitProgram to
- * EtomoDirector.
- *
- * Revision 1.1.2.8  2004/10/07 16:32:23  sueh
- * bug# 520 Simplified EtomoDirector() by doing the initialize in a separate
- * function.  Some of the initializations performed use the EtomoDirector this
- * pointer.  It is more reliable to complete construction before using the
- * instance in another class.  Fixed bug:  was testing the test member
- * variable before it had been set.
- *
- * Revision 1.1.2.7  2004/10/06 01:24:03  sueh
- * bug# 520 Prevented having more then one Setup screen or more then one
- * New Join screen.
- *
- * Revision 1.1.2.6  2004/10/01 21:00:21  sueh
- * bug# 520 moving newJoinName and newTomogramName to the meta
- * data classes.  Adding openManager() to do some open manager functionality
- * generically.
- *
- * Revision 1.1.2.5  2004/09/13 20:23:22  sueh
- * bug# 520 fix exitProgram() so it calls exitProgram for all the managers in
- * managerList.
- *
- * Revision 1.1.2.4  2004/09/13 16:40:41  sueh
- * bug# 520 Finding manager by key because there can be duplicate names.
- * Using a etomo.util.HashedArray to store managers because they may
- * have duplicate names and they need to because accessed by index and
- * \key.  Making a set of openTomogram and OpenJoin functions to creating
- * new ApplicationManagers and JoinManagers.  Adding calls to functions
- * that create the Window menu items and check the current menu item to
- * EtomoDirector.  Add public functions to access the manager list.  Add
- * public functions to set the current manager, close the current manager,
- * rename the current manager, and exit the program.
- *
- * Revision 1.1.2.3  2004/09/09 17:32:42  sueh
- * bug# 520 Allow retrieval of manager by .edf file name or by order by
- * adding an ArrayList of .edf file names.  Call MainFrame.createMenus after
- * manager list is created (remove call from MainFrame()).  Add access
- * and create functions for the manager list.
- *
- * Revision 1.1.2.2  2004/09/07 17:52:52  sueh
- * bug# 520 moved MainFrame and UserConfiguration to EtomoDirector
- *
- * Revision 1.1.2.1  2004/09/03 20:59:07  sueh
- * bug# 520 transfering constructor code from ApplicationManager.  Allowing
- * multiple ApplicationManagers and JoinManagers
- *
- * </p>
- */
+ */ 
 
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
@@ -1124,3 +895,230 @@ public class EtomoDirector {
     }
   }
 }
+/**
+ * <p> $Log$
+ * Revision 1.35  2005/11/29 22:18:36  sueh
+ * bug# 757 Set IMODDirectory as early as possible to avoid failures.
+ *
+ * Revision 1.34  2005/11/14 21:18:15  sueh
+ * bug# 762 Added functions MemoryThread.setStop,
+ * getDisplayMemoryInterval, and isDisplayMemory.
+ *
+ * Revision 1.33  2005/11/10 17:53:55  sueh
+ * bug# 733 Added getCurrentTestManager for getting a manager for testing.
+ * Removed --debug option from test because it clutters up the error log.
+ *
+ * Revision 1.32  2005/09/14 20:15:30  sueh
+ * bug# 532 Added thread to print the memory usage at intervals.
+ *
+ * Revision 1.31  2005/09/13 00:27:50  sueh
+ * bug# 532 Added timestamp option.
+ *
+ * Revision 1.30  2005/09/13 00:14:15  sueh
+ * bug# 532 Added --memory option to display memory usage.
+ *
+ * Revision 1.29  2005/09/12 23:57:32  sueh
+ * bug# 532 Added savePreferences() to save a Storable class to the .etomo
+ * file without overwriting preference entries from other Storable classes.
+ * Added loadPreferences() to load a single storable class from the .etomo
+ * file.
+ *
+ * Revision 1.28  2005/08/22 22:05:45  sueh
+ * bug# 714 Added makeCurrent() to set the user.dir property from
+ * originalUserDir
+ *
+ * Revision 1.27  2005/08/22 16:01:56  sueh
+ * bug# 532 Moved HashedArray to UniqueHashedArray and created a new
+ * version of HashedArray which is simpler and doesn't use UniqueKey.
+ *
+ * Revision 1.26  2005/08/04 19:07:30  sueh
+ * bug# 532  Sending the manager to UIHarness.pack() so that
+ * packDialogs() can be called.
+ *
+ * Revision 1.25  2005/07/29 00:39:11  sueh
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * because the current manager changes when the user changes the tab.
+ * Passing the manager where its needed.
+ *
+ * Revision 1.24  2005/07/14 21:55:57  sueh
+ * Fixed bug in parseCommandLine().  Newstuff number parse was wrong.
+ *
+ * Revision 1.23  2005/06/21 20:32:26  sueh
+ * bug# 671 Setting currentManagerKey after all .edf files on the command
+ * line are processed.  Since the first one is set to current and the axis type
+ * retrieved from EtomoDirector comes from the current manager, an
+ * incorrect axis type would be retrieved if the current manager was set
+ * before the processing of incoming .edf files was finished.
+ *
+ * Revision 1.22  2005/06/21 00:40:44  sueh
+ * bug# 522 In order to get a current manager when --test is set, moved call
+ * to EtomoDirector.setCurrentManager() out of WindowSwitch.setWindow().
+ * Now the call follows all the calls to UIHarness.selectWindowMenuItem().
+ *
+ * Revision 1.21  2005/06/17 17:48:22  sueh
+ * bug# 685 Setting relative timestamp start.
+ *
+ * Revision 1.20  2005/06/01 21:24:28  sueh
+ * bug# 667 Removing the Controller classes.  Trying make meta data and
+ * app manager equals didn't work very well.  Meta data is created by and
+ * managed by app mgr and the class structure should reflect that.
+ * Changing controllerList to managerList.  Changing currentControllerKey to
+ * current ManagerKey.
+ *
+ * Revision 1.19  2005/05/31 23:11:28  sueh
+ * bug# 667 First step to removing the Controller classes.  Change
+ * getCurrentMetaData() to getCurrentName().  getCurrentMetaData() was
+ * only used to get the dataset name for utility functions that don't know
+ * whether the name comes from a join and a reconstruction.
+ *
+ * Revision 1.18  2005/05/20 21:51:31  sueh
+ * bug# 644 isMemoryAvailable():  improved out of memory message.
+ *
+ * Revision 1.17  2005/05/20 21:13:38  sueh
+ * bug# 664 exitProgram(): do not attempt to save to a file if the
+ * memory is very low.  If the save fails, the file may be truncated.  Added
+ * isMemoryAvailable() to check available memory: if available memory is
+ * too low, display a message (if a message hasn't been displayed for this
+ * condition before) and return false.
+ *
+ * Revision 1.16  2005/04/27 02:11:24  sueh
+ * bug# 615 CreateMenus() is being called from EtomoFrame.  Delete
+ * createMenus() call to avoid creating an extra menu for MainFrame.
+ *
+ * Revision 1.15  2005/04/26 18:34:10  sueh
+ * bug# 615 Change the name of the UIHarness member variable to
+ * uiHarness.  Fixed a null pointer exception the happened when testing with
+ * JUnit in initialize().
+ *
+ * Revision 1.14  2005/04/26 17:35:48  sueh
+ * bug# 615 Made MainFrame a package-level class.  All MainFrame
+ * functionality is handled through UIHarness to make Etomo more
+ * compatible with JUnit.  Removing the mainFrame member variable.
+ *
+ * Revision 1.13  2005/04/25 20:33:20  sueh
+ * bug# 615 Passing the axis where the command originated to the message
+ * functions so that the message will be popped up in the correct window.
+ * This requires adding AxisID to many objects.  Move the interface for
+ * popping up message dialogs to UIHarness.  It prevents headless
+ * exceptions during a test execution.  It also allows logging of dialog
+ * messages during a test.  It also centralizes the dialog interface and
+ * allows the dialog functions to be synchronized to prevent dialogs popping
+ * up in both windows at once.  All Frame functions will use UIHarness as a
+ * public interface.
+ *
+ * Revision 1.12  2005/04/21 20:29:22  sueh
+ * bug# 615 Removing deprecated function show() and replaced is with
+ * setVisible(true).
+ *
+ * Revision 1.11  2005/04/20 01:36:31  sueh
+ * bug# 615 Making the singleton instance pointer final to prevent in from
+ * being changed by another object.
+ *
+ * Revision 1.10  2005/04/16 01:50:17  sueh
+ * bug# 615 Adding newstuffNum to look at more then one group of new code.
+ *
+ * Revision 1.9  2005/03/02 20:24:17  sueh
+ * bug# 533 Added --newstuff command line option.  This option can used to
+ * to expose transitional work.  This way alpha testing can be done without
+ * exposing transitional work.
+ *
+ * Revision 1.8  2005/03/01 20:58:56  sueh
+ * bug# 607 Catching Throwable in exitProgram and returning true to make
+ * sure that Etomo can always exit.
+ *
+ * Revision 1.7  2005/02/09 22:17:48  sueh
+ * bug# 594 Calling MainFrame.setCurrentManager with newWindow = true
+ * when the window is first opened.  This prevents Setup Tomogram from
+ * coming up blank.  It also prevents the use of
+ * MainPanel.fitWindow() functionality, which doesn't work when opening
+ * Etomo.
+ *
+ * Revision 1.6  2005/02/08 18:17:01  sueh
+ * bug# 596 Added closeDefaultWindow() to close the window that comes
+ * by default.  Closing default window when it is not in use and another
+ * window is opened.
+ *
+ * Revision 1.5  2005/02/07 22:07:38  sueh
+ * bug# 594 Using WindowSwitch through MainFrame to manage switching
+ * between .edf and .ejf files.  Removed
+ * MainFrame.setWindowMenuLabels(HashedArray).  Insteading adding,
+ * renaming, and removing individually.
+ *
+ * Revision 1.4  2005/01/21 22:12:38  sueh
+ * bug# 509 bug# 591  Managing a list of Controllers instead of a list of
+ * managers.  This give better access to controller classes such as
+ * MetaData.  Changed managerList to ControllerList and currentManagerKey
+ * to currentControllerKey.
+ *
+ * Revision 1.3  2004/11/23 00:24:15  sueh
+ * bug# 520 Prevent mainFrame from being accessed if test is set.  Create
+ * instance of EtomoDirector when create hasn't been run.   GetInstance
+ * calls createInstance with the test flag set so that unit tests don't have to
+ * call createInstance.  Added setCurrentPropertyUserDir.
+ *
+ * Revision 1.2  2004/11/19 22:34:24  sueh
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *
+ * Revision 1.1.2.11  2004/10/15 00:01:37  sueh
+ * bug# 520 Added a public openManager() function to work with the Open..
+ * menu item.  It will open either an AppManager or a JoinManager
+ * depending on the type of file name it receives.
+ *
+ * Revision 1.1.2.10  2004/10/11 01:58:57  sueh
+ * bug# 520 Moved initProgram to before creating mainFrame menus to that
+ * userConfiguration could be initialized.  Using a variable called
+ * propertyUserDir instead of the "user.dir" property.  This property would
+ * need a different value for each manager.
+ *
+ * Revision 1.1.2.9  2004/10/08 15:42:50  sueh
+ * bug# 520 Moved SettingsDialog to EtomoDirector.  Since EtomoDirector
+ * is a singleton, made all functions and member variables non-static.  The
+ * singleton code controls how many EtomoDirector instances can exist.
+ * Moved application-level code in initProgram and exitProgram to
+ * EtomoDirector.
+ *
+ * Revision 1.1.2.8  2004/10/07 16:32:23  sueh
+ * bug# 520 Simplified EtomoDirector() by doing the initialize in a separate
+ * function.  Some of the initializations performed use the EtomoDirector this
+ * pointer.  It is more reliable to complete construction before using the
+ * instance in another class.  Fixed bug:  was testing the test member
+ * variable before it had been set.
+ *
+ * Revision 1.1.2.7  2004/10/06 01:24:03  sueh
+ * bug# 520 Prevented having more then one Setup screen or more then one
+ * New Join screen.
+ *
+ * Revision 1.1.2.6  2004/10/01 21:00:21  sueh
+ * bug# 520 moving newJoinName and newTomogramName to the meta
+ * data classes.  Adding openManager() to do some open manager functionality
+ * generically.
+ *
+ * Revision 1.1.2.5  2004/09/13 20:23:22  sueh
+ * bug# 520 fix exitProgram() so it calls exitProgram for all the managers in
+ * managerList.
+ *
+ * Revision 1.1.2.4  2004/09/13 16:40:41  sueh
+ * bug# 520 Finding manager by key because there can be duplicate names.
+ * Using a etomo.util.HashedArray to store managers because they may
+ * have duplicate names and they need to because accessed by index and
+ * \key.  Making a set of openTomogram and OpenJoin functions to creating
+ * new ApplicationManagers and JoinManagers.  Adding calls to functions
+ * that create the Window menu items and check the current menu item to
+ * EtomoDirector.  Add public functions to access the manager list.  Add
+ * public functions to set the current manager, close the current manager,
+ * rename the current manager, and exit the program.
+ *
+ * Revision 1.1.2.3  2004/09/09 17:32:42  sueh
+ * bug# 520 Allow retrieval of manager by .edf file name or by order by
+ * adding an ArrayList of .edf file names.  Call MainFrame.createMenus after
+ * manager list is created (remove call from MainFrame()).  Add access
+ * and create functions for the manager list.
+ *
+ * Revision 1.1.2.2  2004/09/07 17:52:52  sueh
+ * bug# 520 moved MainFrame and UserConfiguration to EtomoDirector
+ *
+ * Revision 1.1.2.1  2004/09/03 20:59:07  sueh
+ * bug# 520 transfering constructor code from ApplicationManager.  Allowing
+ * multiple ApplicationManagers and JoinManagers
+ * <p> </p>
+ */

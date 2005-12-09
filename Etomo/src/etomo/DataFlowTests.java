@@ -24,7 +24,7 @@ import etomo.util.Utilities;
  * 
  * <p>Copyright: Copyright (c) 2002 - 2005</p>
  *
- *<p>Organization:
+ * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  * 
@@ -343,6 +343,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.13  2005/10/27 00:08:27  sueh
+ * <p> bug# 725 Calling preEraser and preCrossCorrelate to process the b stack
+ * <p> before running eraser or xcorr.
+ * <p>
  * <p> Revision 3.12  2005/08/22 15:57:55  sueh
  * <p> reformatting
  * <p>
