@@ -176,8 +176,8 @@ if ($compiler == intel) then
 else
     echo "CLIBS   = -lc -lm" >> $configure
     echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
-    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
-    echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
+    echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 endif
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure

@@ -13,18 +13,35 @@ echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
 # of #define in imodconfig because it must precede all system includes.
 set defines = -D_FILE_OFFSET_BITS=64
 
+set fcompFlags = ""
 if ($compiler == intel) then
-	echo "CC        = icc"              >> $configure
-	echo "FC        = ifc"              >> $configure
-	set usfftdir = $source_dir/USFFTlib/pc-intel
+    echo "CC        = icc"              >> $configure
+    echo "FC        = ifc"              >> $configure
+    set usfftdir = $source_dir/USFFTlib/pc-intel
 else
-	echo "CC        = gcc"              >> $configure
-	echo "FC        = f77"              >> $configure
-	if ($m64bit == false) set usfftdir = $source_dir/USFFTlib/pc
-	#
-	# tell the C routines being called by Fortran that they need two __
-	#
-	echo '#define G77__HACK' >> $hconfigure
+    echo "CC        = gcc"              >> $configure
+
+    gfortran -v >&! gfortran.tmp
+    set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+    \rm -f gfortran.tmp
+    if ($#fortvers < 2) set fortvers = 3
+    if ($fortvers[1] == 3) then
+        echo "FC        = f77"              >> $configure
+        #
+        # tell the C routines being called by Fortran that they need two __
+        #
+        echo '#define G77__HACK' >> $hconfigure
+        if ($m64bit == false) set usfftdir = $source_dir/USFFTlib/pc
+    else
+        #
+        # gfortran needs unlimited fixed format, and date and time subroutines
+        #
+        echo "FC        = gfortran"              >> $configure
+        set fcompFlags = "-ffixed-line-length-0"
+        echo "DATESRC   = compat/datetime.f" >> $configure
+        echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
+        echo "DATEOBJ  = datetime.o" >> $configure
+    endif
 endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
@@ -47,27 +64,27 @@ endif
 set wrapper = ""
 
 if ($shared_libs != false) then
-	echo "AR      = g++"                 >> $configure
-	echo "ARCPP   = g++"                >> $configure
-	echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
-	echo "RANLIB    = true"                     >> $configure
-	echo "LIBEXT  = so"                 >> $configure
-	#
-	# With Intel compiler, call an ld wrapper to strip out the -static flag
-	# make blockio into a static libary  to drag in stat64 properly, and 
-	# exclude it from libim.so
-	#
-	if ($compiler == intel) then
-		set wrapper = "-Qlocation,link,$source_dir/scripts"
-		set blockio = libblockio.a
-		set imsubsobj = '[^b]*.o'
-	endif
+    echo "AR      = g++"                 >> $configure
+    echo "ARCPP   = g++"                >> $configure
+    echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
+    echo "RANLIB    = true"                     >> $configure
+    echo "LIBEXT  = so"                 >> $configure
+    #
+    # With Intel compiler, call an ld wrapper to strip out the -static flag
+    # make blockio into a static libary  to drag in stat64 properly, and 
+    # exclude it from libim.so
+    #
+    if ($compiler == intel) then
+    	set wrapper = "-Qlocation,link,$source_dir/scripts"
+    	set blockio = libblockio.a
+    	set imsubsobj = '[^b]*.o'
+    endif
 else
-	echo "AR      = ar"                 >> $configure
-	echo "ARCPP   = ar"                 >> $configure
-	echo "ARFLAGS = ruv "                >> $configure
-	echo "RANLIB    = ranlib"            >> $configure
-	echo "LIBEXT  = a"                  >> $configure
+    echo "AR      = ar"                 >> $configure
+    echo "ARCPP   = ar"                 >> $configure
+    echo "ARFLAGS = ruv "                >> $configure
+    echo "RANLIB    = ranlib"            >> $configure
+    echo "LIBEXT  = a"                  >> $configure
 endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
@@ -80,14 +97,14 @@ echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
 if ($compiler == intel) then
-	# For Intel, add -lXp, add -Vaxlib flag for compatibility calls
-	echo "IMLIBS     = $wrapper -Vaxlib -lhvem -lim -lblockio -lifft  -limod -lrandm -ldtrigs " >> $configure
+    # For Intel, add -lXp, add -Vaxlib flag for compatibility calls
+    echo "IMLIBS     = $wrapper -Vaxlib -lhvem -lim -lblockio -lifft  -limod -lb3dcmpt " >> $configure
 else
-	echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
 endif
 
 echo 'IMODCC    = $(CC)'              >> $configure
-echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -ldtrigs -o'  >> $configure
+echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -lb3dcmpt -o'  >> $configure
 echo 'FLCC      = $(FC)'              >> $configure
 echo "F77LIBS   = $wrapper"                  >> $configure
 
@@ -149,19 +166,19 @@ echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
 
 if ($compiler == intel) then
-	## -axK fails on tiltalign-beadtrack
-	set optimization = "-O2 -unroll -w"
-	#set optimization = "-O2 -w"
-	if ($debug == true) set optimization = "-g -O0"
+    ## -axK fails on tiltalign-beadtrack
+    set optimization = "-O2 -unroll -w"
+    #set optimization = "-O2 -w"
+    if ($debug == true) set optimization = "-g -O0"
 else
-	set optimization = "-O3 -w"
-	if ($debug == true) set optimization = "-ggdb -O0"
+    set optimization = "-O3 -w"
+    if ($debug == true) set optimization = "-ggdb -O0"
 endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
 #
 set cflags = "$flags $m64flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $m64flags $optimization $include_flags"
+set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags "
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure
@@ -186,7 +203,7 @@ endif
 
 # make extra fortran libs
 #
-echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
+echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 
 # Qtplax needs to kill second thread on Linux, but problem in Suse 64-bit
 #

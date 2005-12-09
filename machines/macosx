@@ -63,7 +63,7 @@ echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
-echo "IMLIBS     = -lhvem -lim -lifft  -limod -lrandm -ldtrigs" >> $configure
+echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
 
 # For OS 10.3, clip needed libgcc.a to define restFP and saveFP (-lgcc no good)
 #
@@ -104,7 +104,7 @@ echo "LIBFFLAGS  = $fflags" >> $configure
 
 # Use fortran code for tilt program, make extra fortran libs
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
-echo 'LINUXFLIBS = $(LIBDTRIGS) $(LIBRANDM)' >> $configure
+echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 
 #
 # Set the switch point include file for the FBP algorithm in Tilt
@@ -138,7 +138,7 @@ set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/
 #
 set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
 echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt '"$qt_libs -o " >> $configure
-echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt -ldtrigs '"$qt_libs $fort_cpplibs -o " >> $configure
+echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -ldiaqt '"$qt_libs $fort_cpplibs -o " >> $configure
 
 # make script files to run programs
 # Set DYLD_LIBRARY_PATH with qtlib before running program
