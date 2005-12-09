@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2005/08/30 06:17:03  mast
+#  Added extension to the dummy tiff lib
+#
 #  Revision 3.12  2005/07/15 03:43:44  mast
 #  Put LIBIIMODDEF at end of link line so -ltiff on Mac will work
 #
@@ -35,7 +38,7 @@ include ../configure
 
 O      = $(OBJEXT)
 LIBI   = libiimod.$(DLLEXT)
-LIBD   = $(DUMMYTIFF).$(DLLEXT)
+LIBD   = $(DUMMYTIFF)
 LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
