@@ -20,6 +20,7 @@ if ($compiler == intel) then
     set usfftdir = $source_dir/USFFTlib/pc-intel
 else
     echo "CC        = gcc"              >> $configure
+    set fcompFlags = "-ffixed-line-length-0"
 
     gfortran -v >&! gfortran.tmp
     set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
@@ -37,7 +38,6 @@ else
         # gfortran needs unlimited fixed format, and date and time subroutines
         #
         echo "FC        = gfortran"              >> $configure
-        set fcompFlags = "-ffixed-line-length-0"
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
         echo "DATEOBJ  = datetime.o" >> $configure
