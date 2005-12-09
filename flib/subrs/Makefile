@@ -5,10 +5,12 @@ LIBHVEM  = libhvem.$(DLLEXT)
 LIBIFFT  = libifft.$(DLLEXT)
 LIBIM    = libim.$(DLLEXT)
 LIBNMCAR = libdnmncar.$(NMCAREXT)
-LIBDTRIGS = libdtrigs.$(DLLEXT)
-LIBRANDM  = librandm.$(DLLEXT)
+LIBCOMPAT = libb3dcmpt.$(DLLEXT)
 LIBTRACK  = libtrack.$(DLLEXT)
 
+COMPATSRC = compat/ransub.f compat/ourrnd.c compat/degtrig.f $(DATESRC)
+COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
+  $(DIRDATEOBJ)
 
 LIBS = $(LIBHVEM) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS)
 
@@ -65,19 +67,12 @@ $(LIBNMCAR):	graphics/*.f graphics/*.c*
 	$(RANLIB) $(LIBNMCAR)
 	$(CP) libdnmncar.$(NMCAREXT) $(LIBDIR)
 
-$(LIBDTRIGS):	dtrigs/*.f
-	(cd dtrigs ; $(MAKE) all)
-	\rm -f $(LIBDTRIGS)
-	$(FAR) $(ARFLAGS)$(LIBDTRIGS) dtrigs/*.$(O)
-	$(RANLIB) $(LIBDTRIGS)
-	$(CP) libdtrigs.$(LIBEXT) $(LIBDIR)
-
-$(LIBRANDM):	randm/ransub.f randm/ourrnd.c
-	(cd randm; $(MAKE) all)
-	\rm -f $(LIBRANDM)
-	$(FAR) $(ARFLAGS)$(LIBRANDM) randm/*.$(O)
-	$(RANLIB) $(LIBRANDM)
-	$(CP) librandm.$(LIBEXT) $(LIBDIR)
+$(LIBCOMPAT):	$(COMPATSRC) 
+	(cd compat; $(MAKE) all)
+	\rm -f $(LIBCOMPAT)
+	$(FAR) $(ARFLAGS)$(LIBCOMPAT) $(COMPATOBJ)
+	$(RANLIB) $(LIBCOMPAT)
+	$(CP) libb3dcmpt.$(LIBEXT) $(LIBDIR)
 
 $(LIBTRACK):	linetrack/*.f linetrack/*.c*
 	(cd linetrack; $(MAKE) all)
