@@ -42,42 +42,7 @@ static float lastScale = -999.;
 
 void imodvControlHelp(void)
 {
-  dia_vasmsg("3dmodv Controls Help\n",
-             "-----------------------------------------------------\n",
-             "This dialog controls model viewing and movement.\n\n",
-             "\tThe Zoom Arrows ",
-             "increase or decrease zoom factor.\n\n",
-             "\tThe Scale text box shows the number of pixels on the "
-             "screen per unit of model coordinates; you can enter a "
-             "specific scale to control model zoom.\n\n"
-             "\tThe Near and Far sliders adjust the Z clipping planes.  When "
-             "the model is zoomed up, it will be clipped more for a given "
-             "setting of these sliders.  To prevent undesired clipping with "
-             "very high zooms, near clipping is effectively disabled with "
-             "Near at 0, and far clipping is disabled with Far at 1000.\n\n",
-             "\tThe Z-scale slider adjusts the scale for section "
-             "thickness relative to the pixel size in X and Y.\n\n",
-             "\tThe Rotation box edits model rotation. ",
-             "The X, Y or Z axis arrow",
-             "buttons are equivalent to the hot keys on the numeric keypad.  "
-             "In addition, you can type specific angles into the text boxes.\n"
-             "\tIf you press the Start/Stop Rotation button then one of "
-             "the arrow buttons, the model will start rotating around the "
-             "given axis until you press the Start/Stop Rotation button "
-             "again.  Otherwise, each arrow will cause a single step "
-             "around the given axis.\n",
-             "\tThe speed controls allow you adjust the rate of rotation in "
-             "degrees per second (\"deg/sec\").  Press the arrow buttons to "
-             "increase or decrease the speed, or enter a specific value in "
-             "the text box.\n",
-             "\tThe Degrees slider sets the the step size for "
-             "single steps with the arrows or numeric pad keys.  The same "
-             "step size is used when rotating an object clipping plane with "
-             CTRL_STRING" and the keypad keys.\n",
-             "\tNote that the . and , hot keys will increase both the step "
-             "size and rotation speed in tandem, whereas the controls in this "
-             "dialog box allow you to adjust them independently.",
-             NULL);
+  imodShowHelpPage("modvControl.html");
 }
 
 
@@ -90,6 +55,26 @@ void imodvControlZoom(int zoom)
     imodv_zoomd(Imodv, 0.95238095);
   imodvDraw(Imodv);
   return;
+}
+
+/* Set the flag for kicking clipping planes out */
+void imodvControlKickClips(bool state)
+{
+  ImodvApp *a = Imodv;
+  Iview *view;
+  int m, mst, mnd;
+  mst = a->crosset ? 0 : a->cm;
+  mnd = a->crosset ? a->nm - 1 : a->cm;
+
+  imodvRegisterModelChg();
+  for (m = mst; m <= mnd; m++) {
+    if (state)
+      a->mod[m]->view->world |= WORLD_KICKOUT_CLIPS;
+    else
+      a->mod[m]->view->world &= ~WORLD_KICKOUT_CLIPS;
+  }
+  imodvFinishChgUnit();
+  imodvDraw(a);
 }
 
 /* Set the clipping or perspective values: near = plane 1, far = plane 0,
@@ -342,6 +327,7 @@ void imodvControlSetView(ImodvApp *a)
   dialog->setViewSlider(IMODV_CONTROL_FOVY, a->fovy);
   dialog->setViewSlider(IMODV_CONTROL_ZSCALE, 
                         (int) (a->imod->zscale * 100.0 + 0.5));
+  dialog->setKickBox((a->imod->view->world & WORLD_KICKOUT_CLIPS) != 0);
 }
 
 void imodvControlUpdate(ImodvApp *a)
@@ -403,6 +389,7 @@ int imodv_control(ImodvApp *a, int state)
     dialog->setCaption(qstr);
 
   imodvDialogManager.add((QWidget *)dialog, IMODV_DIALOG);
+  dialog->adjustSize();
   dialog->show();
 
   lastX = lastY = lastZ = lastScale = -999.;
@@ -416,6 +403,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.8  2004/11/21 06:07:49  mast
+    Changes for undo/redo
+
     Revision 4.7  2004/06/10 00:33:02  mast
     Documented new behavior of clip planes
 

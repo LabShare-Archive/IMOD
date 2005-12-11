@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2004/11/21 06:07:49  mast
+Changes for undo/redo
+
 Revision 4.2  2003/11/04 04:41:54  mast
 Add new calls for rotation speed
 
@@ -49,6 +52,7 @@ typedef struct __imodv_struct ImodvApp;
 #define IMODV_CONTROL_ZAXIS 3
 void imodvControlAxisText(int axis, float rot);
 void imodvControlScale(float value);
+void imodvControlKickClips(bool state);
 void imodvControlZscale(int value, bool dragging);
 void imodvControlRate(int value);
 void imodvControlSpeed(float value);
