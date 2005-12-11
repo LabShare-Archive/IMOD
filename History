@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/11/05: Fixed perspective in model view so that the slider in the control 
+dialog really does set the angular field of view regardless of the near
+clipping plane setting.  Changed the placement of the default clipping planes
+so that they are not as far out by default but can be increased by selecting
+a new option, because very far out clipping planes gave bad displays on some
+systems.
+
 12/9/05: Various changes to make programs palatable to gfortran, which seems
 to be usable on the Mac but not yet on FC4.
 
