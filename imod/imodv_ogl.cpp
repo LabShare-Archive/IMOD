@@ -78,12 +78,18 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   double fovytan;
   double rad;
   float scale = 1.0f;
+  double kickFac = 3.;    /* Default amount to kick extreme planes out */
+  double extraKick = 10.; /* Extra amount when kick checked */
+
   if (!a->imod) return;
 
   imodv_winset(a);
   vw = imod->view;
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
+
+  if (vw->world & WORLD_KICKOUT_CLIPS)
+    kickFac *= extraKick;
 
   if (a->doPick){
     glGetIntegerv(GL_VIEWPORT, vp);
@@ -94,7 +100,8 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   if (rad < 0.0f)
     rad *= -1.0f;
 
-  fovytan = tan((((double)vw->fovy * 0.5) * 0.0087266463));
+  // fovy is the angular field of view so take tangent of half of the angle
+  fovytan = tan((double)vw->fovy * 0.0087266463);
   rad /= (1.0 + 3.1415927*fovytan);
 
   /* check for window area */
@@ -135,27 +142,29 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
 
   // DNM 6/9/04: simplified a bit and kicked the clipping planes way out
   // if no clipping is selected
+  // These are clipping plane locations relative to 0 in the middle
   cdist = zfar - znear;
   znear += cdist * vw->cnear;
   zfar  -= cdist * (1.0 - vw->cfar);
 
+  // Kick the far plane out unconditionally, the near plane only for
+  // parallel projection
+  if (vw->cfar == 1.0f)
+    zfar += cdist * kickFac;
+
   if (vw->fovy < 1.0f) {
     if (!vw->cnear)
-      znear -= cdist * 100.;
-    if (vw->cfar == 1.0f)
-      zfar += cdist * 100.;
-
+      znear -= cdist * kickFac;
     glOrtho(-xs, xs, -ys, ys,
             znear + depthShift , zfar + depthShift);
     return;
   }
      
-  if (fovytan)
-    cdist = rad/fovytan;
-  else
-    cdist = rad;
-
-  zn = znear + cdist;
+  // For perspective, the near value has to be radius over tangent of 
+  // half-angle, so then get the shift that puts znear at that location
+  // and adjust zfar also
+  zn = rad/fovytan;
+  cdist = zn - znear;
   zf = zfar + cdist;
 
   glFrustum(-xs, xs, -ys, ys, zn, zf); 
@@ -2356,6 +2365,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.26  2005/11/19 16:59:25  mast
+Fix fmod calls to use two floats for Intel compiler
+
 Revision 4.25  2005/10/21 23:58:08  mast
 Provide alternate define of GLU_CALLBACK for Mac for gcc 4
 
