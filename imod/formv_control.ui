@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>imodvControlForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>235</width>
-            <height>524</height>
+            <width>233</width>
+            <height>554</height>
         </rect>
     </property>
     <property name="caption">
@@ -69,8 +69,8 @@
                     <property name="text">
                         <string></string>
                     </property>
-                    <property name="pixmap">
-                        <pixmap>uparrow.png</pixmap>
+                    <property name="iconSet">
+                        <iconset>uparrow.png</iconset>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Increase the zoom of the display</string>
@@ -103,8 +103,8 @@
                     <property name="text">
                         <string></string>
                     </property>
-                    <property name="pixmap">
-                        <pixmap>downarrow.png</pixmap>
+                    <property name="iconSet">
+                        <iconset>downarrow.png</iconset>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Decrease the zoom of the display</string>
@@ -200,6 +200,20 @@
                     </property>
                 </widget>
             </hbox>
+        </widget>
+        <widget class="QCheckBox">
+            <property name="name">
+                <cstring>kickCheckBox</cstring>
+            </property>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
+            </property>
+            <property name="text">
+                <string>Set clipping planes farther out</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Move extreme clipping planes (0 near, 1000 far) 10 times farther away in Z</string>
+            </property>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -385,7 +399,7 @@
                                 <enum>NoFocus</enum>
                             </property>
                             <property name="maxValue">
-                                <number>89</number>
+                                <number>120</number>
                             </property>
                             <property name="pageStep">
                                 <number>1</number>
@@ -562,11 +576,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>uparrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>uparrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Increase rotation about X axis</string>
@@ -579,11 +593,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>downarrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>downarrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Decrease rotation about X axis</string>
@@ -681,11 +695,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>uparrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>uparrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Increase rotation about Y axis</string>
@@ -698,11 +712,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>downarrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>downarrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Decrease rotation about Y axis</string>
@@ -800,11 +814,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>uparrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>uparrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Increase rotation about Z axis</string>
@@ -817,11 +831,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>downarrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>downarrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Decrease rotation about Z axis</string>
@@ -919,11 +933,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>uparrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>uparrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Increase speed of rotation</string>
@@ -936,11 +950,11 @@
                             <property name="text">
                                 <string></string>
                             </property>
-                            <property name="pixmap">
-                                <pixmap>downarrow.png</pixmap>
-                            </property>
                             <property name="autoRepeat">
                                 <bool>true</bool>
+                            </property>
+                            <property name="iconSet">
+                                <iconset>downarrow.png</iconset>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Decrease speed of rotation</string>
@@ -1433,6 +1447,12 @@
         <receiver>imodvControlForm</receiver>
         <slot>newZrotation()</slot>
     </connection>
+    <connection>
+        <sender>kickCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>kickBoxToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -1466,6 +1486,7 @@
     <slot>zoomDown()</slot>
     <slot>zoomUp()</slot>
     <slot>newScale()</slot>
+    <slot>kickBoxToggled( bool state )</slot>
     <slot>nearChanged( int value )</slot>
     <slot>farChanged( int value )</slot>
     <slot>perspectiveChanged( int value )</slot>
@@ -1488,6 +1509,7 @@
     <slot>helpPressed()</slot>
     <slot>setAxisText( int axis, float value )</slot>
     <slot>setScaleText( float value )</slot>
+    <slot>setKickBox( bool state )</slot>
     <slot>setViewSlider( int which, int value )</slot>
     <slot>setRotationRate( int value )</slot>
     <slot>setSpeedText( float value )</slot>

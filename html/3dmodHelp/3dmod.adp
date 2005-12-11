@@ -21,6 +21,7 @@
     <section ref="./finegrain.html" title="Fine Grain Control"/>
     <section ref="./beadfix.html" title="Bead Fixer"/>
     <section ref="./modvObjectEdit.html" title="Model View Object Edit"/>
+    <section ref="./modvControl.html" title="Model View Controls"/>
     <section ref="./modelMovie.html" title="Model Movie &amp; Montage Control"/>
     <section ref="./depthcue.html" title="Depth Cueing"/>
 </DCF>

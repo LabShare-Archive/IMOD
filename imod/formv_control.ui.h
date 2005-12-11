@@ -96,6 +96,11 @@ void imodvControlForm::newScale()
     imodvControlScale(value);
 }
 
+void imodvControlForm::kickBoxToggled( bool state )
+{
+    imodvControlKickClips(state);
+}
+
 // Changes in the slider positions
 void imodvControlForm::nearChanged( int value )
 {
@@ -245,6 +250,11 @@ void imodvControlForm::setScaleText( float value )
     QString str;
     str.sprintf("%.4g", value);
     scaleLineEdit->setText(str);
+}
+
+void imodvControlForm::setKickBox( bool state )
+{
+    diaSetChecked(kickCheckBox, state);
 }
 
 void imodvControlForm::setViewSlider( int which, int value )
