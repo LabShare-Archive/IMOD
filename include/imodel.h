@@ -174,6 +174,8 @@ typedef struct Mod_Planes
 #define WORLD_QUALITY_SHIFT  8
 #define WORLD_QUALITY_BITS   (7l << WORLD_QUALITY_SHIFT)
 
+#define WORLD_KICKOUT_CLIPS (1l << 11)
+
 /* Properties of an object that are stored in a view */
 typedef struct Mod_Object_View
 {
@@ -623,6 +625,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.28  2005/10/16 20:25:40  mast
+    Split transformation function into two
+
     Revision 3.27  2005/10/13 20:01:41  mast
     Added model transform function
 
