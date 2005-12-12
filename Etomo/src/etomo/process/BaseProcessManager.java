@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2005/12/09 20:26:11  sueh
+ * <p> bug# 776 Added tomosnapshot.
+ * <p>
  * <p> Revision 1.31  2005/11/19 02:17:33  sueh
  * <p> bug# 744 Changed msgBackgroundProcessDone to msgProcessDone.
  * <p> Moved the error message display functionality to BackgroundProcess.
@@ -422,6 +425,17 @@ public abstract class BaseProcessManager {
 
     return comScriptProcess;
   }
+  
+  public final boolean inUse(AxisID axisID) {
+    try {
+      isAxisBusy(axisID);
+    }
+    catch (SystemProcessException e) {
+      uiHarness.openMessageDialog("A process is already executing in the current axis", "Cannot run process", axisID);
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Check to see if specified axis is busy, throw a system a
@@ -430,7 +444,7 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  public void isAxisBusy(AxisID axisID) throws SystemProcessException {
+  protected void isAxisBusy(AxisID axisID) throws SystemProcessException {
     // Check to make sure there is not another process already running on this
     // axis.
     if (axisID == AxisID.SECOND) {
