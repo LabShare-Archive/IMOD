@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/05: Added a menu option to the File menu to run tomosnapshot.
+
 12/12/05: Fixed a bug which prevented part of a process from running when the
 user pressed a process button while the process was running.
 
