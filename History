@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/05: Fixed a bug which prevented part of a process from running when the
+user pressed a process button while the process was running.
+
 12/11/05: Fixed perspective in model view so that the slider in the control 
 dialog really does set the angular field of view regardless of the near
 clipping plane setting.  Changed the placement of the default clipping planes
