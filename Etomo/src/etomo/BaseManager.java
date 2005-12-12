@@ -100,8 +100,6 @@ public abstract class BaseManager {
 
   protected abstract void updateDialog(ProcessName processName, AxisID axisID);
 
-  protected abstract void startNextProcess(AxisID axisID);
-
   protected abstract void setMetaData(ImodManager imodManager);
 
   public abstract BaseMetaData getBaseMetaData();
@@ -137,6 +135,8 @@ public abstract class BaseManager {
   public abstract void setTestParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
+  
+  protected abstract void startNextProcess(AxisID axisID, String nextProcess);
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -274,7 +274,7 @@ public abstract class BaseManager {
         if (nextProcessB != null) {
           message.append(" " + nextProcessB + " on Axis B");
         }
-        message.append(" will run next.\nDo you still wish to exit the program?");
+        message.append(" should run next.\nDo you still wish to exit the program?");
 
         if (!uiHarness.openYesNoWarningDialog(message.toString(), axisID)) {
           exiting = false;
@@ -579,8 +579,26 @@ public abstract class BaseManager {
       resetNextProcess(axisID);
     }
   }
+  
+  /**
+   * Keep final.
+   * @param axisID
+   */
+  protected final void startNextProcess(AxisID axisID) {
+    String nextProcess = getNextProcess(axisID);
+    resetNextProcess(axisID);
+    startNextProcess(axisID, nextProcess);
+  }
 
-  protected void setNextProcess(AxisID axisID, String nextProcess) {
+  /**
+   * Keep final.
+   * @param axisID
+   * @param nextProcess
+   */
+  protected final void setNextProcess(AxisID axisID, String nextProcess) {
+    if (debug) {
+      System.err.println("setNextProcess:axisID="+axisID+",nextProcess="+nextProcess);
+    }
     if (axisID == AxisID.SECOND) {
       nextProcessB = nextProcess;
     }
@@ -589,7 +607,14 @@ public abstract class BaseManager {
     }
   }
 
-  protected void resetNextProcess(AxisID axisID) {
+  /**
+   * Keep private final.
+   * @param axisID
+   */
+  private final void resetNextProcess(AxisID axisID) {
+    if (debug) {
+      System.err.println("resetNextProcess:axisID="+axisID);
+    }
     if (axisID == AxisID.SECOND) {
       nextProcessB = "";
     }
@@ -598,21 +623,26 @@ public abstract class BaseManager {
     }
   }
 
-  protected String getNextProcess(AxisID axisID) {
+  private final String getNextProcess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return nextProcessB;
     }
     return nextProcessA;
   }
 
-  protected boolean isNextProcessSet(AxisID axisID) {
+  private final boolean isNextProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !nextProcessB.equals("");
     }
     return !nextProcessA.equals("");
   }
 
-  protected void setLastProcess(AxisID axisID, String lastProcess) {
+  /**
+   * Keep final.
+   * @param axisID
+   * @param lastProcess
+   */
+  protected final void setLastProcess(AxisID axisID, String lastProcess) {
     if (axisID == AxisID.SECOND) {
       lastProcessB = lastProcess;
     }
@@ -621,7 +651,11 @@ public abstract class BaseManager {
     }
   }
 
-  protected void resetLastProcess(AxisID axisID) {
+  /**
+   * Keep final.
+   * @param axisID
+   */
+  protected final void resetLastProcess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       lastProcessB = "";
     }
@@ -630,14 +664,14 @@ public abstract class BaseManager {
     }
   }
 
-  protected String getLastProcess(AxisID axisID) {
+  protected final String getLastProcess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return lastProcessB;
     }
     return lastProcessA;
   }
 
-  protected boolean isLastProcessSet(AxisID axisID) {
+  protected final boolean isLastProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !lastProcessB.equals("");
     }
@@ -691,14 +725,6 @@ public abstract class BaseManager {
   }
 
   public final void savePreferences(AxisID axisID, Storable storable) {
-    try {
-      getProcessManager().isAxisBusy(axisID);
-    }
-    catch (SystemProcessException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
-          "Cannot Save Preferences");
-      return;
-    }
     MainPanel mainPanel = getMainPanel();
     mainPanel.setProgressBar("Saving defaults", 1, axisID);
     if (!EtomoDirector.getInstance().savePreferences(storable, axisID)) {
@@ -730,7 +756,6 @@ public abstract class BaseManager {
   }
 
   public final void resume(AxisID axisID, ProcesschunksParam param) {
-    resetNextProcess(axisID);
     if (param == null) {
       uiHarness.openMessageDialog("No command to resume", "Resume");
       return;
@@ -759,7 +784,6 @@ public abstract class BaseManager {
    * @param axisID
    */
   protected final void processchunks(AxisID axisID, ParallelDialog dialog) {
-    resetNextProcess(axisID);
     if (dialog == null) {
       return;
     }
@@ -816,7 +840,6 @@ public abstract class BaseManager {
       threadName = getProcessManager().tomosnapshot(axisID);
     }
     catch (SystemProcessException e) {
-      resetNextProcess(axisID);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.TOMOSNAPSHOT;
@@ -831,6 +854,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2005/12/09 20:21:29  sueh
+ * <p> bug# 776 Added tomosnapshot
+ * <p>
  * <p> Revision 1.46  2005/12/08 00:53:29  sueh
  * <p> bug# 504 Changed exitProgram() to only warn the user when exiting would
  * <p> prevent the process from completing.
