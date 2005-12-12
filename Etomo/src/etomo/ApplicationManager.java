@@ -683,7 +683,6 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   private void eraser(AxisID axisID) {
-    resetNextProcess(axisID);
     updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -780,6 +779,9 @@ public class ApplicationManager extends BaseManager {
   }
 
   public void archiveOriginalStack() {
+    if (processMgr.inUse(AxisID.ONLY)) {
+      return;
+    }
     archiveOriginalStack(null);
   }
 
@@ -802,9 +804,9 @@ public class ApplicationManager extends BaseManager {
     if (stackAxisID == AxisID.FIRST) {
       setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
     }
-    else {
-      resetNextProcess(AxisID.ONLY);
-    }
+//    else {
+//      resetNextProcess(AxisID.ONLY);
+//    }
     //check for original stack
     File originalStack = Utilities.getFile(this, false, stackAxisID,
         "_orig.st", "original stack");
@@ -830,7 +832,7 @@ public class ApplicationManager extends BaseManager {
       setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
     }
     catch (SystemProcessException e) {
-      resetNextProcess(AxisID.ONLY);
+      //resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ArchiveorigParam.COMMAND_NAME
@@ -1200,7 +1202,6 @@ public class ApplicationManager extends BaseManager {
    * Get the parameters from dialog box and run the cross correlation script
    */
   private void crossCorrelate(AxisID axisID) {
-    resetNextProcess(axisID);
     // Get the parameters from the dialog box
     ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(axisID);
     if (tiltxcorrParam != null) {
@@ -1345,9 +1346,9 @@ public class ApplicationManager extends BaseManager {
       setNextProcess(axisID, getLastProcess(axisID));
       resetLastProcess(axisID);
     }
-    else {
-      resetNextProcess(axisID);
-    }
+//    else {
+ //     resetNextProcess(axisID);
+ //   }
     String magGradientFileName = metaData.getMagGradientFile();
     if (magGradientFileName == null || magGradientFileName.matches("\\s*+")) {
       startNextProcess(axisID);
@@ -3820,7 +3821,6 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   private void tiltProcess(AxisID axisID) {
-    resetNextProcess(axisID);
     String threadName;
     try {
       threadName = processMgr.tilt(axisID);
@@ -4652,7 +4652,6 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from the beginning
    */
   public void combine() {
-    resetNextProcess(AxisID.ONLY);
     //  FIXME: what are the necessary updates
     //  Update the scripts from the dialog panel
     updateCombineParams();
@@ -4681,7 +4680,6 @@ public class ApplicationManager extends BaseManager {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
-      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -4709,7 +4707,6 @@ public class ApplicationManager extends BaseManager {
    * Execute the matchvol1 com script and put patchcorr in the execution queue
    */
   public void matchvol1Combine() {
-    resetNextProcess(AxisID.ONLY);
     //  FIXME: what are the necessary updates
     //  Update the scripts from the dialog panel
     updateCombineParams();
@@ -4746,7 +4743,6 @@ public class ApplicationManager extends BaseManager {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
-      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -4768,7 +4764,6 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from patchcorr step
    */
   public void patchcorrCombine() {
-    resetNextProcess(AxisID.ONLY);
     updateCombineParams();
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.PATCHCORR_INDEX);
     if (combineComscriptState == null) {
@@ -4793,7 +4788,6 @@ public class ApplicationManager extends BaseManager {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
-      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute patchcorr.com";
@@ -4851,7 +4845,6 @@ public class ApplicationManager extends BaseManager {
    * Initiate the combine process from matchorwarp step
    */
   public void matchorwarpCombine() {
-    resetNextProcess(AxisID.ONLY);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineComscriptState.MATCHORWARP_INDEX);
     if (combineComscriptState == null) {
       return;
@@ -4869,7 +4862,6 @@ public class ApplicationManager extends BaseManager {
       threadName = processMgr.combine(combineComscriptState);
     }
     catch (SystemProcessException e) {
-      resetNextProcess(AxisID.ONLY);
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
@@ -5365,8 +5357,7 @@ public class ApplicationManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  protected void startNextProcess(AxisID axisID) {
-    String nextProcess = getNextProcess(axisID);
+  protected void startNextProcess(AxisID axisID, String nextProcess) {
     if (nextProcess.equals("tilt")) {
       tiltProcess(axisID);
     }
@@ -5468,7 +5459,6 @@ public class ApplicationManager extends BaseManager {
   }
 
   protected void checkUpdateFiducialModel(AxisID axisID) {
-    resetNextProcess(axisID);
     FidXyz fidXyz = getFidXyz(axisID);
     MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
     MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
@@ -5969,6 +5959,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.201  2005/12/09 20:20:21  sueh
+ * <p> bug# 776 Added canSnapshot.
+ * <p>
  * <p> Revision 3.200  2005/11/29 22:17:29  sueh
  * <p> Deleted aligned image stack:  The process bar said "stacks", which was
  * <p> misleading.
