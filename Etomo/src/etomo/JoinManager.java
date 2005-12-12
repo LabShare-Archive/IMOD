@@ -51,6 +51,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.31  2005/12/09 20:22:21  sueh
+* <p> bug# 776 Added canSnapshot.
+* <p>
 * <p> Revision 1.30  2005/11/29 22:19:54  sueh
 * <p> bug# 757 Added the manager to JoinMetaData.  Deleted
 * <p> saveTestParamOnExit(), which wasn't being used.
@@ -573,7 +576,6 @@ public final class JoinManager extends BaseManager {
       threadNameA = processMgr.makejoincom(makejoincomParam);
     }
     catch (SystemProcessException except) {
-      resetNextProcess(AxisID.ONLY);
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException", AxisID.ONLY);
@@ -774,7 +776,6 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data", AxisID.ONLY);
       return;
     }
-    resetNextProcess(AxisID.ONLY);
     try {
       threadNameA = processMgr.startjoin();
     }
@@ -912,8 +913,8 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  protected void startNextProcess(AxisID axisID) {
-    if (getNextProcess(axisID).equals("startjoin")) {
+  protected void startNextProcess(AxisID axisID, String nextProcess) {
+    if (nextProcess.equals("startjoin")) {
       startjoin();
       return;
     }
