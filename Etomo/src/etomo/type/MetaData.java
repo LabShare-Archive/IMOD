@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2005/10/27 00:33:10  sueh
+ * <p> bug# 725 Added bStackProcessed.
+ * <p>
  * <p> Revision 3.25  2005/10/12 21:27:02  sueh
  * <p> bug# 532 Changed the parallel booleans to EtomoBoolean2 so that they
  * <p> can remember whether they where set or not.  The default for the parallel
@@ -174,7 +177,7 @@ import etomo.comscript.TransferfidParam;
 
 public class MetaData extends ConstMetaData {
   public static final String rcsid = "$Id$";
-  
+
   public MetaData(ApplicationManager manager) {
     super(manager);
     resetToDefault();
@@ -207,7 +210,7 @@ public class MetaData extends ConstMetaData {
       combineVolcombineParallel.reset();
     }
   }
-  
+
   public void initialize() {
     tomoPosBinningA.set(3);
     tomoPosBinningB.set(3);
@@ -252,7 +255,7 @@ public class MetaData extends ConstMetaData {
   public void setTransferfidAFields(TransferfidParam param) {
     transferfidParamA.setStorableFields(param);
   }
-  
+
   public void setTransferfidBFields(TransferfidParam param) {
     transferfidParamB.setStorableFields(param);
   }
@@ -268,15 +271,15 @@ public class MetaData extends ConstMetaData {
   public void setDistortionFile(String distortionFile) {
     this.distortionFile = distortionFile;
   }
-  
+
   public void setMagGradientFile(String magGradientFile) {
     this.magGradientFile = magGradientFile;
   }
-  
+
   public void setAdjustedFocusA(boolean adjustedFocus) {
     this.adjustedFocusA.set(adjustedFocus);
   }
-  
+
   public void setAdjustedFocusB(boolean adjustedFocus) {
     this.adjustedFocusB.set(adjustedFocus);
   }
@@ -301,7 +304,7 @@ public class MetaData extends ConstMetaData {
       useLocalAlignmentsA = state;
     }
   }
-  
+
   public void setTomoPosBinning(AxisID axisID, int tomoPosBinning) {
     if (axisID == AxisID.SECOND) {
       tomoPosBinningB.set(tomoPosBinning);
@@ -310,21 +313,21 @@ public class MetaData extends ConstMetaData {
       tomoPosBinningA.set(tomoPosBinning);
     }
   }
-  
+
   public final void setBStackProcessed(boolean bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
     }
     this.bStackProcessed.set(bStackProcessed);
   }
-  
+
   public final void setBStackProcessed(String bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
     }
     this.bStackProcessed.set(bStackProcessed);
   }
-  
+
   public void setTomoGenBinning(AxisID axisID, int tomoGenBinning) {
     if (axisID == AxisID.SECOND) {
       tomoGenBinningB.set(tomoGenBinning);
@@ -333,7 +336,7 @@ public class MetaData extends ConstMetaData {
       tomoGenBinningA.set(tomoGenBinning);
     }
   }
-  
+
   public void setCombineVolcombineParallel(boolean combineVolcombineParallel) {
     if (this.combineVolcombineParallel == null) {
       this.combineVolcombineParallel = new EtomoBoolean2(
@@ -341,7 +344,7 @@ public class MetaData extends ConstMetaData {
     }
     this.combineVolcombineParallel.set(combineVolcombineParallel);
   }
-  
+
   public void setCombineVolcombineParallel(String combineVolcombineParallel) {
     if (this.combineVolcombineParallel == null) {
       this.combineVolcombineParallel = new EtomoBoolean2(
@@ -364,7 +367,11 @@ public class MetaData extends ConstMetaData {
       tomoGenTiltParallelA.set(tomoGenTiltParallel);
     }
   }
-  
+
+  public void setDefaultParallel(boolean defaultParallel) {
+    this.defaultParallel.set(defaultParallel);
+  }
+
   public void setTomoGenTiltParallel(AxisID axisID, String tomoGenTiltParallel) {
     if (axisID == AxisID.SECOND) {
       if (tomoGenTiltParallelB == null) {
@@ -379,7 +386,7 @@ public class MetaData extends ConstMetaData {
       tomoGenTiltParallelA.set(tomoGenTiltParallel);
     }
   }
-  
+
   public void setUseZFactors(AxisID axisID, boolean useZFactors) {
     if (axisID == AxisID.SECOND) {
       this.useZFactorsB.set(useZFactors);
@@ -448,13 +455,13 @@ public class MetaData extends ConstMetaData {
     }
   }
 
-
   /**
    *  Get the objects attributes from the properties object.
    */
   public void load(Properties props) {
     load(props, "");
   }
+
   public void load(Properties props, String prepend) {
     resetToDefault();
     String group;
@@ -464,7 +471,7 @@ public class MetaData extends ConstMetaData {
     else {
       prepend += ".Setup";
     }
-    group = prepend  + ".";
+    group = prepend + ".";
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
 
     // Make this true for now until the variable is present in all of the
@@ -513,8 +520,8 @@ public class MetaData extends ConstMetaData {
     combineParams.load(props, group);
     distortionFile = props
         .getProperty(group + "DistortionFile", distortionFile);
-    magGradientFile = props
-    .getProperty(group + "MagGradientFile", magGradientFile);
+    magGradientFile = props.getProperty(group + "MagGradientFile",
+        magGradientFile);
     binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
         .toString(binning)));
 
@@ -540,7 +547,8 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.load(props, prepend);
     tomoGenBinningA.load(props, prepend);
     tomoGenBinningB.load(props, prepend);
-    String propertyValue = props.getProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP);
+    String propertyValue = props.getProperty(group
+        + TOMO_GEN_A_TILT_PARALLEL_GROUP);
     if (propertyValue != null) {
       setTomoGenTiltParallel(AxisID.FIRST, propertyValue);
     }
@@ -548,7 +556,8 @@ public class MetaData extends ConstMetaData {
     if (propertyValue != null) {
       setTomoGenTiltParallel(AxisID.SECOND, propertyValue);
     }
-    propertyValue = props.getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
+    propertyValue = props
+        .getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
     if (propertyValue != null) {
       setCombineVolcombineParallel(propertyValue);
     }
@@ -556,5 +565,6 @@ public class MetaData extends ConstMetaData {
     if (propertyValue != null) {
       setBStackProcessed(propertyValue);
     }
+    defaultParallel.load(props, prepend);
   }
 }
