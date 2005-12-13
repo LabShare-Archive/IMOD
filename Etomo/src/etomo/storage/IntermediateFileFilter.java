@@ -17,6 +17,10 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/12/07 17:43:07  sueh
+ * <p> bug# 618 Was not handling dashes.  Made the code that recognizes
+ * <p> parallel processing file more specific.
+ * <p>
  * <p> Revision 3.3  2005/10/17 23:52:54  sueh
  * <p> bug# 532 Handling intermediate files created by splittilt, splitcombine, and
  * <p> processchunks in accept().
@@ -97,13 +101,21 @@ public class IntermediateFileFilter extends FileFilter {
         return true;
       }
       //handle split... and processchunks files
-      if (f.getName().matches("\\S+-\\d\\d\\d\\.[logcmre]{3}")) {
-        if (f.getName().startsWith(datasetName) && path.endsWith(".rec")) {
-          return true;
-        }
-        if (path.endsWith(".log") || path.endsWith(".com")) {
-          return true;
-        }
+      String name = f.getName();
+      if (name.matches(datasetName + "[ab]?-\\d\\d\\d\\.rec")) {
+        return true;
+      }
+      if (name.matches("tilt[ab]?-\\d\\d\\d\\.log")) {
+        return true;
+      }
+      if (name.matches("tilt[ab]?-\\d\\d\\d\\.com")) {
+        return true;
+      }
+      if (name.matches("volcombine[ab]?-\\d\\d\\d\\.log")) {
+        return true;
+      }
+      if (name.matches("volcombine[ab]?-\\d\\d\\d\\.com")) {
+        return true;
       }
     }
     return false;
@@ -119,5 +131,4 @@ public class IntermediateFileFilter extends FileFilter {
   public void setAcceptPretrimmedTomograms(boolean acceptPretrimmedTomograms) {
     this.acceptPretrimmedTomograms = acceptPretrimmedTomograms;
   }
-
 }
