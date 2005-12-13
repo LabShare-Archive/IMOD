@@ -70,6 +70,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.76  2005/11/21 20:47:17  sueh
+ * bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
+ * missing.
+ *
  * Revision 3.75  2005/11/14 22:22:05  sueh
  * bug# 762 Made btnMtfFileAction() and stateChanged() protected.
  *
@@ -506,15 +510,14 @@ import etomo.util.InvalidParameterException;
  * </p>
  */
 
-public class TomogramGenerationDialog extends ProcessDialog
-    implements
-      ContextMenu,
-      FiducialessParams, Expandable, ParallelDialog, Run3dmodButtonContainer {
+public class TomogramGenerationDialog extends ProcessDialog implements
+    ContextMenu, FiducialessParams, Expandable, ParallelDialog,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
   private static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
-  
+
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
@@ -528,8 +531,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   private LabeledSpinner spinBinning;
 
   //  Aligned stack buttons
-  private MultiLineButton btnNewst = MultiLineButton.getToggleButtonInstance(
-      "<html><b>Create Full<br>Aligned Stack</b>");
+  private MultiLineButton btnNewst = MultiLineButton
+      .getToggleButtonInstance("<html><b>Create Full<br>Aligned Stack</b>");
   private Run3dmodButton btn3dmodFull = new Run3dmodButton(
       "<html><b>View Full<br>Aligned Stack</b>", this);
 
@@ -566,8 +569,8 @@ public class TomogramGenerationDialog extends ProcessDialog
   private MultiLineButton btnTrial = new MultiLineButton(RUN_TRIAL_BUTTON_TITLE);
   private Run3dmodButton btn3dmodTrial = new Run3dmodButton(
       "<html><b>View Trial in 3dmod</b>", this);
-  private MultiLineButton btnUseTrial = MultiLineButton.getToggleButtonInstance(
-      "<html><b>Use Current Trial Tomogram</b>");
+  private MultiLineButton btnUseTrial = MultiLineButton
+      .getToggleButtonInstance("<html><b>Use Current Trial Tomogram</b>");
 
   // MTF Filter objects
   private LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
@@ -580,24 +583,26 @@ public class TomogramGenerationDialog extends ProcessDialog
       "Maximum Inverse: ");
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
-  private MultiLineButton btnFilter = MultiLineButton.getToggleButtonInstance("Filter");
+  private MultiLineButton btnFilter = MultiLineButton
+      .getToggleButtonInstance("Filter");
   private Run3dmodButton btnViewFilter = new Run3dmodButton(
       "View Filtered Stack", this);
-  private MultiLineButton btnUseFilter = MultiLineButton.getToggleButtonInstance(
-      "Use Filtered Stack");
+  private MultiLineButton btnUseFilter = MultiLineButton
+      .getToggleButtonInstance("Use Filtered Stack");
   private SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
   boolean enableFiltering = false;
 
   //  Tomogram generation buttons
-  private MultiLineButton btnTilt = MultiLineButton.getToggleButtonInstance(RUN_TILT_BUTTON_TITLE);
+  private MultiLineButton btnTilt = MultiLineButton
+      .getToggleButtonInstance(RUN_TILT_BUTTON_TITLE);
   private Run3dmodButton btn3dmodTomogram = new Run3dmodButton(
       "<html><b>View Tomogram In 3dmod</b>", this);
-  private MultiLineButton btnDeleteStacks = MultiLineButton.getToggleButtonInstance(
-      "<html><b>Delete Aligned Image Stack</b>");
+  private MultiLineButton btnDeleteStacks = MultiLineButton
+      .getToggleButtonInstance("<html><b>Delete Aligned Image Stack</b>");
   private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
   private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
-  "Extra views to exclude: ");
+      "Extra views to exclude: ");
   private JCheckBox cbParallelProcess;
   //headers should not go into garbage collection
   private PanelHeader newstHeader = null;
@@ -611,7 +616,7 @@ public class TomogramGenerationDialog extends ProcessDialog
   private JPanel filterBodyPanel;
   private SpacedPanel newstBodyPanel;
   private SpacedPanel trialBodyPanel;
-  
+
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
   private boolean getBinningFromNewst = true;
@@ -694,7 +699,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       spinBinning.setValue(newstParam.getBinByFactor());
     }
   }
-  
+
   public final void setParameters(ReconScreenState screenState) {
     newstHeader.setState(screenState.getTomoGenNewstHeaderState());
     filterHeader.setState(screenState.getTomoGenMtffilterHeaderState());
@@ -702,14 +707,14 @@ public class TomogramGenerationDialog extends ProcessDialog
     trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
     setAdvanced();
   }
-  
+
   public final void getParameters(ReconScreenState screenState) {
     newstHeader.getState(screenState.getTomoGenNewstHeaderState());
     filterHeader.getState(screenState.getTomoGenMtffilterHeaderState());
     tiltHeader.getState(screenState.getTomoGenTiltHeaderState());
     trialHeader.getState(screenState.getTomoGenTrialTiltHeaderState());
   }
-  
+
   public void setParameters(ConstMetaData metaData) {
     ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
     if (!binning.isNull()) {
@@ -721,21 +726,24 @@ public class TomogramGenerationDialog extends ProcessDialog
         .getTomoGenTiltParallel(axisID);
     cbParallelProcess.setEnabled(validAutodoc);
     if (tomoGenTiltParallel == null) {
-      cbParallelProcess.setSelected(validAutodoc);
+      cbParallelProcess.setSelected(validAutodoc
+          && metaData.getDefaultParallel().is());
     }
     else {
-      cbParallelProcess.setSelected(tomoGenTiltParallel.is() && validAutodoc);
+      cbParallelProcess.setSelected(validAutodoc && tomoGenTiltParallel.is());
     }
     updateParallelProcess();
   }
-  
+
   public void getParameters(MetaData metaData) {
-    metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue()).intValue());
+    metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue())
+        .intValue());
     metaData.setTomoGenTiltParallel(axisID, cbParallelProcess.isSelected());
   }
-  
+
   public void setBlendParams(BlendmontParam blendmontParam) {
-    cbBoxUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
+    cbBoxUseLinearInterpolation.setSelected(blendmontParam
+        .isLinearInterpolation());
   }
 
   /**
@@ -789,7 +797,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
     ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
   }
-  
+
   public int getBinning() {
     return ((Integer) spinBinning.getValue()).intValue();
   }
@@ -810,8 +818,10 @@ public class TomogramGenerationDialog extends ProcessDialog
   }
 
   public void getBlendParams(BlendmontParam blendmontParam) {
-    blendmontParam.setLinearInterpolation(cbBoxUseLinearInterpolation.isSelected());
-    blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
+    blendmontParam.setLinearInterpolation(cbBoxUseLinearInterpolation
+        .isSelected());
+    blendmontParam
+        .setBinByFactor(((Integer) spinBinning.getValue()).intValue());
   }
 
   /**
@@ -846,12 +856,12 @@ public class TomogramGenerationDialog extends ProcessDialog
       else {
         tiltParam.resetZOffset();
       }
-      
+
       //set X offset
       if (ltfXOffset.getText().matches("\\S+")) {
         badParameter = ltfXOffset.getLabel();
         tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()));
-      } 
+      }
       else if (ltfZOffset.getText().matches("\\S+")) {
         tiltParam.setXOffset(0);
         ltfXOffset.setText(0.0);
@@ -947,7 +957,8 @@ public class TomogramGenerationDialog extends ProcessDialog
         tiltParam.setLogShift(Float.NaN);
       }
 
-      if (cbBoxUseLocalAlignment.isSelected() && cbBoxUseLocalAlignment.isEnabled()) {
+      if (cbBoxUseLocalAlignment.isSelected()
+          && cbBoxUseLocalAlignment.isEnabled()) {
         tiltParam.setLocalAlignFile(applicationManager.getMetaData()
             .getDatasetName()
             + axisID.getExtension() + "local.xf");
@@ -955,9 +966,11 @@ public class TomogramGenerationDialog extends ProcessDialog
       else {
         tiltParam.setLocalAlignFile("");
       }
-      metaData.setUseLocalAlignments(axisID, cbBoxUseLocalAlignment.isSelected());
+      metaData.setUseLocalAlignments(axisID, cbBoxUseLocalAlignment
+          .isSelected());
       tiltParam.setFiducialess(cbFiducialess.isSelected());
-      tiltParam.setUseZFactors(cbUseZFactors.isSelected() && cbUseZFactors.isEnabled());
+      tiltParam.setUseZFactors(cbUseZFactors.isSelected()
+          && cbUseZFactors.isEnabled());
       metaData.setUseZFactors(axisID, cbUseZFactors.isSelected());
       tiltParam.setExcludeList2(ltfExtraExcludeList.getText());
     }
@@ -999,13 +1012,12 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     return trialTomogramName;
   }
-  
+
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(TiltParam.COMMAND_NAME);
   }
-  
-  
+
   public void expand(ExpandButton button) {
     if (tiltHeader != null) {
       if (tiltHeader.equalsOpenClose(button)) {
@@ -1031,7 +1043,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   private void updateAdvancedFilter(boolean advanced) {
     ltfStartingAndEndingZ.setVisible(advanced);
     //ltfLowPassRadiusSigma
@@ -1066,7 +1078,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //btn3dmodTomogram
     //btnDeleteStacks
   }
-  
+
   private final void setAdvanced() {
     boolean headerAdvanced = filterHeader.isAdvancedBasicExpanded();
     if (headerAdvanced != isAdvanced
@@ -1074,7 +1086,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       super.setAdvanced(headerAdvanced);
     }
   }
-  
+
   /**
    * Update the dialog with the current advanced state
    */
@@ -1084,11 +1096,11 @@ public class TomogramGenerationDialog extends ProcessDialog
 
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   private void updateParallelProcess() {
     applicationManager.setParallelDialog(axisID, this);
   }
-  
+
   public boolean isParallel() {
     return cbParallelProcess.isSelected();
   }
@@ -1116,7 +1128,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     }
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
-    spinBinning = new LabeledSpinner("Aligned image stack binning ", integerModel);
+    spinBinning = new LabeledSpinner("Aligned image stack binning ",
+        integerModel);
     //buttonPanel
     buttonPanel.add(Box.createHorizontalStrut(50));
     buttonPanel.add(btnNewst.getComponent());
@@ -1154,7 +1167,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     filterBodyPanel.setLayout(new BoxLayout(filterBodyPanel, BoxLayout.Y_AXIS));
     inverseParamsPanel = new SpacedPanel(true);
     inverseParamsPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    inverseParamsPanel.setBorder(new EtchedBorder("Inverse Filtering Parameters: ").getBorder());
+    inverseParamsPanel.setBorder(new EtchedBorder(
+        "Inverse Filtering Parameters: ").getBorder());
     SpacedPanel mtfFilePanel = new SpacedPanel();
     mtfFilePanel.setBoxLayout(BoxLayout.X_AXIS);
     SpacedPanel inversePanel = new SpacedPanel();
@@ -1229,7 +1243,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    tiltHeader = PanelHeader.getAdvancedBasicInstance(ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this);
+    tiltHeader = PanelHeader.getAdvancedBasicInstance(
+        ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this);
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1304,7 +1319,8 @@ public class TomogramGenerationDialog extends ProcessDialog
     SpacedPanel buttonPanel = new SpacedPanel();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    trialHeader = PanelHeader.getInstance(ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this);
+    trialHeader = PanelHeader.getInstance(
+        ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this);
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
@@ -1376,14 +1392,15 @@ public class TomogramGenerationDialog extends ProcessDialog
       alignLogfileLabel = "Newst";
       alignLogfile = "newst";
     }
-    String[] manPagelabel = {alignManpageLabel, "Tilt", "3dmod"};
-    String[] manPage = {alignManpage + ".html", "tilt.html", "3dmod.html"};
-    String[] logFileLabel = {alignLogfileLabel, "Tilt"};
+    String[] manPagelabel = { alignManpageLabel, "Tilt", "3dmod" };
+    String[] manPage = { alignManpage + ".html", "tilt.html", "3dmod.html" };
+    String[] logFileLabel = { alignLogfileLabel, "Tilt" };
     String[] logFile = new String[2];
     logFile[0] = alignLogfile + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+        "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, applicationManager);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
@@ -1404,15 +1421,15 @@ public class TomogramGenerationDialog extends ProcessDialog
       btnUseFilter.setEnabled(false);
     }
   }
-  
+
   public void enableUseZFactors(boolean enable) {
     cbUseZFactors.setEnabled(enable);
   }
-  
+
   public void enableUseLocalAlignment(boolean enable) {
     cbBoxUseLocalAlignment.setEnabled(enable);
   }
-  
+
   protected void updateFiducialess() {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
@@ -1437,11 +1454,11 @@ public class TomogramGenerationDialog extends ProcessDialog
     super.buttonAdvancedAction(event);
     updateAdvanced();
   }
-  
+
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btn3dmodFull.getActionCommand())) {
       applicationManager.imodFineAlign(axisID, menuOptions);
@@ -1517,7 +1534,7 @@ public class TomogramGenerationDialog extends ProcessDialog
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
-  
+
   private class ButtonListener implements ActionListener {
     TomogramGenerationDialog adaptee;
 
@@ -1708,13 +1725,13 @@ public class TomogramGenerationDialog extends ProcessDialog
         + "" + "deleted to free up disk space.";
     btnDeleteStacks.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use cross-correlation alignment only.";
-    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format()); 
+    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Rotation angle of tilt axis for generating aligned stack from "
         + "cross-correlation alignment only.";
-    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format()); 
+    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Set the binning for the aligned image stack and tomogram.  With a "
         + "binned tomogram, all of the thickness, position, and size parameters"
         + " below are still entered in unbinned pixels.";
-    spinBinning.setToolTipText(tooltipFormatter.setText(text).format()); 
+    spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
