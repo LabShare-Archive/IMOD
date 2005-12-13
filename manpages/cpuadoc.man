@@ -1,0 +1,272 @@
+.na
+.nh
+.TH CPUADOC 1 3.7.0 BL3DEMC
+.SH NAME
+cpu.adoc \- Description of computers for parallel processing in eTomo
+.SH SYNOPSIS
+/usr/local/ImodCalib/cpu.adoc
+.SH DESCRIPTION
+
+The cpu.adoc file contains descriptions of the computers you wish to use when
+running parallel processes through eTomo with processchunks(1).  
+It is used by eTomo to build the parallel
+processing table and to run processchunks.  The cpu.adoc file
+must be placed in the IMOD calibration directory.  The location of 
+this directory is defined by the environment variable IMOD_CALIB_DIR, which
+has a default value of /usr/local/ImodCalib with a default installation of
+IMOD.  You will probably need to create this directory.  Then, prepare a
+cpu.adoc file and place it there.  There is an example cpu.adoc file in the
+autodoc directory of the IMOD distribution; you should be able to use this as
+a starting point.
+
+
+.SS Computer Sections and Attributes
+Each section describes one computer.  A section must start with a line
+with the following syntax:
+.br
+\fB[Computer = \fIcomputer_name\fB]\fR
+.br
+The computer name will be used by eTomo
+and IMOD to contact the computer via ssh.
+
+Computer attributes are name/value pairs found under a computer section, they
+have the following syntax: 
+.br
+\fBname = \fIvalue\fR
+.br
+The order of the attributes
+is not important.  All attributes are optional; some are entered in order to
+change the default value of an attribute, while others are purely descriptive.
+For the descriptive
+attributes, you can put anything in them that you want.
+However, any attribute you do not use will be omitted from the table, so not
+using attributes can save screen space in Etomo.  If all of the users are
+familiar with the attributes of the computers or you are planning to use all
+of the computers every time you run a parallel process, then you do not
+need to use anything but the number attribute.  
+
+\fBnumber = \fInumber_of_CPUs\fR
+.br
+The number attribute is necessary if you have a computer with multiple
+processors.  If you do not enter this attribute, a single processor is assumed.
+
+\fBtype = \fICPU_type\fR
+.br
+This attribute goes into the table under the heading \fBCPU Type\fR and can
+contain a description of the computer's processor.
+
+\fBspeed = \fICPU_speed\fR
+.br
+This attribute goes into the table under the heading \fBSpeed\fR and can
+contain the speed of the computer.  If you want to put units for this
+attribute in the column header, see the Global Attributes section below.
+
+\fBmemory = \fIamount_of_RAM\fR
+.br
+This attribute goes into the table under the heading \fBRAM\fR and can contain
+the amount of memory the computer has.  If you want to put units for this
+attribute in the column header, see the Global Attributes section below.
+
+\fBos = \fIoperating_system\fR
+.br
+This attribute goes into the table under the heading \fBOS\fR and can contain a
+description of the operating system the computer is running.
+
+\fBmountname = \fIname_for_mounting_this_computers_directories_remotely\fR
+.br
+This attribute specifies the name substituted for 
+.B %mountname
+in a mount rule (see below) when running on this current computer as the
+
+\fBmountrule.#.local = \fIlocal_directory_path\fR
+.br
+\fBmountrule.#.local = \fIremote_directory_path\fR
+.br
+See the section below on Mount Rules.  Mount rules can be entered as
+computer attributes in order to specify a rule that applies only for a 
+specific machine or to override a global mount rule.
+
+.SS Global Attributes
+Global attributes are name/value pairs found at the top of the file, before
+any computer sections.  They
+typically have the following syntax: 
+.br
+.I nameA.nameB = value
+.br
+The order of the attributes is not important.
+
+.B Version = 1.0
+.br
+The Version attribute is required.  It refers to the syntax used in .adoc
+files and should always be set to 1.0.
+
+\fBunits.speed = \fIunits_for_the_speed_attributes\fR
+.br
+The value appears in sub-heading row in the Etomo parallel processing table
+under the heading \fBSpeed\fR.
+
+\fBunits.memory = \fIunits_for_the_memory_attributes\fR
+.br
+The value appears in sub-heading row in the Etomo parallel processing table
+under the heading \fBRAM\fR.
+
+\fBmax.tilt = \fImaximum_number_of_CPUs_users_should_use_for_tilt\fR
+.br
+When this attribute is in use, a reminder not to use too many CPUs will appear
+next to the tilt parallel processing checkbox.  This number must be a whole
+number.  The purpose of this attribute is to discourage users from using too
+many CPUs and from experiencing diminishing returns because
+of bottlenecks.  We are currently setting 
+.B max.tilt
+to 12, but your mileage will vary.
+
+\fBmax.volcombine = \fImaximum_number_of_CPUs_users_should_use_for_volcombine\fR
+.br
+Similarly to 
+.B max.tilt,
+this attribute will cause a recommendation on the
+maximum number of CPUs to appear next to the volcombine parallel processing
+checkbox.  This step is much more susceptible than tomogram generation 
+to diminishing returns from
+I/O bottlenecks.  We are currently setting 
+.B max.volcombine
+to 8.
+
+\fBmountrule.#.local = \fIlocal_directory_path\fR
+.br
+\fBmountrule.#.local = \fIremote_directory_path\fR
+.br
+See the section below on Mount Rules.
+
+.SS Mount Rules for Local to Remote Path Translations
+In order to use parallel processing in IMOD, all computers must be able to 
+access the directory where the data and command files are located.  However,
+it is not necessary that the directory be referred to by the same name on
+the different computers.  When these names differ, you must provide eTomo
+with information about how to translate the current working directory path on
+the local computer into a path that can be used to access the directory on the
+remote computers.  This gets tricky because the true path of a directory, as
+revealed by a 
+.B pwd
+command, may not be the same as the path that the user
+enters to get there.  Thus, in setting up path translations, you need to
+change to a typical directory and then use 
+.B pwd
+to find out what the
+official path to the directory is.  This is the path that eTomo will see on
+the local machine, so you need to work out how this needs to be translated
+so that it can be accessed on the remote machines.
+
+As a simple example, the Linux machines in the BL3DEMC each have a directory
+named 
+.B /localscratch
+which is accessed from any machine as 
+.B /scratch/computer_name
+(where \fBcomputer_name\fR is the name of a machine,
+without any domain).  The required mount rules are entered as:
+
+.B mountrule.1.local = /localscratch
+.br
+.B mountrule.1.remote = /scratch/%mountname
+
+Where \fB%mountname\fR is entered exactly as written and will be substituted
+for the appropriate mount name.  In our example, the mount name is just the
+computer name, but a mount name different from the computer name can be 
+entered for an individual computer using the
+.B mountname
+attribute.
+
+For a complicated example, we have a Macintosh running OSX 10.4, and it mounts
+our Linux home directories (
+.B /home, /home1, /home2
+) under the same names.
+It mounts the Linux machine scratch directories under 
+\fB/scratch/computer_name\fR.  However, when we are running on the Mac and
+.B cd
+to a user's home directory and enter 
+.B pwd
+, we get, e.g.,
+.B /private/var/automount/home1/username
+
+When we 
+.B cd
+to a Linux scratch directory and enter 
+.B pwd
+, we get
+.B /private/var/automount/computer_name
+
+The correct translations can be accomplished with:
+
+.ft B
+.nf
+mountrule.2.local = /private/var/automount/home
+mountrule.2.remote = /home
+mountrule.3.local = /private/var/automount
+mountrule.3.remote = /scratch
+.ft R
+.fi
+
+The numbers specify the order in which the rules are applied.  Note that it is
+important to apply the rule for home first to avoid having
+.B
+/private/var/automount/home 
+get translated to 
+.B /scratch/home.  
+Also note that
+this one rule works for 
+.B /home, /home1, 
+and
+.B /home2.
+
+Our Linux machines can also access the home directories under 
+.B /Users
+on the 
+Mac, by mounting these directories as \fB/computer_name/username\fR.  So we 
+have another mount rule:
+
+.B mountrule.4.local = /Users
+.br
+.B mountrule.4.remote = /%mountname
+
+All of the rules in our two examples are compatible, so they could all be
+listed as global mountrules in the same cpu.adoc.  If this were not the case,
+we could still maintain one file by listing some rules as local rules,
+inside the section for a particular computer.
+
+Here are some other facts about mount rules.  The current directory is
+checked for substitution against one rule at a time, and if it matches a
+rule then the substitution is made and no other rule is checked.  Local rules
+for the current host machine, if any, are checked before the gloabl rules.
+
+It is required to have a local rule and a remote rule with the same number
+and in the same area (global attributes area or Computer section).  Each
+mount rule attribute must have a value.
+
+When 
+.B %mountname
+is used, then a Computer section for the current host
+computer must exist, or there must be a Computer section called
+.B localhost.
+In the latter case, a 
+.B mountname
+attribute is required for that section.
+
+.SS EXAMPLES
+A cpu.adoc for a standalone two-processor system would be just:
+.nf
+Version = 1.0
+[Computer = localhost]
+number = 2
+.fi
+.P
+See $IMOD_DIR/autodoc/cpu.adoc for further examples.
+
+.SS LIMITATIONS
+Windows computers are not yet supported because their load is reported
+differently.  When this support is added, it will still not be possible to
+place Windows computers in the same cpu.adoc parallel processing table
+as Linux and Macintosh computers.
+
+All computers in the cpu.adoc will be loaded into a scrollable table in Etomo
+and ssh connections will be opened to each one to monitor its load.
+A cpu.adoc with many tens of computers may slow down Etomo too much.
