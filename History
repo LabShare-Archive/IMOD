@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/05: Added a parallel process checkbox to specify the default parallel
+processing setting.
+
 12/12/05: Fixed a bug which caused the final tomogram to appear on the clean up
 dialog when the dataset name had a dash in it.
 
