@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.11  2004/10/16 02:42:04  mast
 #  Fixed bug in that prevented using a filter
 #
@@ -343,6 +346,27 @@ else
 	@ secnum++
     end
     set filesectlist = $seclist
+
+    # Make sure the size is good for enhance
+    #
+    if ( ("$FILTERPARAM"  != "0.,0.,0.,0.")  && ($FILTERPARAM != "NONE") ) then
+        if ("$NEWSIZE" == "/") then
+            set origsize = ($nxyz[1] $nxyz[2])
+        else
+            set origsize = `echo $NEWSIZE | sed '/,/s// /g'`
+            if ($#origsize < 2) then
+                echo "ERROR: $com - size entry must contain two numbers"
+                exit 1
+            endif
+        endif
+        set tempsize = `goodframe $origsize[1] $origsize[2]`
+        if ($#tempsize < 2) then
+            echo "ERROR: $com - Cannot run goodframe to get size for filtering"
+            exit 1
+        endif
+        if ($tempsize[1] != $origsize[1] || $tempsize[2] != $origsize[2]) \
+            set NEWSIZE = $tempsize[1],$tempsize[2]
+    endif
 endif
 
 # If serial tomograms, check other options
