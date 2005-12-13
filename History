@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/05: Fixed a bug which caused the final tomogram to appear on the clean up
+dialog when the dataset name had a dash in it.
+
 12/12/05: Added a menu option to the File menu to run tomosnapshot.
 
 12/12/05: Fixed a bug which prevented part of a process from running when the
@@ -21,9 +24,6 @@ prevent the current process from completing.
 12/7/05: Changed Ccderaser to allow model output up to the maximum size for
 models in Fortran programs, and added an option for merging patches in an input
 model, to facilite editing and use of an output model as an input model.
-
-12/7/05: Fixed a bug which caused the final tomogram to appear on the clean up
-dialog when the dataset name had a dash in it.
 
 12/6/05: In Join, when a section is rotated, the final start and end in Z
 entered on the Setup page now reflect the rotation on the Join page, and the
