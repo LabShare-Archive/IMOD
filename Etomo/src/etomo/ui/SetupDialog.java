@@ -107,6 +107,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
   private JPanel pnlMagGradientInfo = new JPanel();
   private LabeledTextField ltfMagGradientFile = new LabeledTextField(
     "Mag gradients correction: ");
+  private final JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
   private JButton btnMagGradientFile = new JButton(iconFolder);
   
   //  Tilt angle GUI objects
@@ -282,12 +283,26 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     pnlMagGradientInfo.add(btnMagGradientFile);
     pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     
+    JPanel pnlParallelProcess = new JPanel();
+    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess,
+        BoxLayout.X_AXIS));
+    pnlParallelProcess.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlParallelProcess.add(cbParallelProcess);
+    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    if (validAutodoc) {
+      cbParallelProcess.setSelected(true);
+    }
+    else {
+      cbParallelProcess.setEnabled(false);
+    }
+    
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlImageRows.add(pnlParallelProcess);
     pnlImageRows.add(pnlDistortionInfo);
     pnlImageRows.add(pnlMagGradientInfo);
-
+    UIUtilities.alignComponentsX(pnlImageRows, Component.LEFT_ALIGNMENT);
 
     pnlImageRows.setAlignmentY(Component.CENTER_ALIGNMENT);
     pnlImageParams.setLayout(new BoxLayout(pnlImageParams, BoxLayout.X_AXIS));
@@ -405,6 +420,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     metaData.setBackupDirectory(ltfBackupDirectory.getText());
     metaData.setDistortionFile(ltfDistortionFile.getText());
     metaData.setMagGradientFile(ltfMagGradientFile.getText());
+    metaData.setDefaultParallel(cbParallelProcess.isSelected());
     metaData.setAdjustedFocusA(cbAdjustedFocusA.isSelected());
     metaData.setAdjustedFocusB(cbAdjustedFocusB.isSelected());
     metaData.setViewType(getViewType());
@@ -1045,6 +1061,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.39  2005/12/05 21:40:12  sueh
+ * <p> bug# 674 In btnScanHeaderAction() rounding xPixelSize to 6 significant
+ * <p> digits.
+ * <p>
  * <p> Revision 3.38  2005/11/14 22:20:45  sueh
  * <p> bug# 762 Made btnDatasetAction() and stateChanged() protected.
  * <p>
