@@ -89,10 +89,12 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final SqueezevolParam squeezevolParam;
   protected final TransferfidParam transferfidParamA;
   protected final TransferfidParam transferfidParamB;
+  protected final EtomoBoolean2 defaultParallel = new EtomoBoolean2("DefaultParallel");
   protected EtomoBoolean2 tomoGenTiltParallelA = null;
   protected EtomoBoolean2 tomoGenTiltParallelB = null;
   protected EtomoBoolean2 combineVolcombineParallel = null;
   protected EtomoBoolean2 bStackProcessed = null;
+
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -182,6 +184,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     if (bStackProcessed != null) {
       bStackProcessed.store(props, prepend);
     }
+    defaultParallel.store(props, prepend);
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -284,6 +287,10 @@ public abstract class ConstMetaData extends BaseMetaData {
       return tomoGenTiltParallelB;
     }
     return tomoGenTiltParallelA;
+  }
+  
+  public ConstEtomoNumber getDefaultParallel() {
+    return defaultParallel;
   }
   
   public ConstEtomoNumber getUseZFactors(AxisID axisID) {
@@ -661,6 +668,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.32  2005/10/27 00:32:22  sueh
+ * <p> bug# 725 Added bStackProcessed.
+ * <p>
  * <p> Revision 3.31  2005/10/12 21:24:16  sueh
  * <p> bug# 532 Changed the parallel booleans to EtomoBoolean2 so that they
  * <p> can remember whether they where set or not.  The default for the parallel
