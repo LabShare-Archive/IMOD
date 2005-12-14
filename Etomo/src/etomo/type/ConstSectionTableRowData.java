@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2005/12/06 23:00:04  sueh
+ * <p> bug# 757 Added COS_X_Y_THRESHOLD
+ * <p>
  * <p> Revision 1.12  2005/11/30 21:15:58  sueh
  * <p> bug# 757 Adding getSetupXMax, YMax, and ZMax().
  * <p>
@@ -164,6 +167,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected StringBuffer invalidReason = null;
 
   public abstract void load(Properties props);
+
   public abstract void load(Properties props, String prepend);
 
   /**
@@ -203,6 +207,28 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleZ.setDefault(0).setDescription("Rotation Angles, Z");
     //initialize
     this.rowNumber.set(rowNumber);
+  }
+
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "rowNumber=" + rowNumber + ",sampleBottomStart=" + sampleBottomStart
+        + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
+        + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
+        + ",\nsampleTopEnd=" + sampleTopEnd + ",setupFinalStart="
+        + setupFinalStart + ",\nsetupFinalEnd=" + setupFinalEnd
+        + ",\njoinFinalStart=" + joinFinalStart + ",joinFinalEnd="
+        + joinFinalEnd + ",\nrotationAngleX=" + rotationAngleX
+        + ",\nrotationAngleY=" + rotationAngleY + ",rotationAngleZ="
+        + rotationAngleZ + ",\nsetupSection=" + setupSection + ",joinSection="
+        + joinSection + ",\nsetupXMax=" + setupXMax + ",joinXMax=" + joinXMax
+        + ",\nsetupYMax=" + setupYMax + ",joinYMax=" + joinYMax + ",setupZMax="
+        + setupZMax + ",\njoinZMax=" + joinZMax + ",imodIndex=" + imodIndex
+        + ",\nimodRotIndex=" + imodRotIndex + ",sectionExpanded="
+        + sectionExpanded + ",\ninvalidReason=" + invalidReason + ","
+        + super.toString();
   }
 
   /**
@@ -251,30 +277,6 @@ public abstract class ConstSectionTableRowData implements Storable {
     joinYMax = constSectionTableRowData.joinYMax;
     setupZMax = constSectionTableRowData.setupZMax;
     joinZMax = constSectionTableRowData.joinZMax;
-  }
-
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return ",\n" + rowNumber.getDescription() + "=" + rowNumber + ","
-        + setupSectionString + "=" + setupSection + ",\n" + "joinSection="
-        + joinSection + "," + sampleBottomStart.getDescription() + "="
-        + sampleBottomStart + ",\n" + sampleBottomEnd.getDescription() + "="
-        + sampleBottomEnd + "," + sampleTopStart.getDescription() + "="
-        + sampleTopStart + ",\n" + sampleTopEnd.getDescription() + "="
-        + sampleTopEnd + "," + setupFinalStart.getDescription() + "="
-        + setupFinalStart + ",\n" + setupFinalEnd.getDescription() + "="
-        + setupFinalEnd + joinFinalStart.getDescription() + "="
-        + joinFinalStart + ",\n" + joinFinalEnd.getDescription() + "="
-        + joinFinalEnd + "," + rotationAngleX.getDescription() + "="
-        + rotationAngleX + ",\n" + rotationAngleY.getDescription() + "="
-        + rotationAngleY + "," + rotationAngleZ.getDescription() + "="
-        + rotationAngleZ + ",\n" + "setupXMax=" + setupXMax + "joinXMax="
-        + joinXMax + "," + "setupYMax=" + setupYMax + "joinYMax=" + joinYMax
-        + ",\n" + setupZMaxString + "=" + setupZMax + "joinZMax=" + joinZMax
-        + ",\n" + VERSION_KEY + "=" + VERSION;
   }
 
   public void store(Properties props) {
@@ -428,7 +430,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   public int getJoinXMax() {
     return joinXMax;
   }
-  
+
   public int getSetupXMax() {
     return setupXMax;
   }
@@ -436,7 +438,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   public int getJoinYMax() {
     return joinYMax;
   }
-  
+
   public int getSetupYMax() {
     return setupYMax;
   }
@@ -444,7 +446,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   public int getJoinZMax() {
     return joinZMax;
   }
-  
+
   public int getSetupZMax() {
     return setupZMax;
   }
