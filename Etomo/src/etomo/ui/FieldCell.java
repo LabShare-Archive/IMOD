@@ -21,6 +21,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2005/09/01 18:00:33  sueh
+ * <p> bug# 532 Added setValue(void) to empty a field.  Removed
+ * <p> setValueEmpty().
+ * <p>
  * <p> Revision 1.8  2005/08/27 22:36:43  sueh
  * <p> bug# 532 Added isEmpty(), which returns true for a field that is empty or
  * <p> only contains whitespace.
@@ -171,5 +175,9 @@ class FieldCell extends InputCell {
   
   final int getRightBorder() {
     return textField.getBorder().getBorderInsets(textField).right;
+  }
+  
+  final void setToolTipText(String toolTipText) {
+    textField.setToolTipText(toolTipText);
   }
 }

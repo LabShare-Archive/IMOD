@@ -91,9 +91,16 @@ class HeaderCell {
   final int getWidth() {
     return cell.getWidth();
   }
+  
+  final void setToolTipText(String toolTipText) {
+    cell.setToolTipText(toolTipText);
+  }
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.8  2005/11/29 22:45:49  sueh
+ * * <p> bug# bug# 757 Added setText(void) to blank out the header label.
+ * * <p>
  * * <p> Revision 1.7  2005/11/04 00:54:05  sueh
  * * <p> bug# 732 Added getWidth().
  * * <p>
