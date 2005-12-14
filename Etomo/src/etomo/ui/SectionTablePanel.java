@@ -49,6 +49,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2005/11/30 21:18:28  sueh
+ * <p> bug# 757 Removed getJoinXMax, YMax, and ZMax().  Added getXMax,
+ * <p> YMax, and ZMax().
+ * <p>
  * <p> Revision 1.19  2005/11/29 22:50:56  sueh
  * <p> bug# 757 Added another header row to the join tab, which displays when
  * <p> one of the sections is a .rot file.
@@ -366,7 +370,6 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private Run3dmodButton btnOpen3dmod;
   private SpacedPanel pnlImod;
   
-  private int curTab = JoinDialog.SETUP_TAB;
   private int mode = JoinDialog.SETUP_MODE;
   private boolean flipping = false;
 
@@ -387,14 +390,26 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     button1ExpandSections = ExpandButton.getMoreLessInstance(this);
     header2JoinSections.setText("In Final");
     addTablePanelComponents();
-    //buttones
+    //buttons
     createButtonsPanel();
     addButtonsPanelComponents();
     addRootPanelComponents();
   }
+  
+  final boolean isSetupTab() {
+    return joinDialog.isSetupTab();
+  }
+
+  final boolean isAlignTab() {
+    return joinDialog.isAlignTab();
+  }
+  
+  final boolean isJoinTab() {
+    return joinDialog.isJoinTab();
+  }
 
   private void addRootPanelComponents() {
-    if (curTab == JoinDialog.JOIN_TAB) {
+    if (isJoinTab()) {
       rootPanel.setLayout(new GridLayout(2, 1));
     }
     else {
@@ -402,7 +417,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     rootPanel.add(pnlBorder.getContainer());
     pnlBorder.add(pnlTable);
-    if (curTab != JoinDialog.ALIGN_TAB) {
+    if (!isAlignTab()) {
       addButtonsPanelComponents();
       pnlBorder.add(pnlButtons);
     }
@@ -410,13 +425,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
 
   private void addTablePanelComponents() {
     //Table constraints
-    if (curTab == JoinDialog.SETUP_TAB) {
+    if (isSetupTab()) {
       addSetupTablePanelComponents();
     }
-    else if (curTab == JoinDialog.ALIGN_TAB) {
+    else if (isAlignTab()) {
       addAlignTablePanelComponents();
     }
-    else if (curTab == JoinDialog.JOIN_TAB) {
+    else if (isJoinTab()) {
       addJoinTablePanelComponents();
     }
   }
@@ -592,20 +607,16 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   private void addButtonsPanelComponents() {
-    if (curTab == JoinDialog.SETUP_TAB) {
+    if (isSetupTab()) {
       pnlButtons.add(pnlButtonsComponent1);
       pnlButtons.add(pnlButtonsComponent2);
     }
-    if (curTab != JoinDialog.ALIGN_TAB) {
+    if (!isAlignTab()) {
       pnlButtons.add(pnlImod);
     }
-    if (curTab == JoinDialog.SETUP_TAB) {
+    if (isSetupTab()) {
       pnlButtons.add(btnGetAngles);
     }
-  }
-
-  void setCurTab(int curTab) {
-    this.curTab = curTab;
   }
 
   void displayCurTab() {
@@ -620,10 +631,6 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     int prevSampleSlice = 0;
     int prevChunkTableSlice = 0;
     int nextSampleBottomNumberSlices;
-    //Set curTab
-    for (int i = 0; i < rowsSize; i++) {
-      ((SectionTableRow) rows.get(i)).setCurTab(curTab);
-    }
     //redisplay rows and calculate chunks
     for (int i = 0; i < rowsSize; i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
@@ -1036,7 +1043,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     int binning = ((Integer) this.spinBinning.getValue()).intValue();
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    if (curTab == JoinDialog.SETUP_TAB) {
+    if (isSetupTab()) {
       row.imodOpenSetupSectionFile(binning);
     }
     else {
@@ -1271,6 +1278,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       for (int i = 0; i < rows.size(); i++) {
         ((SectionTableRow) rows.get(i)).synchronizeSetupToJoin();
       }
+      joinDialog.defaultSizeInXY();
     }
     //synchronize join columns to setup columns when the users leaves the join
     //tab
