@@ -135,7 +135,7 @@ public abstract class BaseManager {
   public abstract void setTestParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
-  
+
   protected abstract void startNextProcess(AxisID axisID, String nextProcess);
 
   public BaseManager() {
@@ -153,6 +153,23 @@ public abstract class BaseManager {
     }
     createImodManager();
     initProgram();
+  }
+
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "test=" + test + ",uiHarness=" + uiHarness + ",userConfig="
+        + userConfig + ",\nloadedParamFile=" + loadedParamFile + ",imodManager="
+        + imodManager + ",\ncomScriptMgr=" + comScriptMgr + ",paramFile="
+        + paramFile + ",\nhomeDirectory=" + homeDirectory + ",nextProcessA="
+        + nextProcessA + ",\nnextProcessB=" + nextProcessB + ",lastProcessA="
+        + lastProcessA + ",\nlastProcessB=" + lastProcessB + ",threadNameA="
+        + threadNameA + ",\nthreadNameB=" + threadNameB + ",backgroundProcessA="
+        + backgroundProcessA + ",\nbackgroundProcessNameA="
+        + backgroundProcessNameA + ",\npropertyUserDir=" + propertyUserDir
+        + ",\ndebug=" + debug + ",exiting" + exiting + "," + super.toString();
   }
 
   private void initProgram() {
@@ -274,7 +291,8 @@ public abstract class BaseManager {
         if (nextProcessB != null) {
           message.append(" " + nextProcessB + " on Axis B");
         }
-        message.append(" should run next.\nDo you still wish to exit the program?");
+        message
+            .append(" should run next.\nDo you still wish to exit the program?");
 
         if (!uiHarness.openYesNoWarningDialog(message.toString(), axisID)) {
           exiting = false;
@@ -579,7 +597,7 @@ public abstract class BaseManager {
       resetNextProcess(axisID);
     }
   }
-  
+
   /**
    * Keep final.
    * @param axisID
@@ -597,7 +615,8 @@ public abstract class BaseManager {
    */
   protected final void setNextProcess(AxisID axisID, String nextProcess) {
     if (debug) {
-      System.err.println("setNextProcess:axisID="+axisID+",nextProcess="+nextProcess);
+      System.err.println("setNextProcess:axisID=" + axisID + ",nextProcess="
+          + nextProcess);
     }
     if (axisID == AxisID.SECOND) {
       nextProcessB = nextProcess;
@@ -613,7 +632,7 @@ public abstract class BaseManager {
    */
   private final void resetNextProcess(AxisID axisID) {
     if (debug) {
-      System.err.println("resetNextProcess:axisID="+axisID);
+      System.err.println("resetNextProcess:axisID=" + axisID);
     }
     if (axisID == AxisID.SECOND) {
       nextProcessB = "";
@@ -676,29 +695,6 @@ public abstract class BaseManager {
       return !lastProcessB.equals("");
     }
     return !lastProcessA.equals("");
-  }
-
-  /*
-   public void packMainWindow(AxisID axisID) {
-   uiHarness.repaint(axisID);
-   uiHarness.fitWindow(axisID);
-   packDialogs(axisID);
-   }*/
-
-  public String toString() {
-    return getClass().getName() + "[" + super.toString() + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return ",\ntest=" + test + ",uiHarness=" + uiHarness + ",userConfig="
-        + userConfig + ",\nloadedParamFile=" + loadedParamFile
-        + ",\nimodManager=" + imodManager + ",comScriptMgr=" + comScriptMgr
-        + ",\nparamFile=" + paramFile + ",homeDirectory=" + homeDirectory
-        + ",\nnextProcessA=" + nextProcessA + ",nextProcessB=" + nextProcessB
-        + ",\nthreadNameA=" + threadNameA + ",threadNameB=" + threadNameB
-        + ",\nbackgroundProcessA=" + backgroundProcessA
-        + ",\nbackgroundProcessNameA=" + backgroundProcessNameA
-        + ",\npropertyUserDir=" + propertyUserDir + ",debug=" + debug;
   }
 
   public final void startGetLoadAverage(LoadAverageDisplay display,
@@ -844,16 +840,23 @@ public abstract class BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.TOMOSNAPSHOT;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute " + ProcessName.TOMOSNAPSHOT,
-          axisID);
+      uiHarness.openMessageDialog(message, "Unable to execute "
+          + ProcessName.TOMOSNAPSHOT, axisID);
       return;
     }
     setThreadName(threadName, axisID);
-    getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT, axisID);
+    getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
+        axisID);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2005/12/12 21:57:56  sueh
+ * <p> bug# 779 Made BaseManager.resetNextProcess() private.  Added
+ * <p> startNextProcess(), which calls resetNextProcess and then calls a child
+ * <p> startNextProcess.  ResetNextProcess is only called from
+ * <p> startNextProcess and processDone.
+ * <p>
  * <p> Revision 1.47  2005/12/09 20:21:29  sueh
  * <p> bug# 776 Added tomosnapshot
  * <p>
