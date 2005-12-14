@@ -29,25 +29,27 @@ import etomo.type.EtomoNumber;
  */
 final class ProcessorTableRow implements Storable {
   public static final String rcsid = "$Id$";
-  
+
   private static final String STORE_SELECTED = "Selected";
   private static final String STORE_CPUS_SELECTED = "CPUsSelected";
   private static final int DEFAULT_CPUS_SELECTED = 1;
 
+  private final FieldCell cellNumberCpus = new FieldCell();
+  private final FieldCell cellLoad1 = new FieldCell();
+  private final FieldCell cellLoad5 = new FieldCell();
+  private final FieldCell cellLoad15 = new FieldCell();
+  private final FieldCell cellRestarts = new FieldCell();
+  private final FieldCell cellSuccesses = new FieldCell();
+  private final FieldCell cellFailureReason = new FieldCell();
+  private final FieldCell cellSpeed = new FieldCell();
+  private final FieldCell cellMemory = new FieldCell();
+  private final FieldCell cellOS = new FieldCell();
+  private final CheckBoxCell cellComputer = new CheckBoxCell();
+  private final FieldCell cellCPUType = new FieldCell();
+  private final TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
   private ProcessorTable table = null;
-  private CheckBoxCell cellComputer = new CheckBoxCell();
-  private FieldCell cellCPUType = new FieldCell();
   private InputCell cellCPUsSelected = null;
-  private FieldCell cellNumberCpus = new FieldCell();
-  private FieldCell cellLoad1 = new FieldCell();
-  private FieldCell cellLoad5 = new FieldCell();
-  private FieldCell cellLoad15 = new FieldCell();
-  private FieldCell cellRestarts = new FieldCell();
-  private FieldCell cellSuccesses = new FieldCell();
-  private FieldCell cellFailureReason = new FieldCell();
-  private FieldCell cellSpeed = new FieldCell();
-  private FieldCell cellMemory = new FieldCell();
-  private FieldCell cellOS = new FieldCell();
   private String computerName;
   private String cpuType = null;
   private int numCpus = 1;
@@ -61,7 +63,7 @@ final class ProcessorTableRow implements Storable {
   private boolean memoryColumn = false;
   private boolean osColumn = false;
   private boolean displayed = false;
-  
+
   ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
       String cpuType, String speed, String memory, String os) {
     this.table = table;
@@ -85,7 +87,7 @@ final class ProcessorTableRow implements Storable {
   ProcessorTableRow(ProcessorTable table, String computerName, String cpuType) {
     this(table, computerName, 1, cpuType, null, null, null);
   }
-  
+
   public void store(Properties props) {
     store(props, "");
   }
@@ -120,6 +122,9 @@ final class ProcessorTableRow implements Storable {
     load(props, "");
   }
 
+  /**
+   * load the computers and number of CPUs selected
+   */
   public void load(Properties props, String prepend) {
     String group;
     if (prepend == "") {
@@ -139,7 +144,7 @@ final class ProcessorTableRow implements Storable {
               .toString(DEFAULT_CPUS_SELECTED))));
     }
   }
-  
+
   private void initRow() {
     rowInitialized = true;
     cellComputer.setLabel(computerName);
@@ -176,31 +181,31 @@ final class ProcessorTableRow implements Storable {
     cellOS.setValue(os);
     setSelected(false);
   }
-  
+
   final void setNumberColumn(boolean numberColumn) {
     this.numberColumn = numberColumn;
   }
-  
+
   final void setTypeColumn(boolean typeColumn) {
     this.typeColumn = typeColumn;
   }
-  
+
   final void setSpeedColumn(boolean speedColumn) {
     this.speedColumn = speedColumn;
   }
-  
+
   final void setMemoryColumn(boolean memoryColumn) {
     this.memoryColumn = memoryColumn;
   }
-  
+
   final void setOSColumn(boolean osColumn) {
     this.osColumn = osColumn;
   }
-  
+
   final boolean isDisplayed() {
     return displayed;
   }
-  
+
   final void deleteRow() {
     displayed = false;
   }
@@ -246,15 +251,17 @@ final class ProcessorTableRow implements Storable {
   protected void performAction(ActionEvent event) {
     setSelected(cellComputer.isSelected());
   }
-  
+
   protected void stateChanged(ChangeEvent event) {
     table.msgCPUsSelectedChanged();
   }
-  
+
   final void msgDropped(String reason) {
     cellComputer.setSelected(false);
     setSelected(false);
     cellFailureReason.setValue(reason);
+    cellFailureReason.setToolTipText(tooltipFormatter.setText(
+        "This computer was dropped from the current process.").format());
   }
 
   private void setSelected(boolean selected) {
@@ -269,16 +276,16 @@ final class ProcessorTableRow implements Storable {
     setSelectedError();
     table.msgCPUsSelectedChanged();
   }
-  
+
   private void setSelectedError() {
     cellComputer.setError(cellComputer.isSelected() && cellLoad1.isEmpty()
         && cellLoad5.isEmpty() && cellLoad15.isEmpty());
   }
-  
+
   final boolean isSelected() {
     return cellComputer.isSelected();
   }
-  
+
   final void getParameters(ProcesschunksParam param) {
     int numCpus = getCPUsSelected();
     for (int i = 0; i < numCpus; i++) {
@@ -289,11 +296,11 @@ final class ProcessorTableRow implements Storable {
   final void resetResults() {
     cellSuccesses.setValue();
   }
-  
+
   final long getSuccesses() {
     return cellSuccesses.getLongValue();
   }
-  
+
   final int getCPUsSelected() {
     if (!isSelected()) {
       return 0;
@@ -307,14 +314,14 @@ final class ProcessorTableRow implements Storable {
     }
     return cpusSelected;
   }
-  
+
   final boolean equals(String computer) {
     if (cellComputer.getLabel().equals(computer)) {
       return true;
     }
     return false;
   }
-  
+
   final void addSuccess() {
     int successes = cellSuccesses.getIntValue();
     if (successes == EtomoNumber.INTEGER_NULL_VALUE) {
@@ -325,7 +332,7 @@ final class ProcessorTableRow implements Storable {
     }
     cellSuccesses.setValue(successes);
   }
-  
+
   final void addRestart() {
     int restarts = cellRestarts.getIntValue();
     if (restarts == EtomoNumber.INTEGER_NULL_VALUE) {
@@ -342,14 +349,14 @@ final class ProcessorTableRow implements Storable {
       cellRestarts.setWarning(true);
     }
   }
-  
+
   final void setLoadAverage(double load1, double load5, double load15) {
     int numberCpus = cellNumberCpus.getIntValue();
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
     setLoad(cellLoad15, load15, numberCpus);
   }
-  
+
   final void clearLoadAverage(String reason) {
     int numberCpus = cellNumberCpus.getIntValue();
     cellLoad1.setValue();
@@ -360,26 +367,29 @@ final class ProcessorTableRow implements Storable {
     cellLoad15.setWarning(false);
     setSelectedError();
     cellFailureReason.setValue(reason);
+    cellFailureReason.setToolTipText(tooltipFormatter.setText(
+        "Unable to get the load averages for this computer.").format());
   }
-  
+
   final void clearFailureReason() {
     cellFailureReason.setValue();
+    cellFailureReason.setToolTipText(null);
   }
-  
+
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
     cellLoad.setWarning(load >= numberCpus);
     cellLoad.setValue(load);
     cellComputer.setError(false);
   }
-  
+
   final int getHeight() {
     return cellComputer.getHeight();
   }
-  
+
   final String getComputer() {
     return cellComputer.getLabel();
   }
-  
+
   final int getWidth() {
     int width = 0;
     if (cellComputer != null) {
@@ -423,7 +433,7 @@ final class ProcessorTableRow implements Storable {
     }
     return width + 3;
   }
-  
+
   private class ProcessorTableRowActionListener implements ActionListener {
     ProcessorTableRow adaptee;
 
@@ -435,7 +445,7 @@ final class ProcessorTableRow implements Storable {
       adaptee.performAction(event);
     }
   }
-  
+
   private class ProcessorTableRowChangeListener implements ChangeListener {
     ProcessorTableRow adaptee;
 
@@ -450,6 +460,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2005/11/14 22:17:35  sueh
+ * <p> bug# 762 Made performAction() and stateChanged() protected.
+ * <p>
  * <p> Revision 1.17  2005/11/04 00:55:08  sueh
  * <p> bug# 732 Added isDisplayed() and deleteRow().  The resize functionality
  * <p> needs to know what rows are displayed.
