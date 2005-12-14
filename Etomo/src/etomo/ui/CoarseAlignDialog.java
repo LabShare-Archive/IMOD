@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/10/27 00:34:26  sueh
+ * <p> bug# 725 Calling preCrossCorrelate instead of crossCorrelate so that the
+ * <p> B stack can be processed.
+ * <p>
  * <p> Revision 3.26  2005/08/11 23:45:42  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -184,39 +188,38 @@ import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
-public class CoarseAlignDialog extends ProcessDialog
-    implements ContextMenu, FiducialessParams, Run3dmodButtonContainer {
+public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
+    FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlCoarseAlign = new JPanel();
 
   private CrossCorrelationPanel pnlCrossCorrelation;
 
-  private MultiLineButton btnCrossCorrelate = MultiLineButton.getToggleButtonInstance(
-    "Calculate Cross- Correlation");
+  private MultiLineButton btnCrossCorrelate = MultiLineButton
+      .getToggleButtonInstance("Calculate Cross- Correlation");
 
   private PrenewstPanel pnlPrenewst;
 
-  private MultiLineButton btnCoarseAlign = MultiLineButton.getToggleButtonInstance(
-    "Generate Coarse Aligned Stack");
+  private MultiLineButton btnCoarseAlign = MultiLineButton
+      .getToggleButtonInstance("Generate Coarse Aligned Stack");
 
   private Run3dmodButton btnImod = new Run3dmodButton(
-    "View Aligned<br>Stack In 3dmod", this);
+      "View Aligned<br>Stack In 3dmod", this);
 
   private JPanel pnlFiducialess = new JPanel();
   private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
-    "Tilt axis rotation:");
+      "Tilt axis rotation:");
 
-  private MultiLineButton btnMidas = MultiLineButton.getToggleButtonInstance(
-    "<html><b>Fix Alignment<br>With Midas</b>");
-  
+  private MultiLineButton btnMidas = MultiLineButton
+      .getToggleButtonInstance("<html><b>Fix Alignment<br>With Midas</b>");
+
   //Montaging
-  private MultiLineButton btnFixEdgesMidas = MultiLineButton.getToggleButtonInstance(
-  "Fix Edges With Midas");
-  private MultiLineButton btnDistortionCorrectedStack = MultiLineButton.getToggleButtonInstance(
-  "Make Distortion Corrected Stack");
-
+  private MultiLineButton btnFixEdgesMidas = MultiLineButton
+      .getToggleButtonInstance("Fix Edges With Midas");
+  private MultiLineButton btnDistortionCorrectedStack = MultiLineButton
+      .getToggleButtonInstance("Make Distortion Corrected Stack");
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
@@ -235,9 +238,9 @@ public class CoarseAlignDialog extends ProcessDialog
     pnlCoarseAlign.setLayout(new BoxLayout(pnlCoarseAlign, BoxLayout.Y_AXIS));
     pnlCoarseAlign.setBorder(new BeveledBorder("Coarse Alignment").getBorder());
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
-      FixedDim.x0_y10);
-    UIUtilities
-      .addWithSpace(pnlCoarseAlign, btnCrossCorrelate.getComponent(), FixedDim.x0_y10);
+        FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnCrossCorrelate.getComponent(),
+        FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       SpacedPanel pnlFixEdges = new SpacedPanel();
       pnlFixEdges.setBoxLayout(BoxLayout.Y_AXIS);
@@ -251,15 +254,19 @@ public class CoarseAlignDialog extends ProcessDialog
       setEnabledFixEdgesMidasButton();
     }
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
-      FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign.getComponent(), FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnImod.getComponent(), FixedDim.x0_y10);
+        FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign.getComponent(),
+        FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnImod.getComponent(),
+        FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas.getComponent(), FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas.getComponent(),
+        FixedDim.x0_y10);
 
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters
+        .getButtonDimension());
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
@@ -281,7 +288,7 @@ public class CoarseAlignDialog extends ProcessDialog
     // Set the default advanced state for the window
     updateAdvanced();
   }
-  
+
   /**
    * Enable Fix Edges with Midas button if there are no distortion correction files
    * in use or if the .dcst file (distortion corrected stack) has been created.
@@ -321,7 +328,7 @@ public class CoarseAlignDialog extends ProcessDialog
   public void setPrenewstParams(ConstNewstParam prenewstParam) {
     pnlPrenewst.setParameters(prenewstParam);
   }
-  
+
   /**
    * Set the blendmont params of the prenewst panel
    * @param prenewstParam
@@ -337,7 +344,7 @@ public class CoarseAlignDialog extends ProcessDialog
   public void getPrenewstParams(NewstParam prenewstParam) {
     pnlPrenewst.getParameters(prenewstParam);
   }
-  
+
   /**
    * Get the preblend params from the prenewst panel
    * @param BlendmontParam
@@ -393,15 +400,17 @@ public class CoarseAlignDialog extends ProcessDialog
       alignLogfileLabel = "Prenewst";
       alignLogfile = "prenewst";
     }
-    String[] manPagelabel = {"Tiltxcorr", "Xftoxg", alignManpageLabel, "3dmod", "Midas"};
-    String[] manPage = {"tiltxcorr.html", "xftoxg.html", alignManpage + ".html", "3dmod.html",
-        "midas.html"};
-    String[] logFileLabel = {"Xcorr", alignLogfileLabel};
+    String[] manPagelabel = { "Tiltxcorr", "Xftoxg", alignManpageLabel,
+        "3dmod", "Midas" };
+    String[] manPage = { "tiltxcorr.html", "xftoxg.html",
+        alignManpage + ".html", "3dmod.html", "midas.html" };
+    String[] logFileLabel = { "Xcorr", alignLogfileLabel };
     String[] logFile = new String[2];
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     logFile[1] = alignLogfile + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
-      "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+        "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, applicationManager);
   }
 
   /**
@@ -422,18 +431,25 @@ public class CoarseAlignDialog extends ProcessDialog
     btnMidas.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Initial rotation angle of tilt axis when viewing images in Midas.";
     ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
+    btnDistortionCorrectedStack
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Create a stack to use in Midas that incorporates the corrections from the image distortion field file and/or the magnification gradients file.")
+            .format());
+    btnFixEdgesMidas.setToolTipText(tooltipFormatter.setText(
+        "Use Midas to adjust the alignment of the montage frames.").format());
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodCoarseAlign(axisID, menuOptions);
     }
   }
-  
+
   /**
    * Action function for process buttons
    * @param event

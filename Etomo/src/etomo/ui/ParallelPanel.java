@@ -40,35 +40,37 @@ import etomo.util.HashedArray;
  * 
  * @version $Revision$
  */
-public final class ParallelPanel implements ParallelProgressDisplay, Expandable, LoadAverageDisplay {
+public final class ParallelPanel implements ParallelProgressDisplay,
+    Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
   static final String TITLE = "Parallel Processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
-  
+
   private static HashedArray maxCPUList = null;
   private static EtomoBoolean2 validAutodoc = null;
-  
+
   private final JPanel tablePanel = new JPanel();
   private final ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
       this);
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
-  "CPUs selected: ");
+      "CPUs selected: ");
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
-  "Chunks finished: ");
+      "Chunks finished: ");
   private final MultiLineButton btnResume = new MultiLineButton("Resume");
   private final MultiLineButton btnPause = new MultiLineButton("Pause");
-  private final MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
+  private final MultiLineButton btnSaveDefaults = new MultiLineButton(
+      "Save As Defaults");
   private final SpacedPanel bodyPanel = new SpacedPanel();
   private final JPanel rootPanel = new JPanel();
-  
+
   private final BaseManager manager;
   private final AxisID axisID;
   private final ProcessorTable processorTable;
-  private final LabeledSpinner nice;
+  private final LabeledSpinner lsNice;
   private final PanelHeader header;
   private final AxisProcessPanel parent;
-  
+
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
   private boolean visible = true;
@@ -76,7 +78,8 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   private boolean pauseEnabled = false;
   private ProcesschunksParam processchunksParam = null;
 
-  public ParallelPanel(BaseManager manager, AxisID axisID, PanelHeaderState state, AxisProcessPanel parent) {
+  public ParallelPanel(BaseManager manager, AxisID axisID,
+      PanelHeaderState state, AxisProcessPanel parent) {
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
@@ -99,8 +102,8 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     SpinnerModel model = new SpinnerNumberModel(
         ProcesschunksParam.NICE_DEFAULT, ProcesschunksParam.NICE_FLOOR,
         ProcesschunksParam.NICE_CEILING, 1);
-    nice = new LabeledSpinner("Nice: ", model);
-    southPanel.add(nice);
+    lsNice = new LabeledSpinner("Nice: ", model);
+    southPanel.add(lsNice);
     southPanel.add(btnPause);
     southPanel.add(btnResume);
     southPanel.add(btnSaveDefaults);
@@ -123,44 +126,46 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(false);
     header.setState(state);
+    setToolTipText();
   }
-  
+
   private final void buildTablePanel() {
     tablePanel.removeAll();
     tablePanel.add(Box.createHorizontalGlue());
     tablePanel.add(processorTable.getContainer());
     tablePanel.add(Box.createHorizontalGlue());
   }
-  
+
   public final void start() {
     processorTable.startGetLoadAverage(this);
   }
-  
+
   public final void stop() {
     processorTable.stopGetLoadAverage(this);
   }
-  
+
   final void startGetLoadAverage(String computer) {
     manager.startGetLoadAverage(this, computer);
   }
-  
+
   final void stopGetLoadAverage(String computer) {
     if (loadAverageMonitor != null) {
       manager.stopGetLoadAverage(this, computer);
     }
   }
-  
+
   public final LoadAverageMonitor getLoadAverageMonitor() {
     if (loadAverageMonitor == null) {
       loadAverageMonitor = new LoadAverageMonitor(this);
     }
     return loadAverageMonitor;
   }
-  
-  public final void setLoadAverage(String computer, double load1, double load5, double load15) {
+
+  public final void setLoadAverage(String computer, double load1, double load5,
+      double load15) {
     processorTable.setLoadAverage(computer, load1, load5, load15);
   }
-  
+
   public final void setPauseEnabled(boolean pauseEnabled) {
     this.pauseEnabled = pauseEnabled;
     if (btnPause == null) {
@@ -169,12 +174,12 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     btnPause.setEnabled(pauseEnabled);
     parent.setParallelInUse(pauseEnabled);
   }
-  
+
   public final boolean isInUse() {
     System.out.println(btnPause.isEnabled());
     return btnPause.isEnabled();
   }
-  
+
   public final void msgCPUsSelectedChanged(int cpusSelected) {
     ltfCPUsSelected.setText(cpusSelected);
   }
@@ -182,7 +187,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   public final Container getContainer() {
     return rootPanel;
   }
-  
+
   public final void setProcesschunksParam(ProcesschunksParam processchunksParam) {
     this.processchunksParam = processchunksParam;
     if (processchunksParam != null) {
@@ -210,7 +215,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     this.visible = visible;
     rootPanel.setVisible(visible);
   }
-  
+
   static final boolean isValidAutodoc(AxisID axisID) {
     if (validAutodoc != null) {
       return validAutodoc.is();
@@ -222,7 +227,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     return validAutodoc.is();
   }
-  
+
   /**
    * get cpu autodoc
    * @param axisID
@@ -245,7 +250,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     return autodoc;
   }
-  
+
   /**
    * get the maximum recommended CPUs for the process
    * 
@@ -254,7 +259,8 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
    * @param process
    * @return
    */
-  static final ConstEtomoNumber getMaxCPUs(AxisID axisID, ProcessName processName) {
+  static final ConstEtomoNumber getMaxCPUs(AxisID axisID,
+      ProcessName processName) {
     String process = processName.toString();
     EtomoNumber maxCPUs = null;
     //look for maxCPUs in maxCPUList
@@ -292,7 +298,7 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   public final void addRestart(String computer) {
     processorTable.addRestart(computer);
   }
-  
+
   public final void msgDropped(String computer, String reason) {
     processorTable.msgDropped(computer, reason);
   }
@@ -300,20 +306,20 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
   public final void addSuccess(String computer) {
     processorTable.addSuccess(computer);
   }
-  
+
   public final void resetResults() {
     processorTable.resetResults();
   }
-  
+
   public final void msgKillingProcess() {
     btnPause.setEnabled(false);
     btnResume.setEnabled(true);
   }
-  
+
   public final void msgPausingProcess() {
     btnResume.setEnabled(true);
   }
-  
+
   public final boolean getParameters(SplittiltParam param) {
     ConstEtomoNumber numMachines = param.setNumMachines(ltfCPUsSelected
         .getText());
@@ -325,33 +331,33 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     return true;
   }
-  
+
   public final void getResumeParameters(ProcesschunksParam param) {
     param.setResume(true);
-    param.setNice(nice.getValue());
+    param.setNice(lsNice.getValue());
     param.resetMachineName();
     processorTable.getParameters(param);
- }
-  
-  public final boolean getParameters(ProcesschunksParam param) {
-     param.setNice(nice.getValue());
-     processorTable.getParameters(param);
-     String error = param.validate();
-     if (error == null) {
-       return true;
-     }
-     UIHarness.INSTANCE.openMessageDialog(error + "  "
-         + processorTable.getHelpMessage(), TITLE + " Table Error", axisID);
-     return false;
   }
-  
+
+  public final boolean getParameters(ProcesschunksParam param) {
+    param.setNice(lsNice.getValue());
+    processorTable.getParameters(param);
+    String error = param.validate();
+    if (error == null) {
+      return true;
+    }
+    UIHarness.INSTANCE.openMessageDialog(error + "  "
+        + processorTable.getHelpMessage(), TITLE + " Table Error", axisID);
+    return false;
+  }
+
   public final void pack() {
     if (!visible || !open) {
       return;
     }
     processorTable.pack();
   }
-  
+
   /**
    * set the visible boolean based on whether the panel is visible
    * the body panel setVisible function was called by the header panel
@@ -375,39 +381,70 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
     }
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-  
+
   public final void msgLoadAverageFailed(String computer, String reason) {
     if (parallelProcessMonitor != null) {
       parallelProcessMonitor.drop(computer);
     }
     processorTable.clearLoadAverage(computer, reason);
   }
-  
+
   public void msgStartingProcess(String computer) {
     processorTable.clearFailureReason(computer);
   }
-  
+
   public void msgStartingProcessOnSelectedComputers() {
     processorTable.clearFailureReason(true);
   }
-  
+
   /**
    * sets parallelProcessMonitor with a monitor which is monitoring a parallel
    * process associated with this ParallelProgressDisplay
    * @param ParallelProcessMonitor
    */
-  public final void setParallelProcessMonitor(ParallelProcessMonitor parallelProcessMonitor) {
+  public final void setParallelProcessMonitor(
+      ParallelProcessMonitor parallelProcessMonitor) {
     this.parallelProcessMonitor = parallelProcessMonitor;
   }
-  
+
   public final void getHeaderState(PanelHeaderState headerState) {
     header.getState(headerState);
   }
-  
+
   public final void setHeaderState(PanelHeaderState headerState) {
     header.setState(headerState);
   }
-  
+
+  /**
+   * Initialize the tooltip text for the axis panel objects
+   */
+  private void setToolTipText() {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    ltfCPUsSelected.setToolTipText(tooltipFormatter.setText(
+        "Must be at least 1.").format());
+    lsNice
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Lower the value to run the processes at a higher priority.  Raise the value to run at a lower priority.")
+            .format());
+    btnPause.setToolTipText(tooltipFormatter.setText(
+        "Finishes the processes that are currently running and then stops.")
+        .format());
+    btnPause.setToolTipText(tooltipFormatter.setText(
+        "Finishes the processes that are currently running and then stops.")
+        .format());
+    btnResume
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Starts the process but does not redo the chunks that are already completed.")
+            .format());
+    btnSaveDefaults
+    .setToolTipText(tooltipFormatter
+        .setText(
+            "Saves the computers and number of CPUs selected.")
+        .format());
+  }
 
   private final class ParallelPanelActionListener implements ActionListener {
     ParallelPanel adaptee;
@@ -423,6 +460,11 @@ public final class ParallelPanel implements ParallelProgressDisplay, Expandable,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2005/11/21 22:01:46  sueh
+ * <p> bug# 761 In getParameters(ProcesschunksParam) pop up an error
+ * <p> message and return false if ProcesschunksParam.validate() does not
+ * <p> return null.
+ * <p>
  * <p> Revision 1.25  2005/11/19 02:44:08  sueh
  * <p> bug# 744 Changed parallel processing display clearFailureReason
  * <p> function to msgStartingProcess.  This hides the implementation.  Turned

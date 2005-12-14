@@ -49,7 +49,8 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
-public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodButtonContainer {
+public class SetupDialog extends ProcessDialog implements ContextMenu,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlDataParameters = new JPanel();
@@ -58,13 +59,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
   //  Dataset GUI objects
   private JPanel pnlDataset = new JPanel();
   private ImageIcon iconFolder = new ImageIcon(ClassLoader
-    .getSystemResource("images/openFile.gif"));
+      .getSystemResource("images/openFile.gif"));
 
   private LabeledTextField ltfDataset = new LabeledTextField("Dataset name: ");
   private JButton btnDataset = new JButton(iconFolder);
 
   private LabeledTextField ltfBackupDirectory = new LabeledTextField(
-    "Backup directory: ");
+      "Backup directory: ");
   private JButton btnBackupDirectory = new JButton(iconFolder);
 
   //  Data type GUI objects
@@ -80,9 +81,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
   private ButtonGroup bgViewType = new ButtonGroup();
 
   private Run3dmodButton btnViewRawStackA = new Run3dmodButton(
-    "View Raw Image Stack", this);
+      "View Raw Image Stack", this);
   private Run3dmodButton btnViewRawStackB = new Run3dmodButton(
-    "View Raw Image Stack", this);
+      "View Raw Image Stack", this);
 
   //  Image parameter objects
   private JPanel pnlImageParams = new JPanel();
@@ -91,42 +92,45 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 
   private JPanel pnlStackInfo = new JPanel();
   private LabeledTextField ltfPixelSize = new LabeledTextField(
-    "Pixel size (nm): ");
+      "Pixel size (nm): ");
   private LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-    "Fiducial diameter (nm): ");
+      "Fiducial diameter (nm): ");
   private LabeledTextField ltfImageRotation = new LabeledTextField(
-    "Image rotation (degrees): ");
+      "Image rotation (degrees): ");
 
   private JPanel pnlDistortionInfo = new JPanel();
   private LabeledTextField ltfDistortionFile = new LabeledTextField(
-    "Image distortion field file: ");
+      "Image distortion field file: ");
   private JButton btnDistortionFile = new JButton(iconFolder);
   private LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
-    new SpinnerNumberModel(1, 1, 50, 1));
-  
+      new SpinnerNumberModel(1, 1, 50, 1));
+
   private JPanel pnlMagGradientInfo = new JPanel();
   private LabeledTextField ltfMagGradientFile = new LabeledTextField(
-    "Mag gradients correction: ");
-  private final JCheckBox cbParallelProcess = new JCheckBox("Parallel Processing");
+      "Mag gradients correction: ");
+  private final JCheckBox cbParallelProcess = new JCheckBox(
+      "Parallel Processing");
   private JButton btnMagGradientFile = new JButton(iconFolder);
-  
+
   //  Tilt angle GUI objects
   private JPanel pnlPerAxisInfo = new JPanel();
   private JPanel pnlAxisInfoA = new JPanel();
   private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A: ");
   private TiltAngleDialogPanel tiltAnglesA = new TiltAngleDialogPanel();
   private LabeledTextField ltfExcludeListA = new LabeledTextField(
-    "Exclude views: ");
+      "Exclude views: ");
   private JPanel pnlAdjustedFocusA = new JPanel();
-  private JCheckBox cbAdjustedFocusA = new JCheckBox("Focus was adjusted between montage frames");
+  private JCheckBox cbAdjustedFocusA = new JCheckBox(
+      "Focus was adjusted between montage frames");
 
   private JPanel pnlAxisInfoB = new JPanel();
   private BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   private TiltAngleDialogPanel tiltAnglesB = new TiltAngleDialogPanel();
   private LabeledTextField ltfExcludeListB = new LabeledTextField(
-    "Exclude views: ");
+      "Exclude views: ");
   private JPanel pnlAdjustedFocusB = new JPanel();
-  private JCheckBox cbAdjustedFocusB = new JCheckBox("Focus was adjusted between montage frames");
+  private JCheckBox cbAdjustedFocusB = new JCheckBox(
+      "Focus was adjusted between montage frames");
 
   //  Construct the setup dialog
   public SetupDialog(ApplicationManager appMgr) {
@@ -156,14 +160,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     rootPanel.add(Box.createVerticalGlue());
     addExitButtons();
     UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
-    
+
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
     // Resize the standard panel buttons
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.getButtonDimension());
-    
+    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters
+        .getButtonDimension());
+
     // Calcute the necessary window size
     uiHarness.pack(axisID, applicationManager);
   }
@@ -181,16 +186,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     //ltfDistortionFile.setMaximumSize(UIParameters.getFileFieldDimension());
     btnMagGradientFile.setPreferredSize(FixedDim.folderButton);
     btnMagGradientFile.setMaximumSize(FixedDim.folderButton);
-    
+
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
 
     //  Bind the buttons to their adapters
     btnDataset.addActionListener(new DatasetActionListener(this));
     btnBackupDirectory
-      .addActionListener(new BackupDirectoryActionListener(this));
+        .addActionListener(new BackupDirectoryActionListener(this));
     btnDistortionFile.addActionListener(new DistortionFileActionListener(this));
-    btnMagGradientFile.addActionListener(new MagGradientFileActionListener(this));
-    
+    btnMagGradientFile
+        .addActionListener(new MagGradientFileActionListener(this));
+
     rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
     rbDualAxis.addActionListener(new DualAxisActionListener(this));
     rbSingleView.addActionListener(new SingleViewActionListener(this));
@@ -248,7 +254,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     ltfImageRotation.setColumns(5);
     btnScanHeader.setSize();
     spnBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
-    
+
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
     btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -268,7 +274,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x5_y0));
 
     pnlDistortionInfo.setLayout(new BoxLayout(pnlDistortionInfo,
-      BoxLayout.X_AXIS));
+        BoxLayout.X_AXIS));
     pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlDistortionInfo.add(ltfDistortionFile.getContainer());
     pnlDistortionInfo.add(btnDistortionFile);
@@ -282,7 +288,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     pnlMagGradientInfo.add(ltfMagGradientFile.getContainer());
     pnlMagGradientInfo.add(btnMagGradientFile);
     pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
-    
+
     JPanel pnlParallelProcess = new JPanel();
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess,
         BoxLayout.X_AXIS));
@@ -295,7 +301,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     else {
       cbParallelProcess.setEnabled(false);
     }
-    
+
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -313,7 +319,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 
     //  Create Data Parameters panel
     pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters,
-      BoxLayout.Y_AXIS));
+        BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -341,7 +347,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     pnlAxisInfoA.add(btnViewRawStackA.getComponent());
     //Add adjusted focus checkbox
     pnlAdjustedFocusA.add(cbAdjustedFocusA);
-    pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA, BoxLayout.X_AXIS));
+    pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA,
+        BoxLayout.X_AXIS));
     cbAdjustedFocusA.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusA.setEnabled(false);
     pnlAxisInfoA.add(pnlAdjustedFocusA);
@@ -359,7 +366,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     //Add adjusted focus checkbox
     pnlAdjustedFocusB.add(cbAdjustedFocusB);
-    pnlAdjustedFocusB.setLayout(new BoxLayout(pnlAdjustedFocusB, BoxLayout.X_AXIS));
+    pnlAdjustedFocusB.setLayout(new BoxLayout(pnlAdjustedFocusB,
+        BoxLayout.X_AXIS));
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusB.setEnabled(false);
     pnlAxisInfoB.add(pnlAdjustedFocusB);
@@ -388,13 +396,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     cbAdjustedFocusB.setSelected(metaData.getAdjustedFocusB().is());
     setAxisType(metaData.getAxisType());
     setViewType(metaData.getViewType());
-    if(!Double.isNaN(metaData.getPixelSize())) {
+    if (!Double.isNaN(metaData.getPixelSize())) {
       ltfPixelSize.setText(metaData.getPixelSize());
     }
-    if(!Double.isNaN(metaData.getFiducialDiameter())) {
+    if (!Double.isNaN(metaData.getFiducialDiameter())) {
       ltfFiducialDiameter.setText(metaData.getFiducialDiameter());
     }
-    if(!Float.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
+    if (!Float.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
       ltfImageRotation.setText(metaData.getImageRotation(AxisID.ONLY));
     }
     spnBinning.setValue(new Integer(metaData.getBinning()));
@@ -409,7 +417,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       btnViewRawStackB.setEnabled(false);
     }
   }
-  
+
   public String getDatasetString() {
     return ltfDataset.getText();
   }
@@ -430,22 +438,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
       currentField = "Fiducial Diameter";
       metaData.setFiducialDiameter(Double.parseDouble(ltfFiducialDiameter
-        .getText()));
+          .getText()));
       currentField = "Image Rotation";
       metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-      AxisID.FIRST);
+          AxisID.FIRST);
       if (axisType == AxisType.DUAL_AXIS) {
         metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-          AxisID.SECOND);
-      } 
+            AxisID.SECOND);
+      }
       currentField = "Axis A starting and step angles";
       tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
       currentField = "Axis B starting and step angles";
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
-      uiHarness.openMessageDialog(
-          currentField + " must be numeric.", "Setup Dialog Error", AxisID.ONLY);
+      uiHarness.openMessageDialog(currentField + " must be numeric.",
+          "Setup Dialog Error", AxisID.ONLY);
       return null;
     }
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
@@ -458,7 +466,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     }
     return metaData;
   }
-  
+
   public MetaData getDataset() {
     MetaData metaData = new MetaData(applicationManager);
     metaData.setAxisType(getAxisType());
@@ -475,24 +483,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     return metaData;
   }
 
-
   public boolean isValid() {
     String errorMessageTitle = new String("Setup Dialog Error");
     String datasetText = ltfDataset.getText();
     String panelErrorMessage;
 
     if (datasetText.equals("")) {
-      uiHarness.openMessageDialog(
-          "Dataset name has not been entered.", errorMessageTitle, AxisID.ONLY);
+      uiHarness.openMessageDialog("Dataset name has not been entered.",
+          errorMessageTitle, AxisID.ONLY);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
     if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
         || datasetFileName.equals(".")) {
-      uiHarness.openMessageDialog(
-          "The name " + datasetFileName + " cannot be used as a dataset name.",
-          errorMessageTitle, AxisID.ONLY);
+      uiHarness.openMessageDialog("The name " + datasetFileName
+          + " cannot be used as a dataset name.", errorMessageTitle,
+          AxisID.ONLY);
       return false;
     }
     //validate image distortion field file name
@@ -503,9 +510,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        uiHarness.openMessageDialog(
-            "The image distortion field file " + distortionFileName
-                + " does not exist.", errorMessageTitle, AxisID.ONLY);
+        uiHarness.openMessageDialog("The image distortion field file "
+            + distortionFileName + " does not exist.", errorMessageTitle,
+            AxisID.ONLY);
         return false;
       }
     }
@@ -517,22 +524,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       File magGradientFile = new File(magGradientFileText);
       if (!magGradientFile.exists()) {
         String magGradientFileName = magGradientFile.getName();
-        uiHarness.openMessageDialog(
-            "The mag gradients correction file " + magGradientFileName
-                + " does not exist.", errorMessageTitle, AxisID.ONLY);
+        uiHarness.openMessageDialog("The mag gradients correction file "
+            + magGradientFileName + " does not exist.", errorMessageTitle,
+            AxisID.ONLY);
         return false;
       }
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
-      uiHarness.openMessageDialog(
-          panelErrorMessage + " in Axis A.", errorMessageTitle, AxisID.ONLY);
+      uiHarness.openMessageDialog(panelErrorMessage + " in Axis A.",
+          errorMessageTitle, AxisID.ONLY);
       return false;
     }
     panelErrorMessage = tiltAnglesB.getErrorMessage();
     if (panelErrorMessage != null) {
-      uiHarness.openMessageDialog(
-          panelErrorMessage + " in Axis B.", errorMessageTitle, AxisID.ONLY);
+      uiHarness.openMessageDialog(panelErrorMessage + " in Axis B.",
+          errorMessageTitle, AxisID.ONLY);
       return false;
     }
 
@@ -545,8 +552,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
 
-      dataset = new File(applicationManager.getPropertyUserDir() + File.separator
-          + datasetText);
+      dataset = new File(applicationManager.getPropertyUserDir()
+          + File.separator + datasetText);
     }
     return dataset.getParentFile();
   }
@@ -594,7 +601,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
    **/
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-      "INITIAL STEPS");
+        "INITIAL STEPS");
   }
 
   //
@@ -602,7 +609,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
   //
   protected void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(EtomoDirector.getInstance().getOriginalUserDir()));
+    JFileChooser chooser = new JFileChooser(new File(EtomoDirector
+        .getInstance().getOriginalUserDir()));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -648,7 +656,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     if (currentDistortionDirectory.equals("")) {
       File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
       File distortionDir = new File(calibrationDir.getAbsolutePath(),
-        "Distortion");
+          "Distortion");
       if (distortionDir.exists()) {
         currentDistortionDirectory = distortionDir.getAbsolutePath();
       }
@@ -657,7 +665,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       }
     }
     JFileChooser chooser = new JFileChooser(
-      new File(currentDistortionDirectory));
+        new File(currentDistortionDirectory));
     DistortionFileFilter distortionFileFilter = new DistortionFileFilter();
     chooser.setFileFilter(distortionFileFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -685,7 +693,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     if (currentMagGradientDirectory.equals("")) {
       File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
       File magGradientDir = new File(calibrationDir.getAbsolutePath(),
-        "Distortion");
+          "Distortion");
       if (magGradientDir.exists()) {
         currentMagGradientDirectory = magGradientDir.getAbsolutePath();
       }
@@ -693,8 +701,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
         currentMagGradientDirectory = applicationManager.getPropertyUserDir();
       }
     }
-    JFileChooser chooser = new JFileChooser(
-      new File(currentMagGradientDirectory));
+    JFileChooser chooser = new JFileChooser(new File(
+        currentMagGradientDirectory));
     MagGradientFileFilter magGradientFileFilter = new MagGradientFileFilter();
     chooser.setFileFilter(magGradientFileFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -722,7 +730,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     ltfExcludeListB.setEnabled(true);
     btnViewRawStackB.setEnabled(true);
   }
-  
+
   protected void rbSingleViewAction(ActionEvent event) {
     cbAdjustedFocusA.setEnabled(false);
     cbAdjustedFocusB.setEnabled(false);
@@ -733,13 +741,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     cbAdjustedFocusB.setEnabled(true);
   }
 
-
   protected void btnScanHeaderAction(ActionEvent event) {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
-      uiHarness.openMessageDialog(
-          "Dataset name has not been entered", "Missing dataset name", AxisID.ONLY);
+      uiHarness.openMessageDialog("Dataset name has not been entered",
+          "Missing dataset name", AxisID.ONLY);
       return;
     }
     //  Add the appropriate extension onto the filename if necessary 
@@ -765,8 +772,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
           "Invalid Parameter Exception", AxisID.ONLY);
     }
     catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(except.getMessage(), "IO Exception",
+          AxisID.ONLY);
     }
 
     // Set the image rotation if available
@@ -780,9 +787,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
     double yPixelSize = header.getYPixelSize();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
       uiHarness.openMessageDialog(
-        "Pixel size is not defined in the image file header",
-        "Pixel size is missing", AxisID.ONLY);
-      
+          "Pixel size is not defined in the image file header",
+          "Pixel size is missing", AxisID.ONLY);
+
       return;
     }
 
@@ -815,7 +822,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       btnViewRawStackBAction(menuOptions);
     }
   }
-  
+
   protected void btnViewRawStackAAction(Run3dmodMenuOptions menuOptions) {
     if (getAxisType() == AxisType.SINGLE_AXIS) {
       applicationManager.imodPreview(AxisID.ONLY, menuOptions);
@@ -912,6 +919,14 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 
     text = "This button will create a new set of command scripts overwriting any of the same name in the specified working directory.  Be sure to save the data file after creating the command script if you wish to keep the results.";
     btnExecute.setToolTipText(tooltipFormatter.setText(text).format());
+
+    cbParallelProcess.setToolTipText(tooltipFormatter.setText(
+        "Sets the default for parallel processing (distributing processes across multiple computers).").format());
+    
+    text = tooltipFormatter.setText(
+    "OPTIONAL:  A file with magnification gradients to be applied for each image.").format();
+    ltfMagGradientFile.setToolTipText(text);
+    btnMagGradientFile.setToolTipText(text);
   }
 
   //  Button action listener classes
@@ -953,7 +968,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       adaptee.btnDistortionFileAction(event);
     }
   }
-  
+
   class MagGradientFileActionListener implements ActionListener {
 
     SetupDialog adaptee;
@@ -966,7 +981,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       adaptee.btnMagGradientFileAction(event);
     }
   }
-
 
   class SingleAxisActionListener implements ActionListener {
 
@@ -993,7 +1007,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       adaptee.rbDualAxisAction(event);
     }
   }
-  
+
   class SingleViewActionListener implements ActionListener {
 
     SetupDialog adaptee;
@@ -1019,7 +1033,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
       adaptee.rbMontageAction(event);
     }
   }
-
 
   class ScanHeaderActionListener implements ActionListener {
 
@@ -1061,6 +1074,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.40  2005/12/13 02:30:24  sueh
+ * <p> bug# 773 Added cbParallelProcess.
+ * <p>
  * <p> Revision 3.39  2005/12/05 21:40:12  sueh
  * <p> bug# 674 In btnScanHeaderAction() rounding xPixelSize to 6 significant
  * <p> digits.
@@ -1346,4 +1362,4 @@ public class SetupDialog extends ProcessDialog implements ContextMenu, Run3dmodB
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
-*/
+ */

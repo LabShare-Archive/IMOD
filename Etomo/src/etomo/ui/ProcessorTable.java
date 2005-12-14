@@ -35,19 +35,51 @@ public final class ProcessorTable implements Storable {
   public static final String rcsid = "$Id$";
 
   public static final String SECTION_TYPE = "Computer";
-  
+
   private static final String SPEED_ADOC_KEY = "speed";
   private static final String MEMORY_ADOC_KEY = "memory";
   private static final String STORE_PREPEND = "ProcessorTable";
-  
+
   private static final int MAXIMUM_ROWS = 15;
   private JScrollPane scrollPane;
   private JPanel tablePanel;
 
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = tooltipFormatter.setText(
+        "Select computers to use for parallel processing.").format();
+    header1Computer.setToolTipText(text);
+    header2Computer.setToolTipText(text);
+    text = tooltipFormatter.setText(
+        "Select the number of CPUs to use for each computer.").format();
+    header1NumberCPUs.setToolTipText(text);
+    header2NumberCPUsUsed.setToolTipText(text);
+    header2NumberCPUsMax.setToolTipText(tooltipFormatter.setText(
+        "The maximum number of CPUs available on each computer.").format());
+    header1Load.setToolTipText(tooltipFormatter.setText(
+        "Represents how busy each computer is.").format());
+    header2Load1.setToolTipText(tooltipFormatter.setText(
+        "The load averaged over one minute.").format());
+    header2Load5.setToolTipText(tooltipFormatter.setText(
+        "The load averaged over five minutes.").format());
+    header2Load15.setToolTipText(tooltipFormatter.setText(
+        "The load averaged over fifteen minutes.").format());
+    text = tooltipFormatter.setText(
+        "The number of times processes failed on each computer.").format();
+    header1Restarts.setToolTipText(text);
+    header2Restarts.setToolTipText(text);
+    text = tooltipFormatter.setText(
+        "The number of chunks each computer completed for a distributed process.").format();
+    header1Finished.setToolTipText(text);
+    header2Finished.setToolTipText(text);
+  }
+
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
   private final HeaderCell header1Computer = new HeaderCell("Computer");
-  private final HeaderCell header1NumberCPUs =  new HeaderCell("# CPUs");
+  private final HeaderCell header1NumberCPUs = new HeaderCell("# CPUs");
   private final HeaderCell header1Load = new HeaderCell("Load Average");
   private HeaderCell header1CPUType = null;
   private HeaderCell header1Speed = null;
@@ -74,7 +106,7 @@ public final class ProcessorTable implements Storable {
   private final ParallelPanel parent;
   private final AxisID axisID;
   private boolean expanded;
-  
+
   private boolean numberColumn = false;
   private boolean typeColumn = false;
   private boolean speedColumn = false;
@@ -91,7 +123,7 @@ public final class ProcessorTable implements Storable {
     initTable();
     buildScrollPane();
   }
-  
+
   final void setExpanded(boolean expanded) {
     if (this.expanded == expanded) {
       return;
@@ -99,16 +131,17 @@ public final class ProcessorTable implements Storable {
     this.expanded = expanded;
     buildScrollPane();
   }
-  
+
   final void buildScrollPane() {
     buildTable();
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
-    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    scrollPane
+        .setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
     //configure
     UIHarness.INSTANCE.repaintWindow();
   }
-  
+
   private final void initTable() {
     //build rows
     //get autodoc
@@ -120,13 +153,15 @@ public final class ProcessorTable implements Storable {
     Attribute unitsAttribute = autodoc.getAttribute("units");
     //get speed units
     try {
-      speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY).getUnformattedValue();
+      speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY)
+          .getUnformattedValue();
     }
     catch (NullPointerException e) {
     }
     //get memory units
     try {
-      memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY).getUnformattedValue();
+      memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY)
+          .getUnformattedValue();
     }
     catch (NullPointerException e) {
     }
@@ -223,8 +258,8 @@ public final class ProcessorTable implements Storable {
       header2OS = new HeaderCell();
     }
     EtomoDirector.getInstance().loadPreferences(this, axisID);
+    setToolTipText();
   }
-
 
   private final void buildTable() {
     tablePanel = new JPanel();
@@ -311,7 +346,7 @@ public final class ProcessorTable implements Storable {
       }
     }
   }
-  
+
   final Container getContainer() {
     return scrollPane;
   }
@@ -359,7 +394,7 @@ public final class ProcessorTable implements Storable {
     }
     return cpusSelected;
   }
-  
+
   private class RunPack implements Runnable {
     public void run() {
       JScrollPane scrollPane = getScrollPane();
@@ -389,7 +424,7 @@ public final class ProcessorTable implements Storable {
   final void pack() {
     SwingUtilities.invokeLater(new RunPack());
   }
-  
+
   /**
    * Get the total height of the table
    * Get the expanded height if getExpandedHeight is true
@@ -435,13 +470,13 @@ public final class ProcessorTable implements Storable {
         }
       }
     }
-    return height; 
+    return height;
   }
-  
+
   private final void calcMaximumHeight() {
 
   }
-  
+
   protected final double getWidth() {
     int width = header2Computer.getWidth();
     width += header2NumberCPUsUsed.getWidth();
@@ -465,26 +500,26 @@ public final class ProcessorTable implements Storable {
     }
     width += header2Restarts.getWidth();
     width += header2Finished.getWidth();
-    width += header2Failure.getWidth();   
+    width += header2Failure.getWidth();
     return width;
   }
-  
+
   private final boolean useNumberColumn() {
     return numberColumn && expanded;
   }
-  
+
   private final boolean useTypeColumn() {
     return typeColumn && expanded;
   }
-  
+
   private final boolean useSpeedColumn() {
     return speedColumn && expanded;
   }
-  
+
   private final boolean useMemoryColumn() {
     return memoryColumn && expanded;
   }
-  
+
   private final boolean useOSColumn() {
     return osColumn && expanded;
   }
@@ -514,7 +549,7 @@ public final class ProcessorTable implements Storable {
     }
     return -1;
   }
-  
+
   final void getParameters(ProcesschunksParam param) {
     if (rows == null) {
       return;
@@ -523,7 +558,7 @@ public final class ProcessorTable implements Storable {
       ((ProcessorTableRow) rows.get(i)).getParameters(param);
     }
   }
-  
+
   private final ProcessorTableRow getRow(String computer) {
     if (rows == null) {
       return null;
@@ -544,7 +579,7 @@ public final class ProcessorTable implements Storable {
     }
     row.addRestart();
   }
-  
+
   final void addSuccess(String computer) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
@@ -552,7 +587,7 @@ public final class ProcessorTable implements Storable {
     }
     row.addSuccess();
   }
-  
+
   final void msgDropped(String computer, String reason) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
@@ -560,52 +595,56 @@ public final class ProcessorTable implements Storable {
     }
     row.msgDropped(reason);
   }
-  
+
   final String getHelpMessage() {
     return "Click on check boxes in the " + header1Computer.getText()
-        + " column and use the spinner in the " + header1NumberCPUs.getText() + " "
-        + header2NumberCPUsUsed.getText() + " column where available.";
+        + " column and use the spinner in the " + header1NumberCPUs.getText()
+        + " " + header2NumberCPUsUsed.getText() + " column where available.";
   }
-  
+
   final void startGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
       return;
     }
     for (int i = 0; i < rows.size(); i++) {
-      display.startGetLoadAverage(((ProcessorTableRow) rows.get(i)).getComputer());
+      display.startGetLoadAverage(((ProcessorTableRow) rows.get(i))
+          .getComputer());
     }
   }
-  
+
   final void stopGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
       return;
     }
     for (int i = 0; i < rows.size(); i++) {
-      display.stopGetLoadAverage(((ProcessorTableRow) rows.get(i)).getComputer());
+      display.stopGetLoadAverage(((ProcessorTableRow) rows.get(i))
+          .getComputer());
     }
   }
-  
-  final void setLoadAverage(String computer, double load1, double load5, double load15) {
+
+  final void setLoadAverage(String computer, double load1, double load5,
+      double load15) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5, load15);
+    ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5,
+        load15);
   }
-  
+
   final void clearLoadAverage(String computer, String reason) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason);
   }
-  
+
   final void clearFailureReason(String computer) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).clearFailureReason();
   }
-  
+
   final void clearFailureReason(boolean selectedComputers) {
     if (rows == null) {
       return;
@@ -617,7 +656,7 @@ public final class ProcessorTable implements Storable {
       }
     }
   }
-  
+
   public void store(Properties props) {
     store(props, "");
   }
@@ -660,17 +699,20 @@ public final class ProcessorTable implements Storable {
       ((ProcessorTableRow) rows.get(i)).load(props, prepend);
     }
   }
-  
+
   protected final JScrollPane getScrollPane() {
     return scrollPane;
   }
-  
+
   protected final boolean isScrolling() {
     return scrolling;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2005/11/19 02:45:10  sueh
+ * <p> bug# 744 Added clearFailureReason(boolean selectedComputers).
+ * <p>
  * <p> Revision 1.23  2005/11/14 22:16:36  sueh
  * <p> bug# 762 The internal class is now accessing protected functions instead
  * <p> of private variables.

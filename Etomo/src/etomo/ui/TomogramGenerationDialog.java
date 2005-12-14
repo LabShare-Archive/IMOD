@@ -70,6 +70,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.77  2005/12/13 02:30:33  sueh
+ * bug# 773 Getting default parallel processing checkbox setting from
+ * metadata.defaultParallel.
+ *
  * Revision 3.76  2005/11/21 20:47:17  sueh
  * bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
  * missing.
@@ -1595,6 +1599,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       except.printStackTrace();
     }
 
+    cbParallelProcess.setToolTipText(tooltipFormatter.setText(
+        "Check to distribute the tilt process across multiple computers.")
+        .format());
     text = "Make aligned stack with linear instead of cubic interpolation to "
         + "reduce noise.";
     cbBoxUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)

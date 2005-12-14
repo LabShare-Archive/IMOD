@@ -48,6 +48,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.27  2005/12/13 02:28:49  sueh
+ * bug# 773 Getting default parallel processing checkbox setting from
+ * metadata.defaultParallel.
+ *
  * Revision 3.26  2005/11/21 20:46:51  sueh
  * bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
  * missing.  Copy parallel process checkbox's enabled setting from the
@@ -1040,5 +1044,7 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
     text = "Start running the combine operation from the beginning.";
     btnCombine.setToolTipText(tooltipFormatter.setText(text).format());
 
+    cbParallelProcess.setToolTipText(tooltipFormatter.setText(
+        FinalCombinePanel.VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
   }
 }
