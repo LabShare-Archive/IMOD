@@ -33,6 +33,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/11/30 21:19:01  sueh
+ * <p> bug# 757 Removed getJoinXMax, YMax, and ZMax().  Added getXMax,
+ * <p> YMax, and ZMax().  Get join max when the current tab is join, otherwise
+ * <p> get setup max.
+ * <p>
  * <p> Revision 1.11  2005/11/29 22:53:23  sueh
  * <p> bug# 757 Split final start and end into setup and join.  Split section into
  * <p> setup and join.  Display setup fields in setup and align tabs.  Display join
@@ -193,7 +198,6 @@ public class SectionTableRow {
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
-  private int curTab = JoinDialog.SETUP_TAB;
   private boolean valid = true;
 
   /**
@@ -233,6 +237,28 @@ public class SectionTableRow {
     currentSection.setEnabled(false);
   }
 
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "setupSection=" + setupSection + ",joinSection=" + joinSection
+        + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
+        + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
+        + ",\nsampleTopEnd=" + sampleTopEnd + ",slicesInSample="
+        + slicesInSample + ",\ncurrentChunk=" + currentChunk
+        + ",\nreferenceSection=" + referenceSection + ",currentSection="
+        + currentSection + ",\nsetupFinalStart=" + setupFinalStart
+        + ",\nsetupFinalEnd=" + setupFinalEnd + ",joinFinalStart="
+        + joinFinalStart + ",\njoinFinalEnd=" + joinFinalEnd
+        + ",\nrotationAngleX=" + rotationAngleX + ",rotationAngleY="
+        + rotationAngleY + ",\nrotationAngleZ=" + rotationAngleZ
+        + ",\nhighlighterButton=" + highlighterButton + ",rowNumber="
+        + rowNumber + ",\nimodIndex=" + imodIndex + ",imodRotIndex="
+        + imodRotIndex + ",\nsectionExpanded=" + sectionExpanded + ",valid="
+        + valid + "," + super.toString();
+  }
+
   /**
    * construction work that depends on data
    */
@@ -242,39 +268,12 @@ public class SectionTableRow {
     displayData();
   }
 
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return ",\ntable=" + table + ",\rowNumber=" + rowNumber.getText()
-        + ",\nsetupSection=" + setupSection.getValue() + ",\njoinSection="
-        + joinSection.getValue() + ",\nsampleBottomStart="
-        + sampleBottomStart.getValue() + ",\nsampleBottomEnd="
-        + sampleBottomEnd.getValue() + ",\nsampleTopStart="
-        + sampleTopStart.getValue() + ",\nsampleTopEnd="
-        + sampleTopEnd.getValue() + ",\nsetupFinalStart="
-        + setupFinalStart.getValue() + ",\nsetupFinalEnd="
-        + setupFinalEnd.getValue() + ",\njoinFinalStart="
-        + joinFinalStart.getValue() + ",\njoinFinalEnd="
-        + joinFinalEnd.getValue() + ",\nrotationAngleX="
-        + rotationAngleX.getValue() + ",\nrotationAngleY="
-        + rotationAngleY.getValue() + ",\nrotationAngleZ="
-        + rotationAngleZ.getValue() + ",\nimodIndex=" + imodIndex
-        + ",\nsectionExpanded=" + sectionExpanded + ",\ncurTab=" + curTab
-        + ",\ncurrentChunk=" + currentChunk.getText() + ",\nslicesInSample="
-        + slicesInSample.getValue() + ",\nreferenceSection="
-        + referenceSection.getValue() + ",\ncurrentSection="
-        + currentSection.getValue() + ",\ncurrentSection="
-        + currentSection.getValue() + ",\ndata=" + data;
-  }
-
   void setInUse() {
-    if (curTab == JoinDialog.SETUP_TAB) {
+    if (table.isSetupTab()) {
       int rowNumber = data.getRowNumber().getInt();
       boolean bottomInUse = rowNumber > 1;
       boolean topInUse = rowNumber < table.getTableSize();
-      boolean finalInuse = curTab == JoinDialog.JOIN_TAB;
+      boolean finalInuse = table.isJoinTab();
       sampleBottomStart.setInUse(bottomInUse);
       sampleBottomEnd.setInUse(bottomInUse);
       sampleTopStart.setInUse(topInUse);
@@ -282,7 +281,7 @@ public class SectionTableRow {
       setupFinalStart.setInUse(finalInuse);
       setupFinalEnd.setInUse(finalInuse);
     }
-    else if (curTab == JoinDialog.JOIN_TAB) {
+    else if (table.isJoinTab()) {
       joinFinalStart.setInUse(true);
       joinFinalEnd.setInUse(true);
     }
@@ -293,23 +292,6 @@ public class SectionTableRow {
   }
 
   void remove() {
-    if (curTab == JoinDialog.SETUP_TAB) {
-      removeSetup();
-    }
-    else if (curTab == JoinDialog.ALIGN_TAB) {
-      removeAlign();
-    }
-    else if (curTab == JoinDialog.JOIN_TAB) {
-      removeJoin();
-    }
-  }
-
-  final void removeImod() {
-    manager.imodRemove(ImodManager.TOMOGRAM_KEY, imodIndex);
-    manager.imodRemove(ImodManager.ROT_TOMOGRAM_KEY, imodRotIndex);
-  }
-
-  private void removeSetup() {
     rowNumber.remove();
     table.removeCell(highlighterButton.getComponent());
     setupSection.remove();
@@ -324,25 +306,20 @@ public class SectionTableRow {
     rotationAngleX.remove();
     rotationAngleY.remove();
     rotationAngleZ.remove();
-  }
-
-  private void removeAlign() {
-    rowNumber.remove();
-    setupSection.remove();
+    //align
     slicesInSample.remove();
     currentChunk.remove();
     referenceSection.remove();
     currentSection.remove();
-  }
-
-  private void removeJoin() {
-    rowNumber.remove();
-    table.removeCell(highlighterButton.getComponent());
+    //join
     joinSection.remove();
-    setupFinalStart.remove();
-    setupFinalEnd.remove();
     joinFinalStart.remove();
     joinFinalEnd.remove();
+  }
+
+  final void removeImod() {
+    manager.imodRemove(ImodManager.TOMOGRAM_KEY, imodIndex);
+    manager.imodRemove(ImodManager.ROT_TOMOGRAM_KEY, imodRotIndex);
   }
 
   void setMode(int mode) {
@@ -372,15 +349,11 @@ public class SectionTableRow {
     }
   }
 
-  void setCurTab(int curTab) {
-    this.curTab = curTab;
-  }
-
   int displayCurTab(JPanel panel, int prevSlice) {
     remove();
     add(panel);
     //Set align display only fields
-    if (curTab == JoinDialog.ALIGN_TAB) {
+    if (table.isAlignTab()) {
       int start;
       int chunkSize = data.getChunkSize(table.getTableSize()).getInt();
       if (chunkSize > 0) {
@@ -398,7 +371,7 @@ public class SectionTableRow {
 
   int displayCurTabChunkTable(JPanel panel, int prevSlice,
       int nextSampleBottomNumberSlices) {
-    if (curTab == JoinDialog.ALIGN_TAB) {
+    if (table.isAlignTab()) {
       if (nextSampleBottomNumberSlices == -1) {
         currentChunk.setText("");
         referenceSection.setValue("");
@@ -434,13 +407,13 @@ public class SectionTableRow {
   }
 
   void add(JPanel panel) {
-    if (curTab == JoinDialog.SETUP_TAB) {
+    if (table.isSetupTab()) {
       addSetup(panel);
     }
-    else if (curTab == JoinDialog.ALIGN_TAB) {
+    else if (table.isAlignTab()) {
       addAlign(panel);
     }
-    else if (curTab == JoinDialog.JOIN_TAB) {
+    else if (table.isJoinTab()) {
       addJoin(panel);
     }
   }
@@ -694,21 +667,21 @@ public class SectionTableRow {
   }
 
   int getXMax() {
-    if (curTab == JoinDialog.JOIN_TAB) {
+    if (table.isJoinTab()) {
       return data.getJoinXMax();
     }
     return data.getSetupXMax();
   }
 
   int getYMax() {
-    if (curTab == JoinDialog.JOIN_TAB) {
+    if (table.isJoinTab()) {
       return data.getJoinYMax();
     }
     return data.getSetupYMax();
   }
 
   int getZMax() {
-    if (curTab == JoinDialog.JOIN_TAB) {
+    if (table.isJoinTab()) {
       return data.getJoinZMax();
     }
     return data.getSetupZMax();
