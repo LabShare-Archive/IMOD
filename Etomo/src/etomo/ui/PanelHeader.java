@@ -13,18 +13,18 @@ import javax.swing.JSeparator;
 import etomo.type.PanelHeaderState;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 final class PanelHeader implements Expandable {
   public static final String rcsid = "$Id$";
 
@@ -84,7 +84,8 @@ final class PanelHeader implements Expandable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     //open/close button - default: open
-    btnOpenClose = ExpandButton.getInstance(this, "-", "+", "closed", "open", true);
+    btnOpenClose = ExpandButton.getInstance(this, "-", "+", "closed", "open",
+        true, "Open panel.", "Close panel.");
     layout.setConstraints(btnOpenClose.getComponent(), constraints);
     northPanel.add(btnOpenClose.getComponent());
     //title
@@ -102,7 +103,7 @@ final class PanelHeader implements Expandable {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
       }
       btnAdvancedBasic = ExpandButton.getInstance(panel, "B", "A", "basic",
-          "advanced");
+          "advanced", "Show all options.", "Show basic options.");
       layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
       northPanel.add(btnAdvancedBasic.getComponent());
     }
@@ -147,7 +148,7 @@ final class PanelHeader implements Expandable {
     }
     btnAdvancedBasic.setExpanded(advanced);
   }
-  
+
   final boolean isAdvancedBasicExpanded() {
     if (btnAdvancedBasic == null) {
       return false;
@@ -191,64 +192,67 @@ final class PanelHeader implements Expandable {
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.13  2005/09/27 23:33:09  sueh
-* <p> bug# 532 Simplified PanelHeader and added a way to get and set the
-* <p> state.  Removed axisID because it was not being used.
-* <p>
-* <p> Revision 1.12  2005/09/21 16:45:01  sueh
-* <p> bug# 532 Added setText() to change the header's title.
-* <p>
-* <p> Revision 1.11  2005/09/20 19:00:18  sueh
-* <p> bug# 532 Allowing control of whether buttons start in expanded or
-* <p> contracted state.  OpenClose is always expanded.  The other can be
-* <p> controlled.  Adeed getExpandedMoreLessInstance() to get a header with
-* <p> a more/less button with an expanded initial state.  The default is contracted.
-* <p>
-* <p> Revision 1.10  2005/09/19 16:38:57  sueh
-* <p> bug# 532 Added more/less button.
-* <p>
-* <p> Revision 1.9  2005/08/30 19:20:15  sueh
-* <p> bug# 437 Remove newstuff limit from panel headers.
-* <p>
-* <p> Revision 1.8  2005/08/22 18:00:37  sueh
-* <p> bug# 532 Remove openClosePanel.  When handling the open/close
-* <p> button, call container.expand() to do the expansion.
-* <p>
-* <p> Revision 1.7  2005/08/09 20:26:42  sueh
-* <p> bug# 711  No longer inheriting JButton in MultiLineButton.
-* <p>
-* <p> Revision 1.6  2005/08/04 20:12:54  sueh
-* <p> bug# 532  Centralizing fit window functionality by placing fitting functions
-* <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
-* <p> the manager to UIHarness.pack() so that packDialogs() can be called.
-* <p>
-* <p> Revision 1.5  2005/07/29 00:54:23  sueh
-* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
-* <p> because the current manager changes when the user changes the tab.
-* <p> Passing the manager where its needed.
-* <p>
-* <p> Revision 1.4  2005/07/19 22:33:43  sueh
-* <p> bug# 532 creating the buttons and hiding them when new stuff is true
-* <p>
-* <p> Revision 1.3  2005/07/11 23:04:59  sueh
-* <p> bug# 619 Attempting to center the separator.
-* <p>
-* <p> Revision 1.2  2005/07/07 00:00:04  sueh
-* <p> bug# 437 Removed unnecessary Constructor parameter
-* <p> useAdvancedBasic.  If the container is not passed then the
-* <p> advanced/basic button with not be used.
-* <p>
-* <p> Revision 1.1  2005/07/06 23:45:23  sueh
-* <p> bug# 437 Class to place a header panel on a JPanel.  The header panel
-* <p> uses the grid bag layout.  It can contain two buttons:  an open/close
-* <p> button whose functionality is encapsulated, and an advanced/basic
-* <p> button whose functionality is handled by a container which implements
-* <p> Expandable.  PanelHeader implements expandable for the open/close
-* <p> functionality.  Pass the panel to be made visible/invisible in the
-* <p> constructor for the open/close button to be displayed.  Construct the
-* <p> class with useAdvancedBasic to have an advanced/basic button
-* <p> displayed.  Since this class continues to function after it is placed in the
-* <p> dialog, it must not be sent to garbage collection until the dialog is gone.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.14  2005/09/29 19:10:35  sueh
+ * <p> bug# 532 Added isAdvanceBasicExpanded().
+ * <p>
+ * <p> Revision 1.13  2005/09/27 23:33:09  sueh
+ * <p> bug# 532 Simplified PanelHeader and added a way to get and set the
+ * <p> state.  Removed axisID because it was not being used.
+ * <p>
+ * <p> Revision 1.12  2005/09/21 16:45:01  sueh
+ * <p> bug# 532 Added setText() to change the header's title.
+ * <p>
+ * <p> Revision 1.11  2005/09/20 19:00:18  sueh
+ * <p> bug# 532 Allowing control of whether buttons start in expanded or
+ * <p> contracted state.  OpenClose is always expanded.  The other can be
+ * <p> controlled.  Adeed getExpandedMoreLessInstance() to get a header with
+ * <p> a more/less button with an expanded initial state.  The default is contracted.
+ * <p>
+ * <p> Revision 1.10  2005/09/19 16:38:57  sueh
+ * <p> bug# 532 Added more/less button.
+ * <p>
+ * <p> Revision 1.9  2005/08/30 19:20:15  sueh
+ * <p> bug# 437 Remove newstuff limit from panel headers.
+ * <p>
+ * <p> Revision 1.8  2005/08/22 18:00:37  sueh
+ * <p> bug# 532 Remove openClosePanel.  When handling the open/close
+ * <p> button, call container.expand() to do the expansion.
+ * <p>
+ * <p> Revision 1.7  2005/08/09 20:26:42  sueh
+ * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
+ * <p>
+ * <p> Revision 1.6  2005/08/04 20:12:54  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
+ * <p> Revision 1.5  2005/07/29 00:54:23  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
+ * <p> Revision 1.4  2005/07/19 22:33:43  sueh
+ * <p> bug# 532 creating the buttons and hiding them when new stuff is true
+ * <p>
+ * <p> Revision 1.3  2005/07/11 23:04:59  sueh
+ * <p> bug# 619 Attempting to center the separator.
+ * <p>
+ * <p> Revision 1.2  2005/07/07 00:00:04  sueh
+ * <p> bug# 437 Removed unnecessary Constructor parameter
+ * <p> useAdvancedBasic.  If the container is not passed then the
+ * <p> advanced/basic button with not be used.
+ * <p>
+ * <p> Revision 1.1  2005/07/06 23:45:23  sueh
+ * <p> bug# 437 Class to place a header panel on a JPanel.  The header panel
+ * <p> uses the grid bag layout.  It can contain two buttons:  an open/close
+ * <p> button whose functionality is encapsulated, and an advanced/basic
+ * <p> button whose functionality is handled by a container which implements
+ * <p> Expandable.  PanelHeader implements expandable for the open/close
+ * <p> functionality.  Pass the panel to be made visible/invisible in the
+ * <p> constructor for the open/close button to be displayed.  Construct the
+ * <p> class with useAdvancedBasic to have an advanced/basic button
+ * <p> displayed.  Since this class continues to function after it is placed in the
+ * <p> dialog, it must not be sent to garbage collection until the dialog is gone.
+ * <p> </p>
+ */

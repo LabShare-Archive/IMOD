@@ -29,6 +29,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2005/11/14 22:02:46  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 1.8  2005/09/27 23:28:16  sueh
  * <p> bug# 532 Added a expanded state string and a contracted state string.
  * <p> Added getState() which returns the string respresenting the current state.
@@ -79,44 +82,53 @@ import javax.swing.border.BevelBorder;
  */
 public class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
-  
+
+  private static final String CONTRACTED_MORE_LESS_TOOL_TIP = "Show more.";
+  private static final String EXPANDED_MORE_LESS_TOOL_TIP = "Show less.";
+
   private String contractedState = "less";
   private String expandedState = "more";
   private String contractSymbol = "<html>&lt";
   private String expandSymbol = "<html>&gt";
+  private String contractedToolTip;
+  private String expandedToolTip;
 
   private boolean expanded = false;
   private Expandable container = null;
-  
+
   final static ExpandButton getMoreLessInstance(Expandable container) {
     ExpandButton instance = new ExpandButton(container);
-    instance.initialize();
+    instance.initialize(CONTRACTED_MORE_LESS_TOOL_TIP,
+        EXPANDED_MORE_LESS_TOOL_TIP);
     return instance;
   }
 
-  final static ExpandButton getMoreLessInstance(Expandable container, boolean expanded) {
+  final static ExpandButton getMoreLessInstance(Expandable container,
+      boolean expanded) {
     ExpandButton instance = new ExpandButton(container);
     instance.expanded = expanded;
-    instance.initialize();
+    instance.initialize(CONTRACTED_MORE_LESS_TOOL_TIP,
+        EXPANDED_MORE_LESS_TOOL_TIP);
     return instance;
   }
 
   final static ExpandButton getInstance(Expandable container,
       String contractSymbol, String expandSymbol, String contractedState,
-      String expandedState) {
+      String expandedState, String contractedToolTip, String expandedToolTip) {
     ExpandButton instance = new ExpandButton(container, contractSymbol,
         expandSymbol, contractedState, expandedState);
-    instance.initialize();
+    instance.initialize(contractedToolTip, expandedToolTip);
     return instance;
   }
 
   final static ExpandButton getInstance(Expandable container,
       String contractSymbol, String expandSymbol, String contractedState,
-      String expandedState, boolean expanded) {
+      String expandedState, boolean expanded, String contractedToolTip,
+      String expandedToolTip) {
     ExpandButton instance = new ExpandButton(container, contractSymbol,
         expandSymbol, contractedState, expandedState);
     instance.expanded = expanded;
-    instance.initialize();
+    instance.initialize(contractedToolTip, expandedToolTip);
     return instance;
   }
 
@@ -147,12 +159,16 @@ public class ExpandButton extends MultiLineButton {
    * only called by constructor
    *
    */
-  private void initialize() {
+  private void initialize(String contractedToolTip, String expandedToolTip) {
+    this.contractedToolTip = contractedToolTip;
+    this.expandedToolTip = expandedToolTip;
     if (expanded) {
-      setText(contractSymbol);
+      super.setText(contractSymbol);
+      setToolTipText(expandedToolTip);
     }
     else {
-      setText(expandSymbol);
+      super.setText(expandSymbol);
+      setToolTipText(contractedToolTip);
     }
     addActionListener(new ExpandButtonActionListener(this));
     setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
@@ -170,14 +186,14 @@ public class ExpandButton extends MultiLineButton {
   boolean isExpanded() {
     return expanded;
   }
-  
+
   final String getState() {
     if (expanded) {
       return expandedState;
     }
     return contractedState;
   }
-  
+
   final void setState(String state) {
     if (state == null) {
       return;
@@ -205,7 +221,7 @@ public class ExpandButton extends MultiLineButton {
   public boolean equals(ExpandButton that) {
     return equals((Object) that);
   }
-  
+
   /**
    * set button setting to expanded and force a call to expand(), even if the
    * value of the button isn't changed.  To allows the screen to be initialized.
@@ -229,10 +245,12 @@ public class ExpandButton extends MultiLineButton {
     if (expanded) {
       expanded = false;
       super.setText(expandSymbol);
+      setToolTipText(contractedToolTip);
     }
     else {
       expanded = true;
       super.setText(contractSymbol);
+      setToolTipText(expandedToolTip);
     }
     if (container == null) {
       return;
