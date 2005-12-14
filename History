@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/13/05: Fixed a bug in Etomo Join which caused the default X and Y sizes in
+the Join tab to be incorrect when a tomogram was rotated.
+
 12/13/05: Fixed problem with xfalign trying to filter odd-sized images, which
 broke automatic alignment of sample averages after volumes are rotated.
 
