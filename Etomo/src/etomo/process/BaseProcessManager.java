@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2005/12/12 21:59:17  sueh
+ * <p> bug# 778 Made isAxisBusy protected and added public inUse, which
+ * <p> doesn't throw an exception.
+ * <p>
  * <p> Revision 1.32  2005/12/09 20:26:11  sueh
  * <p> bug# 776 Added tomosnapshot.
  * <p>
@@ -264,6 +268,17 @@ public abstract class BaseProcessManager {
 
   public BaseProcessManager() {
   }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "threadAxisA=" + threadAxisA + ",threadAxisB=" + threadAxisB
+        + ",\nprocessMonitorA=" + processMonitorA + ",processMonitorB="
+        + processMonitorB + ",\nkilledList=" + killedList + ",uiHarness="
+        + uiHarness + "," + super.toString();
+  }
 
   public final void startGetLoadAverage(LoadAverageParam param,
       LoadAverageMonitor monitor) {
@@ -425,13 +440,15 @@ public abstract class BaseProcessManager {
 
     return comScriptProcess;
   }
-  
+
   public final boolean inUse(AxisID axisID) {
     try {
       isAxisBusy(axisID);
     }
     catch (SystemProcessException e) {
-      uiHarness.openMessageDialog("A process is already executing in the current axis", "Cannot run process", axisID);
+      uiHarness.openMessageDialog(
+          "A process is already executing in the current axis",
+          "Cannot run process", axisID);
       return true;
     }
     return false;
@@ -880,15 +897,14 @@ public abstract class BaseProcessManager {
     return startBackgroundProcess(backgroundProcess, processDetails
         .getCommandLine(), axisID, null);
   }
-  
-  protected BackgroundProcess startBackgroundProcess(
-      Command command, AxisID axisID)
-      throws SystemProcessException {
+
+  protected BackgroundProcess startBackgroundProcess(Command command,
+      AxisID axisID) throws SystemProcessException {
     isAxisBusy(axisID);
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         command, this, axisID);
-    return startBackgroundProcess(backgroundProcess, command
-        .getCommandLine(), axisID, null);
+    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
+        axisID, null);
   }
 
   protected BackgroundProcess startBackgroundProcess(

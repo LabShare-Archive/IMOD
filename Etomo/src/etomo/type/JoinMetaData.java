@@ -20,6 +20,9 @@ import etomo.ui.UIHarness;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/11/29 22:34:24  sueh
+* <p> bug# 757 Added manager to SectionTableRowData.
+* <p>
 * <p> Revision 1.5  2005/11/02 23:59:43  sueh
 * <p> bug# 738 Added midas limit.
 * <p>
@@ -94,6 +97,10 @@ public class JoinMetaData extends ConstJoinMetaData {
   public JoinMetaData(BaseManager manager) {
     this.manager = manager;
     reset();
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
   }
 
   private void reset() {

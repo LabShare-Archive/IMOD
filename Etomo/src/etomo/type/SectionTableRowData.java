@@ -32,6 +32,12 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/12/06 23:01:50  sueh
+ * <p> bug# 757 Removed convertZ and added convertToRotatedZ and
+ * <p> convertFromRotationZ.  Going to .rot and going from .rot now have
+ * <p> different formulas.  Only convert if abs(cos(x) * cos(y)) is below
+ * <p> COS_X_Y_THRESHOLD.
+ * <p>
  * <p> Revision 1.6  2005/11/29 22:44:37  sueh
  * <p> bug# 757 Removed setXMax, YMax, and ZMax() because x, y, and zMax
  * <p> are derived from the section header.  Added convertSetupToJoin and
@@ -108,6 +114,10 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     super(rowNumber);
     this.manager = manager;
     reset();
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
   }
 
   /**
@@ -266,9 +276,6 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     //System.out.println("convertToRotatedZ");
     double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
         * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
-    System.out.println("rotationAngleX=" + rotationAngleX.getDouble(true)
-        + ",rotationAngleY" + rotationAngleY.getDouble(true) + ",cosXY="
-        + cosXY);
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
     }
@@ -299,9 +306,6 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   private final long convertFromRotatedZ(ConstEtomoNumber z) {
     double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
         * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
-    System.out.println("rotationAngleX=" + rotationAngleX.getDouble(true)
-        + ",rotationAngleY" + rotationAngleY.getDouble(true) + ",cosXY="
-        + cosXY);
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
     }
