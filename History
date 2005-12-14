@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/13/05: IMOD_3-8-0 and branch to IMOD_3-8-0
+12/13/05: IMOD_3-8-0 and branch to IMOD_3-7-0
 12/13/05: Fixed a bug in Etomo Join which caused the default X and Y sizes in
 the Join tab to be incorrect when a tomogram was rotated.
 
