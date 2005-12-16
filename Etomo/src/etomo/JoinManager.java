@@ -25,6 +25,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
@@ -51,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2005/12/14 01:27:01  sueh
+ * <p> bug# 782 Added toString().
+ * <p>
  * <p> Revision 1.32  2005/12/12 21:58:13  sueh
  * <p> bug# 779 Made BaseManager.resetNextProcess() private.
  * <p>
@@ -406,6 +410,7 @@ public final class JoinManager extends BaseManager {
       loadedParamFile = true;
     }
     joinDialog.getMetaData(metaData);
+    state.setDoneMode(joinDialog.getMode());
   }
 
   protected void createMainPanel() {
@@ -775,15 +780,23 @@ public final class JoinManager extends BaseManager {
    * @return
    */
   public boolean setMode(String workingDirName) {
+    //get a non-shared copy of doneMode
+    int doneMode = state.getDoneMode();
+    //only check done mode when we first set the mode
+    state.clearDoneMode();
     if (!metaData.isValid(workingDirName)) {
       joinDialog.setMode(JoinDialog.SETUP_MODE);
       return false;
     }
-    if (state.isSampleProduced()) {
-      joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED_MODE);
+    if (!state.isSampleProduced() || doneMode == JoinDialog.CHANGING_SAMPLE_MODE) {
+      //either the sample was not produced, or the user had been changing the
+      //sample when they exited the join dialog.  If the done mode is
+      //CHANGING_SAMPLE_MODE, then the sample values are not valid and the
+      //original sample values have been lost.
+      joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED_MODE);
     }
     else {
-      joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED_MODE);
+      joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED_MODE);
     }
     return true;
   }
