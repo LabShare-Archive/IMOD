@@ -920,13 +920,21 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     text = "This button will create a new set of command scripts overwriting any of the same name in the specified working directory.  Be sure to save the data file after creating the command script if you wish to keep the results.";
     btnExecute.setToolTipText(tooltipFormatter.setText(text).format());
 
-    cbParallelProcess.setToolTipText(tooltipFormatter.setText(
-        "Sets the default for parallel processing (distributing processes across multiple computers).").format());
-    
-    text = tooltipFormatter.setText(
-    "OPTIONAL:  A file with magnification gradients to be applied for each image.").format();
+    cbParallelProcess
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Sets the default for parallel processing (distributing processes across multiple computers).")
+            .format());
+
+    text = tooltipFormatter
+        .setText(
+            "OPTIONAL:  A file with magnification gradients to be applied for each image.")
+        .format();
     ltfMagGradientFile.setToolTipText(text);
     btnMagGradientFile.setToolTipText(text);
+
+    spnBinning.setToolTipText(tooltipFormatter.setText(
+        "Binning at which images were acquired on CCD camera.").format());
   }
 
   //  Button action listener classes
@@ -1074,6 +1082,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.41  2005/12/14 20:58:50  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 3.40  2005/12/13 02:30:24  sueh
  * <p> bug# 773 Added cbParallelProcess.
  * <p>

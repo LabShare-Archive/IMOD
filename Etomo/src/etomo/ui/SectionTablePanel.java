@@ -49,6 +49,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2005/12/14 01:32:47  sueh
+ * <p> bug# 783 Added isSetupTab(), etc, so that the only instance of curTab is
+ * <p> in JoinDialog.
+ * <p>
  * <p> Revision 1.20  2005/11/30 21:18:28  sueh
  * <p> bug# 757 Removed getJoinXMax, YMax, and ZMax().  Added getXMax,
  * <p> YMax, and ZMax().
@@ -298,11 +302,16 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final SpacedPanel pnlButtonsComponent1 = new SpacedPanel();
   private final SpacedPanel pnlButtonsComponent2 = new SpacedPanel();
   private final UIHarness uiHarness = UIHarness.INSTANCE;
-  private final MultiLineButton btnMoveSectionUp = new MultiLineButton("Move Section Up");
-  private final MultiLineButton btnMoveSectionDown = new MultiLineButton("Move Section Down");
-  private final MultiLineButton btnAddSection = new MultiLineButton("Add Section");
-  private final MultiLineButton btnDeleteSection = new MultiLineButton("Delete Section");
-  private final MultiLineButton btnGetAngles = new MultiLineButton("Get Angles from Slicer");
+  private final MultiLineButton btnMoveSectionUp = new MultiLineButton(
+      "Move Section Up");
+  private final MultiLineButton btnMoveSectionDown = new MultiLineButton(
+      "Move Section Down");
+  private final MultiLineButton btnAddSection = new MultiLineButton(
+      "Add Section");
+  private final MultiLineButton btnDeleteSection = new MultiLineButton(
+      "Delete Section");
+  private final MultiLineButton btnGetAngles = new MultiLineButton(
+      "Get Angles from Slicer");
   //first header row
   private final HeaderCell header1Order = new HeaderCell("Order");
   private final HeaderCell header1SetupSections = new HeaderCell("Sections",
@@ -321,7 +330,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   //second header row
   private final HeaderCell header2Order = new HeaderCell();
   private final HeaderCell header2SetupSections = new HeaderCell();
-  private final HeaderCell header2JoinSections = new HeaderCell();
+  private final HeaderCell header2JoinSections = new HeaderCell("In Final");
   private final HeaderCell header2SampleBottom = new HeaderCell("Bottom");
   private final HeaderCell header2SampleTop = new HeaderCell("Top");
   private final HeaderCell header2SlicesInSample = new HeaderCell("Sample");
@@ -330,7 +339,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header2CurrentSection = new HeaderCell("Section");
   private final HeaderCell header2SetupFinal = new HeaderCell();
   private final HeaderCell header2JoinFinal = new HeaderCell();
-  private final HeaderCell header2RotationAngles = new HeaderCell();
+  private final HeaderCell header2Rotation = new HeaderCell();
   //third header row
   private final HeaderCell header3Order = new HeaderCell();
   private final HeaderCell header3SetupSections = new HeaderCell();
@@ -362,14 +371,14 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(
       this);
-  
+
   private final JoinManager joinManager;
   private final JoinDialog joinDialog;
 
   private LabeledSpinner spinBinning;
   private Run3dmodButton btnOpen3dmod;
   private SpacedPanel pnlImod;
-  
+
   private int mode = JoinDialog.SETUP_MODE;
   private boolean flipping = false;
 
@@ -388,14 +397,14 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     pnlTable.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
     button1ExpandSections = ExpandButton.getMoreLessInstance(this);
-    header2JoinSections.setText("In Final");
     addTablePanelComponents();
     //buttons
     createButtonsPanel();
     addButtonsPanelComponents();
     addRootPanelComponents();
+    setToolTipText();
   }
-  
+
   final boolean isSetupTab() {
     return joinDialog.isSetupTab();
   }
@@ -403,7 +412,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   final boolean isAlignTab() {
     return joinDialog.isAlignTab();
   }
-  
+
   final boolean isJoinTab() {
     return joinDialog.isJoinTab();
   }
@@ -470,7 +479,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     header2SampleTop.add(pnlTable, layout, constraints);
     header2SetupFinal.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header2RotationAngles.add(pnlTable, layout, constraints);
+    header2Rotation.add(pnlTable, layout, constraints);
     //Third row
     constraints.gridwidth = 2;
     header3Order.add(pnlTable, layout, constraints);
@@ -498,7 +507,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.gridwidth = 1;
     header1Order.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
-    header1JoinSections.add(pnlTable, layout, constraints);
+    header1SetupSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
     constraints.gridwidth = 1;
     button1ExpandSections.add(pnlTable, layout, constraints);
@@ -513,7 +522,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.gridwidth = 1;
     header2Order.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
-    header2JoinSections.add(pnlTable, layout, constraints);
+    header2SetupSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     header2SlicesInSample.add(pnlTable, layout, constraints);
     header2CurrentChunk.add(pnlTable, layout, constraints);
@@ -1287,6 +1296,149 @@ public class SectionTablePanel implements ContextMenu, Expandable,
         ((SectionTableRow) rows.get(i)).synchronizeJoinToSetup();
       }
     }
+  }
+
+  private void setToolTipText() {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    btnMoveSectionUp.setToolTipText(tooltipFormatter.setText(
+        "Press to move the selected section up.").format());
+    btnMoveSectionDown.setToolTipText(tooltipFormatter.setText(
+        "Press to move the selected section down.").format());
+    btnAddSection.setToolTipText(tooltipFormatter.setText(
+        "Press to add a section to the joined tomogram.").format());
+    btnDeleteSection.setToolTipText(tooltipFormatter.setText(
+        "Press to delete the selected section from the joined tomogram.")
+        .format());
+    btnGetAngles
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Press to get the X, Y, and Z rotation from the slicer in 3dmod for the selected section.")
+            .format());
+    btnDeleteSection.setToolTipText(tooltipFormatter.setText(
+        "The order of the sections in the joined tomogram.").format());
+
+    String toolTip = tooltipFormatter.setText(
+        "The order of the sections in the joined tomogram.").format();
+    header1Order.setToolTipText(toolTip);
+    header2Order.setToolTipText(toolTip);
+    header3Order.setToolTipText(toolTip);
+
+    toolTip = tooltipFormatter.setText(
+        "The sections used in the joined tomogram.").format();
+    header1SetupSections.setToolTipText(toolTip);
+    header2SetupSections.setToolTipText(toolTip);
+    header3SetupSections.setToolTipText(toolTip);
+
+    toolTip = tooltipFormatter
+        .setText(
+            "The sections, including rotated sections, used in the joined tomogram.")
+        .format();
+    header1JoinSections.setToolTipText(toolTip);
+    header2JoinSections.setToolTipText(toolTip);
+    header3JoinSections.setToolTipText(toolTip);
+
+    header1Sample.setToolTipText(tooltipFormatter.setText(
+        "The slices to be used in the sample.").format());
+    header2SampleBottom
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The bottom slices to be used in the sample.  The bottom slices should be matched against the top slices of the previous section.")
+            .format());
+    header3SampleBottomStart
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The starting bottom slice to be used in the sample.  The bottom slices should be matched against the top slices of the previous section.")
+            .format());
+    header3SampleBottomEnd
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The ending bottom slice to be used in the sample.  The bottom slices should be matched against the top slices of the previous section.")
+            .format());
+    header2SampleTop
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The top slices to be used in the sample.  The top slices should be matched against the bottom slices of the next section.")
+            .format());
+    header3SampleTopStart
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The starting top slice to be used in the sample.  The top slices should be matched against the bottom slices of the next section.")
+            .format());
+    header3SampleTopEnd
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The ending top slice to be used in the sample.  The top slices should be matched against the bottom slices of the next section.")
+            .format());
+
+    toolTip = tooltipFormatter.setText(
+        "Shows where each of the sample slices comes from.").format();
+    header1SlicesInSample.setToolTipText(toolTip);
+    header2SlicesInSample.setToolTipText(toolTip);
+
+    toolTip = tooltipFormatter.setText(
+        "Shows how the sample is divided up in Midas.").format();
+    header1CurrentChunk.setToolTipText(toolTip);
+    header2CurrentChunk.setToolTipText(toolTip);
+
+    toolTip = tooltipFormatter.setText(
+        "The reference section slices for each chunk in Midas.").format();
+    header1ReferenceSection.setToolTipText(toolTip);
+    header2ReferenceSection.setToolTipText(toolTip);
+
+    toolTip = tooltipFormatter.setText(
+        "The current section slices for each chunk in Midas.").format();
+    header1CurrentSection.setToolTipText(toolTip);
+    header2CurrentSection.setToolTipText(toolTip);
+
+    toolTip = tooltipFormatter
+        .setText(
+            "Enter to starting and ending Z values to be used to trim each section in the joined tomogram.")
+        .format();
+    header1SetupFinal.setToolTipText(toolTip);
+    header2SetupFinal.setToolTipText(toolTip);
+    header3SetupFinalStart
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Enter to starting Z value to be used to trim each section in the joined tomogram.")
+            .format());
+    header3SetupFinalStart
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Enter to ending Z value to be used to trim the section in the joined tomogram.")
+            .format());
+
+    toolTip = tooltipFormatter
+        .setText(
+            "Enter to starting and ending Z values to be used to trim each section or rotated section in the joined tomogram.")
+        .format();
+    header1JoinFinal.setToolTipText(toolTip);
+    header2JoinFinal.setToolTipText(toolTip);
+    header3JoinFinalStart
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Enter to starting Z values to be used to trim each section or rotated section in the joined tomogram.")
+            .format());
+    header3JoinFinalEnd
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Enter to ending Z values to be used to trim each section or rotated section in the joined tomogram.")
+            .format());
+
+    toolTip = tooltipFormatter.setText(
+        "The rotation in X, Y, and Z of each section.").format();
+    header1Rotation.setToolTipText(toolTip);
+    header2Rotation.setToolTipText(toolTip);
+    header3RotationX.setToolTipText(tooltipFormatter.setText(
+        "The rotation in X of each section.").format());
+    header3RotationY.setToolTipText(tooltipFormatter.setText(
+        "The rotation in Y of each section.").format());
+    header3RotationZ.setToolTipText(tooltipFormatter.setText(
+        "The rotation in Z of each section.").format());
+
+    spinBinning.setToolTipText(tooltipFormatter.setText(
+        "The binning to use when opening a section in 3dmod.").format());
+    btnOpen3dmod.setToolTipText(tooltipFormatter.setText(
+        "Press to open a section in 3dmod.").format());
   }
 
   //

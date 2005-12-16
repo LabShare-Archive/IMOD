@@ -33,6 +33,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2005/12/14 01:33:36  sueh
+ * <p> bug# 783 The only instance of curTab is now in JoinDialog.  Removed
+ * <p> removeSetup, etc.  Remove() removes all fields.
+ * <p>
  * <p> Revision 1.12  2005/11/30 21:19:01  sueh
  * <p> bug# 757 Removed getJoinXMax, YMax, and ZMax().  Added getXMax,
  * <p> YMax, and ZMax().  Get join max when the current tab is join, otherwise
@@ -211,6 +215,7 @@ public class SectionTableRow {
     data = new SectionTableRowData(manager, rowNumber);
     data.setSetupSection(tomogram);
     init();
+    setToolTipText();
   }
 
   public SectionTableRow(JoinManager manager, SectionTablePanel table,
@@ -219,6 +224,7 @@ public class SectionTableRow {
     this.data = new SectionTableRowData(manager, data);
     this.sectionExpanded = sectionExpanded;
     init();
+    setToolTipText();
   }
 
   private SectionTableRow(JoinManager manager, SectionTablePanel table,
@@ -786,6 +792,16 @@ public class SectionTableRow {
     retrieveData(true);
     data.synchronizeJoinToSetup();
     displayData();
+  }
+
+  private void setToolTipText() {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    rowNumber.setToolTipText(tooltipFormatter.setText(
+        "The number of the section.").format());
+    highlighterButton.setToolTipText(tooltipFormatter.setText(
+        "Press to select the section.").format());
+    currentChunk.setToolTipText(tooltipFormatter.setText(
+        "The number of the chunk in Midas.").format());
   }
 
   /**

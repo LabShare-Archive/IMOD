@@ -36,6 +36,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.26  2005/12/14 01:31:59  sueh
+ * <p> bug# 782 Added toString().  Bug# 783 Added defaultXYSize() and init().
+ * <p> Calling default xy size when going to the join tab.  Function has no
+ * <p> effect when the default size is not changed.  Added isSetupTab(), etc, so
+ * <p> that there is only one instance of curTab.
+ * <p>
  * <p> Revision 1.25  2005/12/06 23:02:46  sueh
  * <p> bug# 757 Changed synchronized(int).  It is called when changing tabs and
  * <p> should not call setNumSections.
@@ -388,10 +394,9 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private final AxisID axisID;
   private final JoinManager joinManager;
-  
+
   private int defaultXSize = 0;
   private int defaultYSize = 0;
-  
 
   /**
    * Create JoinDialog without an .ejf file
@@ -407,7 +412,8 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * @param joinManager
    * @param workingDirName
    */
-  public JoinDialog(JoinManager joinManager, String workingDirName, ConstJoinMetaData metaData) {
+  public JoinDialog(JoinManager joinManager, String workingDirName,
+      ConstJoinMetaData metaData) {
     axisID = AxisID.ONLY;
     this.joinManager = joinManager;
     createRootPanel(workingDirName);
@@ -415,8 +421,9 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     addListeners();
     setMetaData(metaData);
     init();
+    setToolTipText();
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -436,9 +443,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         + spinAlignmentRefSection + ",\nspinDensityRefSection="
         + spinDensityRefSection + ",\nspinTrialBinning=" + spinTrialBinning
         + ",\nspinOpenBinnedBy=" + spinOpenBinnedBy + ",spinOpenTrialBinnedBy"
-        + spinOpenTrialBinnedBy + ",\nspinUseEveryNSlices=" + spinUseEveryNSlices
-        + ",\nnumSections" + numSections + ",curTab=" + curTab + ",invalidReason"
-        + invalidReason + ",\naxisID=" + axisID + "," + super.toString();
+        + spinOpenTrialBinnedBy + ",\nspinUseEveryNSlices="
+        + spinUseEveryNSlices + ",\nnumSections" + numSections + ",curTab="
+        + curTab + ",invalidReason" + invalidReason + ",\naxisID=" + axisID
+        + "," + super.toString();
   }
 
   /**
@@ -576,7 +584,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       pnlJoin.removeAll();
     }
   }
-  
+
   final boolean isSetupTab() {
     return curTab == SETUP_TAB;
   }
@@ -584,7 +592,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   final boolean isAlignTab() {
     return curTab == ALIGN_TAB;
   }
-  
+
   final boolean isJoinTab() {
     return curTab == JOIN_TAB;
   }
@@ -748,13 +756,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel alignPanel2A = new SpacedPanel();
     alignPanel2A.setBoxLayout(BoxLayout.Y_AXIS);
     btnInitialAutoAlignment = new MultiLineButton("Initial Auto Alignment");
-    //btnInitialAutoAlignment.addActionListener(joinActionListener);
     alignPanel2A.add(btnInitialAutoAlignment);
     btnMidas = new MultiLineButton(MIDAS_TEXT);
-    //btnMidas.addActionListener(joinActionListener);
     alignPanel2A.add(btnMidas);
     btnRefineAutoAlignment = new MultiLineButton(REFINE_AUTO_ALIGNMENT_TEXT);
-    //btnRefineAutoAlignment.addActionListener(joinActionListener);
     alignPanel2A.add(btnRefineAutoAlignment);
     alignPanel2.add(alignPanel2A);
     SpacedPanel alignPanel2B = new SpacedPanel();
@@ -818,7 +823,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.add(finishJoinPanel1);
     //second component
     btnGetMaxSize = new MultiLineButton(GET_MAX_SIZE_TEXT);
-    //btnGetMaxSize.addActionListener(joinActionListener);
     pnlFinishJoin.add(btnGetMaxSize);
     //third component
     SpacedPanel finishJoinPanel2 = new SpacedPanel();
@@ -938,12 +942,12 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     spinUseEveryNSlices.setModel(spinnerModel);
     defaultSizeInXY();
   }
-  
+
   private void init() {
     defaultXSize = pnlSectionTable.getXMax();
     defaultYSize = pnlSectionTable.getYMax();
   }
-  
+
   /**
    * Call this when the number of sections has changed or a section rotation
    * has changed.
@@ -1337,6 +1341,131 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   final void synchronize() {
     pnlSectionTable.synchronize(curTab, -1);
+  }
+
+  private void setToolTipText() {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    String toolTip = tooltipFormatter.setText(
+        "Enter the directory where you wish to place the joined tomogram.")
+        .format();
+    ltfWorkingDir.setToolTipText(toolTip);
+    btnWorkingDir.setToolTipText(toolTip);
+    ltfRootName.setToolTipText(tooltipFormatter.setText(
+        "Enter the root name for the joined tomogram.").format());
+    toolTip = tooltipFormatter
+        .setText(
+            "The size to which samples will be squeezed if they are bigger (default 1024).")
+        .format();
+    ltfMidasLimit.setToolTipText(toolTip);
+    lblMidasLimit.setToolTipText(toolTip);
+    spinDensityRefSection
+        .setToolTipText(tooltipFormatter.setText(
+            "Select a section to use as a reference for density scaling.")
+            .format());
+    btnChangeSetup.setToolTipText(tooltipFormatter.setText(
+        "Press to redo an existing sample.").format());
+    btnRevertToLastSetup.setToolTipText(tooltipFormatter.setText(
+        "Press to go back to the existing sample.").format());
+    btnMakeSamples.setToolTipText(tooltipFormatter.setText(
+        "Press to make a sample.").format());
+    btnOpenSampleAverages.setToolTipText(tooltipFormatter.setText(
+        "Press to the sample averages file in 3dmod.").format());
+    btnOpenSample.setToolTipText(tooltipFormatter.setText(
+        "Press to the sample file in 3dmod.").format());
+    btnOpenSample.setToolTipText(tooltipFormatter.setText(
+        "Press to the sample file in 3dmod.").format());
+    ltfSigmaLowFrequency
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Sigma of an inverted gaussian for filtering out low frequencies before searching for transformation.")
+            .format());
+    ltfCutoffHighFrequency
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Starting radius of a gaussian for filtering out high frequencies before searching for transformation.")
+            .format());
+    ltfSigmaHighFrequency
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Sigma of gaussian for filtering out high frequencies before searching for transformation.")
+            .format());
+    rbFullLinearTransformation
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Use rotation, translation, magnification, and stretching to align images.")
+            .format());
+    rbRotationTranslationMagnification.setToolTipText(tooltipFormatter.setText(
+        "Use translation, rotation, and magnification  to align images.")
+        .format());
+    rbRotationTranslation.setToolTipText(tooltipFormatter.setText(
+        "Use translation and rotation  to align images.").format());
+    btnInitialAutoAlignment
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "OPTIONAL:  Run xfalign.  Find preliminary translational alignments with tiltxcorr rather then using an existing .xf file.")
+            .format());
+    btnMidas
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Open Midas to check the output of the auto alignment and to make transformations by hand.")
+            .format());
+    btnRefineAutoAlignment
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "OPTIONAL:  Run xfalign using preliminary alignments created by the most recent use of Midas or xfalign.")
+            .format());
+    btnRevertToMidas
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Use to ignore xfalign changes.  Returns transformations to the state created by the most recent save done in Midas.")
+            .format());
+    btnRevertToEmpty.setToolTipText(tooltipFormatter.setText(
+        "Use to remove all transformations.").format());
+    cbUseAlignmentRefSection
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Make a section the reference for alignment.  This means that the chosen section will not be transformed, and the other sections will be transformed into alignment with it.")
+            .format());
+    spinAlignmentRefSection
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Choose a section to be the reference for alignment.  This means that it will not be transformed, and the other sections will be transformed into alignment with it.")
+            .format());
+    btnGetMaxSize
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Compute the maximum size and offsets needed to contain the transformed images from all of the sections, given the current transformations.")
+            .format());
+    ltfSizeInX.setToolTipText(tooltipFormatter.setText(
+        "The size in X parameter for the trial and final joined tomograms.").format());
+    ltfSizeInY.setToolTipText(tooltipFormatter.setText(
+        "The size in Y parameter for the trial and final joined tomograms.").format());
+    ltfShiftInX.setToolTipText(tooltipFormatter.setText(
+        "The X offset parameter for the trial and final joined tomograms.").format());
+    ltfShiftInY.setToolTipText(tooltipFormatter.setText(
+        "The Y offset parameter for the trial and final joined tomograms.").format());
+    spinUseEveryNSlices.setToolTipText(tooltipFormatter.setText(
+        "Slices to use when creating the trial joined tomogram.").format());
+    spinTrialBinning.setToolTipText(tooltipFormatter.setText(
+        "The binning to use when creating the trial joined tomogram.").format());
+    btnTrialJoin.setToolTipText(tooltipFormatter.setText(
+        "Press to make a trial version of the joined tomogram.").format());
+    spinOpenTrialBinnedBy.setToolTipText(tooltipFormatter.setText(
+        "The binning to use when opening the trial joined tomogram in 3dmod.").format());
+    btnOpenTrialIn3dmod.setToolTipText(tooltipFormatter.setText(
+        "Press to open the trial joined tomogram.").format());
+    btnGetSubarea
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Press to get maximum size and shift from the trail joined tomogram using the rubber band functionality in 3dmod.")
+            .format());
+    btnFinishJoin.setToolTipText(tooltipFormatter.setText(
+        "Press to make the joined tomogram.").format());
+    spinOpenBinnedBy.setToolTipText(tooltipFormatter.setText(
+        "The binning to use when opening the joined tomogram in 3dmod.").format());
+    btnOpenIn3dmod.setToolTipText(tooltipFormatter.setText(
+        "Press to open the joined tomogram in 3dmod.").format());
   }
 
   //

@@ -261,7 +261,7 @@ final class ProcessorTableRow implements Storable {
     setSelected(false);
     cellFailureReason.setValue(reason);
     cellFailureReason.setToolTipText(tooltipFormatter.setText(
-        "This computer was dropped from the current process.").format());
+        "This computer was dropped from the current distributed process.").format());
   }
 
   private void setSelected(boolean selected) {
@@ -460,6 +460,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2005/12/14 20:58:29  sueh
+ * <p> bug# 784 Added context sensitive tool tips to failure reasons.
+ * <p>
  * <p> Revision 1.18  2005/11/14 22:17:35  sueh
  * <p> bug# 762 Made performAction() and stateChanged() protected.
  * <p>

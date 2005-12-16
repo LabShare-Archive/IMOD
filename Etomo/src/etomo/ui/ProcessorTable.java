@@ -43,39 +43,6 @@ public final class ProcessorTable implements Storable {
   private static final int MAXIMUM_ROWS = 15;
   private JScrollPane scrollPane;
   private JPanel tablePanel;
-
-  private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = tooltipFormatter.setText(
-        "Select computers to use for parallel processing.").format();
-    header1Computer.setToolTipText(text);
-    header2Computer.setToolTipText(text);
-    text = tooltipFormatter.setText(
-        "Select the number of CPUs to use for each computer.").format();
-    header1NumberCPUs.setToolTipText(text);
-    header2NumberCPUsUsed.setToolTipText(text);
-    header2NumberCPUsMax.setToolTipText(tooltipFormatter.setText(
-        "The maximum number of CPUs available on each computer.").format());
-    header1Load.setToolTipText(tooltipFormatter.setText(
-        "Represents how busy each computer is.").format());
-    header2Load1.setToolTipText(tooltipFormatter.setText(
-        "The load averaged over one minute.").format());
-    header2Load5.setToolTipText(tooltipFormatter.setText(
-        "The load averaged over five minutes.").format());
-    header2Load15.setToolTipText(tooltipFormatter.setText(
-        "The load averaged over fifteen minutes.").format());
-    text = tooltipFormatter.setText(
-        "The number of times processes failed on each computer.").format();
-    header1Restarts.setToolTipText(text);
-    header2Restarts.setToolTipText(text);
-    text = tooltipFormatter.setText(
-        "The number of chunks each computer completed for a distributed process.").format();
-    header1Finished.setToolTipText(text);
-    header2Finished.setToolTipText(text);
-  }
-
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
   private final HeaderCell header1Computer = new HeaderCell("Computer");
@@ -707,9 +674,45 @@ public final class ProcessorTable implements Storable {
   protected final boolean isScrolling() {
     return scrolling;
   }
+  
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = tooltipFormatter.setText(
+        "Select computers to use for parallel processing.").format();
+    header1Computer.setToolTipText(text);
+    header2Computer.setToolTipText(text);
+    text = tooltipFormatter.setText(
+        "Select the number of CPUs to use for each computer.").format();
+    header1NumberCPUs.setToolTipText(text);
+    header2NumberCPUsUsed.setToolTipText(text);
+    header2NumberCPUsMax.setToolTipText(tooltipFormatter.setText(
+        "The maximum number of CPUs available on each computer.").format());
+    header1Load.setToolTipText(tooltipFormatter.setText(
+        "Represents how busy each computer is.").format());
+    header2Load1.setToolTipText(tooltipFormatter.setText(
+        "The load averaged over one minute.").format());
+    header2Load5.setToolTipText(tooltipFormatter.setText(
+        "The load averaged over five minutes.").format());
+    header2Load15.setToolTipText(tooltipFormatter.setText(
+        "The load averaged over fifteen minutes.").format());
+    text = tooltipFormatter.setText(
+        "The number of times processes failed on each computer.").format();
+    header1Restarts.setToolTipText(text);
+    header2Restarts.setToolTipText(text);
+    text = tooltipFormatter.setText(
+        "The number of processes each computer completed for a distributed process.").format();
+    header1Finished.setToolTipText(text);
+    header2Finished.setToolTipText(text);
+  }
+
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2005/12/14 20:58:10  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.24  2005/11/19 02:45:10  sueh
  * <p> bug# 744 Added clearFailureReason(boolean selectedComputers).
  * <p>
