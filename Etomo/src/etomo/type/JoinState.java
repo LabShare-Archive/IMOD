@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2005/12/14 01:29:10  sueh
+ * <p> bug# 782 Added toString().
+ * <p>
  * <p> Revision 1.2  2005/07/29 19:47:24  sueh
  * <p> bug# 692 Added tests.  Changed ConstEtomoNumber.getInteger() to
  * <p> getInt.
@@ -31,6 +34,8 @@ public class JoinState implements BaseState {
   private static final String groupString = "JoinState";
   protected static final String sampleProducedString = "SampleProduced";
   protected static final boolean defaultSampleProduced = false;
+
+  private final EtomoNumber doneMode = new EtomoNumber("DoneMode");
 
   //set on the successful completion of finishjoin
   protected EtomoNumber trialBinning = new EtomoNumber(
@@ -58,10 +63,11 @@ public class JoinState implements BaseState {
     return "trialBinning=" + trialBinning + ",trialSizeInX=" + trialSizeInX
         + ",\ntrialSizeInY=" + trialSizeInY + ",trialShiftInX=" + trialShiftInX
         + ",\ntrialShiftInY=" + trialShiftInY + ",sampleProduced="
-        + sampleProduced + "," + super.toString();
+        + sampleProduced + ",\ndoneMode=" + doneMode + "," + super.toString();
   }
 
   void reset() {
+    doneMode.reset();
     trialBinning.reset();
     trialSizeInX.reset();
     trialSizeInY.reset();
@@ -77,6 +83,7 @@ public class JoinState implements BaseState {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
+    doneMode.store(props, prepend);
     trialBinning.store(props, prepend);
     trialSizeInX.store(props, prepend);
     trialSizeInY.store(props, prepend);
@@ -105,6 +112,7 @@ public class JoinState implements BaseState {
     reset();
     prepend = createPrepend(prepend);
     String group = prepend + ".";
+    doneMode.load(props, prepend);
     trialBinning.load(props, prepend);
     trialSizeInX.load(props, prepend);
     trialSizeInY.load(props, prepend);
@@ -157,4 +165,15 @@ public class JoinState implements BaseState {
     this.sampleProduced = sampleProduced;
   }
 
+  public final int getDoneMode() {
+    return doneMode.getInt();
+  }
+
+  public final void setDoneMode(int doneMode) {
+    this.doneMode.set(doneMode);
+  }
+
+  public final void clearDoneMode() {
+    doneMode.reset();
+  }
 }
