@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.27  2005/12/16 01:45:43  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.26  2005/12/14 01:31:59  sueh
  * <p> bug# 782 Added toString().  Bug# 783 Added defaultXYSize() and init().
  * <p> Calling default xy size when going to the join tab.  Function has no
@@ -1006,6 +1009,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return invalidReason;
     }
     return pnlSectionTable.getInvalidReason();
+  }
+  
+  public final int getMode() {
+    return pnlSectionTable.getMode();
   }
 
   public boolean getMetaData(JoinMetaData metaData) {

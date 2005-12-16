@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2005/12/16 01:46:53  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.21  2005/12/14 01:32:47  sueh
  * <p> bug# 783 Added isSetupTab(), etc, so that the only instance of curTab is
  * <p> in JoinDialog.
@@ -495,6 +498,10 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     header3RotationY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header3RotationZ.add(pnlTable, layout, constraints);
+  }
+  
+  final int getMode() {
+    return mode;
   }
 
   private void addAlignTablePanelComponents() {
