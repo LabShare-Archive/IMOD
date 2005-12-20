@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2005/12/20 15:54:13  mast
+c	  Had to account for endianness in moving unsigned ints
+c	
 c	  Revision 3.5  2005/12/20 01:40:04  mast
 c	  Changed piece coordinates to unsigned integers
 c	
@@ -72,8 +75,8 @@ c
 	    ixpiece(i)=i4temp
 	    call move(i2temp(lowbyte),array(ind+2),2)
 	    iypiece(i)=i4temp
-	    call move(i2temp(lowbyte),array(ind+4),2)
-	    izpiece(i)=i4temp
+	    call move(i2temp(1),array(ind+4),2)
+	    izpiece(i)=i2temp(1)
 	    ind=ind+nbyte
 	    npiece=i
 	  enddo
