@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2005/12/09 04:39:44  mast
+c	  gfortran: .xor., continuation, byte, or open fixes
+c	
 c	  Revision 3.3  2003/06/05 00:11:47  mast
 c	  Change STOP to standardized ERROR exit
 c	
@@ -33,7 +36,7 @@ c
 	integer*1 array(*)
 	integer*4 ixpiece(*),iypiece(*),izpiece(*)
 	integer*4 nbsym,nbyte,iflags,nz,npiece,maxpiece
-	integer*2 temp
+	integer*4 temp
 	logical nbytes_and_flags,shorts,allzero
 	integer*4 i,ind,nbskip,ind_piece
 	real*4 xtemp,ytemp,ztemp,crit
@@ -56,6 +59,7 @@ c
 	  if(mod(iflags/2,2).eq.0.or.nbyte.eq.0) return
 	  ind=1
 	  if(mod(iflags,2).ne.0)ind=3
+	  temp = 0
 	  do i=1,nz
 	    if(ind.gt.nbsym)return
 	    call move(temp,array(ind),2)
