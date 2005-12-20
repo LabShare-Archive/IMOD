@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/16/05 (Change to 3.8 and 3.7): Fixed a bug in Join which allowed the user to
-get into the align and join tabs with out of date screen values.
+12/20/05: Changed reading of piece coordinates from header to treat X and Y
+as unsigned instead of signed integers.
+
+12/16/05 Fixed a bug in Join which allowed the user to get into the align and
+join tabs with out of date screen values. (In 3.7)
 
 12/13/05: IMOD_3-8-0 and branch to IMOD_3-7-0
 12/13/05: Fixed a bug in Etomo Join which caused the default X and Y sizes in
