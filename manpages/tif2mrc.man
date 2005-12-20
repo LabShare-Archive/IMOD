@@ -29,7 +29,7 @@ option to subtract 32768, which will preserve the dynamic range of the values;
 2) with the
 .B -d
 option to divide by 2, which will throw away one bit of precision but keep the
-numbers positive; or 2) with the
+numbers positive; or 3) with the
 .B -s
 option to force the numbers to be saved unmodified in mode 1, which will be
 fine as long as there are no values above 32767.  Finally, if the tiff file
