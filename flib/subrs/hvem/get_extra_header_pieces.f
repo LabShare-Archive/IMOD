@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/12/20 01:40:04  mast
+c	  Changed piece coordinates to unsigned integers
+c	
 c	  Revision 3.4  2005/12/09 04:39:44  mast
 c	  gfortran: .xor., continuation, byte, or open fixes
 c	
@@ -33,10 +36,13 @@ c
 	subroutine get_extra_header_pieces (array,nbsym,nbyte,iflags,nz,
      &	    ixpiece,iypiece,izpiece,npiece,maxpiece)
 	implicit none
+        include 'endian.inc'
 	integer*1 array(*)
 	integer*4 ixpiece(*),iypiece(*),izpiece(*)
 	integer*4 nbsym,nbyte,iflags,nz,npiece,maxpiece
-	integer*4 temp
+	integer*4 i4temp
+        integer*2 i2temp(2)
+        equivalence (i2temp,i4temp)
 	logical nbytes_and_flags,shorts,allzero
 	integer*4 i,ind,nbskip,ind_piece
 	real*4 xtemp,ytemp,ztemp,crit
@@ -59,15 +65,15 @@ c
 	  if(mod(iflags/2,2).eq.0.or.nbyte.eq.0) return
 	  ind=1
 	  if(mod(iflags,2).ne.0)ind=3
-	  temp = 0
+	  i4temp = 0
 	  do i=1,nz
 	    if(ind.gt.nbsym)return
-	    call move(temp,array(ind),2)
-	    ixpiece(i)=temp
-	    call move(temp,array(ind+2),2)
-	    iypiece(i)=temp
-	    call move(temp,array(ind+4),2)
-	    izpiece(i)=temp
+	    call move(i2temp(lowbyte),array(ind),2)
+	    ixpiece(i)=i4temp
+	    call move(i2temp(lowbyte),array(ind+2),2)
+	    iypiece(i)=i4temp
+	    call move(i2temp(lowbyte),array(ind+4),2)
+	    izpiece(i)=i4temp
 	    ind=ind+nbyte
 	    npiece=i
 	  enddo
