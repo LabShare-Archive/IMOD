@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2005/11/11 22:15:23  mast
+Changes for unsigned file mode
+
 Revision 3.11  2005/10/13 20:06:26  mast
 Fixed scale setting when mx/my/mz are zero
 
@@ -212,7 +215,8 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
                     int nz)
 {
   int i;
-  short int pcoords[3];
+  b3dUInt16 pcoordxy[2];
+  b3dInt16 pcoordz;
   int extra_bytes[32];
   int extratot = 0;
   int offset=1024;
@@ -225,7 +229,7 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
   if(!nextra || !(iflag & MONTAGE_FLAG))
     return 0;
 
-  b3dHeaderItemBytes(&flag_count, &extra_bytes[0]);
+   b3dHeaderItemBytes(&flag_count, &extra_bytes[0]);
 
   /* DNM 12/10/01: as partial protection against mistaking other entries
      for montage information, at least make sure that the total bytes
@@ -254,11 +258,14 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
   fseek(inFile->fp, offset, SEEK_SET);
 
   for (i = 0; i < nread; i++) {
-    fread(pcoords, 3, 2, inFile->fp);
+    fread(pcoordxy, 2, 2, inFile->fp);
+    fread(&pcoordz, 1, 2, inFile->fp);
 
     /* add swapping 10/2/00 */
-    if (hdr->swapped)
-      mrc_swap_shorts(pcoords, 3);
+    if (hdr->swapped) {
+      mrc_swap_shorts(pcoordxy, 2);
+      mrc_swap_shorts(&pcoordz, 1);
+    }
     if (ferror(inFile->fp)) {
       nread = i;
       b3dError(stderr, "Error reading piece coordinates from extra"
@@ -266,9 +273,9 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
       break;
     }
 
-    li->pcoords[(i*3)]   = pcoords[0];
-    li->pcoords[(i*3)+1] = pcoords[1];
-    li->pcoords[(i*3)+2] = pcoords[2];
+    li->pcoords[(i*3)]   = pcoordxy[0];
+    li->pcoords[(i*3)+1] = pcoordxy[1];
+    li->pcoords[(i*3)+2] = pcoordz;
 
     offset = nbytes - 6;
     if (offset > 0)
