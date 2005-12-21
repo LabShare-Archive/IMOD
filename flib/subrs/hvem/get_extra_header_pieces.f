@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2005/12/20 15:55:35  mast
+c	  But treat z as signed still!
+c	
 c	  Revision 3.6  2005/12/20 15:54:13  mast
 c	  Had to account for endianness in moving unsigned ints
 c	
@@ -44,7 +47,7 @@ c
 	integer*4 ixpiece(*),iypiece(*),izpiece(*)
 	integer*4 nbsym,nbyte,iflags,nz,npiece,maxpiece
 	integer*4 i4temp
-        integer*2 i2temp(2)
+        integer*2 i2temp(2),iztemp
         equivalence (i2temp,i4temp)
 	logical nbytes_and_flags,shorts,allzero
 	integer*4 i,ind,nbskip,ind_piece
@@ -68,15 +71,15 @@ c
 	  if(mod(iflags/2,2).eq.0.or.nbyte.eq.0) return
 	  ind=1
 	  if(mod(iflags,2).ne.0)ind=3
-	  i4temp = 0
+          i4temp = 0
 	  do i=1,nz
 	    if(ind.gt.nbsym)return
 	    call move(i2temp(lowbyte),array(ind),2)
 	    ixpiece(i)=i4temp
 	    call move(i2temp(lowbyte),array(ind+2),2)
 	    iypiece(i)=i4temp
-	    call move(i2temp(1),array(ind+4),2)
-	    izpiece(i)=i2temp(1)
+	    call move(iztemp,array(ind+4),2)
+	    izpiece(i)=iztemp
 	    ind=ind+nbyte
 	    npiece=i
 	  enddo
