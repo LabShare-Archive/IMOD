@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/10/15 00:36:21  sueh
+ * <p> bug# 532 Implementing ParallelDialog.  IsParallel() always returns false.
+ * <p>
  * <p> Revision 3.10  2005/08/09 20:28:38  sueh
  * <p> bug# 711  No longer inheriting JButton in MultiLineButton.
  * <p>
@@ -88,6 +91,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
+import etomo.JfcUnitTests;
 import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
@@ -113,24 +118,33 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
   protected JPanel pnlExitButtons = new JPanel();
 
   protected MultiLineButton btnCancel = new MultiLineButton("Cancel");
-  
+
   protected MultiLineButton btnPostpone = new MultiLineButton("Postpone");
 
   protected MultiLineButton btnExecute = new MultiLineButton("Execute");
 
   protected MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
-  
-  protected DialogType dialogType;
+
+  protected final DialogType dialogType;
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
    * execute, and advanced) available for use.  The action adapters for the
    * buttons are already implemented.
    */
-  public ProcessDialog(ApplicationManager appManager, AxisID axisID, DialogType dialogType) {
+  public ProcessDialog(ApplicationManager appManager, AxisID axisID,
+      DialogType dialogType) {
     applicationManager = appManager;
     this.axisID = axisID;
     this.dialogType = dialogType;
+    //set name
+    String name = dialogType.getStorableName();
+    rootPanel.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(AutodocTokenizer.OPEN_CHAR + JfcUnitTests.SECTION_TYPE
+          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
+          + AutodocTokenizer.CLOSE_CHAR);
+    }
     //  Get the default initial advanced state
     isAdvanced = appManager.isAdvanced(dialogType, axisID);
     setAdvanced(isAdvanced);
@@ -150,7 +164,7 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
     pnlExitButtons.add(Box.createHorizontalGlue());
 
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters
-      .getNarrowButtonDimension());
+        .getNarrowButtonDimension());
 
     //  Exit action listeners
     btnCancel.addActionListener(new buttonCancelActionAdapter(this));
@@ -162,25 +176,25 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
   public Container getContainer() {
     return rootPanel;
   }
-  
+
   public void getParameters(ParallelParam param) {
   }
-  
+
   public boolean isParallel() {
     return false;
   }
-  
+
   public void addExitButtons() {
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons);
     //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
   }
-  
+
   public DialogType getDialogType() {
     return dialogType;
   }
-  
+
   public boolean isAdvanced() {
     return isAdvanced;
   }
@@ -276,6 +290,7 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
  * Defines four button events for the cancel, postpose, execute and advanced
  * buttons
  */
+
 interface ExitButtons {
   void buttonCancelAction(ActionEvent event);
 
@@ -289,6 +304,7 @@ interface ExitButtons {
 /**
  *  Action adapters to bind the buttons their action functions
  */
+
 class buttonCancelActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
