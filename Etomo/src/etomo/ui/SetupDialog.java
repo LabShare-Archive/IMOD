@@ -71,13 +71,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
   private JPanel pnlAxisType = new JPanel();
-  private JRadioButton rbSingleAxis = new JRadioButton("Single axis");
+  private RadioButton rbSingleAxis = new RadioButton("Single axis");
   private JRadioButton rbDualAxis = new JRadioButton("Dual axis");
   private ButtonGroup bgAxisType = new ButtonGroup();
 
   private JPanel pnlViewType = new JPanel();
   private JRadioButton rbSingleView = new JRadioButton("Single frame");
-  private JRadioButton rbMontage = new JRadioButton("Montage");
+  private RadioButton rbMontage = new RadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
   private Run3dmodButton btnViewRawStackA = new Run3dmodButton(
@@ -1082,6 +1082,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.42  2005/12/16 01:47:12  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 3.41  2005/12/14 20:58:50  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
