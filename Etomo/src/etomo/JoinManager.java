@@ -25,7 +25,6 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
@@ -52,6 +51,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2005/12/16 18:25:31  sueh
+ * <p> bug# 785 Setting JoinState.doneMode in doneJoinDialog.  In
+ * <p> setMode(String) getting the doneMode and then clearing it.  If the
+ * <p> doneMode is set to Changing Sample, set the mode to Sample Not
+ * <p> Produced.  The Sample Not Produced mode cannot use the revert button
+ * <p> and can't get into the Align and Join tabs.
+ * <p>
  * <p> Revision 1.33  2005/12/14 01:27:01  sueh
  * <p> bug# 782 Added toString().
  * <p>
@@ -334,7 +340,7 @@ public final class JoinManager extends BaseManager {
     if (!paramFileName.equals("") && loadedParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);
     }
-    if (!test) {
+    if (!EtomoDirector.getInstance().isHeadless()) {
       openJoinDialog();
       setMode();
     }
