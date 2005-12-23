@@ -66,6 +66,13 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2005/02/15 20:41:08  sueh
+* <p> $bug# 602 Added BREAKK and INDENT types.  Added length(), which
+* <p> $returns the length of the value.  Added numberOf(char searchChar, int
+* <p> $fromIndex), which returns the number of contiguous searchChars starting
+* <p> $from fromIndex in the value.  Added split(), which splits the token into
+* <p> $two tokens.
+* <p> $
 * <p> $Revision 1.4  2003/12/31 17:48:42  sueh
 * <p> $bug# 372 change doc
 * <p> $
@@ -117,7 +124,7 @@ public class Token {
    * @param token value
    * @return a key
    */
-  public static final String getKey(String value) {
+  public static final String convertToKey(String value) {
     return value.toLowerCase();
   }
 
@@ -231,24 +238,20 @@ public class Token {
   }
 
   /**
-   * @return the standard key associated with the value of this token.
-   */
-  public final String getKey() {
-    return key;
-  }
-
-  /**
-   * When includeNext is true, returns a string containing all keys in the token
-   * link list concatenated together.  Null keys are converted to ' '.
+   * Returns a string containing all keys in the token
+   * link list concatenated together Null keys are converted to ' '.
    * 
    * @param includeNext
    * @return
    */
-  public final String getKey(boolean includeNext) {
-    if (!includeNext || next == null) {
-      return key;
+  public final String getKey() {
+    StringBuffer buffer = new StringBuffer();
+    if (key == null) {
+      buffer.append(' ');
     }
-    StringBuffer buffer = new StringBuffer(key);
+    else {
+      buffer.append(key);
+    }
     Token token = this.next;
     while (token != null) {
       if (token.key == null) {
@@ -403,7 +406,7 @@ public class Token {
    */
   public final void set(String value) {
     this.value = new String(value);
-    key = getKey(this.value);
+    key = convertToKey(this.value);
     set();
   }
 
@@ -462,7 +465,7 @@ public class Token {
     if (this.value == null || value == null) {
       return false;
     }
-    if (key.equals(getKey(value))) {
+    if (key.equals(convertToKey(value))) {
       return true;
     }
     return false;
