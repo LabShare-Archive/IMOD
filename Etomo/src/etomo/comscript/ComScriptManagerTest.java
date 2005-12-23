@@ -12,6 +12,9 @@
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/11/10 17:58:45  sueh
+* <p> bug# 758 Remove unnecessary class EtomoDirectorTestHarness.
+* <p>
 * <p> Revision 1.3  2005/07/29 00:43:30  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -49,7 +52,7 @@ public class ComScriptManagerTest extends TestCase {
   public void testUseTemplate() {
     //  Need an application manger to get the IMOD_DIR environment
     // variable
-    BaseManager manager = EtomoDirector.getInstance().getCurrentTestManager();
+    BaseManager manager = EtomoDirector.getInstance().getCurrentManager_test();
     System.out.println(EtomoDirector.getInstance().getIMODDirectory().getAbsolutePath());
     ComScriptManager comScriptManager = manager.getComScriptManager();
     try {

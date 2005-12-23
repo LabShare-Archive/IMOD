@@ -58,7 +58,7 @@ public class ImodManagerTest extends TestCase {
    */
   public ImodManagerTest(String arg0) {
     super(arg0);
-    manager = EtomoDirector.getInstance().getCurrentTestManager();
+    manager = EtomoDirector.getInstance().getCurrentManager_test();
     metaData = new MetaData((ApplicationManager) manager);
   }
 
