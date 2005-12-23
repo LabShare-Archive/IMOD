@@ -35,7 +35,7 @@ public class UIHarness {
   public static final UIHarness INSTANCE = new UIHarness();
   
   private boolean initialized = false;
-  private boolean test = false;
+  private boolean headless = false;
   private MainFrame mainFrame = null;
   
   private UIHarness() {
@@ -332,14 +332,14 @@ public class UIHarness {
   }
   
   /**
-   * Initialize if necessary.  Instantiate mainFrame if test is false.
+   * Initialize if necessary.  Instantiate mainFrame if headless is false.
    *
    */
   public void createMainFrame() {
     if (!initialized) {
       initialize();
     }
-    if (!test && mainFrame == null) {
+    if (!headless && mainFrame == null) {
       mainFrame = new MainFrame();
     }
   }
@@ -356,13 +356,13 @@ public class UIHarness {
   }
   
   /**
-   * Initialize test, testLog, and logWriter.
+   * Initialize headless, testLog, and logWriter.
    *
    */
   private void initialize() {
     initialized = true;
     EtomoDirector etomo = EtomoDirector.getInstance();
-    test = etomo.isTest();
+    headless = etomo.isHeadless();
   }
   
   /**
@@ -451,6 +451,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.18  2005/12/09 20:37:08  sueh
+* <p> bug# Added an info message popup
+* <p>
 * <p> Revision 1.17  2005/12/08 00:59:12  sueh
 * <p> bug# 504 Added openYesNoWarningDialog() which displays a yes/no
 * <p> popup with No selected and a warning icon.

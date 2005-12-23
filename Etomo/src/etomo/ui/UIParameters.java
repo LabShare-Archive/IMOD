@@ -12,6 +12,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2005/08/10 20:50:25  sueh
+ * <p> bug# 711 Made UIParameters constructor private.  Can't force it no be
+ * <p> called since this is all static functions.  Recalc() requires a UI element,
+ * <p> so return from it in test mode.
+ * <p>
  * <p> Revision 3.4  2005/08/09 21:13:30  sueh
  * <p> bug# 711 Making sure that recalc() is called at least once before getting
  * <p> a dimension.
@@ -92,7 +97,7 @@ public class UIParameters {
 	 */
 	public static void recalc() {
     recalcRun = true;
-    if (EtomoDirector.getInstance().isTest()) {
+    if (EtomoDirector.getInstance().isHeadless()) {
       return;
     }
 	  //  Create a temporary check box and get its height
