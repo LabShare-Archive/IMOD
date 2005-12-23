@@ -1,9 +1,5 @@
 package etomo.ui;
 
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.Iterator;
-
 import etomo.type.EtomoNumber;
 
 /**
@@ -20,6 +16,10 @@ import etomo.type.EtomoNumber;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.6  2005/11/10 18:11:42  sueh
+* <p> $bug# 733 Added getAttribute(int name), which translates name into a string
+* <p> $and calls getAttribute(String).
+* <p> $
 * <p> $Revision 1.5  2005/09/21 16:22:56  sueh
 * <p> $bug# 532 Added getUnformattedValue(EtomoNumber)
 * <p> $
@@ -45,58 +45,57 @@ public class Attribute implements AttributeCollection {
   private String key = null; //required
   private Token name = null; //required
   private Token value = null; //optional
-  private HashMap attributeMap = null; //optional
-  
+  private AttributeList attributeList = null;//optional
   
   static String getKey(Token name) {
     if (name == null) {
       return null;
     }
-    return name.getKey(true);
+    return name.getKey();
   }
  
   static String getKey(String name) {
     if (name == null) {
       return null;
     }
-    return Token.getKey(name);
+    return Token.convertToKey(name);
   }
  
   Attribute(Token name) {
     this.name = name;
-    key = name.getKey(true);
+    key = name.getKey();
   }
   
   public AttributeCollection addAttribute(Token name) {
-    Attribute existingAttribute = null;
-    if (attributeMap == null) {
-      attributeMap = new HashMap();
+    if (attributeList == null) {
+      attributeList = new AttributeList();
     }
-    String key = Attribute.getKey(name);
-    existingAttribute = (Attribute) attributeMap.get(key);
-    if (existingAttribute == null) {
-      Attribute newAttribute = new Attribute(key, name);
-      attributeMap.put(key, newAttribute);
-      return newAttribute;
-    }
-    return existingAttribute;
+    return attributeList.addAttribute(name);
   }
   
   void setValue(Token value) {
     this.value = value;
   }
   
+  public Attribute getAttributeByIndex(int index) {
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.getAttributeByIndex(index);
+  }
+  
   public Attribute getAttribute(int name) {
-    return getAttribute(String.valueOf(name));
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.getAttribute(name);
   }
 
   public Attribute getAttribute(String name) {
-    if (attributeMap == null) {
+    if (attributeList == null) {
       return null;
     }
-    String key = getKey(name);
-    Attribute attribute = (Attribute) attributeMap.get(key);
-    return attribute;
+    return attributeList.getAttribute(name);
   }
 
   final void print() {
@@ -118,22 +117,10 @@ public class Attribute implements AttributeCollection {
     if (value != null) {
       System.out.print("," + value.getValue(true));
     }
+    if (attributeList != null) {
+      attributeList.print(level);
+    }
     System.out.print(")");
-    if (attributeMap != null) {
-      Attribute attribute = null;
-      Collection collection = attributeMap.values();
-      Iterator iterator = collection.iterator();
-      if (iterator.hasNext()) {
-        System.out.println(":");
-        while (iterator.hasNext()) {
-          attribute = (Attribute) iterator.next();
-          attribute.print(level+1);
-        }
-      }
-    }
-    else {
-      System.out.println();
-    }
   }
 
   String getKey() {
@@ -207,10 +194,10 @@ public class Attribute implements AttributeCollection {
     StringBuffer buffer = new StringBuffer(",key=" + key + ",name=");
     buffer.append(name.getValue(true) + ",value=");
     if (value != null) {
-      buffer.append(value.getValue(true) + ",attributeMap=");
+      buffer.append(value.getValue(true) + ",attributeList=" + attributeList.paramString());
     }
-    if (attributeMap != null) {
-      buffer.append(attributeMap.toString());
+    if (attributeList != null) {
+      buffer.append(",attributeList=" + attributeList.paramString());
     }
     return buffer.toString();
   }
