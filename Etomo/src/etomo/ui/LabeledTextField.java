@@ -6,6 +6,8 @@ import java.awt.event.MouseListener;
 
 import javax.swing.*;
 
+import etomo.EtomoDirector;
+
 /**
  * <p>Description: </p>
  *
@@ -19,6 +21,9 @@ import javax.swing.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2005/07/01 23:03:50  sueh
+ * <p> bug# 619 added setText(long)
+ * <p>
  * <p> Revision 3.7  2005/06/13 23:37:28  sueh
  * <p> bug# 675 Added a setName() call to the constructor to try out jfcUnit.
  * <p>
@@ -84,7 +89,13 @@ public class LabeledTextField {
   private JTextField textField = new JTextField();
 
   public LabeledTextField(String tfLabel) {
-    textField.setName(tfLabel);
+    //set name
+    String name = UIUtilities.convertLabelToName(tfLabel);
+    textField.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(name + ".tf " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+    //set label
     label.setText(tfLabel);
 
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
