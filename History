@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/22/05: Added help message to Etomo.
+
+12/20/05: Changed reading of piece coordinates from header to treat X and Y
+as unsigned instead of signed integers.
+
+12/16/05 (Change to 3.8 and 3.7): Fixed a bug in Join which allowed the user to
+get into the align and join tabs with out of date screen values.
+
 12/20/05: Changed reading of piece coordinates from header to treat X and Y
 as unsigned instead of signed integers.
 
