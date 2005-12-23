@@ -26,8 +26,8 @@ import etomo.util.UtilTests;
 public class JUnitTests {
   public static  final String  rcsid =  "$Id$";
   
-  public static final File TEST_ROOT_DIR = new File(EtomoDirector.getInstance()
-      .getCurrentTestManager().getPropertyUserDir(), "JUnitTests");
+  public static final File TEST_ROOT_DIR = new File(System.getProperty("user.dir"), "JUnitTests");
+  public static final String[] ETOMO_ARGUMENTS = {"--test", "--headless", "--selftest"};
   
   public static Test suite() {
     TestSuite suite = new TestSuite("Test for etomo");
@@ -80,6 +80,9 @@ public class JUnitTests {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/11/15 21:21:28  sueh
+* <p> bug# 733 fixing IMODBuild
+* <p>
 * <p> Revision 1.2  2005/11/15 00:29:11  sueh
 * <p> bug# 733 fixing IMODBuild
 * <p>
