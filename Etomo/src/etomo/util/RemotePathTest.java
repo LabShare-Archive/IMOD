@@ -33,7 +33,7 @@ public class RemotePathTest extends TestCase {
 
   private static final String RCSID = "rcsid";
   private static final BaseManager MANAGER = EtomoDirector.getInstance()
-      .getCurrentTestManager();
+      .getCurrentManager_test();
   private static final File TEST_DIR = new File(UtilTests.TEST_ROOT_DIR,
       "RemotePath");
   private static final String TEST_FILE_NAME = DatasetFiles
@@ -432,7 +432,7 @@ public class RemotePathTest extends TestCase {
   private final File setUpTestDirectory(String testDirName) throws IOException {
     File testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
-    Autodoc.setTestDir(testDir.getAbsolutePath());
+    Autodoc.setDir_test(testDir.getAbsolutePath());
     Autodoc.resetInstance_test(RemotePath.AUTODOC);
     return testDir;
   }
@@ -962,6 +962,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2005/12/01 00:26:48  sueh
+ * <p> bug# 775 Added tests for isSectionLocal().
+ * <p>
  * <p> Revision 1.22  2005/11/22 23:06:34  sueh
  * <p> bug# 733 Fixed test bug
  * <p>

@@ -24,6 +24,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2005/11/10 18:19:50  sueh
+ * <p> bug# 758 Standardized the way files are created.
+ * <p>
  * <p> Revision 3.17  2005/07/29 00:55:35  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -112,7 +115,7 @@ public class MRCHeaderTest extends TestCase {
   private final MRCHeader badFilename;
   private final MRCHeader mrcHeader;
   private final MRCHeader mrcWithSpaces;
-  private final BaseManager manager = EtomoDirector.getInstance().getCurrentTestManager();
+  private final BaseManager manager = EtomoDirector.getInstance().getCurrentManager_test();
   private final File testDir = new File(UtilTests.TEST_ROOT_DIR, "MRCHeader");
   private final String testDirPath = testDir.getAbsolutePath();
 
