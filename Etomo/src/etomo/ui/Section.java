@@ -1,9 +1,5 @@
 package etomo.ui;
 
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.Iterator;
-
 /**
 * <p>Description:</p>
 *
@@ -18,6 +14,9 @@ import java.util.Iterator;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2005/12/01 00:25:16  sueh
+* <p> $bug# 775 Made getName() public.
+* <p> $
 * <p> $Revision 1.3  2005/05/17 19:40:17  sueh
 * <p> $bug# 372 Reducing the visibility of functions.
 * <p> $
@@ -36,19 +35,19 @@ public class Section implements AttributeCollection {
   private String key = null; //required
   private Token type = null; //required
   private Token name = null; //required
-  private HashMap attributeMap = null; //optional
+  private AttributeList attributeList = null;//optional
   
   final static String getKey(Token type, Token name) {
     if (type == null && name == null) {
       return null;
     }
     if (type == null) {
-      return name.getKey(true);
+      return name.getKey();
     }
     if (name == null) {
-      return type.getKey(true);
+      return type.getKey();
     }
-    return type.getKey(true) + name.getKey(true);
+    return type.getKey() + name.getKey();
   }
   
   final static String getKey(String type, String name) {
@@ -56,12 +55,12 @@ public class Section implements AttributeCollection {
       return null;
     }
     if (type == null) {
-      return Token.getKey(name);
+      return Token.convertToKey(name);
     }
     if (name == null) {
-      return Token.getKey(type);
+      return Token.convertToKey(type);
     }
-    return Token.getKey(type) + Token.getKey(name);
+    return Token.convertToKey(type) + Token.convertToKey(name);
   }
   
   Section(Token type, Token name) {
@@ -71,25 +70,17 @@ public class Section implements AttributeCollection {
   }
   
   public AttributeCollection addAttribute(Token name) {
-    if (attributeMap == null) {
-      attributeMap = new HashMap();
+    if (attributeList == null) {
+      attributeList = new AttributeList();
     }
-    Attribute existingAttribute = null;
-    String key = Attribute.getKey(name);
-    existingAttribute = (Attribute) attributeMap.get(key);
-    if (existingAttribute == null) {
-      Attribute newAttribute = new Attribute(name);
-      attributeMap.put(key, newAttribute);
-      return newAttribute;
-    }
-    return existingAttribute;
+    return attributeList.addAttribute(name);
   }
   
   boolean equalsType(String type) {
     if (type == null) {
       return false;
     }
-    return this.type.getKey(true).equals(Token.getKey(type));
+    return this.type.getKey().equals(Token.convertToKey(type));
   }
 
   String getKey() {
@@ -105,12 +96,24 @@ public class Section implements AttributeCollection {
   }
   
   public Attribute getAttribute(String name) {
-    if (attributeMap == null) {
+    if (attributeList == null) {
       return null;
     }
-    String key = Attribute.getKey(name);
-    Attribute attribute = (Attribute) attributeMap.get(key);
-    return attribute;
+    return attributeList.getAttribute(name);
+  }
+  
+  public final AttributeLocation getAttributeLocation() {
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.getAttributeLocation();
+  }
+  
+  public final Attribute nextAttribute(AttributeLocation location) {
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.nextAttribute(location);
   }
 
   void print() {
@@ -121,13 +124,8 @@ public class Section implements AttributeCollection {
     System.out.print(name.getValue(true));
     System.out.println(")");
     Attribute element = null;
-    if (attributeMap != null) {
-      Collection collection = attributeMap.values();
-      Iterator iterator = collection.iterator();
-      while (iterator.hasNext()) {
-        element = (Attribute) iterator.next();
-        element.print();
-      }
+    if (attributeList != null) {
+      attributeList.print();
     }
   }
 }
