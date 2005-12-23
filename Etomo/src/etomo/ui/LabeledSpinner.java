@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/06/13 23:37:15  sueh
+ * <p> bug# 675 Added a setName() call to the constructor to try out jfcUnit.
+ * <p>
  * <p> Revision 1.6  2005/01/14 23:05:20  sueh
  * <p> Passing back Number instead of Object from getValue().
  * <p>
@@ -56,6 +59,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 
+import etomo.EtomoDirector;
 import etomo.type.ConstEtomoNumber;
 
 public class LabeledSpinner {
@@ -72,7 +76,13 @@ public class LabeledSpinner {
    * @param spinner
    */
   public LabeledSpinner(String spinLabel, SpinnerModel model) {
-    spinner.setName(spinLabel);
+    //set name
+    String name = UIUtilities.convertLabelToName(spinLabel);
+    spinner.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(name + ".sp " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+    //set label
     label.setText(spinLabel);
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(label);
