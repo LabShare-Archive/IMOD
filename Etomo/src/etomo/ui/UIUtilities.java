@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2005/08/09 21:13:49  sueh
+ * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
+ * <p> classes.
+ * <p>
  * <p> Revision 1.6  2005/07/11 23:32:26  sueh
  * <p> bug# 619 Moved code to get the screen size to UIUtilities so it can be
  * <p> used in ProcessorTable.
@@ -159,5 +163,22 @@ public class UIUtilities {
       screenSize.height -= estimatedMenuHeight;
     }
     return screenSize;
+  }
+  
+  static final String convertLabelToName(String label) {
+    if (label == null) {
+      return null;
+    }
+    String name = label;
+    int separatorIndex = name.indexOf(':');
+    if (separatorIndex != -1) {
+      name = name.substring(0, separatorIndex);
+    }
+    int parenIndex = name.indexOf('(');
+    if (parenIndex != -1) {
+      name = name.substring(0, parenIndex);
+    }
+    name = name.trim().toLowerCase().replace(' ', '-');
+    return name;
   }
 }
