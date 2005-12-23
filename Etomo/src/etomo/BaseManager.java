@@ -54,7 +54,7 @@ public abstract class BaseManager {
   public static final String rcsid = "$Id$";
 
   //protected static variables
-  protected static boolean test = false;
+  private static boolean headless = false;
   //protected MainFrame mainFrame = null;
   protected UIHarness uiHarness = UIHarness.INSTANCE;
   protected static UserConfiguration userConfig = EtomoDirector.getInstance()
@@ -146,8 +146,8 @@ public abstract class BaseManager {
     createComScriptManager();
     //  Initialize the program settings
     debug = EtomoDirector.getInstance().isDebug();
-    test = EtomoDirector.getInstance().isTest();
-    if (!test) {
+    headless = EtomoDirector.getInstance().isHeadless();
+    if (!headless) {
       createMainPanel();
       //mainFrame = EtomoDirector.getInstance().getMainFrame();
     }
@@ -160,7 +160,7 @@ public abstract class BaseManager {
   }
 
   protected String paramString() {
-    return "test=" + test + ",uiHarness=" + uiHarness + ",userConfig="
+    return "headless=" + headless + ",uiHarness=" + uiHarness + ",userConfig="
         + userConfig + ",\nloadedParamFile=" + loadedParamFile + ",imodManager="
         + imodManager + ",\ncomScriptMgr=" + comScriptMgr + ",paramFile="
         + paramFile + ",\nhomeDirectory=" + homeDirectory + ",nextProcessA="
@@ -187,7 +187,7 @@ public abstract class BaseManager {
   }
 
   protected void initializeUIParameters(String paramFileName, AxisID axisID) {
-    if (!test) {
+    if (!headless) {
       // Open the etomo data file if one was found on the command line
       if (!paramFileName.equals("")) {
         File etomoDataFile = new File(paramFileName);
@@ -530,12 +530,6 @@ public abstract class BaseManager {
     }
   }
 
-  private static boolean getTest() {
-    return test;
-  }
-
-  //create functions
-
   private void createImodManager() {
     imodManager = new ImodManager(this);
   }
@@ -851,6 +845,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2005/12/14 01:26:31  sueh
+ * <p> bug# 782 Updated the toString() function.
+ * <p>
  * <p> Revision 1.48  2005/12/12 21:57:56  sueh
  * <p> bug# 779 Made BaseManager.resetNextProcess() private.  Added
  * <p> startNextProcess(), which calls resetNextProcess and then calls a child

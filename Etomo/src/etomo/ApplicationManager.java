@@ -174,7 +174,7 @@ public class ApplicationManager extends BaseManager {
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
-    if (!test) {
+    if (!EtomoDirector.getInstance().isHeadless()) {
       if (!paramFileName.equals("")) {
         if (loadedParamFile) {
           openProcessingPanel();
@@ -5959,6 +5959,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.202  2005/12/12 21:48:32  sueh
+ * <p> bug# 779 Made BaseManager.resetNextProcess() private.
+ * <p>
  * <p> Revision 3.201  2005/12/09 20:20:21  sueh
  * <p> bug# 776 Added canSnapshot.
  * <p>
