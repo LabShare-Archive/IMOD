@@ -133,9 +133,8 @@ public final class ProcessorTable implements Storable {
     catch (NullPointerException e) {
     }
     //get first section
-    SectionLocation sectionLocation = autodoc
-        .getFirstSectionLocation(SECTION_TYPE);
-    Section computer = autodoc.getSection(sectionLocation);
+    SectionLocation sectionLocation = autodoc.getSectionLocation(SECTION_TYPE);
+    Section computer = autodoc.nextSection(sectionLocation);
     EtomoNumber number = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     //loop on sections
     while (computer != null) {
@@ -674,7 +673,7 @@ public final class ProcessorTable implements Storable {
   protected final boolean isScrolling() {
     return scrolling;
   }
-  
+
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
@@ -701,8 +700,10 @@ public final class ProcessorTable implements Storable {
         "The number of times processes failed on each computer.").format();
     header1Restarts.setToolTipText(text);
     header2Restarts.setToolTipText(text);
-    text = tooltipFormatter.setText(
-        "The number of processes each computer completed for a distributed process.").format();
+    text = tooltipFormatter
+        .setText(
+            "The number of processes each computer completed for a distributed process.")
+        .format();
     header1Finished.setToolTipText(text);
     header2Finished.setToolTipText(text);
   }
@@ -710,6 +711,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2005/12/16 01:46:01  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.25  2005/12/14 20:58:10  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
