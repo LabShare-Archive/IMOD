@@ -1,6 +1,6 @@
 package etomo.ui;
 
-import etomo.EtomoDirector;
+import etomo.storage.AutodocFilter;
 import etomo.type.AxisID;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
@@ -17,9 +17,22 @@ import java.util.Iterator;
 /**
  * <p>Description:  Data storage for an autodoc file.
  * 
+ * Versions:
+ * 1.0
+ * 1.1:  Added the break character "^".  When a value is formatted, the "^" is
+ * replaced with a "\n".
+ * 1.2:  Handling duplicate attribute names.  Duplicate attributes are
+ * attributes with the same parentage (section and parent attribute names) and
+ * the same name.  Before version 1.2 the last value assigned to a duplicate
+ * attribute could be retrieved by using the name as a key.  In version 1.2
+ * the first value assigned to a duplicate attribute can be retrieved by using the
+ * name as a key.  When attributes of the same parentage are retrieved as an
+ * ordered list, each duplicate attribute, and their different values, will be
+ * included in the list.
+ * 
  * To Use:
  * 
- * Set up environement variables:  make sure that either the AUTODOC_DIR or
+ * Set up environment variables:  make sure that either the AUTODOC_DIR or
  * IMOD_DIR/autodoc points to an autodoc directory (AUTODOC_DIR) is checked
  * first.  An autodoc file can also be placed in the current working directory.
  * 
@@ -48,7 +61,7 @@ import java.util.Iterator;
  * 
  * </p>
  *
- * <p>Copyright: Copyright © 2002, 2003</p>
+ * <p>Copyright: Copyright © 2002 - 2005</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -63,7 +76,7 @@ import java.util.Iterator;
 public class Autodoc implements AttributeCollection {
   public static final String rcsid = "$$Id$$";
 
-  public static final String VERSION = "1.1";
+  public static final String VERSION = "1.2";
   public static final String AUTODOC_DIR = "AUTODOC_DIR";
   public static final String IMOD_DIR = "IMOD_DIR";
   public static final String DEFAULT_AUTODOC_DIR = "autodoc";
@@ -75,10 +88,12 @@ public class Autodoc implements AttributeCollection {
   public static final String SOLVEMATCH = "solvematch";
   public static final String BEADTRACK = "beadtrack";
   public static final String TEST = "test";
+  public static final String UITEST = "uitest";
   public static final String CPU = "cpu";
 
   private static Autodoc TILTXCORR_INSTANCE = null;
   private static Autodoc TEST_INSTANCE = null;
+  private static Autodoc UITEST_INSTANCE = null;
   private static Autodoc MTF_FILTER_INSTANCE = null;
   private static Autodoc COMBINE_FFT_INSTANCE = null;
   private static Autodoc TILTALIGN_INSTANCE = null;
@@ -88,6 +103,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc CPU_INSTANCE = null;
 
   private static String testDir = null;
+  private static boolean test = false;
 
   private File autodocFile = null;
   private AutodocParser parser = null;
@@ -114,28 +130,51 @@ public class Autodoc implements AttributeCollection {
       return autodoc;
     }
     autodoc = new Autodoc();
-    if (name.equals(CPU)) {
-      autodoc.initialize(name, axisID, "IMOD_CALIB_DIR");
-    }
-    else {
-      autodoc.initialize(name, axisID);
-    }
+    autodoc.initialize(name, axisID);
     return autodoc;
   }
-  
+
+  public static Autodoc getInstance_test(String name, File autodocFile,
+      AxisID axisID) throws FileNotFoundException, IOException {
+    if (!test) {
+      throw new IllegalStateException("Not in test mode");
+    }
+    AutodocFilter filter = new AutodocFilter();
+    filter.setAutodocType(name);
+    if (!filter.accept(autodocFile)) {
+      throw new IllegalArgumentException(autodocFile.getName() + " is not a "
+          + name + " autodoc.");
+    }
+    Autodoc autodoc = getExistingAutodoc(name);
+    if (autodoc != null) {
+      if (!autodoc.autodocFile.equals(autodocFile)) {
+        throw new IllegalStateException(autodoc.autodocFile
+            + " is already open");
+      }
+      return autodoc;
+    }
+    autodoc = new Autodoc();
+    autodoc.autodocFile = autodocFile;
+    autodoc.initialize(name, axisID);
+    return autodoc;
+  }
+
   /**
    * for testing
    * @param name
    */
   public static final void resetInstance_test(String name) {
-    if (!EtomoDirector.getInstance().isTest()) {
+    if (!test) {
       throw new IllegalStateException();
     }
-    else if (name.equals(TILTXCORR)) {
+    if (name.equals(TILTXCORR)) {
       TILTXCORR_INSTANCE = null;
     }
     else if (name.equals(TEST)) {
       TEST_INSTANCE = null;
+    }
+    else if (name.equals(UITEST)) {
+      UITEST_INSTANCE = null;
     }
     else if (name.equals(MTF_FILTER)) {
       MTF_FILTER_INSTANCE = null;
@@ -170,6 +209,9 @@ public class Autodoc implements AttributeCollection {
     if (name.equals(TEST)) {
       return TEST_INSTANCE;
     }
+    if (name.equals(UITEST)) {
+      return UITEST_INSTANCE;
+    }
     if (name.equals(MTF_FILTER)) {
       return MTF_FILTER_INSTANCE;
     }
@@ -201,11 +243,15 @@ public class Autodoc implements AttributeCollection {
    * for test
    * @param testDirAbsolutePath
    */
-  public static void setTestDir(String testDirAbsolutePath) {
-    if (!EtomoDirector.getInstance().isTest()) {
+  public static final void setDir_test(String testDirAbsolutePath) {
+    if (!test) {
       throw new IllegalStateException();
     }
     testDir = testDirAbsolutePath;
+  }
+
+  public static final void setTest(boolean test) {
+    Autodoc.test = test;
   }
 
   final String getName() {
@@ -267,10 +313,10 @@ public class Autodoc implements AttributeCollection {
   }
 
   final boolean isSectionExists(String type) {
-    return getFirstSectionLocation(type) != null;
+    return getSectionLocation(type) != null;
   }
 
-  public final SectionLocation getFirstSectionLocation(String type) {
+  public final SectionLocation getSectionLocation(String type) {
     if (sectionList == null) {
       return null;
     }
@@ -284,22 +330,15 @@ public class Autodoc implements AttributeCollection {
     return null;
   }
 
-  public final Section getSection(SectionLocation location) {
-    if (location == null || sectionList == null) {
-      return null;
-    }
-    return (Section) sectionList.get(location.getIndex());
-  }
-
   public final Section nextSection(SectionLocation location) {
     if (location == null) {
       return null;
     }
     Section section = null;
-    for (int i = location.getIndex() + 1; i < sectionList.size(); i++) {
+    for (int i = location.getIndex(); i < sectionList.size(); i++) {
       section = (Section) sectionList.get(i);
       if (section.equalsType(location.getType())) {
-        location.setIndex(i);
+        location.setIndex(i + 1);
         return section;
       }
     }
@@ -332,8 +371,8 @@ public class Autodoc implements AttributeCollection {
     }
     //Create attributeValues
     attributeValues = new HashMap();
-    SectionLocation sectionLocation = getFirstSectionLocation(sectionType);
-    Section section = getSection(sectionLocation);
+    SectionLocation sectionLocation = getSectionLocation(sectionType);
+    Section section = nextSection(sectionLocation);
     while (section != null) {
       try {
         String sectionName = section.getName();
@@ -436,7 +475,7 @@ public class Autodoc implements AttributeCollection {
   }
 
   private final File getTestAutodocDir() {
-    if (!EtomoDirector.getInstance().isTest()) {
+    if (!test) {
       return null;
     }
     if (testDir == null) {
@@ -503,12 +542,19 @@ public class Autodoc implements AttributeCollection {
 
   private final void initialize(String name, AxisID axisID)
       throws FileNotFoundException, IOException {
-    initialize(name, axisID, null);
+    if (name.equals(CPU)) {
+      initialize(name, axisID, "IMOD_CALIB_DIR");
+    }
+    else {
+      initialize(name, axisID, null);
+    }
   }
 
   private final void initialize(String name, AxisID axisID, String envVariable)
       throws FileNotFoundException, IOException {
-    autodocFile = setAutodocFile(name, axisID, envVariable);
+    if (autodocFile == null) {
+      autodocFile = setAutodocFile(name, axisID, envVariable);
+    }
     if (autodocFile == null) {
       return;
     }
@@ -539,6 +585,9 @@ public class Autodoc implements AttributeCollection {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.22  2005/11/10 22:20:31  sueh
+ *<p> $bug# 759 Added VERSION constant.
+ *<p> $
  *<p> $Revision 1.21  2005/11/10 18:14:16  sueh
  *<p> $bug# 733 added setTestDir(), which sets the autodoc directory directly and
  *<p> $can only be used in test mode.  Rewrote getTestAutodocDir() to let it use
