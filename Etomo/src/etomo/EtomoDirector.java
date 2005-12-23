@@ -38,14 +38,14 @@ import etomo.util.Utilities;
  * @author $Author$
  * 
  * @version $Revision$
- */ 
+ */
 
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
-  
+
   public static final double MIN_AVAILABLE_MEMORY = 0.75;
   public static final int NUMBER_STORABLES = 2;
-  
+
   private static final EtomoDirector theEtomoDirector = new EtomoDirector();
   private File IMODDirectory;
   private File IMODCalibDirectory;
@@ -54,9 +54,12 @@ public class EtomoDirector {
   private boolean debug = false;
   private boolean demo = false;
   private boolean test = false;
+  private boolean headless = false;
   private boolean selfTest = false;
   private boolean newstuff = false;
   private boolean displayMemory = false;
+  private boolean help = false;
+  private boolean printNames = false;
   private int displayMemoryInterval = 0;
   private boolean timestamp = false;
   private int newstuffNum = 0;
@@ -79,7 +82,19 @@ public class EtomoDirector {
     createInstance(args);
   }
 
-  public synchronized static EtomoDirector createInstance(String[] args) {
+  /**
+   * Initializes and sets initialized to true.  This should be the only place which sets
+   * initialized to true.
+   * May want to make this a private, non-synchronized function if DataFlowTests
+   * is removed.
+   * Prevents Etomo from being run by anything but EtomoDirector and DataFlowTests,
+   * unless the test mode is set.
+   * This allows parts of the code which could be run independently from Etomo
+   * to because independent.
+   * @param args
+   * @return
+   */
+  synchronized static EtomoDirector createInstance(String[] args) {
     if (!initialized) {
       Utilities.setStartTime();
       initialized = true;
@@ -88,26 +103,35 @@ public class EtomoDirector {
     return theEtomoDirector;
   }
 
+  public synchronized static EtomoDirector createInstance_test(String[] args) {
+    createInstance(args);
+    if (!theEtomoDirector.test) {
+      throw new IllegalStateException("Not in test mode");
+    }
+    return theEtomoDirector;
+  }
+
   /**
    * Get the singleton instance of EtomoDirector
-   * This function can be used to create the instance of EtomoDirector without
-   * a command line.  This functionality is used by test objects.
    * @return
    */
   public static EtomoDirector getInstance() {
     if (!initialized) {
-      String[] args = {"--test","--selftest"};
-      return createInstance(args);
+      throw new IllegalStateException("Etomo is not running");
     }
     return theEtomoDirector;
   }
 
   private EtomoDirector() {
   }
-  
+
   private void initialize(String[] args) {
     createUserConfiguration();
     ArrayList paramFileNameList = parseCommandLine(args);
+    if (help) {
+      printHelpMessage();
+      return;
+    }
     uiHarness.createMainFrame();
     initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
@@ -146,7 +170,7 @@ public class EtomoDirector {
     uiHarness.pack(manager);
     uiHarness.setVisible(true);
   }
-  
+
   /**
    *  
    */
@@ -156,20 +180,22 @@ public class EtomoDirector {
     System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
     System.err.println("java.home:  " + System.getProperty("java.home"));
     System.err.println("java.vm.version:  "
-      + System.getProperty("java.vm.version"));
+        + System.getProperty("java.vm.version"));
     System.err.println("java.vm.vendor:  "
-      + System.getProperty("java.vm.vendor"));
+        + System.getProperty("java.vm.vendor"));
     System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
     System.err.println("java.class.version:  "
-      + System.getProperty("java.class.version"));
+        + System.getProperty("java.class.version"));
     System.err.println("java.class.path:  "
-      + System.getProperty("java.class.path"));
+        + System.getProperty("java.class.path"));
     System.err.println("java.library.path:  "
-      + System.getProperty("java.library.path"));
+        + System.getProperty("java.library.path"));
     System.err.println("java.io.tmpdir:  "
-      + System.getProperty("java.io.tmpdir"));
-    System.err.println("java.compiler:  " + System.getProperty("java.compiler"));
-    System.err.println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
+        + System.getProperty("java.io.tmpdir"));
+    System.err
+        .println("java.compiler:  " + System.getProperty("java.compiler"));
+    System.err
+        .println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
     System.err.println("os.name:  " + System.getProperty("os.name"));
     System.err.println("os.arch:  " + System.getProperty("os.arch"));
     System.err.println("os.version:  " + System.getProperty("os.version"));
@@ -183,7 +209,8 @@ public class EtomoDirector {
       String[] message = new String[2];
       message[0] = "Can not find home directory! Unable to load user preferences";
       message[1] = "Set HOME environment variable and restart program to fix this problem";
-      uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
+      uiHarness.openMessageDialog(message, "Program Initialization Error",
+          AxisID.ONLY);
       System.exit(1);
     }
     // Get the IMOD calibration directory so we know where to find documentation
@@ -216,15 +243,15 @@ public class EtomoDirector {
     }
     catch (IOException except) {
       uiHarness.openMessageDialog(except.getMessage(),
-        "IO Exception: Can't load user configuration"
-          + userConfigFile.getAbsolutePath(), AxisID.ONLY);
+          "IO Exception: Can't load user configuration"
+              + userConfigFile.getAbsolutePath(), AxisID.ONLY);
     }
     //  Set the user preferences
     setUserPreferences();
     memoryThread = new MemoryThread();
     new Thread(memoryThread).start();
   }
-  
+
   private final void initIMODDirectory() {
     // Get the IMOD directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
@@ -237,7 +264,8 @@ public class EtomoDirector {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
         message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
-        uiHarness.openMessageDialog(message, "Program Initialization Error", AxisID.ONLY);
+        uiHarness.openMessageDialog(message, "Program Initialization Error",
+            AxisID.ONLY);
         System.exit(1);
       }
       else {
@@ -267,18 +295,18 @@ public class EtomoDirector {
     }
     return (BaseManager) managerList.get(currentManagerKey);
   }
-  
-  public BaseManager getCurrentTestManager() {
+
+  public BaseManager getCurrentManager_test() {
     if (!test) {
       throw new IllegalStateException("test-only function");
     }
     return getCurrentManager();
   }
-  
+
   protected final int getDisplayMemoryInterval() {
     return displayMemoryInterval;
   }
-  
+
   protected final boolean isDisplayMemory() {
     return displayMemory;
   }
@@ -295,38 +323,42 @@ public class EtomoDirector {
     if (currentManagerKey == null) {
       return System.setProperty("user.dir", propertyUserDir);
     }
-    return ((BaseManager) managerList.get(currentManagerKey)).setPropertyUserDir(propertyUserDir);
+    return ((BaseManager) managerList.get(currentManagerKey))
+        .setPropertyUserDir(propertyUserDir);
   }
-  
+
   public final void makeCurrent() {
     System.setProperty("user.dir", originalUserDir);
   }
-  
+
   public final String getOriginalUserDir() {
     return originalUserDir;
   }
-  
+
   public UniqueKey getManagerKey(int index) {
     return managerList.getKey(index);
   }
-  
+
   public void setCurrentManager(UniqueKey managerKey) {
     setCurrentManager(managerKey, false);
   }
-  
-  public synchronized void setCurrentManager(UniqueKey managerKey, boolean newWindow) {
+
+  public synchronized void setCurrentManager(UniqueKey managerKey,
+      boolean newWindow) {
     if (managerKey == null) {
       return;
     }
     BaseManager newCurrentManager = (BaseManager) managerList.get(managerKey);
     if (newCurrentManager == null) {
-      throw new NullPointerException("managerKey=" + managerKey); 
+      throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
-    uiHarness.setCurrentManager(newCurrentManager, currentManagerKey, newWindow);
+    uiHarness
+        .setCurrentManager(newCurrentManager, currentManagerKey, newWindow);
   }
-  
-  private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent, AxisID axisID) {
+
+  private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent,
+      AxisID axisID) {
     ApplicationManager manager;
     if (etomoDataFileName == null
         || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
@@ -338,20 +370,22 @@ public class EtomoDirector {
     }
     return setManager(manager, makeCurrent);
   }
-  
+
   public UniqueKey openJoin(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
     return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent, axisID);
   }
-  
-  private UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent, AxisID axisID) {
+
+  private UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent,
+      AxisID axisID) {
     if (etomoJoinFile == null) {
       return openJoin(makeCurrent, axisID);
     }
     return openJoin(etomoJoinFile.getAbsolutePath(), makeCurrent, axisID);
   }
-  
-  private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
+
+  private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent,
+      AxisID axisID) {
     JoinManager manager;
     if (etomoJoinFileName == null
         || etomoJoinFileName.equals(ConstJoinMetaData.getNewFileTitle())) {
@@ -363,7 +397,7 @@ public class EtomoDirector {
     }
     return setManager(manager, makeCurrent);
   }
-  
+
   private UniqueKey setManager(BaseManager manager, boolean makeCurrent) {
     UniqueKey managerKey;
     managerKey = managerList.add(manager.getBaseMetaData().getName(), manager);
@@ -374,12 +408,12 @@ public class EtomoDirector {
     }
     return managerKey;
   }
-  
+
   public UniqueKey openTomogram(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
     return openTomogram(ConstMetaData.getNewFileTitle(), makeCurrent, axisID);
   }
-  
+
   /**
    * When etomo is run with no data file, it automatically opens a Setup
    * Tomogram window.  This window should be closed if the user opens another
@@ -399,7 +433,7 @@ public class EtomoDirector {
     }
 
   }
-  
+
   public UniqueKey openManager(File dataFile, boolean makeCurrent, AxisID axisID) {
     if (dataFile == null) {
       throw new IllegalStateException("null dataFile");
@@ -422,8 +456,9 @@ public class EtomoDirector {
       return openJoin(dataFile, makeCurrent, axisID);
     }
   }
-  
-  public UniqueKey openTomogram(File etomoDataFile, boolean makeCurrent, AxisID axisID) {
+
+  public UniqueKey openTomogram(File etomoDataFile, boolean makeCurrent,
+      AxisID axisID) {
     if (etomoDataFile == null) {
       return openTomogram(makeCurrent, axisID);
     }
@@ -451,7 +486,7 @@ public class EtomoDirector {
     uiHarness.selectWindowMenuItem(managerList.getKey(0));
     return true;
   }
-  
+
   private void enableOpenManagerMenuItem() {
     if (currentManagerKey.getName().equals(ConstMetaData.getNewFileTitle())) {
       uiHarness.setEnabledNewTomogramMenuItem(true);
@@ -460,7 +495,7 @@ public class EtomoDirector {
       uiHarness.setEnabledNewJoinMenuItem(true);
     }
   }
-  
+
   /**
    * Close all the managers.
    * Then exit.  To guarantee that etomo can always exit, catch all unrecognized Exceptions
@@ -496,7 +531,7 @@ public class EtomoDirector {
     }
     return true;
   }
-  
+
   public final void loadPreferences(Storable storable, AxisID axisID) {
     //  Create a File object specifying the user configuration file
     File userConfigFile = getUserConfigFile();
@@ -507,11 +542,11 @@ public class EtomoDirector {
     }
     catch (IOException except) {
       uiHarness.openMessageDialog(except.getMessage(),
-        "IO Exception: Can't load user configuration"
-          + userConfigFile.getAbsolutePath(), AxisID.ONLY);
+          "IO Exception: Can't load user configuration"
+              + userConfigFile.getAbsolutePath(), AxisID.ONLY);
     }
   }
-  
+
   private final File getUserConfigFile() {
     File userConfigFile = new File(homeDirectory, ".etomo");
     //  Make sure the config file exists, create it if it doesn't
@@ -520,20 +555,21 @@ public class EtomoDirector {
     }
     catch (IOException except) {
       System.err.println("Could not create file:"
-        + userConfigFile.getAbsolutePath());
+          + userConfigFile.getAbsolutePath());
       System.err.println(except.getMessage());
     }
     return userConfigFile;
   }
-  
+
   public final boolean savePreferences(Storable storable, AxisID axisID) {
     Storable storableArray[] = new Storable[2];
     storableArray[0] = userConfig;
     storableArray[1] = storable;
     return savePreferences(storableArray, axisID);
   }
-  
-  private synchronized final boolean savePreferences(Storable[] storable, AxisID axisID) {
+
+  private synchronized final boolean savePreferences(Storable[] storable,
+      AxisID axisID) {
     File userConfigFile = getUserConfigFile();
     ParameterStore userParams = new ParameterStore(userConfigFile);
     if (!userConfigFile.canWrite()) {
@@ -550,32 +586,59 @@ public class EtomoDirector {
         excep.printStackTrace();
         uiHarness.openMessageDialog(
             "IOException: unable to save user parameters\n"
-                + excep.getMessage(), "Unable to save user parameters",
-            axisID);
+                + excep.getMessage(), "Unable to save user parameters", axisID);
         return false;
       }
     }
     return true;
   }
-  
+
   public void renameCurrentManager(String managerName) {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey;
     currentManagerKey = managerList.rekey(currentManagerKey, managerName);
     uiHarness.renameWindow(oldKey, currentManagerKey);
   }
-  
+
   public UserConfiguration getUserConfiguration() {
     if (userConfig == null) {
       throw new NullPointerException();
     }
     return userConfig;
   }
-  
-  private void  createUserConfiguration() {
+
+  private void createUserConfiguration() {
     userConfig = new UserConfiguration();
   }
-  
+
+  private final void printHelpMessage() {
+    String helpMessage = "Usage:  etomo [options] [data_file1 data_file2 ...]\n"
+        + "data_file:  A file created by etomo.  Can be either a tomogram data\n"
+        + "            file (.edf) or a join data file (.ejf).\n"
+        + "Options:\n"
+        + "  -h           Send this message to standard out and exit.\n"
+        + "  --debug      Send extra information to standard error.  The debug\n"
+        + "               option includes the following options:\n"
+        + "                 --memory --timestamp\n"
+        + "  --headless   No window is created.\n"
+        + "  --help       Send this message to standard out and exit.\n"
+        + "  --memory [interval]\n"
+        + "               Send memory usage statements to standard error before\n"
+        + "               and after processes are run.  Interval is the interval\n"
+        + "               (in minutes) at which to send additional memory usage\n"
+        + "               statements.\n"
+        + "  --names      Send the names of screen elements to standard out.\n"
+        + "  --newstuff [0|1]\n"
+        + "               May run Etomo with unreleased functionality.\n"
+        + "  --selftest   Cause Etomo to do some internal testing.  Etomo may\n"
+        + "               run more slowly.\n"
+        + "  --timestamp  Send timestamps to standard error before and after\n"
+        + "               processes are run.\n"
+        + "Standard out is usually redirected to etomo_out.log.\n"
+        + "Standard error is usually redirected to etomo_err.log.\n";
+    System.out.println(helpMessage);
+  }
+
   /**
    * Parse the command line. This method will return a non-empty string if there
    * is a etomo data .
@@ -589,11 +652,14 @@ public class EtomoDirector {
     ArrayList paramFileNameList = new ArrayList();
     //  Parse the command line arguments
     int i = 0;
-    while (i < args.length ) {
+    while (i < args.length) {
       // Filename argument should be the only one not beginning with at least
       // one dash
       if (!args[i].startsWith("-")) {
         paramFileNameList.add(args[i]);
+      }
+      if (args[i].equals("-h") || args[i].equals("--help")) {
+        help = true;
       }
       if (args[i].equals("--debug")) {
         debug = true;
@@ -604,8 +670,14 @@ public class EtomoDirector {
       if (args[i].equals("--test")) {
         test = true;
       }
+      if (args[i].equals("--headless")) {
+        headless = true;
+      }
       if (args[i].equals("--selftest")) {
         selfTest = true;
+      }
+      if (args[i].equals("--names")) {
+        printNames = true;
       }
       if (args[i].equals("--memory")) {
         displayMemory = true;
@@ -613,12 +685,12 @@ public class EtomoDirector {
         //(displayMemoryInterval).  If displayMemoryInterval is set, then the
         //memory usage will be sent to etomo_err.log every displayMemoryInterval
         //minutes.
-        if (i+1 < args.length && !args[i+1].startsWith("--")) {
+        if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
           try {
-            displayMemoryInterval = Integer.parseInt(args[++i]);
+            int displayMemoryInterval = Integer.parseInt(args[++i]);
+            this.displayMemoryInterval = displayMemoryInterval;
           }
           catch (NumberFormatException e) {
-            displayMemoryInterval = 0;
             i--;
           }
         }
@@ -629,7 +701,7 @@ public class EtomoDirector {
       if (args[i].equals("--newstuff")) {
         newstuff = true;
         //--newstuff can be used alone, or followed by a 1 or 0 (default).
-        if (i+1 < args.length && !args[i+1].startsWith("--")) {
+        if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
           try {
             newstuffNum = Integer.parseInt(args[++i]);
           }
@@ -643,21 +715,21 @@ public class EtomoDirector {
     }
     return paramFileNameList;
   }
-  
+
   /**
    * Set the user preferences
    */
   private void setUserPreferences() {
     //FIXME this function may not have to be visible
     ToolTipManager.sharedInstance().setInitialDelay(
-      userConfig.getToolTipsInitialDelay());
+        userConfig.getToolTipsInitialDelay());
     ToolTipManager.sharedInstance().setDismissDelay(
-      userConfig.getToolTipsDismissDelay());
+        userConfig.getToolTipsDismissDelay());
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
   }
-  
+
   /**
    * Sets the look and feel for the program.
    * 
@@ -707,10 +779,10 @@ public class EtomoDirector {
     }
     catch (Exception excep) {
       System.err.println("Could not set " + lookAndFeelClassName
-        + " look and feel");
+          + " look and feel");
     }
   }
-  
+
   /**
    *  
    */
@@ -725,8 +797,8 @@ public class EtomoDirector {
       Object value = UIManager.get(key);
       if (value instanceof FontUIResource) {
         FontUIResource currentFont = (FontUIResource) value;
-        FontUIResource newFont = new FontUIResource(fontFamily,
-          currentFont.getStyle(), fontSize);
+        FontUIResource newFont = new FontUIResource(fontFamily, currentFont
+            .getStyle(), fontSize);
         UIManager.put(key, newFont);
       }
     }
@@ -735,7 +807,7 @@ public class EtomoDirector {
   public boolean isDebug() {
     return debug;
   }
-  
+
   public boolean isTimestamp() {
     return timestamp;
   }
@@ -751,15 +823,23 @@ public class EtomoDirector {
   public boolean isTest() {
     return test;
   }
-  
+
+  public boolean isHeadless() {
+    return headless;
+  }
+
   public boolean isNewstuff() {
     return newstuff;
   }
   
+  public boolean isPrintNames() {
+    return printNames;
+  }
+
   public int getManagerListSize() {
     return managerList.size();
   }
-  
+
   /**
    * Return the IMOD directory
    */
@@ -767,22 +847,22 @@ public class EtomoDirector {
     //  Return a copy of the IMODDirectory object
     return new File(IMODDirectory.getAbsolutePath());
   }
-  
+
   /**
    * Return the IMOD calibration directory
    */
   public File getIMODCalibDirectory() {
     //  Return a copy of the IMODDirectory object
     return new File(IMODCalibDirectory.getAbsolutePath());
-  } 
-  
+  }
+
   /**
    * Get the current advanced state
    */
   public boolean getAdvanced() {
     return isAdvanced;
   }
-  
+
   /**
    *  
    */
@@ -793,7 +873,6 @@ public class EtomoDirector {
       uiHarness.repaintWindow();
     }
   }
-  
 
   /**
    * Open up the settings dialog box
@@ -812,7 +891,7 @@ public class EtomoDirector {
     settingsDialog.setVisible(true);
     //settingsDialog.show();
   }
-  
+
   /**
    *  
    */
@@ -821,7 +900,7 @@ public class EtomoDirector {
       settingsDialog.dispose();
     }
   }
-  
+
   public boolean isMemoryAvailable() {
     long availableMemory = Runtime.getRuntime().maxMemory()
         - Runtime.getRuntime().totalMemory()
@@ -854,7 +933,7 @@ public class EtomoDirector {
     outOfMemoryMessage = false;
     return true;
   }
-  
+
   /**
    * Return the users home directory environment variable HOME or an empty
    * string if it doesn't exist.
@@ -870,7 +949,7 @@ public class EtomoDirector {
   protected final class MemoryThread implements Runnable {
 
     private boolean stop = false;
-    
+
     public final void run() {
       int displayMemoryInterval = getDisplayMemoryInterval();
       if (!isDisplayMemory() || displayMemoryInterval < 1) {
@@ -889,7 +968,7 @@ public class EtomoDirector {
         e.printStackTrace();
       }
     }
-    
+
     protected final void setStop(boolean stop) {
       this.stop = stop;
     }
@@ -897,6 +976,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2005/12/09 20:22:08  sueh
+ * <p> fixed file comment
+ * <p>
  * Revision 1.35  2005/11/29 22:18:36  sueh
  * bug# 757 Set IMODDirectory as early as possible to avoid failures.
  *
