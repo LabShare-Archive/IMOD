@@ -55,6 +55,18 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + STACK_EXT;
   }
 
+  public final static String getStackName(String dataset, AxisType axisType,
+      AxisID axisID) {
+    axisID = correctAxisID(axisType, axisID);
+    return dataset + axisID.getExtension() + STACK_EXT;
+  }
+
+  public final static String getSeedName(String dataset, AxisType axisType,
+      AxisID axisID) {
+    axisID = correctAxisID(axisType, axisID);
+    return dataset + axisID.getExtension() + ".seed";
+  }
+
   //Tomograms
 
   public final static File getTomogram(BaseManager manager, AxisID axisID) {
@@ -84,7 +96,8 @@ public final class DatasetFiles {
 
   public final static boolean isRotatedTomogram(File tomogram) {
     String tomogramName = tomogram.getName();
-    if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(ROTATED_TOMO_EXT)) {
+    if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(
+        ROTATED_TOMO_EXT)) {
       return true;
     }
     return false;
@@ -144,7 +157,7 @@ public final class DatasetFiles {
   }
 
   public final static File getAutodoc(File dir, String name) {
-    return new File(dir, getAutodocName(name));
+      return new File(dir, getAutodocName(name));
   }
 
   final static String getAutodocName(String name) {
@@ -168,14 +181,17 @@ public final class DatasetFiles {
   //private
 
   private final static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
-    AxisType axisType = metaData.getAxisType();
+    return correctAxisID(metaData.getAxisType(), axisID);
+  }
+  
+  private final static AxisID correctAxisID(AxisType axisType, AxisID axisID) {
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
       return AxisID.FIRST;
     }
-    else if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.FIRST) {
+    if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.FIRST) {
       return AxisID.ONLY;
     }
-    else if (axisType == null || axisType == AxisType.NOT_SET) {
+    if (axisType == null || axisType == AxisType.NOT_SET) {
       throw new IllegalStateException(
           "AxisType is not set.  AxisType must be set before getting a dataset file name containing the axisID extension.");
     }
@@ -184,6 +200,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2005/11/29 22:53:59  sueh
+ * <p> bug# 757 Added getRotated() and isRotated().
+ * <p>
  * <p> Revision 1.7  2005/11/19 02:45:37  sueh
  * <p> bug# 744 Added getOutFile and getShellScript.
  * <p>
