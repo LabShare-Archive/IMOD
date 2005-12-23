@@ -6,6 +6,8 @@ import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.EtomoDirector;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -27,6 +29,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.6  2005/08/22 17:56:32  sueh
+* <p> bug#  Added isDisplayable().
+* <p>
 * <p> Revision 3.5  2005/08/10 20:44:42  sueh
 * <p> bug# 711  Added getToggleButtonInstance(), isEnabled(), and
 * <p> isSelected()
@@ -70,22 +75,31 @@ public class MultiLineButton {
     this(null);
   }
 
-  public MultiLineButton(String text) {
-    this(text, false);
+  public MultiLineButton(String label) {
+    this(label, false);
   }
   
-  protected MultiLineButton(String text, boolean toggleButton) {
+  protected MultiLineButton(String label, boolean toggleButton) {
     if (toggleButton) {
-      button = new JToggleButton(format(text));
+      button = new JToggleButton(format(label));
     }
     else {
-      button = new JButton(format(text));
+      button = new JButton(format(label));
     }
+    setName(label);
     init();
   }
   
-  static MultiLineButton getToggleButtonInstance(String text) {
-    return new MultiLineButton(text, true);
+  private final void setName(String label) {
+    String name = UIUtilities.convertLabelToName(label);
+    button.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(name + ".bn " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+  }
+  
+  static MultiLineButton getToggleButtonInstance(String label) {
+    return new MultiLineButton(label, true);
   }
   
   static MultiLineButton getToggleButtonInstance() {
@@ -98,19 +112,20 @@ public class MultiLineButton {
       isEnabled ? enabledTextColor : disabledTextColor);
   }
   
-  public void setText(String text) {
-    button.setText(format(text));
+  public void setText(String label) {
+    setName(label);
+    button.setText(format(label));
   }
   
-  public static String format(String text) {
-    if (text == null) {
+  public static String format(String label) {
+    if (label == null) {
       return null;
     }
-    if (text.toLowerCase().startsWith("<html>")) {
-      return text;
+    if (label.toLowerCase().startsWith("<html>")) {
+      return label;
     }
-    text = "<html><b>".concat(text).concat("</b>");
-    return text;
+    label = "<html><b>".concat(label).concat("</b>");
+    return label;
   }
 
   public String toString() {
