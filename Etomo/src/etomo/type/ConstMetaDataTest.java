@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.JUnitTests;
 import etomo.process.SystemProgram;
 
 /**
@@ -21,6 +22,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.12  2005/11/10 18:09:29  sueh
+ * <p> $bug# 758 Fixed createValidFile() so it deletes and creates the file.
+ * <p> $
  * <p> $Revision 3.11  2005/07/29 00:53:20  sueh
  * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> $because the current manager changes when the user changes the tab.
@@ -92,8 +96,7 @@ public class ConstMetaDataTest extends TestCase {
   private static final String validAFileName = new String(validDatasetName
       + "a.st");
   private boolean windowsOs = false;
-  private final ApplicationManager manager = (ApplicationManager) EtomoDirector
-      .getInstance().getCurrentTestManager();
+  private final ApplicationManager manager;
 
   private SystemProgram program;
 
@@ -232,6 +235,9 @@ public class ConstMetaDataTest extends TestCase {
    */
   public ConstMetaDataTest(String arg0) {
     super(arg0);
+    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
+    manager = (ApplicationManager) EtomoDirector
+    .getInstance().getCurrentManager_test();
   }
 
   /*

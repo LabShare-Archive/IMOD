@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.JUnitTests;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -26,6 +27,13 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2005/11/10 18:10:35  sueh
+ * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+ * <p> instanciated once so there won't be a problem if the working directory is
+ * <p> changed.  Added a root test directory File object to each of the suites,
+ * <p> which is based on the JUnitTests root test directory.
+ * <p> bug# 748 calling TestUtilities.getVector instead of checkoutVector.
+ * <p>
  * <p> Revision 3.13  2005/07/29 00:53:41  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -88,8 +96,8 @@ public class MetaDataTest extends TestCase {
   private final ApplicationManager manager;
   
   public MetaDataTest() {
-    EtomoDirector.createInstance(new String[] {"--test"});
-    manager = (ApplicationManager) EtomoDirector.getInstance().getCurrentTestManager();
+    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
+    manager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager_test();
   }
 
   protected void setUp() throws Exception {
