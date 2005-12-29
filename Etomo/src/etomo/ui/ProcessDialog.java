@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/12/23 02:17:17  sueh
+ * <p> bug# 675 Named the root panel so it can be found by JfcUnit.
+ * <p>
  * <p> Revision 3.11  2005/10/15 00:36:21  sueh
  * <p> bug# 532 Implementing ParallelDialog.  IsParallel() always returns false.
  * <p>
@@ -92,7 +95,6 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.JfcUnitTests;
 import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
@@ -141,9 +143,10 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + JfcUnitTests.SECTION_TYPE
+      System.out.println(AutodocTokenizer.OPEN_CHAR + "Test"
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
+      System.out.println(name + AutodocTokenizer.SEPARATOR_CHAR + "pl");
     }
     //  Get the default initial advanced state
     isAdvanced = appManager.isAdvanced(dialogType, axisID);
