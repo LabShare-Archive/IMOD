@@ -18,6 +18,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.8  2005/05/27 04:55:11  mast
+c	  Added report of pixel count output to model and used partial mode
+c	
 c	  Revision 3.7  2005/05/13 16:05:07  mast
 c	  Added ability to trim output model down by requiring adjacent points
 c	
@@ -126,7 +129,7 @@ c
 c	  
 c	  open image file
 c
-	call imopen(1,infile,'old')
+	call imopen(1,infile,'ro')
 	call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
 c
 c	  open model file and get header info
