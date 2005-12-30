@@ -29,15 +29,15 @@ public class AttributeList {
       attributeMap = new HashMap();
       attributeList = new Vector();
     }
-    Attribute existingAttribute = null;
+    Attribute attribute = null;
     String key = Attribute.getKey(name);
-    existingAttribute = (Attribute) attributeMap.get(key);
-    Attribute newAttribute = new Attribute(name);
-    if (!attributeMap.containsKey(key)) {
-      attributeMap.put(key, newAttribute);
+    attribute = (Attribute) attributeMap.get(key);
+    if (attribute == null) {
+      attribute = new Attribute(name);
+      attributeMap.put(key, attribute);
     }
-    attributeList.add(newAttribute);
-    return newAttribute;
+    attributeList.add(attribute);
+    return attribute;
   }
   
   public Attribute getAttributeByIndex(int index) {
@@ -112,5 +112,11 @@ public class AttributeList {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/12/23 02:10:48  sueh
+* <p> bug# 675 Encapsulated the list of attributes into AttributeList.  There is a
+* <p> list of attributes in three classes.  Added Vector storage,
+* <p> getAttributeLocation and nextAttribute to get an ordered list of attributes.
+* <p> Saving the first duplicate attribute instead of the last.
+* <p> </p>
 */
