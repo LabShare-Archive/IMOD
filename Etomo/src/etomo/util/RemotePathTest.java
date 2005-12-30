@@ -401,6 +401,7 @@ public class RemotePathTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
+    Autodoc.setTest(true);
     super.setUp();
     setUpDirectory(TEST_DIR);
     RemotePath.INSTANCE.reset_test();
@@ -962,6 +963,10 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2005/12/23 02:28:19  sueh
+ * <p> bug# 675 Changed EtomoDirectory.getCurrentTestManager to
+ * <p> getCurrentManager_test.
+ * <p>
  * <p> Revision 1.23  2005/12/01 00:26:48  sueh
  * <p> bug# 775 Added tests for isSectionLocal().
  * <p>
