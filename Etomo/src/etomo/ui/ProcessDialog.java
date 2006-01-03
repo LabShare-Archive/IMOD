@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2005/12/29 18:16:55  sueh
+ * <p> bug# 675 temporarily deleting classes using jfcunit
+ * <p>
  * <p> Revision 3.12  2005/12/23 02:17:17  sueh
  * <p> bug# 675 Named the root panel so it can be found by JfcUnit.
  * <p>
@@ -95,6 +98,7 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.JfcUnitTests;
 import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
@@ -143,7 +147,7 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + "Test"
+      System.out.println(AutodocTokenizer.OPEN_CHAR + JfcUnitTests.TEST_SECTION_TYPE
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
       System.out.println(name + AutodocTokenizer.SEPARATOR_CHAR + "pl");
