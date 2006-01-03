@@ -4,7 +4,10 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
 
 import etomo.type.TiltAngleType;
 import etomo.type.TiltAngleSpec;
@@ -23,6 +26,9 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/08/03 18:51:27  sueh
+ * <p> bug# 519 removing rangeMax
+ * <p>
  * <p> Revision 3.1  2003/11/10 18:51:43  sueh
  * <p> bug332 getErrorMessage(): New function validate panel and
  * <p> returns (rather then displaying) error message.
@@ -58,18 +64,18 @@ public class TiltAngleDialogPanel {
 
   private JPanel panelTiltAngleSource = new JPanel();
 
-  private JRadioButton rbTiltAngleExtract =
-    new JRadioButton("Extract tilt angles from data");
+  private RadioButton rbTiltAngleExtract =
+    new RadioButton("Extract tilt angles from data");
 
   private JPanel panelTiltAngleSpecify = new JPanel();
-  private JRadioButton rbTiltAngleSpecify =
-    new JRadioButton("Specify the starting angle and step (degrees)");
+  private RadioButton rbTiltAngleSpecify =
+    new RadioButton("Specify the starting angle and step (degrees)");
   private LabeledTextField ltfAngleMin =
     new LabeledTextField("Starting angle:");
   private LabeledTextField ltfAngleStep = new LabeledTextField("Increment:");
 
-  private JRadioButton rbTiltAngleFile =
-    new JRadioButton("Tilt angles in existing rawtlt file");
+  private RadioButton rbTiltAngleFile =
+    new RadioButton("Tilt angles in existing rawtlt file");
 
   private ButtonGroup bgTiltAngleSource = new ButtonGroup();
 
