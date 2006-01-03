@@ -16,6 +16,10 @@ import etomo.type.EtomoNumber;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.7  2005/12/23 02:08:37  sueh
+* <p> $bug# 675 Encapsulated the list of attributes into AttributeList.  There is a
+* <p> $list of attributes in three classes.
+* <p> $
 * <p> $Revision 1.6  2005/11/10 18:11:42  sueh
 * <p> $bug# 733 Added getAttribute(int name), which translates name into a string
 * <p> $and calls getAttribute(String).
@@ -60,6 +64,13 @@ public class Attribute implements AttributeCollection {
     }
     return Token.convertToKey(name);
   }
+  
+  boolean equalsName(String name) {
+    if (name == null) {
+      return false;
+    }
+    return key.equals(Token.convertToKey(name));
+  }
  
   Attribute(Token name) {
     this.name = name;
@@ -81,14 +92,14 @@ public class Attribute implements AttributeCollection {
     if (attributeList == null) {
       return null;
     }
-    return attributeList.getAttributeByIndex(index);
+    return attributeList.getAttribute(index);
   }
   
   public Attribute getAttribute(int name) {
     if (attributeList == null) {
       return null;
     }
-    return attributeList.getAttribute(name);
+    return attributeList.getAttribute(String.valueOf(name));
   }
 
   public Attribute getAttribute(String name) {
@@ -188,23 +199,8 @@ public class Attribute implements AttributeCollection {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
-  //protected methods
-
   protected String paramString() {
-    StringBuffer buffer = new StringBuffer(",key=" + key + ",name=");
-    buffer.append(name.getValue(true) + ",value=");
-    if (value != null) {
-      buffer.append(value.getValue(true) + ",attributeList=" + attributeList.paramString());
-    }
-    if (attributeList != null) {
-      buffer.append(",attributeList=" + attributeList.paramString());
-    }
-    return buffer.toString();
+    return /*"key=" + key +*/ ",name=" + name + ",value="
+        + value + ",\nattributeList=" + attributeList/* + ",\n" + super.toString()*/;
   }
-  
-  private Attribute(String key, Token name) {
-    this.key = key;
-    this.name = name;
-  }
-
 }
