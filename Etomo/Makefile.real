@@ -74,7 +74,12 @@ install: $(JAR_FILE)
 	chmod 755 scripts/etomo
 	\cp -p scripts/etomo $(INSTBINDIR)
 
-tests: testjarfile uitestjarfile
+uitestinstall: uitestjarfile
+	\cp -p $(UITEST_JAR_FILE) $(INSTBINDIR)
+	chmod 755 scripts/uitest
+	\cp -p scripts/uitest $(INSTBINDIR)
+
+tests: testjarfile
 	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
 	echo "Make tests completed"
 
@@ -118,6 +123,9 @@ linecount:
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.14  2006/01/03 18:58:17  mast
+# Added UI tests
+#
 # Revision 2.13  2005/11/11 18:38:33  mast
 # Unsimplified the dependencies rules for SGI
 #
