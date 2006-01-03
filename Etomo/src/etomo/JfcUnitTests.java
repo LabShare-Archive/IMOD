@@ -6,11 +6,13 @@ import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import junit.textui.TestRunner;
 import etomo.type.AxisID;
 import etomo.ui.Autodoc;
 import etomo.ui.Section;
 import etomo.ui.SectionLocation;
 import etomo.ui.UITest;
+import etomo.util.RemotePathTest;
 
 /**
  * <p>Description: </p>
@@ -50,14 +52,18 @@ public final class JfcUnitTests {
     SectionLocation testLoc = autodoc.getSectionLocation(TEST_SECTION_TYPE);
     Section test = autodoc.nextSection(testLoc);
     while (test != null) {
-*/      suite.addTest(new UITest("test"/*test.getName()*/)); 
-/*      test = autodoc.nextSection(testLoc);
+*/      suite.addTestSuite(UITest.class);
+/*      suite.addTest(new UITest(test.getName())); 
+      test = autodoc.nextSection(testLoc);
     }
 */    return suite;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/12/30 21:19:01  sueh
+ * <p> bug# 675 Class to run jfcunit tests
+ * <p>
  * <p> Revision 1.1  2005/12/23 02:03:04  sueh
  * <p> bug# 675 Added a main test suite to use JfcUnit to run the UI.
  * <p> </p>
