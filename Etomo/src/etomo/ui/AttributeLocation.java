@@ -15,10 +15,20 @@ package etomo.ui;
 final class AttributeLocation {
   public static  final String  rcsid =  "$Id$";
   
+  String name = null;
   int index = -1;
   
   AttributeLocation(int index) {
     this.index = index;
+  }
+  
+  AttributeLocation(String name, int index) {
+    this.name = name;
+    this.index = index;
+  }
+  
+  final String getName() {
+    return name;
   }
   
   final int getIndex() {
@@ -34,5 +44,8 @@ final class AttributeLocation {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/12/23 02:11:18  sueh
+* <p> bug# 675 Location in an ordered list of attributes.
+* <p> </p>
 */
