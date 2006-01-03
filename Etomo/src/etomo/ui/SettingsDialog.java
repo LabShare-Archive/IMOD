@@ -37,9 +37,9 @@ public class SettingsDialog extends JDialog {
     new LabeledTextField("Tooltips initial delay");
   LabeledTextField ltfTooltipsDismissDelay =
     new LabeledTextField("Tooltips dismiss delay");
-  JCheckBox cbNativeLAF = new JCheckBox("Native look & feel");
-  JCheckBox cbAdvancedDialogs = new JCheckBox("Always use advanced dialogs");
-  JCheckBox cbAutoFit = new JCheckBox("Auto-fit");
+  CheckBox cbNativeLAF = new CheckBox("Native look & feel");
+  CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
+  CheckBox cbAutoFit = new CheckBox("Auto-fit");
 
   JPanel panelButtons = new JPanel();
   JButton buttonCancel = new JButton("Cancel");
