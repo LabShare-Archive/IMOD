@@ -2,7 +2,11 @@ package etomo.ui;
 
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.type.*;
@@ -22,6 +26,11 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/08/04 20:15:14  sueh
+ * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
+ * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
+ * <p> the manager to UIHarness.pack() so that packDialogs() can be called.
+ * <p>
  * <p> Revision 3.5  2005/06/17 00:33:19  sueh
  * <p> bug# 685 Changed buttonExecuteAction() so it calls its super function.
  * <p>
@@ -94,8 +103,8 @@ public class PreProcessingDialog extends ProcessDialog {
   private JLabel textDM2MRC =
     new JLabel("No digital micrograph files detected:  ");
   private JPanel pnlDMConvert = new JPanel();
-  private JCheckBox cbUniqueHeaders =
-    new JCheckBox("Digital micrograph files have unique headers");
+  private CheckBox cbUniqueHeaders =
+    new CheckBox("Digital micrograph files have unique headers");
 
   private JPanel pnlEraser = new JPanel();
   private CCDEraserPanel panelCCDEraser;

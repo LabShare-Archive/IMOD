@@ -4,7 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.*;
 
-import javax.swing.*;
+import javax.swing.BoxLayout;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstSqueezevolParam;
@@ -37,7 +37,7 @@ public class PostProcessingDialog
   
   private LabeledTextField ltfReductionFactorXY;
   private LabeledTextField ltfReductionFactorZ;
-  private JCheckBox cbLinearInterpolation;
+  private CheckBox cbLinearInterpolation;
   
   private MultiLineButton btnSqueezeVolume;
   private Run3dmodButton btnImodSqueezedVolume;
@@ -81,7 +81,7 @@ public class PostProcessingDialog
     squeezeVolPanel1.add(ltfReductionFactorZ);
     squeezeVolPanel.add(squeezeVolPanel1);
     //second component
-    cbLinearInterpolation = new JCheckBox("Linear interpolation");
+    cbLinearInterpolation = new CheckBox("Linear interpolation");
     cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
     squeezeVolPanel.add(cbLinearInterpolation);
     //third component
@@ -277,6 +277,9 @@ public class PostProcessingDialog
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2005/11/14 22:14:53  sueh
+ * <p> bug# 762 Made action() protected.
+ * <p>
  * <p> Revision 3.22  2005/08/11 23:57:00  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
