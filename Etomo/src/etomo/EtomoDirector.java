@@ -46,7 +46,7 @@ public class EtomoDirector {
   public static final double MIN_AVAILABLE_MEMORY = 0.75;
   public static final int NUMBER_STORABLES = 2;
 
-  private static final EtomoDirector theEtomoDirector = new EtomoDirector();
+  private static EtomoDirector theEtomoDirector = null;
   private File IMODDirectory;
   private File IMODCalibDirectory;
   //private MainFrame mainFrame = null;
@@ -61,13 +61,11 @@ public class EtomoDirector {
   private boolean help = false;
   private boolean printNames = false;
   private int displayMemoryInterval = 0;
-  private boolean timestamp = false;
   private int newstuffNum = 0;
   private UniqueHashedArray managerList = null;
   private UniqueKey currentManagerKey = null;
   private String homeDirectory;
   private boolean defaultWindow = false;
-  private static boolean initialized = false;
   private UIHarness uiHarness = UIHarness.INSTANCE;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
@@ -95,9 +93,9 @@ public class EtomoDirector {
    * @return
    */
   synchronized static EtomoDirector createInstance(String[] args) {
-    if (!initialized) {
+    if (theEtomoDirector == null) {
       Utilities.setStartTime();
-      initialized = true;
+      theEtomoDirector = new EtomoDirector();
       theEtomoDirector.initialize(args);
     }
     return theEtomoDirector;
@@ -116,10 +114,21 @@ public class EtomoDirector {
    * @return
    */
   public static EtomoDirector getInstance() {
-    if (!initialized) {
+    if (theEtomoDirector == null) {
       throw new IllegalStateException("Etomo is not running");
     }
     return theEtomoDirector;
+  }
+  
+  public synchronized static void removeInstance_test() {
+    if (theEtomoDirector == null) {
+      return;
+    }
+    theEtomoDirector.exitProgram(AxisID.ONLY);
+    if (!theEtomoDirector.test) {
+      throw new IllegalStateException("Not in test mode");
+    }
+    theEtomoDirector = null;
   }
 
   private EtomoDirector() {
@@ -696,7 +705,7 @@ public class EtomoDirector {
         }
       }
       if (args[i].equals("--timestamp")) {
-        timestamp = true;
+        Utilities.setTimestamp(true);
       }
       if (args[i].equals("--newstuff")) {
         newstuff = true;
@@ -806,10 +815,6 @@ public class EtomoDirector {
 
   public boolean isDebug() {
     return debug;
-  }
-
-  public boolean isTimestamp() {
-    return timestamp;
   }
 
   public boolean isSelfTest() {
@@ -976,6 +981,18 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2005/12/23 02:02:14  sueh
+ * <p> bug# 675 Stop initializing etomo from getInstance().  Throw an exception in
+ * <p> getInstance() if etomo hasn't been initialized.  This allows better control of
+ * <p> when and with which options etomo runs.  This is necessary for creating
+ * <p> classes to be usable without running etomo:  they will throw an exception
+ * <p> if they try to use EtomoDirector when etomo isn't running.  Split the test
+ * <p> option functionality into test and headless.  Headless controls whether a
+ * <p> window is created and test gives access to test-only functions.  Also added
+ * <p> the printNames option, which sends the name given to screen elements
+ * <p> to the standard out.
+ * <p> bug# 786 Added the help option and a help message.
+ * <p>
  * <p> Revision 1.36  2005/12/09 20:22:08  sueh
  * <p> fixed file comment
  * <p>
