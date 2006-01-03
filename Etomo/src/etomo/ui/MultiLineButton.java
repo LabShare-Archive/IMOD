@@ -29,6 +29,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.7  2005/12/23 02:16:44  sueh
+* <p> bug# 675 Named the button so it can be found by JfcUnit.
+* <p>
 * <p> Revision 3.6  2005/08/22 17:56:32  sueh
 * <p> bug#  Added isDisplayable().
 * <p>
@@ -90,7 +93,7 @@ public class MultiLineButton {
     init();
   }
   
-  private final void setName(String label) {
+  protected void setName(String label) {
     String name = UIUtilities.convertLabelToName(label);
     button.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
