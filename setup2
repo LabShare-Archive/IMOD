@@ -770,8 +770,11 @@ else
         echo "Copying etomo.jar from $use_etomo and omitting etomo tests"
         mkdir -p $etomo_dir/jar_dir
         \cp -p $use_etomo/etomo.jar $etomo_dir/jar_dir
-        sed '/^tests:/s//realtests:/' $etomo_dir/Makefile.real >> $etomo_dir/Makefile
+        sed -e '/^tests:/s//realtests:/' \
+            -e '/^uitestinstall:/s//realuitestinstall:/' -e \
+          $etomo_dir/Makefile.real >> $etomo_dir/Makefile
         echo "tests:" >> $etomo_dir/Makefile
+        echo "uitestinstall:" >> $etomo_dir/Makefile
     else
         cat $etomo_dir/Makefile.real >> $etomo_dir/Makefile
     endif
@@ -824,6 +827,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.12  2006/01/03 18:58:32  mast
+#  Added jfcunit
+#
 #  Revision 1.11  2005/12/09 21:24:34  mast
 #  Changed dummytiff output to add extension here
 #
