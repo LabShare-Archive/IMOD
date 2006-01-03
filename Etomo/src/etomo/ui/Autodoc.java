@@ -12,7 +12,6 @@ import java.lang.IllegalArgumentException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
-import java.util.Iterator;
 
 /**
  * <p>Description:  Data storage for an autodoc file.
@@ -90,6 +89,7 @@ public class Autodoc implements AttributeCollection {
   public static final String TEST = "test";
   public static final String UITEST = "uitest";
   public static final String CPU = "cpu";
+  public static final String UITEST_AXIS = "uitest_axis";
 
   private static Autodoc TILTXCORR_INSTANCE = null;
   private static Autodoc TEST_INSTANCE = null;
@@ -101,6 +101,7 @@ public class Autodoc implements AttributeCollection {
   private static Autodoc SOLVEMATCH_INSTANCE = null;
   private static Autodoc BEADTRACK_INSTANCE = null;
   private static Autodoc CPU_INSTANCE = null;
+  private static HashMap UITEST_AXIS_MAP = null;
 
   private static String testDir = null;
   private static boolean test = false;
@@ -110,7 +111,7 @@ public class Autodoc implements AttributeCollection {
   private boolean internalTest = false;
 
   //data
-  private HashMap metaData = null;
+  private AttributeList attributeList = null;
   private Vector sectionList = null;
   private HashMap sectionMap = null;
 
@@ -134,28 +135,33 @@ public class Autodoc implements AttributeCollection {
     return autodoc;
   }
 
-  public static Autodoc getInstance_test(String name, File autodocFile,
-      AxisID axisID) throws FileNotFoundException, IOException {
+  /**
+   * open and preserve an autodoc without a type for testing
+   * @param autodocFile
+   * @param axisID
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  public static Autodoc getUITestAxisInstance_test(File directory, String autodocFileName, AxisID axisID)
+      throws FileNotFoundException, IOException {
     if (!test) {
       throw new IllegalStateException("Not in test mode");
     }
-    AutodocFilter filter = new AutodocFilter();
-    filter.setAutodocType(name);
-    if (!filter.accept(autodocFile)) {
-      throw new IllegalArgumentException(autodocFile.getName() + " is not a "
-          + name + " autodoc.");
+    if (autodocFileName == null) {
+      return null;
     }
-    Autodoc autodoc = getExistingAutodoc(name);
+    File autodocFile = new File(directory, autodocFileName);
+    AutodocFilter filter = new AutodocFilter();
+    if (!filter.accept(autodocFile)) {
+      throw new IllegalArgumentException(autodocFile + " is not an autodoc.");
+    }
+    Autodoc autodoc = getExistingUITestAxisAutodoc(autodocFile);
     if (autodoc != null) {
-      if (!autodoc.autodocFile.equals(autodocFile)) {
-        throw new IllegalStateException(autodoc.autodocFile
-            + " is already open");
-      }
       return autodoc;
     }
     autodoc = new Autodoc();
-    autodoc.autodocFile = autodocFile;
-    autodoc.initialize(name, axisID);
+    autodoc.initializeUITestAxis(autodocFile, axisID);
     return autodoc;
   }
 
@@ -200,6 +206,14 @@ public class Autodoc implements AttributeCollection {
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
+  }
+
+  private static final Autodoc getExistingUITestAxisAutodoc(File autodocFile) {
+    if (UITEST_AXIS_MAP == null) {
+      return null;
+    }
+    Autodoc autodoc = (Autodoc) UITEST_AXIS_MAP.get(autodocFile);
+    return autodoc;
   }
 
   private static final Autodoc getExistingAutodoc(String name) {
@@ -280,27 +294,31 @@ public class Autodoc implements AttributeCollection {
   }
 
   public AttributeCollection addAttribute(Token name) {
-    if (metaData == null) {
-      metaData = new HashMap();
+    if (attributeList == null) {
+      attributeList = new AttributeList();
     }
-    Attribute existingMetaDataElement = null;
-    String key = Attribute.getKey(name);
-    existingMetaDataElement = (Attribute) metaData.get(key);
-    if (existingMetaDataElement == null) {
-      Attribute newMetaDataElement = new Attribute(name);
-      metaData.put(key, newMetaDataElement);
-      return newMetaDataElement;
-    }
-    return existingMetaDataElement;
+    return attributeList.addAttribute(name);
   }
-
-  public final Attribute getAttribute(String name) {
-    if (metaData == null) {
+  
+  public Attribute getAttribute(String name) {
+    if (attributeList == null) {
       return null;
     }
-    String key = Attribute.getKey(name);
-    Attribute attribute = (Attribute) metaData.get(key);
-    return attribute;
+    return attributeList.getAttribute(name);
+  }
+  
+  public final AttributeLocation getAttributeLocation() {
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.getAttributeLocation();
+  }
+  
+  public final Attribute nextAttribute(AttributeLocation location) {
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.nextAttribute(location);
   }
 
   public final Section getSection(String type, String name) {
@@ -396,15 +414,9 @@ public class Autodoc implements AttributeCollection {
 
   public void print() {
     System.out.println("Printing stored data:");
-    if (metaData != null) {
-      Attribute metaDataElement = null;
-      Iterator iterator = metaData.values().iterator();
-      while (iterator.hasNext()) {
-        metaDataElement = (Attribute) iterator.next();
-        metaDataElement.print();
-      }
+    if (attributeList != null) {
+      attributeList.print();
     }
-    System.out.println("metaData is null");
     if (sectionList == null) {
       System.out.println("sectionList is null");
       return;
@@ -431,7 +443,7 @@ public class Autodoc implements AttributeCollection {
     if (envVariable != null && !envVariable.matches("\\s*+")) {
       //if envVariable is set, then it points to the only valid directory for this
       //autodoc
-      dir = getDir(envVariable, axisID);
+      dir = Utilities.getExistingDir(envVariable, axisID);
       if (dir == null) {
         System.err.println("Warning:  can't open the " + name
             + " autodoc file.\nThis autodoc should be stored in $"
@@ -440,7 +452,7 @@ public class Autodoc implements AttributeCollection {
       }
       return getAutodocFile(dir, name);
     }
-    dir = getDir(AUTODOC_DIR, axisID);
+    dir = Utilities.getExistingDir(AUTODOC_DIR, axisID);
     if (dir != null) {
       return getAutodocFile(dir, name);
     }
@@ -496,54 +508,35 @@ public class Autodoc implements AttributeCollection {
     return dir;
   }
 
-  private final File getDir(String envVariable, AxisID axisID) {
-    if (envVariable == null || envVariable.matches("\\s*+")) {
-      return null;
-    }
-    String dirName = new String(Utilities.getEnvironmentVariable(null,
-        envVariable, axisID));
-    File dir = new File(dirName);
-    if (!checkDir(dir, envVariable)) {
-      return null;
-    }
-    return dir;
-  }
-
   private final File getDir(String envVariable, String dirName, AxisID axisID) {
-    File parentDir = getDir(envVariable, axisID);
+    File parentDir = Utilities.getExistingDir(envVariable, axisID);
     if (parentDir == null) {
       return null;
     }
     File dir = new File(parentDir, dirName);
-    if (!checkDir(dir, envVariable)) {
+    if (!Utilities.checkExistingDir(dir, envVariable)) {
       return null;
     }
     return dir;
   }
 
-  private final boolean checkDir(File dir, String envVariable) {
-    if (!dir.exists()) {
-      System.err.println("Warning:  " + dir.getAbsolutePath()
-          + " does not exist.  See $" + envVariable + ".");
-      return false;
+  private final void initializeUITestAxis(File autodocFile, AxisID axisID)
+      throws FileNotFoundException, IOException {
+    this.autodocFile = autodocFile;
+    if (UITEST_AXIS_MAP == null) {
+      UITEST_AXIS_MAP = new HashMap();
     }
-    if (!dir.isDirectory()) {
-      System.err.println("Warning:  " + dir.getAbsolutePath()
-          + " is not a directory.  See $" + envVariable + ".");
-      return false;
-    }
-    if (!dir.canRead()) {
-      System.err.println("Warning:  cannot read " + dir.getAbsolutePath()
-          + ".  See $" + envVariable + ".");
-      return false;
-    }
-    return true;
+    UITEST_AXIS_MAP.put(autodocFile, this);
+    initialize(null, axisID, null);
   }
 
   private final void initialize(String name, AxisID axisID)
       throws FileNotFoundException, IOException {
     if (name.equals(CPU)) {
       initialize(name, axisID, "IMOD_CALIB_DIR");
+    }
+    else if (name.equals(UITEST)) {
+      initialize(name, axisID, "IMOD_TEST_REPOSITORY");
     }
     else {
       initialize(name, axisID, null);
@@ -572,8 +565,6 @@ public class Autodoc implements AttributeCollection {
       //parser.test(true);
       //parser.test(false, true);
       parser.test(true, true);
-      //print stored data
-      print();
     }
     else {
       parser.initialize();
@@ -585,6 +576,12 @@ public class Autodoc implements AttributeCollection {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.23  2005/12/23 02:13:36  sueh
+ *<p> $bug# 675 Added UITEST type of autodoc.  Added the ability to pass the
+ *<p> $autodoc file when opening an autodoc.  This is for test only and gives more
+ *<p> $flexibility in autodoc names.  The name must still start with the standard
+ *<p> $autodoc name and end in .adoc.
+ *<p> $
  *<p> $Revision 1.22  2005/11/10 22:20:31  sueh
  *<p> $bug# 759 Added VERSION constant.
  *<p> $
