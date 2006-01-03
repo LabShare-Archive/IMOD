@@ -49,6 +49,9 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
   static Run3dmodButton getToggleButtonInstance(String text, Run3dmodButtonContainer container) {
     return new Run3dmodButton(text, container, true);
   }
+  
+  protected void setName(String label) {
+  }
 
   public final void popUpContextMenu(MouseEvent mouseEvent) {
     if (!isEnabled()) {
@@ -84,6 +87,9 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/11/14 22:18:53  sueh
+* <p> Removed extra ;'s.
+* <p>
 * <p> Revision 1.3  2005/08/11 23:58:00  sueh
 * <p> bug# 711  Change enum Run3dmodMenuOption to
 * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
