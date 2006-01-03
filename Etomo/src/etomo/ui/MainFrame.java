@@ -31,6 +31,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2005/12/09 20:34:50  sueh
+ * <p> bug# 776 In EtomoMenu removed the getActionCommand... functions and
+ * <p> replaced them with equals().
+ * <p>
  * <p> Revision 3.36  2005/09/22 21:21:02  sueh
  * <p> bug# 532 In showAxisA, B, and Both:  using UIHarness.pack() to get a
  * <p> complete pack.
@@ -395,6 +399,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   WindowSwitch windowSwitch = new WindowSwitch();
   private String title;
   private String[] mRUList;
+  private boolean registered = false;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -420,13 +425,21 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   }
   
   protected final synchronized void register() {
-    if (mainFrame != null) {
+    if (registered) {
       throw new IllegalStateException("Only one instance of MainFrame is allowed.");
     }
+    registered = true;
     mainFrame = this;
     main = true;
   }
-
+  /*
+  final void deregister_test() {
+    if (!EtomoDirector.getInstance().isTest()) {
+      throw new IllegalStateException("Not in test mode");
+    }
+    registered = false;
+  }
+*/
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     this.currentManager = currentManager;
