@@ -21,6 +21,9 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/12/23 02:15:43  sueh
+ * <p> bug# 675 Named the text field so it can be found by JfcUnit.
+ * <p>
  * <p> Revision 3.8  2005/07/01 23:03:50  sueh
  * <p> bug# 619 added setText(long)
  * <p>
@@ -81,19 +84,29 @@ import etomo.EtomoDirector;
  * <p> </p>
  */
 public class LabeledTextField {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private JPanel panel = new JPanel();
   private JLabel label = new JLabel();
   private JTextField textField = new JTextField();
 
+  static final LabeledTextField getNamelessInstance(String tfLabel) {
+    return new LabeledTextField(tfLabel, false);
+  }
+
   public LabeledTextField(String tfLabel) {
-    //set name
-    String name = UIUtilities.convertLabelToName(tfLabel);
-    textField.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(name + ".tf " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    this(tfLabel, true);
+  }
+
+  private LabeledTextField(String tfLabel, boolean named) {
+    if (named) {
+      //set name
+      String name = UIUtilities.convertLabelToName(tfLabel);
+      textField.setName(name);
+      if (EtomoDirector.getInstance().isPrintNames()) {
+        System.out.println(name + ".tf " + AutodocTokenizer.DEFAULT_DELIMITER
+            + ' ');
+      }
     }
     //set label
     label.setText(tfLabel);
@@ -114,6 +127,10 @@ public class LabeledTextField {
     }
     textField.setMaximumSize(maxSize);
   }
+  
+  final void setName(String name) {
+    textField.setName(name);
+  }
 
   public boolean equals(String thatText) {
     String text = getText();
@@ -128,10 +145,10 @@ public class LabeledTextField {
     }
     if (text.trim().equals(thatText.trim())) {
       return true;
-    }     
+    }
     return false;
   }
-  
+
   public Container getContainer() {
     return panel;
   }
@@ -155,11 +172,11 @@ public class LabeledTextField {
   public void setText(float value) {
     textField.setText(String.valueOf(value));
   }
-  
+
   public void setText(long value) {
     textField.setText(String.valueOf(value));
   }
-  
+
   public void setText(double value) {
     textField.setText(String.valueOf(value));
   }
@@ -180,11 +197,11 @@ public class LabeledTextField {
   public void setEditable(boolean editable) {
     textField.setEditable(editable);
   }
-  
+
   public void addKeyListener(KeyListener listener) {
     textField.addKeyListener(listener);
   }
-  
+
   public void setTextPreferredWidth(double minWidth) {
     Font font = textField.getFont();
     Dimension prefSize = textField.getPreferredSize();
@@ -211,7 +228,7 @@ public class LabeledTextField {
   public Dimension getLabelPreferredSize() {
     return label.getPreferredSize();
   }
-  
+
   public void setColumns(int columns) {
     textField.setColumns(columns);
   }
