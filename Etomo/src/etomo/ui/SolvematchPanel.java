@@ -11,9 +11,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
@@ -39,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2005/11/14 22:21:15  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.14  2005/10/13 22:36:24  sueh
  * <p> Bug# 532 In synchronized(), always copying all fields
  * <p>
@@ -108,18 +109,18 @@ public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonCont
   private JPanel pnlFiducialRadio = new JPanel();
   private JPanel pnlFiducialSelect = new JPanel();
   private ButtonGroup bgFiducialParams = new ButtonGroup();
-  private JRadioButton rbBothSides = new JRadioButton("Fiducials on both sides");
-  private JRadioButton rbOneSide = new JRadioButton(
+  private RadioButton rbBothSides = new RadioButton("Fiducials on both sides");
+  private RadioButton rbOneSide = new RadioButton(
     "Fiducials on one side, NOT inverted");
-  private JRadioButton rbOneSideInverted = new JRadioButton(
+  private RadioButton rbOneSideInverted = new RadioButton(
     "Fiducials on one side, inverted");
-  private JRadioButton rbUseModel = new JRadioButton(
+  private RadioButton rbUseModel = new RadioButton(
     "Use matching models and fiducials");
-  private JRadioButton rbUseModelOnly = new JRadioButton(
+  private RadioButton rbUseModelOnly = new RadioButton(
     "Use matching models only");
 
   private JPanel pnlImodMatchModels = new JPanel();
-  private JCheckBox cbBinBy2 = new JCheckBox("Load binned by 2");
+  private CheckBox cbBinBy2 = new CheckBox("Load binned by 2");
   private Run3dmodButton btnImodMatchModels = new Run3dmodButton(
     "<html><b>Create Matching Models in 3dmod</b>", this);
   private LabeledTextField ltfFiducialMatchListA = new LabeledTextField(

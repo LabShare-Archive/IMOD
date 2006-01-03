@@ -7,12 +7,10 @@ import java.awt.Dimension;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.border.Border;
 /**
@@ -33,6 +31,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2005/09/29 19:11:14  sueh
+* <p> add comment
+* <p>
 * <p> Revision 1.9  2005/08/10 20:47:49  sueh
 * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
 * <p> of MultiLineButton.
@@ -220,24 +221,24 @@ final class SpacedPanel {
     yDescription.append("JLabel,");
   }
   
-  final void add(JRadioButton jRadioButton) {
+  final void add(RadioButton radioButton) {
     addSpacing();
     if (componentAlignmentX != null) {
-      jRadioButton.setAlignmentX(componentAlignmentX.floatValue());
+      radioButton.setAlignmentX(componentAlignmentX.floatValue());
     }
-    panel.add(jRadioButton);
-    xDescription.append("JRadioButton,");
-    yDescription.append("JRadioButton,");
+    panel.add(radioButton);
+    xDescription.append("RadioButton,");
+    yDescription.append("RadioButton,");
   }
   
-  final void add(JCheckBox jCheckBox) {
+  final void add(CheckBox checkBox) {
     addSpacing();
     if (componentAlignmentX != null) {
-      jCheckBox.setAlignmentX(componentAlignmentX.floatValue());
+      checkBox.setAlignmentX(componentAlignmentX.floatValue());
     }
-    panel.add(jCheckBox);
-    xDescription.append("JCheckBox,");
-    yDescription.append("JCheckBox,");
+    panel.add(checkBox);
+    xDescription.append("CheckBox,");
+    yDescription.append("CheckBox,");
   }
   
   final void add(SpacedTextField spacedTextField) {

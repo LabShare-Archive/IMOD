@@ -11,10 +11,8 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 
 import etomo.ApplicationManager;
@@ -74,15 +72,15 @@ public class TiltalignPanel {
   private LabeledTextField ltfResidualThreshold = new LabeledTextField(
       "Threshold for residual report: ");
 
-  private JRadioButton rbResidAllViews = new JRadioButton("All views");
-  private JRadioButton rbResidNeighboring = new JRadioButton(
+  private RadioButton rbResidAllViews = new RadioButton("All views");
+  private RadioButton rbResidNeighboring = new RadioButton(
       "Neighboring views");
   private ButtonGroup bgResidualThreshold = new ButtonGroup();
   private JPanel pnlResidualThreshold = new JPanel();
 
-  private JRadioButton rbSingleFiducialSurface = new JRadioButton(
+  private RadioButton rbSingleFiducialSurface = new RadioButton(
       "Assume fiducials on 1 surface for analysis");
-  private JRadioButton rbDualFiducialSurfaces = new JRadioButton(
+  private RadioButton rbDualFiducialSurfaces = new RadioButton(
       "Assume fiducials on 2 surfaces for analysis");
   private ButtonGroup bgFiducialSurfaces = new ButtonGroup();
   private JPanel pnlFiducialSurfaces = new JPanel();
@@ -104,23 +102,23 @@ public class TiltalignPanel {
   private LabeledTextField ltfCycleLimit = new LabeledTextField("Cycle limit: ");
 
   private JPanel pnlLocalParameters = new JPanel();
-  private JCheckBox cbLocalAlignments = new JCheckBox("Enable local alignments");
+  private CheckBox cbLocalAlignments = new CheckBox("Enable local alignments");
   private LabeledTextField ltfNLocalPatches = new LabeledTextField(
       "Number of local patches (x,y): ");
   private LabeledTextField ltfMinLocalPatchSize = new LabeledTextField(
       "Min. local patch size or overlap factor (x,y): ");
   private LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
       "Min. # of fiducials (total, each surface): ");
-  private JCheckBox cbFixXYZCoordinates = new JCheckBox("Use global X-Y-Z coordinates");
+  private CheckBox cbFixXYZCoordinates = new CheckBox("Use global X-Y-Z coordinates");
 
   //  Global variables pane
   private JPanel pnlGlobalVariable = new JPanel();
 
   //  Tilt angle pane
-  private JRadioButton rbTiltAngleFixed = new JRadioButton("Fixed tilt angles");
-  private JRadioButton rbTiltAngleAll = new JRadioButton(
+  private RadioButton rbTiltAngleFixed = new RadioButton("Fixed tilt angles");
+  private RadioButton rbTiltAngleAll = new RadioButton(
       "Solve for all except minimum tilt");
-  private JRadioButton rbTiltAngleAutomap = new JRadioButton(
+  private RadioButton rbTiltAngleAutomap = new RadioButton(
       "Group tilt angles ");
   private ButtonGroup bgTiltAngleSolution = new ButtonGroup();
   private JPanel pnlTiltAngleSolution = new JPanel();
@@ -131,11 +129,11 @@ public class TiltalignPanel {
       "Non-default grouping: ");
 
   //  Magnfication pane
-  private JRadioButton rbMagnificationFixed = new JRadioButton(
+  private RadioButton rbMagnificationFixed = new RadioButton(
       "Fixed magnification at 1.0");
-  private JRadioButton rbMagnificationAll = new JRadioButton(
+  private RadioButton rbMagnificationAll = new RadioButton(
       "Solve for all magnifications");
-  private JRadioButton rbMagnificationAutomap = new JRadioButton(
+  private RadioButton rbMagnificationAutomap = new RadioButton(
       "Group magnifications");
   private ButtonGroup bgMagnificationSolution = new ButtonGroup();
   private JPanel pnlMagnificationSolution = new JPanel();
@@ -166,10 +164,10 @@ public class TiltalignPanel {
    */
   // GlobalDistortion pane
   private JPanel pnlDistortionSolution = new JPanel();
-  private JRadioButton rbDistortionDisabled = new JRadioButton("Disabled");
-  private JRadioButton rbDistortionFullSolution = new JRadioButton(
+  private RadioButton rbDistortionDisabled = new RadioButton("Disabled");
+  private RadioButton rbDistortionFullSolution = new RadioButton(
       "Full solution");
-  private JRadioButton rbDistortionSkew = new JRadioButton("Skew only");
+  private RadioButton rbDistortionSkew = new RadioButton("Skew only");
   private ButtonGroup bgDistortionSolution = new ButtonGroup();
 
   private LabeledTextField ltfXstretchGroupSize = new LabeledTextField(
@@ -187,7 +185,7 @@ public class TiltalignPanel {
 
   //  Local rotation pane
   private JPanel pnlLocalRotationSolution = new JPanel();
-  private JCheckBox cbLocalRotation = new JCheckBox("Enable");
+  private CheckBox cbLocalRotation = new CheckBox("Enable");
 
   private LabeledTextField ltfLocalRotationGroupSize = new LabeledTextField(
       "Group size: ");
@@ -196,7 +194,7 @@ public class TiltalignPanel {
 
   //  Local tilt angle pane
   private JPanel pnlLocalTiltAngleSolution = new JPanel();
-  private JCheckBox cbLocalTiltAngle = new JCheckBox("Enable");
+  private CheckBox cbLocalTiltAngle = new CheckBox("Enable");
 
   private LabeledTextField ltfLocalTiltAngleGroupSize = new LabeledTextField(
       "Group size: ");
@@ -205,7 +203,7 @@ public class TiltalignPanel {
 
   // Local magnfication pane
   private JPanel pnlLocalMagnificationSolution = new JPanel();
-  private JCheckBox cbLocalMagnification = new JCheckBox("Enable");
+  private CheckBox cbLocalMagnification = new CheckBox("Enable");
 
   private LabeledTextField ltfLocalMagnificationGroupSize = new LabeledTextField(
       "Group size: ");
@@ -214,10 +212,10 @@ public class TiltalignPanel {
 
   //  Local distortion pane
   private JPanel pnlLocalDistortionSolution = new JPanel();
-  private JRadioButton rbLocalDistortionDisabled = new JRadioButton("Disabled");
-  private JRadioButton rbLocalDistortionFullSolution = new JRadioButton(
+  private RadioButton rbLocalDistortionDisabled = new RadioButton("Disabled");
+  private RadioButton rbLocalDistortionFullSolution = new RadioButton(
       "Full solution");
-  private JRadioButton rbLocalDistortionSkew = new JRadioButton("Skew only");
+  private RadioButton rbLocalDistortionSkew = new RadioButton("Skew only");
   private ButtonGroup bgLocalDistortionSolution = new ButtonGroup();
 
   private LabeledTextField ltfLocalXstretchGroupSize = new LabeledTextField(
@@ -231,17 +229,17 @@ public class TiltalignPanel {
       "Skew non-default grouping: ");
 
   //  Rotation pane
-  private JRadioButton rbRotationNone = new JRadioButton("No rotation");
-  private JRadioButton rbRotationAll = new JRadioButton(
+  private RadioButton rbRotationNone = new RadioButton("No rotation");
+  private RadioButton rbRotationAll = new RadioButton(
       "Solve for all rotations");
-  private JRadioButton rbRotationAutomap = new JRadioButton("Group rotations");
+  private RadioButton rbRotationAutomap = new RadioButton("Group rotations");
   private ButtonGroup bgRotationSolution = new ButtonGroup();
   private JPanel pnlRotationSolution = new JPanel();
   private LabeledTextField ltfRotationGroupSize = new LabeledTextField(
       "Group size: ");
   private LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
       "Non-default grouping: ");
-  private JCheckBox cbProjectionStretch = new JCheckBox(
+  private CheckBox cbProjectionStretch = new CheckBox(
       "Solve for single stretch during projection");
   private ApplicationManager appMgr;
 
@@ -872,7 +870,7 @@ public class TiltalignPanel {
    * @param listener
    */
   private void createRadioBox(JPanel panel, ButtonGroup group,
-      JRadioButton[] items, ActionListener listener) {
+      RadioButton[] items, ActionListener listener) {
     createRadioBox(panel, group, items, listener, 245);
   }
 
@@ -885,7 +883,7 @@ public class TiltalignPanel {
    * @param width
    */
   private void createRadioBox(JPanel panel, ButtonGroup group,
-      JRadioButton[] items, ActionListener listener, int width) {
+      RadioButton[] items, ActionListener listener, int width) {
     int radioButtonHeight = 18;
     Dimension radioButtonItemSize = new Dimension(width, radioButtonHeight);
 
@@ -930,7 +928,7 @@ public class TiltalignPanel {
     bottomResidualPanel.setComponentAlignmentX(Container.RIGHT_ALIGNMENT);
     bottomResidualPanel.add(new JLabel("Relative to"));
     //create radio button group
-    JRadioButton[] items = new JRadioButton[2];
+    RadioButton[] items = new RadioButton[2];
     items[0] = rbResidAllViews;
     items[1] = rbResidNeighboring;
     JPanel pnlRBResidual = new JPanel();
@@ -954,7 +952,7 @@ public class TiltalignPanel {
     //  Need an extra panel to make border extend the appropriate width
     JPanel pnlRBFiducual = new JPanel();
     pnlRBFiducual.setLayout(new BoxLayout(pnlRBFiducual, BoxLayout.Y_AXIS));
-    items = new JRadioButton[2];
+    items = new RadioButton[2];
     items[0] = rbSingleFiducialSurface;
     items[1] = rbDualFiducialSurfaces;
     FiducialRadioListener fiducialRadioListener = new FiducialRadioListener(
@@ -1015,7 +1013,7 @@ public class TiltalignPanel {
     //  Layout the global rotation variable parameters
     JPanel pnlRBRotation = new JPanel();
     pnlRBRotation.setLayout(new BoxLayout(pnlRBRotation, BoxLayout.Y_AXIS));
-    JRadioButton[] items = new JRadioButton[3];
+    RadioButton[] items = new RadioButton[3];
     items[0] = rbRotationNone;
     items[1] = rbRotationAll;
     items[2] = rbRotationAutomap;
@@ -1030,7 +1028,7 @@ public class TiltalignPanel {
     //  Layout the global tilt angle estimate pane
     JPanel pnlRBTiltAngle = new JPanel();
     pnlRBTiltAngle.setLayout(new BoxLayout(pnlRBTiltAngle, BoxLayout.Y_AXIS));
-    items = new JRadioButton[3];
+    items = new RadioButton[3];
     items[0] = rbTiltAngleFixed;
     items[1] = rbTiltAngleAll;
     items[2] = rbTiltAngleAutomap;
@@ -1046,7 +1044,7 @@ public class TiltalignPanel {
     JPanel pnlRBMagnification = new JPanel();
     pnlRBMagnification.setLayout(new BoxLayout(pnlRBMagnification,
         BoxLayout.Y_AXIS));
-    items = new JRadioButton[3];
+    items = new RadioButton[3];
     items[0] = rbMagnificationFixed;
     items[1] = rbMagnificationAll;
     items[2] = rbMagnificationAutomap;
@@ -1061,7 +1059,7 @@ public class TiltalignPanel {
     // Layout the global distortion pane
 
     //Create radio box
-    items = new JRadioButton[3];
+    items = new RadioButton[3];
     items[0] = rbDistortionDisabled;
     items[1] = rbDistortionFullSolution;
     items[2] = rbDistortionSkew;
@@ -1158,7 +1156,7 @@ public class TiltalignPanel {
     //  Construction the local distortion pane
 
     //Create radio box
-    JRadioButton[] items = new JRadioButton[3];
+    RadioButton[] items = new RadioButton[3];
     items[0] = rbLocalDistortionDisabled;
     items[1] = rbLocalDistortionFullSolution;
     items[2] = rbLocalDistortionSkew;
@@ -1197,14 +1195,14 @@ public class TiltalignPanel {
     tabPane.addTab("Local Variables", pnlLocalSolution);
   }
 
-  private void createVariablePanel(JPanel panel, JCheckBox checkBox,
+  private void createVariablePanel(JPanel panel, CheckBox checkBox,
       LabeledTextField groupSize, LabeledTextField additionalGroups,
       String title) {
     createVariablePanel(panel, checkBox, groupSize, additionalGroups, null,
         title);
   }
 
-  private void createVariablePanel(JPanel panel, JCheckBox checkBox,
+  private void createVariablePanel(JPanel panel, CheckBox checkBox,
       LabeledTextField field1, LabeledTextField field2,
       LabeledTextField field3, String title) {
     JPanel buttonPanel = new JPanel();
@@ -1213,9 +1211,9 @@ public class TiltalignPanel {
     createVariablePanel(panel, buttonPanel, field1, field2, field3, null, null, title);
   }
   
-  private void createVariablePanel(JPanel panel, JCheckBox checkBox1,
+  private void createVariablePanel(JPanel panel, CheckBox checkBox1,
       LabeledTextField field1, LabeledTextField field2,
-      LabeledTextField field3, JCheckBox checkBox2, String title) {
+      LabeledTextField field3, CheckBox checkBox2, String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
     buttonPanel.add(checkBox1);
@@ -1235,7 +1233,7 @@ public class TiltalignPanel {
 
   private void createVariablePanel(JPanel panel, JPanel buttonPanel,
       LabeledTextField field1, LabeledTextField field2,
-      LabeledTextField field3, LabeledTextField field4, JCheckBox checkBox, String title) {
+      LabeledTextField field3, LabeledTextField field4, CheckBox checkBox, String title) {
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
@@ -1525,6 +1523,9 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.29  2005/08/27 22:42:33  sueh
+ * <p> bug# 532 Changed Autodoc.get() to getInstance().
+ * <p>
  * <p> Revision 3.28  2005/07/29 19:48:14  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>

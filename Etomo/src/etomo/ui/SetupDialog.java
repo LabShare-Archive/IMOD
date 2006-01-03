@@ -26,10 +26,8 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
@@ -52,6 +50,8 @@ import etomo.util.Utilities;
 public class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
+  
+  static final String DATASET_NAME = "dataset-field-name";
 
   private JPanel pnlDataParameters = new JPanel();
   private UIHarness uiHarness = UIHarness.INSTANCE;
@@ -61,7 +61,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
 
-  private LabeledTextField ltfDataset = new LabeledTextField("Dataset name: ");
+  private LabeledTextField ltfDataset = LabeledTextField.getNamelessInstance("Dataset name: ");
   private JButton btnDataset = new JButton(iconFolder);
 
   private LabeledTextField ltfBackupDirectory = new LabeledTextField(
@@ -72,11 +72,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private JPanel pnlDataType = new JPanel();
   private JPanel pnlAxisType = new JPanel();
   private RadioButton rbSingleAxis = new RadioButton("Single axis");
-  private JRadioButton rbDualAxis = new JRadioButton("Dual axis");
+  private RadioButton rbDualAxis = new RadioButton("Dual axis");
   private ButtonGroup bgAxisType = new ButtonGroup();
 
   private JPanel pnlViewType = new JPanel();
-  private JRadioButton rbSingleView = new JRadioButton("Single frame");
+  private RadioButton rbSingleView = new RadioButton("Single frame");
   private RadioButton rbMontage = new RadioButton("Montage");
   private ButtonGroup bgViewType = new ButtonGroup();
 
@@ -108,7 +108,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private JPanel pnlMagGradientInfo = new JPanel();
   private LabeledTextField ltfMagGradientFile = new LabeledTextField(
       "Mag gradients correction: ");
-  private final JCheckBox cbParallelProcess = new JCheckBox(
+  private final CheckBox cbParallelProcess = new CheckBox(
       "Parallel Processing");
   private JButton btnMagGradientFile = new JButton(iconFolder);
 
@@ -120,7 +120,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private LabeledTextField ltfExcludeListA = new LabeledTextField(
       "Exclude views: ");
   private JPanel pnlAdjustedFocusA = new JPanel();
-  private JCheckBox cbAdjustedFocusA = new JCheckBox(
+  private CheckBox cbAdjustedFocusA = new CheckBox(
       "Focus was adjusted between montage frames");
 
   private JPanel pnlAxisInfoB = new JPanel();
@@ -129,7 +129,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private LabeledTextField ltfExcludeListB = new LabeledTextField(
       "Exclude views: ");
   private JPanel pnlAdjustedFocusB = new JPanel();
-  private JCheckBox cbAdjustedFocusB = new JCheckBox(
+  private CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
 
   //  Construct the setup dialog
@@ -208,6 +208,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     //  Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
+    ltfDataset.setName(DATASET_NAME);
     pnlDataset.add(ltfDataset.getContainer());
     pnlDataset.add(btnDataset);
     pnlDataset.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -1082,6 +1083,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.43  2005/12/23 02:22:15  sueh
+ * <p> bug# 675 Changed single axis and montage radio buttons to RadioButton.
+ * <p>
  * <p> Revision 3.42  2005/12/16 01:47:12  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
