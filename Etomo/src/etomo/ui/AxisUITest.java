@@ -17,29 +17,32 @@ import java.io.File;
  */
 final class AxisUITest {
   public static final String rcsid = "$Id$";
-/*
+
   private final String dataset;
   private final Autodoc autodoc;
   private final File sourceDir;
   
   private boolean done = false;
-*/
+
   AxisUITest(String dataset, Autodoc autodoc, File sourceDir) {
-/*    this.dataset = dataset;
+    this.dataset = dataset;
     this.autodoc = autodoc;
     this.sourceDir = sourceDir;
-*/  }
+  }
 
   final boolean isDone() {
-    return true;//done;
+    return done;
   }
 
   final void test(boolean takeTurns) {
-//    done = true;
+    done = true;
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/12/30 21:19:28  sueh
+ * <p> bug# 675 Class to run jfcunit tests on one axis
+ * <p> </p>
  */
 
 /*
