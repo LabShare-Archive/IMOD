@@ -415,6 +415,9 @@ tests : ImodTests
 	cd Etomo ; $(MAKE) tests
 	cd ImodTests ; cvs update ; $(MAKE) tests
 
+uitestinstall : 
+	cd Etomo ; $(MAKE) $@
+
 ImodTests : 
 	cvs co ImodTests 
 
@@ -422,6 +425,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.54  2005/10/08 06:06:05  mast
+#  Put etomo at top of build for testing
+#
 #  Revision 3.53  2005/07/06 21:12:13  mast
 #  Cleaned up because 032 no longer needed on SGI
 #
