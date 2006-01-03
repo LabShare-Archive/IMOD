@@ -92,6 +92,7 @@ set modelallo       = 'model/*.$(OBJEXT)'
 set nmcarext        = '$(LIBEXT)'
 set far             = '$(AR)'
 set junit_home      = /usr/local/junit
+set jfcunit_home      = /usr/local/jfcunit
 set class_sep       = ':'
 set strip           = strip
 
@@ -712,6 +713,7 @@ echo "MODELALLO = $modelallo" >> $configure
 echo "NMCAREXT = $nmcarext" >> $configure
 echo "FAR = $far" >> $configure
 echo "JUNIT_HOME = $junit_home" >> $configure
+echo "JFCUNIT_HOME = $jfcunit_home" >> $configure
 echo "CLASS_SEPARATOR = $class_sep" >> $configure
 echo "SOURCEDOC_EXE = $sourcedoc_exe" >> $configure
 echo "STRIP = $strip" >> $configure
@@ -822,6 +824,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.11  2005/12/09 21:24:34  mast
+#  Changed dummytiff output to add extension here
+#
 #  Revision 1.10  2005/12/09 19:09:47  mast
 #  Updated help text
 #

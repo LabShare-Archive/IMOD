@@ -253,6 +253,7 @@ set fbpswitch       = fbpswitch-pc.inc
 
 set binext = .exe
 set junit_home      = `cygpath -m /usr/local/junit`
+set jfcunit_home      = `cygpath -m /usr/local/jfcunit`
 set class_sep       = ';'
 
 #
