@@ -14,6 +14,12 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2005/12/23 02:20:08  sueh
+* <p> $bug# 675 Renamed getFirstSectionLocation to getSectionLocation.
+* <p> $Removed getSection(sectionLocation).  Changed nextSection so it gets the
+* <p> $current section and increments.  Encapsulated the attribute list into
+* <p> $AttributeList.  Added getAttributeLocation and nextAttribute.
+* <p> $
 * <p> $Revision 1.4  2005/12/01 00:25:16  sueh
 * <p> $bug# 775 Made getName() public.
 * <p> $
@@ -36,6 +42,15 @@ public class Section implements AttributeCollection {
   private Token type = null; //required
   private Token name = null; //required
   private AttributeList attributeList = null;//optional
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "key=" + key + ",type=" + type + ",name="
+        + name + ",\nattributeList=" + attributeList + ",\n" + super.toString();
+  }
   
   final static String getKey(Token type, Token name) {
     if (type == null && name == null) {
@@ -88,6 +103,9 @@ public class Section implements AttributeCollection {
   }
   
   public final String getName() {
+    if (name == null) {
+      throw new IllegalStateException("name is required");
+    }
     return name.getValue(true);
   }
   
@@ -107,6 +125,13 @@ public class Section implements AttributeCollection {
       return null;
     }
     return attributeList.getAttributeLocation();
+  }
+  
+  public final AttributeLocation getAttributeLocation(String name) {
+    if (attributeList == null) {
+      return null;
+    }
+    return attributeList.getAttributeLocation(name);
   }
   
   public final Attribute nextAttribute(AttributeLocation location) {
