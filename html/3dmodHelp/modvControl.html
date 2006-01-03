@@ -1,0 +1,65 @@
+<head>
+<title>Model View Controls</title>
+</head>
+<H3>Model View Controls</H3>
+
+
+This dialog controls model viewing and movement.
+<P>
+The <B>Zoom</B> arrows increase or decrease zoom factor.
+<P>
+The <B>Scale</B> text box shows the number of pixels on the 
+screen per unit of model coordinates.  You can enter a 
+specific scale to control model zoom; this is handy if you have
+several models that you want to display at the same scale.
+<P>
+The <B>Near</B> and <B>Far clipping</B> sliders adjust the Z clipping
+planes.  When 
+the model is zoomed up, it will be clipped more for a given 
+setting of these sliders.  To reduce undesired clipping with 
+very high zooms when there is no perspective, the near clipping plane
+is set three times farther out from the middle in Z when
+<B>Near</B> is at 0, and the far clipping plane is set three times
+farther out when <B>Far</B> is at 1000.  If there is still clipping,
+you can set these planes 10 times farther out by checking 
+<B>Set clipping planes farther out</B>.  This is not the default
+because it may cause inappropriate clipping on some systems.
+<P>
+The <B>Perspective</B> slider provides for a perspective view instead of a
+parallel projection of the model.  The slider sets the angle subtended
+by the near clipping plane.  With perspective on, both the <B>Near
+clipping</B> and the zoom setting will affect the size of the model.
+The near clipping plane is not moved any farther from the model when
+<B>Near</B> is at 0, but the far clipping plane is moved farther back
+when it <B>Far</B> is at 1000, as described above.
+<P>
+The <B>Z-scale</B> slider adjusts the scale for section 
+thickness relative to the pixel size in X and Y.
+<P>
+The <B>Rotation</B> box edits model rotation. 
+The X, Y or Z axis arrow
+buttons are equivalent to the hot keys on the numeric keypad.  
+In addition, you can type specific angles into the text boxes.
+<P>
+If you press the <B>Start/Stop Rotation</B> button then one of 
+the arrow buttons, the model will start rotating around the 
+given axis until you press the <B>Start/Stop Rotation</B> button 
+again.  Otherwise, each arrow will cause a single step 
+around the given axis.
+<P>
+The speed controls allow you adjust the rate of rotation in 
+degrees per second (<B>deg/sec</B>).  Press the arrow buttons to 
+increase or decrease the speed, or enter a specific value in 
+the text box.
+<P>
+The <B>Step</B> slider sets the the step size for 
+single steps with the arrows or numeric pad keys.  The same 
+step size is used when rotating an object clipping plane with 
+Ctrl and the keypad keys.
+<P>
+Note that the . and , hot keys will increase both the step 
+size and rotation speed in tandem, whereas the controls in this 
+dialog box allow you to adjust them independently.
+
+<P>
+<A HREF="index.html">Help Index<A>
