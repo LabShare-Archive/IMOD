@@ -20,28 +20,15 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
     java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
-  private String autodocType = null;
-
   public boolean accept(File f) {
     if (!f.isFile()) {
       return false;
     }
     String name = f.getName();
     if (name.endsWith(".adoc")) {
-      if (autodocType == null) {
-        return true;
-      }
-      else {
-        if (name.startsWith(autodocType)) {
-          return true;
-        }
-      }
+      return true;
     }
     return false;
-  }
-
-  public void setAutodocType(String autodocType) {
-    this.autodocType = autodocType;
   }
 
   public String getDescription() {
@@ -49,5 +36,8 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2005/12/23 02:06:08  sueh
+ * <p> bug# 675 Added a filter to find autodoc files.
+ * <p> </p>
  */
