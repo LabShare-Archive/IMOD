@@ -11,10 +11,8 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
@@ -48,6 +46,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.28  2005/12/14 20:58:39  sueh
+ * bug# 784 Added tool tips.
+ *
  * Revision 3.27  2005/12/13 02:28:49  sueh
  * bug# 773 Getting default parallel processing checkbox setting from
  * metadata.defaultParallel.
@@ -311,19 +312,19 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
   private JPanel pnlRBToSelector = new JPanel();
   private JLabel lblEffectWarning = new JLabel(
       "You must create new combine scripts for some changes in these parameters to take effect.");
-  private JRadioButton rbBtoA = new JRadioButton("Match the B tomogram to A");
-  private JRadioButton rbAtoB = new JRadioButton("Match the A tomogram to B");
+  private RadioButton rbBtoA = new RadioButton("Match the B tomogram to A");
+  private RadioButton rbAtoB = new RadioButton("Match the A tomogram to B");
 
   private SolvematchPanel pnlSolvematch;
 
   private JPanel pnlPatchParams = new JPanel();
   private JPanel pnlPatchParamsBody = new JPanel();
-  private JRadioButton rbSmallPatch = new JRadioButton("Small patches");
-  private JRadioButton rbMediumPatch = new JRadioButton("Medium patches");
-  private JRadioButton rbLargePatch = new JRadioButton("Large patches");
+  private RadioButton rbSmallPatch = new RadioButton("Small patches");
+  private RadioButton rbMediumPatch = new RadioButton("Medium patches");
+  private RadioButton rbLargePatch = new RadioButton("Large patches");
   private ButtonGroup bgPatchSize = new ButtonGroup();
   private JPanel pnlPatchRegionModel = new JPanel();
-  private JCheckBox cbPatchRegionModel = new JCheckBox("Use patch region model");
+  private CheckBox cbPatchRegionModel = new CheckBox("Use patch region model");
   private Run3dmodButton btnPatchRegionModel = new Run3dmodButton(
       "<html><b>Create/Edit Patch Region Model</b>", this);
 
@@ -342,7 +343,7 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
   private JPanel pnlTempDirectoryBody = new JPanel();
   private LabeledTextField ltfTempDirectory = new LabeledTextField(
       "Temporary directory: ");
-  private JCheckBox cbManualCleanup = new JCheckBox("Manual cleanup");
+  private CheckBox cbManualCleanup = new CheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodVolumeA = new Run3dmodButton(
@@ -358,9 +359,9 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
   private final PanelHeader patchParamsHeader;
   private final PanelHeader tempDirectoryHeader;
   private final PanelHeader volcombineHeader;
-  private final JCheckBox cbNoVolcombine = new JCheckBox(
+  private final CheckBox cbNoVolcombine = new CheckBox(
       FinalCombinePanel.NO_VOLCOMBINE_TITLE);
-  private final JCheckBox cbParallelProcess;
+  private final CheckBox cbParallelProcess;
 
   /**
    * Default constructor
@@ -449,7 +450,7 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
     pnlVolcombineControls.add(volcombineHeader.getContainer());
     pnlVolcombineControlsBody.setLayout(new BoxLayout(
         pnlVolcombineControlsBody, BoxLayout.Y_AXIS));
-    cbParallelProcess = new JCheckBox(
+    cbParallelProcess = new CheckBox(
         tomogramCombinationDialog.parallelProcessCheckBoxText);
     pnlVolcombineControlsBody.add(cbParallelProcess);
     pnlVolcombineControlsBody.add(cbNoVolcombine);
