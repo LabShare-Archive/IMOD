@@ -40,6 +40,12 @@ abstract class EtomoFrame extends JFrame {
 
   private static final int messageWidth = 60;
   private static final int maxMessageLines = 20;
+  private static final boolean printNames = EtomoDirector.getInstance()
+      .isPrintNames();
+  private static final String ETOMO_QUESTION = "Etomo question";
+  private static final String YES = "Yes";
+  private static final String NO = "No";
+  private static final String OK = "OK";
 
   protected boolean main;
   protected EtomoMenu menu;
@@ -299,7 +305,7 @@ abstract class EtomoFrame extends JFrame {
   void displayMessage(String message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(message, title);
   }
-  
+
   void displayInfoMessage(String message, String title, AxisID axisID) {
     getFrame(axisID).openInfoMessageDialog(message, title);
   }
@@ -358,11 +364,17 @@ abstract class EtomoFrame extends JFrame {
    * @param title
    */
   private void openMessageDialog(String message, String title) {
+    if (printNames) {
+      printTitle(title, OK, null);
+    }
     JOptionPane.showMessageDialog(this, wrap(message), title,
         JOptionPane.ERROR_MESSAGE);
   }
-  
+
   private void openInfoMessageDialog(String message, String title) {
+    if (printNames) {
+      printTitle(title, OK, null);
+    }
     JOptionPane.showMessageDialog(this, wrap(message), title,
         JOptionPane.INFORMATION_MESSAGE);
   }
@@ -373,18 +385,27 @@ abstract class EtomoFrame extends JFrame {
    * @param title
    */
   private void openMessageDialog(String[] message, String title) {
+    if (printNames) {
+      printTitle(title, OK, null);
+    }
     JOptionPane.showMessageDialog(this, wrap(message), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
   private void openErrorMessageDialog(ProcessMessages processMessages,
       String title) {
+    if (printNames) {
+      printTitle(title, OK, null);
+    }
     JOptionPane.showMessageDialog(this, wrapError(processMessages), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
   private void openWarningMessageDialog(ProcessMessages processMessages,
       String title) {
+    if (printNames) {
+      printTitle(title, OK, null);
+    }
     JOptionPane.showMessageDialog(this, wrapWarning(processMessages), title,
         JOptionPane.ERROR_MESSAGE);
   }
@@ -395,7 +416,10 @@ abstract class EtomoFrame extends JFrame {
    * @return int state of the users select
    */
   private int openYesNoCancelDialog(String[] message) {
-    return JOptionPane.showConfirmDialog(this, wrap(message), "Etomo question",
+    if (printNames) {
+      printTitle(ETOMO_QUESTION, YES, NO);
+    }
+    return JOptionPane.showConfirmDialog(this, wrap(message), ETOMO_QUESTION,
         JOptionPane.YES_NO_CANCEL_OPTION);
   }
 
@@ -405,9 +429,21 @@ abstract class EtomoFrame extends JFrame {
    * @return
    */
   private boolean openYesNoDialog(String message) {
+    if (printNames) {
+      printTitle(ETOMO_QUESTION, YES, NO);
+    }
     int result = JOptionPane.showConfirmDialog(this, wrap(message),
-        "Etomo question", JOptionPane.YES_NO_OPTION);
+        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION);
     return result == JOptionPane.YES_OPTION;
+  }
+
+  private final void printTitle(String title, String option1, String option2) {
+    StringBuffer buffer = new StringBuffer("popup "
+        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + title + ',' + option1);
+    if (option2 != null) {
+      buffer.append(',' + option2);
+    }
+    System.out.println(buffer);
   }
 
   /**
@@ -417,16 +453,24 @@ abstract class EtomoFrame extends JFrame {
    */
   private boolean openDeleteDialog(String[] message) {
     String[] results = new String[] { "Delete", "No" };
-    int result = JOptionPane.showOptionDialog(this, wrap(message),
-        "Delete File?", JOptionPane.DEFAULT_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, results, null);
+    String title = "Delete File?";
+    if (printNames) {
+      printTitle(title, results[0], results[1]);
+    }
+    int result = JOptionPane.showOptionDialog(this, wrap(message), title,
+        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+        results, null);
     return result == 0;
   }
 
   private boolean openYesNoWarningDialog(String message) {
     String[] results = new String[] { "Yes", "No" };
+    String title = "Etomo Warning";
+    if (printNames) {
+      printTitle(title, results[0], results[1]);
+    }
     int result = JOptionPane.showOptionDialog(this, wrap(message),
-        "Etomo Warning", JOptionPane.YES_NO_OPTION,
+        title, JOptionPane.YES_NO_OPTION,
         JOptionPane.WARNING_MESSAGE, null, results, "No");
     return result == 0;
   }
@@ -437,8 +481,11 @@ abstract class EtomoFrame extends JFrame {
    * @return
    */
   private boolean openYesNoDialog(String[] message) {
+    if (printNames) {
+      printTitle(ETOMO_QUESTION, YES, NO);
+    }
     int result = JOptionPane.showConfirmDialog(this, wrap(message),
-        "Etomo question", JOptionPane.YES_NO_OPTION);
+        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION);
     return result == JOptionPane.YES_OPTION;
   }
 
@@ -695,6 +742,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2005/12/09 20:29:25  sueh
+ * <p> bug# Added an info message popup
+ * <p>
  * <p> Revision 1.16  2005/12/08 00:58:58  sueh
  * <p> bug# 504 Added displayYesNoWarningDialog() which displays a yes/no
  * <p> popup with No selected and a warning icon.
