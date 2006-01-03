@@ -66,6 +66,10 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.6  2005/12/23 02:23:48  sueh
+* <p> $bug# 675 Changed static getKey(String) to convertToKey() for clarity.
+* <p> $Removed unnecessary parameter String includeNext in getKey().
+* <p> $
 * <p> $Revision 1.5  2005/02/15 20:41:08  sueh
 * <p> $bug# 602 Added BREAKK and INDENT types.  Added length(), which
 * <p> $returns the length of the value.  Added numberOf(char searchChar, int
@@ -114,6 +118,15 @@ public class Token {
   private Token next = null;
   private Token previous = null;
 
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return /*"type=" + typeToString(type) + */",value=" + value /*+ ",key="
+        + key + ",\nnext=" + next + ",\nprevious="
+        + previous + ",\n" + super.toString()*/;
+  }
   /**
    * Converts a string into a standard key for saving and retrieving tokens.
    * This function is unnecessary when using Token.equals() functions because it
@@ -471,7 +484,7 @@ public class Token {
     return false;
   }
 
-  public final String toString() {
+  public final String getString() {
     if (value == null) {
       return "(" + typeToString() + ")";
     }
