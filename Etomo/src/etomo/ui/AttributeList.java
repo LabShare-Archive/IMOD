@@ -6,30 +6,30 @@ import java.util.Iterator;
 import java.util.Vector;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
-public class AttributeList {
-  public static  final String  rcsid =  "$Id$";
-  
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
+final class AttributeList {
+  public static final String rcsid = "$Id$";
+
   private HashMap attributeMap = null;
   private Vector attributeList = null;
-  
-  public AttributeCollection addAttribute(Token name) {
+
+  final AttributeCollection addAttribute(Token name) {
+    Attribute attribute = null;
     if (attributeMap == null) {
       attributeMap = new HashMap();
       attributeList = new Vector();
     }
-    Attribute attribute = null;
     String key = Attribute.getKey(name);
     attribute = (Attribute) attributeMap.get(key);
     if (attribute == null) {
@@ -39,19 +39,15 @@ public class AttributeList {
     attributeList.add(attribute);
     return attribute;
   }
-  
-  public Attribute getAttributeByIndex(int index) {
+
+  final Attribute getAttribute(int index) {
     if (attributeList == null || attributeList.size() <= index) {
       return null;
     }
     return (Attribute) attributeList.get(index);
   }
-  
-  public Attribute getAttribute(int name) {
-    return getAttribute(String.valueOf(name));
-  }
-  
-  public Attribute getAttribute(String name) {
+
+  final Attribute getAttribute(String name) {
     if (attributeMap == null) {
       return null;
     }
@@ -59,31 +55,49 @@ public class AttributeList {
     Attribute attribute = (Attribute) attributeMap.get(key);
     return attribute;
   }
-  
-  public final AttributeLocation getAttributeLocation() {
+
+  final AttributeLocation getAttributeLocation(String name) {
+    if (attributeList == null || attributeList.size() == 0) {
+      return null;
+    }
+    Attribute attrib = null;
+    for (int i = 0; i < attributeList.size(); i++) {
+      attrib = (Attribute) attributeList.get(i);
+      if (attrib.equalsName(name)) {
+        return new AttributeLocation(name, i);
+      }
+    }
+    return null;
+  }
+
+  final AttributeLocation getAttributeLocation() {
     if (attributeList == null || attributeList.size() == 0) {
       return null;
     }
     Attribute attrib = null;
     return new AttributeLocation(0);
   }
-  
-  public final Attribute nextAttribute(AttributeLocation location) {
-    if (location == null || attributeList == null) {
+
+  final Attribute nextAttribute(AttributeLocation location) {
+    if (location == null) {
       return null;
     }
-    int index = location.getIndex();
-    if (index >= attributeList.size()) {
-      return null;
+    Attribute attrib = null;
+    for (int i = location.getIndex(); i < attributeList.size(); i++) {
+      attrib = (Attribute) attributeList.get(i);
+      String name = location.getName();
+      if (name == null || attrib.equalsName(name)) {
+        location.setIndex(i + 1);
+        return attrib;
+      }
     }
-    location.increment();
-    return (Attribute) attributeList.get(index);
+    return null;
   }
-  
+
   final void print() {
     print(0);
   }
-  
+
   final void print(int level) {
     System.out.print(")");
     if (attributeMap != null) {
@@ -94,7 +108,7 @@ public class AttributeList {
         System.out.println(":");
         while (iterator.hasNext()) {
           attribute = (Attribute) iterator.next();
-          attribute.print(level+1);
+          attribute.print(level + 1);
         }
       }
     }
@@ -103,20 +117,21 @@ public class AttributeList {
     }
   }
   
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
   protected String paramString() {
-    StringBuffer buffer = new StringBuffer();
-    if (attributeMap != null) {
-      buffer.append(attributeMap.toString());
-    }
-    return buffer.toString();
+    return "attributeMap=" + attributeMap/* + ",\nattributeList=" + attributeList
+        + ",\n" + super.toString()*/;
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.1  2005/12/23 02:10:48  sueh
-* <p> bug# 675 Encapsulated the list of attributes into AttributeList.  There is a
-* <p> list of attributes in three classes.  Added Vector storage,
-* <p> getAttributeLocation and nextAttribute to get an ordered list of attributes.
-* <p> Saving the first duplicate attribute instead of the last.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.1  2005/12/23 02:10:48  sueh
+ * <p> bug# 675 Encapsulated the list of attributes into AttributeList.  There is a
+ * <p> list of attributes in three classes.  Added Vector storage,
+ * <p> getAttributeLocation and nextAttribute to get an ordered list of attributes.
+ * <p> Saving the first duplicate attribute instead of the last.
+ * <p> </p>
+ */
