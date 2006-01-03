@@ -7,7 +7,18 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -36,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.28  2005/12/16 18:26:46  sueh
+ * <p> bug# 785 Added getMode().
+ * <p>
  * <p> Revision 1.27  2005/12/16 01:45:43  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
@@ -373,10 +387,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private LabeledTextField ltfMidasLimit = new LabeledTextField(
       "Squeeze samples to ");
   private JLabel lblMidasLimit = new JLabel("pixels if bigger.");
-  private JRadioButton rbFullLinearTransformation;
-  private JRadioButton rbRotationTranslationMagnification;
-  private JRadioButton rbRotationTranslation;
-  private JCheckBox cbUseAlignmentRefSection;
+  private RadioButton rbFullLinearTransformation;
+  private RadioButton rbRotationTranslationMagnification;
+  private RadioButton rbRotationTranslation;
+  private CheckBox cbUseAlignmentRefSection;
   private JSpinner spinAlignmentRefSection;
   private LabeledSpinner spinDensityRefSection;
   private LabeledSpinner spinTrialBinning;
@@ -742,10 +756,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         "Sigma for high-frequency filter: ");
     pnlXfalign.add(ltfSigmaHighFrequency);
     ButtonGroup bgSearchFor = new ButtonGroup();
-    rbFullLinearTransformation = new JRadioButton("Full linear transformation");
-    rbRotationTranslationMagnification = new JRadioButton(
+    rbFullLinearTransformation = new RadioButton("Full linear transformation");
+    rbRotationTranslationMagnification = new RadioButton(
         "Rotation/translation/magnification");
-    rbRotationTranslation = new JRadioButton("Rotation/translation");
+    rbRotationTranslation = new RadioButton("Rotation/translation");
     bgSearchFor.add(rbFullLinearTransformation);
     bgSearchFor.add(rbRotationTranslationMagnification);
     bgSearchFor.add(rbRotationTranslation);
@@ -813,7 +827,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     JPanel finishJoinPanel1 = new JPanel();
     finishJoinPanel1
         .setLayout(new BoxLayout(finishJoinPanel1, BoxLayout.X_AXIS));
-    cbUseAlignmentRefSection = new JCheckBox(
+    cbUseAlignmentRefSection = new CheckBox(
         "Reference section for alignment: ");
     //cbUseAlignmentRefSection.addActionListener(useAlignmentRefSectionActionListener);
     finishJoinPanel1.add(cbUseAlignmentRefSection);
