@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2005/11/14 21:48:29  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.14  2005/08/27 22:35:36  sueh
  * <p> bug# 532 Changed Autodoc.get() to getInstance().
  * <p>
@@ -114,7 +117,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -133,7 +135,7 @@ public class CrossCorrelationPanel implements ContextMenu {
   private JPanel pnlYMinAndMax = new JPanel();
   private ApplicationManager applicationManager;
 
-  private JCheckBox cbExcludeCentralPeak = new JCheckBox(
+  private CheckBox cbExcludeCentralPeak = new CheckBox(
     "Exclude central peak due to fixed pattern noise");
 
   private LabeledTextField ltfTestOutput = new LabeledTextField("Test output: ");
@@ -153,11 +155,11 @@ public class CrossCorrelationPanel implements ContextMenu {
     "Pixels to pad (x,y): ");
   private LabeledTextField ltfTaperPercent = new LabeledTextField(
     "Pixels to taper (x,y): ");
-  private JCheckBox cbCumulativeCorrelation = new JCheckBox(
+  private CheckBox cbCumulativeCorrelation = new CheckBox(
     "Cumulative correlation");
-  private JCheckBox cbAbsoluteCosineStretch = new JCheckBox(
+  private CheckBox cbAbsoluteCosineStretch = new CheckBox(
     "Absolute Cosine Stretch");
-  private JCheckBox cbNoCosineStretch = new JCheckBox("No Cosine Stretch");
+  private CheckBox cbNoCosineStretch = new CheckBox("No Cosine Stretch");
   private LabeledTextField ltfViewRange = new LabeledTextField(
     "View range (start,end): ");
 

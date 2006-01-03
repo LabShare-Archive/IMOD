@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2005/12/14 20:54:19  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 3.27  2005/10/27 00:34:26  sueh
  * <p> bug# 725 Calling preCrossCorrelate instead of crossCorrelate so that the
  * <p> B stack can be processed.
@@ -172,7 +175,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -208,7 +210,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
       "View Aligned<br>Stack In 3dmod", this);
 
   private JPanel pnlFiducialess = new JPanel();
-  private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
+  private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
 

@@ -12,7 +12,6 @@ import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -54,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.37  2005/12/14 20:56:48  sueh
+ * bug# 784 Added tool tips.
+ *
  * Revision 3.36  2005/11/21 20:46:42  sueh
  * bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
  * missing.  Copy parallel process checkbox's enabled setting from the
@@ -314,7 +316,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private JPanel pnlMatchorwarpBody = new JPanel();
   private JPanel pnlPatchRegionModel = new JPanel();
   private SpacedPanel pnlPatchRegionModelBody = new SpacedPanel(true);
-  private JCheckBox cbUsePatchRegionModel = new JCheckBox(
+  private CheckBox cbUsePatchRegionModel = new CheckBox(
       "Use patch region model");
   private Run3dmodButton btnPatchRegionModel = new Run3dmodButton(
       "<html><b>Create/Edit Patch Region Model</b>", this);
@@ -331,7 +333,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "Number of rows to exclude on bottom (in Y): ");
   private LabeledTextField ltfZUpperExclude = new LabeledTextField(
       "Number of rows to exclude on top (in Y): ");
-  private JCheckBox cbUseLinearInterpolation = new JCheckBox(
+  private CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
   private JPanel pnlMatchorwarpButtons = new JPanel();
   private MultiLineButton btnMatchorwarpRestart = new MultiLineButton(
@@ -351,10 +353,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "<html><b>Open Volume Being Matched To</b>", this);
   private Run3dmodButton btnImodCombined = new Run3dmodButton(
       "<html><b>Open Combined Volume</b>", this);
-  private JCheckBox cbNoVolcombine = new JCheckBox(NO_VOLCOMBINE_TITLE);
+  private CheckBox cbNoVolcombine = new CheckBox(NO_VOLCOMBINE_TITLE);
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
-  private JCheckBox cbParallelProcess;
+  private CheckBox cbParallelProcess;
   private final PanelHeader patchRegionModelHeader;
   private final PanelHeader patchcorrHeader;
   private final PanelHeader matchorwarpHeader;
@@ -485,7 +487,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     pnlVolcombineBody.setLayout(new BoxLayout(pnlVolcombineBody,
         BoxLayout.Y_AXIS));
-    cbParallelProcess = new JCheckBox(
+    cbParallelProcess = new CheckBox(
         tomogramCombinationDialog.parallelProcessCheckBoxText);
     pnlVolcombineBody.add(cbParallelProcess);
     pnlVolcombineBody.add(cbNoVolcombine);

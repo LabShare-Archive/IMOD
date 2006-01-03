@@ -23,7 +23,6 @@ import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -46,7 +45,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   private JPanel pnlManualButtons = new JPanel();
   private JPanel pnlEraseButtons = new JPanel();
 
-  private JCheckBox cbXrayReplacement = new JCheckBox(
+  private CheckBox cbXrayReplacement = new CheckBox(
     "Automatic x-ray replacement");
   private LabeledTextField ltfPeakCriterion = new LabeledTextField(
     "Peak criterion:");
@@ -69,7 +68,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   private Run3dmodButton btnViewXRayModel = new Run3dmodButton(
     "<html><b>View X-ray Model</b>", this);
 
-  private JCheckBox cbManualReplacement = new JCheckBox("Manual replacement");
+  private CheckBox cbManualReplacement = new CheckBox("Manual replacement");
   private LabeledTextField ltfGlobalReplacementList = new LabeledTextField(
     "All section replacement list: ");
   private LabeledTextField ltfLocalReplacementList = new LabeledTextField(
@@ -84,7 +83,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     "Border pixels: ");
   private LabeledTextField ltfPolynomialOrder = new LabeledTextField(
     "Polynomial order: ");
-  private JCheckBox cbIncludeAdjacentPoints = new JCheckBox(
+  private CheckBox cbIncludeAdjacentPoints = new CheckBox(
     "Include adjacent points");
 
   private MultiLineButton btnErase = MultiLineButton.getToggleButtonInstance(
@@ -461,6 +460,10 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
 * <p> $Log$
+* <p> Revision 3.14  2005/10/27 00:33:54  sueh
+* <p> bug# 725 Calling preEraser instead eraser so that the B stack can be
+* <p> processed.
+* <p>
 * <p> Revision 3.13  2005/08/27 22:35:26  sueh
 * <p> bug# 532 Changed Autodoc.get() to getInstance().
 * <p>
