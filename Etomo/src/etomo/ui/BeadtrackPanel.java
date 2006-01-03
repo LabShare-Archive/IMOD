@@ -1,11 +1,13 @@
 package etomo.ui;
 
-import javax.swing.*;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
@@ -27,6 +29,9 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/11/14 21:27:40  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.9  2005/08/27 22:35:17  sueh
  * <p> bug# 532 Changed Autodoc.get() to getInstance().
  * <p>
@@ -123,8 +128,8 @@ public class BeadtrackPanel {
     new LabeledTextField("Minimum # of views for tilt alignment: ");
   private LabeledTextField ltfCentroidRadius =
     new LabeledTextField("Fiducial marker radius: ");
-  private JCheckBox cbLightBeads = new JCheckBox("Light fiducial markers");
-  JCheckBox cbFillGaps = new JCheckBox("Fill seed model gaps");
+  private CheckBox cbLightBeads = new CheckBox("Light fiducial markers");
+  CheckBox cbFillGaps = new CheckBox("Fill seed model gaps");
   private LabeledTextField ltfMaxGap =
     new LabeledTextField("Maximum gap size: ");
   private LabeledTextField ltfMinTiltRangeToFindAxis =
@@ -154,7 +159,7 @@ public class BeadtrackPanel {
   private LabeledTextField ltfMaxRescueDistance = new LabeledTextField(
   "Second pass maximum rescue distance: ");
   
-  private JCheckBox cbLocalAreaTracking = new JCheckBox("Local tracking");
+  private CheckBox cbLocalAreaTracking = new CheckBox("Local tracking");
   private LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
       "Local area size: ");
   private LabeledTextField ltfMinBeadsInArea = new LabeledTextField(
