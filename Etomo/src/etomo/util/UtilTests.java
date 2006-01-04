@@ -3,6 +3,7 @@ package etomo.util;
 import java.io.File;
 
 import etomo.JUnitTests;
+import etomo.ui.UITest;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 /**
@@ -26,16 +27,22 @@ public class UtilTests {
   
   public static Test suite() {
     TestSuite suite = new TestSuite("Test:  " + TEST_DIR);
+    //$JUnit-BEGIN$
     suite.addTestSuite(FileModifiedFlagTest.class);
 		suite.addTestSuite(MRCHeaderTest.class);
 		suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
+    //suite.addTest(new RemotePathTest("test_getRemotePath_unknownPath")); 
     suite.addTestSuite(UtilitiesTest.class);
+    //$JUnit-END$
 		return suite;
 	}
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/12/05 21:41:58  sueh
+ * <p> bug# 674 Added UtiltiesTest.
+ * <p>
  * <p> Revision 1.6  2005/11/15 21:21:14  sueh
  * <p> bug# 733 fixing IMODBuild
  * <p>
