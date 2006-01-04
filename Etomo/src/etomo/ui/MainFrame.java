@@ -31,6 +31,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2006/01/03 23:41:37  sueh
+ * <p> bug# 675 Created a way to kill the current Etomo.
+ * <p>
  * <p> Revision 3.37  2005/12/09 20:34:50  sueh
  * <p> bug# 776 In EtomoMenu removed the getActionCommand... functions and
  * <p> replaced them with equals().
@@ -432,14 +435,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     mainFrame = this;
     main = true;
   }
-  /*
-  final void deregister_test() {
-    if (!EtomoDirector.getInstance().isTest()) {
-      throw new IllegalStateException("Not in test mode");
-    }
-    registered = false;
-  }
-*/
+
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     this.currentManager = currentManager;
