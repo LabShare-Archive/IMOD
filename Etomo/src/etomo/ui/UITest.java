@@ -72,8 +72,8 @@ public class UITest extends JFCTestCase {
         TEST_REPOSITORY, false);
     //run each test specified in the Test sections
     SectionLocation testLoc = autodoc
-        .getSectionLocation(JfcUnitTests.TEST_SECTION_TYPE);
-    Section test = autodoc.getSection(JfcUnitTests.TEST_SECTION_TYPE, testName);
+        .getSectionLocation(UITestConstants.TEST_SECTION_TYPE);
+    Section test = autodoc.getSection(UITestConstants.TEST_SECTION_TYPE, testName);
     if (test != null) {
       runAxisLevelTests(processTestSection(test, sourceDir), sourceDir);
       test = autodoc.nextSection(testLoc);
@@ -144,12 +144,6 @@ public class UITest extends JFCTestCase {
       if (testingB && !axisBUITest.isDone()) {
         axisBUITest.test(testingA);
       }
-    }
-    EtomoDirector.removeInstance_test();
-    try {
-      Thread.sleep(10);
-    }
-    catch (InterruptedException e) {
     }
   }
 
@@ -374,6 +368,9 @@ public class UITest extends JFCTestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/01/04 00:08:44  sueh
+ * <p> bug# 675 Make test() run one test described in uitest.adoc.
+ * <p>
  * <p> Revision 1.3  2005/12/30 21:19:57  sueh
  * <p> bug# 675 class to run a jfcunit test
  * <p>
