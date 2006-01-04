@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/12/23 02:25:53  sueh
+ * <p> bug# 675 Added convertLabelToName, which converts a screen label to
+ * <p> a name for the screen element.
+ * <p>
  * <p> Revision 1.7  2005/08/09 21:13:49  sueh
  * <p> bug# 711 Moving button sizing from UIUtilities to the multi line button
  * <p> classes.
@@ -64,12 +68,12 @@ public class UIUtilities {
   public static final String rcsid = "$Id$";
 
   private static final int estimatedMenuHeight = 60;
-  
+
   private static Dimension screenSize = null;
 
   private UIUtilities() {
   }
-  
+
   /**
    * Add a component to a container followed by the default value of x space
    * @param panel
@@ -116,7 +120,7 @@ public class UIUtilities {
       }
     }
   }
-  
+
   /**
    * Set the button sizes (preferred and maximum) of all buttons in a container
    * to the same size.
@@ -127,14 +131,14 @@ public class UIUtilities {
     Component[] children = container.getComponents();
     for (int i = 0; i < children.length; i++) {
       if (children[i] instanceof AbstractButton
-        && !(children[i] instanceof JCheckBox)) {
+          && !(children[i] instanceof JCheckBox)) {
         AbstractButton btn = (AbstractButton) children[i];
         btn.setPreferredSize(size);
         btn.setMaximumSize(size);
       }
     }
   }
-  
+
   public static ColorUIResource getDefaultUIColor(String property) {
     ColorUIResource color = new ColorUIResource(0, 0, 0);
     color = (ColorUIResource) getDefaultUIResource(color, property);
@@ -155,7 +159,7 @@ public class UIUtilities {
     }
     return null;
   }
-  
+
   public static Dimension getScreenSize() {
     if (screenSize == null) {
       Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -164,21 +168,44 @@ public class UIUtilities {
     }
     return screenSize;
   }
-  
+
   static final String convertLabelToName(String label) {
     if (label == null) {
       return null;
     }
     String name = label;
-    int separatorIndex = name.indexOf(':');
-    if (separatorIndex != -1) {
-      name = name.substring(0, separatorIndex);
+    //System.out.println("step 0: " + name);
+    int index = name.indexOf(':');
+    if (index != -1) {
+      name = name.substring(0, index);
+      //System.out.println("step 1: " + name);
     }
-    int parenIndex = name.indexOf('(');
-    if (parenIndex != -1) {
-      name = name.substring(0, parenIndex);
+    int startIndex = name.indexOf('(');
+    while (startIndex != -1) {
+      int endIndex = name.indexOf(')');
+      if (endIndex != -1) {
+        name = name.substring(0, startIndex) + name.substring(endIndex + 1);
+        //System.out.println("step 2: " + name);
+      }
+      startIndex = name.indexOf('(');
+    }
+    startIndex = name.indexOf('<');
+    while (startIndex != -1) {
+      int endIndex = name.indexOf('>');
+      if (endIndex != -1) {
+        name = name.substring(0, startIndex) + name.substring(endIndex + 1);
+        //System.out.println("step 3: " + name);
+      }
+      startIndex = name.indexOf('<');
     }
     name = name.trim().toLowerCase().replace(' ', '-');
+    //System.out.println("step 4: " + name);
+    index = name.indexOf("--");
+    while (index != -1) {
+      name = name.substring(0, index) + name.substring(index + 1);
+      //System.out.println("step 5: " + name);
+      index = name.indexOf("--");
+    }
     return name;
   }
 }
