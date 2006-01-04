@@ -1,18 +1,11 @@
 package etomo;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import junit.textui.TestRunner;
-import etomo.type.AxisID;
-import etomo.ui.Autodoc;
-import etomo.ui.Section;
-import etomo.ui.SectionLocation;
 import etomo.ui.UITest;
-import etomo.util.RemotePathTest;
 
 /**
  * <p>Description: </p>
@@ -32,35 +25,20 @@ public final class JfcUnitTests {
   public static final String rcsid = "$Id$";
 
   public static final File TEST_ROOT_DIR = new File(System.getProperty("user.dir"), "UITests");
-  public static final String TEST_SECTION_TYPE = "Test";
   
   public static Test suite() throws IOException {
     TestSuite suite = new TestSuite("JfcUnit Tests");
-    //get the uitest.adoc
-/*    Autodoc.setTest(true);
-    Autodoc autodoc = null;
-    try {
-      autodoc = Autodoc.getInstance(Autodoc.UITEST, AxisID.ONLY);
-    }
-    catch (FileNotFoundException e) {
-      return suite;
-    }
-    if (autodoc == null) {
-      return suite;
-    }
-    //add each test based on what's in the autodoc Test sections
-    SectionLocation testLoc = autodoc.getSectionLocation(TEST_SECTION_TYPE);
-    Section test = autodoc.nextSection(testLoc);
-    while (test != null) {
-*/      suite.addTestSuite(UITest.class);
-/*      suite.addTest(new UITest(test.getName())); 
-      test = autodoc.nextSection(testLoc);
-    }
-*/    return suite;
+    suite.addTestSuite(UITest.class);
+    return suite;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/01/03 23:20:21  sueh
+ * <p> bug# 675 No longer controlling which tests to work on in this class.  Just
+ * <p> add the UITest suite.  To avoid having to restart Etomo, will call each test
+ * <p> from a script.
+ * <p>
  * <p> Revision 1.3  2005/12/30 21:19:01  sueh
  * <p> bug# 675 Class to run jfcunit tests
  * <p>
