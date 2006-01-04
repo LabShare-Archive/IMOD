@@ -10,9 +10,7 @@ import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
@@ -33,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/11/14 22:35:38  sueh
+ * <p> bug# 762 Made scaleAction().
+ * <p>
  * <p> Revision 3.9  2005/08/12 00:01:38  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -134,20 +135,20 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
 
   private JPanel pnlScale = new JPanel();
   private JPanel pnlScaleFixed = new JPanel();
-  private JCheckBox cbConvertToBytes = new JCheckBox("Convert to bytes");
-  private JRadioButton rbScaleFixed =
-    new JRadioButton("Scale to match contrast  ");
+  private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
+  private RadioButton rbScaleFixed =
+    new RadioButton("Scale to match contrast  ");
   private LabeledTextField ltfFixedScaleMin = new LabeledTextField("black: ");
   private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" white: ");
 
-  private JRadioButton rbScaleSection =
-    new JRadioButton("Find scaling from sections  ");
+  private RadioButton rbScaleSection =
+    new RadioButton("Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
   private LabeledTextField ltfSectionScaleMax =
     new LabeledTextField(" Z max: ");
 
-  private JCheckBox cbSwapYZ = new JCheckBox("Swap Y and Z dimensions");
+  private CheckBox cbSwapYZ = new CheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = new Run3dmodButton("<html><b>3dmod Full Volume</b>", this);

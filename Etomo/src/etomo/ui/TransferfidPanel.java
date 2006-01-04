@@ -6,9 +6,7 @@ import java.awt.Container;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import etomo.ApplicationManager;
 import etomo.comscript.TransferfidParam;
@@ -35,7 +33,7 @@ public class TransferfidPanel {
   MultiLineButton buttonTransferfid = null;
   private boolean includeButton = false;
 
-  private JCheckBox cbRunMidas = new JCheckBox("Run midas");
+  private CheckBox cbRunMidas = new CheckBox("Run midas");
   private LabeledTextField ltfCenterViewA =
     new LabeledTextField("Center view A: ");
   private LabeledTextField ltfCenterViewB =
@@ -45,9 +43,9 @@ public class TransferfidPanel {
 		
   private JPanel panelSearchDirection = new JPanel();
   private ButtonGroup bgSearchDirection = new ButtonGroup();
-  private JRadioButton rbSearchBoth = new JRadioButton("Both directions");
-  private JRadioButton rbSearchPlus90 = new JRadioButton("+90 (CCW) only");
-  private JRadioButton rbSearchMinus90 = new JRadioButton("-90 (CW) only");
+  private RadioButton rbSearchBoth = new RadioButton("Both directions");
+  private RadioButton rbSearchPlus90 = new RadioButton("+90 (CCW) only");
+  private RadioButton rbSearchMinus90 = new RadioButton("-90 (CW) only");
   private MetaData metaData;
   private AxisID axisID;
   private final ApplicationManager manager;
@@ -225,6 +223,10 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.5  2005/08/10 20:48:38  sueh
+ * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
+ * <p> of MultiLineButton.
+ * <p>
  * <p> Revision 3.4  2005/07/29 00:54:52  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
