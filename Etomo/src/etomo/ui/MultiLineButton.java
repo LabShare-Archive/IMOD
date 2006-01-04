@@ -29,6 +29,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.8  2006/01/03 23:42:21  sueh
+* <p> bug# 675 Made setName protected.
+* <p>
 * <p> Revision 3.7  2005/12/23 02:16:44  sueh
 * <p> bug# 675 Named the button so it can be found by JfcUnit.
 * <p>
@@ -97,7 +100,9 @@ public class MultiLineButton {
     String name = UIUtilities.convertLabelToName(label);
     button.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(name + ".bn " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(UITestConstants.BUTTON_ATTRIB
+          + AutodocTokenizer.SEPARATOR_CHAR + name
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
   

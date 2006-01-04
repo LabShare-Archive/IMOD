@@ -16,7 +16,10 @@ import etomo.EtomoDirector;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/03 23:30:46  sueh
+* <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
+* <p> </p>
 */
 final class CheckBox extends JCheckBox {
   public static  final String  rcsid =  "$Id$";
@@ -26,7 +29,9 @@ final class CheckBox extends JCheckBox {
     String name = UIUtilities.convertLabelToName(text);
     setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(name + ".cb " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(UITestConstants.CHECK_BOX_ATTRIB
+          + AutodocTokenizer.SEPARATOR_CHAR + name
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
   /**
@@ -54,5 +59,8 @@ final class CheckBox extends JCheckBox {
 */
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/03 23:30:46  sueh
+* <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
+* <p> </p>
 */

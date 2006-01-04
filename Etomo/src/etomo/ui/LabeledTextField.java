@@ -21,6 +21,11 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/01/03 23:40:26  sueh
+ * <p> bug# 675 Added a getNamelessInstance() to create an instance without
+ * <p> a name.  Added setName().  These functions can be used to create an
+ * <p> instances with an "unpublished" name.
+ * <p>
  * <p> Revision 3.9  2005/12/23 02:15:43  sueh
  * <p> bug# 675 Named the text field so it can be found by JfcUnit.
  * <p>
@@ -104,8 +109,9 @@ public class LabeledTextField {
       String name = UIUtilities.convertLabelToName(tfLabel);
       textField.setName(name);
       if (EtomoDirector.getInstance().isPrintNames()) {
-        System.out.println(name + ".tf " + AutodocTokenizer.DEFAULT_DELIMITER
-            + ' ');
+        System.out.println(UITestConstants.TEXT_FIELD_ATTRIB
+            + AutodocTokenizer.SEPARATOR_CHAR + name
+            + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
       }
     }
     //set label

@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/12/23 02:15:26  sueh
+ * <p> bug# 675 Named the spinner so it can be found by JfcUnit.
+ * <p>
  * <p> Revision 1.7  2005/06/13 23:37:15  sueh
  * <p> bug# 675 Added a setName() call to the constructor to try out jfcUnit.
  * <p>
@@ -80,7 +83,9 @@ public class LabeledSpinner {
     String name = UIUtilities.convertLabelToName(spinLabel);
     spinner.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(name + ".sp " + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(UITestConstants.SPINNER_ATTRIB
+          + AutodocTokenizer.SEPARATOR_CHAR + name
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     //set label
     label.setText(spinLabel);
