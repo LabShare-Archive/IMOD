@@ -77,6 +77,14 @@ public class RemotePathTest extends TestCase {
   private String sectionName = null;
   private String hostName = null;
   private String strippedHostName = null;
+  
+  public RemotePathTest() {
+    super();
+  }
+  
+  public RemotePathTest(String test) {
+    super(test);
+  }
 
   /**
    * Writes to a new a cpu.adoc file in a subdirectory of TEST_DIR.  Changes the
@@ -963,6 +971,10 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2005/12/30 17:54:13  sueh
+ * <p> bug# 675 Must set test in Autodoc because Autodoc is now imdependent
+ * <p> of EtomoDirector.
+ * <p>
  * <p> Revision 1.24  2005/12/23 02:28:19  sueh
  * <p> bug# 675 Changed EtomoDirectory.getCurrentTestManager to
  * <p> getCurrentManager_test.
