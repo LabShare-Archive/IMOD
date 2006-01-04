@@ -27,8 +27,9 @@ import junit.extensions.jfcunit.JFCTestCase;
 public class UITest extends JFCTestCase {
   public static final String rcsid = "$Id$";
 
-/*  static final File TEST_REPOSITORY = Utilities.getExistingDir(
-      "IMOD_TEST_REPOSITORY", AxisID.ONLY);
+  static final File TEST_REPOSITORY = Utilities.getExistingDir(
+      "IMOD_UITEST_SOURCE", AxisID.ONLY);
+  private static final String SECTION_NAME_ENV = "IMOD_TEST_SECTION";
 
   private static final String ADOC_ATTRIB = "adoc";
   private static final String COPY_ATTRIB = "copy";
@@ -37,29 +38,18 @@ public class UITest extends JFCTestCase {
   private static final String DATASET_ATTRIB = "dataset";
   private static final String DATASET_DIR_ATTRIB = "datasetdir";
   private static final String[] ARGS = new String[] { "--selftest", "--test" };
-  
-  private final String testName;
 
   private File testDir = null;
   private Autodoc autodocA = null;
   private Autodoc autodocB = null;
-  
-*/  public UITest(String testName) {
-    super("test");
-//    this.testName = testName;
-  }
-  
-  protected final void setUp() throws Exception {
-    super.setUp();
-//    Runtime.getRuntime().gc();
-  }
 
   /**
    * run all the tests in uitest.adoc
    * @throws IOException
    */
   public final void test() throws IOException {
-/*    System.err.println("test " + testName);
+    String testName = Utilities.getEnvironmentVariable(null, SECTION_NAME_ENV, AxisID.ONLY);
+    System.err.println("test " + testName + ":");
     //get the uitest.adoc
     Autodoc.setTest(true);
     Autodoc autodoc = null;
@@ -81,13 +71,14 @@ public class UITest extends JFCTestCase {
     File sourceDir = getRelativeDir(autodoc, SOURCE_DIR_ATTRIB,
         TEST_REPOSITORY, false);
     //run each test specified in the Test sections
-    SectionLocation testLoc = autodoc.getSectionLocation(JfcUnitTests.TEST_SECTION_TYPE);
+    SectionLocation testLoc = autodoc
+        .getSectionLocation(JfcUnitTests.TEST_SECTION_TYPE);
     Section test = autodoc.getSection(JfcUnitTests.TEST_SECTION_TYPE, testName);
     if (test != null) {
       runAxisLevelTests(processTestSection(test, sourceDir), sourceDir);
       test = autodoc.nextSection(testLoc);
     }
-*/  }
+  }
 
   /**
    * Performs all commands and open all autodocs found in the section
@@ -99,7 +90,7 @@ public class UITest extends JFCTestCase {
    */
   private final String processTestSection(Section test, File sourceDir)
       throws FileNotFoundException, IOException {
-/*    autodocA = null;
+    autodocA = null;
     autodocB = null;
     //clean the dataset directory and make it the working directory
     File datasetDir = cleanDatasetDir(test);
@@ -122,7 +113,7 @@ public class UITest extends JFCTestCase {
       }
       attrib = test.nextAttribute(attribLoc);
     }
-*/    return null;//dataset;
+    return dataset;
   }
 
   /**
@@ -131,7 +122,7 @@ public class UITest extends JFCTestCase {
    * @param sourceDir
    */
   private final void runAxisLevelTests(String dataset, File sourceDir) {
-/*    if (autodocA == null && autodocB == null) {
+    if (autodocA == null && autodocB == null) {
       return;
     }
     EtomoDirector etomo = EtomoDirector.createInstance_test(ARGS);
@@ -160,7 +151,7 @@ public class UITest extends JFCTestCase {
     }
     catch (InterruptedException e) {
     }
-*/  }
+  }
 
   /**
    * copy a file from sourceDir to the working directory
@@ -192,7 +183,7 @@ public class UITest extends JFCTestCase {
    */
   private final void setAutodoc(Attribute adocAttrib, File sourceDir)
       throws FileNotFoundException, IOException {
-/*    //look for adoc =
+    //look for adoc =
     String value = adocAttrib.getUnformattedValue();
     if (value != null) {
       //Set autodocA if it is not already set
@@ -227,10 +218,10 @@ public class UITest extends JFCTestCase {
             AxisID.ONLY);
       }
     }
-*/  }
+  }
 
   private final String getDataset(Section section) {
-/*    try {
+    try {
       String value = section.getAttribute(DATASET_ATTRIB).getUnformattedValue();
       if (value != null) {
         return value;
@@ -238,7 +229,7 @@ public class UITest extends JFCTestCase {
     }
     catch (NullPointerException e) {
     }
-*/    return null;//section.getName();
+    return section.getName();
   }
 
   /**
@@ -249,14 +240,14 @@ public class UITest extends JFCTestCase {
    * @return
    */
   private final File cleanDatasetDir(Section section) {
-/*    File datasetDir = getRequiredRelativeDir(section, DATASET_DIR_ATTRIB,
+    File datasetDir = getRequiredRelativeDir(section, DATASET_DIR_ATTRIB,
         testDir, true);
     SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
         new String[] { "rm", "-fr", datasetDir.getAbsolutePath() }, AxisID.ONLY);
     remove.run();
     datasetDir.mkdir();
     System.setProperty("user.dir", datasetDir.getAbsolutePath());
-*/    return null;//datasetDir;
+    return datasetDir;
   }
 
   /**
@@ -272,7 +263,7 @@ public class UITest extends JFCTestCase {
    */
   private final File getRelativeDir(Autodoc autodoc, String attribName,
       File rootDir, boolean makeDirs) {
-/*    //Make the root directories on the root directory since it could be returned
+    //Make the root directories on the root directory since it could be returned
     if (makeDirs && !rootDir.exists()) {
       rootDir.mkdirs();
     }
@@ -289,7 +280,7 @@ public class UITest extends JFCTestCase {
     if (makeDirs && !dir.exists()) {
       dir.mkdirs();
     }
-*/    return null;//dir;
+    return dir;
   }
 
   /**
@@ -383,6 +374,9 @@ public class UITest extends JFCTestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/12/30 21:19:57  sueh
+ * <p> bug# 675 class to run a jfcunit test
+ * <p>
  * <p> Revision 1.1  2005/12/23 02:25:03  sueh
  * <p> bug# 675 A class to generically run Etomo through the UI.
  * <p> </p>
