@@ -47,6 +47,7 @@ abstract class EtomoFrame extends JFrame {
   private static final String NO = "No";
   private static final String OK = "OK";
 
+  private long popupCounter = 0;
   protected boolean main;
   protected EtomoMenu menu;
   protected JMenuBar menuBar;
@@ -438,8 +439,12 @@ abstract class EtomoFrame extends JFrame {
   }
 
   private final void printTitle(String title, String option1, String option2) {
-    StringBuffer buffer = new StringBuffer("popup "
-        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + title + ',' + option1);
+    System.out.println("popup" + AutodocTokenizer.SEPARATOR_CHAR
+        + String.valueOf(popupCounter) + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+        + ' ' + title);
+    StringBuffer buffer = new StringBuffer("popup"
+        + AutodocTokenizer.SEPARATOR_CHAR + String.valueOf(popupCounter++) + ' '
+        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + option1);
     if (option2 != null) {
       buffer.append(',' + option2);
     }
@@ -469,9 +474,9 @@ abstract class EtomoFrame extends JFrame {
     if (printNames) {
       printTitle(title, results[0], results[1]);
     }
-    int result = JOptionPane.showOptionDialog(this, wrap(message),
-        title, JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE, null, results, "No");
+    int result = JOptionPane.showOptionDialog(this, wrap(message), title,
+        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, results,
+        "No");
     return result == 0;
   }
 
@@ -742,6 +747,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/01/03 23:37:37  sueh
+ * <p> bug# 675 If print names is set in EtomoDirector, print the information
+ * <p> needed to get and manipulate the dialog.
+ * <p>
  * <p> Revision 1.17  2005/12/09 20:29:25  sueh
  * <p> bug# Added an info message popup
  * <p>
