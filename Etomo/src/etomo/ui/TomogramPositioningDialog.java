@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2005/11/14 22:29:13  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.36  2005/08/12 00:01:26  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -265,7 +268,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   private LabeledTextField ltfSampleTomoThickness = new LabeledTextField(
     "Sample tomogram thickness: ");
 
-  private NamedCheckBox cbFiducialess = new NamedCheckBox("Fiducialless alignment");
+  private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
   "Tilt axis rotation:");
   
@@ -273,7 +276,7 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private LabeledSpinner spinBinning;
 
-  private NamedCheckBox cbWholeTomogram = new NamedCheckBox("Use whole tomogram");
+  private CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
 
   private JPanel pnlPositionButtons = new JPanel();
 
@@ -320,13 +323,13 @@ public class TomogramPositioningDialog extends ProcessDialog
     //if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  cbWholeTomogram.setEnabled(false);
     //}
-    pnlWholeTomogram.add(cbWholeTomogram.getContainer());
+    pnlWholeTomogram.add(cbWholeTomogram);
     pnlWholeTomogram.add(spinBinning.getContainer());
 
     pnlTomoParams.setLayout(new BoxLayout(pnlTomoParams, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlTomoParams, ltfSampleTomoThickness
       .getContainer());
-    UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess.getContainer());
+    UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess);
     UIUtilities.addWithYSpace(pnlTomoParams, ltfRotation.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, pnlWholeTomogram);
     UIUtilities.alignComponentsX(pnlTomoParams, Component.LEFT_ALIGNMENT);

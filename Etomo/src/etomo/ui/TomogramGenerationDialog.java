@@ -18,7 +18,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -70,6 +69,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.78  2005/12/14 20:59:06  sueh
+ * bug# 784 Added tool tips.
+ *
  * Revision 3.77  2005/12/13 02:30:33  sueh
  * bug# 773 Getting default parallel processing checkbox setting from
  * metadata.defaultParallel.
@@ -525,12 +527,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
-  private JCheckBox cbFiducialess = new JCheckBox("Fiducialless alignment");
+  private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation: ");
 
   // Newst/Newstack objects
-  private JCheckBox cbBoxUseLinearInterpolation = new JCheckBox(
+  private CheckBox cbBoxUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
   private LabeledSpinner spinBinning;
 
@@ -562,7 +564,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private SpacedTextField ltfDensityScale = new SpacedTextField(
       "Output density scaling factor: ");
   private SpacedTextField ltfLogOffset = new SpacedTextField("Log offset: ");
-  private JCheckBox cbBoxUseLocalAlignment = new JCheckBox(
+  private CheckBox cbBoxUseLocalAlignment = new CheckBox(
       "Use local alignments");
 
   //  Trial tomogram objects
@@ -604,10 +606,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       "<html><b>View Tomogram In 3dmod</b>", this);
   private MultiLineButton btnDeleteStacks = MultiLineButton
       .getToggleButtonInstance("<html><b>Delete Aligned Image Stack</b>");
-  private JCheckBox cbUseZFactors = new JCheckBox("Use Z factors");
+  private CheckBox cbUseZFactors = new CheckBox("Use Z factors");
   private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
       "Extra views to exclude: ");
-  private JCheckBox cbParallelProcess;
+  private CheckBox cbParallelProcess;
   //headers should not go into garbage collection
   private PanelHeader newstHeader = null;
   private PanelHeader tiltHeader = null;
@@ -1220,11 +1222,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(axisID,
         ProcessName.TILT);
     if (maxCPUs != null && !maxCPUs.isNull()) {
-      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE
+      cbParallelProcess = new CheckBox(ParallelPanel.TITLE
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
     }
     else {
-      cbParallelProcess = new JCheckBox(ParallelPanel.TITLE);
+      cbParallelProcess = new CheckBox(ParallelPanel.TITLE);
     }
     //panels
     JPanel tiltPanel = new JPanel();

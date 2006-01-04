@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -47,6 +46,11 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2005/11/21 20:47:02  sueh
+ * <p> bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
+ * <p> missing.  Copy parallel process checkbox's enabled setting from the
+ * <p> Setup to the Final tab.
+ * <p>
  * <p> Revision 3.31  2005/11/14 22:21:34  sueh
  * <p> Removed extra ;'s.
  * <p>
@@ -323,16 +327,16 @@ public class TomogramCombinationDialog
   }
   
   
-  static final JCheckBox getParallelProcessCheckBox() {
+  static final CheckBox getParallelProcessCheckBox() {
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
         ProcessName.VOLCOMBINE);
-    JCheckBox parallelProcessCheckBox;
+    CheckBox parallelProcessCheckBox;
     if (maxCPUs != null && !maxCPUs.isNull()) {
-      parallelProcessCheckBox = new JCheckBox(ParallelPanel.TITLE
+      parallelProcessCheckBox = new CheckBox(ParallelPanel.TITLE
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
     }
     else {
-      parallelProcessCheckBox = new JCheckBox(ParallelPanel.TITLE);
+      parallelProcessCheckBox = new CheckBox(ParallelPanel.TITLE);
     }
     return parallelProcessCheckBox;
   }
