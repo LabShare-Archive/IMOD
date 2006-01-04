@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/01/03 23:44:41  sueh
+ * <p> bug# 675 Getting the test section name from JfcUnitTests
+ * <p>
  * <p> Revision 3.13  2005/12/29 18:16:55  sueh
  * <p> bug# 675 temporarily deleting classes using jfcunit
  * <p>
@@ -98,7 +101,6 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.JfcUnitTests;
 import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
@@ -147,10 +149,9 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + JfcUnitTests.TEST_SECTION_TYPE
+      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestConstants.TEST_SECTION_TYPE
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
-      System.out.println(name + AutodocTokenizer.SEPARATOR_CHAR + "pl");
     }
     //  Get the default initial advanced state
     isAdvanced = appManager.isAdvanced(dialogType, axisID);
