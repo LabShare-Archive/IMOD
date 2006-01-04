@@ -3,7 +3,6 @@ package etomo.util;
 import java.io.File;
 
 import etomo.JUnitTests;
-import etomo.ui.UITest;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 /**
@@ -32,7 +31,7 @@ public class UtilTests {
 		suite.addTestSuite(MRCHeaderTest.class);
 		suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
-    //suite.addTest(new RemotePathTest("test_getRemotePath_unknownPath")); 
+    //suite.addTest(new RemotePathTest("test_getRemotePath_unknownPath"));
     suite.addTestSuite(UtilitiesTest.class);
     //$JUnit-END$
 		return suite;
@@ -40,6 +39,10 @@ public class UtilTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/01/04 00:35:00  sueh
+ * <p> bug# 675 Added constructors RemotePathTest, so a single test or all tests
+ * <p> could be run.
+ * <p>
  * <p> Revision 1.7  2005/12/05 21:41:58  sueh
  * <p> bug# 674 Added UtiltiesTest.
  * <p>
