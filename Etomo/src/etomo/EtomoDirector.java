@@ -119,17 +119,6 @@ public class EtomoDirector {
     }
     return theEtomoDirector;
   }
-  
-  public synchronized static void removeInstance_test() {
-    if (theEtomoDirector == null) {
-      return;
-    }
-    theEtomoDirector.exitProgram(AxisID.ONLY);
-    if (!theEtomoDirector.test) {
-      throw new IllegalStateException("Not in test mode");
-    }
-    theEtomoDirector = null;
-  }
 
   private EtomoDirector() {
   }
@@ -981,6 +970,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2006/01/03 23:18:32  sueh
+ * <p> bug# 675 Made Utilities more independent from EtomoDirector.  Added
+ * <p> removeInstance_test to destroy the EtomoDirector istance.
+ * <p>
  * <p> Revision 1.37  2005/12/23 02:02:14  sueh
  * <p> bug# 675 Stop initializing etomo from getInstance().  Throw an exception in
  * <p> getInstance() if etomo hasn't been initialized.  This allows better control of
