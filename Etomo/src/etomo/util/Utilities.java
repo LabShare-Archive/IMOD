@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.36  2005/12/09 20:40:30  sueh
+ * <p> $bug#776 added findMessageAndOpenDialog                                                                                                                                                                    bug#
+ * <p> $
  * <p> $Revision 3.35  2005/12/05 21:58:35  sueh
  * <p> $bug# 674 Added comments to the new functions.
  * <p> $
@@ -205,7 +208,6 @@ public class Utilities {
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
   private static boolean selfTest = false;
-  private static boolean retrievedTimestamp = false;
   private static boolean timestamp = false;
   private static boolean setWindowsOS = false;
   private static boolean windowsOS = false;
@@ -647,7 +649,7 @@ public class Utilities {
    * @param status
    */
   public static void timestamp(String process, String container, String status) {
-    if (!isTimestamp()) {
+    if (!timestamp) {
       return;
     }
     timestamp(process, null, container, status);
@@ -655,7 +657,7 @@ public class Utilities {
 
   public static void timestamp(String process, ProcessName container,
       String status) {
-    if (!isTimestamp()) {
+    if (!timestamp) {
       return;
     }
     timestamp(process, null, container.toString(), status);
@@ -670,7 +672,7 @@ public class Utilities {
    */
   public static void timestamp(String process, String command, File container,
       String status) {
-    if (!isTimestamp()) {
+    if (!timestamp) {
       return;
     }
     timestamp(process, command, container.getName(), status);
@@ -685,14 +687,14 @@ public class Utilities {
    */
   public static void timestamp(String process, String command,
       ComScript container, String status) {
-    if (!isTimestamp()) {
+    if (!timestamp) {
       return;
     }
     timestamp(process, command, container.getName(), status);
   }
 
   public static void timestamp(String command, String status) {
-    if (!isTimestamp()) {
+    if (!timestamp) {
       return;
     }
     timestamp(null, command, (String) null, status);
@@ -707,7 +709,7 @@ public class Utilities {
    */
   public static void timestamp(String process, String command,
       String container, String status) {
-    if (!isTimestamp()) {
+    if (!timestamp) {
       return;
     }
     StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
@@ -746,15 +748,8 @@ public class Utilities {
     return debug;
   }
 
-  public static boolean isTimestamp() {
-    if (!retrievedTimestamp) {
-      timestamp = EtomoDirector.getInstance().isTimestamp();
-      retrievedTimestamp = true;
-    }
-    if (timestamp) {
-      return true;
-    }
-    return isDebug();
+  public static void setTimestamp(boolean timestamp) {
+    Utilities.timestamp = timestamp;
   }
 
   public static boolean isSelfTest() {
@@ -807,7 +802,7 @@ public class Utilities {
     return Double.parseDouble(left.toString() + '.' + right.toString() + 'E'
         + exponent);
   }
-  
+
   /**
    * Converts a number to scientific notation and breaks it into three strings:
    * left of the decimal point, right of the decimal point, and the power of 10.
@@ -959,9 +954,9 @@ public class Utilities {
     }
     return exponent.toString();
   }
-  
+
   public static final void findMessageAndOpenDialog(AxisID axisID,
-      String [] searchLines, String startsWith, String title) {
+      String[] searchLines, String startsWith, String title) {
     if (searchLines == null) {
       return;
     }
@@ -970,5 +965,37 @@ public class Utilities {
         UIHarness.INSTANCE.openInfoMessageDialog(searchLines[i], title, axisID);
       }
     }
+  }
+
+  public static final File getExistingDir(String envVariable, AxisID axisID) {
+    if (envVariable == null || envVariable.matches("\\s*+")) {
+      return null;
+    }
+    String dirName = new String(getEnvironmentVariable(null, envVariable,
+        axisID));
+    File dir = new File(dirName);
+    if (!checkExistingDir(dir, envVariable)) {
+      return null;
+    }
+    return dir;
+  }
+
+  public static final boolean checkExistingDir(File dir, String envVariable) {
+    if (!dir.exists()) {
+      System.err.println("Warning:  " + dir.getAbsolutePath()
+          + " does not exist.  See $" + envVariable + ".");
+      return false;
+    }
+    if (!dir.isDirectory()) {
+      System.err.println("Warning:  " + dir.getAbsolutePath()
+          + " is not a directory.  See $" + envVariable + ".");
+      return false;
+    }
+    if (!dir.canRead()) {
+      System.err.println("Warning:  cannot read " + dir.getAbsolutePath()
+          + ".  See $" + envVariable + ".");
+      return false;
+    }
+    return true;
   }
 }
