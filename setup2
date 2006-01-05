@@ -771,7 +771,7 @@ else
         mkdir -p $etomo_dir/jar_dir
         \cp -p $use_etomo/etomo.jar $etomo_dir/jar_dir
         sed -e '/^tests:/s//realtests:/' \
-            -e '/^uitestinstall:/s//realuitestinstall:/' -e \
+            -e '/^uitestinstall:/s//realuitestinstall:/' \
           $etomo_dir/Makefile.real >> $etomo_dir/Makefile
         echo "tests:" >> $etomo_dir/Makefile
         echo "uitestinstall:" >> $etomo_dir/Makefile
@@ -827,6 +827,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.13  2006/01/03 19:59:15  mast
+#  Jumper out uitests if not building etomo
+#
 #  Revision 1.12  2006/01/03 18:58:32  mast
 #  Added jfcunit
 #
