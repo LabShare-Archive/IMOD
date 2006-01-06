@@ -22,6 +22,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2005/11/30 21:14:23  sueh
+ * <p> bug# 744 Fixed processDone().  Was not popping up error messages from
+ * <p> standard out.
+ * <p>
  * <p> Revision 3.20  2005/11/19 02:10:48  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
@@ -305,6 +309,10 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    */
   public final File getWorkingDirectory() {
     return workingDirectory;
+  }
+  
+  protected Command getCommand() {
+    return command;
   }
 
   /**
