@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/5/06: Fixed a bug where processchunk failed on a working directory path with
+embedded spaces.
+
 12/22/05: Added help message to Etomo.
 
 12/20/05: Changed reading of piece coordinates from header to treat X and Y
