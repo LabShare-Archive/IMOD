@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/6/06: Fixed a bug which prevented starting and ending error messages from
+processchunks to be completely displayed to the user.
+
 1/6/06: Fixed a bug which caused the Matchvol1 and Matchorwarp done percentage
 monitors to start late.
 
