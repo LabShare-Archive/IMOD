@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/6/06: Fixed a bug that caused the autodoc reader send an error the the error
+log when $AUTODOC_DIR wasn't set.
+
 1/5/06: Fixed a bug where processchunk failed on a working directory path with
 embedded spaces.
 
