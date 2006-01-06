@@ -122,13 +122,20 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
       return returnValue;
     }
     String line;
+    boolean failed = false;
     while ((line = bufferedReader.readLine()) != null) {
       line = line.trim();
       //System.out.println(line);
       messages.addProcessOutput(line);
       if (messages.isError()) {
-        endMonitor(ProcessEndState.FAILED);
-        return false;
+        //Set failure boolean but continue to add all the output lines to
+        //messages.
+        failed = true;
+      }
+      //If it got an error message, then it seems like the best thing to do is
+      //stop processing.
+      if (failed) {
+        continue;
       }
       if (line.endsWith("to reassemble")) {
         //handle all chunks finished, starting the reassemble
@@ -182,6 +189,10 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
           }
         }
       }
+    }
+    if (failed) {
+      endMonitor(ProcessEndState.FAILED);
+      returnValue = false;
     }
     return returnValue;
   }
@@ -380,6 +391,10 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2005/11/29 22:24:10  sueh
+ * <p> bug# 744 Stop putting processchunks output into the error log, since its
+ * <p> going into the .out file.
+ * <p>
  * <p> Revision 1.14  2005/11/19 02:36:13  sueh
  * <p> bug# 744 Converted to a detached program.  Managing the process
  * <p> output file.  No longer using the process.  Reading the process output file
