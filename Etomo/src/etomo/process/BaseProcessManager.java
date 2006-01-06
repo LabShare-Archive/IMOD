@@ -7,6 +7,7 @@ import java.util.HashMap;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
+import etomo.comscript.DetachedCommand;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.LoadAverageParam;
@@ -33,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2005/12/14 01:27:13  sueh
+ * <p> bug# 782 Added toString().
+ * <p>
  * <p> Revision 1.33  2005/12/12 21:59:17  sueh
  * <p> bug# 778 Made isAxisBusy protected and added public inUse, which
  * <p> doesn't throw an exception.
@@ -876,15 +880,15 @@ public abstract class BaseProcessManager {
         axisID, null);
   }
 
-  protected BackgroundProcess startDetachedProcess(Command command,
+  protected BackgroundProcess startDetachedProcess(DetachedCommand detachedCommand,
       AxisID axisID, DetachedProcessMonitor monitor)
       throws SystemProcessException {
 
     isAxisBusy(axisID);
 
     DetachedProcess detachedProcess = new DetachedProcess(getManager(),
-        command, this, axisID, monitor);
-    return startBackgroundProcess(detachedProcess, command.getCommandLine(),
+        detachedCommand, this, axisID, monitor);
+    return startBackgroundProcess(detachedProcess, detachedCommand.getCommandLine(),
         axisID, monitor);
   }
 

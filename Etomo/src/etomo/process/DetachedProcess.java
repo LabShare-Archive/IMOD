@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.comscript.Command;
+import etomo.comscript.DetachedCommand;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.ui.UIHarness;
@@ -32,7 +32,7 @@ final class DetachedProcess extends BackgroundProcess {
   private final BaseManager manager;
   private final DetachedProcessMonitor monitor;
 
-  public DetachedProcess(BaseManager manager, Command command,
+  public DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
       DetachedProcessMonitor monitor) {
     super(manager, command, processManager, axisID);
@@ -74,8 +74,8 @@ final class DetachedProcess extends BackgroundProcess {
     }
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
-    bufferedWriter.write(getCommandLine() + " >& "
-        + monitor.getProcessOutputFileName() + "&");
+    bufferedWriter.write(((DetachedCommand) getCommand()).getCommandString()
+        + " >& " + monitor.getProcessOutputFileName() + "&");
     bufferedWriter.newLine();
     bufferedWriter.close();
     if (getWorkingDirectory() == null) {
@@ -115,6 +115,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2005/11/19 02:21:40  sueh
+ * <p> bug# 744 Added makeRunFile, newProgram, and pause.
+ * <p>
  * <p> Revision 1.1  2005/11/14 21:24:28  sueh
  * <p> bug 744 A class that extends BackgroundProcess and runs detached so
  * <p> that Etomo can exit while the process is running.
