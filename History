@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/6/06: Fixed a bug which caused the matchorwarp done percentage monitor to
+start late.
+
 1/6/06: Fixed a bug that caused the autodoc reader to send an error to the
 error log when $AUTODOC_DIR wasn't set.
 
