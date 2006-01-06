@@ -17,7 +17,10 @@ import etomo.type.AxisID;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/26 23:41:56  sueh
+* <p> bug# 83 Matchvol1 process monitor.
+* <p> </p>
 */
 public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
   public static  final String  rcsid =  "$Id$";
@@ -75,9 +78,12 @@ public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
+    Thread.sleep(updatePeriod);
     while (!foundNSections) {
-      Thread.sleep(updatePeriod);
       String line = logFileReader.readLine();
+      if (line == null) {
+        Thread.sleep(updatePeriod);
+      }
       if (line != null && line.trim().startsWith("Finished")) {
         line = line.trim();
         String[] strings = line.split("\\s+");
@@ -85,6 +91,6 @@ public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
         foundNSections = true;
       }
     }
+    Thread.sleep(updatePeriod);
   }
-
 }
