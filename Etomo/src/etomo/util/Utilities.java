@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.37  2006/01/04 00:34:31  sueh
+ * <p> $bug# 675 Making class more independent from EtomoDirector.
+ * <p> $
  * <p> $Revision 3.36  2005/12/09 20:40:30  sueh
  * <p> $bug#776 added findMessageAndOpenDialog                                                                                                                                                                    bug#
  * <p> $
@@ -971,8 +974,11 @@ public class Utilities {
     if (envVariable == null || envVariable.matches("\\s*+")) {
       return null;
     }
-    String dirName = new String(getEnvironmentVariable(null, envVariable,
-        axisID));
+    String dirName = getEnvironmentVariable(null, envVariable,
+        axisID);
+    if (dirName == null || dirName.matches("\\s*+")) {
+      return null;
+    }
     File dir = new File(dirName);
     if (!checkExistingDir(dir, envVariable)) {
       return null;
