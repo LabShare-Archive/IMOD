@@ -25,13 +25,17 @@ import etomo.util.RemotePath;
  * 
  * @version $Revision$
  */
-public final class ProcesschunksParam implements Command, ParallelParam {
+public final class ProcesschunksParam implements DetachedCommand, ParallelParam {
   public static final String rcsid = "$Id$";
 
   public static final int NICE_DEFAULT = 15;
   public static final int NICE_FLOOR = 0;
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
+  public static final String WORKING_DIR_OPTION = "-w";
+  public static final String COMMAND_FILE_OPTION = "-f";
+  public static final String[] DIR_OPTIONS = { COMMAND_FILE_OPTION,
+      WORKING_DIR_OPTION };
 
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
@@ -62,8 +66,9 @@ public final class ProcesschunksParam implements Command, ParallelParam {
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add("tcsh");
-    command.add("-f");
-    command.add(BaseManager.getIMODBinPath() + ProcessName.PROCESSCHUNKS);
+    command.add(COMMAND_FILE_OPTION);
+    command.add(BaseManager.getIMODBinPath()
+        + ProcessName.PROCESSCHUNKS.toString());
     if (resume.is()) {
       command.add("-r");
     }
@@ -73,7 +78,7 @@ public final class ProcesschunksParam implements Command, ParallelParam {
     String remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
         .getPropertyUserDir(), axisID);
     if (remoteUserDir != null) {
-      command.add("-w");
+      command.add(WORKING_DIR_OPTION);
       command.add(remoteUserDir);
     }
     command.add("-d");
@@ -183,11 +188,11 @@ public final class ProcesschunksParam implements Command, ParallelParam {
     }
     machineNames.add(machineName);
   }
-  
+
   public String getCommandName() {
     return ProcessName.PROCESSCHUNKS.toString();
   }
-  
+
   public String getCommandLine() {
     String[] commandArray = getCommand();
     if (commandArray == null || commandArray.length == 0) {
@@ -199,11 +204,76 @@ public final class ProcesschunksParam implements Command, ParallelParam {
     }
     return buffer.toString();
   }
-  
+
   public String[] getCommandArray() {
     return getCommand();
   }
-  
+
+  /**
+   * Gets a string version of the command array which can be used safely, even
+   * if there are embedded spaces in the directory paths, because the directory
+   * path spaces have been back-slashed.
+   */
+  public final String getCommandString() {
+    getCommand();
+    if (commandArray == null) {
+      return null;
+    }
+    StringBuffer buffer = new StringBuffer();
+    boolean foundDir = false;
+    for (int i = 0; i < commandArray.length; i++) {
+      String command = commandArray[i];
+      //add back slashes to the spaces in any directory path
+      boolean foundDirOption = false;
+      for (int j = 0; j < DIR_OPTIONS.length; j++) {
+        if (command.equals(DIR_OPTIONS[j])) {
+          //found an option which takes a directory path
+          foundDirOption = true;
+          foundDir = true;
+        }
+      }
+      if (!foundDirOption && foundDir) {
+        //add back slashes to the spaces in this directory path
+        foundDir = false;
+        command = backSlashSpaces(command);
+      }
+      //add each option to the buffer
+      if (i == 0) {
+        buffer.append(command);
+      }
+      else {
+        buffer.append(" " + command);
+      }
+    }
+    System.out.println(buffer);
+    return buffer.toString();
+  }
+
+  /**
+   * Put a back slash in front of each space in directoryPath
+   * @param directoryPath
+   * @return
+   */
+  private final String backSlashSpaces(String directoryPath) {
+    if (directoryPath == null) {
+      return null;
+    }
+    //see if directory path has any spaces
+    int spaceIndex = directoryPath.indexOf(' ');
+    while (spaceIndex != -1) {
+      //find each space and add a backslash to it
+      directoryPath = directoryPath.substring(0, spaceIndex) + "\\ "
+          + directoryPath.substring(spaceIndex + 1);
+      int startingIndex = spaceIndex + 2;
+      if (startingIndex >= directoryPath.length()) {
+        break;
+      }
+      spaceIndex = directoryPath.indexOf(' ', startingIndex);
+      return directoryPath;
+    }
+    return directoryPath;
+  }
+
   public final String validate() {
     if (machineNames == null || machineNames.size() == 0) {
       return "No CPUs where selected.";
@@ -213,6 +283,10 @@ public final class ProcesschunksParam implements Command, ParallelParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2005/11/21 22:00:17  sueh
+ * <p> bug# 761 Added validate() to check that at least one machine name was
+ * <p> added.
+ * <p>
  * <p> Revision 1.10  2005/11/19 01:54:24  sueh
  * <p> bug# 744 Implementing Command.
  * <p>
