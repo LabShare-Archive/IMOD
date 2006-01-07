@@ -235,7 +235,8 @@ if ($retain == 0) then
         echo "Going to run $rootname-start first..."
         vmstocsh $rootname-start.log < $rootname-start.com | csh -ef
         if ($status) then
-            echo "Error running $rootname-start.com, check $rootname-start.log"
+            echo "ERROR: RUNNING $rootname-start.com, FROM $rootname-start.log:"
+            sed -n '/.*ERROR:/s//ERROR:/p' $rootname-start.log
             exit 1
         endif
     endif
@@ -449,7 +450,8 @@ while ($numdone < $#comlist)
         echo "Running $comname to synchronize ..."
         vmstocsh $logname < $comname | csh -ef
         if ($status) then
-            echo "Error running $comname, check $logname"
+            echo "ERROR: RUNNING $comname, FROM $logname:"
+            sed -n '/.*ERROR:/s//ERROR:/p' $logname
             exit 1
         endif
         set flags[$nextsync] = 1
@@ -487,6 +489,11 @@ end
 onintr finishkilled
 echo "ALL DONE - going to run $rootname-finish to reassemble"
 vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
+if ($status) then
+    echo "ERROR: RUNNING $rootname-finish.com, FROM $rootname-finish.log:"
+    sed -n '/.*ERROR:/s//ERROR:/p' $rootname-finish.log
+    exit 1
+endif
 if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
 echo "Finished reassembling"
 exit
@@ -634,6 +641,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.21  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.20  2005/11/16 05:52:32  mast
 #  *** empty log message ***
 #
