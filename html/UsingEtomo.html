@@ -11,6 +11,9 @@
 $Revision$
 
 $Log$
+Revision 3.4  2005/03/08 23:54:26  mast
+Updated for IMOD 3.5
+
 Revision 3.3  2003/11/05 21:25:49  rickg
 *** empty log message ***
 
@@ -51,10 +54,6 @@ eTomo</font></font></p>
 <p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
  align="center">
 <font face="Albany, sans-serif"><font size="4">Rick Gaudette</font></font></p>
-<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
- align="center">
-<a href="mailto:rickg@bio3d.colorado.edu"><font size="4"><font
- face="Albany, sans-serif">rickg@bio3d.colorado.edu</font></font></a></p>
 <p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
  align="center">
 <font face="Albany, sans-serif"><font size="4">Boulder Laboratory for
@@ -100,7 +99,7 @@ the command</p>
   </dd>
 </dl>
 <p class="western">
-It may take a little while to come up, Java applications have a slow
+It may take a little while to come up; Java applications have a slow
 startup time. You can also open up a previous dataset by specifying
 the relative path to the .edf file on the command line, such as</p>
 <dl>
@@ -210,22 +209,47 @@ will present a much more complete list of parameters for each step,
 which are mostly needed for unique or extreme cases.</p>
 <p class="western">Since the number of parameters that a particular
 step requires can vary significantly, the amount of screen space the
-GUI needs to present that information also changes. If the window is
-too small to display the information scroll bars will appear so that
-you can pan across the <b>Process Panel</b>. To fit the main window
-tightly around the <b>Process Panel</b> the <b>Options/Fit Window</b>
-menu item (hot key Ctrl-F) can be selected; this will resize the window
-appropriately.
-If you are working on a dual axis tomogram there will also be a
-divider between the information presented for each axis which can be
-moved to give each axis the desired amount of screen area.&nbsp; You
-can display just one axis or the other with the <span
- style="font-weight: bold;">Options/Axis A</span> and <span
- style="font-weight: bold;">Options/Axis B</span> menu items (hot keys
-Ctrl-A and Ctrl-B).&nbsp; You can also select an option to have the
-program adjust the window size automatically whenever you change
-screens.&nbsp; Select the <span style="font-weight: bold;">Options/Settings</span>
-menu item and check <span style="font-weight: bold;">Auto-fit</span>.<br>
+GUI needs to present that information also changes. The current version
+of the program will adjust the window size automatically to fit tightly
+around the <b>Process Panel </b>whenever you change
+screens or change the amount of information displayed (such as by
+changing to advanced mode).&nbsp; You make this fitting occur
+automatically by selecting the <b>Options/Fit Window</b>
+menu item or using <br>
+Ctrl-F hot key.&nbsp; Whenever the window is
+too small to display the information, scroll bars will appear so that
+you can pan across the <b>Process Panel</b>.&nbsp; To reduce the need
+for scrolling, several of the large panels are divided into sections
+that can be opened or closed independently with a button in the
+upper-left corner.&nbsp; This button is initially "<span
+ style="font-weight: bold;">-</span>" when the section is open, and
+becomes "<span style="font-weight: bold;">+</span>" when the section is
+closed.&nbsp; In addition, a<span style="font-weight: bold;"></span>
+button may appear in the upper right corner to allow a section to be
+switched to advanced or basic mode independently of the others; this
+button will be labeled <span style="font-weight: bold;">A</span> in
+basic mode and <span style="font-weight: bold;">B</span> in
+advanced.&nbsp; <br>
+</p>
+<p class="western">If you are working on a dual axis tomogram, each
+tomogram is processed in a separate window.&nbsp; The upper left corner
+of the <span style="font-weight: bold;">Axis A</span> window (or the <span
+ style="font-weight: bold;">Axis B</span> window, if it is the only one
+open) will have buttons to allow you to switch between displaying one
+or the other axis or both axes.&nbsp; There are also hot keys, Ctrl-A,
+Ctrl-B, and Ctrl-2, to display axis A, axis B, or both. <br>
+</p>
+<p class="western">Every process panel has one or more buttons for
+starting 3dmod to display an image file.&nbsp; To make it easier to
+deal with very large data sets and problems that require more control
+over the way that 3dmod is run, there are two ways to make 3dmod load
+in images binned by 2 or to make it open with its startup window, so
+that options can be selected.&nbsp; One way is to right-click on one of
+these buttons, then select <span style="font-weight: bold;">Open with
+startup window</span> or <span style="font-weight: bold;">Open binned
+by 2.</span>&nbsp; The other way is to select the corresponding items
+in the <span style="font-weight: bold;">Options</span> menu, which
+will make 3dmod open that way every time.<br>
 </p>
 <p class="western">It is possible to load more than one data set into
 eTomo.&nbsp; Under the <span style="font-weight: bold;">File</span>
@@ -272,28 +296,93 @@ file with extension .ejf.&nbsp; The state file is updated whenever you
 run a process, change process panels, or exit the program.&nbsp; If you
 wish to save this file with a different name, use the <b>File/Save as</b>
 menu item.&nbsp; Be aware that if you reopen an earlier version of the
-.edf file you may get unpredictable results.&nbsp; <br>
+.edf file you may get unpredictable results. <br>
 </p>
+<h2 class="western">Using Parallel Processing<br>
+</h2>
+<p><span style="font-family: helvetica,arial,sans-serif;">Two steps in
+the processing can now be split into chunks and run in parallel on
+multiple machines or processors: tomogram generation, and the final
+stage of combining volumes in a dual-axis data set.&nbsp; This
+capability is enabled if the machine on which you are running eTomo has
+a configuration file called cpu.adoc located in the IMOD calibration
+directory, which is /usr/local/ImodCalib by default.&nbsp; Run "man
+cpuadoc" for a full description of how to set up such a file.&nbsp; You
+will also need to be able to log in via ssh without entering a password
+and run IMOD on all of the other computers that you want to use.&nbsp;
+When parallel processing is available, you will be able to select
+whether to use it with checkboxes on the Tomogram Generation and the
+Combination Final Match pages.&nbsp; With it selected, a parallel
+processing table and controls will appear in the Process Monitor area
+of the window.&nbsp; The table will show computers, their properties,
+and their current loads.&nbsp; When you are ready to run the given
+operation, select the computers and number of CPUs that you want to
+use, then press the appropriate action button (e.g., <span
+ style="font-weight: bold;">Generate Tomogram</span>).&nbsp; The table
+will show how many chunks are completed on each machine.&nbsp; The
+parallel processing area includes several controls:<br>
+</span></p>
+<ul>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Kill</span> button, as usual, will kill all
+running processes</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Pause</span> button will stop the
+processing more gracefully by allowing all currently running chunks to
+finish.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Resume</span> button can be used after
+either a Kill or a Pause to resume processingwithout having to redo any
+chunks that were already completed.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Save as Defaults</span> button will save
+your current selection of computers as the default for future sessions.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Nice</span> control lets you select the
+"niceness" of your jobs; the higher the value, the lower the
+priority.&nbsp; The highest value is 19, which will compete with screen
+savers, while a value of 0 will compete equally with normal interactive
+usage of the machine.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">+/-</span> button in the upper left can be
+used to minimize the table.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">&lt;/&gt;</span> button in the upper right
+can be used to make the table smaller, so that it shows only the
+selected computers and information needed while running.<br>
+    </span></li>
+</ul>
+<p class="western"> </p>
 <span style="font-weight: bold;"></span>
 <h1 class="western"><a name="Reporting bugs|outline"></a>Reporting
 bugs</h1>
 <p class="western">We very much appreciate feedback from our
 users; this includes bug reports, suggestions for enhancements and
-general comments on what ideas or use models do or do not work. When
-reporting bugs it would be helpful to us if you included the log and
-output files associated with you session. You will find these files
-in the directory in which you started eTomo, they are named
-<i>etomo_out.log</i> and <i>etomo_err.log</i>. There are two ways in
-which you can report bugs either by sending us email at
-<a href="mailto:rickg@bio3d.colorado.edu">rickg@bio3d.colorado.edu</a>
-or by posting a message on the IMOD mailing list at the University of
-Colorado. Posting bugs, suggestions, and comments to the IMOD mailing
-list is the<span lang="en-US"> preferable </span>approach since that
-allows other to observe the discussion and see if they are
-encountering similar problems. To subscribe to the IMOD mailing list
+general comments on what ideas or use models do or do not work.&nbsp;
+eTomo itself is now mature enough so that it is often not initially
+obvious to either you or us whether a problem is occuring because of
+bug in eTomo, a bug in the rest of IMOD, or other difficulties with a
+particular data set.&nbsp; To help diagnose problems, we have developed
+a script, tomosnapshot, that will collect system information and
+package up many of the small files that reflect the state of the
+processing.&nbsp; The best way to run this is to cd to the directory
+where the data are, start eTomo with the .edf file for the given data
+set, repeat the series of actions that give the error (if this is
+reasonably fast), then select the menu item <span
+ style="font-weight: bold;">File/Run Tomosnapshot</span>.&nbsp; You can
+then send the resulting tar file (setname-snapshot.tar.gz), along with
+a description of what you did and the undesired result, to&nbsp;<a
+ href="mailto:mast@colorado.edu">mast@colorado.edu</a> or&nbsp;<a
+ href="mailto:sueh@colorado.edu">sueh@colorado.edu</a>.&nbsp; You can
+also report bugs and make suggestions or comments by posting a message
+on the IMOD mailing list at the University of
+Colorado. This allows others to observe the discussion and see if they
+are
+encountering similar problems; but please don't post your snapshot file
+to the list. To subscribe to the IMOD mailing list
 send an email to <a href="mailto:listproc@lists.Colorado.edu">listproc@lists.Colorado.edu</a>
 with the contents of the message being</p>
-<p class="western">subscribe imod <i>your-full-name</i></p>
+<p class="western">subscribe IMOD <i>your-full-name</i></p>
 <p class="western">replacing <i>your-full-name</i> with your name. </p>
 <p class="western"><br>
 <br>
