@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/10/06: Redimensioned Newstack to allow full rotation of 8K images. (In 3.7)
+
 1/6/06: Fixed a bug which prevented starting and ending error messages from
 processchunks from being completely displayed to the user. (In 3.7)
 

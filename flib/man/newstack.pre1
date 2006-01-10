@@ -156,7 +156,7 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   The program operates on very large images by reading, operating on, and
   writing strips of the image if necessary.  Images can be larger than 10K by
   10K if they are not being rotated much, but when images are rotated by large
-  angles (30-90 degrees), input image size may be limited to 4K by 4K.
+  angles (30-90 degrees), input image size may be limited to 8K by 8K.
 
   Each linear transformation in a transform file is specified by a line with 
   six numbers:
