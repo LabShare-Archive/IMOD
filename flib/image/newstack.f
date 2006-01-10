@@ -19,7 +19,7 @@ c	  Log at end of file
 c
 	implicit none
 	integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
-	parameter (maxdim=20000000,lmfil=1000,lmsec=50000,maxchunks=20)
+	parameter (maxdim=72000000,lmfil=1000,lmsec=50000,maxchunks=20)
 	parameter (maxextra=1500000, maxtemp=1000000)
 	parameter (lmGrid = 200)
 	integer*4 nx,ny,nz
@@ -1713,6 +1713,9 @@ c
 ************************************************************************
 *	  
 c	  $Log$
+c	  Revision 3.35  2005/12/09 04:45:32  mast
+c	  gfortran: .xor., continuation, or byte fixes
+c	
 c	  Revision 3.34  2005/11/11 22:53:17  mast
 c	  Changes for unsigned mode
 c	
