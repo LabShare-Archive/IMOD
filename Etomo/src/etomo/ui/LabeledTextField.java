@@ -21,6 +21,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/01/04 20:26:02  sueh
+ * <p> bug# 675 For printing the name:  putting the type first and making the type
+ * <p> as constant.
+ * <p>
  * <p> Revision 3.10  2006/01/03 23:40:26  sueh
  * <p> bug# 675 Added a getNamelessInstance() to create an instance without
  * <p> a name.  Added setName().  These functions can be used to create an
@@ -95,24 +99,14 @@ public class LabeledTextField {
   private JLabel label = new JLabel();
   private JTextField textField = new JTextField();
 
-  static final LabeledTextField getNamelessInstance(String tfLabel) {
-    return new LabeledTextField(tfLabel, false);
-  }
-
   public LabeledTextField(String tfLabel) {
-    this(tfLabel, true);
-  }
-
-  private LabeledTextField(String tfLabel, boolean named) {
-    if (named) {
-      //set name
-      String name = UIUtilities.convertLabelToName(tfLabel);
-      textField.setName(name);
-      if (EtomoDirector.getInstance().isPrintNames()) {
-        System.out.println(UITestConstants.TEXT_FIELD_ATTRIB
-            + AutodocTokenizer.SEPARATOR_CHAR + name
-            + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
-      }
+    //set name
+    String name = UIUtilities.convertLabelToName(tfLabel);
+    textField.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(UITestConstants.TEXT_FIELD_ATTRIB
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     //set label
     label.setText(tfLabel);
@@ -132,10 +126,6 @@ public class LabeledTextField {
       maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
-  }
-  
-  final void setName(String name) {
-    textField.setName(name);
   }
 
   public boolean equals(String thatText) {
