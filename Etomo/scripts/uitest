@@ -14,13 +14,12 @@
 #
 
 if [ $# -eq 0 ] ; then
-  echo "usage: uitest the_name_of_a_test_section_in_uitest.adoc"
+  echo "usage: uitest Test_section_name"
+  echo "usage: uitest --help"
   exit
-elif [ $1 == '-h' ] ; then
-  echo "usage: uitest the_name_of_a_test_section_in_uitest.adoc"
-  exit
-elif [ $1 == '--help' ] ; then
-  echo "usage: uitest the_name_of_a_test_section_in_uitest.adoc"
+elif [[ $1 == '--help' || $1 == '-h' ]] ; then
+  echo "usage: uitest Test_section_name"
+  echo See man uitest.adoc
   exit
 fi
 
@@ -30,12 +29,28 @@ javaMemLim=128m
 # If you wish to use a different java runtime than the default uncomment the
 # following line and define the path to the desired runtime directory
 
+# Test for existance of IMOD_DIR
+if [ -z "$IMOD_DIR" ]; then
+  echo "The IMOD_DIR environment variable has not been set"
+  echo "Set it to point to the directory where IMOD is installed"
+  exit
+fi
+if [ ! -e $IMOD_DIR ]; then
+  echo "IMOD_DIR="${IMOD_DIR} " does not exist"
+  echo "Set it to point to the directory where IMOD is installed"
+  exit
+fi
+
+
 #export IMOD_JAVADIR=/usr/local/j2re1.4.0_04
 junit_home=${JUNIT_HOME:=/usr/local/junit}
 jfcunit_home=${JFCUNIT_HOME:=/usr/local/jfcunit}
 java_class_separator=${JAVA_CLASS_SEPARATOR:=:}
-class_path=$junit_home/junit.jar$JAVA_CLASS_SEPARATOR$JFCUNIT_HOME/jfcunit.jar\
-$JAVA_CLASS_SEPARATOR$JFCUNIT_HOME/jakarta-regexp-1.2.jar
+
+class_path=$IMOD_DIR/bin/etomoUITest.jar\
+$JAVA_CLASS_SEPARATOR$junit_home/junit.jar\
+$JAVA_CLASS_SEPARATOR$JFCUNIT_HOME/jfcunit.jar\
+$JAVA_CLASS_SEPARATOR$JFCUNIT_HOME/jakarta-regexp-1.2.jar\
 
 if [ ! -z "$IMOD_JAVADIR" ]; then
   export PATH=${IMOD_JAVADIR}/bin:${PATH}
@@ -61,18 +76,6 @@ fi
 #  Workaround for java 1.4.0 / new threading library clash
 export LD_ASSUME_KERNEL=2.4.1
 
-# Test for existance of IMOD_DIR
-if [ -z "$IMOD_DIR" ]; then
-  echo "The IMOD_DIR environment variable has not been set"
-  echo "Set it to point to the directory where IMOD is installed"
-  exit
-fi
-if [ ! -e $IMOD_DIR ]; then
-  echo "IMOD_DIR="${IMOD_DIR} " does not exist"
-  echo "Set it to point to the directory where IMOD is installed"
-  exit
-fi
-
 # Test for existance of IMOD_UITEST_SOURCE
 if [ -z "$IMOD_UITEST_SOURCE" ]; then
   echo "The IMOD_UITEST_SOURCE environment variable has not been set"
@@ -96,7 +99,7 @@ fi
 
 # Copy the previous out log file to backup
 outlog=etomo_out.log
-errlog=etomo_err.log
+errlog=etomo_$1_err.log
 
 if [ -e ${errlog} ]; then
   cp -p ${errlog} ${errlog}~
@@ -106,11 +109,11 @@ if [ -e ${outlog} ]; then
   cp -p ${outlog} ${outlog}~
 fi
 
-echo "starting eTomo UI test"
 export IMOD_TEST_SECTION=$1
+echo "starting eTomo UI test:  Test section $IMOD_TEST_SECTION"
 java -Xmx${javaMemLim} -cp $class_path \
-junit.textui.TestRunner etomo.JfcUnitTests $@ 2>${errlog} >${outlog} &
-
+junit.textui.TestRunner etomo.JfcUnitTests 2>${errlog} >${outlog}
+#
 # $Log$
 #
   
