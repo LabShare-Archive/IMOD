@@ -121,14 +121,14 @@ public final class ProcessorTable implements Storable {
     //get speed units
     try {
       speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY)
-          .getUnformattedValue();
+          .getValue();
     }
     catch (NullPointerException e) {
     }
     //get memory units
     try {
       memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY)
-          .getUnformattedValue();
+          .getValue();
     }
     catch (NullPointerException e) {
     }
@@ -144,7 +144,7 @@ public final class ProcessorTable implements Storable {
       //set numberColumn to true if an number attribute is returned
       number.set(1);
       try {
-        number.set(computer.getAttribute("number").getUnformattedValue());
+        number.set(computer.getAttribute("number").getValue());
         numberColumn = true;
       }
       catch (NullPointerException e) {
@@ -153,7 +153,7 @@ public final class ProcessorTable implements Storable {
       //set typeColumn to true if an type attribute is returned
       String type = null;
       try {
-        type = computer.getAttribute("type").getUnformattedValue();
+        type = computer.getAttribute("type").getValue();
         typeColumn = true;
       }
       catch (NullPointerException e) {
@@ -162,7 +162,7 @@ public final class ProcessorTable implements Storable {
       //set speedColumn to true if an speed attribute is returned
       String speed = null;
       try {
-        speed = computer.getAttribute(SPEED_ADOC_KEY).getUnformattedValue();
+        speed = computer.getAttribute(SPEED_ADOC_KEY).getValue();
         speedColumn = true;
       }
       catch (NullPointerException e) {
@@ -171,7 +171,7 @@ public final class ProcessorTable implements Storable {
       //set memoryColumn to true if an memory attribute is returned
       String memory = null;
       try {
-        memory = computer.getAttribute(MEMORY_ADOC_KEY).getUnformattedValue();
+        memory = computer.getAttribute(MEMORY_ADOC_KEY).getValue();
         memoryColumn = true;
       }
       catch (NullPointerException e) {
@@ -180,7 +180,7 @@ public final class ProcessorTable implements Storable {
       //set osColumn to true if an os attribute is returned
       String os = null;
       try {
-        os = computer.getAttribute("os").getUnformattedValue();
+        os = computer.getAttribute("os").getValue();
         osColumn = true;
       }
       catch (NullPointerException e) {
@@ -711,6 +711,11 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2005/12/23 02:18:44  sueh
+ * <p> bug# 675 Renamed Section.getFirstSectionLocation to getSectionLocation.
+ * <p> Removed getSection(sectionLocation).  Changed nextSection so it gets the
+ * <p> current section and increments.
+ * <p>
  * <p> Revision 1.26  2005/12/16 01:46:01  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
