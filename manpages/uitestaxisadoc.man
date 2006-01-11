@@ -1,0 +1,159 @@
+.TH uitestaxisadoc 1 2.7 BL3DEMC
+.na
+.nh
+
+.SH NAME
+uitest-axis.adoc \- Description of an axis-level user interface test
+
+.SH SYNOPSIS
+.nf
+.B etomo --names
+.B $IMOD_UITEST_SOURCE/\fR[...\fB/\fR]\fIfile_name\fB.adoc\fR
+.fi
+
+.SH DESCRIPTION
+Uitest-axis autodocs contain a description of a test of a single axis in the Etomo user
+interface.  Run \fBetomo\fR with the \fB--names\fR option to send field and button types and names
+to \fBetomo_out.log\fR.
+Any section type or attribute name not listed below will be ignored during testing.
+
+Field names are converted from the field label.
+Field names are converted to lower case and trimmed of external whitespace.
+Parentheses and everything in them is ignored.  The first colon and everything after it is ignored.
+Internal whitespace is converted to a dash.  Examples of conversions from field label to name:
+.nf
+Field label = "Single axis", Name = "single-axis"
+Field label = "Backup directory:", Name = "backup-directory"
+Field label = "Pixel size (nm):", Name = "pixel-size"
+.fi
+
+.SS Global Attributes
+
+.TP
+.B sleep = \fIsleep_length
+Changes the current sleep level setting used with the section-level \fBsleep\fR attribute.
+Also changes the default timeout setting used with \fBpopup\fR attribute.
+One entry per file.  See Note 2.
+
+.TP
+.B sleep.button = \fIsleep_length
+Changes the sleep setting used with JButtons (\fBbn\fR) and JToggleButtons (\fBtb\fR).
+One entry per file.  See Note 3.
+
+.TP
+.B verbose =
+Causes the test program to print each name/value pair as it processes it.
+One entry per file.
+
+.TP
+.B Version = 1.2
+Required.  The latest version of the autodoc language.
+
+.SS Dialog Section and Attributes
+
+.TP
+.B [Dialog = \fIDialog_name\fB]\fR
+Required.  The Dialog section header.  Causes the dialog to be displayed in Etomo (except for the
+Setup Tomogram dialog).  Each Dialog section should contain the information to manipulate the
+fields in the dialog.
+
+When \fIDialog_name\fR = \fBSetup\fR:  Required for A axis uitest-axis autodocs.
+The Setup Tomogram dialog.  This Dialog section is only valid in an A axis uitest-axis autodoc.
+The dataset name in the Setup Tomogram dialog will be filled in automatically.
+
+.TP
+.B assert.\fR(\fBrb\fR|\fBtb\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
+Uses JUnit assert functionality to assert that a JRadioButton (\fBrb\fR) or JToggleButton
+(\fBtb\fR) named \fIname\fR is selected (\fB1\fR) or not selected (\fB0\fR).
+A blank value asserts that the button is not selected.  The JToggleButton has a darker color when
+it is selected.
+See Note 1.
+
+.TP
+.B assert.tf.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR]
+Uses JUnit assert functionality to assert that a JTextField named \fIname\fR
+contains the value
+\fItext\fR.  A blank \fItext\fR value asserts that the JTextField is empty.
+See Note 1.
+
+.TP
+.B assert.\fR(\fBbn\fR|\fBrb\fR|\fBtb\fR|\fBtf\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB.enabled = \fR[\fB0\fR|\fB1\fR]
+Uses JUnit assert functionality to assert that a button or field named \fIname\fR is
+enabled (\fB1\fR) or disabled (\fB0\fR).
+A blank value asserts that the button or field is disabled.
+See Note 1.
+
+.TP
+.B bn.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fIsleep_length\fR]
+Used to click a button.  Clicks a JButton named \fIname\fR.
+The test program will sleep after the button is pressed.
+See Note 1 and Note 3.
+
+.TP
+.B popup.\fIpopup_name\fB = \fR[\fItimeout_length\fB,\fR]\fIpopup_button_text
+Causes the test program to wait for a popup dialog and then close it using \fIpopup_button_text\fR.
+The popup name is derived from the popup dialog title and can be found by running Etomo with
+the "--names" option and bringing up the popup dialog.
+If the popup dialog does not appear, the test program will timeout and fail.  See Note 2.
+
+.TP
+.B rb.\fIname\fR[\fB.\fIindex\fR]\fB =
+Used to click a radio button.  Clicks a JRadioButton named \fIname\fR.
+See Note 1.
+
+.TP
+.B sleep = \fR[\fIsleep_length\fR]
+Causes the test program to sleep for either \fIsleep_length\fR milliseconds, or the current
+sleep length.  See Note 2.
+
+.TP
+.B sp.\fIname\fR[\fB.\fIindex\fR]\fB = \fR(\fBup\fR|\fBdown\fR)
+Used to spin a spinner.  Clicks the up or down arrow of a JSpinner named \fIname\fRonce.
+See Note 1.
+
+.TP
+.B tb.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fIbutton_sleep_length\fR]
+Used to click a toggle button.  Clicks a JToggleButton named \fIname\fR.
+The test program will sleep after the button is pressed.
+See Note 1 and Note 3.
+
+.TP
+.B tf.\fIname\fR[\fB.\fIindex\fR]\fB = \fItext
+Used to place text into a text field.  Places \fItext\fR in a JTextField called
+\fIname\fR.
+See Note 1.
+
+.TP
+Note 1: \fIindex
+\fIIndex\fR is only necessary when specifying a field where both the field type and the name are
+duplicated on the same dialog.  The index starts at 0 and is based on the tab order of
+fields in the dialog.  The default is 0.
+
+.TP
+Note 2: \fIsleep_length\fR and \fItimeout_length
+The  \fIsleep_length\fR and \fItimeout_length\fR refer to
+the number of milliseconds to sleep or timeout.
+They are used with the section-level \fBsleep\fR attribute for sleeping, and \fBpopup\fR attribute
+for timing out (timeout time is approximate).
+They default (in order) to the global-level \fBsleep\fR attribute,
+the global-level \fBsleep\fR attribute in \fBuitest.adoc\fR,
+or 1000 milliseconds.
+
+.TP
+Note 3: \fIbutton_sleep_length
+The  \fIbutton_sleep_length\fR refers to the number of
+milliseconds to sleep after a button has been pressed.
+It is used with the \fBbn\fR and \fBtb\fR attributes.
+It defaults (in order) to the global-level \fBsleep.button\fR attribute,
+or 100 milliseconds.
+
+.SH AUTHOR
+Written by Sue Held.
+
+.SH COPYRIGHT
+Copyright @ 2005 Boulder Laboratory for 3-Dimensional Electron Microscopy of
+Cells (BL3DEM), University of Colorado.
+
+.SH SEE ALSO
+.B uitestadoc\fR(1), \fBpip\fR(1) \- Option Specifications in an Autodoc File.
+
