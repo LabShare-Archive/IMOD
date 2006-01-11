@@ -13,6 +13,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2006/01/04 20:27:51  sueh
+ * <p> bug# 675 Moved constants that must be shared by non-test objects to an
+ * <p> object which doesn't know about junit.  Overwise junit would have to be in
+ * <p> the path for compiling and running EtomoDirector.  Removed the second
+ * <p> name/value pair because the panel doesn't have to be addressed directly.
+ * <p>
  * <p> Revision 3.14  2006/01/03 23:44:41  sueh
  * <p> bug# 675 Getting the test section name from JfcUnitTests
  * <p>
@@ -149,7 +155,7 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestConstants.TEST_SECTION_TYPE
+      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestConstants.DIALOG_SECTION_TYPE
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
     }
@@ -160,7 +166,6 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
 
     //  Layout the buttons
     pnlExitButtons.setLayout(new BoxLayout(pnlExitButtons, BoxLayout.X_AXIS));
-
     pnlExitButtons.add(Box.createHorizontalGlue());
     pnlExitButtons.add(btnCancel.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());

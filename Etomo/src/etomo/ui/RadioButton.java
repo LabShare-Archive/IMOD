@@ -27,7 +27,7 @@ final class RadioButton extends JRadioButton {
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.RADIO_BUTTON_ATTRIB
           + AutodocTokenizer.SEPARATOR_CHAR + name
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -70,6 +70,10 @@ final class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/01/04 20:28:01  sueh
+ * <p> bug# 675 For printing the name:  putting the type first and making the type
+ * <p> as constant.
+ * <p>
  * <p> Revision 1.1  2005/12/23 02:19:17  sueh
  * <p> bug# 675 A class to allow automatic naming of radio buttons.
  * <p> </p>
