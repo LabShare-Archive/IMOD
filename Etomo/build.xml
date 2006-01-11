@@ -6,10 +6,9 @@
   <property name="jar-dir" location="jar" />
   <property name="dist" location="dist" /> 
   <property name="javadocs" location="doc/javadoc" />
-  <property name="manfiest" location="MANIFEST.MF" />
 
   <property name="appname" value="etomo"/>
-  <property name="classpath" value="/usr/local/junit/junit.jar"/>
+  <property name="classpath" value="/usr/local/junit/junit.jar:/usr/local/jfcunit/jfcunit.jar:/usr/local/jfcunit/jakarta-regexp-1.2.jar"/>
 
   <target name="init" >
     <tstamp/>
@@ -34,11 +33,19 @@
     </jar>
   </target>
 
-  <target name="etomoTests-jar" depends="compile">
+  <target name="etomoTest-jar" depends="compile">
     <mkdir dir="${jar-dir}" />
-    <jar jarfile="${jar-dir}/etomoTests.jar"
+    <jar jarfile="${jar-dir}/etomoTest.jar"
      basedir="${build}"
      manifest="TEST_MANIFEST.MF" >
+    </jar>
+  </target>
+	
+  <target name="etomoUITest-jar" depends="compile">
+    <mkdir dir="${jar-dir}" />
+    <jar jarfile="${jar-dir}/etomoUITest.jar"
+     basedir="${build}"
+     manifest="UITEST_MANIFEST.MF" >
     </jar>
   </target>
 
