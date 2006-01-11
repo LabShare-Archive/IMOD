@@ -101,6 +101,9 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.9  2005/11/10 18:15:22  sueh
+* <p> $bug# 733 Changed the missing meta data warning to a single line warning.
+* <p> $
 * <p> $Revision 1.8  2005/09/21 16:36:58  sueh
 * <p> $bug# 532 Changed Autodoc.getFile() to getAutodocFile().
 * <p> $
@@ -266,7 +269,7 @@ public class AutodocParser {
    */
   private boolean section() throws IOException {
     //System.out.println("0token="+token);
-    AttributeCollection section = null;
+    WriteOnlyAttributeMap section = null;
     testStartFunction("section");
     if (!startOfLine) {
       return false;
@@ -406,7 +409,7 @@ public class AutodocParser {
    * @return true if attribute found
    * @throws IOException
    */
-  private boolean attribute(AttributeCollection attributeCollection) throws IOException {
+  private boolean attribute(WriteOnlyAttributeMap writeOnlyAttributeMap) throws IOException {
     //System.out.println("0token="+token);
     Attribute attribute = null;
     testStartFunction("attribute");
@@ -425,7 +428,7 @@ public class AutodocParser {
     }
     attributeNameStart = token;
     attributeNameEnd = attributeNameStart;
-    attribute = (Attribute) attributeCollection.addAttribute(attributeNameStart);
+    attribute = (Attribute) writeOnlyAttributeMap.addAttribute(attributeNameStart);
     nextToken();
     //System.out.println("1token="+token);
     if (token.is(Token.SEPARATOR)) {
@@ -553,14 +556,15 @@ public class AutodocParser {
       if (oneLine) {
         if (attributeNameStart
           .equals(Token.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
-          tokenizer.setDelimiterString(valueStart.getValue(true));
+          tokenizer.setDelimiterString(valueStart.getValues());
         }
         nextToken();
         System.out.println("8token="+token);
       }
-
     }
     else {
+      //signal to Attribute that the delimiter has been found
+      attribute.setValue(null);
       valueStart = null;
     }
     return found;
