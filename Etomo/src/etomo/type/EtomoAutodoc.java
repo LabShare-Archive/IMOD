@@ -34,21 +34,21 @@ public class EtomoAutodoc {
     String text = null;
     Attribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
     if (attribute != null) {
-      text = attribute.getUnformattedValue();
+      text = attribute.getValue();
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("usage");
     if (attribute != null) {
-      text = attribute.getUnformattedValue();
+      text = attribute.getValue();
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("manpage");
     if (attribute != null) {
-      return attribute.getUnformattedValue();
+      return attribute.getValue();
     }
     return null;
   }
@@ -69,7 +69,7 @@ public class EtomoAutodoc {
   public static String getTooltip(Section section, String enumValueName) {
     try {
       String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
-          .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getUnformattedValue();
+          .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getValue();
       if (enumTooltip == null) {
         return getTooltip(section);
       }
@@ -87,6 +87,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/05/17 19:16:29  sueh
+ * <p> bug# 663 Added static values for required attributes.
+ * <p>
  * <p> Revision 1.6  2005/05/14 01:00:23  sueh
  * <p> bug# 658 Take out unnecessary trim (and prevent a null point exception).
  * <p>
