@@ -1007,8 +1007,9 @@ static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
         pt2 = (bsi + direction[0] * li + bsize) % bsize;
         pt1 = (tsi + direction[1] * j + tsize) % tsize;
         if (!(((bc->flags & ICONT_OPEN) && li + io == iskip) || 
-              istorePointIsGap(bc->store, B3DMIN(pt2, pt3)) ||
+              istorePointIsGap(bc->store, direction[0] > 0 ? pt2 : pt3) ||
               outsideMeshLimits(&tc->pts[pt1], &bc->pts[pt2], &bc->pts[pt3]))){
+          /* printf("bot %d %d %d\n", pt1, pt2, pt3); */
           chunkAddTriangle(mesh, j+jo, li+io, i+io, &maxsize, inside);
           state3 = bcState;
           props3 = &bcProps;
@@ -1022,8 +1023,9 @@ static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
         pt1 = (tsi + direction[1] * lj + tsize) % tsize;
         pt2 = (bsi + direction[0] * i + bsize) % bsize;
         if (!(((tc->flags & ICONT_OPEN) && lj + jobase == jskip) ||
-              istorePointIsGap(tc->store, B3DMIN(pt1, pt3)) ||
+              istorePointIsGap(tc->store, direction[1] > 0 ? pt1 : pt3) ||
               outsideMeshLimits(&tc->pts[pt1], &bc->pts[pt2], &tc->pts[pt3]))){
+          /* printf("top %d %d %d\n", pt1, pt2, pt3); */
 
           chunkAddTriangle(mesh, lj+jo, i+io, j+jo, &maxsize, inside);
           state3 = tcState;
@@ -4473,6 +4475,10 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.17  2005/09/22 15:12:46  mast
+Handled surface property changes for all caps, transferred contour/surface
+properties to first point of contour when joining contours
+
 Revision 3.16  2005/09/12 14:27:07  mast
 Made it incorporate surface fine-grained info if run w/o -S option
 
