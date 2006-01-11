@@ -10,6 +10,8 @@ import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
 import junit.extensions.jfcunit.JFCTestCase;
+import junit.extensions.jfcunit.JFCTestHelper;
+import junit.extensions.jfcunit.eventdata.MouseEventData;
 
 /**
  * <p>Description: </p>
@@ -29,26 +31,50 @@ public class UITest extends JFCTestCase {
 
   static final File TEST_REPOSITORY = Utilities.getExistingDir(
       "IMOD_UITEST_SOURCE", AxisID.ONLY);
-  private static final String SECTION_NAME_ENV = "IMOD_TEST_SECTION";
+  static final String SLEEP_ATTRIB = "sleep";
 
+  private static final String TEST_SECTION_TYPE = "Test";
+  private static final String SOURCE_DIR_ATTRIB = "source";
+  private static final String[] ARGS = new String[] { "--selftest", "--test" };
+  private static final String FIDUCIAL_DIAMETER_ATTRIB = "fiducial-diameter";
   private static final String ADOC_ATTRIB = "adoc";
   private static final String COPY_ATTRIB = "copy";
-  private static final String SOURCE_DIR_ATTRIB = "source";
-  private static final String TEST_DIR_ATTRIB = "testdir";
   private static final String DATASET_ATTRIB = "dataset";
-  private static final String DATASET_DIR_ATTRIB = "datasetdir";
-  private static final String[] ARGS = new String[] { "--selftest", "--test" };
 
   private File testDir = null;
   private Autodoc autodocA = null;
   private Autodoc autodocB = null;
+  private JFCTestHelper helper = null;
+  private EtomoDirector etomo = null;
+  private long sleep = 1000;
+  private double fiducialDiameter = 0;
+  private String dataset = null;
+
+  protected void setUp() throws Exception {
+    super.setUp();
+    helper = new JFCTestHelper();
+    setHelper(helper);
+  }
+
+  protected void tearDown() throws Exception {
+    JFCTestHelper.cleanUp(this);
+    if (etomo != null) {
+      etomo.exitProgram(AxisID.ONLY);
+    }
+    super.tearDown();
+  }
+
+  final void enterClickAndLeave(MouseEventData mouseEventData) {
+    helper.enterClickAndLeave(mouseEventData);
+  }
 
   /**
    * run all the tests in uitest.adoc
    * @throws IOException
    */
   public final void test() throws IOException {
-    String testName = Utilities.getEnvironmentVariable(null, SECTION_NAME_ENV, AxisID.ONLY);
+    String testName = Utilities.getEnvironmentVariable(null,
+        "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
     //get the uitest.adoc
     Autodoc.setTest(true);
@@ -66,83 +92,140 @@ public class UITest extends JFCTestCase {
     if (autodoc == null) {
       return;
     }
-    testDir = getRelativeDir(autodoc, TEST_DIR_ATTRIB,
-        JfcUnitTests.TEST_ROOT_DIR, true);
+    //get single entries
+    testDir = getRelativeDir(autodoc, "testdir", JfcUnitTests.TEST_ROOT_DIR,
+        true);
     File sourceDir = getRelativeDir(autodoc, SOURCE_DIR_ATTRIB,
         TEST_REPOSITORY, false);
+    setSleep(autodoc);
     //run each test specified in the Test sections
-    SectionLocation testLoc = autodoc
-        .getSectionLocation(UITestConstants.TEST_SECTION_TYPE);
-    Section test = autodoc.getSection(UITestConstants.TEST_SECTION_TYPE, testName);
+    SectionLocation testLoc = autodoc.getSectionLocation(TEST_SECTION_TYPE);
+    Section test = autodoc.getSection(TEST_SECTION_TYPE, testName);
     if (test != null) {
-      runAxisLevelTests(processTestSection(test, sourceDir), sourceDir);
+      processSection(test, sourceDir);
+      runAxisLevelTests(test, sourceDir);
       test = autodoc.nextSection(testLoc);
     }
+  }
+
+  /**
+   * set required field fiducial diameter
+   * @param autodoc
+   */
+  private final void setFiducialDiameter(Section test) {
+    Attribute fiducialDiameterAttrib = test
+        .getAttribute(FIDUCIAL_DIAMETER_ATTRIB);
+    JFCTestCase.assertNotNull("In uitest.adoc:  the "
+        + FIDUCIAL_DIAMETER_ATTRIB + " attribute is required.",
+        fiducialDiameterAttrib);
+    String value = fiducialDiameterAttrib.getValue();
+    JFCTestCase.assertNotNull("In uitest.adoc:  the "
+        + FIDUCIAL_DIAMETER_ATTRIB + " attribute must have a value.", value);
+    try {
+      fiducialDiameter = Double.parseDouble(value);
+    }
+    catch (NumberFormatException e) {
+      JFCTestCase.fail("In uitest.adoc:  the " + FIDUCIAL_DIAMETER_ATTRIB
+          + " value must be numeric.");
+    }
+  }
+
+  private final void setSleep(Autodoc autodoc) {
+    Attribute sleepAttrib = autodoc.getAttribute(SLEEP_ATTRIB);
+    if (sleepAttrib == null) {
+      return;
+    }
+    String value = sleepAttrib.getValue();
+    if (value == null) {
+      JFCTestCase
+          .fail("In uitest.adoc:  the global sleep attribute must have a value.");
+    }
+    try {
+      sleep = Long.parseLong(value);
+    }
+    catch (NumberFormatException e) {
+      JFCTestCase
+          .fail("In uitest.adoc:  the global sleep value must be numeric.");
+    }
+  }
+
+  final long getSleep() {
+    return sleep;
   }
 
   /**
    * Performs all commands and open all autodocs found in the section
    * @param test
    * @param sourceDir
-   * @return the dataset name
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private final String processTestSection(Section test, File sourceDir)
+  private final void processSection(Section test, File sourceDir)
       throws FileNotFoundException, IOException {
     autodocA = null;
     autodocB = null;
+    dataset = null;
+    fiducialDiameter = 0;
     //clean the dataset directory and make it the working directory
-    File datasetDir = cleanDatasetDir(test);
+    cleanDatasetDir(test);
+    //set parameters
+    setDataset(test);
+    setFiducialDiameter(test);
     File currentSourceDir = sourceDir;
-    String dataset = getDataset(test);
-    AttributeLocation attribLoc = test.getAttributeLocation();
-    Attribute attrib = test.nextAttribute(attribLoc);
-    while (attrib != null) {
-      if (attrib.equalsName(ADOC_ATTRIB)) {
-        setAutodoc(attrib, currentSourceDir);
+    NameValuePairLocation pairLoc = test.getNameValuePairLocation();
+    NameValuePair pair = test.nextNameValuePair(pairLoc);
+    while (pair != null) {
+      if (pair.equalsName(ADOC_ATTRIB, 0)) {
+        setAutodoc(pair, currentSourceDir);
       }
-      else if (attrib.equalsName(COPY_ATTRIB)) {
+      else if (pair.equalsName(COPY_ATTRIB, 0)) {
         //copy a file from the current source directory to the working directory
-        copyFile(attrib, currentSourceDir);
+        copyFile(pair, currentSourceDir);
       }
-      else if (attrib.equalsName(SOURCE_DIR_ATTRIB)) {
+      else if (pair.equalsName(SOURCE_DIR_ATTRIB, 0)) {
         //Get a source directory relative to the test repository
-        currentSourceDir = getRelativeDir(attrib, TEST_REPOSITORY,
-            currentSourceDir, false);
+        currentSourceDir = getRelativeDir(pair, TEST_REPOSITORY, false);
       }
-      attrib = test.nextAttribute(attribLoc);
+      pair = test.nextNameValuePair(pairLoc);
     }
-    return dataset;
+    if (autodocA == null && autodocB == null) {
+      JFCTestCase.fail("In uitest.adoc:  at least one " + ADOC_ATTRIB
+          + " attribute is required.");
+    }
   }
 
   /**
    * runs tests with uitest-axis autodocs for A and/or B
-   * @param args
+   * @param test
    * @param sourceDir
    */
-  private final void runAxisLevelTests(String dataset, File sourceDir) {
+  private final void runAxisLevelTests(Section test, File sourceDir) {
     if (autodocA == null && autodocB == null) {
       return;
     }
-    EtomoDirector etomo = EtomoDirector.createInstance_test(ARGS);
-    AxisUITest axisAUITest = null;
-    AxisUITest axisBUITest = null;
+    //run Etomo
+    etomo = EtomoDirector.createInstance_test(ARGS);
+    //Create the UIAxisTest instances
+    UIAxisTest axisAUITest = null;
+    UIAxisTest axisBUITest = null;
     if (autodocA != null) {
-      axisAUITest = new AxisUITest(dataset, autodocA, sourceDir);
+      axisAUITest = new UIAxisTest(this, dataset, autodocA, sourceDir, helper,
+          fiducialDiameter);
     }
     if (autodocB != null) {
-      axisBUITest = new AxisUITest(dataset, autodocB, sourceDir);
+      axisBUITest = new UIAxisTest(this, dataset, autodocB, sourceDir, helper,
+          fiducialDiameter);
     }
+    //Test the axis or axes, taking turns if there are two
     boolean testingA = axisAUITest != null;
     boolean testingB = axisBUITest != null;
     while ((testingA && !axisAUITest.isDone())
         || (testingB && !axisBUITest.isDone())) {
       if (testingA && !axisAUITest.isDone()) {
-        axisAUITest.test(testingB);
+        axisAUITest.testAxis(testingB);
       }
       if (testingB && !axisBUITest.isDone()) {
-        axisBUITest.test(testingA);
+        axisBUITest.testAxis(testingA);
       }
     }
   }
@@ -152,11 +235,10 @@ public class UITest extends JFCTestCase {
    * @param attrib
    * @param sourceDir
    */
-  private final void copyFile(Attribute attrib, File sourceDir) {
-    String value = attrib.getUnformattedValue();
-    if (value == null) {
-      return;
-    }
+  private final void copyFile(NameValuePair pair, File sourceDir) {
+    String value = pair.getValue();
+    JFCTestCase.assertNotNull("In uitest.adoc:  the " + COPY_ATTRIB
+        + " attribute must have a value.", value);
     File file = new File(sourceDir, value);
     if (!file.exists() || file.isDirectory()) {
       throw new IllegalStateException("bad dataset file: "
@@ -175,11 +257,14 @@ public class UITest extends JFCTestCase {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private final void setAutodoc(Attribute adocAttrib, File sourceDir)
+  private final void setAutodoc(NameValuePair adocPair, File sourceDir)
       throws FileNotFoundException, IOException {
-    //look for adoc =
-    String value = adocAttrib.getUnformattedValue();
-    if (value != null) {
+    String value = adocPair.getValue();
+    JFCTestCase.assertNotNull("Unknown name/value pair format: "
+        + adocPair.getString(), value);
+    //look for adoc = autodoc
+    String axisName = adocPair.getName(1);
+    if (axisName == null) {
       //Set autodocA if it is not already set
       if (autodocA != null) {
         return;
@@ -188,67 +273,62 @@ public class UITest extends JFCTestCase {
           AxisID.ONLY);
       return;
     }
-    //look for adoc.a =
-    Attribute axisAttrib = adocAttrib.getAttribute(AxisID.FIRST.getExtension());
-    if (axisAttrib != null) {
-      value = axisAttrib.getUnformattedValue();
-      if (value != null) {
-        //Set autodocA if it is not already set
-        if (autodocA != null) {
-          return;
-        }
-        autodocA = Autodoc.getUITestAxisInstance_test(sourceDir, value,
-            AxisID.ONLY);
+    //look for adoc.a = autodoc
+    if (axisName.equals(AxisID.FIRST.getExtension())) {
+      //Set autodocA if it is not already set
+      if (autodocA != null) {
         return;
       }
+      autodocA = Autodoc.getUITestAxisInstance_test(sourceDir, value,
+          AxisID.ONLY);
+      return;
     }
-    //look for adoc.b =
-    axisAttrib = adocAttrib.getAttribute(AxisID.SECOND.getExtension());
-    if (axisAttrib != null) {
-      value = axisAttrib.getUnformattedValue();
-      //Set autodocB if value is not null and autodocB is not already set
-      if (value != null && autodocB == null) {
-        autodocB = Autodoc.getUITestAxisInstance_test(sourceDir, value,
-            AxisID.ONLY);
+    //look for adoc.b = autodoc
+    else if (axisName.equals(AxisID.SECOND.getExtension())) {
+      //Set autodocB if it is not already set
+      if (autodocB != null) {
+        return;
       }
+      autodocB = Autodoc.getUITestAxisInstance_test(sourceDir, value,
+          AxisID.ONLY);
+      return;
     }
   }
 
-  private final String getDataset(Section section) {
-    try {
-      String value = section.getAttribute(DATASET_ATTRIB).getUnformattedValue();
-      if (value != null) {
-        return value;
-      }
+  private final void setDataset(Section section) {
+    Attribute datasetAttrib = section.getAttribute(DATASET_ATTRIB);
+    if (datasetAttrib == null) {
+      //default value
+      dataset = section.getName();
+      return;
     }
-    catch (NullPointerException e) {
-    }
-    return section.getName();
+    String value = datasetAttrib.getValue();
+    JFCTestCase.assertNotNull("In uitest.adoc:  the " + DATASET_ATTRIB
+        + " attribute must have a value.", value);
+    dataset = value;
   }
 
   /**
    * Create datasetDir for the current section, clean the datasetDir by deleting
    * it and then recreate it and set it be the working directory.
-   * If datasetDir is already set, this function has no effect.
    * @param datasetDir
    * @return
    */
-  private final File cleanDatasetDir(Section section) {
-    File datasetDir = getRequiredRelativeDir(section, DATASET_DIR_ATTRIB,
-        testDir, true);
+  private final void cleanDatasetDir(Section section) {
+    File datasetDir = getRequiredRelativeDir(section, "datasetdir", testDir,
+        true);
     SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
         new String[] { "rm", "-fr", datasetDir.getAbsolutePath() }, AxisID.ONLY);
     remove.run();
     datasetDir.mkdir();
     System.setProperty("user.dir", datasetDir.getAbsolutePath());
-    return datasetDir;
   }
 
   /**
    * Create a directory or directory path in rootDir using an attribute value.
    * If the attribute value does not exist, return rootDir.  Make
    * directories if makeDirs is true and the directory does not exist.
-   * Return rootDir if the attribute is not found.
+   * This is an optional attribute:  return rootDir if the attribute is not found.
    * @param autodoc
    * @param attribName
    * @param rootDir
@@ -263,12 +343,14 @@ public class UITest extends JFCTestCase {
     }
     //Get the directory name
     String dirName = null;
-    try {
-      dirName = autodoc.getAttribute(attribName).getUnformattedValue();
-    }
-    catch (NullPointerException e) {
+    Attribute dirAttrib = autodoc.getAttribute(attribName);
+    if (dirAttrib == null) {
+      //default value
       return rootDir;
     }
+    dirName = dirAttrib.getValue();
+    JFCTestCase.assertNotNull("In uitest.adoc:  the " + attribName
+        + " attribute must have a value.", dirName);
     //make the directories
     File dir = new File(rootDir, dirName);
     if (makeDirs && !dir.exists()) {
@@ -293,17 +375,14 @@ public class UITest extends JFCTestCase {
       File rootDir, boolean makeDirs) {
     //Get the directory name
     String dirName = null;
-    try {
-      dirName = section.getAttribute(attribName).getUnformattedValue();
-    }
-    catch (NullPointerException e) {
-      //Get an alternative directory
+    Attribute dirAttrib = section.getAttribute(attribName);
+    if (dirAttrib == null) {
+      //default value
       return getRequiredRelativeDir(section, rootDir, makeDirs);
     }
-    if (dirName == null) {
-      //Get an alternative directory
-      return getRequiredRelativeDir(section, rootDir, makeDirs);
-    }
+    dirName = dirAttrib.getValue();
+    JFCTestCase.assertNotNull("In uitest.adoc:  the " + attribName
+        + " attribute must have a value.", dirName);
     //make the directories
     File dir = new File(rootDir, dirName);
     if (makeDirs && !dir.exists()) {
@@ -319,25 +398,14 @@ public class UITest extends JFCTestCase {
    * @param section
    * @param attribName
    * @param rootDir
-   * @param originalDir
    * @return the directory
    */
-  private final File getRelativeDir(Attribute attrib, File rootDir,
-      File originalDir, boolean makeDirs) {
-    if (makeDirs && !originalDir.exists()) {
-      originalDir.mkdirs();
-    }
+  private final File getRelativeDir(NameValuePair pair, File rootDir,
+      boolean makeDirs) {
     //Get the directory name
-    String dirName = null;
-    try {
-      dirName = attrib.getUnformattedValue();
-    }
-    catch (NullPointerException e) {
-      return originalDir;
-    }
-    if (dirName == null) {
-      return originalDir;
-    }
+    String dirName = pair.getValue();
+    JFCTestCase.assertNotNull("Unknown name/value pair format: "
+        + pair.getString(), dirName);
     //make the directories
     File dir = new File(rootDir, dirName);
     if (makeDirs && !dir.exists()) {
@@ -368,6 +436,11 @@ public class UITest extends JFCTestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/01/04 20:28:12  sueh
+ * <p> bug# 675 Moved constants that must be shared by non-test objects to an
+ * <p> object which doesn't know about junit.  Overwise junit would have to be in
+ * <p> the path for compiling and running EtomoDirector.
+ * <p>
  * <p> Revision 1.4  2006/01/04 00:08:44  sueh
  * <p> bug# 675 Make test() run one test described in uitest.adoc.
  * <p>
