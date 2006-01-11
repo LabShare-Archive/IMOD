@@ -245,7 +245,6 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
         buffer.append(" " + command);
       }
     }
-    System.out.println(buffer);
     return buffer.toString();
   }
 
@@ -283,6 +282,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2006/01/06 02:37:35  sueh
+ * <p> bug# 792 Implementing DetachedCommand.  Added getCommandString
+ * <p> and backSlashSpaces to create a safe command string that can go into
+ * <p> a run file.
+ * <p>
  * <p> Revision 1.11  2005/11/21 22:00:17  sueh
  * <p> bug# 761 Added validate() to check that at least one machine name was
  * <p> added.
