@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2006/01/04 00:09:29  sueh
+ * <p> bug# 675 Fix convertLabelToName.
+ * <p>
  * <p> Revision 1.8  2005/12/23 02:25:53  sueh
  * <p> bug# 675 Added convertLabelToName, which converts a screen label to
  * <p> a name for the screen element.
@@ -56,6 +59,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.io.IOException;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -173,39 +177,70 @@ public class UIUtilities {
     if (label == null) {
       return null;
     }
-    String name = label;
-    //System.out.println("step 0: " + name);
-    int index = name.indexOf(':');
-    if (index != -1) {
-      name = name.substring(0, index);
-      //System.out.println("step 1: " + name);
+    String name = label.trim().toLowerCase();
+    //strip unnecessary characters
+    PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
+    StringBuffer buffer = new StringBuffer();
+    Token token = null;
+    try {
+      tokenizer.initialize();
+      token = tokenizer.next();
     }
-    int startIndex = name.indexOf('(');
-    while (startIndex != -1) {
-      int endIndex = name.indexOf(')');
-      if (endIndex != -1) {
-        name = name.substring(0, startIndex) + name.substring(endIndex + 1);
-        //System.out.println("step 2: " + name);
+    catch (IOException e) {
+      e.printStackTrace();
+      return label;
+    }
+    boolean ignore = false;
+    while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
+      if (token.equals(Token.SYMBOL, '(')) {
+        //ignore everything in parenthesis
+        ignore = true;
       }
-      startIndex = name.indexOf('(');
-    }
-    startIndex = name.indexOf('<');
-    while (startIndex != -1) {
-      int endIndex = name.indexOf('>');
-      if (endIndex != -1) {
-        name = name.substring(0, startIndex) + name.substring(endIndex + 1);
-        //System.out.println("step 3: " + name);
+      else if (token.equals(Token.SYMBOL, ')')) {
+        ignore = false;
       }
-      startIndex = name.indexOf('<');
+      else if (token.equals(Token.SYMBOL, ':')) {
+        //ignore everything after ":"
+        break;
+      }
+      else if (!ignore) {
+        buffer.append(token.getValue());
+      }
+      try {
+        token = tokenizer.next();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        break;
+      }
     }
-    name = name.trim().toLowerCase().replace(' ', '-');
-    //System.out.println("step 4: " + name);
-    index = name.indexOf("--");
-    while (index != -1) {
-      name = name.substring(0, index) + name.substring(index + 1);
-      //System.out.println("step 5: " + name);
-      index = name.indexOf("--");
+    //convert whitespace to "-"
+    name = buffer.toString().trim();
+    tokenizer = new PrimativeTokenizer(name);
+    buffer = new StringBuffer();
+    try {
+      tokenizer.initialize();
+      token = tokenizer.next();
     }
-    return name;
+    catch (IOException e) {
+      e.printStackTrace();
+      return name;
+    }
+    while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
+      if (token.is(Token.WHITESPACE)) {
+        buffer.append('-');
+      }
+      else {
+        buffer.append(token.getValue());
+      }
+      try {
+        token = tokenizer.next();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        break;
+      }
+    }
+    return buffer.toString();
   }
 }
