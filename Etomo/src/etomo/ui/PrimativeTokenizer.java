@@ -2,6 +2,8 @@ package etomo.ui;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.Reader;
+import java.io.StringReader;
 //import java.lang.IllegalArgumentException;
 import java.io.IOException;
 //import java.lang.IllegalStateException;
@@ -48,6 +50,9 @@ import java.io.FileNotFoundException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2003/12/31 01:29:48  sueh
+* <p> $bug# 372 added doc
+* <p> $
 * <p> $Revision 1.2  2003/12/23 21:34:17  sueh
 * <p> $bug# 372 Reformatting.  Fixing test function.
 * <p> $
@@ -59,7 +64,8 @@ public class PrimativeTokenizer {
   public static final String rcsid =
     "$$Id$$";
 
-  private File file;
+  private File file = null;
+  private String string = null;
   private StreamTokenizer tokenizer = null;
   private String symbols =
     new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
@@ -69,6 +75,10 @@ public class PrimativeTokenizer {
 
   PrimativeTokenizer(File file) {
     this.file = file;
+  }
+  
+  PrimativeTokenizer(String string) {
+    this.string = string;
   }
 
   /**
@@ -90,7 +100,13 @@ public class PrimativeTokenizer {
   }
 
   private void initializeStreamTokenizer() throws FileNotFoundException {
-    FileReader reader = new FileReader(file);
+    Reader reader = null;
+    if (file != null) {
+      reader = new FileReader(file);
+    }
+    else if (string != null) {
+      reader = new StringReader(string);
+    }
     tokenizer = new StreamTokenizer(reader);
     tokenizer.resetSyntax();
     tokenizer.wordChars('a', 'z');
