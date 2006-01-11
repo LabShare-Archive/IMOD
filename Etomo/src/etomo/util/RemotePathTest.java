@@ -462,7 +462,7 @@ public class RemotePathTest extends TestCase {
     String savedRcsid;
     try {
       savedRcsid = Autodoc.getInstance(RemotePath.AUTODOC, AxisID.ONLY)
-          .getAttribute(RCSID).getUnformattedValue();
+          .getAttribute(RCSID).getValue();
     }
     catch (NullPointerException e) {
       savedRcsid = null;
@@ -971,6 +971,10 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2006/01/04 00:18:30  sueh
+ * <p> bug# 675 Added constructors for this class, so a single test or all tests
+ * <p> could be run.
+ * <p>
  * <p> Revision 1.25  2005/12/30 17:54:13  sueh
  * <p> bug# 675 Must set test in Autodoc because Autodoc is now imdependent
  * <p> of EtomoDirector.

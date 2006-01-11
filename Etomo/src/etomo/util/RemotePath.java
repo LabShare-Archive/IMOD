@@ -403,7 +403,7 @@ public final class RemotePath {
     }
     else {
       //load mount name from "mountname" attribute
-      this.mountName = mountName.getUnformattedValue();
+      this.mountName = mountName.getValue();
       if (this.mountName == null) {
         //allow empty mount name
         this.mountName = "";
@@ -439,8 +439,8 @@ public final class RemotePath {
       //check for rule validity
       if (isValidRule(localRule, remoteRule, attributeNumber, sectionName)) {
         //add rule
-        localMountRules.add(localRule.getUnformattedValue());
-        remoteMountRules.add(remoteRule.getUnformattedValue());
+        localMountRules.add(localRule.getValue());
+        remoteMountRules.add(remoteRule.getValue());
       }
       numberAttribute = mountRules.getAttribute(++attributeNumber);
     }
@@ -483,7 +483,7 @@ public final class RemotePath {
     //can't use %mountname if there is no mount name
     //causes:  either no section for this computer or the localhost section
     //doesn't have a mountname attribute
-    String remoteValue = remoteRule.getUnformattedValue();
+    String remoteValue = remoteRule.getValue();
     if (remoteValue != null && remoteValue.indexOf(MOUNT_NAME_TAG) != -1
         && mountName == null) {
       System.err
@@ -516,7 +516,7 @@ public final class RemotePath {
           + mountRuleNumber + " is missing.");
       return false;
     }
-    String value = rule.getUnformattedValue();
+    String value = rule.getValue();
     //local rule must not have an empty value
     if (value == null) {
       System.err.println(errorTitle + ruleType + " mount rule "
@@ -648,6 +648,10 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/12/01 00:26:13  sueh
+ * <p> bug# 775 Added isSectionLocal().  Saving the local section when loading
+ * <p> rules so that isSectionLocal() can use it.
+ * <p>
  * <p> Revision 1.2  2005/11/14 22:36:45  sueh
  * <p> bug# 733 updated description.
  * <p>
