@@ -72,7 +72,7 @@ import java.util.Vector;
  *
  */
 
-public class Autodoc implements AttributeCollection {
+public class Autodoc implements WriteOnlyAttributeMap, WriteOnlyNameValuePairList {
   public static final String rcsid = "$$Id$$";
 
   public static final String VERSION = "1.2";
@@ -111,9 +111,10 @@ public class Autodoc implements AttributeCollection {
   private boolean internalTest = false;
 
   //data
-  private AttributeList attributeList = null;
+  private AttributeMap attributeMap = null;
   private Vector sectionList = null;
   private HashMap sectionMap = null;
+  private Vector nameValuePairList = null;
 
   //Cache of sets of data.  Hold on to sets of data requested by other
   //objects.  Autodocs are never refreshed so the set will remain valid.
@@ -276,7 +277,7 @@ public class Autodoc implements AttributeCollection {
     return autodocFile;
   }
 
-  public Section addSection(Token type, Token name) {
+  final Section addSection(Token type, Token name) {
     if (sectionList == null) {
       sectionList = new Vector();
       sectionMap = new HashMap();
@@ -293,32 +294,45 @@ public class Autodoc implements AttributeCollection {
     return existingSection;
   }
 
-  public AttributeCollection addAttribute(Token name) {
-    if (attributeList == null) {
-      attributeList = new AttributeList();
+  public final WriteOnlyAttributeMap addAttribute(Token name) {
+    if (attributeMap == null) {
+      attributeMap = new AttributeMap(this, this);
     }
-    return attributeList.addAttribute(name);
+    return attributeMap.addAttribute(name);
   }
   
-  public Attribute getAttribute(String name) {
-    if (attributeList == null) {
+  public final Attribute getAttribute(String name) {
+    if (attributeMap == null) {
       return null;
     }
-    return attributeList.getAttribute(name);
+    return attributeMap.getAttribute(name);
   }
   
-  public final AttributeLocation getAttributeLocation() {
-    if (attributeList == null) {
-      return null;
+  public final void addNameValuePair(Attribute attrib, int valueIndex) {
+    if (attrib == null) {
+      return;
     }
-    return attributeList.getAttributeLocation();
+    NameValuePair pair = new NameValuePair(attrib, attrib.getValueToken(valueIndex));
+    if (nameValuePairList == null) {
+      nameValuePairList = new Vector();
+    }
+    nameValuePairList.add(pair);
   }
   
-  public final Attribute nextAttribute(AttributeLocation location) {
-    if (attributeList == null) {
+  final NameValuePairLocation getNameValuePairLocation() {
+    if (nameValuePairList == null) {
       return null;
     }
-    return attributeList.nextAttribute(location);
+    return new NameValuePairLocation();
+  }
+  
+  final NameValuePair nextNameValuePair(NameValuePairLocation location) {
+    if (nameValuePairList == null || location == null || location.isOutOfRange(nameValuePairList)) {
+      return null;
+    }
+    NameValuePair pair = (NameValuePair) nameValuePairList.get(location.getIndex());
+    location.increment();
+    return pair;
   }
 
   public final Section getSection(String type, String name) {
@@ -395,7 +409,7 @@ public class Autodoc implements AttributeCollection {
       try {
         String sectionName = section.getName();
         String attributeValue = section.getAttribute(attributeName)
-            .getUnformattedValue();
+            .getValue();
         attributeValues.put(sectionName, attributeValue);
       }
       catch (NullPointerException e) {
@@ -414,8 +428,8 @@ public class Autodoc implements AttributeCollection {
 
   public void print() {
     System.out.println("Printing stored data:");
-    if (attributeList != null) {
-      attributeList.print();
+    if (attributeMap != null) {
+      attributeMap.print();
     }
     if (sectionList == null) {
       System.out.println("sectionList is null");
@@ -536,7 +550,7 @@ public class Autodoc implements AttributeCollection {
       initialize(name, axisID, "IMOD_CALIB_DIR");
     }
     else if (name.equals(UITEST)) {
-      initialize(name, axisID, "IMOD_TEST_REPOSITORY");
+      initialize(name, axisID, "IMOD_UITEST_SOURCE");
     }
     else {
       initialize(name, axisID, null);
@@ -576,6 +590,12 @@ public class Autodoc implements AttributeCollection {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.24  2006/01/03 23:27:49  sueh
+ *<p> $bug# 675 Converted metaData to an AttributeList.  Added UITEST_AXIS.
+ *<p> $Added UITEST_AXIS_MAP, so that multiple UITEST_AXIS adocs can be
+ *<p> $opened at once.  Added getAttributeLocation and nextAttribute so that
+ *<p> $a list of attributes can be traversed.
+ *<p> $
  *<p> $Revision 1.23  2005/12/23 02:13:36  sueh
  *<p> $bug# 675 Added UITEST type of autodoc.  Added the ability to pass the
  *<p> $autodoc file when opening an autodoc.  This is for test only and gives more
