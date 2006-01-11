@@ -31,6 +31,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2006/01/04 20:26:13  sueh
+ * <p> bug# 675 Removed kill Etomo functionality.  Running each test separately
+ * <p> from a script so that each instance of Etomo will have a separate virtual
+ * <p> machine.
+ * <p>
  * <p> Revision 3.38  2006/01/03 23:41:37  sueh
  * <p> bug# 675 Created a way to kill the current Etomo.
  * <p>
@@ -599,7 +604,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   /**Overridden so we can exit when window is closed*/
   protected void processWindowEvent(WindowEvent event) {
     super.processWindowEvent(event);
-    if (event.getID() == WindowEvent.WINDOW_CLOSING) {
+    if (event.getID() == WindowEvent.WINDOW_CLOSING && !EtomoDirector.getInstance().isTest()) {
       menu.doClickFileExit();
     }
   }
