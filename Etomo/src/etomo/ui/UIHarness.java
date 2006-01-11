@@ -37,8 +37,23 @@ public class UIHarness {
   private boolean initialized = false;
   private boolean headless = false;
   private MainFrame mainFrame = null;
+  private boolean verbose = false;
   
   private UIHarness() {
+  }
+  
+  final void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+    if (isHead()) {
+      mainFrame.setVerbose(verbose);
+    }
+  }
+  
+  final String getCurrentPopupName() {
+    if (!isHead()) {
+      return null;
+    }
+    return mainFrame.getCurrentPopupName();
   }
   
   /**
@@ -341,6 +356,7 @@ public class UIHarness {
     }
     if (!headless && mainFrame == null) {
       mainFrame = new MainFrame();
+      mainFrame.setVerbose(verbose);
     }
   }
 
@@ -451,6 +467,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.19  2005/12/23 02:24:20  sueh
+* <p> bug# 675 Split the test option functionality into headless and test.
+* <p>
 * <p> Revision 1.18  2005/12/09 20:37:08  sueh
 * <p> bug# Added an info message popup
 * <p>
