@@ -51,7 +51,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
   
-  static final String DATASET_NAME = "dataset-field-name";
+  static final String DATASET_NAME_LABEL = "Dataset name: ";
+  static final String FIDUCIAL_DIAMETER_LABEL = "Fiducial diameter (nm): ";
 
   private JPanel pnlDataParameters = new JPanel();
   private UIHarness uiHarness = UIHarness.INSTANCE;
@@ -61,7 +62,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
 
-  private LabeledTextField ltfDataset = LabeledTextField.getNamelessInstance("Dataset name: ");
+  private LabeledTextField ltfDataset = new LabeledTextField(DATASET_NAME_LABEL);
   private JButton btnDataset = new JButton(iconFolder);
 
   private LabeledTextField ltfBackupDirectory = new LabeledTextField(
@@ -94,7 +95,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private LabeledTextField ltfPixelSize = new LabeledTextField(
       "Pixel size (nm): ");
   private LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      "Fiducial diameter (nm): ");
+      FIDUCIAL_DIAMETER_LABEL);
   private LabeledTextField ltfImageRotation = new LabeledTextField(
       "Image rotation (degrees): ");
 
@@ -208,7 +209,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     //  Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    ltfDataset.setName(DATASET_NAME);
     pnlDataset.add(ltfDataset.getContainer());
     pnlDataset.add(btnDataset);
     pnlDataset.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -1083,6 +1083,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.44  2006/01/03 23:53:29  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
+ * <p> toRadioButton.
+ * <p>
  * <p> Revision 3.43  2005/12/23 02:22:15  sueh
  * <p> bug# 675 Changed single axis and montage radio buttons to RadioButton.
  * <p>
