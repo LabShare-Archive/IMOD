@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.util.Vector;
+
 import etomo.type.EtomoNumber;
 
 /**
@@ -16,6 +18,9 @@ import etomo.type.EtomoNumber;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.8  2006/01/03 23:23:26  sueh
+* <p> $bug# 675 Added equalsName().
+* <p> $
 * <p> $Revision 1.7  2005/12/23 02:08:37  sueh
 * <p> $bug# 675 Encapsulated the list of attributes into AttributeList.  There is a
 * <p> $list of attributes in three classes.
@@ -43,13 +48,24 @@ import etomo.type.EtomoNumber;
 * <p> $$ </p>
 */
 
-public class Attribute implements AttributeCollection {
+public class Attribute implements WriteOnlyAttributeMap {
   public static final String rcsid = "$$Id$$";
   
+  private final WriteOnlyAttributeMap parent;
+  private final WriteOnlyNameValuePairList nameValuePairList;
+  private final Token name;
+  
   private String key = null; //required
-  private Token name = null; //required
-  private Token value = null; //optional
-  private AttributeList attributeList = null;//optional
+
+  private Vector values = null; //optional
+  private AttributeMap attributeMap = null;//optional
+  
+  Attribute(WriteOnlyAttributeMap parent, WriteOnlyNameValuePairList nameValuePairList, Token name) {
+    this.parent = parent;
+    this.nameValuePairList = nameValuePairList;
+    this.name = name;
+    key = name.getKey();
+  }
   
   static String getKey(Token name) {
     if (name == null) {
@@ -71,42 +87,42 @@ public class Attribute implements AttributeCollection {
     }
     return key.equals(Token.convertToKey(name));
   }
- 
-  Attribute(Token name) {
-    this.name = name;
-    key = name.getKey();
-  }
   
-  public AttributeCollection addAttribute(Token name) {
-    if (attributeList == null) {
-      attributeList = new AttributeList();
+  public WriteOnlyAttributeMap addAttribute(Token name) {
+    if (attributeMap == null) {
+      attributeMap = new AttributeMap(this, nameValuePairList);
     }
-    return attributeList.addAttribute(name);
+    return attributeMap.addAttribute(name);
   }
   
-  void setValue(Token value) {
-    this.value = value;
+  synchronized void setValue(Token value) {
+    if (values == null) {
+      values = new Vector();
+    }
+    values.add(value);
+    //add the full name (name1.name2.name3...) and value to a sequential list
+    nameValuePairList.addNameValuePair(this, values.size() - 1);
   }
   
   public Attribute getAttributeByIndex(int index) {
-    if (attributeList == null) {
+    if (attributeMap == null) {
       return null;
     }
-    return attributeList.getAttribute(index);
+    return attributeMap.getAttribute(index);
   }
   
   public Attribute getAttribute(int name) {
-    if (attributeList == null) {
+    if (attributeMap == null) {
       return null;
     }
-    return attributeList.getAttribute(String.valueOf(name));
+    return attributeMap.getAttribute(String.valueOf(name));
   }
 
   public Attribute getAttribute(String name) {
-    if (attributeList == null) {
+    if (attributeMap == null) {
       return null;
     }
-    return attributeList.getAttribute(name);
+    return attributeMap.getAttribute(name);
   }
 
   final void print() {
@@ -124,54 +140,61 @@ public class Attribute implements AttributeCollection {
       }
     }
     System.out.print(key + ":(");
-    System.out.print(name.getValue(true));
-    if (value != null) {
-      System.out.print("," + value.getValue(true));
+    System.out.print(name.getValues());
+    if (values != null) {
+      for (int i = 0; i < values.size(); i++) {
+        System.out.print("," + ((Token) values.get(i)).getValues());
+      }
     }
-    if (attributeList != null) {
-      attributeList.print(level);
+    if (attributeMap != null) {
+      attributeMap.print(level);
     }
     System.out.print(")");
   }
 
-  String getKey() {
+  final String getKey() {
     return key;
   }
   
-  String getName() {
-    return name.getValue(true);
+  final WriteOnlyAttributeMap getParent() {
+    return parent;
   }
   
-  public void getUnformattedValue(EtomoNumber unformattedValue) {
-    unformattedValue.set(getUnformattedValue());
+  final Token getNameToken() {
+    return name;
+  }
+  
+  final String getName() {
+    return name.getValues();
+  }
+  
+  public final void getValue(EtomoNumber value) {
+    value.set(getValue());
+  }
+  
+  final Token getValueToken(int index) {
+    if (values == null) {
+      return null;
+    }
+    return (Token) values.get(index);
   }
  
-  public String getUnformattedValue() {
+  public final String getValue() {
+    if (values == null || values.size() == 0) {
+      return null;
+    }
+    Token value = (Token) values.get(0);
     if (value == null) {
       return null;
     }
-    Token token = value;
-    StringBuffer buffer = new StringBuffer();
-    while (token != null) {
-      if (!token.is(Token.BREAK) && !token.is(Token.INDENT)) {
-        String tokenValue = token.getValue();
-        if (tokenValue == null) {
-          buffer.append(' ');
-        }
-        else {
-          buffer.append(tokenValue);
-        }
-      }
-      token = token.next();
-    }
-    return buffer.toString();
+    return value.getFormattedValues(false);
   }
   
   String getFormattedValue() {
-    if (value == null) {
+    if (values == null) {
       return null;
     }
-    Token token = value;
+    Token token = (Token) values.get(0);
     StringBuffer buffer = new StringBuffer();
     while (token != null) {
       if (token.is(Token.BREAK)) {
@@ -200,7 +223,7 @@ public class Attribute implements AttributeCollection {
   }
 
   protected String paramString() {
-    return /*"key=" + key +*/ ",name=" + name + ",value="
-        + value + ",\nattributeList=" + attributeList/* + ",\n" + super.toString()*/;
+    return /*"key=" + key +*/ ",name=" + name + ",\nvalues="
+        + values + ",\nattributeMap=" + attributeMap/* + ",\n" + super.toString()*/;
   }
 }
