@@ -17,6 +17,10 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2006/01/04 20:23:29  sueh
+* <p> bug# 675 For printing the name:  putting the type first and making the type
+* <p> as constant.
+* <p>
 * <p> Revision 1.1  2006/01/03 23:30:46  sueh
 * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
 * <p> </p>
@@ -31,7 +35,7 @@ final class CheckBox extends JCheckBox {
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.CHECK_BOX_ATTRIB
           + AutodocTokenizer.SEPARATOR_CHAR + name
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
   /**
@@ -60,6 +64,10 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/01/04 20:23:29  sueh
+* <p> bug# 675 For printing the name:  putting the type first and making the type
+* <p> as constant.
+* <p>
 * <p> Revision 1.1  2006/01/03 23:30:46  sueh
 * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
 * <p> </p>
