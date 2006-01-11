@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/10/06: Fixed Imodmesh to treat a gap at the end of a contour properly.
+(In 3.7)
+
 1/10/06: Redimensioned Newstack to allow full rotation of 8K images. (In 3.7)
 
 1/6/06: Fixed a bug which prevented starting and ending error messages from
@@ -19,12 +22,6 @@ error log when $AUTODOC_DIR wasn't set. (In 3.7)
 embedded spaces. (In 3.7)
 
 12/22/05: Added help message to Etomo.
-
-12/20/05: Changed reading of piece coordinates from header to treat X and Y
-as unsigned instead of signed integers.
-
-12/16/05: Fixed a bug in Join which allowed the user to get into the align and
-join tabs with out of date screen values. (In 3.7)
 
 12/20/05: Changed reading of piece coordinates from header to treat X and Y
 as unsigned instead of signed integers.
