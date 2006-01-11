@@ -45,9 +45,11 @@ abstract class EtomoFrame extends JFrame {
   private static final String ETOMO_QUESTION = "Etomo question";
   private static final String YES = "Yes";
   private static final String NO = "No";
+  private static final String CANCEL = "Cancel";
   private static final String OK = "OK";
 
-  private long popupCounter = 0;
+  private boolean verbose = false;
+  private String currentPopupName = null;
   protected boolean main;
   protected EtomoMenu menu;
   protected JMenuBar menuBar;
@@ -73,6 +75,10 @@ abstract class EtomoFrame extends JFrame {
 
   final boolean isMenu3dmodBinBy2() {
     return menu.isMenu3dmodBinBy2();
+  }
+
+  final void setVerbose(boolean verbose) {
+    this.verbose = verbose;
   }
 
   final void setMenu3dmodStartupWindow(boolean menu3dmodStartupWindow) {
@@ -365,19 +371,11 @@ abstract class EtomoFrame extends JFrame {
    * @param title
    */
   private void openMessageDialog(String message, String title) {
-    if (printNames) {
-      printTitle(title, OK, null);
-    }
-    JOptionPane.showMessageDialog(this, wrap(message), title,
-        JOptionPane.ERROR_MESSAGE);
+    showOptionPane(wrap(message), title, JOptionPane.ERROR_MESSAGE);
   }
 
   private void openInfoMessageDialog(String message, String title) {
-    if (printNames) {
-      printTitle(title, OK, null);
-    }
-    JOptionPane.showMessageDialog(this, wrap(message), title,
-        JOptionPane.INFORMATION_MESSAGE);
+    showOptionPane(wrap(message), title, JOptionPane.INFORMATION_MESSAGE);
   }
 
   /**
@@ -386,28 +384,17 @@ abstract class EtomoFrame extends JFrame {
    * @param title
    */
   private void openMessageDialog(String[] message, String title) {
-    if (printNames) {
-      printTitle(title, OK, null);
-    }
-    JOptionPane.showMessageDialog(this, wrap(message), title,
-        JOptionPane.ERROR_MESSAGE);
+    showOptionPane(wrap(message), title, JOptionPane.ERROR_MESSAGE);
   }
 
   private void openErrorMessageDialog(ProcessMessages processMessages,
       String title) {
-    if (printNames) {
-      printTitle(title, OK, null);
-    }
-    JOptionPane.showMessageDialog(this, wrapError(processMessages), title,
-        JOptionPane.ERROR_MESSAGE);
+    showOptionPane(wrapError(processMessages), title, JOptionPane.ERROR_MESSAGE);
   }
 
   private void openWarningMessageDialog(ProcessMessages processMessages,
       String title) {
-    if (printNames) {
-      printTitle(title, OK, null);
-    }
-    JOptionPane.showMessageDialog(this, wrapWarning(processMessages), title,
+    showOptionPane(wrapWarning(processMessages), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
@@ -417,11 +404,8 @@ abstract class EtomoFrame extends JFrame {
    * @return int state of the users select
    */
   private int openYesNoCancelDialog(String[] message) {
-    if (printNames) {
-      printTitle(ETOMO_QUESTION, YES, NO);
-    }
-    return JOptionPane.showConfirmDialog(this, wrap(message), ETOMO_QUESTION,
-        JOptionPane.YES_NO_CANCEL_OPTION);
+    return showOptionConfirmPane(wrap(message), ETOMO_QUESTION,
+        JOptionPane.YES_NO_CANCEL_OPTION, new String[] { YES, NO, CANCEL });
   }
 
   /**
@@ -430,25 +414,9 @@ abstract class EtomoFrame extends JFrame {
    * @return
    */
   private boolean openYesNoDialog(String message) {
-    if (printNames) {
-      printTitle(ETOMO_QUESTION, YES, NO);
-    }
-    int result = JOptionPane.showConfirmDialog(this, wrap(message),
-        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION);
+    int result = showOptionConfirmPane(wrap(message), ETOMO_QUESTION,
+        JOptionPane.YES_NO_OPTION, new String[] { YES, NO });
     return result == JOptionPane.YES_OPTION;
-  }
-
-  private final void printTitle(String title, String option1, String option2) {
-    System.out.println("popup" + AutodocTokenizer.SEPARATOR_CHAR
-        + String.valueOf(popupCounter) + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-        + ' ' + title);
-    StringBuffer buffer = new StringBuffer("popup"
-        + AutodocTokenizer.SEPARATOR_CHAR + String.valueOf(popupCounter++) + ' '
-        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + option1);
-    if (option2 != null) {
-      buffer.append(',' + option2);
-    }
-    System.out.println(buffer);
   }
 
   /**
@@ -458,25 +426,17 @@ abstract class EtomoFrame extends JFrame {
    */
   private boolean openDeleteDialog(String[] message) {
     String[] results = new String[] { "Delete", "No" };
-    String title = "Delete File?";
-    if (printNames) {
-      printTitle(title, results[0], results[1]);
-    }
-    int result = JOptionPane.showOptionDialog(this, wrap(message), title,
-        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-        results, null);
+    int result = showOptionPane(wrap(message), "Delete File?",
+        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, results,
+        null, results);
     return result == 0;
   }
 
   private boolean openYesNoWarningDialog(String message) {
     String[] results = new String[] { "Yes", "No" };
-    String title = "Etomo Warning";
-    if (printNames) {
-      printTitle(title, results[0], results[1]);
-    }
-    int result = JOptionPane.showOptionDialog(this, wrap(message), title,
-        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, results,
-        "No");
+    int result = showOptionPane(wrap(message), "Etomo Warning",
+        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, results,
+        results[1], results);
     return result == 0;
   }
 
@@ -486,12 +446,63 @@ abstract class EtomoFrame extends JFrame {
    * @return
    */
   private boolean openYesNoDialog(String[] message) {
-    if (printNames) {
-      printTitle(ETOMO_QUESTION, YES, NO);
-    }
-    int result = JOptionPane.showConfirmDialog(this, wrap(message),
-        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION);
+    int result = showOptionConfirmPane(wrap(message), ETOMO_QUESTION,
+        JOptionPane.YES_NO_OPTION, new String[] { YES, NO });
     return result == JOptionPane.YES_OPTION;
+  }
+
+  private int showOptionConfirmPane(String[] message, String title,
+      int optionType, String[] optionStrings) {
+    return showOptionPane(message, title, optionType,
+        JOptionPane.QUESTION_MESSAGE, null, null, optionStrings);
+  }
+
+  private void showOptionPane(String[] message, String title, int messageType) {
+    showOptionPane(message, title, JOptionPane.DEFAULT_OPTION, messageType,
+        null, null, new String[] { OK });
+  }
+
+  private int showOptionPane(String[] message, String title, int optionType,
+      int messageType, Object[] options, Object initialValue,
+      String[] optionStrings) {
+    currentPopupName = UIUtilities.convertLabelToName(title);
+    printName(currentPopupName, optionStrings, title, message);
+    int result = JOptionPane.showOptionDialog(this, message, title, optionType,
+        messageType, null, options, initialValue);
+    currentPopupName = null;
+    return result;
+  }
+
+  final String getCurrentPopupName() {
+    return currentPopupName;
+  }
+
+  private synchronized final void printName(String name,
+      String[] optionStrings, String title, String[] message) {
+    if (printNames) {
+      //print waitfor popup name/value pair
+      StringBuffer buffer = new StringBuffer(UITestConstants.POPUP_ATTRIB
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      //if there are options, then print a popup name/value pair
+      if (optionStrings != null && optionStrings.length > 0) {
+        buffer.append(optionStrings[0]);
+        for (int i = 1; i < optionStrings.length; i++) {
+          buffer.append(',' + optionStrings[i]);
+        }
+        System.out.println(buffer);
+      }
+    }
+    if (verbose) {
+      //if verbose then print the popup title and message
+      System.err.println("Popup:");
+      System.err.println(title);
+      if (message != null) {
+        for (int i = 0; i < message.length; i++) {
+          System.err.println(message[i]);
+        }
+      }
+    }
   }
 
   /**
@@ -747,6 +758,12 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/01/04 20:25:33  sueh
+ * <p> bug# 675 For printing the title when print name is on:  manipulating a popup
+ * <p> requires two name/value pairs.  The two have to be linked by a number.
+ * <p> Adding popupCounter, which counts the number of popups and give each a
+ * <p> unique number.
+ * <p>
  * <p> Revision 1.18  2006/01/03 23:37:37  sueh
  * <p> bug# 675 If print names is set in EtomoDirector, print the information
  * <p> needed to get and manipulate the dialog.
