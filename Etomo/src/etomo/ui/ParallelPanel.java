@@ -278,7 +278,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     Attribute maxAttribute = autodoc.getAttribute("max");
     try {
-      maxAttribute.getAttribute(process).getUnformattedValue(maxCPUs);
+      maxAttribute.getAttribute(process).getValue(maxCPUs);
     }
     catch (NullPointerException e) {
     }
@@ -460,6 +460,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2005/12/14 20:57:40  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.26  2005/11/21 22:01:46  sueh
  * <p> bug# 761 In getParameters(ProcesschunksParam) pop up an error
  * <p> message and return false if ProcesschunksParam.validate() does not
