@@ -66,6 +66,10 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.7  2006/01/03 23:59:21  sueh
+* <p> $bug# 675 Added information to toString().  Renamed the original toString()
+* <p> $to getString().
+* <p> $
 * <p> $Revision 1.6  2005/12/23 02:23:48  sueh
 * <p> $bug# 675 Changed static getKey(String) to convertToKey() for clarity.
 * <p> $Removed unnecessary parameter String includeNext in getKey().
@@ -221,29 +225,53 @@ public class Token {
     return "UNKNOWN";
   }
 
-  public final String getValue() {
+  final String getValue() {
     return value;
   }
 
   /**
-   * When includeNext is true, returns a string containing all values in the
+   * Returns a string containing all values in the
    * token link list concatenated together.  Null values are converted to ' '.
    * 
    * @param includeNext
    * @return
    */
-  public final String getValue(boolean includeNext) {
-    if (!includeNext || next == null) {
-      return value;
-    }
-    StringBuffer buffer = new StringBuffer(value);
-    Token token = this.next;
+  public final String getValues() {
+    Token token = this;
+    StringBuffer buffer = new StringBuffer();
     while (token != null) {
       if (token.value == null) {
         buffer.append(' ');
       }
       else {
         buffer.append(token.value);
+      }
+      token = token.next;
+    }
+    return buffer.toString();
+  }
+  
+  /**
+   * Returns a string containing all values in the
+   * token link list concatenated together.  Null values are converted to ' '.
+   * Formats with break and indent if format is true, otherwise ignores them.
+   * @param format
+   * @return
+   */
+  public final String getFormattedValues(boolean format) {
+    Token token = this;
+    StringBuffer buffer = new StringBuffer();
+    while (token != null) {
+      if (format && token.is(Token.BREAK)) {
+          buffer.append("\n");
+      }
+      else if (!format || (format && token.is(Token.INDENT))) {
+        if (token.value == null) {
+          buffer.append(' ');
+        }
+        else {
+          buffer.append(token.value);
+        }
       }
       token = token.next;
     }
