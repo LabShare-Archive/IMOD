@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2006/01/04 20:25:51  sueh
+ * <p> bug# 675 For printing the name:  putting the type first and making the type
+ * <p> as constant.
+ * <p>
  * <p> Revision 1.8  2005/12/23 02:15:26  sueh
  * <p> bug# 675 Named the spinner so it can be found by JfcUnit.
  * <p>
@@ -85,7 +89,7 @@ public class LabeledSpinner {
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.SPINNER_ATTRIB
           + AutodocTokenizer.SEPARATOR_CHAR + name
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     //set label
     label.setText(spinLabel);
