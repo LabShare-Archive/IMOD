@@ -26,7 +26,7 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
   public static  final String  rcsid =  "$Id$";
   
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
-  private final JMenuItem startupWindow = new JMenuItem("Open with start up window");
+  private final JMenuItem startupWindow = new JMenuItem("Open with startup window");
   private final JMenuItem binBy2 = new JMenuItem("Open binned by 2");
   private final Run3dmodButtonContainer container;
   
@@ -48,9 +48,6 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
   
   static Run3dmodButton getToggleButtonInstance(String text, Run3dmodButtonContainer container) {
     return new Run3dmodButton(text, container, true);
-  }
-  
-  protected void setName(String label) {
   }
 
   public final void popUpContextMenu(MouseEvent mouseEvent) {
@@ -87,6 +84,9 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2006/01/03 23:44:59  sueh
+* <p> Added setName().
+* <p>
 * <p> Revision 1.4  2005/11/14 22:18:53  sueh
 * <p> Removed extra ;'s.
 * <p>
