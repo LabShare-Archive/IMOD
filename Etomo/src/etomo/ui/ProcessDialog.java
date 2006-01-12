@@ -13,6 +13,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2006/01/11 22:32:05  sueh
+ * <p> bug# 675 fixed print names functionality
+ * <p>
  * <p> Revision 3.15  2006/01/04 20:27:51  sueh
  * <p> bug# 675 Moved constants that must be shared by non-test objects to an
  * <p> object which doesn't know about junit.  Overwise junit would have to be in
@@ -108,6 +111,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;

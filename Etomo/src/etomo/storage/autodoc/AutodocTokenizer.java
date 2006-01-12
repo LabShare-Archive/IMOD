@@ -1,4 +1,4 @@
-package etomo.ui;
+package etomo.storage.autodoc;
 
 import java.io.File;
 //import java.io.StreamTokenizer;
@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.IllegalStateException;
+
+import etomo.ui.PrimativeTokenizer;
+import etomo.ui.Token;
 
 /**
 * <p>Description:
@@ -65,6 +68,9 @@ import java.lang.IllegalStateException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.7  2005/11/10 18:16:10  sueh
+* <p> $bug# 733 Changed defaultDelimiter to DEFAULT_DELIMITER
+* <p> $
 * <p> $Revision 1.6  2005/02/21 23:03:22  sueh
 * <p> $update comment.
 * <p> $
@@ -85,7 +91,7 @@ import java.lang.IllegalStateException;
 * <p> $bug# 372 creates tokens for AutodocParser
 * <p> $$ </p>
 */
-public class AutodocTokenizer {
+public final class AutodocTokenizer {
   public static final String rcsid =
     "$$Id$$";
 
@@ -98,6 +104,7 @@ public class AutodocTokenizer {
   public static final String VERSION_KEYWORD = "Version";
   public static final String PIP_KEYWORD = "Pip";
   public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
+  
   private String delimiterString = DEFAULT_DELIMITER;
   private StringBuffer restrictedSymbols =
     new StringBuffer(COMMENT_CHAR + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR + BREAK_CHAR);
@@ -115,18 +122,18 @@ public class AutodocTokenizer {
     primative = new PrimativeTokenizer(file);
   }
 
-  public void initialize() throws FileNotFoundException, IOException {
+  void initialize() throws FileNotFoundException, IOException {
     primative.initialize();
   }
 
-  public Token getToken() {
+  Token getToken() {
     return autodocToken;
   }
-  public String getDelimiterString() {
+  String getDelimiterString() {
     return delimiterString;
   }
 
-  public boolean setDelimiterString(String delimiterString) {
+  boolean setDelimiterString(String delimiterString) {
     if (delimiterString == null) {
       return false;
     }
@@ -145,7 +152,7 @@ public class AutodocTokenizer {
     return true;
   }
 
-  public Token next() throws IOException {
+  Token next() throws IOException {
     if (useNextToken) {
       useNextToken = false;
       autodocToken = new Token(nextToken);
@@ -157,7 +164,7 @@ public class AutodocTokenizer {
   }
   
   
-  public void test(boolean tokens) throws IOException {
+  void test(boolean tokens) throws IOException {
     initialize();
     Token token = null;
     do {
@@ -175,11 +182,11 @@ public class AutodocTokenizer {
     while (!token.is(Token.EOF));
   }
 
-  public void testPrimativeTokenizer(boolean tokens) throws IOException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException {
     primative.test(tokens);
   }
 
-  public void testStreamTokenizer(boolean tokens) throws IOException {
+  void testStreamTokenizer(boolean tokens) throws IOException {
     primative.testStreamTokenizer(tokens);
   }
 

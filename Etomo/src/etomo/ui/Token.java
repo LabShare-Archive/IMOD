@@ -66,6 +66,12 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.8  2006/01/11 21:44:03  sueh
+* <p> $bug# 675 Moved value formatting to Token.  Use
+* <p> $Token.getFormattedValues(boolean format) to get a value that has
+* <p> $formatting strings.  If format is true then use the formatting strings,
+* <p> $otherwise string them.
+* <p> $
 * <p> $Revision 1.7  2006/01/03 23:59:21  sueh
 * <p> $bug# 675 Added information to toString().  Renamed the original toString()
 * <p> $to getString().
@@ -225,7 +231,7 @@ public class Token {
     return "UNKNOWN";
   }
 
-  final String getValue() {
+  public final String getValue() {
     return value;
   }
 

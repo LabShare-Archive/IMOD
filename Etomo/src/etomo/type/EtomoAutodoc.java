@@ -1,8 +1,8 @@
 package etomo.type;
 
-import etomo.ui.Attribute;
-import etomo.ui.Autodoc;
-import etomo.ui.Section;
+import etomo.storage.autodoc.Attribute;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.Section;
 
 /**
 * <p>Description: </p>
@@ -87,6 +87,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/01/11 21:48:24  sueh
+ * <p> bug# 675 Replaced attribute.getUnformattedValue() with attribute.getValue().
+ * <p>
  * <p> Revision 1.7  2005/05/17 19:16:29  sueh
  * <p> bug# 663 Added static values for required attributes.
  * <p>

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2006/01/03 23:34:36  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox
+ * <p>
  * <p> Revision 3.15  2005/11/14 21:48:29  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
@@ -123,6 +126,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltxcorrParam;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 

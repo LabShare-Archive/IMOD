@@ -7,6 +7,7 @@ import java.awt.event.MouseListener;
 import javax.swing.*;
 
 import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 
 /**
  * <p>Description: </p>
@@ -21,6 +22,10 @@ import etomo.EtomoDirector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2006/01/11 22:11:56  sueh
+ * <p> bug# 675 No longer need to create an instance without a name -
+ * <p> removed getNamelessInstance().
+ * <p>
  * <p> Revision 3.11  2006/01/04 20:26:02  sueh
  * <p> bug# 675 For printing the name:  putting the type first and making the type
  * <p> as constant.

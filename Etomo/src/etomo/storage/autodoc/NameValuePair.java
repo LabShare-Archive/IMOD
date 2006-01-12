@@ -1,7 +1,9 @@
-package etomo.ui;
+package etomo.storage.autodoc;
 
 import java.util.ArrayList;
 import java.util.Vector;
+
+import etomo.ui.Token;
 
 /**
 * <p>Description: </p>
@@ -16,7 +18,7 @@ import java.util.Vector;
 * 
 * @version $Revision$
 */
-public class NameValuePair {
+public final class NameValuePair {
   public static  final String  rcsid =  "$Id$";
   
   private final Vector names = new Vector();
@@ -41,11 +43,11 @@ public class NameValuePair {
     }
   }
   
-  final int levels() {
+  public int levels() {
     return names.size();
   }
   
-  final boolean equalsName(String name, int index) {
+  public boolean equalsName(String name, int index) {
     if (name == null || index >= names.size()) {
       return false;
     }
@@ -53,14 +55,14 @@ public class NameValuePair {
     return key.equals(Token.convertToKey(name));
   }
   
-  final String getName(int index) {
+  public String getName(int index) {
     if (index >= names.size()) {
       return null;
     }
     return ((Token) names.get(index)).getValues();
   }
   
-  final String getValue() {
+  public String getValue() {
     if (value == null) {
       return null;
     }
@@ -92,5 +94,10 @@ public class NameValuePair {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/11 21:47:38  sueh
+* <p> bug# 675 Class to represent an attribute as a single line in an autodoc,
+* <p> rather then a tree of attributes.  This is useful for stepping through
+* <p> attributes in the same order as they are in the autodoc file.
+* <p> </p>
 */

@@ -1,9 +1,11 @@
-package etomo.ui;
+package etomo.storage.autodoc;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
+
+import etomo.ui.Token;
 
 /**
 * <p>Description: </p>
@@ -18,7 +20,7 @@ import java.util.Vector;
 * 
 * @version $Revision$
 */
-public class AttributeMap {
+final class AttributeMap {
   public static  final String  rcsid =  "$Id$";
   
   private final WriteOnlyAttributeMap parent;
@@ -32,7 +34,7 @@ public class AttributeMap {
     this.parent = parent;
   }
 
-  final WriteOnlyAttributeMap addAttribute(Token name) {
+  WriteOnlyAttributeMap addAttribute(Token name) {
     Attribute attribute = null;
     if (attributeMap == null) {
       attributeMap = new HashMap();
@@ -48,14 +50,14 @@ public class AttributeMap {
     return attribute;
   }
 
-  final Attribute getAttribute(int index) {
+  Attribute getAttribute(int index) {
     if (attributeList == null || attributeList.size() <= index) {
       return null;
     }
     return (Attribute) attributeList.get(index);
   }
 
-  final Attribute getAttribute(String name) {
+  Attribute getAttribute(String name) {
     if (attributeMap == null) {
       return null;
     }
@@ -64,11 +66,11 @@ public class AttributeMap {
     return attribute;
   }
 
-  final void print() {
+  void print() {
     print(0);
   }
 
-  final void print(int level) {
+  void print(int level) {
     System.out.print(")");
     if (attributeMap != null) {
       Attribute attribute = null;
@@ -97,7 +99,11 @@ public class AttributeMap {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/11 21:53:22  sueh
+* <p> bug# 675 Replaced AttributeList with AttributeMap.  The sequential
+* <p> functionality is taken care off by a Vector of NameValuePair's.
+* <p> </p>
 */
 /**
  * <p> Old Log: AttributeList.java

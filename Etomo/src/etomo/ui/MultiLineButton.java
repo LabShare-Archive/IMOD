@@ -7,6 +7,7 @@ import javax.swing.border.Border;
 import javax.swing.plaf.ColorUIResource;
 
 import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -29,6 +30,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/01/11 22:16:13  sueh
+ * <p> bug# 675 Added boolean toggleButton to save whether the button is a
+ * <p> JButton or JToggleButton.  This is needed in printName.
+ * <p>
  * <p> Revision 3.9  2006/01/04 20:26:30  sueh
  * <p> bug# 675 For printing the name:  putting the type first and making the type
  * <p> as constant.

@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoAutodoc;
@@ -29,6 +30,9 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/01/03 23:29:43  sueh
+ * <p> bug# 675 Converted JCheckBoxes to CheckBox
+ * <p>
  * <p> Revision 3.10  2005/11/14 21:27:40  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>

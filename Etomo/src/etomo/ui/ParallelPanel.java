@@ -18,6 +18,8 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
+import etomo.storage.autodoc.Attribute;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
@@ -222,7 +224,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     validAutodoc = new EtomoBoolean2();
     Autodoc autodoc = getAutodoc(axisID);
-    if (autodoc != null && autodoc.isSectionExists(ProcessorTable.SECTION_TYPE)) {
+    if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)) {
       validAutodoc.set(true);
     }
     return validAutodoc.is();
@@ -460,6 +462,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2006/01/11 22:19:07  sueh
+ * <p> bug# 675 Replaced getUnformattedValue with getValue
+ * <p>
  * <p> Revision 1.27  2005/12/14 20:57:40  sueh
  * <p> bug# 784 Added tool tips.
  * <p>

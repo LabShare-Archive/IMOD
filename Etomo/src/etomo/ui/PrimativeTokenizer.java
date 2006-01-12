@@ -50,6 +50,9 @@ import java.io.FileNotFoundException;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2006/01/11 22:25:28  sueh
+* <p> $bug# 675 Added the ability to tokenize a String.
+* <p> $
 * <p> $Revision 1.3  2003/12/31 01:29:48  sueh
 * <p> $bug# 372 added doc
 * <p> $
@@ -73,7 +76,7 @@ public class PrimativeTokenizer {
   boolean nextTokenFound = false;
   Token nextToken = new Token();
 
-  PrimativeTokenizer(File file) {
+  public PrimativeTokenizer(File file) {
     this.file = file;
   }
   

@@ -3,6 +3,7 @@ package etomo.ui;
 import javax.swing.JCheckBox;
 
 import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 /**
 * <p>Description: </p>
 * 
@@ -17,6 +18,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2006/01/11 21:58:46  sueh
+* <p> bug# 675 corrected print name functionality
+* <p>
 * <p> Revision 1.2  2006/01/04 20:23:29  sueh
 * <p> bug# 675 For printing the name:  putting the type first and making the type
 * <p> as constant.
@@ -64,6 +68,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/01/11 21:58:46  sueh
+* <p> bug# 675 corrected print name functionality
+* <p>
 * <p> Revision 1.2  2006/01/04 20:23:29  sueh
 * <p> bug# 675 For printing the name:  putting the type first and making the type
 * <p> as constant.

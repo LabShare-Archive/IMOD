@@ -18,8 +18,10 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.storage.DataFileFilter;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 
 /**
  * <p>Description: </p>
@@ -553,7 +555,10 @@ abstract class EtomoFrame extends JFrame {
   private final ArrayList setupMessageArray() {
     ArrayList messageArray = new ArrayList();
     if (currentManager != null) {
-      messageArray.add(currentManager.getBaseMetaData().getName() + ":");
+      BaseMetaData metaData = currentManager.getBaseMetaData();
+      if (metaData != null) {
+        messageArray.add(currentManager.getBaseMetaData().getName() + ":");
+      }
     }
     return messageArray;
   }
@@ -758,6 +763,18 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2006/01/11 22:10:50  sueh
+ * <p> bug# 675 Removed popupCounter and printTitle().  Using a name
+ * <p> created from the title to refer to the popup.  Don't want to stop using
+ * <p> static JOptionPane calls, so that name can't be attached to the popup
+ * <p> dialog.  Instead I'm saving the name in currentPopupName while the
+ * <p> popup dialog is active.  When --names is used, calling printName().
+ * <p> Moved all JOptionPane calls to one function -
+ * <p> showOptionPane(String[],String,int,int,Object[],Object,String[]).  This
+ * <p> simplifies setting currentPopupName and printing the name.  Added two
+ * <p> functions to help translate from the open...Dialog functions -
+ * <p> showOptionConfirm() and showOptionPanel(String[],String,int)
+ * <p>
  * <p> Revision 1.19  2006/01/04 20:25:33  sueh
  * <p> bug# 675 For printing the title when print name is on:  manipulating a popup
  * <p> requires two name/value pairs.  The two have to be linked by a number.

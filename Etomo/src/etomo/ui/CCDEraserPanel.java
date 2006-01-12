@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
@@ -460,6 +461,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
 * <p> $Log$
+* <p> Revision 3.15  2006/01/03 23:30:01  sueh
+* <p> bug# 675 Converted JCheckBox's to CheckBox
+* <p>
 * <p> Revision 3.14  2005/10/27 00:33:54  sueh
 * <p> bug# 725 Calling preEraser instead eraser so that the B stack can be
 * <p> processed.

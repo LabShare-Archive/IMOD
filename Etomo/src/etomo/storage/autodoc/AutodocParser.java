@@ -1,4 +1,4 @@
-package etomo.ui;
+package etomo.storage.autodoc;
 
 import java.io.File;
 //import java.io.FileReader;
@@ -8,6 +8,8 @@ import java.lang.IllegalStateException;
 //import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 import java.util.Vector;
+
+import etomo.ui.Token;
 
 /**
 * <p>Description:
@@ -101,6 +103,9 @@ import java.util.Vector;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.10  2006/01/11 21:57:36  sueh
+* <p> $bug# 675 Replaced AttributeCollection with WriteOnlyAttributeMap.
+* <p> $
 * <p> $Revision 1.9  2005/11/10 18:15:22  sueh
 * <p> $bug# 733 Changed the missing meta data warning to a single line warning.
 * <p> $
@@ -138,7 +143,7 @@ import java.util.Vector;
 * <p> $$ </p>
 */
 
-public class AutodocParser {
+final class AutodocParser {
   public static final String rcsid =
     "$$Id$$";
 
@@ -185,7 +190,7 @@ public class AutodocParser {
   private Token valueStart = null;
   private Token valueEnd = null;
 
-  public AutodocParser(Autodoc autodoc) {
+  AutodocParser(Autodoc autodoc) {
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
@@ -195,7 +200,7 @@ public class AutodocParser {
     tokenizer = new AutodocTokenizer(file);
   }
 
-  public void initialize() throws FileNotFoundException, IOException {
+  void initialize() throws FileNotFoundException, IOException {
     tokenizer.initialize();
   }
 
@@ -204,7 +209,7 @@ public class AutodocParser {
    * This function can be run only once per instance of the object.
    * @throws IOException
    */
-  public void parse() throws IOException {
+  void parse() throws IOException {
     //System.out.println("0token="+token);
     if (parsed) {
       return;
@@ -736,19 +741,19 @@ public class AutodocParser {
     }
   }
 
-  public void testStreamTokenizer(boolean tokens) throws IOException {
+  void testStreamTokenizer(boolean tokens) throws IOException {
     tokenizer.testStreamTokenizer(tokens);
   }
 
-  public void testPrimativeTokenizer(boolean tokens) throws IOException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException {
     tokenizer.testPrimativeTokenizer(tokens);
   }
 
-  public void testAutodocTokenizer(boolean tokens) throws IOException {
+  void testAutodocTokenizer(boolean tokens) throws IOException {
     tokenizer.test(tokens);
   }
 
-  public void testPreprocessor(boolean tokens) throws IOException {
+  void testPreprocessor(boolean tokens) throws IOException {
     if (tokens) {
       System.out.println("(type,value):startOfLine,emptyLine,delimiterInLine,breakInLine");
     }
@@ -774,7 +779,7 @@ public class AutodocParser {
    * @param tokens: display tokens rather then text
    * @throws IOException
    */
-  public void test(boolean tokens) throws IOException {
+  void test(boolean tokens) throws IOException {
     test = true;
     testWithTokens = tokens;
     initialize();
@@ -788,7 +793,7 @@ public class AutodocParser {
    *                 first error.
    * @throws IOException
    */
-  public void test(boolean tokens, boolean details) throws IOException {
+  void test(boolean tokens, boolean details) throws IOException {
     detailedTest = true;
     test(tokens);
   }

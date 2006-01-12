@@ -1,4 +1,4 @@
-package etomo.ui;
+package etomo.storage.autodoc;
 
 import java.util.Vector;
 
@@ -15,7 +15,7 @@ import java.util.Vector;
 * 
 * @version $Revision$
 */
-class NameValuePairLocation {
+public final class NameValuePairLocation {
   public static  final String  rcsid =  "$Id$";
 
   private int index = 0;
@@ -23,19 +23,19 @@ class NameValuePairLocation {
   NameValuePairLocation() {
   }
   
-  final int getIndex() {
+  int getIndex() {
     return index;
   }
   
-  final void setIndex(int index) {
+  void setIndex(int index) {
     this.index = index;
   }
   
-  final void increment() {
+  void increment() {
     index++;
   }
   
-  final boolean isOutOfRange(Vector list) {
+  boolean isOutOfRange(Vector list) {
     if (list == null) {
       return true;
     }
@@ -43,5 +43,8 @@ class NameValuePairLocation {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/11 22:17:12  sueh
+* <p> bug# The location of a NameValuePair in a Vector.
+* <p> </p>
 */

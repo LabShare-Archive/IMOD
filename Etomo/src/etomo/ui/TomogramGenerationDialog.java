@@ -37,6 +37,7 @@ import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.MtfFileFilter;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
@@ -69,6 +70,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.79  2006/01/04 00:00:59  sueh
+ * bug# 675 Converted JCheckBox's to CheckBox.
+ *
  * Revision 3.78  2005/12/14 20:59:06  sueh
  * bug# 784 Added tool tips.
  *

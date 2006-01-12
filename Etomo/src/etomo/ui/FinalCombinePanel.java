@@ -23,6 +23,7 @@ import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessName;
@@ -53,6 +54,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.38  2006/01/03 23:37:50  sueh
+ * bug# 675 Converted JCheckBox's to CheckBox
+ *
  * Revision 3.37  2005/12/14 20:56:48  sueh
  * bug# 784 Added tool tips.
  *
