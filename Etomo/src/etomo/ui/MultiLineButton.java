@@ -12,12 +12,18 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.lang.String;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Contains either a JButton or a JToggleButton.  
+ * <p> Construct with the contructor to get a JButton.  Construct with a
+ * getToggleButtonInstance call to get a JToggleButton.
+ * <p>This class wraps the button label in html so that the text will wrap.
+ * This prevents the text from changing color when the button is disabled, so
+ * this class controls the text color on enable/disable.</p>
  *
  * <p>Copyright: Copyright © 2002 - 2005</p>
  *
@@ -30,6 +36,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/01/12 17:11:48  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 3.10  2006/01/11 22:16:13  sueh
  * <p> bug# 675 Added boolean toggleButton to save whether the button is a
  * <p> JButton or JToggleButton.  This is needed in printName.
@@ -76,7 +85,7 @@ import java.lang.String;
  * <p> Bug325 New class, behaves like JButton, except that it automatically makes button text multi-line.
  * <p> </p>
  */
-public class MultiLineButton {
+class MultiLineButton {
   public static final String rcsid = "$$Id$$";
 
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
@@ -85,11 +94,11 @@ public class MultiLineButton {
   private final AbstractButton button;
   private final boolean toggleButton;
 
-  public MultiLineButton() {
+  MultiLineButton() {
     this(null);
   }
 
-  public MultiLineButton(String label) {
+  MultiLineButton(String label) {
     this(label, false);
   }
 
@@ -103,9 +112,12 @@ public class MultiLineButton {
     }
     setName(label);
     init();
+    if (toggleButton) {
+      addActionListener(new ButtonListener(this));
+    }
   }
 
-  protected void setName(String label) {
+  protected final void setName(String label) {
     String name = UIUtilities.convertLabelToName(label);
     button.setName(name);
     String buttonAttrib = toggleButton ? UITestConstants.TOGGLE_BUTTON_ATTRIB
@@ -116,25 +128,29 @@ public class MultiLineButton {
     }
   }
 
-  static MultiLineButton getToggleButtonInstance(String label) {
+  static final MultiLineButton getToggleButtonInstance(String label) {
     return new MultiLineButton(label, true);
   }
 
-  static MultiLineButton getToggleButtonInstance() {
+  static final MultiLineButton getToggleButtonInstance() {
     return new MultiLineButton(null, true);
   }
 
-  public void setEnabled(boolean isEnabled) {
+  final void setEnabled(boolean isEnabled) {
     button.setEnabled(isEnabled);
     button.setForeground(isEnabled ? enabledTextColor : disabledTextColor);
   }
+  
+  protected final boolean isToggleButton() {
+    return toggleButton;
+  }
 
-  public void setText(String label) {
+  final void setText(String label) {
     setName(label);
     button.setText(format(label));
   }
 
-  public static String format(String label) {
+  private static final String format(String label) {
     if (label == null) {
       return null;
     }
@@ -154,7 +170,11 @@ public class MultiLineButton {
   final void addActionListener(ActionListener actionListener) {
     button.addActionListener(actionListener);
   }
-
+  
+  void buttonAction(ActionEvent event) {
+    setSelected(true);
+  }
+  
   final String getActionCommand() {
     return button.getActionCommand();
   }
@@ -269,6 +289,18 @@ public class MultiLineButton {
     }
     else {
       throw new IllegalArgumentException(property);
+    }
+  }
+  
+  private final class ButtonListener implements ActionListener {
+    MultiLineButton adaptee;
+
+    ButtonListener(MultiLineButton adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
     }
   }
 }
