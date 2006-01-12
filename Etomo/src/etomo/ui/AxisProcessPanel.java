@@ -26,6 +26,16 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2005/10/15 00:32:29  sueh
+ * <p> bug# 532 Moved functionality to keep track of when the parallel panel
+ * <p> should be started and stopped from BaseManager to this class.  Changed
+ * <p> showParallelPanel() to setParallelDialog().  Added setParallelInUse().
+ * <p> Added booleans: parallelDialog, parallelInUse, parallelShowing.
+ * <p> SetParallelDialog() tells this class when the current dialog has a parallel
+ * <p> processing checkbox checked.  setParallelInUse() tells this class when
+ * <p> the parallel panel is being used.  The parallel panel is shown only when it
+ * <p> is in use or when the dialog has a selected parallel processing checkbox.
+ * <p>
  * <p> Revision 3.20  2005/09/27 23:24:44  sueh
  * <p> bug# 532 Saving the state of the parallel header.  Since
  * <p> AxisProcessPanel is in the ui package, no longer refering to ParallelPanel
@@ -183,7 +193,7 @@ import etomo.type.ProcessEndState;
  * <p> </p>
  */
 
-public abstract class AxisProcessPanel implements ContextMenu {
+abstract class AxisProcessPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -220,7 +230,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param appManager
    * @param axis
    */
-  public AxisProcessPanel(AxisID axis, BaseManager manager) {
+  AxisProcessPanel(AxisID axis, BaseManager manager) {
     axisID = axis;
     this.manager = manager;
     //  Create the status panel
@@ -259,7 +269,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * hide the panel if its width it zero because of the divider
    * @return
    */
-  public boolean hide() {
+  final boolean hide() {
     boolean hide = false;
     if (getWidth() != 0) {
       return hide;
@@ -343,11 +353,11 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * make panel visible
    *
    */
-  public void show() {
+  final void show() {
     panelRoot.setVisible(true);
   }
   
-  void saveDisplayState() {
+  final void saveDisplayState() {
     lastWidth.set(getWidth());
   }
   
@@ -355,7 +365,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * get panel width
    * @return
    */
-  public int getWidth() {
+  final int getWidth() {
     if (!lastWidth.isNull()) {
       int width = lastWidth.getInt();
       lastWidth.reset();
@@ -372,7 +382,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @return
    */
-  public Container getContainer() {
+  final Container getContainer() {
     return panelRoot;
   }
 
@@ -380,7 +390,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param newDialog
    */
-  public void replaceDialogPanel(Container newDialog) {
+  final void replaceDialogPanel(Container newDialog) {
     panelDialog.removeAll();
     panelDialog.add(newDialog);
     panelDialog.revalidate();
@@ -390,7 +400,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   /**
    * Remove all process information from the dialog panel
    */
-  public void eraseDialogPanel() {
+  final void eraseDialogPanel() {
     //  Get the current panel size and a new blank panel of the same size
     panelDialog.removeAll();
     panelDialog.revalidate();
@@ -402,7 +412,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param label
    * @param nSteps
    */
-  public void setProgressBar(String label, int nSteps, boolean enablePause) {
+  final void setProgressBar(String label, int nSteps, boolean enablePause) {
     progressPanel.setLabel(label);
     progressPanel.setMinimum(0);
     progressPanel.setMaximum(nSteps);
@@ -416,7 +426,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param n
    */
-  public void setProgressBarValue(int n) {
+  final void setProgressBarValue(int n) {
     progressPanel.setValue(n);
   }
 
@@ -424,7 +434,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param n
    */
-  public void setProgressBarValue(int n, String string) {
+  final void setProgressBarValue(int n, String string) {
     progressPanel.setValue(n, string);
   }
 
@@ -432,7 +442,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    * @param label
    */
-  public void startProgressBar(String label) {
+  final void startProgressBar(String label) {
     progressPanel.setLabel(label);
     progressPanel.start();
     buttonKillProcess.setEnabled(true);
@@ -442,7 +452,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    *
    */
-  public void stopProgressBar(ProcessEndState processEndState, String statusString) {
+  final void stopProgressBar(ProcessEndState processEndState, String statusString) {
     progressPanel.stop(processEndState, statusString);
     buttonKillProcess.setEnabled(false);
     if (parallelPanel != null) {
@@ -453,7 +463,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   /**
      * Right mouse button context menu
      */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public final void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "");
   }
 
@@ -485,5 +495,4 @@ public abstract class AxisProcessPanel implements ContextMenu {
       panelProcessSelect.add(axisLabel);
     }
   }
-
 }

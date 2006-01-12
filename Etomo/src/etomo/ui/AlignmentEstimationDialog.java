@@ -31,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/11/14 21:27:29  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.16  2005/08/11 23:44:08  sueh
  * <p> bug# 711  Get rid of duplicate code by running the 3dmods from a private
  * <p> function called run3dmod(String, Run3dmodMenuOptions).  It can be
@@ -218,7 +221,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 
-public class AlignmentEstimationDialog extends ProcessDialog
+public final class AlignmentEstimationDialog extends ProcessDialog
   implements ContextMenu, Run3dmodButtonContainer {
 
   public static final String rcsid = "$Id$";
