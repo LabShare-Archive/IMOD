@@ -41,7 +41,7 @@ all: $(JAR_FILE)
 #$(JAR_FILE): cpimages compile
 $(JAR_FILE): $(SE)/*.java $(SE)/comscript/*.java $(SE)/ui/*.java \
              $(SE)/process/*.java $(SE)/storage/*.java \
-             $(SE)/storage/autodoc/*.java \ $(SE)/type/*.java \
+             $(SE)/storage/autodoc/*.java $(SE)/type/*.java \
              $(SE)/util/*.java src/images/*.* 
 	mkdir -p $(CLASSPATH)
 	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
@@ -127,6 +127,9 @@ linecount:
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.16  2006/01/12 17:39:32  sueh
+# bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+#
 # Revision 2.15  2006/01/03 19:57:24  mast
 # Made the uitest build and install be separate from tests
 #
