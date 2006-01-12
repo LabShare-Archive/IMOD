@@ -10,7 +10,9 @@ import javax.swing.JPopupMenu;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
-* <p>Description: </p>
+* <p>Description:   Run3dmodButton extends MultiLineButton.  It creates a right
+* click menu to run 3dmod.  It requires a reference to a class which implements
+* Run3dmodButtonContainer.  The Run3dmodButtonContainer class runs 3dmod.</p>
 * 
 * <p>Copyright: Copyright (c) 2005</p>
 *
@@ -63,10 +65,16 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
     if (event.getActionCommand().equals(startupWindow.getText())) {
       menuOptions.setStartupWindow(true);
       container.run3dmod(this, menuOptions);
+      if (isToggleButton()) {
+        setSelected(true);
+      }
     }
     else if (event.getActionCommand().equals(binBy2.getText())) {
       menuOptions.setBinBy2(true);
       container.run3dmod(this, menuOptions);
+      if (isToggleButton()) {
+        setSelected(true);
+      }
     }
   }
   
@@ -84,6 +92,9 @@ class Run3dmodButton extends MultiLineButton implements ContextMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2006/01/11 22:37:22  sueh
+* <p> bug# 675 Naming Run3dmodButton's
+* <p>
 * <p> Revision 1.5  2006/01/03 23:44:59  sueh
 * <p> Added setName().
 * <p>
