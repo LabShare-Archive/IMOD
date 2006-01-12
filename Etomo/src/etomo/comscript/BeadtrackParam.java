@@ -4,13 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
-import etomo.ui.Autodoc;
 
 /**
  * <p>Description: </p>
@@ -25,6 +25,9 @@ import etomo.ui.Autodoc;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/08/27 21:07:11  sueh
+ * <p> bug# 532 Changed Autodoc.get() to getInstance().
+ * <p>
  * <p> Revision 3.11  2005/07/29 19:43:59  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
