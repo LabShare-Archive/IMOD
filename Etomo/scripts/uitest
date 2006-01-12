@@ -98,7 +98,7 @@ if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
 fi
 
 # Copy the previous out log file to backup
-outlog=etomo_out.log
+outlog=etomo_$1_out.log
 errlog=etomo_$1_err.log
 
 if [ -e ${errlog} ]; then
