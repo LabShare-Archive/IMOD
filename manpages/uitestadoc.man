@@ -14,33 +14,36 @@ uitest.adoc \- Description of user interface tests
 .SH DESCRIPTION
 The uitest.adoc file contains a master list of tests of the Etomo user
 interface and set up information for each test.  Any section
-type or attribute name not listed below will be ignored during testing.  A test can be run by
-running \fBuitest\fR with the name of the Test section desired (See Test Section and Attributes).
+type or attribute name not listed below will be ignored during testing.
+A test can be run by running \fBuitest\fR with the name of the Test section
+desired (See Test Section and Attributes).
 
 .SS Global Attributes
 
 .TP
 .B sleep = \fIsleep_length
-The number of milliseconds to sleep when the sleep attribute is used in the \fBuitest-axis.adoc\fR.
+The number of milliseconds to sleep when the sleep attribute is used in the
+\fBuitest-axis.adoc\fR.
 The default is 1000 milliseconds.  One entry per file.
-See Note 2 in the \fBuitest-axis.adoc\fR man page.
+See Note 2 in the \fBuitestaxisadoc\fR man page.
 
 .TP
 .B source = \fIrelative_directory_path
 The path of a directory which may contain the axis-level autodocs,
 dataset files to be copied, and/or
 files for comparison.  The absolute directory path will be
-$IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR.  One entry per file.  This setting is inherited
-by all axis-level tests.
+$IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR.  One entry per file.
+This setting is inherited by all axis-level tests.
 .nf
 Default absolute path:  $IMOD_UITEST_SOURCE.
 .fi
 
 .TP
-.B testdir = \fItestdir_relative_directory_path\fR
+.B testdir = \fIrelative_directory_path\fR
 The top-level test directory.  The directories will be created if they do not exist.
 The absolute directory path will be
-/the_run_directory/UITests/\fItestdir_relative_directory_path\fR.  One entry per file.
+/the_run_directory/UITests/\fIrelative_directory_path\fR.
+One entry per file.
 .nf
 Default absolute path:  /\fIthe_run_directory\fR/UITests.
 .fi
@@ -87,11 +90,10 @@ The directory path relative to the test directory which
 will contain the test dataset for the current test.
 IMPORTANT:  this directory will be deleted and recreated each time the test is run.
 See \fBtestdir\fR in Global Attributes.
-The absolute directory path will be
-/\fItestdir_relative_directory_path\fR/\fIrelative_directory_path\fR.
+The absolute directory path will be /testdir/\fIrelative_directory_path\fR.
 One entry per Test section.
 .nf
-Default absolute path:  /\fItestdir_relative_directory_path\fR/Test_section_name.
+Default absolute path:  /testdir/Test_section_name.
 .fi
 
 .TP
