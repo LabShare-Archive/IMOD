@@ -438,10 +438,10 @@ public class ApplicationManager extends BaseManager {
       String oldUserDir = propertyUserDir;
       propertyUserDir = setupDialog.getWorkingDirectory().getAbsolutePath();
       metaData = setupDialog.getFields();
-      metaData.initialize();
       if (metaData == null) {
         return;
       }
+      metaData.initialize();
       if (metaData.isValid()) {
         if (checkForSharedDirectory()) {
           uiHarness.openMessageDialog("This directory (" + propertyUserDir
@@ -569,8 +569,7 @@ public class ApplicationManager extends BaseManager {
     }
     preProcDialog = null;
   }
-  
-  
+
   /**
    * Updates comscripts and edf file 
    * @param preProcDialog
@@ -625,7 +624,6 @@ public class ApplicationManager extends BaseManager {
       saveIntermediateParamFile(axisID);
     }
   }
-
 
   /**
    * Open 3dmod to create the manual erase model
@@ -804,9 +802,9 @@ public class ApplicationManager extends BaseManager {
     if (stackAxisID == AxisID.FIRST) {
       setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
     }
-//    else {
-//      resetNextProcess(AxisID.ONLY);
-//    }
+    //    else {
+    //      resetNextProcess(AxisID.ONLY);
+    //    }
     //check for original stack
     File originalStack = Utilities.getFile(this, false, stackAxisID,
         "_orig.st", "original stack");
@@ -843,7 +841,8 @@ public class ApplicationManager extends BaseManager {
     }
   }
 
-  public void deleteOriginalStack(ProcessDetails archiveorigParam, String[] output) {
+  public void deleteOriginalStack(ProcessDetails archiveorigParam,
+      String[] output) {
     AxisID axisID;
     int mode = archiveorigParam.getCommandMode();
     if (mode == ArchiveorigParam.AXIS_A_MODE) {
@@ -899,7 +898,7 @@ public class ApplicationManager extends BaseManager {
     }
     return null;
   }
-  
+
   public final void updateArchiveDisplay() {
     if (cleanUpDialog == null) {
       return;
@@ -914,6 +913,7 @@ public class ApplicationManager extends BaseManager {
           || DatasetFiles.getOriginalStack(this, AxisID.SECOND).exists());
     }
   }
+
   /**
    * Replace the raw stack with the fixed stack created from eraser
    * @param axisID
@@ -1131,11 +1131,12 @@ public class ApplicationManager extends BaseManager {
     }
     coarseAlignDialog = null;
   }
-  
+
   /**
    * Get the parameters from the coarse align process dialog box
    */
-  public void saveCoarseAlignDialog(CoarseAlignDialog coarseAlignDialog, AxisID axisID) {
+  public void saveCoarseAlignDialog(CoarseAlignDialog coarseAlignDialog,
+      AxisID axisID) {
     setAdvanced(coarseAlignDialog.getDialogType(), axisID, coarseAlignDialog
         .isAdvanced());
     DialogExitState exitState = coarseAlignDialog.getExitState();
@@ -1197,7 +1198,6 @@ public class ApplicationManager extends BaseManager {
     }
   }
 
-
   /**
    * Get the parameters from dialog box and run the cross correlation script
    */
@@ -1229,7 +1229,7 @@ public class ApplicationManager extends BaseManager {
       setThreadName(threadName, axisID);
     }
   }
-  
+
   /**
    * if the b stack hasn't been processed, run extracttilts before running
    * crossCorrelate().
@@ -1243,7 +1243,7 @@ public class ApplicationManager extends BaseManager {
     }
     crossCorrelate(axisID);
   }
-  
+
   /**
    * if the b stack hasn't been processed, run extracttilts before running
    * eraser().
@@ -1257,15 +1257,14 @@ public class ApplicationManager extends BaseManager {
     }
     eraser(axisID);
   }
-  
+
   private final boolean processBStack() {
     AxisID axisID = AxisID.SECOND;
     ConstEtomoNumber bStackProcessed = metaData.getBStackProcessed();
     if (bStackProcessed == null || bStackProcessed.is()) {
       return false;
     }
-    File bStack = DatasetFiles.getStack(propertyUserDir, metaData,
-        axisID);
+    File bStack = DatasetFiles.getStack(propertyUserDir, metaData, axisID);
     if (!bStack.exists()) {
       return false;
     }
@@ -1282,7 +1281,7 @@ public class ApplicationManager extends BaseManager {
     saveIntermediateParamFile(axisID);
     return true;
   }
-  
+
   private final void extracttilts(AxisID axisID) {
     setNextProcess(axisID, ExtractpiecesParam.COMMAND_NAME);
     if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.EXTRACT) {
@@ -1308,10 +1307,10 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel
-        .startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME, axisID);
+    mainPanel.startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME,
+        axisID);
   }
-  
+
   private final void extractpieces(AxisID axisID) {
     setNextProcess(axisID, ExtractmagradParam.COMMAND_NAME);
     if (metaData.getViewType() != ViewType.MONTAGE) {
@@ -1337,18 +1336,18 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel
-        .startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME, axisID);
+    mainPanel.startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
+        axisID);
   }
-  
+
   private final void extractmagrad(AxisID axisID) {
     if (isLastProcessSet(axisID)) {
       setNextProcess(axisID, getLastProcess(axisID));
       resetLastProcess(axisID);
     }
-//    else {
- //     resetNextProcess(axisID);
- //   }
+    //    else {
+    //     resetNextProcess(axisID);
+    //   }
     String magGradientFileName = metaData.getMagGradientFile();
     if (magGradientFileName == null || magGradientFileName.matches("\\s*+")) {
       startNextProcess(axisID);
@@ -1376,8 +1375,8 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel
-        .startProgressBar("Running " + ExtractmagradParam.COMMAND_NAME, axisID);
+    mainPanel.startProgressBar("Running " + ExtractmagradParam.COMMAND_NAME,
+        axisID);
     return;
   }
 
@@ -1753,11 +1752,12 @@ public class ApplicationManager extends BaseManager {
     }
     fiducialModelDialog = null;
   }
-  
+
   /**
    * Save comscripts and the .edf file and delete the dialog.
    */
-  public void saveFiducialModelDialog(FiducialModelDialog fiducialModelDialog, AxisID axisID) {
+  public void saveFiducialModelDialog(FiducialModelDialog fiducialModelDialog,
+      AxisID axisID) {
     setAdvanced(fiducialModelDialog.getDialogType(), axisID,
         fiducialModelDialog.isAdvanced());
     DialogExitState exitState = fiducialModelDialog.getExitState();
@@ -2113,7 +2113,7 @@ public class ApplicationManager extends BaseManager {
       return true;
     }
   }
-  
+
   public boolean save(AxisID axisID) {
     mainPanel.done();
     saveDialog();
@@ -2125,6 +2125,9 @@ public class ApplicationManager extends BaseManager {
    *
    */
   public void saveDialog() {
+    if (metaData == null) {
+      return;
+    }
     AxisID firstAxisID = metaData.getAxisType() == AxisType.DUAL_AXIS ? AxisID.FIRST
         : AxisID.ONLY;
     if (preProcDialogA != null) {
@@ -2260,7 +2263,8 @@ public class ApplicationManager extends BaseManager {
   /**
    * 
    */
-  public void saveAlignmentEstimationDialog(AlignmentEstimationDialog fineAlignmentDialog, AxisID axisID) {
+  public void saveAlignmentEstimationDialog(
+      AlignmentEstimationDialog fineAlignmentDialog, AxisID axisID) {
     setAdvanced(fineAlignmentDialog.getDialogType(), axisID,
         fineAlignmentDialog.isAdvanced());
     DialogExitState exitState = fineAlignmentDialog.getExitState();
@@ -2308,7 +2312,7 @@ public class ApplicationManager extends BaseManager {
       saveIntermediateParamFile(axisID);
     }
   }
-  
+
   /**
    * Execute the fine alignment script (align.com) for the appropriate axis
    * This will also reset the fiducialess alignment flag, setFiducialAlign
@@ -2669,7 +2673,8 @@ public class ApplicationManager extends BaseManager {
   /**
    *  
    */
-  public void saveTomogramPositioningDialog(TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
+  public void saveTomogramPositioningDialog(
+      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
     setAdvanced(tomogramPositioningDialog.getDialogType(), axisID,
         tomogramPositioningDialog.isAdvanced());
     DialogExitState exitState = tomogramPositioningDialog.getExitState();
@@ -2729,7 +2734,7 @@ public class ApplicationManager extends BaseManager {
       saveIntermediateParamFile(axisID);
     }
   }
-  
+
   /**
    * Run the sample com script
    */
@@ -3413,7 +3418,8 @@ public class ApplicationManager extends BaseManager {
   /**
    *  
    */
-  public void saveTomogramGenerationDialog(TomogramGenerationDialog tomogramGenerationDialog, AxisID axisID) {
+  public void saveTomogramGenerationDialog(
+      TomogramGenerationDialog tomogramGenerationDialog, AxisID axisID) {
     setAdvanced(tomogramGenerationDialog.getDialogType(), axisID,
         tomogramGenerationDialog.isAdvanced());
     DialogExitState exitState = tomogramGenerationDialog.getExitState();
@@ -4139,14 +4145,14 @@ public class ApplicationManager extends BaseManager {
     AxisID axisID;
     boolean matchBtoA = metaData.getCombineParams().getMatchBtoA();
     //TEMP
-    System.err.println("matchBtoA="+matchBtoA);
+    System.err.println("matchBtoA=" + matchBtoA);
     if (matchBtoA) {
       axisID = AxisID.FIRST;
     }
     else {
       axisID = AxisID.SECOND;
     }
-    System.err.println("axisID="+axisID);
+    System.err.println("axisID=" + axisID);
     try {
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, "patch_region.mod",
           true, menuOptions);
@@ -4221,11 +4227,12 @@ public class ApplicationManager extends BaseManager {
     }
     saveTomogramCombinationDialog(tomogramCombinationDialog);
   }
-  
+
   /**
    * Tomogram combination done method, move on to the post processing window
    */
-  public void saveTomogramCombinationDialog(TomogramCombinationDialog tomogramCombinationDialog) {
+  public void saveTomogramCombinationDialog(
+      TomogramCombinationDialog tomogramCombinationDialog) {
     setAdvanced(tomogramCombinationDialog.getDialogType(),
         tomogramCombinationDialog.isAdvanced());
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
@@ -5037,7 +5044,7 @@ public class ApplicationManager extends BaseManager {
     savePostProcessing(postProcessingDialog);
     postProcessingDialog = null;
   }
-  
+
   /**
    * Close the post processing dialog panel
    */
@@ -5078,7 +5085,7 @@ public class ApplicationManager extends BaseManager {
     cleanUpDialog = null;
     mainPanel.showBlankProcess(AxisID.ONLY);
   }
-  
+
   /**
    * Close the clean up dialog panel
    */
@@ -5593,7 +5600,7 @@ public class ApplicationManager extends BaseManager {
   public void kill(AxisID axisID) {
     processMgr.kill(axisID);
   }
-  
+
   /**
    * Interrupt the currently running thread for this axis
    * 
@@ -5863,7 +5870,7 @@ public class ApplicationManager extends BaseManager {
         .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
     return;
   }
-  
+
   public void splitcombine() {
     if (!updateVolcombineCom()) {
       return;
@@ -5879,32 +5886,34 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute " + SplitcombineParam.COMMAND_NAME;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", AxisID.ONLY);
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
       return;
     }
-    setNextProcess(AxisID.ONLY, getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
+    setNextProcess(AxisID.ONLY,
+        getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     setThreadName(threadName, AxisID.ONLY);
-    mainPanel
-        .startProgressBar("Running " + SplitcombineParam.COMMAND_NAME, AxisID.ONLY);
+    mainPanel.startProgressBar("Running " + SplitcombineParam.COMMAND_NAME,
+        AxisID.ONLY);
     return;
   }
-  
+
   private final String getNextProcessProcesschunksString(ProcessName processName) {
     return ProcessName.PROCESSCHUNKS + " " + processName;
   }
-  
+
   public final void processchunksTilt(AxisID axisID) {
     processchunks(axisID, mapGenerationDialog(axisID));
   }
-  
+
   public final void processchunksVolcombine() {
     processchunks(AxisID.ONLY, tomogramCombinationDialog);
   }
-  
+
   protected BaseProcessManager getProcessManager() {
     return processMgr;
   }
-  
+
   protected final Storable[] getParamFileStorableArray(boolean includeMetaData) {
     boolean dualAxis = true;
     int arraySize = 5;
@@ -5928,7 +5937,7 @@ public class ApplicationManager extends BaseManager {
     }
     return storable;
   }
-  
+
   public final ReconScreenState getScreenState(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (screenStateB == null) {
@@ -5941,24 +5950,29 @@ public class ApplicationManager extends BaseManager {
     }
     return screenStateA;
   }
-  
+
   public final BaseScreenState getBaseScreenState(AxisID axisID) {
     return (BaseScreenState) getScreenState(axisID);
   }
-  
+
   public boolean canChangeParamFileName() {
     //if the param file hasn't been loaded, any param name that is added while
     //be overwritten when Setup Tomogram is complete, so don't allow the user to
     //do a Save As.
     return this.loadedParamFile;
   }
-  
+
   public final boolean canSnapshot() {
     return !isNewManager();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.203  2005/12/23 01:55:23  sueh
+ * <p> bug# 675 Split the test option functionality.  Control headlessness with
+ * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
+ * <p> functions.
+ * <p>
  * <p> Revision 3.202  2005/12/12 21:48:32  sueh
  * <p> bug# 779 Made BaseManager.resetNextProcess() private.
  * <p>
