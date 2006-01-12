@@ -14,6 +14,10 @@ import javax.swing.border.LineBorder;
 import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Storable;
+import etomo.storage.autodoc.Attribute;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.util.HashedArray;
@@ -711,6 +715,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2006/01/11 22:32:32  sueh
+ * <p> bug# 675 replaced Attribute.getUnformattedValue with getValue
+ * <p>
  * <p> Revision 1.27  2005/12/23 02:18:44  sueh
  * <p> bug# 675 Renamed Section.getFirstSectionLocation to getSectionLocation.
  * <p> Removed getSection(sectionLocation).  Changed nextSection so it gets the

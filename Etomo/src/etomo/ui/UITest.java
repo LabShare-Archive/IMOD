@@ -7,6 +7,12 @@ import java.io.IOException;
 import etomo.EtomoDirector;
 import etomo.JfcUnitTests;
 import etomo.process.SystemProgram;
+import etomo.storage.autodoc.Attribute;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.NameValuePair;
+import etomo.storage.autodoc.NameValuePairLocation;
+import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
 import junit.extensions.jfcunit.JFCTestCase;
@@ -436,6 +442,10 @@ public class UITest extends JFCTestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/01/11 23:18:40  sueh
+ * <p> bug# 675 Running one test instead of all tests.  Enforcing uitest.adoc
+ * <p> syntax rules.  Added fiducial diameter.
+ * <p>
  * <p> Revision 1.5  2006/01/04 20:28:12  sueh
  * <p> bug# 675 Moved constants that must be shared by non-test objects to an
  * <p> object which doesn't know about junit.  Overwise junit would have to be in

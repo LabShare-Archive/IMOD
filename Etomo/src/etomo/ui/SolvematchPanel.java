@@ -18,6 +18,8 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
@@ -37,6 +39,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2006/01/03 23:53:52  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
+ * <p> toRadioButton.
+ * <p>
  * <p> Revision 3.15  2005/11/14 22:21:15  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>

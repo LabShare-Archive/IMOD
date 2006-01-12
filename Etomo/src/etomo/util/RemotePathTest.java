@@ -8,9 +8,9 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
-import etomo.ui.Autodoc;
-import etomo.ui.AutodocTokenizer;
 import etomo.ui.ProcessorTable;
 
 import junit.framework.TestCase;
@@ -971,6 +971,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2006/01/11 23:22:51  sueh
+ * <p> bug# 675 Changed Attribute.getUnformattedValue to getValue.
+ * <p>
  * <p> Revision 1.26  2006/01/04 00:18:30  sueh
  * <p> bug# 675 Added constructors for this class, so a single test or all tests
  * <p> could be run.

@@ -23,6 +23,12 @@ import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.ComponentFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 
+import etomo.storage.autodoc.Attribute;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.NameValuePair;
+import etomo.storage.autodoc.NameValuePairLocation;
+import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.SectionLocation;
 import etomo.type.DialogType;
 
 /**
@@ -38,7 +44,10 @@ import etomo.type.DialogType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/01/11 22:45:29  sueh
+ * <p> bug# 675 uitest-axis.adoc level test using JfcUnit
+ * <p> </p>
  */
 final class UIAxisTest {
   public static final String rcsid = "$Id$";
@@ -561,5 +570,8 @@ final class UIAxisTest {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/01/11 22:45:29  sueh
+ * <p> bug# 675 uitest-axis.adoc level test using JfcUnit
+ * <p> </p>
  */

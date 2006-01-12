@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import etomo.storage.autodoc.NameValuePair;
+
 /**
  * <p>Description: </p>
  * 
@@ -127,5 +129,9 @@ public class UIField {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/01/11 22:46:30  sueh
+ * <p> bug# 675 Organizes the names and value in a NameValuePair into
+ * <p> field type, field name, and field index.
+ * <p> </p>
  */

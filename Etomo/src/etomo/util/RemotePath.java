@@ -7,12 +7,12 @@ import java.util.Vector;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.storage.autodoc.Attribute;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
-import etomo.ui.Attribute;
-import etomo.ui.Autodoc;
-import etomo.ui.AutodocTokenizer;
 import etomo.ui.ProcessorTable;
-import etomo.ui.Section;
 
 /**
  * <p>Description: A singleton class which loads mount rules from the cpu.adoc
@@ -648,6 +648,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/01/11 23:22:42  sueh
+ * <p> bug# 675 Changed Attribute.getUnformattedValue to getValue.
+ * <p>
  * <p> Revision 1.3  2005/12/01 00:26:13  sueh
  * <p> bug# 775 Added isSectionLocal().  Saving the local section when loading
  * <p> rules so that isSectionLocal() can use it.

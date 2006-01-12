@@ -19,6 +19,8 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 
@@ -247,7 +249,7 @@ public class TiltalignPanel {
    * Constructor
    * @param axis
    */
-  public TiltalignPanel(AxisID axis, ApplicationManager appMgr) {
+  TiltalignPanel(AxisID axis, ApplicationManager appMgr) {
     this.appMgr = appMgr;
     axisID = axis;
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
@@ -1523,6 +1525,10 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2006/01/03 23:57:54  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
+ * <p> toRadioButton.
+ * <p>
  * <p> Revision 3.29  2005/08/27 22:42:33  sueh
  * <p> bug# 532 Changed Autodoc.get() to getInstance().
  * <p>

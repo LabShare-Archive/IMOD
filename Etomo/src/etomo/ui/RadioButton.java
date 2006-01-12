@@ -3,6 +3,7 @@ package etomo.ui;
 import javax.swing.JRadioButton;
 
 import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 
 /**
  * <p>Description: </p>
@@ -70,6 +71,9 @@ final class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/01/11 22:32:48  sueh
+ * <p> bug# 675 fixed print names functionality
+ * <p>
  * <p> Revision 1.2  2006/01/04 20:28:01  sueh
  * <p> bug# 675 For printing the name:  putting the type first and making the type
  * <p> as constant.
