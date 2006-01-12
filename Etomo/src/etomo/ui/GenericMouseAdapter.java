@@ -17,6 +17,9 @@ import javax.swing.SwingUtilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/10/15 16:38:22  rickg
  * <p> Responds to pressed instead clicked right mouse button events now
  * <p>
@@ -30,7 +33,7 @@ import javax.swing.SwingUtilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class GenericMouseAdapter implements MouseListener {
+class GenericMouseAdapter implements MouseListener {
   public static final String rcsid =
     "$Id$";
 

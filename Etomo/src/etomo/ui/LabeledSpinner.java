@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2006/01/11 22:11:10  sueh
+ * <p> bug# 675 corrected print name functionality
+ * <p>
  * <p> Revision 1.9  2006/01/04 20:25:51  sueh
  * <p> bug# 675 For printing the name:  putting the type first and making the type
  * <p> as constant.
@@ -67,6 +70,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 
 import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 
 public class LabeledSpinner {
