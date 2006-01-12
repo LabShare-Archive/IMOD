@@ -17,7 +17,6 @@ import etomo.type.AxisID;
 import etomo.util.Utilities;
 import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
-import junit.extensions.jfcunit.eventdata.MouseEventData;
 
 /**
  * <p>Description: </p>
@@ -68,10 +67,6 @@ public class UITest extends JFCTestCase {
       etomo.exitProgram(AxisID.ONLY);
     }
     super.tearDown();
-  }
-
-  final void enterClickAndLeave(MouseEventData mouseEventData) {
-    helper.enterClickAndLeave(mouseEventData);
   }
 
   /**
@@ -442,6 +437,9 @@ public class UITest extends JFCTestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/01/12 17:38:44  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.6  2006/01/11 23:18:40  sueh
  * <p> bug# 675 Running one test instead of all tests.  Enforcing uitest.adoc
  * <p> syntax rules.  Added fiducial diameter.
