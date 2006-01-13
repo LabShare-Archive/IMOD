@@ -45,6 +45,8 @@ public class UITest extends JFCTestCase {
   private static final String ADOC_ATTRIB = "adoc";
   private static final String COPY_ATTRIB = "copy";
   private static final String DATASET_ATTRIB = "dataset";
+  private static final String DATASET_DIR_ATTRIB = "datasetdir";
+  private static final String KEEP_ATTRIB = "keep";
 
   private File testDir = null;
   private Autodoc autodocA = null;
@@ -54,6 +56,7 @@ public class UITest extends JFCTestCase {
   private long sleep = 1000;
   private double fiducialDiameter = 0;
   private String dataset = null;
+  private boolean keep = false;
 
   protected void setUp() throws Exception {
     super.setUp();
@@ -245,6 +248,12 @@ public class UITest extends JFCTestCase {
       throw new IllegalStateException("bad dataset file: "
           + file.getAbsolutePath());
     }
+    if (keep) {
+      File targetFile = new File(System.getProperty("user.dir"), file.getName());
+      if (targetFile.exists()) {
+        return;
+      }
+    }
     SystemProgram copy = new SystemProgram(System.getProperty("user.dir"),
         new String[] { "cp", file.getAbsolutePath(), "." }, AxisID.ONLY);
     copy.run();
@@ -310,18 +319,55 @@ public class UITest extends JFCTestCase {
   }
 
   /**
-   * Create datasetDir for the current section, clean the datasetDir by deleting
-   * it and then recreate it and set it be the working directory.
+   * Get the datasetDir for the current section.  If the keep attribute isn't
+   * found then clean the datasetDir by deleting
+   * it and then recreating it.  Set it be the working directory.
    * @param datasetDir
    * @return
    */
   private final void cleanDatasetDir(Section section) {
-    File datasetDir = getRequiredRelativeDir(section, "datasetdir", testDir,
-        true);
-    SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
-        new String[] { "rm", "-fr", datasetDir.getAbsolutePath() }, AxisID.ONLY);
-    remove.run();
-    datasetDir.mkdir();
+    File datasetDir = null;
+    //Get the directory name
+    String dirName = null;
+    Attribute dirAttrib = section.getAttribute(DATASET_DIR_ATTRIB);
+    if (dirAttrib == null) {
+      //use the default directory if the datasetdir atttribute isn't found
+      datasetDir = getRequiredRelativeDir(section, testDir, true);
+    }
+    else {
+      //get directory name
+      dirName = dirAttrib.getValue();
+      if (dirName == null) {
+        //get optional keep attribute
+        Attribute keepAttrib = dirAttrib.getAttribute(KEEP_ATTRIB);
+        if (keepAttrib == null) {
+          JFCTestCase.fail(DATASET_DIR_ATTRIB
+              + " attribute can only be followed by a " + KEEP_ATTRIB
+              + " attribute.");
+        }
+        keep = true;
+        //get directory name
+        dirName = keepAttrib.getValue();
+      }
+      JFCTestCase.assertNotNull("In uitest.adoc:  the " + DATASET_DIR_ATTRIB
+          + " attribute must have a value.", dirName);
+      //make the directory path
+      datasetDir = new File(testDir, dirName);
+      if (!datasetDir.exists()) {
+        datasetDir.mkdirs();
+      }
+    }
+    //if keep attribute was found, do not clean the directory
+    if (!keep) {
+      //clean the directory by deleting it
+      SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
+          new String[] { "rm", "-fr", datasetDir.getAbsolutePath() },
+          AxisID.ONLY);
+      remove.run();
+      //make the directory
+      datasetDir.mkdir();
+    }
+    //make the directory the working directory
     System.setProperty("user.dir", datasetDir.getAbsolutePath());
   }
 
@@ -348,38 +394,6 @@ public class UITest extends JFCTestCase {
     if (dirAttrib == null) {
       //default value
       return rootDir;
-    }
-    dirName = dirAttrib.getValue();
-    JFCTestCase.assertNotNull("In uitest.adoc:  the " + attribName
-        + " attribute must have a value.", dirName);
-    //make the directories
-    File dir = new File(rootDir, dirName);
-    if (makeDirs && !dir.exists()) {
-      dir.mkdirs();
-    }
-    return dir;
-  }
-
-  /**
-   * Create a directory or directory path in rootDir using an attribute value.
-   * Make directories if makeDirs is true and the directory does not exist.
-   * If the attribute value does not exist return the result of
-   * getRequiredRelativeDir(SectionFile,makeDirs).
-   * @param section
-   * @param attribName
-   * @param rootDir
-   * @param required
-   * @param makeDirs - if true, make the directories
-   * @return
-   */
-  private final File getRequiredRelativeDir(Section section, String attribName,
-      File rootDir, boolean makeDirs) {
-    //Get the directory name
-    String dirName = null;
-    Attribute dirAttrib = section.getAttribute(attribName);
-    if (dirAttrib == null) {
-      //default value
-      return getRequiredRelativeDir(section, rootDir, makeDirs);
     }
     dirName = dirAttrib.getValue();
     JFCTestCase.assertNotNull("In uitest.adoc:  the " + attribName
@@ -437,6 +451,9 @@ public class UITest extends JFCTestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/01/12 22:18:18  sueh
+ * <p> bug# 675 removed unnecessary function enterClickAndLeave().
+ * <p>
  * <p> Revision 1.7  2006/01/12 17:38:44  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
