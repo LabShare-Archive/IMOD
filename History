@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/12/06: Added option to Tif2mrc to read only first image of multi-page file.
+(In 3.7)
+
 1/10/06: Fixed Imodmesh to treat a gap at the end of a contour properly.
 (In 3.7)
 
