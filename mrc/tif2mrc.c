@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.12  2005/11/11 21:55:28  mast
+    Outputs unsigned file mode
+
     Revision 3.11  2005/02/11 01:42:34  mast
     Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -68,6 +71,7 @@ int main( int argc, char *argv[])
   int divide = 0;
   int keepUshort = 0;
   int forceSigned = 0;
+  int readFirst = 0;
   int xsize = XSIZE, ysize = YSIZE;
   int mrcxsize, mrcysize, mrcsizeset;
   int bpix;
@@ -103,6 +107,7 @@ int main( int argc, char *argv[])
             "integer mode\n");
     fprintf(stderr, "\t-s      Store as signed integers (mode 1) even if data "
             "are unsigned\n");
+    fprintf(stderr, "\t-f      Read only first image of multi-page file\n");
     fprintf(stderr, "\t-b file Background subtract image in given file\n");
 
     exit(3);
@@ -113,16 +118,6 @@ int main( int argc, char *argv[])
       switch (argv[i][1]){
          
       case 'h': /* help */
-        break;
-
-      case 'f': /* fill in holes */
-        break;
-
-      case 'c': /* float to common mean */
-         
-        break;
-
-      case 'm': /* float to given mean */
         break;
 
       case 'g': /* convert rgb to gray scale */
@@ -143,6 +138,10 @@ int main( int argc, char *argv[])
  
       case 's': /* save unsigned as signed */
         forceSigned = 1;
+        break;
+ 
+      case 'f': /* read only first image */
+        readFirst = 1;
         break;
  
       case 'b':
@@ -176,7 +175,7 @@ int main( int argc, char *argv[])
   if (unsign)
     forceSigned = 1;
 
-  if (i == (argc - 2)){
+  if (i == (argc - 2) && !readFirst){
 
     /* check for multi-paged tiff file. */
     /* Open the TIFF file. */
