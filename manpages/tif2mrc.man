@@ -69,6 +69,12 @@ chosen incorrectly.
 .B -k
 With this option, the program will treat numbers as unsigned and output data
 into a file of mode 6 even if there is no tag indicating the data are unsigned.
+.TP
+.B -f
+If only one input file is given and it is a multi-page tiff file, the program
+will convert all of the pages in the file into sections in an MRC file.  Use
+this option to make the program ignore the multiple pages and read only the
+first image.
 .TP 
 .B -b file
 This option loads a background file in tiff format.
