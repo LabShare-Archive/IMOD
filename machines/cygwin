@@ -394,9 +394,18 @@ EOF
         echo "DLLSOURCEDIR2 = $SYSTEMDRIVE/Program Files/Intel/Compiler70/IA32/Bin" >> $configure
         echo 'DLLSTOCOPY2 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
     else
+
+        # Version 8 or higher has different libraries, and also needs to
+        # include msvcr71.dll from .NET for Win2K
+        #
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
         echo "DLLSOURCEDIR2 = $fortbin" >> $configure
         echo 'DLLSTOCOPY2 = libifcoremd.dll libifportmd.dll libmmd.dll' >> $configure
+        if ($m64bit == false) then
+            set dllsrc3 = `cygpath $SYSTEMROOT/system32`
+            echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
+            echo 'DLLSTOCOPY3 = msvcr71.dll' >> $configure
+        endif
     endif
 
     # Build imodwincpu
