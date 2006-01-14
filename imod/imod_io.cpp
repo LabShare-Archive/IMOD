@@ -624,7 +624,6 @@ int createNewModel(char *modelFilename)
   }
 
   App->cvi->imod = Model;
-  imodvViewsInitialize(Model);
 
   //  Copy the modelFilename into Imod_filename and then execute
   //  MaintainModelName to update the model structure and main window
@@ -633,15 +632,9 @@ int createNewModel(char *modelFilename)
   else
     Imod_filename[0] = '\0';
   
+  initNewModel(App->cvi->imod);
   App->cvi->reloadable = 0;
   MaintainModelName(App->cvi->imod);
-
-  imodNewObject(App->cvi->imod);
-
-  /* DNM 5/16/02: if multiple image files, set time flag by default */
-  obj = imodObjectGet(App->cvi->imod);
-  if (App->cvi->nt)
-    obj->flags |= IMOD_OBJFLAG_TIME;
 
   App->cvi->imod->mousemode = mode;
   imod_cmap(App->cvi->imod);
@@ -651,7 +644,9 @@ int createNewModel(char *modelFilename)
 
   imod_info_setocp();
   ivwSetModelTrans(App->cvi);
-  imod_cmap(App->cvi->imod);
+
+  /* 1/13/06: eliminate as redundant */
+  /* imod_cmap(App->cvi->imod); */
 
   /* DNM: notify imodv of new model after scaling*/
   imodv_new_model(Model);
@@ -660,6 +655,34 @@ int createNewModel(char *modelFilename)
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);
      
   return IMOD_IO_SUCCESS;
+}
+
+// Initializes a few items in a new model
+void initNewModel(Imod *imod)
+{
+  Iobj *obj;
+  ImodImageFile *image = App->cvi->image;
+  imodvViewsInitialize(imod);
+  imodNewObject(imod);
+
+  /* DNM 5/16/02: if multiple image files, set time flag by default */
+  obj = imodObjectGet(imod);
+  if (App->cvi->nt)
+    obj->flags |= IMOD_OBJFLAG_TIME;
+
+  /* 1/13/06: Set header pixel size and zscale */
+  if (!App->cvi->fakeImage && image->xscale) {
+    if (image->xscale != 1.0f) {
+      imod->pixsize = image->xscale / 10.f;
+      imod->units = IMOD_UNIT_NM;
+    }
+
+    // Round pixel-size based Z-scale to 3 digits, keep this consistent with
+    // edit-model-header treatment of pixel ratio
+    if (image->zscale)
+      imod->zscale = (float)
+        (0.001 * floor(1000. * image->zscale / image->xscale + 0.5));
+  }
 }
 
 /*
@@ -785,6 +808,11 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.20  2005/10/14 21:59:47  mast
+Added reload capability, made function to set various state variables into
+model just before saving, added function to set Imod_filename, and cleaned
+up SaveModel and SaveasModel by putting common actions in one function.
+
 Revision 4.19  2005/10/13 00:55:23  mast
 Move notification of imodv to after model scaling
 
