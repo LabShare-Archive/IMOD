@@ -13,6 +13,7 @@
     <section ref="./startup.html" title="3dmod Startup Window"/>
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
+    <section ref="./modelHeader.html" title="Model Header Dialog"/>
     <section ref="./contourJoin.html" title="Contour Joining"/>
     <section ref="./contourMove.html" title="Contour Moving"/>
     <section ref="./imageMovie.html" title="Image Movie Control"/>

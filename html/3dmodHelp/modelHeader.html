@@ -1,0 +1,50 @@
+<head>
+<title>Model Header</title>
+</head>
+<H3>Model Header Dialog</H3>
+This dialog allows you to set several items in the model header.
+The most complicated item is the Z-scale, which is used both to adjust
+the model display to its proper dimensions in Z, and to account for
+the Z dimension properly when extracting quantitative information.
+For serial sections, the Z-scale is the ratio of section 
+thickness to pixel size.  For tomograms, the Z-scale needed to account
+for thinning is the ratio of 
+the original section thickness (typically the nominal thickness at 
+which the section was cut) to the thickness 
+of material in the reconstruction.  If a shrinkage in X/Y is known or
+can be estimated, then the Z-scale in each case would be the ratio
+just described, multiplied by the shrinkage factor (e.g., 0.9 for 10%
+shrinkage). 
+The <B>Total Z-scale</B> text box allows you to enter a scaling factor for the 
+actual size of the pixels in Z (section thickness) relative to their size in 
+X and Y.
+<P>
+The situation is more complicated when a tomogram has been squeezed
+more in Z than in X and Y.  In this case, the Z-scale needs to account
+for both this differential squeezing and the section thinning.  The
+line <B>Z/X pixel size ratio</B> will show the amount of scaling
+needed because of the differential squeezing.  If you select
+<B>Set incremental Z-scale</B> then the <B>Added Z-scale</B> text box
+will be enabled instead of the <B>Total Z-scale</B> text box, and you
+can enter just the scaling needed to account for thinning.
+<P>
+The <B>Draw model</B> checkbox toggles model drawing, just as the <B>t</B>
+hot key does.
+<P>
+The <B>Resolution</B> text box determines the spacing between 
+successive 
+points when adding points continuously while holding down the second 
+mouse button.  Points will be added at the given interval for image 
+zooms between 0.75 and 1.5, and at proportionally bigger or smaller 
+intervals for zooms lower or higher than these values, respectively.
+<P>
+The <B>Pixel size</B> text box allows you to set the pixel size of 
+the model, which is needed for extracting quantitative information.  
+Enter a number then the units of measurement.  Available units are 
+km, m, cm, um, nm, A, and pm.  When a new model is created in 3dmod,
+this pixel size will be initialized from the pixel spacing in the
+image file header if the spacing is different from 1.
+
+<P>
+<A HREF=index.html>Help Index<A>
+
