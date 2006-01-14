@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
 Revision 4.3  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
@@ -57,6 +60,7 @@ class ModelHeaderWindow : public DialogFrame
   void buttonPressed(int which);
   void valueEntered();
   void drawToggled(bool state);
+  void setIncToggled(bool state);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -66,7 +70,10 @@ class ModelHeaderWindow : public DialogFrame
 
  private:
   QCheckBox *mDrawBox;
-  ToolEdit *mEditBox[3];
+  QCheckBox *mSetIncBox;
+  ToolEdit *mEditBox[4];
+  float mPixRatio;
+  bool mSettingInc;
 };
 
 class ModelOffsetWindow : public DialogFrame

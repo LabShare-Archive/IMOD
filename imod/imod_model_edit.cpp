@@ -128,20 +128,41 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, headerLabels, headerTips, true, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  char *boxLabels[] = {"Z-scale", "Resolution", "Pixel size"};
+  char *boxLabels[] = {"Added Z-scale", "Total Z-scale", "Resolution", 
+                       "Pixel size"};
   char *boxTips[] = 
-    {"Ratio of section thickness to X/Y pixel size",
+    {"Ratio of section thickness to Z pixel size",
+     "Total ratio of section thickness to X/Y pixel size",
      "Interval at which model points are added when drag drawing",
      "Pixel size and units (m, mm, um, nm, A)"}; 
   QString str;
   QLabel *label;
 
+  mSettingInc = false;
+
+  // Get a pixel size ratio and round to 3 digits, keep this consistent with
+  // initNewModel's initial setting of Z scale
+  mPixRatio = 1.;
+  if (!App->cvi->fakeImage && App->cvi->image->zscale && 
+      App->cvi->image->xscale)
+    mPixRatio = App->cvi->image->zscale / App->cvi->image->xscale;
+  mPixRatio = (float)(0.001 * floor(1000. * mPixRatio + 0.5));
+
   mDrawBox = diaCheckBox("Draw model", this, mLayout);
-  QGridLayout *grid = new QGridLayout(mLayout, 3, 2);
   connect(mDrawBox, SIGNAL(toggled(bool)), this, SLOT(drawToggled(bool)));
   QToolTip::add(mDrawBox, "Turn display of entire model on or off");
 
-  for (int i = 0; i < 3; i++) {
+  mSetIncBox = diaCheckBox("Set incremental Z-scale", this, mLayout);
+  connect(mSetIncBox, SIGNAL(toggled(bool)), this, SLOT(setIncToggled(bool)));
+  QToolTip::add(mSetIncBox, "Enter ratio of section thickness to Z pixel "
+                "size instead of total Z-scale");
+
+  str.sprintf("Z/X pixel size ratio = %.3f", mPixRatio);
+  label = new QLabel(str, this);
+  mLayout->addWidget(label);
+  QGridLayout *grid = new QGridLayout(mLayout, 4, 2);
+
+  for (int i = 0; i < 4; i++) {
     str = boxLabels[i];
     label = new QLabel(str, this);
     grid->addWidget(label, i, 0);
@@ -154,6 +175,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setCaption(imodCaption("3dmod Model Header"));
+  mEditBox[0]->setEnabled(false);
 
   update();
   show();
@@ -164,30 +186,7 @@ void ModelHeaderWindow::buttonPressed(int which)
   if (!which)
     close();
   else
-    dia_vasmsg
-      ("Model Header Help\n",
-       "---------------------------\n",
-       "This dialog allows you to set the following items in the model header:"
-       "\n\n"
-       "The \"Z-scale\" text box allows you to enter a scaling factor for the "
-       "size of the pixels in Z (section thickness) relative to their size in "
-       "X and Y.  For serial sections, the Z-scale is the ratio of section "
-       "thickness to pixel size.  For tomograms, the Z-scale is the ratio of "
-       "the original section thickness (typically the nominal thickness at "
-       "which the section was cut) to the thickness "
-       "of material in the reconstruction.\n\n"
-       "\tThe \"Resolution\" text box determines the spacing between "
-       "successive "
-       "points when adding points continuously while holding down the second "
-       "mouse button.  Points will be added at the given interval for image "
-       "zooms between 0.75 and 1.5, and at proportionally bigger or smaller "
-       "intervals for zooms lower or higher than these values, respectively."
-       "\n\n"
-       "\tThe \"Pixel size\" text box allows you to set the pixel size of "
-       "the model, which is needed for extracting quantitative information.  "
-       "Enter a number then the units of measurement.  Available units are "
-       "km, m, cm, um, nm, A, and pm.\n",
-       NULL);
+    imodShowHelpPage("modelHeader.html");
 }
 
 // Key press, lost focus, or window closing: unload the tool edits
@@ -195,18 +194,22 @@ void ModelHeaderWindow::buttonPressed(int which)
 void ModelHeaderWindow::valueEntered()
 {
   int i;
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 4; i++)
     mEditBox[i]->blockSignals(true);
   setFocus();
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 4; i++)
     mEditBox[i]->blockSignals(false);
   HeaderDialog.vw->undo->modelChange();
-  HeaderDialog.vw->imod->zscale = mEditBox[0]->text().toFloat();
 
-  HeaderDialog.vw->imod->res = atoi(mEditBox[1]->text().latin1());
+  if (mSettingInc)
+    HeaderDialog.vw->imod->zscale = mPixRatio * mEditBox[0]->text().toFloat();
+  else
+    HeaderDialog.vw->imod->zscale = mEditBox[1]->text().toFloat();
+
+  HeaderDialog.vw->imod->res = atoi(mEditBox[2]->text().latin1());
 
   setPixsizeAndUnits(HeaderDialog.vw->imod, 
-                     (char *)mEditBox[2]->text().latin1());
+                     (char *)mEditBox[3]->text().latin1());
 
   update();
   imodvPixelChanged();
@@ -223,6 +226,14 @@ void ModelHeaderWindow::drawToggled(bool state)
   imodDraw(HeaderDialog.vw, IMOD_DRAW_MOD);
 }
 
+// The box for setting incremental Z is toggled
+void ModelHeaderWindow::setIncToggled(bool state)
+{
+  mSettingInc = state;
+  mEditBox[0]->setEnabled(state);
+  mEditBox[1]->setEnabled(!state);
+}
+
 // Set the check box and edit boxes according to model state
 void ModelHeaderWindow::update() 
 {
@@ -231,17 +242,20 @@ void ModelHeaderWindow::update()
 
   diaSetChecked(mDrawBox, HeaderDialog.vw->imod->drawmode > 0);
  
-  str.sprintf("%g", HeaderDialog.vw->imod->zscale);
+  str.sprintf("%g", HeaderDialog.vw->imod->zscale / mPixRatio);
   mEditBox[0]->setText(str);
 
-  str.sprintf("%g", (float)HeaderDialog.vw->imod->res);
+  str.sprintf("%g", HeaderDialog.vw->imod->zscale);
   mEditBox[1]->setText(str);
+
+  str.sprintf("%g", (float)HeaderDialog.vw->imod->res);
+  mEditBox[2]->setText(str);
 
   str.sprintf("%g ", HeaderDialog.vw->imod->pixsize);
   units = imodUnits(HeaderDialog.vw->imod);
   if (units)
     str += units;
-  mEditBox[2]->setText(str);
+  mEditBox[3]->setText(str);
 }
 
 void ModelHeaderWindow::fontChange( const QFont & oldFont )
@@ -488,6 +502,9 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2005/06/26 19:39:21  mast
+cleanup
+
 Revision 4.10  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
