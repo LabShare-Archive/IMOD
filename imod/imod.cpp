@@ -671,10 +671,8 @@ int main( int argc, char *argv[])
   }
 
   /* If new model created, initialize views and make first object */
-  if (new_model_created) {
-    imodvViewsInitialize(Model);
-    imodNewObject(Model);
-  }
+  if (new_model_created)
+    initNewModel(Model);
 
   Model->mousemode = IMOD_MMOVIE;
   vi.imod = Model;
@@ -727,12 +725,7 @@ int main( int argc, char *argv[])
     exit(3);
   }
 
-  /* If new model and multiple image files, set time flag by default */
-  if (new_model_created && vi.nt) {
-    obj = imodObjectGet(Model);
-    obj->flags |= IMOD_OBJFLAG_TIME;
-    Model->csum = imodChecksum(Model);
-  }
+  /* 11/13/06: remove setting of time flag in new model */
 
   /* Fill cache if user specified it - loader already filled if keepCacheFull*/
   if (fillCache && vi.vmSize)
@@ -1053,6 +1046,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.52  2005/10/14 22:02:50  mast
+Call new function to set Imod_filename
+
 Revision 4.51  2004/12/24 02:18:52  mast
 Removed absolute argument from call to show help page
 
