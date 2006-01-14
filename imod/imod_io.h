@@ -11,6 +11,9 @@
     $Revision$
 
     $Log$
+    Revision 4.7  2005/10/14 22:00:13  mast
+    Changes for reload and some cleanup
+
     Revision 4.6  2004/06/04 03:15:43  mast
     Added argument to loadModel to keep black/white level
 
@@ -73,6 +76,7 @@ int SaveasModel(struct Mod_Model *mod);
 int imod_model_changed(Imod *imodel);
 void imod_cleanup_autosave(void);
 int imod_autosave(struct Mod_Model *mod);
+void initNewModel(Imod *imod);
 unsigned char **imod_io_image_load(struct ViewInfo *vi);
 
 #endif /* IMOD_IO_H */
