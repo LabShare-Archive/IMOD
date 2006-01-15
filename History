@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/14/06: Made 3dmod initialize a model with pixel size and Z scale from image
+file.  Added an ability to set an incremental Z-scale when the image header 
+contains a difference between pixel sizes in Z and X/Y.
+
 1/12/06: Added option to Tif2mrc to read only first image of multi-page file.
 (In 3.7)
 
