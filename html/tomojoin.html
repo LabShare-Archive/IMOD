@@ -1,5 +1,5 @@
 <html><head><title>Tomogram Joining</title></head><body>
-<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.4.13<BR>
+<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.7.2<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -44,7 +44,7 @@ parallel to the plane of section;
 boundaries can be visualized and aligned;
 <LI>Getting transformations to align the top of each section to the bottom
 of the next;
-<LI>4) Assembling the joined volume.
+<LI>Assembling the joined volume.
 </OL>
 
 The <B>Setup</B> panel manages steps 1 to 3.  It allows you to identify the
@@ -145,16 +145,34 @@ that slice numbers will not vary with binning.
 2.3. Rotating a Section
 </H4></A>
 It is possible to rotate a tomogram
-before joining, using <A href="man/rotatevol.man">Rotatevol</A>.
-There are two reasons to use rotations.  1) If
+before joining, using <A href="man/rotatevol.man">Rotatevol</A>.  
+There are three reasons to use rotations.  
+<OL>
+<LI> If
 the surface of one section is pitched and can be made flat by a small
 rotation, then the boundary between sections can be made smaller by correcting
-this pitch.  2) If a tomogram is rotated by a large angle (e.g., 90 degrees)
-relative to an adjacent section, and if all the sections are aligned to an
-average orientation, then the final aligned result will come out at a strange
-angle.  To prevent this, you would have to set one tomogram as the reference
-for alignment in Finishjoin.  If for some reason it will not work to have one
-tomogram be the reference, then use Rotatevol to avoid this problem.
+this pitch. 
+<LI> If your tomograms are not square in X and Y, and if one of them
+is rotated by 90 degrees relative to an adjacent section, then you need to
+rotate this tomogram to get sample slices that contain image from the whole 
+area of the tomogram.  Without a rotation, sample slices from a horizontally
+elongated tomogram will be chopped off when they are stacking with slices from
+vertically oriented tomograms.
+<LI> If one of the sections is upside-down relative to the others, then you
+will not be able to match slices with the adjacent sections; when comparing
+slices from adjacent surfaces it will look like one of the slices needs to be 
+mirrored around the X or Y axis.  Rotating the volume by 180 degrees
+around the X or Y axis will accomplish this mirroring.
+</OL>
+<P>
+Rotations should be avoided unless they are necessary for one of these
+reasons, not only to save time and disk space, but also to avoid degrading
+the images by multiple transformations.  Thus, if you need to
+rotate for the second reason given above, rotate by exactly 90 degrees
+rather than by the angle that aligns the sections best, since the rotation
+will then not require any interpolations.  Similarly, if you need to turn a
+volume upside down, rotate by 180 degrees unless a different angle is needed
+to correct a pitch in the reconstruction.
 <P>
 If you want to use <A href="man/rotatevol.man">Rotatevol</A> to adjust
 the orientation of a section, then load the tomogram into 3dmod.  Open a
@@ -191,12 +209,21 @@ At the same time that you are making these choices, you may also be able
 to decide what range of slices from each tomogram to include in the final
 volume.  Enter these choices in the text boxes in the <B>Final</B>
 area of the table.  These entries will appear in italics to signify
-that they are not relevant to the operation performed on this panel.
+that they are not relevant to the operation performed on this panel.  Note
+that if you are rotating a section, these slice numbers picked in the original
+volume will be converted to the appropriate slices in the rotated volume, and
+the converted slice numbers will appear when you get to the <B>Join</B> panel.
 
 <P>
 <A NAME = "MakingSamples"><H4>
-2.5. Density Matching and Making Samples
+2.5. Adjusting Squeezing and Density Matching and Making Samples
 </H4></A>
+When the sample slices are extracted, they will be transformed if necessary so
+that they are no bigger than a certain size.  This size is 1024 pixels by
+default, but if your volumes are very large in X or Y this default 
+may lose too much detail.  To change the default, enter a larger number in the
+<B>Squeeze samples to</B> text box.
+<P>
 The combining procedures will scale the densities of the different
 sections to match their means and standard deviations.  The same scaling
 will be applied in producing both the sample slices and the final
@@ -204,7 +231,7 @@ volume.  By default, the first section will be used as the reference
 for this scaling.  If this section has poor dynamic range
 (i.e., black and white sliders need to be set close to each other in
 3dmod to get good contrast), then all of the other sections will be
-scaled to a similarly poor dynamc range.  To avoid this, select a different
+scaled to a similarly poor dynamic range.  To avoid this, select a different
 section as the reference using the 
 <B>Reference section for density matching</B> entry.
 <P>
@@ -212,7 +239,7 @@ When all entries have been made, press <B>Make Samples</B>.  The
 program will first determine the density scaling.  It will then run
 <A href="man/rotatevol.man">Rotatevol</A> on any
 sections that have rotation angles, producing a file with extension
-".rot" in the workign directory. Finally, it will
+".rot" in the working directory.  Finally, it will
 extract the sample slices into "rootname.sample" and average them
 into "rootname.sampavg".  At this point, you can go on
 to the <B>Align</B> panel.
@@ -222,7 +249,7 @@ to the <B>Align</B> panel.
 2.6. Modifying the Setup to Make New Samples
 </H4></A>
 After you have made samples, most fields on the <B>Setup</B> panel
-will be disabled, to prevent disagreements between the informationon
+will be disabled, to prevent disagreements between the information on
 this panel and the information used in later phases of the process.
 If you want to make new samples with different entries, just press
 <B>Change Setup</B>.  After doing this, you are free to rearrange
@@ -353,14 +380,20 @@ which the others will be aligned.  By default, all tomograms will be
 transformed into alignment to a single average position.
 If you turn on <B>Reference section for alignment</B> and select a section,
 that section will
-not be transformed and the others will be.  In addition to the case of large
-rotations mentioned above, this could also be useful if you have already
+not be transformed and the others will be.  
+This is useful if you have already
 modeled on one section, or if you are adding another section to an existing
-set of serial sections.  
+set of serial sections.  Note that if you have some sections that are rotated
+by large angles (90 or 180 degrees) relative to the rest, it is no longer
+necessary to set one section as a reference.  The program 
+<A href="xftoxg.man">Xftoxg</A> will determine the most common orientation in
+the set of sections and compute the average alignment position from the
+sections at that orientation.
 <P>
 When you first enter the panel, it will show an output size that equals
 the maximum size of the input sections.  If you have an appreciable shift
-between the sections, this size may not be sufficient.  The following
+between the sections, this size may not be sufficient.  On the other hand, the
+area may be more than you need.  The following
 procedure is recommended:
 <OL>
 <LI>Press <B>Get Max Size and Shift</B> to replace the current entries in
