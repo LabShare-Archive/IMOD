@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2005/12/13 17:05:36  mast
+#  Fixed problem with filtering odd sizes that result from rotations
+#
 #  Revision 3.12  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
@@ -62,6 +65,7 @@ options:
  -red[uce] n              -  # of times to reduce by 2 (default 1)
  -sk[ip] n1,n2,n3...      -  list of sections to skip (ranges OK)
  -br[eak] n1,n2,n3...     -  list of sections to break alignment at (ranges OK)
+ -bp[air]                 -  break alignment for paired images
  -m[att] f                -  fraction of image to omit at edges, or # of pixels
  -pa[rams] n              -  0 for formal params, or # of semi-natural params
  -bi[linear]              -  to use bilinear interpolation
@@ -94,6 +98,7 @@ set tmplog     = $tmpdir/$com.log.$$
 set refpic     = "0"
 set ifskip     = "0"
 set ifbreak    = "0"
+set ifpair     = "0"
 set seclist    = $tmpdir/$com.secs.$$
 set prexcorr   = "0"
 set prexffile  = ""
@@ -239,6 +244,10 @@ while($#argv > 2)
             set words = (`echo $argv[1]| sed '/,/s// /g'`)
             breaksw
 
+        case -bp*:
+            set ifpair = "1"
+            breaksw
+
         case -m*:
             shift
             set FRACMATT = $argv[1]
@@ -371,13 +380,13 @@ endif
 
 # If serial tomograms, check other options
 #
-if ($iftomo == 1) then
+if ($iftomo == 1 || $ifpair == 1) then
     if ($ifskip == 1 || $ifbreak == 1) then
-        echo "ERROR: $com - You cannot enter a break or a skip list in serial tomogram mode"
+        echo "ERROR: $com - You cannot enter a break or a skip list in tomogram or pair mode"
         exit 1
     endif
     if ($refpic == 1) then
-        echo "ERROR: $com - You cannot use alignment to one reference with serial tomograms"
+        echo "ERROR: $com - You cannot use alignment to one reference with tomograms or pairs"
         exit 1
     endif
     if ($#nxyz < 3) then
