@@ -1386,7 +1386,7 @@ c
 		call findBestGradient(dxgridmean,dygridmean,1,izsect,h,
      &		    dmagnew,rotnew)
 	      endif
-	      write(*,'(a,2f9.4)')' Implied total gradient:',
+	      write(*,'(a,2f9.4)')' Total gradient implied by displacements:',
      &		  dmagPerUm(min(ilistz, numMagGrad))+dmagnew,
      &		  rotPerUm(min(ilistz, numMagGrad))+rotnew
 	    endif
@@ -2533,6 +2533,9 @@ c
 
 c
 c	  $Log$
+c	  Revision 3.20  2005/11/09 05:57:03  mast
+c	  Added parameters for correlation control
+c	
 c	  Revision 3.19  2005/08/22 16:19:59  mast
 c	  Preliminary - finding gradients from displacements
 c	
