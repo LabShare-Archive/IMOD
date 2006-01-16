@@ -29,6 +29,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.14  2005/11/09 05:56:47  mast
+c	  Added parameters for correlation control, and edge dumping
+c	
 c	  Revision 3.13  2005/08/22 16:19:59  mast
 c	  Preliminary - finding gradients from displacements
 c	
@@ -1925,7 +1928,7 @@ c
 	enddo
 	errMin = gradfunc(var) - 0.001
 	write(*,73)var(1),var(2),errMin
-73	format(' Implied added gradient:',2f9.4,'  mean error:',f10.4)
+73	format(' Implied incremental gradient:',2f9.4,'  mean error:',f10.4)
 	call flush(6)
 	gradnew = var(1)
 	rotnew = var(2)
