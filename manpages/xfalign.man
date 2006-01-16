@@ -107,6 +107,10 @@ However, the following section will be aligned to the
 listed section, and nothing will be aligned to the previous section.  This
 breaks the chain of alignment through the series of sections.
 .TP
+.B -bpair
+Break the align after every pair of sections, i.e., at all even section
+numbers.
+.TP
 .B -size <X,Y>
 Set the X and Y dimensions of the images extracted by newstack to be 
 fed to Xfsimplex.
