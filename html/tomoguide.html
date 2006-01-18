@@ -1,6 +1,6 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.5.2<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.7.2<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -13,15 +13,18 @@
 <BR><A HREF = "#Numbering System">1.3. Numbering System</A>
 <BR><A HREF = "#Backup Files">1.4. Backup Files</A>
 <BR><A HREF = "#Using Insecure Storage">1.5. Using Temporary or Insecure Storage</A>
+<BR><A HREF = "#Intensity Problems">1.6. Problems with Intensities in 3dmod</A>
 <BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR NON-BOULDER USERS</A>
 <BR><A HREF = "#File Naming Conventions">2.1. File Naming Conventions</A>
 <BR><A HREF = "#Film versus CCD Images">2.2. Film versus CCD Images</A>
 <BR><A HREF = "#Image Scaling">2.3. Image Scaling and Contrast Polarity</A>
 <BR><A HREF = "#Image File Header">2.4. Image File Header</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
+<BR><A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
 <BR><A HREF = "#COARSE ALIGNMENT">5. COARSE ALIGNMENT BY CROSS-CORRELATION</A>
 <BR><A HREF = "#Fiducialless Quick">5.1 Making a Quick Tomogram with Correlation Alignment</A>
+<BR><A HREF = "#Fixing Montage Edges">5.2. Fixing Montage Edges</A>
 <BR><A HREF = "#GETTING FIDUCIAL">6. FIDUCIAL MODEL GENERATION</A>
 <BR><A HREF = "#Reseeding Model">6.1. Using Beadtrack to Extend a Model</A>
 <BR><A HREF = "#Transferring Fiducial">6.2. Getting Fiducials for a Second Axis</A>
@@ -164,6 +167,61 @@ automatically, copying files over to the source directory.  You can also run
 model for a while).
 
 <P>
+<A NAME = "Intensity Problems"><H4>
+1.6. Problems with Intensities in 3dmod
+</H4></A>
+X-rays and other artifacts from the CCD camera can produce extreme intensity
+values in the raw tilt series.  These effects can result in the images
+looking terrible when loaded into
+<A HREF = "man/3dmod.html">3dmod</A>, because the data are stored 
+internally as bytes and the image features of interest occupy a very small
+fraction of the whole dynamic range of the data.  Successful removal of
+these artifacts will solve this problem (see <A HREF =
+"#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>), but there are
+also several remedies until that point is reached.
+<P>
+Once the data are opened in <A HREF = "man/3dmod.html">3dmod</A>, adjust the
+Black and White sliders until the image features are visible in an
+appropriate
+contrast range.  Then use the menu entry <B>Edit-Image-Reload</B> to open a
+dialog for rescaling the data.  Press <B>Apply</B> and the data will be
+reloaded with the scaling indicated in the <B>Lower limit</B> and <B>Upper
+limit</b> text boxes, and the Black and White sliders will be set to values
+that allow the contrast to be decreased as well as increased.  Now that you
+can see the images better, you can repeat this process if necessary - adjust
+the contrast again, then press <B>Calc</B> then <B>Apply</B>.  Make a note
+of the final values for the lower and upper limits.
+<P>
+Next time you need to load the data, press the relevant 3dmod-opening button
+with the right instead of the left mouse button and select <B>Open with
+Startup Window</B>.  In the Startup window, enter the lower and upper limits
+from the rescaling dialog
+in the <B>Scale intensities</B> text boxes.
+<P>
+If you cannot visualize the data at all in <A HREF =
+"man/3dmod.html">3dmod</A>, then you need to look at the intensities in the
+individual images with
+<BR><CODE>
+clip stat -2d setname.st
+<BR></CODE>
+Look at the minimum and maximum values for the sections.  You should see that 
+some of them have extreme minima or maxima, while others have more
+reasonable values.  Use the typical or reasonable minimum and maximum values
+as the lower and upper scaling limits when loading the data into 
+<A HREF = "man/3dmod.html">3dmod</A>.  If all sections show extreme minima
+and maxima, possibly due to a bad column or row near the edge, use
+<BR><CODE>
+clip stat -2d -ix nx -iy ny setname.st
+<BR></CODE>
+where "nx" and "ny" are smaller than the full X and Y dimensions of the
+data.  This will provide statistics over a subarea of the images.
+<P>
+Finally, if you can not get good dynamic range even after removing X-rays,
+you should prevent the coarse aligned stack from being converted to bytes.
+Close the <B>Coarse Alignment</B> panel in eTomo and 
+edit "prenewst.com" and remove the entries <B>-float 2</B> and <B>-mode 0</B>.
+
+<P>
 <A NAME = "NON-BOULDER NOTES"><H3>
 2. NOTES FOR NON-BOULDER USERS
 </H3></A>
@@ -263,34 +321,36 @@ To work on a new data set, start eTomo and fill in the entries in the
 <B>Setup Panel</B> that appears.
 You need not start eTomo from the directory where the files are located.
 
-
 <UL>
-<LI>Dataset Name: eTomo can work with either the full name of one of
+<LI><B>Dataset Name:</B> eTomo can work with either the full name of one of
 the data files or the name of the data set, excluding "a", "b", and
 ".st".  The easiest way to specify the name is to push the browse
 button and select one of the data stacks.
 
-<LI>Backup Directory: This field can remain blank, but see the section above 
-on 
+<LI><B>Backup Directory:</B> This field can remain blank, but see the
+section above on 
 <A HREF = "#Using Insecure Storage">Using Temporary or Insecure
 Storage</A>
 for an explanation of this option.
 
-<LI> Data Type: Currently, the only relevant option to select in this box is 
+<LI><B> Axis Type:</B> Here, you select
 whether the data are single or dual axis.
 
-<LI> Scan Header: Push this button to attempt to retrieve the pixel
+<LI><B> Frame Type:</B> These buttons are used to indicate whether only a
+single image or a montage of overlapping frames was taken at each tilt.
+
+<LI><B> Scan Header:</B> Push this button to attempt to retrieve the pixel
 size and image rotation from the image file header.  This will work
 with data from SerialEM on the Tecnai as well as with files using David
 Agard's extended header format, which is also used in the FEI
 tomography acquisition software.
 
-<LI> Pixel size and Fiducial diameter: These values are used only by
+<LI><B> Pixel size and Fiducial diameter:</B> These values are used only by
 <A HREF = "man/beadtrack.html">Beadtrack</A>.  If you do not know the
 pixel size, you can enter 1, and the measured diameter of the gold
 particles in pixels.
 
-<LI> Initial rotation:
+<LI><B> Initial rotation:</B>
 This is
 the angle from vertical to the tilt axis in the raw images (e.g., if the axis
 runs from top left to bottom right, the angle would be 45 degrees).
@@ -300,17 +360,31 @@ images be rotated clockwise from their current orientation, or -90 to have
 them rotated counterclockwise.  This will determine the orientation of the
 resulting tomogram.
 
-<LI> Image distortion field file: Use this to select a distortion field 
+<LI><B> Parallel processing:</B> This option sets the default for whether
+parallel processing is enabled when you reach a panel where it can be used.
+
+<LI><B> Image distortion field file:</B> Use this to select a distortion field 
 file for correction of imaging distortion, if appropriate.  If the environment
 variable IMOD_CALIB_DIR is defined, eTomo will open the file chooser at
 $IMOD_CALIB_DIR/Distortion.  Once a distortion field has been defined, it will
 be used when generating the coarse aligned and final aligned stacks.
 
-<LI> Binning: This entry is relevant only if using distortion field
+<LI><B> Binning:</B> This entry is relevant only if using distortion field
 corrections and is needed to specify the binning at which
 images were acquired on the CCD camera.
 
-<LI> Tilt angles: eTomo provides three choices for getting the initial
+<LI><B> Mag gradients correction:</B> Use this to select a
+magnification gradient table for correction of distortions due to
+magnification gradients at high tilts.  To use this option, your raw
+image stack must have
+intensity values stored in its header.  If the environment
+variable IMOD_CALIB_DIR is defined, eTomo will open the file chooser at
+$IMOD_CALIB_DIR/Distortion.  When a gradient table has been defined, it will
+be used to generate a list of the mag gradients for this particular
+dataset, which is stored in "setname.maggrad".  These gradients will
+be used when generating the coarse aligned and final aligned stacks.
+
+<LI><B> Tilt angles:</B> eTomo provides three choices for getting the initial
 tilt angles that are needed by <A HREF = "man/beadtrack.html">Beadtrack</A>,
 <A HREF = "man/tiltalign.html">Tiltalign</A>, and
 <A HREF = "man/tiltxcorr.html">Tiltxcorr</A>.  First, the angles can be
@@ -324,16 +398,21 @@ with raw tilt values should be named "setname.rawtlt".  If you have
 regular angles with some variations, you may find a 
 nearly correct file in $IMOD_DIR/com.
 
-<LI>Exclude views: If you know in advance that you want to exclude
+<LI><B>Exclude views:</B> If you know in advance that you want to exclude
 some views from the reconstruction, you can enter the list of views in
 this text box.  However, this is not essential; you will have a chance
 to enter or add to such a list at later stages in the process.
+
+<LI><B>Focus was adjusted between montage frames:</B>
+When processing montaged images with correction for mag gradients,
+this checkbox can be used to indicate that the montages were acquired
+with the option to adjust focus for changes in Z height.
 </UL>
 
 Once you have made all of these entries, push the button to <B>Create
 Com Scripts</B>.  eTomo will run the Copytomocoms script to produce
 command files for processing the
-data, as follows:
+data.  For a data set consisting of single frames, the files are as follows:
 
 <UL>
 <LI><B>Preprocessing</B>: uses eraser.com to run
@@ -382,16 +461,40 @@ them for any questions on the options available in these programs.
 If you find that you need to run Copytomocoms by hand, see
 <A HREF = "tomoExtra.html#Getting Files">Getting Command Files</A> in
 the Extra Topics section for more details.
-
-
+<P>
+<A NAME = "Montage Coms"><H4>
+3.1. Command Files when Montaging
+</H4></A>
+For a montaged data set, some command files and programs are
+different, as follows:
+<UL>
+<LI><B>Coarse Alignment</B>: uses a different version of xcorr.com
+that first runs
+<A HREF = "man/blendmont.html">Blendmont</A> to generate a blended
+stack that contains a subarea of the montage, up to 2K by 2K pixels.
+This file, "setname.bl", will be used to get the
+initial alignment by correlation
+<BR>
+  uses preblend.com to run <A HREF = "man/xftoxg.html">Xftoxg</A> and 
+<A HREF = "man/blendmont.html">Blendmont</A>
+to get the pre-aligned stack.
+<LI><B>Tomogram Positioning</B>: uses a different version of sample.com to run
+<A HREF = "man/blendmont.html">Blendmont</A>
+and the
+<A HREF = "man/tilt.html">Tilt</A> command file on three regions 
+<LI><B>Tomogram Generation</B>: uses blend.com to run 
+<A HREF = "man/blendmont.html">Blendmont</A>
+to make an aligned stack
+</UL>
 <P>
 <A NAME = "PRE-PROCESSING"><H3>
 4. PRE-PROCESSING: REMOVING X-RAYS
 </H3></A>
 <P>
-X-rays and other flaws in CCD camera images can produce extreme low or
-high values that ruin the contrast when you view the images in <A HREF = "man/3dmod.html">3dmod</A>,
-and can also give undesirable artifacts in the reconstruction.  These
+As mentioned above, X-rays and other flaws in CCD camera images can produce
+extreme low or high values that ruin the contrast when you view the images
+in <A HREF = "man/3dmod.html">3dmod</A>,
+and they can also give undesirable artifacts in the reconstruction.  These
 defects can be wiped out with <A HREF = "man/ccderaser.html">Ccderaser</A>,
 which finds X-rays in two ways.  It looks for "peaks", or pixels whose
 intensity deviate from the surrounding pixels
@@ -435,7 +538,12 @@ model file.  Press the <B>Advanced</B> button to reveal the controls
 for this option, and see the man page for 
 <A HREF = "man/ccderaser.html">Ccderaser</A> for
 details on how to construct the model file.
-
+<P>
+With a montaged data set, when you view the X-ray model, the images
+will be loaded into <A HREF = "man/3dmod.html">3dmod</A> as single
+frames instead of as a montage, so that all parts every frame can be
+viewed.  However, this feature does make it difficult to page through
+the images.
 <P>
 <A NAME = "COARSE ALIGNMENT"><H3>
 5. COARSE ALIGNMENT BY CROSS-CORRELATION
@@ -528,6 +636,85 @@ alignment, see the <A HREF = "tomoExtra.html#Fiducialless Tomogram">Extra
 Topics</A> section.  It is recommended that you NOT do this if you plan to go
 back and do the fiducial alignment procedure.
 <P>
+<A NAME = "Fixing Montage Edges"><H4>
+5.2. Fixing Montage Edges
+</A></H4>
+For a montaged data set, the <B>Coarse Alignment</B> panel also
+provides controls for fixing errors in the displacements between
+frames.  <A HREF = "man/blendmont.html">Blendmont</A> analyzes the overlap
+regions between adjacent pieces and determines how to shift the pieces into
+registration.  Sometimes this analysis fails and a few of the shifts are
+wrong.  It is important to fix these errors before going on to build the
+fiducial model, because when the displacements are
+changed, image positions in the blended image change as well.
+There are two ways to tell if there are shifts that need fixing.
+<OL>
+<LI>For a montage with more than one piece in each direction, you can
+examine the registration errors in the xcorr.log file.  The beginning part
+of this file shows the output from 
+<A HREF = "man/blendmont.html">Blendmont</A>.  For each section
+in the file, you will see a line giving the "mean, max error before ... after
+...".  These errors are the amounts of image displacement that 
+<A HREF = "man/blendmont.html">Blendmont</A> thinks
+are present in the overlap zones between adjacent pieces of the montage.  The
+error before shifting the pieces around will generally be large (a few to
+many pixels).  The error
+after pieces have been shifted into optimal registration should be small and
+smoothly varying with tilt angle.  If magnification gradients are not large
+or have been
+corrected for, the error is usually less
+than 0.5 pixels.  Otherwise, the error may increase gradually from a
+fraction of a pixel at low tilt to several pixels at high tilt.  Look
+through the list of errors for sections where the error is abnormally high
+relative to the nearby sections.  These are the sections where
+<A HREF = "man/blendmont.html">Blendmont</A> was probably not able to
+measure one or more image displacements accurately enough.  Note which
+sections need to be fixed and add 1, since
+sections are numbered from 0 in this output but from 1 in 
+<A HREF = "man/midas.html">Midas</A>.
+<LI> You can also see edge displacement errors by building a coarse aligned 
+stack and looking at it carefully while riffling through the views.
+If there is an error, you should see one frame of a picture shift out of
+alignment with the corresponding frame in the adjacent views.  This is the
+only way to detect errors when your montage consists of a single row or a
+single column.
+</OL>
+<P>
+To fix displacements, press <B>Fix Edges With Midas</B>.  If you are
+correcting for magnification gradients or image distortion fields,
+you will first have to press <B>Make Distortion Corrected Stack</B>.  
+This step is necessary because you need to
+visualize overlaps in the same images that 
+<A HREF = "man/blendmont.html">Blendmont</A> is analyzing, namely
+distortion-corrected images.
+<P>
+When <A HREF = "man/midas.html">Midas</A> starts,
+enter the view number of a section with a large error in the Current
+Section text box.  The control panel has push-buttons for the four edges with
+the worst errors; use these to select the edge with the worst error.  Toggle
+between the two pieces to visualize the registration in the overlap zone.  If
+it looks bad, shift the Current piece into alignment (the Apply Leave-out
+Error button can be a useful shortcut if this is the only piece with an error
+-- see the 
+<A HREF = "man/midas.html">Midas</A>
+ man page for explanation.)  If the overlap looks fine, simply
+go on to another edge; you will probably find the error there.  This
+potentially confusing situation may be quite frequent, because whenever a bad
+edge involves a corner piece of the montage, its error is spread equally
+between the two edges of that piece.  It will thus look like there are two
+equally bad edges when only one is bad.
+<P>
+After you correct the displacement at an edge, the push-buttons will
+rearrange and show new maximum errors.  Once the maximum error is down to 0.3,
+you can go on to another section.  When you are done, save the edge
+correlation displacement file and exit.  Your corrected displacements will
+automatically be used when 
+<A HREF = "man/blendmont.html">Blendmont</A> is run again, and 
+<A HREF = "man/blendmont.html">Blendmont</A> will 
+build new edge functions on its next run, because the edge functions depend
+partly on the displacements that you just modified.
+
+<P>
 <A NAME = "GETTING FIDUCIAL"><H3>
 6. FIDUCIAL MODEL GENERATION
 </A></H3>
@@ -556,12 +743,24 @@ acquired with a CCD camera, or
 Save the seed model when you are done.
 <P>
 <A HREF = "man/beadtrack.html">Beadtrack</A>
- proceeds from one view to the next, tracking as many beads as
+proceeds from one view to the next, tracking as many beads as
 possible on the new view.  Once it has bead positions on enough views, it runs
 a simplified tilt alignment to get improved predictions of where beads should
-be and to reject erroneous positions.  
+be and to reject erroneous positions.  This procedure usually works well on 
+small data sets, but may perform poorly when the data included in the tilt
+alignment do not give a good fit.  The data can fit poorly when they are
+from a large area or when the tilt series includes very high angles.  To
+address this problem, 
+<A HREF = "man/beadtrack.html">Beadtrack</A> provides two ways to restrict
+the data so it fits the alignment better:
+1) the tracking can be done over a series of overlapping subareas, so that
+the fit to the data is similar to that available when using local
+alignments; and 2) the 
+number of views included in the tilt alignment can be restricted, so that
+high angle data from both ends of the tilt series are not included in the
+same fits.  For particularly difficult data, both methods can be used.
 <P>
-     Most standard entries to <A HREF = "man/beadtrack.html">Beadtrack</A>
+Most standard entries to <A HREF = "man/beadtrack.html">Beadtrack</A>
 should work well, so in Basic mode eTomo shows only a few of the many
 parameters.
 <OL>
@@ -586,11 +785,19 @@ the discontinuity (or all of the views after it).  Secondly, there
 might be views that don't match the surrounding ones for
 some other reason, such as having been taken on a second pass through
 the tilt series.  Enter a list with no embedded spaces, and use a
-space to separate multiple lists, e.g.,  if there is a discontinuity
+space to separate multiple lists, e.g., if there is a discontinuity
 between views 30 and 31, and 62, 72, and 81 were taken separately,
 enter "1-30 66,72,81".
-<LI>      If you have partially tracked a bead in the seed model and left a gap
+<LI> If you have partially tracked a bead in the seed model and left a gap
 because of ambiguity, you should uncheck <B>Fill seed model gaps</B>.
+<LI> <B>LOcal tracking</B>  Select this option if you want to do tracking in
+overlapping, local subareas.  Once it is selected, you can change the value
+in the <B>Local area size</B> text box, which specifies a target size for
+the local areas.  The default size is rather large and smaller values may
+give better results in some cases.
+<LI><B>Max # of views to include in align</B>  Put a value in this text box
+to make the tilt alignments fit to data from a restricted range of views.
+Try a value equal to half the number of views in the series.
 <LI> If you have finer than 1 degree tilts, you may need to increase the
 <B>Minimum # of views for tilt alignment</B> (in Advanced).
 </OL>
@@ -688,7 +895,8 @@ rotational alignment between the two series manually with
 views from the two tilt series.  Adjust the alignment with translation
 and
 rotation (left and middle mouse buttons).  Do not be alarmed if you
-have to rotate the image by 180 degrees.  Save the transformation and
+have to rotate the image by 180 degrees, just select <B>Interpolate</B> to
+get a good rotated image.  Save the transformation and
 exit.  The search for the best corresponding pair of views will
 proceed using this starting alignment.
 <P>
@@ -764,7 +972,7 @@ the quality of the fit.  A residual error is the distance in pixels between the
 measured position of a fiducial on a view and the position predicted by the
 alignment solution.  You can view a model of the residuals at every point,
 exaggerated by a factor of 10, by pressing the <B>View Residual Vectors</B>
-button (see <A HREF = "#Residual Model Output">Residual Model Output</A>.
+button (see <A HREF = "#Residual Model Output">Residual Model Output</A>).
 This feature is particularly useful for assessing whether you need
 to use local alignments.
 <P>
@@ -782,14 +990,12 @@ changes due to changes in focus.  If the "mag"
 column shows a sudden
 change that is much larger than surrounding changes, consider making
 all of the views after this change be a separate view group,
-as described above.  When
-you start grouping views in later steps, this
+as described above.  For the variables that are grouped, this
 will keep views on the two sides of the transition from being constrained
-to having the same values of some variables.
+to having the same or similar values.
 <P>
 The last column on the <B>Solution</B> page, "mean resid", shows the mean
-error (residual) in pixels
-for all
+error (residual) in pixels for all
 of the points on each particular view.  This information will reveal whether
 some views give a poorer fit than others.
 <P>
@@ -848,7 +1054,7 @@ and also averages over a larger number of measurements when solving for
 each individual value.  Because of this averaging out of random errors, 
 grouping will actually give a more reliable solution for variables that are
 hard to solve for, such as tilt angle near zero degrees.  It is for this
-reason that you should always switch to grouping of tilt angles even when
+reason that you should always use grouping of tilt angles even when
 you are not solving for distortion.  The reduction in number of variables by
 grouping becomes particularly important when you have a large number of
 fiducials (e.g., more than 150) or a large number of views (e.g., more than
@@ -1008,7 +1214,10 @@ accordingly.  If skew is no longer significant in this solution, abandon
 solving for distortion as in the previous step; i.e., return to solving for
 tilt angles with a group size of 5.
 <LI> The second option with significant skew is to select <B>Skew only</B>
-and return to grouping tilt angles by 5.
+and return to grouping tilt angles by 5.  This option is not recommended
+because skew and rotation angle have been seen to covary excessively in some
+cases.  If you try, look at the rotation angles to be sure this is not
+happening.
 </OL>
 
 
@@ -1545,7 +1754,7 @@ transformations and making a gradual transition from one to another in the
 plane of the section.  All of these operations are run by matchorwarp.com.
 <LI> Match the density between the two volumes 
 (<A HREF = "man/densmatch.html">Densmatch</A>), then take
-Fourier transforms of each (<A HREF = "man/clip.html">Clip</A>),
+Fourier transforms of each (<A HREF = "man/fftrans.html">Fftrans</A>),
  combine the Fourier transforms
 (<A HREF = "man/combinefft.html">Combinefft</A>),
  and back-transform.  Larger volumes are broken into pieces
