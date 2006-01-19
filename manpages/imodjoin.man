@@ -39,6 +39,14 @@ that the first model came from, unless a specific image file is identified
 with the
 .B -i
 option, in which case the reference information will match that image.
+.P
+The program will give a warning when it does not find adequate image reference
+information in the models.  Despite these warnings, the joining should work
+as long as the models are based on the same image stack, or on image stacks
+with similar coordinate systems (e.g., identical pixel spacings and origins).
+The warnings could be avoided by loading the model together with a relevant
+image file into 3dmod and resaving the model.
+
 .SS Options
 All options except for
 .B -o
