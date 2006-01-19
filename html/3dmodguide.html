@@ -4,7 +4,7 @@
   <title>3dmod Introduction</title>
 </head>
 <body>
-<h2 align="center">Introduction to 3dmod, Version 3.5.2<br>
+<h2 align="center">Introduction to 3dmod, Version 3.7.2<br>
 </h2>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
@@ -292,13 +292,13 @@ vertically to see more of the information at once.
 <p><a name="Zap Window">
 <h3>The Zap Window</h3>
 </a>
-<table border="0" align="center">
+<table align="center" border="0">
   <tbody>
     <tr>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/zapsec12.jpg" alt="Zap Window section 12"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/zapsec16.jpg" alt="Zap Window section 16"> <br>
       </td>
     </tr>
@@ -380,13 +380,13 @@ make a separate symbol be displayed only on the central section. </li>
 </a>The type of contours in an object, and the symbols displayed at
 individual points, can be selected with the Object Edit dialog box.
 Here are two examples.
-<table border="0" align="center">
+<table align="center" border="0">
   <tbody>
     <tr>
-      <td valign="top" align="center"><img src="3dmodimages/ioeopen.png"
+      <td align="center" valign="top"><img src="3dmodimages/ioeopen.png"
  alt="Object Edit window for open contours"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/ioescatter.png"
  alt="Object Edit window for scattered points"> <br>
       </td>
@@ -418,21 +418,21 @@ Model mode.
     </tr>
     <tr>
       <td>Left </td>
-      <td align="left" colspan="3"> Select position or drag mouse to
+      <td colspan="3" align="left"> Select position or drag mouse to
 pan image.</td>
-      <td align="left" colspan="3"> Attach to nearby model point or
+      <td colspan="3" align="left"> Attach to nearby model point or
 drag mouse to pan image.</td>
     </tr>
     <tr>
       <td> Middle </td>
-      <td align="left" colspan="3">Movie image forward, or stop movie.</td>
-      <td align="left" colspan="3">Add new model point
+      <td colspan="3" align="left">Movie image forward, or stop movie.</td>
+      <td colspan="3" align="left">Add new model point
 or drag mouse to add several points. </td>
     </tr>
     <tr>
       <td> Right </td>
-      <td align="left" colspan="3"> Movie image backward, or stop movie.</td>
-      <td align="left" colspan="3"> Modify the current model point or
+      <td colspan="3" align="left"> Movie image backward, or stop movie.</td>
+      <td colspan="3" align="left"> Modify the current model point or
 drag mouse to modify several points.</td>
     </tr>
   </tbody>
@@ -700,7 +700,9 @@ in nanometers. For tomograms, divide the original thickness at which
 the section was cut on the microtome (in nanometers) by the actual
 thickness of
 material in the tomogram (pixels of material times pixel size in
-nanometers).
+nanometers).&nbsp; In either case, if you have an estimate of how much
+the specimen shrank laterally due to beam exposure, you should multiply
+by the shrinkage factor (e.g., 0.9 for 10% shrinkage).<br>
 </p>
 <p>The Pixel Size field should contain both a value for the size of the
 pixel in the digitized data, and the units for that value.
@@ -711,17 +713,17 @@ you could enter "0.015 um" or "15 nm".
   <h3>Viewing the Model in 3D</h3>
 </dd>
 </a>
-<table border="0" align="center">
+<table align="center" border="0">
   <tbody>
     <tr>
-      <td valign="top" align="center"><img src="3dmodimages/modvraw.png"
+      <td align="center" valign="top"><img src="3dmodimages/modvraw.png"
  alt="View of raw model"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/modvnomesh.png"
  alt="View of model with spheres and lines enhanced"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/modvmesh.png" alt="View of fully meshed model"> <br>
       </td>
     </tr>
@@ -760,18 +762,18 @@ surfaces. These display settings are all changed in the 3dmodv
 Objects dialog box, opened with the Edit-Objects menu item or the O hot
 key. </p>
 <p>
-<table border="0" align="center">
+<table align="center" border="0">
   <tbody>
     <tr>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/objedmtlines.png"
  alt="Objects Window: Setting line width"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/objedspheremesh.png"
  alt="Objects Window: Setting spheres to mesh"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/objedmaterial.png"
  alt="Objects Window: Lighting both sides of sheet"> <br>
       </td>
@@ -830,13 +832,13 @@ of the image
 projection.&nbsp; The following images show an example of this display.<br>
 </p>
 <p><br>
-<table border="0" align="center">
+<table align="center" border="0">
   <tbody>
     <tr>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/imageInModv.jpg" alt="Model View: Image on model"> <br>
       </td>
-      <td valign="top" align="center"><img
+      <td align="center" valign="top"><img
  src="3dmodimages/editImage.png" alt="Edit Image Window"> <br>
       </td>
     </tr>
@@ -928,12 +930,31 @@ investigate them when the need arises. Consult the help windows of
 the relevant dialog boxes, or the <a href="man/3dmod.html">3dmod</a>
 man page, for more details.
 The first few items are related to
-the
-Contour/Surface/Point window, shown here.
+the Surface/Contour/Point window, shown here on the left.
 </p>
-<center> <img src="3dmodimages/surfcontpt.png"
- alt="Surface/Contour/Point
-Dialog Box"> </center>
+<center>
+<div style="text-align: center;"> </div>
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
+ cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top; text-align: center;"><img
+ alt="Surface/Contour/Point window" src="3dmodimages/surfcontpt.png"
+ style="width: 202px; height: 554px;"><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;"><img
+ alt="Fine Grain window" src="3dmodimages/finegrainwin.png"
+ style="width: 233px; height: 617px;"><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;"><img
+ alt="Model with fine grain properties"
+ src="3dmodimages/finegrainmod.png" style="width: 334px; height: 613px;"><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+</center>
 <ul>
   <li><b>Surfaces.</b> Surfaces are an optional level of organization
 between
@@ -966,14 +987,28 @@ from the Edit-Contour-Move menu entry). </li>
   <li><b>Ghost displays.</b> You can project a "ghost" of contours on
 adjacent
 sections onto the current section to help you see where to draw the
-next contour. </li>
+next contour.</li>
+  <li><span style="font-weight: bold;">Fine grained display properties.</span>&nbsp;
+You can control several display properties of points within contours,
+individual contours, or surfaces using the Fine Grain Control dialog,
+shown above in the middle. In this example, the window shows the
+properties of the current point, and all of the properties marked with
+an "S" instead of a "D" have been set differently for this point than
+for the rest of the contour.&nbsp; In addition to allowing manipulation
+of color, line thickness, symbol displays, and transparency, the dialog
+allows multiple openings to be defined in contours, as shown in the
+model on the right.&nbsp; For more details see the <a
+ href="3dmodHelp/finegrain.html">help page</a>.<br>
+  </li>
   <li><b>Preferences.</b> You can set preferences that are stored
 between
 sessions
 of 3dmod, such as the assignment of
 the three mouse buttons and the type of file that will be snapshot with
 Shift-S. Use the Edit-Options menu entry to open the
-3dmod Preferences dialog box. </li>
+3dmod Preferences dialog box.&nbsp; (This item is under the Apple menu
+on the Mac.)<br>
+  </li>
   <li><b>Automated modeling.</b> There are two facilities for automated
 modeling.
 The Auto Contouring dialog box, opened from the Edit-Contour menu,
