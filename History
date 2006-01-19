@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/19/06: Increased default radius in eraser.com from 2.1 to 3.6 pixels. 
+(In 3.7)
+
 1/14/06: Made 3dmod initialize a model with pixel size and Z scale from image
 file.  Added an ability to set an incremental Z-scale when the image header 
 contains a difference between pixel sizes in Z and X/Y.

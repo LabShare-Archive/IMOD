@@ -1,6 +1,6 @@
 # THIS IS A COMMAND FILE TO RUN CCDERASER
 #
-####CreatedVersion#### 3.4.4
+####CreatedVersion#### 3.7.2
 #
 #   To run in trial mode where it will not replace pixels or produce an output
 #   file, include a line with the entry "TrialMode"
@@ -35,7 +35,7 @@ EdgeExclusionWidth      4
 #
 # This output model file will have points at all pixels replaced
 PointModel      g5a_peak.mod
-MaximumRadius   2.1
+MaximumRadius   3.6
 AnnulusWidth    2.0
 XYScanSize      100
 ScanCriterion   3.
