@@ -103,10 +103,10 @@ public final class DatasetFiles {
     return false;
   }
 
-  public final static File getRotatedTomogram(File tomogram) {
-    String tomogramPath = tomogram.getAbsolutePath();
-    return new File(tomogramPath.substring(0, tomogramPath.lastIndexOf('.'))
-        + ROTATED_TOMO_EXT);
+  public final static File getRotatedTomogram(BaseManager manager, File tomogram) {
+    String tomogramName = tomogram.getName();
+    return new File(manager.getPropertyUserDir(), tomogramName.substring(0,
+        tomogramName.lastIndexOf('.')) + ROTATED_TOMO_EXT);
   }
 
   //Other dataset files
@@ -200,6 +200,11 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/12/23 02:27:09  sueh
+ * <p> bug# 675 Added getStackName(String dataset, AxisType, AxisID) and
+ * <p> getSeedName(String dataset, AxisType, AxisID) to create file names
+ * <p> without running etomo.
+ * <p>
  * <p> Revision 1.8  2005/11/29 22:53:59  sueh
  * <p> bug# 757 Added getRotated() and isRotated().
  * <p>
