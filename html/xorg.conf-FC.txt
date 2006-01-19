@@ -5,7 +5,6 @@ Section "ServerLayout"
 	Screen      0  "Screen0" 0 0
 	InputDevice    "Mouse0" "CorePointer"
 	InputDevice    "Keyboard0" "CoreKeyboard"
-	InputDevice    "DevInputMice" "AlwaysCore"
 EndSection
 
 Section "Files"
@@ -29,7 +28,7 @@ Section "Module"
 	Load  "record"
 	Load  "freetype"
 	Load  "type1"
-	#Load  "dri"
+#	Load  "dri"
 EndSection
 
 Section "InputDevice"
@@ -60,8 +59,7 @@ Section "InputDevice"
 #	Option	"XkbOptions"	"ctrl:nocaps"
 #
 	Identifier  "Keyboard0"
-	Driver      "keyboard"
-	Option	    "XkbRules" "xfree86"
+	Driver      "kbd"
 	Option	    "XkbModel" "pc105"
 	Option	    "XkbLayout" "us"
 EndSection
@@ -69,31 +67,19 @@ EndSection
 Section "InputDevice"
 	Identifier  "Mouse0"
 	Driver      "mouse"
-	Option	    "Protocol" "PS/2"
-	Option	    "Device" "/dev/psaux"
-	Option	    "ZAxisMapping" "4 5"
-	Option	    "Emulate3Buttons" "no"
-EndSection
-
-Section "InputDevice"
-# If the normal CorePointer mouse is not a USB mouse then
-# this input device can be used in AlwaysCore mode to let you
-# also use USB mice at the same time.
-	Identifier  "DevInputMice"
-	Driver      "mouse"
 	Option	    "Protocol" "IMPS/2"
 	Option	    "Device" "/dev/input/mice"
 	Option	    "ZAxisMapping" "4 5"
-	Option	    "Emulate3Buttons" "no"
+	Option	    "Emulate3Buttons" "yes"
 EndSection
 
 Section "Monitor"
 	Identifier   "Monitor0"
 	VendorName   "Monitor Vendor"
-	ModelName    "sny00e0"
+	ModelName    "GDM-FW900"
+	DisplaySize  480	310
 	HorizSync    30.0 - 120.0
 	VertRefresh  50.0 - 160.0
-	Option	    "dpms"
 
         Mode "1600x1024"
                 DotClock 157.5
@@ -101,7 +87,8 @@ Section "Monitor"
                 VTimings 1024 1025 1028 1072
         EndMode
  
-	DisplaySize 437 310
+
+	Option	    "dpms"
 EndSection
 
 Section "Device"
@@ -122,8 +109,8 @@ Section "Screen"
 	EndSubSection
 EndSection
 
-Section "DRI"
-	Group        0
-	Mode         0666
-EndSection
+#Section "DRI"
+#	Group        0
+#	Mode         0666
+#EndSection
 
