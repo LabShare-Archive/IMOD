@@ -119,10 +119,12 @@ negative index values give the following drawing instructions.
         -22  end polygon
 	-23  begin vertex,normal polygon pairs.
 	-24  begin large convex polygon with normals.
+	-25  begin vertex,normal polygon pairs with vertex indices
 
 </pre>
 Currently, meshes in model files consist only of polygons with vertex, normal
-pairs, starting with -23 and ending with -22.  In these polygons, each set
+pairs, starting with -23 or -25 and ending with -22.  In polygons starting
+with -23, each set
 of 6 indices describes a triangle as follows:
 <pre>
 <i>index to normal 1</i>
@@ -130,6 +132,13 @@ of 6 indices describes a triangle as follows:
 <i>index to normal 2</i>
 <i>index to vertex 2</i>
 <i>index to normal 3</i>
+<i>index to vertex 3</i>
+</pre>
+In polygons starting with -25, each normal is assumed to follow its
+corresponding vertex, and each triangle is described by only 3 indices:
+<pre>
+<i>index to vertex 1</i>
+<i>index to vertex 2</i>
 <i>index to vertex 3</i>
 </pre>
 </body></html>
