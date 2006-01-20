@@ -1,35 +1,41 @@
 package etomo.type;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Properties;
 
 import etomo.storage.Storable;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: AxisID level storable object for the .edf and .ejf files.
-* Should be used to store non-metadata.  Anything that is needed to run a
-* process should not be stored in this object.</p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: AxisID level storable object for the .edf and .ejf files.
+ * Should be used to store non-metadata.  Anything that is needed to run a
+ * process should not be stored in this object.</p>
+ * 
+ * <p>Copyright: Copyright (c) 2005 - 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class BaseScreenState implements Storable {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public static final String PARALLEL_HEADER_GROUP = "Parallel.Header";
-  
-  private final PanelHeaderState parallelHeaderState = new PanelHeaderState(PARALLEL_HEADER_GROUP);
-  
+
+  private final PanelHeaderState parallelHeaderState = new PanelHeaderState(
+      PARALLEL_HEADER_GROUP);
+
   protected final AxisID axisID;
   private final AxisType axisType;
   private final String group;
+  private Properties loadedProperties = null;
+  private String loadedPrepend = "";
+  private HashSet keys = null;
 
   public BaseScreenState(AxisID axisID, AxisType axisType) {
     if (axisID == AxisID.ONLY && axisType == AxisType.DUAL_AXIS) {
@@ -38,12 +44,37 @@ public class BaseScreenState implements Storable {
     else if (axisID == AxisID.FIRST && axisType == AxisType.SINGLE_AXIS) {
       axisID = AxisID.ONLY;
     }
-    group =  "ScreenState" + axisID.getExtension().toUpperCase();
+    group = "ScreenState" + axisID.getExtension().toUpperCase();
     this.axisID = axisID;
     this.axisType = axisType;
     selfTestInvariants();
   }
-  
+
+  public final boolean getButtonState(String key) {
+    if (key == null) {
+      return false;
+    }
+    if (keys == null) {
+      keys = new HashSet();
+    }
+    keys.add(key);
+    EtomoBoolean2 buttonState = new EtomoBoolean2(key);
+    buttonState.load(loadedProperties, loadedPrepend);
+    return buttonState.is();
+  }
+
+  /**
+   * set buttonState in the buttonStates hashtable
+   * @param buttonState
+   */
+  public final void setButtonState(String key, boolean state) {
+    if (key == null) {
+      return;
+    }
+    loadedProperties.setProperty(loadedPrepend + '.' + key, String
+        .valueOf(state));
+  }
+
   void selfTestInvariants() {
     if (!Utilities.isSelfTest()) {
       return;
@@ -78,7 +109,7 @@ public class BaseScreenState implements Storable {
               + ",axisID=" + axisID + ".");
     }
   }
-  
+
   protected final String getPrepend(String prepend) {
     if (prepend == "") {
       return group;
@@ -87,49 +118,68 @@ public class BaseScreenState implements Storable {
       return prepend + "." + group;
     }
   }
-  
+
   public void store(Properties props) {
     store(props, "");
   }
-  
-  public void store(Properties props, String prepend) {
+
+  private void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.store(props, prepend);
+    if (keys == null) {
+      return;
+    }
+    synchronized (this) {
+      Iterator i = keys.iterator();
+      String key = null;
+      while (i.hasNext()) {
+        key = (String) i.next();
+        String state = loadedProperties.getProperty(loadedPrepend + '.' + key);
+        if (state != null) {
+          props.setProperty(prepend + '.' + key, state);
+        }
+      }
+    }
   }
-  
+
   public void load(Properties props) {
     load(props, "");
   }
-  
+
   public void load(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.load(props, prepend);
+    loadedProperties = props;
+    loadedPrepend = prepend;
   }
-  
+
   public final PanelHeaderState getParallelHeaderState() {
     return parallelHeaderState;
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.4  2005/10/21 21:11:32  sueh
-* <p> bug# 743 fixed bug in BaseScreenState().
-* <p>
-* <p> Revision 1.3  2005/09/29 18:44:44  sueh
-* <p> bug# 532 Improved the handling of the different axis'.  Setting the axisID
-* <p> according to the axisType; so a single axis tomogram uses axis.ONLY
-* <p> and a dual axis used axis.FIRST.  Added member variables AxisID and
-* <p> AxisType.  Since axis.only and axis.first have different meanings, axisID
-* <p> can be used to decide if combine fields should be saved.  AxisType is
-* <p> used in selfTestInvarients() to make sure that the AxisID was set
-* <p> correctly.
-* <p>
-* <p> Revision 1.2  2005/09/27 23:12:40  sueh
-* <p> bug# 532 Separating the panel name (Parallel) from the element name
-* <p> (Header) in the .edf file.
-* <p>
-* <p> Revision 1.1  2005/09/27 21:19:02  sueh
-* <p> bug# 532 This is a top level Storable object that should be written to the
-* <p> .edf and .ejf files.  One instance per axis is created.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.5  2005/11/14 21:27:04  sueh
+ * <p> removed extra ;'s.
+ * <p>
+ * <p> Revision 1.4  2005/10/21 21:11:32  sueh
+ * <p> bug# 743 fixed bug in BaseScreenState().
+ * <p>
+ * <p> Revision 1.3  2005/09/29 18:44:44  sueh
+ * <p> bug# 532 Improved the handling of the different axis'.  Setting the axisID
+ * <p> according to the axisType; so a single axis tomogram uses axis.ONLY
+ * <p> and a dual axis used axis.FIRST.  Added member variables AxisID and
+ * <p> AxisType.  Since axis.only and axis.first have different meanings, axisID
+ * <p> can be used to decide if combine fields should be saved.  AxisType is
+ * <p> used in selfTestInvarients() to make sure that the AxisID was set
+ * <p> correctly.
+ * <p>
+ * <p> Revision 1.2  2005/09/27 23:12:40  sueh
+ * <p> bug# 532 Separating the panel name (Parallel) from the element name
+ * <p> (Header) in the .edf file.
+ * <p>
+ * <p> Revision 1.1  2005/09/27 21:19:02  sueh
+ * <p> bug# 532 This is a top level Storable object that should be written to the
+ * <p> .edf and .ejf files.  One instance per axis is created.
+ * <p> </p>
+ */
