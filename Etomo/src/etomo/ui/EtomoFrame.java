@@ -604,11 +604,14 @@ abstract class EtomoFrame extends JFrame {
           int endIndex = Math.min(messageLength, messageIndex + messageWidth);
           StringBuffer newLine = new StringBuffer(messagePieceArray[i]
               .substring(messageIndex, endIndex));
+          //overflowing line - look for whitespace or a comma
           messageIndex = endIndex;
+          char lastChar = ' ';
           while (messageIndex < messageLength
               && messagePieceArray[i].substring(messageIndex, messageIndex + 1)
-                  .matches("\\S+")) {
-            newLine.append(messagePieceArray[i].charAt(messageIndex++));
+                  .matches("\\S+") && lastChar != ',') {
+            lastChar = messagePieceArray[i].charAt(messageIndex++);
+            newLine.append(lastChar);
           }
           messageArray.add(newLine.toString());
         }
@@ -763,6 +766,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/01/12 17:09:54  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.20  2006/01/11 22:10:50  sueh
  * <p> bug# 675 Removed popupCounter and printTitle().  Using a name
  * <p> created from the title to refer to the popup.  Don't want to stop using
