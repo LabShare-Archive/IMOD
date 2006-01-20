@@ -29,6 +29,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.UserConfiguration;
 import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
@@ -87,6 +88,8 @@ public abstract class BaseManager {
   //private static variables
   private static boolean debug = false;
   private boolean exiting = false;
+  private ProcessResultDisplay processResultDisplayA = null;
+  private ProcessResultDisplay processResultDisplayB = null;
 
   protected abstract void createComScriptManager();
 
@@ -136,7 +139,8 @@ public abstract class BaseManager {
 
   public abstract boolean canSnapshot();
 
-  protected abstract void startNextProcess(AxisID axisID, String nextProcess);
+  protected abstract void startNextProcess(AxisID axisID, String nextProcess,
+      ProcessResultDisplay processResultDisplay);
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -161,15 +165,16 @@ public abstract class BaseManager {
 
   protected String paramString() {
     return "headless=" + headless + ",uiHarness=" + uiHarness + ",userConfig="
-        + userConfig + ",\nloadedParamFile=" + loadedParamFile + ",imodManager="
-        + imodManager + ",\ncomScriptMgr=" + comScriptMgr + ",paramFile="
-        + paramFile + ",\nhomeDirectory=" + homeDirectory + ",nextProcessA="
-        + nextProcessA + ",\nnextProcessB=" + nextProcessB + ",lastProcessA="
-        + lastProcessA + ",\nlastProcessB=" + lastProcessB + ",threadNameA="
-        + threadNameA + ",\nthreadNameB=" + threadNameB + ",backgroundProcessA="
-        + backgroundProcessA + ",\nbackgroundProcessNameA="
-        + backgroundProcessNameA + ",\npropertyUserDir=" + propertyUserDir
-        + ",\ndebug=" + debug + ",exiting" + exiting + "," + super.toString();
+        + userConfig + ",\nloadedParamFile=" + loadedParamFile
+        + ",imodManager=" + imodManager + ",\ncomScriptMgr=" + comScriptMgr
+        + ",paramFile=" + paramFile + ",\nhomeDirectory=" + homeDirectory
+        + ",nextProcessA=" + nextProcessA + ",\nnextProcessB=" + nextProcessB
+        + ",lastProcessA=" + lastProcessA + ",\nlastProcessB=" + lastProcessB
+        + ",threadNameA=" + threadNameA + ",\nthreadNameB=" + threadNameB
+        + ",backgroundProcessA=" + backgroundProcessA
+        + ",\nbackgroundProcessNameA=" + backgroundProcessNameA
+        + ",\npropertyUserDir=" + propertyUserDir + ",\ndebug=" + debug
+        + ",exiting" + exiting + "," + super.toString();
   }
 
   private void initProgram() {
@@ -542,16 +547,17 @@ public abstract class BaseManager {
    * @param axisID
    */
   public final void processDone(String threadName, int exitValue,
-      ProcessName processName, AxisID axisID, ProcessEndState endState) {
+      ProcessName processName, AxisID axisID, ProcessEndState endState,
+      boolean error) {
     processDone(threadName, exitValue, processName, axisID, false, endState,
-        null);
+        null, error);
   }
 
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
-      ProcessEndState endState) {
+      ProcessEndState endState, boolean error) {
     processDone(threadName, exitValue, processName, axisID, forceNextProcess,
-        endState, null);
+        endState, null, error);
   }
 
   /**
@@ -562,7 +568,7 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
-      ProcessEndState endState, String statusString) {
+      ProcessEndState endState, String statusString, boolean error) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
       threadNameA = "none";
@@ -588,6 +594,13 @@ public abstract class BaseManager {
       startNextProcess(axisID);
     }
     else {
+      ProcessResultDisplay processResultDisplay = getProcessResultDisplay(axisID);
+      if (error) {
+        processResultDisplay.msgProcessFailed();
+      }
+      else {
+        processResultDisplay.msgProcessSucceeded();
+      }
       resetNextProcess(axisID);
     }
   }
@@ -598,8 +611,10 @@ public abstract class BaseManager {
    */
   protected final void startNextProcess(AxisID axisID) {
     String nextProcess = getNextProcess(axisID);
+    ProcessResultDisplay processResultDisplay = getProcessResultDisplay(axisID);
     resetNextProcess(axisID);
-    startNextProcess(axisID, nextProcess);
+    processResultDisplay.msgSecondaryProcess();
+    startNextProcess(axisID, nextProcess, processResultDisplay);
   }
 
   /**
@@ -617,6 +632,25 @@ public abstract class BaseManager {
     }
     else {
       nextProcessA = nextProcess;
+    }
+  }
+
+  /**
+   * Keep final.
+   * @param axisID
+   * @param nextProcess
+   */
+  protected final void setProcessResultDisplay(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    if (debug) {
+      System.err.println("setProcessResultDisplay:axisID=" + axisID
+          + ",processResultDisplay=" + processResultDisplay);
+    }
+    if (axisID == AxisID.SECOND) {
+      processResultDisplayB = processResultDisplay;
+    }
+    else {
+      processResultDisplayA = processResultDisplay;
     }
   }
 
@@ -641,6 +675,13 @@ public abstract class BaseManager {
       return nextProcessB;
     }
     return nextProcessA;
+  }
+
+  private final ProcessResultDisplay getProcessResultDisplay(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return processResultDisplayB;
+    }
+    return processResultDisplayA;
   }
 
   private final boolean isNextProcessSet(AxisID axisID) {
@@ -773,7 +814,8 @@ public abstract class BaseManager {
    * Run processchunks.
    * @param axisID
    */
-  protected final void processchunks(AxisID axisID, ParallelDialog dialog) {
+  protected final void processchunks(AxisID axisID, ParallelDialog dialog,
+      ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
       return;
     }
@@ -782,6 +824,7 @@ public abstract class BaseManager {
     dialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
@@ -799,6 +842,7 @@ public abstract class BaseManager {
       message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     //set param in parallel panel so it can do a resume
@@ -845,6 +889,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.50  2005/12/23 01:55:43  sueh
+ * <p> bug# 675 Split the test option functionality.  Control headlessness with
+ * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
+ * <p> functions.
+ * <p>
  * <p> Revision 1.49  2005/12/14 01:26:31  sueh
  * <p> bug# 782 Updated the toString() function.
  * <p>
