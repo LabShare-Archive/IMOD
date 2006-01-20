@@ -12,7 +12,7 @@ import etomo.ui.UIHarness;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  * 
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -22,6 +22,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2006/01/06 02:38:37  sueh
+ * <p> bug# 792 Added getCommand().
+ * <p>
  * <p> Revision 3.21  2005/11/30 21:14:23  sueh
  * <p> bug# 744 Fixed processDone().  Was not popping up error messages from
  * <p> standard out.
@@ -460,6 +463,9 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(monitorMessages,
             "Process Monitor Error", axisID);
+        if (endState == ProcessEndState.FAILED) {
+          errorFound = true;
+        }
       }
     }
     else if (endState != ProcessEndState.KILLED
