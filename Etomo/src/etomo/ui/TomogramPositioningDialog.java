@@ -25,12 +25,13 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -40,6 +41,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2006/01/04 00:01:21  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.
+ * <p>
  * <p> Revision 3.37  2005/11/14 22:29:13  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
@@ -467,6 +471,16 @@ public class TomogramPositioningDialog extends ProcessDialog
       getBinningFromNewst = false;
       spinBinning.setValue(binning);
     }
+  }
+  
+  public final void setParameters(ReconScreenState screenState) {
+    btnSample.setButtonState(screenState.getButtonState(btnSample
+        .getButtonStateKey(dialogType)));
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    screenState.setButtonState(btnSample.getButtonStateKey(), btnSample
+        .getButtonState());
   }
   
   /**
