@@ -56,8 +56,7 @@ import etomo.util.InvalidParameterException;
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002, 2003, 2004, 2005
- * </p>
+ * Copyright: Copyright (c) 2002 - 2006</p>
  * 
  * <p>
  * Organization: Boulder Laboratory for 3D Fine Structure, University of 
@@ -70,6 +69,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.80  2006/01/12 17:18:53  sueh
+ * bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ *
  * Revision 3.79  2006/01/04 00:00:59  sueh
  * bug# 675 Converted JCheckBox's to CheckBox.
  *
@@ -568,8 +570,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private SpacedTextField ltfDensityScale = new SpacedTextField(
       "Output density scaling factor: ");
   private SpacedTextField ltfLogOffset = new SpacedTextField("Log offset: ");
-  private CheckBox cbBoxUseLocalAlignment = new CheckBox(
-      "Use local alignments");
+  private CheckBox cbBoxUseLocalAlignment = new CheckBox("Use local alignments");
 
   //  Trial tomogram objects
 
@@ -716,6 +717,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     tiltHeader.setState(screenState.getTomoGenTiltHeaderState());
     trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
     setAdvanced();
+    btnNewst.setButtonState(screenState.getButtonState(btnNewst
+        .getButtonStateKey(dialogType)));
+    btnTilt.setButtonState(screenState.getButtonState(btnTilt
+        .getButtonStateKey(dialogType)));
   }
 
   public final void getParameters(ReconScreenState screenState) {
@@ -723,6 +728,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     filterHeader.getState(screenState.getTomoGenMtffilterHeaderState());
     tiltHeader.getState(screenState.getTomoGenTiltHeaderState());
     trialHeader.getState(screenState.getTomoGenTrialTiltHeaderState());
+    screenState.setButtonState(btnNewst.getButtonStateKey(), btnNewst
+        .getButtonState());
+    screenState.setButtonState(btnTilt.getButtonStateKey(), btnTilt
+        .getButtonState());
   }
 
   public void setParameters(ConstMetaData metaData) {
@@ -1488,7 +1497,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnNewst.getActionCommand())) {
-      applicationManager.newst(axisID);
+      btnNewst.msgProcessStarting();
+      applicationManager.newst(axisID, btnNewst);
     }
     else if (command.equals(btnFilter.getActionCommand())) {
       applicationManager.mtffilter(axisID);
@@ -1499,6 +1509,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       applicationManager.useMtfFilter(axisID);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
+      btnTrial.msgProcessStarting();
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
@@ -1514,21 +1525,22 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         cmboTrialTomogramName.addItem(trialTomogramName);
       }
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splittilt(axisID, true);
+        applicationManager.splittilt(axisID, true, btnTrial);
       }
       else {
-        applicationManager.trialTilt(axisID);
+        applicationManager.trialTilt(axisID, btnTrial);
       }
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
       applicationManager.commitTestVolume(axisID);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
+      btnTilt.msgProcessStarting();
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splittilt(axisID);
+        applicationManager.splittilt(axisID, btnTilt);
       }
       else {
-        applicationManager.tilt(axisID);
+        applicationManager.tilt(axisID, btnTilt);
       }
     }
     else if (command.equals(btnDeleteStacks.getActionCommand())) {
