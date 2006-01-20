@@ -123,7 +123,7 @@ public class BaseScreenState implements Storable {
     store(props, "");
   }
 
-  private void store(Properties props, String prepend) {
+  protected void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.store(props, prepend);
     if (keys == null) {
@@ -159,6 +159,13 @@ public class BaseScreenState implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/01/20 21:00:43  sueh
+ * <p> bug# 401 Added generic functionality to store button states by keeping the
+ * <p> reference to Properties prop from the load() function (loadedProperties)
+ * <p> and keeping it up to date.  Keep a list of the keys used to update
+ * <p> loadedProperties.  In store() copy the updated properties to the new
+ * <p> instance of Properties.
+ * <p>
  * <p> Revision 1.5  2005/11/14 21:27:04  sueh
  * <p> removed extra ;'s.
  * <p>
