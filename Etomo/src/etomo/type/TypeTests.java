@@ -19,6 +19,12 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/11/10 18:10:53  sueh
+ * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+ * <p> instanciated once so there won't be a problem if the working directory is
+ * <p> changed.  Added a root test directory File object to each of the suites,
+ * <p> which is based on the JUnitTests root test directory.
+ * <p>
  * <p> Revision 3.5  2005/06/16 20:08:50  sueh
  * <p> bug# 692 ConstEtomoNumberTest.
  * <p>
@@ -45,6 +51,7 @@ public class TypeTests {
     suite.addTestSuite(ConstEtomoNumberTest.class);
     suite.addTestSuite(ConstMetaDataTest.class);
     suite.addTestSuite(MetaDataTest.class);
+    suite.addTestSuite(ProcessResultDisplayTest.class);
     //$JUnit-END$
     return suite;
   }
