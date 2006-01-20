@@ -179,9 +179,6 @@ Refinematch, and Findwarp.
 match an image file.  Made transformation of mesh normals and clip planes work
 for all cases except section-by-section 2D transformations.
 
-10/18/05: Disabling the Archive Original Stacks button when it is are not
-needed.
-
 10/18/05: Fixed a problem which caused whole tomogram in Tomogram Positioning
 to run more then once when the Create Sample Tomograms button was pressed
 while a process was running.
