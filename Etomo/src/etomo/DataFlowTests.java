@@ -22,7 +22,7 @@ import etomo.util.Utilities;
  * requires the .edf file named the same as the dataset name to exist in the
  * DataSource directory.</p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -286,11 +286,11 @@ public class DataFlowTests {
   private static void tomogramGeneration(AxisID axisID) {
     applicationManager.openTomogramGenerationDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.newst(axisID);
+    applicationManager.newst(axisID, null);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
     //waitForThread(axisID);
-    applicationManager.tilt(axisID);
+    applicationManager.tilt(axisID, null);
     waitForThread(axisID);
     applicationManager.deleteAlignedStacks(axisID);
   }
@@ -343,6 +343,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.14  2005/12/09 20:21:52  sueh
+ * <p> fixed file comment
+ * <p>
  * <p> Revision 3.13  2005/10/27 00:08:27  sueh
  * <p> bug# 725 Calling preEraser and preCrossCorrelate to process the b stack
  * <p> before running eraser or xcorr.
