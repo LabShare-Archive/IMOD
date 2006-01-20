@@ -5,7 +5,7 @@ import java.util.Properties;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright (c) 2005 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -223,6 +223,9 @@ public class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/10/13 22:15:26  sueh
+ * <p> bug# 532 Added combineSetupVolcombineHeader.
+ * <p>
  * <p> Revision 1.2  2005/09/29 18:47:27  sueh
  * <p> bug# 532 Added header state variables for combine.
  * <p>
