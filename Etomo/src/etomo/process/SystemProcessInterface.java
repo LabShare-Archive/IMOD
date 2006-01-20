@@ -6,7 +6,7 @@ import etomo.type.ProcessEndState;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002 - 2005</p>
+* <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -32,6 +32,10 @@ public interface SystemProcessInterface {
 }
 /**
 * <p> $Log$
+* <p> Revision 3.6  2005/11/19 02:39:58  sueh
+* <p> bug# 744 Remove unecessary functions:  getCurentStdError,
+* <p> getCurrentStdOutput, isDone, setCurrentStdInput, signalInterrupt.
+* <p>
 * <p> Revision 3.5  2005/10/21 19:56:04  sueh
 * <p> bug# 742 Added getCurrentStdError().
 * <p>

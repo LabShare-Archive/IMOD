@@ -12,7 +12,7 @@ import etomo.type.ScriptParameter;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -23,6 +23,12 @@ import etomo.type.ScriptParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2005/11/19 01:55:10  sueh
+* <p> bug# 744 Moved functions only used by process manager post
+* <p> processing and error processing from Commands to ProcessDetails.
+* <p> This allows ProcesschunksParam to be passed to DetackedProcess
+* <p> without having to add unnecessary functions to it.
+* <p>
 * <p> Revision 1.10  2005/07/29 00:50:29  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -236,5 +242,4 @@ public class XfalignParam implements ProcessDetails {
       }
     }
   }
-
 }

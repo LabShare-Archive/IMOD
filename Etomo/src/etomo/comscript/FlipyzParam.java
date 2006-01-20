@@ -9,7 +9,7 @@ import etomo.type.AxisID;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -20,6 +20,12 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2005/11/19 01:52:44  sueh
+* <p> bug# 744 Moved functions only used by process manager post
+* <p> processing and error processing from Commands to ProcessDetails.
+* <p> This allows ProcesschunksParam to be passed to DetackedProcess
+* <p> without having to add unnecessary functions to it.
+* <p>
 * <p> Revision 1.6  2005/04/25 20:39:53  sueh
 * <p> bug# 615 Passing the axis where a command originates to the message
 * <p> functions so that the message will be popped up in the correct window.
@@ -139,5 +145,4 @@ public class FlipyzParam implements ProcessDetails {
   public int getCommandMode() {
     return 0;
   }
-
 }

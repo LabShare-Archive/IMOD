@@ -1,7 +1,7 @@
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  * 
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -11,6 +11,12 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2005/11/19 01:54:59  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetackedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p>
  * <p> Revision 3.10  2005/09/02 18:56:20  sueh
  * <p> bug# 720 Pass the manager to TrimvolParam instead of propertyUserDir
  * <p> because TrimvolParam is constructed by MetaData before
@@ -737,5 +743,4 @@ public class TrimvolParam implements ProcessDetails {
     }   
     return true;
   }
-
 }

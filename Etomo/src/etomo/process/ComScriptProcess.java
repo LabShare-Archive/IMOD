@@ -5,7 +5,7 @@
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002
+ * Copyright: Copyright (c) 2002 - 2006
  * </p>
  * 
  * <p>
@@ -19,6 +19,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.32  2005/11/19 02:20:23  sueh
+ * bug# 744 Made protected fields in ComScriptProcess private.  Getting
+ * them with get functions.
+ *
  * Revision 3.31  2005/11/02 21:57:21  sueh
  * bug# 754 Parsing errors and warnings inside ProcessMessages.
  * Removed errorMessage and warningMessage.  Added processMessages.

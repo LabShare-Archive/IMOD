@@ -8,7 +8,7 @@ import etomo.type.ConstEtomoNumber;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -19,6 +19,11 @@ import etomo.type.ConstEtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/07/29 00:49:55  sueh
+* <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+* <p> because the current manager changes when the user changes the tab.
+* <p> Passing the manager where its needed.
+* <p>
 * <p> Revision 1.4  2004/12/16 02:12:44  sueh
 * <p> bug# 564 Saved flipped status.
 * <p>

@@ -12,7 +12,7 @@ import etomo.type.TiltAngleSpec;
  * <p>Description: A read only model of the parameter interface for the
  *  tiltxcorr program</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -22,6 +22,12 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/11/19 01:52:21  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetackedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p>
  * <p> Revision 3.11  2005/11/14 21:19:20  sueh
  * <p> removed extra ;'s.
  * <p>

@@ -13,7 +13,7 @@ import etomo.type.TiltAngleSpec;
  * <p>Description: A read only model of the parameter interface for the
  *  tiltalign program</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -787,6 +787,12 @@ public class ConstTiltalignParam implements ProcessDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2005/11/19 01:52:06  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetackedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p>
  * <p> Revision 3.21  2005/07/21 21:32:14  sueh
  * <p> bug# 532 ConstEtomoNumber.getInvalidReason() is no longer returning
  * <p> the description.

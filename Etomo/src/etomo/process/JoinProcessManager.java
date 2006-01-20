@@ -16,7 +16,7 @@ import etomo.type.JoinState;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -27,6 +27,10 @@ import etomo.type.JoinState;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.15  2005/12/09 20:27:59  sueh
+* <p> bug# 776 Added non-abstract super.postProcessing to handle
+* <p> tomosnapshot
+* <p>
 * <p> Revision 1.14  2005/11/19 02:29:04  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.
@@ -180,9 +184,9 @@ public class JoinProcessManager extends BaseProcessManager {
   /**
    * Run flip
    */
-  public String flipyz(FlipyzParam flipyzParam)
-    throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(flipyzParam, AxisID.ONLY);
+  public String flipyz(FlipyzParam flipyzParam) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(flipyzParam,
+        AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
@@ -191,14 +195,15 @@ public class JoinProcessManager extends BaseProcessManager {
    */
   public String startjoin() throws SystemProcessException {
     ComScriptProcess comScriptProcess = startComScript(startjoinComscriptName,
-      null, AxisID.ONLY);
+        null, AxisID.ONLY);
     return comScriptProcess.getName();
   }
   
   /**
    * Run midas on the sample file.
    */
-  public String midasSample(MidasParam midasParam) throws SystemProcessException {
+  public String midasSample(MidasParam midasParam)
+      throws SystemProcessException {
     InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
     return program.getName();
   }
@@ -260,11 +265,16 @@ public class JoinProcessManager extends BaseProcessManager {
       }
       if (mode == FinishjoinParam.TRIAL_MODE) {
         JoinState state = joinManager.getState();
-        state.setTrialBinning(processDetails.getIntegerValue(FinishjoinParam.GET_BINNING));
-        state.setTrialSizeInX(processDetails.getIntegerValue(FinishjoinParam.GET_SIZE_IN_X));
-        state.setTrialSizeInY(processDetails.getIntegerValue(FinishjoinParam.GET_SIZE_IN_Y));
-        state.setTrialShiftInX(processDetails.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_X));
-        state.setTrialShiftInY(processDetails.getIntegerValue(FinishjoinParam.GET_SHIFT_IN_Y));
+        state.setTrialBinning(processDetails
+            .getIntegerValue(FinishjoinParam.GET_BINNING));
+        state.setTrialSizeInX(processDetails
+            .getIntegerValue(FinishjoinParam.GET_SIZE_IN_X));
+        state.setTrialSizeInY(processDetails
+            .getIntegerValue(FinishjoinParam.GET_SIZE_IN_Y));
+        state.setTrialShiftInX(processDetails
+            .getIntegerValue(FinishjoinParam.GET_SHIFT_IN_X));
+        state.setTrialShiftInY(processDetails
+            .getIntegerValue(FinishjoinParam.GET_SHIFT_IN_Y));
       }
     }
   }
@@ -306,8 +316,7 @@ public class JoinProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void postProcess(
-      InteractiveSystemProgram program) {
+  protected void postProcess(InteractiveSystemProgram program) {
     String commandName = program.getCommandName();
     if (commandName == null) {
       return;

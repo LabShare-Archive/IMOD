@@ -15,7 +15,7 @@ import etomo.type.SectionTableRowData;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -32,6 +32,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/12/06 22:59:37  sueh
+* <p> bug# 757 Added maxxysize option
+* <p>
 * <p> Revision 1.15  2005/11/29 22:21:59  sueh
 * <p> bug# 757 Use setup section for make join.
 * <p>
@@ -270,5 +273,4 @@ public class MakejoincomParam implements ProcessDetails {
   public static String getName() {
     return commandName;
   }
-
 }

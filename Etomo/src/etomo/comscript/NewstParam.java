@@ -1,7 +1,7 @@
 /**
  * <p>Description: Newstack command model</p>
  *
- * <p>Copyright: Copyright (c) 2002,2003,2004</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2005/11/04 00:52:45  sueh
+ * <p> fixed file comment
+ * <p>
  * <p> Revision 3.10  2005/09/02 18:56:08  sueh
  * <p> bug# 721 Adding magGradientFile.
  * <p>

@@ -9,7 +9,7 @@ import etomo.type.ProcessName;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2005</p>
+* <p>Copyright: Copyright (c) 2005 - 2006</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -76,5 +76,8 @@ public final class TomosnapshotParam implements Command {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/12/09 20:25:02  sueh
+* <p> bug# 776 A param for the tomosnapshot command
+* <p> </p>
 */

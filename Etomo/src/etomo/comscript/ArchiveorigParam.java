@@ -10,7 +10,7 @@ import etomo.util.Utilities;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2005</p>
+* <p>Copyright: Copyright (c) 2005 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -87,6 +87,12 @@ public class ArchiveorigParam implements ProcessDetails {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/11/19 01:45:53  sueh
+* <p> bug# 744 Moved functions only used by process manager post
+* <p> processing and error processing from Commands to ProcessDetails.
+* <p> This allows ProcesschunksParam to be passed to DetackedProcess
+* <p> without having to add unnecessary functions to it.
+* <p>
 * <p> Revision 1.3  2005/07/29 00:42:44  sueh
 * <p> bug# 709 Adding a EtomoDirector test harness so that unit test functions
 * <p> can use package level EtomoDirector functions getCurrentManager and

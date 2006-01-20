@@ -15,7 +15,7 @@ import etomo.util.RemotePath;
  * <p>Description: Command line for processchunks.  Assumes that it will be run
  * once per instance (no reset function).</p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright (c) 2005 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -282,6 +282,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2006/01/11 21:40:57  sueh
+ * <p> Removing unnecessary print.
+ * <p>
  * <p> Revision 1.12  2006/01/06 02:37:35  sueh
  * <p> bug# 792 Implementing DetachedCommand.  Added getCommandString
  * <p> and backSlashSpaces to create a safe command string that can go into

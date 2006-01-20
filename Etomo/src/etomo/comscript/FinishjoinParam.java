@@ -15,7 +15,7 @@ import etomo.type.SectionTableRowData;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright (c) 2002 - 2006</p>
 *
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -26,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2005/11/29 22:20:46  sueh
+* <p> bug# 757 Use join final start and end for finish join.
+* <p>
 * <p> Revision 1.15  2005/11/19 01:52:32  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.
@@ -280,5 +283,4 @@ public class FinishjoinParam implements ProcessDetails {
     }
     return options;
   }
-
 }

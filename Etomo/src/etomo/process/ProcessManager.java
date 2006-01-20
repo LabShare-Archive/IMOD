@@ -6,7 +6,7 @@
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002
+ * Copyright: Copyright (c) 2002 - 2006
  * </p>
  * 
  * <p>
@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.88  2005/12/09 20:28:09  sueh
+ * bug# 776 Added non-abstract super.postProcessing to handle
+ * tomosnapshot
+ *
  * Revision 3.87  2005/11/19 02:36:48  sueh
  * bug# 744 Moved functions only used by process manager post
  * processing and error processing from Commands to ProcessDetails.
