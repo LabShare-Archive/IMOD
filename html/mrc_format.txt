@@ -14,7 +14,8 @@ SIZE DATA    NAME	Description
 			 2 = float,  
 			 3 = short * 2, (used for complex data)
 			 4 = float * 2, (used for complex data)
-			16 = unsigned char * 3 (used for rgb data)
+                         6 = unsigned 16-bit integers (non-standard)
+			16 = unsigned char * 3 (for rgb data, non-standard)
 
 4    int     nxstart;     Starting point of sub image.  
 4    int     nystart;
