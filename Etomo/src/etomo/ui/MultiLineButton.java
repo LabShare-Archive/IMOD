@@ -8,11 +8,12 @@ import javax.swing.plaf.ColorUIResource;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
 
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.lang.String;
@@ -25,7 +26,7 @@ import java.lang.String;
  * This prevents the text from changing color when the button is disabled, so
  * this class controls the text color on enable/disable.</p>
  *
- * <p>Copyright: Copyright © 2002 - 2005</p>
+ * <p>Copyright: Copyright © 2002 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -36,6 +37,11 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2006/01/12 22:12:22  sueh
+ * <p> bug# 401 added an action listener to keep toggle buttons selected every
+ * <p> time they are pressed.  Added isToggleButton().
+ * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
+ * <p>
  * <p> Revision 3.11  2006/01/12 17:11:48  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
@@ -85,7 +91,7 @@ import java.lang.String;
  * <p> Bug325 New class, behaves like JButton, except that it automatically makes button text multi-line.
  * <p> </p>
  */
-class MultiLineButton {
+class MultiLineButton extends ProcessResultDisplay {
   public static final String rcsid = "$$Id$$";
 
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
@@ -93,6 +99,8 @@ class MultiLineButton {
 
   private final AbstractButton button;
   private final boolean toggleButton;
+
+  private String stateKey = null;
 
   MultiLineButton() {
     this(null);
@@ -112,9 +120,32 @@ class MultiLineButton {
     }
     setName(label);
     init();
-    if (toggleButton) {
-      addActionListener(new ButtonListener(this));
-    }
+  }
+
+  /**
+   * return's the button's state key for the property file
+   * Creates the button state instance if necessary.  Sets the button state name
+   * based on the dialog and the button's name.  Once the key is set, it cannot
+   * be changed.
+   * @param dialogType
+   * @return
+   */
+  final String getButtonStateKey(DialogType dialogType) {
+    stateKey = dialogType.getStorableName() + '.' + button.getName() + ".done";
+    return stateKey;
+  }
+
+  final String getButtonStateKey() {
+    return stateKey;
+  }
+
+  final void setButtonState(boolean state) {
+    super.setState(state);
+    setSelected(state);
+  }
+
+  final boolean getButtonState() {
+    return isSelected();
   }
 
   protected final void setName(String label) {
@@ -132,15 +163,11 @@ class MultiLineButton {
     return new MultiLineButton(label, true);
   }
 
-  static final MultiLineButton getToggleButtonInstance() {
-    return new MultiLineButton(null, true);
-  }
-
   final void setEnabled(boolean isEnabled) {
     button.setEnabled(isEnabled);
     button.setForeground(isEnabled ? enabledTextColor : disabledTextColor);
   }
-  
+
   protected final boolean isToggleButton() {
     return toggleButton;
   }
@@ -170,11 +197,7 @@ class MultiLineButton {
   final void addActionListener(ActionListener actionListener) {
     button.addActionListener(actionListener);
   }
-  
-  void buttonAction(ActionEvent event) {
-    setSelected(true);
-  }
-  
+
   final String getActionCommand() {
     return button.getActionCommand();
   }
@@ -242,8 +265,18 @@ class MultiLineButton {
     button.setMaximumSize(size);
   }
 
+  protected final void setProcessDone(boolean done) {
+    setSelected(done);
+  }
+
   final void setSelected(boolean selected) {
     button.setSelected(selected);
+  }
+  
+  protected final boolean getOriginalState() {
+    //button has just been pushed, so that original state is the state of the
+    //button before it was pushed
+    return !isSelected();
   }
 
   final boolean isSelected() {
@@ -289,18 +322,6 @@ class MultiLineButton {
     }
     else {
       throw new IllegalArgumentException(property);
-    }
-  }
-  
-  private final class ButtonListener implements ActionListener {
-    MultiLineButton adaptee;
-
-    ButtonListener(MultiLineButton adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
     }
   }
 }
