@@ -73,6 +73,7 @@ import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -106,7 +107,7 @@ import etomo.util.Utilities;
  *  processing, management of other high-level objects and signal routing for
  *  tomogram reconstructions.</p>
  *
- * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -3447,7 +3448,6 @@ public class ApplicationManager extends BaseManager {
       if (!updateMTFFilterCom(axisID)) {
         return;
       }
-
       if (exitState == DialogExitState.POSTPONE) {
         processTrack
             .setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
@@ -3488,8 +3488,9 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", axisID);
       return false;
     }
+    TiltParam tiltParam = null;
     try {
-      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+      tiltParam = comScriptMgr.getTiltParam(axisID);
       tomogramGenerationDialog.getTiltParams(tiltParam);
       if (useDefaultRec) {
         String outputFileName;
@@ -3653,12 +3654,14 @@ public class ApplicationManager extends BaseManager {
   /**
    *  
    */
-  public void newst(AxisID axisID) {
+  public void newst(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
 
     // Get the user input from the dialog
     if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     ConstNewstParam newstParam = null;
@@ -3669,6 +3672,7 @@ public class ApplicationManager extends BaseManager {
     else {
       newstParam = updateNewstCom(axisID);
       if (newstParam == null) {
+        processResultDisplay.msgProcessFailedToStart();
         return;
       }
     }
@@ -3711,6 +3715,7 @@ public class ApplicationManager extends BaseManager {
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID);
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     setThreadName(threadName, axisID);
@@ -3800,23 +3805,29 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  public void trialTilt(AxisID axisID) {
-    if (updateTiltCom(axisID, false)) {
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      tiltProcess(axisID);
+  public void trialTilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
+    if (!updateTiltCom(axisID, false)) {
+      processResultDisplay.msgProcessFailedToStart();
+      return;
     }
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    tiltProcess(axisID, processResultDisplay);
   }
 
   /**
    * Run the tilt command script for the specified axis
    */
-  public void tilt(AxisID axisID) {
-    if (updateTiltCom(axisID, true)) {
-      processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      tiltProcess(axisID);
+  public void tilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
+    if (!updateTiltCom(axisID, true)) {
+      processResultDisplay.msgProcessFailedToStart();
+      return;
     }
+    processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    tiltProcess(axisID, processResultDisplay);
   }
 
   /**
@@ -3826,7 +3837,8 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  private void tiltProcess(AxisID axisID) {
+  private void tiltProcess(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
     String threadName;
     try {
       threadName = processMgr.tilt(axisID);
@@ -3838,6 +3850,7 @@ public class ApplicationManager extends BaseManager {
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID);
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     setThreadName(threadName, axisID);
@@ -5364,9 +5377,9 @@ public class ApplicationManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  protected void startNextProcess(AxisID axisID, String nextProcess) {
+  protected void startNextProcess(AxisID axisID, String nextProcess, ProcessResultDisplay processResultDisplay) {
     if (nextProcess.equals("tilt")) {
-      tiltProcess(axisID);
+      tiltProcess(axisID, processResultDisplay);
     }
     else if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
@@ -5377,7 +5390,7 @@ public class ApplicationManager extends BaseManager {
     }
     else if (nextProcess
         .equals(getNextProcessProcesschunksString(ProcessName.TILT))) {
-      processchunksTilt(axisID);
+      processchunksTilt(axisID, processResultDisplay);
     }
     else if (nextProcess
         .equals(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE))) {
@@ -5838,16 +5851,20 @@ public class ApplicationManager extends BaseManager {
     return param;
   }
 
-  public void splittilt(AxisID axisID) {
-    splittilt(axisID, false);
+  public void splittilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
+    splittilt(axisID, false, processResultDisplay);
   }
 
-  public void splittilt(AxisID axisID, boolean trialMode) {
+  public void splittilt(AxisID axisID, boolean trialMode, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
     if (!updateTiltCom(axisID, !trialMode)) {
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     SplittiltParam param = updateSplittiltParam(axisID);
     if (param == null) {
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
@@ -5862,13 +5879,13 @@ public class ApplicationManager extends BaseManager {
       message[0] = "Can not execute " + SplittiltParam.COMMAND_NAME;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
     setThreadName(threadName, axisID);
     mainPanel
         .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
-    return;
   }
 
   public void splitcombine() {
@@ -5902,12 +5919,13 @@ public class ApplicationManager extends BaseManager {
     return ProcessName.PROCESSCHUNKS + " " + processName;
   }
 
-  public final void processchunksTilt(AxisID axisID) {
-    processchunks(axisID, mapGenerationDialog(axisID));
+  public final void processchunksTilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    setProcessResultDisplay(axisID, processResultDisplay);
+    processchunks(axisID, mapGenerationDialog(axisID), processResultDisplay);
   }
 
   public final void processchunksVolcombine() {
-    processchunks(AxisID.ONLY, tomogramCombinationDialog);
+    processchunks(AxisID.ONLY, tomogramCombinationDialog, null);
   }
 
   protected BaseProcessManager getProcessManager() {
@@ -5968,6 +5986,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.204  2006/01/12 17:00:04  sueh
+ * <p> bug# 800 In doneSetupDialog(), check whether metaData exists before
+ * <p> using it.
+ * <p>
  * <p> Revision 3.203  2005/12/23 01:55:23  sueh
  * <p> bug# 675 Split the test option functionality.  Control headlessness with
  * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
