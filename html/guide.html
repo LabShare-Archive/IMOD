@@ -4,7 +4,7 @@
   <title>IMOD User's Guide</title>
 </head>
 <body>
-<h1 align="center">IMOD User's Guide for Version 3.5.2 </h1>
+<h1 align="center">IMOD User's Guide for Version 3.7.2 </h1>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
 <hr>
@@ -59,7 +59,7 @@ install to the default location in the system and set up the IMOD
 environment for all users in the default way, then you can install
 simply by running this
 script, e.g.,<br>
-&nbsp;&nbsp;&nbsp;<code>csh imod_3.5.2_RH9.0.csh</code><br>
+&nbsp;&nbsp;&nbsp;<code>csh imod_3.7.2_FC2.csh</code><br>
   <br>
 (In this guide, the specific filenames are used as an example; your
 copy may have higher version numbers.)&nbsp;Moreover, if you have
@@ -68,13 +68,13 @@ since IMOD 3.0.8, you should be able to upgrade using the same
 command. If you want to install to a location other than the default,
 on all systems except Windows, you can specify the desired location,
 e.g.,<br>
-&nbsp;&nbsp; <code>csh imod_3.5.2_RH9.0.csh -dir /opt</code><br>
+&nbsp;&nbsp; <code>csh imod_3.7.2_FC2.csh -dir /opt</code><br>
   <br>
 Note that older versions will be renamed but not automatically
 removed by the installation procedure.&nbsp;If you need to work with
 the tar file instead, you can
 just extract it with:<br>
-&nbsp;&nbsp;<code>imod_3.5.2_RH9.0.csh -extract<br>
+&nbsp;&nbsp;<code>imod_3.7.2_FC2.csh -extract<br>
   </code><br>
 The sections below on individual machine types describe what will be
 done by the default installation procedure and list the steps for
@@ -87,14 +87,14 @@ package.<br>
     <h4><a name="SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a></h4>
     <a name="SettingUpLinux"> </a> The recommended configuration for
 running the IMOD software is:
-    <p> Processor: Intel Pentium III or 4 or AMD Athlon or Opteron<br>
+    <p> Processor: Intel Pentium 4 or M or AMD Athlon or Opteron<br>
 Video Card: any relatively modern Nvidia card (GeForce or Quadro, 64 MB
 or 128 MB cards preferred)<br>
-Minimum memory size: 256MB <br>
-Minimum disk size: 10 GB <br>
-Operating System: Red Hat 9.0 or higher Workstation class installation<br>
+Minimum memory size: 512MB <br>
+Minimum disk size: 15 GB <br>
+Operating System: Red Hat Workstation 3 or Fedora 2 or higher<br>
 Nvidia Linux device drivers and OpenGL libraries from <a
- href="http://www.nvidia.com">Nvidia</a>, at least version 3123 or
+ href="http://www.nvidia.com">Nvidia</a>, at least version 4496 or
 higher. <br>
     <br>
     </p>
@@ -103,10 +103,27 @@ drivers is now fairly straightforward, but here are some <a
  href="nvidia_install.txt">instructions</a> that may be helpful. The
 critical step not taken care of by the driver installation is to change
 the Driver line in /etc/X11/XF86Config from "nv" to "nvidia".&nbsp; In
-addition, here is a sample of a <a href="XF86Config9.0.txt">/etc/X11/XF86Config</a>
-file from Red Hat 9.0, set up to use a 24-inch Sony monitor. </p>
+addition, here is a sample of a <a href="xorg.conf-FC.txt">/etc/X11/xorg.conf</a>
+file from Fedora Core 4, set up to use an old 24-inch Sony monitor.</p>
   </dd>
+</dl>
+<dl>
   <dd>
+    <p><b>Compatibility packages for Fedora Core 4.</b> One or two
+packages not in the default installation are needed to run IMOD under
+FC4.&nbsp; If you are running a version of IMOD built under FC4, you
+need compat-libf2c-32, available here for <a
+ href="http://bio3d.colorado.edu/imod/FC4/compat-libf2c-32-3.2.3-47.fc4.i386.rpm">i386</a>
+or&nbsp;<a
+ href="http://bio3d.colorado.edu/imod/FC4/compat-libf2c-32-3.2.3-47.fc4.x86_64.rpm">x86_64</a>
+.&nbsp; The reason for this is that the Fortran compiiler g77 has been
+declared "legacy" even though its successor, gfortran, is too buggy to
+rely on yet.&nbsp; If you are running an IMOD built under FC2, you also
+need compat-libstdc++-33, available here for <a
+ href="http://bio3d.colorado.edu/imod/FC4/compat-libstdc++-33-3.2.3-47.fc4.i386.rpm">i386</a>
+or&nbsp;<a
+ href="http://bio3d.colorado.edu/imod/FC4/compat-libstdc++-33-3.2.3-47.fc4.x86_64.rpm">x86_64</a>
+. </p>
     <p><b>Window manager settings.</b> To keep 3dmod from
 bogging down when it is displaying complex models, the window manager
 should be set to display only the outline and not the contents of
@@ -127,7 +144,7 @@ it is not there already, but it will not modify <code>/etc/profile</code>
 for bash users (see step 9B below to do this.)&nbsp; To accomplish all
 of this, change directory to the place where the package is located and
 enter, for example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>imod_3.5.2_RH9.0.csh</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>imod_3.7.2_FC2.csh</code><br>
     <br>
 You will have to open a new window, or possibly even log out and
 log back in, for the installation to take effect.<br>
@@ -154,10 +171,10 @@ will be easier, especially if the startup files change.</dd>
     <ol>
       <li> Log in as root or do all of these commands with sudo </li>
       <li> cd to the directory where you downloaded IMOD, and <br>
-        <code> mv imod_3.5.2_RH9.0.tar.gz /usr/local</code> </li>
+        <code> mv imod_3.7.2_FC2.tar.gz /usr/local</code> </li>
       <li><code> cd /usr/local</code> </li>
-      <li><code> gunzip imod_3.5.2_RH9.0.tar.gz</code> </li>
-      <li><code> tar xvf imod_3.5.2_RH9.0.tar</code> </li>
+      <li><code> gunzip imod_3.7.2_FC2.tar.gz</code> </li>
+      <li><code> tar xvf imod_3.7.2_FC2.tar</code> </li>
       <li>To see if you already have a /usr/local/IMOD, <br>
         <code> ls -l</code> </li>
       <li>If you do have a /usr/local/IMOD and it is a link (e.g., it
@@ -165,7 +182,7 @@ shows up as <code> IMOD -&gt; imod_2.7.6</code>), then enter <br>
         <code> rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
         <code> mv IMOD oldIMOD</code> </li>
-      <li><code> ln -s imod_3.5.2 IMOD</code> </li>
+      <li><code> ln -s imod_3.7.2 IMOD</code> </li>
       <li> (A) Under Linux, enter <br>
         <code> cp IMOD/IMOD-linux.* /etc/profile.d</code> <br>
 (B) On an SGI, insert the text in <code>IMOD/sgi.cshrc</code> into <code>/etc/cshrc</code>,
@@ -182,10 +199,6 @@ specifically the command <br>
   </dd>
 </dl>
 <dl>
-  <dd><br>
-  </dd>
-  <dd><br>
-  </dd>
 </dl>
 <dl>
   <dd>If you do not want a system wide installation, instead of step 9
@@ -258,22 +271,24 @@ without deleting <code>IMOD-linux.*sh</code>.<code><br>
   <a name="InstallingJavaLinux">
   <h4>Installing Java on Linux PC or SGI</h4>
   </a>Etomo is a Java 2 application and thus requires a Java runtime
-environment (JRE) with a version of 1.4 or better to be installed. We
-recommend using the 1.4.0 or 1.4.2 series since we have encountered
-bugs
-in version 1.4.1 of Sun's Java runtime.&nbsp; Sun's JRE version 1.4.2_5
+environment (JRE) with a version of 1.4 or better to be
+installed.&nbsp; Etomo will not work with the GNU Java that is
+currently distributed with Fedora Core, so you will need a Sun
+version.&nbsp; If you are installing for the first time you might as
+well install version 1.5 since IMOD may eventually require that.&nbsp;
+Sun's JRE version 1.5.0_6
 is
 available <a
- href="http://bio3d.colorado.edu/imod/java/j2re-1_4_2_05-linux-i586.bin">here</a>&nbsp;for
-Linux (this version or higher is required on an AMD64 machine). <br>
+ href="http://bio3d.colorado.edu/imod/java/jre-1_5_0_06-linux-i586.bin">here</a>&nbsp;for
+Linux. <br>
   <br>
   <span style="font-family: monospace;"><code></code></span>To
-install the JRE for Linux first move the&nbsp;<code><span
- style="font-family: monospace;">j2re-1_4_2_05-linux-i586.bin</span></code>file
+install the JRE for Linux first move the <code><span
+ style="font-family: monospace;">jre-1_5_0_06-linux-i586.bin</span></code>file
 to <code>/usr/local</code>
   <p class="western"><code><span style="font-family: monospace;">mv </span></code><span
  style="font-family: monospace;"><code><span
- style="font-family: monospace;">j2re-1_4_2_05-linux-i586.bin /usr/local</span></code><br>
+ style="font-family: monospace;">jre-1_5_0_06-linux-i586.bin /usr/local</span></code><br>
   </span></p>
   <p class="western">Next change your working directory to <code>/usr/local</code>
 and&nbsp; execute the bin by entering</p>
@@ -281,14 +296,14 @@ and&nbsp; execute the bin by entering</p>
 /usr/local</code><br>
   </span></p>
   <p class="western"><span style="font-family: monospace;"><code>sh
-j2re-1_4_2_05-linux-i586.bin</code><br>
+jre-1_5_0_06-linux-i586.bin</code><br>
   </span></p>
   <p class="western">on the command line. &nbsp;</p>
-  <p class="western">This will install the JRE in <code>/usr/local/j2re1.4.2_05</code>.
+  <p class="western">This will install the JRE in <code>/usr/local/jre1.5.0_06</code>.
 &nbsp;The IMOD startup scripts assume that the JRE is in <code>/usr/local/java</code>,
 so next create a link: </p>
   <p class="western"><span style="font-family: monospace;"><code>ln
--s j2re1.4.2_05 java</code><br>
+-s jre1.5.0_06 java</code><br>
   </span></p>
   <span style="font-family: monospace;"><code></code></span>
   <p class="western">If you upgrade to a different JRE, then you just
@@ -319,7 +334,7 @@ in <code>/etc/csh.login<span style="font-family: sans-serif;"> </span></code>and
   <code>/etc/profile</code>.&nbsp;You
 need to be able to use sudo. &nbsp;Open a terminal window, change
 directory to the place where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh imod_3.5.2_osx.csh</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh imod_3.7.2_osx.csh</code><br>
   <br>
 You will need to exit and restart Terminal for these changes to take
 effect, or you can just source <code>/etc/csh.login</code>&nbsp;(if
@@ -354,9 +369,9 @@ alternatives.&nbsp;To do it from the command line, open a Terminal
 window and:<br>
   <ol>
     <li> cd to the directory where you downloaded IMOD, and <br>
-      <code>sudo mv imod_3.5.2_osx.tar.gz /Applications</code></li>
+      <code>sudo mv imod_3.7.2_osx.tar.gz /Applications</code></li>
     <li><code>cd /Applications</code></li>
-    <li><code>sudo tar xvzf imod_3.5.2_osx.0.tar</code></li>
+    <li><code>sudo tar xvzf imod_3.7.2_osx.0.tar</code></li>
     <li>To see if you already have a /Applications/IMOD, <br>
       <code> ls -l</code> </li>
     <li>If you do have a /Applications/IMOD and it is a link (e.g., it
@@ -364,14 +379,14 @@ shows up as <code> IMOD -&gt; imod_3.1.6</code>), then enter <br>
       <code>sudo rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
       <code>sudo mv IMOD oldIMOD</code> </li>
-    <li><code> sudo mv imod_3.5.2 IMOD</code></li>
+    <li><code> sudo mv imod_3.7.2 IMOD</code></li>
   </ol>
   <br>
 If you are on a single user-machine or have administrative privileges
 from the desktop, you can use the following alternative approach:
   <ol>
     <li>Click on the downloaded file to unpack it with Stuffit Expander
-and create the IMOD folder, e.g. <code>imod_3.5.2</code></li>
+and create the IMOD folder, e.g. <code>imod_3.7.2</code></li>
     <li>Drag this folder into the /Applications folder.</li>
     <li>If you already have an IMOD folder in /Applications, rename it
 or move it elsewhere.</li>
@@ -400,7 +415,7 @@ the name of the top IMOD directory in <code>IMOD-mac.csh<span
 in the source commands placed in <code>/etc/csh.login </code>and<code>
 /etc/profile.<br>
   </code><br>
-See the above instructions for PC and SGI for other variations on
+See the above instructions for Linux PC and SGI for other variations on
 installation procedures.<br>
   <br>
   <a name="SettingUpWindows"> </a>
@@ -515,24 +530,27 @@ category</span>. <br>
   <h4>Installing IMOD on a Windows PC</h4>
   </a>The self-installing package will install IMOD in /usr/local and
 copy <code>IMOD-cygwin.sh</code>&nbsp;and <code>IMOD-cygwin.csh</code>&nbsp;to
-  <code>/etc/profile.d</code>.&nbsp;To
+  <code>/etc/profile.d</code>. It will not work by clicking on it, only
+by executing it as from the command line.&nbsp; To
 install IMOD, start a Cygwin terminal window, change to the
 directory where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.5.2_win.csh<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.7.2_win.csh<br>
   </code><br>
   <ol>
   </ol>
 You will have to open a new Cygwin window for the installation to take
 effect. <br>
   <br>
-After installation, everything but eTomo can be run from a Cygwin
-window. &nbsp;In order to run eTomo, you also need to install Java and
+After installation, everything can be run from a Cygwin
+window. &nbsp;In order to run eTomo, you also need to have Java
+installed and
 define some environment variables inside Windows:<br>
   <br>
   <ol>
-    <li> To install Java, get the latest Java Run-time Environment from
-      <a href="http://www.sun.com">Sun</a> or use the version provided <a
- href="http://bio3d.colorado.edu/imod/java/j2re-1_4_2_02-windows-i586-p.exe">here</a>
+    <li>If you do not already have Java (many machines do now), get the
+latest Java Run-time Environment from <a href="http://www.sun.com">Sun</a>
+or use the version provided <a
+ href="http://bio3d.colorado.edu/imod/java/jre-1_5_0_06-windows-i586-p.exe">here</a>
 .</li>
     <li> Click on the file and take the defaults to install Java. When
 you are done, you can delete any Java icons from your desktop.</li>
@@ -594,8 +612,8 @@ mv IMOD oldIMOD</code><br>
     </li>
     <li>&nbsp;Unpack the tar file, rename it to IMOD, and copy startup
 files: <br>
-      <code></code><code>tar -xzf imod_3.5.2.tar.gz </code><br>
-      <code>mv imod_3.5.2 IMOD </code><br>
+      <code></code><code>tar -xzf imod_3.7.2.tar.gz </code><br>
+      <code>mv imod_3.7.2 IMOD </code><br>
       <code>cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
   </ol>
   <br>
@@ -641,7 +659,7 @@ distribution, compiled with gnu compilers. To take advantage of the
 algorithm, you need a license to use the USFFT library, which is
 commercial software for doing unequally spaced FFTs. A license is free
 for non-profit organizations, but the licensing mechanism currently
-works only . To obtain a license, contact <a
+works only for 32-bit Linux. To obtain a license, contact <a
  href="mailto:mast@colorado.edu"> David Mastronarde </a>with a request
 and a description of your institution. Once you have the license, you
 need to set the environment variable USFFT2_LICENSE_FILE to point to
@@ -884,7 +902,8 @@ alignment. </p>
   <hr><a name="Quantitative Information">
   <h3>Getting Quantitative Information</h3>
   </a>In order to get accurate information the fields in the model
-header have to be set properly. See the <a href="3dmodguide.html">Introduction
+header have to be set properly. See the <a
+ href="3dmodguide.html#Setting Z-scale">Introduction
 to 3dmod</a>&nbsp;for an explanation of how to do this. Selecting the
 Edit-&gt;Object-&gt;Info or Edit-&gt;Contour-&gt;Info menu item from
 the 3dmod Information Window will cause the quantitative
@@ -940,7 +959,8 @@ format used by <a
 tomograms with eTomo, including a sample data set.</li>
     <li> <a href="tomojoin.html"> Guide for joining tomograms from
 serial sections.</a> </li>
-    <li> A <a href="JoinTutorial.html">tutorial</a> for joining serial section
+    <li> A <a href="JoinTutorial.html">tutorial</a> for joining serial
+section
 tomograms with eTomo, including a sample data set.</li>
     <li> <a href="serialalign.txt">Guide to serial section alignment.</a>
     </li>
@@ -950,7 +970,7 @@ tomograms with eTomo, including a sample data set.</li>
 </dl>
 <br>
 <br>
-<hr><i>Last updated: May 7, 2005</i> [<a
+<hr><i>Last updated: January 19, 2006</i> [<a
  href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] [<a
  href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
 <br>
