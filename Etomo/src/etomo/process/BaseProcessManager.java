@@ -23,7 +23,7 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -34,6 +34,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2006/01/06 02:39:16  sueh
+ * <p> bug# 792 Using DetachedCommand instead of Command because it can
+ * <p> create a safe command string that can go into a run file.
+ * <p>
  * <p> Revision 1.34  2005/12/14 01:27:13  sueh
  * <p> bug# 782 Added toString().
  * <p>
@@ -838,7 +842,7 @@ public abstract class BaseProcessManager {
     //  Inform the app manager that this process is complete
     getManager().processDone(script.getName(), exitValue,
         script.getProcessName(), script.getAxisID(),
-        script.getProcessEndState());
+        script.getProcessEndState(), exitValue != 0);
   }
 
   /**
@@ -880,16 +884,16 @@ public abstract class BaseProcessManager {
         axisID, null);
   }
 
-  protected BackgroundProcess startDetachedProcess(DetachedCommand detachedCommand,
-      AxisID axisID, DetachedProcessMonitor monitor)
-      throws SystemProcessException {
+  protected BackgroundProcess startDetachedProcess(
+      DetachedCommand detachedCommand, AxisID axisID,
+      DetachedProcessMonitor monitor) throws SystemProcessException {
 
     isAxisBusy(axisID);
 
     DetachedProcess detachedProcess = new DetachedProcess(getManager(),
         detachedCommand, this, axisID, monitor);
-    return startBackgroundProcess(detachedProcess, detachedCommand.getCommandLine(),
-        axisID, monitor);
+    return startBackgroundProcess(detachedProcess, detachedCommand
+        .getCommandLine(), axisID, monitor);
   }
 
   protected BackgroundProcess startBackgroundProcess(
@@ -923,7 +927,7 @@ public abstract class BaseProcessManager {
 
   private BackgroundProcess startBackgroundProcess(
       BackgroundProcess backgroundProcess, String commandLine, AxisID axisID,
-      Runnable processMonitor) throws SystemProcessException {
+      Runnable processMonitor) {
     backgroundProcess.setWorkingDirectory(new File(getManager()
         .getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
@@ -1032,12 +1036,13 @@ public abstract class BaseProcessManager {
     if (endState == null || endState == ProcessEndState.DONE) {
       getManager().processDone(process.getName(), exitValue, null,
           process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState());
+          process.getProcessEndState(), exitValue != 0 || errorFound);
     }
     else {
       getManager().processDone(process.getName(), exitValue, null,
           process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState(), process.getStatusString());
+          process.getProcessEndState(), process.getStatusString(),
+          exitValue != 0 || errorFound);
     }
   }
 
