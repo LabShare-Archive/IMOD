@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2005/10/12 21:26:08  sueh
+* <p> EtomoState():  The default type for EtomoNumber is integer, so the type
+* <p> doesn't have to be sent to super().
+* <p>
 * <p> Revision 1.5  2005/06/11 02:38:25  sueh
 * <p> Overrode store functions.  Added isResultSet().
 * <p>
@@ -56,6 +60,11 @@ public class EtomoState extends EtomoNumber {
 
   public EtomoState(String name) {
     super(name);
+    setValidValues(new int[] { NO_RESULT_VALUE, FALSE_VALUE, TRUE_VALUE });
+  }
+  
+  public EtomoState() {
+    super();
     setValidValues(new int[] { NO_RESULT_VALUE, FALSE_VALUE, TRUE_VALUE });
   }
   
