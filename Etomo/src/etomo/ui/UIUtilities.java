@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2006/01/11 23:20:24  sueh
+ * <p> bug# 675 Changed convertLabelToName() so that it can use
+ * <p> PrimativeTokenizer.  This means that all whitespace is treated correctly.
+ * <p>
  * <p> Revision 1.9  2006/01/04 00:09:29  sueh
  * <p> bug# 675 Fix convertLabelToName.
  * <p>
@@ -190,20 +194,29 @@ public class UIUtilities {
       e.printStackTrace();
       return label;
     }
-    boolean ignore = false;
+    boolean ignoreParen = false;
+    boolean ignoreBracket = false;
     while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
       if (token.equals(Token.SYMBOL, '(')) {
         //ignore everything in parenthesis
-        ignore = true;
+        ignoreParen = true;
       }
       else if (token.equals(Token.SYMBOL, ')')) {
-        ignore = false;
+        ignoreParen = false;
+      }
+      if (token.equals(Token.SYMBOL, '<')) {
+        //replace everything in angle brackets with one space
+        ignoreBracket = true;
+        buffer.append(' ');
+      }
+      else if (token.equals(Token.SYMBOL, '>')) {
+        ignoreBracket = false;
       }
       else if (token.equals(Token.SYMBOL, ':')) {
         //ignore everything after ":"
         break;
       }
-      else if (!ignore) {
+      else if (!ignoreParen && !ignoreBracket) {
         buffer.append(token.getValue());
       }
       try {
