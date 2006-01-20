@@ -30,6 +30,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
@@ -51,6 +52,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2005/12/23 02:03:28  sueh
+ * <p> bug# 675 Split the test option functionality.  Control headlessness with
+ * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
+ * <p> functions.
+ * <p>
  * <p> Revision 1.34  2005/12/16 18:25:31  sueh
  * <p> bug# 785 Setting JoinState.doneMode in doneJoinDialog.  In
  * <p> setMode(String) getting the doneMode and then clearing it.  If the
@@ -794,7 +800,8 @@ public final class JoinManager extends BaseManager {
       joinDialog.setMode(JoinDialog.SETUP_MODE);
       return false;
     }
-    if (!state.isSampleProduced() || doneMode == JoinDialog.CHANGING_SAMPLE_MODE) {
+    if (!state.isSampleProduced()
+        || doneMode == JoinDialog.CHANGING_SAMPLE_MODE) {
       //either the sample was not produced, or the user had been changing the
       //sample when they exited the join dialog.  If the done mode is
       //CHANGING_SAMPLE_MODE, then the sample values are not valid and the
@@ -954,7 +961,8 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  protected void startNextProcess(AxisID axisID, String nextProcess) {
+  protected void startNextProcess(AxisID axisID, String nextProcess,
+      ProcessResultDisplay processResultDisplay) {
     if (nextProcess.equals("startjoin")) {
       startjoin();
       return;
