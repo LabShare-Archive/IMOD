@@ -15,6 +15,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -31,22 +34,8 @@ public interface Storable {
   public void store(Properties props);
 
   /**
-   * The store methods expects the object to add the key/element pairs to the
-   * Properties object passed, prepending the string suuplied to the key.
-   */
-  public void store(Properties props, String prepend);
-
-  /**
    * The load method provides a loaded Properties object so that the object can
    * get its stored data through the getProperty call
    */
   public void load(Properties props);
-
-  /**
-   * The load method provides a loaded Properties object so that the object can
-   * get its stored data through the getProperty call.  The prepend string
-   * tells the loading object what to prepend to the key to find its data.
-   */
-  public void load(Properties props, String prepend);
-
 }
