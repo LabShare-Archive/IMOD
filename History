@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/23/05: Fixed progress output of matchvol/warpvol for > 999 cubes. (In 3.7)
+
 1/19/06: Increased default radius in eraser.com from 2.1 to 3.6 pixels. 
 (In 3.7)
 
