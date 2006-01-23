@@ -1,52 +1,31 @@
-<H2 style="color: rgb(0,128,0);">Functions from imodel.c</H2>
-<H3 style="color: rgb(0,128,0);">General Model Manipulation and Information</H3>
-LIST FUNCTIONS FROM imodel.c
-<H3 style="color: rgb(0,128,0);">Object-related Model Functions</H3>
-LIST FUNCTIONS FROM imodel.c OBJECT
-<H3 style="color: rgb(0,128,0);">Contour-related Model Functions</H3>
-LIST FUNCTIONS FROM imodel.c CONTOUR
-<H3 style="color: rgb(0,128,0);">Point-related Model Functions</H3>
-LIST FUNCTIONS FROM imodel.c POINT
-<H2 style="color: rgb(0,128,0);">Functions from iobj.c</H2>
-LIST FUNCTIONS FROM iobj.c
-<H2 style="color: rgb(0,128,0);">Functions from icont.c</H2>
-<H3 style="color: rgb(0,128,0);">General Contour Manipulation</H3>
-LIST FUNCTIONS FROM icont.c
-<H3 style="color: rgb(0,128,0);">Simple Contour Get/Set Functions</H3>
-LIST FUNCTIONS FROM icont.c SET-GET
-<H3 style="color: rgb(0,128,0);">Contour Information Functions</H3>
-LIST FUNCTIONS FROM icont.c INFORMATION
-<H3 style="color: rgb(0,128,0);">Contour-modifying Functions</H3>
-LIST FUNCTIONS FROM icont.c MODIFYING
-<H3 style="color: rgb(0,128,0);">Advanced Functions (Scan Contours, Overlap, Nesting)</H3>
-LIST FUNCTIONS FROM icont.c ADVANCED
-<H2 style="color: rgb(0,128,0);">Functions from ipoint.c</H2>
-LIST FUNCTIONS FROM ipoint.c
-<H2 style="color: rgb(0,128,0);">Model File I/O Functions from imodel_files.c</H2>
-LIST FUNCTIONS FROM imodel_files.c
-<H2 style="color: rgb(0,128,0);">Functions from imodel.c</H2>
-<H3 style="color: rgb(0,128,0);">General Model Manipulation and Information</H3>
-DESCRIBE FUNCTIONS FROM imodel.c
-<H3 style="color: rgb(0,128,0);">Object-related Model Functions</H3>
-DESCRIBE FUNCTIONS FROM imodel.c OBJECT
-<H3 style="color: rgb(0,128,0);">Contour-related Model Functions</H3>
-DESCRIBE FUNCTIONS FROM imodel.c CONTOUR
-<H3 style="color: rgb(0,128,0);">Point-related Model Functions</H3>
-DESCRIBE FUNCTIONS FROM imodel.c POINT
-<H2 style="color: rgb(0,128,0);">Functions from iobj.c</H2>
-DESCRIBE FUNCTIONS FROM iobj.c
-<H2 style="color: rgb(0,128,0);">Functions from icont.c</H2>
-<H3 style="color: rgb(0,128,0);">General Contour Manipulation</H3>
-DESCRIBE FUNCTIONS FROM icont.c
-<H3 style="color: rgb(0,128,0);">Simple Contour Get/Set Functions</H3>
-DESCRIBE FUNCTIONS FROM icont.c SET-GET
-<H3 style="color: rgb(0,128,0);">Contour Information Functions</H3>
-DESCRIBE FUNCTIONS FROM icont.c INFORMATION
-<H3 style="color: rgb(0,128,0);">Contour-modifying Functions</H3>
-DESCRIBE FUNCTIONS FROM icont.c MODIFYING
-<H3 style="color: rgb(0,128,0);">Advanced Functions (Scan Contours, Overlap, Nesting)</H3>
-DESCRIBE FUNCTIONS FROM icont.c ADVANCED
-<H2 style="color: rgb(0,128,0);">Functions from ipoint.c</H2>
-DESCRIBE FUNCTIONS FROM ipoint.c
-<H2 style="color: rgb(0,128,0);">Model File I/O Functions from imodel_files.c</H2>
-DESCRIBE FUNCTIONS FROM imodel_files.c
+<H2  align="center">IMOD Library libimod</H2>
+The libimod library contains functions primarily for working with an
+IMOD model. It also contains some utility functions, including the PIP
+package.
+<P>
+Whenever the documentation indicates that a function returns a
+non-zero number for an error, it returns 0 for success.
+<UL>
+<LI> <A HREF="imodel.html">Model functions</A> for working with
+and getting information about models, and about objects, contours, and points 
+in a specific model.
+<LI> <A HREF="iobj.html">Object functions</A> for working with objects.
+<LI> <A HREF="icont.html">Contour functions</A> for working with
+and getting information about contours.
+<LI> <A HREF="ipoint.html">Point functions</A> for working with
+points and manipulating points in contours.
+<LI> <A HREF="imodel_files.html">Model I/O functions</A> for
+reading and writing models.
+<LI> <A HREF="ilist.html">List functions</A> for working with an
+Ilist, a structure for holding arrays of arbitrary items.
+<LI> <A HREF="istore.html">General storage functions</A> for working with
+lists of Istore elements, which are used to store extra data about
+model elements.
+<LI> <A HREF="imat.html">Matrix functions</A> for doing basic
+operation on 2D and 3D transformation matrices.
+<LI><A HREF="b3dutil.html">Utility functions</A>.
+<LI> <A HREF="mod_fwrap.html">Fortran-callable functions</A> for
+retrieving and storing an IMOD model.
+<LI><A HREF="../man/pip.html">PIP package</A> for parsing input
+parameters.
+</UL>

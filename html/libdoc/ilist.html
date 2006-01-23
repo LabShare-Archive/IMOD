@@ -1,0 +1,24 @@
+<H2  align="center">Ilist Module</H2>
+This module contains functions for creating and managing an Ilist, which is a
+managed array of arbitrary elements of one type.  These elements can be 
+addresses or structures.
+<P>
+<a href="#structure">The Ilist structure</a>
+<P>
+LIST FUNCTIONS FROM ilist.c
+<P>
+<a name="structure">The Ilist structure is described by:</a>
+<PRE>
+  typedef struct ilist_struct
+  {
+    void *data;        /* Pointer to data */
+    int   dsize;       /* Size of data element in bytes */
+    int   current;     /* Current item */
+    int   size;        /* Number of items on list */
+    int   store;       /* Number of items space allocated for */
+    int   quantum;     /* Increment when allocating more space */
+  }Ilist;
+</PRE>
+
+<P>
+DESCRIBE FUNCTIONS FROM ilist.c

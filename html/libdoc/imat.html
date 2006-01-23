@@ -1,0 +1,21 @@
+<H2  align="center">Imat Module</H2>
+This module contains functions for doing matrix operations.  A matrix
+can either 2D or 3D and will consist of 9 or 16 elements in a
+one-dimensional array. 
+<P>
+<a href="#structure">The Imat structure</a>
+<P>
+LIST FUNCTIONS FROM imat.c
+<P>
+<a name="structure">The Imat structure is described by:</a>
+<PRE>
+typedef struct imodel_matrix
+{
+     float *data;
+     int   dim;   /* is 2D or 3D */
+     int   size;
+}Imat;
+</PRE>
+
+<P>
+DESCRIBE FUNCTIONS FROM imat.c
