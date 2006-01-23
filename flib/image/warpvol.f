@@ -27,6 +27,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.7  2005/03/01 00:01:41  mast
+c	  Needed to iterate finding that extra pixels were needed for input
+c	
 c	  Revision 3.6  2004/11/10 02:05:18  mast
 c	  Do two passes of allocating data into cubes to avoid overflow, and
 c	  also sample positions along edges of cubes to determine real range
@@ -478,7 +481,7 @@ C
 	      enddo
 c	      print *,ixcube,iycube,izcube
 	      numDone = numDone + 1
-	      write(*,'(a,i4,a,i4)')'Finished',numDone,' of',
+	      write(*,'(a,i6,a,i6)')'Finished',numDone,' of',
      &		  ncubes(1)*ncubes(2)*ncubes(3)
 	      call flush(6)
 	    enddo

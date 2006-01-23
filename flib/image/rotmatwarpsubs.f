@@ -8,6 +8,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2004/11/10 02:06:03  mast
+c	  Rearranged setup_cubes to allow it to be called twice from warpvol
+c	  and to provide a factor for extra pixels needed in input
+c	
 c	  Revision 3.3  2004/07/24 17:35:38  mast
 c	  Added progress output
 c	
@@ -328,7 +332,7 @@ C
 	      enddo
 c	      print *,ixcube,iycube,izcube
 	      numDone = numDone + 1
-	      write(*,'(a,i4,a,i4)')'Finished',numDone,' of',
+	      write(*,'(a,i6,a,i6)')'Finished',numDone,' of',
      &		  ncubes(1)*ncubes(2)*ncubes(3)
 	      call flush(6)
 	    enddo
