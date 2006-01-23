@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2005/02/11 01:40:44  mast
+Added some includes, switched to simple b3dIMin/Max functions
+
 Revision 1.7  2004/11/12 15:21:56  mast
 Added min and max functions with variable arguments
 
@@ -61,13 +64,19 @@ initial creation, consolidating routines from elsewhere
 #endif
 
 #ifdef F77FUNCAP
-#define imodbackupfile_ IMODBACKUPFILE
-#define imodgetenv_ IMODGETENV
-#define b3dheaderitembytes_ B3DHEADERITEMBYTES
+#define imodbackupfile IMODBACKUPFILE
+#define imodgetenv IMODGETENV
+#define b3dheaderitembytes B3DHEADERITEMBYTES
+#else
+#define imodbackupfile imodbackupfile_
+#define imodgetenv imodgetenv_
+#define b3dheaderitembytes b3dheaderitembytes_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
    crash imod under Windows */
+/*! Prints program name provided in [pname], IMOD version and compilation 
+  date */
 int imodVersion(char *pname)
 {
   if (pname)
@@ -76,6 +85,7 @@ int imodVersion(char *pname)
   return(VERSION);
 }
 
+/*! Prints copyright notice */
 void imodCopyright(void)
 {
   char *uofc =   "the Regents of the University of Colorado";
@@ -84,10 +94,10 @@ void imodCopyright(void)
   return;
 }
 
-/* imodProgName returns a program name stripped of directories and .exe,
- * given the full name (argv[0]) in fullname
- * It returns a pointer internal to argv[0], unless the name ends in .exe,
- * in which case it tries to return a duplicate copy.  Do not free it */
+/*! Returns a program name stripped of directories and .exe,
+ * given the full name (argv\[0\]) in [fullname].
+ * It returns a pointer internal to argv\[0\], unless the name ends in .exe,
+ * in which case it tries to return a duplicate copy.  Do not free it. */
 char *imodProgName(char *fullname)
 {
   char *tail, *tailback, *exe;
@@ -112,7 +122,7 @@ char *imodProgName(char *fullname)
 }
 
 
-/* imodBackupFile renames an existing file named filename to filename~ and
+/*! Renames an existing file named [filename] to filename~ and
    deletes filename~ first if necessary */
 int imodBackupFile(char *filename)
 {
@@ -138,9 +148,9 @@ int imodBackupFile(char *filename)
   return rename(filename, backname);
 }
 
-/* A fortran wrapper for the function to make backup file */
+/*! A fortran wrapper for imodBackupFile */
 
-int imodbackupfile_(char *filename, int strlen)
+int imodbackupfile(char *filename, int strlen)
 {
   int err;
   char *cstr = f2cString(filename, strlen);
@@ -151,8 +161,9 @@ int imodbackupfile_(char *filename, int strlen)
   return err;
 }
 
-/* Get an environment variable for a fortran routine */
-int imodgetenv_(char *var, char *value, int varSize, int valueSize)
+/*! A Fortran-callable routine to get an environment variable, [var] and return
+  its value in [value].  Returns -1 for error. */
+int imodgetenv(char *var, char *value, int varSize, int valueSize)
 {
   char *valPtr;
   char *cstr = f2cString(var, varSize);
@@ -166,7 +177,8 @@ int imodgetenv_(char *var, char *value, int varSize, int valueSize)
 }
 
 
-/* Create a C string with a copy of a Fortran string */
+/*! Creates a C string with a copy of a Fortran string described by [str] and 
+  [strsize], using [malloc]. */
 char *f2cString(char *str, int strSize)
 {
   int i;
@@ -189,7 +201,8 @@ char *f2cString(char *str, int strSize)
   return newStr;
 }
 
-/* Return a C string into a Fortran string, return error if it won't fit */
+/*! Converts a C string in [cStr] into a Fortran string [fStr] with size
+  [fSize]; returns -1 for error if the string will not fit. */
 int c2fString(char *cStr, char *fStr, int fSize)
 {
   int i;
@@ -215,13 +228,9 @@ int c2fString(char *cStr, char *fStr, int fSize)
 static int storeError = 0;
 static char errorMess[MAX_IMOD_ERROR_STRING] = "";
 
-/* Set to not print messages */
-void b3dSetStoreError(int ival)
-{
-  storeError = ival;
-}
-
-/* Store an error, possibly print it */
+/*! Stores an error message and may print it as well.  The message is 
+  internally printed with vsprintf.  It is printed to [fout] unless 
+  b3dSetStoreError has been called with 1. */
 void b3dError(FILE *out, char *format, ...)
 {
   va_list args;
@@ -232,15 +241,24 @@ void b3dError(FILE *out, char *format, ...)
     fprintf(out, errorMess);
 }
 
-/* Return the error string */
+/*! Sets flag to print messages passed by [b3dError] if [ival] is 0 (the 
+  default) or to store them internally if [ival] is 1. */
+void b3dSetStoreError(int ival)
+{
+  storeError = ival;
+}
+
+/*! Returns the current error string */
 char *b3dGetError()
 {
   return &errorMess[0];
 }
 
-/* These routines will simply call the standard C routine unless under Windows,
-   then they will get the matching file handle and call the low-level Windows
-   routine */
+/* These routines will simply call the standard C routine under Unix, otherwise
+   they will get the file descriptor and call the descriptor-based routine, or 
+   its underlying equivalent in Window. */
+
+/*! A substitute for fseek that works for large files on all systems. */
 int b3dFseek(FILE *fp, int offset, int flag)
 {
 #if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
@@ -253,6 +271,7 @@ int b3dFseek(FILE *fp, int offset, int flag)
 #endif
 }
 
+/*! A substitute for fread that works for large files on all systems. */
 size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp)
 {
 #if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
@@ -263,6 +282,7 @@ size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp)
 #endif
 }
  
+/*! A substitute for fwrite that works for large files on all systems. */
 size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
 {
 #if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
@@ -273,6 +293,7 @@ size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp)
 #endif
 }
 
+/*! A substitute for rewind that works for large files on all systems. */
 void b3dRewind(FILE *fp)
 {
   b3dFseek(fp, 0, SEEK_SET);
@@ -280,6 +301,11 @@ void b3dRewind(FILE *fp)
 
 #define SEEK_LIMIT 2000000000
 
+/*!
+ * Does a seek in a large file with pointer [fp].  The amount to seek is
+ * given by [base] + [size1] * [size2].  [flag] has the standard meaning for
+ * seeks, e.g., SEEK_SET, etc.  Returns the nonzero seek error if error.
+ */
 int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
 {
   int smaller, bigger, ntodo, ndo, abs1, abs2;
@@ -320,9 +346,9 @@ int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
   return 0;
 }
 
-/* A central place to get the list of number of possible extra header items
-   and the number of bytes each, including a Fortran wrapper
-   nbytes is an array that should be dimensioned to 32 */
+/*! Returns the number of possible extra header items encoded as short integers
+ * by SerialEM in [nflags], and the number of bytes that each occupies in 
+ * [nbytes], an array that should be dimensioned to 32. */
 void b3dHeaderItemBytes(int *nflags, int *nbytes)
 {
   b3dByte extra_bytes[] = {2, 6, 4, 2, 2, 4, 2, 4, 2, 4, 2};
@@ -332,17 +358,17 @@ void b3dHeaderItemBytes(int *nflags, int *nbytes)
     nbytes[i] = extra_bytes[i];
 }
 
-void b3dheaderitembytes_(int *nflags, int *nbytes) 
+/*! A Fortran wrapper for b3dHeaderItemBytes. */
+void b3dheaderitembytes(int *nflags, int *nbytes) 
 {
   b3dHeaderItemBytes(nflags, nbytes);
 }
 
-/* Variable argument min and max subroutines for integer
- *  Call as:  b3dIMin(4, ival1, ival2, ival3, ival4); 
+/*! A variable argument min function for multiple integer arguments.
+ * Call as:  b3dIMin(4, ival1, ival2, ival3, ival4); 
  * For only two arguments with acceptable cost of multiple evaluations,
- * use the macros, B3DMIN(val1, val2);
- * 2/10/05: gave up on fully generic b3dMin/b3dMax as a bad idea
- */
+ * use the macro, B3DMIN(val1, val2); */
+/* 2/10/05: gave up on fully generic b3dMin/b3dMax as a bad idea */
 int b3dIMin(int narg, ...)
 {
   va_list args;
@@ -360,6 +386,10 @@ int b3dIMin(int narg, ...)
   return(extreme);
 }
 
+/*! A variable argument max function for multiple integer arguments.
+ * Call as:  b3dIMax(4, ival1, ival2, ival3, ival4); 
+ * For only two arguments with acceptable cost of multiple evaluations,
+ * use the macro, B3DMAX(val1, val2); */
 int b3dIMax(int narg, ...)
 {
   va_list args;
