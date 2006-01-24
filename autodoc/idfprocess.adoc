@@ -1,0 +1,75 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile1]
+short = in1
+long = InputFile1
+type = FN
+usage = First input file with distortion fields
+tooltip = 
+manpage = First input file with distortion fields.  If this option is not
+entered, the first non-option argument will be used for this input file.
+
+[Field = InputFile2]
+short = in2
+type = FN
+usage = Second input file with distortion fields
+tooltip = 
+manpage = Second input file with distortion fields.  If this option is not
+entered and a second input file is expected, the second non-option argument
+will be used for this input file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for processed distortion fields (optional)
+tooltip = 
+manpage = Output file for processed distortion fields.  If this option is not
+entered, the second or third non-option argument will be used for the output
+file, depending on whether one or two input files are required.  If no output
+file is specified at all, then statistics will be computed.
+
+[Field = Product]
+short = product
+type = B
+usage = Compute product of two distortion fields 
+tooltip = 
+manpage = 
+
+[Field = Difference]
+short = difference
+type = B
+usage = Compute difference between two distortion fields
+tooltip = 
+manpage = 
+
+[Field = Inverse]
+short = inverse
+type = B
+usage = Compute the inverse of the distortion field
+tooltip = 
+manpage = 
+
+[Field = Statistics]
+short = stats
+type = B
+usage = Report mean, SD, and max of distortion vectors
+tooltip = 
+manpage = 
+
+[Field = SecondGrid]
+short = second
+type = B
+usage = Use second input file's grid characteristics for output
+tooltip = 
+manpage = If the grid characteristics (spacing and number of grid points)
+differ between the two files, convert to the second file's characteristics
+rather than the first.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
