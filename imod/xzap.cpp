@@ -2922,6 +2922,8 @@ static void montageSnapshot(ZapStruct *zap)
   char fname[256];
   int fileno = 0;
   int factor = imcGetMontageFactor();
+  double junk = 1.;
+  int ij;
 
   // Get coordinates and offsets and buffers
   setAreaLimits(zap);
@@ -2955,6 +2957,9 @@ static void montageSnapshot(ZapStruct *zap)
       zap->xtrans = -(xTransStart + ix * xTransDelta);
       zap->ytrans = -(yTransStart + iy * yTransDelta);
       zapDraw(zap);
+
+      // 1/25/06: Needed to define as front on a quadro card
+      glReadBuffer(GL_FRONT);
       glReadPixels(0, 0, zap->winx, zap->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
                    framePix);
       glFlush();
@@ -2994,14 +2999,15 @@ static void getMontageShifts(ZapStruct *zap, int factor, int imStart,
   int inWin, overlap, imEnd;
   imEnd = B3DMIN(imStart + (int)((winSize - border)/ zap->zoom), imSize);
   inWin = (int)(winSize / (zap->zoom * factor));
-  overlap = (factor * inWin + imStart - imEnd) / (factor - 1);
+  overlap = B3DMAX(0, (factor * inWin + imStart - imEnd) / (factor - 1));
   transDelta = inWin - overlap;
   transStart = imStart + (inWin - imSize) / 2;
   copyDelta = zap->zoom * factor * transDelta;
   fullSize = (factor - 1) * copyDelta + winSize;
   if (imodDebug('z'))
-    imodPrintStderr("im %d - %d  bord %d win %d  inwin %d overlap %d start %d delta %d  copy %d  "
-                    "full %d\n", imStart, imEnd, border, winSize, inWin, overlap, transStart, 
+    imodPrintStderr("im %d - %d  bord %d win %d  inwin %d overlap %d start %d"
+                    " delta %d  copy %d  full %d\n", imStart, imEnd, border,
+                    winSize, inWin, overlap, transStart, 
                     transDelta, copyDelta, fullSize);
 }
 
@@ -3726,6 +3732,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.74  2005/09/15 14:31:52  mast
+Added montage snapshot
+
 Revision 4.73  2005/09/12 14:24:06  mast
 Added function to get rubber band coordinates
 
