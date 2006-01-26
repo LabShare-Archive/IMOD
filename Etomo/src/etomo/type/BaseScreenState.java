@@ -58,6 +58,9 @@ public class BaseScreenState implements Storable {
       keys = new HashSet();
     }
     keys.add(key);
+    if (loadedProperties == null) {
+      return false;
+    }
     EtomoBoolean2 buttonState = new EtomoBoolean2(key);
     buttonState.load(loadedProperties, loadedPrepend);
     return buttonState.is();
@@ -70,6 +73,10 @@ public class BaseScreenState implements Storable {
   public final void setButtonState(String key, boolean state) {
     if (key == null) {
       return;
+    }
+    if (loadedProperties == null) {
+      loadedProperties = new Properties();
+      loadedPrepend = getPrepend("");
     }
     loadedProperties.setProperty(loadedPrepend + '.' + key, String
         .valueOf(state));
@@ -126,7 +133,7 @@ public class BaseScreenState implements Storable {
   protected void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.store(props, prepend);
-    if (keys == null) {
+    if (keys == null || loadedProperties == null) {
       return;
     }
     synchronized (this) {
@@ -134,6 +141,7 @@ public class BaseScreenState implements Storable {
       String key = null;
       while (i.hasNext()) {
         key = (String) i.next();
+        //get the loaded property and store it in props
         String state = loadedProperties.getProperty(loadedPrepend + '.' + key);
         if (state != null) {
           props.setProperty(prepend + '.' + key, state);
@@ -159,6 +167,9 @@ public class BaseScreenState implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/01/20 21:08:18  sueh
+ * <p> bug# 401 Fixed store(props, prepend):  it should be called by the child class
+ * <p>
  * <p> Revision 1.6  2006/01/20 21:00:43  sueh
  * <p> bug# 401 Added generic functionality to store button states by keeping the
  * <p> reference to Properties prop from the load() function (loadedProperties)
