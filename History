@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/25/05: Made Beadtrack more a bit robust against tilt align failures.
+
 1/25/06: Fixed gaps in zap montage snapshot and set read buffer so it works
 on Quadro cards. (In 3.7)
 
