@@ -88,8 +88,6 @@ public abstract class BaseManager {
   //private static variables
   private static boolean debug = false;
   private boolean exiting = false;
-  private ProcessResultDisplay processResultDisplayA = null;
-  private ProcessResultDisplay processResultDisplayB = null;
 
   protected abstract void createComScriptManager();
 
@@ -548,16 +546,17 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState,
-      boolean error) {
+      boolean error, ProcessResultDisplay processResultDisplay) {
     processDone(threadName, exitValue, processName, axisID, false, endState,
-        null, error);
+        null, error, processResultDisplay);
   }
 
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
-      ProcessEndState endState, boolean error) {
+      ProcessEndState endState, boolean error,
+      ProcessResultDisplay processResultDisplay) {
     processDone(threadName, exitValue, processName, axisID, forceNextProcess,
-        endState, null, error);
+        endState, null, error, processResultDisplay);
   }
 
   /**
@@ -568,7 +567,8 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
-      ProcessEndState endState, String statusString, boolean error) {
+      ProcessEndState endState, String statusString, boolean error,
+      ProcessResultDisplay processResultDisplay) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
       threadNameA = "none";
@@ -591,29 +591,95 @@ public abstract class BaseManager {
     //  Start the next process if one exists and the exit value was equal zero
     if (isNextProcessSet(axisID) && endState != ProcessEndState.KILLED
         && (exitValue == 0 || forceNextProcess)) {
-      startNextProcess(axisID);
+      sendMsgSecondaryProcess(processResultDisplay);
+      startNextProcess(axisID, processResultDisplay);
     }
     else {
-      ProcessResultDisplay processResultDisplay = getProcessResultDisplay(axisID);
       if (error) {
-        processResultDisplay.msgProcessFailed();
+        sendMsgProcessFailed(processResultDisplay);
       }
       else {
-        processResultDisplay.msgProcessSucceeded();
+        sendMsgProcessSucceeded(processResultDisplay);
       }
       resetNextProcess(axisID);
     }
   }
 
   /**
+   * This is a process done function for processes which are completed while the
+   * original manager function waits and do not use the process manager.
+   * It is necessary to call this function if this type of processes is the last
+   * in a sequence which contains comscript or background processes, since the
+   * processResultDisplay will not be run.
+   * This processDone function always assumes success because the secondary
+   * process won't run if the proceeding process failed.  The exception to this
+   * is when forceNextProcess is on.  Pass forceNextProcess and an exit value
+   * from the process where forceNextProcess was true.  The last process
+   * will have to take responsibility for success/failure when forceNextProcess
+   * is on.
+   * @param axisID
+   * @param processResultDisplay
+   */
+  protected final void processDone(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    //  Start the next process if one exists and the exit value was equal zero
+    if (isNextProcessSet(axisID)) {
+      sendMsgSecondaryProcess(processResultDisplay);
+      startNextProcess(axisID, processResultDisplay);
+    }
+    else {
+      sendMsgProcessSucceeded(processResultDisplay);
+      resetNextProcess(axisID);
+    }
+  }
+
+  protected void sendMsgProcessStarting(
+      ProcessResultDisplay processResultDisplay) {
+    if (processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msgProcessStarting();
+  }
+
+  protected void sendMsgProcessFailedToStart(
+      ProcessResultDisplay processResultDisplay) {
+    if (processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msgProcessFailedToStart();
+  }
+
+  protected void sendMsgProcessSucceeded(
+      ProcessResultDisplay processResultDisplay) {
+    if (processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msgProcessSucceeded();
+  }
+
+  protected void sendMsgProcessFailed(ProcessResultDisplay processResultDisplay) {
+    if (processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msgProcessFailed();
+  }
+
+  protected void sendMsgSecondaryProcess(
+      ProcessResultDisplay processResultDisplay) {
+    if (processResultDisplay == null) {
+      return;
+    }
+    processResultDisplay.msgSecondaryProcess();
+  }
+
+  /**
    * Keep final.
    * @param axisID
    */
-  protected final void startNextProcess(AxisID axisID) {
+  protected final void startNextProcess(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
     String nextProcess = getNextProcess(axisID);
-    ProcessResultDisplay processResultDisplay = getProcessResultDisplay(axisID);
     resetNextProcess(axisID);
-    processResultDisplay.msgSecondaryProcess();
     startNextProcess(axisID, nextProcess, processResultDisplay);
   }
 
@@ -632,25 +698,6 @@ public abstract class BaseManager {
     }
     else {
       nextProcessA = nextProcess;
-    }
-  }
-
-  /**
-   * Keep final.
-   * @param axisID
-   * @param nextProcess
-   */
-  protected final void setProcessResultDisplay(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    if (debug) {
-      System.err.println("setProcessResultDisplay:axisID=" + axisID
-          + ",processResultDisplay=" + processResultDisplay);
-    }
-    if (axisID == AxisID.SECOND) {
-      processResultDisplayB = processResultDisplay;
-    }
-    else {
-      processResultDisplayA = processResultDisplay;
     }
   }
 
@@ -677,18 +724,22 @@ public abstract class BaseManager {
     return nextProcessA;
   }
 
-  private final ProcessResultDisplay getProcessResultDisplay(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return processResultDisplayB;
-    }
-    return processResultDisplayA;
-  }
-
   private final boolean isNextProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return !nextProcessB.equals("");
+      if (!nextProcessB.equals("")) {
+        if (debug) {
+          System.err.println("nextProcessB=" + nextProcessB);
+        }
+        return true;
+      }
     }
-    return !nextProcessA.equals("");
+    else if (!nextProcessA.equals("")) {
+      if (debug) {
+        System.err.println("nextProcessB=" + nextProcessB);
+      }
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -786,9 +837,12 @@ public abstract class BaseManager {
     }
   }
 
-  public final void resume(AxisID axisID, ProcesschunksParam param) {
+  public final void resume(AxisID axisID, ProcesschunksParam param,
+      ProcessResultDisplay processResultDisplay) {
+    sendMsgProcessStarting(processResultDisplay);
     if (param == null) {
       uiHarness.openMessageDialog("No command to resume", "Resume");
+      sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
@@ -796,7 +850,7 @@ public abstract class BaseManager {
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel);
+          parallelPanel, processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -817,6 +871,7 @@ public abstract class BaseManager {
   protected final void processchunks(AxisID axisID, ParallelDialog dialog,
       ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
+      processResultDisplay.msgProcessFailedToStart();
       return;
     }
     ProcesschunksParam param = new ProcesschunksParam(this, axisID);
@@ -834,7 +889,7 @@ public abstract class BaseManager {
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel);
+          parallelPanel, processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -846,7 +901,7 @@ public abstract class BaseManager {
       return;
     }
     //set param in parallel panel so it can do a resume
-    parallelPanel.setProcesschunksParam(param);
+    parallelPanel.setProcessInfo(param, processResultDisplay);
     setThreadName(threadName, axisID);
   }
 
@@ -889,6 +944,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2006/01/20 20:43:34  sueh
+ * <p> bug# 401 Added ProcessResultDisplay functionality to processDone and
+ * <p> startNextProcess.  Added setProcessResultDisplay.
+ * <p>
  * <p> Revision 1.50  2005/12/23 01:55:43  sueh
  * <p> bug# 675 Split the test option functionality.  Control headlessness with
  * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
