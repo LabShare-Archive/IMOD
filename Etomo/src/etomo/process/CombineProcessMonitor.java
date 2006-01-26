@@ -10,7 +10,9 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.CombineComscriptState;
 import etomo.type.AxisID;
+import etomo.type.CombineProcessType;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.util.Utilities;
 
 
@@ -31,6 +33,12 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.16  2005/11/19 02:19:29  sueh
+ * <p> $bug# 744 Consolidated kill() and kill(SystemProcessInterface, axisID) into
+ * <p> $kill(SystemProcessInterface, axisID), which is the standard kill.  Added
+ * <p> $add call to setProcessEndState to endMonitor to make sure that the
+ * <p> $process end state is always set before processRunning is set to false.
+ * <p> $
  * <p> $Revision 1.15  2005/08/30 18:38:04  sueh
  * <p> $bug# 532 Changed BackgroundProcessMonitor to
  * <p> $BackgroundComScriptMonitor.  Using BackgroundProcessMonitor for
@@ -147,8 +155,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private LogFileProcessMonitor childMonitor = null;
   Thread childThread = null;
   private CombineComscriptState combineComscriptState = null;
-  private int currentCommandIndex = CombineComscriptState.NULL_INDEX;
-  
+  private ProcessName currentCommand = null;
+
   private static final int CONSTRUCTED_STATE = 1;
   private static final int WAITED_FOR_LOG_STATE = 2;
   private static final int RAN_STATE = 3;
@@ -160,14 +168,14 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @param axisID
    */
   public CombineProcessMonitor(ApplicationManager applicationManager,
-    AxisID axisID, CombineComscriptState combineComscriptState) {
+      AxisID axisID, CombineComscriptState combineComscriptState) {
     this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
     selfTest = EtomoDirector.getInstance().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
@@ -183,16 +191,16 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
         Thread.sleep(SLEEP);
       }
       catch (InterruptedException e) {
-      } 
+      }
       return false;
     }
     return true;
   }
-  
+
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endMonitor(ProcessEndState.KILLED);
   }
-  
+
   /**
    * set end state
    * @param endState
@@ -200,11 +208,11 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   public synchronized final void setProcessEndState(ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
   }
-  
+
   public final ProcessEndState getProcessEndState() {
     return endState;
   }
-  
+
   private void initializeProgressBar() {
     applicationManager.startProgressBar(COMBINE_LABEL, axisID);
     return;
@@ -215,81 +223,70 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @throws NumberFormatException
    * @throws IOException
    */
-  private void getCurrentSection()
-    throws NumberFormatException, IOException {
+  private void getCurrentSection() throws NumberFormatException, IOException {
     String line;
     String matchString = CombineComscriptState.getComscriptMatchString();
     while ((line = logFileReader.readLine()) != null) {
       int index = -1;
-      if ((line.indexOf("running ") != -1 || line.indexOf("Running ") != -1) &&
-          line.matches(matchString)) {
+      if ((line.indexOf("running ") != -1 || line.indexOf("Running ") != -1)
+          && line.matches(matchString)) {
         String[] fields = line.split("\\s+");
         for (int i = 0; i < fields.length; i++) {
           if (fields[i].matches(matchString)) {
             String comscriptName = fields[i];
             setCurrentChildCommand(comscriptName);
             runCurrentChildMonitor();
-          }          
+          }
         }
       }
       else if (line.startsWith("ERROR:")) {
         endMonitor(ProcessEndState.FAILED);
       }
-      else if (
-        line.startsWith(CombineComscriptState.getSuccessText())) {
+      else if (line.startsWith(CombineComscriptState.getSuccessText())) {
         endMonitor(ProcessEndState.DONE);
       }
     }
   }
-  
+
   /**
    * get current .com file run by combine.com
    * run the monitor associated with the current .com file, if these is one
    * @param comscriptName
    */
   private void setCurrentChildCommand(String comscriptName) {
-    String childCommandName =
-      comscriptName.substring(0, comscriptName.indexOf(".com"));
     applicationManager.progressBarDone(axisID, ProcessEndState.DONE);
-
-    if (childCommandName.equals(combineComscriptState.getCommand(
-        CombineComscriptState.PATCHCORR_INDEX))) {
+    String childCommandName = comscriptName.substring(0, comscriptName
+        .indexOf(".com"));
+    currentCommand = ProcessName.fromString(childCommandName);
+    if (currentCommand == ProcessName.PATCHCORR) {
       endCurrentChildMonitor();
       applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineComscriptState.getDialogPane(
-          CombineComscriptState.PATCHCORR_INDEX));
+          CombineProcessType.PATCHCORR);
       childMonitor = new PatchcorrProcessWatcher(applicationManager, axisID);
     }
-    else if (childCommandName.equals(combineComscriptState.getCommand(
-        CombineComscriptState.MATCHVOL1_INDEX))) {
+    else if (currentCommand == ProcessName.MATCHVOL1) {
       endCurrentChildMonitor();
       applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineComscriptState.getDialogPane(
-          CombineComscriptState.MATCHVOL1_INDEX));
+          CombineProcessType.MATCHVOL1);
       childMonitor = new Matchvol1ProcessMonitor(applicationManager, axisID);
     }
-    else if (childCommandName.equals(combineComscriptState.getCommand(
-        CombineComscriptState.MATCHORWARP_INDEX))) {
+    else if (currentCommand == ProcessName.MATCHORWARP) {
       endCurrentChildMonitor();
       applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineComscriptState.getDialogPane(
-          CombineComscriptState.MATCHORWARP_INDEX));
+          CombineProcessType.MATCHORWARP);
       childMonitor = new MatchorwarpProcessMonitor(applicationManager, axisID);
     }
-    else if (
-      childCommandName.equals(combineComscriptState.getCommand(
-          CombineComscriptState.VOLCOMBINE_INDEX))) {
+    else if (currentCommand == ProcessName.VOLCOMBINE) {
       endCurrentChildMonitor();
       applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineComscriptState.getDialogPane(
-          CombineComscriptState.VOLCOMBINE_INDEX));
+          CombineProcessType.VOLCOMBINE);
       childMonitor = new VolcombineProcessMonitor(applicationManager, axisID);
     }
     else {
       startProgressBar(childCommandName);
     }
   }
-  
+
   /**
    * run the monitor associated with the current .com file run by combine.com
    *
@@ -302,7 +299,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     childThread = new Thread(childMonitor);
     childThread.start();
   }
-  
+
   /**
    * stop the current monitor associated with the current .com file run by
    * combine.com
@@ -330,23 +327,24 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     processRunning = false;//the only place that this should be changed
   }
-  
+
   /**
    * Start  a progress bar for the current .com file run by combine.com.
    * Used when there is no monitor available for the child process
    * @param childCommandName
    */
   private void startProgressBar(String childCommandName) {
-    int commandIndex = CombineComscriptState.getCommandIndex(childCommandName);
-    if (commandIndex == CombineComscriptState.NULL_INDEX) {
+    CombineProcessType combineProcessType = CombineProcessType
+        .getInstance(childCommandName);
+    if (combineProcessType == null) {
       //must be a command that is not monitored
       return;
     }
     endCurrentChildMonitor();
     applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-      CombineComscriptState.getDialogPane(commandIndex));
-    applicationManager.startProgressBar(COMBINE_LABEL + ": " + childCommandName,
-      axisID);
+        combineProcessType);
+    applicationManager.startProgressBar(
+        COMBINE_LABEL + ": " + childCommandName, axisID);
   }
 
   /**
@@ -389,8 +387,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     //  Close the log file reader
     try {
       Utilities
-        .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
-            + logFile.getAbsolutePath());
+          .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
+              + logFile.getAbsolutePath());
       if (logFileReader != null) {
         logFileReader.close();
       }
@@ -400,12 +398,12 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     runSelfTest(RAN_STATE);
   }
-  
+
   /**
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile() throws InterruptedException, 
+  private void waitForLogFile() throws InterruptedException,
       FileNotFoundException {
     if (logFile == null) {
       throw new NullPointerException("logFile");
@@ -437,7 +435,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     selfTest(state);
   }
-  
+
   /**
    * test for incorrect member variable settings.
    * @param state
@@ -445,67 +443,67 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   public void selfTest(int state) {
     String stateString = null;
     switch (state) {
-      case CONSTRUCTED_STATE :
-        stateString = "After construction:  ";  
-        if (axisID == null) {
-          throw new NullPointerException(stateString 
-              + "AxisID should not be null");
-        }               
-        if (combineComscriptState == null) {
-          throw new NullPointerException(stateString
-              + "CombineComscriptState should not be null");
-        }          
-        if (!processRunning) {
-          throw new IllegalStateException(stateString 
-              + "ProcessRunning must be true");
-        }               
-            
-        break;
+    case CONSTRUCTED_STATE:
+      stateString = "After construction:  ";
+      if (axisID == null) {
+        throw new NullPointerException(stateString
+            + "AxisID should not be null");
+      }
+      if (combineComscriptState == null) {
+        throw new NullPointerException(stateString
+            + "CombineComscriptState should not be null");
+      }
+      if (!processRunning) {
+        throw new IllegalStateException(stateString
+            + "ProcessRunning must be true");
+      }
 
-      case WAITED_FOR_LOG_STATE :
-        stateString = "After waitForLogFile():  ";  
-        if (logFile.exists() && sleepCount != 0) {
-          throw new IllegalStateException(stateString 
-              + "The sleepCount should be reset when the log file is found.  "
-              + "sleepCount=" + sleepCount);
-        }              
-            
-        break;
+      break;
 
-      case RAN_STATE :
-        stateString = "After run():  ";  
-        if (processRunning) {
-          throw new IllegalStateException(stateString 
-              + "ProcessRunning should be false.");
-        }               
+    case WAITED_FOR_LOG_STATE:
+      stateString = "After waitForLogFile():  ";
+      if (logFile.exists() && sleepCount != 0) {
+        throw new IllegalStateException(stateString
+            + "The sleepCount should be reset when the log file is found.  "
+            + "sleepCount=" + sleepCount);
+      }
 
-        break;
-       
-      default :
-        throw new IllegalStateException("Unknown state.  state=" + state);
+      break;
+
+    case RAN_STATE:
+      stateString = "After run():  ";
+      if (processRunning) {
+        throw new IllegalStateException(stateString
+            + "ProcessRunning should be false.");
+      }
+
+      break;
+
+    default:
+      throw new IllegalStateException("Unknown state.  state=" + state);
     }
   }
-  
+
   public void setProcess(SystemProcessInterface process) {
     //process is not required
   }
-  
+
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("can't pause a combine process");
   }
-  
+
   public String getStatusString() {
     return null;
   }
-  
+
   public final String getErrorMessage() {
     return null;
   }
-  
+
   public ProcessMessages getProcessMessages() {
     return null;
   }
-  
+
   public final String getProcessOutputFileName() {
     return null;
   }
