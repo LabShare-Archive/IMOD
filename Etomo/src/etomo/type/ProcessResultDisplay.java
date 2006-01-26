@@ -14,108 +14,46 @@ package etomo.type;
 * 
 * @version $Revision$
 */
-public abstract class ProcessResultDisplay {
+public interface ProcessResultDisplay {
   public static  final String  rcsid =  "$Id$";
   
+  public boolean getOriginalState();
+  public void setProcessDone(boolean done);
   /**
-   * tells child that process is either done or not done
-   */
-  protected abstract void setProcessDone(boolean done);
-  /**
-   * gets the state to got back to if the process fails to start
-   * @return
-   */
-  protected abstract boolean getOriginalState();
-  
-  //will go back to the original state if the process failed to run
-  private boolean originalState = false;
-  //tells which process is current being run
-  private boolean secondaryProcess = false;
-  //will ignore most messages when the process is not running
-  private boolean processRunning = false;
-  
-  protected final void setState(boolean state) {
-    originalState = state;
-  }
-  
-  /**
-   * Call this function when the first process starts.
+   * Call one of these functionsthis function when the first process starts.
    *
    */
-  public final synchronized void msgProcessStarting() {
-    if (!processRunning) {
-      originalState = getOriginalState();
-      //on average the process will complete, so set process done to true at the
-      //beginning in case the user exits etomo.
-      setProcessDone(true);
-      secondaryProcess = false;
-    }
-    processRunning = true;
-  }
-  
+  public void msgProcessStarting();
   /**
    * Call this function if the final process succeeds.
    *
    */
-  public final void msgProcessSucceeded() {
-    if (!processRunning) {
-      return;
-    }
-    setProcessDone(true);
-    processRunning = false;
-  }
+  public void msgProcessSucceeded();
   
   /**
    * Call this function if the final process fails.
    *
    */
-  public final void msgProcessFailed() {
-    if (!processRunning) {
-      return;
-    }
-    setProcessDone(false);
-    processRunning = false;
-  }
+  public void msgProcessFailed();
   
   /**
    * Call this function if any process fails to start.
    * For a secondary process (any process after the first process) this is
    * equivalent to calling msgProcessFailed.
    */
-  public final void msgProcessFailedToStart() {
-    if (!processRunning) {
-      return;
-    }
-    if (secondaryProcess) {
-      msgProcessFailed();
-    }
-    else {
-      setProcessDone(originalState);
-      processRunning = false;
-    }
-  }
+  public void msgProcessFailedToStart();
   
   /**
    * Call this function when a secondary process (any process after the first
    * process) starts.
    *
    */
-  public final void msgSecondaryProcess() {
-    secondaryProcess = true;
-  }
-  
-  protected final boolean isOriginalState() {
-    return originalState;
-  }
-  
-  protected final boolean isProcessRunning() {
-    return processRunning;
-  }
-  
-  protected final boolean isSecondaryProcess() {
-    return secondaryProcess;
-  }
+  public void msgSecondaryProcess();
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/20 21:02:00  sueh
+* <p> bug# 401 A class which manipulates the state of its child based on the
+* <p> result of a process.
+* <p> </p>
 */
