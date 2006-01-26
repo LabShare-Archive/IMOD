@@ -2,6 +2,7 @@ package etomo;
 
 import etomo.comscript.CombineComscriptState;
 import etomo.type.AxisID;
+import etomo.type.CombineProcessType;
 import etomo.ui.TomogramCombinationDialog;
 
 /**
@@ -41,7 +42,7 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
   }
 
   public CombineComscriptState runUpdateCombineComscriptState(int startCommand) {
-    return updateCombineComscriptState(startCommand);
+    return updateCombineComscriptState(CombineProcessType.getInstance(startCommand));
   }
 
   public TomogramCombinationDialog getTomogramCombinationDialog() {
@@ -50,6 +51,9 @@ public class ApplicationManagerTestHarness extends ApplicationManager {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/12/09 20:20:46  sueh
+* <p> fixed file comment
+* <p>
 * <p> Revision 1.6  2005/08/11 23:31:03  sueh
 * <p> Reformatting
 * <p>
