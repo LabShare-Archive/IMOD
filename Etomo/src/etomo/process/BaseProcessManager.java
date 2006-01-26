@@ -16,6 +16,7 @@ import etomo.comscript.TomosnapshotParam;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.ui.ParallelProgressDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -34,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2006/01/20 20:50:38  sueh
+ * <p> bug# 401 Added boolean error parameter to processDone().
+ * <p>
  * <p> Revision 1.35  2006/01/06 02:39:16  sueh
  * <p> bug# 792 Using DetachedCommand instead of Command because it can
  * <p> create a safe command string that can go into a run file.
@@ -276,7 +280,7 @@ public abstract class BaseProcessManager {
 
   public BaseProcessManager() {
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -306,14 +310,15 @@ public abstract class BaseProcessManager {
    * @throws SystemProcessException
    */
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
-      ParallelProgressDisplay parallelProgressDisplay)
-      throws SystemProcessException {
+      ParallelProgressDisplay parallelProgressDisplay,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
         getManager(), axisID, parallelProgressDisplay, param.getRootName(),
         param.getMachineList());
 
-    BackgroundProcess process = startDetachedProcess(param, axisID, monitor);
+    BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
+        processResultDisplay);
     return process.getName();
   }
 
@@ -324,6 +329,22 @@ public abstract class BaseProcessManager {
   public void touch(File file) {
     String[] commandArray = { "touch", file.getAbsolutePath() };
     startSystemProgramThread(commandArray, AxisID.ONLY);
+  }
+
+  /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
+  protected ComScriptProcess startComScript(String command,
+      ProcessMonitor processMonitor, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), command, this,
+        axisID, null, processMonitor, processResultDisplay), command,
+        processMonitor, axisID);
   }
 
   /**
@@ -358,6 +379,22 @@ public abstract class BaseProcessManager {
   }
 
   /**
+   * Start a managed command script for the specified axis
+   * @param command
+   * @param processMonitor
+   * @param axisID
+   * @return
+   * @throws SystemProcessException
+   */
+  protected ComScriptProcess startComScript(ProcessDetails processDetails,
+      ProcessMonitor processMonitor, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), processDetails,
+        this, axisID, null, processMonitor, processResultDisplay),
+        processDetails.getCommandLine(), processMonitor, axisID);
+  }
+
+  /**
    * Start a managed background command script for the specified axis
    * @param command
    * @param processMonitor
@@ -372,6 +409,15 @@ public abstract class BaseProcessManager {
     return startComScript(new BackgroundComScriptProcess(getManager(), command,
         this, axisID, watchedFileName, processMonitor, comscriptState),
         command, processMonitor, axisID);
+  }
+
+  protected ComScriptProcess startBackgroundComScript(String command,
+      DetachedProcessMonitor processMonitor, AxisID axisID,
+      ComscriptState comscriptState, String watchedFileName,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    return startComScript(new BackgroundComScriptProcess(getManager(), command,
+        this, axisID, watchedFileName, processMonitor, comscriptState,
+        processResultDisplay), command, processMonitor, axisID);
   }
 
   /**
@@ -404,7 +450,7 @@ public abstract class BaseProcessManager {
       String command, Runnable processMonitor, AxisID axisID)
       throws SystemProcessException {
     // Make sure there isn't something going on in the current axis
-    isAxisBusy(axisID);
+    isAxisBusy(axisID, comScriptProcess.getProcessResultDisplay());
 
     // Run the script as a thread in the background
     comScriptProcess.setWorkingDirectory(new File(getManager()
@@ -449,9 +495,10 @@ public abstract class BaseProcessManager {
     return comScriptProcess;
   }
 
-  public final boolean inUse(AxisID axisID) {
+  public final boolean inUse(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
     try {
-      isAxisBusy(axisID);
+      isAxisBusy(axisID, processResultDisplay);
     }
     catch (SystemProcessException e) {
       uiHarness.openMessageDialog(
@@ -469,20 +516,25 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  protected void isAxisBusy(AxisID axisID) throws SystemProcessException {
+  protected void isAxisBusy(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     // Check to make sure there is not another process already running on this
     // axis.
+    boolean busy = false;
     if (axisID == AxisID.SECOND) {
       if (threadAxisB != null) {
-        throw new SystemProcessException(
-            "A process is already executing in the current axis");
+        busy = true;
       }
     }
-    else {
-      if (threadAxisA != null) {
-        throw new SystemProcessException(
-            "A process is already executing in the current axis");
+    else if (threadAxisA != null) {
+      busy = true;
+    }
+    if (busy) {
+      if (processResultDisplay != null) {
+        processResultDisplay.msgProcessFailedToStart();
       }
+      throw new SystemProcessException(
+          "A process is already executing in the current axis");
     }
   }
 
@@ -842,7 +894,8 @@ public abstract class BaseProcessManager {
     //  Inform the app manager that this process is complete
     getManager().processDone(script.getName(), exitValue,
         script.getProcessName(), script.getAxisID(),
-        script.getProcessEndState(), exitValue != 0);
+        script.getProcessEndState(), exitValue != 0,
+        script.getProcessResultDisplay());
   }
 
   /**
@@ -854,19 +907,21 @@ public abstract class BaseProcessManager {
    */
   protected BackgroundProcess startBackgroundProcess(String commandLine,
       AxisID axisID) throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         commandLine, this, axisID);
     return startBackgroundProcess(backgroundProcess, commandLine, axisID, null);
   }
 
+  protected BackgroundProcess startBackgroundProcess(String commandLine,
+      AxisID axisID, ProcessResultDisplay processResultDisplay)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        commandLine, this, axisID, processResultDisplay);
+    return startBackgroundProcess(backgroundProcess, commandLine, axisID, null);
+  }
+
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
       AxisID axisID) throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         commandArray, this, axisID);
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
@@ -874,12 +929,27 @@ public abstract class BaseProcessManager {
   }
 
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
+      AxisID axisID, ProcessResultDisplay processResultDisplay)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        commandArray, this, axisID, processResultDisplay);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+        axisID, null);
+  }
+
+  protected BackgroundProcess startBackgroundProcess(String[] commandArray,
       AxisID axisID, boolean forceNextProcess) throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         commandArray, this, axisID, forceNextProcess);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+        axisID, null);
+  }
+
+  protected BackgroundProcess startBackgroundProcess(String[] commandArray,
+      AxisID axisID, boolean forceNextProcess,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        commandArray, this, axisID, forceNextProcess, processResultDisplay);
     return startBackgroundProcess(backgroundProcess, commandArray.toString(),
         axisID, null);
   }
@@ -887,11 +957,18 @@ public abstract class BaseProcessManager {
   protected BackgroundProcess startDetachedProcess(
       DetachedCommand detachedCommand, AxisID axisID,
       DetachedProcessMonitor monitor) throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
     DetachedProcess detachedProcess = new DetachedProcess(getManager(),
         detachedCommand, this, axisID, monitor);
+    return startBackgroundProcess(detachedProcess, detachedCommand
+        .getCommandLine(), axisID, monitor);
+  }
+
+  protected BackgroundProcess startDetachedProcess(
+      DetachedCommand detachedCommand, AxisID axisID,
+      DetachedProcessMonitor monitor, ProcessResultDisplay processResultDisplay)
+      throws SystemProcessException {
+    DetachedProcess detachedProcess = new DetachedProcess(getManager(),
+        detachedCommand, this, axisID, monitor, processResultDisplay);
     return startBackgroundProcess(detachedProcess, detachedCommand
         .getCommandLine(), axisID, monitor);
   }
@@ -899,16 +976,23 @@ public abstract class BaseProcessManager {
   protected BackgroundProcess startBackgroundProcess(
       ProcessDetails processDetails, AxisID axisID)
       throws SystemProcessException {
-    isAxisBusy(axisID);
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         processDetails, this, axisID);
     return startBackgroundProcess(backgroundProcess, processDetails
         .getCommandLine(), axisID, null);
   }
 
+  protected BackgroundProcess startBackgroundProcess(
+      ProcessDetails processDetails, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
+        processDetails, this, axisID, processResultDisplay);
+    return startBackgroundProcess(backgroundProcess, processDetails
+        .getCommandLine(), axisID, null);
+  }
+
   protected BackgroundProcess startBackgroundProcess(Command command,
       AxisID axisID) throws SystemProcessException {
-    isAxisBusy(axisID);
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         command, this, axisID);
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
@@ -918,7 +1002,6 @@ public abstract class BaseProcessManager {
   protected BackgroundProcess startBackgroundProcess(
       ProcessDetails processDetails, AxisID axisID, boolean forceNextProcess)
       throws SystemProcessException {
-    isAxisBusy(axisID);
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         processDetails, this, axisID, forceNextProcess);
     return startBackgroundProcess(backgroundProcess, processDetails
@@ -927,12 +1010,13 @@ public abstract class BaseProcessManager {
 
   private BackgroundProcess startBackgroundProcess(
       BackgroundProcess backgroundProcess, String commandLine, AxisID axisID,
-      Runnable processMonitor) {
+      Runnable processMonitor) throws SystemProcessException {
     backgroundProcess.setWorkingDirectory(new File(getManager()
         .getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
     backgroundProcess.setDebug(etomoDirector.isDebug());
     getManager().saveIntermediateParamFile(axisID);
+    isAxisBusy(axisID, backgroundProcess.getProcessResultDisplay());
     backgroundProcess.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + commandLine);
@@ -1036,13 +1120,14 @@ public abstract class BaseProcessManager {
     if (endState == null || endState == ProcessEndState.DONE) {
       getManager().processDone(process.getName(), exitValue, null,
           process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState(), exitValue != 0 || errorFound);
+          process.getProcessEndState(), exitValue != 0 || errorFound,
+          process.getProcessResultDisplay());
     }
     else {
       getManager().processDone(process.getName(), exitValue, null,
           process.getAxisID(), process.isForceNextProcess(),
           process.getProcessEndState(), process.getStatusString(),
-          exitValue != 0 || errorFound);
+          exitValue != 0 || errorFound, process.getProcessResultDisplay());
     }
   }
 
