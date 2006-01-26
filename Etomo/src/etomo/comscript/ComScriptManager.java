@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2005/09/01 17:45:45  sueh
+ * <p> bug# 688 putting temporary prints (for finding cause of undistort
+ * <p> parameters being set in xcorr) into the error log
+ * <p>
  * <p> Revision 3.38  2005/08/27 22:17:01  sueh
  * <p> bug# 532 changed Utilities.timestamp to take a string status instead of
  * <p> integer
@@ -1711,7 +1715,7 @@ public class ComScriptManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
-      errorMessage[1] = "previous command:" + previousCommand + "is missing.";
+      errorMessage[1] = "previous command: " + previousCommand + " is missing.";
       uiHarness.openMessageDialog(errorMessage,"ComScriptManager Error", axisID);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return -1;
