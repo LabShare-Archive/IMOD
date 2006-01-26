@@ -14,6 +14,7 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
 import etomo.type.FiducialMatch;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -30,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2005/11/14 22:06:13  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.21  2005/10/13 22:35:40  sueh
  * <p> Bug# 532 In synchronized(), always copying all fields
  * <p>
@@ -175,7 +179,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnMatchcheck = new Run3dmodButton(
     "<html><b>View Match Check Volume</b>", this);
-  private MultiLineButton btnRestart = new MultiLineButton(
+  private MultiLineButton btnRestart = MultiLineButton.getToggleButtonInstance(
     "<html><b>Restart Combine</b>");
   private MultiLineButton btnMatchvolRestart = MultiLineButton.getToggleButtonInstance(
     "<html><b>Restart at Matchvol1</b>");
@@ -222,6 +226,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
   }
+  
+  ProcessResultDisplay getCombineProcessResultDisplay() {
+    return btnRestart;
+  }
+  
+  ProcessResultDisplay getMatchvol1ProcessResultDisplay() {
+    return btnMatchvolRestart;
+  }
 
   public Container getContainer() {
     return pnlRoot;
@@ -251,9 +263,21 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
   }
   
   final void setParameters(ReconScreenState screenState) {
+    btnRestart.setButtonState(screenState.getButtonState(btnRestart
+        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+    btnMatchvolRestart.setButtonState(screenState.getButtonState(btnMatchvolRestart
+        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+    btnRestart.setButtonState(screenState.getButtonState(btnRestart
+        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
   }
   
   final void getParameters(ReconScreenState screenState) {
+    screenState.setButtonState(btnRestart.getButtonStateKey(),
+        btnRestart.getButtonState());
+    screenState.setButtonState(btnMatchvolRestart.getButtonStateKey(),
+        btnMatchvolRestart.getButtonState());
+    screenState.setButtonState(btnRestart.getButtonStateKey(),
+        btnRestart.getButtonState());
   }
 
   /**
@@ -333,10 +357,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
     String command = event.getActionCommand();
 
     if (command.equals(btnRestart.getActionCommand())) {
-      applicationManager.combine();
+      applicationManager.combine(btnRestart);
     }
     else if (command.equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1Combine();
+      applicationManager.matchvol1Combine(btnMatchvolRestart);
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());

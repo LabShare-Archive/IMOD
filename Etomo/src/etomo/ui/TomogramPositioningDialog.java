@@ -41,6 +41,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2006/01/20 21:13:46  sueh
+ * <p> bug# 401 Saving the state of btnSample.
+ * <p>
  * <p> Revision 3.38  2006/01/04 00:01:21  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.
  * <p>
@@ -476,10 +479,18 @@ public class TomogramPositioningDialog extends ProcessDialog
   public final void setParameters(ReconScreenState screenState) {
     btnSample.setButtonState(screenState.getButtonState(btnSample
         .getButtonStateKey(dialogType)));
+    btnTomopitch.setButtonState(screenState.getButtonState(btnTomopitch
+        .getButtonStateKey(dialogType)));
+    btnAlign.setButtonState(screenState.getButtonState(btnAlign
+        .getButtonStateKey(dialogType)));
   }
 
   public final void getParameters(ReconScreenState screenState) {
     screenState.setButtonState(btnSample.getButtonStateKey(), btnSample
+        .getButtonState());
+    screenState.setButtonState(btnTomopitch.getButtonStateKey(), btnTomopitch
+        .getButtonState());
+    screenState.setButtonState(btnAlign.getButtonStateKey(), btnAlign
         .getButtonState());
   }
   
@@ -556,8 +567,8 @@ public class TomogramPositioningDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Tomopitch", "Newst", "3dmod", "Tilt"};
-    String[] manPage = {"tomopitch.html", "newst.html", "3dmod.html",
+    String[] manPagelabel = {"Tomopitch", "Newstack", "3dmod", "Tilt"};
+    String[] manPage = {"tomopitch.html", "newstack.html", "3dmod.html",
         "tilt.html"};
 
     String[] logFileLabel = {"Tomopitch", "Sample"};
@@ -584,17 +595,17 @@ public class TomogramPositioningDialog extends ProcessDialog
     String command = event.getActionCommand();
     if (command.equals(btnSample.getActionCommand())) {
       if (cbWholeTomogram.isSelected()) {
-        applicationManager.wholeTomogram(axisID);
+        applicationManager.wholeTomogram(axisID, btnSample);
       }
       else {
-        applicationManager.createSample(axisID);
+        applicationManager.createSample(axisID, btnSample);
       }
     }
     else if (command.equals(btnTomopitch.getActionCommand())) {
-      applicationManager.tomopitch(axisID);
+      applicationManager.tomopitch(axisID, btnTomopitch );
     }
     else if (command.equals(btnAlign.getActionCommand())) {
-      applicationManager.finalAlign(axisID);
+      applicationManager.finalAlign(axisID, btnAlign);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
       updateUIState();

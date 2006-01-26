@@ -12,6 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 
@@ -27,23 +28,22 @@ import etomo.type.TomogramState;
  *
  * @version $Revision$
  */
-public class PostProcessingDialog
-  extends ProcessDialog
-  implements ContextMenu, Run3dmodButtonContainer {
-  public static final String rcsid =
-    "$Id$";
-  
+public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
+    Run3dmodButtonContainer {
+  public static final String rcsid = "$Id$";
+
   private TrimvolPanel trimvolPanel;
-  
+
   private LabeledTextField ltfReductionFactorXY;
   private LabeledTextField ltfReductionFactorZ;
   private CheckBox cbLinearInterpolation;
-  
+
   private MultiLineButton btnSqueezeVolume;
   private Run3dmodButton btnImodSqueezedVolume;
-  
-  private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(this);
-  
+
+  private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(
+      this);
+
   public PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
     fixRootPanel(rootSize);
@@ -58,16 +58,15 @@ public class PostProcessingDialog
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
 
-
-		//  Mouse adapter for context menu
-		GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-		rootPanel.addMouseListener(mouseAdapter);
+    //  Mouse adapter for context menu
+    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+    rootPanel.addMouseListener(mouseAdapter);
 
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
   }
-  
+
   private Container createSqueezeVolPanel() {
     SpacedPanel squeezeVolPanel = new SpacedPanel();
     squeezeVolPanel.setBoxLayout(BoxLayout.Y_AXIS);
@@ -87,32 +86,47 @@ public class PostProcessingDialog
     //third component
     SpacedPanel squeezeVolPanel2 = new SpacedPanel();
     squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    btnSqueezeVolume = MultiLineButton.getToggleButtonInstance("Squeeze Volume");
+    btnSqueezeVolume = MultiLineButton
+        .getToggleButtonInstance("Squeeze Volume");
     btnSqueezeVolume.addActionListener(actionListener);
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
-    btnImodSqueezedVolume = new Run3dmodButton("Open Squeezed Volume in 3dmod", this);
+    btnImodSqueezedVolume = new Run3dmodButton("Open Squeezed Volume in 3dmod",
+        this);
     btnImodSqueezedVolume.addActionListener(actionListener);
     squeezeVolPanel2.add(btnImodSqueezedVolume);
     squeezeVolPanel.add(squeezeVolPanel2);
     return squeezeVolPanel.getContainer();
   }
-  
+
   /**
    * Set the panel values with the specified parameters
    * @param squeezevolParam
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
-    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX().toString());
+    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX()
+        .toString());
     if (isSqueezevolFlipped()) {
-      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
+      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ()
+          .toString());
     }
     else {
-      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorY().toString());
+      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorY()
+          .toString());
     }
     cbLinearInterpolation.setSelected(squeezevolParam.isLinearInterpolation());
   }
-  
+
+  public final void setParameters(ReconScreenState screenState) {
+    btnSqueezeVolume.setButtonState(screenState.getButtonState(btnSqueezeVolume
+        .getButtonStateKey(dialogType)));
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    screenState.setButtonState(btnSqueezeVolume.getButtonStateKey(),
+        btnSqueezeVolume.getButtonState());
+  }
+
   /**
    * Get the panel values
    * @param squeezevolParam
@@ -131,7 +145,7 @@ public class PostProcessingDialog
     }
     squeezevolParam.setLinearInterpolation(cbLinearInterpolation.isSelected());
   }
-  
+
   /**
    * return true if the result of squeezevol is flipped.
    * If squeezevol hasn't been done, return true if the result of trimvol is
@@ -145,7 +159,7 @@ public class PostProcessingDialog
     }
     return isTrimvolFlipped();
   }
-  
+
   /**
    * return true if the result of squeezevol is flipped.
    * If squeezevol hasn't been done, return true if the result of trimvol is
@@ -180,16 +194,12 @@ public class PostProcessingDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Trimvol", "Squeezevol"};
+    String[] manPagelabel = { "Trimvol", "Squeezevol" };
     String[] manPage = { "trimvol.html", "squeezevol.html" };
 
     //    ContextPopup contextPopup =
-    new ContextPopup(
-      rootPanel,
-      mouseEvent,
-      "POST-PROCESSING", ContextPopup.TOMO_GUIDE,
-      manPagelabel,
-      manPage);
+    new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage);
   }
 
   /**
@@ -198,11 +208,11 @@ public class PostProcessingDialog
   private void updateAdvanced() {
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private boolean run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
       applicationManager.imodSqueezedVolume(menuOptions);
@@ -210,18 +220,17 @@ public class PostProcessingDialog
     }
     return false;
   }
-  
+
   protected void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
-      applicationManager.squeezevol();
+      applicationManager.squeezevol(btnSqueezeVolume);
     }
     else if (!run3dmod(command, new Run3dmodMenuOptions())) {
       throw new IllegalStateException("Unknown command " + command);
     }
   }
 
-  
   //
   //  Action function overides for buttons
   //
@@ -239,7 +248,7 @@ public class PostProcessingDialog
     super.buttonExecuteAction(event);
     applicationManager.donePostProcessing();
   }
-  
+
   class PostProcessingDialogActionListener implements ActionListener {
     PostProcessingDialog adaptee;
 
@@ -252,31 +261,36 @@ public class PostProcessingDialog
     }
   }
 
-  
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
     text = "Factor to squeeze by in X and Y.";
-    ltfReductionFactorXY.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfReductionFactorXY
+        .setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Factor to squeeze by in Z.";
     ltfReductionFactorZ.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Use linear instead of quadratic interpolation for transforming the "
-      + "volume with Matchvol.";
-    cbLinearInterpolation.setToolTipText(tooltipFormatter.setText(text).format());
+        + "volume with Matchvol.";
+    cbLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
+        .format());
 
     text = "Squeeze the trimmed volume by the given factors.";
     btnSqueezeVolume.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "View the squeezed volume.";
-    btnImodSqueezedVolume.setToolTipText(tooltipFormatter.setText(text).format());
+    btnImodSqueezedVolume.setToolTipText(tooltipFormatter.setText(text)
+        .format());
   }
 
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.24  2006/01/03 23:42:56  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox
+ * <p>
  * <p> Revision 3.23  2005/11/14 22:14:53  sueh
  * <p> bug# 762 Made action() protected.
  * <p>
@@ -410,4 +424,4 @@ public class PostProcessingDialog
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
-*/
+ */

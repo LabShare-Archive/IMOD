@@ -69,6 +69,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.81  2006/01/20 21:13:09  sueh
+ * bug# 401 Saving the state of btnNewst and btnTilt.  Also using btnNewst
+ * and btnTilt as ProcessResultDisplay's to turn on or off depending on the
+ * result of the process that was run.
+ *
  * Revision 3.80  2006/01/12 17:18:53  sueh
  * bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  *
@@ -721,6 +726,14 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         .getButtonStateKey(dialogType)));
     btnTilt.setButtonState(screenState.getButtonState(btnTilt
         .getButtonStateKey(dialogType)));
+    btnDeleteStacks.setButtonState(screenState.getButtonState(btnDeleteStacks
+        .getButtonStateKey(dialogType)));
+    btnUseFilter.setButtonState(screenState.getButtonState(btnUseFilter
+        .getButtonStateKey(dialogType)));
+    btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
+        .getButtonStateKey(dialogType)));
+    btnFilter.setButtonState(screenState.getButtonState(btnFilter
+        .getButtonStateKey(dialogType)));
   }
 
   public final void getParameters(ReconScreenState screenState) {
@@ -731,6 +744,14 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     screenState.setButtonState(btnNewst.getButtonStateKey(), btnNewst
         .getButtonState());
     screenState.setButtonState(btnTilt.getButtonStateKey(), btnTilt
+        .getButtonState());
+    screenState.setButtonState(btnDeleteStacks.getButtonStateKey(),
+        btnDeleteStacks.getButtonState());
+    screenState.setButtonState(btnUseFilter.getButtonStateKey(), btnUseFilter
+        .getButtonState());
+    screenState.setButtonState(btnUseTrial.getButtonStateKey(), btnUseTrial
+        .getButtonState());
+    screenState.setButtonState(btnFilter.getButtonStateKey(), btnFilter
         .getButtonState());
   }
 
@@ -1501,12 +1522,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       applicationManager.newst(axisID, btnNewst);
     }
     else if (command.equals(btnFilter.getActionCommand())) {
-      applicationManager.mtffilter(axisID);
-      btnFilter.setSelected(true);
-      btnUseFilter.setSelected(false);
+      applicationManager.mtffilter(axisID, btnFilter);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
-      applicationManager.useMtfFilter(axisID);
+      applicationManager.useMtfFilter(axisID, btnUseFilter);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
       btnTrial.msgProcessStarting();
@@ -1532,7 +1551,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       }
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
-      applicationManager.commitTestVolume(axisID);
+      applicationManager.commitTestVolume(axisID, btnUseTrial);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
       btnTilt.msgProcessStarting();
@@ -1544,7 +1563,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       }
     }
     else if (command.equals(btnDeleteStacks.getActionCommand())) {
-      applicationManager.deleteAlignedStacks(axisID);
+      applicationManager.deleteAlignedStacks(axisID, btnDeleteStacks);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
       updateFiducialess();

@@ -8,6 +8,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.TransferfidParam;
@@ -26,6 +27,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2005/11/14 22:03:06  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.17  2005/08/30 19:05:28  sueh
  * <p> bug# 718 fixed a null pointer bug that happended when
  * <p> btnTransferFiducials is not set.
@@ -176,29 +180,29 @@ import etomo.comscript.FortranInputSyntaxException;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class FiducialModelDialog extends ProcessDialog implements ContextMenu, Run3dmodButtonContainer {
-  public static final String rcsid =
-    "$Id$";
+public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
+    Run3dmodButtonContainer {
+  public static final String rcsid = "$Id$";
 
   private JPanel pnlFiducialModel = new JPanel();
 
   private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
   private MultiLineButton btnTransferFiducials = null;
-  private Run3dmodButton btnSeed =
-    Run3dmodButton.getToggleButtonInstance("<html><b>Seed Fiducial Model</b>", this);
+  private Run3dmodButton btnSeed = Run3dmodButton.getToggleButtonInstance(
+      "<html><b>Seed Fiducial Model</b>", this);
 
   private TransferfidPanel pnlTransferfid = null;
   private BeadtrackPanel pnlBeadtrack;
 
-  private MultiLineButton btnTrack =
-    MultiLineButton.getToggleButtonInstance("<html><b>Track Fiducial Seed Model</b>");
+  private MultiLineButton btnTrack = MultiLineButton
+      .getToggleButtonInstance("<html><b>Track Fiducial Seed Model</b>");
 
-  private MultiLineButton btnUseModel =
-    new MultiLineButton("<html><b>Use Fiducial Model as Seed</b>");
+  private MultiLineButton btnUseModel = new MultiLineButton(
+      "<html><b>Use Fiducial Model as Seed</b>");
 
-  private Run3dmodButton btnFixModel =
-    Run3dmodButton.getToggleButtonInstance("<html><b>Fix Fiducial Model</b>", this);
-    
+  private Run3dmodButton btnFixModel = Run3dmodButton.getToggleButtonInstance(
+      "<html><b>Fix Fiducial Model</b>", this);
+
   private JPanel pnlTrack = new JPanel();
 
   private boolean transferfidEnabled = false;
@@ -220,29 +224,30 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnFixModel.setSize();
 
-    pnlFiducialModel.setLayout(
-      new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
+    pnlFiducialModel
+        .setLayout(new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
 
     pnlFiducialModel.setBorder(border.getBorder());
 
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid = new TransferfidPanel(applicationManager, axisID, true);
+      pnlTransferfid = new TransferfidPanel(applicationManager, axisID, true,
+          dialogType);
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
-    pnlFiducialModel.add(btnSeed.getComponent());    
+    pnlFiducialModel.add(btnSeed.getComponent());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-    
+
     pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlTrack.add(btnTrack.getComponent());
     pnlTrack.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlTrack.add(btnUseModel.getComponent());
     pnlFiducialModel.add(pnlTrack);
-    
+
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
 
     pnlFiducialModel.add(btnFixModel.getComponent());
@@ -261,8 +266,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     if (applicationManager.isDualAxis()) {
       btnTransferFiducials = pnlTransferfid.getButton();
       if (btnTransferFiducials != null) {
-        btnTransferFiducials.addActionListener(
-          new FiducialModelActionListener(this));
+        btnTransferFiducials.addActionListener(new FiducialModelActionListener(
+            this));
       }
     }
 
@@ -292,6 +297,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
       pnlTransferfid.setEnabled(transferfidEnabled);
     }
   }
+
   /**
    * Set the parameters for the specified beadtrack panel
    */
@@ -309,8 +315,28 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
    * Get the parameters for the specified beadtrack command
    */
   public void getBeadtrackParams(BeadtrackParam beadtrackParams)
-    throws FortranInputSyntaxException, InvalidEtomoNumberException {
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
     pnlBeadtrack.getParameters(beadtrackParams);
+  }
+
+  public final void setParameters(ReconScreenState screenState) {
+    if (applicationManager.isDualAxis()) {
+      pnlTransferfid.setParameters(screenState);
+    }
+    btnTrack.setButtonState(screenState.getButtonState(btnTrack
+        .getButtonStateKey(dialogType)));
+    btnSeed.setButtonState(screenState.getButtonState(btnSeed
+        .getButtonStateKey(dialogType)));
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    if (applicationManager.isDualAxis()) {
+      pnlTransferfid.getParameters(screenState);
+    }
+    screenState.setButtonState(btnTrack.getButtonStateKey(), btnTrack
+        .getButtonState());
+    screenState.setButtonState(btnSeed.getButtonStateKey(), btnSeed
+        .getButtonState());
   }
 
   public void getTransferFidParams() {
@@ -318,7 +344,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
       pnlTransferfid.getParameters();
     }
   }
-  
+
   public void getTransferFidParams(TransferfidParam transferFidParam) {
     if (applicationManager.isDualAxis()) {
       pnlTransferfid.getParameters(transferFidParam);
@@ -342,14 +368,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     logFile[1] = "transferfid.log";
 
     //    ContextPopup contextPopup =
-    new ContextPopup(
-      pnlFiducialModel,
-      mouseEvent,
-      "GETTING FIDUCIAL", ContextPopup.TOMO_GUIDE,
-      manPagelabel,
-      manPage,
-      logFileLabel,
-      logFile, applicationManager);
+    new ContextPopup(pnlFiducialModel, mouseEvent, "GETTING FIDUCIAL",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        applicationManager);
   }
 
   /**
@@ -365,8 +386,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     text = "Run Beadtrack to produce fiducial model from seed model.";
     btnTrack.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Turn the output of Beadtrack (fiducial model) into a new seed model.  "
+    text = "Turn the output of Beadtrack (fiducial model) into a new seed model.  "
         + "Your original seed model will be moved into an _orig.seed file."
         + "To use the new seed model, press Track Fiducial Seed Model.";
     btnUseModel.setToolTipText(tooltipFormatter.setText(text).format());
@@ -374,17 +394,17 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     text = "Load fiducial model into 3dmod.";
     btnFixModel.setToolTipText(tooltipFormatter.setText(text).format());
   }
-  
+
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnSeed.getActionCommand())) {
-      applicationManager.imodSeedFiducials(axisID, menuOptions);
+      applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
     }
     else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions);
+      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel);
     }
   }
 
@@ -392,7 +412,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnTrack.getActionCommand())) {
-      applicationManager.fiducialModelTrack(axisID);
+      applicationManager.fiducialModelTrack(axisID, btnTrack);
     }
     else if (command.equals(btnUseModel.getActionCommand())) {
       applicationManager.makeFiducialModelSeedModel(axisID);
@@ -402,7 +422,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu, R
     }
     else if (btnTransferFiducials != null
         && command.equals(btnTransferFiducials.getActionCommand())) {
-      applicationManager.transferfid(axisID);
+      applicationManager.transferfid(axisID, btnTransferFiducials);
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());

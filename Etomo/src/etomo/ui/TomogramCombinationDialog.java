@@ -26,6 +26,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
+import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
@@ -46,6 +47,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2006/01/03 23:59:36  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.
+ * <p>
  * <p> Revision 3.32  2005/11/21 20:47:02  sueh
  * <p> bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
  * <p> missing.  Copy parallel process checkbox's enabled setting from the
@@ -258,11 +262,9 @@ import etomo.type.ReconScreenState;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class TomogramCombinationDialog
-  extends ProcessDialog
-  implements ContextMenu, ParallelDialog {
-  public static final String rcsid =
-    "$Id$";
+public final class TomogramCombinationDialog extends ProcessDialog implements
+    ContextMenu, ParallelDialog {
+  public static final String rcsid = "$Id$";
   public static final String lblSetup = "Setup";
   public static final String lblInitial = "Initial Match";
   public static final String lblFinal = "Final Match";
@@ -283,7 +285,6 @@ public class TomogramCombinationDialog
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
         ProcessName.VOLCOMBINE);
     if (maxCPUs != null && !maxCPUs.isNull()) {
@@ -295,8 +296,8 @@ public class TomogramCombinationDialog
     }
     // Instantiate the tab pane contents
     pnlSetup = new SetupCombinePanel(this, applicationManager);
-    pnlInitial = new InitialCombinePanel(this,  applicationManager);
-    pnlFinal = new FinalCombinePanel(this,  applicationManager);
+    pnlInitial = new InitialCombinePanel(this, applicationManager);
+    pnlFinal = new FinalCombinePanel(this, applicationManager);
 
     fixRootPanel(rootSize);
 
@@ -308,8 +309,8 @@ public class TomogramCombinationDialog
     tabbedPane.add(lblFinal, pnlFinal.getContainer());
 
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
-    JLabel zWarning =
-      new JLabel("For all 3D parameters Z represents the depth domain");
+    JLabel zWarning = new JLabel(
+        "For all 3D parameters Z represents the depth domain");
     zWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(zWarning);
     rootPanel.add(tabbedPane);
@@ -318,15 +319,14 @@ public class TomogramCombinationDialog
 
     TabChangeListener tabChangeListener = new TabChangeListener(this);
     tabbedPane.addChangeListener(tabChangeListener);
-    
+
     // Set the default advanced dialog state
     updateAdvanced(isAdvanced);
-    
+
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
   }
-  
-  
+
   static final CheckBox getParallelProcessCheckBox() {
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
         ProcessName.VOLCOMBINE);
@@ -339,14 +339,6 @@ public class TomogramCombinationDialog
       parallelProcessCheckBox = new CheckBox(ParallelPanel.TITLE);
     }
     return parallelProcessCheckBox;
-  }
-  
-  /**
-   * Show the specified tab pane
-   * @param paneName
-   */
-  public void showPane(String paneName) {
-    tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(paneName));
   }
 
   /**
@@ -366,8 +358,8 @@ public class TomogramCombinationDialog
    * @throws NumberFormatException
    */
   public void getCombineParams(CombineParams combineParams)
-    throws NumberFormatException {
-      pnlSetup.getParameters(combineParams);
+      throws NumberFormatException {
+    pnlSetup.getParameters(combineParams);
   }
 
   /**
@@ -378,44 +370,61 @@ public class TomogramCombinationDialog
   public void setSolvematchParams(ConstSolvematchParam solvematchParams) {
     pnlInitial.setSolvematchParams(solvematchParams);
   }
-  
+
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     pnlFinal.getParameters(processchunksParam);
   }
-  
+
   public final void setParameters(ReconScreenState screenState) {
     pnlSetup.setParameters(screenState);
     pnlInitial.setParameters(screenState);
     pnlFinal.setParameters(screenState);
   }
-  
-  public final void getParameters(ReconScreenState screenState) {
+
+  public void getParameters(ReconScreenState screenState) {
     pnlSetup.getParameters(screenState);
     pnlInitial.getParameters(screenState);
     pnlFinal.getParameters(screenState);
   }
-  
+
+  /**
+   * Show the specified tab pane
+   * @param paneName
+   */
+  public void showPane(CombineProcessType combineProcessType) {
+    if (combineProcessType == null) {
+      return;
+    }
+    if (combineProcessType == CombineProcessType.SOLVEMATCH
+        || combineProcessType == CombineProcessType.MATCHVOL1) {
+      tabbedPane.setSelectedIndex(1);
+    }
+    else {
+      tabbedPane.setSelectedIndex(2);
+    }
+  }
+
   public final void getParameters(MetaData metaData) {
     synchronize(lblSetup, false);
     pnlSetup.getParameters(metaData);
   }
-  
+
   public final void setParameters(ConstMetaData metaData) {
     pnlSetup.setParameters(metaData);
     synchronize(lblSetup, true);
     updateParallelProcess();
   }
-  
+
   final void updateParallelProcess() {
     applicationManager.setParallelDialog(axisID, this);
   }
-  
+
   public final boolean isParallel() {
     synchronize(lblFinal, false);
     return pnlSetup.isParallel();
   }
-  
+
   /**
    * Get the the solvematch parameters of the UI returning them in the 
    * modified SolvematchParam object
@@ -423,10 +432,10 @@ public class TomogramCombinationDialog
    * @throws NumberFormatException
    */
   public void getSolvematchParams(SolvematchParam solvematchParams)
-    throws NumberFormatException {
+      throws NumberFormatException {
     pnlInitial.getSolvematchParams(solvematchParams);
   }
-  
+
   /**
    * Set the patchcrawl3D parameters of the UI from the the
    * ConstPatchcrawl3DParam object
@@ -435,7 +444,7 @@ public class TomogramCombinationDialog
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchcrawl3DParams) {
     pnlFinal.setPatchcrawl3DParams(patchcrawl3DParams);
   }
-  
+
   public void setVolcombineParams(ConstSetParam setParam) {
     pnlFinal.setVolcombineParams(setParam);
   }
@@ -447,14 +456,14 @@ public class TomogramCombinationDialog
    * @throws NumberFormatException
    */
   public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams)
-    throws NumberFormatException {
+      throws NumberFormatException {
     pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams);
   }
-  
+
   public void getVolcombineParams(SetParam setParam) {
     pnlFinal.getVolcombineParams(setParam);
   }
-  
+
   public void enableReductionFactor(boolean enable) {
     pnlFinal.enableReductionFactor(enable);
   }
@@ -467,7 +476,7 @@ public class TomogramCombinationDialog
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParams) {
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
-  
+
   /**
    * synchronizes setup panel to/from initial and final panels
    * @param currentTab
@@ -503,7 +512,7 @@ public class TomogramCombinationDialog
       }
     }
   }
-  
+
   /**
    * Initial combine fields synchronization method
    * @param fromPanel
@@ -555,15 +564,15 @@ public class TomogramCombinationDialog
   public boolean isCombinePanelEnabled() {
     return combinePanelEnabled;
   }
-  
+
   public boolean isRunVolcombine() {
     return pnlFinal.isRunVolcombine();
   }
-  
+
   public void setRunVolcombine(boolean runVolcombine) {
     pnlFinal.setRunVolcombine(runVolcombine);
   }
-  
+
   public void setBinningWarning(boolean binningWarning) {
     pnlSetup.setBinningWarning(binningWarning);
   }
@@ -575,7 +584,7 @@ public class TomogramCombinationDialog
    * @throws NumberFormatException
    */
   public void getMatchorwarpParams(MatchorwarpParam matchorwarpParams)
-    throws NumberFormatException {
+      throws NumberFormatException {
     pnlFinal.getMatchorwarpParams(matchorwarpParams);
   }
 
@@ -615,30 +624,17 @@ public class TomogramCombinationDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel =
-      { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
-    String[] manPage =
-      {
-        "solvematch.html",
-        "matchshifts.html",
-        "patchcrawl3d.html",
-        "matchorwarp.html" };
-    String[] logFileLabel =
-      {
-        "Solvematch.log",
-        "Patchcorr.log",
+    String[] manPagelabel = { "Solvematch", "Matchshifts", "Patchcrawl3d",
+        "Matchorwarp" };
+    String[] manPage = { "solvematch.html", "matchshifts.html",
+        "patchcrawl3d.html", "matchorwarp.html" };
+    String[] logFileLabel = { "Solvematch.log", "Patchcorr.log",
         "Matchorwarp.log" };
-    ContextPopup contextPopup =
-      new ContextPopup(
-        rootPanel,
-        mouseEvent,
-        "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, 
-        manPagelabel,
-        manPage,
-        logFileLabel,
-        logFileLabel, applicationManager);
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+        "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFileLabel, applicationManager);
   }
-  
+
   /**
    * Handle tab state changes 
    * @param event
@@ -651,7 +647,7 @@ public class TomogramCombinationDialog
     // change
     idxLastTab = tabbedPane.getSelectedIndex();
   }
-  
+
   final void setVisible(String showTabTitle) {
     if (showTabTitle.equals(lblSetup)) {
       pnlSetup.setVisible(true);
@@ -670,18 +666,19 @@ public class TomogramCombinationDialog
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
-  
+
   /**
    * Connect tab state changes to the appropriate dialog method
    */
   class TabChangeListener implements ChangeListener {
     TomogramCombinationDialog adaptee;
+
     public TabChangeListener(TomogramCombinationDialog dialog) {
       adaptee = dialog;
     }
-    
-     public void stateChanged(ChangeEvent event) {
-       adaptee.tabStateChange(event);
-     }
+
+    public void stateChanged(ChangeEvent event) {
+      adaptee.tabStateChange(event);
+    }
   }
 }

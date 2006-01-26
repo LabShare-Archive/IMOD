@@ -16,9 +16,10 @@ import etomo.comscript.CCDEraserParam;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
  * @author $Author$
@@ -26,6 +27,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2006/01/03 23:43:10  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox
+ * <p>
  * <p> Revision 3.6  2005/08/04 20:15:14  sueh
  * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
  * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -111,7 +115,7 @@ public class PreProcessingDialog extends ProcessDialog {
 
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
-    panelCCDEraser = new CCDEraserPanel(appManager, axisID);
+    panelCCDEraser = new CCDEraserPanel(appManager, axisID, dialogType);
     
     fixRootPanel(rootSize);
 
@@ -148,6 +152,14 @@ public class PreProcessingDialog extends ProcessDialog {
    */
   public void setCCDEraserParams(ConstCCDEraserParam ccdEraserParams) {
     panelCCDEraser.setParameters(ccdEraserParams);
+  }
+  
+  public final void setParameters(ReconScreenState screenState) {
+    panelCCDEraser.setParameters(screenState);
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    panelCCDEraser.getParameters(screenState);
   }
 
   /**

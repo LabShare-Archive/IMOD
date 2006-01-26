@@ -16,6 +16,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -31,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2006/01/12 17:04:57  sueh
+ * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
+ * <p>
  * <p> Revision 3.17  2005/11/14 21:27:29  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
@@ -311,6 +315,16 @@ public final class AlignmentEstimationDialog extends ProcessDialog
     pnlTiltalign.setFirstTab();
     setToolTipText();
   }
+  
+  public final void setParameters(ReconScreenState screenState) {
+    btnComputeAlignment.setButtonState(screenState.getButtonState(btnComputeAlignment
+        .getButtonStateKey(dialogType)));
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    screenState.setButtonState(btnComputeAlignment.getButtonStateKey(), btnComputeAlignment
+        .getButtonState());
+  }
 
   public void setTiltalignParams(TiltalignParam tiltalignParam) {
     pnlTiltalign.setParameters(tiltalignParam);
@@ -398,7 +412,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
   
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions);
+      applicationManager.imodFixFiducials(axisID, menuOptions, null);
     }
     else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, menuOptions);
@@ -409,7 +423,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnComputeAlignment.getActionCommand())) {
-      applicationManager.fineAlignment(axisID);
+      applicationManager.fineAlignment(axisID, btnComputeAlignment);
     }
     else if (command.equals(btnView3DModel.getActionCommand())) {
       applicationManager.imodView3DModel(axisID);

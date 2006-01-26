@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2006/01/03 23:31:30  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox
+ * <p>
  * <p> Revision 3.28  2005/12/14 20:54:19  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
@@ -187,6 +190,7 @@ import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
@@ -355,6 +359,33 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     pnlPrenewst.getParameters(blendmontParam);
   }
 
+  public final void setParameters(ReconScreenState screenState) {
+    btnCrossCorrelate.setButtonState(screenState
+        .getButtonState(btnCrossCorrelate.getButtonStateKey(dialogType)));
+    btnMidas.setButtonState(screenState.getButtonState(btnMidas
+        .getButtonStateKey(dialogType)));
+    btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
+        .getButtonStateKey(dialogType)));
+    btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
+        .getButtonStateKey(dialogType)));
+    btnDistortionCorrectedStack.setButtonState(screenState
+        .getButtonState(btnDistortionCorrectedStack
+            .getButtonStateKey(dialogType)));
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    screenState.setButtonState(btnCrossCorrelate.getButtonStateKey(),
+        btnCrossCorrelate.getButtonState());
+    screenState.setButtonState(btnMidas.getButtonStateKey(), btnMidas
+        .getButtonState());
+    screenState.setButtonState(btnFixEdgesMidas.getButtonStateKey(),
+        btnFixEdgesMidas.getButtonState());
+    screenState.setButtonState(btnCoarseAlign.getButtonStateKey(),
+        btnCoarseAlign.getButtonState());
+    screenState.setButtonState(btnDistortionCorrectedStack.getButtonStateKey(),
+        btnDistortionCorrectedStack.getButtonState());
+  }
+
   public void setFiducialessAlignment(boolean state) {
     cbFiducialess.setSelected(state);
   }
@@ -459,19 +490,20 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnCrossCorrelate.getActionCommand())) {
-      applicationManager.preCrossCorrelate(axisID);
+      applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate);
     }
     else if (command.equals(btnCoarseAlign.getActionCommand())) {
-      applicationManager.coarseAlign(axisID);
+      applicationManager.coarseAlign(axisID, btnCoarseAlign);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
-      applicationManager.midasRawStack(axisID);
+      applicationManager.midasRawStack(axisID, btnMidas);
     }
     else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
-      applicationManager.midasFixEdges(axisID);
+      applicationManager.midasFixEdges(axisID, btnFixEdgesMidas);
     }
     else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
-      applicationManager.makeDistortionCorrectedStack(axisID);
+      applicationManager.makeDistortionCorrectedStack(axisID,
+          btnDistortionCorrectedStack);
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());

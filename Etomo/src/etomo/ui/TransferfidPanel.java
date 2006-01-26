@@ -11,7 +11,9 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.TransferfidParam;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ReconScreenState;
 
 /**
  * <p>Description: </p>
@@ -49,11 +51,13 @@ public class TransferfidPanel {
   private MetaData metaData;
   private AxisID axisID;
   private final ApplicationManager manager;
+  private final DialogType dialogType;
 
   public TransferfidPanel(ApplicationManager manager, AxisID axisID,
-      boolean inclButton) {
+      boolean inclButton, DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
+    this.dialogType = dialogType;
     metaData = manager.getMetaData();
     includeButton = inclButton;
     setup();
@@ -125,6 +129,16 @@ public class TransferfidPanel {
     if (params.getSearchDirection().isPositive()) {
       rbSearchPlus90.setSelected(true);
     }
+  }
+  
+  public final void setParameters(ReconScreenState screenState) {
+    buttonTransferfid.setButtonState(screenState.getButtonState(buttonTransferfid
+        .getButtonStateKey(dialogType)));
+  }
+
+  public final void getParameters(ReconScreenState screenState) {
+    screenState.setButtonState(buttonTransferfid.getButtonStateKey(), buttonTransferfid
+        .getButtonState());
   }
   
   public void getParameters() {
@@ -223,6 +237,10 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.6  2006/01/04 00:02:28  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted
+ * <p> JRadioButton's to RadioButton.
+ * <p>
  * <p> Revision 3.5  2005/08/10 20:48:38  sueh
  * <p> bug# 711 Removed MultiLineToggleButton.  Making toggling an attribute
  * <p> of MultiLineButton.
