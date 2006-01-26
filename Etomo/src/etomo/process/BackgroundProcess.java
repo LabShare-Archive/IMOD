@@ -7,6 +7,7 @@ import etomo.comscript.Command;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessResultDisplay;
 import etomo.ui.UIHarness;
 
 /**
@@ -22,6 +23,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2006/01/20 20:49:31  sueh
+ * <p> bug# 401 Make sure that errorFound is true if ProcessEndState is FAILED
+ * <p> and the exit value is 1.
+ * <p>
  * <p> Revision 3.22  2006/01/06 02:38:37  sueh
  * <p> bug# 792 Added getCommand().
  * <p>
@@ -217,6 +222,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   private ProcessEndState endState = null;
   private final BaseManager manager;
   private SystemProgram program = null;
+  private ProcessResultDisplay processResultDisplay = null;
 
   public BackgroundProcess(BaseManager manager, String commandLine,
       BaseProcessManager processManager, AxisID axisID) {
@@ -224,6 +230,17 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.axisID = axisID;
     this.commandLine = commandLine.trim();
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+
+  public BackgroundProcess(BaseManager manager, String commandLine,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.commandLine = commandLine.trim();
+    this.processManager = processManager;
+    this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
   }
 
@@ -236,6 +253,20 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+
+  public BackgroundProcess(BaseManager manager, ProcessDetails processDetails,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.processDetails = processDetails;
+    this.command = processDetails;
+    this.commandArray = command.getCommandArray();
+    this.commandLine = command.getCommandLine().trim();
+    this.processManager = processManager;
+    this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
   }
 
@@ -258,6 +289,17 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+
+  public BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.commandArray = commandArray;
+    this.processManager = processManager;
+    this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
   }
 
@@ -282,8 +324,28 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
   }
 
+  public BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID,
+      boolean forceNextProcess, ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.commandArray = commandArray;
+    this.processManager = processManager;
+    this.forceNextProcess = forceNextProcess;
+    this.processResultDisplay = processResultDisplay;
+    commandProcessID = new StringBuffer("");
+  }
+
   public final AxisID getAxisID() {
     return axisID;
+  }
+
+  final ProcessResultDisplay getProcessResultDisplay() {
+    return processResultDisplay;
+  }
+  
+  protected final void setProcessResultDisplay(ProcessResultDisplay processResultDisplay) {
+    this.processResultDisplay = processResultDisplay;
   }
 
   /**
@@ -313,7 +375,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   public final File getWorkingDirectory() {
     return workingDirectory;
   }
-  
+
   protected Command getCommand() {
     return command;
   }

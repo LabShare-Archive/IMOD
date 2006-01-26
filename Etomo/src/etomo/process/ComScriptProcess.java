@@ -19,6 +19,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.33  2006/01/20 20:52:54  sueh
+ * updated copyright year
+ *
  * Revision 3.32  2005/11/19 02:20:23  sueh
  * bug# 744 Made protected fields in ComScriptProcess private.  Getting
  * them with get functions.
@@ -342,14 +345,12 @@ import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.util.Utilities;
 
-public class ComScriptProcess
-  extends Thread
-  implements SystemProcessInterface {
+public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private String comScriptName = null;
   private File workingDirectory = null;
@@ -371,6 +372,20 @@ public class ComScriptProcess
   private ProcessEndState endState = null;//used when processMonitor is null
   private final BaseManager manager;
   private final ProcessMessages processMessages = ProcessMessages.getInstance();
+  private ProcessResultDisplay processResultDisplay = null;
+
+  public ComScriptProcess(BaseManager manager, String comScript,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.comScriptName = comScript;
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+  }
 
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
@@ -397,11 +412,34 @@ public class ComScriptProcess
     this.processMonitor = processMonitor;
   }
 
+  public ComScriptProcess(BaseManager manager, ProcessDetails processDetails,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.comScriptName = processDetails.getCommandLine();
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.processDetails = processDetails;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+  }
+
   /**
    * Set the working directory in which the com script is to be run.
    */
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
+  }
+
+  final ProcessResultDisplay getProcessResultDisplay() {
+    return processResultDisplay;
+  }
+
+  protected final void setProcessResultDisplay(
+      ProcessResultDisplay processResultDisplay) {
+    this.processResultDisplay = processResultDisplay;
   }
 
   /**
@@ -468,12 +506,12 @@ public class ComScriptProcess
         processMessages.addError(except.getMessage());
       }
     }
-    
+
     // Send a message back to the ProcessManager that this thread is done.
     //  FIXME this modifies swing element within this thread!!!
     processManager.msgComScriptDone(this, csh.getExitValue());
   }
-  
+
   protected boolean renameFiles() {
     try {
       renameFiles(comScriptName, watchedFileName, workingDirectory);
@@ -484,8 +522,8 @@ public class ComScriptProcess
     }
     return true;
   }
-  
-  static protected void renameFiles(String name, String watchedFileName, 
+
+  static protected void renameFiles(String name, String watchedFileName,
       File workingDirectory) throws IOException {
     // Rename the logfile so that any log file monitor does not get confused
     // by an existing log file
@@ -493,14 +531,14 @@ public class ComScriptProcess
     File logFile = new File(workingDirectory, logFileName);
     File oldLog = new File(workingDirectory, logFileName + "~");
     Utilities.renameFile(logFile, oldLog);
-    
+
     if (watchedFileName != null) {
       File watchedFile = new File(workingDirectory, watchedFileName);
       File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
       Utilities.renameFile(watchedFile, oldWatchedFile);
     }
   }
-  
+
   public ProcessDetails getProcessDetails() {
     return processDetails;
   }
@@ -627,13 +665,14 @@ public class ComScriptProcess
     vmstocsh.run();
 
     if (vmstocsh.getExitValue() != 0) {
-      processMessages.addError("Running vmstocsh against " + comScriptName + " failed");
+      processMessages.addError("Running vmstocsh against " + comScriptName
+          + " failed");
       throw new SystemProcessException("");
     }
 
     return vmstocsh.getStdOutput();
   }
-  
+
   String getComScriptName() {
     return comScriptName;
   }
@@ -647,11 +686,11 @@ public class ComScriptProcess
   private String[] loadFile() throws IOException {
     //  Open the file as a stream
     InputStream fileStream = new FileInputStream(workingDirectory
-      .getAbsolutePath()
+        .getAbsolutePath()
         + "/" + comScriptName);
 
     BufferedReader fileReader = new BufferedReader(new InputStreamReader(
-      fileStream));
+        fileStream));
 
     ArrayList lines = new ArrayList();
     String line;
@@ -661,7 +700,7 @@ public class ComScriptProcess
     return (String[]) lines.toArray(new String[lines.size()]);
   }
 
-   /**
+  /**
    * 
    * @return
    * @throws IOException
@@ -669,7 +708,7 @@ public class ComScriptProcess
   protected void parse() throws FileNotFoundException {
     parse(comScriptName, true);
   }
-  
+
   /**
    * Parse the log file for warnings. Since the fortran code is no smart enough
    * handle formatted output we need find WARNING: in the middle of the output
@@ -680,7 +719,8 @@ public class ComScriptProcess
    *         run then null is returned. If the com script ran with no warnings
    *         then zero length array will be returned.
    */
-  protected final void parse(String name, boolean mustExist) throws FileNotFoundException {
+  protected final void parse(String name, boolean mustExist)
+      throws FileNotFoundException {
     ArrayList errors = new ArrayList();
     File file = new File(workingDirectory, parseBaseName(name, ".com") + ".log");
     if (!file.exists() && !mustExist) {
@@ -697,7 +737,7 @@ public class ComScriptProcess
   public boolean isStarted() {
     return started;
   }
-  
+
   /**
    * Returns true if an error was found before the com script process started
    * running.
@@ -732,7 +772,7 @@ public class ComScriptProcess
   public int getDemoTime() {
     return demoTime;
   }
-  
+
   /**
    * Used by BackgroundComScriptProcess.
    * Always returns false in ComScriptProcess because two regular comscript
@@ -742,14 +782,14 @@ public class ComScriptProcess
   protected boolean isComScriptBusy() {
     return false;
   }
-  
+
   /**
    * nothing to do
    */
   public void notifyKilled() {
     setProcessEndState(ProcessEndState.KILLED);
   }
-  
+
   public final void setProcessEndState(ProcessEndState endState) {
     if (processMonitor == null) {
       this.endState = endState;
@@ -758,38 +798,38 @@ public class ComScriptProcess
       processMonitor.setProcessEndState(endState);
     }
   }
-  
+
   final ProcessEndState getProcessEndState() {
     if (processMonitor == null) {
       return endState;
     }
     return processMonitor.getProcessEndState();
   }
-  
+
   public final void kill(AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
-  
+
   public void pause(AxisID axisID) {
     throw new IllegalStateException("pause is not used by any ComScriptProcess");
   }
-  
+
   public void signalKill(AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
-  
+
   protected final ProcessMonitor getMonitor() {
     return processMonitor;
   }
-  
+
   protected final File getWorkingDirectory() {
     return workingDirectory;
   }
-  
+
   protected final String getWatchedFileName() {
     return watchedFileName;
   }
-  
+
   protected final void setSystemProgram(SystemProgram systemProgram) {
     csh = systemProgram;
   }

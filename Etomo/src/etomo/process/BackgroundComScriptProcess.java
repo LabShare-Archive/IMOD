@@ -12,6 +12,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ComscriptState;
 import etomo.type.AxisID;
+import etomo.type.ProcessResultDisplay;
 import etomo.util.Utilities;
 
 /**
@@ -31,6 +32,16 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2005/11/19 02:04:01  sueh
+ * <p> bug# 744 Removing BackgroundComScriptMonitor.  Using
+ * <p> DetachedProcessMonitor with both DetachedProcess and
+ * <p> BackgroundComScriptProcess.  BackgroundComScriptProcess is also
+ * <p> detached.  Detached monitors don't wait for interrupts so they need
+ * <p> isProcessRunning().  The other functions in
+ * <p> BackgroundComScriptMonitor are unnecessary.  Added
+ * <p> setOutputFileName() to DetachedProcessMonitor.  Made protected fields
+ * <p> in ComScriptMonitor private.  Getting them with get functions.
+ * <p>
  * <p> Revision 1.18  2005/11/02 21:40:24  sueh
  * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
  * <p> Replaced functions parseWarning() and parseError() with parse.  Put
@@ -166,7 +177,17 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     this.comscriptState = comscriptState;
     this.axisID = axisID;
     this.manager = manager;
+  }
 
+  public BackgroundComScriptProcess(BaseManager manager, String comScript,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      DetachedProcessMonitor monitor, ComscriptState comscriptState,
+      ProcessResultDisplay processResultDisplay) {
+    super(manager, comScript, processManager, axisID, watchedFileName, monitor);
+    this.comscriptState = comscriptState;
+    this.axisID = axisID;
+    this.manager = manager;
+    setProcessResultDisplay(processResultDisplay);
   }
 
   /**

@@ -9,6 +9,7 @@ import etomo.BaseManager;
 import etomo.comscript.DetachedCommand;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessResultDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 
@@ -39,6 +40,16 @@ final class DetachedProcess extends BackgroundProcess {
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
+  }
+  
+  public DetachedProcess(BaseManager manager, DetachedCommand command,
+      BaseProcessManager processManager, AxisID axisID,
+      DetachedProcessMonitor monitor, ProcessResultDisplay processResultDisplay) {
+    super(manager, command, processManager, axisID);
+    this.axisID = axisID;
+    this.manager = manager;
+    this.monitor = monitor;
+    setProcessResultDisplay(processResultDisplay);
   }
 
   protected final boolean newProgram() {
@@ -115,6 +126,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/01/06 02:39:47  sueh
+ * <p> bug# 792 Using DetachedCommand instead of Command because it can
+ * <p> create a safe command string that can go into a run file.
+ * <p>
  * <p> Revision 1.2  2005/11/19 02:21:40  sueh
  * <p> bug# 744 Added makeRunFile, newProgram, and pause.
  * <p>
