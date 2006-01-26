@@ -110,6 +110,7 @@ class ZapGL : public QGLWidget
   ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0,
         const char * name = 0);
   ~ZapGL() {};
+  void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
  
 protected:
   void paintGL();
@@ -128,6 +129,9 @@ protected:
 
 /*
 $Log$
+Revision 4.6  2005/03/29 00:59:57  mast
+Added 2nd toolbar
+
 Revision 4.5  2004/05/07 22:16:07  mast
 Fixed array dimension problems caused by new toolbutton
 
