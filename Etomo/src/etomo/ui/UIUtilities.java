@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2006/01/20 21:14:34  sueh
+ * <p> bug# 401 Added the ability for convertLabelToName() to ignore angle
+ * <p> brackets.
+ * <p>
  * <p> Revision 1.10  2006/01/11 23:20:24  sueh
  * <p> bug# 675 Changed convertLabelToName() so that it can use
  * <p> PrimativeTokenizer.  This means that all whitespace is treated correctly.
@@ -177,12 +181,24 @@ public class UIUtilities {
     return screenSize;
   }
 
+  /**
+   * Convert a UI label to a name that can be used as a key. The returned string
+   * should contain no whitespace.  A single dash is used to separate words.
+   * Explanatory strings (stuff in parenthesis), punctuation (colons), and html
+   * (anything in angle brackets) are removed.  It also removes anything after a
+   * colon because there probably shouldn't be anything after a colon.
+   * 
+   * The returned string is not guaranteed to be unique in the UI panel or
+   * dialog.
+   * @param label
+   * @return
+   */
   static final String convertLabelToName(String label) {
     if (label == null) {
       return null;
     }
+    //Place the label into a tokenizer
     String name = label.trim().toLowerCase();
-    //strip unnecessary characters
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
@@ -194,18 +210,20 @@ public class UIUtilities {
       e.printStackTrace();
       return label;
     }
+    //Remove unnecessary symbols and strings from the label.
     boolean ignoreParen = false;
     boolean ignoreBracket = false;
     while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
       if (token.equals(Token.SYMBOL, '(')) {
-        //ignore everything in parenthesis
+        //ignore parenthesis and everything in them
         ignoreParen = true;
       }
       else if (token.equals(Token.SYMBOL, ')')) {
         ignoreParen = false;
       }
-      if (token.equals(Token.SYMBOL, '<')) {
-        //replace everything in angle brackets with one space
+      else if (token.equals(Token.SYMBOL, '<')) {
+        //Replace html (angle brackets and contents) with a space.  The space is
+        //necessary when a <br> is used.
         ignoreBracket = true;
         buffer.append(' ');
       }
@@ -213,11 +231,19 @@ public class UIUtilities {
         ignoreBracket = false;
       }
       else if (token.equals(Token.SYMBOL, ':')) {
-        //ignore everything after ":"
+        //ignore colons and everything after them
         break;
       }
       else if (!ignoreParen && !ignoreBracket) {
-        buffer.append(token.getValue());
+        //Convert a dash to a space so that any mix of dashes and whitespace
+        //in the original label gets converted to a single dash in the next
+        //loop.
+        if (token.equals(Token.SYMBOL, '-')) {
+          buffer.append(' ');
+        }
+        else {
+          buffer.append(token.getValue());
+        }
       }
       try {
         token = tokenizer.next();
@@ -227,7 +253,7 @@ public class UIUtilities {
         break;
       }
     }
-    //convert whitespace to "-"
+    //Load the processed string into the tokenizer
     name = buffer.toString().trim();
     tokenizer = new PrimativeTokenizer(name);
     buffer = new StringBuffer();
@@ -239,6 +265,7 @@ public class UIUtilities {
       e.printStackTrace();
       return name;
     }
+    //Convert interior whitespace to a single dash
     while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
       if (token.is(Token.WHITESPACE)) {
         buffer.append('-');
