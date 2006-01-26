@@ -27,6 +27,7 @@ import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.util.HashedArray;
 
 /**
@@ -79,6 +80,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private boolean open = true;
   private boolean pauseEnabled = false;
   private ProcesschunksParam processchunksParam = null;
+  private ProcessResultDisplay processResultDisplay = null;
 
   public ParallelPanel(BaseManager manager, AxisID axisID,
       PanelHeaderState state, AxisProcessPanel parent) {
@@ -190,8 +192,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     return rootPanel;
   }
 
-  public final void setProcesschunksParam(ProcesschunksParam processchunksParam) {
+  public final void setProcessInfo(ProcesschunksParam processchunksParam,
+      ProcessResultDisplay processResultDisplay) {
     this.processchunksParam = processchunksParam;
+    this.processResultDisplay = processResultDisplay;
     if (processchunksParam != null) {
       header.setText(TITLE + " - " + processchunksParam.getRootName());
     }
@@ -200,7 +204,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   protected final void performAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getText()) {
-      manager.resume(axisID, processchunksParam);
+      manager.resume(axisID, processchunksParam, processResultDisplay);
     }
     else if (command == btnPause.getText()) {
       manager.pause(axisID);
@@ -441,11 +445,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
             .setText(
                 "Starts the process but does not redo the chunks that are already completed.")
             .format());
-    btnSaveDefaults
-    .setToolTipText(tooltipFormatter
-        .setText(
-            "Saves the computers and number of CPUs selected.")
-        .format());
+    btnSaveDefaults.setToolTipText(tooltipFormatter.setText(
+        "Saves the computers and number of CPUs selected.").format());
   }
 
   private final class ParallelPanelActionListener implements ActionListener {
@@ -462,6 +463,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2006/01/12 17:16:20  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.28  2006/01/11 22:19:07  sueh
  * <p> bug# 675 Replaced getUnformattedValue with getValue
  * <p>
