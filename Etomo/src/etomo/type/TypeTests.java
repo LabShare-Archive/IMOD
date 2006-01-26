@@ -19,6 +19,9 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2006/01/20 21:09:01  sueh
+ * <p> bug# 401 Added tests for ProcessResultDisplay
+ * <p>
  * <p> Revision 3.6  2005/11/10 18:10:53  sueh
  * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
  * <p> instanciated once so there won't be a problem if the working directory is
@@ -51,7 +54,7 @@ public class TypeTests {
     suite.addTestSuite(ConstEtomoNumberTest.class);
     suite.addTestSuite(ConstMetaDataTest.class);
     suite.addTestSuite(MetaDataTest.class);
-    suite.addTestSuite(ProcessResultDisplayTest.class);
+    suite.addTestSuite(ProcessResultDisplayStateTest.class);
     //$JUnit-END$
     return suite;
   }
