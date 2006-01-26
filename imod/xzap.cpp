@@ -2947,6 +2947,13 @@ static void montageSnapshot(ZapStruct *zap)
     return;
   }
 
+  // On Quadro card (?), it is necessary to defer the autoswap for montaging
+  // It's not clear why this isn't needed for other snapshots
+  if (App->doublebuffer) {
+    zap->gfx->setBufferSwapAuto(false);
+    glReadBuffer(GL_BACK);
+  }
+
   // Save translations and loop on frames, getting pixels and copying them
   xTransSave = zap->xtrans;
   yTransSave = zap->ytrans;
@@ -2958,16 +2965,19 @@ static void montageSnapshot(ZapStruct *zap)
       zap->ytrans = -(yTransStart + iy * yTransDelta);
       zapDraw(zap);
 
-      // 1/25/06: Needed to define as front on a quadro card
-      glReadBuffer(GL_FRONT);
       glReadPixels(0, 0, zap->winx, zap->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
                    framePix);
       glFlush();
       memreccpy(fullPix, framePix, zap->winx, zap->winy, 4,
                 xFullSize - zap->winx, ix * xCopyDelta, iy * yCopyDelta,
                 0, 0, 0);
+      if (App->doublebuffer) 
+        zap->gfx->swapBuffers();
     }
   }
+
+  if (App->doublebuffer)
+    zap->gfx->setBufferSwapAuto(true);
 
   // Save the image then restore display
   for (iy = 0; iy < yFullSize; iy++)
@@ -3732,6 +3742,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.75  2006/01/25 23:11:41  mast
+Fixed zap montage snapshot for quadro card and prevented negative overlaps
+
 Revision 4.74  2005/09/15 14:31:52  mast
 Added montage snapshot
 
