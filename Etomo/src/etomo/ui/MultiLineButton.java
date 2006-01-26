@@ -10,6 +10,7 @@ import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayState;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -37,6 +38,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/01/20 21:11:06  sueh
+ * <p> bug# 401 Allow MultiLineButton to get and set its state and build a key to
+ * <p> be used for saving to a properties file.  Extending ProcessResultDisplay.
+ * <p>
  * <p> Revision 3.12  2006/01/12 22:12:22  sueh
  * <p> bug# 401 added an action listener to keep toggle buttons selected every
  * <p> time they are pressed.  Added isToggleButton().
@@ -91,7 +96,7 @@ import java.lang.String;
  * <p> Bug325 New class, behaves like JButton, except that it automatically makes button text multi-line.
  * <p> </p>
  */
-class MultiLineButton extends ProcessResultDisplay {
+class MultiLineButton implements ProcessResultDisplay {
   public static final String rcsid = "$$Id$$";
 
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
@@ -99,6 +104,7 @@ class MultiLineButton extends ProcessResultDisplay {
 
   private final AbstractButton button;
   private final boolean toggleButton;
+  private final ProcessResultDisplayState processResultDisplayState;
 
   private String stateKey = null;
 
@@ -120,6 +126,7 @@ class MultiLineButton extends ProcessResultDisplay {
     }
     setName(label);
     init();
+    processResultDisplayState = new ProcessResultDisplayState(this);
   }
 
   /**
@@ -140,7 +147,7 @@ class MultiLineButton extends ProcessResultDisplay {
   }
 
   final void setButtonState(boolean state) {
-    super.setState(state);
+    processResultDisplayState.setOriginalState(state);
     setSelected(state);
   }
 
@@ -265,7 +272,7 @@ class MultiLineButton extends ProcessResultDisplay {
     button.setMaximumSize(size);
   }
 
-  protected final void setProcessDone(boolean done) {
+  public final void setProcessDone(boolean done) {
     setSelected(done);
   }
 
@@ -273,7 +280,7 @@ class MultiLineButton extends ProcessResultDisplay {
     button.setSelected(selected);
   }
   
-  protected final boolean getOriginalState() {
+  public final boolean getOriginalState() {
     //button has just been pushed, so that original state is the state of the
     //button before it was pushed
     return !isSelected();
@@ -323,5 +330,25 @@ class MultiLineButton extends ProcessResultDisplay {
     else {
       throw new IllegalArgumentException(property);
     }
+  }
+  
+  public void msgProcessStarting() {
+    processResultDisplayState.msgProcessStarting();
+  }
+  
+  public void msgProcessSucceeded() {
+    processResultDisplayState.msgProcessSucceeded();
+  }
+ 
+  public void msgProcessFailed() {
+    processResultDisplayState.msgProcessFailed();
+  }
+  
+  public void msgProcessFailedToStart() {
+    processResultDisplayState.msgProcessFailedToStart();
+  }
+
+  public void msgSecondaryProcess() {
+    processResultDisplayState.msgSecondaryProcess();
   }
 }
