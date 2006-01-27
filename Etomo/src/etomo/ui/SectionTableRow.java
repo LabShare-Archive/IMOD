@@ -22,10 +22,10 @@ import etomo.util.DatasetFiles;
  * <p>Description: Manages the fields, buttons, state, and data of one row of
  * SectionTablePanel.</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  * 
  * @author $Author$
@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2005/12/16 01:47:03  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.13  2005/12/14 01:33:36  sueh
  * <p> bug# 783 The only instance of curTab is now in JoinDialog.  Removed
  * <p> removeSetup, etc.  Remove() removes all fields.
@@ -169,7 +172,7 @@ import etomo.util.DatasetFiles;
  * <p> fields.  Can expand the section field
  * <p> </p>
  */
-public class SectionTableRow {
+public final class SectionTableRow {
   public static final String rcsid = "$Id$";
 
   private final FieldCell setupSection = new FieldCell();
@@ -555,6 +558,54 @@ public class SectionTableRow {
     if (!data.setRotationAngleZ(rotationAngleZ.getValue()).isValid(
         displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
+    }
+    return valid;
+  }
+
+  boolean validateMakejoincom() {
+    retrieveData(false);
+    String errorTitle = "Invalid numbers in row " + rowNumber.getText();
+    validate(data.getSampleBottomStart(), data.getSampleBottomEnd(), errorTitle, true);
+    validate(data.getSampleTopStart(), data.getSampleTopEnd(), errorTitle, true);
+    return valid;
+  }
+  
+  boolean validateFinishjoin() {
+    retrieveData(false);
+    String errorTitle = "Invalid numbers in row " + rowNumber.getText();
+    validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), errorTitle, false);
+    return valid;
+  }
+
+  private boolean validate(ConstEtomoNumber start, ConstEtomoNumber end,
+      String errorTitle, boolean validateValues) {
+    if (start.isNull() && !end.isNull()) {
+      UIHarness.INSTANCE.openMessageDialog(start.getDescription()
+          + " cannot be empty when " + end.getDescription()
+          + " has been entered.", errorTitle, AxisID.ONLY);
+      valid = false;
+    }
+    else if (!start.isNull() && end.isNull()) {
+      UIHarness.INSTANCE.openMessageDialog(end.getDescription()
+          + " cannot be empty when " + start.getDescription()
+          + " has been entered.", errorTitle, AxisID.ONLY);
+      valid = false;
+    }
+    else if (validateValues) {
+      if (start.isInt()) {
+        if (start.getInt() > end.getInt()) {
+          UIHarness.INSTANCE.openMessageDialog(start.getDescription()
+              + " must be less then or equal to " + start.getDescription()
+              + ".", errorTitle, AxisID.ONLY);
+          valid = false;
+        }
+      }
+      else if (start.getLong() > end.getLong()) {
+        UIHarness.INSTANCE.openMessageDialog(start.getDescription()
+            + " must be less then or equal to " + start.getDescription() + ".",
+            errorTitle, AxisID.ONLY);
+        valid = false;
+      }
     }
     return valid;
   }

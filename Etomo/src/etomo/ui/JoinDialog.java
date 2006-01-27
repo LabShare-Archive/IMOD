@@ -47,6 +47,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.29  2006/01/03 23:38:19  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
+ * <p> toRadioButton.
+ * <p>
  * <p> Revision 1.28  2005/12/16 18:26:46  sueh
  * <p> bug# 785 Added getMode().
  * <p>
@@ -1082,6 +1086,14 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   public Container getContainer() {
     return rootPanel;
+  }
+  
+  public boolean validateMakejoincom() {
+    return pnlSectionTable.validateMakejoincom();
+  }
+  
+  public boolean validateFinishjoin() {
+    return pnlSectionTable.validateFinishjoin();
   }
 
   public String getWorkingDirName() {

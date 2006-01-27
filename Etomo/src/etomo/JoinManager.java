@@ -52,6 +52,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2006/01/20 20:44:41  sueh
+ * <p> bug# 401 Added ProcessResultDisplay functionality to
+ * <p> startNextProcess.
+ * <p>
  * <p> Revision 1.35  2005/12/23 02:03:28  sueh
  * <p> bug# 675 Split the test option functionality.  Control headlessness with
  * <p> --headless.  This allow both JUnit and JfcUnit to use the special test
@@ -602,6 +606,9 @@ public final class JoinManager extends BaseManager {
           AxisID.ONLY);
       return;
     }
+    if (!joinDialog.validateMakejoincom()) {
+      return;
+    }
     String rootName = metaData.getRootName();
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
@@ -864,6 +871,9 @@ public final class JoinManager extends BaseManager {
     }
     FinishjoinParam finishjoinParam = new FinishjoinParam(this, mode);
     if (!copyMostRecentXfFile(buttonText)) {
+      return;
+    }
+    if (!joinDialog.validateFinishjoin()) {
       return;
     }
     try {

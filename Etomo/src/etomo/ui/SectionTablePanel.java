@@ -38,10 +38,10 @@ import etomo.util.Utilities;
  * <p>Description: A panel containing the section table.  Implements Expandable
  * so it can use ExpandButtons. </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  * 
  * @author $Author$
@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2005/12/16 18:27:21  sueh
+ * <p> bug# 785 Added getMode().
+ * <p>
  * <p> Revision 1.22  2005/12/16 01:46:53  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
@@ -1123,6 +1126,30 @@ public class SectionTablePanel implements ContextMenu, Expandable,
           .setSectionTableData(new SectionTableRowData(joinManager, rowData));
     }
     return success;
+  }
+  
+  boolean validateMakejoincom() {
+    if (rows == null) {
+      return true;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      if (!((SectionTableRow) rows.get(i)).validateMakejoincom()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  boolean validateFinishjoin() {
+    if (rows == null) {
+      return true;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      if (!((SectionTableRow) rows.get(i)).validateFinishjoin()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public void setMetaData(ConstJoinMetaData metaData) {
