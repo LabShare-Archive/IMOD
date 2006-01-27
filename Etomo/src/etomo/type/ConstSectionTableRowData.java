@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2005/12/14 01:28:47  sueh
+ * <p> bug# 782 Updated toString().
+ * <p>
  * <p> Revision 1.13  2005/12/06 23:00:04  sueh
  * <p> bug# 757 Added COS_X_Y_THRESHOLD
  * <p>
@@ -200,7 +203,6 @@ public abstract class ConstSectionTableRowData implements Storable {
     setupFinalStart.setDisplayValue(1);
     setupFinalEnd.setDescription("Final, End");
     joinFinalStart.setDescription("Final, Start");
-    joinFinalStart.setDisplayValue(1);
     joinFinalEnd.setDescription("Final, End");
     rotationAngleX.setDefault(0).setDescription("Rotation Angles, X");
     rotationAngleY.setDefault(0).setDescription("Rotation Angles, Y");
