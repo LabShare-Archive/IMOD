@@ -81,6 +81,7 @@ class HeaderCell {
   }
   
   final void setText() {
+    this.text = "";
     setText("");
   }
   
@@ -98,6 +99,9 @@ class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.9  2005/12/14 20:56:56  sueh
+ * * <p> bug# 784 Added setToolTipText().
+ * * <p>
  * * <p> Revision 1.8  2005/11/29 22:45:49  sueh
  * * <p> bug# bug# 757 Added setText(void) to blank out the header label.
  * * <p>
