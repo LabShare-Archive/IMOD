@@ -1,9 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/26/05: Keeping two-state buttons on when they are pressed to show that a
+1/27/06: Improved the error checking in the Etomo Join panel.
+
+1/26/06: Keeping two-state buttons on when they are pressed to show that a
 process has been run.  Saving the state of two-state buttons in the .edf file.
 
-1/25/05: Made Beadtrack more a bit robust against tilt align failures.
+1/25/06: Made Beadtrack more a bit robust against tilt align failures.
 
 1/25/06: Fixed gaps in zap montage snapshot and set read buffer so it works
 on Quadro cards. (In 3.7)
