@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2005/10/27 00:31:01  sueh
+ * <p> bug# 725 Added newNumber(float) and validateInputType(float).
+ * <p>
  * <p> Revision 1.29  2005/07/29 19:46:14  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
  * <p>
@@ -845,6 +848,10 @@ public abstract class ConstEtomoNumber implements Storable {
   
   public boolean isNamed(String name) {
     return this.name.equals(name);
+  }
+  
+  public final boolean isInt() {
+    return type == INTEGER_TYPE;
   }
 
   private void initialize() {
