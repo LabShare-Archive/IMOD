@@ -431,6 +431,7 @@ C
       if (pipinput) then
         ierr = PipGetBoolean('LinearInterpolation', ifLinear)
         if (PipGetString('TransformFile', xffil) .eq. 0) ifxform = 1
+        ierr = PipGetBoolean('OneTransformPerFile', ifOnePerFile)
       else
         write(*,'(1x,a,$)')'1 or 2 to transform images with cubic or'
      &      //' linear interpolation, 0 not to: '
@@ -453,38 +454,25 @@ c
      &      ('THE TRANSFORM FILE CONTAINS NO TRANSFORMS')
 
         call getItemsToUse(nxforms, listot, inlist, 'UseTransformLines',
-     &      listString, pipinput, 'TRANSFORM LINE', numXfLines, lineUse,
-     &      nLineUse, lmsec)
+     &      listString, pipinput, 'TRANSFORM LINE', ifOnePerFile, nfilein,
+     &      lineUse, nLineUse, lmsec)
 
-        if (pipinput) then
-          ierr = PipGetBoolean('OneTransformPerFile', ifOnePerFile)
-          if (ifOnePerFile .gt. 0) then
-c             
-c             If doing one transform per file, make default list 0 to n-1
-c             
-            if (numXfLines .eq. 0) then
-              nLineUse = nfilein
-              do iy = 1, nfilein
-                lineuse(iy) = iy - 1
-              enddo
-            endif
-c             
-            if (nLineUse .lt. nfilein) call errorexit(
-     &          'NOT ENOUGH TRANSFORMS SPECIFIED FOR THE INPUT FILES')
-c             
-c             Copy list to temp array and build list with line for each sec
-c             
-            do iy = 1, nfilein
-              linetmp(iy) = lineUse(iy)
+        if (ifOnePerFile .gt. 0) then
+          if (nLineUse .lt. nfilein) call errorexit(
+     &        'NOT ENOUGH TRANSFORMS SPECIFIED FOR THE INPUT FILES')
+c           
+c           Copy list to temp array and build list with line for each sec
+c           
+          do iy = 1, nfilein
+            linetmp(iy) = lineUse(iy)
+          enddo
+          nLineUse = 0
+          do iy = 1, nfilein
+            do i = 1, nlist(iy)
+              nLineUse = nLineUse + 1
+              lineUse(nLineUse) = linetmp(iy)
             enddo
-            nLineUse = 0
-            do iy = 1, nfilein
-              do i = 1, nlist(iy)
-                nLineUse = nLineUse + 1
-                lineUse(nLineUse) = linetmp(iy)
-              enddo
-            enddo
-          endif
+          enddo
         endif
 C         
 C         use single number for all sections
@@ -606,8 +594,7 @@ c
 c           Set up default field numbers to use then process use list if any
 c           
           call getItemsToUse(numFields, listot, inlist, 'UseFields',
-     &      listString, pipinput, 'FIELD', numXfLines, idfUse,
-     &      numIdfUse, lmFields)
+     &      listString, pipinput, 'FIELD', 0, 0, idfUse, numIdfUse, lmFields)
           if(numIdfUse.eq.1)then
             do i=2,listot
               idfUse(i)=idfUse(1)
@@ -1575,16 +1562,18 @@ C
 
 
 c       getItemsToUse gets the list of transform line numbers or distortion
-c       fields to apply, give the number available in nxforms, the list of
+c       fields to apply, given the number available in nxforms, the list of
 c       listot section numbers in inlist, the PIP option in option, the
-c       pipinput flag if doing pip input, and a scratch string in listString
-c       The number of option lines is returned in numXflines, the list of
-c       items in lineUse, and the number in the list in nLineUse
+c       pipinput flag if doing pip input, and a scratch string in listString.
+c       error should have a base error string, ifOnePerFile > 0 to do one
+c       transform per file, and nfilein should have number of files. The list
+c       of items is returned in lineUse, and the number in the list in nLineUse
 c
       subroutine getItemsToUse(nxforms, listot, inlist, option, listString,
-     &    pipinput, error, numXfLines, lineUse, nLineUse, lmsec)
+     &    pipinput, error, ifOnePerFile, nfilein, lineUse, nLineUse, lmsec)
       implicit none
       integer*4 nxforms, listot, inlist(*), numXfLines, lineUse(*), nLineUse
+      integer*4 ifOnePerFile, nfilein
       integer*4 lmsec, nLinetemp, iy, ierr, i, PipGetString, lnblnk
       character*(*) error, option, listString
       character *80 concat, errString
@@ -1592,9 +1581,23 @@ c
 c       
       write(errString, '(a,a,a)')'TOO MANY ', error, ' NUMBERS FOR ARRAYS'
       if (nxforms .eq. 1) then
+c         
+c         For one transform, set up single line for now
+c
         nlineuse = 1
         lineuse(1) = 0
-      else
+      elseif (ifOnePerFile .gt. 0) then
+c         
+c         For one transform per file, default is 0 to nfile - 1
+c
+        nLineUse = nfilein
+        do i = 1, nfilein
+          lineuse(i) = i - 1
+        enddo
+      else        
+c         
+c         Otherwise default comes from section list
+c
         nlineuse = listot
         do i = 1, listot
           lineuse(i) = inlist(i)
@@ -1782,6 +1785,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.37  2006/01/24 03:32:53  mast
+c       Added option for multiple distortion fields.
+c
 c       Revision 3.36  2006/01/10 21:57:28  mast
 c       Increased dimensions to allow full rotation of 8K images
 c	
