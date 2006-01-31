@@ -8,6 +8,7 @@ import javax.swing.plaf.ColorUIResource;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
@@ -30,7 +31,7 @@ import java.lang.String;
  * <p>Copyright: Copyright © 2002 - 2006</p>
  *
  * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * Univeristy of Colorado</p>
  *
  * @author $Author$
@@ -38,6 +39,11 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/01/26 22:05:23  sueh
+ * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
+ * <p> functionality into ProcessResultDisplayState.  This allows a greater
+ * <p> variety of classes to be ProcessResultDisplay's.
+ * <p>
  * <p> Revision 3.13  2006/01/20 21:11:06  sueh
  * <p> bug# 401 Allow MultiLineButton to get and set its state and build a key to
  * <p> be used for saving to a properties file.  Extending ProcessResultDisplay.
@@ -105,6 +111,7 @@ class MultiLineButton implements ProcessResultDisplay {
   private final AbstractButton button;
   private final boolean toggleButton;
   private final ProcessResultDisplayState processResultDisplayState;
+  private BaseScreenState screenState = null;
 
   private String stateKey = null;
 
@@ -117,6 +124,18 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   protected MultiLineButton(String label, boolean toggleButton) {
+    this(label, toggleButton, null);
+  }
+
+  /**
+   * Pass the dialogType so that a button that is managed by
+   * ProcessResultDisplay can save itself in BaseScreenState.
+   * @param label
+   * @param toggleButton
+   * @param dialogType
+   */
+  private MultiLineButton(String label, boolean toggleButton,
+      DialogType dialogType) {
     this.toggleButton = toggleButton;
     if (toggleButton) {
       button = new JToggleButton(format(label));
@@ -127,6 +146,18 @@ class MultiLineButton implements ProcessResultDisplay {
     setName(label);
     init();
     processResultDisplayState = new ProcessResultDisplayState(this);
+    if (dialogType != null) {
+      getButtonStateKey(dialogType);
+    }
+  }
+
+  static final MultiLineButton getToggleButtonInstance(String label,
+      DialogType dialogType) {
+    return new MultiLineButton(label, true, dialogType);
+  }
+
+  static final MultiLineButton getToggleButtonInstance(String label) {
+    return new MultiLineButton(label, true);
   }
 
   /**
@@ -165,9 +196,9 @@ class MultiLineButton implements ProcessResultDisplay {
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-
-  static final MultiLineButton getToggleButtonInstance(String label) {
-    return new MultiLineButton(label, true);
+  
+  public final String getName() {
+    return button.getName();
   }
 
   final void setEnabled(boolean isEnabled) {
@@ -276,10 +307,21 @@ class MultiLineButton implements ProcessResultDisplay {
     setSelected(done);
   }
 
+  /**
+   * Make sure that the displayed button matches its internal state.  A button
+   * won't update its display if it is not being displayed.
+   */
+  public final void setScreenState(BaseScreenState screenState) {
+    this.screenState = screenState;
+  }
+
   final void setSelected(boolean selected) {
     button.setSelected(selected);
+    if (screenState != null) {
+      screenState.setButtonState(getButtonStateKey(), getButtonState());
+    }
   }
-  
+
   public final boolean getOriginalState() {
     //button has just been pushed, so that original state is the state of the
     //button before it was pushed
@@ -331,24 +373,40 @@ class MultiLineButton implements ProcessResultDisplay {
       throw new IllegalArgumentException(property);
     }
   }
-  
+
   public void msgProcessStarting() {
     processResultDisplayState.msgProcessStarting();
   }
-  
+
   public void msgProcessSucceeded() {
     processResultDisplayState.msgProcessSucceeded();
   }
- 
+
   public void msgProcessFailed() {
     processResultDisplayState.msgProcessFailed();
   }
-  
+
   public void msgProcessFailedToStart() {
     processResultDisplayState.msgProcessFailedToStart();
   }
 
   public void msgSecondaryProcess() {
     processResultDisplayState.msgSecondaryProcess();
+  }
+
+  public void addFollowingDisplay(ProcessResultDisplay followingDisplay) {
+    processResultDisplayState.addFollowingDisplay(followingDisplay);
+  }
+
+  public void setOriginalState(boolean originalState) {
+    processResultDisplayState.setOriginalState(originalState);
+  }
+
+  public void addFailureDisplay(ProcessResultDisplay failureDisplay) {
+    processResultDisplayState.addFailureDisplay(failureDisplay);
+  }
+
+  public void addSuccessDisplay(ProcessResultDisplay successDisplay) {
+    processResultDisplayState.addSuccessDisplay(successDisplay);
   }
 }
