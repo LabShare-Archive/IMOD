@@ -423,12 +423,7 @@ public class ApplicationManager extends BaseManager {
    * Close message from the setup dialog window
    */
   public void doneSetupDialog() {
-    if (setupDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update metadata parameters without an active setup dialog",
-          "Program logic error", AxisID.ONLY);
-      return;
-    }
+    super.doneProcessDialog(setupDialog);
     //  Get the selected exit button
     DialogExitState exitState = setupDialog.getExitState();
     if (exitState != DialogExitState.CANCEL) {
@@ -556,12 +551,7 @@ public class ApplicationManager extends BaseManager {
     else {
       preProcDialog = preProcDialogA;
     }
-    if (preProcDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update preprocessing parameters without an active "
-              + "preprocessing dialog", "Program logic error", axisID);
-      return;
-    }
+    super.doneProcessDialog(preProcDialog);
     savePreProcDialog(preProcDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1125,12 +1115,7 @@ public class ApplicationManager extends BaseManager {
   public void doneCoarseAlignDialog(AxisID axisID) {
     //  Set a reference to the correct object
     CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    if (coarseAlignDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update coarse align without an active coarse align dialog",
-          "Program logic error", axisID);
-      return;
-    }
+    super.doneProcessDialog(coarseAlignDialog);
     saveCoarseAlignDialog(coarseAlignDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1771,13 +1756,7 @@ public class ApplicationManager extends BaseManager {
     else {
       fiducialModelDialog = fiducialModelDialogA;
     }
-    if (fiducialModelDialog == null) {
-      uiHarness
-          .openMessageDialog(
-              "Can not update fiducial model without an active fiducial model dialog",
-              "Program logic error", axisID);
-      return;
-    }
+    super.doneProcessDialog(fiducialModelDialog);
     saveFiducialModelDialog(fiducialModelDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -2294,12 +2273,7 @@ public class ApplicationManager extends BaseManager {
     else {
       fineAlignmentDialog = fineAlignmentDialogA;
     }
-    if (fineAlignmentDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update align?.com without an active alignment dialog",
-          "Program logic error", axisID);
-      return;
-    }
+    super.doneProcessDialog(fineAlignmentDialog);
     saveAlignmentEstimationDialog(fineAlignmentDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -2716,12 +2690,7 @@ public class ApplicationManager extends BaseManager {
   public void doneTomogramPositioningDialog(AxisID axisID) {
     //  Set a reference to the correct object
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update sample.com without an active positioning dialog",
-          "Program logic error", axisID);
-      return;
-    }
+    super.doneProcessDialog(tomogramPositioningDialog);
     saveTomogramPositioningDialog(tomogramPositioningDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -3484,13 +3453,7 @@ public class ApplicationManager extends BaseManager {
   public void doneTomogramGenerationDialog(AxisID axisID) {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    if (tomogramGenerationDialog == null) {
-      uiHarness
-          .openMessageDialog(
-              "Can not update tilt?.com without an active tomogram generation dialog",
-              "Program logic error", axisID);
-      return;
-    }
+    super.doneProcessDialog(tomogramGenerationDialog);
     saveTomogramGenerationDialog(tomogramGenerationDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -4334,13 +4297,7 @@ public class ApplicationManager extends BaseManager {
    * Tomogram combination done method, move on to the post processing window
    */
   public void doneTomogramCombinationDialog() {
-    if (tomogramCombinationDialog == null) {
-      uiHarness
-          .openMessageDialog(
-              "Can not update combine.com without an active tomogram combination dialog",
-              "Program logic error", AxisID.ONLY);
-      return;
-    }
+    super.doneProcessDialog(tomogramCombinationDialog);
     saveTomogramCombinationDialog(tomogramCombinationDialog);
   }
 
@@ -5181,11 +5138,7 @@ public class ApplicationManager extends BaseManager {
    * Close the post processing dialog panel
    */
   public void donePostProcessing() {
-    if (postProcessingDialog == null) {
-      uiHarness.openMessageDialog("Post processing dialog not open",
-          "Program logic error", AxisID.ONLY);
-      return;
-    }
+    super.doneProcessDialog(postProcessingDialog);
     savePostProcessing(postProcessingDialog);
     postProcessingDialog = null;
   }
@@ -5201,7 +5154,6 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
-      postProcessingDialog.getParameters(getScreenState(AxisID.ONLY));
       updateTrimvolParam();
       updateSqueezevolParam();
       if (exitState == DialogExitState.POSTPONE) {
@@ -5222,11 +5174,7 @@ public class ApplicationManager extends BaseManager {
    * Close the clean up dialog panel
    */
   public void doneCleanUp() {
-    if (cleanUpDialog == null) {
-      uiHarness.openMessageDialog("Clean Up dialog not open",
-          "Program logic error", AxisID.ONLY);
-      return;
-    }
+    super.doneProcessDialog(cleanUpDialog);
     saveCleanUp(cleanUpDialog);
     cleanUpDialog = null;
     mainPanel.showBlankProcess(AxisID.ONLY);
@@ -5345,11 +5293,13 @@ public class ApplicationManager extends BaseManager {
   /**
    * Execute trimvol
    */
-  public void trimVolume() {
+  public void trimVolume(ProcessResultDisplay processResultDisplay) {
+    sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
       uiHarness.openMessageDialog("Post processing dialog not open",
           "Program logic error", AxisID.ONLY);
+      sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
     TrimvolParam trimvolParam = updateTrimvolParam();
@@ -5358,7 +5308,7 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
     String threadName;
     try {
-      threadName = processMgr.trimVolume(trimvolParam);
+      threadName = processMgr.trimVolume(trimvolParam, processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -6132,6 +6082,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.206  2006/01/26 21:37:48  sueh
+ * <p> bug# 401 Added PRocessResultDisplay parameters to the functions called
+ * <p> by toggle buttons.
+ * <p>
  * <p> Revision 3.205  2006/01/20 20:42:49  sueh
  * <p> bug# 401 Added ProcessResultDisplay functionality for tilt, splittilt,
  * <p> processchunks - tilt, newst, and blend.
