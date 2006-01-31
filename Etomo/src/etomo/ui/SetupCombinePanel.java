@@ -21,6 +21,7 @@ import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
+import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
@@ -47,6 +48,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.30  2006/01/26 22:08:25  sueh
+ * bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * the buttons turned on each they are run, unless the process fails or is
+ * killed.
+ *
  * Revision 3.29  2006/01/03 23:46:10  sueh
  * bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
  * toRadioButton.
@@ -299,8 +305,9 @@ import etomo.type.Run3dmodMenuOptions;
  * <p>
  * </p>
  */
-public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
-    FinalCombineFields, Run3dmodButtonContainer, Expandable {
+public final class SetupCombinePanel implements ContextMenu,
+    InitialCombineFields, FinalCombineFields, Run3dmodButtonContainer,
+    Expandable {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -357,8 +364,7 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
       "<html><b>3dmod Volume B</b>", this);
   private MultiLineButton btnCreate = MultiLineButton
       .getToggleButtonInstance("<html><b>Create Combine Scripts</b>");
-  private MultiLineButton btnCombine = MultiLineButton
-      .getToggleButtonInstance("<html><b>Start Combine</b>");
+  private final MultiLineButton btnCombine;
   private JLabel binningWarning = new JLabel();
   private final PanelHeader toSelectorHeader;
   private final PanelHeader patchParamsHeader;
@@ -367,15 +373,17 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
   private final CheckBox cbNoVolcombine = new CheckBox(
       FinalCombinePanel.NO_VOLCOMBINE_TITLE);
   private final CheckBox cbParallelProcess;
+  private final SetupCombineActionListener actionListener;
 
   /**
    * Default constructor
    */
   public SetupCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr) {
+      ApplicationManager appMgr, DialogType dialogType) {
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
-
+    btnCombine = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getCombine();
     //  Create the matching direction selector panel
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -479,8 +487,7 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
     pnlTempDirectory.add(pnlTempDirectoryBody);
 
     //  Bind the buttons to the action listener
-    SetupCombineActionListener actionListener = new SetupCombineActionListener(
-        this);
+    actionListener = new SetupCombineActionListener(this);
     btnPatchRegionModel.addActionListener(actionListener);
     btnImodVolumeA.addActionListener(actionListener);
     btnImodVolumeB.addActionListener(actionListener);
@@ -532,15 +539,19 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
     setToolTipText();
   }
 
+  static ProcessResultDisplay getCombineDisplay(DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Start Combine", dialogType);
+  }
+
   public Container getContainer() {
     return pnlRoot;
   }
-  
+
   ProcessResultDisplay getCombineResultDisplay() {
     return btnCombine;
   }
 
-  final void setParameters(ReconScreenState screenState) {
+  void setParameters(ReconScreenState screenState) {
     toSelectorHeader.setState(screenState
         .getCombineSetupToSelectorHeaderState());
     pnlSolvematch.getHeader().setState(
@@ -554,14 +565,14 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
     btnCreate.setButtonState(screenState.getButtonState(btnCreate
         .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
     btnCombine.setButtonState(screenState.getButtonState(btnCombine
-        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+        .getButtonStateKey()));
   }
 
-  final void getParameters(MetaData metaData) {
+  void getParameters(MetaData metaData) {
     metaData.setCombineVolcombineParallel(cbParallelProcess.isSelected());
   }
 
-  final void setParameters(ConstMetaData metaData) {
+  void setParameters(ConstMetaData metaData) {
     boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
@@ -576,31 +587,31 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
     }
   }
 
-  public final void setNoVolcombine(boolean noVolcombine) {
+  public void setNoVolcombine(boolean noVolcombine) {
     cbNoVolcombine.setSelected(noVolcombine);
   }
 
-  public final boolean isNoVolcombine() {
+  public boolean isNoVolcombine() {
     return cbNoVolcombine.isSelected();
   }
 
-  public final void setParallel(boolean parallel) {
+  public void setParallel(boolean parallel) {
     cbParallelProcess.setSelected(parallel);
   }
 
-  public final void setParallelEnabled(boolean parallelEnabled) {
+  public void setParallelEnabled(boolean parallelEnabled) {
     cbParallelProcess.setEnabled(parallelEnabled);
   }
 
-  public final boolean isParallel() {
+  public boolean isParallel() {
     return cbParallelProcess.isSelected();
   }
 
-  public final boolean isParallelEnabled() {
+  public boolean isParallelEnabled() {
     return cbParallelProcess.isEnabled();
   }
 
-  final void getParameters(ReconScreenState screenState) {
+  void getParameters(ReconScreenState screenState) {
     toSelectorHeader.getState(screenState
         .getCombineSetupToSelectorHeaderState());
     pnlSolvematch.getHeader().getState(
@@ -611,13 +622,11 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
         .getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.getState(screenState
         .getCombineSetupTempDirHeaderState());
-    screenState.setButtonState(btnCreate.getButtonStateKey(),
-        btnCreate.getButtonState());
-    screenState.setButtonState(btnCombine.getButtonStateKey(),
-        btnCombine.getButtonState());
+    screenState.setButtonState(btnCreate.getButtonStateKey(), btnCreate
+        .getButtonState());
   }
 
-  final void setVisible(boolean visible) {
+  void setVisible(boolean visible) {
     lblEffectWarning.setVisible(visible);
     pnlToSelector.setVisible(visible);
     pnlSolvematch.setVisible(visible);
@@ -786,7 +795,7 @@ public class SetupCombinePanel implements ContextMenu, InitialCombineFields,
   public String getZMin() {
     return ltfZMin.getText();
   }
-  
+
   ProcessResultDisplay getCombineProcessResultDisplay() {
     return btnCombine;
   }
