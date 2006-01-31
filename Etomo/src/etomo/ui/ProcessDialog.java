@@ -1,11 +1,12 @@
 /**
  * <p>Description:A generic process dialog box with a set of exit buttons
  * and the action adapter to handle their processing.  The action functions
- * can be overriden to implement the required functionality. </p>
+ * can be overriden to implement the required functionality.</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
  * @author $Author$
@@ -13,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2006/01/12 17:18:42  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 3.16  2006/01/11 22:32:05  sueh
  * <p> bug# 675 fixed print names functionality
  * <p>
@@ -205,7 +209,9 @@ public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons);
-    //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+  }
+  
+  public void done() {
   }
 
   public DialogType getDialogType() {
