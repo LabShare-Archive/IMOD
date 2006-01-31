@@ -13,8 +13,9 @@ import etomo.type.AxisID;
 import etomo.type.CombineProcessType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.util.Utilities;
-
 
 /**
  * <p>
@@ -33,6 +34,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.17  2006/01/26 21:53:42  sueh
+ * <p> $bug# 401 Using CombinePRocessType for combine indexes
+ * <p> $
  * <p> $Revision 1.16  2005/11/19 02:19:29  sueh
  * <p> $bug# 744 Consolidated kill() and kill(SystemProcessInterface, axisID) into
  * <p> $kill(SystemProcessInterface, axisID), which is the standard kill.  Added
@@ -138,19 +142,19 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   public static final String rcsid = "$$Id$$";
   public static final String COMBINE_LABEL = "Combine";
   private static final long SLEEP = 100;
-  
-  private ApplicationManager applicationManager = null;
+
+  private ApplicationManager manager = null;
   private AxisID axisID = null;
   private BufferedReader logFileReader = null;
   private long sleepCount = 0;
   private ProcessEndState endState = null;
-  
+
   //if processRunning is false at any time before the process ends, it can
   //cause wait loops to end prematurely.  This is because the wait loop can
   //start very repidly for a background process.
   //See BackgroundSystemProgram.waitForProcess().
   private boolean processRunning = true;
-  
+
   private File logFile = null;
   private LogFileProcessMonitor childMonitor = null;
   Thread childThread = null;
@@ -162,18 +166,29 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private static final int RAN_STATE = 3;
   private boolean selfTest = false;
   private Thread runThread = null;
-  
+  private ProcessResultDisplay processResultDisplay = null;
+  private SystemProcessInterface process = null;
+  private final ProcessResultDisplayFactory displayFactory;
+  private boolean firstChildProcessSet = false;
+
   /**
    * @param applicationManager
    * @param axisID
    */
-  public CombineProcessMonitor(ApplicationManager applicationManager,
-      AxisID axisID, CombineComscriptState combineComscriptState) {
-    this.applicationManager = applicationManager;
+  public CombineProcessMonitor(ApplicationManager manager, AxisID axisID,
+      CombineComscriptState combineComscriptState,
+      ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
+    this.processResultDisplay = processResultDisplay;
     selfTest = EtomoDirector.getInstance().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
+    displayFactory = manager.getProcessResultDisplayFactory(axisID);
+  }
+
+  public void setProcess(SystemProcessInterface process) {
+    this.process = process;
   }
 
   public AxisID getAxisID() {
@@ -214,7 +229,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   }
 
   private void initializeProgressBar() {
-    applicationManager.startProgressBar(COMBINE_LABEL, axisID);
+    manager.startProgressBar(COMBINE_LABEL, axisID);
     return;
   }
 
@@ -240,9 +255,11 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
         }
       }
       else if (line.startsWith("ERROR:")) {
+        process.setProcessResultDisplay(processResultDisplay);
         endMonitor(ProcessEndState.FAILED);
       }
       else if (line.startsWith(CombineComscriptState.getSuccessText())) {
+        process.setProcessResultDisplay(processResultDisplay);
         endMonitor(ProcessEndState.DONE);
       }
     }
@@ -254,36 +271,52 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @param comscriptName
    */
   private void setCurrentChildCommand(String comscriptName) {
-    applicationManager.progressBarDone(axisID, ProcessEndState.DONE);
+    manager.progressBarDone(axisID, ProcessEndState.DONE);
     String childCommandName = comscriptName.substring(0, comscriptName
         .indexOf(".com"));
     currentCommand = ProcessName.fromString(childCommandName);
-    if (currentCommand == ProcessName.PATCHCORR) {
-      endCurrentChildMonitor();
-      applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineProcessType.PATCHCORR);
-      childMonitor = new PatchcorrProcessWatcher(applicationManager, axisID);
-    }
-    else if (currentCommand == ProcessName.MATCHVOL1) {
-      endCurrentChildMonitor();
-      applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
+    if (currentCommand == ProcessName.MATCHVOL1) {
+      setNextProcessResultDisplay(displayFactory.getRestartMatchvol1());
+      manager.showPane(CombineComscriptState.COMSCRIPT_NAME,
           CombineProcessType.MATCHVOL1);
-      childMonitor = new Matchvol1ProcessMonitor(applicationManager, axisID);
+      childMonitor = new Matchvol1ProcessMonitor(manager, axisID);
+    }
+    else if (currentCommand == ProcessName.PATCHCORR) {
+      setNextProcessResultDisplay(displayFactory.getRestartPatchcorr());
+      manager.showPane(CombineComscriptState.COMSCRIPT_NAME,
+          CombineProcessType.PATCHCORR);
+      childMonitor = new PatchcorrProcessWatcher(manager, axisID);
     }
     else if (currentCommand == ProcessName.MATCHORWARP) {
-      endCurrentChildMonitor();
-      applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
+      setNextProcessResultDisplay(displayFactory.getRestartMatchorwarp());
+      manager.showPane(CombineComscriptState.COMSCRIPT_NAME,
           CombineProcessType.MATCHORWARP);
-      childMonitor = new MatchorwarpProcessMonitor(applicationManager, axisID);
+      childMonitor = new MatchorwarpProcessMonitor(manager, axisID);
     }
     else if (currentCommand == ProcessName.VOLCOMBINE) {
-      endCurrentChildMonitor();
-      applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
+      setNextProcessResultDisplay(displayFactory.getRestartVolcombine());
+      manager.showPane(CombineComscriptState.COMSCRIPT_NAME,
           CombineProcessType.VOLCOMBINE);
-      childMonitor = new VolcombineProcessMonitor(applicationManager, axisID);
+      childMonitor = new VolcombineProcessMonitor(manager, axisID);
     }
     else {
       startProgressBar(childCommandName);
+    }
+  }
+
+  private void setNextProcessResultDisplay(
+      ProcessResultDisplay nextProcessResultDisplay) {
+    if (!firstChildProcessSet) {
+      firstChildProcessSet = true;
+      return;
+    }
+    if (processResultDisplay != null) {
+      processResultDisplay.msgProcessSucceeded();
+    }
+    endCurrentChildMonitor();
+    processResultDisplay = nextProcessResultDisplay;
+    if (processResultDisplay != null) {
+      processResultDisplay.msgProcessStarting();
     }
   }
 
@@ -320,7 +353,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
     endCurrentChildMonitor();
-    applicationManager.progressBarDone(axisID, endState);
+    manager.progressBarDone(axisID, endState);
     if (runThread != null) {
       runThread.interrupt();
       runThread = null;
@@ -331,6 +364,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   /**
    * Start  a progress bar for the current .com file run by combine.com.
    * Used when there is no monitor available for the child process
+   * Used for the process that runs before matchavol1
    * @param childCommandName
    */
   private void startProgressBar(String childCommandName) {
@@ -340,11 +374,9 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       //must be a command that is not monitored
       return;
     }
-    endCurrentChildMonitor();
-    applicationManager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-        combineProcessType);
-    applicationManager.startProgressBar(
-        COMBINE_LABEL + ": " + childCommandName, axisID);
+    setNextProcessResultDisplay(null);
+    manager.showPane(CombineComscriptState.COMSCRIPT_NAME, combineProcessType);
+    manager.startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID);
   }
 
   /**
@@ -357,7 +389,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     initializeProgressBar();
     //  Instantiate the logFile object
     String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
-    logFile = new File(applicationManager.getPropertyUserDir(), logFileName);
+    logFile = new File(manager.getPropertyUserDir(), logFileName);
 
     try {
       //  Wait for the log file to exist
@@ -482,10 +514,6 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     default:
       throw new IllegalStateException("Unknown state.  state=" + state);
     }
-  }
-
-  public void setProcess(SystemProcessInterface process) {
-    //process is not required
   }
 
   public void pause(SystemProcessInterface process, AxisID axisID) {
