@@ -35,6 +35,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2006/01/26 21:52:54  sueh
+ * <p> Added processResultDisplay parameters to all the functions associated
+ * <p> with toggle buttons.
+ * <p>
  * <p> Revision 1.36  2006/01/20 20:50:38  sueh
  * <p> bug# 401 Added boolean error parameter to processDone().
  * <p>
@@ -406,9 +410,11 @@ public abstract class BaseProcessManager {
       DetachedProcessMonitor processMonitor, AxisID axisID,
       ComscriptState comscriptState, String watchedFileName)
       throws SystemProcessException {
-    return startComScript(new BackgroundComScriptProcess(getManager(), command,
-        this, axisID, watchedFileName, processMonitor, comscriptState),
-        command, processMonitor, axisID);
+    BackgroundComScriptProcess process = new BackgroundComScriptProcess(
+        getManager(), command, this, axisID, watchedFileName, processMonitor,
+        comscriptState);
+    processMonitor.setProcess(process);
+    return startComScript(process, command, processMonitor, axisID);
   }
 
   protected ComScriptProcess startBackgroundComScript(String command,
