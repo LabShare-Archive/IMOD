@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.90  2006/01/26 21:54:45  sueh
+ * bug# 401 Added processResultDisplay parameters to all the functions associated
+ * with toggle buttons.
+ *
  * Revision 3.89  2006/01/20 20:56:39  sueh
  * updated copyright year
  *
@@ -1449,12 +1453,12 @@ public class ProcessManager extends BaseProcessManager {
     String command = CombineComscriptState.COMSCRIPT_NAME + ".com";
 
     CombineProcessMonitor combineProcessMonitor = new CombineProcessMonitor(
-        appManager, AxisID.ONLY, combineComscriptState);
+        appManager, AxisID.ONLY, combineComscriptState, processResultDisplay);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startBackgroundComScript(command,
         combineProcessMonitor, AxisID.ONLY, combineComscriptState,
-        CombineComscriptState.COMSCRIPT_WATCHED_FILE, processResultDisplay);
+        CombineComscriptState.COMSCRIPT_WATCHED_FILE);
     return comScriptProcess.getName();
   }
 
@@ -1546,10 +1550,10 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run trimvol
    */
-  public String trimVolume(TrimvolParam trimvolParam)
-      throws SystemProcessException {
+  public String trimVolume(TrimvolParam trimvolParam,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
-        AxisID.ONLY);
+        AxisID.ONLY, processResultDisplay);
     return backgroundProcess.getName();
   }
 
