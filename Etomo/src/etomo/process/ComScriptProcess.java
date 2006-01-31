@@ -1,4 +1,3 @@
-
 /**
  * <p>
  * Description: Provides a threadable class to execute IMOD com scripts.
@@ -19,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.34  2006/01/26 21:54:17  sueh
+ * bug# 401 Added a ProcessResultDisplay member variable
+ *
  * Revision 3.33  2006/01/20 20:52:54  sueh
  * updated copyright year
  *
@@ -437,7 +439,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return processResultDisplay;
   }
 
-  protected final void setProcessResultDisplay(
+  public final void setProcessResultDisplay(
       ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }

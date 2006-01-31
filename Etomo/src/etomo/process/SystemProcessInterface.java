@@ -2,6 +2,7 @@ package etomo.process;
 
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessResultDisplay;
 
 /**
 * <p>Description: </p>
@@ -29,9 +30,13 @@ public interface SystemProcessInterface {
   public void pause(AxisID axisID);
   public void kill(AxisID axisID);
   public void signalKill(AxisID axisID);
+  public void setProcessResultDisplay(ProcessResultDisplay processResultDisplay);
 }
 /**
 * <p> $Log$
+* <p> Revision 3.7  2006/01/20 20:56:55  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 3.6  2005/11/19 02:39:58  sueh
 * <p> bug# 744 Remove unecessary functions:  getCurentStdError,
 * <p> getCurrentStdOutput, isDone, setCurrentStdInput, signalInterrupt.
