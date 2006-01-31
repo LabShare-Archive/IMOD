@@ -25,6 +25,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -55,6 +56,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.40  2006/01/26 22:04:45  sueh
+ * bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * the buttons turned on each they are run, unless the process fails or is
+ * killed.
+ *
  * Revision 3.39  2006/01/12 17:10:14  sueh
  * bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  *
@@ -317,8 +323,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private LabeledTextField ltfZLow = new LabeledTextField("Y Low :");
   private LabeledTextField ltfZHigh = new LabeledTextField("Y high :");
 
-  private MultiLineButton btnPatchcorrRestart = MultiLineButton
-      .getToggleButtonInstance("<html><b>Restart at Patchcorr</b>");
+  private final MultiLineButton btnPatchcorrRestart;
 
   private JPanel pnlMatchorwarp = new JPanel();
   private JPanel pnlMatchorwarpBody = new JPanel();
@@ -344,14 +349,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
   private JPanel pnlMatchorwarpButtons = new JPanel();
-  private MultiLineButton btnMatchorwarpRestart = MultiLineButton
-      .getToggleButtonInstance("<html><b>Restart at Matchorwarp</b>");
+  private final MultiLineButton btnMatchorwarpRestart;
   private MultiLineButton btnMatchorwarpTrial = new MultiLineButton(
       "<html><b>Matchorwarp Trial Run</b>");
   private JPanel pnlVolcombine = new JPanel();
   private JPanel pnlVolcombineBody = new JPanel();
-  private MultiLineButton btnVolcombineRestart = MultiLineButton
-      .getToggleButtonInstance("Restart at Volcombine");
+  private final MultiLineButton btnVolcombineRestart;
   private JPanel pnlButton = new JPanel();
   private MultiLineButton btnPatchVectorModel = new MultiLineButton(
       "<html><b>Examine Patch Vector Model</b>");
@@ -376,10 +379,14 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * @param appMgr
    */
   public FinalCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr) {
-
+      ApplicationManager appMgr, DialogType dialogType) {
     tomogramCombinationDialog = parent;
-
+    btnPatchcorrRestart = (MultiLineButton) appMgr
+        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartPatchcorr();
+    btnMatchorwarpRestart = (MultiLineButton) appMgr
+        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchorwarp();
+    btnVolcombineRestart = (MultiLineButton) appMgr
+        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartVolcombine();
     applicationManager = appMgr;
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
@@ -560,6 +567,24 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     setToolTipText();
   }
 
+  public static ProcessResultDisplay getRestartPatchcorrDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Restart at Patchcorr",
+        dialogType);
+  }
+
+  public static ProcessResultDisplay getRestartMatchorwarpDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Restart at Matchorwarp",
+        dialogType);
+  }
+
+  public static ProcessResultDisplay getRestartVolcombineDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Restart at Volcombine",
+        dialogType);
+  }
+
   private final void setAdvanced() {
     boolean headerAdvanced = patchcorrHeader.isAdvancedBasicExpanded();
     if (tomogramCombinationDialog.isAdvanced() != headerAdvanced
@@ -691,14 +716,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         .getCombineFinalVolcombineHeaderState());
     setAdvanced();
     btnPatchcorrRestart.setButtonState(screenState
-        .getButtonState(btnPatchcorrRestart
-            .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+        .getButtonState(btnPatchcorrRestart.getButtonStateKey()));
     btnMatchorwarpRestart.setButtonState(screenState
-        .getButtonState(btnMatchorwarpRestart
-            .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+        .getButtonState(btnMatchorwarpRestart.getButtonStateKey()));
     btnVolcombineRestart.setButtonState(screenState
-        .getButtonState(btnVolcombineRestart
-            .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+        .getButtonState(btnVolcombineRestart.getButtonStateKey()));
   }
 
   final void getParameters(ReconScreenState screenState) {
@@ -709,12 +731,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         .getCombineFinalPatchcorrHeaderState());
     volcombineHeader.getState(screenState
         .getCombineFinalVolcombineHeaderState());
-    screenState.setButtonState(btnPatchcorrRestart.getButtonStateKey(),
-        btnPatchcorrRestart.getButtonState());
-    screenState.setButtonState(btnMatchorwarpRestart.getButtonStateKey(),
-        btnMatchorwarpRestart.getButtonState());
-    screenState.setButtonState(btnVolcombineRestart.getButtonStateKey(),
-        btnVolcombineRestart.getButtonState());
   }
 
   final void setVisible(boolean visible) {
