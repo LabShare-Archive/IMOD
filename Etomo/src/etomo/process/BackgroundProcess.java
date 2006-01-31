@@ -23,6 +23,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2006/01/26 21:50:07  sueh
+ * <p> bug# 401 Added a ProcessResultDisplay member variable
+ * <p>
  * <p> Revision 3.23  2006/01/20 20:49:31  sueh
  * <p> bug# 401 Make sure that errorFound is true if ProcessEndState is FAILED
  * <p> and the exit value is 1.
@@ -344,7 +347,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return processResultDisplay;
   }
   
-  protected final void setProcessResultDisplay(ProcessResultDisplay processResultDisplay) {
+  public final void setProcessResultDisplay(ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
 
