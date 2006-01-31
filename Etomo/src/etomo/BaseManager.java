@@ -30,11 +30,13 @@ import etomo.type.BaseState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.UserConfiguration;
 import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
+import etomo.ui.ProcessDialog;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -88,6 +90,8 @@ public abstract class BaseManager {
   //private static variables
   private static boolean debug = false;
   private boolean exiting = false;
+  private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
+  private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
 
   protected abstract void createComScriptManager();
 
@@ -181,6 +185,22 @@ public abstract class BaseManager {
 
   public String getPropertyUserDir() {
     return propertyUserDir;
+  }
+
+  public ProcessResultDisplayFactory getProcessResultDisplayFactory(
+      AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (processResultDisplayFactoryB == null) {
+        processResultDisplayFactoryB = new ProcessResultDisplayFactory(
+            getBaseScreenState(axisID));
+      }
+      return processResultDisplayFactoryB;
+    }
+    if (processResultDisplayFactoryA == null) {
+      processResultDisplayFactoryA = new ProcessResultDisplayFactory(
+          getBaseScreenState(axisID));
+    }
+    return processResultDisplayFactoryA;
   }
 
   public String setPropertyUserDir(String propertyUserDir) {
@@ -941,9 +961,24 @@ public abstract class BaseManager {
     getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
         axisID);
   }
+
+  protected void doneProcessDialog(ProcessDialog processDialog) {
+    if (processDialog == null) {
+      throw new IllegalStateException("dialog is null:" + processDialog);
+    }
+    processDialog.done();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.52  2006/01/26 21:46:30  sueh
+ * <p> bug# 401 Removing processResultDisplayA and B before this method will
+ * <p> fail when the user presses the same button twice.  Passing the
+ * <p> processResultDisplay to the process manager to get it back when
+ * <p> processDone is called.  Added a simple processDone for secondary
+ * <p> processes that don't use the existing processDone functions.
+ * <p> Added processResultDisplay parameters to all the toggle button functions.
+ * <p>
  * <p> Revision 1.51  2006/01/20 20:43:34  sueh
  * <p> bug# 401 Added ProcessResultDisplay functionality to processDone and
  * <p> startNextProcess.  Added setProcessResultDisplay.
