@@ -12,6 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -19,17 +20,18 @@ import etomo.type.TomogramState;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
  * @author $Author$
  *
  * @version $Revision$
  */
-public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer {
+public final class PostProcessingDialog extends ProcessDialog implements
+    ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private TrimvolPanel trimvolPanel;
@@ -38,7 +40,7 @@ public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
   private LabeledTextField ltfReductionFactorZ;
   private CheckBox cbLinearInterpolation;
 
-  private MultiLineButton btnSqueezeVolume;
+  private final MultiLineButton btnSqueezeVolume;
   private Run3dmodButton btnImodSqueezedVolume;
 
   private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(
@@ -47,10 +49,11 @@ public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
   public PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
     fixRootPanel(rootSize);
-
+    btnSqueezeVolume = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+        axisID).getSqueezeVolume();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
-    trimvolPanel = new TrimvolPanel(applicationManager);
+    trimvolPanel = new TrimvolPanel(applicationManager, dialogType);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
     addExitButtons();
@@ -86,8 +89,6 @@ public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
     //third component
     SpacedPanel squeezeVolPanel2 = new SpacedPanel();
     squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    btnSqueezeVolume = MultiLineButton
-        .getToggleButtonInstance("Squeeze Volume");
     btnSqueezeVolume.addActionListener(actionListener);
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
@@ -97,6 +98,21 @@ public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
     squeezeVolPanel2.add(btnImodSqueezedVolume);
     squeezeVolPanel.add(squeezeVolPanel2);
     return squeezeVolPanel.getContainer();
+  }
+
+  public static ProcessResultDisplay getSqueezeVolumeDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Squeeze Volume",
+        DialogType.POST_PROCESSING);
+  }
+
+  public static ProcessResultDisplay getTrimVolumeDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Trim Volume",
+        DialogType.POST_PROCESSING);
+  }
+
+  public void done() {
+    btnSqueezeVolume.removeActionListener(actionListener);
+    trimvolPanel.done();
   }
 
   /**
@@ -118,13 +134,9 @@ public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
   }
 
   public final void setParameters(ReconScreenState screenState) {
+    trimvolPanel.setParameters(screenState);
     btnSqueezeVolume.setButtonState(screenState.getButtonState(btnSqueezeVolume
-        .getButtonStateKey(dialogType)));
-  }
-
-  public final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(btnSqueezeVolume.getButtonStateKey(),
-        btnSqueezeVolume.getButtonState());
+        .getButtonStateKey()));
   }
 
   /**
@@ -288,6 +300,11 @@ public class PostProcessingDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2006/01/26 22:05:54  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.24  2006/01/03 23:42:56  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox
  * <p>
