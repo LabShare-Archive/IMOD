@@ -13,6 +13,8 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.CombineParams;
+import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
@@ -31,6 +33,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2006/01/26 22:04:59  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.22  2005/11/14 22:06:13  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
@@ -166,7 +173,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p>
  * <p> </p>
  */
-public class InitialCombinePanel implements ContextMenu, InitialCombineFields, Run3dmodButtonContainer {
+public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -178,26 +186,28 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnMatchcheck = new Run3dmodButton(
-    "<html><b>View Match Check Volume</b>", this);
-  private MultiLineButton btnRestart = MultiLineButton.getToggleButtonInstance(
-    "<html><b>Restart Combine</b>");
-  private MultiLineButton btnMatchvolRestart = MultiLineButton.getToggleButtonInstance(
-    "<html><b>Restart at Matchvol1</b>");
+      "<html><b>View Match Check Volume</b>", this);
+  private final MultiLineButton btnRestart;
+  private final MultiLineButton btnMatchvolRestart;
 
   /**
    * Default constructor
    * @param appMgr
    */
   public InitialCombinePanel(TomogramCombinationDialog parent,
-    ApplicationManager appMgr) {
+      ApplicationManager appMgr, DialogType dialogType) {
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
-
+    btnRestart = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartCombine();
+    btnMatchvolRestart = (MultiLineButton) appMgr
+        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchvol1();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
     //  Create the solvematch panel
     pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
-      TomogramCombinationDialog.lblInitial, appMgr, ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP);
+        TomogramCombinationDialog.lblInitial, appMgr,
+        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP);
 
     //  Layout the button panel
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
@@ -226,13 +236,17 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
   }
-  
-  ProcessResultDisplay getCombineProcessResultDisplay() {
-    return btnRestart;
+
+  public static ProcessResultDisplay getRestartCombineDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Restart Combine",
+        dialogType);
   }
-  
-  ProcessResultDisplay getMatchvol1ProcessResultDisplay() {
-    return btnMatchvolRestart;
+
+  public static ProcessResultDisplay getRestartMatchvol1Display(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Restart at Matchvol1",
+        dialogType);
   }
 
   public Container getContainer() {
@@ -241,7 +255,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
 
   public void setAdvanced(boolean state) {
   }
-  
+
   final void setVisible(boolean visible) {
     pnlSolvematch.setVisible(visible);
   }
@@ -261,23 +275,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
   public void getSolvematchParams(SolvematchParam solvematchParam) {
     pnlSolvematch.getParameters(solvematchParam);
   }
-  
+
   final void setParameters(ReconScreenState screenState) {
     btnRestart.setButtonState(screenState.getButtonState(btnRestart
         .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
-    btnMatchvolRestart.setButtonState(screenState.getButtonState(btnMatchvolRestart
-        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+    btnMatchvolRestart.setButtonState(screenState
+        .getButtonState(btnMatchvolRestart.getButtonStateKey()));
     btnRestart.setButtonState(screenState.getButtonState(btnRestart
-        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
-  }
-  
-  final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(btnRestart.getButtonStateKey(),
-        btnRestart.getButtonState());
-    screenState.setButtonState(btnMatchvolRestart.getButtonStateKey(),
-        btnMatchvolRestart.getButtonState());
-    screenState.setButtonState(btnRestart.getButtonStateKey(),
-        btnRestart.getButtonState());
+        .getButtonStateKey()));
   }
 
   /**
@@ -325,26 +330,26 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Solvematch", "Matchshifts"};
-    String[] manPage = {"solvematch.html", "matchshifts.html"};
-    String[] logFileLabel = {"Transferfid", "Solvematch"};
-    String[] logFile = {"transferfid.log", "solvematch.log"};
+    String[] manPagelabel = { "Solvematch", "Matchshifts" };
+    String[] manPage = { "solvematch.html", "matchshifts.html" };
+    String[] logFileLabel = { "Transferfid", "Solvematch" };
+    String[] logFile = { "transferfid.log", "solvematch.log" };
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-      "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
-      logFile, applicationManager);
+        "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel,
+        manPage, logFileLabel, logFile, applicationManager);
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnMatchcheck.getActionCommand())) {
       applicationManager.imodMatchCheck(menuOptions);
     }
   }
-  
+
   /**
    * Respond to button actions
    * @param event
@@ -352,7 +357,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
   protected void buttonAction(ActionEvent event) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
-      true);
+        true);
 
     String command = event.getActionCommand();
 
@@ -390,15 +395,15 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields, R
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
     text = "View the two volumes that are used for assessing whether Matchshifts "
-      + "found the correct shifts between the volumes.";
+        + "found the correct shifts between the volumes.";
     btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Restart the combine operation from the beginning with the parameters "
-      + "specified here.";
+        + "specified here.";
     btnRestart.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Resume and make first matching volume, despite a small displacement "
-      + "between the match check volumes";
+        + "between the match check volumes";
     btnMatchvolRestart.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
