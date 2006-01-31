@@ -19,6 +19,7 @@ interface DetachedProcessMonitor extends ProcessMonitor {
   
   public boolean isProcessRunning();
   public String getProcessOutputFileName();
+  public void setProcess(SystemProcessInterface process);
 }
 /**
  * Old log:
@@ -47,6 +48,15 @@ interface DetachedProcessMonitor extends ProcessMonitor {
  */
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/11/19 02:24:09  sueh
+* <p> bug# 744 Removing BackgroundComScriptMonitor.  Using
+* <p> DetachedProcessMonitor with both DetachedProcess and
+* <p> BackgroundComScriptProcess.  BackgroundComScriptProcess is also
+* <p> detached.  Detached monitors don't wait for interrupts so they need
+* <p> isProcessRunning().  The other functions in
+* <p> BackgroundComScriptMonitor are unnecessary.  Added
+* <p> setProcessOutputFileName() to DetachedProcessMonitor.
+* <p>
 * <p> Revision 1.1  2005/11/14 21:25:43  sueh
 * <p> bug# 744 An interface for monitors used with DetachedProcess.
 * <p> </p>

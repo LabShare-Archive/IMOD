@@ -80,6 +80,9 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
     debug = EtomoDirector.getInstance().isDebug();
     parallelProgressDisplay.setParallelProcessMonitor(this);
   }
+  
+  public void setProcess(SystemProcessInterface process) {
+  }
 
   public void run() {
     //make sure commmandsPipe is deleted and enable its use
@@ -391,6 +394,12 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/01/06 23:17:08  sueh
+ * <p> bug# 795 Fixed a bug in updateState where it ends the monitor as soon as
+ * <p> it sees an error message.  This means that the error messages popped
+ * <p> up to the user where incomplete.  When an error is found, collect all the
+ * <p> messages and then end the monitor.
+ * <p>
  * <p> Revision 1.15  2005/11/29 22:24:10  sueh
  * <p> bug# 744 Stop putting processchunks output into the error log, since its
  * <p> going into the .out file.
