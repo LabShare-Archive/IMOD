@@ -17,7 +17,10 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+
 /**
  * <p>Description: </p>
  * 
@@ -31,6 +34,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2006/01/04 00:05:47  sueh
+ * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted
+ * <p> JRadioButton's to RadioButton.
+ * <p>
  * <p> Revision 3.10  2005/11/14 22:35:38  sueh
  * <p> bug# 762 Made scaleAction().
  * <p>
@@ -117,9 +124,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 
-public class TrimvolPanel implements Run3dmodButtonContainer {
-  public static final String rcsid =
-    "$Id$";
+public final class TrimvolPanel implements Run3dmodButtonContainer {
+  public static final String rcsid = "$Id$";
 
   private ApplicationManager applicationManager;
 
@@ -136,35 +142,39 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
   private JPanel pnlScale = new JPanel();
   private JPanel pnlScaleFixed = new JPanel();
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
-  private RadioButton rbScaleFixed =
-    new RadioButton("Scale to match contrast  ");
+  private RadioButton rbScaleFixed = new RadioButton(
+      "Scale to match contrast  ");
   private LabeledTextField ltfFixedScaleMin = new LabeledTextField("black: ");
   private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" white: ");
 
-  private RadioButton rbScaleSection =
-    new RadioButton("Find scaling from sections  ");
+  private RadioButton rbScaleSection = new RadioButton(
+      "Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
-  private LabeledTextField ltfSectionScaleMax =
-    new LabeledTextField(" Z max: ");
+  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" Z max: ");
 
   private CheckBox cbSwapYZ = new CheckBox("Swap Y and Z dimensions");
 
   private JPanel pnlButton = new JPanel();
-  private Run3dmodButton btnImodFull = new Run3dmodButton("<html><b>3dmod Full Volume</b>", this);
-  private MultiLineButton btnTrimvol = new MultiLineButton("<html><b>Trim Volume</b>");
-  private Run3dmodButton btnImodTrim =
-    new Run3dmodButton("<html><b>3dmod Trimmed Volume</b>", this);
-  private MultiLineButton btnGetCoordinates =
-    new MultiLineButton("Get XY Volume Range From 3dmod");
+  private Run3dmodButton btnImodFull = new Run3dmodButton(
+      "<html><b>3dmod Full Volume</b>", this);
+  private final MultiLineButton btnTrimvol;
+  private Run3dmodButton btnImodTrim = new Run3dmodButton(
+      "<html><b>3dmod Trimmed Volume</b>", this);
+  private MultiLineButton btnGetCoordinates = new MultiLineButton(
+      "Get XY Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
+  private final DialogType dialogType;
+  private final ButtonListener buttonActonListener;
 
   /**
    * Default constructor
    */
-  public TrimvolPanel(ApplicationManager appMgr) {
-
+  public TrimvolPanel(ApplicationManager appMgr, DialogType dialogType) {
     applicationManager = appMgr;
+    this.dialogType = dialogType;
+    btnTrimvol = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getTrimVolume();
 
     //  Set the button sizes
     btnImodFull.setSize();
@@ -241,7 +251,7 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     rbScaleSection.addActionListener(ScalingListener);
     cbConvertToBytes.addActionListener(ScalingListener);
 
-    ButtonListener buttonActonListener = new ButtonListener(this);
+    buttonActonListener = new ButtonListener(this);
     btnImodFull.addActionListener(buttonActonListener);
     btnTrimvol.addActionListener(buttonActonListener);
     btnImodTrim.addActionListener(buttonActonListener);
@@ -303,20 +313,25 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
     if (rbScaleFixed.isSelected()) {
       trimvolParam.setFixedScaling(true);
-      trimvolParam.setFixedScaleMin(
-        Integer.parseInt(ltfFixedScaleMin.getText()));
-      trimvolParam.setFixedScaleMax(
-        Integer.parseInt(ltfFixedScaleMax.getText()));
+      trimvolParam.setFixedScaleMin(Integer
+          .parseInt(ltfFixedScaleMin.getText()));
+      trimvolParam.setFixedScaleMax(Integer
+          .parseInt(ltfFixedScaleMax.getText()));
     }
     else {
       trimvolParam.setFixedScaling(false);
-      trimvolParam.setSectionScaleMin(
-        Integer.parseInt(ltfSectionScaleMin.getText()));
-      trimvolParam.setSectionScaleMax(
-        Integer.parseInt(ltfSectionScaleMax.getText()));
+      trimvolParam.setSectionScaleMin(Integer.parseInt(ltfSectionScaleMin
+          .getText()));
+      trimvolParam.setSectionScaleMax(Integer.parseInt(ltfSectionScaleMax
+          .getText()));
     }
   }
-  
+
+  public void setParameters(ReconScreenState screenState) {
+    btnTrimvol.setButtonState(screenState.getButtonState(btnTrimvol
+        .getButtonStateKey()));
+  }
+
   public void setXYMinAndMax(Vector coordinates) {
     if (coordinates == null) {
       return;
@@ -327,9 +342,8 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     }
     int index = 0;
     while (index < size) {
-      if (ImodProcess
-        .RUBBERBAND_RESULTS_STRING
-        .equals((String) coordinates.get(index++))) {
+      if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates
+          .get(index++))) {
         ltfXMin.setText((String) coordinates.get(index++));
         if (index >= size) {
           return;
@@ -342,8 +356,8 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
         if (index >= size) {
           return;
         }
-        ltfYMax.setText((String) coordinates.get(index++));   
-        return;     
+        ltfYMax.setText((String) coordinates.get(index++));
+        return;
       }
     }
   }
@@ -356,12 +370,12 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
 
     rbScaleFixed.setEnabled(cbConvertToBytes.isSelected());
     rbScaleSection.setEnabled(cbConvertToBytes.isSelected());
-    boolean fixedState =
-      cbConvertToBytes.isSelected() && rbScaleFixed.isSelected();
+    boolean fixedState = cbConvertToBytes.isSelected()
+        && rbScaleFixed.isSelected();
     ltfFixedScaleMin.setEnabled(fixedState);
     ltfFixedScaleMax.setEnabled(fixedState);
-    boolean scaleState =
-      cbConvertToBytes.isSelected() && rbScaleSection.isSelected();
+    boolean scaleState = cbConvertToBytes.isSelected()
+        && rbScaleSection.isSelected();
     ltfSectionScaleMin.setEnabled(scaleState);
     ltfSectionScaleMax.setEnabled(scaleState);
   }
@@ -373,11 +387,11 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
   protected void scaleAction(ActionEvent event) {
     setScaleState();
   }
-  
+
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command == btnImodFull.getActionCommand()) {
       applicationManager.imodCombinedTomogram(menuOptions);
@@ -390,16 +404,19 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnTrimvol.getActionCommand()) {
-      applicationManager.trimVolume();
+      applicationManager.trimVolume(btnTrimvol);
     }
     if (command == btnGetCoordinates.getActionCommand()) {
-      setXYMinAndMax(
-        applicationManager.imodGetRubberbandCoordinates(
+      setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
           ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
-    } 
+    }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
+  }
+
+  void done() {
+    btnTrimvol.removeActionListener(buttonActonListener);
   }
 
   private void cbConvertToBytesAction(ActionEvent event) {
@@ -412,6 +429,7 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     ltfSectionScaleMin.setEnabled(state);
     ltfSectionScaleMax.setEnabled(state);
   }
+
   /**
    * An inner class to manage the scale controls 
    */
@@ -438,9 +456,10 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
       listenee.buttonAction(event);
     }
   }
+
   /**
-  * Initialize the tooltip text
-  */
+   * Initialize the tooltip text
+   */
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
@@ -469,18 +488,15 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     text = "Set the scaling to match the contrast in a 3dmod display.";
     rbScaleFixed.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Enter the black contrast slider setting (0-254) that gives the desired "
+    text = "Enter the black contrast slider setting (0-254) that gives the desired "
         + "contrast.";
     ltfFixedScaleMin.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Enter the white contrast slider setting (1-255) that gives the desired "
+    text = "Enter the white contrast slider setting (1-255) that gives the desired "
         + "contrast.";
     ltfFixedScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Set the scaling based on the range of contrast in a subset of sections. "
+    text = "Set the scaling based on the range of contrast in a subset of sections. "
         + "Exclude sections with extreme densities that can be truncated (gold "
         + "particles).";
     rbScaleSection.setToolTipText(tooltipFormatter.setText(text).format());
@@ -491,19 +507,18 @@ public class TrimvolPanel implements Run3dmodButtonContainer {
     text = "Maximum Z section of the subset to analyze for contrast range.";
     ltfSectionScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "Flip Y and Z in the output volume so that the file does not need to be "
+    text = "Flip Y and Z in the output volume so that the file does not need to be "
         + "flipped when loaded into 3dmod.";
     cbSwapYZ.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "View the original, untrimmed volume in 3dmod.";
     btnImodFull.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text =
-      "After pressing the 3dmod Full Volume button, press shift-B in the "
+    text = "After pressing the 3dmod Full Volume button, press shift-B in the "
         + "ZaP window.  Create a rubberband around the volume range.  Then "
         + "press this button to retrieve X and Y coordinates.";
-    this.btnGetCoordinates.setToolTipText(tooltipFormatter.setText(text).format());
+    this.btnGetCoordinates.setToolTipText(tooltipFormatter.setText(text)
+        .format());
 
     text = "Trim the original volume with the parameters given above.";
     btnTrimvol.setToolTipText(tooltipFormatter.setText(text).format());
