@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.util.Vector;
+
 /**
  * <p>Description: </p>
  * 
@@ -17,6 +19,10 @@ public final class ProcessResultDisplayState {
   public static final String rcsid = "$Id$";
 
   private final ProcessResultDisplay display;
+
+  private Vector followingDisplayList = null;
+  private Vector failureDisplayList = null;
+  private Vector successDisplayList = null;
 
   public ProcessResultDisplayState(ProcessResultDisplay display) {
     this.display = display;
@@ -57,6 +63,8 @@ public final class ProcessResultDisplayState {
       return;
     }
     display.setProcessDone(true);
+    setProcessDone(false, followingDisplayList);
+    setProcessDone(true, successDisplayList);
     processRunning = false;
   }
 
@@ -69,7 +77,25 @@ public final class ProcessResultDisplayState {
       return;
     }
     display.setProcessDone(false);
+    setProcessDone(false, followingDisplayList);
+    setProcessDone(false, failureDisplayList);
     processRunning = false;
+  }
+
+  /**
+   * sets process done in the ProcessResultDisplay's in displays
+   * @param done
+   * @param displays
+   */
+  private final void setProcessDone(boolean done, Vector displays) {
+    if (displays == null) {
+      return;
+    }
+    for (int i = 0; i < displays.size(); i++) {
+      ProcessResultDisplay display = (ProcessResultDisplay) displays.get(i);
+      display.setProcessDone(done);
+      display.setOriginalState(done);
+    }
   }
 
   /**
@@ -88,6 +114,36 @@ public final class ProcessResultDisplayState {
       display.setProcessDone(originalState);
       processRunning = false;
     }
+  }
+
+  public final void addFollowingDisplay(ProcessResultDisplay followingDisplay) {
+    if (followingDisplay == null) {
+      return;
+    }
+    if (followingDisplayList == null) {
+      followingDisplayList = new Vector();
+    }
+    followingDisplayList.add(followingDisplay);
+  }
+
+  public final void addFailureDisplay(ProcessResultDisplay failureDisplay) {
+    if (failureDisplay == null) {
+      return;
+    }
+    if (failureDisplayList == null) {
+      failureDisplayList = new Vector();
+    }
+    failureDisplayList.add(failureDisplay);
+  }
+
+  public final void addSuccessDisplay(ProcessResultDisplay successDisplay) {
+    if (successDisplay == null) {
+      return;
+    }
+    if (successDisplayList == null) {
+      successDisplayList = new Vector();
+    }
+    successDisplayList.add(successDisplay);
   }
 
   /**
@@ -112,5 +168,10 @@ public final class ProcessResultDisplayState {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/01/26 21:59:31  sueh
+ * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
+ * <p> functionality into ProcessResultDisplayState.  This allows a greater
+ * <p> variety of classes to be ProcessResultDisplay's.
+ * <p> </p>
  */
