@@ -32,14 +32,16 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
  * @author $Author$
@@ -47,6 +49,11 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2006/01/26 22:08:37  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.33  2006/01/03 23:59:36  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.
  * <p>
@@ -295,9 +302,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       parallelProcessCheckBoxText = ParallelPanel.TITLE;
     }
     // Instantiate the tab pane contents
-    pnlSetup = new SetupCombinePanel(this, applicationManager);
-    pnlInitial = new InitialCombinePanel(this, applicationManager);
-    pnlFinal = new FinalCombinePanel(this, applicationManager);
+    pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
+    pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType);
+    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType);
 
     fixRootPanel(rootSize);
 
@@ -326,8 +333,33 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
   }
+  
+  public static ProcessResultDisplay getCombineDisplay() {
+    return SetupCombinePanel.getCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
+  }
+  
+  public static ProcessResultDisplay getRestartCombineDisplay() {
+    return InitialCombinePanel.getRestartCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
+  }
+  
+  public static ProcessResultDisplay getRestartMatchvol1Display() {
+    return InitialCombinePanel.getRestartMatchvol1Display(DialogType.TOMOGRAM_COMBINATION);
+  }
+  
+  public static ProcessResultDisplay getRestartPatchcorrDisplay() {
+    return FinalCombinePanel
+        .getRestartPatchcorrDisplay(DialogType.TOMOGRAM_COMBINATION);
+  }
+  
+  public static ProcessResultDisplay getRestartMatchorwarpDisplay() {
+    return FinalCombinePanel.getRestartMatchorwarpDisplay(DialogType.TOMOGRAM_COMBINATION);
+  }
 
-  static final CheckBox getParallelProcessCheckBox() {
+  public static ProcessResultDisplay getRestartVolcombineDisplay() {
+    return FinalCombinePanel.getRestartVolcombineDisplay(DialogType.TOMOGRAM_COMBINATION);
+  }
+  
+  static CheckBox getParallelProcessCheckBox() {
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
         ProcessName.VOLCOMBINE);
     CheckBox parallelProcessCheckBox;
@@ -371,12 +403,12 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlInitial.setSolvematchParams(solvematchParams);
   }
 
-  public final void getParameters(ParallelParam param) {
+  public void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     pnlFinal.getParameters(processchunksParam);
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(ReconScreenState screenState) {
     pnlSetup.setParameters(screenState);
     pnlInitial.setParameters(screenState);
     pnlFinal.setParameters(screenState);
@@ -384,7 +416,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public void getParameters(ReconScreenState screenState) {
     pnlSetup.getParameters(screenState);
-    pnlInitial.getParameters(screenState);
     pnlFinal.getParameters(screenState);
   }
 
@@ -405,22 +436,22 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     }
   }
 
-  public final void getParameters(MetaData metaData) {
+  public void getParameters(MetaData metaData) {
     synchronize(lblSetup, false);
     pnlSetup.getParameters(metaData);
   }
 
-  public final void setParameters(ConstMetaData metaData) {
+  public void setParameters(ConstMetaData metaData) {
     pnlSetup.setParameters(metaData);
     synchronize(lblSetup, true);
     updateParallelProcess();
   }
 
-  final void updateParallelProcess() {
+  void updateParallelProcess() {
     applicationManager.setParallelDialog(axisID, this);
   }
 
-  public final boolean isParallel() {
+  public boolean isParallel() {
     synchronize(lblFinal, false);
     return pnlSetup.isParallel();
   }
@@ -648,7 +679,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     idxLastTab = tabbedPane.getSelectedIndex();
   }
 
-  final void setVisible(String showTabTitle) {
+  void setVisible(String showTabTitle) {
     if (showTabTitle.equals(lblSetup)) {
       pnlSetup.setVisible(true);
       pnlInitial.setVisible(false);
