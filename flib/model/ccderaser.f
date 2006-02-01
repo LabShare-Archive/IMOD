@@ -46,7 +46,7 @@ c
       character dat*9, tim*8
 c       
       integer*4 mode,imfilout,i,j,nobjdoall,nobjline,nborder,iorder
-      integer*4 ifincadj,iobj,ibase,itype,imodobj,imodcont,ip,ipt
+      integer*4 ifincadj,iobj,ibase,itype,imodobj,imodcont,ip,ipt,jtype,jobj
       real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
       real*4 zmin,zmax,xmin,xmax,ymin,ymax
       integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj
@@ -57,6 +57,8 @@ c
       real*4 scanOverlap, annulusWidth, radSq
       integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels,ifTouch
       integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch,ifGrew
+      integer*4 jp1,jp2,jx1,jx2,jy1,jy2,iborder, iBordLo, iBordHi, idir,jbase
+      logical nearby
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -283,8 +285,8 @@ c
      &            imodcont, ' is supposed to be a line and ',
      &            ' is not in one Z-plane'
               call exit(1)
-            elseif(nint(p_coord(1,ip1)).ne.nint(p_coord(1,ip2)).and.
-     &            nint(p_coord(2,ip1)).ne.nint(p_coord(2,ip2))) then
+            elseif(nint(p_coord(1,ip1)+0.5).ne.nint(p_coord(1,ip2)+0.5).and.
+     &            nint(p_coord(2,ip1)+0.5).ne.nint(p_coord(2,ip2)+0.5)) then
               print *,'ERROR: CCDERASER - object',imodobj,', contour',
      &            imodcont, ' is supposed to be a line and ',
      &            'is not horizontal or vertical'
@@ -354,12 +356,63 @@ c
                 linefix=linefix+1
                 ip1=object(ibase+1)
                 ip2=object(ibase+2)
-                ix1=p_coord(1,ip1)+1.01
-                ix2=p_coord(1,ip2)+1.01
-                iy1=p_coord(2,ip1)+1.01
-                iy2=p_coord(2,ip2)+1.01
-                call cleanline(array,nx,ny,ix1,iy1,ix2,iy2)
+                ix1=nint(p_coord(1,ip1)+0.5)
+                ix2=nint(p_coord(1,ip2)+0.5)
+                iy1=nint(p_coord(2,ip1)+0.5)
+                iy2=nint(p_coord(2,ip2)+0.5)
+c                 
+c                 Check against other lines to determine borders.  First look
+c                 for lines below, then for lines above
+c
+                do idir = -1, 1, 2
+                  iBordLo = iBorder
+                  iborder = 0
+                  nearby = .true.
+c                   
+c                   Look for adjacent lines then ones next farther out, until
+c                   find no lines with overlap in the other coordinate
+c
+                  do while (iborder .le. 5 .and. nearby)
+                    nearby = .false.
+                    iborder = iborder + 1
+                    do jobj = numObjOrig,1,-1
+                      if(npt_in_obj(jobj).gt.0)then
+                        jbase=ibase_obj(jobj)
+                        jtype = 256-obj_color(2,jobj)
+                        if(typeonlist(jtype,iobjline,nobjline))then
+                          if(nint(p_coord(3,object(jbase+1))).eq.izsect .or.
+     &                        typeonlist(jtype,iobjdoall,nobjdoall)) then
+                            jp1=object(jbase+1)
+                            jp2=object(jbase+2)
+                            jx1=nint(p_coord(1,jp1)+0.5)
+                            jx2=nint(p_coord(1,jp2)+0.5)
+                            jy1=nint(p_coord(2,jp1)+0.5)
+                            jy2=nint(p_coord(2,jp2)+0.5)
+c                             
+c                             Check if line is on the line in question and
+c                             check endpoints for overlap
+c
+
+                            if ((iy1 .eq. iy2 .and. jy1 .eq. jy2 .and.
+     &                          jy1 .eq.iy1 + idir * iborder .and.
+     &                          .not. (max(jx1, jx2) .lt. min(ix1, ix2) .or.
+     &                          min(jx1, jx2) .gt. max(ix1, ix2))) .or.
+     &                          (ix1 .eq. ix2 .and. jx1 .eq. jx2 .and.
+     &                          jx1 .eq.ix1 + idir * iborder .and.
+     &                          .not.(max(jy1, jy2) .lt. min(iy1, iy2) .or.
+     &                          min(jy1, jy2) .gt. max(iy1, iy2))))
+     &                          nearby = .true.
+                          endif
+                        endif
+                      endif
+                    enddo
+                  enddo
+                enddo
+                iBordHi = iBorder
+                print *,ix1,iy1,ix2,iy2, iBordLo, iBordHi
+                call cleanline(array,nx,ny,ix1,iy1,ix2,iy2, iBordLo, iBordHi)
               endif
+
             elseif(nint(p_coord(3,object(ibase+1))).eq.izsect .or.
      &            typeonlist(itype,iobjdoall,nobjdoall))then
               ninobj=min(npt_in_obj(iobj), limpatch)
@@ -970,30 +1023,18 @@ c
 c       CLEANLINE replaces points along a line with points from adjacent
 c       lines
 c       
-      subroutine cleanline(array,ixdim,iydim,ix1,iy1,ix2,iy2)
+      subroutine cleanline(array,ixdim,iydim,ix1,iy1,ix2,iy2,iBordLo,iBordHi)
       implicit none
-      integer*4 ixdim,iydim,ix1,ix2,iy1,iy2
+      integer*4 ixdim,iydim,ix1,ix2,iy1,iy2,iBordLo,iBordHi
       real*4 array(ixdim,iydim)
       integer*4 miny,maxy,iy,ix,minx,maxx
       if (ix1.eq.ix2)then
-        miny=iy1
-        maxy=iy2
-        if(maxy.lt.miny)then
-          miny=iy2
-          maxy=iy1
-        endif
-        do iy=miny,maxy
-          array(ix1,iy)=(array(ix1-1,iy)+array(ix1+1,iy))/2.
+        do iy=min(iy1,iy2),max(iy1,iy2)
+          array(ix1,iy)=(array(ix1-iBordLo,iy)+array(ix1+iBordHi,iy))/2.
         enddo
       else
-        minx=ix1
-        maxx=ix2
-        if(maxx.lt.minx)then
-          minx=ix2
-          maxx=ix1
-        endif
-        do ix=minx,maxx
-          array(ix,iy1)=(array(ix,iy1-1)+array(ix,iy1+1))/2.
+        do ix=min(ix1,ix2),max(ix1,ix2)
+          array(ix,iy1)=(array(ix,iy1-iBordLo)+array(ix,iy1+iBordHi))/2.
         enddo
       endif
       return
@@ -1162,6 +1203,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.19  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.18  2005/12/07 18:07:11  mast
 c       Added patches to output model after each slice, thus allowing the
 c       biggest possible output without more huge arrays, and added option
