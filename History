@@ -2,6 +2,8 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2/3/06: Fixed linklibs-mac for new library. (In 3.7)
 
+2/3/06: Fixed running tomosnapshot from eTomo under Windows. (In 3.7)
+
 1/31/06: Made Ccderaser handle adjacent lines correctly.
 
 1/30/06: IMOD_3-7-3 released
