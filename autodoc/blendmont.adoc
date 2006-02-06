@@ -130,8 +130,28 @@ If -gradient has
 not been entered, the values entered here will be used for all sections; but in
 this case the -tilt option must be entered to provide additional information.
 
+[Field = TiltFile]
+short = tiltfile
+type = FN
+usage = File with tilt angles only (used if no mag gradient file)
+tooltip = 
+manpage = Name of file with tilt angles, one per line.  These angles will be
+used in computing mag gradients, only if there is no
+mag gradient file to supply the tilt angles.
+
+[Field = OffsetTilts]
+short = offset
+type = F
+usage = Add given value to tilt angles from gradient or tilt file
+tooltip =
+manpage = Add the given value to the tilt angles from the gradient file or the
+tilt file.
+Sometimes the gradient that gives the lowest error in registering the pieces
+will differ between the positive and negative side of the tilt series.  This
+entry can be used to give a better overall error reduction.
+
 [Field = TiltGeometry]
-short = tilt
+short = geometry
 type = FT
 usage = Specify pixel size, tilt axis rotation angle, and tilt angle
 tooltip =

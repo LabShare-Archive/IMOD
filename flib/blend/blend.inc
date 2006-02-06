@@ -87,10 +87,11 @@ c
 	real*4 pixelMagGrad, axisRot
 	real*4 tiltAngles(limsect), dmagPerUm(limsect), rotPerUm(limsect)
 	integer*4 ixFieldStrt, iyFieldStrt, nxField, nyField, numMagGrad
+        integer*4 numAngles
 	real*4 xFieldIntrv, yFieldIntrv
 	common /distrt/ doFields,undistort,doMagGrad,focusAdjusted,
      &	    doingEdgeFunc,pixelMagGrad, axisRot,ixFieldStrt, iyFieldStrt,
-     &	    nxField, nyField, numMagGrad,xFieldIntrv, yFieldIntrv,
+     &	    nxField, nyField, numMagGrad,numAngles,xFieldIntrv, yFieldIntrv,
      &	    distDx,distDy,fieldDx,fieldDy,tiltAngles,dmagPerUm,rotPerUm
 
 	integer*4 ifDumpXY(2),nzOutXY(2),ipcBelowEdge
