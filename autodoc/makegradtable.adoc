@@ -1,0 +1,127 @@
+Version = 1.0
+Pip = 1
+[Field = FindgradFile]
+short = findgrad
+type = FN
+usage = Input file with output from Findgradient
+tooltip = 
+manpage = 
+
+[Field = TransformFile]
+short = xffile
+type = FN
+usage = Input file with transforms for image pairs from stage moves in Z
+tooltip = 
+manpage = 
+
+[Field = IntensityFile]
+short = intensity 
+type = FN
+usage = File with intensity values from extracttilts -int
+tooltip = 
+manpage = 
+
+[Field = OutputTable]
+short = output
+type = FN
+usage = Output file for mag gradient table
+tooltip = 
+manpage = Output file for mag gradient table.  If this option is not entered,
+the first non-option argument will be taken as the name of the output file.
+
+[Field = RawOutput]
+short = raw
+type = FN
+usage = Output file for raw, smoothed, and extrapolated data
+tooltip = 
+manpage = Output file for raw, smoothed, and extrapolated data.  If this
+option is not entered, the same data will be printed to stadard output.  
+The columns in this output are: a type identifier (1 for measured and 2 for
+extrapolated data), intensity, transformed intensity, the raw and smoothed
+percent magnification change per micron, and the raw and smoothed degrees of
+rotation per micron.
+
+[Field = CrossoverIntensity]
+short = crossover 
+type = F
+usage = Intensity value at crossover (required)
+tooltip = 
+manpage = 
+
+[Field = MicronsMoved]
+short = microns
+type = F
+usage = Number of microns of stage movement in Z (default 10)
+tooltip = 
+manpage = 
+
+[Field = SmoothMags]
+short = msmooth
+type = B
+usage = Smooth magnification changes with linear fits
+tooltip = 
+manpage = 
+
+[Field = SmoothRotations]
+short = rsmooth
+type = B
+usage = Smooth rotation changes with linear fits
+tooltip = 
+manpage = 
+
+[Field = MaxInFitForSmoothing]
+short = sfit
+type = IP
+usage = Max number of points in fits for smoothing mags and rotations
+tooltip = 
+manpage = Maximum number of points in fits for smoothing mags and rotations.
+If one of these values is 0, a line will be fit to all points on one side of
+crossover and the smoothed values will be the values in this line.  Otherwise,
+for each point, a line is fit to the nearest points up to this maximum number,
+and the value of the line is used as the smoothed value at that intensity.
+The default is 5 for magnifications and 0 for rotations.
+
+[Field = MaxInFitForExtrapolation]
+short = efit 
+type = IP
+usage = Max number of points in fits for extrapolating mags and rotations
+tooltip = 
+manpage = Maximum number of points in fits for extrapolating mags and
+rotations.  With the default values of 0, a line will be fit to all points on
+one side of crossover and the line will be extrapolated both toward crossover
+and to more extreme intensities.  Otherwise, a line will be fit to the given
+number of points at the end of the curve, and this line will be used to find
+the extrapolated value at that end of the curve.
+
+[Field = ExtremesForExtrapolation]
+short = extremes
+type = FP
+usage = Extreme values to extrapolate to (default 0.2 and 0.8)
+tooltip = 
+manpage = 
+
+[Field = DistanceFromCrossover]
+short = distance
+type = F
+usage = Relative distance from crossover to extrapolate to (default 0.5)
+tooltip = 
+manpage = Use this entry to specify how close to crossover to extrapolate the
+curves to.  The number is expressed as a fraction of the distance from
+crossover to the last measured intensity on the particular side of crossover,
+where the intensities are transformed as given above.  Typically, with the
+default fraction of 0.5, the extrapolated gradient will be twice what it is at
+the last measured intensity.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output.

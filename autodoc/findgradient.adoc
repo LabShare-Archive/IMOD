@@ -1,0 +1,170 @@
+Version = 1.0
+Pip = 1
+[Field = ImageInputFile]
+short = imin
+type = FN
+usage = Montaged image input file to be analyzed
+tooltip = 
+manpage = 
+
+[Field = PieceListInput]
+short = plin
+type = FN
+usage = File with list of piece coordinates for image input file
+tooltip = 
+manpage = File with list of piece coordinates for image input file.
+
+[Field = RootNameForFiles]
+short = rootname
+type = CH
+usage = Root name for temporary files
+tooltip = 
+manpage = Root name for temporary files.  The program will append -fg and the
+starting and ending section numbers to create the full root name.  This name
+is used for the input parameter file (.param), files for image output and text
+output from Blendmont (.imtmp and .out), and the files created by Blendmont
+for edge functions (.xef, .yef) and edge correlations (.ecd).
+
+[Field = DistortionField]
+short = distort
+type = FN
+usage = Image distortion field file to use for undistorting images
+tooltip = 
+manpage = Image distortion field file to use for undistorting images.  The 
+undistortion is applied when computing edge functions.
+
+[Field = ImagesAreBinned]
+short = imagebinned
+type = I
+usage = The current binning of the images
+tooltip = 
+manpage = The current binning of the images, so that the image distortion
+field can be applied correctly.  This entry is required when doing image
+distortion corrections unless
+the program can determine the binning unambiguously from the image size.
+
+[Field = GradientFile]
+short  = gradient
+type = FN
+usage = File with base magnification gradients for each image
+tooltip = 
+manpage = File with magnification gradients for each section; the minimization
+will determine the amounts to be added to these gradients.
+This should be a file listing the tilt angle, the percent magnification change
+per micron of Z height, and the degrees of rotation per micron of Z height
+for each section, such as is produced by Extractmaggrad.
+
+[Field = AdjustedFocus]
+short = adjusted
+type = B
+usage = Focus was adjusted for changing Z height when montage was acquired
+tooltip = 
+manpage = 
+
+[Field = AddToGradient]
+short = addgrad
+type = FP
+usage = Starting values for the mag and rotation gradients
+tooltip =
+manpage = This option provides starting values for the minimization.
+The magnification gradient correction is specified by
+two parameters: % of mag change per micron of Z height, and degrees of
+rotation per micron of Z height.  If -gradient has been entered, the values
+entered here will be treated as incremental to the values in the gradient file
+for each section.  If -gradient has not been entered, the values entered here
+will be used for all sections; but in this case the -geometry option must be
+entered to provide additional information.
+
+[Field = TiltGeometry]
+short = geometry
+type = FT
+usage = Specify pixel size, tilt axis rotation angle, and tilt angle
+tooltip =
+manpage = This entry 
+can be used in place of a gradient file to specify the 
+pixel size in nanometers, tilt axis rotation angle, and tilt angle to be used
+for the gradient computation.  The entry has no effect if a gradient file is
+provided.
+
+[Field = TiltFile]
+short = tiltfile
+type = FN
+usage = File with tilt angles only (used if no mag gradient file)
+tooltip = 
+manpage = Name of file with tilt angles, one per line.  These angles will be
+used only if there is no
+mag gradient file to supply the tilt angles.
+
+[Field = OffsetTilts]
+short = offset
+type = F
+usage = Add given value to tilt angles from gradient or tilt file
+tooltip =
+manpage = Add the given value to the tilt angles from the gradient file or the
+tilt file.  For a search of 1 or 3 parameters, this value will be used as the
+starting value for finding the best offset.
+
+[Field = SectionsToDo]
+short = sections
+type = LI
+usage = Sections on which to minimize overlap errors
+tooltip = 
+manpage = List of sections on which to minimize overlap errors; comma-separated
+ranges are allowed.  The mean error over all of these sections will be
+minimized unless the -separate option is included, in which case the procedure
+is run separately on each section.
+
+[Field = RunSeparately]
+short = separate
+type = B
+usage = Run minimization separately on each section
+tooltip = 
+manpage = Run minimization separately on each section, instead of combining
+the errors from all sections.  With this option, the list of sections must be 
+specified with -sections.
+
+[Field = SearchType]
+short = search
+type = I
+usage = 1/-1 to find tilt offset, 2/-2 to find gradient, 3 to find both
+tooltip = 
+manpage = Enter 1 or -1 to find just the tilt offset with a fixed mag
+gradient, 2 or -2 to find the mag gradient with a fixed tilt offset, and 3 to
+find both the mag gradient and the best tilt offset.  The latter should be
+used only when multiple sections with a big difference in their tilt angles
+are searched together (not separately).  The positive values do a search with
+a simplex algorithm.  Use -2 to find gradients with a routine that uses an
+estimated gradient from Blendmont to modify the gradient until it converges.
+This method is faster and seems to be slightly more reliable.
+Use -1 to search for the tilt offset with a simple routine that is faster
+and probably as reliable as the simplex routine.
+
+[Field = TraceOutput]
+short = trace
+type = I
+usage = Output values during minimization: 1 for minima, 2 for all values
+tooltip = 
+manpage = 
+
+[Field = BlendOption]
+short = blend
+type = CHM
+usage = Option and value to pass to Blendmont
+tooltip = 
+manpage = Option and value to pass to Blendmont.  This option will be added
+the end of the .param file.  There is no check for whether options entered
+this way conflict with the options placed into the .param file by findgradient.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output.
