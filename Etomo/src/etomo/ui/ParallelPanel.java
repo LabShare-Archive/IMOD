@@ -29,6 +29,7 @@ import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.util.HashedArray;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -228,7 +229,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     validAutodoc = new EtomoBoolean2();
     Autodoc autodoc = getAutodoc(axisID);
-    if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)) {
+    if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)
+        && !Utilities.isWindowsOS()) {
       validAutodoc.set(true);
     }
     return validAutodoc.is();
@@ -463,6 +465,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2006/01/26 22:05:38  sueh
+ * <p> bug# 401 Added processResultDisplay parameters to all the functions associated
+ * <p> with toggle buttons.
+ * <p>
  * <p> Revision 1.29  2006/01/12 17:16:20  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
