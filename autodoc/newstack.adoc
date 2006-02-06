@@ -243,6 +243,17 @@ manpage = The current binning of the images, so that the distortion field can
 be applied correctly.  This entry is required unless
 the program can determine the binning unambiguously from the image size.
 
+[Field = UseFields]
+short = fields
+type = LIM
+usage = List of distortion fields to apply, numbered from 0.
+tooltip = 
+manpage = A list of the distortion fields to apply for each section (numbered
+from 0).  Ranges are allowed.  The default is for the field numbers to match
+the input section numbers, unless there is only one field in the file.  To
+have a single field applied to all of the sections, just enter a single
+number.
+
 [Field = GradientFile]
 short  = gradient
 type = FN
