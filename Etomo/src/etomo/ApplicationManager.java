@@ -578,7 +578,6 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      preProcDialog.getParameters(getScreenState(axisID));
       updateEraserCom(axisID, false);
       // If there are raw stack imod processes open ask the user if they
       // should be closed.
@@ -698,13 +697,14 @@ public class ApplicationManager extends BaseManager {
    * Run CCDeraser in trial mode
    * @param axisID
    */
-  public void findXrays(AxisID axisID) {
+  public void findXrays(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+    sendMsgProcessStarting(processResultDisplay);
     updateEraserCom(axisID, true);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
-      threadName = processMgr.eraser(axisID, null);
+      threadName = processMgr.eraser(axisID, processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1151,7 +1151,6 @@ public class ApplicationManager extends BaseManager {
       if (!updateFiducialessParams(coarseAlignDialog, axisID)) {
         return;
       }
-      coarseAlignDialog.getParameters(getScreenState(axisID));
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
         mainPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
@@ -1780,7 +1779,6 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      fiducialModelDialog.getParameters(getScreenState(axisID));
       fiducialModelDialog.getTransferFidParams();
       //  Get the user input data from the dialog box
       if (!updateTrackCom(axisID)) {
@@ -2297,7 +2295,6 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      fineAlignmentDialog.getParameters(getScreenState(axisID));
       //  Get the user input data from the dialog box
       if (updateAlignCom(axisID) == null) {
         return;
@@ -2714,7 +2711,6 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      tomogramPositioningDialog.getParameters(getScreenState(axisID));
       //  Get all of the parameters from the panel
       if (updateAlignCom(tomogramPositioningDialog, axisID) == null) {
         return;
@@ -6082,6 +6078,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.207  2006/01/31 20:36:04  sueh
+ * <p> bug# 521 Calling BaseManager.doneProcessDialogin all done functions.
+ * <p>
  * <p> Revision 3.206  2006/01/26 21:37:48  sueh
  * <p> bug# 401 Added PRocessResultDisplay parameters to the functions called
  * <p> by toggle buttons.
