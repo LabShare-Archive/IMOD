@@ -474,16 +474,20 @@ switch ($beadrad)
     case 0.*:
     case 1.*:
     case 2.*:
+        set eraserad = "1.1"
     case 3.*:
     case 4.*:
 	set boxsize = "32"
+        set eraserad = "2.1"
 	breaksw
     case 5.*:
     case 6.*:
 	set boxsize = "40"
+        set eraserad = "2.6"
 	breaksw
     default:
 	set boxsize = "48"
+        set eraserad = "3.6"
 	breaksw
 endsw
 
@@ -743,7 +747,9 @@ while ($iaxis < $numax)
 	    set dstfile = "eraser"$dstext
 	    set backuplist = ($backuplist $dstfile $setname.erase)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
-	    sed -e s/$srcname/$dstname/g <$srcfile >$dstfile
+	    sed -e s/$srcname/$dstname/g \
+                -e "s/^MaximumRadius.*/MaximumRadius   $eraserad/" \
+                <$srcfile >$dstfile
 	endif
 
 
@@ -1356,6 +1362,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.44  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.43  2005/10/28 04:32:49  mast
 #  Fixed error in testing for non-entered pixel size, and added a useless
 #  sending of pixel size to extractmagrad when header has none.
