@@ -45,7 +45,9 @@ public final class TomosnapshotParam implements Command {
   
   private final void buildCommand() {
     ArrayList command = new ArrayList();
-    command.add(COMMAND_NAME);
+    command.add("tcsh");
+    command.add("-f");
+    command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     command.add("-e");
     command.add(manager.getBaseMetaData().getMetaDataFileName());
     int commandSize = command.size();
@@ -77,6 +79,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/01/20 20:48:13  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.1  2005/12/09 20:25:02  sueh
 * <p> bug# 776 A param for the tomosnapshot command
 * <p> </p>
