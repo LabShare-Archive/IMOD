@@ -140,16 +140,16 @@ public final class ProcessResultDisplayStateTest extends TestCase {
     displayGrandChild.setProcessDone(!expectedTestState);
     displayGreatGrandChild.setProcessDone(!expectedTestState);
     //setup child vectors
-    displayGrandChild.addFollowingDisplay(displayGreatGrandChild);
-    displayChild.addFollowingDisplay(displayGrandChild);
-    displayChild.addFollowingDisplay(displayGreatGrandChild);
+    displayGrandChild.addDependentDisplay(displayGreatGrandChild);
+    displayChild.addDependentDisplay(displayGrandChild);
+    displayChild.addDependentDisplay(displayGreatGrandChild);
     //add test displays to display.followingDisplays
-    display.addFollowingDisplay(displayNotRunning);
-    display.addFollowingDisplay(displayFailedToStart);
-    display.addFollowingDisplay(displayRunning);
-    display.addFollowingDisplay(displayChild);
-    display.addFollowingDisplay(displayGrandChild);
-    display.addFollowingDisplay(displayGreatGrandChild);
+    display.addDependentDisplay(displayNotRunning);
+    display.addDependentDisplay(displayFailedToStart);
+    display.addDependentDisplay(displayRunning);
+    display.addDependentDisplay(displayChild);
+    display.addDependentDisplay(displayGrandChild);
+    display.addDependentDisplay(displayGreatGrandChild);
     //run process in display
     display.msgProcessStarting();
     //this call should change done and original state to false in the following displays
@@ -275,8 +275,8 @@ public final class ProcessResultDisplayStateTest extends TestCase {
       state.msgSecondaryProcess();
     }
     
-    public void addFollowingDisplay(ProcessResultDisplay followingDisplay) {
-      state.addFollowingDisplay(followingDisplay);
+    public void addDependentDisplay(ProcessResultDisplay dependentDisplay) {
+      state.addDependentDisplay(dependentDisplay);
     }
     
     public void setOriginalState(boolean originalState) {
@@ -310,13 +310,32 @@ public final class ProcessResultDisplayStateTest extends TestCase {
       return state.isSecondaryProcess();
     }
     
+    public int getDependencyIndex() {
+      return state.getDependencyIndex();
+    }
+    
+    public void setDependencyIndex(int dependencyIndex) {
+      state.setDependencyIndex(dependencyIndex);
+    }
+    
     public String getName() {
       return "";
+    }
+    
+    public void setInitialized(boolean initialized) {
+      state.setInitialized(initialized);
+    }
+    
+    public boolean isInitialized() {
+      return state.isInitialized();
     }
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/01/31 20:48:57  sueh
+* <p> bug# 521 Testing the following display
+* <p>
 * <p> Revision 1.1  2006/01/26 21:59:42  sueh
 * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
 * <p> functionality into ProcessResultDisplayState.  This allows a greater

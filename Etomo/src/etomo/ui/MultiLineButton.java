@@ -39,6 +39,15 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2006/01/31 20:59:14  sueh
+ * <p> bug# 521 Added failureDisplayList, successDisplayList, and
+ * <p> followingDisplayList to change the state of other displays when the
+ * <p> process associated with the current instance succeeds or fails.
+ * <p> Added BaseScreenState so that buttons on dialogs not current
+ * <p> displayed could change their state.  Without the ability to change the
+ * <p> screen state setting, they're old state would be reloaded when the
+ * <p> dialog was redisplayed.
+ * <p>
  * <p> Revision 3.14  2006/01/26 22:05:23  sueh
  * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
  * <p> functionality into ProcessResultDisplayState.  This allows a greater
@@ -134,7 +143,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param toggleButton
    * @param dialogType
    */
-  private MultiLineButton(String label, boolean toggleButton,
+  protected MultiLineButton(String label, boolean toggleButton,
       DialogType dialogType) {
     this.toggleButton = toggleButton;
     if (toggleButton) {
@@ -196,7 +205,7 @@ class MultiLineButton implements ProcessResultDisplay {
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-  
+
   public final String getName() {
     return button.getName();
   }
@@ -394,8 +403,8 @@ class MultiLineButton implements ProcessResultDisplay {
     processResultDisplayState.msgSecondaryProcess();
   }
 
-  public void addFollowingDisplay(ProcessResultDisplay followingDisplay) {
-    processResultDisplayState.addFollowingDisplay(followingDisplay);
+  public void addDependentDisplay(ProcessResultDisplay dependentDisplay) {
+    processResultDisplayState.addDependentDisplay(dependentDisplay);
   }
 
   public void setOriginalState(boolean originalState) {
@@ -408,5 +417,21 @@ class MultiLineButton implements ProcessResultDisplay {
 
   public void addSuccessDisplay(ProcessResultDisplay successDisplay) {
     processResultDisplayState.addSuccessDisplay(successDisplay);
+  }
+
+  public void setDependencyIndex(int dependencyIndex) {
+    processResultDisplayState.setDependencyIndex(dependencyIndex);
+  }
+
+  public int getDependencyIndex() {
+    return processResultDisplayState.getDependencyIndex();
+  }
+  
+  public boolean isInitialized() {
+    return processResultDisplayState.isInitialized();
+  }
+  
+  public void setInitialized(boolean initialize) {
+     processResultDisplayState.setInitialized(initialize);
   }
 }
