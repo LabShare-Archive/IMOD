@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/06: Added Findgradient to analyze magnification gradients from montages
+taken at high tilt, and Makegradtable to make a mag gradient table from either
+a Findgradient log file or the transformations between images taken at
+different Z heights.  Modified Blendmont to estimate the best mag gradient
+for correcting a montage error.
+
 2/6/06: Made default ccderaser radius vary with fiducial size. (In 3.7)
 
 2/3/06: Fixed linklibs-mac for new library. (In 3.7)
@@ -19,7 +25,14 @@ process has been run.  Saving the state of two-state buttons in the .edf file.
 1/25/06: Fixed gaps in zap montage snapshot and set read buffer so it works
 on Quadro cards. (In 3.7)
 
+1/23/06: Added Idfprocess for doing simple operationson image distortion 
+fields.
+
 1/23/06: Fixed progress output of matchvol/warpvol for > 999 cubes. (In 3.7)
+
+1/21/06: Made new version of image distortion field file that can hold more
+than one field, and made Newstack able to apply a different field to each
+section.
 
 1/19/06: Increased default radius in eraser.com from 2.1 to 3.6 pixels. 
 (In 3.7)
