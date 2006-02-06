@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/06: In Etomo, running a process will cause two-state buttons associated with
+later processes to show their "not yet run" state.
+
 2/6/06: Added Findgradient to analyze magnification gradients from montages
 taken at high tilt, and Makegradtable to make a mag gradient table from either
 a Findgradient log file or the transformations between images taken at
