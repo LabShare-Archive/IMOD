@@ -18,6 +18,7 @@ all install : configure
 	cd tilt;      $(MAKE) $@
 	cd graphics;  $(MAKE) $@
 	cd ndasda;    $(MAKE) $@
+	cd distort;   $(MAKE) $@
 
 cyginstall : configure
 	$(FIND) . -name "*.exe" -exec strip "{}" \; -exec $(CP) "{}" $(INSTBINDIR) \;
@@ -42,6 +43,7 @@ clean : ALWAYS
 	cd tilt;      $(MAKE) $@
 	cd graphics; $(MAKE) $@
 	cd ndasda; $(MAKE) $@
+	cd distort;   $(MAKE) $@
 
 ALWAYS:
 
