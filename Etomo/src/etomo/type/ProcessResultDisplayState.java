@@ -19,14 +19,11 @@ public final class ProcessResultDisplayState {
   public static final String rcsid = "$Id$";
 
   private final ProcessResultDisplay display;
-
-  private Vector followingDisplayList = null;
+  private Vector dependentDisplayList = null;
   private Vector failureDisplayList = null;
   private Vector successDisplayList = null;
-
-  public ProcessResultDisplayState(ProcessResultDisplay display) {
-    this.display = display;
-  }
+  private int dependencyIndex = -1;
+  private boolean initialized = false;
 
   //will go back to the original state if the process failed to run
   private boolean originalState = false;
@@ -34,9 +31,21 @@ public final class ProcessResultDisplayState {
   private boolean secondaryProcess = false;
   //will ignore most messages when the process is not running
   private boolean processRunning = false;
-
+  
+  public ProcessResultDisplayState(ProcessResultDisplay display) {
+    this.display = display;
+  }
+  
   public final void setOriginalState(boolean originalState) {
     this.originalState = originalState;
+  }
+  
+  public final boolean isInitialized() {
+    return initialized;
+  }
+  
+  public final void setInitialized(boolean initialized) {
+    this.initialized = initialized;
   }
 
   /**
@@ -63,7 +72,7 @@ public final class ProcessResultDisplayState {
       return;
     }
     display.setProcessDone(true);
-    setProcessDone(false, followingDisplayList);
+    setProcessDone(false, dependentDisplayList);
     setProcessDone(true, successDisplayList);
     processRunning = false;
   }
@@ -77,7 +86,7 @@ public final class ProcessResultDisplayState {
       return;
     }
     display.setProcessDone(false);
-    setProcessDone(false, followingDisplayList);
+    setProcessDone(false, dependentDisplayList);
     setProcessDone(false, failureDisplayList);
     processRunning = false;
   }
@@ -87,12 +96,12 @@ public final class ProcessResultDisplayState {
    * @param done
    * @param displays
    */
-  private final void setProcessDone(boolean done, Vector displays) {
-    if (displays == null) {
+  private final void setProcessDone(boolean done, Vector displayList) {
+    if (displayList == null) {
       return;
     }
-    for (int i = 0; i < displays.size(); i++) {
-      ProcessResultDisplay display = (ProcessResultDisplay) displays.get(i);
+    for (int i = 0; i < displayList.size(); i++) {
+      ProcessResultDisplay display = (ProcessResultDisplay) displayList.get(i);
       display.setProcessDone(done);
       display.setOriginalState(done);
     }
@@ -116,14 +125,14 @@ public final class ProcessResultDisplayState {
     }
   }
 
-  public final void addFollowingDisplay(ProcessResultDisplay followingDisplay) {
-    if (followingDisplay == null) {
+  public final void addDependentDisplay(ProcessResultDisplay dependentDisplay) {
+    if (dependentDisplay == null) {
       return;
     }
-    if (followingDisplayList == null) {
-      followingDisplayList = new Vector();
+    if (dependentDisplayList == null) {
+      dependentDisplayList = new Vector();
     }
-    followingDisplayList.add(followingDisplay);
+    dependentDisplayList.add(dependentDisplay);
   }
 
   public final void addFailureDisplay(ProcessResultDisplay failureDisplay) {
@@ -166,9 +175,22 @@ public final class ProcessResultDisplayState {
   protected final boolean isSecondaryProcess() {
     return secondaryProcess;
   }
+  
+  public void setDependencyIndex(int dependencyIndex) {
+    this.dependencyIndex = dependencyIndex;
+  }
+  
+  public int getDependencyIndex() {
+    return dependencyIndex;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/01/31 20:48:32  sueh
+ * <p> bug# 521 Added failureDisplayList, successDisplayList, and
+ * <p> followingDisplayList to change the state of other displays when the
+ * <p> process associated with the current instance succeeds or fails.
+ * <p>
  * <p> Revision 1.1  2006/01/26 21:59:31  sueh
  * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
  * <p> functionality into ProcessResultDisplayState.  This allows a greater

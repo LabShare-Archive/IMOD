@@ -18,6 +18,15 @@ package etomo.type;
 public interface ProcessResultDisplay {
   public static final String rcsid = "$Id$";
 
+  /**
+   * setting for the factory because display must all be created because they can
+   * be initialized
+   * @return
+   */
+  public boolean isInitialized();
+  
+  public void setInitialized(boolean initialized);
+  
   public String getName();
   /**
    * get the original state of the display.  Will return to this state if the
@@ -73,29 +82,51 @@ public interface ProcessResultDisplay {
   public void msgSecondaryProcess();
 
   /**
-   * Add followingDisplay to the followingDisplays member variable.
-   * Following displays have a dependency on the process associated with the
-   * instance.  They will be turned off when the instance is successful.
-   * @param followingDisplay
+   * Add dependentDisplay to the dependentDisplayList member variable.
+   * Dependent displays have a dependency on the process associated with the
+   * instance.  They will be turned off when the instance's process either
+   * succeeds or fails.
+   * @param dependentDisplay
    */
-  public void addFollowingDisplay(ProcessResultDisplay followingDisplay);
+  public void addDependentDisplay(ProcessResultDisplay dependentDisplay);
 
   /**
-   * Add failureDisplay to the failureDisplays member variable.  FailureDisplays
-   * will be turned off when the instance fails.
+   * Add failureDisplay to the failureDisplayList member variable.  Displays in
+   * FailureDisplayList will be turned off when the instance fails.
    * @param failureDisplay
    */
   public void addFailureDisplay(ProcessResultDisplay failureDisplay);
 
   /**
-   * Add successDisplay to the successDisplays member variable.  SuccessDisplays
-   * will be turned on when the instance fails.
+   * Add successDisplay to the successDisplayList member variable.  Displays in
+   * SuccessDisplayList will be turned on when the instance fails.
    * @param successDisplay
    */
   public void addSuccessDisplay(ProcessResultDisplay successDisplay);
+  
+  /**
+   * sets the display's location in the dependency list
+   * @param dependencyIndex
+   */
+  public void setDependencyIndex(int dependencyIndex);
+  
+  /**
+   * gets the display's location in the dependency list
+   * @return dependencyIndex
+   */
+  public int getDependencyIndex();
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/01/31 20:50:37  sueh
+ * <p> bug# 521 Added failureDisplayList, successDisplayList, and
+ * <p> followingDisplayList to change the state of other displays when the
+ * <p> process associated with the current instance succeeds or fails.
+ * <p> Added BaseScreenState so that buttons on dialogs not current
+ * <p> displayed could change their state.  Without the ability to change the
+ * <p> screen state setting, they're old state would be reloaded when the
+ * <p> dialog was redisplayed.
+ * <p>
  * <p> Revision 1.2  2006/01/26 21:58:58  sueh
  * <p> bug# 401 Turn this class into an interface.  Place the functionality into
  * <p> ProcessResultDisplayState.  This allows a greater variety of classes to be
