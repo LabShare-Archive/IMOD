@@ -200,7 +200,7 @@ public class DataFlowTests {
   private static void preProcessing(AxisID axisID) {
     applicationManager.openPreProcDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.findXrays(axisID);
+    applicationManager.findXrays(axisID, null);
     waitForThread(axisID);
     applicationManager.preEraser(axisID, null);
     waitForThread(axisID);
@@ -346,6 +346,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.16  2006/01/26 21:47:18  sueh
+ * <p> bug# 401 Calling process functions with null when there is a
+ * <p> ProcessResultDisplay parameter.
+ * <p>
  * <p> Revision 3.15  2006/01/20 20:44:12  sueh
  * <p> bug# 401 Added nulls to calls because of ProcessResultDisplay.
  * <p>
