@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2005/05/12 05:07:40  mast
+#  Use strip variable
+#
 #  Revision 1.1  2003/12/12 20:53:22  mast
 #  Preliminary addition to repository
 #
@@ -16,7 +19,7 @@ include ../configure
 O        = $(OBJEXT)
 E        = $(BINEXT)
 LDFLG    = $(LDFFLAGS) $(LDFLAGS)
-PROGS = finddistort$(E)
+PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E)
 
 DISTOBJS = finddistort.$(O) edgesubs.$(O) smoothgrid.$(O) \
  sdsearch.$(O) sdcalc.$(O) lsqr.$(O) lsqrblas.$(O) multrd.$(O) \
@@ -39,6 +42,15 @@ sdsearch.$(O):       ../blend/sdsearch.f
 sdcalc.$(O):       ../blend/sdcalc.f
 	$(FC) $(FFLAGS) -c -o sdcalc.$(O) ../blend/sdcalc.f
 
+idfprocess$(E): idfprocess.$(O)
+	$(FC) -o idfprocess idfprocess.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+
+findgradient$(E): findgradient.$(O)
+	$(FC) -o findgradient findgradient.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+
+makegradtable$(E): makegradtable.$(O)
+	$(FC) -o makegradtable makegradtable.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -46,3 +58,4 @@ install: $(PROGS)
 clean:
 	-\rm -f *.o* *~ *.exe finddistort
 
+findgradient.$(O):	findgradient.inc
