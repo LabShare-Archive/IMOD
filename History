@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/06: Made default ccderaser radius vary with fiducial size. (In 3.7)
+
 2/3/06: Fixed linklibs-mac for new library. (In 3.7)
 
 2/3/06: Fixed running tomosnapshot from eTomo under Windows. (In 3.7)
