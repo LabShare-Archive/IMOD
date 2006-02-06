@@ -25,6 +25,8 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -41,6 +43,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2006/01/26 22:09:00  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.39  2006/01/20 21:13:46  sueh
  * <p> bug# 401 Saving the state of btnSample.
  * <p>
@@ -287,14 +294,12 @@ public class TomogramPositioningDialog extends ProcessDialog
 
   private JPanel pnlPositionButtons = new JPanel();
 
-  private MultiLineButton btnSample = MultiLineButton.getToggleButtonInstance(
-    "Create Sample Tomograms");
+  private final MultiLineButton btnSample;
 
   private Run3dmodButton btnCreateBoundary = new Run3dmodButton(
     "<html><b>Create Boundary Model</b>", this);
 
-  private MultiLineButton btnTomopitch = MultiLineButton.getToggleButtonInstance(
-    "<html><b>Compute Z Shift & Pitch Angles</b>");
+  private final MultiLineButton btnTomopitch;
 
   private JPanel pnlFinalAlign = new JPanel();
 
@@ -304,8 +309,7 @@ public class TomogramPositioningDialog extends ProcessDialog
   private LabeledTextField ltfTiltAxisZShift = new LabeledTextField(
     "Total Z shift: ");
 
-  private MultiLineButton btnAlign = MultiLineButton.getToggleButtonInstance(
-    "<html><b>Create Final Alignment</b>");
+  private final MultiLineButton btnAlign;
   
   private static final String SAMPLE_TOMOGRAMS_TOOLTIP =
     "Build 3 sample tomograms for finding location and angles of section.";
@@ -313,10 +317,15 @@ public class TomogramPositioningDialog extends ProcessDialog
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
   private boolean getBinningFromNewst = true;
+  private final LocalActionListener localActionListener;
 
   public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_POSITIONING);
     fixRootPanel(rootSize);
+    ProcessResultDisplayFactory displayFactory = appMgr.getProcessResultDisplayFactory(axisID);
+    btnSample = (MultiLineButton) displayFactory.getSampleTomogram();
+    btnTomopitch = (MultiLineButton) displayFactory.getComputePitch();
+    btnAlign = (MultiLineButton) displayFactory.getFinalAlignment();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     //  Construct the binning spinner
@@ -365,7 +374,7 @@ public class TomogramPositioningDialog extends ProcessDialog
     addExitButtons();
 
     // Bind the buttons to the action listener
-    LocalActionListener localActionListener = new LocalActionListener(this);
+    localActionListener = new LocalActionListener(this);
     cbFiducialess.addActionListener(localActionListener);
     cbWholeTomogram.addActionListener(localActionListener);
     btnSample.addActionListener(localActionListener);
@@ -382,7 +391,22 @@ public class TomogramPositioningDialog extends ProcessDialog
     setToolTipText();
     updateUIState();
   }
+  
+  public static ProcessResultDisplay getSampleTomogramDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Create Sample Tomograms", DialogType.TOMOGRAM_POSITIONING);
+  }
 
+  public static ProcessResultDisplay getComputePitchDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Compute Z Shift & Pitch Angles", DialogType.TOMOGRAM_POSITIONING);
+  }
+  
+  public static ProcessResultDisplay getFinalAlignmentDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Create Final Alignment", DialogType.TOMOGRAM_POSITIONING);
+  }
+  
   public void setFiducialessAlignment(boolean state) {
     cbFiducialess.setSelected(state);
     updateUIState();
@@ -476,22 +500,19 @@ public class TomogramPositioningDialog extends ProcessDialog
     }
   }
   
+  public void done() {
+    btnSample.removeActionListener(localActionListener);
+    btnTomopitch.removeActionListener(localActionListener);
+    btnAlign.removeActionListener(localActionListener);
+  }
+  
   public final void setParameters(ReconScreenState screenState) {
     btnSample.setButtonState(screenState.getButtonState(btnSample
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
     btnTomopitch.setButtonState(screenState.getButtonState(btnTomopitch
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
     btnAlign.setButtonState(screenState.getButtonState(btnAlign
-        .getButtonStateKey(dialogType)));
-  }
-
-  public final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(btnSample.getButtonStateKey(), btnSample
-        .getButtonState());
-    screenState.setButtonState(btnTomopitch.getButtonStateKey(), btnTomopitch
-        .getButtonState());
-    screenState.setButtonState(btnAlign.getButtonStateKey(), btnAlign
-        .getButtonState());
+        .getButtonStateKey()));
   }
   
   /**

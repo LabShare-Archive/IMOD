@@ -33,6 +33,8 @@ import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -67,8 +69,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       "XY scan size:");
   private LabeledTextField ltfScanCriterion = new LabeledTextField(
       "Scan criterion:");
-  private MultiLineButton btnFindXRays = MultiLineButton
-      .getToggleButtonInstance("<html><b>Find X-rays (Trial Mode)</b>");
+  private final MultiLineButton btnFindXRays;
   private Run3dmodButton btnViewXRayModel = new Run3dmodButton(
       "<html><b>View X-ray Model</b>", this);
 
@@ -90,13 +91,12 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   private CheckBox cbIncludeAdjacentPoints = new CheckBox(
       "Include adjacent points");
 
-  private MultiLineButton btnErase = MultiLineButton
-      .getToggleButtonInstance("<html><b>Create Fixed Stack</b>");
+  private final MultiLineButton btnErase;
   private Run3dmodButton btnViewErased = new Run3dmodButton(
       "<html><b>View Fixed Stack</b>", this);
-  private MultiLineButton btnReplaceRawStack = MultiLineButton
-      .getToggleButtonInstance("<html><b>Use Fixed Stack</b>");
+  private final MultiLineButton btnReplaceRawStack;
   private final DialogType dialogType;
+  private final CCDEraserActionListener ccdEraserActionListener;
 
   /**
    * Default constructor
@@ -106,7 +106,11 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     applicationManager = appMgr;
     axisID = id;
     this.dialogType = dialogType;
-
+    ProcessResultDisplayFactory displayFactory = appMgr
+        .getProcessResultDisplayFactory(axisID);
+    btnFindXRays = (MultiLineButton) displayFactory.getFindXRays();
+    btnErase = (MultiLineButton) displayFactory.getCreateFixedStack();
+    btnReplaceRawStack = (MultiLineButton) displayFactory.getUseFixedStack();
     setToolTipText();
 
     pnlXRayReplacement.setLayout(new BoxLayout(pnlXRayReplacement,
@@ -187,8 +191,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
 
     // Bind the buttons to the action listener
-    CCDEraserActionListener ccdEraserActionListener = new CCDEraserActionListener(
-        this);
+    ccdEraserActionListener = new CCDEraserActionListener(this);
     btnFindXRays.addActionListener(ccdEraserActionListener);
     btnViewXRayModel.addActionListener(ccdEraserActionListener);
     btnCreateModel.addActionListener(ccdEraserActionListener);
@@ -212,6 +215,23 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
     enableXRayReplacement();
     enableManualReplacement();
+  }
+
+  public static ProcessResultDisplay getFindXRaysDisplay(DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Find X-rays (Trial Mode)",
+        dialogType);
+  }
+
+  public static ProcessResultDisplay getCreateFixedStackDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Create Fixed Stack",
+        dialogType);
+  }
+
+  public static ProcessResultDisplay getUseFixedStackDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Use Fixed Stack",
+        dialogType);
   }
 
   /**
@@ -245,22 +265,19 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     enableManualReplacement();
   }
 
-  public final void setParameters(ReconScreenState screenState) {
-    btnReplaceRawStack.setButtonState(screenState
-        .getButtonState(btnReplaceRawStack.getButtonStateKey(dialogType)));
-    btnErase.setButtonState(screenState.getButtonState(btnErase
-        .getButtonStateKey(dialogType)));
-    btnFindXRays.setButtonState(screenState.getButtonState(btnFindXRays
-        .getButtonStateKey(dialogType)));
+  public void done() {
+    btnFindXRays.removeActionListener(ccdEraserActionListener);
+    btnErase.removeActionListener(ccdEraserActionListener);
+    btnReplaceRawStack.removeActionListener(ccdEraserActionListener);
   }
 
-  public final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(btnReplaceRawStack.getButtonStateKey(),
-        btnReplaceRawStack.getButtonState());
-    screenState.setButtonState(btnErase.getButtonStateKey(), btnErase
-        .getButtonState());
-    screenState.setButtonState(btnFindXRays.getButtonStateKey(), btnFindXRays
-        .getButtonState());
+  public final void setParameters(ReconScreenState screenState) {
+    btnReplaceRawStack.setButtonState(screenState
+        .getButtonState(btnReplaceRawStack.getButtonStateKey()));
+    btnErase.setButtonState(screenState.getButtonState(btnErase
+        .getButtonStateKey()));
+    btnFindXRays.setButtonState(screenState.getButtonState(btnFindXRays
+        .getButtonStateKey()));
   }
 
   public void getParameters(CCDEraserParam ccdEraserParams) {
@@ -348,7 +365,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     String command = event.getActionCommand();
 
     if (command.equals(btnFindXRays.getActionCommand())) {
-      applicationManager.findXrays(axisID);
+      applicationManager.findXrays(axisID, btnFindXRays);
     }
     else if (command.equals(btnErase.getActionCommand())) {
       applicationManager.preEraser(axisID, btnErase);
@@ -523,6 +540,11 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2006/01/26 22:03:43  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.16  2006/01/12 17:07:44  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>

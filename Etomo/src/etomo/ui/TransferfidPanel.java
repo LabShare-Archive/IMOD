@@ -13,6 +13,7 @@ import etomo.comscript.TransferfidParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 
 /**
@@ -26,23 +27,22 @@ import etomo.type.ReconScreenState;
  * @author $Author$
  *
  * @version $Revision$
-*/
+ */
 public class TransferfidPanel {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private JPanel panelTransferfid = new JPanel();
   MultiLineButton buttonTransferfid = null;
   private boolean includeButton = false;
 
   private CheckBox cbRunMidas = new CheckBox("Run midas");
-  private LabeledTextField ltfCenterViewA =
-    new LabeledTextField("Center view A: ");
-  private LabeledTextField ltfCenterViewB =
-    new LabeledTextField("Center view B: ");
-	private LabeledTextField ltfNumberViews =
-		new LabeledTextField("Number of views in the search: ");
-		
+  private LabeledTextField ltfCenterViewA = new LabeledTextField(
+      "Center view A: ");
+  private LabeledTextField ltfCenterViewB = new LabeledTextField(
+      "Center view B: ");
+  private LabeledTextField ltfNumberViews = new LabeledTextField(
+      "Number of views in the search: ");
+
   private JPanel panelSearchDirection = new JPanel();
   private ButtonGroup bgSearchDirection = new ButtonGroup();
   private RadioButton rbSearchBoth = new RadioButton("Both directions");
@@ -62,12 +62,18 @@ public class TransferfidPanel {
     includeButton = inclButton;
     setup();
   }
- 
+
+  public static ProcessResultDisplay getTransferFiducialsDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance(
+        "Transfer Fiducials From Other Axis", dialogType);
+  }
+
   private void setup() {
-    panelTransferfid.setLayout(
-      new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
-    panelTransferfid.setBorder(
-      new EtchedBorder("Transferfid Parameters").getBorder());
+    panelTransferfid
+        .setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
+    panelTransferfid.setBorder(new EtchedBorder("Transferfid Parameters")
+        .getBorder());
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfid.add(cbRunMidas);
 
@@ -75,33 +81,34 @@ public class TransferfidPanel {
     panelTransferfid.add(Box.createHorizontalStrut(300));
     panelTransferfid.add(ltfCenterViewA.getContainer());
     panelTransferfid.add(ltfCenterViewB.getContainer());
-		panelTransferfid.add(ltfNumberViews.getContainer());
-		
+    panelTransferfid.add(ltfNumberViews.getContainer());
+
     bgSearchDirection.add(rbSearchBoth);
     bgSearchDirection.add(rbSearchPlus90);
     bgSearchDirection.add(rbSearchMinus90);
-    panelSearchDirection.setLayout(
-      new BoxLayout(panelSearchDirection, BoxLayout.Y_AXIS));
-    panelSearchDirection.setBorder(
-      new EtchedBorder("Search Direction").getBorder());
+    panelSearchDirection.setLayout(new BoxLayout(panelSearchDirection,
+        BoxLayout.Y_AXIS));
+    panelSearchDirection.setBorder(new EtchedBorder("Search Direction")
+        .getBorder());
     panelSearchDirection.add(rbSearchBoth);
     panelSearchDirection.add(rbSearchPlus90);
     panelSearchDirection.add(rbSearchMinus90);
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
     panelTransferfid.add(panelSearchDirection);
-    panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5)); 
-    
+    panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));
+
     if (includeButton) {
-      buttonTransferfid =
-        MultiLineButton.getToggleButtonInstance("Transfer Fiducials From Other Axis");
+      buttonTransferfid = (MultiLineButton) manager
+          .getProcessResultDisplayFactory(axisID).getTransferFiducials();
       buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
       buttonTransferfid.setSize();
-      panelTransferfid.add(buttonTransferfid.getComponent());  
-      panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));   
+      panelTransferfid.add(buttonTransferfid.getComponent());
+      panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));
     }
-    
+
     setToolTipText();
   }
+
   /**
    * Set the values of the panel using a TransferfidParam parameter
    * object
@@ -130,17 +137,14 @@ public class TransferfidPanel {
       rbSearchPlus90.setSelected(true);
     }
   }
-  
+
   public final void setParameters(ReconScreenState screenState) {
-    buttonTransferfid.setButtonState(screenState.getButtonState(buttonTransferfid
-        .getButtonStateKey(dialogType)));
+    if (buttonTransferfid != null) {
+      buttonTransferfid.setButtonState(screenState
+          .getButtonState(buttonTransferfid.getButtonStateKey()));
+    }
   }
 
-  public final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(buttonTransferfid.getButtonStateKey(), buttonTransferfid
-        .getButtonState());
-  }
-  
   public void getParameters() {
     getParameters(new TransferfidParam(manager, axisID));
   }
@@ -161,7 +165,7 @@ public class TransferfidPanel {
     if (rbSearchMinus90.isSelected()) {
       params.setSearchDirection(-1);
     }
-		params.setNumberViews(ltfNumberViews.getText());
+    params.setNumberViews(ltfNumberViews.getText());
     if (axisID == AxisID.SECOND) {
       metaData.setTransferfidBFields(params);
     }
@@ -177,10 +181,10 @@ public class TransferfidPanel {
   public void setAdvanced(boolean isAdvanced) {
     ltfCenterViewA.setVisible(isAdvanced);
     ltfCenterViewB.setVisible(isAdvanced);
-		ltfNumberViews.setVisible(isAdvanced);
+    ltfNumberViews.setVisible(isAdvanced);
     panelSearchDirection.setVisible(isAdvanced);
   }
-  
+
   public void setEnabled(boolean isEnabled) {
     buttonTransferfid.setEnabled(isEnabled);
     cbRunMidas.setEnabled(isEnabled);
@@ -191,14 +195,15 @@ public class TransferfidPanel {
     rbSearchPlus90.setEnabled(isEnabled);
     rbSearchMinus90.setEnabled(isEnabled);
   }
-  
+
   public MultiLineButton getButton() {
     if (includeButton) {
       return buttonTransferfid;
     }
-    
+
     return null;
   }
+
   //  ToolTip string setup
   private void setToolTipText() {
     String text;
@@ -206,7 +211,7 @@ public class TransferfidPanel {
 
     text = "Run Midas to adjust initial alignment manually.";
     cbRunMidas.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     text = "View from A around which to search for the best pair of views.";
     ltfCenterViewA.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -216,9 +221,8 @@ public class TransferfidPanel {
     text = "Number of views from each axis to consider in searching for best pair.";
     ltfNumberViews.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = 
-      "Try both +90 and -90 degree rotations in searching for best pair of "
-      + "views.";
+    text = "Try both +90 and -90 degree rotations in searching for best pair of "
+        + "views.";
     rbSearchBoth.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Try only +90 degree rotations in searching for best pair of views.";
@@ -226,17 +230,21 @@ public class TransferfidPanel {
 
     text = "Try only -90 degree rotations in searching for best pair of views.";
     rbSearchMinus90.setToolTipText(tooltipFormatter.setText(text).format());
-    
-    text = 
-      "Run Transferfid to make a seed model for this axis from fiducial model for "
-      + "the other axis.";
-    buttonTransferfid.setToolTipText(tooltipFormatter.setText(text).format()); 
+
+    text = "Run Transferfid to make a seed model for this axis from fiducial model for "
+        + "the other axis.";
+    buttonTransferfid.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.7  2006/01/26 22:09:09  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.6  2006/01/04 00:02:28  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted
  * <p> JRadioButton's to RadioButton.
@@ -262,7 +270,5 @@ public class TransferfidPanel {
  * <p> create the TransferfidParam instance, initialize it, copy fields from
  * <p> MetaData, and then set the screen fields.
  * <p>
-*/
-
-
+ */
 

@@ -27,6 +27,11 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/01/26 22:08:15  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.7  2006/01/03 23:43:10  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox
  * <p>
@@ -146,6 +151,18 @@ public class PreProcessingDialog extends ProcessDialog {
    //  Set the default advanced state for the window, this also executes
     updateAdvanced();
   }
+  
+  public static ProcessResultDisplay getFindXRaysDisplay() {
+    return CCDEraserPanel.getFindXRaysDisplay(DialogType.PRE_PROCESSING);
+  }
+  
+  public static ProcessResultDisplay getCreateFixedStackDisplay() {
+    return CCDEraserPanel.getCreateFixedStackDisplay(DialogType.PRE_PROCESSING);
+  }
+  
+  public static ProcessResultDisplay getUseFixedStackDisplay() {
+    return CCDEraserPanel.getUseFixedStackDisplay(DialogType.PRE_PROCESSING);
+  }
 
   /**
    * Set the parameters for the specified CCD eraser panel
@@ -154,12 +171,12 @@ public class PreProcessingDialog extends ProcessDialog {
     panelCCDEraser.setParameters(ccdEraserParams);
   }
   
+  public void done() {
+    panelCCDEraser.done();
+  }
+  
   public final void setParameters(ReconScreenState screenState) {
     panelCCDEraser.setParameters(screenState);
-  }
-
-  public final void getParameters(ReconScreenState screenState) {
-    panelCCDEraser.getParameters(screenState);
   }
 
   /**

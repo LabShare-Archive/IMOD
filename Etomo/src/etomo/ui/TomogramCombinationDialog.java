@@ -49,6 +49,10 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2006/01/31 21:01:08  sueh
+ * <p> bug# 521 Managing the restart buttons and the combine button in
+ * <p> ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.34  2006/01/26 22:08:37  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
@@ -333,32 +337,41 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
   }
-  
+
+  public static ProcessResultDisplay getCreateCombineDisplay() {
+    return SetupCombinePanel
+        .getCreateCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
+  }
+
   public static ProcessResultDisplay getCombineDisplay() {
     return SetupCombinePanel.getCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
   }
-  
+
   public static ProcessResultDisplay getRestartCombineDisplay() {
-    return InitialCombinePanel.getRestartCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
+    return InitialCombinePanel
+        .getRestartCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
   }
-  
+
   public static ProcessResultDisplay getRestartMatchvol1Display() {
-    return InitialCombinePanel.getRestartMatchvol1Display(DialogType.TOMOGRAM_COMBINATION);
+    return InitialCombinePanel
+        .getRestartMatchvol1Display(DialogType.TOMOGRAM_COMBINATION);
   }
-  
+
   public static ProcessResultDisplay getRestartPatchcorrDisplay() {
     return FinalCombinePanel
         .getRestartPatchcorrDisplay(DialogType.TOMOGRAM_COMBINATION);
   }
-  
+
   public static ProcessResultDisplay getRestartMatchorwarpDisplay() {
-    return FinalCombinePanel.getRestartMatchorwarpDisplay(DialogType.TOMOGRAM_COMBINATION);
+    return FinalCombinePanel
+        .getRestartMatchorwarpDisplay(DialogType.TOMOGRAM_COMBINATION);
   }
 
   public static ProcessResultDisplay getRestartVolcombineDisplay() {
-    return FinalCombinePanel.getRestartVolcombineDisplay(DialogType.TOMOGRAM_COMBINATION);
+    return FinalCombinePanel
+        .getRestartVolcombineDisplay(DialogType.TOMOGRAM_COMBINATION);
   }
-  
+
   static CheckBox getParallelProcessCheckBox() {
     ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
         ProcessName.VOLCOMBINE);

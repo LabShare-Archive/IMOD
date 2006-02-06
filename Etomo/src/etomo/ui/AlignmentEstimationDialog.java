@@ -16,6 +16,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -32,6 +33,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2006/01/26 22:03:29  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.18  2006/01/12 17:04:57  sueh
  * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
  * <p>
@@ -225,8 +231,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 
-public final class AlignmentEstimationDialog extends ProcessDialog
-  implements ContextMenu, Run3dmodButtonContainer {
+public final class AlignmentEstimationDialog extends ProcessDialog implements
+    ContextMenu, Run3dmodButtonContainer {
 
   public static final String rcsid = "$Id$";
 
@@ -238,22 +244,24 @@ public final class AlignmentEstimationDialog extends ProcessDialog
 
   private JPanel panelButton = new JPanel();
 
-  private MultiLineButton btnComputeAlignment = MultiLineButton.getToggleButtonInstance(
-    "<html><b>Compute Alignment</b>");
+  private final MultiLineButton btnComputeAlignment;
 
   private Run3dmodButton btnImod = new Run3dmodButton(
-    "<html><b>View/Edit Fiducial Model</b>", this);
+      "<html><b>View/Edit Fiducial Model</b>", this);
 
   private MultiLineButton btnView3DModel = new MultiLineButton(
-    "<html><b>View 3D Model</b>");
+      "<html><b>View 3D Model</b>");
 
   private Run3dmodButton btnViewResiduals = new Run3dmodButton(
-    "<html><b>View Residual Vectors</b>", this);
+      "<html><b>View Residual Vectors</b>", this);
+  
+  private final AlignmentEstimationActionListner actionListener;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
     fixRootPanel(rootSize);
-
+    btnComputeAlignment = (MultiLineButton) appMgr
+        .getProcessResultDisplayFactory(axisID).getComputeAlignment();
     pnlTiltalign = new TiltalignPanel(axisID, appMgr);
     btnExecute.setText("Done");
 
@@ -264,7 +272,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
     btnImod.setSize();
     btnViewResiduals.setSize();
     btnView3DModel.setSize();
-    
+
     SpacedPanel topButtonPanel = new SpacedPanel();
     topButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     topButtonPanel.add(btnComputeAlignment);
@@ -277,7 +285,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
     //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
     bottomButtonPanel.add(btnViewResiduals);
     panelButton.add(bottomButtonPanel.getContainer());
-    
+
     pnlAlignEst.setLayout(new BoxLayout(pnlAlignEst, BoxLayout.Y_AXIS));
     pnlAlignEst.setBorder(border.getBorder());
 
@@ -297,8 +305,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog
     //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    AlignmentEstimationActionListner actionListener = new AlignmentEstimationActionListner(
-      this);
+    actionListener = new AlignmentEstimationActionListner(
+        this);
 
     btnComputeAlignment.addActionListener(actionListener);
     btnView3DModel.addActionListener(actionListener);
@@ -315,15 +323,19 @@ public final class AlignmentEstimationDialog extends ProcessDialog
     pnlTiltalign.setFirstTab();
     setToolTipText();
   }
+
+  public static ProcessResultDisplay getComputeAlignmentDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Compute Alignment",
+        DialogType.FINE_ALIGNMENT);
+  }
   
-  public final void setParameters(ReconScreenState screenState) {
-    btnComputeAlignment.setButtonState(screenState.getButtonState(btnComputeAlignment
-        .getButtonStateKey(dialogType)));
+  public void done() {
+    btnComputeAlignment.removeActionListener(actionListener);
   }
 
-  public final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(btnComputeAlignment.getButtonStateKey(), btnComputeAlignment
-        .getButtonState());
+  public final void setParameters(ReconScreenState screenState) {
+    btnComputeAlignment.setButtonState(screenState
+        .getButtonState(btnComputeAlignment.getButtonStateKey()));
   }
 
   public void setTiltalignParams(TiltalignParam tiltalignParam) {
@@ -331,7 +343,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
   }
 
   public void getTiltalignParams(TiltalignParam tiltalignParam)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     try {
       pnlTiltalign.getParameters(tiltalignParam);
     }
@@ -346,18 +358,18 @@ public final class AlignmentEstimationDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Tiltalign", "Xfproduct", "3dmod"};
-    String[] manPage = {"tiltalign.html", "xfproduct.html", "3dmod.html"};
+    String[] manPagelabel = { "Tiltalign", "Xfproduct", "3dmod" };
+    String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
     Vector logFileLabel = new Vector(1);
-    String[] logWindowLabel = {"Align"};
+    String[] logWindowLabel = { "Align" };
 
     if (axisID != AxisID.ONLY) {
       logWindowLabel[0] = "Align Axis:" + axisID.getExtension();
     }
     String alignCommandName = logWindowLabel[0];
 
-    String[] alignLabels = {"Errors", "Solution", "Surface Angles", "Locals",
-        "Complete Log", "Large Residual", "Mappings", "Coordinates"};
+    String[] alignLabels = { "Errors", "Solution", "Surface Angles", "Locals",
+        "Complete Log", "Large Residual", "Mappings", "Coordinates" };
     logFileLabel.add(alignLabels);
 
     Vector logFile = new Vector(1);
@@ -374,8 +386,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog
     logFile.add(logFileList);
 
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-      "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel,
-      logFile, applicationManager, alignCommandName, axisID);
+        "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel,
+        logFile, applicationManager, alignCommandName, axisID);
   }
 
   //  Action function overides for exit buttons
@@ -409,7 +421,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, menuOptions, null);
@@ -418,7 +430,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog
       applicationManager.imodViewResiduals(axisID, menuOptions);
     }
   }
-  
+
   //  Event handler for panel buttons
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();

@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2006/01/26 22:04:11  sueh
+ * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * <p> the buttons turned on each they are run, unless the process fails or is
+ * <p> killed.
+ * <p>
  * <p> Revision 3.29  2006/01/03 23:31:30  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox
  * <p>
@@ -190,6 +195,8 @@ import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
@@ -202,13 +209,11 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
 
   private CrossCorrelationPanel pnlCrossCorrelation;
 
-  private MultiLineButton btnCrossCorrelate = MultiLineButton
-      .getToggleButtonInstance("Calculate Cross- Correlation");
+  private final MultiLineButton btnCrossCorrelate;
 
   private PrenewstPanel pnlPrenewst;
 
-  private MultiLineButton btnCoarseAlign = MultiLineButton
-      .getToggleButtonInstance("Generate Coarse Aligned Stack");
+  private final MultiLineButton btnCoarseAlign;
 
   private Run3dmodButton btnImod = new Run3dmodButton(
       "View Aligned<br>Stack In 3dmod", this);
@@ -217,19 +222,25 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
   private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
+  private final ActionListener actionListener;
 
-  private MultiLineButton btnMidas = MultiLineButton
-      .getToggleButtonInstance("<html><b>Fix Alignment<br>With Midas</b>");
+  private final MultiLineButton btnMidas;
 
   //Montaging
-  private MultiLineButton btnFixEdgesMidas = MultiLineButton
-      .getToggleButtonInstance("Fix Edges With Midas");
-  private MultiLineButton btnDistortionCorrectedStack = MultiLineButton
-      .getToggleButtonInstance("Make Distortion Corrected Stack");
+  private final MultiLineButton btnFixEdgesMidas;
+  private final MultiLineButton btnDistortionCorrectedStack;
 
   public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
     ConstMetaData metaData = appMgr.getMetaData();
+    ProcessResultDisplayFactory displayFactory = appMgr
+        .getProcessResultDisplayFactory(axisID);
+    btnCrossCorrelate = (MultiLineButton) displayFactory.getCrossCorrelate();
+    btnDistortionCorrectedStack = (MultiLineButton) displayFactory
+        .getDistortionCorrectedStack();
+    btnFixEdgesMidas = (MultiLineButton) displayFactory.getFixEdgesMidas();
+    btnCoarseAlign = (MultiLineButton) displayFactory.getCoarseAlign();
+    btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID);
@@ -279,7 +290,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     addExitButtons();
 
     //  Action listener assignment for the buttons
-    ActionListener actionListener = new CoarseAlignActionListener(this);
+    actionListener = new CoarseAlignActionListener(this);
     btnCrossCorrelate.addActionListener(actionListener);
     btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
@@ -293,6 +304,31 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
 
     // Set the default advanced state for the window
     updateAdvanced();
+  }
+
+  public static ProcessResultDisplay getCrossCorrelateDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Calculate Cross- Correlation", DialogType.COARSE_ALIGNMENT);
+  }
+
+  public static ProcessResultDisplay getDistortionCorrectedStackDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Make Distortion Corrected Stack", DialogType.COARSE_ALIGNMENT);
+  }
+
+  public static ProcessResultDisplay getFixEdgesMidasDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Fix Edges With Midas",
+        DialogType.COARSE_ALIGNMENT);
+  }
+
+  public static ProcessResultDisplay getCoarseAlignDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Generate Coarse Aligned Stack", DialogType.COARSE_ALIGNMENT);
+  }
+  
+  public static ProcessResultDisplay getMidasDisplay() {
+    return MultiLineButton
+    .getToggleButtonInstance("Fix Alignment With Midas", DialogType.COARSE_ALIGNMENT);
   }
 
   /**
@@ -359,31 +395,25 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     pnlPrenewst.getParameters(blendmontParam);
   }
 
-  public final void setParameters(ReconScreenState screenState) {
-    btnCrossCorrelate.setButtonState(screenState
-        .getButtonState(btnCrossCorrelate.getButtonStateKey(dialogType)));
-    btnMidas.setButtonState(screenState.getButtonState(btnMidas
-        .getButtonStateKey(dialogType)));
-    btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
-        .getButtonStateKey(dialogType)));
-    btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
-        .getButtonStateKey(dialogType)));
-    btnDistortionCorrectedStack.setButtonState(screenState
-        .getButtonState(btnDistortionCorrectedStack
-            .getButtonStateKey(dialogType)));
+  public void done() {
+    btnCrossCorrelate.removeActionListener(actionListener);
+    btnDistortionCorrectedStack.removeActionListener(actionListener);
+    btnFixEdgesMidas.removeActionListener(actionListener);
+    btnCoarseAlign.removeActionListener(actionListener);
+    btnMidas.removeActionListener(actionListener);
   }
 
-  public final void getParameters(ReconScreenState screenState) {
-    screenState.setButtonState(btnCrossCorrelate.getButtonStateKey(),
-        btnCrossCorrelate.getButtonState());
-    screenState.setButtonState(btnMidas.getButtonStateKey(), btnMidas
-        .getButtonState());
-    screenState.setButtonState(btnFixEdgesMidas.getButtonStateKey(),
-        btnFixEdgesMidas.getButtonState());
-    screenState.setButtonState(btnCoarseAlign.getButtonStateKey(),
-        btnCoarseAlign.getButtonState());
-    screenState.setButtonState(btnDistortionCorrectedStack.getButtonStateKey(),
-        btnDistortionCorrectedStack.getButtonState());
+  public final void setParameters(ReconScreenState screenState) {
+    btnCrossCorrelate.setButtonState(screenState
+        .getButtonState(btnCrossCorrelate.getButtonStateKey()));
+    btnMidas.setButtonState(screenState.getButtonState(btnMidas
+        .getButtonStateKey()));
+    btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
+        .getButtonStateKey()));
+    btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
+        .getButtonStateKey()));
+    btnDistortionCorrectedStack.setButtonState(screenState
+        .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
   }
 
   public void setFiducialessAlignment(boolean state) {

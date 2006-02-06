@@ -45,6 +45,8 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
@@ -69,6 +71,11 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.82  2006/01/26 22:08:52  sueh
+ * bug# 401 For MultiLineButton toggle buttons:  save the state and keep
+ * the buttons turned on each they are run, unless the process fails or is
+ * killed.
+ *
  * Revision 3.81  2006/01/20 21:13:09  sueh
  * bug# 401 Saving the state of btnNewst and btnTilt.  Also using btnNewst
  * and btnTilt as ProcessResultDisplay's to turn on or off depending on the
@@ -532,9 +539,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private static final String RUN_TRIAL_BUTTON_TITLE = "Generate Trial Tomogram";
-  private static final String RUN_TILT_BUTTON_TITLE = "Generate Tomogram";
-
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
@@ -548,8 +552,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private LabeledSpinner spinBinning;
 
   //  Aligned stack buttons
-  private MultiLineButton btnNewst = MultiLineButton
-      .getToggleButtonInstance("<html><b>Create Full<br>Aligned Stack</b>");
+  private final MultiLineButton btnNewst;
   private Run3dmodButton btn3dmodFull = new Run3dmodButton(
       "<html><b>View Full<br>Aligned Stack</b>", this);
 
@@ -582,11 +585,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
   private JComboBox cmboTrialTomogramName = new JComboBox();
   private Vector trialTomogramList = new Vector();
-  private MultiLineButton btnTrial = new MultiLineButton(RUN_TRIAL_BUTTON_TITLE);
+  private MultiLineButton btnTrial = new MultiLineButton(
+      "Generate Trial Tomogram");
   private Run3dmodButton btn3dmodTrial = new Run3dmodButton(
       "<html><b>View Trial in 3dmod</b>", this);
-  private MultiLineButton btnUseTrial = MultiLineButton
-      .getToggleButtonInstance("<html><b>Use Current Trial Tomogram</b>");
+  private final MultiLineButton btnUseTrial;
 
   // MTF Filter objects
   private LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
@@ -599,23 +602,19 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       "Maximum Inverse: ");
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
-  private MultiLineButton btnFilter = MultiLineButton
-      .getToggleButtonInstance("Filter");
+  private final MultiLineButton btnFilter;
   private Run3dmodButton btnViewFilter = new Run3dmodButton(
       "View Filtered Stack", this);
-  private MultiLineButton btnUseFilter = MultiLineButton
-      .getToggleButtonInstance("Use Filtered Stack");
+  private final MultiLineButton btnUseFilter;
   private SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
   boolean enableFiltering = false;
 
   //  Tomogram generation buttons
-  private MultiLineButton btnTilt = MultiLineButton
-      .getToggleButtonInstance(RUN_TILT_BUTTON_TITLE);
+  private final MultiLineButton btnTilt;
   private Run3dmodButton btn3dmodTomogram = new Run3dmodButton(
       "<html><b>View Tomogram In 3dmod</b>", this);
-  private MultiLineButton btnDeleteStacks = MultiLineButton
-      .getToggleButtonInstance("<html><b>Delete Aligned Image Stack</b>");
+  private final MultiLineButton btnDeleteStack;
   private CheckBox cbUseZFactors = new CheckBox("Use Z factors");
   private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
       "Extra views to exclude: ");
@@ -638,10 +637,19 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private boolean getBinningFromNewst = true;
   private boolean trialTilt = false;
   private final ReconScreenState screenState;
+  private final ButtonListener tomogramGenerationListener;
 
   public TomogramGenerationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     screenState = appMgr.getScreenState(axisID);
+    ProcessResultDisplayFactory displayFactory = appMgr
+        .getProcessResultDisplayFactory(axisID);
+    btnNewst = (MultiLineButton) displayFactory.getFullAlignedStack();
+    btnFilter = (MultiLineButton) displayFactory.getFilter();
+    btnUseFilter = (MultiLineButton) displayFactory.getUseFilteredStack();
+    btnUseTrial = (MultiLineButton) displayFactory.getUseTrialTomogram();
+    btnTilt = (MultiLineButton) displayFactory.getGenerateTomogram();
+    btnDeleteStack = (MultiLineButton) displayFactory.getDeleteAlignedStack();
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
@@ -657,7 +665,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     addExitButtons();
 
     // Bind the buttons to the action listener
-    ButtonListener tomogramGenerationListener = new ButtonListener(this);
+    tomogramGenerationListener = new ButtonListener(this);
     btnNewst.addActionListener(tomogramGenerationListener);
     btn3dmodFull.addActionListener(tomogramGenerationListener);
     btnFilter.addActionListener(tomogramGenerationListener);
@@ -668,7 +676,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     btnUseTrial.addActionListener(tomogramGenerationListener);
     btnTilt.addActionListener(tomogramGenerationListener);
     btn3dmodTomogram.addActionListener(tomogramGenerationListener);
-    btnDeleteStacks.addActionListener(tomogramGenerationListener);
+    btnDeleteStack.addActionListener(tomogramGenerationListener);
     btnMtfFile.addActionListener(new MtfFileActionListener(this));
     ltfStartingAndEndingZ
         .addKeyListener(new StartingAndEndingZKeyListener(this));
@@ -683,6 +691,36 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
+  }
+
+  public static ProcessResultDisplay getFullAlignedStackDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Create Full Aligned Stack",
+        DialogType.TOMOGRAM_GENERATION);
+  }
+
+  public static ProcessResultDisplay getFilterDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Filter",
+        DialogType.TOMOGRAM_GENERATION);
+  }
+
+  public static ProcessResultDisplay getUseFilteredStackDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Use Filtered Stack",
+        DialogType.TOMOGRAM_GENERATION);
+  }
+
+  public static ProcessResultDisplay getUseTrialTomogramDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Use Current Trial Tomogram", DialogType.TOMOGRAM_GENERATION);
+  }
+
+  public static ProcessResultDisplay getGenerateTomogramDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Generate Tomogram",
+        DialogType.TOMOGRAM_GENERATION);
+  }
+
+  public static ProcessResultDisplay getDeleteAlignedStackDisplay() {
+    return MultiLineButton.getToggleButtonInstance(
+        "Delete Aligned Image Stack", DialogType.TOMOGRAM_GENERATION);
   }
 
   public void updateFilter(boolean enable) {
@@ -716,6 +754,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
   }
 
+  public void done() {
+    btnNewst.removeActionListener(tomogramGenerationListener);
+    btnTilt.removeActionListener(tomogramGenerationListener);
+    btnDeleteStack.removeActionListener(tomogramGenerationListener);
+    btnUseFilter.removeActionListener(tomogramGenerationListener);
+    btnUseTrial.removeActionListener(tomogramGenerationListener);
+    btnFilter.removeActionListener(tomogramGenerationListener);
+  }
+
   public final void setParameters(ReconScreenState screenState) {
     newstHeader.setState(screenState.getTomoGenNewstHeaderState());
     filterHeader.setState(screenState.getTomoGenMtffilterHeaderState());
@@ -723,17 +770,17 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
     setAdvanced();
     btnNewst.setButtonState(screenState.getButtonState(btnNewst
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
     btnTilt.setButtonState(screenState.getButtonState(btnTilt
-        .getButtonStateKey(dialogType)));
-    btnDeleteStacks.setButtonState(screenState.getButtonState(btnDeleteStacks
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
+    btnDeleteStack.setButtonState(screenState.getButtonState(btnDeleteStack
+        .getButtonStateKey()));
     btnUseFilter.setButtonState(screenState.getButtonState(btnUseFilter
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
     btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
     btnFilter.setButtonState(screenState.getButtonState(btnFilter
-        .getButtonStateKey(dialogType)));
+        .getButtonStateKey()));
   }
 
   public final void getParameters(ReconScreenState screenState) {
@@ -741,18 +788,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     filterHeader.getState(screenState.getTomoGenMtffilterHeaderState());
     tiltHeader.getState(screenState.getTomoGenTiltHeaderState());
     trialHeader.getState(screenState.getTomoGenTrialTiltHeaderState());
-    screenState.setButtonState(btnNewst.getButtonStateKey(), btnNewst
-        .getButtonState());
-    screenState.setButtonState(btnTilt.getButtonStateKey(), btnTilt
-        .getButtonState());
-    screenState.setButtonState(btnDeleteStacks.getButtonStateKey(),
-        btnDeleteStacks.getButtonState());
-    screenState.setButtonState(btnUseFilter.getButtonStateKey(), btnUseFilter
-        .getButtonState());
-    screenState.setButtonState(btnUseTrial.getButtonStateKey(), btnUseTrial
-        .getButtonState());
-    screenState.setButtonState(btnFilter.getButtonStateKey(), btnFilter
-        .getButtonState());
   }
 
   public void setParameters(ConstMetaData metaData) {
@@ -1288,7 +1323,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
-    buttonPanel.add(btnDeleteStacks);
+    buttonPanel.add(btnDeleteStack);
     buttonPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
     //trialPanel
     trialPanel.add(layoutTrialPanel());
@@ -1340,7 +1375,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
-    btnDeleteStacks.setSize();
+    btnDeleteStack.setSize();
     return tiltPanel;
   }
 
@@ -1562,8 +1597,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         applicationManager.tilt(axisID, btnTilt);
       }
     }
-    else if (command.equals(btnDeleteStacks.getActionCommand())) {
-      applicationManager.deleteAlignedStacks(axisID, btnDeleteStacks);
+    else if (command.equals(btnDeleteStack.getActionCommand())) {
+      applicationManager.deleteAlignedStacks(axisID, btnDeleteStack);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
       updateFiducialess();
@@ -1764,10 +1799,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     text = "Rename the trial tomogram whose name is shown in the \"Trial "
         + "tomogram filename\" box to be the final tomogram.";
     btnUseTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Delete the pre-aligned and aligned stack for this axis.  Once the "
-        + "tomogram is calculated these intermediate files are not used and can be "
+    text = "Delete the aligned stack for this axis.  Once the "
+        + "tomogram is calculated this intermediate file is not used and can be "
         + "" + "deleted to free up disk space.";
-    btnDeleteStacks.setToolTipText(tooltipFormatter.setText(text).format());
+    btnDeleteStack.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use cross-correlation alignment only.";
     cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Rotation angle of tilt axis for generating aligned stack from "
