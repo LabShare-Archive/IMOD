@@ -732,15 +732,10 @@ c
 c           
 c           write the no stretch idf file
 c           
-          call dopen(1, outfile, 'new', 'f')
-          write(1,'(i5)')1
-          write(1,'(2i7,i3,f10.4)')nx, ny, iBinning, pixelSize
-          write(1,'(2(i6,f8.2,i6))')(iFieldStrt(i), fieldIntrv(i),
-     &        nPtField(i), i = 1,2)
-          do iy = 1, nPtField(2)
-            write(1,'(8f8.2)')(fieldDx(ix, iy), fieldDy(ix, iy), ix = 1,
-     &          nPtField(1))
-          enddo
+          call idfStartFile(outfile, 1, nx, ny, iBinning, pixelSize)
+          call idfWriteField(1, iFieldStrt(1), fieldIntrv(1), nPtField(1),
+     &        iFieldStrt(2), fieldIntrv(2), nPtField(2), fieldDx, fieldDy,
+     &        iGridDim)
           close(1)
         endif
       enddo
@@ -882,15 +877,10 @@ c
 c       
 c       write the idf file
 c       
-      call dopen(1, outfile, 'new', 'f')
-      write(1,'(i5)')1
-      write(1,'(2i7,i3,f10.4)')nx, ny, iBinning, pixelSize
-      write(1,'(2(i6,f8.2,i6))')(iFieldStrt(i), fieldIntrv(i), nPtField(i),
-     &    i = 1,2)
-      do iy = 1, nPtField(2)
-        write(1,'(8f8.2)')(fieldDx(ix, iy), fieldDy(ix, iy), ix = 1,
-     &      nPtField(1))
-      enddo
+      call idfStartFile(outfile, 1, nx, ny, iBinning, pixelSize)
+      call idfWriteField(1, iFieldStrt(1), fieldIntrv(1), nPtField(1),
+     &    iFieldStrt(2), fieldIntrv(2), nPtField(2), fieldDx, fieldDy,
+     &    iGridDim)
       close(1)
 c       
       call exit(0)
