@@ -56,6 +56,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.41  2006/01/31 20:58:00  sueh
+ * bug# 521 Managing the restart buttons (patchcorr, matchorwarp, and
+ * volcombine) in ProcessResultDisplayFactory.
+ *
  * Revision 3.40  2006/01/26 22:04:45  sueh
  * bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * the buttons turned on each they are run, unless the process fails or is
@@ -1062,7 +1066,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splitcombine(btnVolcombineRestart);
+        applicationManager.splitcombine();
       }
       else {
         applicationManager.volcombine(btnVolcombineRestart);

@@ -4832,7 +4832,8 @@ public class ApplicationManager extends BaseManager {
     }
     String threadName;
     try {
-      threadName = processMgr.combine(combineComscriptState, processResultDisplay);
+      threadName = processMgr.combine(combineComscriptState,
+          processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4882,7 +4883,8 @@ public class ApplicationManager extends BaseManager {
 
     String threadName;
     try {
-      threadName = processMgr.combine(combineComscriptState, processResultDisplay);
+      threadName = processMgr.combine(combineComscriptState,
+          processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4960,7 +4962,8 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     String threadName;
     try {
-      threadName = processMgr.combine(combineComscriptState, processResultDisplay);
+      threadName = processMgr.combine(combineComscriptState,
+          processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5026,7 +5029,8 @@ public class ApplicationManager extends BaseManager {
     //nextProcess = "";
     String threadName;
     try {
-      threadName = processMgr.combine(combineComscriptState, processResultDisplay);
+      threadName = processMgr.combine(combineComscriptState,
+          processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5480,7 +5484,7 @@ public class ApplicationManager extends BaseManager {
       processchunksVolcombine(processResultDisplay);
     }
     else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
-      splitcombine(processResultDisplay);
+      splitcombine();
     }
     else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
       extractpieces(axisID, processResultDisplay);
@@ -5977,7 +5981,9 @@ public class ApplicationManager extends BaseManager {
         .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
   }
 
-  public void splitcombine(ProcessResultDisplay processResultDisplay) {
+  public void splitcombine() {
+    ProcessResultDisplay processResultDisplay = getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartVolcombine();
     sendMsgProcessStarting(processResultDisplay);
     if (!updateVolcombineCom()) {
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -6016,7 +6022,8 @@ public class ApplicationManager extends BaseManager {
     processchunks(axisID, mapGenerationDialog(axisID), processResultDisplay);
   }
 
-  private final void processchunksVolcombine(ProcessResultDisplay processResultDisplay) {
+  private final void processchunksVolcombine(
+      ProcessResultDisplay processResultDisplay) {
     processchunks(AxisID.ONLY, tomogramCombinationDialog, processResultDisplay);
   }
 
@@ -6078,6 +6085,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.208  2006/02/06 20:57:22  sueh
+ * <p> bug# 521 Removed unnecessary getParameters(ReconScreenState)
+ * <p> functions from process dialogs; toggle buttons that are managed by
+ * <p> ProcessResultDisplayFactory can save their own state.
+ * <p>
  * <p> Revision 3.207  2006/01/31 20:36:04  sueh
  * <p> bug# 521 Calling BaseManager.doneProcessDialogin all done functions.
  * <p>
