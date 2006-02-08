@@ -3,6 +3,8 @@ package etomo.comscript;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import etomo.util.Utilities;
+
 /**
 * <p>Description: </p>
 * 
@@ -112,7 +114,12 @@ public class LoadAverageParam implements IntermittentCommand {
   }
   
   private final void buildIntermittentCommand() {
-    intermittentCommand = "w";
+    if (Utilities.isWindowsOS()) {
+      intermittentCommand = "imodwincpu";
+    }
+    else {
+      intermittentCommand = "w";
+    }
   }
   
   private final void buildEndCommand() {
@@ -125,6 +132,13 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/12/01 00:23:09  sueh
+* <p> bug# 775   The command that makes the connection can be different
+* <p> depending on whether is it talking to local or remote computer.  Removed
+* <p> getCommand and added getLocalCommand and getRemoteCommand.
+* <p> This is interface is also about distributing commands across multiple
+* <p> computers.  Remove getKey and added getComputer.
+* <p>
 * <p> Revision 1.5  2005/10/27 00:21:57  sueh
 * <p> bug# 745 ssh should be run with -x.  Hoping this will solve the XServer
 * <p> problem.

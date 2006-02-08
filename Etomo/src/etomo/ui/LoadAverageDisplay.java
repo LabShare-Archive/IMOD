@@ -22,9 +22,14 @@ public interface LoadAverageDisplay {
   public void setLoadAverage(String computer, double load1, double load5, double load15);
   public void msgLoadAverageFailed(String computer, String reason);
   public void msgStartingProcess(String computer);
+  public void setCPUUsage(String computer, double CPUUsage);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/11/19 02:42:21  sueh
+* <p> bug# 744 Changed parallel processing display clearFailureReason
+* <p> function to msgStartingProcess.  This hides the implementation.
+* <p>
 * <p> Revision 1.5  2005/09/10 01:54:40  sueh
 * <p> bug# 532 Added clearFailureReason() so that the failure reason can be
 * <p> cleared when a new connection to the computer is attempted.
