@@ -13,6 +13,7 @@ import javax.swing.event.ChangeListener;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Storable;
 import etomo.type.EtomoNumber;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -38,6 +39,7 @@ final class ProcessorTableRow implements Storable {
   private final FieldCell cellLoad1 = new FieldCell();
   private final FieldCell cellLoad5 = new FieldCell();
   private final FieldCell cellLoad15 = new FieldCell();
+  private final FieldCell cellCPUUsage = new FieldCell();
   private final FieldCell cellRestarts = new FieldCell();
   private final FieldCell cellSuccesses = new FieldCell();
   private final FieldCell cellFailureReason = new FieldCell();
@@ -170,6 +172,7 @@ final class ProcessorTableRow implements Storable {
     cellLoad1.setEnabled(false);
     cellLoad5.setEnabled(false);
     cellLoad15.setEnabled(false);
+    cellCPUUsage.setEnabled(false);
     cellRestarts.setEnabled(false);
     cellSuccesses.setEnabled(false);
     cellFailureReason.setEnabled(false);
@@ -227,9 +230,14 @@ final class ProcessorTableRow implements Storable {
     if (numberColumn) {
       cellNumberCpus.add(panel, layout, constraints);
     }
-    cellLoad1.add(panel, layout, constraints);
-    cellLoad5.add(panel, layout, constraints);
-    cellLoad15.add(panel, layout, constraints);
+    if (Utilities.isWindowsOS()) {
+      cellCPUUsage.add(panel, layout, constraints);
+    }
+    else {
+      cellLoad1.add(panel, layout, constraints);
+      cellLoad5.add(panel, layout, constraints);
+      cellLoad15.add(panel, layout, constraints);
+    }
     if (typeColumn) {
       cellCPUType.add(panel, layout, constraints);
     }
@@ -261,7 +269,8 @@ final class ProcessorTableRow implements Storable {
     setSelected(false);
     cellFailureReason.setValue(reason);
     cellFailureReason.setToolTipText(tooltipFormatter.setText(
-        "This computer was dropped from the current distributed process.").format());
+        "This computer was dropped from the current distributed process.")
+        .format());
   }
 
   private void setSelected(boolean selected) {
@@ -278,8 +287,15 @@ final class ProcessorTableRow implements Storable {
   }
 
   private void setSelectedError() {
-    cellComputer.setError(cellComputer.isSelected() && cellLoad1.isEmpty()
-        && cellLoad5.isEmpty() && cellLoad15.isEmpty());
+    boolean loadIsEmpty;
+    if (Utilities.isWindowsOS()) {
+      loadIsEmpty = cellCPUUsage.isEmpty();
+    }
+    else {
+      loadIsEmpty = cellLoad1.isEmpty() && cellLoad5.isEmpty()
+          && cellLoad15.isEmpty();
+    }
+    cellComputer.setError(cellComputer.isSelected() && loadIsEmpty);
   }
 
   final boolean isSelected() {
@@ -357,18 +373,34 @@ final class ProcessorTableRow implements Storable {
     setLoad(cellLoad15, load15, numberCpus);
   }
 
+  final void setCPUUsage(double cpuUsage) {
+    int numberCPUs = cellNumberCpus.getIntValue();
+    double usage = cpuUsage * numberCPUs / 100.0;
+    cellCPUUsage.setWarning(numberCPUs - usage <= .25);
+    cellCPUUsage.setValue(usage);
+    cellComputer.setError(false);
+  }
+
   final void clearLoadAverage(String reason) {
-    int numberCpus = cellNumberCpus.getIntValue();
-    cellLoad1.setValue();
-    cellLoad1.setWarning(false);
-    cellLoad5.setValue();
-    cellLoad5.setWarning(false);
-    cellLoad15.setValue();
-    cellLoad15.setWarning(false);
+    String loadName;
+    if (Utilities.isWindowsOS()) {
+      loadName = "CPU usage";
+      cellCPUUsage.setValue();
+      cellCPUUsage.setWarning(false);
+    }
+    else {
+      loadName = "load averages";
+      cellLoad1.setValue();
+      cellLoad1.setWarning(false);
+      cellLoad5.setValue();
+      cellLoad5.setWarning(false);
+      cellLoad15.setValue();
+      cellLoad15.setWarning(false);
+    }
     setSelectedError();
     cellFailureReason.setValue(reason);
     cellFailureReason.setToolTipText(tooltipFormatter.setText(
-        "Unable to get the load averages for this computer.").format());
+        "Unable to get the " + loadName + " for this computer.").format());
   }
 
   final void clearFailureReason() {
@@ -392,45 +424,34 @@ final class ProcessorTableRow implements Storable {
 
   final int getWidth() {
     int width = 0;
-    if (cellComputer != null) {
-      width += cellComputer.getWidth();
-    }
-    if (cellCPUsSelected != null) {
-      width += cellCPUsSelected.getWidth();
-    }
-    if (cellNumberCpus != null && numberColumn) {
+    width += cellComputer.getWidth();
+    width += cellCPUsSelected.getWidth();
+    if (numberColumn) {
       width += cellNumberCpus.getWidth();
     }
-    if (cellLoad1 != null) {
+    if (Utilities.isWindowsOS()) {
+      width += cellCPUUsage.getWidth();
+    }
+    else {
       width += cellLoad1.getWidth();
-    }
-    if (cellLoad5 != null) {
       width += cellLoad5.getWidth();
-    }
-    if (cellLoad15 != null) {
       width += cellLoad15.getWidth();
     }
-    if (cellCPUType != null && typeColumn) {
+    if (typeColumn) {
       width += cellCPUType.getWidth();
     }
-    if (cellSpeed != null && speedColumn) {
+    if (speedColumn) {
       width += cellSpeed.getWidth();
     }
-    if (cellMemory != null && memoryColumn) {
+    if (memoryColumn) {
       width += cellMemory.getWidth();
     }
-    if (cellOS != null && osColumn) {
+    if (osColumn) {
       width += cellOS.getWidth();
     }
-    if (cellRestarts != null) {
-      width += cellRestarts.getWidth();
-    }
-    if (cellSuccesses != null) {
-      width += cellSuccesses.getWidth();
-    }
-    if (cellFailureReason != null) {
-      width += cellFailureReason.getWidth();
-    }
+    width += cellRestarts.getWidth();
+    width += cellSuccesses.getWidth();
+    width += cellFailureReason.getWidth();
     return width + 3;
   }
 
@@ -460,6 +481,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2005/12/16 01:46:10  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.19  2005/12/14 20:58:29  sueh
  * <p> bug# 784 Added context sensitive tool tips to failure reasons.
  * <p>
