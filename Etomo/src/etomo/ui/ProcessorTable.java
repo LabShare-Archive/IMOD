@@ -21,6 +21,7 @@ import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.util.HashedArray;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -52,6 +53,7 @@ public final class ProcessorTable implements Storable {
   private final HeaderCell header1Computer = new HeaderCell("Computer");
   private final HeaderCell header1NumberCPUs = new HeaderCell("# CPUs");
   private final HeaderCell header1Load = new HeaderCell("Load Average");
+  private final HeaderCell header1CPUUsage = new HeaderCell("CPU Usage");
   private HeaderCell header1CPUType = null;
   private HeaderCell header1Speed = null;
   private HeaderCell header1RAM = null;
@@ -65,6 +67,7 @@ public final class ProcessorTable implements Storable {
   private final HeaderCell header2Load1 = new HeaderCell("1 Min.");
   private final HeaderCell header2Load5 = new HeaderCell("5 Min.");
   private final HeaderCell header2Load15 = new HeaderCell("15 Min.");
+  private final HeaderCell header2CPUUsage = new HeaderCell();
   private HeaderCell header2CPUType = null;
   private HeaderCell header2Speed = null;
   private HeaderCell header2RAM = null;
@@ -124,15 +127,13 @@ public final class ProcessorTable implements Storable {
     Attribute unitsAttribute = autodoc.getAttribute("units");
     //get speed units
     try {
-      speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY)
-          .getValue();
+      speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY).getValue();
     }
     catch (NullPointerException e) {
     }
     //get memory units
     try {
-      memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY)
-          .getValue();
+      memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY).getValue();
     }
     catch (NullPointerException e) {
     }
@@ -252,9 +253,15 @@ public final class ProcessorTable implements Storable {
       constraints.gridwidth = 2;
     }
     header1NumberCPUs.add(tablePanel, layout, constraints);
-    constraints.gridwidth = 3;
-    header1Load.add(tablePanel, layout, constraints);
-    constraints.gridwidth = 1;
+    if (Utilities.isWindowsOS()) {
+      constraints.gridwidth = 1;
+      header1CPUUsage.add(tablePanel, layout, constraints);
+    }
+    else {
+      constraints.gridwidth = 3;
+      header1Load.add(tablePanel, layout, constraints);
+      constraints.gridwidth = 1;
+    }
     if (useTypeColumn()) {
       header1CPUType.add(tablePanel, layout, constraints);
     }
@@ -282,9 +289,14 @@ public final class ProcessorTable implements Storable {
     if (useNumberColumn()) {
       header2NumberCPUsMax.add(tablePanel, layout, constraints);
     }
-    header2Load1.add(tablePanel, layout, constraints);
-    header2Load5.add(tablePanel, layout, constraints);
-    header2Load15.add(tablePanel, layout, constraints);
+    if (Utilities.isWindowsOS()) {
+      header2CPUUsage.add(tablePanel, layout, constraints);
+    }
+    else {
+      header2Load1.add(tablePanel, layout, constraints);
+      header2Load5.add(tablePanel, layout, constraints);
+      header2Load15.add(tablePanel, layout, constraints);
+    }
     if (useTypeColumn()) {
       header2CPUType.add(tablePanel, layout, constraints);
     }
@@ -600,6 +612,13 @@ public final class ProcessorTable implements Storable {
     ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5,
         load15);
   }
+  
+  final void setCPUUsage(String computer, double cpuUsage) {
+    if (rows == null) {
+      return;
+    }
+    ((ProcessorTableRow) rows.get(computer)).setCPUUsage(cpuUsage);
+  }
 
   final void clearLoadAverage(String computer, String reason) {
     if (rows == null) {
@@ -715,6 +734,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2006/01/12 17:37:12  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.28  2006/01/11 22:32:32  sueh
  * <p> bug# 675 replaced Attribute.getUnformattedValue with getValue
  * <p>
