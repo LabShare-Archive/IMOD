@@ -404,7 +404,7 @@ EOF
         if ($m64bit == false) then
             set dllsrc3 = `cygpath $SYSTEMROOT/system32`
             echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
-            echo 'DLLSTOCOPY3 = msvcr71.dll' >> $configure
+            echo 'DLLSTOCOPY3 = msvcr71.dll msvcp71.dll' >> $configure
         endif
     endif
 
