@@ -23,10 +23,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   public static final String rcsid = "$Id$";
 
   private static final String OUTPUT_KEY_PHRASE = "load average";
-  private static final String WINDOWS_OUTPUT_KEY_PHRASE = "percent cpu usage";
-
-  private HashedArray programs = new HashedArray();
+  
   private final LoadAverageDisplay display;
+  
+  private HashedArray programs = new HashedArray();
   private boolean running = false;
 
   public LoadAverageMonitor(LoadAverageDisplay display) {
@@ -94,11 +94,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     }
     for (int i = 0; i < stdout.length; i++) {
       if (Utilities.isWindowsOS()) {
-        if (stdout[i].indexOf(WINDOWS_OUTPUT_KEY_PHRASE) != -1) {
-          String[] array = stdout[i].trim().split("\\s+");
-          display.setCPUUsage(programState.getCommand().getComputer(),
-              getLoad(array[array.length - 1]));
-        }
+        String[] array = stdout[i].trim().split("\\s+");
+        display.setCPUUsage(programState.getCommand().getComputer(),
+            getLoad(array[array.length - 1]));
       }
       else {
         if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
@@ -114,6 +112,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   }
 
   public final String getOutputKeyPhrase() {
+    if (Utilities.isWindowsOS()) {
+      return null;
+    }
     return OUTPUT_KEY_PHRASE;
   }
 
@@ -185,6 +186,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2006/02/08 03:35:01  sueh
+ * <p> bug# 796 Use imodwindcpu instead of w for windows.
+ * <p>
  * <p> Revision 1.11  2005/12/01 00:24:54  sueh
  * <p> bug# 775   The command interface is also about distributing commands
  * <p> across multiple computers.  Remove getKey and added getComputer.
