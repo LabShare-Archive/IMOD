@@ -170,6 +170,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
       double load15) {
     processorTable.setLoadAverage(computer, load1, load5, load15);
   }
+  
+  public final void setCPUUsage(String computer, double cpuUsage) {
+    processorTable.setCPUUsage(computer, cpuUsage);
+  }
 
   public final void setPauseEnabled(boolean pauseEnabled) {
     this.pauseEnabled = pauseEnabled;
@@ -465,6 +469,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2006/02/06 23:00:34  sueh
+ * <p> bug# 806 Autodoc is not validate if this is a Windows OS
+ * <p>
  * <p> Revision 1.30  2006/01/26 22:05:38  sueh
  * <p> bug# 401 Added processResultDisplay parameters to all the functions associated
  * <p> with toggle buttons.

@@ -1,3 +1,25 @@
+c
+c       FINDGRADIENT finds parameters related to magnification gradients that
+c       minimize the displacement errors when Blendmont shifts pieces into
+c       registration.   The two gradient parameters are the percent change in
+c       magnification and the degrees of rotation per micron of Z height
+c       change.  The other parameter that affects the Blendmont error is the
+c       effective tilt angle for the corrections, which can differ from the
+c       nominal tilt angle by several degrees.  Either the gradient
+c       parameters, or the angle offset, or all three can be searched.
+c       
+c       See man page for more details.
+c       
+c       David Mastronarde, February 2006
+c
+c       $Author$
+c       
+c       $Date$
+c       
+c       $Revision$
+c
+c       $Log$
+c
       implicit none
 c       
 c       Stuff for amoeba: ftol2 and ptol2 are used the FIRST time

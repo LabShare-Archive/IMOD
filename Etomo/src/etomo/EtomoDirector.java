@@ -167,6 +167,7 @@ public class EtomoDirector {
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
     uiHarness.pack(manager);
     uiHarness.setVisible(true);
+    System.err.println("imod:  " + getIMODDirectory());
   }
 
   /**
@@ -970,6 +971,11 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2006/01/04 20:16:39  sueh
+ * <p> bug# 675 Removed kill Etomo functionality.  Running each test separately
+ * <p> from a script so that each instance of Etomo will have a separate virtual
+ * <p> machine.
+ * <p>
  * <p> Revision 1.38  2006/01/03 23:18:32  sueh
  * <p> bug# 675 Made Utilities more independent from EtomoDirector.  Added
  * <p> removeInstance_test to destroy the EtomoDirector istance.
