@@ -709,16 +709,24 @@ public final class ProcessorTable implements Storable {
         "Select the number of CPUs to use for each computer.").format();
     header1NumberCPUs.setToolTipText(text);
     header2NumberCPUsUsed.setToolTipText(text);
-    header2NumberCPUsMax.setToolTipText(tooltipFormatter.setText(
-        "The maximum number of CPUs available on each computer.").format());
-    header1Load.setToolTipText(tooltipFormatter.setText(
-        "Represents how busy each computer is.").format());
-    header2Load1.setToolTipText(tooltipFormatter.setText(
-        "The load averaged over one minute.").format());
-    header2Load5.setToolTipText(tooltipFormatter.setText(
-        "The load averaged over five minutes.").format());
-    header2Load15.setToolTipText(tooltipFormatter.setText(
-        "The load averaged over fifteen minutes.").format());
+    if (numberColumn) {
+      header2NumberCPUsMax.setToolTipText(tooltipFormatter.setText(
+          "The maximum number of CPUs available on each computer.").format());
+    }
+    if (Utilities.isWindowsOS()) {
+      header1CPUUsage.setToolTipText(tooltipFormatter.setText(
+          "The CPU usage (0 to number of CPUs) averaged over one second.")
+          .format());
+    } else {
+      header1Load.setToolTipText(tooltipFormatter.setText(
+          "Represents how busy each computer is.").format());
+      header2Load1.setToolTipText(tooltipFormatter.setText(
+          "The load averaged over one minute.").format());
+      header2Load5.setToolTipText(tooltipFormatter.setText(
+          "The load averaged over five minutes.").format());
+      header2Load15.setToolTipText(tooltipFormatter.setText(
+          "The load averaged over fifteen minutes.").format());
+    }
     text = tooltipFormatter.setText(
         "The number of times processes failed on each computer.").format();
     header1Restarts.setToolTipText(text);
@@ -734,6 +742,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2006/02/08 03:38:11  sueh
+ * <p> bug# 796 Use cpu usage instead of load average for windows.
+ * <p>
  * <p> Revision 1.29  2006/01/12 17:37:12  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
