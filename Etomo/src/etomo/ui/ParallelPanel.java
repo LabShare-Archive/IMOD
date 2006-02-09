@@ -185,7 +185,6 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   }
 
   public final boolean isInUse() {
-    System.out.println(btnPause.isEnabled());
     return btnPause.isEnabled();
   }
 
@@ -234,7 +233,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     validAutodoc = new EtomoBoolean2();
     Autodoc autodoc = getAutodoc(axisID);
     if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)
-        && !Utilities.isWindowsOS()) {
+        /*&& !Utilities.isWindowsOS()*/) {
       validAutodoc.set(true);
     }
     return validAutodoc.is();
@@ -469,6 +468,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2006/02/08 03:37:40  sueh
+ * <p> bug# 796 added setCPUUsage().
+ * <p>
  * <p> Revision 1.31  2006/02/06 23:00:34  sueh
  * <p> bug# 806 Autodoc is not validate if this is a Windows OS
  * <p>
