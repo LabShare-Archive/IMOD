@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2003/10/24 04:11:46  mast
+#  Changes for Windows/Intel compiler
+#
 #  Revision 3.1  2003/10/08 17:16:15  mast
 #  changes to work with autodoc files
 #
@@ -39,6 +42,7 @@ autodoc2man : autodoc2man.$(O) ../libimod/parse_params.$(O)
 mantohtml : mantohtml.$(O)
 	$(CC) $(CFLAGS) -o mantohtml mantohtml.$(O) $(CLIBS)
 
+mantohtml.$(O) : proglist.h
 
 clean :
 	$(FIND) . -type f -name "*.1"   -exec rm "{}" \;
