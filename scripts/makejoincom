@@ -27,6 +27,7 @@ set sizelist = ""
 set angleoplist = ""
 set sizeoplist = ""
 set ifrotlist = ""
+set didrotlist = ""
 set chunklist = ""
 set avglist = ""
 set scalelist = ""
@@ -81,6 +82,7 @@ while ($ind < $listsize)
     set angleoplist = ($angleoplist "0")
     set sizeoplist = ($sizeoplist "0")
     set ifrotlist = ($ifrotlist "0")
+    set didrotlist = ($didrotlist "0")
 end
 
 if ($interactive == 0) then
@@ -92,6 +94,7 @@ if ($interactive == 0) then
     set ifflip = 0
     set rotangle = 0
     set rotsize = 0
+    set didrot = 0
     if ("$argv[1]" == "-h" || "$argv[1]" == "-help") goto usage
     while ($#argv > 1)
       switch ("$argv[1]")
@@ -116,7 +119,7 @@ if ($interactive == 0) then
           endif
           shift; shift
           breaksw
-        case -f*:
+        case -fl*:
           set ifflip = 1
           shift
           breaksw
@@ -129,6 +132,10 @@ if ($interactive == 0) then
             exit 1
           endif
           shift ; shift
+          breaksw
+        case -a*:
+          set didrot = 1
+          shift
           breaksw
         case -x*:
           set rotsize = "$argv[2]"
@@ -166,6 +173,10 @@ if ($interactive == 0) then
           set rotsize = "maxxy"
           shift
           breaksw
+        case -fu*:
+          set rotsize = "full"
+          shift
+          breaksw
 
         default:
 
@@ -185,11 +196,13 @@ if ($interactive == 0) then
           set angleoplist[$ntomo] = "$rotangle"
           set sizeoplist[$ntomo] = "$rotsize"
           set ifrotlist[$ntomo] = $ifflip
+          set didrotlist[$ntomo] = $didrot
           set botrange = 0
           set toprange = 0
           set ifflip = 0
           set rotangle = 0
           set rotsize = 0
+          set didrot = 0
           shift
           breaksw
       endsw
@@ -197,7 +210,7 @@ if ($interactive == 0) then
 
     # Make sure there are not orphan option entries
     if ("$botrange" != 0 || "$toprange" != 0 || "$ifflip" != 0 || \
-        "$rotangle" != 0 || "$rotsize" != 0) then
+        "$rotangle" != 0 || "$rotsize" != 0 || "$didrot" != 0) then
         echo "ERROR: $pn - You entered option(s) for another tomogram without"
         echo "entering both another tomogram name and the root name for output files"
         exit 1
@@ -286,19 +299,26 @@ while ($itomo <= $ntomo)
         echo -n "Name of tomogram # ${itomo}: "
         set namein = "$<"
 
+        set didrot = 0
         set ifflip = "-1"
         while ($ifflip == "-1")
             echo "Enter A if this tomogram is Already flipped, F to Flip it with Clip,"
-            echo -n " or R to Rotate it with Rotatevol: "
+            echo " R to Rotate it with Rotatevol"
+            echo -n " or D if rotation was done on a previous run of startjoin.com: "
             set flipin = $<
-            if ($flipin == "r" || $flipin == "R") set ifflip = "2"
-            if ($flipin == "f" || $flipin == "F") set ifflip = "1"
-            if ($flipin == "a" || $flipin == "A") set ifflip = "0"
+            if ("$flipin" == "r" || "$flipin" == "R") set ifflip = "2"
+            if ("$flipin" == "f" || "$flipin" == "F") set ifflip = "1"
+            if ("$flipin" == "a" || "$flipin" == "A") set ifflip = "0"
+            if ("$flipin" == "d" || "$flipin" == "D") then
+                set ifflip = "2"
+                set didrot = 1
+            endif
         end
     else
 
         set namein = "$reclist[$itomo]"
         set ifflip = $ifrotlist[$itomo]
+        set didrot = $didrotlist[$itomo]
     endif
 
     # DECOMPOSE FILENAME INTO HEADER, ROOT AND TAIL
@@ -385,15 +405,14 @@ while ($itomo <= $ntomo)
         else
             if ($sizeoplist[$itomo] == "0") then
                 set rotsize = ($nx $ny $nz)
-            else if ($sizeoplist[$itomo] == "maxxy") then
-                set an
+            else if ($sizeoplist[$itomo] == "maxxy" || $sizeoplist[$itomo] == "full") then
                 set rotangle = `echo $angleoplist[$itomo] | sed 's/,/ /g'`
                 set rotsize = `rotatevol -query -ang $rotangle[3],$rotangle[2],$rotangle[1]  "$recsource"`
                 if ($#rotsize < 3) then
                     echo "ERROR: makejoincom - rotatevol size query failed on $recsource"
                     exit 1
                 endif
-                set rotsize[3] = $nz
+                if ($sizeoplist[$itomo] == "maxxy") set rotsize[3] = $nz
                 echo "Dimensions of $flipsource will be $rotsize"
             else
                 set rotsize = `echo $sizeoplist[$itomo] | sed 's/,/ /g'`
@@ -583,6 +602,7 @@ while ($itomo <= $ntomo)
     set sizelist = ($sizelist $rotsize)
     set anglelist = ($anglelist $rotangle)
     set ifrotlist[$itomo] = $ifflip
+    set didrotlist[$itomo] = $didrot
     if ($itomo > 1) set chunklist = ${chunklist},
     set chunklist = ${chunklist}$chunksize
 
@@ -661,7 +681,7 @@ while ($itomo <= $ntomo)
     @ indz = $indy + 1
     if ($ifrotlist[$itomo] == "1") then
 	echo '$clip'" flipyz $reclist[$itomo] $fliplist[$itomo]" >> $joincom
-    else if ($ifrotlist[$itomo] == "2") then
+    else if ($ifrotlist[$itomo] == "2" && $didrotlist[$itomo] == "0") then
 	cat >> $joincom <<EOF
 \$rotatevol
 $reclist[$itomo]
@@ -753,9 +773,11 @@ Usage: makejoincom [options] tomogram1 [options] tomogram2 ... root_name
     -flip           Flip Y and Z of tomogram to make X/Y be in plane of section
     -rotate #,#,#   Run Rotatevol on tomogram with given rotation around 
                       X, Y, and Z axes
+    -already        Rotatevol was already run with these rotations
     -xyzsize #,#,#  Set output size from Rotatevol to given values in X, Y, Z
+    -fullsize       Set Rotatevol output size to maximum needed to hold volume
     -maxxysize      Set Rotatevol output size in X and Y to maximum needed to 
-                      hold volume, keep Z sane size as input
+                      hold volume, keep Z same size as input
 
   Global options (may be entered anywhere before root_name)
     -dir path       Set the default directory for source tomograms to "path"
@@ -769,6 +791,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.12  2005/12/01 06:37:58  mast
+#  Added option to set rotated volumes to max needed size in X/Y
+#
 #  Revision 3.11  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
