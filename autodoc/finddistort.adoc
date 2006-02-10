@@ -1,0 +1,141 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input image file with distortion pairs
+tooltip = 
+manpage = Input image file with distortion pairs.  If this option is not
+entered, the first non-option argument will be taken as the input file name.
+
+[Field = OutputRoot]
+short = output
+type = FN
+usage = Root name for output files
+tooltip = 
+manpage = Root name for output files.  If this option is not entered, the
+second non-option argument will be used as the root name.
+
+[Field = PairsToAnalyze]
+short = pairs
+type = LI
+usage = List of images to analyze in pairs (from 0, default is all images)
+tooltip = 
+manpage = List of images to analyze in pairs; for example 0-7 if sections 0
+and 1, 2 and 3, 4 and 5, and 6 and 7 are all image pairs.  The default is to
+assume that all images in the file form successive pairs.  Sections are
+numbered from 0.
+
+[Field = ImageBinning]
+short = binning
+type = I
+usage = Binning of images on the CCD camera (default 2)
+tooltip = 
+manpage = 
+
+[Field = FieldSpacing]
+short = field
+type = I
+usage = Pixel spacing for output distortion field (default 40)
+tooltip = 
+manpage = 
+
+[Field = DataSpacing]
+short = data
+type = I
+usage = Pixel spacing for data used to solve linear equations (default 20)
+tooltip = 
+manpage = Pixel spacing for data used to solve linear equations for the
+distortion field.  This spacing should be about half of the spacing for the
+output field.  The default is 20.
+
+[Field = GridSpacing]
+short = grid
+type = I
+usage = Pixel spacing for grid of displacements in overlap zones (default 16)
+tooltip = 
+manpage = Pixel spacing for grid on which displacements will be measured in
+the overlap zones between paired images (default 16).
+
+[Field = BoxSize]
+short = box
+type = I
+usage = Size of box used to measure local displacements (default 24)
+tooltip = 
+manpage = Size of box used to measure local displacements.  Boxes of this
+size will be correlated between the two images at every position on the grid.
+The default is 24.  This value should be increased if the solution is noisy.
+
+[Field = GridIndent]
+short = indent
+type = I
+usage = Amount to indent the boxes in the grid of displacements (default 4)
+tooltip = 
+manpage = Amount to indent the boxes in the grid of displacements from the 
+edge of the overlap zone.  The default is 4 pixels; this vakue can be dropped
+to 2 for larger than default boxes.
+
+[Field = Iterations]
+short = iterations
+type = I
+usage = Maximum number of iterations when solving equations
+tooltip = 
+manpage = 
+
+[Field = UseOldTransforms]
+short = usexf
+type = B
+usage = Use existing transforms on first iteration
+tooltip = 
+manpage = Use existing transforms instead of running Tiltxcorr on the first
+iteration; these transforms are stored in the file rootname.rawxf when
+Tiltxcorr is run on the first iteration.
+
+[Field = StretchFile]
+short = strfile
+type = FN
+usage = File with transformation aligning 90-degree rotated images
+tooltip = 
+manpage = File with transformation that aligns two 90-degree rotated images of
+the same area.  This transformation is used to determine the absolute stretch
+in the distortion field.
+
+[Field = PatchOutput]
+short = patch
+type = B
+usage = Output a patch file to convert to a model with patch2imod
+tooltip = 
+manpage = Output a patch file to convert to a model with patch2imod.  The
+patch file will be named rootname.patch.
+
+[Field = RedirectOutput]
+short = redirect
+type = CH
+usage = String for redirecting output (default "> /dev/null")
+tooltip = 
+manpage = String for redirecting output from Tiltxcorr and Newstack.  The
+default is "> /dev/null", which will not work in Windows.  A valid Windows
+path must be entered; "> xcorr.tmp" would work. 
+
+[Field = SolveWithMultr]
+short = multr
+type = B
+usage = Use matrix inversion instead of iterative method
+tooltip = 
+manpage = Use matrix inversion instead of iterative method to solve
+equations.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output.
