@@ -1,4 +1,23 @@
+c
+c       FINDDISTORT analyzes overlapping images and solves for the underlying
+c       image distortion field.  The basis for the analysis is the fact that
+c       after two overlapping images are shifted into best registration, the
+c       remaining image displacement at a particular point in the overlap zone
+c       is the difference between the distortion vectors at two locations in
+c       the original images.
 c       
+c       See man page for more details.
+c       
+c       David Mastronarde, February 2006
+c
+c       $Author$
+c       
+c       $Date$
+c       
+c       $Revision$
+c
+c       $Log$
+c
       implicit none
       integer maxImDim, maxGrids, iGridDim, msiz, maxVars, matLim
       integer maxData, lenRwrk, lenIwrk, maxSect
@@ -85,31 +104,26 @@ c
       integer*4 iBinning, maxZ
       real*4 cosd, sind, acosd, asind
       integer*4 lnblnk
-
+c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean
       integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers
       integer*4 PipGetInOutFile, PipGetLogical
+c       
+c       fallbacks from ../../manpages/autodoc2man -2 2  finddistort
+c       
       integer numOptions
-      parameter (numOptions = 16)
+      parameter (numOptions = 17)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FN:@'//
-     &    'output:OutputRoot:FN:@'//
-     &    'pairs:PairsToAnalyze:LI:@'//
-     &    'field:FieldSpacing:I:@'//
-     &    'data:DataSpacing:I:@'//
-     &    'grid:GridSpacing:I:@'//
-     &    'box:BoxSize:I:@'//
-     &    'indent:GridIndent:I:@'//
-     &    'iterations:Iterations:I:@'//
-     &    'multr:SolveWithMultr:B:@'//
-     &    'usexf:UseOldTransforms:B:@'//
-     &    'redirect:RedirectOutput:CH:@'//
-     &    'strfile:StretchFile:FN:@'//
-     &    'patch:PatchOutput:B:@'//
-     &    'binning:ImageBinning:I:@'//
-     &    'help:usage:B:'
+     &    'input:InputFile:FN:@output:OutputRoot:FN:@'//
+     &    'pairs:PairsToAnalyze:LI:@binning:ImageBinning:I:@'//
+     &    'field:FieldSpacing:I:@data:DataSpacing:I:@'//
+     &    'grid:GridSpacing:I:@box:BoxSize:I:@indent:GridIndent:I:@'//
+     &    'iterations:Iterations:I:@usexf:UseOldTransforms:B:@'//
+     &    'strfile:StretchFile:FN:@patch:PatchOutput:B:@'//
+     &    'redirect:RedirectOutput:CH:@multr:SolveWithMultr:B:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults
 c       
@@ -732,7 +746,7 @@ c
 c           
 c           write the no stretch idf file
 c           
-          call idfStartFile(outfile, 1, nx, ny, iBinning, pixelSize)
+          call idfStartFile(outfile, 1, nx, ny, 1, iBinning, pixelSize)
           call idfWriteField(1, iFieldStrt(1), fieldIntrv(1), nPtField(1),
      &        iFieldStrt(2), fieldIntrv(2), nPtField(2), fieldDx, fieldDy,
      &        iGridDim)
@@ -877,7 +891,7 @@ c
 c       
 c       write the idf file
 c       
-      call idfStartFile(outfile, 1, nx, ny, iBinning, pixelSize)
+      call idfStartFile(outfile, 1, nx, ny, 1, iBinning, pixelSize)
       call idfWriteField(1, iFieldStrt(1), fieldIntrv(1), nPtField(1),
      &    iFieldStrt(2), fieldIntrv(2), nPtField(2), fieldDx, fieldDy,
      &    iGridDim)
