@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2003/10/29 18:25:20  mast
+#  Add -Tascii flag for RH8 and RH9
+#
 #  Revision 3.3  2003/10/08 17:19:22  mast
 #  Changes to work with autodoc files
 #
@@ -61,7 +64,7 @@ end
 
 foreach j (*.1)
 	echo "converting $j to ${j:r}.html"
-	$argv[1]/mantohtml < $j >! ${j:r}.html
+	$argv[1]/mantohtml $j:t:r < $j >! ${j:r}.html
 end
 
 clean:
