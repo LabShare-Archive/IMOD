@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/10/06: Added options to Makejoincom to skip rotating a volume that has
+already been rotated, and to make the rotated volume as big as needed in Z.
+
 2/9/06: Added hyperlinks to the html versions of the man pages.
 
 2/6/06: IMOD_3-8-1
