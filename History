@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/9/06: Added hyperlinks to the html versions of the man pages.
+
 2/6/06: IMOD_3-8-1
 2/6/06: In Etomo, running a process will cause two-state buttons associated
 with later processes to show their "not yet run" state.
