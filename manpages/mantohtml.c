@@ -5,6 +5,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2006/02/10 02:52:32  mast
+Added program list include, line buffering, and replacement of
+program(1) with a hyperlink to man page
+
 Revision 3.2  2004/12/24 02:23:00  mast
 Completely rewrote to work right with bold and italics and special
 characters
@@ -129,7 +133,7 @@ int nextchar()
   char candidate[50], link[100];
   char *result;
   unsigned char *parstr;
-  int list, i, progind, parind, dosub, ncomp, copyStart;
+  int list, i, progind, parind, dosub, ncomp, copyStart, caps;
 
   if (bufind >= 0 && bufind < buflen)
     return procbuf[bufind++];
@@ -163,10 +167,17 @@ int nextchar()
     if (ncomp > 0 && ncomp < 40) {
       strncpy(candidate, &inbuf[progind], ncomp);
       candidate[ncomp] = 0x00;
-      if (strcasecmp(candidate, htitle)) {
+      caps = 0;
+      if (candidate[0] >= 65 && candidate[0] <= 90) {
+        candidate[0] += 32;
+        caps = 1;
+      }
+      if (strcmp(candidate, htitle)) {
         for (list = 0; programs[list]; list++) {
-          if (!strcasecmp(candidate, programs[list])) {
+          if (!strcmp(candidate, programs[list])) {
             dosub = 1;
+            if (caps)
+              candidate[0] -= 32;
             break;
           }
         }
