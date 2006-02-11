@@ -320,7 +320,7 @@ dist : ALWAYS
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
-	\find $(ARCDIR) -name CVS -depth -exec /bin/rm -rf {} \;
+	\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
@@ -334,7 +334,7 @@ dist : ALWAYS
 #
 src : configure cleansrc csrc fsrc etomosrc
 	if [ -e $(ARCDIR)_src/$(ARCDIR)_src/ ] ; then /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/ ; fi
-	\find $(ARCDIR)_src -name CVS -depth -exec /bin/rm -rf {} \;
+	\find $(ARCDIR)_src -depth -name CVS -exec /bin/rm -rf {} \;
 	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src 
 	$(COMPRESS) $(ARCNAME)_src.tar
 
@@ -365,7 +365,7 @@ csrc : ALWAYS
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
-	imod/*.bits imod/*.png imod/*.xpm imod/README \
+	imod/*.bits imod/*.png imod/*.xpm \
 	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch]    mrc/Makefile \
@@ -425,6 +425,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.55  2006/01/03 19:57:41  mast
+#  Added uitestinstall
+#
 #  Revision 3.54  2005/10/08 06:06:05  mast
 #  Put etomo at top of build for testing
 #
