@@ -2205,6 +2205,12 @@ void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
   *outZ = inImodView->zsize;
 }
 
+int ivwGetMovieModelMode(ImodView *vw)
+{
+  if (!vw || vw->imod->mousemode == IMOD_MMOVIE)
+    return 0;
+  return 1;
+}
 
 Imod *ivwGetModel(ImodView *inImodView)
 {
@@ -2429,6 +2435,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.42  2005/12/08 05:57:56  mast
+Chnage cache flushing routine to be able to flush images at one time
+
 Revision 4.41  2005/11/26 16:49:31  mast
 Made image list reading handle DOS ending and strip spaces from names
 

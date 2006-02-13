@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2005/02/19 01:29:38  mast
+Added function to clear extra object
+
 Revision 1.5  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
@@ -129,5 +132,10 @@ void DLL_EX_IM ivwClearExtraObject(ImodView *inImodView);
  * time or the time indicated by timeLock
  */
 Icont DLL_EX_IM *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock);
+
+  /* 
+   * Return 1 if in model mode or 0 if in movie mode
+   */
+  int DLL_EX_IM ivwGetMovieModelMode(ImodView *vw);
 }
 #endif
