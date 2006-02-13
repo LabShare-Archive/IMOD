@@ -53,6 +53,8 @@ static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void zapDraw(ZapStruct *zap);
 static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
+static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1, 
+                             int but2, int but3);
 static void zapButton1(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton2(struct zapwin *zap, int x, int y, int controlDown);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
@@ -1193,11 +1195,12 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
   int ctrlDown = event->state() & Qt::ControlButton;
-  setControlAndLimits(zap);
 
   button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
+  if (checkPlugUseMouse(zap, event, button1, button2, button3))
+    return;
 
   /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
 
@@ -1234,13 +1237,20 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 // respond to mouse release event
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
-  setControlAndLimits(zap);
+  int button1, button2, button3;
+  button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
+  button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
+  button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
+
   if (zap->shiftRegistered) {
     zap->shiftRegistered = 0;
     zap->vi->undo->finishUnit();
   }
 
-  if (event->button() == ImodPrefs->actualButton(1)){
+  if (checkPlugUseMouse(zap, event, button1, button2, button3))
+    return;
+
+  if (button1){
     if (dragband) {
       dragband = 0;
       zapSetCursor(zap, zap->mousemode);
@@ -1258,8 +1268,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   }
  
   // Button 2 and band moving, release te band
-  if ((event->button() == ImodPrefs->actualButton(2))
-      && zap->rubberband && moveband) {
+  if (button2 && zap->rubberband && moveband) {
     moveband = 0;
     zapSetCursor(zap, zap->mousemode);
     if (zap->hqgfxsave)
@@ -1267,7 +1276,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     zap->hqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if ((event->button() == ImodPrefs->actualButton(2))) {
+  } else if (button2) {
     registerDragAdditions(zap);
 
     if (zap->drawCurrentOnly) {
@@ -1297,12 +1306,13 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     return;
   }
 
-  setControlAndLimits(zap);
-  
   button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
-  button2 = (event->state() & ImodPrefs->actualButton(2)) 
-    || insertDown ? 1 : 0;
+  button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0; 
   button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
+  if (checkPlugUseMouse(zap, event, button1, button2, button3))
+    return;
+
+  button2 = button2 || insertDown ? 1 : 0;
   /*  imodPrintStderr("mb  %d|%d|%d\n", button1, button2, button3); */
 
   if ( (button1) && (!button2) && (!button3)){
@@ -1327,6 +1337,23 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   
   zap->lmx = event->x();
   zap->lmy = event->y();
+}
+
+/*
+ * Test for whether a plugin takes care of the mouse event; take care of 
+ * setting limits also
+ */
+static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1, 
+                          int but2, int but3)
+{
+  float imx, imy;
+  setControlAndLimits(zap);
+  ivwControlActive(zap->vi, 0);
+  zapGetixy(zap, event->x(), event->y(), &imx, &imy);
+  if (imodPlugHandleMouse(zap->vi, event, imx, imy, but1, but2, but3))
+    return 1;
+  ivwControlActive(zap->vi, 1);
+  return 0;
 }
 
 /*
@@ -3742,6 +3769,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.76  2006/01/26 18:45:04  mast
+Set up montage snapshot to defer swapping and read from back buffer
+
 Revision 4.75  2006/01/25 23:11:41  mast
 Fixed zap montage snapshot for quadro card and prevented negative overlaps
 
