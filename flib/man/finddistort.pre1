@@ -46,14 +46,14 @@ DDEESSCCRRIIPPTTIIOONN
   every time a field is solved for, any net stretch in the field is removed to
   preduce a stretch-free distortion field.  With this step, the iterations
   converge to a stable solution for the stretch-free distortion field.  This
-  distortion field is output to a file rootname.nosidf.
+  distortion field is output to a file rootname.nosidf after each iteration.
 
   The stretch in the distortion field can be determined from the
   transformation needed to align two images of the same field rotated by an
   angle near 90 degrees.  When such a transformation is supplied, the program
   computes the implied stretch in the projection process, and then introduces
-  this stretch into the distortion field.  This final field is output into
-  rootname.idf.
+  this stretch into the distortion field.  Whether or not this transformation
+  is given, the final field is output into rootname.idf.
 
   Other temporary files produced are: rootname.xcxf with the shifts for one
   image pair, output by Tiltxcorr(1); rootname.tmpxf with rootname.rawxf with

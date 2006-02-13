@@ -3,8 +3,11 @@
 </head>
 <H2>Bead Fixer Special Module</H2>
 <P>
-This module makes it easier to fix tilt series fiducial 
-models in two ways.  It has a function for finding the next 
+This module provides several functions to help generate tilt series fiducial 
+models.  It has an autocentering mode, so that an added point will be centered
+on the nearest fiducial.  It has a mode for generating the seed model, which
+will automatically start a new contour for each point when appropriate. 
+It has a function for finding the next 
 gap or untracked place in the model and making that be the 
 current point.  It also will read the log file from running 
 Tiltalign and move to points with high residuals.
@@ -21,7 +24,32 @@ Tiltalign and move to points with high residuals.
 <P>
 <H3>Controls</H3>
 Toggle the <B>pin</B> button on to keep the bead fixer window on top of 
-other windows
+other windows.
+<P>
+Turn on <B>Autocenter</B> and set the <B>Diameter</B> spin box to the average
+bead diameter (in pixels) to use autocentering.  In this mode:
+<UL>
+<LI> When you press the second mouse button, the module will search up to 3
+bead diameters away (but no more than 50 pixels) for a bead and position the
+new point at the center of gravity of the bead.
+<LI> The center of gravity is computed the same as in Beadtrack and will
+be thrown off by adjacent density in just the same way.
+<LI> The point will be added at the right place in the contour to keep the
+contour points in order by Z.
+<LI> When you press the third mouse button and the Shift key, the module will
+use autocentering to modify the position of the current point.  
+</UL>
+<P> 
+Turn on <B>Light</B> to use autocentering with beads that are lighter rather
+than darker than the background.
+<P>
+If you turn on <B>Seed mode</B> when making your seed model, the module will
+start a new contour when you insert a point.  It will always do this if the
+current contour already has a point on the current view.  Otherwise, it will
+decide whether to start a new contour based on the distance between the new
+point and the point in the current contour on the nearest view.  If this
+distance is less than two bead diameters, it will add the point to the same
+contour; otherwise it will start a new contour.
 <P>
 Press the <B>Go to Next Gap</B> button or hit the space bar key to 
 move to the next gap or incomplete place in the model.  If 
