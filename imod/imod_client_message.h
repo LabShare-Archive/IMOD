@@ -54,8 +54,11 @@ Log at end of file
 #define MESSAGE_PLUGIN_EXECUTE 14
 
 /* Definitions for plugins/special modules */
-#define MESSAGE_BEADFIX_OPENFILE 1
-#define MESSAGE_BEADFIX_REREAD   2
+#define MESSAGE_BEADFIX_OPENFILE   1
+#define MESSAGE_BEADFIX_REREAD     2
+#define MESSAGE_BEADFIX_SEEDMODE   3
+#define MESSAGE_BEADFIX_AUTOCENTER 4
+#define MESSAGE_BEADFIX_DIAMETER   5
 
 #include <qobject.h>
 #include <qstring.h>
@@ -91,6 +94,9 @@ class ImodClipboard : public QObject
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.11  2004/09/24 17:59:02  mast
+Added plugin definitions
+
 Revision 3.10  2004/08/12 17:15:04  mast
 Added message to get slicer angles
 
