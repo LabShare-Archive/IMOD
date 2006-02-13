@@ -70,6 +70,7 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel);
 #define IMOD_PLUG_KEYS    16   /* Handle key events. */
 #define IMOD_PLUG_FILE    32   /* Allow other image files to be loaded. */
 #define IMOD_PLUG_MESSAGE 64   /* Execute messages */
+#define IMOD_PLUG_MOUSE  128   /* Handle mouse events */
 
 #define IMOD_REASON_EXECUTE 1  /* Execute plugin command.                */
 #define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
@@ -139,6 +140,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.10  2004/12/24 02:19:11  mast
+    Removed argument from help page call
+
     Revision 3.9  2004/11/22 00:22:48  mast
     Added definition for showing help page
 
