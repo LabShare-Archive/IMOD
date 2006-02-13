@@ -26,7 +26,8 @@ Log at end of file
 #include "linegui.h"
 #endif
 
-enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_EXECUTE_MESSAGE};
+enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_MOUSE, 
+      IP_EXECUTE_MESSAGE};
 
 typedef struct
 {
@@ -322,18 +323,50 @@ int imodPlugHandleKey(ImodView *vw, QKeyEvent *event)
   int keyhandled, i, mi = ilistSize(plugList);
   SpecialKeys fptr;
 
-  if (!mi) return 0;
+  if (!mi) 
+    return 0;
   pd = (PlugData *)ilistFirst(plugList);
   for(i = 0; i < mi; i++){
           
     pd = (PlugData *)ilistItem(plugList, i);
-    if (!pd) continue;
+    if (!pd) 
+      continue;
           
     if (pd->type & IMOD_PLUG_KEYS){
       fptr = (SpecialKeys)ipGetFunction(pd, IP_KEYS);
       if (fptr){
 	keyhandled = (*fptr)(vw, event);
-	if (keyhandled) return 1;
+	if (keyhandled)
+          return 1;
+      }
+
+    }
+  }
+  return 0;
+}
+
+int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
+                        int but1, int but2, int but3)
+{
+  PlugData *pd;
+  int handled, i, mi = ilistSize(plugList);
+  SpecialMouse fptr;
+
+  if (!mi) 
+    return 0;
+  pd = (PlugData *)ilistFirst(plugList);
+  for(i = 0; i < mi; i++){
+          
+    pd = (PlugData *)ilistItem(plugList, i);
+    if (!pd) 
+      continue;
+          
+    if (pd->type & IMOD_PLUG_MOUSE){
+      fptr = (SpecialMouse)ipGetFunction(pd, IP_MOUSE);
+      if (fptr){
+	handled = (*fptr)(vw, event, imx, imy, but1, but2, but3);
+	if (handled)
+          return 1;
       }
 
     }
@@ -408,6 +441,8 @@ static void *ipGetFunction(PlugData *pd, int which)
       return (void *)pd->module->mExecuteMessage;
     case IP_KEYS:
       return (void *)pd->module->mKeys;
+    case IP_MOUSE:
+      return (void *)pd->module->mMouse;
     default:
       return NULL;
     }
@@ -424,6 +459,8 @@ static void *ipGetFunction(PlugData *pd, int which)
       return pd->library->resolve("imodPlugExecuteMessage");
     case IP_KEYS:
       return pd->library->resolve("imodPlugKeys");
+    case IP_MOUSE:
+      return pd->library->resolve("imodPlugMouse");
     default:
       return NULL;
     }
@@ -487,6 +524,9 @@ int imodPlugImageHandle(char *filename)
 
 /*
 $Log$
+Revision 4.12  2004/12/17 16:43:02  mast
+Added a load call before resolving first symbol to get better diagnostics
+
 Revision 4.11  2004/09/24 18:08:11  mast
 Added ability to pass a message for execution
 
