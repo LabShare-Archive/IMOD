@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2004/09/24 18:09:31  mast
+Added message function
+
 Revision 1.2  2003/10/02 01:31:24  mast
 Added open by name
 
@@ -29,6 +32,8 @@ int imodPlugLoaded(int type);
 int imodPlugCall(ImodView *vw, int type, int reason);
 void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
+int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
+                        int but1, int but2, int but3);
 void imodPlugOpen(int item);
 void imodPlugOpenByName(char *name);
 int imodPlugMessage(ImodView *vw, QStringList *strings, int *arg);

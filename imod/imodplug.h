@@ -17,6 +17,7 @@ Log at end of file
 #define IMODPLUG_H
 
 class QKeyEvent;
+class QMouseEvent;
 class QStringList;
 #ifndef IMODP_H
 typedef struct ViewInfo ImodView;
@@ -64,12 +65,25 @@ char PLUG_EXPORT *imodPlugInfo(int *type);
   /*
    * Key input callback function to be defined by plugins with the
    * IMOD_PLUG_KEYS bit set.
-   * This function can be used to override edmod hot key settings.
+   * This function can be used to override 3dmod hot key settings.
    * A nonzero return value indicates that the plugin handled the input key.
    * and that no other action should be taken by the 3dmod program.
    * A zero return value indicates that 3dmod should process the key as usual.
    */
   int PLUG_EXPORT imodPlugKeys(ImodView *vw, QKeyEvent *event);
+
+  /*
+   * Mouse event callback function to be defined by plugins with the
+   * IMOD_PLUG_MOUSE bit set.
+   * This function can be used to override 3dmod mouse actions in the Zap 
+   * window.  imx and imy will contain the image position, and but1, but2, but3
+   * will indicate the state of the 3 buttons as mapped by user preferences.
+   * A nonzero return value indicates that the plugin handled the mouse event
+   * and that no other action should be taken by the 3dmod program.  A
+   * zero return value indicates that 3dmod should process the event as usual.
+   */
+  int PLUG_EXPORT imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
+                                float imy, int but1, int but2, int but3);
 
   /*
    * Function to execute a message, to be defined by plugins with the
@@ -86,6 +100,9 @@ char PLUG_EXPORT *imodPlugInfo(int *type);
 
 /*
   $Log$
+  Revision 4.5  2004/09/24 18:07:50  mast
+  Added execute message declaration
+
   Revision 4.4  2004/06/04 02:58:20  mast
   It really needed to export unconditionally although it worked as import
   

@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2004/09/24 18:08:34  mast
+Added message execution function
+
 Revision 1.1  2003/10/01 05:08:32  mast
 Initial creation
 
@@ -27,11 +30,14 @@ typedef struct ViewInfo ImodView;
 class QStringList;
 
 class QKeyEvent;
+class QMouseEvent;
 typedef char *(*SpecialInfo)(int *);
 typedef void (*SpecialExecuteType)(ImodView *, int, int);
 typedef int (*SpecialExecuteMessage)(ImodView *, QStringList *, int *);
 typedef void (*SpecialExecute)(ImodView *);
 typedef int (*SpecialKeys)(ImodView *, QKeyEvent *);
+typedef int (*SpecialMouse)(ImodView *, QMouseEvent *, float, float,
+                        int, int, int);
 
 class SpecialModule
 {
@@ -41,6 +47,7 @@ class SpecialModule
   SpecialExecuteMessage mExecuteMessage;
   SpecialExecute mExecute;
   SpecialKeys mKeys;
+  SpecialMouse mMouse;
 };
 
 #endif
