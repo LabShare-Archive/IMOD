@@ -23,9 +23,11 @@
 
 #include <qpushbutton.h>
 #include <qcheckbox.h>
+#include <qspinbox.h>
 #include <qtooltip.h>
 #include <qtoolbutton.h>
 #include <qhbox.h>
+#include <qlabel.h>
 #include <qlayout.h>
 #include <qdir.h>
 #include <qstringlist.h>
@@ -59,6 +61,8 @@ static int imodPlugKeys(ImodView *vw, QKeyEvent *event);
 static void imodPlugExecute(ImodView *inImodView);
 static  int imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
                                    int *arg);
+static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
+                         float imy, int but1, int but2, int but3);
 
 BeadFixerModule::BeadFixerModule()
 {
@@ -67,10 +71,11 @@ BeadFixerModule::BeadFixerModule()
   mExecute = imodPlugExecute;
   mExecuteMessage = imodPlugExecuteMessage;
   mKeys = imodPlugKeys;
+  mMouse = imodPlugMouse;
 }
 
 #define MAXLINE 100
-
+#define MAX_DIAMETER 50
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -80,12 +85,15 @@ typedef struct
   ImodView    *view;
   BeadFixer *window;
   int    left, top;                     /* Last window position */
+  int    autoCenter;
+  int    lightBead;
+  int    diameter;
   int    alignExitCode;    // Place for qalign thread to leave its exit code
   char   *filename;
 }PlugData;
 
 
-static PlugData thisPlug = { 0, 0, 0, 0, 0, NULL };
+static PlugData thisPlug = { 0, 0, 0, 0, 0, 0, 10, 0, NULL };
 
 #define ERROR_NO_IMOD_DIR -64352
 
@@ -97,7 +105,8 @@ static PlugData thisPlug = { 0, 0, 0, 0, 0, NULL };
 char *imodPlugInfo(int *type)
 {
   if (type)
-    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE;
+    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
+      IMOD_PLUG_MOUSE;
   return("Bead Fixer");
 }
 
@@ -157,6 +166,27 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   return keyhandled;
 }
 
+static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
+                         float imy, int but1, int but2, int but3)
+{
+  PlugData *plug = &thisPlug;
+  int keysym;
+  int handled = 0;
+
+  // Reject event if window not open or not in model mode
+  if (!plug->view || !ivwGetMovieModelMode(vw))
+    return 0;
+
+  // insert point (potentially) for middle button,
+  // Modify point for shift right if autocenter on
+  if (event->type() == QEvent::MouseButtonPress && but2 != 0)
+    handled = plug->window->insertPoint(imx, imy);
+  else if (event->type() == QEvent::MouseButtonPress && but3 != 0 &&
+           (event->state() & Qt::ShiftButton) && plug->autoCenter)
+    handled = plug->window->modifyPoint(imx, imy);
+  return handled;
+}
+
 /*
  *  Execute any function or program you wish with this function.
  *  Here we open up a window for user interaction.
@@ -166,7 +196,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 void imodPlugExecute(ImodView *inImodView)
 {
   PlugData *plug;
-  double savedValues[2];
+  double savedValues[5];
+  int nvals;
   static int firstTime = 1;
 
   plug = &thisPlug;
@@ -185,6 +216,14 @@ void imodPlugExecute(ImodView *inImodView)
    * Initialize data. 
    */
   plug->filename = NULL;
+  if (firstTime) {
+    nvals = ImodPrefs->getGenericSettings("BeadFixer", savedValues, 5);
+    if (nvals > 2) {
+      plug->autoCenter = (int)(savedValues[2] + 0.01);
+      plug->diameter = (int)(savedValues[3] + 0.01);
+      plug->lightBead = (int)(savedValues[4] + 0.01);
+    }
+  }
 
   /*
    * This creates the plug window.
@@ -197,7 +236,7 @@ void imodPlugExecute(ImodView *inImodView)
   // Get window position from settings the first time
   if (!firstTime) {
     plug->window->move(plug->left, plug->top);
-  } else if (ImodPrefs->getGenericSettings("BeadFixer", savedValues, 2) == 2) {
+  } else if (nvals >= 2) {
     plug->left = (int)savedValues[0];
     plug->top = (int)savedValues[1];
     zapLimitWindowPos(plug->window->width(), plug->window->height(), 
@@ -214,15 +253,32 @@ void imodPlugExecute(ImodView *inImodView)
 
 int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
 {
+  if (!thisPlug.window)
+    return 1;
+  return thisPlug.window->executeMessage(strings, arg);
+}
+
+int BeadFixer::executeMessage(QStringList *strings, int *arg)
+{
   PlugData *plug = &thisPlug;
   int action = (*strings)[*arg].toInt();
-  if (!plug->window)
-    return 1;
   switch (action) {
   case MESSAGE_BEADFIX_OPENFILE:
     return plug->window->openFileByName((*strings)[++(*arg)].latin1());
   case MESSAGE_BEADFIX_REREAD:
     return plug->window->reread();
+  case MESSAGE_BEADFIX_SEEDMODE:
+    mSeedMode = (*strings)[++(*arg)].toInt() != 0;
+    diaSetChecked(seedModeBox, mSeedMode);
+    return 0;
+  case MESSAGE_BEADFIX_AUTOCENTER:
+    plug->autoCenter = (*strings)[++(*arg)].toInt();
+    diaSetChecked(autoCenBox, plug->autoCenter != 0);
+    return 0;
+  case MESSAGE_BEADFIX_DIAMETER:
+    plug->diameter = (*strings)[++(*arg)].toInt();
+    diaSetSpinBox(diameterSpin, plug->diameter);
+    return 0;
   }
   return 1;
 }
@@ -430,7 +486,7 @@ void BeadFixer::nextRes()
   float headLen = 2.5;
   ResidPt *rpt;
   PlugData *plug = &thisPlug;
-  Imod *theModel = ivwGetModel(plug->view);
+  Imod *imod = ivwGetModel(plug->view);
 
   // Copy and reset the bell flag
   int bell = mBell;
@@ -508,8 +564,8 @@ void BeadFixer::nextRes()
   rpt->lookedAt = 1;
   found = 0;
   curpt=0;
-  nobj = imodGetMaxObject(theModel); 
-  imodGetIndex(theModel, &obsav, &cosav, &ptsav);
+  nobj = imodGetMaxObject(imod); 
+  imodGetIndex(imod, &obsav, &cosav, &ptsav);
 
   if (mObjcont) {
 
@@ -520,22 +576,22 @@ void BeadFixer::nextRes()
     }
     obj = inobj - 1;
     cont = incont - 1;
-    imodSetIndex(theModel, obj, cont, 0);
-    ob = imodObjectGet(theModel);
+    imodSetIndex(imod, obj, cont, 0);
+    ob = imodObjectGet(imod);
     ncont = imodObjectGetMaxContour(ob);
     if (incont <= ncont) {
       found = 1;
-      con = imodContourGet(theModel);
+      con = imodContourGet(imod);
       npnt = imodContourGetMaxPoint(con);
     }
   } else {
 
     /* Old case of "point #", need to count through valid contours */
-    ob = imodObjectGetFirst(theModel);
+    ob = imodObjectGetFirst(imod);
 
     for (obj=0; obj < nobj ; obj++) {
       ncont = imodObjectGetMaxContour(ob);
-      con = imodContourGetFirst(theModel);
+      con = imodContourGetFirst(imod);
       for (cont = 0; cont < ncont; cont++)  {
         npnt = imodContourGetMaxPoint(con);
         if (npnt > 1) curpt++;
@@ -543,23 +599,23 @@ void BeadFixer::nextRes()
           found = 1;
           break;
         }
-        con = imodContourGetNext(theModel);
+        con = imodContourGetNext(imod);
       }
       if (found)
         break;
-      ob = imodObjectGetNext(theModel);
+      ob = imodObjectGetNext(imod);
     }
   }
 
   if (!found || !con) {
     wprint("\aContour not found!\n");
-    imodSetIndex(theModel, obsav, cosav, ptsav);
+    imodSetIndex(imod, obsav, cosav, ptsav);
     return;
   }
   pts = imodContourGetPoints(con);
   for (ipt = 0; ipt < npnt; ipt++) {
     if(floor((double)(pts++->z + 1.5f)) == inview) {
-      imodSetIndex(theModel, obj, cont, ipt);
+      imodSetIndex(imod, obj, cont, ipt);
       resval = sqrt((double)(xr*xr + yr*yr));
       if (bell > 0)
         wprint("\aResidual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
@@ -605,7 +661,7 @@ void BeadFixer::nextRes()
     }
   }
   wprint("\aPoint not found in contour!\n");
-  imodSetIndex(theModel, obsav, cosav, ptsav);
+  imodSetIndex(imod, obsav, cosav, ptsav);
   return;
 }
 
@@ -700,13 +756,13 @@ void BeadFixer::movePoint()
   Icont *con;
   ResidPt *rpt;
   PlugData *plug = &thisPlug;
-  Imod *theModel = ivwGetModel(plug->view);
+  Imod *imod = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
   if (!mNumResid || mCurmoved  || mObjlook < 0 || mIndlook < 0) 
     return;
 
-  imodGetIndex(theModel, &obj, &cont, &pt);
+  imodGetIndex(imod, &obj, &cont, &pt);
   if (obj != mObjlook || cont != mContlook || pt != mPtlook) {
     wprint("\aThe current point is not the same as the point with the "
            "last residual examined!\n");
@@ -715,7 +771,7 @@ void BeadFixer::movePoint()
 
   /* move the point.  Use the original point coordinates as starting point */
   rpt = &(mResidList[mIndlook]);
-  con = imodContourGet(theModel);
+  con = imodContourGet(imod);
   pts = imodContourGetPoints(con);
   plug->view->undo->pointShift();
   mOldpt = pts[pt];
@@ -747,22 +803,22 @@ void BeadFixer::undoMove()
   Ipoint *pts;
   float dx, dy, distsq;
   PlugData *plug = &thisPlug;
-  Imod *theModel = ivwGetModel(plug->view);
+  Imod *imod = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
   if(!mNumResid || !mDidmove) 
     return;
-  imodGetIndex(theModel, &obsav, &cosav, &ptsav);
+  imodGetIndex(imod, &obsav, &cosav, &ptsav);
 
-  nobj = imodGetMaxObject(theModel); 
+  nobj = imodGetMaxObject(imod); 
 
   if (mObjmoved < nobj) {
-    imodSetIndex(theModel, mObjmoved, mContmoved, 
+    imodSetIndex(imod, mObjmoved, mContmoved, 
                  mPtmoved);
-    ob = imodObjectGet(theModel);
+    ob = imodObjectGet(imod);
     ncont = imodObjectGetMaxContour(ob);
     if (mContmoved < ncont) {
-      con = imodContourGet(theModel);
+      con = imodContourGet(imod);
       pts = imodContourGetPoints(con);
       if (mPtmoved < imodContourGetMaxPoint(con)) {
 
@@ -787,7 +843,7 @@ void BeadFixer::undoMove()
     
   wprint("\aMoved point no longer exists or is not close enough "
          "to where it was moved to!\n");
-  imodSetIndex(theModel, obsav, cosav, ptsav);
+  imodSetIndex(imod, obsav, cosav, ptsav);
   undoMoveBut->setEnabled(false);
 }
 
@@ -810,7 +866,7 @@ void BeadFixer::moveAll()
 int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
 {
   PlugData *plug = &thisPlug;
-  Imod *theModel = ivwGetModel(plug->view);
+  Imod *imod = ivwGetModel(plug->view);
 
   if(mLastob == obj && mLastco == cont && mLastpt == ipt
      && mLastbefore == before)
@@ -820,7 +876,7 @@ int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
   mLastco = cont;
   mLastpt = ipt;
   mLastbefore = before;
-  imodSetIndex(theModel, obj, cont, ipt);
+  imodSetIndex(imod, obj, cont, ipt);
   ivwRedraw(plug->view);
   return 0;
 }
@@ -841,15 +897,15 @@ void BeadFixer::nextGap()
   static int beforeVerbose = 1;
 
   PlugData *plug = &thisPlug;
-  Imod *theModel = ivwGetModel(plug->view);
+  Imod *imod = ivwGetModel(plug->view);
   ivwGetImageSize(plug->view, &xsize, &ysize, &zsize);
 
   /* This is needed to make button press behave just like hotkey in syncing
      the image */
   ivwControlActive(plug->view, 0);
 
-  con = imodContourGet(theModel);
-  imodGetIndex(theModel, &obsav, &cosav, &ptsav);
+  con = imodContourGet(imod);
+  imodGetIndex(imod, &obsav, &cosav, &ptsav);
 
   curob = obsav;
   curco = cosav;
@@ -869,11 +925,11 @@ void BeadFixer::nextGap()
   if (mLastbefore)
     curpt = 0;
 
-  imodSetIndex(theModel, curob, curco, curpt);
-  nobj = imodGetMaxObject(theModel); 
+  imodSetIndex(imod, curob, curco, curpt);
+  nobj = imodGetMaxObject(imod); 
 
-  ob = imodObjectGet(theModel);
-  con = imodContourGet(theModel);
+  ob = imodObjectGet(imod);
+  con = imodContourGet(imod);
 
   for (obj=curob; obj < nobj ; obj++) {
     ncont = imodObjectGetMaxContour(ob);
@@ -936,20 +992,265 @@ void BeadFixer::nextGap()
           if(foundgap(obj, cont, iptmax, 0) == 0) return;
         }
       }
-      con = imodContourGetNext(theModel);
+      con = imodContourGetNext(imod);
       lookback = 1;
       curpt = 0;
     }
-    ob = imodObjectGetNext(theModel);
+    ob = imodObjectGetNext(imod);
     curco = 0;
   }
   wprint("\aNo more gaps found!\n");
-  imodSetIndex(theModel, obsav, cosav, ptsav);
+  imodSetIndex(imod, obsav, cosav, ptsav);
   return;
 }
 
-// THE WINDOW CLASS CONSTRUCTOR
+/* 
+ * Insert a point: if autocentering, find neareast bead.  If in seed mode,
+ * make a new contour unless this is an apparent continuation point
+ */
+int BeadFixer::insertPoint(float imx, float imy)
+{
+  PlugData *plug = &thisPlug;
+  Imod *imod = ivwGetModel(plug->view);
+  Icont *cont;
+  Iobj *obj;
+  Ipoint *pts;
+  Ipoint newPt;
+  int  curx, cury, curz, index, ob, i,npnt;
+  double zdiff, dist;
 
+  if (!plug->autoCenter && !mSeedMode)
+    return 0;
+  ivwGetLocation(plug->view, &curx, &cury, &curz);
+
+  // Autocenter the point if selected, error and say handled if fail
+  if (plug->autoCenter && findCenter(imx, imy, curz)) {
+    wprint("\aAutocentering failed to find a point\n");
+    return 1;
+  }
+
+  obj = imodObjectGet(imod);
+  cont = ivwGetOrMakeContour(plug->view, obj, 0);
+  if (!cont) {
+    wprint("\aFailed to get contour to add point to\n");
+    return 1;
+  }
+  npnt = imodContourGetMaxPoint(cont);
+  pts = imodContourGetPoints(cont);
+  newPt.x = imx;
+  newPt.y = imy;
+  newPt.z = curz;
+    
+  // Search current contour for closest point below the current Z and set the
+  // insertion point after it
+  index = 0;
+  zdiff = 1000000;
+  for (i = 0; i < npnt; i++) {
+    if (pts[i].z < curz && curz - pts[i].z < zdiff) {
+      zdiff = curz - pts[i].z;
+      index = i + 1;
+    }
+  }
+
+  // But in seed mode, see if need to start a new contour - i.e. if there is
+  // a point at the same z or the point at nearest Z is farther away than
+  // a criterion
+  if (mSeedMode) {
+    zdiff = 1000000;
+    for (i = 0; i < npnt; i++) {
+      if (fabs((double)(curz - pts[i].z)) < zdiff) {
+        zdiff = fabs((double)(curz - pts[i].z));
+        dist = imodPointDistance(&pts[i], &newPt);
+      }
+    }
+    if (zdiff < 0.5 || dist > 2. * plug->diameter) {
+      imodGetIndex(imod, &ob, &i, &npnt);
+      imodSetIndex(imod, ob, -1, -1);
+      cont = ivwGetOrMakeContour(plug->view, obj, 0);
+      if (!cont) {
+        wprint("\aFailed to get contour to add point to\n");
+        return 1;
+      }
+      index = 0;
+    }
+  }
+
+  ivwRegisterInsertPoint(plug->view, cont, &newPt, index);
+  ivwRedraw(plug->view);
+  return 1;
+}
+
+/*
+ * Move the current point using the autocentering function
+ */
+int BeadFixer::modifyPoint(float imx, float imy)
+{
+  PlugData *plug = &thisPlug;
+  Imod *imod = ivwGetModel(plug->view);
+  int  curx, cury, curz;
+  Icont *cont;
+  Ipoint *pts;
+  int ob, co, pt;
+
+  ivwGetLocation(plug->view, &curx, &cury, &curz);
+  imodGetIndex(imod, &ob, &co, &pt);
+  if (pt < 0)
+    return 0;
+  cont = imodContourGet(imod);
+  pts = imodContourGetPoints(cont);
+  if ((int)floor(pts[pt].z + 0.5) != curz)
+    return 0;
+  if (findCenter(imx, imy, curz))
+    return 0;
+  plug->view->undo->pointShift();
+  pts[pt].x = imx;
+  pts[pt].y = imy;
+  plug->view->undo->finishUnit();
+  ivwRedraw(plug->view);
+  return 1;
+}
+
+/*
+ * Find a nearby point with a large bead integral on the current section
+ * and return the modified coordinates
+ */
+int BeadFixer::findCenter(float &imx, float &imy, int curz)
+{
+  PlugData *plug = &thisPlug;
+  ImodView *vw = plug->view;
+  float edgeWidth = 1.5f;
+  float buffer = 1.5f;
+  float fartherCrit = 2.f;
+  int ipolar = plug->lightBead ? 1 : -1;
+
+  int xcen = (int)floor(imx + 0.5);
+  int ycen = (int)floor(imy + 0.5);
+  float radius = plug->diameter / 2.;
+  int search = (int)B3DMAX(6, B3DMIN(MAX_DIAMETER, 3 * radius));
+
+  float sumrad = radius + buffer;
+  int look = (int)(2. * (sumrad + edgeWidth) + 2.);
+  float radCrit = sumrad * sumrad;
+  float edgeCrit = (sumrad + edgeWidth) * (sumrad + edgeWidth);
+  double xsum, ysum, wsum, wsum2, innerCrit, outerCrit, ringx, ringy;
+  double grandx, grandy, grandMax, ringMax, radsq;
+  int numRing, ring, x, y, ix, iy, nedge, xsize, ysize, zsize;
+  float pixval, edge,sum;
+  int xstart, xend, ystart, yend;
+
+  ivwGetImageSize(plug->view, &xsize, &ysize, &zsize);
+
+  // Search in radius-sized rings from the selected point; in each ring
+  // find the point with the largest centroid
+  grandMax = -1.e30;
+  numRing = (int)(search / radius + 1.);
+  for (ring = 0; ring < numRing; ring++) {
+    innerCrit = ring * radius * ring * radius;
+    outerCrit = (ring + 1) * radius * (ring + 1) * radius;
+    ringMax = -1.e30;
+    for (x = xcen - search; x <= xcen + search; x++) {
+      if (x < 0 || x >= xsize)
+        continue;
+      for (y = ycen - search; y <= ycen + search; y++){
+        radsq = (x -xcen) * (x -xcen) + (y - ycen) * (y - ycen);
+        if (radsq < innerCrit || radsq >= outerCrit || y < 0 || y >= ysize)
+          continue;
+
+        // Get edge
+        sum = 0.;
+        nedge = 0;
+        ystart = B3DMAX(0, y - look);
+        yend = B3DMIN(ysize - 1, y + look); 
+        xstart = B3DMAX(0, x - look);
+        xend = B3DMIN(xsize - 1, x + look); 
+                        
+        for (iy = ystart; iy <= yend; iy++) {
+          for (ix = xstart; ix <= xend; ix++) {
+            radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) +
+              (iy + 0.5 - y);
+            if (radsq > radCrit && radsq <= edgeCrit) {
+              nedge++;
+              sum += ivwGetValue(vw, ix, iy, curz);
+            }
+          }
+        }
+        edge = sum / nedge;
+        //imodPrintStderr("At %d %d  edge %.1f  %d pix", x, y, edge, nedge);
+        
+        // Get integral above edge mean and CG
+        nedge = 0;
+        wsum = xsum = ysum = wsum2 = 0.;
+        for (iy = ystart; iy <= yend; iy++) {
+          for (ix = xstart; ix <= xend; ix++) {
+            radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) *
+              (iy + 0.5 - y);
+            if (radsq <= radCrit) {
+              pixval = ivwGetValue(vw, ix, iy, curz) - edge;
+              wsum2 += pixval;
+              if (ipolar * pixval > 0.) {
+                xsum += ix * pixval;
+                ysum += iy * pixval;
+                wsum += pixval;
+                nedge++;
+              }
+            }
+          }
+        }
+
+        //imodPrintStderr("wsum2 %.0f  x %.2f  y %.2f  %d pix\n"
+        //                , wsum2, xsum / wsum, ysum/wsum, nedge);
+        // Find max in the ring
+        if (wsum != 0. && wsum2 * ipolar > ringMax) {
+          ringMax = wsum2 * ipolar;
+          ringx = xsum/wsum + 0.5;
+          ringy = ysum/wsum + 0.5;
+        }
+      }
+    }
+    //imodPrintStderr("ring %d max %f at %f,%f\n", ring, ringMax, ringx,ringy);
+
+    // If the max is sufficiently larger than the previous one, or it is
+    // larger and within one radius, take it as a new max
+    if (ringMax > fartherCrit * grandMax || 
+        (ringMax > grandMax && (ringx - grandx) * (ringx - grandx) + 
+         (ringy - grandy) * (ringy - grandy) < radius * radius)) {
+      grandx = ringx;
+      grandy = ringy;
+      grandMax = ringMax;
+    }
+  }
+  //imodPrintStderr("grand max %f at %f,%f\n",  grandMax, grandx, grandy);
+  if (grandMax < -1.e29)
+    return 1;
+  imx = (float)grandx;
+  imy = (float)grandy;
+  return 0;
+}
+
+// Slots for centering/seed controls
+void BeadFixer::seedToggled(bool state)
+{
+  mSeedMode = state;
+}
+
+void BeadFixer::autoCenToggled(bool state)
+{
+  thisPlug.autoCenter = state ? 1 : 0;
+}
+
+void BeadFixer::lightToggled(bool state)
+{
+  thisPlug.lightBead = state ? 1 : 0;
+}
+
+void BeadFixer::diameterChanged(int value)
+{
+  setFocus();
+  thisPlug.diameter = value;
+}
+ 
+// THE WINDOW CLASS CONSTRUCTOR
+ 
 static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
 
@@ -980,8 +1281,10 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   mAreaMax = 0;
   mCurrentRes = -1;
   mBell = 0;
+  mSeedMode = false;
   mRoundedStyle = ImodPrefs->getRoundedStyle();
 
+  mLayout->setSpacing(4);
   topBox = new QHBox(this);
   mLayout->addWidget(topBox);
   topBox->setSpacing(6);
@@ -1000,8 +1303,37 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
   QToolTip::add(toolBut, "Keep bead fixer window on top");
 
-  button = new QPushButton("Go to Next Gap", topBox);
-  button->setFocusPolicy(QWidget::NoFocus);
+  QLabel *label = new QLabel("Diameter", topBox);
+  diameterSpin = new QSpinBox(1, MAX_DIAMETER, 1, topBox);
+  diameterSpin->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(diameterSpin, SIGNAL(valueChanged(int)), this,
+                   SLOT(diameterChanged(int)));
+  QToolTip::add(diameterSpin, "Diameter of beads in pixels");
+  diaSetSpinBox(diameterSpin, thisPlug.diameter);
+
+  topBox = new QHBox(this);
+  mLayout->addWidget(topBox);
+  topBox->setSpacing(8);
+    //box = diaCheckBox("Autocenter", this, mLayout);
+  autoCenBox = new QCheckBox("Autocenter", topBox);
+  autoCenBox->setFocusPolicy(QWidget::NoFocus);
+  connect(autoCenBox, SIGNAL(toggled(bool)), this, SLOT(autoCenToggled(bool)));
+  diaSetChecked(autoCenBox, thisPlug.autoCenter != 0);
+  QToolTip::add(autoCenBox, 
+                "Automatically center inserted point on nearby bead");
+
+  // box = diaCheckBox("Light beads", this, mLayout);
+  box = new QCheckBox("Light", topBox);
+  box->setFocusPolicy(QWidget::NoFocus);
+  connect(box, SIGNAL(toggled(bool)), this, SLOT(lightToggled(bool)));
+  diaSetChecked(box, thisPlug.lightBead != 0);
+  QToolTip::add(box, "Beads are lighter not darker than background");
+
+  seedModeBox = diaCheckBox("Seed mode", this, mLayout);
+  connect(seedModeBox, SIGNAL(toggled(bool)), this, SLOT(seedToggled(bool)));
+  QToolTip::add(seedModeBox, "Make new contour for every point");
+
+  button = diaPushButton("Go to Next Gap", this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
   QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
 
@@ -1166,7 +1498,7 @@ void BeadFixer::runAlign()
 void BeadFixer::closeEvent ( QCloseEvent * e )
 {
   PlugData *plug = &thisPlug;
-  double posValues[2];
+  double posValues[5];
 
   // reject if running thread
   if (mRunningAlign) {
@@ -1180,7 +1512,10 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[1] = pos.top();
   plug->top = pos.top();
   plug->left = pos.left();
-  ImodPrefs->saveGenericSettings("BeadFixer", 2, posValues);
+  posValues[2] = plug->autoCenter;
+  posValues[3] = plug->diameter;
+  posValues[4] = plug->lightBead;
+  ImodPrefs->saveGenericSettings("BeadFixer", 5, posValues);
 
   imodDialogManager.remove((QWidget *)plug->window);
   ivwClearExtraObject(plug->view);
@@ -1286,6 +1621,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.26  2005/06/13 16:39:52  mast
+    Clarified message when points are missing before current point.
+
     Revision 1.25  2005/06/13 16:24:50  mast
     Added rounded style argument when constructing window
 
