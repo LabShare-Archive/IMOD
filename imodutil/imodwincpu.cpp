@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   usageA.GetCpuUsage();
 	Sleep(interval);
 	int SystemWideCpuUsage = usageA.GetCpuUsage();
-	printf("%d\n",SystemWideCpuUsage);
+	printf("Percent CPU usage = %d\n",SystemWideCpuUsage);
 	return 0;
 }
 
