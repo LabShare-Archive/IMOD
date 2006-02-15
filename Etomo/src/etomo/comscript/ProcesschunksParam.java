@@ -67,8 +67,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     ArrayList command = new ArrayList();
     command.add("tcsh");
     command.add(COMMAND_FILE_OPTION);
-    command.add(BaseManager.getIMODBinPath()
-        + ProcessName.PROCESSCHUNKS.toString());
+    command.add("'" + BaseManager.getIMODBinPath()
+        + ProcessName.PROCESSCHUNKS.toString() + "'");
     if (resume.is()) {
       command.add("-r");
     }
@@ -282,6 +282,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2006/01/20 20:47:48  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 1.13  2006/01/11 21:40:57  sueh
  * <p> Removing unnecessary print.
  * <p>
