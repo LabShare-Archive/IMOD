@@ -94,6 +94,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     }
     for (int i = 0; i < stdout.length; i++) {
       if (Utilities.isWindowsOS()) {
+        programState.setWaitForCommand(0);
         String[] array = stdout[i].trim().split("\\s+");
         display.setCPUUsage(programState.getCommand().getComputer(),
             getLoad(array[array.length - 1]));
@@ -186,6 +187,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2006/02/09 23:04:34  sueh
+ * <p> bug# 796 Handling load averages in windows
+ * <p>
  * <p> Revision 1.12  2006/02/08 03:35:01  sueh
  * <p> bug# 796 Use imodwindcpu instead of w for windows.
  * <p>
