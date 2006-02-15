@@ -49,7 +49,7 @@ alias imodv 3dmodv
 
 # Many scripts will fail with the latest version of sed unless nobinmode is set
 #
-if (?$CYGWIN) then
+if ($?CYGWIN) then
     setenv CYGWIN "$CYGWIN nobinmode"
 else
     setenv CYGWIN nobinmode
