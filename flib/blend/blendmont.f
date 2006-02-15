@@ -1533,7 +1533,7 @@ c
 c             write(*,'(a,2i4)')' composing frame at',ixout,iyout
             newpcyll=newminypiece+(iyout-1)*(newyframe-newyoverlap)
             newpcxll=newminxpiece+(ixout-1)*(newxframe-newxoverlap)
-            anypixels = iBinning .gt. 1
+            anypixels = iBinning .gt. 1 .or. newxpieces * newypieces .eq. 1
             anylinesout=.false.
             tsum=0.
             lineOffset = iyOffset
@@ -2556,6 +2556,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.22  2006/02/06 21:50:05  mast
+c       Added offset tilt and tilt file options and changed calls for finding
+c       best gradients
+c
 c       Revision 3.21  2006/01/16 03:11:50  mast
 c       Changed text for implied gradient so it won't be see by findgradient
 c	
