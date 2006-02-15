@@ -1,4 +1,4 @@
-# IMOD 3.6.16
+# IMOD 3.8.2
 #
 # Startup file for bash users of IMOD under Cygwin
 #
@@ -42,3 +42,11 @@ function subm () { submfg $* & }
 alias imod=3dmodbg
 alias 3dmod=3dmodbg
 alias imodv=3dmodv
+
+# Many scripts will fail with the latest version of sed unless nobinmode is set
+#
+if [ -z "$CYGWIN" ] ; then
+    export CYGWIN=nobinmode
+else
+    export CYGWIN="$CYGWIN nobinmode"
+fi

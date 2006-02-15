@@ -1,4 +1,4 @@
-# IMOD 3.6.16
+# IMOD 3.8.2
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -46,3 +46,11 @@ alias subm 'submfg \!* &'
 alias imod 3dmodbg
 alias 3dmod 3dmodbg
 alias imodv 3dmodv
+
+# Many scripts will fail with the latest version of sed unless nobinmode is set
+#
+if (?$CYGWIN) then
+    setenv CYGWIN "$CYGWIN nobinmode"
+else
+    setenv CYGWIN nobinmode
+endif
