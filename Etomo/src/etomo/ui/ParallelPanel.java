@@ -29,7 +29,6 @@ import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.util.HashedArray;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -232,8 +231,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     validAutodoc = new EtomoBoolean2();
     Autodoc autodoc = getAutodoc(axisID);
-    if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)
-        /*&& !Utilities.isWindowsOS()*/) {
+    if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)) {
       validAutodoc.set(true);
     }
     return validAutodoc.is();
@@ -468,6 +466,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2006/02/09 23:06:02  sueh
+ * <p> bug# 796 isValidAutodoc(): allowing parallel processing in windows
+ * <p>
  * <p> Revision 1.32  2006/02/08 03:37:40  sueh
  * <p> bug# 796 added setCPUUsage().
  * <p>
