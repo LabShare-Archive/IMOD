@@ -23,6 +23,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   public static final String rcsid = "$Id$";
 
   private static final String OUTPUT_KEY_PHRASE = "load average";
+  private static final String OUTPUT_KEY_PHRASE_WINDOWS = "Percent CPU usage";
   
   private final LoadAverageDisplay display;
   
@@ -93,11 +94,14 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       return;
     }
     for (int i = 0; i < stdout.length; i++) {
+      //System.out.println(stdout[i]);
       if (Utilities.isWindowsOS()) {
+        if (stdout[i].indexOf(OUTPUT_KEY_PHRASE_WINDOWS) != -1) {
         programState.setWaitForCommand(0);
         String[] array = stdout[i].trim().split("\\s+");
         display.setCPUUsage(programState.getCommand().getComputer(),
             getLoad(array[array.length - 1]));
+        }
       }
       else {
         if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
@@ -114,7 +118,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
   public final String getOutputKeyPhrase() {
     if (Utilities.isWindowsOS()) {
-      return null;
+      return OUTPUT_KEY_PHRASE_WINDOWS;
     }
     return OUTPUT_KEY_PHRASE;
   }
@@ -187,6 +191,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2006/02/15 18:51:23  sueh
+ * <p> bug# 796 Set wait for command back to 0 when a imodwincpu returns a
+ * <p> string
+ * <p>
  * <p> Revision 1.13  2006/02/09 23:04:34  sueh
  * <p> bug# 796 Handling load averages in windows
  * <p>
