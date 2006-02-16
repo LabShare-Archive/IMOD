@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.38  2006/01/06 21:41:34  sueh
+ * <p> $bug# 793 Fixed getDir(String, AxisID) so it returns null when the environment
+ * <p> $variable isn't set.
+ * <p> $
  * <p> $Revision 3.37  2006/01/04 00:34:31  sueh
  * <p> $bug# 675 Making class more independent from EtomoDirector.
  * <p> $
@@ -487,8 +491,9 @@ public class Utilities {
     String osName = System.getProperty("os.name");
 
     if (osName.startsWith("Windows")) {
-      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo %"
-          + varName + "%", axisID);
+      String var = "%" + varName + "%";
+      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo "
+          + var, axisID);
       try {
         readEnvVar.run();
       }
@@ -507,17 +512,19 @@ public class Utilities {
           System.err.println(stderr[i]);
         }
       }
-
       // Return the first line from the command
       String[] stdout = readEnvVar.getStdOutput();
       if (stdout != null && stdout.length > 0) {
+        if (stdout[0].equals(var)) {
+          //if the variable isn't set, echo will return the string sent to it
+          return "";
+        }
         return stdout[0];
       }
     }
-
+    
     //  Non windows environment
     else {
-
       readEnvVar = new SystemProgram(propertyUserDir, "env", axisID);
       try {
         readEnvVar.run();
