@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/11/29 17:04:18  mast
+#  Added processchunks.out
+#
 #  Revision 3.8  2005/10/05 05:47:21  mast
 #  Captured all com and log files (including ~) except ta*.log
 #
@@ -79,6 +82,10 @@ while ($#argv > 0)
         breaksw
     endsw
 end
+
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
+endif
 
 # Get current directory before going to specified one
 #

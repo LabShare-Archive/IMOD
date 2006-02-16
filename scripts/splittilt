@@ -8,6 +8,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/11/12 06:10:09  mast
+#  When there is X-axis tilt, made it find the largest number of chunks
+#  that gives a minimal number of extra slices (2%)
+#
 #  Revision 3.4  2005/10/08 20:10:38  mast
 #  Fixed for binned images
 #
@@ -45,6 +49,10 @@ Usage: $pn [options] command_file
       -f     Allow fast backprojection where possible
 EOF
 exit 0
+endif
+
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
 set vertical = 0
