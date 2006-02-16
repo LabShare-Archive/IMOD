@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.5  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 1.4  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
@@ -135,12 +138,12 @@ endif
 #
 # Get image sizes
 #
-set nxyz =  `header $imagea | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $imagea | sed '/[[:cntrl:]]/s///g'`
 @ nxa = $nxyz[1]
 @ nya = $nxyz[2]
 @ nza = $nxyz[3]
 
-set nxyz =  `header $imageb | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $imageb | '/[[:cntrl:]]/s///g'`
 @ nxb = $nxyz[1]
 @ nyb = $nxyz[2]
 @ nzb = $nxyz[3]
@@ -221,8 +224,8 @@ end
 #
 # Set up scaling based on range of density in B
 #
-set densities = `header $imageb | sed -n '/mum dens/p'`
-set diffscale = `echo 1000. $densities[4] $densities[8] | awk '{print $1 / ($3 - $2)}'`
+set densities = `header -min -max $imageb | sed '/[[:cntrl:]]/s///g'`
+set diffscale = `echo 1000. $densities[1] $densities[2] | awk '{print $1 / ($3 - $2)}'`
 
 #
 # set up for midas
@@ -262,7 +265,7 @@ while ($bsecind <= $#bseclist)
 	    #
             newstack -sec $asec -size $nxb,$nyb -xf $tmprot90 $distort $imbin -use 0 $imagea $tmpimga >! $tmperrlog
 	    if ($status) then
-		grep ERROR $tmperrlog
+		awk '/ERROR/,/junk/' $tmperrlog
 		echo "ERROR: Matchrotpairs - extracting rotated section from A"
 		goto clean
 	    endif
@@ -272,7 +275,7 @@ while ($bsecind <= $#bseclist)
 	    #
             newstack $tmpimgb $tmpimga $tmpstack >! $tmperrlog
 	    if ($status) then
-		grep ERROR $tmperrlog
+		awk '/ERROR/,/junk/' $tmperrlog
 		echo "ERROR: Matchrotpairs - Stacking rotated A on B"
 		goto clean
 	    endif
@@ -302,7 +305,7 @@ while ($bsecind <= $#bseclist)
 		#
 tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstack $tmpxcxf >! $tmperrlog
 		if ($status) then
-		    grep ERROR $tmperrlog
+		    awk '/ERROR/,/junk/' $tmperrlog
 		    echo "ERROR: Matchrotpairs - Running Tiltxcorr"
 		    goto clean
 		endif
@@ -325,7 +328,7 @@ $reduce
 0
 EOF
 		if ($status) then
-		    grep ERROR $tmperrlog
+		    awk '/ERROR/,/junk/' $tmperrlog
 		    echo "ERROR: Matchrotpairs - Running first Xfsimplex"
 		    goto clean
 		endif
@@ -348,7 +351,7 @@ $reduce
 0
 EOF
 	    if ($status) then
-		grep ERROR $tmpxflog
+		awk '/ERROR/,/junk/' $tmpxflog
 		echo "ERROR: Matchrotpairs - Running second Xfsimplex"
 		goto clean
 	    endif
@@ -370,7 +373,7 @@ EOF
 		@ bsecbest = $bsec
                 xfproduct $tmprot90 $tmpxf2 $tmpminxf >! $tmperrlog
 		if ($status) then
-		    grep ERROR $tmperrlog
+		    awk '/ERROR/,/junk/' $tmperrlog
 		    echo "ERROR: Matchrotpairs - Running Xfproduct"
 		    goto clean
 		endif
@@ -408,7 +411,7 @@ onintr clean
 cat $tmpminxf >> $outfile
 newstack -sec $bsecbest -sec $asecbest -float 2 $distort $imbin $imageb $imagea $beststack >! $tmperrlog
 if ($status) then
-    grep ERROR $tmperrlog
+    awk '/ERROR/,/junk/' $tmperrlog
     echo "ERROR: Matchrotpairs - Stacking two best views"
     goto clean
 endif
@@ -430,7 +433,7 @@ Usage: $pn [options] image_file_a image_file_b output_file
    containing the best two sections, possibly undistorted.
    Options:
      -za #,#       Starting & ending sections in A to search (numbered from 1) 
-     -zb #,#       Starting & ending sections in ABto search
+     -zb #,#       Starting & ending sections in B to search
      -a #          Rotation direction or angle to search (+1, -1, +90, -90
                       all work, default is to search both directions)
      -d file       Name of (zero-stretch) distortion field file to apply

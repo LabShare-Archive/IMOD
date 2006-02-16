@@ -86,8 +86,8 @@ set tiltb = "tilt$fromlet.com"
 
 if ((-e tilta.com) && (-e tiltb.com)) then
     # This ugliness is for Cygwin Windows, with nobinmode not set
-    set xaxisa = `grep -i xaxistilt $tilta | sed '/.*/s/\(^.*[0-9\.]*\).*$/\1/'`
-    set xaxisb = `grep -i xaxistilt $tiltb | sed '/.*/s/\(^.*[0-9\.]*\).*$/\1/'`
+    set xaxisa = `grep -i xaxistilt $tilta | sed '/[[:cntrl:]]/s///g'`
+    set xaxisb = `grep -i xaxistilt $tiltb | sed '/[[:cntrl:]]/s///g'`
     if ("$xaxisa" == "") set xaxisa = "xaxistilt 0."
     if ("$xaxisb" == "") set xaxisb = "xaxistilt 0."
 else
@@ -109,9 +109,9 @@ set btlt = $fromname.tlt
 set mode = 1
 
 if (-e $recfile) then
-    set size = `header $recfile | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
-    set modeline = `header $recfile | sed -n '/Map mode/p'`
-    if ($modeline[4] == 2) set mode = 2
+    set size = `header -si $recfile | sed '/[[:cntrl:]]/s///g'`
+    set modeline = `header -mo $recfile | sed '/[[:cntrl:]]/s///g'`
+    if ("$modeline" == 2) set mode = 2
 else
     set size = `echo "1024 60 1024"`
     echo " "
@@ -622,6 +622,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.31  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.30  2005/10/20 19:36:36  mast
 #  Exit with error if temp directory is not usable to avoid etomo hangup
 #

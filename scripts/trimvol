@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.8  2004/06/29 03:50:39  mast
 #  Added nohup
 #
@@ -177,7 +180,7 @@ else
     endif
 endif
 
-set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $argv[1] | sed '/[[:cntrl:]]/s///g'`
 
 @ nx = $nxyz[1]
 @ ny = $nxyz[2]
@@ -319,7 +322,7 @@ EOF
         goto clean
     endif
 
-    set bwout = `sed -n '/Implied/s/Imp.*are *//p' $tmpfil`
+    set bwout = `sed -n -e '/Implied/s/Imp.*are *//p' -e '/[[:cntrl:]]/s///g' $tmpfil`
     \rm -f $tmpfil
     if ($#bwout != 3) then
 	echo 'ERROR: $pn - findcontrast failed to return scaling values'

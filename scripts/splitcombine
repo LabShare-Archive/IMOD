@@ -7,6 +7,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/07/24 17:03:41  mast
+#  Made tmpdir be a variable in the command file and had it work appropriately
+#  for the machine running the file
+#
 #  Revision 3.4  2004/11/30 04:43:43  mast
 #  Changed to fit new combinefft_reduce variable
 #
@@ -70,7 +74,7 @@ endif
 
 # Figure out how many pieces
 #
-set numpieces = `sed -n '/^.*COMBINING PIECE *1 *of /s///p' $comname`
+set numpieces = `sed -n -e '/^.*COMBINING PIECE *1 *of /s///p' -e '/[[:cntrl:]]/s///g' $comname`
 @ numpieces = $numpieces
 
 set optionline = `grep 'set *combinefft_.*=' $comname`

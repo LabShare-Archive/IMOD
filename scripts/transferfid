@@ -294,7 +294,7 @@ endif
 #
 # Get image sizes
 #
-set nxyz =  `header $imagea | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $imagea | sed '/[[:cntrl:]]/s///g'`
 if ($#nxyz < 3) then
     echo "ERROR: $pn - reading image size from header of $imagea"
     exit 1
@@ -303,7 +303,7 @@ endif
 @ nya = $nxyz[2]
 @ nza = $nxyz[3]
 
-set nxyz =  `header $imageb | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $imageb | sed '/[[:cntrl:]]/s///g'`
 if ($#nxyz < 3) then
     echo "ERROR: $pn - reading image size from header of $imageb"
     exit 1
@@ -315,8 +315,8 @@ endif
 #
 # Check pixel size
 #
-set pixela = `header $imagea | sed -n '/Pixel spacing.*\.\./s///p'`
-set pixelb = `header $imageb | sed -n '/Pixel spacing.*\.\./s///p'`
+set pixela = `header -pi $imagea | sed '/[[:cntrl:]]/s///g'`
+set pixelb = `header -pi $imageb | sed '/[[:cntrl:]]/s///g'`
 if ($#pixela < 1 || $#pixelb < 1) then
     echo "ERROR: $pn - reading pixel size from image file headers"
     exit 1
@@ -385,8 +385,8 @@ end
 #
 # Set up scaling based on range of density in B
 #
-set densities = `header $imageb | sed -n '/mum dens/p'`
-set diffscale = `echo 1000. $densities[4] $densities[8] | awk '{print $1 / ($3 - $2)}'`
+set densities = `header -min -max $imageb | sed '/[[:cntrl:]]/s///g'`
+set diffscale = `echo 1000. $densities[1] $densities[2] | awk '{print $1 / ($3 - $2)}'`
 
 #
 # set up for midas
@@ -810,6 +810,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.23  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.22  2005/10/07 17:59:31  mast
 #  Fixed tracka.com sed lines to turn tabs to spaces before they get stripped
 #

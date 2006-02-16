@@ -219,7 +219,7 @@ while ($itomo <= $ntomo)
 	echo "WARNING: $matlist[$itomo] NO LONGER EXISTS.  SETTING SIZE TO $size FOR TESTING"
 #	exit 1
     else
-    set size = `header "$matlist[$itomo]" | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+        set size = `header -si "$matlist[$itomo]" | sed '/[[:cntrl:]]/s///g'`
     endif
     @ nz = $size[3]
 
@@ -381,6 +381,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.14  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.13  2005/10/11 21:03:14  mast
 #  Implemented rotation range for xftoxg and took advantage of new one
 #  transform per file option in Newstack

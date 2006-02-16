@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.14  2006/01/16 05:32:46  mast
+#  Added option for breaking at all pairs
+#
 #  Revision 3.13  2005/12/13 17:05:36  mast
 #  Fixed problem with filtering odd sizes that result from rotations
 #
@@ -337,7 +340,7 @@ endif
 # successive section numbers (one per line), or a zero (0) on the first
 # line and the successive file names, one per line.
 
-set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $argv[1] | sed '/[[:cntrl:]]/s///g'`
 
 if ($#nxyz < 3) then
     set filesectlist = $argv[1]

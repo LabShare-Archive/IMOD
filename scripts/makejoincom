@@ -348,7 +348,7 @@ while ($itomo <= $ntomo)
         set recsource = "$header$tail"
     endif
     if (-e "$recsource") then
-        set size = `header "$recsource" | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+        set size = `header -si "$recsource" | sed '/[[:cntrl:]]/s///g'`
     else
         set size = (1024 1024 100)
         echo "WARNING: $recsource NOT FOUND; SETTING SIZE TO $size FOR TEST PURPOSES"
@@ -638,11 +638,11 @@ endif
 while ($itomo <= $ntomo)
     if ($itomo == $scaleref) then
         set scaling = (1. 0.)
-        set newmode = `header "$reclist[$itomo]" | sed -n '/Map mode/p'| awk '{print $4}'`
+        set newmode = `header -mo "$reclist[$itomo]" | sed '/[[:cntrl:]]/s///g'`
         if ($#newmode == 0) set newmode = 0
     else
         echo "Determining scaling for tomogram # $itomo ..."
-        set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n '/Scale factor.*:/s///p'`
+        set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n -e '/Scale factor.*:/s///p' -e '/[[:cntrl:]]/s///g'`
     endif
     if ($#scaling < 2) then
         echo "WARNING: Densmatch failed for tomogram # $itomo ; using 1.,0. for scaling"
@@ -791,6 +791,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.13  2006/02/10 19:22:15  mast
+#  Added options to skip rotation, and to make rotated volume full size in Z
+#
 #  Revision 3.12  2005/12/01 06:37:58  mast
 #  Added option to set rotated volumes to max needed size in X/Y
 #

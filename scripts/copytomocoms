@@ -547,12 +547,12 @@ while ($iaxis < $numax)
     if (-e $stackname) then
 
         if ($montage == "0") then
-            set xysize = `header $stackname | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+            set xysize = `header -si $stackname | sed '/[[:cntrl:]]/s///g'`
         else if ((-e $piecename) || ($filmccd != "F")) then
             if (-e $piecename) then
-                set xysize = `montagesize $stackname $piecename | sed -n '/Total/s/Total.*://p'`
+                set xysize = `montagesize $stackname $piecename | sed -n -e '/Total/s/Total.*://p' -e '/[[:cntrl:]]/s///g'`
             else
-                set xysize = `montagesize $stackname | sed -n '/Total/s/Total.*://p'`
+                set xysize = `montagesize $stackname | sed -n -e '/Total/s/Total.*://p' -e '/[[:cntrl:]]/s///g'`
             endif
         endif
         if ("$xysize" != "0") then
@@ -637,7 +637,7 @@ while ($iaxis < $numax)
 	    if (! -e $gradspec) then
                 if (-e $stackname) then
                     set pixarg = ""
-                    set pixhead = `header $stackname | sed -n '/Pixel sp/p' | awk '{print $4}'`
+                    set pixhead = `header -pi $stackname | sed '/[[:cntrl:]]/s///g' | awk '{print $1}'`
                     if ("$pixhead" == "1.000" && $pixsize != "") set pixarg = "-pixel $pixsize"
                     echo "Extracting mag gradients from the image file..."
                     extractmagrad -rot $axisangle $pixarg -grad "$gradient" $stackname $gradspec | tail -n 2
@@ -923,7 +923,7 @@ EOF
 	    # HAVE TO GET A LIST OF SECTION NUMBERS FOR NEWST ALSO.
 
 	    if (-e $stackname) then
-		@ numsec =  `header $stackname | sed -n '/rows, sections/p'| awk '{print $9}'`
+		@ numsec =  `header -si $stackname | sed '/[[:cntrl:]]/s///g' | awk '{print $3}'`
 	    else
                 if ($interactive) then
                     echo -n "Cannot find $stackname - Enter the total number of views in the stack: "
@@ -1078,10 +1078,10 @@ EOF
     #
     set mode = 1
     if (-e $setname".st") then
-	 set modeline = `header $stackname | sed -n '/Map mode/p'`
-	 if ($modeline[4] == 2) set mode = 2
-         @ mindens = `header $stackname | sed -n '/Minimum den/p' | awk '{print int($4)}'`
-         @ meandens = `header $stackname | sed -n '/Mean den/p' | awk '{print int($4)}'`
+	 set modeline = `header -mo $stackname | sed '/[[:cntrl:]]/s///g'`
+	 if ("$modeline" == 2) set mode = 2
+         @ mindens = `header -min $stackname | sed '/[[:cntrl:]]/s///g' | awk '{print int($1)}'`
+         @ meandens = `header -mean $stackname | sed '/[[:cntrl:]]/s///g' | awk '{print int($1)}'`
          if ($mode == 1 && $meandens < -1000 && $mindens < -10000) set logbase = 32768
     endif
 
@@ -1362,6 +1362,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.45  2006/02/06 22:11:16  mast
+#  Made ccderaser radius dynamic and smaller than fiducial size
+#
 #  Revision 3.44  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #

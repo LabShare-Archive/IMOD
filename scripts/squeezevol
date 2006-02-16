@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.7  2005/07/25 17:43:58  mast
 #  Added process ID output
 #
@@ -112,11 +115,11 @@ if (! ${?xs}) set xs = $factor
 if (! ${?ys}) set ys = $factor
 if (! ${?zs}) set zs = $factor
 
-set nxyz =  `header $argv[1] | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $argv[1] | sed '/[[:cntrl:]]/s///g'`
 if (! ${?ix}) set ix = $nxyz[1]
 if (! ${?iy}) set iy = $nxyz[2]
 if (! ${?iz}) set iz = $nxyz[3]
-set pixelxyz =  `header $argv[1] | sed -n '/Pixel spacing/p'| awk '{print $4, $5, $6}'`
+set pixelxyz =  `header -pi $argv[1] | sed '/[[:cntrl:]]/s///g'`
 
 if ($#pixelxyz < 3) set pixelxyz = (1. 1. 1.)
 

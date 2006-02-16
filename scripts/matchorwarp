@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.4  2004/06/29 03:48:15  mast
 #  Added nohup, fixed path setting
 #
@@ -179,7 +182,7 @@ endif
 if (! -e $sizein) then
     set size = $sizein
 else
-    set size = `header $sizein | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+    set size = `header -si $sizein | sed '/[[:cntrl:]]/s///g'`
 endif
 
 # Run refinematch

@@ -103,9 +103,9 @@ if ($imfile == "") set imfile = $rootname".ali"
 if (-e $imfile) then
     set xfin1 = $imfile
     set xfin2 = ""
-    @ numsec =  `header $imfile | sed -n '/rows, sections/p'| awk '{print $9}'`
+    @ numsec =  `header -si $imfile | sed '/[[:cntrl:]]/s///g' | awk '{print $3}'`
 else
-    set modmaxes = `imodinfo -a $infile | sed -n '/^max /p'`
+    set modmaxes = `imodinfo -a $infile | sed -n -e '/^max /p' -e '/[[:cntrl:]]/s///g'`
     @ xmax = $modmaxes[2]
     @ ymax = $modmaxes[3]
     @ xcen = $xmax / 2

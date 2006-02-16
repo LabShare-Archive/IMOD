@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.14  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.13  2004/08/27 05:46:48  mast
 #  Switched to using head -n and tail -n
 #
@@ -118,7 +121,7 @@ endif
 set nx = $argv[3]
 set ny = $argv[4]
 @ nz = $argv[5]
-set nxyz =  `header $recfile1 | sed -n '/rows, sections/p'| awk '{print $7, $8, $9}'`
+set nxyz =  `header -si $recfile1 | sed '/[[:cntrl:]]/s///g'`
 
 @ nxuse = $nxyz[1]
 if ($nxuse > $SIZELIMIT) @ nxuse = $SIZELIMIT
