@@ -1,0 +1,66 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FNM
+usage = Input image file
+tooltip = 
+manpage = Input image file.  All nonoption arguments will be treated as input
+files.
+
+[Field = Size]
+short = size
+type = B
+usage = Output image dimensions
+tooltip = 
+manpage = 
+
+[Field = Mode]
+short = mode
+type = B
+usage = Output data mode
+tooltip = 
+manpage = 
+
+[Field = PixelSize]
+short = pixel
+type = B
+usage = Output pixel spacing in angstroms
+tooltip = 
+manpage = 
+
+[Field = Origin]
+short = origin
+type = B
+usage = Output origin values
+tooltip = 
+manpage = 
+
+[Field = Minimum]
+short = minimum
+type = B
+usage = Output minimum value of data
+tooltip = 
+manpage = 
+
+[Field = Maximum]
+short = maximum
+type = B
+usage = Output maximum value of data
+tooltip = 
+manpage = 
+
+[Field = Mean]
+short = mean
+type = B
+usage = Output mean value of data
+tooltip = 
+manpage = 
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
