@@ -156,7 +156,7 @@ endif
 
 # It has to be run by tcsh for Irix; there is some bug in csh
 
-if ($test == 0) tcsh $installer -d $installdir $packname
+if ($test == 0) tcsh -f $installer -d $installdir $packname
 
 echo " "
 echo "Cleaning up $packname and $installer"
@@ -173,6 +173,9 @@ exit 0
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2005/06/11 14:27:41  mast
+#  Fix if statement on sysfiles for SGI
+#
 #  Revision 3.9  2005/01/10 16:30:47  mast
 #  Added option to install elsewhere
 #
