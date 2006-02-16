@@ -46,11 +46,3 @@ alias subm 'submfg \!* &'
 alias imod 3dmodbg
 alias 3dmod 3dmodbg
 alias imodv 3dmodv
-
-# Many scripts will fail with the latest version of sed unless nobinmode is set
-#
-if ($?CYGWIN) then
-    setenv CYGWIN "$CYGWIN nobinmode"
-else
-    setenv CYGWIN nobinmode
-endif

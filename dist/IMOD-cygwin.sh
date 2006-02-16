@@ -42,11 +42,3 @@ function subm () { submfg $* & }
 alias imod=3dmodbg
 alias 3dmod=3dmodbg
 alias imodv=3dmodv
-
-# Many scripts will fail with the latest version of sed unless nobinmode is set
-#
-if [ -z "$CYGWIN" ] ; then
-    export CYGWIN=nobinmode
-else
-    export CYGWIN="$CYGWIN nobinmode"
-fi
