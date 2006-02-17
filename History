@@ -1,11 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2/15/06: Revised scripts to use new header and strip control characters from
-output of header and uther programs, since new sed in cygwin does not take
-care of this unless CYGWIN is set to nobinmode.
+output of header and other programs, since new sed in cygwin does not take
+care of this unless CYGWIN is set to nobinmode. (In 3.7)
 
 2/15/06: Made Header take options and produce simple output when given an
-option so that scripts can get numbers more easily.
+option so that scripts can get numbers more easily. (In 3.7)
 
 2/14/06: Made Blendmont put out a section with no data if there is only one
 piece being output; needed if a sample is empty.
