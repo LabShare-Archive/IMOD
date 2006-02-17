@@ -624,8 +624,8 @@ if ($xymax > $MIDASLIMIT) then
     set ifsquoze = "1"
     set squeeze = `echo $xymax ${MIDASLIMIT}'.' | awk '{print $2 / $1}'`
     set expand = `echo $xymax ${MIDASLIMIT}'.' | awk '{print $1 / $2}'`
-    set newx = `echo $nxmax $squeeze | awk '{print int($1 * $2)}' | goodframe`
-    set newy = `echo $nymax $squeeze | awk '{print int($1 * $2)}' | goodframe`
+    set newx = `echo $nxmax $squeeze | awk '{print int($1 * $2)}' | goodframe | sed '/[[:cntrl:]]/s///g'`
+    set newy = `echo $nymax $squeeze | awk '{print int($1 * $2)}' | goodframe | sed '/[[:cntrl:]]/s///g'`
     set newsize = "$newx,$newy"
     if (-e $joinroot.sqzxf) \mv $joinroot.sqzxf $joinroot.sqzxf~
     if (-e $joinroot.xpndxf) \mv $joinroot.xpndxf $joinroot.xpndxf~
@@ -791,6 +791,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.14  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.13  2006/02/10 19:22:15  mast
 #  Added options to skip rotation, and to make rotated volume full size in Z
 #

@@ -999,8 +999,8 @@ EOF
     set alxsize = $xsize
     set alysize = $ysize
     if ($preblend == "1") then
-	set alxsize = `goodframe $xsize`
-	set alysize = `goodframe $ysize`
+	set alxsize = `goodframe $xsize | sed '/[[:cntrl:]]/s///g'`
+	set alysize = `goodframe $ysize | sed '/[[:cntrl:]]/s///g'`
     endif
 
     # 5/3/02: change to using image file name, keep dimensions commented out
@@ -1089,8 +1089,8 @@ EOF
     if ($excludelist == "") set delexclude = "EXCLUDELIST"
 
     if ($montage == "1") then
-	set alxsize = `goodframe $xsize`
-	set alysize = `goodframe $ysize`
+	set alxsize = `goodframe $xsize | sed '/[[:cntrl:]]/s///g'`
+	set alysize = `goodframe $ysize | sed '/[[:cntrl:]]/s///g'`
     endif
 
     set srcfile = $srcdir/"tilt"$srcext
@@ -1362,6 +1362,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.46  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.45  2006/02/06 22:11:16  mast
 #  Made ccderaser radius dynamic and smaller than fiducial size
 #
