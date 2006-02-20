@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/20/06: Fixed a bug in Combine where Setup values got out of sync. (In 3.7)
+
 2/15/06: Revised scripts to use new header and strip control characters from
 output of header and other programs, since new sed in cygwin does not take
 care of this unless CYGWIN is set to nobinmode. (In 3.7)
