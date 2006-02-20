@@ -4312,7 +4312,15 @@ public class ApplicationManager extends BaseManager {
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
-      updateCombineParams();
+      
+      //Don't send the setup values to combine param (which saves to the .edf
+      //file unless create combine scripts is being run or a script is being
+      //updated.  In the combine setup tab, screen values should reflect the
+      //state of the script instead of the values that the user places there.
+      //This is because Create Combine Scripts is used to create the scripts 
+      //instead of saving them directly from the screen, so the values in .edf
+      //file and the values in the scripts can get out of sync.
+      //updateCombineParams();
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
       if (tomogramCombinationDialog.isCombinePanelEnabled()) {
@@ -6085,6 +6093,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.209  2006/02/07 00:08:28  sueh
+ * <p> bug# 521 Getting the splitcombine process result display from
+ * <p> ProcessResultDisplayFactory so that it is always the Restart at
+ * <p> Volcombine button.
+ * <p>
  * <p> Revision 3.208  2006/02/06 20:57:22  sueh
  * <p> bug# 521 Removed unnecessary getParameters(ReconScreenState)
  * <p> functions from process dialogs; toggle buttons that are managed by
