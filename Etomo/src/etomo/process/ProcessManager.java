@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.91  2006/01/31 20:46:03  sueh
+ * bug# 521 Made trim vol a toggle button and added ProcessResultDisplay
+ * to process.
+ *
  * Revision 3.90  2006/01/26 21:54:45  sueh
  * bug# 401 Added processResultDisplay parameters to all the functions associated
  * with toggle buttons.
@@ -1432,10 +1436,12 @@ public class ProcessManager extends BaseProcessManager {
    * for this command
    */
   public void modelToPatch(AxisID axisID) throws SystemProcessException {
-    //  Copy the old patch.out to patch.out~
-    String[] mv = { "mv", "-f", "patch.out", "patch.out~" };
-    runCommand(mv, axisID);
-
+    File patchOut = new File(appManager.getPropertyUserDir(), "patch.out");
+    if (patchOut.exists()) {
+      //  Copy the old patch.out to patch.out~
+      String[] mv = { "mv", "-f", "patch.out", "patch.out~" };
+      runCommand(mv, axisID);
+    }
     // Convert the new patchvector.mod
     String[] imod2patch = { "imod2patch", "patch_vector.mod", "patch.out" };
     runCommand(imod2patch, axisID);
