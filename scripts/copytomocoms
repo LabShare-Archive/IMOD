@@ -603,6 +603,7 @@ while ($iaxis < $numax)
 	    if ($ifextract == "y" || $ifextract == "Y") then
                 if (-e $stackname) then
                     extracttilts $stackname $tiltspec | tail  -1
+                    if ($status && ($interactive == 0)) exit 1
                 else
                     echo2 " "
                     echo2 "INFO: $stackname does not exist yet."
@@ -1362,6 +1363,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.47  2006/02/17 21:49:59  mast
+#  Filter output of goodframe
+#
 #  Revision 3.46  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
