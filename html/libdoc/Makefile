@@ -12,6 +12,8 @@ all :
 	  ../libhelp/icont.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod ipoint.html \
 	  ../libhelp/ipoint.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod imesh.html \
+	  ../libhelp/imesh.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod imodel_files.html \
 	  ../libhelp/imodel_files.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod ilist.html \

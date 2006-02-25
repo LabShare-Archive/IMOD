@@ -165,7 +165,6 @@ EXPORTS
 	imodObjectGetNext
 	istoreCountItems
 	GETIMODFLAGS
-	imodel_mesh_addvert
 	GETIMODSIZES
 	imodMatTransform
 	ilistAppend
@@ -203,7 +202,6 @@ EXPORTS
 	imodLabelItemGet
 	PipGetThreeIntegers
 	PIPGETINTEGER
-	imodel_mesh_addlist
 	imodContourGetNext
 	imodel_contour_length
 	imodDeletePoint
