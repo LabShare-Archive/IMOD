@@ -1,58 +1,12 @@
-/*  IMOD VERSION 2.02
- *
+/*  
  *  imesh.c -- library of mesh functions.
  *
- *  Author: James Kremer email: kremer@colorado.edu
- */
-
-/*****************************************************************************
- *   Copyright (C) 1995-1996 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-
-/*
- * Functions                              Descriptions
- * ---------------------------------------------------------------------------
- * Imesh *imodMeshNew(void)               Create a new mesh.
- * Imesh *imodMeshesNew(int size)         Create a new mesh array.
- * int imodMeshCopy(Imesh *from,          Copy mesh structure.
- *                  Imesh *to)
- * Imesh *imodMeshDup(Imesh *mesh);       Duplicate mesh including data
- * int imodMeshDelete(Imesh *mesh)        Delete a mesh.
- * int imodMeshesDelete(Imesh *mesh,      Delete a mesh array.
- *                      int size)
- * int imodMeshAddIndex(Imesh *mesh,      Add index to mesh.
- *                      int index)
- * int imodMeshAddVert(Imesh *mesh,       Add vertex to mesh.
- *                     Ipoint *vert)
- * int imodMeshAddNormal(Imesh *mesh,     Add normal point at end of mesh.
- *                       Ipoint *normal)
- */
-
-/* Utility functions.
+ *  Original author: James Kremer
+ *  Modified by David Mastronarde  email: mast@colorado.edu
  *
- * Surface area and volume in pixel units.
- * ----------------------------------------
- * float imeshSurfaceArea(Imesh *mesh, Ipoint *scale);
- * float imeshVolume(Imesh *mesh, Ipoint *scale);
- *
- * Imesh *imeshContourCap(Icont *cont, int side);
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
 /*  $Author$
@@ -62,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2005/09/11 19:16:03  mast
+Added routine to test for mesh start code and return appropriate factors
+
 Revision 3.1  2004/11/20 04:15:14  mast
 Added duplicate function
 
@@ -75,12 +32,19 @@ Added duplicate function
 
 /*#define SKIN_DEBUG     */
 
-
+/*!
+ * Creates a new mesh structure and sets its properties to the default, or
+ * returns NULL for an allocation error.
+ */
 Imesh *imodMeshNew(void)
 {
   return(imodMeshesNew(1));
 }
 
+/*!
+ * Creates an array of [size] mesh structures and sets their properties to the
+ * default, or returns NULL for an error.
+ */
 Imesh *imodMeshesNew(int size)
 {
   Imesh *mesh;
@@ -106,6 +70,8 @@ Imesh *imodMeshesNew(int size)
   return(mesh);
 }
 
+/*! Returns the value at [index] in the index list of [mesh], or IMOD_MESH_END
+  if [mesh] is NULL or [index] is out of range. */
 int imodMeshGetIndex(Imesh *mesh, int index)
 {
   if (!mesh) return(IMOD_MESH_END);
@@ -114,18 +80,22 @@ int imodMeshGetIndex(Imesh *mesh, int index)
   return(mesh->list[index]);
 }
 
+/*! Returns the size of the index list in [mesh], or 0 if [mesh] is NULL. */
 int imodMeshGetMaxIndex(Imesh *mesh)
 {
   if (!mesh) return(0);
   return(mesh->lsize);
 }
 
+/*! Returns the size of the vertex list in [mesh], or 0 if [mesh] is NULL. */
 int imodMeshGetMaxVert(Imesh *mesh)
 {
   if (!mesh) return(0);
   return(mesh->vsize);
 }
 
+/*! Returns the point at [index] in the vertex list of [mesh], or NULL
+  if [mesh] is NULL or [index] is out of range. */
 Ipoint *imodMeshGetVert(Imesh *mesh, int index)
 {
   if (!mesh) return(NULL);
@@ -134,6 +104,7 @@ Ipoint *imodMeshGetVert(Imesh *mesh, int index)
   return(&mesh->vert[index]);
 }
 
+/*! Returns the vertex array in [mesh], or NULL if there is none. */
 Ipoint *imodMeshGetVerts(Imesh *mesh)
 {
   if (!mesh) return(NULL);
@@ -142,7 +113,10 @@ Ipoint *imodMeshGetVerts(Imesh *mesh)
 }
 
 
-
+/*!
+ * copies a mesh structure from mesh [from] to mesh [to].  Returns -1 for 
+ * error.
+ */
 int imodMeshCopy(Imesh *from, Imesh *to)
 {
   if (!from)
@@ -153,7 +127,7 @@ int imodMeshCopy(Imesh *from, Imesh *to)
   return(0);
 }
 
-/* Duplicate the mesh including all data */
+/*! Returns a duplicate of [mesh], including all data, or NULL for error. */
 Imesh *imodMeshDup(Imesh *mesh)
 {
   int i;
@@ -173,11 +147,19 @@ Imesh *imodMeshDup(Imesh *mesh)
   return newMesh;
 }
 
+/*!
+ * Frees [mesh], including all data that it contains.  Returns -1 if [mesh] is 
+ * NULL.
+ */
 int imodMeshDelete(Imesh *mesh)
 {
   return(imodMeshesDelete(mesh, 1));
 }
 
+/*!
+ * Frees the array of [size] meshes in [mesh], including all data that it 
+ * contains.  Returns -1 if [mesh] is NULL.
+ */
 int imodMeshesDelete(Imesh *mesh, int size)
 {
   int ms;
@@ -194,7 +176,10 @@ int imodMeshesDelete(Imesh *mesh, int size)
   return(0);
 }
 
-
+/*!
+ * Adds [index] to the end of the index list of [mesh], allocating one more
+ * element for the index array.  Returns -1 for allocation error.
+ */
 int imodMeshAddIndex(Imesh *mesh, int index)
 {
   int *tmp;
@@ -214,7 +199,9 @@ int imodMeshAddIndex(Imesh *mesh, int index)
   return(0);
 }
 
+
 /* Unused 7/4/05 */
+/*! Deletes the item at [index] from the index lis of [mesh] */
 void imodMeshDeleteIndex(Imesh *mesh, int index)
 {
   int i;
@@ -227,15 +214,19 @@ void imodMeshDeleteIndex(Imesh *mesh, int index)
   return;
 }
 
+/*!
+ * Adds [vert] to the end of the vertex array of [mesh], allocating one more
+ * element for the array.  Returns -1 for allocation error.
+ */
 int imodMeshAddVert(Imesh *mesh, Ipoint *vert)
 {
   Ipoint *tmp;
 
   if (mesh->vsize)
-    tmp = (struct Mod_Point *) realloc
-      (mesh->vert, (mesh->vsize + 1) * sizeof(struct Mod_Point));
+    tmp = (Ipoint *) realloc
+      (mesh->vert, (mesh->vsize + 1) * sizeof(Ipoint));
   else
-    tmp = (struct Mod_Point *) malloc(sizeof(struct Mod_Point));
+    tmp = (Ipoint *) malloc(sizeof(Ipoint));
   if (tmp == NULL)
     return(-1);
 
@@ -262,6 +253,10 @@ int imodMeshAddNormal(Imesh *mesh, Ipoint *normal)
 
 
 /* Unused 7/4/05 */
+/*
+ * Inserts an index value [val] into the index list of [mesh] at position 
+ * [place] in the array.  Does not check for error.
+ */
 void imodMeshInsertIndex(Imesh *mesh, int val, int place)
 {
   int l;
@@ -274,9 +269,13 @@ void imodMeshInsertIndex(Imesh *mesh, int val, int place)
 
 }
 
-/* find the nearest resolution available to "inres" in the array of meshes;
-   return resolution in "outres" and return 1 if more than one resolution 
-   exists */
+/*!
+ * Finds the nearest resolution to [inres] available in the array of meshes
+ * of size [size] in [mesh].  Returns the resolution in [outres].  If there
+ * are two equally distance resolutions (one below, one above), it returns
+ * the resolution that is above [inres].  The return value is 0 if only one
+ * resolution exists, 1 if more than one resolution exists, and -1 for error.
+ */
 int imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres)
 {
   int m, res;
@@ -333,55 +332,20 @@ int imodMeshPolyNormFactors(int startCode, int *listInc, int *vertBase,
 }
             
       
-/***************************internal functions********************************/
+/* 2/25/06: deleted imodel_mesh_addlist and imodel_mesh_addvert which were
+   duplicates of imodMesh calls */
 
-/* Unused 7/4/05 */
-int imodel_mesh_addlist(struct Mod_Mesh *mesh, int val)
+/*!
+ * Adds a new mesh in [nmesh] to the array of meshes in [mray].  [size] 
+ * specifies the current number of meshes in [mray] and is returned with the
+ * new number of meshes.  Allocated data are transferred from [nmesh] to the 
+ * array but [nmesh] is not freed.  Returns NULL or the existing existing array
+ * for an error.
+ */
+Imesh *imodel_mesh_add(Imesh *nmesh,
+                                 Imesh *mray, int *size)
 {
-  int *tmp;
-
-  if ((mesh->lsize > 0) && (mesh->list))
-    tmp = (int *)realloc(mesh->list, (mesh->lsize + 1) * sizeof(int));
-  else{
-    tmp = (int *)malloc(sizeof(int));
-    mesh->lsize = 0;
-  }
-
-  if (tmp == NULL)
-    return(-1);
-  mesh->list = tmp;
-  mesh->list[mesh->lsize] = val;
-  mesh->lsize++;
-  return(0);
-}
-
-/* Unused 7/4/05 */
-int imodel_mesh_addvert(struct Mod_Mesh *mesh, struct Mod_Point *pt)
-{
-  struct Mod_Point *tmp;
-
-  if (mesh->vsize)
-    tmp = (struct Mod_Point *) realloc
-      (mesh->vert, (mesh->vsize + 1) * sizeof(struct Mod_Point));
-  else
-    tmp = (struct Mod_Point *) malloc(sizeof(struct Mod_Point));
-     
-  if (tmp == NULL)
-    return(-1);
-
-  mesh->vert = tmp;
-  mesh->vert[mesh->vsize].x = pt->x;
-  mesh->vert[mesh->vsize].y = pt->y;
-  mesh->vert[mesh->vsize].z = pt->z;
-  mesh->vsize++;
-  return(0);
-}
-
-
-struct Mod_Mesh *imodel_mesh_add(struct Mod_Mesh *nmesh,
-                                 struct Mod_Mesh *mray, int *size)
-{
-  struct Mod_Mesh *nmray;
+  Imesh *nmray;
 
   if (nmesh == NULL){
     return(mray);
@@ -389,13 +353,13 @@ struct Mod_Mesh *imodel_mesh_add(struct Mod_Mesh *nmesh,
 
   if ((mray == NULL) && (!*size)){
       
-    nmray = (struct Mod_Mesh *)malloc(sizeof(struct Mod_Mesh));
+    nmray = (Imesh *)malloc(sizeof(Imesh));
 
   }else{
 
-    nmray = (struct Mod_Mesh *) 
-      realloc((struct Mod_Mesh *)mray,
-              (*size + 1) * sizeof(struct Mod_Mesh));
+    nmray = (Imesh *) 
+      realloc((Imesh *)mray,
+              (*size + 1) * sizeof(Imesh));
   }
 
   if (nmray == NULL)
@@ -423,7 +387,8 @@ float imeshVolume(Imesh *mesh, Ipoint *scale)
   return(0.0f);
 }
 
-/* Return area of mesh in square pixels. */
+/*! Returns the surface area of [mesh] in square pixels.  If [scale] is 
+ * non-NULL, its {z} value specifies the Z scaling to apply. */
 float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
 {
   int i;
