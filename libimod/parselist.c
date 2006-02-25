@@ -1,16 +1,5 @@
-/*  parselist converts a list entry in the string "line" into a set of
-    integers, returns a pointer to the list of numbers, and returns the number 
-    of values in "nlist".  An example of a list is 1-5,7,9,11,15-20.
-    Numbers separated by dashes are replaced by
-    all of the numbers in the range.  Numbers need not be in any order,
-    and backward ranges (10-5) are handled.  Any characters besides
-    digits are valid separators.  A / at the beginning of the string will
-    return an error.  Negative numbers can be entered provided
-    that the minus sign immediately precedes the number.  E.g.: -3 - -1
-    or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1.
-    
-    Translated from a Fortran routine, a sobering experience.
-*/
+/* Parselist - parses a list of numbers */
+/*    Translated from a Fortran routine, a sobering experience. */
 /*  $Author$
 
     $Date$
@@ -18,6 +7,8 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2004/09/28 22:21:41  mast
+    Added to libimod
 */
 
 #include <stdio.h>
@@ -25,6 +16,18 @@
 #include <string.h>
 #define True  1
 #define False 0
+/*! 
+ * Converts a list entry in the string [line] into a set of
+ * integers, returns a pointer to the list of numbers, and returns the number 
+ * of values in [nlist].  An example of a list is 1-5,7,9,11,15-20.
+ * Numbers separated by dashes are replaced by
+ * all of the numbers in the range.  Numbers need not be in any order,
+ * and backward ranges (10-5) are handled.  Any characters besides
+ * digits are valid separators.  A / at the beginning of the string will
+ * return an error.  Negative numbers can be entered provided
+ * that the minus sign immediately precedes the number.  E.g.: -3 - -1
+ * or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1.
+ */    
 int *parselist (char *line, int *nlist)
 {
   char intern[10];
