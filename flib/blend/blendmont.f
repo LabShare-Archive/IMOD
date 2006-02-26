@@ -764,6 +764,9 @@ c
         do ixy=1,2
           call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
      &        ixy,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
+          if (nxgrid(ixy) .gt. ixgdim .or. nygrid(ixy) .gt. iygdim)
+     &        call errorexit(
+     &        'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
 c           open file, write header record
 c           set record length to total bytes divided by system-dependent
 c           number of bytes per item
@@ -941,9 +944,10 @@ c
 
       call PipDone()
 c       
-c       initialize memory allocator
+c       initialize memory allocator and dx,dy lists for looking for near piece
 c       
       call clearShuffle()
+      call initNearList()
 c       
 c       Set maximum load; allow one extra slot if doing fields, limit by
 c       size of arrays
@@ -2556,6 +2560,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.23  2006/02/15 00:47:12  mast
+c       Always output pixels if only one piece being output
+c
 c       Revision 3.22  2006/02/06 21:50:05  mast
 c       Added offset tilt and tilt file options and changed calls for finding
 c       best gradients
