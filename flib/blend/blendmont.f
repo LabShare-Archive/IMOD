@@ -1378,13 +1378,15 @@ c           DNM 8/18/02: pass array to find_best_shifts, but do not pass
 c           hinv since it is in common
 c           
           if(.not.fromedge)then
-            call find_best_shifts(array,edgedispx,edgedispy,-1,izsect,h,
-     &          nbestedge,beforemean,beforemax,aftermean(1),aftermax(1))
+            call find_best_shifts(array,nxpieces * nypieces, edgedispx,
+     &          edgedispy,-1,izsect,h, nbestedge,beforemean,beforemax,
+     &          aftermean(1),aftermax(1))
             indbest=1
           endif
           if(.not.xclegacy)then
-            call find_best_shifts(array,dxgridmean,dygridmean,1,izsect,h,
-     &          nbestedge,beforemean,beforemax,aftermean(2),aftermax(2))
+            call find_best_shifts(array,nxpieces * nypieces, dxgridmean,
+     &          dygridmean,1,izsect,h, nbestedge,beforemean,beforemax,
+     &          aftermean(2),aftermax(2))
             indbest=2
           endif
 c           
@@ -1393,8 +1395,9 @@ c           index to 1
 c           
           if(.not.(xclegacy.or.fromedge).and.(aftermean(1).lt.aftermean(2)))
      &        then
-            call find_best_shifts(array,edgedispx,edgedispy,-1,izsect,h,
-     &          nbestedge,beforemean,beforemax,aftermean(1),aftermax(1))
+            call find_best_shifts(array,nxpieces * nypieces, edgedispx,
+     &          edgedispy,-1,izsect,h, nbestedge,beforemean,beforemax,
+     &          aftermean(1),aftermax(1))
             indbest=1
           endif
           write(*,'(i4,a,2f7.2,a,a,2f7.2)')nbestedge,
@@ -2560,6 +2563,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.24  2006/02/26 06:00:42  mast
+c       Added call to initialize list of displacement for nearest piece search
+c       and added check on grid size
+c
 c       Revision 3.23  2006/02/15 00:47:12  mast
 c       Always output pixels if only one piece being output
 c
