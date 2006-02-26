@@ -30,6 +30,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.17  2006/02/26 06:04:40  mast
+c       Fixed countedges to go to the right piece when there are h transforms
+c
 c       Revision 3.16  2006/02/06 21:51:04  mast
 c       Fixed findBestGradient to solve for shifts at each trial gradient
 c
@@ -1705,11 +1708,11 @@ c$$$    end
 c       DNM 8/18/02: add array argument, remove hinv as argument and
 c       access it through common
 
-      subroutine find_best_shifts(a,dxgridmean,dygridmean,idir,izsect,h,
+      subroutine find_best_shifts(a,maxvar,dxgridmean,dygridmean,idir,izsect,h,
      &    nsum,bavg,bmax,aavg,amax)
 
       implicit none
-      integer*4 idir,izsect,nsum
+      integer*4 idir,izsect,nsum,maxvar
       real*4 bavg,bmax,aavg,amax
       include 'blend.inc'
 c       
@@ -1718,7 +1721,7 @@ c
       integer*4 indvar(limnpc)
 c       
 c       parameter (limvar=400)
-      real*4 a(limvar,limvar),b(limvar,2)
+      real*8 a(maxvar,maxvar),b(limvar,2)
       integer*4 ivarpc(limvar)
 c       
       integer*4 nvar,ipc,ivar,m,ixy,iedge,neighpc,neighvar,ipclo,i
@@ -1742,7 +1745,7 @@ c
      &        iedgeupper(ipc,1).gt.0.or.
      &        iedgeupper(ipc,2).gt.0)then
             nvar=nvar+1
-            if (nvar.gt.limvar)call errorexit(
+            if (nvar.gt.limvar .or. nvar*maxvar.gt.maxsiz / 2)call errorexit(
      &          'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS')
             ivarpc(nvar)=ipc
             indvar(ipc)=nvar
@@ -1821,7 +1824,7 @@ c
 c       write(*,'(9i5)')(ivarpc(i),i=1,nvar)
 c       write(*,'(8f7.1)')((a(i,j),i=1,nvar-1),j=1,nvar-1)
 c       write(*,'(8f9.2)')((b(i,j),i=1,nvar-1),j=1,2)
-      call gaussj(a,nvar-1,limvar,b,2,2)
+      call gaussjd(a,nvar-1,maxvar,b,2,limvar,2)
 c       write(*,'(8f9.2)')((b(i,j),i=1,nvar-1),j=1,2)
       xsum=0.
       ysum=0.
@@ -1866,8 +1869,8 @@ c
 c       DNM 8/18/02: invalidate pieces in memory for part of array that
 c       was used
 c       
-      noverwrote = (limvar * nvar + npixin - 1) / npixin
-      do i = 1,noverwrote
+      noverwrote = (2 * maxvar * nvar + npixin - 1) / npixin
+      do i = 1,min(noverwrote,memlim)
         if (izmemlist(i) .gt. 0) memIndex(izmemlist(i)) = -1
         izmemlist(i) = -1
         lastused(i) = 0
@@ -2072,8 +2075,8 @@ c
         endif
       enddo
 
-      call find_best_shifts(array, dxadj, dyadj, 1, izedge, h, iedge, bmean,
-     &    bmax, aftmean, aftmax)
+      call find_best_shifts(array, nxpieces * nypieces, dxadj, dyadj,
+     &    1, izedge, h, iedge, bmean, bmax, aftmean, aftmax)
 
       gradfunc = aftmean
       if (ifTrace .gt. 0) then
