@@ -1,7 +1,7 @@
 	integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc,maxbin
 	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
-        integer maxbsiz,idimc
-	parameter (maxsiz=1024*1024*48)		!# of pixels
+        integer maxbsiz,idimc,maxPcNear, maxDistNear
+	parameter (maxsiz=2600*2600*12)		!# of pixels
 c	  
 c	  set limvar to LESS THAN the square root of maxsiz
 c	  
@@ -10,13 +10,15 @@ c
 c         With default padding (0.45) and aspectmax (2), idimc must be
 c         (max overlap * 1.9) * (max overlap * 3.8)
 c
-	parameter (ifastsiz=32,maxlinelength=40960,maxbin=8,idimc=1150*2300)
+	parameter (ifastsiz=32,maxlinelength=100000,maxbin=8,idimc=1520*3040)
         parameter (maxbsiz=(ifastsiz+maxbin)*maxlinelength)
+        parameter (maxDistNear = 5)
+        parameter (maxPcNear = (2*maxDistNear + 1) * (2*maxDistNear + 1))
 	real*4 array(maxsiz), brray(maxbsiz)
 	complex*8 xcray(idimc/2), xdray(idimc/2)
 	common /bigarr/ array,brray,xcray,xdray
 c
-	parameter (limxypc=80,limnpc=50000,limedge=50000,limsect=1000)
+	parameter (limxypc=100,limnpc=100000,limedge=100000,limsect=1000)
 	integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
 	integer*4 nxyzbin(3),nxbin,nybin,nzbin
 	integer*4 noverlap(2),nedge(2),nxoverlap,nyoverlap
@@ -51,11 +53,12 @@ c
 	real*4 gxcen,gycen			!coord of output image center
 	real*4 ginv(2,3),hinv(2,3,limnpc)	!inverse of g and h xforms
 	integer*4 numpieces
+        integer*4 numPcNear, idxPcNear(maxPcNear), idyPcNear(maxPcNear)
 	common /edgcnt/ inpiece,inedge,numedges,xinpiece,yinpiece,
      &	    inedlower, inedupper,mappiece,dogxforms,multng,numpieces,
      &	    hxcen,hycen, gxcen,gycen, ginv,hinv
 c	  
-	parameter (memlim=128)
+	parameter (memlim=256)
 	integer*4 izmemlist(memlim),lastused(memlim),memIndex(limnpc)
 	integer*4 npixin,maxload,jusecount,ilistz
 	common /shuffl/ npixin,maxload,jusecount,ilistz,izmemlist,lastused,
