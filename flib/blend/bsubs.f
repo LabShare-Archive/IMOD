@@ -30,6 +30,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.16  2006/02/06 21:51:04  mast
+c       Fixed findBestGradient to solve for shifts at each trial gradient
+c
 c       Revision 3.15  2006/01/16 03:16:26  mast
 c       Changed message for implied gradients
 c       
@@ -1001,6 +1004,8 @@ c
         indentUse(2) = indent(2) + nint(delIndent(2))
         call setgridchars(nxyzin,noverlap,iboxsiz,indentUse,intgrid,
      &      ixy,ixdisp,iydisp,nxgr,nygr,igrstr,igrofs)
+        if (nxgr .gt. ixgdim .or. nygr .gt. iygdim) call errorexit(
+     &      'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
         lastxdisp=ixdisp
         lastydisp=iydisp
 c         
@@ -1113,12 +1118,13 @@ c
       logical edgeonlist,needcheck(5,2),ngframe
       real*4 xycur(2)
       integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm,minxframe,minyframe
-      integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i
+      integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch
       real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,xttmp,dist
 c       
       numpieces=0
       numedges(1)=0
       numedges(2)=0
+      idSearch = 1
 c       
 c       get frame # that it is nominally in: actual one or nearby valid frame
 c       
@@ -1136,29 +1142,46 @@ c
       ngframe=ixframe.lt.1.or.ixframe.gt.nxpieces.or.
      &    iyframe.lt.1.or.iyframe.gt.nypieces.or.
      &    mappiece(max(1,ixframe),max(1,iyframe)).eq.0
-      if(.not.ngframe.and.multng)then
+      if(multng)then
 c         
 c         if there are multineg h's, need to make sure point is actually in
-c         frame
+c         frame, but if frame no good, switch to nearest frame first
 c         
+        if (ngframe) call findNearestPiece(ixframe, iyframe)
         ipc=mappiece(ixframe,iyframe)
         xtmp=xg-ixpclist(ipc)
         ytmp=yg-iypclist(ipc)
-        xbak=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*ytmp
-     &      +hinv(1,3,ipc)
-        ybak=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*ytmp
-     &      +hinv(2,3,ipc)
-        ngframe=xbak.lt.0.or.xbak.gt.nxin-1.or.
-     &      ybak.lt.0.or.ybak.gt.nyin-1
+        xbak=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*ytmp +hinv(1,3,ipc)
+        ybak=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*ytmp +hinv(2,3,ipc)
+        ngframe=xbak.lt.0.or.xbak.gt.nxin-1.or. ybak.lt.0.or.ybak.gt.nyin-1
+
+        if (ngframe) then
+c           
+c           Use the error to switch to a nearby frame as center of search
+c           
+          xtmp = xbak + ixpclist(ipc)
+          ytmp = ybak + iypclist(ipc)
+          ixframe=(xtmp-minxpiece-nxoverlap/2)/(nxin-nxoverlap)+1.
+          iyframe=(ytmp-minypiece-nyoverlap/2)/(nyin-nyoverlap)+1.
+c           
+c           If still not in a frame, start in the nearest and expand the search
+c
+          if (ixframe.lt.1.or.ixframe.gt.nxpieces.or.
+     &        iyframe.lt.1.or.iyframe.gt.nypieces.or.
+     &        mappiece(max(1,ixframe),max(1,iyframe)).eq.0) then
+            call findNearestPiece(ixframe, iyframe)
+            idSearch = 2
+          endif
+        else
 c         
-c         but in this case, if in a corner, switch to the 9-piece search
-c         to start with most interior point
+c           but even if frame is good, if in a corner, switch to the 9-piece
+c           search to start with most interior point
 c         
-        if(.not.ngframe)ngframe=
-     &      (xbak.lt.edgelonear(1).and.ybak.lt.edgelonear(2)).or.
-     &      (xbak.lt.edgelonear(1).and.ybak.gt.edgehinear(2)).or.
-     &      (xbak.gt.edgehinear(1).and.ybak.lt.edgelonear(2)).or.
-     &      (xbak.gt.edgehinear(1).and.ybak.gt.edgehinear(2))
+          ngframe= (xbak.lt.edgelonear(1).and.ybak.lt.edgelonear(2)).or.
+     &        (xbak.lt.edgelonear(1).and.ybak.gt.edgehinear(2)).or.
+     &        (xbak.gt.edgehinear(1).and.ybak.lt.edgelonear(2)).or.
+     &        (xbak.gt.edgehinear(1).and.ybak.gt.edgehinear(2))
+        endif
       endif
 c       
 c       if not a good frame, look in square of nine potential pieces,
@@ -1172,10 +1195,10 @@ c         not just to find the first one.  This should be run rarely so
 c         it is not a big drain
 c         
 
-        ixfrm=max(1,min(nxpieces,ixframe-1))
-        do while( ixfrm.le.min(nxpieces,max(1,ixframe+1)))
-          iyfrm=max(1,min(nypieces,iyframe-1))
-          do while( iyfrm.le.min(nypieces,max(1,iyframe+1)))
+        ixfrm=max(1,min(nxpieces,ixframe-idSearch))
+        do while( ixfrm.le.min(nxpieces,max(1,ixframe+idSearch)))
+          iyfrm=max(1,min(nypieces,iyframe-idSearch))
+          do while( iyfrm.le.min(nypieces,max(1,iyframe+idSearch)))
             ipc=mappiece(ixfrm,iyfrm)
             if(ipc.ne.0)then
 c               
@@ -1185,10 +1208,8 @@ c
               ytmp=yg-iypclist(ipc)
               if(multng)then
                 xttmp=xtmp
-                xtmp=hinv(1,1,ipc)*xttmp+hinv(1,2,ipc)*ytmp
-     &              +hinv(1,3,ipc)
-                ytmp=hinv(2,1,ipc)*xttmp+hinv(2,2,ipc)*ytmp
-     &              +hinv(2,3,ipc)
+                xtmp=hinv(1,1,ipc)*xttmp+hinv(1,2,ipc)*ytmp +hinv(1,3,ipc)
+                ytmp=hinv(2,1,ipc)*xttmp+hinv(2,2,ipc)*ytmp +hinv(2,3,ipc)
               endif
 c               
 c               distance is negative for a piece that point is actually in;
@@ -1233,10 +1254,8 @@ c         location within the piece
 c         
         if(multng)then
           xtmp=xycur(1)
-          xycur(1)=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*xycur(2)
-     &        +hinv(1,3,ipc)
-          xycur(2)=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*xycur(2)
-     &        +hinv(2,3,ipc)
+          xycur(1)=hinv(1,1,ipc)*xtmp+hinv(1,2,ipc)*xycur(2) +hinv(1,3,ipc)
+          xycur(2)=hinv(2,1,ipc)*xtmp+hinv(2,2,ipc)*xycur(2) +hinv(2,3,ipc)
         endif
         xinpiece(indinp)=xycur(1)
         yinpiece(indinp)=xycur(2)
@@ -1284,11 +1303,9 @@ c
                   ybak=yg-iypclist(newpiece)
                   if(multng)then
                     xtmp=xbak
-                    xbak=hinv(1,1,newpiece)*xtmp+
-     &                  hinv(1,2,newpiece)*ybak
+                    xbak=hinv(1,1,newpiece)*xtmp+ hinv(1,2,newpiece)*ybak
      &                  +hinv(1,3,newpiece)
-                    ybak=hinv(2,1,newpiece)*xtmp+
-     &                  hinv(2,2,newpiece)*ybak
+                    ybak=hinv(2,1,newpiece)*xtmp+ hinv(2,2,newpiece)*ybak
      &                  +hinv(2,3,newpiece)
                   endif
                   if(xbak.ge.0.and.xbak.le.nxin-1.and.
@@ -1324,6 +1341,70 @@ c
       end
 
 
+c       initNearList sets up an ordered list of dx, dy values to nearby pieces 
+c       up to the maximum distance in maxDistNear
+c
+      subroutine initNearList()
+      implicit none
+      include 'blend.inc'
+      integer*4 limx, limy, idx, idy, i, j, itmp
+      real*4 temp
+      
+      limx = min(nxpieces - 1, maxDistNear)
+      limy = min(nypieces - 1, maxDistNear)
+      numPcNear = 0
+      do idx = -limx, limx
+        do idy = -limy, limy
+          if (idx .ne. 0 .or. idy .ne. 0) then
+            numPcNear = numPcNear + 1
+            idxPcNear(numPcNear) = idx
+            idyPcNear(numPcNear) = idy
+            array(numPcNear) = idx**2 + idy**2
+          endif
+        enddo
+      enddo
+      do i = 1, numPcNear - 1
+        do j = i + 1, numPcNear
+          if (array(i) .gt. array(j)) then
+            temp = array(i)
+            array(i) = array(j)
+            array(j) = temp
+            itmp = idxPcNear(i)
+            idxPcNear(i) = idxPcNear(j)
+            idxPcNear(j) = itmp
+            itmp = idyPcNear(i)
+            idyPcNear(i) = idyPcNear(j)
+            idyPcNear(j) = itmp
+          endif
+        enddo
+      enddo
+      return
+      end
+
+
+c       findNearestPiece first modifies the frame numbers to be within the
+c       range for the montage, then checks whether this piece exists.  If not
+c       it switches to the nearest piece that does exist
+c
+      subroutine findNearestPiece(ixFrame, iyFrame)
+      implicit none
+      include 'blend.inc'
+      integer*4 ixFrame, iyFrame, i, ixnew, iynew
+      ixFrame = max(1, min(nxpieces, ixFrame))
+      iyFrame = max(1, min(nypieces, iyFrame))
+      if (mappiece(ixFrame, iyFrame) .ne. 0) return
+      do i = 1, numPcNear
+        ixnew = ixFrame + idxPcNear(i)
+        iynew = iyFrame + idyPcNear(i)
+        if (ixnew .ge. 1 .and. ixnew .le. nxpieces .and. iynew .ge. 1 .and. 
+     &      iynew .le. nypieces .and. mappiece(ixnew, iynew) .ne. 0) then
+          ixFrame = ixnew
+          iyFrame = iynew
+          return
+        endif
+      enddo
+      return
+      end
 
 c       DXYDGRINTERP takes a coordinate X1,Y1 in the lower piece of the edge
 c       at index INDEDG in the edge buffer, finds the coordinate within the
