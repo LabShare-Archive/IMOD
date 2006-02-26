@@ -2,10 +2,7 @@
 	integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
         integer maxbsiz,idimc,maxPcNear, maxDistNear
 	parameter (maxsiz=2600*2600*12)		!# of pixels
-c	  
-c	  set limvar to LESS THAN the square root of maxsiz
-c	  
-	parameter (limvar=3000)
+	parameter (limvar=3000)                 !# of variables for shift fits
 c
 c         With default padding (0.45) and aspectmax (2), idimc must be
 c         (max overlap * 1.9) * (max overlap * 3.8)
