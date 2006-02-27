@@ -1707,51 +1707,7 @@ void imodContEditSurfShow(void)
 // Go to a different surface
 void iceSurfGoto(int target)
 {
-  Icont *cont;
-  Iobj  *obj;
-  int distmin = 1000000;
-  int co, closest, dist;
-      
-  obj = imodObjectGet(surf.vw->imod);
-
-  if (!obj || !obj->contsize)
-    return;
-
-  /* if target is next or previous surface, use the AdjacentSurface call */
-  // But update the window in case contour didn't change
-  cont = imodContourGet(surf.vw->imod);
-  if (cont)
-    if (cont->surf == target + 1 || cont->surf == target - 1) {
-      inputAdjacentSurface(surf.vw, target - cont->surf);
-      imodContEditSurfShow();
-      return;
-    }
-     
-  /* find the first contour with the closest surface number */
-  for (co = 0; co < obj->contsize; co++) {
-    dist = obj->cont[co].surf - target;
-    if (dist < 0)
-      dist = -dist;
-    if (dist < distmin) {
-      distmin = dist;
-      closest = co;
-      if (!dist)
-        break;
-    }
-  }
-     
-  surf.vw->imod->cindex.contour = closest;
-
-  /* if point index is too high or low, change it. */
-  if (surf.vw->imod->cindex.point >= obj->cont[closest].psize)
-    surf.vw->imod->cindex.point = obj->cont[closest].psize - 1;
-  if (surf.vw->imod->cindex.point < 0 && obj->cont[closest].psize > 0)
-    surf.vw->imod->cindex.point = 0;
-
-  imod_setxyzmouse();
-
-  imodContEditSurfShow();
-  return;
+  inputGotoSurface(surf.vw, target);
 }
 
 // Go to next or previous contour in surface
@@ -2011,6 +1967,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.26  2005/10/06 19:51:43  mast
+Fixed undo/redo for moving surface to new object
+
 Revision 4.25  2005/09/22 17:44:36  mast
 Applied proper Z scale when assessing distance between ends for
 concatenating contours
