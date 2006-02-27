@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/06: Added a button to the Fine Grain dialog to go to the next point,
+contour, or surface with a change.
+
 2/26/06: Increased maximum box size in Beadtrack to 100 pixels and added error
 check. (In 3.7)
 
