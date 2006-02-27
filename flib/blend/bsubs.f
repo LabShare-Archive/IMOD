@@ -30,6 +30,10 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.18  2006/02/26 18:29:50  mast
+c       Converted to using double precision for solving shift equations and 
+c       only used as much of the array as necessary for this.
+c
 c       Revision 3.17  2006/02/26 06:04:40  mast
 c       Fixed countedges to go to the right piece when there are h transforms
 c
@@ -2075,7 +2079,7 @@ c
         endif
       enddo
 
-      call find_best_shifts(array, nxpieces * nypieces, dxadj, dyadj,
+      call find_best_shifts(array8, nxpieces * nypieces, dxadj, dyadj,
      &    1, izedge, h, iedge, bmean, bmax, aftmean, aftmax)
 
       gradfunc = aftmean

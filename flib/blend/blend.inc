@@ -12,6 +12,8 @@ c
         parameter (maxDistNear = 5)
         parameter (maxPcNear = (2*maxDistNear + 1) * (2*maxDistNear + 1))
 	real*4 array(maxsiz), brray(maxbsiz)
+        real*8 array8(maxsiz / 2)
+        equivalence (array,array8)
 	complex*8 xcray(idimc/2), xdray(idimc/2)
 	common /bigarr/ array,brray,xcray,xdray
 c
