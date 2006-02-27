@@ -8,6 +8,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.2  2005/09/11 19:30:05  mast
+Added some functions for trans matching
+
 Revision 1.1  2005/06/26 19:36:13  mast
 Addition to program
 
@@ -27,6 +30,7 @@ typedef struct ViewInfo ImodView;
 
 
 void ifgPtContSurfSelected(int which);
+void ifgGotoNextChange();
 void ifgLineColorChanged(int r, int g, int b);
 void ifgFillColorChanged(int r, int g, int b);
 void ifgTransChanged(int value);
@@ -58,7 +62,8 @@ void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps,
                          DrawProps *ptProps, int *stateFlags, int handleFlags);
 int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *curProps, int *nextItemIndex, int curIndex, 
-                        int *stateFlags, int *changeFlags, int handleFlags);
+                        int *stateFlags, int *changeFlags, int handleFlags,
+                        int *endFirst);
 void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans);
 int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd);
 int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
