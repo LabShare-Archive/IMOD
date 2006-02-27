@@ -1,0 +1,81 @@
+.na
+.nh
+.TH matchrotpairs 1 2.8.2 BL3DEMC
+.SH NAME
+matchrotpairs \- find transform between best matching pair of rotated views
+.SH SYNOPSIS
+matchrotpairs [options] file_a file_b output_transform
+.SH DESCRIPTION
+Matchrotpairs is used to find the transformation between two images rotated by
+about 90 degrees from each other.  This transformation is then supplied to
+Finddistort(1), which will use it to compute the absolute stretch component of
+an image distortion field.  However, the stretch cannot be computed accurately
+if one of the images is of a tilted specimen, because a tilt will shrink
+the image slightly perpendicular to the tilt axis.  Also, the specimen cannot
+be assumed to be horizontal at zero tilt.  The solution to these problems is
+to use a specimen with some features distributed at different heights, take a
+small tilt series of the specimen (e.g., at -4, -2, 0, 2, and 4 degrees),
+rotate it by 90 degrees, and take another such tilt series.
+Matchrotpairs can then be used to search for the pair of views from the two
+series that match the best, using essentially the same procedure as in
+Transferfid(1).  The difference between these images can then be
+assumed to be the result of the rotation alone, even if the specimen is tilted
+in each of these two views.
+
+The recommended procedure would be to run Finddistort(1) first to find a
+zero-stretch distortion field, and to supply this field to Matchrotpairs.
+The two best matching images will be undistorted and these undistorted images
+should then differ only by a stretch, allowing the stretch to be determined
+with the greatest accuracy.
+
+.SS Options
+.TP
+.B -za <z1,z2>
+The starting and ending sections from the first input file to include in the
+search, numbered from 1.  The default is to use all sections from the first
+file.
+.TP
+.B -zb <z1,z2>
+The starting and ending sections from the second input file to include in the
+search, numbered from 1.    The default is to use all sections from the second
+file.  Note that the two tilt series can be placed in the
+same file, that file name can be given for both input files, and the 
+.B -za
+and
+.B -zb
+options can be used to indicate where the two tilt series are in the file.
+.TP
+.B -a <value>
+Use this option to specify the direction of rotation from the first to the
+second axis.  Only the sign of this number matters, so you can enter -1 or -90
+for clockwise rotations, or 1 or 90 for counterclockwise rotations.  In the
+absence of this option, the program will consider both directions of rotation.
+.TP
+.B -m
+Run Midas(1) on the first pair of views, and use the alignment that you set
+in Midas as the initial alignment for all pairs of views that are considered.
+.TP
+.B -d <file>
+Name of file with zero-stretch image distortion field from Finddistort(1).
+.TP
+.B -b <value>
+The binning of the images, which usually needs to be specified when
+undistorting.
+.TP 
+.B -t
+Leave temporary files in /usr/tmp or its equivalent for diagnosing problems.
+.TP 
+.B -P
+Output process ID.
+.SH FILES
+The best matching pair will be undistorted if the 
+.B -b
+option is given and stacked into a file with the root name of the
+output file and the extension ".stack".
+If the output file already exists, a backup image
+of the original is created
+with the ~ extension.
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>
+.SH SEE ALSO
+finddistort(1), transferfid(1), midas(1)
