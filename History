@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/06: Changed Matchvol and Warpvol so they do not open input file and roll
+previous file to backup until after errors could occur.
+
 2/26/06: Changed Findcontrast and Densmatch to process data in chunks so they
 will work on virtually any size data.
 
