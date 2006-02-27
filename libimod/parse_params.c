@@ -609,9 +609,9 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
   FILE *out = useStdErr ? stderr : stdout;
   char indent4[] = "    ";
   char *indentStr;
-  int linePos = 13;
+  int linePos = 11;
 
-  /* Get correct number of options for Fotran fallback */
+  /* Get correct number of options for Fortran fallback */
   for (i = 0; i < numOptions; i++) {
     sname = optTable[i].shortName;
     lname = optTable[i].longName;
@@ -650,16 +650,16 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       if (outputManpage == -2) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) fprintf(out, 
-                        "       integer numOptions\n"
-                        "       parameter (numOptions = %d)\n"
-                        "       character*(40 * numOptions) options(1)\n"
-                        "       options(1) =\n     &      '", numReal);
+                        "      integer numOptions\n"
+                        "      parameter (numOptions = %d)\n"
+                        "      character*(40 * numOptions) options(1)\n"
+                        "      options(1) =\n     &    '", numReal);
         
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4;
         
-        if (linePos + optLen + (lastOpt ? 0 : 3) > 72) {
-          fprintf(out, "'//\n     &      '");
-          linePos = 13;
+        if (linePos + optLen + (lastOpt ? 0 : 3) > 79) {
+          fprintf(out, "'//\n     &    '");
+          linePos = 11;
         }
         fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
                 optTable[i].multiple ? "M:" : ":", lastOpt ? "'\n" : "@");
@@ -1606,6 +1606,10 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.16  2005/11/18 20:25:52  mast
+Fixed problem with section headers giving wrong number of options in
+Fortran fallback output
+
 Revision 3.15  2005/10/11 17:49:03  mast
 Fixed fallback output to add back M to type when multiple set
 
