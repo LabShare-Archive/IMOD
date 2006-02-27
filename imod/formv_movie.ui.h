@@ -214,9 +214,11 @@ void imodvMovieForm::manageSensitivities( int movieMont )
   longWayBox->setEnabled(!movieMont);
   reverseBox->setEnabled(!movieMont);
   montageFramesBox->setEnabled(movieMont);
-  tiffRadioButton->setEnabled(!movieMont);
+
+  // People think it is less confusing to keep Tiff enabled
+  //tiffRadioButton->setEnabled(!movieMont);
   rgbRadioButton->setEnabled(!movieMont);
-  writeGroup->setEnabled(!movieMont);
+  //writeGroup->setEnabled(!movieMont);
   writeGroup->blockSignals(true);
   writeGroup->setButton(movieMont ? 1 : mRgbTiff);
   writeGroup->blockSignals(false);
