@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.5  2005/09/13 14:34:04  mast
+    removed null from line
+
     Revision 1.4  2005/09/12 14:23:17  mast
     Added rubberband selection and fixed problem with mesh trans matching
 
@@ -34,6 +37,7 @@
 #include "finegrain.h"
 #include "imod.h"
 #include "imod_edit.h"
+#include "imod_input.h"
 #include "imod_display.h"
 #include "control.h"
 #include "undoredo.h"
@@ -60,6 +64,7 @@ typedef struct fg_data_struct {
 static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0};
 
 static int getLoadedObjCont(int addType);
+static int findNextChange(Ilist *list, int index, int surfFlag);
 static void insertAndUpdate(int type);
 static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
                              DrawProps *ptProps, int *stateFlags, 
@@ -98,7 +103,7 @@ void fineGrainUpdate()
   Imod *imod;
   Iobj *obj;
   Icont *cont;
-  bool enable;
+  bool enable, nextEnable;
   DrawProps props, defProps;
   fgd.stateFlags = 0;
   if (!fgd.dia)
@@ -113,6 +118,7 @@ void fineGrainUpdate()
     surf = cont->surf;
 
   enable = (!fgd.ptContSurf && pt >= 0) || (fgd.ptContSurf && co >= 0);
+  nextEnable = false;
   fgd.objLoaded = ob;
   fgd.contLoaded = co;
   fgd.ptLoaded = pt;
@@ -122,6 +128,7 @@ void fineGrainUpdate()
   // contour/surface properties
   if (!fgd.ptContSurf && pt >= 0) {
     fgd.stateFlags = istorePointDrawProps(obj, &fgd.contProps, &props, co, pt);
+    nextEnable = (findNextChange(cont->store, pt, 0) >= 0);
   } else {
 
     istoreDefaultDrawProps(obj, &defProps);
@@ -130,11 +137,14 @@ void fineGrainUpdate()
                               fgd.ptContSurf > 1 ? -1 : co, surf, &contState,
                               &surfState);
       fgd.stateFlags = fgd.ptContSurf == 2 ? surfState : contState;
+      nextEnable = (findNextChange(obj->store, fgd.ptContSurf == 2 ? surf : co,
+                                   fgd.ptContSurf == 2 ? GEN_STORE_SURFACE : 0)
+                    >= 0);
     }
     else
       props = defProps;
   }
-  fgd.dia->update(fgd.ptContSurf, enable, &props, fgd.stateFlags);
+  fgd.dia->update(fgd.ptContSurf, enable, &props, fgd.stateFlags, nextEnable);
 }
 
 /*
@@ -144,6 +154,47 @@ void ifgPtContSurfSelected(int which)
 {
   fgd.ptContSurf = which;
   fineGrainUpdate();
+}
+
+/*
+ * Go to next change
+ */
+void ifgGotoNextChange()
+{
+  Imod *imod = fgd.vw->imod;
+  Iobj *obj;
+  Icont *cont;
+  int index;
+
+  if (getLoadedObjCont(-1))
+    return;
+  obj  = imodObjectGet(imod);
+  cont = imodContourGet(imod);
+
+  switch (fgd.ptContSurf) {
+  case 0:
+    index = findNextChange(cont->store, fgd.ptLoaded, 0);
+    if (index >= 0)
+      imodSetIndex(imod, fgd.objLoaded, fgd.contLoaded, index);
+    break;
+  case 1:
+    index = findNextChange(obj->store, fgd.contLoaded, 0);
+    if (index >= 0) {
+      imodSetIndex(imod, fgd.objLoaded, index, fgd.ptLoaded);
+      inputRestorePointIndex(fgd.vw);
+    }
+    break;
+
+  case 2:
+    index = findNextChange(obj->store, fgd.surfLoaded, GEN_STORE_SURFACE);
+    if (index >= 0)
+      inputGotoSurface(fgd.vw, index);
+    break;
+  }
+
+  // Copied these from imod_info_cb
+  ivwControlActive(fgd.vw, 0);
+  imod_setxyzmouse();
 }
 
 /*
@@ -520,6 +571,30 @@ static void insertAndUpdate(int type)
 }
 
 /*
+ * Finds the next change in the list after the current index that matches
+ * the surface flag
+ */
+static int findNextChange(Ilist *list, int index, int surfFlag)
+{
+  Istore *stp;
+  int after;
+  if (!ilistSize(list))
+    return -1;
+  istoreLookup(list, index, &after);
+
+  // Loop on items looking for one that matches the surface flag
+  for (; after < ilistSize(list) ; after++) {
+    stp = istoreItem(list, after);
+    if (stp->flags & (GEN_STORE_NOINDEX | 3))
+      return -1;
+    if ((stp->flags & GEN_STORE_SURFACE) == surfFlag)
+      return stp->index.i;
+  }
+  return -1;
+}
+
+
+/*
  * FUNCTIONS TO HANDLE DISPLAY PROPERTIES, CALLED FROM ELSEWHERE
  */
 
@@ -677,10 +752,13 @@ void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans)
  * properties must be made (which can include a return to default).  curIndex
  * is the current mesh index, handleFlags indicates which properties to handle,
  * and changeFlags is returned with falgs for ones changed on this call.
+ * If endFirst is 1, it does a glEnd before a line width or trans change and
+ * changes it to -1.
  */
 int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *curProps, int *nextItemIndex, int curIndex, 
-                        int *stateFlags, int *changeFlags, int handleFlags)
+                        int *stateFlags, int *changeFlags, int handleFlags,
+                        int *endFirst)
 {
   int nextChange;
   int needChange = *stateFlags;
@@ -723,17 +801,31 @@ int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps,
   // Handle desired changes and returns to default.
   if ((handleFlags & HANDLE_MESH_COLOR) && 
       (*changeFlags & (CHANGED_COLOR | CHANGED_TRANS))) {
+    /* imodPrintStderr("Changing color %f %f %f %d\n", curProps->red, 
+       curProps->green, curProps->blue, curProps->trans); */
+    if (*endFirst > 0 && (*changeFlags & CHANGED_TRANS)) {
+      glEnd();
+      *endFirst = -1;
+    }
     ifgHandleColorTrans(obj, curProps->red, curProps->green, curProps->blue, 
                  curProps->trans);
   }
 
   if ((handleFlags & HANDLE_MESH_FCOLOR) && 
       (*changeFlags & (CHANGED_FCOLOR | CHANGED_TRANS))) {
+    if (*endFirst > 0 && (*changeFlags & CHANGED_TRANS)) {
+      glEnd();
+      *endFirst = -1;
+    }
     ifgHandleColorTrans(obj, curProps->fillRed, curProps->fillGreen, 
                      curProps->fillBlue, curProps->trans);
   }
 
   if ((handleFlags & HANDLE_3DWIDTH) && (*changeFlags & CHANGED_3DWIDTH)) {
+    if (*endFirst > 0) {
+      glEnd();
+      *endFirst = -1;
+    }
     glLineWidth((GLfloat)curProps->linewidth);
     glPointSize((GLfloat)curProps->linewidth);
   }
