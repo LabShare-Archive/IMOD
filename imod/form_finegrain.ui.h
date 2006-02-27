@@ -113,10 +113,12 @@ void FineGrainForm::setFontDependentWidths()
 }
 
 // Update the interface with the current properties and states
-void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int stateFlags)
+void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int stateFlags, 
+                            bool nextEnabled)
 {
     int i;
     diaSetGroup(surfContPtGroup, ptContSurf);
+    nextChangeButton->setEnabled(nextEnabled);
     for (i = 0; i < 7; i++) {
         bool changed = stateFlags & mChangeFlags[i];
         mEndButs[i]->setEnabled(!ptContSurf &&changed && enabled);
@@ -167,6 +169,11 @@ void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int 
 void FineGrainForm::ptContSurfSelected( int which )
 {
     ifgPtContSurfSelected(which);
+}
+
+void FineGrainForm::nextChangeClicked()
+{
+    ifgGotoNextChange();
 }
 
 // Open color selectors for line and fill color
@@ -407,7 +414,3 @@ void FineGrainForm::fontChange( const QFont & oldFont )
     setFontDependentWidths();
     QWidget::fontChange(oldFont);
 }
-
-
-
-

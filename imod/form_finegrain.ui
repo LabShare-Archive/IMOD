@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>225</width>
-            <height>580</height>
+            <height>612</height>
         </rect>
     </property>
     <property name="caption">
@@ -63,6 +63,58 @@
                         <string>Surface</string>
                     </property>
                 </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout11</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer5_2</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>nextChangeButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Go to Next Change</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer6_3</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
             </hbox>
         </widget>
         <widget class="QGroupBox">
@@ -1636,6 +1688,12 @@
         <receiver>FineGrainForm</receiver>
         <slot>helpClicked()</slot>
     </connection>
+    <connection>
+        <sender>nextChangeButton</sender>
+        <signal>clicked()</signal>
+        <receiver>FineGrainForm</receiver>
+        <slot>nextChangeClicked()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in declaration">istore.h</include>
@@ -1688,8 +1746,9 @@
 </variables>
 <slots>
     <slot>setFontDependentWidths()</slot>
-    <slot>update( int ptContSurf, bool enabled, DrawProps * props, int stateFlags )</slot>
+    <slot>update( int ptContSurf, bool enabled, DrawProps * props, int stateFlags, bool nextEnabled )</slot>
     <slot>ptContSurfSelected( int which )</slot>
+    <slot>nextChangeClicked()</slot>
     <slot>setLineColor()</slot>
     <slot>setFillColor()</slot>
     <slot>newLineColor( int red, int green, int blue )</slot>
