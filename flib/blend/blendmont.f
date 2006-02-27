@@ -106,12 +106,12 @@ c
       integer*4 newminypiece,ifwant,nglist,ierr,nxfrmpneg,nyfrmpneg
       real*4 dmin,dmax,outmin,outmax,definmin
       real*4 definmax,curinmin,curinmax,pixscale,pixadd
-      real*8 tsum,cursum,grandsum
+      real*8 tsum,cursum,grandsum,rnsum
       integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
       integer*4 newuse,newpcxll,newpcyll,nxfast,nyfast,iyfast,ixfast
       integer*4 indylo,indyhi,nlinesout,indxlo,indxhi,inonepiece,ioptneg
       integer*4 indx,indy,ixneg,iyneg,nxneg,nyneg,iz,ineg,listfirst,ipchi
-      integer*4 ix,iy,nsum,ilineout,ifill,nalong,ncross,ned,ixy,lenrec,j
+      integer*4 ix,iy,ilineout,ifill,nalong,ncross,ned,ixy,lenrec,j
       real*4 dminout,dmaxout,tmean,sdcrit,devcrit,gridScale
       integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant,ifdiddle
       integer*4 ixout,iyout,ifrevise,norder,iedgedir,iyx,imem,jedge,numneg
@@ -1453,7 +1453,7 @@ c
         curinmax=-1.e10
         curinmin=1.e10
         cursum=0.
-        nsum=0.
+        rnsum=0.
         do ilong=nlong,1,-1
           do ishort=nshort,1,-1
             call crossvalue(xinlong,ishort,ilong,ixfrm,iyfrm)
@@ -1467,12 +1467,12 @@ c
                   tsum=tsum+array(i)
                 enddo
                 cursum=cursum+tsum
-                nsum=nsum+nxin
+                rnsum=rnsum+nxin
               enddo
             endif
           enddo
         enddo
-        dmean=cursum/nsum
+        dmean=cursum/rnsum
         if(iffloat.eq.0)then
           curinmin=definmin
           curinmax=definmax
@@ -2518,7 +2518,7 @@ c
       call ialorg(2, xorig - delta(1) * ixOffset,
      &    yorig - delta(1) * iyOffset, zorig)
 
-      tmean=(grandsum/nzbin)/(nxbin*nybin)
+      tmean=((grandsum/nzbin)/nxbin)/nybin
       call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
       call imclose(2)
       if (undistortOnly) call exit(0)
@@ -2563,6 +2563,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.26  2006/02/27 15:20:20  mast
+c       g77 wanted find_best_shift called with an equivalenced real*8 array
+c
 c       Revision 3.25  2006/02/26 18:30:25  mast
 c       Passed maximum number of pieces to find_best_shifts
 c
