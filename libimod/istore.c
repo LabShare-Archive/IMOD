@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2006/02/27 15:25:52  mast
+Returned count from istoreCountObjectItems
+
 Revision 3.7  2005/10/13 20:05:03  mast
 Added checksum function
 
@@ -223,8 +226,8 @@ int istoreInsert(Ilist **list, Istore *store)
 /*!
  * Looks for elements with [index] in the given [list] of sorted {Istore} 
  * elements, returns [after] with the list index of the first element with an
- * index after the given value, and returns the list index of the first 
- * matching element or -1 if there is no match.
+ * index after the given value or the list size if there is none, and returns 
+ * the list index of the first matching element or -1 if there is no match.
  */
 int istoreLookup(Ilist *list, int index, int *after)
 {
