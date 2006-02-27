@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2005/10/13 20:05:03  mast
+Added checksum function
+
 Revision 3.6  2005/09/12 14:16:54  mast
 Fixed return value, added function to clear range
 
@@ -1623,6 +1626,7 @@ int istoreCountObjectItems(Iobj *obj, int type, int doCont, int doMesh,
         return count;
     }
   }
+  return count;
 }
 
 /*!
