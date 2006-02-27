@@ -22,9 +22,9 @@ c       Log at end of file
 c       
       integer maxbox,maxstor,npad,maxarr,limpcl,maxnbox,maxarea,limgaps
       integer liminside,limedge
-      parameter (maxbox=64,maxstor=10,npad=8)
+      parameter (maxbox=100,maxstor=10,npad=8)
       parameter (maxarr=(maxbox+2*npad)*(maxbox+2*npad+2))
-      parameter (limpcl=50000,maxnbox=2000,maxarea=1000,limgaps=20000)
+      parameter (limpcl=50000,maxnbox=1000,maxarea=1000,limgaps=20000)
       parameter (liminside=10000,limedge=3000)
 c       
 c       7/7/00 CER: remove the encode's; titlech is the temp space
@@ -412,8 +412,7 @@ c
      &      //' for finding tilt axis',' and for finding tilt angles: '
         read(5,*)randoaxis,randotilt
 c         
-        write(*,'(1x,a,i4,a,$)')'X and Y dimensions of box (max'
-     &      ,maxbox,'): '
+        write(*,'(1x,a,i4,a,$)')'X and Y dimensions of box (max',maxbox,'): '
         read(5,*)nxbox,nybox
 c         
         write(*,'(1x,a,$)')
@@ -452,12 +451,15 @@ c
       endif
       call PipDone()
 c       
+
       ipolar=-1
       if(ifwhite.ne.0)ipolar=1
 c       
       nxpad=niceframe(nxbox+2*npad, 2, 19)
       nypad=niceframe(nybox+2*npad, 2, 19)
       npixbox=nxbox*nybox
+      if (npixbox .gt. maxbox**2 .or. nxpad * nxpdim .gt. maxarr)
+     &    call errorexit('BOX SIZE TOO LARGE FOR ARRAYS', 0)
       nxpdim=nxpad+2
       if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setctfwsr
      &    (sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltactf)
@@ -1641,6 +1643,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.20  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.19  2005/10/11 21:34:38  mast
 c       Update fallbacks
 c       
