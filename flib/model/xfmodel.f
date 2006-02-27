@@ -240,7 +240,7 @@ c
 c         
 c         or fill index list 
 c         
-        print *,numChunks,(numInChunks(j),j=1,numChunks)
+c        print *,numChunks,(numInChunks(j),j=1,numChunks)
         indf = 1
         do j = 1, numChunks
           do i = 1, numInChunks(j)
@@ -916,6 +916,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.12  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.11  2005/10/24 18:32:33  mast
 c       Added option to use one transform per chunk of specified size
 c       
