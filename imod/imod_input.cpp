@@ -364,6 +364,7 @@ void inputKeepContourAtSameTime(ImodView *vw)
   }
 }
 
+// Goes to adjacent available surfave in the given direction
 void inputAdjacentSurface(ImodView *vw, int direction)
 {
   Iobj *obj;
@@ -424,6 +425,55 @@ void inputAdjacentSurface(ImodView *vw, int direction)
   return;
 }
 
+// Tries to go to the target surface number
+void inputGotoSurface(ImodView *vw, int target)
+{
+  Icont *cont;
+  Iobj  *obj;
+  int distmin = 1000000;
+  int co, closest, dist;
+      
+  obj = imodObjectGet(vw->imod);
+
+  if (!obj || !obj->contsize)
+    return;
+
+  /* if target is next or previous surface, use the AdjacentSurface call */
+  // But update the window in case contour didn't change
+  cont = imodContourGet(vw->imod);
+  if (cont)
+    if (cont->surf == target + 1 || cont->surf == target - 1) {
+      inputAdjacentSurface(vw, target - cont->surf);
+      imodContEditSurfShow();
+      return;
+    }
+     
+  /* find the first contour with the closest surface number */
+  for (co = 0; co < obj->contsize; co++) {
+    dist = obj->cont[co].surf - target;
+    if (dist < 0)
+      dist = -dist;
+    if (dist < distmin) {
+      distmin = dist;
+      closest = co;
+      if (!dist)
+        break;
+    }
+  }
+     
+  vw->imod->cindex.contour = closest;
+
+  /* if point index is too high or low, change it. */
+  if (vw->imod->cindex.point >= obj->cont[closest].psize)
+    vw->imod->cindex.point = obj->cont[closest].psize - 1;
+  if (vw->imod->cindex.point < 0 && obj->cont[closest].psize > 0)
+    vw->imod->cindex.point = 0;
+
+  imod_setxyzmouse();
+  imodContEditSurfShow();
+}
+
+// Changes to adjacent contour in the current surface in the given direction
 void inputAdjacentContInSurf(ImodView *vw, int direction)
 {
   Iobj *obj;
@@ -1292,6 +1342,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.24  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
+
 Revision 4.23  2005/02/24 22:36:46  mast
 Switched to ability to delete selected contours from multiple objects
 
