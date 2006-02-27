@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/06: Increased maximum box size in Beadtrack to 100 pixels and added error
+check. (In 3.7)
+
 2/26/06: Changed Matchvol and Warpvol so they do not open input file and roll
 previous file to backup until after errors could occur.
 
