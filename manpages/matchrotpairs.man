@@ -52,8 +52,10 @@ for clockwise rotations, or 1 or 90 for counterclockwise rotations.  In the
 absence of this option, the program will consider both directions of rotation.
 .TP
 .B -m
-Run Midas(1) on the first pair of views, and use the alignment that you set
+Run Midas(1) on the central pair of views, and use the alignment that you set
 in Midas as the initial alignment for all pairs of views that are considered.
+A correction for stretch will be applied in the initial alignment of the other
+pairs and may be needed in some cases.
 .TP
 .B -d <file>
 Name of file with zero-stretch image distortion field from Finddistort(1).

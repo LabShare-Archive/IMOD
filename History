@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/06: IMOD_3-8-2
+2/27/06: Finddistort and Matchrotpairs, used to find image distortion fields,
+now have man pages.
+
 2/27/06: Added a button to the Fine Grain dialog to go to the next point,
 contour, or surface with a change.
 
