@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.6  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 1.5  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
@@ -60,6 +63,7 @@ set tmpminxf    = $tmpdir/$com.minxf.$$
 set tmpxflog    = $tmpdir/$com.xflog.$$
 set tmpmidxf   = $tmpdir/$com.midxf.$$
 set tmperrlog    = $tmpdir/$com.errlog.$$
+set tmpmidrot    = $tmpdir/$com.midrot.$$
 
 #
 # set other defaults or values to indicate no argument was entered
@@ -120,6 +124,11 @@ while ($#argv > 3)
   endsw
 end
 
+if ($#argv < 3) then
+    echo "ERROR: $pn - You must enter 3 non-option arguments"
+    exit 1
+endif
+
 set imagea = $argv[1]
 set imageb = $argv[2]
 set outfile = $argv[3]
@@ -143,7 +152,7 @@ set nxyz =  `header -si $imagea | sed '/[[:cntrl:]]/s///g'`
 @ nya = $nxyz[2]
 @ nza = $nxyz[3]
 
-set nxyz =  `header -si $imageb | '/[[:cntrl:]]/s///g'`
+set nxyz =  `header -si $imageb | sed '/[[:cntrl:]]/s///g'`
 @ nxb = $nxyz[1]
 @ nyb = $nxyz[2]
 @ nzb = $nxyz[3]
@@ -260,6 +269,12 @@ while ($bsecind <= $#bseclist)
 		\echo "0 1 -1 0 0 -1" >! $tmprot90
 		set pmangle = -90
 	    endif
+            #
+            # On runs after midas, apply the midas transform to stack A on B
+            # instead of the 90 degree transform
+            #
+	    if ($midas && ($asecind != 1 || $bsecind != 1)) \cp $tmpmidrot $tmprot90
+
 	    # 
 	    # extract the rotated section from A
 	    #
@@ -279,29 +294,39 @@ while ($bsecind <= $#bseclist)
 		echo "ERROR: Matchrotpairs - Stacking rotated A on B"
 		goto clean
 	    endif
-	    if ($midas) then
-		if ($asecind == 1 && $bsecind == 1) then
-		    # 
-		    # first time, run midas
-		    # set box to 1 in case a 180 rotation is needed
-		    #
-		    echo "Starting midas - you should align translation and rotation,"
-		    echo " and save the transform to the already-defined output file"
-		    echo " "
-		    sleep 3
-		    midas -D -b 1 $tmpstack $tmpmidxf
-		    if (! -e $tmpmidxf) then
-			echo "ERROR: Matchrotpairs - Transform file not found - cannot proceed"
-			goto clean
-		    endif
-		    tail -n 1 $tmpmidxf >! $tmpxf1
-		    echo "Finding the best matched pair of views in the two series:"
-		    echo "              (Type Ctrl-C to end search)"
-
-		endif
-	    else
+	    if ($midas && $asecind == 1 && $bsecind == 1) then
+		# 
+		# first time, run midas
+		# set box to 1 in case a 180 rotation is needed
 		#
-		# Run tiltxcorr
+		echo "Starting midas - you should align as well as possible,"
+		echo " and save the transform to the already-defined output file"
+		echo " "
+		sleep 3
+		midas -D -b 1 $tmpstack $tmpmidxf
+		if (! -e $tmpmidxf) then
+		    echo "ERROR: Matchrotpairs - Transform file not found - cannot proceed"
+		    goto clean
+		endif
+                #
+                # Get the cumulative transform and save to use in place of 90
+                #
+                tail -n 1 $tmpmidxf | awk '{print $1, $2, $3, $4, 0, 0}' >! $tmpxfin
+                xfproduct $tmprot90 $tmpxfin $tmpmidrot >! $tmperrlog
+		if ($status) then
+		    awk '/ERROR/,/junk/' $tmperrlog
+		    echo "ERROR: Matchrotpairs - Running Xfproduct"
+		    goto clean
+		endif
+		tail -n 1 $tmpmidxf >! $tmpxfin
+
+		echo "Finding the best matched pair of views in the two series:"
+		echo "              (Type Ctrl-C to end search)"
+
+            else
+
+		#
+		# Run tiltxcorr if not midas on first round
 		#
 tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstack $tmpxcxf >! $tmperrlog
 		if ($status) then
@@ -309,11 +334,17 @@ tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstac
 		    echo "ERROR: Matchrotpairs - Running Tiltxcorr"
 		    goto clean
 		endif
+		tail -n 1 $tmpxcxf >! $tmpxfin
+            endif
+
+            if ($midas) then
+                \cp $tmpxfin $tmpxf1
+            else
 		#
-		# Run xfsimplex looking for rotation only
+		# Run xfsimplex looking for rotation only if not midas
 		#
 		#	    echo "first simplex"
-		tail -n 1 $tmpxcxf >! $tmpxfin
+
 xfsimplex <<EOF  >! $tmperrlog
 $tmpstack
 $tmpimga
@@ -407,6 +438,7 @@ onintr clean
 #
 # Stack the two best sections
 #
+if (-e $outfile) \mv $outfile $outfile~
 \echo "1 0 0 1 0 0" >! $outfile
 cat $tmpminxf >> $outfile
 newstack -sec $bsecbest -sec $asecbest -float 2 $distort $imbin $imageb $imagea $beststack >! $tmperrlog
