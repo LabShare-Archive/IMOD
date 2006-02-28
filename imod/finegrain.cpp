@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.6  2006/02/27 19:44:20  mast
+    Added go to next change functionality
+
     Revision 1.5  2005/09/13 14:34:04  mast
     removed null from line
 
@@ -752,13 +755,10 @@ void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans)
  * properties must be made (which can include a return to default).  curIndex
  * is the current mesh index, handleFlags indicates which properties to handle,
  * and changeFlags is returned with falgs for ones changed on this call.
- * If endFirst is 1, it does a glEnd before a line width or trans change and
- * changes it to -1.
  */
 int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *curProps, int *nextItemIndex, int curIndex, 
-                        int *stateFlags, int *changeFlags, int handleFlags,
-                        int *endFirst)
+                        int *stateFlags, int *changeFlags, int handleFlags)
 {
   int nextChange;
   int needChange = *stateFlags;
@@ -801,31 +801,17 @@ int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps,
   // Handle desired changes and returns to default.
   if ((handleFlags & HANDLE_MESH_COLOR) && 
       (*changeFlags & (CHANGED_COLOR | CHANGED_TRANS))) {
-    /* imodPrintStderr("Changing color %f %f %f %d\n", curProps->red, 
-       curProps->green, curProps->blue, curProps->trans); */
-    if (*endFirst > 0 && (*changeFlags & CHANGED_TRANS)) {
-      glEnd();
-      *endFirst = -1;
-    }
     ifgHandleColorTrans(obj, curProps->red, curProps->green, curProps->blue, 
                  curProps->trans);
   }
 
   if ((handleFlags & HANDLE_MESH_FCOLOR) && 
       (*changeFlags & (CHANGED_FCOLOR | CHANGED_TRANS))) {
-    if (*endFirst > 0 && (*changeFlags & CHANGED_TRANS)) {
-      glEnd();
-      *endFirst = -1;
-    }
     ifgHandleColorTrans(obj, curProps->fillRed, curProps->fillGreen, 
                      curProps->fillBlue, curProps->trans);
   }
 
   if ((handleFlags & HANDLE_3DWIDTH) && (*changeFlags & CHANGED_3DWIDTH)) {
-    if (*endFirst > 0) {
-      glEnd();
-      *endFirst = -1;
-    }
     glLineWidth((GLfloat)curProps->linewidth);
     glPointSize((GLfloat)curProps->linewidth);
   }

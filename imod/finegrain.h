@@ -8,6 +8,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2006/02/27 19:45:24  mast
+Added next change button
+
 Revision 1.2  2005/09/11 19:30:05  mast
 Added some functions for trans matching
 
@@ -62,8 +65,7 @@ void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps,
                          DrawProps *ptProps, int *stateFlags, int handleFlags);
 int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *curProps, int *nextItemIndex, int curIndex, 
-                        int *stateFlags, int *changeFlags, int handleFlags,
-                        int *endFirst);
+                        int *stateFlags, int *changeFlags, int handleFlags);
 void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans);
 int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd);
 int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
