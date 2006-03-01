@@ -205,9 +205,10 @@ man : configure ALWAYS
 	(cd autodoc  ; $(MAKE) install)
 
 #
-# Make sourcedoc for libdocs
+# Make sourcedoc for libdocs.  If the target is the same as the name of an 
+# existing directory it seems to need the ALWAYS
 #
-sourcedoc : configure
+sourcedoc : configure ALWAYS
 	cd sourcedoc ; $(MAKE)
 
 #
@@ -425,6 +426,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.56  2006/02/11 14:56:44  mast
+#  Fixed imod/README in make src, and -depth args
+#
 #  Revision 3.55  2006/01/03 19:57:41  mast
 #  Added uitestinstall
 #

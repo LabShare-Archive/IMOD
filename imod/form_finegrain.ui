@@ -97,6 +97,9 @@
                     <property name="text">
                         <string>Go to Next Change</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Move current point to next point, contour, or surface with a change</string>
+                    </property>
                 </widget>
                 <spacer>
                     <property name="name">
