@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/1/06: In Bead Fixer, made "Move All in Local Area" stop displaying images
+and listing residuals, and fixed limits on performance with huge numbers of
+residuals here and in the undo module.
+
 2/27/06: IMOD_3-8-2 (eTomo unstable)
 2/27/06: Finddistort and Matchrotpairs, used to find image distortion fields,
 now have man pages.
