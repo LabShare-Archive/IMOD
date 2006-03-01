@@ -303,7 +303,7 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent,
 			 const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
-  int deskWidth, deskHeight, newWidth, newHeight;
+  int deskWidth, deskHeight, newWidth, newHeight, xleft, ytop;
   int commandWidth, commandHeight, id;
 
   // Create file menu
@@ -387,30 +387,20 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent,
   // Set height from max of command area and image height, plus difference
   // between command and window height, which is menu area
   commandHeight = comSize.height();
-  newHeight = (winSize.height() - commandHeight) +
-    commandHeight > VW->ysize ? commandHeight : VW->ysize;
-  if (Midas_debug)
-    printf ("BUG: image %d %d  window %d %d   controls %d %d  resize %d %d\n", 
-	    VW->xsize, VW->ysize, winSize.width(), winSize.height(),
-	    commandWidth, commandHeight, newWidth, newHeight);
-  // Looks like a compiler bug on g++, so try again
+  newHeight = (winSize.height() - commandHeight) + 
+    B3DMAX(commandHeight, VW->ysize);
 
-  newHeight = (winSize.height() - commandHeight);
-  newHeight +=  commandHeight > VW->ysize ? commandHeight : VW->ysize;
+  // But limit by size of display, allow extra on top for title bar, make
+  // sure it is on screen for Windows
+  diaLimitWindowSize(newWidth, newHeight);
 
-  // But limit by size of display, allow extra on top for title bar
-  deskWidth = QApplication::desktop()->width() - 40;
-  deskHeight = QApplication::desktop()->height() - 60;
-  if (newWidth > deskWidth)
-    newWidth = deskWidth;
-  if (newHeight > deskHeight)
-    newHeight = deskHeight;
+  QRect pos = geometry();
+  xleft = pos.x();
+  ytop = pos.y();
+  diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
 
-  if (Midas_debug)
-    printf ("image %d %d  window %d %d   controls %d %d  resize %d %d\n", 
-	    VW->xsize, VW->ysize, winSize.width(), winSize.height(),
-	    commandWidth, commandHeight, newWidth, newHeight);
   resize(newWidth, newHeight);
+  move(xleft, ytop);
 
   // This should be a good thing, because widgets were all initialized with
   // exteme numbers
@@ -817,6 +807,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.15  2005/03/10 21:04:14  mast
+    Added -q option for use from etomo
+
     Revision 3.14  2004/11/05 18:53:22  mast
     Include local files with quotes, not brackets
 
