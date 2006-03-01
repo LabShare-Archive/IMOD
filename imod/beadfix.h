@@ -150,6 +150,8 @@ class BeadFixer : public DialogFrame
   int    mAreaMax;                      /* Size allocated */
   int    mBell;                         /* 1 to ring bell, -1 to suppress */ 
   bool   mSeedMode;                     /* Seeding mode for inserting points */
+  bool   mMovingAll;                  /* Flag for moving all points in local */
+  int    mNumAllMoved;                  /* Number moved in local area */
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
@@ -175,6 +177,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.13  2006/02/13 05:14:50  mast
+Added autocentering and seed mode
+
 Revision 1.12  2005/04/12 18:58:00  mast
 Added move all in local area
 
