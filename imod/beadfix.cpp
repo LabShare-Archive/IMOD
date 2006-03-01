@@ -505,6 +505,8 @@ void BeadFixer::nextRes()
   do {
     mCurrentRes++;
     if (mCurrentRes >= mNumResid) {
+      if (mMovingAll)
+        wprint("Moved %d points\n", mNumAllMoved);
       wprint("\aNo more residuals!\n");
       nextResBut->setEnabled(false);
       nextLocalBut->setEnabled(false);
@@ -553,6 +555,9 @@ void BeadFixer::nextRes()
 
   // Adjust the area and issue message if changed; set bell unless suppressed
   if (rpt->area != mCurArea) {
+    if (mMovingAll)
+      wprint("Moved %d points\n", mNumAllMoved);
+    mMovingAll = false;
     wprint("Entering local area %d  %d,  %d residuals\n",
            mAreaList[rpt->area].areaX,
            mAreaList[rpt->area].areaY, mAreaList[rpt->area].numPts);
@@ -620,7 +625,7 @@ void BeadFixer::nextRes()
       if (bell > 0)
         wprint("\aResidual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
                resval, xr, yr, rpt->sd);
-      else
+      else if (!mMovingAll)
         wprint("Residual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n",
                resval, xr, yr, rpt->sd);
 
@@ -654,7 +659,8 @@ void BeadFixer::nextRes()
         imodPointAppend(con, &tpt);
         imodObjectAddContour(ob, con);
       }
-      ivwRedraw(plug->view);
+      if (!mMovingAll)
+        ivwRedraw(plug->view);
 
       backUpBut->setEnabled(mCurrentRes > 0);    
       return;
@@ -791,7 +797,9 @@ void BeadFixer::movePoint()
   mDidmove = 1;
   movePointBut->setEnabled(false);
   undoMoveBut->setEnabled(true);
-  ivwRedraw(plug->view);
+  
+  if (!mMovingAll)
+    ivwRedraw(plug->view);
 }
 
 void BeadFixer::undoMove()
@@ -855,12 +863,18 @@ void BeadFixer::moveAll()
   int startArea = mCurArea;
   if (mCurArea <= 0 || mCurrentRes >= mNumResid)
     return;
+  mMovingAll = true;
+  mNumAllMoved = 0;
   while (mCurArea == startArea && mCurrentRes < mNumResid) {
-    if (mIndlook >= 0 && !mCurmoved)
+    if (mIndlook >= 0 && !mCurmoved) {
       movePoint();
+      mNumAllMoved++;
+    }
     mBell = -1;
     nextRes();
   }
+  mMovingAll = false;
+  ivwRedraw(thisPlug.view);
 }
 
 int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
@@ -1282,6 +1296,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   mCurrentRes = -1;
   mBell = 0;
   mSeedMode = false;
+  mMovingAll = false;
   mRoundedStyle = ImodPrefs->getRoundedStyle();
 
   mLayout->setSpacing(4);
@@ -1621,6 +1636,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.27  2006/02/13 05:16:06  mast
+    Added mouse processing, autocentering and seed mode
+
     Revision 1.26  2005/06/13 16:39:52  mast
     Clarified message when points are missing before current point.
 
