@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 4.6  2005/10/24 18:35:53  mast
+    Added some info on store size to debug output
+
     Revision 4.5  2005/06/29 05:37:52  mast
     Changes for fine grain properties
 
@@ -105,6 +108,7 @@ UndoRedo::UndoRedo(ImodView *vi)
   mUnitList = ilistNew(sizeof(UndoUnit), 0);
   mItemPool = ilistNew(sizeof(BackupItem), 0);
   ilistQuantum(mItemPool, 32);
+  ilistQuantum(mUnitList, 32);
   mID = 0;
   mRejectChanges = false;
   mUnitOpen = false;
@@ -1180,8 +1184,11 @@ void UndoRedo::trimLists(int numKeep)
 
     // If the sum is too high and we are past the number to keep, or if
     // there are too many units, remove units from start to here and quit
+    // or remove 1/10 of the units if over the maximum count
     nUnits++;
     if ((nUnits > numKeep && sum > mMaxBytes) || nUnits > mMaxUnits) {
+      if (nUnits > mMaxUnits)
+        i += mMaxUnits / 10;
       removeUnits(0, i);
       break;
     }
