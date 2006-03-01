@@ -10,6 +10,10 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.7  2006/02/28 05:46:22  mast
+#  Fixed minor problems and had it apply midas transform for initial
+#  rotation in following pairs, then use tiltxcorr for them
+#
 #  Revision 1.6  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
@@ -33,6 +37,7 @@
 set sigma1 = 0.03
 set sigma2 = 0.05
 set radius2 = 0.25
+set bilinear = 1
 
 # Number of wins more in one rotation direction than the other that will
 # make it abandon the other direction
@@ -302,7 +307,7 @@ while ($bsecind <= $#bseclist)
 		echo "Starting midas - you should align as well as possible,"
 		echo " and save the transform to the already-defined output file"
 		echo " "
-		sleep 3
+		sleep 1
 		midas -D -b 1 $tmpstack $tmpmidxf
 		if (! -e $tmpmidxf) then
 		    echo "ERROR: Matchrotpairs - Transform file not found - cannot proceed"
@@ -379,7 +384,7 @@ $tmpxf1
 /
 $reduce
 0
-0
+$bilinear
 EOF
 	    if ($status) then
 		awk '/ERROR/,/junk/' $tmpxflog
@@ -398,7 +403,7 @@ EOF
 	    if ($diff < $diffmin) then
 		#
 		# If new minimum, save sections and real transform
-		echo '*'
+		echo ' *'
 		@ diffmin = $diff
 		@ asecbest = $asec
 		@ bsecbest = $bsec
@@ -434,6 +439,10 @@ end
 
 searchdone:
 onintr clean
+
+@ aview = $asecbest + 1
+@ bview = $bsecbest + 1
+echo  "Views in best pair: A $aview  B $bview"
 
 #
 # Stack the two best sections
