@@ -1,37 +1,22 @@
-/*  IMOD VERSION 2.7.9
- *
+/*  
  *  dia_qutils.cpp       Utility calls for using Qt classes
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional         *
- *   Electron Microscopy of Cells ("BL3DEMC") and the Regents of the         *
- *   University of Colorado.                                                 *
- *                                                                           *
- *   BL3DEMC reserves the exclusive rights of preparing derivative works,    *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional EM of Cells.               *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
 
 $Revision$
 $Log$
+Revision 1.7  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 1.6  2004/11/21 05:53:03  mast
 Added routine to set text with blocked signals
 
@@ -191,6 +176,64 @@ int diaSetButtonWidth(QPushButton *button, bool rounded,
 }
 
 
+// Some routines for controlling window size and keeping the window on the
+// screen.  The BORDERS are the total borders outside the window 
+// excluding frame.  The TITLE_SPACE is the amount to allow for title bar
+#define X_BORDERS 24
+#define Y_BORDERS 60
+#define TITLE_SPACE 28
+
+// Get the maximum window size = desktop minus borders
+void diaMaximumWindowSize(int &width, int &height)
+{
+  width = QApplication::desktop()->width() - X_BORDERS;
+  height = QApplication::desktop()->height() - Y_BORDERS;
+}
+
+// Limit the window size to maximum size
+void diaLimitWindowSize(int &width, int &height)
+{
+  int limh, limw;
+  diaMaximumWindowSize(limw, limh);
+  if (width > limw)
+    width = limw;
+  if (height > limh)
+    height = limh;
+}
+
+// Limit window position in system-dependent way
+void diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
+{
+  int limw = QApplication::desktop()->width();
+  int limh = QApplication::desktop()->height();
+
+  // X11: spread margin equally top and bottom
+  // Windows: put extra at bottom for task bar
+  // Mac: put extra at top for menu
+  int mintop = (Y_BORDERS - TITLE_SPACE) / 2;
+#ifdef _WIN32
+  mintop = 0;
+#endif
+#ifdef Q_OS_MACX
+  mintop = Y_BORDERS - TITLE_SPACE - 10;
+#endif
+#ifdef SGI_GEOMETRY_HACK
+  mintop = (Y_BORDERS + TITLE_SPACE) / 2;
+#endif
+
+  if (newdx < X_BORDERS / 2)
+    newdx = X_BORDERS / 2;
+  if (newdx + neww > limw - X_BORDERS / 2)
+    newdx = limw - X_BORDERS / 2 - neww;
+
+  if (newdy < mintop)
+    newdy = mintop;
+  if (newdy + newh > limh - (Y_BORDERS - mintop))
+    newdy = limh - (Y_BORDERS - mintop) - newh;
+}
+
+
+
 // Set a title into Dia_title
 void diaSetTitle(char *title)
 {
@@ -211,7 +254,7 @@ int dia_puts(char *message)
   return 0;
 }
 
-// An application-model box with an error string
+// An application-modal box with an error string
 int dia_err(char *message)
 {
   QString str = message;

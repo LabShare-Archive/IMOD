@@ -38,14 +38,12 @@ Log at end of file
 #include "../../imod/imod.h"
 #include "../../imod/imodplug.h"
 #include "../../imod/control.h"
-#include "../../imod/xzap.h"
 #include "../../imod/preferences.h"
 #else
 #include "imod.h"
 #include "control.h"
 #endif
 #include "linegui.h"
-#include "xzap.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -295,7 +293,7 @@ void imodPlugExecute(ImodView *inImodView)
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
 
   if (!first || numVals > 12) {
-    zapLimitWindowPos(plug->window->width(), plug->window->height(), 
+    diaLimitWindowPos(plug->window->width(), plug->window->height(), 
                       plug->left, plug->top);
     plug->window->move(plug->left, plug->top);
   }
@@ -795,6 +793,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 1.12  2005/06/29 05:38:40  mast
+Changes to manipulate fine grain properties and do undos correctly
+
 Revision 1.11  2005/05/25 15:45:03  mast
 Fixed test for whether contour is on adjacent section for copy
 

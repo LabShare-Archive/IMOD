@@ -33,7 +33,6 @@ Log at end of file
 #include "imodv_menu.h"
 #include "imod.h"
 #include "imod_info_cb.h"
-#include "xzap.h"
 #include "imod_object_edit.h"
 #include "imod_display.h"
 #include "imodv_gfx.h"
@@ -325,8 +324,8 @@ static int openWindow(ImodvApp *a)
     }
 
     // Fix positions same as for zap window and set and draw
-    zapLimitWindowSize(newWidth, newHeight);
-    zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
+    diaLimitWindowSize(newWidth, newHeight);
+    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
 
     if (Imod_debug)
       imodPrintStderr("Sizes: imodv %d %d, GL %d %d: "
@@ -672,6 +671,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.27  2005/10/16 20:27:07  mast
+INitialize scaling of all views in standalone mode too
+
 Revision 4.26  2005/10/14 22:01:56  mast
 Allow imod to disable access to model while it is being replaced
 

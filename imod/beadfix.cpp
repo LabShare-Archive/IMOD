@@ -50,7 +50,6 @@
 #include "pegged.xpm"
 #include "unpegged.xpm"
 #include "imod_input.h"
-#include "xzap.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -239,7 +238,7 @@ void imodPlugExecute(ImodView *inImodView)
   } else if (nvals >= 2) {
     plug->left = (int)savedValues[0];
     plug->top = (int)savedValues[1];
-    zapLimitWindowPos(plug->window->width(), plug->window->height(), 
+    diaLimitWindowPos(plug->window->width(), plug->window->height(), 
                       plug->left, plug->top);
     plug->window->move(plug->left, plug->top);
   }
@@ -1636,6 +1635,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.28  2006/03/01 18:20:51  mast
+    Made fixing all in local area stop displaying image and listing residuals
+
     Revision 1.27  2006/02/13 05:16:06  mast
     Added mouse processing, autocentering and seed mode
 

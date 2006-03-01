@@ -635,7 +635,7 @@ int imod_zap_open(struct ViewInfo *vi)
                             (void *)zap);
   imodDialogManager.add((QWidget *)zap->qtWindow, IMOD_IMAGE, ZAP_WINDOW_TYPE);
 
-  zapMaximumWindowSize(maxWinx, maxWiny);
+  diaMaximumWindowSize(maxWinx, maxWiny);
 
   oldGeom = ImodPrefs->getZapGeometry();
 
@@ -671,7 +671,7 @@ int imod_zap_open(struct ViewInfo *vi)
     }
 
     needWiny = (int)(zap->zoom * vi->ysize) + toolHeight;
-    zapLimitWindowSize(needWinx, needWiny);
+    diaLimitWindowSize(needWinx, needWiny);
 
     // Make the width big enough for the toolbar, and add the difference
     // between the window and image widget heights to get height
@@ -682,7 +682,7 @@ int imod_zap_open(struct ViewInfo *vi)
     xleft = pos.x();
     ytop = pos.y();
 
-    zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
+    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
     if (Imod_debug)
       imodPrintStderr("Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
               "resize %d %d\n", zap->qtWindow->width(), 
@@ -697,8 +697,8 @@ int imod_zap_open(struct ViewInfo *vi)
     ytop = oldGeom.y();
     newWidth = oldGeom.width();
     newHeight = oldGeom.height();
-    zapLimitWindowSize(newWidth, newHeight);
-    zapLimitWindowPos(newWidth, newHeight, xleft, ytop);
+    diaLimitWindowSize(newWidth, newHeight);
+    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
 
     // Adjust toolheight then adjust zoom either way to fit window
     needWinx = newWidth;
@@ -2688,61 +2688,6 @@ void zapPrintInfo(ZapStruct *zap)
   wprint("Image: %d x %d\n", imx, imy);
 }
 
-// Some routines for controlling window size and keeping the window on the
-// screen.  The BORDERS are the total borders outside the window 
-// excluding frame.  The TITLE_SPACE is the amount to allow for title bar
-#define X_BORDERS 24
-#define Y_BORDERS 60
-#define TITLE_SPACE 28
-
-// Get the maximum window size = desktop minus borders
-void zapMaximumWindowSize(int &width, int &height)
-{
-  width = QApplication::desktop()->width() - X_BORDERS;
-  height = QApplication::desktop()->height() - Y_BORDERS;
-}
-
-// Limit the window size to maximum size
-void zapLimitWindowSize(int &width, int &height)
-{
-  int limh, limw;
-  zapMaximumWindowSize(limw, limh);
-  if (width > limw)
-    width = limw;
-  if (height > limh)
-    height = limh;
-}
-
-// Limit window position in system-dependent way
-void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
-{
-  int limw = QApplication::desktop()->width();
-  int limh = QApplication::desktop()->height();
-
-  // X11: spread margin equally top and bottom
-  // Windows: put extra at bottom for task bar
-  // Mac: put extra at top for menu
-  int mintop = (Y_BORDERS - TITLE_SPACE) / 2;
-#ifdef _WIN32
-  mintop = 0;
-#endif
-#ifdef Q_OS_MACX
-  mintop = Y_BORDERS - TITLE_SPACE - 10;
-#endif
-#ifdef SGI_GEOMETRY_HACK
-  mintop = (Y_BORDERS + TITLE_SPACE) / 2;
-#endif
-
-  if (newdx < X_BORDERS / 2)
-    newdx = X_BORDERS / 2;
-  if (newdx + neww > limw - X_BORDERS / 2)
-    newdx = limw - X_BORDERS / 2 - neww;
-
-  if (newdy < mintop)
-    newdy = mintop;
-  if (newdy + newh > limh - (Y_BORDERS - mintop))
-    newdy = limh - (Y_BORDERS - mintop) - newh;
-}
 
 /* Resize window to fit either whole image or part in rubber band */
 static void zapResizeToFit(ZapStruct *zap)
@@ -2777,10 +2722,10 @@ static void zapResizeToFit(ZapStruct *zap)
     newh = (int)(zap->zoom * zap->vi->ysize + height - zap->winy);
   }
 
-  zapLimitWindowSize(neww, newh);
+  diaLimitWindowSize(neww, newh);
   newdx = dx + width / 2 - neww / 2;
   newdy = dy + height / 2 - newh / 2;
-  zapLimitWindowPos(neww, newh, newdx, newdy);
+  diaLimitWindowPos(neww, newh, newdx, newdy);
 
   if (imodDebug('z'))
     imodPrintStderr("configuring widget...");
@@ -3769,6 +3714,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.77  2006/02/13 05:13:04  mast
+Call plugins with mouse events
+
 Revision 4.76  2006/01/26 18:45:04  mast
 Set up montage snapshot to defer swapping and read from back buffer
 

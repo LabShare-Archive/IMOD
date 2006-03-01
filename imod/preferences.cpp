@@ -38,11 +38,11 @@ Log at end of file
 #include <qimage.h>
 #include <qwidgetlist.h>
 #include <qobjectlist.h>
+#include "dia_qtutils.h"
 #include "form_appearance.h"
 #include "form_behavior.h"
 #include "form_mouse.h"
 #include "imod.h"
-#include "xzap.h"
 #include "imod_info.h"
 #include "imod_display.h"
 #include "imod_moviecon.h"
@@ -887,7 +887,7 @@ void ImodPreferences::setInfoGeometry()
   // And we want to keep it on the screen in case last screen was bigger
   xx = mGeomInfoWin[indSave].x();
   yy = mGeomInfoWin[indSave].y();
-  zapLimitWindowPos(ImodInfoWin->width(), ImodInfoWin->height(), xx, yy);
+  diaLimitWindowPos(ImodInfoWin->width(), ImodInfoWin->height(), xx, yy);
   ImodInfoWin->move(xx, yy);
 }
 
@@ -975,6 +975,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.19  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 1.18  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

@@ -1,8 +1,8 @@
 /*   dia_qutils.h  -  declarations for dia_qutils.cpp
  *
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.  See implementation file for full copyright notice.
+ *   Colorado.  See dist/COPYRIGHT file for full copyright notice.
  */                                                                           
 
 /*  $Author$
@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2004/11/21 05:53:11  mast
+Added routine to set text with blocked signals
+
 Revision 3.4  2004/11/20 03:29:35  mast
 Make calls take Q or H box layout, add call to set spin box all at once
 
@@ -79,6 +82,9 @@ int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor,
                       const QString &text);
 int DLL_IM_EX diaSetButtonWidth(QPushButton *button, bool rounded,
                                 float factor, const QString &text);
+void DLL_IM_EX diaMaximumWindowSize(int &width, int &height);
+void DLL_IM_EX diaLimitWindowSize(int &width, int &height);
+void DLL_IM_EX diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
 void DLL_IM_EX diaSetTitle(char *title);
 
 // Get a single existing file name with a set of filters

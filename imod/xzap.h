@@ -115,9 +115,6 @@ void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
 void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                          int *imPtSize);
 int  imod_zap_open(struct ViewInfo *vi);
-void zapMaximumWindowSize(int &width, int &height);
-void zapLimitWindowSize(int &width, int &height);
-void zapLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
 void zapReportRubberband();
@@ -125,6 +122,9 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 
 /*
 $Log$
+Revision 3.17  2005/09/12 14:23:43  mast
+Added function to get rubber band coordinates
+
 Revision 3.16  2005/03/08 02:28:46  mast
 Added flag to set upon resize so that new subarea gets recorded
 
