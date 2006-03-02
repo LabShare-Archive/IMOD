@@ -1,0 +1,42 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input file with output from matchrotpairs
+tooltip = 
+manpage = Input file with output from matchrotpairs.  Two kinds of input files
+will be recognized: the complete output from Matchrotpairs, or a file with
+only the numeric output extracted, namely the views in A and B, the rotation
+angle, and the difference.
+
+[Field = AViewsStartAndEnd]
+short = aviews
+type = IP
+usage = Starting and ending views from A to include in fit (default is all)
+tooltip = 
+manpage = 
+
+[Field = BViewsStartAndEnd]
+short = bviews
+type = IP
+usage = Starting and ending views from B to include in fit (default is all)
+tooltip = 
+manpage = 
+
+[Field = OrderOfPolynomial]
+short = order
+type = I
+usage = Order of polynomial to fit to data (default is 2, or 3 if > 25 points)
+tooltip = 
+manpage = Order of polynomial to fit to the data.  A third order polynomial
+involves a fit to 9 terms and a second order polynomial involves a fit to 5
+terms.  The default is 2, or 3 if there are more than 25 points.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

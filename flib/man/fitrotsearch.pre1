@@ -1,0 +1,33 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+FITROTSEARCH(1)	     				               FITROTSEARCH(1)
+
+NNAAMMEE
+  fitrotsearch - determine minimum in fit to output from matchrotpairs
+
+SSYYNNOOPPSSIISS
+  fitrotsearch [options] input_file
+
+DDEESSCCRRIIPPTTIIOONN
+  Fitrotsearch fits a 3-dimensional polynomial to the difference measures
+  output by Matchrotpairs(1) and reports the minimum of the fit.  When a
+  relatively thin sample is used to obtain the pairs of images being matched,
+  the pair that gives the minimum may not be the best matching pair, because
+  of variability in the difference measure.  Fitting to the data and
+  measuring the minimum from the fit will give a more accurate assessment of
+  the best matching pair.  If a different best pair is determined from this
+  fit, then you should rerun Matchrotpairs with just this pair to get the
+  appropriate transformation between rotated images.
+
+  Fitrotsearch uses the PIP package for input exclusively (see the manual
+  page for pip(1)).  The following options can be specified either as command
+  line arguments (with the -) or one per line in a command file or parameter
+  file (without the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+HHIISSTTOORRYY
+  Written by David Mastronarde, 3/2/06
