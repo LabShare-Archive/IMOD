@@ -1,5 +1,10 @@
-
-
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
 
 c	  SMOOTHGRID smooths the 2 dimension arrays in DXGRID, DYGRID and
 c	  DDENGRID, based on values in D[XY]GRID and the array SDGRID.  IXGDIM,
@@ -245,31 +250,5 @@ c
 	  enddo
 	enddo
 c
-	return
-	end
-
-
-
-c	  POLYTERM computes polynomial terms from ix and iy or order norder,
-c	  puts in array vect.  The first set of terms is ix and iy.  Each next
-c	  set is the previous set multipled by x, plus the last term of the
-c	  previous set multiplied by y
-c
-	subroutine polyterm(ix,iy,norder,vect)
-	real*4 vect(*)
-	x=ix
-	y=iy
-	vect(1)=x
-	vect(2)=y
-	istr=1
-	iend=2
-	do iorder=2,norder
-	  do i=istr,iend
-	    vect(i+iorder)=vect(i)*x
-	  enddo
-	  istr=istr+iorder
-	  vect(iend+iorder+1)=vect(iend)*y
-	  iend=iend+iorder+1
-	enddo
 	return
 	end

@@ -1153,35 +1153,6 @@ c
       end
 
 
-
-c       POLYTERM computes polynomial terms from ix and iy of order norder,
-c       puts in array vect.  The first set of terms is ix and iy.  Each next
-c       set is the previous set multipled by x, plus the last term of the
-c       previous set multiplied by y
-c       
-      subroutine polyterm(ix,iy,norder,vect)
-      implicit none
-      integer*4 ix,iy,norder
-      real*4 vect(*)
-      real*4 x,y
-      integer*4 istr,iend,iorder,i
-      x=ix
-      y=iy
-      vect(1)=x
-      vect(2)=y
-      istr=1
-      iend=2
-      do iorder=2,norder
-        do i=istr,iend
-          vect(i+iorder)=vect(i)*x
-        enddo
-        istr=istr+iorder
-        vect(iend+iorder+1)=vect(iend)*y
-        iend=iend+iorder+1
-      enddo
-      return
-      end
-
       logical function typeonlist(itype,ityplist,ntyplist)
       implicit none
       integer*4 ityplist(*),itype,ntyplist,i
@@ -1203,6 +1174,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.20  2006/02/01 00:42:56  mast
+c       Made it handle adjacent lines properly
+c
 c       Revision 3.19  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
