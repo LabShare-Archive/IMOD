@@ -20,6 +20,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.4  2005/05/31 00:56:23  mast
 c       Switched to loading one object at a time
 c       
@@ -411,7 +414,7 @@ c
                   if(norder.ge.0)then
                     nindep=norder*(norder+3)/2  !# of independent variables
                     do i=1,nfit
-                      call polyterm(xt(i),zt(i),norder,xr(1,i))
+                      call polytermReal(xt(i),zt(i),norder,xr(1,i))
                       xr(nindep+1,i)=yt(i)
                     enddo
                     call multr(xr,nindep+1,nfit,sx,ss,ssd,d,r,xm,sd,b,b1,
@@ -574,33 +577,6 @@ c
       call write_wmod(filout)
       print *,'DONE - Be sure to remesh the smoothed objects with imodmesh'
       call exit(0)
-      end
-
-
-
-
-c       POLYTERM computes polynomial terms from x and y of order norder,
-c       puts in array vect.  The first set of terms is x and y.  Each next
-c       set is the previous set multipled by x, plus the last term of the
-c       previous set multiplied by y
-c       
-      subroutine polyterm(x,y,norder,vect)
-      implicit none
-      real*4 vect(*), x, y
-      integer*4 norder, istr,iend, iorder, i
-      vect(1)=x
-      vect(2)=y
-      istr=1
-      iend=2
-      do iorder=2,norder
-        do i=istr,iend
-          vect(i+iorder)=vect(i)*x
-        enddo
-        istr=istr+iorder
-        vect(iend+iorder+1)=vect(iend)*y
-        iend=iend+iorder+1
-      enddo
-      return
       end
 
 c       
