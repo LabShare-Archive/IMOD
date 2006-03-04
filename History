@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/2/06: Added Fitrotsearch for fitting a surface to noisy output from 
+Matchrotpairs and finding the best pair reliably.
+
 3/1/06: In Bead Fixer, made "Move All in Local Area" stop displaying images
 and listing residuals, and fixed limits on performance with huge numbers of
 residuals here and in the undo module.

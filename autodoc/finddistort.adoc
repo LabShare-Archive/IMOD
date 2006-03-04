@@ -109,6 +109,19 @@ tooltip =
 manpage = Output a patch file to convert to a model with patch2imod.  The
 patch file will be named rootname.patch.
 
+[Field = CoverageImage]
+short = coverage
+type = FN
+usage = Name of output file for image of data coverage for vectors
+tooltip = 
+manpage = Name of file in which to place an image representing the amount of
+data available for solving each vector.  This is image is based on the sum of
+the coefficients for each distortion vectors, normalized so that the mean sum
+will equal the ratio of total measurements to unknowns (rows to columns in the
+data matrix).  To get a true representation of the amount of nonredundant
+coverage of each field position, use -data to set the data spacing the same as
+the field spacing.
+
 [Field = RedirectOutput]
 short = redirect
 type = CH
