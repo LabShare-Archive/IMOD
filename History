@@ -30,7 +30,7 @@ the requested item, and made Copytomocoms pass error on. (In 3.7)
 2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when 
 patch.out is missing. (In 3.7)
 
-2/20/06: Fixed a bug in Combine where Setup values got out of sync. (In 3.7)
+2/20/06: Fixed archiving of original stack to work under Windows. (In 3.7)
 
 2/15/06: Revised scripts to use new header and strip control characters from
 output of header and other programs, since new sed in cygwin does not take
