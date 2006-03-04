@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.3  2006/02/06 21:31:21  mast
+#  Added several programs
+#
 #  Revision 1.2  2005/05/12 05:07:40  mast
 #  Use strip variable
 #
@@ -19,7 +22,8 @@ include ../configure
 O        = $(OBJEXT)
 E        = $(BINEXT)
 LDFLG    = $(LDFFLAGS) $(LDFLAGS)
-PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E)
+PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E) \
+        fitrotsearch$(E)
 
 DISTOBJS = finddistort.$(O) edgesubs.$(O) smoothgrid.$(O) \
  sdsearch.$(O) sdcalc.$(O) lsqr.$(O) lsqrblas.$(O) multrd.$(O) \
@@ -50,6 +54,9 @@ findgradient$(E): findgradient.$(O)
 
 makegradtable$(E): makegradtable.$(O)
 	$(FC) -o makegradtable makegradtable.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+
+fitrotsearch$(E): fitrotsearch.$(O)
+	$(FC) -o fitrotsearch fitrotsearch.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)
