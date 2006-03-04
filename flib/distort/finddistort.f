@@ -17,6 +17,9 @@ c
 c       $Revision$
 c
 c       $Log$
+c       Revision 1.9  2006/02/10 05:22:08  mast
+c       Added header to file
+c
 c
       implicit none
       integer maxImDim, maxGrids, iGridDim, msiz, maxVars, matLim
@@ -30,12 +33,14 @@ c
       parameter (maxData = maxImDim * maxImDim / 22)
       parameter (lenRwrk = maxData * 9)
       parameter (lenIwrk = maxData * 10 + 10)
-      integer*4 nxyz(3),mxyz(3),nx,ny,nz
+      integer*4 nxyz(3),mxyz(3),nx,ny,nz,nxyz2(3)
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-      character*120 infile,tempfile, strFile
+      character*120 infile,tempfile, strFile, covFile
       character*320 comString
       character*12 endvStr, ypadStr
+      character dat*9,tim*8
       character*80 concat,outRoot,outfile,xffile, stFile, patchFile, quietStr
+      character*80 titlech
       logical exist
 
       real*4 array(maxImDim * maxImDim), brray(maxImDim * maxImDim)
@@ -54,7 +59,7 @@ c
       integer*4 listPairs(maxGrids * 2)
       real*4 delXY(2), globDelXY(2, maxGrids), fracDelXY(2, maxGrids)
       integer*4 integDelXY(2, maxGrids)
-      integer*4 iFieldStrt(2), nPtField(2), nPtData(2, maxGrids)
+      integer*4 iFieldStrt(2), nPtField(3), nPtData(2, maxGrids)
       real*4 fieldIntrv(2), dataIntrv(2, maxGrids)
       real*4 xform(2, 3, maxSect)
 c       
@@ -113,15 +118,15 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  finddistort
 c       
       integer numOptions
-      parameter (numOptions = 17)
+      parameter (numOptions = 18)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputRoot:FN:@'//
      &    'pairs:PairsToAnalyze:LI:@binning:ImageBinning:I:@'//
-     &    'field:FieldSpacing:I:@data:DataSpacing:I:@'//
-     &    'grid:GridSpacing:I:@box:BoxSize:I:@indent:GridIndent:I:@'//
-     &    'iterations:Iterations:I:@usexf:UseOldTransforms:B:@'//
-     &    'strfile:StretchFile:FN:@patch:PatchOutput:B:@'//
+     &    'field:FieldSpacing:I:@data:DataSpacing:I:@grid:GridSpacing:I:@'//
+     &    'box:BoxSize:I:@indent:GridIndent:I:@iterations:Iterations:I:@'//
+     &    'usexf:UseOldTransforms:B:@strfile:StretchFile:FN:@'//
+     &    'patch:PatchOutput:B:@coverage:CoverageImage:FN:@'//
      &    'redirect:RedirectOutput:CH:@multr:SolveWithMultr:B:@'//
      &    'param:ParameterFile:PF:@help:usage:B:'
 c       
@@ -153,6 +158,7 @@ c
       useOldXf = .false.
       xffile = ' '
       strFile = ' '
+      covFile = ' '
       makePatch = .false.
       iBinning = 2
       fieldChange = 100000.
@@ -218,6 +224,7 @@ c
       ierr = PipGetInteger('ImageBinning', iBinning)
       ierr = PipGetInteger('BoxSize', iBoxsize)
       ierr = PipGetString('RedirectOutput', quietStr)
+      ierr = PipGetString('CoverageImage', covFile)
       call PipDone()
 
 c       tempfile = temp_filename(infile, ' ', 'xf')
@@ -355,11 +362,11 @@ c
             nPtData(1, iPair) = ((nxGrid(iPair) - 1) * intGrid + intData - 1)
      &          / intData + 1
             dataIntrv(1, iPair) = ((nxGrid(iPair) - 1.) * intGrid) /
-     &          nPtData(1, iPair)
+     &          (nPtData(1, iPair) - 1)
             nPtData(2, iPair) = ((nyGrid(iPair) - 1) * intGrid + intData - 1)
      &          / intData + 1
             dataIntrv(2, iPair) = ((nyGrid(iPair) - 1.) * intGrid) /
-     &          nPtData(2, iPair)
+     &          (nPtData(2, iPair) - 1)
 c             
 c             read in the sections
 c             
@@ -368,7 +375,11 @@ c
             call imposn(1, izUpper, 0)
             call irdsec(1, brray, *99)
 c             
-c             get and smooth the edge function
+c             get and smooth the edge function.
+c             The edge function gives the amount that a pixel moves when going
+c             from lower to upper image, so it would have same sign as df in
+c             the upper image.  The coordinates are the center of the box in
+c             lower  image.
 c             
             call findedgefunc(array,brray,nx,ny, iGridStrt(1, iPair),
      &          iGridStrt(2, iPair),iGridOfs(1, iPair),iGridOfs(2, iPair),
@@ -404,7 +415,9 @@ c
           endif
 c           
 c           save the starting global offset, its integer and fractional
-c           components
+c           components.  The integer component is the grid offset which is
+c           based on the offset in the first run; the fractional component can
+c           thus be bigger than 1
 c           
           do ixy = 1 ,2
             globDelXY(ixy, iPair) = delXY(ixy)
@@ -433,12 +446,6 @@ c
           saveXfs = .true.
           useOldXf = .false.
           xffile = concat(outRoot, '.udxf')
-
-c           
-c           The edge function gives the amount that a pixel moves when going
-c           from lower to upper piece, so it would have same sign as df in
-c           the upper piece.  The coordinates are the center of the box in
-c           lower  piece.
 c           
 c           Set up the grid for the distortion field.  The minimum
 c           indentation is the maximum of half the grid spacing and the
@@ -511,24 +518,23 @@ c
               yShift = yShift + fracDelXY(2, iPair)
 c               print *,'at',xData,yData,' shift=',xShift,yShift
 c               
-c               Add the coefficients for the position in the lower piece
+c               Get the coefficients for the position in the lower image and
+c               add them with negative coefficients
 c               
               call findCoefficients(xData, yData, fieldDx, fieldDy, iGridDim,
      &            iGridDim, nPtField, iFieldStrt, fieldIntrv, -1., valRow,
      &            icolRow, numInRow, sourceTol)
 c               
-c               Get position in upper piece, add negative coefficients
+c               Get corresponding position in upper image, which includes the
+c               shift from the edge function; add positive coefficients
 c               
-              call findCoefficients(xData - globDelXY(1, iPair),
-     &            yData - globDelXY(2, iPair), fieldDx, fieldDy, iGridDim,
-     &            iGridDim, nPtField, iFieldStrt, fieldIntrv, 1., valRow,
-     &            icolRow, numInRow, sourceTol)
+              call findCoefficients(xData + xShift - globDelXY(1, iPair),
+     &            yData + yShift - globDelXY(2, iPair), fieldDx, fieldDy,
+     &            iGridDim, iGridDim, nPtField, iFieldStrt, fieldIntrv,
+     &            1., valRow, icolRow, numInRow, sourceTol)
 c               
-c               Add dummy variable for the pair and add the data row for
-c               x shift
+c               add the data row for the shift
 c               
-c               call addValueToRow(1., numTotField + iPair,
-c               &                   valRow, icolRow, numInRow)
               call addDataRow(valRow, icolRow, numInRow, xShift, yShift,
      &            rwrk, ia, ja, numRows, shiftXY, maxData, sumEntries,
      &            1, x, msiz, matLim, numVars, doMultr)
@@ -603,6 +609,26 @@ c
         if (numTied .gt. 0)print *,
      &      'Data loaded,',numTied,' variables tied to others'
         print *,numRows,' rows of data,',ia(numRows + 1) -1,' entries'
+
+        if ((iter .eq. 2 .or. numIter .eq. 1) .and. covFile .ne. ' ') then
+          call imopen(2, covFile, 'new')
+          nPtField(3) = 1
+          call icrhdr(2, nPtField, nPtField, 2, sumEntries, 0)
+          call ialsiz_sam_cel(2, nPtField(1), nPtField(2), 1)
+          call iclden(sumEntries, nPtField(1), nPtField(2), 1, nPtField(1), 1,
+     &        nPtField(2), dmin, dmax, dmean)
+          do j = 1, numVars
+            sumEntries(j) = sumEntries(j) * numRows / (numVars * dmean)
+          enddo
+          call iclden(sumEntries, nPtField(1), nPtField(2), 1, nPtField(1), 1,
+     &        nPtField(2), dmin, dmax, dmean)
+          call iwrsec(2, sumEntries)
+          call date(dat)
+          call time(tim)
+          write(titlech,3000) dat,tim
+3000      format ( 'FINDDISTORT: Sum of coefficient entries',t57,a9,2x, a8)
+          call iwrhdrc(2, titlech, 1, dmin, dmax, dmean)
+        endif
 c         
 c         Normalize the sparse matrix data
 c         
@@ -617,7 +643,6 @@ c
             if (ja(j) .eq. icol) rwrk(j) = rwrk(j) / sum
           enddo
         enddo
-c         
 c         
 c         solve equations for X then Y shifts 
 c         
@@ -695,7 +720,8 @@ c
           enddo   
         enddo
 c         
-c         unstretch the field by solving for stretch
+c         unstretch the field by solving for the inverse of the stretch that
+c         it contains: find raw image positions as function of distorted ones
 c         
         numRows = 0
         do ix = 1, nPtField(1)
@@ -713,8 +739,7 @@ c
           do i = 1, numRows
             x(3, i) = x(3 + ixy, i)
           enddo
-          call multrd(x, msiz, 3, numRows, sx, ss, xm,
-     &        sd, b, b1, rsq, fval)
+          call multrd(x, msiz, 3, numRows, sx, ss, xm, sd, b, b1, rsq, fval)
           aa(ixy, 1) = b1(1)
           aa(ixy, 2) = b1(2)
           aa(ixy, 3) = 0.
@@ -759,6 +784,10 @@ c
      &    ((aa(i,j),j=1,2),i=1,2)
 
       if (strFile .ne. ' ') then
+c         
+c         Get transform between rotated images, determine rot-mag-stretch
+c         take out the net mag change and get the no-mag transform
+c
         call dopen(1, strFile, 'ro', 'f')
         call xfrdall(1, xform, nxfRead, *98)
         if (nxfRead .gt. maxSect) call errorexit(
@@ -766,7 +795,7 @@ c
         call amat_to_rotmagstr(xform(1,1,nxfRead), theta, smag, str, phi)
         smagMean = smag * sqrt(str)
         call rotmagstr_to_amat(theta, smag / smagMean, str, phi, bb)
-
+c
         write(*,110)theta, smag, str, phi, smagMean, smag/smagMean, str
 110     format('Pair has rotation =',f8.2,', mag =',f7.4,
      &      ', stretch =',f7.4,' on',f7.1,' deg axis',/,
@@ -774,7 +803,9 @@ c
      &      f7.4)
         write(*,'(a,4f10.6)')' No-mag transformation:',
      &      ((bb(i,j),j=1,2),i=1,2)
-
+c         
+c         Get the rotation angle, the delta rotation of the axis
+c
         theta = sign(acosd(0.5 * (bb(1, 1) + bb(2, 2))), theta)
         alpha = 0.
         if (abs(bb(2,1) - bb(1,2)) .gt. abs(bb(2,2) - bb(1,1)))
@@ -782,6 +813,9 @@ c
         write(*, 113) theta, alpha
 113     format('True rotation =',f8.2,', delta theta =',f7.2)
         dmag = 0.
+c         
+c         s is dmag / 2 so these are various solutions for dmag
+c
         if (abs(bb(2,1) + bb(1,2)) .gt. 1.e-10) then
           ssqr = ((bb(2,1) - bb(1,2)) * cosd(alpha) - 2. * sind(theta)) /
      &        ((bb(2,1) - bb(1,2)) * cosd(alpha) + 2. * sind(theta))
@@ -862,7 +896,8 @@ c
         close(1)
       endif
 c       
-c       check it
+c       check it: solve for distorted image positions as function of raw ones
+c       to get the transform embedded in the field
 c       
       numRows = 0
       do ix = 1, nPtField(1)
@@ -880,8 +915,7 @@ c
         do i = 1, numRows
           x(3, i) = x(3 + ixy, i)
         enddo
-        call multrd(x, msiz, 3, numRows, sx, ss, xm,
-     &      sd, b, b1, rsq, fval)
+        call multrd(x, msiz, 3, numRows, sx, ss, xm, sd, b, b1, rsq, fval)
         aa(ixy, 1) = b1(1)
         aa(ixy, 2) = b1(2)
         aa(ixy, 3) = 0.
@@ -904,6 +938,11 @@ c
       end
 
 
+c       FINDCOEFFICIENTS: Finds the field positions surrounding the point that
+c       distorts to x,y and coefficients by which they contribute to the
+c       distortion at that position via linear interpolation.  Add these
+c       coefficients and their column numbers to the data row 
+c
       subroutine findCoefficients(x, y, fieldDx, fieldDy, ixgDim, iygDim,
      &    nPtField, iFieldStrt, fieldIntrv, sign, valRow, icolRow,
      &    numInRow, sourceTol)
@@ -963,6 +1002,11 @@ c
       end
 
 
+c       ADDDATAROW: Takes the complete data row consisting of values and their
+c       columns,  and the X and Y shift for this position, to the data matrix,
+c       keeping  track of parameters of the data matrix appropriately
+c       depending on which kind of matrix is being used.
+c
       subroutine addDataRow(valRow, icolRow, numInRow, xShift, yShift,
      &    rwrk, ia, ja, numRows, shiftXY, maxData, sumEntries,
      &    incEntries, x, msiz, matLim, numVars, doMultr)
@@ -1013,6 +1057,8 @@ c
       end
 
 
+c       ADDVALUETOROW: Adds one value and its column to the current data row
+c
       subroutine addValueToRow(val, icol, valRow, icolRow, numInRow)
       implicit none
       real*4 val, valRow(*)
@@ -1024,6 +1070,9 @@ c
       end
 
 
+c       SPARSEPROD: Performs a product of the designated mode in the sparse
+c       matrix
+c
       subroutine sparseProd(mode, m, n, x, y, leniw, lenrw, iw, rw)
       implicit none
       integer*4 mode, m, n, leniw, lenrw, iw(leniw)
