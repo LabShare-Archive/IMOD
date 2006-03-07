@@ -17,11 +17,14 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.1  2006/02/26 20:21:19  mast
+c       Made it read sections in chunks, standardize error exit
+c
 c       
       implicit none
       integer idim, limden
       parameter (idim=10000*500)
-      parameter (limden=100000)
+      parameter (limden=1000000)
 C       
       integer*4 NXYZ(3),MXYZ(3), nx, ny, nz
       real*4 array(idim)
@@ -29,18 +32,40 @@ C
       real*4 DMIN,DMAX,DMEAN,areafac
       integer*4 mode,iylo,iyhi,ixlo,ixhi,izlo,izhi,ntrunclo,ntrunchi,nxt,nyt
       integer*4 maxlines,nchunk,ivmin,ivmax,iz,ichunk,iyend,iychunk,ival
-      integer*4 ntrunc,ilo,ihi,iclo,ichi,i,nylines
+      integer*4 ntrunc,ilo,ihi,iclo,ichi,i,nylines, ierr, izlim, iylim
+      logical*4 flipped
       EQUIVALENCE (NX,NXYZ)
       COMMON //NX,NY,NZ
       character*160 filbig
 
+      logical pipinput
+      integer*4 numOptArg, numNonOptArg
+      integer*4 PipGetInteger,PipGetTwoIntegers,PipGetLogical
+      integer*4 PipGetInOutFile
+c	  
+c       fallbacks from ../../manpages/autodoc2man -2 2  findcontrast
+c
+      integer numOptions
+      parameter (numOptions = 7)
+      character*(40 * numOptions) options(1)
+      options(1) =
+     &    'input:InputFile:FN:@slices:SlicesMinAndMax:IP:@'//
+     &    'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
+     &    'flipyz:FlipYandZ:B:@truncate:TruncateBlackAndWhite:IP:@'//
+     &    'help:usage:B:'
+c	  
+c       Pip startup: set error, parse options, check help, set flag if used
+c
+      call PipReadOrParseOptions(options, numOptions, 'findcontrast',
+     &    'ERROR: FINDCONTRAST - ', .true., 1, 1, 0, numOptArg,
+     &    numNonOptArg)
+      pipinput = numOptArg + numNonOptArg .gt. 0
+      
+      if (PipGetInOutFile('InputFile', 1, 'Name of image file', filbig)
+     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
 C       
-C	Open image files.
+C	Open image file
 C       
-      write(*,'(1x,a,$)')'Name of image file: '
-      read(5,50)filbig
-50    format(A)
-c       
       CALL IMOPEN(1,filbig,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
@@ -48,39 +73,73 @@ C
      &    '- DATA VALUES HAVE TOO LARGE A RANGE FOR ARRAYS')
 
       if (nx .gt. idim) call errorexit('IMAGES TOO LARGE IN X FOR ARRAYS')
+
+      flipped = .not.pipinput
+      if (pipinput) ierr = PipGetLogical('FlipYandZ', flipped)
 c       
-10    write(*,'(1x,a,/,a,$)')'First and last slice (Imod section #'//
-     &    ' in flipped volume)','  to include in analysis: '
-      read(5,*)iylo,iyhi
-      if (iylo.le.0.or.iyhi.gt.ny.or.iylo.gt.iyhi)then
-        print *,'Illegal values, try again'
-        go to 10
-      endif
-      iylo=iylo-1
-      iyhi=iyhi-1
-c       
-20    ixlo=nx/10
+c       Set up default limits
+c
+      ixlo=nx/10
       ixhi=nx-1-ixlo
-      izlo=nz/10
-      izhi=nz-1-izlo
-      write(*,'(1x,a,/,a,4i7,a,$)')'Lower & upper X, lower & upper'
-     &    //' Y (in flipped volume) to include in analysis',
-     &    '  (/ for ',ixlo,ixhi,izlo,izhi,'): '
-      read(5,*)ixlo,ixhi,izlo,izhi
-      if(ixlo.lt.0.or.ixhi.ge.nx.or.ixlo.ge.ixhi.or.
-     &    izlo.lt.0.or.izhi.ge.nz.or.izlo.gt.izhi)then
-        print *,'Illegal values, try again'
-        go to 20
+c      
+      if (flipped) then
+        izlim = ny
+        iylim = nz
+      else
+        izlim = nz
+        iylim = ny
       endif
+      izlo = 1
+      izhi = izlim
+      iylo=iylim/10
+      iyhi=iylim-1-iylo
+c       
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('SlicesMinAndMax', izlo, izhi)
+        ierr = PipGetTwoIntegers('XMinAndMax', ixlo, ixhi)
+        ierr = PipGetTwoIntegers('YMinAndMax', iylo, iyhi)
+      else
+        write(*,'(1x,a,/,a,$)')'First and last slice (Imod section #'//
+     &      ' in flipped volume)','  to include in analysis: '
+        read(5,*)izlo,izhi
+        write(*,'(1x,a,/,a,4i7,a,$)')'Lower & upper X, lower & upper'
+     &      //' Y (in flipped volume) to include in analysis',
+     &      '  (/ for ',ixlo,ixhi,iylo,iyhi,'): '
+        read(5,*)ixlo,ixhi,iylo,iyhi
+      endif
+      if (izlo.le.0.or.izhi.gt.izlim.or.izlo.gt.izhi)call errorexit(
+     &      'SLICE NUMBERS OUTSIDE RANGE OF IMAGE FILE')
+      izlo=izlo-1
+      izhi=izhi-1
+c       
+      if(ixlo.lt.0.or.ixhi.ge.nx.or.ixlo.ge.ixhi.or.
+     &    iylo.lt.0.or.iyhi.ge.iylim.or.iylo.gt.iyhi) call errorexit(
+     &    'X OR Y VALUES OUTSIDE RANGE OF VOLUME')
 c       
       areafac=max(1.,nx*ny*1.e-6)
       ntrunclo=areafac*(iyhi+1-iylo)
       ntrunchi=ntrunclo
-      write(*,'(1x,a,/,a,2i8,a,$)')'Maximum numbers of pixels to '//
-     &    'truncate at black and white in analyzed volume',
-     &    '  (/ for ',ntrunclo,ntrunchi,'): '
-      read(5,*)ntrunclo,ntrunchi
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('TruncateBlackAndWhite', ntrunclo,ntrunchi)
+      else
+        write(*,'(1x,a,/,a,2i8,a,$)')'Maximum numbers of pixels to '//
+     &      'truncate at black and white in analyzed volume',
+     &      '  (/ for ',ntrunclo,ntrunchi,'): '
+        read(5,*)ntrunclo,ntrunchi
+      endif
 c       
+c       Flip coordinates
+c
+      if (flipped) then
+        ierr = izlo
+        izlo = iylo
+        iylo = ierr
+        ierr = izhi
+        izhi = iyhi
+        iyhi = ierr
+      endif
+      print *,'Analyzing X:',ixlo,ixhi,'  Y:',iylo, iyhi,'  Z:',izlo,izhi
+c
       do i=-limden,limden
         ihist(i)=0
       enddo
