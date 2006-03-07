@@ -6,18 +6,42 @@ trimvol \- Trim a volume and scale it to bytes.
 .SH SYNOPSIS
 trimvol [options] <input file>  <output file>
 .SH DESCRIPTION
-trimvol provides a command-line interface to the programs findcontrast and
-newstack, for copying a selected portion of an MRC image volume into a new
+trimvol provides a command-line interface to the programs findcontrast(1) and
+newstack(1), for copying a selected portion of an MRC image volume into a new
 file, with automatic scaling to bytes.
 There are options for specifying the volume to be extracted, and for 
 controlling the scaling to bytes.
 By default, coordinates are numbered from 1.
-.SS Options
-You can enter either
-.B -c
-or
+
+If you use the 
+.B -sz
+or 
+.B -s 
+option,  then findcontrast(1) will be run on the specified sections.  By
+default, regions
+within 10% of the lateral borders of each section are omitted, but a different
+region can be set with
+.B -sx
+and
+.B -sy.
+A scaling is
+chosen which saturates the intensities of one pixel per slice, on average, at
+the dark and the light end.  If you use 
+.B -sz
+then coordinates specified with these options will be treated as coming from 
+a flipped volume only if the
+.B -f
+option is entered.  If you use
 .B -s
-but not both.  Similarly, you cannot enter both
+then coordinates will always be taken as coming from a flipped volume.
+
+.SS Options
+You can enter only one of
+.B -c,
+.B -s,
+or
+.B -sz.
+Similarly, you cannot enter both
 .B -x
 and
 .B -nx,
@@ -48,13 +72,23 @@ Copy "size" pixels in the Y dimension, centered on the middle in Y.
 .B -nz <size>
 Copy "size" pixels in the Z dimension, centered on the middle in Z.
 .TP
+.B -sz <S0,S1>
+Scale to bytes, determining the optimal scaling to bytes by analyzing
+intensities from sections S0 to S1, inclusive.  Coordinates are treated as
+coming from a flipped volume only if the
+.B -f
+option is given.  Slices are numbered from 1.
+.TP
 .B -s <S0,S1>
 Scale to bytes, determining the optimal scaling to bytes by analyzing
-intensities from sections S0 to S1, inclusive, in the flipped volume.
-This option runs findcontrast on the specified sections, omitting regions
-within 10% of the lateral borders of each section.  A scaling is
-chosen which saturates the intensities of one pixel per slice, on average, at
-the dark and the light end.
+intensities from sections S0 to S1, inclusive, in a flipped volume (legacy
+behavior).
+.TP
+.B -sx <X0,X1>
+.TP
+.B -sy <Y0,Y1>
+Analyze the region from X0 to X1 in X, or from Y0 to Y1 in Y, inclusive, in
+determining the scaling.  These coordinates are numbered from 0.
 .TP
 .B -c <black,white>
 Scale to bytes, with relative intensities between "black" and "white" (on a
@@ -79,8 +113,10 @@ Interpret
 .B -y,
 .B -z,
 .B -ny,
+.B -nz,
+.B -sy,
 and
-.B -nz
+.B -sz
 entries as referring to a flipped volume, with Y and Z transposed.
 .TP 
 .B -P
