@@ -17,6 +17,11 @@ c
 c       $Revision$
 c
 c       $Log$
+c       Revision 1.10  2006/03/04 00:55:11  mast
+c       Added edge function shift to upper piece position as indicated by
+c       latest equations, added option to get coverage image, and fixed
+c       extent of sample data to have one more column
+c
 c       Revision 1.9  2006/02/10 05:22:08  mast
 c       Added header to file
 c
@@ -103,8 +108,8 @@ c
       real*4 sourceTol, const, rsq, fval, gridIntrv, colSumCrit, rsq1
       real*4 cosang, sinang, axisPos, sum, errorCrit, relax
       real*4 val,  aa(2, 3), xOut, yOut, errorLast(maxGrids, 2), relaxInitial
-      real*4 bb(2, 3), dmag, theta, smag, str, phi, smagMean, alpha
-      real*4 ssqr, solSsqr, solNeg, solPos, pixelSize, resSum, resMax
+      real*4 bb(2, 3), theta, smag, str, phi, smagMean, alpha
+      real*4 ssqr, sinsqa, pixelSize, resSum, resMax
       real*4 fieldChange
       integer*4 iBinning, maxZ
       real*4 cosd, sind, acosd, asind
@@ -804,51 +809,38 @@ c
         write(*,'(a,4f10.6)')' No-mag transformation:',
      &      ((bb(i,j),j=1,2),i=1,2)
 c         
-c         Get the rotation angle, the delta rotation of the axis
+c         Get the underlying rotation angle from 1 to 2
 c
-        theta = sign(acosd(0.5 * (bb(1, 1) + bb(2, 2))), theta)
-        alpha = 0.
-        if (abs(bb(2,1) - bb(1,2)) .gt. abs(bb(2,2) - bb(1,1)))
-     &      alpha = asind((bb(2,2) - bb(1,1)) / (bb(2,1) - bb(1,2)))
-        write(*, 113) theta, alpha
-113     format('True rotation =',f8.2,', delta theta =',f7.2)
-        dmag = 0.
-c         
-c         s is dmag / 2 so these are various solutions for dmag
-c
-        if (abs(bb(2,1) + bb(1,2)) .gt. 1.e-10) then
-          ssqr = ((bb(2,1) - bb(1,2)) * cosd(alpha) - 2. * sind(theta)) /
-     &        ((bb(2,1) - bb(1,2)) * cosd(alpha) + 2. * sind(theta))
-          if (ssqr .lt. 0) then
-            print *,'WARNING: delta mag squared is negative:', ssqr
-            ssqr = 0.
-          endif
-          solSsqr = 2. * sqrt(ssqr)
-          bfac = 4. * sind(theta) /(bb(2,1) + bb(1,2))
-          solNeg = -bfac - sqrt(bfac**2 + 4)
-          solPos = -bfac + sqrt(bfac**2 + 4)
-          write(*, 111) -solSsqr, solSsqr, solNeg, solPos
-111       format('Delta mag from square:',2f10.4,',  quadratic:',
-     &        2f12.4)
-          if (abs(solNeg + solSsqr) .lt. abs(solSsqr - solPos)) then
-            dmag = 0.5 * (solNeg - solSsqr)
-            ssqr = abs(solNeg + solSsqr)
-          else
-            dmag = 0.5 * (solPos + solSsqr)
-            ssqr = abs(solPos - solSsqr)
-          endif
-
-          write(*, 112)dmag, ssqr
-112       format('Use delta mag =',f7.4,
-     &        ', difference between estimates =', f7.4)
+        theta = sign(acosd(0.5 * (bb(1, 1) + bb(2, 2))), bb(1, 2) - bb(2, 1))
+        bfac = (bb(2, 1) - bb(1, 2)) / sind(theta)
+        ssqr = 0.
+        if (abs(bfac) .lt. 2.) then
+          print *,'WARNING: |(a21-a12)/sin(theta)| < 2, cannot solve for'//
+     &        ' stretch'
         else
-          print *,'Delta mag appears to be 0 from coefficients'
+          ssqr = (-bfac + sqrt(bfac**2 -4)) / 2.
         endif
-        
+        str = sqrt(ssqr)
+c
+        sinsqa = (bb(1, 2) / sind(theta) - ssqr) / (1. / ssqr - ssqr)
+        alpha = 0.
+        if (sinsqa .lt. 0.) then
+          print *,'WARNING: sin(alpha)**2 is negative'
+        else
+          alpha = sign(asind(sqrt(sinsqa)), (cosd(theta) - bb(2, 2)) /
+     &        (sind(theta) * (1. / ssqr - ssqr)))
+        endif
+
+        write(*, 113) -theta, str, alpha
+113     format('True rotation =',f8.2,', underlying stretch =',f8.4, ' on',
+     &      f7.1,' deg axis')
 c         
-c         convert dmag and dtheta to a transformation matrix
+c         convert str and alpha to a transformation matrix
 c         
-        call rotmag_to_amat(0., alpha, 1., dmag, bb)
+        bb(1, 1) = str + (1. / str - str) * sind(alpha)**2
+        bb(2, 2) = str + (1. / str - str) * cosd(alpha)**2
+        bb(1, 2) = (str - 1. / str) * cosd(alpha) * sind(alpha)
+        bb(2, 1) = bb(1, 2)
         write(*,'(a,4f10.6)')' Stretch transformation:',
      &      ((bb(i,j),j=1,2),i=1,2)
 
@@ -859,13 +851,13 @@ c         check that it regenerates the no-mag transformation
 c         
         call xfinvert(bb, xform(1,1,1))
         xform(1,1,2) = cosd(theta)
-        xform(1,2,2) = -sind(theta)
+        xform(1,2,2) = sind(theta)
         xform(2,2,2) = cosd(theta)
-        xform(2,1,2) = sind(theta)
+        xform(2,1,2) = -sind(theta)
         call xfmult(xform(1,1,1), xform(1,1,2), xform(1,1,3))
-        call xfmult(xform(1,1,3), bb, xform(1,1,1))
+        call xfmult(xform(1,1,3), bb, xform(1,1,2))
         write(*,'(a,4f10.6)')' Implied no-mag transformation:',
-     &      ((xform(i,j,1),j=1,2),i=1,2)
+     &      ((xform(i,j,2),j=1,2),i=1,2)
       endif
 c       
 c       Transform the vectors
