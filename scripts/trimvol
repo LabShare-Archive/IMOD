@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.9  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
@@ -31,6 +34,9 @@ set flipyz = "0"
 set index = "0"
 set pn = "trimvol"
 set doflip = "0"
+set fliparg = ""
+set sxarg = ""
+set syarg = ""
 
 if ($#argv == 0)then
   echo "Usage: $pn [options] input_file output_file"
@@ -46,9 +52,13 @@ cat <<EOF
      -c black,white  Contrast levels for scaling and converting to bytes
      -s start,end    Starting and ending slices (section # in flipped volume)
                            to use to find contrast levels for scaling to bytes
+     -sz start,end   Starting and ending slices to use to find contrast
+                           (Coordinate flipping controlled by -f/-u)
+     -sx start,end   Starting and ending X coordinates to use to find contrast
+     -sy start,end   Starting and ending Y coordinates to use to find contrast
      -yz             Flip Y and Z in output volume
      -i              Treat as index coordinates (numbered from 0) rather than
-                           as Imod coordinates (numbered from 1, the default)
+                           as 3dmod coordinates (numbered from 1, the default)
      -f              Treat coordinates as coming from a flipped volume
      -P              Output process ID
 
@@ -100,6 +110,19 @@ while ($#argv > 2)
       breaksw
     case -s:
       set slices = $argv[2]
+      set fliparg = "-flip"
+      shift; shift
+      breaksw
+    case -sx:
+      set sxarg = "-xminmax $argv[2]"
+      shift; shift
+      breaksw
+    case -sy:
+      set syarg = "-yminmax $argv[2]"
+      shift; shift
+      breaksw
+    case -sz:
+      set zslices = $argv[2]
       shift; shift
       breaksw
     case -yz:
@@ -108,10 +131,6 @@ while ($#argv > 2)
       breaksw
     case -f:
       set flipyz = "1"
-      shift
-      breaksw
-    case -u:
-      set flipyz = "0"
       shift
       breaksw
     case -i:
@@ -135,6 +154,15 @@ endif
 if ($?slices && $?contrast) then
     echo "ERROR: $pn - cannot use both -c and -s options"
     exit 1
+endif
+
+if ($?zslices) then
+    if ($?slices) then
+        echo "ERROR: $pn - cannot use both -sz and -s options"
+        exit 1
+    endif
+    set slices = $zslices
+    if ($flipyz) set fliparg = "-flip"
 endif
 
 if ($?ix && $?inx) then
@@ -302,7 +330,9 @@ if ($?slices) then
     endif
     @ slicest = $contslice[1]
     @ slicend = $contslice[2]
-    if ($slicest < 1 || $slicend > $ny || $slicest > $slicend) then
+    @ slicelim = $nz
+    if ("$fliparg" != "") @ slicelim = $ny
+    if ($slicest < 1 || $slicend > $slicelim || $slicest > $slicend) then
 	echo "ERROR: $pn - slices out of range for file in -s $slices"
 	exit 1
     endif
@@ -310,18 +340,14 @@ if ($?slices) then
     set tmpfil = $tmpdir/trimvol.$$
     onintr clean
     echo "Determining byte scaling of $argv[1] ..."
-    findcontrast > $tmpfil <<EOF
-$argv[1]
-$slicest,$slicend
-/
-/
-EOF
-
+    echo "findcontrast -slice $slicest,$slicend $fliparg $sxarg $syarg $argv[1]"
+    findcontrast -slice $slicest,$slicend $fliparg $sxarg $syarg \
+           $argv[1] > $tmpfil
     if ($status) then
         grep 'ERROR:' $tmpfil
         goto clean
     endif
-
+    cat $tmpfil
     set bwout = `sed -n -e '/Implied/s/Imp.*are *//p' -e '/[[:cntrl:]]/s///g' $tmpfil`
     \rm -f $tmpfil
     if ($#bwout != 3) then
