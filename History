@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/7/06: IMOD_3-8-3
+3/7/06: Changed Findcontrast to take PIP input and take unflipped or flipped
+coordinates, and added options to Trimvol for setting X and Y limits in running
+Findcontrast.
+
+3/7/06: Changed Finddistort's model for finding stretch from rotated images.
+
 3/2/06: Added Fitrotsearch for fitting a surface to noisy output from 
 Matchrotpairs and finding the best pair reliably.
 
