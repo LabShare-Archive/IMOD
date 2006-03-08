@@ -1,0 +1,59 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input image file to bin down in 3D
+tooltip = 
+manpage = 
+
+[Field = SlicesMinAndMax]
+short = slices
+type = IP
+usage = Starting and ending slices to analyze in Z (numbered from 1)
+tooltip =
+manpage = Starting and ending slices to analyze in Z, numbered from 1.
+The default is to do all slices.
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending coordinates to analyze in X
+tooltip =
+manpage = Starting and ending coordinates to analyze in X, numbered from 0.  
+The default is to omit borders equal to 10% of the X dimension. 
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending coordinates to analyze in Y
+tooltip =
+manpage = Starting and ending coordinates to analyze in Y, numbered from 0.
+The default is to omit borders equal to 10% of the Y dimension. 
+
+[Field = FlipYandZ]
+short = flipyz
+type = B
+usage = Treat coordinates as coming from volume flipped in 3dmod
+tooltip = 
+manpage = Treat coordinates as coming from a volume that was read into 3dmod
+with Y and Z flipped.  Thus, for a newly created tomogram loaded into 3dmod
+flipped, you can use this option to enter X, Y, and Z coordinates read out
+from 3dmod.
+
+[Field = TruncateBlackAndWhite]
+short = truncate
+type = IP
+usage = Number of pixels to truncate as black and white
+tooltip = 
+manpage = Number of pixels to truncate as black and white in the analyzed 
+volume.  The default is one pixel per slice or one pixel per million,
+whichever is greater.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
