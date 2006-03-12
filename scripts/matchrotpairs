@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.8  2006/03/01 18:15:33  mast
+#  Set it to use bilinear iterpolation in second simplex search
+#
 #  Revision 1.7  2006/02/28 05:46:22  mast
 #  Fixed minor problems and had it apply midas transform for initial
 #  rotation in following pairs, then use tiltxcorr for them
@@ -81,6 +84,7 @@ set leavetmp = 0
 set midas = 0
 set distort = ""
 set imbin = ""
+set allxfout = 0
 
 if ($#argv < 1) goto usage
 
@@ -108,6 +112,10 @@ while ($#argv > 3)
       set midas = 1
       shift
       breaksw
+    case -x:
+      set allxfout = 1
+      shift
+      breaksw
     case -h:
       goto usage
     case -P:
@@ -133,6 +141,8 @@ if ($#argv < 3) then
     echo "ERROR: $pn - You must enter 3 non-option arguments"
     exit 1
 endif
+
+if ((! $midas) && $pmstart == 0 && $pmend == 1) set allxfout = 0
 
 set imagea = $argv[1]
 set imageb = $argv[2]
@@ -261,6 +271,17 @@ endif
 @ bsecind = 1
 while ($bsecind <= $#bseclist)
     @ bsec = $bseclist[$bsecind]
+    @ bview = $bsec + 1
+
+    # Set up output file for all transforms
+    #
+    if ($midas && $allxfout) then
+        set outxf = $outfile:r-$bview.xf
+        if (-e $outxf) mv $outxf $outxf~
+        touch $outxf
+        @ astacklast = 0
+    endif
+
     @ asecind = 1
     while ($asecind <= $#aseclist)
 	@ asec = $aseclist[$asecind]
@@ -308,7 +329,7 @@ while ($bsecind <= $#bseclist)
 		echo " and save the transform to the already-defined output file"
 		echo " "
 		sleep 1
-		midas -D -b 1 $tmpstack $tmpmidxf
+		midas -D -b 0 $tmpstack $tmpmidxf
 		if (! -e $tmpmidxf) then
 		    echo "ERROR: Matchrotpairs - Transform file not found - cannot proceed"
 		    goto clean
@@ -398,8 +419,24 @@ EOF
 	    set simplexout = `tail -n 1 $tmpxflog`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
-	    @ bview = $bsec + 1
 	    echo -n "A $aview  B $bview  rotation $pmangle  difference $diff"
+
+            if ($midas && $allxfout) then
+                xfproduct $tmprot90 $tmpxf2 $tmpxf1 >! $tmperrlog
+		if ($status) then
+		    awk '/ERROR/,/junk/' $tmperrlog
+		    echo "ERROR: Matchrotpairs - Running Xfproduct"
+		    goto clean
+		endif
+                if ($aview > $astacklast) then
+                    cat $tmpxf1 >> $outxf
+                else
+                    cat $outxf >> $tmpxf1
+                    \mv $tmpxf1 $outxf
+                endif
+                @ astacklast = $aview
+            endif
+
 	    if ($diff < $diffmin) then
 		#
 		# If new minimum, save sections and real transform
@@ -480,6 +517,7 @@ Usage: $pn [options] image_file_a image_file_b output_file
      -d file       Name of (zero-stretch) distortion field file to apply
      -b #          Binning of images, needed if undistorting
      -m            Run Midas to set initial translational/rotational alignment
+     -x            Output transform files for aligning each A to one B section
      -t            Leave temporary files in $tmpdir
      -P            Output process ID (PID)
      -h            Help - print this usage
