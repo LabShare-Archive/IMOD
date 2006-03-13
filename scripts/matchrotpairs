@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.9  2006/03/12 18:45:29  mast
+#  Add option to output all transforms in ordered files
+#
 #  Revision 1.8  2006/03/01 18:15:33  mast
 #  Set it to use bilinear iterpolation in second simplex search
 #
@@ -275,7 +278,7 @@ while ($bsecind <= $#bseclist)
 
     # Set up output file for all transforms
     #
-    if ($midas && $allxfout) then
+    if ($allxfout) then
         set outxf = $outfile:r-$bview.xf
         if (-e $outxf) mv $outxf $outxf~
         touch $outxf
@@ -421,7 +424,7 @@ EOF
 	    @ aview = $asec + 1
 	    echo -n "A $aview  B $bview  rotation $pmangle  difference $diff"
 
-            if ($midas && $allxfout) then
+            if ($allxfout) then
                 xfproduct $tmprot90 $tmpxf2 $tmpxf1 >! $tmperrlog
 		if ($status) then
 		    awk '/ERROR/,/junk/' $tmperrlog
