@@ -30,6 +30,7 @@ import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -49,6 +50,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2006/02/06 21:22:17  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.35  2006/01/31 21:01:08  sueh
  * <p> bug# 521 Managing the restart buttons and the combine button in
  * <p> ProcessResultDisplayFactory.
@@ -276,6 +280,10 @@ import etomo.type.ReconScreenState;
 public final class TomogramCombinationDialog extends ProcessDialog implements
     ContextMenu, ParallelDialog {
   public static final String rcsid = "$Id$";
+
+  private static final int SETUP_INDEX = 0;
+  private static final int INITIAL_INDEX = 1;
+  private static final int FINAL_INDEX = 2;
   public static final String lblSetup = "Setup";
   public static final String lblInitial = "Initial Match";
   public static final String lblFinal = "Final Match";
@@ -285,6 +293,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
   private JPanel parallelPanelContainer = new JPanel();
+  private MatchMode scriptMatchMode = null;
 
   private JTabbedPane tabbedPane = new JTabbedPane();
   final String parallelProcessCheckBoxText;
@@ -293,6 +302,18 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * switching tabs
    */
   private int idxLastTab;
+
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]\n";
+  }
+
+  protected String paramString() {
+    return "pnlSetup=" + pnlSetup + ",\npnlInitial=" + pnlInitial
+        + ",\npnlFinal=" + pnlFinal + ",\ncombinePanelEnabled="
+        + combinePanelEnabled + ",\nscriptMatchMode=" + scriptMatchMode
+        + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
+        + ",\nidxLastTab=" + idxLastTab;
+  }
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
@@ -442,10 +463,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     }
     if (combineProcessType == CombineProcessType.SOLVEMATCH
         || combineProcessType == CombineProcessType.MATCHVOL1) {
-      tabbedPane.setSelectedIndex(1);
+      tabbedPane.setSelectedIndex(INITIAL_INDEX);
     }
     else {
-      tabbedPane.setSelectedIndex(2);
+      tabbedPane.setSelectedIndex(FINAL_INDEX);
     }
   }
 
@@ -524,13 +545,13 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   /**
    * synchronizes setup panel to/from initial and final panels
    * @param currentTab
-   * @param copyFromCurrentTab True when synchronizing data from the current tab
+   * @param copyFromTab True when synchronizing data from the specified tab
    * to the other tab(s).  False when copying data into the current tab (when
    * running combine on the setup tab).
    */
-  public void synchronize(String tabTitle, boolean copyFromCurrentTab) {
+  public void synchronize(String tabTitle, boolean copyFromTab) {
     if (tabTitle.equals(lblSetup)) {
-      if (copyFromCurrentTab) {
+      if (copyFromTab) {
         synchronize(pnlSetup, pnlInitial);
         synchronize(pnlSetup, pnlFinal);
       }
@@ -540,7 +561,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       }
     }
     else if (tabTitle.equals(lblInitial)) {
-      if (copyFromCurrentTab) {
+      if (copyFromTab) {
         synchronize(pnlInitial, pnlSetup);
       }
       else {
@@ -548,7 +569,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       }
     }
     else if (tabTitle.equals(lblFinal)) {
-      if (copyFromCurrentTab) {
+      if (copyFromTab) {
         synchronize(pnlFinal, pnlSetup);
       }
       else {
@@ -565,6 +586,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    */
   private void synchronize(InitialCombineFields fromPanel,
       InitialCombineFields toPanel) {
+    if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
+      return;
+    }
     toPanel.setSurfacesOrModels(fromPanel.getSurfacesOrModels());
     toPanel.setBinBy2(fromPanel.isBinBy2());
     toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
@@ -579,6 +603,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    */
   private void synchronize(FinalCombineFields fromPanel,
       FinalCombineFields toPanel) {
+    if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
+      return;
+    }
     toPanel.setUsePatchRegionModel(fromPanel.isUsePatchRegionModel());
     toPanel.setXMin(fromPanel.getXMin());
     toPanel.setXMax(fromPanel.getXMax());
@@ -589,6 +616,21 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setParallel(fromPanel.isParallel());
     toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
     toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
+  }
+
+  public boolean isUpToDate() {
+    return scriptMatchMode == pnlSetup.getScreenMatchMode();
+  }
+
+  public void setScriptMatchMode(MatchMode scriptMatchMode) {
+    this.scriptMatchMode = scriptMatchMode;
+    updateDisplay();
+  }
+
+  void updateDisplay() {
+    boolean enable = isUpToDate();
+    tabbedPane.setEnabledAt(INITIAL_INDEX, enable);
+    tabbedPane.setEnabledAt(FINAL_INDEX, enable);
   }
 
   /**
@@ -677,6 +719,19 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFileLabel, applicationManager);
+  }
+
+  public boolean isTabEnabled(String tabLabel) {
+    if (tabLabel.equals(lblSetup)) {
+      return tabbedPane.isEnabledAt(SETUP_INDEX);
+    }
+    if (tabLabel.equals(lblInitial)) {
+      return tabbedPane.isEnabledAt(INITIAL_INDEX);
+    }
+    if (tabLabel.equals(lblFinal)) {
+      return tabbedPane.isEnabledAt(FINAL_INDEX);
+    }
+    throw new IllegalArgumentException("tabLabel=" + tabLabel);
   }
 
   /**
