@@ -360,6 +360,10 @@ public abstract class ConstMetaData extends BaseMetaData {
   public ConstCombineParams getConstCombineParams() {
     return combineParams;
   }
+  
+  public CombineParams getCombineParams() {
+    return combineParams;
+  }
 
   public boolean isValid() {
     return isValid(true, null);
@@ -668,6 +672,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.33  2005/12/13 02:16:25  sueh
+ * <p> bug# 773 Added defaultParallel
+ * <p>
  * <p> Revision 3.32  2005/10/27 00:32:22  sueh
  * <p> bug# 725 Added bStackProcessed.
  * <p>
