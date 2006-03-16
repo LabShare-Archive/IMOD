@@ -18,6 +18,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.10  2005/11/02 21:38:29  sueh
+ * bug# 754 Parsing errors and warnings inside ProcessMessages.
+ * Replaced warningMessage with processMessages.  Removed functions
+ * getWarningMessage, getWarnings, and parseWarnings.  Added
+ * getProcessMessages().
+ *
  * Revision 3.9  2005/10/28 18:49:33  sueh
  * bug# 725 standardizing message parsing in SystemProgram.  Passing
  * multilineError to SystemProgram constructor.
@@ -167,10 +173,10 @@ import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstMetaData;
 import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
 
 public class SetupCombine {
-	public static final String rcsid =
-		"$Id$";
+  public static final String rcsid = "$Id$";
 
   private final SystemProgram setupcombine;
   String commandLine;
@@ -178,6 +184,7 @@ public class SetupCombine {
   ConstMetaData metaData;
   boolean debug;
   private final BaseManager manager;
+  private MatchMode matchMode = null;
 
   public SetupCombine(ApplicationManager manager) {
     this.manager = manager;
@@ -196,12 +203,20 @@ public class SetupCombine {
     genStdInputSequence();
   }
 
+  public MatchMode getMatchMode() {
+    return matchMode;
+  }
+
   /**
    * Generate the standard input sequence
    */
   private void genStdInputSequence() {
 
-    ConstCombineParams combineParams = metaData.getConstCombineParams();
+    CombineParams combineParams = metaData.getCombineParams();
+    matchMode = combineParams.getDialogMatchMode();
+    //writing the script, so set the script match mode to be the same as the
+    //screen match mode
+    combineParams.setMatchMode(matchMode);
 
     String[] tempStdInput = new String[15];
 
@@ -212,7 +227,7 @@ public class SetupCombine {
     tempStdInput[lineCount++] = metaData.getDatasetName();
 
     //  Matching relationship
-    if (combineParams.getMatchBtoA()) {
+    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       tempStdInput[lineCount++] = "a";
       if (combineParams.getFiducialMatchListA() != "") {
         tempStdInput[lineCount++] = combineParams.getFiducialMatchListA();
