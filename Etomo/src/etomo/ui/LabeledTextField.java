@@ -22,6 +22,9 @@ import etomo.storage.autodoc.AutodocTokenizer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/01/12 17:11:40  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 3.12  2006/01/11 22:11:56  sueh
  * <p> bug# 675 No longer need to create an instance without a name -
  * <p> removed getNamelessInstance().
@@ -103,6 +106,14 @@ public class LabeledTextField {
   private JPanel panel = new JPanel();
   private JLabel label = new JLabel();
   private JTextField textField = new JTextField();
+
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]\n";
+  }
+
+  protected String paramString() {
+    return "label=" + label.getText() + ",textField=" + textField.getText();
+  }
 
   public LabeledTextField(String tfLabel) {
     //set name
