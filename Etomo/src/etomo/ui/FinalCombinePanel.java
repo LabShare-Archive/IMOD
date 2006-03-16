@@ -56,6 +56,11 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.42  2006/02/07 00:11:19  sueh
+ * bug# 521 Getting the splitcombine process result display from
+ * ProcessResultDisplayFactory so that it is always the Restart at
+ * Volcombine button.
+ *
  * Revision 3.41  2006/01/31 20:58:00  sueh
  * bug# 521 Managing the restart buttons (patchcorr, matchorwarp, and
  * volcombine) in ProcessResultDisplayFactory.
@@ -377,6 +382,27 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final PanelHeader matchorwarpHeader;
   private final PanelHeader volcombineHeader;
 
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]\n";
+  }
+
+  protected String paramString() {
+    return "ltfXPatchSize=" + ltfXPatchSize + ",\nltfYPatchSize="
+        + ltfYPatchSize + ",\nltfZPatchSize=" + ltfZPatchSize
+        + ",\nltfXNPatches=" + ltfXNPatches + ",\nltfYNPatches=" + ltfYNPatches
+        + ",\nltfZNPatches=" + ltfZNPatches + ",\nltfXLow=" + ltfXLow
+        + ",\nltfXHigh=" + ltfXHigh + ",\nltfYLow=" + ltfYLow + ",\nltfYHigh="
+        + ltfYHigh + ",\nltfZLow=" + ltfZLow + ",\nltfZHigh=" + ltfZHigh
+        + ",\ncbUsePatchRegionModel=" + cbUsePatchRegionModel
+        + ",\nltfWarpLimit=" + ltfWarpLimit + ",\nltfRefineLimit="
+        + ltfRefineLimit + ",\nltfXLowerExclude=" + ltfXLowerExclude
+        + ",\nltfXUpperExclude=" + ltfXUpperExclude + ",\nltfZLowerExclude="
+        + ltfZLowerExclude + ",\nltfZUpperExclude=" + ltfZUpperExclude
+        + ",\ncbUseLinearInterpolation=" + cbUseLinearInterpolation
+        + ",\ncbNoVolcombine=" + cbNoVolcombine + ",\nltfReductionFactor="
+        + ltfReductionFactor + ",\ncbParallelProcess=" + cbParallelProcess;
+  }
+
   /**
    * Default constructor
    * 
@@ -664,6 +690,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   public void setXMax(String xMax) {
     ltfXHigh.setText(xMax);
+  }
+
+  public boolean isEnabled() {
+    return tomogramCombinationDialog
+        .isTabEnabled(TomogramCombinationDialog.lblFinal);
   }
 
   public String getXMax() {
