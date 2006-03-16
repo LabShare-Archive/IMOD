@@ -23,6 +23,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
@@ -48,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.32  2006/02/06 21:21:55  sueh
+ * bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ *
  * Revision 3.31  2006/01/31 21:00:35  sueh
  * bug# 521 Managing the combine button in ProcessResultDisplayFactory.
  *
@@ -632,6 +636,17 @@ public final class SetupCombinePanel implements ContextMenu,
     btnCombine.setButtonState(screenState.getButtonState(btnCombine
         .getButtonStateKey()));
   }
+  
+  public boolean isEnabled() {
+    return true;
+  }
+  
+  MatchMode getScreenMatchMode() {
+    if (rbBtoA.isSelected()) {
+      return MatchMode.B_TO_A;
+    }
+    return MatchMode.A_TO_B;
+  }
 
   void setVisible(boolean visible) {
     lblEffectWarning.setVisible(visible);
@@ -663,8 +678,8 @@ public final class SetupCombinePanel implements ContextMenu,
    * @param combineParams
    */
   public void setParameters(ConstCombineParams combineParams) {
-
-    if (combineParams.getMatchBtoA()) {
+    MatchMode matchMode = combineParams.getDialogMatchMode();
+    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       rbBtoA.setSelected(true);
       matchBtoA = true;
     }
@@ -710,8 +725,7 @@ public final class SetupCombinePanel implements ContextMenu,
       throws NumberFormatException {
     String badParameter = "unknown";
     try {
-
-      combineParams.setMatchBtoA(rbBtoA.isSelected());
+      combineParams.setDialogMatchMode(rbBtoA.isSelected());
       pnlSolvematch.getParameters(combineParams);
 
       if (rbSmallPatch.isSelected()) {
@@ -904,6 +918,7 @@ public final class SetupCombinePanel implements ContextMenu,
    * @param event
    */
   protected void rbMatchToAction(ActionEvent event) {
+    tomogramCombinationDialog.updateDisplay();
     updateMatchTo();
   }
 
