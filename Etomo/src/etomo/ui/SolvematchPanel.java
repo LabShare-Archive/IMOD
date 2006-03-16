@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2006/01/12 17:38:03  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 3.16  2006/01/03 23:53:52  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
  * <p> toRadioButton.
@@ -106,7 +109,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Solvematch mid change
  * <p> </p>
  */
-public class SolvematchPanel implements InitialCombineFields, Run3dmodButtonContainer, Expandable {
+public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButtonContainer, Expandable {
 
   private ApplicationManager applicationManager;
 
