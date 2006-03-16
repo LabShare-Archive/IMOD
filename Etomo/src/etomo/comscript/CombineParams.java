@@ -8,6 +8,7 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -24,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/10/19 19:49:29  mast
+ * <p> Limited borderindex by the number of xyborder values
+ * <p>
  * <p> Revision 3.6  2005/07/29 00:43:05  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -106,6 +110,10 @@ import etomo.util.MRCHeader;
 public class CombineParams extends ConstCombineParams implements Storable {
   public static final String rcsid = "$Id$";
 
+  private static final String MATCH_B_TO_A_KEY = "MatchBtoA";
+  private static final String MATCH_MODE_KEY = "MatchMode";
+  private static final String DIALOG_MATCH_MODE_KEY = "DialogMatchMode";
+
   /**
    * Default constructor
    */
@@ -118,7 +126,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
    */
   public CombineParams(ConstCombineParams src) {
     super(src);
-    matchBtoA = src.matchBtoA;
+    dialogMatchMode = src.dialogMatchMode;
+    matchMode = src.matchMode;
     fiducialMatch = src.fiducialMatch;
     fiducialMatchListA = new StringList(src.fiducialMatchListA);
     fiducialMatchListB = new StringList(src.fiducialMatchListB);
@@ -138,8 +147,17 @@ public class CombineParams extends ConstCombineParams implements Storable {
     revisionNumber = revNumber;
   }
 
-  public void setMatchBtoA(boolean isBtoA) {
-    matchBtoA = isBtoA;
+  public void setDialogMatchMode(boolean isBtoA) {
+    if (isBtoA) {
+      dialogMatchMode = MatchMode.B_TO_A;
+    }
+    else {
+      dialogMatchMode = MatchMode.A_TO_B;
+    }
+  }
+  
+  public void setMatchMode(MatchMode dialogMatchMode) {
+    matchMode = dialogMatchMode;
   }
 
   public void setFiducialMatch(FiducialMatch match) {
@@ -225,6 +243,17 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setPatchZMin(int patchZMin) {
     this.patchZMin = patchZMin;
   }
+  
+
+  public void setMaxPatchZMax(String fileName) throws InvalidParameterException,
+      IOException {
+
+    // Get the data size limits from the image stack
+    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        fileName, AxisID.ONLY);
+    mrcHeader.read();
+    maxPatchZMax = mrcHeader.getNRows();
+  }
 
   public void setMaxPatchZMax(int maxPatchZMax) {
     this.maxPatchZMax = maxPatchZMax;
@@ -274,7 +303,24 @@ public class CombineParams extends ConstCombineParams implements Storable {
       group = prepend + "Combine.";
     }
     props.setProperty(group + "RevisionNumber", revisionNumber);
-    props.setProperty(group + "MatchBtoA", String.valueOf(matchBtoA));
+
+    //Start backwards compatibility with RevisionNumber = 1.0
+    props.remove(group + MATCH_B_TO_A_KEY);
+    //End backwards compatibility with RevisionNumber = 1.0
+
+    if (dialogMatchMode == null) {
+      props.remove(group + DIALOG_MATCH_MODE_KEY);
+    }
+    else {
+      props.setProperty(group + DIALOG_MATCH_MODE_KEY, dialogMatchMode
+          .toString());
+    }
+    if (matchMode == null) {
+      props.remove(group + MATCH_MODE_KEY);
+    }
+    else {
+      props.setProperty(group + MATCH_MODE_KEY, matchMode.toString());
+    }
     props.setProperty(group + "FiducialMatch", fiducialMatch.toString());
     props.setProperty(group + "FiducialMatchListA", fiducialMatchListA
         .toString());
@@ -314,11 +360,42 @@ public class CombineParams extends ConstCombineParams implements Storable {
     // Load the combine values if they are present, don't change the
     // current value if the property is not present
 
-    revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
+    revisionNumber = props.getProperty(group + "RevisionNumber", "1.1");
 
-    matchBtoA = Boolean.valueOf(
-        props.getProperty(group + "MatchBtoA", Boolean.toString(matchBtoA)))
-        .booleanValue();
+    //Start backwards compatibility with RevisionNumber = 1.0
+    //load dialogMatchMode
+    //old property was MatchBtoA.  MatchBtoA should be deleted in store()
+    String dialogMatchModeString = props.getProperty(group
+        + DIALOG_MATCH_MODE_KEY);
+    if (dialogMatchModeString == null) {
+      String matchBtoA = props.getProperty(group + MATCH_B_TO_A_KEY);
+      if (matchBtoA == null) {
+        dialogMatchMode = null;
+      }
+      else if ((Boolean.valueOf(matchBtoA).booleanValue())) {
+        dialogMatchMode = MatchMode.B_TO_A;
+      }
+      else {
+        dialogMatchMode = MatchMode.A_TO_B;
+      }
+    }
+    else {
+      MatchMode loadDialogMatchMode = MatchMode
+          .getInstance(dialogMatchModeString);
+      if (loadDialogMatchMode != null) {
+        dialogMatchMode = loadDialogMatchMode;
+      }
+    }
+    //End backwards compatibility with RevisionNumber = 1.0
+
+    if (matchMode == null) {
+      matchMode = MatchMode.getInstance(props.getProperty(group
+          + MATCH_MODE_KEY));
+    }
+    else {
+      matchMode = MatchMode.getInstance(props.getProperty(group
+          + MATCH_MODE_KEY, matchMode.toString()));
+    }
 
     fiducialMatch = FiducialMatch.fromString(props.getProperty(group
         + "FiducialMatch", fiducialMatch.toString()));
@@ -369,7 +446,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       modelBased = false;
     }
-
     maxPatchZMax = Integer.parseInt(props.getProperty(group
         + "MaxPatchBoundaryZMax", String.valueOf(maxPatchZMax)));
   }
@@ -397,7 +473,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
     int borderindex = (int) (minsize / borderinc);
     if (borderindex > 4)
-        borderindex = 4;
+      borderindex = 4;
     int xyborder = xyborders[borderindex];
     patchXMin = xyborder;
     patchXMax = mrcHeader.getNColumns() - xyborder;

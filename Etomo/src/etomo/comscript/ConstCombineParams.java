@@ -7,6 +7,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
 import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
 
@@ -24,6 +25,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/07/29 00:44:21  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.3  2005/07/26 17:09:59  sueh
  * <p> bug# 700 Don't respond to MRCHeader exceptions in isValid() because it
  * <p> is run without the user directly requesting it.
@@ -75,12 +81,12 @@ import etomo.util.MRCHeader;
  */
 
 public class ConstCombineParams {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   protected String revisionNumber = "1.1";
 
-  protected boolean matchBtoA = true;
+  protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
+  protected MatchMode matchMode = null;
   protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
   protected StringList fiducialMatchListA = new StringList(0);
   protected StringList fiducialMatchListB = new StringList(0);
@@ -97,7 +103,7 @@ public class ConstCombineParams {
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
   protected boolean modelBased = false;
-  
+
   protected final BaseManager manager;
 
   protected ArrayList invalidReasons = new ArrayList();
@@ -105,26 +111,27 @@ public class ConstCombineParams {
   public ConstCombineParams(BaseManager manager) {
     this.manager = manager;
   }
-  
+
   public ConstCombineParams(ConstCombineParams src) {
     manager = src.manager;
   }
 
   public boolean equals(ConstCombineParams cmp) {
-    if (!(matchBtoA == cmp.getMatchBtoA())) {
+    if (dialogMatchMode != cmp.dialogMatchMode) {
+      return false;
+    }
+    if (matchMode != cmp.matchMode) {
       return false;
     }
     if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
       return false;
     }
-    if (!fiducialMatchListA
-      .toString()
-      .equals(cmp.getFiducialMatchListA().toString())) {
+    if (!fiducialMatchListA.toString().equals(
+        cmp.getFiducialMatchListA().toString())) {
       return false;
     }
-    if (!fiducialMatchListB
-      .toString()
-      .equals(cmp.getFiducialMatchListB().toString())) {
+    if (!fiducialMatchListB.toString().equals(
+        cmp.getFiducialMatchListB().toString())) {
       return false;
     }
     if (!patchSize.equals(cmp.getPatchSize())) {
@@ -167,12 +174,8 @@ public class ConstCombineParams {
    * Returns true if the patch boundary values have been modified
    */
   public boolean isPatchBoundarySet() {
-    if (patchXMin == 0
-      && patchXMax == 0
-      && patchYMin == 0
-      && patchYMax == 0
-      && patchZMin == 0
-      && patchZMax == 0) {
+    if (patchXMin == 0 && patchXMax == 0 && patchYMin == 0 && patchYMax == 0
+        && patchZMin == 0 && patchZMax == 0) {
       return false;
     }
     return true;
@@ -223,10 +226,9 @@ public class ConstCombineParams {
     }
     if (maxPatchZMax > 0 && patchZMax > maxPatchZMax) {
       valid = false;
-      invalidReasons.add(
-        "Z max value is greater than the maximum Z max value ("
-          + maxPatchZMax
-          + ")");
+      invalidReasons
+          .add("Z max value is greater than the maximum Z max value ("
+              + maxPatchZMax + ")");
     }
     if (patchZMin > patchZMax) {
       valid = false;
@@ -234,7 +236,7 @@ public class ConstCombineParams {
     }
     //get the tomogram header to check x, y, and z
     AxisID axisID;
-    if (matchBtoA) {
+    if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
     }
     else {
@@ -290,8 +292,16 @@ public class ConstCombineParams {
     return revisionNumber;
   }
 
-  public boolean getMatchBtoA() {
-    return matchBtoA;
+  public MatchMode getDialogMatchMode() {
+    return dialogMatchMode;
+  }
+  
+  public MatchMode getMatchMode() {
+    return matchMode;
+  }
+
+  public MatchMode getScriptMatchMode() {
+      return matchMode;
   }
 
   public FiducialMatch getFiducialMatch() {
@@ -321,6 +331,7 @@ public class ConstCombineParams {
   public boolean getManualCleanup() {
     return manualCleanup;
   }
+
   /**
    * Returns the patchXMax.
    * @return int
@@ -368,7 +379,7 @@ public class ConstCombineParams {
   public int getPatchZMin() {
     return patchZMin;
   }
-  
+
   public int getMaxPatchZMax() {
     return maxPatchZMax;
   }
