@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.comscript.ArchiveorigParam;
-import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
@@ -34,6 +33,7 @@ import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SetParam;
+import etomo.comscript.SetupCombine;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
@@ -71,6 +71,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.InvalidEtomoNumberException;
+import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -468,18 +469,7 @@ public class ApplicationManager extends BaseManager {
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        try {
-          processMgr.setupComScripts(metaData, AxisID.ONLY);
-        }
-        catch (BadComScriptException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-              "Can't run copytomocoms", AxisID.ONLY);
-          return;
-        }
-        catch (IOException except) {
-          uiHarness.openMessageDialog("Can't run copytomocoms\n"
-              + except.getMessage(), "Copytomocoms IOException", AxisID.ONLY);
+        if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
           return;
         }
       }
@@ -4078,7 +4068,8 @@ public class ApplicationManager extends BaseManager {
           .getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
         String recFileName;
-        if (combineParams.getMatchBtoA()) {
+        MatchMode matchMode = combineParams.getDialogMatchMode();
+        if (matchMode == null || matchMode == MatchMode.B_TO_A) {
           recFileName = metaData.getDatasetName() + "a.rec";
         }
         else {
@@ -4109,10 +4100,12 @@ public class ApplicationManager extends BaseManager {
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
+      tomogramCombinationDialog.setScriptMatchMode(combineParams
+          .getScriptMatchMode());
       // If setupcombine has been run load the com scripts, otherwise disable the
       // apropriate panels in the tomogram combination dialog
-      tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
-      if (combineScriptsExist()) {
+      //tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
+      if (combineScriptsExist() && tomogramCombinationDialog.isUpToDate()) {
         // Check to see if a solvematch.com file exists and load it if so
         //otherwise load the correct old solvematch* file
         File solvematch = new File(propertyUserDir, "solvematch.com");
@@ -4141,6 +4134,7 @@ public class ApplicationManager extends BaseManager {
         loadCombineComscript();
         tomogramCombinationDialog.synchronize(
             TomogramCombinationDialog.lblSetup, false);
+        //TEMP
         updateCombineParams();
       }
     }
@@ -4218,10 +4212,10 @@ public class ApplicationManager extends BaseManager {
     // Get the latest combine parameters from the dialog
     updateCombineParams();
     AxisID axisID;
-    boolean matchBtoA = metaData.getCombineParams().getMatchBtoA();
+    MatchMode matchMode = metaData.getCombineParams().getDialogMatchMode();
     //TEMP
-    System.err.println("matchBtoA=" + matchBtoA);
-    if (matchBtoA) {
+    System.err.println("matchMode=" + matchMode);
+    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
     }
     else {
@@ -4268,7 +4262,8 @@ public class ApplicationManager extends BaseManager {
    */
   public void imodMatchedToTomogram(Run3dmodMenuOptions menuOptions) {
     AxisID axisID;
-    if (metaData.getCombineParams().getMatchBtoA()) {
+    MatchMode matchMode = metaData.getCombineParams().getDialogMatchMode();
+    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
     }
     else {
@@ -4312,18 +4307,10 @@ public class ApplicationManager extends BaseManager {
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
-      
-      //Don't send the setup values to combine param (which saves to the .edf
-      //file unless create combine scripts is being run or a script is being
-      //updated.  In the combine setup tab, screen values should reflect the
-      //state of the script instead of the values that the user places there.
-      //This is because Create Combine Scripts is used to create the scripts 
-      //instead of saving them directly from the screen, so the values in .edf
-      //file and the values in the scripts can get out of sync.
-      //updateCombineParams();
+      updateCombineParams();
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
-      if (tomogramCombinationDialog.isCombinePanelEnabled()) {
+      if (tomogramCombinationDialog.isUpToDate()) {
         if (!updateSolvematchCom()) {
           return;
         }
@@ -4410,8 +4397,16 @@ public class ApplicationManager extends BaseManager {
     loadVolcombine();
     loadCombineComscript();
 
-    tomogramCombinationDialog.enableCombineTabs(true);
+    //tomogramCombinationDialog.enableCombineTabs(true);
     mainPanel.stopProgressBar(AxisID.ONLY);
+  }
+
+  public void msgSetupCombineScriptsSucceeded(SetupCombine setupCombine) {
+    if (tomogramCombinationDialog == null) {
+      throw new IllegalStateException(
+          "tomogramCombinationDialog cannot be null");
+    }
+    tomogramCombinationDialog.setScriptMatchMode(setupCombine.getMatchMode());
   }
 
   /**
@@ -4429,9 +4424,40 @@ public class ApplicationManager extends BaseManager {
               "Program logic error", AxisID.ONLY);
       return;
     }
-    CombineParams combineParams = new CombineParams(this);
+    //start with existing combine params and update it from the screen
+    CombineParams combineParams = metaData.getCombineParams();
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
+      String recFileName;
+      MatchMode matchMode = combineParams.getDialogMatchMode();
+      if (matchMode == null || matchMode == MatchMode.B_TO_A) {
+        recFileName = metaData.getDatasetName() + "a.rec";
+      }
+      else {
+        recFileName = metaData.getDatasetName() + "b.rec";
+      }
+      try {
+        combineParams.setMaxPatchZMax(recFileName);
+      }
+      catch (InvalidParameterException except) {
+        String[] detailedMessage = new String[4];
+        detailedMessage[0] = "Unable to get max patch Z boundary";
+        detailedMessage[1] = "Are both tomograms computed and available?";
+        detailedMessage[2] = "";
+        detailedMessage[3] = except.getMessage();
+        uiHarness.openMessageDialog(detailedMessage, "Invalid parameter: "
+            + recFileName, AxisID.ONLY);
+        // Delete the dialog
+        tomogramCombinationDialog = null;
+        return;
+      }
+      catch (IOException except) {
+        uiHarness.openMessageDialog(except.getMessage(), "IO Error: "
+            + recFileName, AxisID.ONLY);
+        //Delete the dialog
+        tomogramCombinationDialog = null;
+        return;
+      }
       if (!combineParams.isValid(true)) {
         uiHarness.openMessageDialog(combineParams.getInvalidReasons(),
             "Invalid combine parameters", AxisID.ONLY);
@@ -6093,6 +6119,13 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.210  2006/02/20 22:08:44  sueh
+ * <p> bug# 828 Don't save values from Combine Setup tab to the .edf on exit
+ * <p> because they might contradict values that where saved by Create Combine
+ * <p> Scripts.  So Combine Setup does not hold the screen values, unlike other
+ * <p> dialogs.  This is because the script values are set by Create Combine
+ * <p> Scripts and not written directly from the screen.
+ * <p>
  * <p> Revision 3.209  2006/02/07 00:08:28  sueh
  * <p> bug# 521 Getting the splitcombine process result display from
  * <p> ProcessResultDisplayFactory so that it is always the Restart at
