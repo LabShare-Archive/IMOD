@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2005/11/02 21:35:51  sueh
+ * bug# 754 Parsing errors and warnings inside ProcessMessages.
+ * Replaced getErrors() and getWarnings() with getProcessMessages.
+ *
  * Revision 3.14  2005/10/28 18:46:06  sueh
  * bug# 725 standardizing message parsing in SystemProgram.  Passing
  * multilineError to SystemProgram constructor.
@@ -175,7 +179,6 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -475,7 +478,7 @@ public class CopyTomoComs {
    * @return @throws
    *         IOException
    */
-  public int run() throws IOException {
+  public int run() {
     int exitValue;
 
     //  Delete the rawtilt files if extract raw tilts is selected
@@ -485,11 +488,6 @@ public class CopyTomoComs {
     copytomocoms.setDebug(debug);
     copytomocoms.run();
     exitValue = copytomocoms.getExitValue();
-
-    //  TODO we really need to find out what the exception/error condition was
-    if (exitValue != 0) {
-      throw (new IOException(copytomocoms.getExceptionMessage()));
-    }
     return exitValue;
   }
 
