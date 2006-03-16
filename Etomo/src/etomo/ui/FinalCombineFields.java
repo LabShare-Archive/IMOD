@@ -14,6 +14,11 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2005/11/21 20:46:30  sueh
+* <p> $bug# 772 Disabling the parallel process checkbox when the cpu.adoc is
+* <p> $missing.  Copy parallel process checkbox's enabled setting from the
+* <p> $Setup to the Final tab.
+* <p> $
 * <p> $Revision 1.4  2005/10/15 00:33:20  sueh
 * <p> $bug# 532 Standardized is and set parallel processing checkbox functions
 * <p> $to setParallel() and isParallel().
@@ -53,4 +58,5 @@ interface FinalCombineFields {
   public boolean isParallelEnabled();
   public void setNoVolcombine(boolean noVolcombine);
   public boolean isNoVolcombine();
+  public boolean isEnabled();
 }

@@ -16,6 +16,9 @@ import etomo.type.FiducialMatch;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2004/06/14 23:39:53  rickg
+* <p> $Bug #383 Transitioned to using solvematch
+* <p> $
 * <p> $Revision 1.2  2004/05/11 21:46:48  sueh
 * <p> $bug# 302 making InitialCombineFields interface local to the
 * <p> $ui package
@@ -36,5 +39,5 @@ interface InitialCombineFields {
   public String getFiducialMatchListA();
   public void setFiducialMatchListB(String fiducialMatchListB);
   public String getFiducialMatchListB();
-
+  public boolean isEnabled();
 }
