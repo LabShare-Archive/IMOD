@@ -59,7 +59,7 @@ public final class ProcessMessages {
     return new ProcessMessages(false, true);
   }
 
-  ProcessMessages(boolean multiLineMessages, boolean chunks) {
+  private ProcessMessages(boolean multiLineMessages, boolean chunks) {
     this.multiLineMessages = multiLineMessages;
     this.chunks = chunks;
   }
@@ -681,6 +681,10 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/11/30 21:15:11  sueh
+ * <p> bug# 744 Adding addProcessOutput(String[]) to get standard out error
+ * <p> messages.
+ * <p>
  * <p> Revision 1.2  2005/11/19 02:38:58  sueh
  * <p> bug# 744 Added parsing and separate storage for chunk errors.  Added
  * <p> addProcessOutput(String) for output that must be handled one line at a
