@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.92  2006/02/22 19:06:56  sueh
+ * bug# 817 ModelToPatch():  don't try to move patch.out to patch.out~ if
+ * patch.out doesn't exist.
+ *
  * Revision 3.91  2006/01/31 20:46:03  sueh
  * bug# 521 Made trim vol a toggle button and added ProcessResultDisplay
  * to process.
@@ -764,7 +768,6 @@ import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
-import etomo.comscript.BadComScriptException;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
@@ -806,8 +809,7 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  public void setupComScripts(ConstMetaData metaData, AxisID axisID)
-      throws BadComScriptException, IOException {
+  public boolean setupComScripts(ConstMetaData metaData, AxisID axisID) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
     if (EtomoDirector.getInstance().isDebug()) {
@@ -816,37 +818,24 @@ public class ProcessManager extends BaseProcessManager {
     }
     appManager.saveIntermediateParamFile(axisID);
     int exitValue = copyTomoComs.run();
-
-    if (exitValue != 0) {
-      System.err.println("Exit value: " + String.valueOf(exitValue));
-
-      //  Compile the exception message from the stderr stream
-      String[] stdError = copyTomoComs.getStdError();
-      if (stdError == null || stdError.length < 1) {
-        stdError = new String[1];
-        stdError[0] = "Get David to add some std error reporting to copytomocoms";
-      }
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("Copytomocoms Error\n");
-      buffer.append("Standard error output:\n");
-      for (int i = 0; i < stdError.length; i++) {
-        buffer.append(stdError[i]);
-        buffer.append("\n");
-      }
-
-      throw (new BadComScriptException(buffer.toString()));
-    }
-    else {
-      ProcessMessages messages = copyTomoComs.getProcessMessages();
+    //process messages
+    ProcessMessages messages = copyTomoComs.getProcessMessages();
+    if (messages.isError()) {
+      StringBuffer errorMessage = new StringBuffer("Error running Copytomocoms");
       for (int i = 0; i < messages.errorListSize(); i++) {
-        UIHarness.INSTANCE.openMessageDialog(messages.getError(i),
-            "Copytomocoms Error", axisID);
+        errorMessage.append("\n" + messages.getError(i));
       }
-      for (int i = 0; i < messages.warningListSize(); i++) {
-        UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
-            "Copytomocoms Warning", axisID);
-      }
+      UIHarness.INSTANCE.openMessageDialog(errorMessage.toString(),
+          "Copytomocoms Error", axisID);
     }
+    for (int i = 0; i < messages.warningListSize(); i++) {
+      UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
+          "Copytomocoms Warning", axisID);
+    }
+    if (exitValue != 0) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -1428,6 +1417,7 @@ public class ProcessManager extends BaseProcessManager {
       return false;
     }
     processResultDisplay.msgProcessSucceeded();
+    appManager.msgSetupCombineScriptsSucceeded(setupCombine);
     return true;
   }
 
