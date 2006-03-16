@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/15/06: Parallel processing for a single computer with multiple CPUs is now
+available in Windows.
+
+3/15/06: Fixed a problem in Etomo - Combine Tomogram where the wrong .rec file
+was opened when opening patch region model.
+
+3/15/06: Fixed a problem in Etomo - Combine Tomogram where the wrong .rec file
+was used for error checking.
+
+3/15/06: Fixed a problem in Etomo - Combine Tomogram where the X and Y values
+could become out of synchronization with the match direction.
+
+3/15/06: Fixed a problem in Etomo - Setup Tomogram where a failure of
+copytomocoms did not cause a useful error message to pop up.
+
 3/7/06: IMOD_3-8-3
 3/7/06: Changed Findcontrast to take PIP input and take unflipped or flipped
 coordinates, and added options to Trimvol for setting X and Y limits in running
@@ -40,8 +55,11 @@ the requested item, and made Copytomocoms pass error on. (In 3.7)
 2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when 
 patch.out is missing. (In 3.7)
 
+<<<<<<< History
+=======
 2/20/06: Fixed archiving of original stack to work under Windows. (In 3.7)
 
+>>>>>>> 3.381
 2/15/06: Revised scripts to use new header and strip control characters from
 output of header and other programs, since new sed in cygwin does not take
 care of this unless CYGWIN is set to nobinmode. (In 3.7)
