@@ -134,7 +134,9 @@ public class IntermittentBackgroundProcess implements Runnable {
     if (monitors.size() == 0) {
       stopped = true;
     }
-    program.msgDroppedMonitor(monitor);
+    if (program != null) {
+      program.msgDroppedMonitor(monitor);
+    }
   }
   
   final boolean isStopped() {
@@ -218,6 +220,10 @@ public class IntermittentBackgroundProcess implements Runnable {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2005/12/01 00:24:12  sueh
+* <p> bug# 775 Need to decide whether the computer that the command is
+* <p> talking to is local or remote.  Use RemotePath to find this out.
+* <p>
 * <p> Revision 1.2  2005/09/14 20:25:58  sueh
 * <p> bug# 532 Added drop() to remove a monitor from the listener list.  It is
 * <p> important for the called to prevent any last-minute gets after the drop() is
