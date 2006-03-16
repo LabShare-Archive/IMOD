@@ -33,6 +33,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2006/01/31 20:58:22  sueh
+ * <p> bug# 521 Managing the restart buttons (combine and matchvol1) in
+ * <p> ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.23  2006/01/26 22:04:59  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
@@ -258,6 +262,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   final void setVisible(boolean visible) {
     pnlSolvematch.setVisible(visible);
+  }
+  
+  public boolean isEnabled() {
+    return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblInitial);
   }
 
   /**
