@@ -43,6 +43,9 @@ fi
 #  Workaround for java 1.4.0 / new threading library clash
 export LD_ASSUME_KERNEL=2.4.1
 
+#  Make sure awk produces . not , for decimal in floating point output
+export LC_NUMERIC=C
+
 # Test for existance of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
   echo "The IMOD_DIR environment variable has not been set"
@@ -125,6 +128,10 @@ else
 fi
 
 # $Log$
+# Revision 1.17  2005/12/23 01:53:18  sueh
+# bug# 786 Added help message to Etomo.  If -h or --help is detected in the
+# first parameters, don't use or roll the log files and don't run disconnected.
+#
 # Revision 1.16  2005/11/18 23:35:47  mast
 # Switched from timestamped local error logs to simple rolling numbered logs
 #
