@@ -128,7 +128,8 @@ rotation per micron of Z height.  If -gradient has been entered, this option
 can be used to increment the values in the gradient file for each section. 
 If -gradient has
 not been entered, the values entered here will be used for all sections; but in
-this case the -tilt option must be entered to provide additional information.
+this case the -geometry option must be entered to provide additional
+information, and also -tiltfile if the data are at different tilt angles.
 
 [Field = TiltFile]
 short = tiltfile
