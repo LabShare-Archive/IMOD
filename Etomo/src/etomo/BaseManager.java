@@ -34,7 +34,7 @@ import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.UserConfiguration;
 import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
-import etomo.ui.ParallelDialog;
+import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
 import etomo.ui.ProcessDialog;
 import etomo.ui.UIHarness;
@@ -137,12 +137,14 @@ public abstract class BaseManager {
   //FIXME needs to be public?
   public abstract boolean isNewManager();
 
-  public abstract void setTestParamFile(File paramFile);
+  public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
 
   protected abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay);
+  
+  public abstract String getName();
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -888,7 +890,7 @@ public abstract class BaseManager {
    * Run processchunks.
    * @param axisID
    */
-  protected final void processchunks(AxisID axisID, ParallelDialog dialog,
+  protected void processchunks(AxisID axisID, AbstractParallelDialog dialog,
       ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
       processResultDisplay.msgProcessFailedToStart();
@@ -902,7 +904,10 @@ public abstract class BaseManager {
       processResultDisplay.msgProcessFailedToStart();
       return;
     }
-    getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
+    BaseProcessTrack processTrack = getProcessTrack();
+    if (processTrack != null) {
+      getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
+    }
     getMainPanel().setState(ProcessState.INPROGRESS, axisID, dialog);
     //param should never be set to resume
     parallelPanel.resetResults();
@@ -930,7 +935,7 @@ public abstract class BaseManager {
    * @param axisID
    * @param dialog
    */
-  public final void setParallelDialog(AxisID axisID, ParallelDialog dialog) {
+  public final void setParallelDialog(AxisID axisID, AbstractParallelDialog dialog) {
     getMainPanel().setParallelDialog(axisID, dialog.isParallel());
   }
 
@@ -971,6 +976,12 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.53  2006/01/31 20:35:17  sueh
+ * <p> bug# 521 Added doneProcessDialog, a function which should be called
+ * <p> by all of the ApplicationManager done functions.  It calls
+ * <p> ProcessDialog.done().  Creating the ProcessResultDisplayFactory's with
+ * <p> screen states, so that the displays can save their states.
+ * <p>
  * <p> Revision 1.52  2006/01/26 21:46:30  sueh
  * <p> bug# 401 Removing processResultDisplayA and B before this method will
  * <p> fail when the user presses the same button twice.  Passing the
