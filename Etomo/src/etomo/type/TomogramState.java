@@ -24,6 +24,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2005/08/24 22:40:18  sueh
+* <p> bug# 715 Added invalidEdgeFunctionsA and B.
+* <p>
 * <p> Revision 1.14  2005/07/29 00:53:47  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -296,7 +299,7 @@ public class TomogramState implements BaseState {
     //If trimvol has not been run, then assume that the tomogram has not been
     //flipped.
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    String datasetName = manager.getBaseMetaData().getName();
+    String datasetName = manager.getName();
     File trimvolFile = new File(manager.getPropertyUserDir(),
         TrimvolParam.getOutputFileName(datasetName));
     if (!trimvolFile.exists()) {
@@ -332,7 +335,7 @@ public class TomogramState implements BaseState {
    */
   public boolean getBackwardCompatibleUsedLocalAlignments(AxisID axisID) {
     String userDir = manager.getPropertyUserDir();
-    String datasetName = manager.getBaseMetaData().getName();
+    String datasetName = manager.getName();
     File localXfFile = new File(userDir,
         datasetName + axisID.getExtension() + "local.xf");
     File transformFile = new File(userDir,
@@ -368,7 +371,7 @@ public class TomogramState implements BaseState {
   public boolean getBackwardCompatibleMadeZFactors(AxisID axisID) {
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
     String userDir = manager.getPropertyUserDir();
-    String datasetName = manager.getBaseMetaData().getName();
+    String datasetName = manager.getName();
     File zFactorFile = new File(userDir, TiltalignParam.getOutputZFactorFileName(datasetName, axisID));
     File tltxfFile = new File(userDir, datasetName + axisID.getExtension() + ".tltxf");
     if (!zFactorFile.exists()) {
