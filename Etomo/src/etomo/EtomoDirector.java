@@ -13,11 +13,13 @@ import javax.swing.plaf.FontUIResource;
 
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
+import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
+import etomo.type.ParallelMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
@@ -374,6 +376,11 @@ public class EtomoDirector {
     closeDefaultWindow(axisID);
     return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent, axisID);
   }
+  
+  public UniqueKey openParallel(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openParallel(ParallelMetaData.getNewTitle(), makeCurrent, axisID);
+  }
 
   private UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent,
       AxisID axisID) {
@@ -382,6 +389,15 @@ public class EtomoDirector {
     }
     return openJoin(etomoJoinFile.getAbsolutePath(), makeCurrent, axisID);
   }
+  
+  private UniqueKey openParallel(File etomoParallelFile, boolean makeCurrent,
+      AxisID axisID) {
+    if (etomoParallelFile == null) {
+      return openParallel(makeCurrent, axisID);
+    }
+    return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent, axisID);
+  }
+
 
   private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent,
       AxisID axisID) {
@@ -396,10 +412,24 @@ public class EtomoDirector {
     }
     return setManager(manager, makeCurrent);
   }
+  
+  private UniqueKey openParallel(String parallelFileName, boolean makeCurrent,
+      AxisID axisID) {
+    ParallelManager manager;
+    if (parallelFileName == null
+        || parallelFileName.equals(ParallelMetaData.getNewTitle())) {
+      manager = new ParallelManager();
+      uiHarness.setEnabledNewParallelMenuItem(false);
+    }
+    else {
+      manager = new ParallelManager(parallelFileName);
+    }
+    return setManager(manager, makeCurrent);
+  }
 
   private UniqueKey setManager(BaseManager manager, boolean makeCurrent) {
     UniqueKey managerKey;
-    managerKey = managerList.add(manager.getBaseMetaData().getName(), manager);
+    managerKey = managerList.add(manager.getName(), manager);
     uiHarness.addWindow(manager, managerKey);
     if (makeCurrent) {
       uiHarness.selectWindowMenuItem(managerKey, true);
@@ -445,6 +475,10 @@ public class EtomoDirector {
     JoinFileFilter joinFileFilter = new JoinFileFilter();
     if (joinFileFilter.accept(dataFile)) {
       return openJoin(dataFile, makeCurrent, axisID);
+    }
+    ParallelFileFilter parallelFileFilter = new ParallelFileFilter();
+    if (parallelFileFilter.accept(dataFile)) {
+      return openParallel(dataFile, makeCurrent, axisID);
     }
     String[] message = { "Unknown file type " + dataFile.getName() + ".",
         "Open this file as an " + etomoFileFilter.getDescription() + "?" };
@@ -971,6 +1005,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2006/02/09 22:43:28  sueh
+ * <p> Added the imod directory to the stderr prints
+ * <p>
  * <p> Revision 1.39  2006/01/04 20:16:39  sueh
  * <p> bug# 675 Removed kill Etomo functionality.  Running each test separately
  * <p> from a script so that each instance of Etomo will have a separate virtual
