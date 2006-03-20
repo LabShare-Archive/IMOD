@@ -29,39 +29,40 @@ public final class ProcessResultDisplayFactory {
 
   private final BaseScreenState screenState;
   private final Vector dependentDisplayList = new Vector();
-  
+
+  //Recon
   //preprocessing
-  
+
   private final ProcessResultDisplay findXRays = PreProcessingDialog
-  .getFindXRaysDisplay();
+      .getFindXRaysDisplay();
   private final ProcessResultDisplay createFixedStack = PreProcessingDialog
-  .getCreateFixedStackDisplay();
+      .getCreateFixedStackDisplay();
   private final ProcessResultDisplay useFixedStack = PreProcessingDialog
-  .getUseFixedStackDisplay();
-  
+      .getUseFixedStackDisplay();
+
   //coarse alignment
-  
+
   private final ProcessResultDisplay crossCorrelate = CoarseAlignDialog
-  .getCrossCorrelateDisplay();
+      .getCrossCorrelateDisplay();
   private final ProcessResultDisplay distortionCorrectedStack = CoarseAlignDialog
-  .getDistortionCorrectedStackDisplay();
+      .getDistortionCorrectedStackDisplay();
   private final ProcessResultDisplay fixEdgesMidas = CoarseAlignDialog
-  .getFixEdgesMidasDisplay();
+      .getFixEdgesMidasDisplay();
   private final ProcessResultDisplay coarseAlign = CoarseAlignDialog
-  .getCoarseAlignDisplay();
+      .getCoarseAlignDisplay();
   private final ProcessResultDisplay midas = CoarseAlignDialog
-  .getMidasDisplay();
-  
+      .getMidasDisplay();
+
   //fiducial model
-  
+
   private final ProcessResultDisplay transferFiducials = FiducialModelDialog
-  .getTransferFiducialsDisplay();
+      .getTransferFiducialsDisplay();
   private final ProcessResultDisplay seedFiducialModel = FiducialModelDialog
-  .getSeedFiducialModelDisplay();
+      .getSeedFiducialModelDisplay();
   private final ProcessResultDisplay trackFiducials = FiducialModelDialog
-  .getTrackFiducialsDisplay();
+      .getTrackFiducialsDisplay();
   private final ProcessResultDisplay fixFiducialModel = FiducialModelDialog
-  .getFixFiducialModelDisplay();
+      .getFixFiducialModelDisplay();
 
   //fine alignment
 
@@ -93,7 +94,7 @@ public final class ProcessResultDisplayFactory {
       .getDeleteAlignedStackDisplay();
 
   //combination
-  
+
   private final ProcessResultDisplay createCombine = TomogramCombinationDialog
       .getCreateCombineDisplay();
   private final ProcessResultDisplay combine = TomogramCombinationDialog
@@ -176,9 +177,9 @@ public final class ProcessResultDisplayFactory {
           .get(i));
     }
   }
-  
+
   //preprocessing
-  
+
   public ProcessResultDisplay getFindXRays() {
     if (!findXRays.isInitialized()) {
       findXRays.setInitialized(true);
@@ -187,7 +188,7 @@ public final class ProcessResultDisplayFactory {
     }
     return findXRays;
   }
-  
+
   public ProcessResultDisplay getCreateFixedStack() {
     if (!createFixedStack.isInitialized()) {
       createFixedStack.setInitialized(true);
@@ -196,7 +197,7 @@ public final class ProcessResultDisplayFactory {
     }
     return createFixedStack;
   }
-  
+
   public ProcessResultDisplay getUseFixedStack() {
     if (!useFixedStack.isInitialized()) {
       useFixedStack.setInitialized(true);
@@ -205,9 +206,9 @@ public final class ProcessResultDisplayFactory {
     }
     return useFixedStack;
   }
-  
+
   //coarse alignment
-  
+
   public ProcessResultDisplay getCrossCorrelate() {
     if (!crossCorrelate.isInitialized()) {
       crossCorrelate.setInitialized(true);
@@ -216,7 +217,7 @@ public final class ProcessResultDisplayFactory {
     }
     return crossCorrelate;
   }
-  
+
   public ProcessResultDisplay getDistortionCorrectedStack() {
     if (!distortionCorrectedStack.isInitialized()) {
       distortionCorrectedStack.setInitialized(true);
@@ -225,7 +226,7 @@ public final class ProcessResultDisplayFactory {
     }
     return distortionCorrectedStack;
   }
-  
+
   public ProcessResultDisplay getFixEdgesMidas() {
     if (!fixEdgesMidas.isInitialized()) {
       fixEdgesMidas.setInitialized(true);
@@ -234,7 +235,7 @@ public final class ProcessResultDisplayFactory {
     }
     return fixEdgesMidas;
   }
-  
+
   public ProcessResultDisplay getCoarseAlign() {
     if (!coarseAlign.isInitialized()) {
       coarseAlign.setInitialized(true);
@@ -243,7 +244,7 @@ public final class ProcessResultDisplayFactory {
     }
     return coarseAlign;
   }
-  
+
   public ProcessResultDisplay getMidas() {
     if (!midas.isInitialized()) {
       midas.setInitialized(true);
@@ -252,9 +253,9 @@ public final class ProcessResultDisplayFactory {
     }
     return midas;
   }
-  
+
   //fiducial model
-  
+
   public ProcessResultDisplay getTransferFiducials() {
     if (!transferFiducials.isInitialized()) {
       transferFiducials.setInitialized(true);
@@ -263,7 +264,7 @@ public final class ProcessResultDisplayFactory {
     }
     return transferFiducials;
   }
-  
+
   public ProcessResultDisplay getSeedFiducialModel() {
     if (!seedFiducialModel.isInitialized()) {
       seedFiducialModel.setInitialized(true);
@@ -272,7 +273,7 @@ public final class ProcessResultDisplayFactory {
     }
     return seedFiducialModel;
   }
-  
+
   public ProcessResultDisplay getTrackFiducials() {
     if (!trackFiducials.isInitialized()) {
       trackFiducials.setInitialized(true);
@@ -281,7 +282,7 @@ public final class ProcessResultDisplayFactory {
     }
     return trackFiducials;
   }
-  
+
   public ProcessResultDisplay getFixFiducialModel() {
     if (!fixFiducialModel.isInitialized()) {
       fixFiducialModel.setInitialized(true);
@@ -484,6 +485,11 @@ public final class ProcessResultDisplayFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/02/06 21:18:17  sueh
+ * <p> bug 521 Added all the process dialog toggle buttons.  Added an array
+ * <p> of dependent displays.  Making the displays final so they can be added as
+ * <p> dependent displays before they are initialized.
+ * <p>
  * <p> Revision 1.1  2006/01/31 20:52:33  sueh
  * <p> bug# 521 Class to manage toggle buttons that affect or can be affected
  * <p> by other toggle buttons.  Defines how ProcessResultDisplay's affect each
