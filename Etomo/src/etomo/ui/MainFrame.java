@@ -31,6 +31,12 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2006/01/11 22:14:53  sueh
+ * <p> bug# 675 During JFCUnitTests prevent the main Etomo window from
+ * <p> closing before the tearDown function is called by preventing
+ * <p> processWindowEvent() from calling menu.doClickFileExit() when
+ * <p> EtomoDirector.test is true.
+ * <p>
  * <p> Revision 3.39  2006/01/04 20:26:13  sueh
  * <p> bug# 675 Removed kill Etomo functionality.  Running each test separately
  * <p> from a script so that each instance of Etomo will have a separate virtual
@@ -460,7 +466,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     else {
       mainPanel = currentManager.getMainPanel();
-      title = currentManager.getBaseMetaData().getName() + " - " + etomoTitle;
+      title = currentManager.getName() + " - " + etomoTitle;
       rootPanel.add(windowSwitch.getPanel(managerKey));
       mainPanel.addMouseListener(mouseAdapter);
       setEnabled(currentManager);
