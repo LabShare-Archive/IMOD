@@ -27,6 +27,9 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2005/10/29 00:06:03  sueh
+* <p> bug# 532 Turning off parallel panel when displaying a blank dialog.
+* <p>
 * <p> Revision 1.16  2005/09/21 16:44:30  sueh
 * <p> bug# 532 Added setState(ProcessState, AxisID, ParallelDialog) and
 * <p> setState(ProcessState, AxisID, DialogType) so that one processchunks
@@ -231,7 +234,7 @@ public class MainTomogramPanel extends MainPanel {
   }
 
   public final void setState(ProcessState processState, AxisID axisID,
-      ParallelDialog parallelDialog) {
+      AbstractParallelDialog parallelDialog) {
     setState(processState, axisID, parallelDialog.getDialogType());
   }
 

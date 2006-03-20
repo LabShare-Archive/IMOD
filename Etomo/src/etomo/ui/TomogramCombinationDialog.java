@@ -50,6 +50,12 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2006/03/16 02:01:31  sueh
+ * <p> bug# 828 Added isUpToDate() which compares the dialog match mode
+ * <p> against the script match mode.  Added scriptMatchMode.  Turning off
+ * <p> synchronization with isUpToDate() is false.  Disable initial and final
+ * <p> tabs when isUpToDate() is false.
+ * <p>
  * <p> Revision 3.36  2006/02/06 21:22:17  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
@@ -278,7 +284,7 @@ import etomo.type.ReconScreenState;
  * <p> </p>
  */
 public final class TomogramCombinationDialog extends ProcessDialog implements
-    ContextMenu, ParallelDialog {
+    ContextMenu, AbstractParallelDialog {
   public static final String rcsid = "$Id$";
 
   private static final int SETUP_INDEX = 0;

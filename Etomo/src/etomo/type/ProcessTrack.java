@@ -1,7 +1,7 @@
 package etomo.type;
 
 import etomo.process.ProcessState;
-import etomo.ui.ParallelDialog;
+import etomo.ui.AbstractParallelDialog;
 
 import java.util.Properties;
 
@@ -18,6 +18,11 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/09/21 16:18:06  sueh
+ * <p> bug# 532 Added setState(ProcessState, AxisID, ParallelDialog) and
+ * <p> setState(ProcessState, AxisID, DialogType) so that one processchunks
+ * <p> function in BaseManager can handle multiple dialogs.
+ * <p>
  * <p> Revision 3.3  2005/03/24 17:49:08  sueh
  * <p> bug# 621 Added Clean Up dialog state.
  * <p>
@@ -302,7 +307,7 @@ public class ProcessTrack implements BaseProcessTrack {
   }
   
   public final void setState(ProcessState processState, AxisID axisID,
-      ParallelDialog parallelDialog) {
+      AbstractParallelDialog parallelDialog) {
     setState(processState, axisID, parallelDialog.getDialogType());
   }
 

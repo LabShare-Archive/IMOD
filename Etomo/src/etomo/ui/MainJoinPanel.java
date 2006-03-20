@@ -25,6 +25,10 @@ import etomo.type.BaseMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/09/21 16:38:57  sueh
+* <p> bug# 532 Added empty implementation of setState(), which is required by
+* <p> MainPanel.
+* <p>
 * <p> Revision 1.8  2005/08/04 20:11:52  sueh
 * <p> bug# 532  Centralizing fit window functionality by placing fitting functions
 * <p> in UIHarness.  Removing packMainWindow from the manager.  Sending
@@ -187,6 +191,6 @@ public class MainJoinPanel extends MainPanel {
   }
 
   public final void setState(ProcessState processState, AxisID axisID,
-      ParallelDialog parallelDialog) {
+      AbstractParallelDialog parallelDialog) {
   }
 }

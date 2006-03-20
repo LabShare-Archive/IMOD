@@ -71,6 +71,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.83  2006/02/06 21:22:32  sueh
+ * bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ *
  * Revision 3.82  2006/01/26 22:08:52  sueh
  * bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * the buttons turned on each they are run, unless the process fails or is
@@ -535,7 +538,7 @@ import etomo.util.InvalidParameterException;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog implements
-    ContextMenu, FiducialessParams, Expandable, ParallelDialog,
+    ContextMenu, FiducialessParams, Expandable, AbstractParallelDialog,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 

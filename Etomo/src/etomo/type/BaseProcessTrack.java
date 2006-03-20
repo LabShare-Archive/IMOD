@@ -2,7 +2,7 @@ package etomo.type;
 
 import etomo.process.ProcessState;
 import etomo.storage.Storable;
-import etomo.ui.ParallelDialog;
+import etomo.ui.AbstractParallelDialog;
 
 /**
 * <p>Description: </p>
@@ -18,6 +18,10 @@ import etomo.ui.ParallelDialog;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/09/21 16:11:38  sueh
+* <p> bug# 532 Added setState(ProcessState, AxisID, ParallelDialog) so that
+* <p> one processchunks function in BaseManager can handle multiple dialogs.
+* <p>
 * <p> Revision 1.3  2004/12/14 21:40:21  sueh
 * <p> bug # 565 Removing JoinProcessTrack so there is no commom code.
 * <p> Use BaseProcessTrack as an interface because BaseManager is using it.
@@ -37,5 +41,5 @@ public interface BaseProcessTrack extends Storable {
   public boolean isModified();
   public void resetModified();
   public void setState(ProcessState processState, AxisID axisID,
-      ParallelDialog parallelDialog);
+      AbstractParallelDialog parallelDialog);
 }

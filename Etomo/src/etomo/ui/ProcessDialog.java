@@ -14,6 +14,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2006/01/31 20:32:52  sueh
+ * <p> bug# 521 Added overrideable function done() to do clean up before the
+ * <p> reference to a dialog is set to null.  This is important for removing
+ * <p> action listeners from buttons that are managed by
+ * <p> ProcessResultDisplayFactory, sinces these buttons outlast the dialog.
+ * <p>
  * <p> Revision 3.17  2006/01/12 17:18:42  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
@@ -121,7 +127,7 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.util.Utilities;
 
-public abstract class ProcessDialog implements ExitButtons, ParallelDialog {
+public abstract class ProcessDialog implements ExitButtons, AbstractParallelDialog {
   public static final String rcsid = "$Id$";
 
   protected ApplicationManager applicationManager;
