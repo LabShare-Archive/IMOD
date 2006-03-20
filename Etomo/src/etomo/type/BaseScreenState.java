@@ -25,7 +25,7 @@ import etomo.util.Utilities;
 public class BaseScreenState implements Storable {
   public static final String rcsid = "$Id$";
 
-  public static final String PARALLEL_HEADER_GROUP = "Parallel.Header";
+  public static final String PARALLEL_HEADER_GROUP = "ParallelProcess.Header";
 
   private final PanelHeaderState parallelHeaderState = new PanelHeaderState(
       PARALLEL_HEADER_GROUP);
@@ -167,6 +167,9 @@ public class BaseScreenState implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/01/26 21:56:57  sueh
+ * <p> bug# 401 For new datasets, create loadedProperties and loadedPrepend
+ * <p>
  * <p> Revision 1.7  2006/01/20 21:08:18  sueh
  * <p> bug# 401 Fixed store(props, prepend):  it should be called by the child class
  * <p>
