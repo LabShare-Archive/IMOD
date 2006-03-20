@@ -104,6 +104,10 @@ abstract class EtomoFrame extends JFrame {
     if (menu.equalsFileNewJoin(event)) {
       EtomoDirector.getInstance().openJoin(true, axisID);
     }
+    
+    if (menu.equalsFileNewParallel(event)) {
+      EtomoDirector.getInstance().openParallel(true, axisID);
+    }
 
     if (menu.equalsFileOpen(event)) {
       File dataFile = openDataFileDialog();
@@ -299,6 +303,14 @@ abstract class EtomoFrame extends JFrame {
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
       getOtherFrame().menu.setEnabledFileNewJoin(enable);
+    }
+  }
+  
+  void setEnabledNewParallelMenuItem(boolean enable) {
+    menu.setEnabledFileNewParallel(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledFileNewParallel(enable);
     }
   }
 
@@ -557,7 +569,7 @@ abstract class EtomoFrame extends JFrame {
     if (currentManager != null) {
       BaseMetaData metaData = currentManager.getBaseMetaData();
       if (metaData != null) {
-        messageArray.add(currentManager.getBaseMetaData().getName() + ":");
+        messageArray.add(currentManager.getName() + ":");
       }
     }
     return messageArray;
@@ -654,7 +666,7 @@ abstract class EtomoFrame extends JFrame {
           + currentManager.getBaseMetaData().getFileExtension());
 
     }
-    currentManager.setTestParamFile(dataFile);
+    currentManager.setParamFile(dataFile);
     return true;
   }
 
@@ -766,6 +778,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2006/01/20 21:09:53  sueh
+ * <p> bug# 401 Added the ability for wrap(String, ArrayList) to wrap on commas.
+ * <p>
  * <p> Revision 1.21  2006/01/12 17:09:54  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>

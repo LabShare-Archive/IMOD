@@ -37,6 +37,7 @@ public class EtomoMenu {
   private JMenuItem menuFileNewTomogram = new JMenuItem("New Tomogram",
       KeyEvent.VK_N);
   private JMenuItem menuFileNewJoin = new JMenuItem("New Join", KeyEvent.VK_J);
+  private JMenuItem menuFileNewParallel = new JMenuItem("New Parallel Process", KeyEvent.VK_P);
   private JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
   private JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
   private JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
@@ -91,6 +92,7 @@ public class EtomoMenu {
     FileActionListener fileActionListener = new FileActionListener(frame);
     menuFileNewTomogram.addActionListener(fileActionListener);
     menuFileNewJoin.addActionListener(fileActionListener);
+    menuFileNewParallel.addActionListener(fileActionListener);
     menuFileOpen.addActionListener(fileActionListener);
     menuFileSave.addActionListener(fileActionListener);
     menuFileSaveAs.addActionListener(fileActionListener);
@@ -119,6 +121,7 @@ public class EtomoMenu {
     //  File menu
     menuFile.add(menuFileNewTomogram);
     menuFile.add(menuFileNewJoin);
+    menuFile.add(menuFileNewParallel);
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
     menuFile.add(menuFileSaveAs);
@@ -196,16 +199,18 @@ public class EtomoMenu {
   }
   
   /**
-   * Enable/disable menu items based on otherMenu.
+   * Enable/disable menu items based on main Frame Menu.
+   * Only used by the subframe
    * @param otherMenu
    */
-  void setEnabled(EtomoMenu otherMenu) {
-    menuFileNewTomogram.setEnabled(otherMenu.menuFileNewTomogram.isEnabled());
-    menuFileNewJoin.setEnabled(otherMenu.menuFileNewJoin.isEnabled());
-    menuFileSaveAs.setEnabled(otherMenu.menuFileSaveAs.isEnabled());
-    menuAxisA.setEnabled(otherMenu.menuAxisA.isEnabled());
-    menuAxisB.setEnabled(otherMenu.menuAxisB.isEnabled());
-    menuAxisBoth.setEnabled(otherMenu.menuAxisBoth.isEnabled());
+  void setEnabled(EtomoMenu mainFrameMenu) {
+    menuFileNewTomogram.setEnabled(mainFrameMenu.menuFileNewTomogram.isEnabled());
+    menuFileNewJoin.setEnabled(mainFrameMenu.menuFileNewJoin.isEnabled());
+    menuFileNewParallel.setEnabled(mainFrameMenu.menuFileNewParallel.isEnabled());
+    menuFileSaveAs.setEnabled(mainFrameMenu.menuFileSaveAs.isEnabled());
+    menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
+    menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
+    menuAxisBoth.setEnabled(mainFrameMenu.menuAxisBoth.isEnabled());
   }
 
   /**
@@ -258,12 +263,20 @@ public class EtomoMenu {
     menuFileNewJoin.setEnabled(enable);
   }
   
+  void setEnabledFileNewParallel(boolean enable) {
+    menuFileNewParallel.setEnabled(enable);
+  }
+  
   final boolean equalsFileNewTomogram(ActionEvent event) {
     return equals(menuFileNewTomogram, event);
   }
 
   final boolean equalsFileNewJoin(ActionEvent event) {
     return equals(menuFileNewJoin, event);
+  }
+  
+  final boolean equalsFileNewParallel(ActionEvent event) {
+    return equals(menuFileNewParallel, event);
   }
 
   final boolean equalsFileOpen(ActionEvent event) {
@@ -400,6 +413,9 @@ public class EtomoMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2005/12/09 20:30:19  sueh
+* <p> bug# 776 Added menuFileTomosnapshot.
+* <p>
 * <p> Revision 1.5  2005/08/11 23:50:12  sueh
 * <p> bug# 711  Add menu3dmodStartupWindow and menu3dmodBinBy2.  Add
 * <p> is and set functions from menu3dmodStartupWindow and
