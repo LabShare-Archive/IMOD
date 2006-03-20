@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.39  2006/02/16 16:56:59  sueh
+ * <p> $bug# 796 Windows:  in getEnvironmentVariable(), handle missing
+ * <p> $environment variable.
+ * <p> $
  * <p> $Revision 3.38  2006/01/06 21:41:34  sueh
  * <p> $bug# 793 Fixed getDir(String, AxisID) so it returns null when the environment
  * <p> $variable isn't set.
@@ -273,8 +277,7 @@ public class Utilities {
    */
   public static File getFile(BaseManager manager, boolean mustExist,
       AxisID axisID, String extension, String fileDescription) {
-    File file = new File(manager.getPropertyUserDir(), manager
-        .getBaseMetaData().getName()
+    File file = new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
       UIHarness.INSTANCE.openMessageDialog("The " + fileDescription + " file: "
@@ -287,8 +290,7 @@ public class Utilities {
 
   public static File getFile(BaseManager manager, AxisID axisID,
       String extension) {
-    File file = new File(manager.getPropertyUserDir(), manager
-        .getBaseMetaData().getName()
+    File file = new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + extension);
     return file;
   }
