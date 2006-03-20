@@ -44,7 +44,7 @@ public class ExtracttiltsParam {
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
-    String dataset = manager.getBaseMetaData().getName();
+    String dataset = manager.getName();
     command.add(DatasetFiles.getStackName(manager, axisID));
     command.add(DatasetFiles.getRawTiltName(manager, axisID));
     int commandSize = command.size();
@@ -55,5 +55,8 @@ public class ExtracttiltsParam {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/10/27 00:12:56  sueh
+* <p> bug# 725 Param to create a extracttilts command line.
+* <p> </p>
 */

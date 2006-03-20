@@ -54,7 +54,7 @@ public class ExtractmagradParam {
     command.add(rotationAngle.toString());
     command.add("-grad");
     command.add(gradientTable);
-    String dataset = manager.getBaseMetaData().getName();
+    String dataset = manager.getName();
     command.add(DatasetFiles.getStackName(manager, axisID));
     command.add(DatasetFiles.getMagGradientName(manager, axisID));
     int commandSize = command.size();
@@ -85,6 +85,9 @@ public class ExtractmagradParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/10/28 18:48:16  sueh
+* <p> bug# 725 Passing pixel size when header pixel size is 1.
+* <p>
 * <p> Revision 1.1  2005/10/27 00:12:21  sueh
 * <p> bug# 725 Param to create a extractmagrad command line.
 * <p> </p>

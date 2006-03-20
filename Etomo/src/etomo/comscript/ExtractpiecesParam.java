@@ -44,7 +44,7 @@ public class ExtractpiecesParam {
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
-    String dataset = manager.getBaseMetaData().getName();
+    String dataset = manager.getName();
     command.add(DatasetFiles.getStackName(manager, axisID));
     command.add(DatasetFiles.getPieceListFileName(manager, axisID));
     int commandSize = command.size();
@@ -56,5 +56,8 @@ public class ExtractpiecesParam {
 
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/10/27 00:12:41  sueh
+* <p> bug# 725 Param to create a extractpieces command line.
+* <p> </p>
 */
