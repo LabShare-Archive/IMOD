@@ -322,6 +322,12 @@ public class UIHarness {
     }
   }
   
+  public void setEnabledNewParallelMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewParallelMenuItem(enable);
+    }
+  }
+  
   public void addWindow(BaseManager manager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.addWindow(manager, managerKey);
@@ -467,6 +473,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.20  2006/01/11 23:16:43  sueh
+* <p> bug# 675 added setVerbose() and getCurrentPopupName().
+* <p>
 * <p> Revision 1.19  2005/12/23 02:24:20  sueh
 * <p> bug# 675 Split the test option functionality into headless and test.
 * <p>
