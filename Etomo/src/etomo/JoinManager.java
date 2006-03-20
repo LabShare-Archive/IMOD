@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2006/01/27 18:38:02  sueh
+ * <p> bug# 801 Added validation for makejoin and finishjoin
+ * <p>
  * <p> Revision 1.36  2006/01/20 20:44:41  sueh
  * <p> bug# 401 Added ProcessResultDisplay functionality to
  * <p> startNextProcess.
@@ -371,7 +374,6 @@ public final class JoinManager extends BaseManager {
   }
 
   protected void createComScriptManager() {
-
   }
 
   protected void createProcessManager() {
@@ -951,7 +953,7 @@ public final class JoinManager extends BaseManager {
    * parameters.
    * @param paramFile a File object specifying the data set parameter file.
    */
-  public void setTestParamFile(File paramFile) {
+  public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData);
@@ -1080,5 +1082,9 @@ public final class JoinManager extends BaseManager {
 
   public final boolean canSnapshot() {
     return false;
+  }
+  
+  public String getName() {
+    return metaData.getName();
   }
 }
