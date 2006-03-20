@@ -160,8 +160,8 @@ public class ApplicationManager extends BaseManager {
   private ProcessTrack processTrack;
   private ProcessManager processMgr;
   private TomogramState state;
-  private boolean[] advancedA = new boolean[DialogType.TOTAL];
-  private boolean[] advancedB = new boolean[DialogType.TOTAL];
+  private boolean[] advancedA = new boolean[DialogType.TOTAL_RECON];
+  private boolean[] advancedB = new boolean[DialogType.TOTAL_RECON];
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
   private ReconScreenState screenStateA = null;
@@ -201,7 +201,7 @@ public class ApplicationManager extends BaseManager {
    */
   private void initializeAdvanced() {
     boolean isAdvanced = EtomoDirector.getInstance().getAdvanced();
-    for (int i = 0; i < DialogType.TOTAL; i++) {
+    for (int i = 0; i < DialogType.TOTAL_RECON; i++) {
       advancedA[i] = isAdvanced;
       advancedB[i] = isAdvanced;
     }
@@ -5670,7 +5670,6 @@ public class ApplicationManager extends BaseManager {
 
   protected void createMainPanel() {
     mainPanel = new MainTomogramPanel(this);
-    mainPanel = (MainTomogramPanel) mainPanel;
   }
 
   /**
@@ -5678,7 +5677,7 @@ public class ApplicationManager extends BaseManager {
    * parameters.
    * @param paramFile a File object specifying the data set parameter file.
    */
-  public void setTestParamFile(File paramFile) {
+  public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData);
@@ -6116,9 +6115,16 @@ public class ApplicationManager extends BaseManager {
   public final boolean canSnapshot() {
     return !isNewManager();
   }
+  
+  public String getName() {
+    return metaData.getName();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.211  2006/03/16 01:46:23  sueh
+ * <p> bug# 727, bug# 830, bug# 813, bug# 828
+ * <p>
  * <p> Revision 3.210  2006/02/20 22:08:44  sueh
  * <p> bug# 828 Don't save values from Combine Setup tab to the .edf on exit
  * <p> because they might contradict values that where saved by Create Combine
