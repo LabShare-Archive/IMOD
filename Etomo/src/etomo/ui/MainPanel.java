@@ -34,6 +34,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.32  2005/10/15 00:33:53  sueh
+ * <p> bug# 532 Changed showParallelStatus() to setParallelDialog().
+ * <p>
  * <p> Revision 1.31  2005/09/27 23:30:56  sueh
  * <p> bug# 532 Modified pass-through functions that control the axis panel.
  * <p> Added getParallelPanel() and done().  Changed showParallelStatus() to
@@ -265,7 +268,7 @@ public abstract class MainPanel extends JPanel {
   protected abstract AxisProcessPanel getAxisPanelA();
   protected abstract AxisProcessPanel getAxisPanelB();
   public abstract void setState(ProcessState processState, AxisID axisID,
-      ParallelDialog parallelDialog);
+      AbstractParallelDialog parallelDialog);
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -371,12 +374,17 @@ public abstract class MainPanel extends JPanel {
     axisPanel.setProgressBarValue(0);
   }
   
-  public void setParallelDialog(AxisID axisID, boolean parallelDialog) {
+  /**
+   * create (if necessary) and show/hide the parallel panel
+   * @param axisID
+   * @param show: true = create/show/start panel, false = hide/stop panel
+   */
+  public void setParallelDialog(AxisID axisID, boolean show) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
       return;
     }
-    axisPanel.setParallelDialog(parallelDialog);
+    axisPanel.setParallelDialog(show);
   }
   
   public ParallelPanel getParallelPanel(AxisID axisID) {

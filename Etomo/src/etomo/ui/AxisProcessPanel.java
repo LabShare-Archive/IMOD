@@ -26,6 +26,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/01/12 17:06:02  sueh
+ * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
+ * <p>
  * <p> Revision 3.21  2005/10/15 00:32:29  sueh
  * <p> bug# 532 Moved functionality to keep track of when the parallel panel
  * <p> should be started and stopped from BaseManager to this class.  Changed
@@ -284,8 +287,8 @@ abstract class AxisProcessPanel implements ContextMenu {
    * show or hide parallelStatusPanel
    * @param showParallelStatus
    */
-  final void setParallelDialog(boolean parallelDialog) {
-    this.parallelDialog = parallelDialog;
+  final void setParallelDialog(boolean show) {
+    parallelDialog = show;
     if (parallelDialog) {
       createParallelPanel();
     }
