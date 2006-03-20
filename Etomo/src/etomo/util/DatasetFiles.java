@@ -23,6 +23,8 @@ import etomo.type.BaseMetaData;
 public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
+  public static final String PARALLEL_DATA_FILE_EXT = ".epp";
+  
   private static final String TOMO_EXT = ".rec";
   private static final String ROTATED_TOMO_EXT = ".rot";
   private static final String STACK_EXT = ".st";
@@ -32,7 +34,7 @@ public final class DatasetFiles {
   public final static File getOriginalStack(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), metaData.getName()
+    return new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + "_orig" + STACK_EXT);
   }
 
@@ -106,7 +108,8 @@ public final class DatasetFiles {
   public final static File getRotatedTomogram(BaseManager manager, File tomogram) {
     String tomogramName = tomogram.getName();
     return new File(manager.getPropertyUserDir(), tomogramName.substring(0,
-        tomogramName.lastIndexOf('.')) + ROTATED_TOMO_EXT);
+        tomogramName.lastIndexOf('.'))
+        + ROTATED_TOMO_EXT);
   }
 
   //Other dataset files
@@ -157,7 +160,7 @@ public final class DatasetFiles {
   }
 
   public final static File getAutodoc(File dir, String name) {
-      return new File(dir, getAutodocName(name));
+    return new File(dir, getAutodocName(name));
   }
 
   final static String getAutodocName(String name) {
@@ -183,7 +186,7 @@ public final class DatasetFiles {
   private final static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
     return correctAxisID(metaData.getAxisType(), axisID);
   }
-  
+
   private final static AxisID correctAxisID(AxisType axisType, AxisID axisID) {
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
       return AxisID.FIRST;
@@ -197,9 +200,16 @@ public final class DatasetFiles {
     }
     return axisID;
   }
+
+  public final static String getParallelDataFileName(String rootName) {
+    return rootName + PARALLEL_DATA_FILE_EXT;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/01/19 21:35:59  sueh
+ * <p> bug# 757 The path of the rotated tomogram should be property user dir
+ * <p>
  * <p> Revision 1.9  2005/12/23 02:27:09  sueh
  * <p> bug# 675 Added getStackName(String dataset, AxisType, AxisID) and
  * <p> getSeedName(String dataset, AxisType, AxisID) to create file names
