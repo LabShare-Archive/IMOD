@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/21/06: In the Join Align tab, moved the chunk display so the chunk number
+matched the row number.
+
 3/20/06: Etomo: Added a generic interface for parallel processing to a separate
 tab.
 
