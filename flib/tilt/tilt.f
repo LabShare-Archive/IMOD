@@ -2161,9 +2161,11 @@ c
       endif
 C       
 C       Set centre of output plane and center of input for transformations
+c       Allow the full size to be less than the aligned stack, with a negative
+c       subset start
 c       
-      nxfull=max(nxfull,npxyz(1))
-      nyfull=max(nyfull,npxyz(2))
+      if (nxfull .eq. 0) nxfull = npxyz(1)
+      if (nyfull .eq. 0) nyfull = npxyz(2)
       xcenin=nxfull/2.+0.5-ixsubset
       slicen=nyfull/2.+0.5-iysubset
       xoffset=xoffset-(npxyz(1)/2+ixsubset-nxfull/2)
@@ -2729,6 +2731,9 @@ c         print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c       
 c       $Log$
+c       Revision 3.25  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.24  2005/10/08 20:10:06  mast
 c       Fixed computation of ending slice with binning
 c       
