@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2006/01/27 18:42:49  sueh
+ * <p> bug# 801 Added validation for makejoin and finishjoin
+ * <p>
  * <p> Revision 1.23  2005/12/16 18:27:21  sueh
  * <p> bug# 785 Added getMode().
  * <p>
@@ -637,7 +640,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       pnlButtons.add(btnGetAngles);
     }
   }
-
+  
   void displayCurTab() {
     rootPanel.removeAll();
     pnlButtons.removeAll();
@@ -646,24 +649,12 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     addButtonsPanelComponents();
     pnlTable.removeAll();
     addTablePanelComponents();
-    int rowsSize = rows.size();
-    int prevSampleSlice = 0;
-    int prevChunkTableSlice = 0;
-    int nextSampleBottomNumberSlices;
+    SectionTableRow prevRow = null;
     //redisplay rows and calculate chunks
-    for (int i = 0; i < rowsSize; i++) {
+    for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      prevSampleSlice = row.displayCurTab(pnlTable, prevSampleSlice);
-      if (i < rowsSize - 1) {
-        SectionTableRow nextRow = (SectionTableRow) rows.get(i + 1);
-        nextSampleBottomNumberSlices = nextRow.getSampleBottomNumberSlices();
-
-      }
-      else {
-        nextSampleBottomNumberSlices = -1;
-      }
-      prevChunkTableSlice = row.displayCurTabChunkTable(pnlTable,
-          prevChunkTableSlice, nextSampleBottomNumberSlices);
+      row.displayCurTab(pnlTable, prevRow, rows.size());
+      prevRow = row;
     }
   }
 
