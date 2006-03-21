@@ -21,6 +21,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2005/12/14 20:55:14  sueh
+ * <p> bug# 784 Added setToolTipText().
+ * <p>
  * <p> Revision 1.9  2005/09/01 18:00:33  sueh
  * <p> bug# 532 Added setValue(void) to empty a field.  Removed
  * <p> setValueEmpty().
@@ -67,12 +70,15 @@ import etomo.type.EtomoNumber;
  * <p> field is disabled).
  * <p> </p>
  */
-class FieldCell extends InputCell {
+final class FieldCell extends InputCell {
   public static final String rcsid = "$Id$";
 
-  private JTextField textField = new JTextField();
+  private final JTextField textField = new JTextField();
+  
   private String hiddenValue = null;
   private boolean hideValue = false;
+  private boolean range = false;
+  private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
 
   FieldCell() {
     super();
@@ -99,7 +105,7 @@ class FieldCell extends InputCell {
     }
   }
   
-  final boolean isEmpty() {
+  boolean isEmpty() {
     String value = textField.getText();
     return value == null || value.matches("\\s*");
   }
@@ -107,39 +113,52 @@ class FieldCell extends InputCell {
   protected final Component getComponent() {
     return textField;
   }
-
-  final void setValue(String value) {
-    hiddenValue = value;
-    if (!hideValue) {
-      textField.setText(value);
-    }
-  }
   
-  final void setValue() {
-    String value = "";
+  private void setValue(String value, boolean range) {
+    this.range = range;
     hiddenValue = value;
     if (!hideValue) {
       textField.setText(value);
     }
   }
 
-  final void setValue(int value) {
-    setValue(new Integer(value).toString());
-  }
-
-  final void setValue(double value) {
-    setValue(new Double(value).toString());
+  void setValue(String value) {
+    setValue(value, false);
   }
   
-  final void setValue(long value) {
-    setValue(new Long(value).toString());
+  void setRangeValue(int start, int end) {
+    endValue = end;
+    setValue(new Integer(start).toString() + " - " + new Integer(end).toString(), true);
+  }
+  
+  void setValue() {
+    setValue("", false);
   }
 
-  final String getValue() {
+  void setValue(int value) {
+    setValue(new Integer(value).toString(), false);
+  }
+
+  void setValue(double value) {
+    setValue(new Double(value).toString(), false);
+  }
+  
+  void setValue(long value) {
+    setValue(new Long(value).toString(), false);
+  }
+  
+  int getEndValue() {
+    if (!range) {
+      throw new IllegalStateException("range not in use");
+    }
+    return endValue;
+  }
+
+  String getValue() {
     return textField.getText();
   }
   
-  final int getIntValue() {
+  int getIntValue() {
     try {
       return Integer.parseInt(textField.getText());
     }
@@ -148,7 +167,7 @@ class FieldCell extends InputCell {
     }
   }
   
-  final long getLongValue() {
+  long getLongValue() {
     try {
       return new Long(textField.getText()).longValue();
     }
@@ -157,7 +176,7 @@ class FieldCell extends InputCell {
     }
   }
 
-  protected final void setForeground() {
+  protected void setForeground() {
     if (inUse) {
       textField.setForeground(foreground);
       textField.setDisabledTextColor(foreground);
@@ -168,16 +187,16 @@ class FieldCell extends InputCell {
     }
   }
   
-  final int getWidth() {
+  int getWidth() {
     return textField.getWidth();
         //+ textField.getBorder().getBorderInsets(textField).right / 2;
   }
   
-  final int getRightBorder() {
+  int getRightBorder() {
     return textField.getBorder().getBorderInsets(textField).right;
   }
   
-  final void setToolTipText(String toolTipText) {
+  void setToolTipText(String toolTipText) {
     textField.setToolTipText(toolTipText);
   }
 }
