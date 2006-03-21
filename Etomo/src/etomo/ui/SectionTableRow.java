@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2006/01/27 18:43:00  sueh
+ * <p> bug# 801 Added validation for makejoin and finishjoin
+ * <p>
  * <p> Revision 1.14  2005/12/16 01:47:03  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
@@ -358,61 +361,72 @@ public final class SectionTableRow {
     }
   }
 
-  int displayCurTab(JPanel panel, int prevSlice) {
+  private int totalInRange(ConstEtomoNumber start, ConstEtomoNumber end) {
+    if (start.isNull() || end.isNull()) {
+      return 0;
+    }
+    return end.getInt() - start.getInt() + 1;
+  }
+
+  private int getPrevSampleEnd(SectionTableRow prevRow) {
+    //first row
+    if (prevRow == null) {
+      return 0;
+    }
+    return prevRow.slicesInSample.getEndValue();
+  }
+
+  private int getBottomSampleSlices(SectionTableRow prevRow) {
+    //first row
+    if (prevRow == null) {
+      return 0;
+    }
+    return totalInRange(data.getSampleBottomStart(), data.getSampleBottomEnd());
+  }
+
+  private int getTopSampleSlices(int totalRows, ConstEtomoNumber rowNum) {
+    //last row
+    if (rowNum.equals(totalRows)) {
+      return 0;
+    }
+    return totalInRange(data.getSampleTopStart(), data.getSampleTopEnd());
+  }
+
+  private int getPrevTopSampleSlices(SectionTableRow prevRow) {
+    //first row
+    if (prevRow == null) {
+      return 0;
+    }
+    return totalInRange(prevRow.data.getSampleTopStart(), prevRow.data
+        .getSampleTopEnd());
+  }
+
+  void displayCurTab(JPanel panel, SectionTableRow prevRow, int totalRows) {
     remove();
     add(panel);
     //Set align display only fields
     if (table.isAlignTab()) {
-      int start;
-      int chunkSize = data.getChunkSize(table.getTableSize()).getInt();
-      if (chunkSize > 0) {
-        start = prevSlice + 1;
-        prevSlice += chunkSize;
-        slicesInSample.setValue(Integer.toString(start) + " - "
-            + Integer.toString(prevSlice));
-      }
-      else {
-        referenceSection.setValue("");
-      }
-    }
-    return prevSlice;
-  }
-
-  int displayCurTabChunkTable(JPanel panel, int prevSlice,
-      int nextSampleBottomNumberSlices) {
-    if (table.isAlignTab()) {
-      if (nextSampleBottomNumberSlices == -1) {
+      ConstEtomoNumber rowNum = data.getRowNumber();
+      int prevSampleEnd = getPrevSampleEnd(prevRow);
+      int bottomSampleSlices = getBottomSampleSlices(prevRow);
+      int topSampleSlices = getTopSampleSlices(totalRows, rowNum);
+      int prevTopSampleSlices = getPrevTopSampleSlices(prevRow);
+      
+      slicesInSample.setRangeValue(prevSampleEnd + 1, prevSampleEnd
+          + bottomSampleSlices + topSampleSlices);
+      if (prevRow == null) {
         currentChunk.setText("");
-        referenceSection.setValue("");
-        currentSection.setValue("");
+        currentSection.setValue();
+        referenceSection.setValue();
       }
       else {
-        ConstEtomoNumber rowNumber = data.getRowNumber();
-        currentChunk.setText(Integer.toString(rowNumber.getInt() + 1));
-        int start;
-        int sampleTopNumberSlices = data.getSampleTopNumberSlices();
-        if (sampleTopNumberSlices > 0) {
-          start = prevSlice + 1;
-          prevSlice += sampleTopNumberSlices;
-          referenceSection.setValue(Integer.toString(start) + " - "
-              + Integer.toString(prevSlice));
-        }
-        else {
-          referenceSection.setValue("");
-        }
-
-        if (nextSampleBottomNumberSlices > 0) {
-          start = prevSlice + 1;
-          prevSlice += nextSampleBottomNumberSlices;
-          currentSection.setValue(Integer.toString(start) + " - "
-              + Integer.toString(prevSlice));
-        }
-        else {
-          currentSection.setValue("");
-        }
+        currentChunk.setText(rowNum.toString());
+        currentSection.setRangeValue(prevSampleEnd + 1, prevSampleEnd
+            + bottomSampleSlices);
+        referenceSection.setRangeValue(prevSampleEnd - prevTopSampleSlices + 1,
+            prevSampleEnd);
       }
     }
-    return prevSlice;
   }
 
   void add(JPanel panel) {
@@ -565,15 +579,17 @@ public final class SectionTableRow {
   boolean validateMakejoincom() {
     retrieveData(false);
     String errorTitle = "Invalid numbers in row " + rowNumber.getText();
-    validate(data.getSampleBottomStart(), data.getSampleBottomEnd(), errorTitle, true);
+    validate(data.getSampleBottomStart(), data.getSampleBottomEnd(),
+        errorTitle, true);
     validate(data.getSampleTopStart(), data.getSampleTopEnd(), errorTitle, true);
     return valid;
   }
-  
+
   boolean validateFinishjoin() {
     retrieveData(false);
     String errorTitle = "Invalid numbers in row " + rowNumber.getText();
-    validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), errorTitle, false);
+    validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), errorTitle,
+        false);
     return valid;
   }
 
@@ -742,10 +758,6 @@ public final class SectionTableRow {
       return data.getJoinZMax();
     }
     return data.getSetupZMax();
-  }
-
-  int getSampleBottomNumberSlices() {
-    return data.getSampleBottomNumberSlices();
   }
 
   ConstSectionTableRowData getData() {
