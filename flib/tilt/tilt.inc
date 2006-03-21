@@ -27,7 +27,7 @@ c	  intordxtilt  order for interpolating X-tilted slice
 c	  reproj     Flag to reproject at zero tilt
 c	  
 	integer limstack, limmask, limview, limwpos, limwidth, limwarp
-        parameter (limstack=60000000)
+        parameter (limstack=100000000)
 c        parameter (limstack=2200000)
 	parameter (limmask=4096)
 	parameter (limview=720,limwidth=20000)
