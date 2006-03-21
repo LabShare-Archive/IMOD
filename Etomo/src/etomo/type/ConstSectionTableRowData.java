@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2006/01/27 18:40:03  sueh
+ * <p> bug# 801 Don't default joinFinalStart to 1
+ * <p>
  * <p> Revision 1.14  2005/12/14 01:28:47  sueh
  * <p> bug# 782 Updated toString().
  * <p>
@@ -134,7 +137,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String VERSION_KEY = "SectionTableRowData.Version";
   protected static final String groupString = "SectionTableRow";
   protected static final String setupSectionString = "Section";
-  //For conversin from version 1.0
+  //For conversion from version 1.0
   protected static final String setupXMaxString = "XMax";
   protected static final String setupYMaxString = "YMax";
   protected static final String setupZMaxString = "ZMax";
