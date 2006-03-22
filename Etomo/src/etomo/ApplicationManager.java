@@ -3766,6 +3766,9 @@ public class ApplicationManager extends BaseManager {
   public void useMtfFilter(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
+    if (processMgr.inUse(axisID, processResultDisplay)) {
+      return;
+    }
     mainPanel.setProgressBar("Using filtered full aligned stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed
     // stack
@@ -6122,6 +6125,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.212  2006/03/20 17:47:03  sueh
+ * <p> bug# 895 Changed DialogType to work with multiple managers, not just
+ * <p> ApplicationManager.
+ * <p>
  * <p> Revision 3.211  2006/03/16 01:46:23  sueh
  * <p> bug# 727, bug# 830, bug# 813, bug# 828
  * <p>
