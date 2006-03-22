@@ -20,6 +20,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2006/03/22 17:52:34  sueh
+ * <p> bug# 803 Added statics DATA_MODE_BYTE and
+ * <p> DATA_MODE_DEFAULT, which used with modeToOutput.
+ * <p>
  * <p> Revision 3.11  2006/01/20 20:45:43  sueh
  * <p> updated copyright year
  * <p>
@@ -113,6 +117,10 @@ public class ConstNewstParam implements ProcessDetails {
   //data mode
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
   public static final int DATA_MODE_BYTE = 0;
+  
+  //float densities
+  public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
+  public static final int FLOAT_DENSITIES_MEAN = 2;
   
   private static final String commandFileName = "newst";
   private static final String commandFileExtension = ".com";
