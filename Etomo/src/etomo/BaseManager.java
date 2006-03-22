@@ -829,6 +829,9 @@ public abstract class BaseManager {
   }
 
   public final void savePreferences(AxisID axisID, Storable storable) {
+    if (getProcessManager().inUse(axisID, null)) {
+      return;
+    }
     MainPanel mainPanel = getMainPanel();
     mainPanel.setProgressBar("Saving defaults", 1, axisID);
     if (!EtomoDirector.getInstance().savePreferences(storable, axisID)) {
@@ -976,6 +979,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.54  2006/03/20 17:48:14  sueh
+ * <p> bug# 835 ParallelManager is overriding processChunks
+ * <p>
  * <p> Revision 1.53  2006/01/31 20:35:17  sueh
  * <p> bug# 521 Added doneProcessDialog, a function which should be called
  * <p> by all of the ApplicationManager done functions.  It calls
