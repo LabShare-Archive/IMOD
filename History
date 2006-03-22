@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/22/06: In Tomogram Generation, backing up the fully aligned stack when "Use
+Filtered Stack" is pressed.  Also backing up the tomogaram when "Use Current
+Trial Tomogram is pressed.
+
 3/22/06: Added advanced checkboxes "Convert to bytes", which adds "-mo 0" to
 prenewst.com, and "Float intensities to mean", which adds "-float 2" to
 prenewst.com, to Coarse Alignment.
