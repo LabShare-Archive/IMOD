@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/07/14 22:09:03  sueh
+ * <p> bug# 626 Enabling binning for montage view.  Setting binning in
+ * <p> set and getParameters(BlendmontParam).
+ * <p>
  * <p> Revision 1.11  2005/03/11 01:37:43  sueh
  * <p> bug# 533 Change title of panel to Blendmont Parameters when montage is
  * <p> set.
@@ -71,15 +75,16 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ViewType;
 
-public class PrenewstPanel implements ContextMenu {
+public final class PrenewstPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
 
-  private JPanel pnlPrenewst = new JPanel();
-  private ApplicationManager applicationManager;
+  private final JPanel pnlPrenewst = new JPanel();
+  private final ApplicationManager applicationManager;
 
-  private LabeledSpinner spinBinning;
+  private final LabeledSpinner spinBinning;
+  private final CheckBox cbByteModeToOutput = new CheckBox("Convert to bytes");
 
-  AxisID axisID;
+  private final AxisID axisID;
 
   public PrenewstPanel(ApplicationManager applicationManager, AxisID id) {
     axisID = id;
@@ -89,18 +94,21 @@ public class PrenewstPanel implements ContextMenu {
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
-      integerModel);
+        integerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
     //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  spinBinning.setEnabled(false);
     //}
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      pnlPrenewst.setBorder(new EtchedBorder("Blendmont Parameters").getBorder());
+      pnlPrenewst.setBorder(new EtchedBorder("Blendmont Parameters")
+          .getBorder());
     }
     else {
-      pnlPrenewst.setBorder(new EtchedBorder("Newstack Parameters").getBorder());
+      pnlPrenewst
+          .setBorder(new EtchedBorder("Newstack Parameters").getBorder());
     }
     UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
+    UIUtilities.addWithYSpace(pnlPrenewst, cbByteModeToOutput);
     //  Align the UI objects along their left sides
     UIUtilities.alignComponentsX(pnlPrenewst, Component.LEFT_ALIGNMENT);
 
@@ -123,8 +131,10 @@ public class PrenewstPanel implements ContextMenu {
     if (binning > 1) {
       spinBinning.setValue(binning);
     }
+    cbByteModeToOutput
+        .setSelected(prenewstParams.getModeToOutput() == ConstNewstParam.DATA_MODE_BYTE);
   }
-  
+
   public void setParameters(BlendmontParam blendmontParams) {
     ConstEtomoNumber binning = blendmontParams.getBinByFactor();
     if (!binning.isNull()) {
@@ -143,25 +153,33 @@ public class PrenewstPanel implements ContextMenu {
     else {
       prenewstParams.setBinByFactor(Integer.MIN_VALUE);
     }
+    if (cbByteModeToOutput.isSelected()) {
+      prenewstParams.setModeToOutput(ConstNewstParam.DATA_MODE_BYTE);
+    }
+    else {
+      prenewstParams.setModeToOutput(ConstNewstParam.DATA_MODE_DEFAULT);
+    }
   }
-  
+
   public void getParameters(BlendmontParam blendmontParam) {
-    blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
+    blendmontParam
+        .setBinByFactor(((Integer) spinBinning.getValue()).intValue());
   }
 
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Newstack"};
-    String[] manPage = {"newstack.html"};
-    String[] logFileLabel = {"Prenewst"};
+    String[] manPagelabel = { "Newstack" };
+    String[] manPage = { "newstack.html" };
+    String[] logFileLabel = { "Prenewst" };
     String[] logFile = new String[1];
     logFile[0] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlPrenewst, mouseEvent,
-      "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, applicationManager);
+        "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, applicationManager);
   }
-  
+
   /**
    * Tooltip string initialization
    */
@@ -170,7 +188,11 @@ public class PrenewstPanel implements ContextMenu {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     text = "Binning for the image stack used to generate and fix the fiducial model.";
     spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
+    cbByteModeToOutput
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Set the storage mode of the output file to bytes (-mo).  When unchecked the mode is the same as that of the first input file.")
+            .format());
   }
-
 
 }
