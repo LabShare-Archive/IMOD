@@ -71,6 +71,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.84  2006/03/20 18:07:43  sueh
+ * bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+ *
  * Revision 3.83  2006/02/06 21:22:32  sueh
  * bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  *
@@ -1492,7 +1495,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
     String startingAndEndingZ = ltfStartingAndEndingZ.getText();
     if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
-      btnFilter.setSelected(false);
+      //btnFilter.setSelected(false);
       btnUseFilter.setEnabled(true);
     }
     else {
@@ -1556,7 +1559,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnNewst.getActionCommand())) {
-      btnNewst.msgProcessStarting();
       applicationManager.newst(axisID, btnNewst);
     }
     else if (command.equals(btnFilter.getActionCommand())) {
@@ -1566,7 +1568,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       applicationManager.useMtfFilter(axisID, btnUseFilter);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
-      btnTrial.msgProcessStarting();
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
@@ -1592,7 +1593,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       applicationManager.commitTestVolume(axisID, btnUseTrial);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
-      btnTilt.msgProcessStarting();
       if (cbParallelProcess.isSelected()) {
         applicationManager.splittilt(axisID, btnTilt);
       }
