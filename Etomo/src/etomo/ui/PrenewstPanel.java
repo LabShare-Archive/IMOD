@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2006/03/22 18:37:22  sueh
+ * <p> bug# 803 Added cbMeanFloatDensities.
+ * <p>
  * <p> Revision 1.13  2006/03/22 18:00:52  sueh
  * <p> bug# 803 Added cbByteModeToOutput.
  * <p>
@@ -205,15 +208,17 @@ public final class PrenewstPanel implements ContextMenu {
     cbByteModeToOutput
         .setToolTipText(tooltipFormatter
             .setText(
-                "Set the storage mode of the output file to bytes (-mo "
-                    + ConstNewstParam.DATA_MODE_BYTE
-                    + ").  When unchecked the storage mode is the same as that of the first input file.")
-            .format());
+                "Set the storage mode of the output file to bytes.  When unchecked the storage mode is the same as that of the first input file.  Command:  "
+                    + ConstNewstParam.DATA_MODE_OPTION
+                    + " "
+                    + ConstNewstParam.DATA_MODE_BYTE).format());
     cbMeanFloatDensities
         .setToolTipText(tooltipFormatter
             .setText(
-                "Adjust densities of sections individually.  Scale sections to common mean and standard deviation (-float "
-                    + ConstNewstParam.FLOAT_DENSITIES_MEAN + ").").format());
+                "Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  This option is needed when the dynamic range is still too poor after X ray removal.  Command:  "
+                    + ConstNewstParam.FLOAT_DENSITIES_OPTION
+                    + " "
+                    + ConstNewstParam.FLOAT_DENSITIES_MEAN).format());
   }
 
 }
