@@ -20,6 +20,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/01/20 20:45:43  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 3.10  2005/11/19 01:51:43  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
@@ -106,6 +109,10 @@ public class ConstNewstParam implements ProcessDetails {
   //command modes
   public static final int WHOLE_TOMOGRAM_SAMPLE_MODE = -1;
   public static final int FULL_ALIGNED_STACK_MODE = -2;
+  
+  //data mode
+  public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
+  public static final int DATA_MODE_BYTE = 0;
   
   private static final String commandFileName = "newst";
   private static final String commandFileExtension = ".com";
