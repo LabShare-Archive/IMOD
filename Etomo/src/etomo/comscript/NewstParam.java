@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/03/22 17:53:26  sueh
+ * <p> bug# 803 In updatecomScriptCommand() changed -mode to -mo, since
+ * <p> that is what copytomocoms is using.
+ * <p>
  * <p> Revision 3.12  2006/01/20 20:47:39  sueh
  * <p> updated copyright year
  * <p>
@@ -281,7 +285,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add(sizeToOutputInXandY.toString());
     }
     if (modeToOutput > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-mo");
+      cmdLineArgs.add(DATA_MODE_OPTION);
       cmdLineArgs.add(String.valueOf(modeToOutput));
     }
     for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
@@ -315,7 +319,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add("-linear");
     }
     if (floatDensities > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-float");
+      cmdLineArgs.add(FLOAT_DENSITIES_OPTION);
       cmdLineArgs.add(String.valueOf(floatDensities));
     }
     if (contrastBlackWhite.valuesSet() && (!contrastBlackWhite.isDefault())) {

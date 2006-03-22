@@ -20,6 +20,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/03/22 18:37:02  sueh
+ * <p> bug# 803 Added statics FLOAT_DENSITIES_MEAN and
+ * <p> FLOAT_DENSITIES_DEFAULT, which are used with floatDensities.
+ * <p>
  * <p> Revision 3.12  2006/03/22 17:52:34  sueh
  * <p> bug# 803 Added statics DATA_MODE_BYTE and
  * <p> DATA_MODE_DEFAULT, which used with modeToOutput.
@@ -115,10 +119,12 @@ public class ConstNewstParam implements ProcessDetails {
   public static final int FULL_ALIGNED_STACK_MODE = -2;
   
   //data mode
+  public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
   public static final int DATA_MODE_BYTE = 0;
   
   //float densities
+  public static final String FLOAT_DENSITIES_OPTION = "-fl";
   public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
   public static final int FLOAT_DENSITIES_MEAN = 2;
   
