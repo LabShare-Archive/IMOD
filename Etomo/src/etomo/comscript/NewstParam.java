@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2006/01/20 20:47:39  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 3.11  2005/11/04 00:52:45  sueh
  * <p> fixed file comment
  * <p>
@@ -278,7 +281,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
       cmdLineArgs.add(sizeToOutputInXandY.toString());
     }
     if (modeToOutput > Integer.MIN_VALUE) {
-      cmdLineArgs.add("-mode");
+      cmdLineArgs.add("-mo");
       cmdLineArgs.add(String.valueOf(modeToOutput));
     }
     for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
