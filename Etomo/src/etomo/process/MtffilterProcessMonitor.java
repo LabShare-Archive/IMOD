@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/11/03 00:51:23  sueh
+* <p> bug# 740 In calcFileSize():  Getting file to open from Blendmont when
+* <p> montage is true.  Taking starting and ending Z into account.
+* <p>
 * <p> Revision 1.4  2005/07/29 00:52:06  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -55,6 +59,8 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
   void calcFileSize() throws InvalidParameterException, IOException {
+    //TEMP bug# 839
+    System.err.println("MtffilterProcessMonitor.calcFileSize:");
     int nX;
     int nY;
     int nZ;
@@ -126,7 +132,11 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
+    //TEMP bug# 839
+    System.err.println("fileSize="+fileSize);
     nKBytes = (int) (fileSize / 1024);
+    //TEMP bug# 839
+    System.err.println("nKBytes="+nKBytes);
     applicationManager.getMainPanel().setProgressBar("Running MTF filter",
         nKBytes, axisID);
 
@@ -135,6 +145,7 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     MTFFilterParam mtffilterParam = comScriptManager.getMTFFilterParam(axisID);
     watchedFile = new File(applicationManager.getPropertyUserDir(), mtffilterParam
       .getOutputFile());
+    //TEMP bug# 839
+    System.err.println("watchedFile="+watchedFile.getAbsolutePath());
   }
-
 }
