@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2006/02/06 21:20:45  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.30  2006/01/26 22:04:11  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
@@ -201,26 +204,26 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
-public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
+public final class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private JPanel pnlCoarseAlign = new JPanel();
+  private final JPanel pnlCoarseAlign = new JPanel();
 
-  private CrossCorrelationPanel pnlCrossCorrelation;
+  private final CrossCorrelationPanel pnlCrossCorrelation;
 
   private final MultiLineButton btnCrossCorrelate;
 
-  private PrenewstPanel pnlPrenewst;
+  private final PrenewstPanel pnlPrenewst;
 
   private final MultiLineButton btnCoarseAlign;
 
-  private Run3dmodButton btnImod = new Run3dmodButton(
+  private final Run3dmodButton btnImod = new Run3dmodButton(
       "View Aligned<br>Stack In 3dmod", this);
 
-  private JPanel pnlFiducialess = new JPanel();
-  private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
-  private LabeledTextField ltfRotation = new LabeledTextField(
+  private final JPanel pnlFiducialess = new JPanel();
+  private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
+  private final LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
   private final ActionListener actionListener;
 
@@ -403,7 +406,7 @@ public class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
     btnMidas.removeActionListener(actionListener);
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(ReconScreenState screenState) {
     btnCrossCorrelate.setButtonState(screenState
         .getButtonState(btnCrossCorrelate.getButtonStateKey()));
     btnMidas.setButtonState(screenState.getButtonState(btnMidas
