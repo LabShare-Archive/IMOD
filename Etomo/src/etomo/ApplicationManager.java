@@ -3788,6 +3788,19 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    if (fullAlignedStack.exists()) {
+      try {
+        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack.getAbsolutePath()
+            + "~"));
+      }
+      catch (IOException except) {
+        uiHarness.openMessageDialog("Unable to backup "
+            + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
+            "File Rename Error", axisID);
+        sendMsgProcessFailed(processResultDisplay);
+        return;
+      }
+    }
     //don't have to rename full aligned stack because it is a generated
     // file
     try {
@@ -3994,6 +4007,19 @@ public class ApplicationManager extends BaseManager {
     }
     mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
         axisID);
+    if (outputFile.exists()) {
+      try {
+        Utilities.renameFile(outputFile, new File(outputFile.getAbsolutePath()
+            + "~"));
+      }
+      catch (IOException except) {
+        uiHarness.openMessageDialog("Unable to backup "
+            + outputFile.getAbsolutePath() + "\n" + except.getMessage(),
+            "File Rename Error", axisID);
+        sendMsgProcessFailed(processResultDisplay);
+        return;
+      }
+    }
     try {
       Utilities.renameFile(trialTomogramFile, outputFile);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -6118,13 +6144,16 @@ public class ApplicationManager extends BaseManager {
   public final boolean canSnapshot() {
     return !isNewManager();
   }
-  
+
   public String getName() {
     return metaData.getName();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.213  2006/03/22 00:33:29  sueh
+ * <p> bug# 836 Preventing useMtfFilter() from running when the axis is busy
+ * <p>
  * <p> Revision 3.212  2006/03/20 17:47:03  sueh
  * <p> bug# 895 Changed DialogType to work with multiple managers, not just
  * <p> ApplicationManager.
