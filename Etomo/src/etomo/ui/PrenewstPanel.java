@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/03/22 18:00:52  sueh
+ * <p> bug# 803 Added cbByteModeToOutput.
+ * <p>
  * <p> Revision 1.12  2005/07/14 22:09:03  sueh
  * <p> bug# 626 Enabling binning for montage view.  Setting binning in
  * <p> set and getParameters(BlendmontParam).
@@ -83,6 +86,8 @@ public final class PrenewstPanel implements ContextMenu {
 
   private final LabeledSpinner spinBinning;
   private final CheckBox cbByteModeToOutput = new CheckBox("Convert to bytes");
+  private final CheckBox cbMeanFloatDensities = new CheckBox(
+      "Float intensities to mean");
 
   private final AxisID axisID;
 
@@ -109,6 +114,7 @@ public final class PrenewstPanel implements ContextMenu {
     }
     UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
     UIUtilities.addWithYSpace(pnlPrenewst, cbByteModeToOutput);
+    UIUtilities.addWithYSpace(pnlPrenewst, cbMeanFloatDensities);
     //  Align the UI objects along their left sides
     UIUtilities.alignComponentsX(pnlPrenewst, Component.LEFT_ALIGNMENT);
 
@@ -133,6 +139,8 @@ public final class PrenewstPanel implements ContextMenu {
     }
     cbByteModeToOutput
         .setSelected(prenewstParams.getModeToOutput() == ConstNewstParam.DATA_MODE_BYTE);
+    cbMeanFloatDensities
+        .setSelected(prenewstParams.getFloatDensities() == ConstNewstParam.FLOAT_DENSITIES_MEAN);
   }
 
   public void setParameters(BlendmontParam blendmontParams) {
@@ -158,6 +166,12 @@ public final class PrenewstPanel implements ContextMenu {
     }
     else {
       prenewstParams.setModeToOutput(ConstNewstParam.DATA_MODE_DEFAULT);
+    }
+    if (cbMeanFloatDensities.isSelected()) {
+      prenewstParams.setFloatDensities(ConstNewstParam.FLOAT_DENSITIES_MEAN);
+    }
+    else {
+      prenewstParams.setFloatDensities(ConstNewstParam.FLOAT_DENSITIES_DEFAULT);
     }
   }
 
@@ -191,8 +205,15 @@ public final class PrenewstPanel implements ContextMenu {
     cbByteModeToOutput
         .setToolTipText(tooltipFormatter
             .setText(
-                "Set the storage mode of the output file to bytes (-mo).  When unchecked the mode is the same as that of the first input file.")
+                "Set the storage mode of the output file to bytes (-mo "
+                    + ConstNewstParam.DATA_MODE_BYTE
+                    + ").  When unchecked the storage mode is the same as that of the first input file.")
             .format());
+    cbMeanFloatDensities
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Adjust densities of sections individually.  Scale sections to common mean and standard deviation (-float "
+                    + ConstNewstParam.FLOAT_DENSITIES_MEAN + ").").format());
   }
 
 }
