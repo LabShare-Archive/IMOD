@@ -3788,7 +3788,7 @@ public class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    if (fullAlignedStack.exists()) {
+    if (fullAlignedStack.exists() && filteredFullAlignedStack.exists()) {
       try {
         Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack.getAbsolutePath()
             + "~"));
@@ -4007,7 +4007,7 @@ public class ApplicationManager extends BaseManager {
     }
     mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
         axisID);
-    if (outputFile.exists()) {
+    if (outputFile.exists() && trialTomogramFile.exists()) {
       try {
         Utilities.renameFile(outputFile, new File(outputFile.getAbsolutePath()
             + "~"));
@@ -6151,6 +6151,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.214  2006/03/22 23:20:45  sueh
+ * <p> bug# 498 When generating a tomogram, back up the .ali file when using
+ * <p> the mtf filter file.  Also backup the tomogram when using a trial tomogram.
+ * <p>
  * <p> Revision 3.213  2006/03/22 00:33:29  sueh
  * <p> bug# 836 Preventing useMtfFilter() from running when the axis is busy
  * <p>
