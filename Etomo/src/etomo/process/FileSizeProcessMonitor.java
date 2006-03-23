@@ -25,6 +25,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2005/11/19 02:26:22  sueh
+ * <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
+ * <p> ProcessMonitor because they are potentially valid things to do for any
+ * <p> monitor, not just monitors of detached processes.
+ * <p>
  * <p> Revision 3.16  2005/08/30 18:42:16  sueh
  * <p> bug# Removed functions that only belong to BackgroundProcessMonitor:
  * <p> getErrorMessage, getStatusString, pause, and setProcess.
@@ -123,6 +128,9 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   File watchedFile;
   FileChannel watchedChannel;
   private ProcessEndState endState = null;
+  //TEMP bug# 836
+  private int prevPercentage = Integer.MIN_VALUE;
+  private long prevLastModified = Long.MIN_VALUE;
 
   int nKBytes;
 
@@ -132,6 +140,11 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     applicationManager = appMgr;
     axisID = id;
     scriptStartTime = System.currentTimeMillis();
+    //TEMP bug# 836
+    if (this instanceof MtffilterProcessMonitor) {
+      System.err.println("FileSizeProcessMonitor:scriptStartTime="
+          + scriptStartTime);
+    }
   }
 
   // The dervied class must implement this function to 
@@ -142,10 +155,15 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   abstract void calcFileSize() throws InvalidParameterException, IOException;
 
   public void run() {
+    //TEMP bug# 836
+    if (this instanceof MtffilterProcessMonitor) {
+      System.err.println("FileSizeProcessMonitor.run");
+    }
     try {
       // Reset the progressBar 
       applicationManager.getMainPanel().setProgressBar(" ", 1, axisID);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
+          axisID);
 
       //  Calculate the expected file size in bytes, initialize the progress bar
       //  and set the File object.
@@ -156,6 +174,10 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     }
     //  Interrupted ???  kill the thread by exiting
     catch (InterruptedException except) {
+    //TEMP bug# 836
+      if (this instanceof MtffilterProcessMonitor) {
+        except.printStackTrace();
+      }
       setProcessEndState(ProcessEndState.DONE);
       closeChannel();
       return;
@@ -167,6 +189,10 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
       return;
     }
     catch (IOException except) {
+        //TEMP bug# 836
+      if (this instanceof MtffilterProcessMonitor) {
+        except.printStackTrace();
+      }
       setProcessEndState(ProcessEndState.DONE);
       closeChannel();
       return;
@@ -175,14 +201,14 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     // Periodically update the process bar by checking the size of the file
     updateProgressBar();
   }
-  
+
   /**
    * set end state
    */
   public synchronized final void setProcessEndState(ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
   }
-  
+
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
   }
@@ -194,11 +220,18 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
    * time since we don't have access to the file creation time.  
    */
   void waitForFile() throws InterruptedException {
+    //TEMP bug# 836
+    if (this instanceof MtffilterProcessMonitor) {
+      System.err.println("FileSizeProcessMonitor.waitForFile:watchedFile="
+          + watchedFile.getAbsolutePath());
+    }
     long currentSize = 0;
     boolean newOutputFile = false;
     boolean needChannel = true;
     while (!newOutputFile) {
-      if (watchedFile.exists() && watchedFile.lastModified() > scriptStartTime) {
+      //    TEMP bug# 836
+      long lastModified = watchedFile.lastModified();
+      if (watchedFile.exists() && lastModified > scriptStartTime) {
         if (needChannel) {
           FileInputStream stream = null;
           try {
@@ -207,7 +240,7 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
           catch (FileNotFoundException e) {
             e.printStackTrace();
             System.err
-              .println("Shouldn't be in here, we already checked for existence");
+                .println("Shouldn't be in here, we already checked for existence");
           }
           watchedChannel = stream.getChannel();
           needChannel = false;
@@ -216,6 +249,16 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
 
         try {
           currentSize = watchedChannel.size();
+          //TEMP bug# 836
+          if (this instanceof MtffilterProcessMonitor) {
+            if (lastModified != prevLastModified) {
+              System.err
+                  .println("\nFileSizeProcessMonitor.waitForFile:lastModified="
+                      + lastModified + ",processStartTime=" + processStartTime
+                      + ",\ncurrentSize=" + currentSize);
+            }
+            prevLastModified = lastModified;
+          }
 
           // Hang out in this loop until the current size is something greater
           // than zero, otherwise the progress bar update with have a divide
@@ -238,12 +281,19 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
    *
    */
   void updateProgressBar() {
+    //TEMP bug# 836
+    if (this instanceof MtffilterProcessMonitor) {
+      System.err.println("\nFileSizeProcessMonitor.updateProgressBar");
+    }
     boolean fileWriting = true;
 
     while (fileWriting) {
       int currentLength = 0;
+      long size = 0;
       try {
-        currentLength = (int) (watchedChannel.size() / 1024);
+        //TEMP bug# 836
+        size = watchedChannel.size();
+        currentLength = (int) (size / 1024);
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -261,9 +311,21 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
 
       long elapsedTime = System.currentTimeMillis() - processStartTime;
       double remainingTime = elapsedTime / fractionDone - elapsedTime;
+      //TEMP bug# 836
+      if (this instanceof MtffilterProcessMonitor) {
+        if (percentage != prevPercentage) {
+          System.err.println("\nFileSizeProcessMonitor.updateProgressBar:size="
+              + size + ",currentLength=" + currentLength + ",\nfractionDone="
+              + fractionDone + ",nKBytes=" + nKBytes + ",\npercentage="
+              + percentage + ",\nelapsedTime=" + elapsedTime
+              + ",remainingTime=" + remainingTime);
+        }
+        prevPercentage = percentage;
+      }
       String message = String.valueOf(percentage) + "%   ETC: "
-        + Utilities.millisToMinAndSecs(remainingTime);
-      applicationManager.getMainPanel().setProgressBarValue(currentLength, message, axisID);
+          + Utilities.millisToMinAndSecs(remainingTime);
+      applicationManager.getMainPanel().setProgressBarValue(currentLength,
+          message, axisID);
 
       try {
         Thread.sleep(updatePeriod);
@@ -274,7 +336,7 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
       }
     }
   }
-  
+
   /**
    * Attempt to close the watched channel file.
    */
@@ -290,20 +352,20 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     }
 
   }
-  
+
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.KILLED;
     process.signalKill(axisID);
   }
-  
+
   public ProcessMessages getProcessMessages() {
     return null;
   }
-  
+
   public String getStatusString() {
     return null;
   }
-  
+
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
   }
