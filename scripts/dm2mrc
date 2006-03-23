@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.8  2005/11/11 21:51:08  mast
 #  Changes to use unsigned output mode
 #
@@ -63,7 +66,7 @@ set signed = 0
 @ signopt = 0
 
 while ($#argv > 2 && $done == 0)
-    switch ($argv[1])
+    switch ("$argv[1]")
     case -d:
         set scan = 1
         shift
@@ -103,6 +106,21 @@ if ($signopt > 1) then
     exit 1
 endif
 
+# Test for spaces in file names and do complete scan and individual stack
+# (Building a wordlist of escaped names did not work)
+#
+set differ = 0
+@ num = 1
+set argf = ()
+while ($num < $#argv)
+    set spacetest = `echo "$argv[$num]" | sed -n '/ /p'`
+    if ("$spacetest" != "") then
+        set differ = 1
+        set scan = 1
+    endif
+    @ num++
+end
+
 # Build a wordlist of critical values if we do scan the data
 
 set xsizes = ( )
@@ -110,7 +128,6 @@ set ysizes = ( )
 set dmtypes = ( )
 set offsets = ( )
 
-set differ = 0
 set sizedif = 0
 set typedif = 0
 set swap = 0
@@ -130,11 +147,11 @@ while ($num < $#argv)
     # detect if swapping is needed
 
     if ($useod) then
-        set header = `od -t u1 $argv[$num] | head -n 2`
-        if ("$swap" == 0) set ddump = `od -d $argv[1] | head -n 1`
+        set header = `od -t u1 "$argv[$num]" | head -n 2`
+        if ("$swap" == 0) set ddump = `od -d "$argv[1]" | head -n 1`
     else
-        set header = `hexdump -e '"%07.7_ao  " 16/1 "%3u " "\n"' $argv[$num] | head -n 2`
-        if ("$swap" == 0) set ddump = `hexdump -d $argv[1] | head -n 1`
+        set header = `hexdump -e '"%07.7_ao  " 16/1 "%3u " "\n"' "$argv[$num]" | head -n 2`
+        if ("$swap" == 0) set ddump = `hexdump -d "$argv[1]" | head -n 1`
     endif
     @ byte2 = $header[3]
     @ byte4 = $header[5]
@@ -189,7 +206,7 @@ while ($num < $#argv)
 	    if ($word2 == 3) set swap = "-s"
 	endif
 
-	set props = `dm3props $argv[$num]`
+	set props = `dm3props "$argv[$num]"`
 	set dm3 = 1
 
     else
@@ -267,8 +284,8 @@ end
 
 # make a backup file if output exists
 
-if (-e $argv[$#argv]) then
-    \mv $argv[$#argv] $argv[$#argv]~
+if (-e "$argv[$#argv]") then
+    \mv "$argv[$#argv]" "$argv[$#argv]~"
     echo "Output file $argv[$#argv] already exists - saving it as $argv[$#argv]~"
 endif
 
@@ -290,9 +307,9 @@ set newstfil = $tmpdir/dmnewst.$$
 echo $num >! $newstfil
 
 while ($i < $#argv)
-    set outfil = $tmpdir/$argv[$i].$$
+    set outfil = "$tmpdir/$argv[$i].$$"
     raw2mrc -f -o $offsets[$i] $swap -t $types[$i] -x $xsizes[$i] \
-      -y $ysizes[$i] $convert $divide $unsigned $argv[$i] $outfil
+      -y $ysizes[$i] $convert $divide $unsigned "$argv[$i]" "$outfil"
     echo $outfil >> $newstfil
     echo 0 >> $newstfil
     @ i++
