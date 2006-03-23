@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/04/14 00:35:45  mast
+c	  Rewrote to read in chunks, put big array in common, redimensioned
+c	
 c
 	implicit none
 	integer*4 maxarr, limarr
@@ -52,7 +55,6 @@ c	--- initialize and input info ---
 	write ( *, * ) ' Sections to average [First,Last] :'
 	read  ( *, * ) ifst, ilst
 
-	if ( (ifst.eq.0) .and. (ilst.eq.0) ) ilst = nz !-Whole stack default
 	ilst = min(ilst,nz)	!--- Check end limit ---!
 	ifst = min(ifst,nz)	!--- Check beginning limit ---!
 	ifst = min(ifst,ilst)	!--- Check beginning/end order ---!
