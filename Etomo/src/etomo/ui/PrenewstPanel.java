@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2006/03/22 21:28:59  sueh
+ * <p> bug# 803 Improved tooltips.
+ * <p>
  * <p> Revision 1.14  2006/03/22 18:37:22  sueh
  * <p> bug# 803 Added cbMeanFloatDensities.
  * <p>
@@ -116,8 +119,10 @@ public final class PrenewstPanel implements ContextMenu {
           .setBorder(new EtchedBorder("Newstack Parameters").getBorder());
     }
     UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
-    UIUtilities.addWithYSpace(pnlPrenewst, cbByteModeToOutput);
-    UIUtilities.addWithYSpace(pnlPrenewst, cbMeanFloatDensities);
+    if (applicationManager.getMetaData().getViewType() != ViewType.MONTAGE) {
+      UIUtilities.addWithYSpace(pnlPrenewst, cbByteModeToOutput);
+      UIUtilities.addWithYSpace(pnlPrenewst, cbMeanFloatDensities);
+    }
     //  Align the UI objects along their left sides
     UIUtilities.alignComponentsX(pnlPrenewst, Component.LEFT_ALIGNMENT);
 
