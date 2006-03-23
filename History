@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/06: In Setup Tomogram, improving the popup message when the dual axis image
+stack does not end in a.st.
+
 3/23/06: Fixed bug in Avgstack that averaged all sections when 0,0 was entered,
 which was making auto alignment of first section boundary in a join fail when
 there was only one sample slice from the first section.
