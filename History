@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/06: Fixed bug in Avgstack that averaged all sections when 0,0 was entered,
+which was making auto alignment of first section boundary in a join fail when
+there was only one sample slice from the first section.
+
+3/22/06: Fixed Tilt so a negative SUBSETSTART could be used to reconstruct
+from an aligned stack that is bigger than the original stack.
+
 3/22/06: In Tomogram Generation, backing up the fully aligned stack when "Use
 Filtered Stack" is pressed.  Also backing up the tomogaram when "Use Current
 Trial Tomogram is pressed.
