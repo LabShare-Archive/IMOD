@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2005/12/13 02:27:49  sueh
+ * <p> bug# 773 Added defaultParallel
+ * <p>
  * <p> Revision 3.26  2005/10/27 00:33:10  sueh
  * <p> bug# 725 Added bStackProcessed.
  * <p>
@@ -244,6 +247,13 @@ public class MetaData extends ConstMetaData {
       if (datasetName.endsWith("a.st") | datasetName.endsWith("b.st")) {
         int nChars = datasetName.length();
         datasetName = datasetName.substring(0, nChars - 4);
+      }
+      //if a dual axis file has the wrong format, treat it like a single axis
+      //file
+      else if (datasetName.endsWith(".st")) {
+        int nChars = datasetName.length();
+        datasetName = datasetName.substring(0, nChars - 3);
+        appendMessage("Dual axis image stack files must end in a.st and b.st.\n");
       }
     }
   }

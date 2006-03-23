@@ -94,7 +94,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected EtomoBoolean2 tomoGenTiltParallelB = null;
   protected EtomoBoolean2 combineVolcombineParallel = null;
   protected EtomoBoolean2 bStackProcessed = null;
-
+  private StringBuffer message = new StringBuffer();
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -516,6 +516,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
     return file.canRead() && (!writeable || file.canWrite());
   }
+  
+  protected void appendMessage(String string) {
+    message.append(string);
+  }
 
   /**
    * Finds a file in either the current directory or an
@@ -546,8 +550,10 @@ public abstract class ConstMetaData extends BaseMetaData {
     File file = new File(curDir, fileName);
     while (!file.exists()) {
       if (curDir == altDir || !isValid(altDir, true)) {
-        invalidReason = fileName + " does not exist in  "
-            + curDir.getAbsolutePath();
+        message.append(fileName + " does not exist in  "
+            + curDir.getAbsolutePath());
+        invalidReason = message.toString();
+        message = new StringBuffer();
         return null;
       }
       curDir = altDir;
@@ -672,6 +678,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.34  2006/03/16 01:53:41  sueh
+ * <p> bug# 828 Added getCombineParams().
+ * <p>
  * <p> Revision 3.33  2005/12/13 02:16:25  sueh
  * <p> bug# 773 Added defaultParallel
  * <p>
