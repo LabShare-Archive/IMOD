@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2006/02/16 06:29:42  mast
+#  Put IMOD on the path
+#
 #  Revision 3.5  2005/11/12 06:10:09  mast
 #  When there is X-axis tilt, made it find the largest number of chunks
 #  that gives a minimal number of extra slices (2%)
@@ -124,8 +127,14 @@ set slices = `grep -i slice $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set local = `grep -i localfile $comname | grep -v '^#'`
 set binning = `grep -i imagebinned $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
 
-if ($#fullimage == 0 && "$slices" == "") then
-    echo "ERROR: $pn - Command file has neither a SLICES nor a FULLIMAGE entry"
+# Get the input image file name from the command file
+#
+@ topline  = `vmstocsh < $comname | awk '/tilt/{print NR}'`
+@ nextline = $topline + 1
+set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+
+if (! -e $alifile && $#fullimage == 0 && "$slices" == "") then
+    echo "ERROR: $pn - Command file has neither a SLICES nor a FULLIMAGE entry and image file does not exist yet"
     exit 1
 endif
 
@@ -142,6 +151,25 @@ if ("$binning" != "") @ binval = $binning[1]
 # Remove any previous files now in case the number has changed
 #
 \find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+
+# Get the size from the aligned stack instead of relying on FULLIMAGE if
+# possible, and scale them up by binning
+#
+if (-e $alifile) then
+    set fullimage = `header -s $alifile | sed '/[[:cntrl:]]/s///g'`
+    if ($#fullimage < 3) then
+        echo "ERROR: $pn - Reading header of $alifile"
+        exit 1
+    endif
+    @ num = $fullimage[1]
+    @ num *= $binval
+    set fullimage[1] = $num
+    @ num = $fullimage[2]
+    @ num *= $binval
+    set fullimage[2] = $num
+else
+    echo "WARNING: $pn - aligned stack ot found; sizes will be taken from FULLIMAGE entry"
+endif
 
 if ($#fullimage > 1) then
     @ firstslice = 0
