@@ -417,7 +417,7 @@ c         call flush(6)
 c         
 c         write out header periodically, restore writing position
 c         
-        if(perp.and.interhsave.gt.0.and..not.reproj)then
+        if(perp.and.interhsave.gt.0.and..not.reproj .and. minTotSlice.le.0)then
           nsliceout=nsliceout+1
           nxyztmp(1)=iwide
           nxyztmp(2)=ithickout
@@ -439,13 +439,19 @@ C
 C       Close files
       CALL IMCLOSE(1)
       DMEAN=DTOT/(float(NSLICE)*IWIDE*ITHICK)
-      if(perp.and.interhsave.gt.0.and..not.reproj)then
-        nxyztmp(3)=nslice
-        call ialsiz(2,nxyztmp,nxyzst)
+
+      if (minTotSlice.le.0) then
+        if(perp.and.interhsave.gt.0.and..not.reproj)then
+          nxyztmp(3)=nslice
+          call ialsiz(2,nxyztmp,nxyzst)
+        endif
+        CALL IWRHDR(2,TITLE,1,DMIN,DMAX,DMEAN)
+        WRITE(6,930)
+        CALL IRDHDR(2,nxyztmp,nxyzst,MODE,DMIN,DMAX,DMEAN)
+      else
+        print *,'Min, max, mean, # pixels=',dmin,dmax,dmean,
+     &      float(NSLICE)*IWIDE*ITHICK
       endif
-      CALL IWRHDR(2,TITLE,1,DMIN,DMAX,DMEAN)
-      WRITE(6,930)
-      CALL IRDHDR(2,nxyztmp,nxyzst,MODE,DMIN,DMAX,DMEAN)
       CALL IMCLOSE(2)
       if(fastbp)then
         scale=scale/1000.
@@ -464,7 +470,7 @@ C
 C       
 900   FORMAT(//' STACK LOADING'
      &    /' -------------'
-     &    //' Total stack size             ',I8/
+     &    //' Total stack size           ',I10/
      &    /,1x,a20,'         ',I8/,a,//,
      &    ' Output slice                 ',I8,/)
 901   format(' Stretching buffer            ',I8,/)
@@ -1459,7 +1465,7 @@ C       ----------------
       implicit none
       include 'tilt.inc'
       integer numtags
-      parameter (numtags = 36)
+      parameter (numtags = 37)
       integer*4 nweight
       real*4 wincr(20)
       COMMON /DENSWT/nweight,wincr
@@ -1477,7 +1483,7 @@ c
       character*80 titlech
 C       
       CHARACTER TAGS(numtags)*20,CARD*80
-      CHARACTER*80 FILIN,FILOUT
+      CHARACTER*160 FILIN,FILOUT
       DATA TAGS/'*TITLE','SLICE','THICKNESS','MASK','RADIAL',
      &    'OFFSET','SCALE','PERPENDICULAR','PARALLEL','MODE',
      &    'INCLUDE','EXCLUDE','*EXCLUDELIST','*EXCLUDELIST2','LOG',
@@ -1486,6 +1492,7 @@ C
      &    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
      &    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
      &    'XTILTINTERP','REPROJECT','*ZFACTORFILE','IMAGEBINNED',
+     &    'TOTALSLICES',
      &    'DONE'/
       integer*4 ntags, nfields
       real*4 XNUM(50)
@@ -1504,7 +1511,7 @@ c
       integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
       integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn
-      real*4 pixelLocal
+      real*4 pixelLocal, dmint,dmaxt,dmeant
       integer*4 inum,licenseusfft,niceframe
       external inum
 c       
@@ -1588,6 +1595,8 @@ c
       ifWidthIn = 0
       ifSliceIn = 0
       ifSubsetIn = 0
+      minTotSlice = -1
+      maxTotSlice = -1
 c       
 c...... Default double-width linear interpolation in cosine stretching
       interpfac=2
@@ -1614,7 +1623,7 @@ C
 1     CALL CREAD(CARD,TAGS,LABEL,*999)
       GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
      &    1250,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
-     &    2400,2500, 2600,2700,2800,2900,3000,3100,3200,3300,999),LABEL
+     &    2400,2500, 2600,2700,2800,2900,3000,3100,3200,3300,3400,999),LABEL
 C       
 C       TITLE card
 C       100     ENCODE(80,49,TITLE)CARD(1:50),DAT,TIM
@@ -1928,6 +1937,12 @@ c       IMAGEBINNED card
       if (imageBinned .gt. 1) write(6,3301)imageBinned
       go to 1
 c       
+c       TOTALSLICES card
+3400  IF(NFIELDS.NE.2)GO TO 9999
+      minTotSlice = inum(1) + 1
+      maxTotSlice = inum(2) + 1
+      go to 1
+c       
 c       
 C       End of data deck
 C-------------------------------------------------------------
@@ -1937,14 +1952,18 @@ C
      &    'Cannot do X axis tilt with non-consecutive slices')
       if(nxwarp.ne.0.and.abs(idelslice).ne.1)call errorexit(
      &    'Cannot do local alignments with non-consecutive slices')
+      if(minTotSlice.gt.0.and. idelslice.ne.1)call errorexit(
+     &    'Cannot do chunk writing with non-consecutive slices')
       if(nxfull.eq.0.and.nyfull.eq.0.and.
      &    (ixsubset.ne.0.or.iysubset.ne.0))call errorexit(
      &    'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
+      if (.not.perp .and. minTotSlice.gt.0) call errorexit(
+     &    'Cannot do chunk writing with parallel slices')
 c       
 c       scale dimensions down by binning then report them
 c       
       if (imageBinned .gt. 1) then
-        if (ifSliceIn .ne. 0) then
+        if (ifSliceIn .ne. 0 .and. (minTotSlice.le.0 .or. islice .gt. 0)) then
           islice = max(1, min(npxyz(2),
      &        (islice + imageBinned - 1) / imageBinned))
           jslice = max(1, min(npxyz(2), 
@@ -1959,6 +1978,12 @@ c
         xoffset = xoffset / imageBinned
         yoffset = yoffset / imageBinned
         if (ifWidthIn .ne. 0) iwide = iwide / imageBinned
+        if (minTotSlice .ge. 0) then
+          minTotSlice = max(1, min(npxyz(2),
+     &        (minTotSlice + imageBinned - 1) / imageBinned))
+          maxTotSlice = max(1, min(npxyz(2),
+     &        (maxTotSlice + imageBinned - 1) / imageBinned))
+        endif
       endif
       if (ifSliceIn .ne. 0) WRITE(6,201)ISLICE,JSLICE,idelslice
       if (ifThickIn .ne. 0) WRITE(6,301)ITHICK
@@ -1967,7 +1992,7 @@ c
       if (ifSubsetIn .ne. 0) write(6,2701)ixsubset,iysubset
       if (ifWidthIn .ne. 0) WRITE(6,2001)IWIDE
       if (xoffset .ne. 0 .or. yoffset .ne. 0) WRITE(6,2101)yoffset,xoffset
-
+      if (minTotSlice .gt. 0) write(6,3401)minTotSlice,maxTotSlice
 c       
 c       If NEWANGLES is 0, get angles from file header.  Otherwise check if angles OK
 c       
@@ -2028,10 +2053,13 @@ c
       endif
 C       
 C       Open output map file
-      if(islice.lt.1.or.jslice.lt.1.or.islice.gt.npxyz(2).or.
-     &    jslice.gt.npxyz(2)) call errorexit(
+      if((minTotSlice.le.0 .and. (islice.lt.1.or.jslice.lt.1))
+     &    .or.islice.gt.npxyz(2).or. jslice.gt.npxyz(2)) call errorexit(
      &    'SLICE NUMBERS OUT OF RANGE')
       NSLICE=(JSLICE-ISLICE)/idelslice+1
+      if (minTotSlice.gt.0 .and. islice .lt. 1)
+     &    nslice = maxTotSlice + 1 - minTotSlice
+      print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
       if(nslice.le.0)call errorexit( 'SLICE NUMBERS REVERSED')
       if(iwide.gt.limwidth.and.nxwarp.ne.0)call errorexit('OUTPUT'//
      &    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
@@ -2058,8 +2086,17 @@ c
         cell(2)=abs(nslice*idelslice)*delta(2)
         cell(3)=delta(1)
       endif
-      CALL IMOPEN(2,FILOUT,'NEW')
-      CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
+c       
+c       open old file if in chunk mode and there is real starting slice
+c       otherwise open new file
+c
+      if (minTotSlice .gt. 0 .and. islice .gt. 0) then
+        CALL IMOPEN(2,FILOUT,'OLD')
+        CALL IRDHDR(2,NOXYZ,MPXYZ,newmode,dmint,dmaxt,dmeant)
+      else
+        CALL IMOPEN(2,FILOUT,'NEW')
+        CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
+      endif
       CALL ITRLAB(2,1)
       call ialcel(2,cell)
 c       
@@ -2069,9 +2106,19 @@ c
       if(perp)then
         outilt(1)=sign(90,idelslice)
         call ialorg(2,cell(1)/2.+delxx,cell(2)/2.,
-     &      float(sign(islice-1,-idelslice)))
+     &      float(sign(max(0,islice-1),-idelslice)))
         call ialtlt(2,outilt)
       endif
+c       
+c       chunk mode starter run: write header and exit
+c
+      if (minTotSlice .gt. 0 .and. islice .le. 0) then
+        CALL IWRHDR(2,TITLE,1,PMIN,PMAX,PMEAN)
+        CALL IMCLOSE(2)
+        print *,'Exiting after setting up output file for chunk writing'
+        call exit(0)
+      endif
+      if (minTotSlice .gt. 0) call imposn(2, islice - minTotSlice, 0)
 C       
 c       if no INCLUDE cards, set up map to views, excluding any specified by
 c       EXCLUDE cards
@@ -2507,7 +2554,8 @@ C
      &    )
 3301  format(/,' Dimensions and coordinates will be scaled down by a ',
      &    'factor of ',i2)
-
+3401  format(/,' Computed slices are part of a total volume from slice',
+     &    i6,' to',i6)
       END
 C       
 C-----------------------------------------------------------------------
@@ -2731,6 +2779,9 @@ c         print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c       
 c       $Log$
+c       Revision 3.26  2006/03/21 06:27:57  mast
+c       Made it work with aligned stack bigger than "FULLIMAGE"
+c
 c       Revision 3.25  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
