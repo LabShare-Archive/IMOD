@@ -1,11 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/06: Fixed Splittilt so it takes image size from aligned stack instead
+of assuming that FULLIMAGE is the size to do, so it will work with an
+oversized or subset aligned stack.
+
 3/23/06: Added advanced checkboxes "Convert to bytes", which adds "-mo 0" to
 prenewst.com, and "Float intensities to mean", which adds "-float 2" to
-prenewst.com, to prenewst.com.
+prenewst.com, to coarse align page.
 
-3/23/06: In Setup Tomogram, improving the popup message when the dual axis image
-stack does not end in a.st.
+3/23/06: In Setup Tomogram, improved the popup message when the dual axis
+image stack does not end in a.st.
 
 3/23/06: Fixed bug in Avgstack that averaged all sections when 0,0 was entered,
 which was making auto alignment of first section boundary in a join fail when
