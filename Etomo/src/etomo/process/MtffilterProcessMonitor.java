@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2006/03/22 00:35:56  sueh
+* <p> bug# 836 Added temporary diagnostics to calcFileSize().
+* <p>
 * <p> Revision 1.5  2005/11/03 00:51:23  sueh
 * <p> bug# 740 In calcFileSize():  Getting file to open from Blendmont when
 * <p> montage is true.  Taking starting and ending Z into account.
@@ -131,7 +134,7 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
 
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
-    long fileSize = 1024 + nX * nY * nZ * modeBytes;
+    double fileSize = 1024 + nX * nY * nZ * modeBytes;
     //TEMP bug# 839
     System.err.println("fileSize="+fileSize);
     nKBytes = (int) (fileSize / 1024);
