@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2006/03/24 20:42:27  sueh
+* <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
+* <p>
 * <p> Revision 1.6  2006/03/22 00:35:56  sueh
 * <p> bug# 836 Added temporary diagnostics to calcFileSize().
 * <p>
@@ -64,10 +67,10 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
   void calcFileSize() throws InvalidParameterException, IOException {
     //TEMP bug# 839
     System.err.println("MtffilterProcessMonitor.calcFileSize:");
-    int nX;
-    int nY;
-    int nZ;
-    int modeBytes = 1;
+    double nX;
+    double nY;
+    double nZ;
+    double modeBytes = 1.0d;
 
     // Get the depth, mode, any mods to the X and Y size from the tilt 
     // command script and the input and output filenames. 
@@ -92,27 +95,27 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     MRCHeader outputHeader = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), outputFilename, axisID);
     outputHeader.read();
-    nX = outputHeader.getNRows();
-    nY = outputHeader.getNColumns();
-    nZ = outputHeader.getNSections();
+    nX = (double) outputHeader.getNRows();
+    nY = (double) outputHeader.getNColumns();
+    nZ = (double) outputHeader.getNSections();
     switch (outputHeader.getMode()) {
       case 0 :
-        modeBytes = 1;
+        modeBytes = 1.0d;
         break;
       case 1 :
-        modeBytes = 2;
+        modeBytes = 2.0d;
         break;
       case 2 :
-        modeBytes = 4;
+        modeBytes = 4.0d;
         break;
       case 3 :
-        modeBytes = 4;
+        modeBytes = 4.0d;
         break;
       case 4 :
-        modeBytes = 8;
+        modeBytes = 8.0d;
         break;
       case 16 :
-        modeBytes = 3;
+        modeBytes = 3.0d;
         break;
       default :
         throw new InvalidParameterException("Unknown mode parameter");
@@ -122,21 +125,21 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     MTFFilterParam mtfFilterParam = comScriptManager.getMTFFilterParam(axisID);
     if (mtfFilterParam.isStartingZSet()) {
       if (mtfFilterParam.isEndingZSet()) {
-        nZ = mtfFilterParam.getEndingZ() - mtfFilterParam.getStartingZ() + 1;
+        nZ = (double) mtfFilterParam.getEndingZ() - (double) mtfFilterParam.getStartingZ() + 1.0d;
       }
       else {
-        nZ = nZ - mtfFilterParam.getStartingZ() + 1;
+        nZ = nZ - (double) mtfFilterParam.getStartingZ() + 1.0d;
       }
     }
     else if (mtfFilterParam.isEndingZSet()) {
-      nZ = mtfFilterParam.getEndingZ();
+      nZ = (double) mtfFilterParam.getEndingZ();
     }
 
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
-    double fileSize = 1024 + nX * nY * nZ * modeBytes;
+    double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
     //TEMP bug# 839
-    System.err.println("fileSize="+fileSize);
+    System.err.println("double fileSize="+fileSize);
     nKBytes = (int) (fileSize / 1024);
     //TEMP bug# 839
     System.err.println("nKBytes="+nKBytes);
