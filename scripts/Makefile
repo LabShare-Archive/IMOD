@@ -7,6 +7,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.16  2005/08/30 17:41:31  mast
+#  Added imodkillgroup
+#
 #  Revision 3.15  2005/05/10 03:14:32  mast
 #  Added archiveorig
 #
@@ -59,7 +62,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
- archiveorig imodkillgroup $(GENERATED_SCRIPTS)
+ archiveorig imodkillgroup collectmmm $(GENERATED_SCRIPTS)
 
 all:
 

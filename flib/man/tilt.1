@@ -266,6 +266,18 @@ DDEESSCCRRIIPPTTIIOONN
   Slices are numbered from 0.  The IDELSLICE entry is optional and
   defaults to 1 when omitted.
 
+  TOTALSLICES START END
+  ------
+  This line is used to allow multiple runs of Tilt to compute a subset
+  of slices and place them into the same output file.  START and END
+  specify the first and last slice to be reconstructed in the whole
+  volume, numbered from 0.  When this entry is present, the behavior of
+  the program depends on the SLICE entry.  The program should be run
+  initially with SLICE -1 -1, which will cause it to create the output file
+  and write its header.  On successive runs with SLICE indicating a real range
+  of slices, the program will open the existing file, write only those slices, 
+  and not write the header when it is done.
+
   SUBSETSTART IX IY
   ------
   If the aligned stack contains a subset of the area in the original
