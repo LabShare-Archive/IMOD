@@ -92,10 +92,17 @@ Allow fast backprojection where possible.  The default is to cancel fast
 backprojection because mismatches will occur between chunks done with and
 without fast backprojection.  Use this option only if all machines have
 licenses for fast backprojection.
+.TP
+.B -c
+Write chunks to separate files named setname-nnn.rec and assemble the output
+file from these
+at the end.  The default is to write directly to the output file.
 .SH FILES
-Each command file generates a temporary file setname-nnn.rec in the current
-directory.  The finishing command file deletes these files, as well as all
-command and log files for the chunks.
+The finishing command file deletes all the
+command and log files for the chunks after collecting minimun, maximum, and
+mean density information from the log files.  If the
+.B -c
+option is given, the temporary reconstruction files are deleted too.
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
