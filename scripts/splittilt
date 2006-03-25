@@ -7,26 +7,7 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.6  2006/02/16 06:29:42  mast
-#  Put IMOD on the path
-#
-#  Revision 3.5  2005/11/12 06:10:09  mast
-#  When there is X-axis tilt, made it find the largest number of chunks
-#  that gives a minimal number of extra slices (2%)
-#
-#  Revision 3.4  2005/10/08 20:10:38  mast
-#  Fixed for binned images
-#
-#  Revision 3.3  2004/07/22 20:51:47  mast
-#  Added exit statement to unrecognized option error point
-#
-#  Revision 3.2  2004/07/22 18:16:56  mast
-#  Change to better sed command for stripping Ctrl M
-#
-#  Revision 3.1  2004/07/21 17:00:07  mast
-#  Initial creation
-#
+#  Log at end
 
 set pn = splittilt
 set penalty = 1.33
@@ -50,6 +31,7 @@ Usage: $pn [options] command_file
       -p #   Penalty for old-style X-axis tilting (default $penalty)
       -v     Do vertical slices instead of old-style X-axis tilting
       -f     Allow fast backprojection where possible
+      -c     Write chunks to separate files, not directly to single output file
 EOF
 exit 0
 endif
@@ -61,6 +43,7 @@ endif
 set vertical = 0
 set oldstyle = "#"
 set nofbp = "FBPINTERP 0"
+set direct = 1
 
 while ($#argv > 1)
   switch ($argv[1])
@@ -99,6 +82,11 @@ while ($#argv > 1)
       shift
       breaksw
 
+    case -c:
+      set direct = 0
+      shift
+      breaksw
+
     default:
       echo "ERROR: $pn - unrecognized option $argv[1]"
       exit 1
@@ -129,9 +117,19 @@ set binning = `grep -i imagebinned $comname | grep -v '^#' | sed '/[^0-9\.]/s///
 
 # Get the input image file name from the command file
 #
-@ topline  = `vmstocsh < $comname | awk '/tilt/{print NR}'`
-@ nextline = $topline + 1
-set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
+                sed '/[[:cntrl:]]/s///g'`
+if ($#topline > 1) then
+    @ topnum = $topline[1]
+else
+    @ topnum = $topline
+endif
+@ nextline = $topnum + 1
+set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+@ nextline = $topnum + 2
+set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 
 if (! -e $alifile && $#fullimage == 0 && "$slices" == "") then
     echo "ERROR: $pn - Command file has neither a SLICES nor a FULLIMAGE entry and image file does not exist yet"
@@ -148,9 +146,11 @@ endif
 if ("$binning" != "") @ binval = $binning[1]
 @ thickness /= $binval
 
-# Remove any previous files now in case the number has changed
+# Remove any previous files now in case the number has changed or 
+# direct/indirect mode
 #
 \find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+\rm -f $rootname-start.com $rootname-finish.com
 
 # Get the size from the aligned stack instead of relying on FULLIMAGE if
 # possible, and scale them up by binning
@@ -241,19 +241,26 @@ endif
 @ slabsize = $numslices / $numslabs
 @ remainder = $numslices - $numslabs * $slabsize
 
-set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
-                sed '/[[:cntrl:]]/s///g'`
-if ($#topline > 1) then
-    @ topnum = $topline[1]
-else
-    @ topnum = $topline
-endif
-@ nextline = $topnum + 2
-set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
-
 set recroot = $recfile:r
 set templist = ()
+set recsed = $recfile
+@ mintotslice = $binval * $firstslice
+@ maxtotslice = $binval * ($firstslice + $numslices - 1)
+set totsed = gibberish
+if ($direct) then
+    set totsed = THICKNESS
+    set recsed = gibberish
+    set thiscom = $rootname-start.com
+    sed -e "/SLICE/d" \
+        -e '/savework/d' \
+        -e "/THICKNESS/a\\
+SLICE -1 -1\
+" \
+        -e "/THICKNESS/a\\
+TOTALSLICES $mintotslice $maxtotslice\
+" \
+    $comname >! $thiscom
+endif
 
 @ num = 0
 while ($num < $numslabs)
@@ -279,7 +286,7 @@ while ($num < $numslabs)
     # Set the new slice command and the xtiltinterp control, and turn off
     # FBP for consistency
     #
-    sed -e "/$recfile/s//$tempname/" \
+    sed -e "/$recsed/s//$tempname/" \
         -e "/SLICE/d" \
         -e '/savework/d' \
         -e "/THICKNESS/a\\
@@ -287,6 +294,9 @@ SLICE $ubfirst $ublast\
 " \
         -e "/THICKNESS/a\\
 $oldstyle\
+" \
+        -e "/$totsed/a\\
+TOTALSLICES $mintotslice $maxtotslice\
 " \
         -e "/THICKNESS/a\\
 $nofbp\
@@ -299,7 +309,8 @@ EOF
 end
 
 set finish = $rootname-finish.com
-cat <<EOF >! $finish
+if (! $direct) then
+    cat <<EOF >! $finish
 \$newstack -StandardInput
 OutputFile $recfile
 EOF
@@ -311,6 +322,37 @@ end
 cat <<EOF >> $finish
 \$\\rm -f $rootname-[0-9]*.* $recroot-[0-9]*.rec
 EOF
+else
+    cat <<EOF >! $finish
+\$collectmmm pixels= $rootname $numslabs $recfile
+\$\\rm -f $rootname-[0-9]*.*
+EOF
+endif
 
 echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
+
+#  $Log$
+#  Revision 3.7  2006/03/24 00:33:03  mast
+#  Changed to use image size if available so it will work with subset or
+#  oversized stack.
+#
+#  Revision 3.6  2006/02/16 06:29:42  mast
+#  Put IMOD on the path
+#
+#  Revision 3.5  2005/11/12 06:10:09  mast
+#  When there is X-axis tilt, made it find the largest number of chunks
+#  that gives a minimal number of extra slices (2%)
+#
+#  Revision 3.4  2005/10/08 20:10:38  mast
+#  Fixed for binned images
+#
+#  Revision 3.3  2004/07/22 20:51:47  mast
+#  Added exit statement to unrecognized option error point
+#
+#  Revision 3.2  2004/07/22 18:16:56  mast
+#  Change to better sed command for stripping Ctrl M
+#
+#  Revision 3.1  2004/07/21 17:00:07  mast
+#  Initial creation
+#
