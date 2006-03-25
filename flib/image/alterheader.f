@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/11/11 22:53:01  mast
+c	  Added switch between 1 and 6 modes (not really needed now)
+c	
 c	  Revision 3.4  2005/05/26 04:35:58  mast
 c	  Used double precision to get rms correct
 c	
@@ -32,8 +35,8 @@ c
 C   
 	implicit none
 	integer nfunc,idim,nx,ny,nz
-        parameter (nfunc=17)
-	parameter (idim=4100)
+        parameter (nfunc=18)
+	parameter (idim=8200)
 	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),mcrs(3),listdel(1000)
 	real*4 delt(3),tilt(3),
      &      TITLE(20,10),cell(6),array(idim*idim)
@@ -44,7 +47,7 @@ C
         character*8 param(nfunc)
         data param/'ORG','CEL','DAT','DEL','MAP','SAM','TLT'
      &      ,'TLT_ORIG','TLT_ROT','LAB','MMM','RMS','FIXPIXEL',
-     &	    'FIXEXTRA','FIXMODE','HELP','DONE'/
+     &	    'FIXEXTRA','FIXMODE','SETMMM','HELP','DONE'/
 C   
 C   
 	DATA NXYZST/0,0,0/
@@ -66,7 +69,7 @@ C
 30      write(*,102)
 102     format(1x,'Options: org, cel, dat, del, map, sam, tlt, ',
      &	    'tlt_orig, tlt_rot, lab, mmm,',/,
-     &	    ' rms, fixpixel, fixextra, fixmode, help, OR done')
+     &	    ' rms, fixpixel, fixextra, fixmode, setmmm, help, OR done')
 	write(*,'(1x,a,$)')'Enter option: '
         read(5,101)funcin
 101	FORMAT(A)
@@ -75,7 +78,7 @@ C
         do i=1,nfunc
           if(funcup.eq.param(i))iwhich=i
         enddo
-        go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,17,14,15),iwhich
+        go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,17,18,14,15),iwhich
         print *,'Not a legal entry, try again'
         go to 30
 C   
@@ -306,6 +309,7 @@ c	  call iclden(array,nx,ny,1,nx,1,ny,dmins,dmaxs,dmeans)
 	totn = totn * nx * ny
 	dmeans=tsum/totn
 	rms=sqrt((sumsq - totn * dmeans**2) / totn)
+        dmean = dmeans
 	call ialrms(2,rms)
 	if(iwhich.eq.12)write(*,162)rms
 162	format(' New RMS value = ', g13.5)
@@ -359,6 +363,12 @@ c
      &	    ' will not be',/, ' represented correctly in this mode.')
 	go to 30
 c
+18      write(*,218)dmin, dmax, dmean
+218     format(' Alter min/max/mean.  Current values:',6g15.5,
+     &      /,'New min, max, mean: ',$)
+        read(5,*)dmin, dmax, dmean
+        go to 30
+c
 14	write(*,201)
 201	format(/,' org = change x,y,z origin',
      &	    /,' cel = change cell size',
@@ -380,6 +390,7 @@ c
      &	    ' does not look like a montage'
      &	    /,' fixmode = change mode from 6 to 1 (unsigned to signed ',
      &	    'integer) or 1 to 6',
+     &      /,' setmmm = set min, max, mean to entered values',
      &	    /,' help = type this again',
      &	    /,' done = exit',/)
 	go to 30
