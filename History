@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/24/06: IMOD_3-8-4
+3/24/06: Modified Tilt and Splittilt so that parallel reconstruction will
+write directly to a single output file, eliminating need to reassemble.
+
+3/24/06: Fixed progress monitor for mtffilter with files > 2 GB.
+
 3/23/06: Fixed Splittilt so it takes image size from aligned stack instead
 of assuming that FULLIMAGE is the size to do, so it will work with an
 oversized or subset aligned stack.
