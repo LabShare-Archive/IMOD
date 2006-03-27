@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/27/06: Fixed problem in cubic interpolation routine that showed up when
+running Tiltxcorr with a rotation angle of exactly 90 degrees.
+
 3/24/06: IMOD_3-8-4
 3/24/06: Modified Tilt and Splittilt so that parallel reconstruction will
 write directly to a single output file, eliminating need to reassemble.
