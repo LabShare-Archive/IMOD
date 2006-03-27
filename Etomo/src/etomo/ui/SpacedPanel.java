@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.MouseListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -31,6 +32,10 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2006/01/03 23:54:45  sueh
+* <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
+* <p> toRadioButton.
+* <p>
 * <p> Revision 1.10  2005/09/29 19:11:14  sueh
 * <p> add comment
 * <p>
@@ -288,6 +293,10 @@ final class SpacedPanel {
     panel.add(button);
     xDescription.append("JButton,");
     yDescription.append("JButton,");
+  }
+  
+  final void addMouseListener(MouseListener mouseListener) {
+    panel.addMouseListener(mouseListener);
   }
   
   final void addHorizontalGlue() {
