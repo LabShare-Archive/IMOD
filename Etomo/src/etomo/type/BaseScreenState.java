@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import etomo.storage.Storable;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: AxisID level storable object for the .edf and .ejf files.
@@ -33,8 +32,8 @@ public class BaseScreenState implements Storable {
   protected final AxisID axisID;
   private final AxisType axisType;
   private final String group;
-  private Properties loadedProperties = null;
-  private String loadedPrepend = "";
+  private Properties localProperties = null;
+  private String localPrepend = null;//the prepend used to save to localProperties
   private HashSet keys = null;
 
   public BaseScreenState(AxisID axisID, AxisType axisType) {
@@ -47,9 +46,14 @@ public class BaseScreenState implements Storable {
     group = "ScreenState" + axisID.getExtension().toUpperCase();
     this.axisID = axisID;
     this.axisType = axisType;
-    selfTestInvariants();
   }
 
+  /**
+   * Get a button state out of the local Properties object and return it as a
+   * boolean
+   * @param key - key to button state
+   * @return
+   */
   public final boolean getButtonState(String key) {
     if (key == null) {
       return false;
@@ -58,63 +62,30 @@ public class BaseScreenState implements Storable {
       keys = new HashSet();
     }
     keys.add(key);
-    if (loadedProperties == null) {
+    if (localProperties == null) {
       return false;
     }
     EtomoBoolean2 buttonState = new EtomoBoolean2(key);
-    buttonState.load(loadedProperties, loadedPrepend);
+    buttonState.load(localProperties, localPrepend);
     return buttonState.is();
   }
 
   /**
-   * set buttonState in the buttonStates hashtable
+   * Sets the button state in a local Properties object
    * @param buttonState
    */
   public final void setButtonState(String key, boolean state) {
     if (key == null) {
       return;
     }
-    if (loadedProperties == null) {
-      loadedProperties = new Properties();
-      loadedPrepend = getPrepend("");
+    //System.out.println("setButtonState:key="+key+",state="+state);
+    if (localProperties == null) {
+      localProperties = new Properties();
+      localPrepend = getPrepend("");
     }
-    loadedProperties.setProperty(loadedPrepend + '.' + key, String
+    //System.out.println("localPrepend="+localPrepend);
+    localProperties.setProperty(localPrepend + '.' + key, String
         .valueOf(state));
-  }
-
-  void selfTestInvariants() {
-    if (!Utilities.isSelfTest()) {
-      return;
-    }
-    if (axisType == AxisType.NOT_SET) {
-      throw new IllegalStateException("AxisType must be set; axisType="
-          + axisType + ".");
-    }
-    if (axisType == AxisType.SINGLE_AXIS && axisID == AxisID.SECOND) {
-      throw new IllegalStateException(
-          "AxisID cannot be B in a single axis dataset; axisType=" + axisType
-              + ",axisID=" + axisID + ".");
-    }
-    if (axisType == AxisType.SINGLE_AXIS && axisID != AxisID.ONLY) {
-      throw new IllegalStateException(
-          "AxisID must be Only in a single axis dataset; axisType=" + axisType
-              + ",axisID=" + axisID + ".");
-    }
-    if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
-      throw new IllegalStateException(
-          "AxisID must be A or B in a dual axis dataset; axisType=" + axisType
-              + ",axisID=" + axisID + ".");
-    }
-    if (axisID == AxisID.FIRST && !group.endsWith("A")) {
-      throw new IllegalStateException(
-          "Group must end with A for the first axis; group=" + group
-              + ",axisID=" + axisID + ".");
-    }
-    if (axisID == AxisID.SECOND && !group.endsWith("B")) {
-      throw new IllegalStateException(
-          "Group must end with B for the second axis; group=" + group
-              + ",axisID=" + axisID + ".");
-    }
   }
 
   protected final String getPrepend(String prepend) {
@@ -130,10 +101,16 @@ public class BaseScreenState implements Storable {
     store(props, "");
   }
 
+  /**
+   * Store the values in localProperties in props.
+   * @param props
+   * @param prepend
+   */
   protected void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.store(props, prepend);
-    if (keys == null || loadedProperties == null) {
+    if (keys == null || localProperties == null) {
+      //nothing to store
       return;
     }
     synchronized (this) {
@@ -141,9 +118,10 @@ public class BaseScreenState implements Storable {
       String key = null;
       while (i.hasNext()) {
         key = (String) i.next();
-        //get the loaded property and store it in props
-        String state = loadedProperties.getProperty(loadedPrepend + '.' + key);
+        //get the value from the local property using the local prepend
+        String state = localProperties.getProperty(localPrepend + '.' + key);
         if (state != null) {
+          //store the value in props using the modified prepend parameter
           props.setProperty(prepend + '.' + key, state);
         }
       }
@@ -154,11 +132,16 @@ public class BaseScreenState implements Storable {
     load(props, "");
   }
 
+  /**
+   * point localProperties to props and set localPrepend to prepend
+   * @param props
+   * @param prepend
+   */
   public void load(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.load(props, prepend);
-    loadedProperties = props;
-    loadedPrepend = prepend;
+    localProperties = props;
+    localPrepend = prepend;
   }
 
   public final PanelHeaderState getParallelHeaderState() {
@@ -167,6 +150,10 @@ public class BaseScreenState implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/03/20 17:56:33  sueh
+ * <p> bug# 835 Renamed the group for the parallel processing processor list
+ * <p> panel to ParallelProcess.Header, to distinguish it from the ParallelDialog.
+ * <p>
  * <p> Revision 1.8  2006/01/26 21:56:57  sueh
  * <p> bug# 401 For new datasets, create loadedProperties and loadedPrepend
  * <p>
