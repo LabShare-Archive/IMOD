@@ -33,6 +33,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2003/03/14 02:08:05  mast
+c	  Added a linear interpolation option and implemented implicit none
+c	
 c	  Revision 3.1  2002/07/31 01:09:22  mast
 c	  Changed margins for computing xlft and xrt from 2.0 and 1.001 to
 c	  2.01 and 1.01 because of crash on SGI, probably due to rounding
@@ -93,10 +96,11 @@ C
 	    if(ybase.ge.0.5.or.ybase.le.nya+0.5)linefb=1
 	  endif
 c	    
-c	    truncate the ending value down and the starting value up
+c	    truncate the ending value down and the starting value up but do not
+c           pay any attention to xst bigger than nxb + 1
 c
 	  ixnd=xnd
-	  ixst=nxb+1-int(nxb+1-xst)
+	  ixst=nxb+1-int(nxb+1-min(xst, nxb + 1.))
 c	    
 c	    if they're crossed, set them up so fill will do whole line
 c
