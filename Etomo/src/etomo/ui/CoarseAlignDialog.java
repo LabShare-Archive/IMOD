@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2006/03/22 18:00:22  sueh
+ * <p> Made unchanging member variables final
+ * <p>
  * <p> Revision 3.31  2006/02/06 21:20:45  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
@@ -196,6 +199,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
@@ -211,8 +215,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   private final JPanel pnlCoarseAlign = new JPanel();
 
   private final CrossCorrelationPanel pnlCrossCorrelation;
-
-  private final MultiLineButton btnCrossCorrelate;
 
   private final PrenewstPanel pnlPrenewst;
 
@@ -238,7 +240,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     ConstMetaData metaData = appMgr.getMetaData();
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
-    btnCrossCorrelate = (MultiLineButton) displayFactory.getCrossCorrelate();
     btnDistortionCorrectedStack = (MultiLineButton) displayFactory
         .getDistortionCorrectedStack();
     btnFixEdgesMidas = (MultiLineButton) displayFactory.getFixEdgesMidas();
@@ -246,7 +247,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     fixRootPanel(rootSize);
-    pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID);
+    pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID, dialogType);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID);
     btnExecute.setText("Done");
 
@@ -258,8 +259,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     pnlCoarseAlign.setLayout(new BoxLayout(pnlCoarseAlign, BoxLayout.Y_AXIS));
     pnlCoarseAlign.setBorder(new BeveledBorder("Coarse Alignment").getBorder());
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
-        FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnCrossCorrelate.getComponent(),
         FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       SpacedPanel pnlFixEdges = new SpacedPanel();
@@ -294,7 +293,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
     //  Action listener assignment for the buttons
     actionListener = new CoarseAlignActionListener(this);
-    btnCrossCorrelate.addActionListener(actionListener);
     btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
     btnMidas.addActionListener(actionListener);
@@ -310,8 +308,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   }
 
   public static ProcessResultDisplay getCrossCorrelateDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        "Calculate Cross- Correlation", DialogType.COARSE_ALIGNMENT);
+    return CrossCorrelationPanel.getCrossCorrelateDisplay();
   }
 
   public static ProcessResultDisplay getDistortionCorrectedStackDisplay() {
@@ -399,7 +396,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   }
 
   public void done() {
-    btnCrossCorrelate.removeActionListener(actionListener);
+    pnlCrossCorrelation.done();
     btnDistortionCorrectedStack.removeActionListener(actionListener);
     btnFixEdgesMidas.removeActionListener(actionListener);
     btnCoarseAlign.removeActionListener(actionListener);
@@ -407,8 +404,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   }
 
   public void setParameters(ReconScreenState screenState) {
-    btnCrossCorrelate.setButtonState(screenState
-        .getButtonState(btnCrossCorrelate.getButtonStateKey()));
+    pnlCrossCorrelation.setParameters(screenState);
     btnMidas.setButtonState(screenState.getButtonState(btnMidas
         .getButtonStateKey()));
     btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
@@ -417,6 +413,10 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
         .getButtonStateKey()));
     btnDistortionCorrectedStack.setButtonState(screenState
         .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
+  }
+  
+  public void getParameters(BaseScreenState screenState) {
+    pnlCrossCorrelation.getParameters(screenState);
   }
 
   public void setFiducialessAlignment(boolean state) {
@@ -485,8 +485,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Find alignment transformations between successive images by cross-correlation.";
-    btnCrossCorrelate.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use transformations to produce stack of aligned images.";
     btnCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use 3dmod to view the coarsely aligned images.";
@@ -522,10 +520,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
    */
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
-    if (command.equals(btnCrossCorrelate.getActionCommand())) {
-      applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate);
-    }
-    else if (command.equals(btnCoarseAlign.getActionCommand())) {
+    if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
