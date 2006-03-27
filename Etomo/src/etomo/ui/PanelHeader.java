@@ -10,6 +10,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
+import etomo.type.BaseScreenState;
+import etomo.type.DialogType;
 import etomo.type.PanelHeaderState;
 
 /**
@@ -39,23 +41,30 @@ final class PanelHeader implements Expandable {
   private final HeaderCell cellTitle;
 
   private final String group;
+  private final DialogType dialogType;
 
   private ExpandButton btnAdvancedBasic = null;
   private ExpandButton btnMoreLess = null;
 
-  static final PanelHeader getInstance(String group, String title,
-      Expandable panel) {
-    return new PanelHeader(group, title, panel, false, false);
+  static PanelHeader getInstance(String group, String title, Expandable panel,
+      DialogType dialogType) {
+    return new PanelHeader(group, title, panel, false, false, dialogType);
   }
 
-  static final PanelHeader getAdvancedBasicInstance(String group, String title,
-      Expandable panel) {
-    return new PanelHeader(group, title, panel, true, false);
+  static PanelHeader getAdvancedBasicInstance(String group, String title,
+      Expandable panel, DialogType dialogType) {
+    return new PanelHeader(group, title, panel, true, false, dialogType);
   }
 
-  static final PanelHeader getMoreLessInstance(String group, String title,
-      Expandable panel) {
-    return new PanelHeader(group, title, panel, false, true);
+  static PanelHeader getAdvancedBasicInstance(String title, Expandable panel,
+      DialogType dialogType) {
+    return new PanelHeader(UIUtilities.convertLabelToName(title) + ".Header", title, panel,
+        true, false, dialogType);
+  }
+
+  static PanelHeader getMoreLessInstance(String group, String title,
+      Expandable panel, DialogType dialogType) {
+    return new PanelHeader(group, title, panel, false, true, dialogType);
   }
 
   /**
@@ -69,9 +78,10 @@ final class PanelHeader implements Expandable {
    * @param moreLess - true if an more/less button should be created
    */
   private PanelHeader(String group, String title, Expandable panel,
-      boolean advancedBasic, boolean moreLess) {
+      boolean advancedBasic, boolean moreLess, DialogType dialogType) {
     this.group = group;
     this.panel = panel;
+    this.dialogType = dialogType;
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     JPanel northPanel = new JPanel();
@@ -122,48 +132,48 @@ final class PanelHeader implements Expandable {
     rootPanel.add(separator);
   }
 
-  final void setText(String text) {
+  void setText(String text) {
     cellTitle.setText(text);
   }
 
-  final Container getContainer() {
+  Container getContainer() {
     return rootPanel;
   }
 
-  final boolean equalsOpenClose(ExpandButton button) {
+  boolean equalsOpenClose(ExpandButton button) {
     return button == btnOpenClose;
   }
 
-  final boolean equalsAdvancedBasic(ExpandButton button) {
+  boolean equalsAdvancedBasic(ExpandButton button) {
     return button == btnAdvancedBasic;
   }
 
-  final boolean equalsMoreLess(ExpandButton button) {
+  boolean equalsMoreLess(ExpandButton button) {
     return button == btnMoreLess;
   }
 
-  final void setAdvanced(boolean advanced) {
+  void setAdvanced(boolean advanced) {
     if (btnAdvancedBasic == null) {
       return;
     }
     btnAdvancedBasic.setExpanded(advanced);
   }
 
-  final boolean isAdvancedBasicExpanded() {
+  boolean isAdvancedBasicExpanded() {
     if (btnAdvancedBasic == null) {
       return false;
     }
     return btnAdvancedBasic.isExpanded();
   }
 
-  public final void expand(ExpandButton button) {
+  public void expand(ExpandButton button) {
     if (button == btnOpenClose) {
       separator.setVisible(button.isExpanded());
       panel.expand(button);
     }
   }
 
-  public final void getState(PanelHeaderState state) {
+  public void getState(PanelHeaderState state) {
     state.setOpenCloseState(btnOpenClose.getState());
     if (btnAdvancedBasic != null) {
       state.setAdvancedBasicState(btnAdvancedBasic.getState());
@@ -178,7 +188,7 @@ final class PanelHeader implements Expandable {
    * button for which there is a valid state.
    * @param state
    */
-  public final void setState(PanelHeaderState state) {
+  public void setState(PanelHeaderState state) {
     if (state == null) {
       return;
     }
@@ -190,9 +200,43 @@ final class PanelHeader implements Expandable {
       btnMoreLess.setState(state.getMoreLessState());
     }
   }
+
+  public void setButtonStates(BaseScreenState screenState) {
+    //System.out.println("setButtonStates:dialogType="+dialogType);
+    btnOpenClose.setButtonState(screenState.getButtonState(btnOpenClose
+        .getButtonStateKey(dialogType)));
+    if (btnAdvancedBasic != null) {
+      btnAdvancedBasic.setButtonState(screenState
+          .getButtonState(btnAdvancedBasic.getButtonStateKey(dialogType)));
+    }
+    if (btnMoreLess != null) {
+      btnMoreLess.setButtonState(screenState.getButtonState(btnMoreLess
+          .getButtonStateKey(dialogType)));
+    }
+  }
+
+  public void getButtonStates(BaseScreenState screenState) {
+    //System.out.println("getButtonStates");
+    if (screenState == null) {
+      return;
+    }
+    screenState.setButtonState(btnOpenClose.getButtonStateKey(), btnOpenClose
+        .getButtonState());
+    if (btnAdvancedBasic != null) {
+      screenState.setButtonState(btnAdvancedBasic.getButtonStateKey(),
+          btnAdvancedBasic.getButtonState());
+    }
+    if (btnMoreLess != null) {
+      screenState.setButtonState(btnMoreLess.getButtonStateKey(), btnMoreLess
+          .getButtonState());
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2005/12/14 20:57:16  sueh
+ * <p> bug# 784 Added context sensitive tool tips.
+ * <p>
  * <p> Revision 1.14  2005/09/29 19:10:35  sueh
  * <p> bug# 532 Added isAdvanceBasicExpanded().
  * <p>
