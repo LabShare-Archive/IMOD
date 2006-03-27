@@ -71,6 +71,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.85  2006/03/22 00:36:53  sueh
+ * bug# 836 buttonAction:  removed unnecessary calls to MultiLineButton.
+ * msgProcessStarting.
+ *
  * Revision 3.84  2006/03/20 18:07:43  sueh
  * bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
  *
@@ -1201,11 +1205,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       newstHeader = PanelHeader.getInstance(
-          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Blendmont", this);
+          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Blendmont", this, dialogType);
     }
     else {
       newstHeader = PanelHeader.getInstance(
-          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Newstack", this);
+          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Newstack", this, dialogType);
     }
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
@@ -1259,7 +1263,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //header
     filterHeader = PanelHeader.getAdvancedBasicInstance(
         ReconScreenState.TOMO_GEN_MTFFILTER_HEADER_GROUP,
-        "2D Filtering (optional)", this);
+        "2D Filtering (optional)", this, dialogType);
     //buttonPanel
     buttonPanel.add(btnFilter);
     buttonPanel.add(btnViewFilter);
@@ -1325,7 +1329,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     tiltHeader = PanelHeader.getAdvancedBasicInstance(
-        ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this);
+        ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this, dialogType);
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1401,7 +1405,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     trialHeader = PanelHeader.getInstance(
-        ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this);
+        ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this, dialogType);
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);

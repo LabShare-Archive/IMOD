@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2006/03/16 01:59:33  sueh
+ * <p> bug# 828 SolvematchPanel doesn't need to implement InitialCombineFields.
+ * <p>
  * <p> Revision 3.17  2006/01/12 17:38:03  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
@@ -195,7 +198,7 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    header = PanelHeader.getInstance(headerGroup, "Solvematch Parameters", this);
+    header = PanelHeader.getInstance(headerGroup, "Solvematch Parameters", this, parent.getDialogType());
     pnlRoot.add(header.getContainer());
     pnlRoot.add(pnlBody);
 

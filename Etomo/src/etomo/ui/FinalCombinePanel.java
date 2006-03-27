@@ -56,6 +56,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.43  2006/03/16 01:55:37  sueh
+ * bug# 828 Added isEnabled().  Returns true if the final tab is enabled.
+ *
  * Revision 3.42  2006/02/07 00:11:19  sueh
  * bug# 521 Getting the splitcombine process result display from
  * ProcessResultDisplayFactory so that it is always the Restart at
@@ -432,7 +435,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchRegionModel.setBorder(BorderFactory.createEtchedBorder());
     patchRegionModelHeader = PanelHeader.getInstance(
         ReconScreenState.COMBINE_FINAL_PATCH_REGION_HEADER_GROUP,
-        "Patch Region Model", this);
+        "Patch Region Model", this, dialogType);
     pnlPatchRegionModel.add(patchRegionModelHeader.getContainer());
     pnlPatchRegionModel.add(pnlPatchRegionModelBody.getContainer());
 
@@ -484,7 +487,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorr.setBorder(BorderFactory.createEtchedBorder());
     patchcorrHeader = PanelHeader.getAdvancedBasicInstance(
         ReconScreenState.COMBINE_FINAL_PATCHCORR_HEADER_GROUP,
-        "Patchcorr Parameters", this);
+        "Patchcorr Parameters", this, dialogType);
     pnlPatchcorr.add(patchcorrHeader.getContainer());
     pnlPatchcorr.add(pnlPatchcorrBody.getContainer());
 
@@ -526,7 +529,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarp.setBorder(BorderFactory.createEtchedBorder());
     matchorwarpHeader = PanelHeader.getAdvancedBasicInstance(
         ReconScreenState.COMBINE_FINAL_MATCHORWARP_HEADER_GROUP,
-        "Matchorwarp Parameters", this);
+        "Matchorwarp Parameters", this, dialogType);
     pnlMatchorwarp.add(matchorwarpHeader.getContainer());
     pnlMatchorwarp.add(pnlMatchorwarpBody);
 
@@ -549,7 +552,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombine.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getAdvancedBasicInstance(
         ReconScreenState.COMBINE_FINAL_VOLCOMBINE_HEADER_GROUP,
-        "Volcombine Parameters", this);
+        "Volcombine Parameters", this, dialogType);
     pnlVolcombine.add(volcombineHeader.getContainer());
     pnlVolcombine.add(pnlVolcombineBody);
 

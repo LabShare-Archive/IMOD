@@ -119,7 +119,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     bodyPanel.add(southPanel);
     //header
     header = PanelHeader.getMoreLessInstance(
-        BaseScreenState.PARALLEL_HEADER_GROUP, TITLE, this);
+        BaseScreenState.PARALLEL_HEADER_GROUP, TITLE, this, null);
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
@@ -466,6 +466,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2006/02/15 18:53:05  sueh
+ * <p> bug# 796 remove unnecessary import
+ * <p>
  * <p> Revision 1.33  2006/02/09 23:06:02  sueh
  * <p> bug# 796 isValidAutodoc(): allowing parallel processing in windows
  * <p>

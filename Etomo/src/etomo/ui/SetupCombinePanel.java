@@ -49,6 +49,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.33  2006/03/16 01:58:53  sueh
+ * bug# 828 Added isEnabled() - always returns true.  Added
+ * getScreenMatchMode() - returns the state of rbBtoA with a MatchMode.
+ *
  * Revision 3.32  2006/02/06 21:21:55  sueh
  * bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  *
@@ -401,7 +405,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlToSelector.setBorder(BorderFactory.createEtchedBorder());
     toSelectorHeader = PanelHeader.getInstance(
         ReconScreenState.COMBINE_SETUP_TO_SELECTOR_HEADER_GROUP,
-        "Tomogram Matching Relationship", this);
+        "Tomogram Matching Relationship", this, dialogType);
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.add(rbBtoA);
@@ -455,7 +459,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlPatchParams.setBorder(BorderFactory.createEtchedBorder());
     patchParamsHeader = PanelHeader.getInstance(
         ReconScreenState.COMBINE_SETUP_PATCHCORR_HEADER_GROUP,
-        "Patch Parameters for Refining Alignment", this);
+        "Patch Parameters for Refining Alignment", this, dialogType);
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
     pnlPatchParams.add(patchParamsHeader.getContainer());
     pnlPatchParams.add(pnlPatchParamsBody);
@@ -466,7 +470,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlVolcombineControls.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getInstance(
         ReconScreenState.COMBINE_SETUP_VOLCOMBINE_HEADER_GROUP,
-        "Volcombine Controls", this);
+        "Volcombine Controls", this, dialogType);
     pnlVolcombineControls.add(volcombineHeader.getContainer());
     pnlVolcombineControlsBody.setLayout(new BoxLayout(
         pnlVolcombineControlsBody, BoxLayout.Y_AXIS));
@@ -488,7 +492,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlTempDirectory.setBorder(BorderFactory.createEtchedBorder());
     tempDirectoryHeader = PanelHeader.getInstance(
         ReconScreenState.COMBINE_SETUP_TEMP_DIR_HEADER_GROUP,
-        "Intermediate Data Storage", this);
+        "Intermediate Data Storage", this, dialogType);
     pnlTempDirectory
         .setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
     pnlTempDirectory.add(tempDirectoryHeader.getContainer());
