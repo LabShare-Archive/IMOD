@@ -1129,6 +1129,7 @@ public class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
+      coarseAlignDialog.getParameters(getScreenState(axisID));
       //  Get the user input data from the dialog box
       if (updateXcorrCom(axisID) == null) {
         return;
@@ -6151,6 +6152,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.215  2006/03/22 23:32:23  sueh
+ * <p> bug# 498 In commitTestVolume(), don't backup the tomogram unless the
+ * <p> trial tomogram exists.  In useMtfFilter(), don't backup the .ali file unless
+ * <p> the _filt.ali file exists.
+ * <p>
  * <p> Revision 3.214  2006/03/22 23:20:45  sueh
  * <p> bug# 498 When generating a tomogram, back up the .ali file when using
  * <p> the mtf filter file.  Also backup the tomogram when using a trial tomogram.
