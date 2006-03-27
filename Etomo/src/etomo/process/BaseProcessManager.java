@@ -35,6 +35,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2006/01/31 20:39:31  sueh
+ * <p> bug# 521 startBackgoundComScript:  added the process to combine
+ * <p> monitor.  This allows the last ProcessResultDisplay used by the monitor
+ * <p> to be assigned to the process.
+ * <p>
  * <p> Revision 1.37  2006/01/26 21:52:54  sueh
  * <p> Added processResultDisplay parameters to all the functions associated
  * <p> with toggle buttons.
@@ -669,6 +674,7 @@ public abstract class BaseProcessManager {
     //there are no more unkilled child processes so kill process with a SIGKILL
     //signal
     kill("-9", processID, axisID);
+    System.out.println("killProcessAndDescendants:kill " + "-9" + " " + processID);
     //record killed process
     killedList.put(processID, "");
   }
