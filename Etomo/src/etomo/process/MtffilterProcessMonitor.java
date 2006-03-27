@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2006/03/24 21:01:19  sueh
+* <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
+* <p>
 * <p> Revision 1.7  2006/03/24 20:42:27  sueh
 * <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
 * <p>
@@ -65,8 +68,6 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
    */
   void calcFileSize() throws InvalidParameterException, IOException {
-    //TEMP bug# 839
-    System.err.println("MtffilterProcessMonitor.calcFileSize:");
     double nX;
     double nY;
     double nZ;
@@ -138,11 +139,7 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
     double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
-    //TEMP bug# 839
-    System.err.println("double fileSize="+fileSize);
     nKBytes = (int) (fileSize / 1024);
-    //TEMP bug# 839
-    System.err.println("nKBytes="+nKBytes);
     applicationManager.getMainPanel().setProgressBar("Running MTF filter",
         nKBytes, axisID);
 
@@ -151,7 +148,5 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     MTFFilterParam mtffilterParam = comScriptManager.getMTFFilterParam(axisID);
     watchedFile = new File(applicationManager.getPropertyUserDir(), mtffilterParam
       .getOutputFile());
-    //TEMP bug# 839
-    System.err.println("watchedFile="+watchedFile.getAbsolutePath());
   }
 }
