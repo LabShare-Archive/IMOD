@@ -96,6 +96,7 @@ final class PanelHeader implements Expandable {
     //open/close button - default: open
     btnOpenClose = ExpandButton.getInstance(this, "-", "+", "closed", "open",
         true, "Open panel.", "Close panel.");
+    btnOpenClose.setName(title + " open");
     layout.setConstraints(btnOpenClose.getComponent(), constraints);
     northPanel.add(btnOpenClose.getComponent());
     //title
@@ -114,6 +115,7 @@ final class PanelHeader implements Expandable {
       }
       btnAdvancedBasic = ExpandButton.getInstance(panel, "B", "A", "basic",
           "advanced", "Show all options.", "Show basic options.");
+      btnAdvancedBasic.setName(title + " advanced");
       layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
       northPanel.add(btnAdvancedBasic.getComponent());
     }
@@ -122,6 +124,7 @@ final class PanelHeader implements Expandable {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
       btnMoreLess = ExpandButton.getMoreLessInstance(panel, true);
+      btnMoreLess.setName(title + " more");
       layout.setConstraints(btnMoreLess.getComponent(), constraints);
       northPanel.add(btnMoreLess.getComponent());
     }
@@ -202,21 +205,19 @@ final class PanelHeader implements Expandable {
   }
 
   public void setButtonStates(BaseScreenState screenState) {
-    //System.out.println("setButtonStates:dialogType="+dialogType);
     btnOpenClose.setButtonState(screenState.getButtonState(btnOpenClose
-        .getButtonStateKey(dialogType)));
+        .createButtonStateKey(dialogType)));
     if (btnAdvancedBasic != null) {
       btnAdvancedBasic.setButtonState(screenState
-          .getButtonState(btnAdvancedBasic.getButtonStateKey(dialogType)));
+          .getButtonState(btnAdvancedBasic.createButtonStateKey(dialogType)));
     }
     if (btnMoreLess != null) {
       btnMoreLess.setButtonState(screenState.getButtonState(btnMoreLess
-          .getButtonStateKey(dialogType)));
+          .createButtonStateKey(dialogType)));
     }
   }
 
   public void getButtonStates(BaseScreenState screenState) {
-    //System.out.println("getButtonStates");
     if (screenState == null) {
       return;
     }
@@ -234,6 +235,11 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/03/27 21:04:36  sueh
+ * <p> bug# 836 Added DialogType to get instances functions so
+ * <p> that the buttons in PanelHeader could save themselves.  Added
+ * <p> setButtonsStates() and getButtonStates().
+ * <p>
  * <p> Revision 1.15  2005/12/14 20:57:16  sueh
  * <p> bug# 784 Added context sensitive tool tips.
  * <p>
