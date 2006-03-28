@@ -47,7 +47,7 @@ public class BaseScreenState implements Storable {
     this.axisID = axisID;
     this.axisType = axisType;
   }
-
+  
   /**
    * Get a button state out of the local Properties object and return it as a
    * boolean
@@ -55,18 +55,32 @@ public class BaseScreenState implements Storable {
    * @return
    */
   public final boolean getButtonState(String key) {
+    return getButtonState(key, false);
+  }
+
+  /**
+   * Get a button state out of the local Properties object and return it as a
+   * boolean.  If the state is not available, return defaultState.
+   * @param key
+   * @param defaultState
+   * @return
+   */
+  public final boolean getButtonState(String key, boolean defaultState) {
     if (key == null) {
-      return false;
+      return defaultState;
     }
     if (keys == null) {
       keys = new HashSet();
     }
     keys.add(key);
     if (localProperties == null) {
-      return false;
+      return defaultState;
     }
-    EtomoBoolean2 buttonState = new EtomoBoolean2(key);
+    EtomoState buttonState = new EtomoState(key);
     buttonState.load(localProperties, localPrepend);
+    if (buttonState.isNull()) {
+      return defaultState;
+    }
     return buttonState.is();
   }
 
@@ -78,12 +92,10 @@ public class BaseScreenState implements Storable {
     if (key == null) {
       return;
     }
-    //System.out.println("setButtonState:key="+key+",state="+state);
     if (localProperties == null) {
       localProperties = new Properties();
       localPrepend = getPrepend("");
     }
-    //System.out.println("localPrepend="+localPrepend);
     localProperties.setProperty(localPrepend + '.' + key, String
         .valueOf(state));
   }
@@ -150,6 +162,10 @@ public class BaseScreenState implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/03/27 20:59:37  sueh
+ * <p> bug# 836 Changed loadedProperties to localProperties.  Added comments.
+ * <p> Removed selfTestInvariants.
+ * <p>
  * <p> Revision 1.9  2006/03/20 17:56:33  sueh
  * <p> bug# 835 Renamed the group for the parallel processing processor list
  * <p> panel to ParallelProcess.Header, to distinguish it from the ParallelDialog.
