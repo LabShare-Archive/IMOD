@@ -205,8 +205,11 @@ final class PanelHeader implements Expandable {
   }
 
   public void setButtonStates(BaseScreenState screenState) {
+    if (screenState == null) {
+      return;
+    }
     btnOpenClose.setButtonState(screenState.getButtonState(btnOpenClose
-        .createButtonStateKey(dialogType)));
+        .createButtonStateKey(dialogType), true));
     if (btnAdvancedBasic != null) {
       btnAdvancedBasic.setButtonState(screenState
           .getButtonState(btnAdvancedBasic.createButtonStateKey(dialogType)));
@@ -235,6 +238,10 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/03/28 00:55:33  sueh
+ * <p> bug# 437 Change getButtonStateKey(DialogType) to
+ * <p> createButtonStateKey(DialogType).  Set the name of each button.
+ * <p>
  * <p> Revision 1.16  2006/03/27 21:04:36  sueh
  * <p> bug# 836 Added DialogType to get instances functions so
  * <p> that the buttons in PanelHeader could save themselves.  Added
