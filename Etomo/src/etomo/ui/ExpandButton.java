@@ -31,6 +31,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2006/03/28 00:49:30  sueh
+ * <p> bug# 437 Always turn on MultiLineButton.manualName because expander
+ * <p> buttons' text is a symbol, not a name.  Override MultiLineButton.
+ * <p> createButtonStateKey because expander buttons don't have a done state.
+ * <p>
  * <p> Revision 1.10  2005/12/14 20:54:55  sueh
  * <p> bug# 784 Added context sensitive tool tips.
  * <p>
@@ -85,7 +90,7 @@ import etomo.type.DialogType;
  * <p> tells the component it is displayed on when it has been pressed.
  * <p> </p>
  */
-public class ExpandButton extends MultiLineButton {
+final class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
 
   private static final String CONTRACTED_MORE_LESS_TOOL_TIP = "Show more.";
@@ -101,14 +106,14 @@ public class ExpandButton extends MultiLineButton {
   private boolean expanded = false;
   private Expandable container = null;
 
-  final static ExpandButton getMoreLessInstance(Expandable container) {
+  static ExpandButton getMoreLessInstance(Expandable container) {
     ExpandButton instance = new ExpandButton(container);
     instance.initialize(CONTRACTED_MORE_LESS_TOOL_TIP,
         EXPANDED_MORE_LESS_TOOL_TIP);
     return instance;
   }
 
-  final static ExpandButton getMoreLessInstance(Expandable container,
+  static ExpandButton getMoreLessInstance(Expandable container,
       boolean expanded) {
     ExpandButton instance = new ExpandButton(container);
     instance.expanded = expanded;
@@ -117,7 +122,7 @@ public class ExpandButton extends MultiLineButton {
     return instance;
   }
 
-  final static ExpandButton getInstance(Expandable container,
+  static ExpandButton getInstance(Expandable container,
       String contractSymbol, String expandSymbol, String contractedState,
       String expandedState, String contractedToolTip, String expandedToolTip) {
     ExpandButton instance = new ExpandButton(container, contractSymbol,
@@ -126,7 +131,7 @@ public class ExpandButton extends MultiLineButton {
     return instance;
   }
 
-  final static ExpandButton getInstance(Expandable container,
+  static ExpandButton getInstance(Expandable container,
       String contractSymbol, String expandSymbol, String contractedState,
       String expandedState, boolean expanded, String contractedToolTip,
       String expandedToolTip) {
@@ -204,15 +209,29 @@ public class ExpandButton extends MultiLineButton {
     setStateKey(stateKey);
     return stateKey;
   }
+  
+  /**
+   * Overrides super class.Returns isExpanded() since the button state is
+   * expanded or contracted
+   * @return
+   */
+  boolean getButtonState() {
+    return isExpanded();
+  }
+  
+  final void setButtonState(boolean state) {
+    setOriginalProcessResultDisplayState(state);
+    setExpanded(state);
+  }
 
-  final String getState() {
+  String getState() {
     if (expanded) {
       return expandedState;
     }
     return contractedState;
   }
 
-  final void setState(String state) {
+  void setState(String state) {
     if (state == null) {
       return;
     }
