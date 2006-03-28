@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2006/03/23 21:10:43  sueh
+ * <p> bug# 803 byteModeToOutput and meanFloatDensities are not available in
+ * <p> blendmont.
+ * <p>
  * <p> Revision 1.15  2006/03/22 21:28:59  sueh
  * <p> bug# 803 Improved tooltips.
  * <p>
@@ -213,14 +217,14 @@ public final class PrenewstPanel implements ContextMenu {
     cbByteModeToOutput
         .setToolTipText(tooltipFormatter
             .setText(
-                "Set the storage mode of the output file to bytes.  When unchecked the storage mode is the same as that of the first input file.  Command:  "
+                "Set the storage mode of the output file to bytes.  When unchecked the storage mode is the same as that of the first input file.  This option should be turned off when the dynamic range is still too poor after X ray removal.  Command:  "
                     + ConstNewstParam.DATA_MODE_OPTION
                     + " "
                     + ConstNewstParam.DATA_MODE_BYTE).format());
     cbMeanFloatDensities
         .setToolTipText(tooltipFormatter
             .setText(
-                "Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  This option is needed when the dynamic range is still too poor after X ray removal.  Command:  "
+                "Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  Command:  "
                     + ConstNewstParam.FLOAT_DENSITIES_OPTION
                     + " "
                     + ConstNewstParam.FLOAT_DENSITIES_MEAN).format());
