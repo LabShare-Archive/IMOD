@@ -39,6 +39,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2006/02/06 21:21:04  sueh
+ * <p> bug# 521 ProcessResultDisplayState:  changed following display to
+ * <p> dependent display.  Added dependecy index and initialized.
+ * <p>
  * <p> Revision 3.15  2006/01/31 20:59:14  sueh
  * <p> bug# 521 Added failureDisplayList, successDisplayList, and
  * <p> followingDisplayList to change the state of other displays when the
@@ -120,16 +124,18 @@ class MultiLineButton implements ProcessResultDisplay {
   private final AbstractButton button;
   private final boolean toggleButton;
   private final ProcessResultDisplayState processResultDisplayState;
-  private BaseScreenState screenState = null;
 
+  private BaseScreenState screenState = null;
+  private DialogType dialogType = null;
   private String stateKey = null;
+  private boolean manualName = false;
 
   MultiLineButton() {
-    this(null);
+    this(null, false, null);
   }
 
   MultiLineButton(String label) {
-    this(label, false);
+    this(label, false, null);
   }
 
   protected MultiLineButton(String label, boolean toggleButton) {
@@ -146,18 +152,18 @@ class MultiLineButton implements ProcessResultDisplay {
   protected MultiLineButton(String label, boolean toggleButton,
       DialogType dialogType) {
     this.toggleButton = toggleButton;
+    this.dialogType = dialogType;
     if (toggleButton) {
       button = new JToggleButton(format(label));
     }
     else {
       button = new JButton(format(label));
     }
-    setName(label);
+    if (label != null) {
+      setName(label);
+    }
     init();
     processResultDisplayState = new ProcessResultDisplayState(this);
-    if (dialogType != null) {
-      getButtonStateKey(dialogType);
-    }
   }
 
   static final MultiLineButton getToggleButtonInstance(String label,
@@ -173,16 +179,24 @@ class MultiLineButton implements ProcessResultDisplay {
    * return's the button's state key for the property file
    * Creates the button state instance if necessary.  Sets the button state name
    * based on the dialog and the button's name.  Once the key is set, it cannot
-   * be changed.
+   * be changed.  Does not store the dialog type.
    * @param dialogType
    * @return
    */
-  final String getButtonStateKey(DialogType dialogType) {
+  String createButtonStateKey(DialogType dialogType) {
     stateKey = dialogType.getStorableName() + '.' + button.getName() + ".done";
     return stateKey;
   }
 
+  /**
+   * Gets the button state key.  If the state key is null and the dialog type
+   * is available, creates the button state key.
+   * @return
+   */
   final String getButtonStateKey() {
+    if (stateKey == null && dialogType != null) {
+      return createButtonStateKey(dialogType);
+    }
     return stateKey;
   }
 
@@ -194,8 +208,22 @@ class MultiLineButton implements ProcessResultDisplay {
   final boolean getButtonState() {
     return isSelected();
   }
+  
+  /**
+   * Sets manualName to true.  When manualName is true, setText() cannot change
+   * the name.
+   * @param label
+   */
+  final void setManualName() {
+    manualName = true;
+  }
 
-  protected final void setName(String label) {
+  /**
+   * Calls the setName function of the button.  Called when the text is set,
+   * unless manualName is true.
+   * @param label
+   */
+  final void setName(String label) {
     String name = UIUtilities.convertLabelToName(label);
     button.setName(name);
     String buttonAttrib = toggleButton ? UITestConstants.TOGGLE_BUTTON_ATTRIB
@@ -209,6 +237,15 @@ class MultiLineButton implements ProcessResultDisplay {
   public final String getName() {
     return button.getName();
   }
+  
+  /**
+   * Sets stateKey.  For overriding createButtonStateKey().
+   * @param stateKey
+   * @return
+   */
+  protected final void setStateKey(String stateKey) {
+    this.stateKey = stateKey;
+  }
 
   final void setEnabled(boolean isEnabled) {
     button.setEnabled(isEnabled);
@@ -220,7 +257,9 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   final void setText(String label) {
-    setName(label);
+    if (!manualName) {
+      setName(label);
+    }
     button.setText(format(label));
   }
 
@@ -426,12 +465,12 @@ class MultiLineButton implements ProcessResultDisplay {
   public int getDependencyIndex() {
     return processResultDisplayState.getDependencyIndex();
   }
-  
+
   public boolean isInitialized() {
     return processResultDisplayState.isInitialized();
   }
-  
+
   public void setInitialized(boolean initialize) {
-     processResultDisplayState.setInitialized(initialize);
+    processResultDisplayState.setInitialized(initialize);
   }
 }
