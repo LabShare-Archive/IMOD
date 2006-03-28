@@ -39,6 +39,11 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2006/03/28 00:54:29  sueh
+ * <p> bug# 437 Save dialogType and do a lazy creation of stateKey.  This allows
+ * <p> more flexiblility in setting the name.  Change getButtonStateKey(DialogType)
+ * <p> to createButtonStateKey(DialogType).
+ * <p>
  * <p> Revision 3.16  2006/02/06 21:21:04  sueh
  * <p> bug# 521 ProcessResultDisplayState:  changed following display to
  * <p> dependent display.  Added dependecy index and initialized.
@@ -200,12 +205,19 @@ class MultiLineButton implements ProcessResultDisplay {
     return stateKey;
   }
 
-  final void setButtonState(boolean state) {
-    processResultDisplayState.setOriginalState(state);
+  void setButtonState(boolean state) {
+    setOriginalProcessResultDisplayState(state);
     setSelected(state);
   }
 
-  final boolean getButtonState() {
+  protected final void setOriginalProcessResultDisplayState(boolean state) {
+    processResultDisplayState.setOriginalState(state);
+  }
+  /**
+   * Returns isSelected() since the button state is selected or not selected
+   * @return
+   */
+  boolean getButtonState() {
     return isSelected();
   }
   
