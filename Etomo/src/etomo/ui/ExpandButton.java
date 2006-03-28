@@ -10,6 +10,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 
+import etomo.type.DialogType;
+
 /**
  * <p>Description: Button with a expanded state variable.  When expanded is true,
  * the button displays "<" so that the state can be changed to expanded == false.
@@ -29,6 +31,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2005/12/14 20:54:55  sueh
+ * <p> bug# 784 Added context sensitive tool tips.
+ * <p>
  * <p> Revision 1.9  2005/11/14 22:02:46  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
@@ -162,6 +167,7 @@ public class ExpandButton extends MultiLineButton {
   private void initialize(String contractedToolTip, String expandedToolTip) {
     this.contractedToolTip = contractedToolTip;
     this.expandedToolTip = expandedToolTip;
+    super.setManualName();
     if (expanded) {
       super.setText(contractSymbol);
       setToolTipText(expandedToolTip);
@@ -185,6 +191,18 @@ public class ExpandButton extends MultiLineButton {
    */
   boolean isExpanded() {
     return expanded;
+  }
+  
+  /**
+   * Overrides MultiLineButton.createButtonStateKey.  Necessary because an
+   * expander button doesn't have a done state.
+   * @param dialogType
+   * @return
+   */
+  String createButtonStateKey(DialogType dialogType) {
+    String stateKey = dialogType.getStorableName() + '.' + getName();
+    setStateKey(stateKey);
+    return stateKey;
   }
 
   final String getState() {
