@@ -33,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2006/03/16 01:56:07  sueh
+ * <p> bug# 828 Added isEnabled().  Returns true if the initial tab is enabled.
+ * <p>
  * <p> Revision 3.24  2006/01/31 20:58:22  sueh
  * <p> bug# 521 Managing the restart buttons (combine and matchvol1) in
  * <p> ProcessResultDisplayFactory.
@@ -286,7 +289,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   final void setParameters(ReconScreenState screenState) {
     btnRestart.setButtonState(screenState.getButtonState(btnRestart
-        .getButtonStateKey(tomogramCombinationDialog.getDialogType())));
+        .createButtonStateKey(tomogramCombinationDialog.getDialogType())));
     btnMatchvolRestart.setButtonState(screenState
         .getButtonState(btnMatchvolRestart.getButtonStateKey()));
     btnRestart.setButtonState(screenState.getButtonState(btnRestart

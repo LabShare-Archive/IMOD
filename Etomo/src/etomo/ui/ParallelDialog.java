@@ -101,7 +101,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
 
   public void setParameters(BaseScreenState screenState) {
     btnRunProcess.setButtonState(screenState.getButtonState(btnRunProcess
-        .getButtonStateKey(DIALOG_TYPE)));
+        .createButtonStateKey(DIALOG_TYPE)));
   }
 
   public void setParameters(ParallelMetaData metaData) {
@@ -187,5 +187,8 @@ public final class ParallelDialog implements AbstractParallelDialog {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.9  2006/03/20 18:05:32  sueh
+ * <p> bug# 835 Dialog handling generic parallel processes.
+ * <p> </p>
  */
