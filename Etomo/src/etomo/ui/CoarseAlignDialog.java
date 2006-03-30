@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2006/03/27 21:00:37  sueh
+ * <p> bug# 836 Moved btnCrossCorrelate to CrossCorrelationPanel.
+ * <p>
  * <p> Revision 3.32  2006/03/22 18:00:22  sueh
  * <p> Made unchanging member variables final
  * <p>
@@ -218,10 +221,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
   private final PrenewstPanel pnlPrenewst;
 
-  private final MultiLineButton btnCoarseAlign;
-
   private final Run3dmodButton btnImod = new Run3dmodButton(
-      "View Aligned<br>Stack In 3dmod", this);
+      "View Aligned Stack In 3dmod", this);
 
   private final JPanel pnlFiducialess = new JPanel();
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
@@ -243,12 +244,11 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     btnDistortionCorrectedStack = (MultiLineButton) displayFactory
         .getDistortionCorrectedStack();
     btnFixEdgesMidas = (MultiLineButton) displayFactory.getFixEdgesMidas();
-    btnCoarseAlign = (MultiLineButton) displayFactory.getCoarseAlign();
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID, dialogType);
-    pnlPrenewst = new PrenewstPanel(applicationManager, axisID);
+    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType);
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
@@ -274,8 +274,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     }
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
         FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnCoarseAlign.getComponent(),
-        FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, btnImod.getComponent(),
         FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
@@ -293,7 +291,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
     //  Action listener assignment for the buttons
     actionListener = new CoarseAlignActionListener(this);
-    btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
     btnMidas.addActionListener(actionListener);
     btnFixEdgesMidas.addActionListener(actionListener);
@@ -306,9 +303,13 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     // Set the default advanced state for the window
     updateAdvanced();
   }
+  
+  public static ProcessResultDisplay getCoarseAlignDisplay() {
+    return PrenewstPanel.getCoarseAlignDisplay(DialogType.COARSE_ALIGNMENT);
+  }
 
   public static ProcessResultDisplay getCrossCorrelateDisplay() {
-    return CrossCorrelationPanel.getCrossCorrelateDisplay();
+    return CrossCorrelationPanel.getCrossCorrelateDisplay(DialogType.COARSE_ALIGNMENT);
   }
 
   public static ProcessResultDisplay getDistortionCorrectedStackDisplay() {
@@ -319,11 +320,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   public static ProcessResultDisplay getFixEdgesMidasDisplay() {
     return MultiLineButton.getToggleButtonInstance("Fix Edges With Midas",
         DialogType.COARSE_ALIGNMENT);
-  }
-
-  public static ProcessResultDisplay getCoarseAlignDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        "Generate Coarse Aligned Stack", DialogType.COARSE_ALIGNMENT);
   }
   
   public static ProcessResultDisplay getMidasDisplay() {
@@ -397,19 +393,18 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
   public void done() {
     pnlCrossCorrelation.done();
+    pnlPrenewst.done();
     btnDistortionCorrectedStack.removeActionListener(actionListener);
     btnFixEdgesMidas.removeActionListener(actionListener);
-    btnCoarseAlign.removeActionListener(actionListener);
     btnMidas.removeActionListener(actionListener);
   }
 
   public void setParameters(ReconScreenState screenState) {
     pnlCrossCorrelation.setParameters(screenState);
+    pnlPrenewst.setParameters(screenState);
     btnMidas.setButtonState(screenState.getButtonState(btnMidas
         .getButtonStateKey()));
     btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
-        .getButtonStateKey()));
-    btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
         .getButtonStateKey()));
     btnDistortionCorrectedStack.setButtonState(screenState
         .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
@@ -417,6 +412,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   
   public void getParameters(BaseScreenState screenState) {
     pnlCrossCorrelation.getParameters(screenState);
+    pnlPrenewst.getParameters(screenState);
   }
 
   public void setFiducialessAlignment(boolean state) {
@@ -442,7 +438,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
 
   void updateAdvanced() {
     pnlCrossCorrelation.setAdvanced(isAdvanced);
-    pnlPrenewst.getPanel().setVisible(isAdvanced);
+    pnlPrenewst.setAdvanced(isAdvanced);
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -485,8 +481,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Use transformations to produce stack of aligned images.";
-    btnCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Use 3dmod to view the coarsely aligned images.";
     btnImod.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Enable or disable the processing flow using cross-correlation alignment only.";
@@ -520,10 +514,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
    */
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
-    if (command.equals(btnCoarseAlign.getActionCommand())) {
-      applicationManager.coarseAlign(axisID, btnCoarseAlign);
-    }
-    else if (command.equals(btnMidas.getActionCommand())) {
+    if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID, btnMidas);
     }
     else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
