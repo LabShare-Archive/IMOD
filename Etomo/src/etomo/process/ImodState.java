@@ -174,6 +174,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.29  2005/10/18 22:10:46  sueh
+ * <p> $bug# 727 Can't reproduce this bug so added some prints to the error log
+ * <p> $to document it, if it appears again.
+ * <p> $
  * <p> $Revision 1.28  2005/08/11 23:39:38  sueh
  * <p> $bug# 711  In ImodManager:  to be sure that the 3dmod -view
  * <p> $configuration won't use -O, -B, or -b; prevent Run3dmodMenuOptions
@@ -323,6 +327,10 @@ public class ImodState {
   private boolean openBeadFixer;
   private boolean openContours;
   
+  //sent with open bead fixer
+  private boolean autoCenter = false;
+  private boolean seedMode = false;
+  
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
   private boolean usingMode = false;
@@ -345,7 +353,7 @@ public class ImodState {
   private static final int defaultBinning = 1;
     
   //internal state information
-  private ImodProcess process = null;
+  private final ImodProcess process;
   private boolean warnedStaleFile = false;
   //initial state information
   boolean initialModeSet = false;
@@ -453,6 +461,19 @@ public class ImodState {
     reset();
   }
   
+  public ImodState(BaseManager manager, AxisID axisID, String datasetName,
+      String datasetExt, long beadfixerDiameter) {
+    this.manager = manager;
+    this.axisID = axisID;
+    String axisExtension = axisID.getExtension();
+    if (axisExtension == "ERROR") {
+      throw new IllegalArgumentException(axisID.toString());
+    }
+    this.datasetName = datasetName + axisExtension + datasetExt;
+    process = new ImodProcess(manager, this.datasetName, axisID, beadfixerDiameter);
+    reset();
+  }
+  
   /**
    * Use this constructor to insert the axis letter and create an instance of
    * ImodProcess using ImodProcess(String dataset, String model).  This will
@@ -501,7 +522,7 @@ public class ImodState {
       warnedStaleFile = false;
       //open bead fixer
       if (openBeadFixer) {
-        process.setOpenBeadFixerMessage();
+        process.setOpenBeadFixerMessage(autoCenter, seedMode);
       }
       //model will be opened
       if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
@@ -523,7 +544,7 @@ public class ImodState {
       }
       //open bead fixer
       if (openBeadFixer) {
-        process.setOpenBeadFixerMessage();
+        process.setOpenBeadFixerMessage(autoCenter, seedMode);
       }
       //reopen model
       if (!useModv && modelName != null && modelName.matches("\\S+")) {
@@ -778,8 +799,10 @@ public class ImodState {
   /**
    * @param openBeadFixer
    */
-  public void setOpenBeadFixer(boolean openBeadFixer) {
+  public void setOpenBeadFixer(boolean openBeadFixer, boolean autoCenter, boolean seedMode) {
     this.openBeadFixer = openBeadFixer;
+    this.autoCenter = autoCenter;
+    this.seedMode = seedMode;
   }
 
   //initial state information
