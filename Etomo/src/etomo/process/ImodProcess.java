@@ -26,6 +26,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2005/11/02 21:57:48  sueh
+ * <p> bug# 754 Getting error and warning tags from ProcessMessages.
+ * <p>
  * <p> Revision 3.28  2005/08/15 18:21:26  sueh
  * <p> bug# 532 commenting print statements
  * <p>
@@ -253,6 +256,13 @@ public class ImodProcess {
   public static final String MESSAGE_OBJ_PROPERTIES = "11";
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
   public static final String MESSAGE_SLICER_ANGLES = "13";
+  public static final String MESSAGE_PLUGIN_MESSAGE = "14";
+  public static final String BEAD_FIXER_PLUGIN = "Bead Fixer";
+  public static final String BF_MESSAGE_SEED_MODE = "3";
+  public static final String BF_MESSAGE_AUTO_CENTER = "4";
+  public static final String BF_MESSAGE_DIAMETER = "5";
+  public static final String MESSAGE_ON = "1";
+  public static final String MESSAGE_OFF = "0";
   
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
@@ -285,6 +295,7 @@ public class ImodProcess {
 
   private Thread imodThread;
   private final BaseManager manager;
+  private long beadfixerDiameter = ImodManager.DEFAULT_BEADFIXER_DIAMETER;
 
   /**
    * Constructor for using imodv
@@ -304,6 +315,13 @@ public class ImodProcess {
     this.manager = manager;
     this.axisID = axisID;
     datasetName = dataset;
+  }
+  
+  public ImodProcess(BaseManager manager, String dataset, AxisID axisID, long beadfixerDiameter) {
+    this.manager = manager;
+    this.axisID = axisID;
+    datasetName = dataset;
+    this.beadfixerDiameter = beadfixerDiameter;
   }
 
   /**
@@ -715,8 +733,11 @@ public class ImodProcess {
   /**
    * Places arguments to open the beadfixer dialog on the argument list.
    */
-  public void setOpenBeadFixerMessage() {
+  public void setOpenBeadFixerMessage(boolean autoCenter, boolean seedMode) {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SEED_MODE, seedMode ? MESSAGE_ON : MESSAGE_OFF);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER, autoCenter ? MESSAGE_ON : MESSAGE_OFF);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String.valueOf(beadfixerDiameter));
   }
   /**
    * Open the beadfixer dialog
@@ -745,6 +766,13 @@ public class ImodProcess {
     String[] args = new String[1];
     args[0] = MESSAGE_SLICER_ANGLES;
     return imodSendAndReceive(args);
+  }
+  
+  private void addPluginMessage(String plugin, String message, String value) {
+    sendArguments.add(MESSAGE_PLUGIN_MESSAGE);
+    sendArguments.add(plugin);
+    sendArguments.add(message);
+    sendArguments.add(value);
   }
 
   /**
