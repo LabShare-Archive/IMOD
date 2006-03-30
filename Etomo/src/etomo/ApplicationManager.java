@@ -1800,6 +1800,8 @@ public class ApplicationManager extends BaseManager {
     try {
       imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
           true);
+      imodManager
+      .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true, true, true);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true,
           menuOptions);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1922,18 +1924,48 @@ public class ApplicationManager extends BaseManager {
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
     }
   }
+  
+  public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
+      ProcessResultDisplay processResultDisplay) {
+    imodFixFiducials(axisID, menuOptions, processResultDisplay, false);
+  }
+  
+  public long getFiducialDiameterPerPixel(AxisID axisID) {
+    double diameter = metaData.getFiducialDiameter();
+    double pixelSize;
+    if (axisID == AxisID.SECOND) {
+      MRCHeader header = getMrcHeader(axisID, DatasetFiles.getStackName(this, axisID));
+      try {
+      header.read();
+      }
+      catch (Exception e) {
+        return ImodManager.DEFAULT_BEADFIXER_DIAMETER;
+      }
+      pixelSize = header.getXPixelSpacing();
+    }
+    else {
+      pixelSize = metaData.getPixelSize();
+    }
+    return (long) (diameter / pixelSize);
+  }
 
   /**
    * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, boolean fixGaps) {
     sendMsgProcessStarting(processResultDisplay);
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
         + ".fid";
     try {
+      if (fixGaps) {
       imodManager
-          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
+          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true, true);
+      }
+      else {
+        imodManager
+        .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
+      }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -6152,6 +6184,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.216  2006/03/27 19:15:09  sueh
+ * <p> bug# 437 In saveCoarseAlignDialog, getting screen state parameters.
+ * <p>
  * <p> Revision 3.215  2006/03/22 23:32:23  sueh
  * <p> bug# 498 In commitTestVolume(), don't backup the tomogram unless the
  * <p> trial tomogram exists.  In useMtfFilter(), don't backup the .ali file unless
