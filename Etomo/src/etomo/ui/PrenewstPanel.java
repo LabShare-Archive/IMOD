@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2006/03/28 00:56:13  sueh
+ * <p> bug# 803 Fixed the tooltips.
+ * <p>
  * <p> Revision 1.16  2006/03/23 21:10:43  sueh
  * <p> bug# 803 byteModeToOutput and meanFloatDensities are not available in
  * <p> blendmont.
@@ -73,8 +76,11 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
@@ -85,13 +91,18 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.DialogType;
+import etomo.type.ProcessResultDisplay;
 import etomo.type.ViewType;
 
-public final class PrenewstPanel implements ContextMenu {
+public final class PrenewstPanel implements ContextMenu, Expandable {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlPrenewst = new JPanel();
+  private final JPanel pnlBody = new JPanel();
+  private final JPanel pnlCheckBoxes = new JPanel();
   private final ApplicationManager applicationManager;
 
   private final LabeledSpinner spinBinning;
@@ -100,11 +111,18 @@ public final class PrenewstPanel implements ContextMenu {
       "Float intensities to mean");
 
   private final AxisID axisID;
+  private final MultiLineButton btnCoarseAlign;
+  private final ActionListener actionListener;
+  private final PanelHeader header;
 
-  public PrenewstPanel(ApplicationManager applicationManager, AxisID id) {
+  public PrenewstPanel(ApplicationManager applicationManager, AxisID id, DialogType dialogType) {
     axisID = id;
     this.applicationManager = applicationManager;
+    btnCoarseAlign = (MultiLineButton) applicationManager
+        .getProcessResultDisplayFactory(axisID).getCoarseAlign();
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
+    pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
+    pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes, BoxLayout.Y_AXIS));
 
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
@@ -114,26 +132,57 @@ public final class PrenewstPanel implements ContextMenu {
     //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  spinBinning.setEnabled(false);
     //}
+    UIUtilities.addWithYSpace(pnlBody, spinBinning.getContainer());
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      pnlPrenewst.setBorder(new EtchedBorder("Blendmont Parameters")
-          .getBorder());
+      header = PanelHeader.getAdvancedBasicInstance("Blendmont", this, dialogType);
     }
     else {
-      pnlPrenewst
-          .setBorder(new EtchedBorder("Newstack Parameters").getBorder());
+      header = PanelHeader.getAdvancedBasicInstance("Newstack", this, dialogType);
+      UIUtilities.addWithYSpace(pnlCheckBoxes, cbByteModeToOutput);
+      UIUtilities.addWithYSpace(pnlCheckBoxes, cbMeanFloatDensities);
     }
-    UIUtilities.addWithYSpace(pnlPrenewst, spinBinning.getContainer());
-    if (applicationManager.getMetaData().getViewType() != ViewType.MONTAGE) {
-      UIUtilities.addWithYSpace(pnlPrenewst, cbByteModeToOutput);
-      UIUtilities.addWithYSpace(pnlPrenewst, cbMeanFloatDensities);
-    }
+    pnlBody.add(pnlCheckBoxes);
+    btnCoarseAlign.setSize();
+    UIUtilities.addWithYSpace(pnlBody, btnCoarseAlign.getComponent());
+
     //  Align the UI objects along their left sides
-    UIUtilities.alignComponentsX(pnlPrenewst, Component.LEFT_ALIGNMENT);
+    UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
+    UIUtilities.alignComponentsX(pnlCheckBoxes, Component.LEFT_ALIGNMENT);
+    pnlPrenewst.setBorder(BorderFactory.createEtchedBorder());
+    pnlPrenewst.add(header.getContainer());
+    pnlPrenewst.add(pnlBody);
 
     //  Mouse adapter for context menu
+    actionListener = new PrenewstPanelActionListener(this);
+    btnCoarseAlign.addActionListener(actionListener);
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlPrenewst.addMouseListener(mouseAdapter);
     setToolTipText();
+  }
+  
+  public void expand(ExpandButton button) {
+    if (header.equalsOpenClose(button)) {
+      pnlBody.setVisible(button.isExpanded());
+    }
+    else if (header.equalsAdvancedBasic(button)) {
+       setAdvanced(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+  
+  void setAdvanced(boolean state) {
+    spinBinning.setVisible(state);
+    cbByteModeToOutput.setVisible(state);
+    cbMeanFloatDensities.setVisible(state);
+  }
+
+  public static ProcessResultDisplay getCoarseAlignDisplay(DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance(
+        "Generate Coarse Aligned Stack", dialogType);
+  }
+
+  public void done() {
+    btnCoarseAlign.removeActionListener(actionListener);
   }
 
   JPanel getPanel() {
@@ -153,6 +202,16 @@ public final class PrenewstPanel implements ContextMenu {
         .setSelected(prenewstParams.getModeToOutput() == ConstNewstParam.DATA_MODE_BYTE);
     cbMeanFloatDensities
         .setSelected(prenewstParams.getFloatDensities() == ConstNewstParam.FLOAT_DENSITIES_MEAN);
+  }
+
+  public void setParameters(BaseScreenState screenState) {
+    btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
+        .getButtonStateKey()));
+    header.setButtonStates(screenState);
+  }
+  
+  public void getParameters(BaseScreenState screenState) {
+    header.getButtonStates(screenState);
   }
 
   public void setParameters(BlendmontParam blendmontParams) {
@@ -228,6 +287,25 @@ public final class PrenewstPanel implements ContextMenu {
                     + ConstNewstParam.FLOAT_DENSITIES_OPTION
                     + " "
                     + ConstNewstParam.FLOAT_DENSITIES_MEAN).format());
+    text = "Use transformations to produce stack of aligned images.";
+    btnCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
   }
+  
+  void buttonAction(ActionEvent event) {
+    if (event.getActionCommand().equals(btnCoarseAlign.getActionCommand())) {
+      applicationManager.coarseAlign(axisID, btnCoarseAlign);
+    }
+  }
+  
+  class PrenewstPanelActionListener implements ActionListener {
+    PrenewstPanel adaptee;
 
+    PrenewstPanelActionListener(PrenewstPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.buttonAction(event);
+    }
+  }
 }
