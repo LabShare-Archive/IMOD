@@ -29,6 +29,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/02/06 21:20:54  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.19  2006/01/26 22:04:33  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
@@ -436,7 +439,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
     }
     else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel);
+      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel, true);
     }
   }
 
