@@ -35,6 +35,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2006/03/27 19:17:15  sueh
+ * <p> Adding a print to killProcessAndDescendants.  We want to see how many
+ * <p> processes are killed this was as apposed to the group kill
+ * <p>
  * <p> Revision 1.38  2006/01/31 20:39:31  sueh
  * <p> bug# 521 startBackgoundComScript:  added the process to combine
  * <p> monitor.  This allows the last ProcessResultDisplay used by the monitor
@@ -674,7 +678,7 @@ public abstract class BaseProcessManager {
     //there are no more unkilled child processes so kill process with a SIGKILL
     //signal
     kill("-9", processID, axisID);
-    System.out.println("killProcessAndDescendants:kill " + "-9" + " " + processID);
+    System.err.println("killProcessAndDescendants:kill " + "-9" + " " + processID);
     //record killed process
     killedList.put(processID, "");
   }
