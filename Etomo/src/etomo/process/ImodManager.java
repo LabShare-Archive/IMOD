@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.Iterator;
 import java.io.File;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -30,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2005/12/14 01:27:50  sueh
+ * <p> bug# 782 Printing an exception when a situation related to this bug is found.
+ * <p>
  * <p> Revision 3.35  2005/10/18 22:10:39  sueh
  * <p> bug# 727 Can't reproduce this bug so added some prints to the error log
  * <p> to document it, if it appears again.
@@ -356,6 +360,7 @@ import etomo.type.Run3dmodMenuOptions;
 public class ImodManager {
   public static final String rcsid = "$Id$";
 
+  public  static final int DEFAULT_BEADFIXER_DIAMETER = 3;
   private AxisType axisType = AxisType.SINGLE_AXIS;
   private String datasetName = "";
   private HashMap imodMap;
@@ -434,6 +439,7 @@ public class ImodManager {
 
   private boolean useMap = true;
   private final BaseManager manager;
+  private long beadFixerDiameter = DEFAULT_BEADFIXER_DIAMETER;
 
   //constructors
 
@@ -467,6 +473,7 @@ public class ImodManager {
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
     createPrivateKeys();
+    beadFixerDiameter = ((ApplicationManager) manager).getFiducialDiameterPerPixel();
     if (axisType == AxisType.SINGLE_AXIS) {
       loadSingleAxisMap();
     }
@@ -480,9 +487,8 @@ public class ImodManager {
     axisType = metaData.getAxisType();
     datasetName = metaData.getRootName();
     if (datasetName.equals("")) {
-      new IllegalStateException("DatasetName is empty.")
-          .printStackTrace();
-      System.out.println("manager="+manager);
+      new IllegalStateException("DatasetName is empty.").printStackTrace();
+      System.out.println("manager=" + manager);
     }
     createPrivateKeys();
     loadJoinMap();
@@ -769,7 +775,37 @@ public class ImodManager {
       throw new UnsupportedOperationException(
           "The Bead Fixer cannot be opened in 3dmodv");
     }
-    imodState.setOpenBeadFixer(openBeadFixer);
+    imodState.setOpenBeadFixer(openBeadFixer, false, false);
+  }
+
+  public void setOpenBeadFixer(String key, AxisID axisID,
+      boolean openBeadFixer, boolean autoCenter) throws AxisTypeException,
+      SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    if (imodState.isUseModv()) {
+      throw new UnsupportedOperationException(
+          "The Bead Fixer cannot be opened in 3dmodv");
+    }
+    imodState.setOpenBeadFixer(openBeadFixer, autoCenter, false);
+  }
+
+  public void setOpenBeadFixer(String key, AxisID axisID,
+      boolean openBeadFixer, boolean autoCenter, boolean seedMode)
+      throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    if (imodState.isUseModv()) {
+      throw new UnsupportedOperationException(
+          "The Bead Fixer cannot be opened in 3dmodv");
+    }
+    imodState.setOpenBeadFixer(openBeadFixer, autoCenter, seedMode);
   }
 
   public void setBinning(String key, AxisID axisID, int binning)
@@ -1099,7 +1135,8 @@ public class ImodManager {
   }
 
   protected ImodState newCoarseAligned(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, ".preali");
+    ImodState imodState;
+    imodState = new ImodState(manager, axisID, datasetName, ".preali", beadFixerDiameter);
     return imodState;
   }
 
@@ -1190,7 +1227,7 @@ public class ImodManager {
   protected ImodState newJoinSamples() {
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
-      System.err.println("manager="+manager);
+      System.err.println("manager=" + manager);
     }
     ImodState imodState = new ImodState(manager, datasetName + ".sample",
         AxisID.ONLY);
@@ -1200,7 +1237,7 @@ public class ImodManager {
   protected ImodState newJoinSampleAverages() {
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
-      System.err.println("manager="+manager);
+      System.err.println("manager=" + manager);
     }
     ImodState imodState = new ImodState(manager, datasetName + ".sampavg",
         AxisID.ONLY);
