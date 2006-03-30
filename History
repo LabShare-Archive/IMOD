@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/06: Automatically checking Seed mode and Autocenter in 3dmod Bead Fixer
+as needed when opening the .preali file.
+
 3/30/06: Added individual advanced/basic buttons to Coarse Alignment.
 
 3/27/06: Added advanced checkboxes "Convert to bytes", which adds "-mo 0" to
