@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2006/03/27 21:01:10  sueh
+ * <p> bug# 836 Moved btnCrossCorrelate to CrossCorrelationPanel.  Added a
+ * <p> PanelHeader.
+ * <p>
  * <p> Revision 3.17  2006/01/12 17:09:40  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
@@ -259,9 +263,9 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     return pnlCrossCorrelation;
   }
 
-  static ProcessResultDisplay getCrossCorrelateDisplay() {
+  static ProcessResultDisplay getCrossCorrelateDisplay(DialogType dialogType) {
     return MultiLineButton.getToggleButtonInstance(
-        "Calculate Cross- Correlation", DialogType.COARSE_ALIGNMENT);
+        "Calculate Cross- Correlation", dialogType);
   }
 
   /**
