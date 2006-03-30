@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/06: Added individual advanced/basic buttons to Coarse Alignment.
+
 3/27/06: Added advanced checkboxes "Convert to bytes", which adds "-mo 0" to
 prenewst.com, and "Float intensities to mean", which adds "-float 2" to
 prenewst.com, to coarse align page.
