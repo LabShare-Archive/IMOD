@@ -1930,23 +1930,8 @@ public class ApplicationManager extends BaseManager {
     imodFixFiducials(axisID, menuOptions, processResultDisplay, false);
   }
   
-  public long getFiducialDiameterPerPixel(AxisID axisID) {
-    double diameter = metaData.getFiducialDiameter();
-    double pixelSize;
-    if (axisID == AxisID.SECOND) {
-      MRCHeader header = getMrcHeader(axisID, DatasetFiles.getStackName(this, axisID));
-      try {
-      header.read();
-      }
-      catch (Exception e) {
-        return ImodManager.DEFAULT_BEADFIXER_DIAMETER;
-      }
-      pixelSize = header.getXPixelSpacing();
-    }
-    else {
-      pixelSize = metaData.getPixelSize();
-    }
-    return (long) (diameter / pixelSize);
+  public long getFiducialDiameterPerPixel() {
+    return (long) (metaData.getFiducialDiameter() / metaData.getPixelSize());
   }
 
   /**
@@ -6184,6 +6169,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.217  2006/03/30 21:08:33  sueh
+ * <p> bug# 809 Seed fiducial model opens bead fixer and sets auto center and
+ * <p> seed mode.  Fix fiducial model sets auto center.
+ * <p>
  * <p> Revision 3.216  2006/03/27 19:15:09  sueh
  * <p> bug# 437 In saveCoarseAlignDialog, getting screen state parameters.
  * <p>
