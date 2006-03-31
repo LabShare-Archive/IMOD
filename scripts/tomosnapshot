@@ -6,34 +6,7 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 3.9  2005/11/29 17:04:18  mast
-#  Added processchunks.out
-#
-#  Revision 3.8  2005/10/05 05:47:21  mast
-#  Captured all com and log files (including ~) except ta*.log
-#
-#  Revision 3.7  2005/06/30 20:25:53  mast
-#  Fixed for SGI (no tar -z) and for spaces in path
-#
-#  Revision 3.6  2005/05/08 14:47:57  mast
-#  Added files for montage
-#
-#  Revision 3.5  2005/02/04 17:30:32  mast
-#  Fixed setname problems in Win & xcorr fallback, added headers & version
-#
-#  Revision 3.4  2004/10/22 23:39:57  mast
-#  Added newst.com
-#
-#  Revision 3.3  2004/10/22 03:38:51  mast
-#  Added environment output and cygcheck
-#
-#  Revision 3.2  2004/10/13 20:31:34  mast
-#  Added ls -lrt output and ability to work without edf, fixed a few bugs.
-#
-#  Revision 3.1  2004/10/07 16:18:22  mast
-#  Initial creation
+#  Log at end
 #
 
 # Defaults
@@ -52,7 +25,8 @@ fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_region.mod lslrt.out uname.out \
-processchunks.out)
+processchunks.out processchunksa.out processchunksb.out \
+processchunks.csh processchunksa.csh processchunksb.csh)
 
 echo "$pn : enter $pn -h for usage"
 while ($#argv > 0)
@@ -230,3 +204,35 @@ Options:
     -e  filename   Name of .edf file to examine.  By default, the first .edf
                      file in a directory listing of *.edf will be used.
 EOF
+
+#  $Log$
+#  Revision 3.10  2006/02/16 06:32:33  mast
+#  Put IMOD on the path
+#
+#  Revision 3.9  2005/11/29 17:04:18  mast
+#  Added processchunks.out
+#
+#  Revision 3.8  2005/10/05 05:47:21  mast
+#  Captured all com and log files (including ~) except ta*.log
+#
+#  Revision 3.7  2005/06/30 20:25:53  mast
+#  Fixed for SGI (no tar -z) and for spaces in path
+#
+#  Revision 3.6  2005/05/08 14:47:57  mast
+#  Added files for montage
+#
+#  Revision 3.5  2005/02/04 17:30:32  mast
+#  Fixed setname problems in Win & xcorr fallback, added headers & version
+#
+#  Revision 3.4  2004/10/22 23:39:57  mast
+#  Added newst.com
+#
+#  Revision 3.3  2004/10/22 03:38:51  mast
+#  Added environment output and cygcheck
+#
+#  Revision 3.2  2004/10/13 20:31:34  mast
+#  Added ls -lrt output and ability to work without edf, fixed a few bugs.
+#
+#  Revision 3.1  2004/10/07 16:18:22  mast
+#  Initial creation
+#
