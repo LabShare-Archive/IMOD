@@ -80,6 +80,8 @@ typedef struct zapwin
   int   toolMaxZ;
   float toolZoom;
   int   toolTime;
+  int toolSizeX;
+  int toolSizeY;
 
   short insertmode;
   short showslice;
@@ -122,6 +124,9 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 
 /*
 $Log$
+Revision 3.18  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 3.17  2005/09/12 14:23:43  mast
 Added function to get rubber band coordinates
 

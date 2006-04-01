@@ -23,6 +23,8 @@ Log at end of file
 #include <qapplication.h>
 #include <qclipboard.h>
 #include <qpoint.h>
+#include <qpainter.h>
+#include <qpen.h>
 #include <qtimer.h>
 #include <qobjectlist.h>
 #include "zap_classes.h"
@@ -120,6 +122,13 @@ static int subStartX = 0;
 static int subStartY = 0;
 static int subEndX = 0;
 static int subEndY = 0;
+
+static int firstdrag = 0;
+static int moveband = 0;
+static int dragband;
+static int dragging[4];
+static int firstmx, firstmy;
+
 
 void zapHelp()
 {
@@ -359,7 +368,7 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   zap->winx = winx;
   zap->winy = winy;
   b3dSetCurSize(winx, winy);
- 
+
   if (zap->ginit){
 
     // 11/11/04: rubber band now takes care of itself
@@ -582,6 +591,8 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->toolMaxZ = vi->zsize;
   zap->toolZoom = 0.0f;
   zap->toolTime = 0;
+  zap->toolSizeX = 0;
+  zap->toolSizeY = 0;
   zap->twod = (!(vi->dim&4));
   zap->sectionStep = 0;
   zap->time = 0;
@@ -1183,12 +1194,6 @@ void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
     zapDraw(zap);
   }
 }
-
-static int firstdrag = 0;
-static int moveband = 0;
-static int dragband;
-static int dragging[4];
-static int firstmx, firstmy;
 
 // respond to a mouse press event
 void zapMousePress(ZapStruct *zap, QMouseEvent *event)
@@ -3631,6 +3636,7 @@ static int zapDrawAuto(ZapStruct *zap)
 static void zapDrawTools(ZapStruct *zap)
 {
   QString qstr;
+  int winx, winy;
 
   if (zap->toolMaxZ != zap->vi->zsize) {
     zap->toolMaxZ = zap->vi->zsize;
@@ -3645,6 +3651,20 @@ static void zapDrawTools(ZapStruct *zap)
   if (zap->toolZoom != zap->zoom){
     zap->toolZoom = zap->zoom;
     zap->qtWindow->setZoomText(zap->zoom);
+  }
+
+  if (zap->rubberband) {
+    zapBandImageToMouse(zap, 0);
+    winx = zap->rbMouseX1 - 1 - zap->rbMouseX0;
+    winy = zap->rbMouseY1 - 1 - zap->rbMouseY0;
+  } else {
+    winx = zap->winx;
+    winy = zap->winy;
+  }
+  if (winx != zap->toolSizeX || winy != zap->toolSizeY) {
+    zap->toolSizeX = winx;
+    zap->toolSizeY = winy;
+    zap->qtWindow->setSizeText(winx, winy);
   }
 
   if (zap->vi->nt) {
@@ -3714,6 +3734,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.78  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 4.77  2006/02/13 05:13:04  mast
 Call plugins with mouse events
 

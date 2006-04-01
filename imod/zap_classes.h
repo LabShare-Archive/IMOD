@@ -58,6 +58,7 @@ class ZapWindow : public QMainWindow
   void setSectionText(int section);
   void setMaxZ(int maxZ);
   void setTimeLabel(QString label);
+  void setSizeText(int winx, int winy);
 
   ZapGL *mGLw;
   QToolBar *mToolBar;
@@ -97,6 +98,7 @@ class ZapWindow : public QMainWindow
     QSlider *mSecSlider;
     QPushButton *mInfoButton;
     QPushButton *mHelpButton;
+    QLabel *mSizeLabel;
     bool mSecPressed;
     int mDisplayedSection;
     bool mCtrlPressed;
@@ -129,6 +131,9 @@ protected:
 
 /*
 $Log$
+Revision 4.7  2006/01/26 18:45:20  mast
+Enabled swapping control
+
 Revision 4.6  2005/03/29 00:59:57  mast
 Added 2nd toolbar
 

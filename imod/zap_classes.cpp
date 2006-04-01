@@ -116,6 +116,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
 
+  mSizeLabel = new QLabel(mToolBar, " 0000x0000");
+
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
@@ -336,6 +338,13 @@ void ZapWindow::setZoomText(float zoom)
   mZoomEdit->setText(str);
 }
 
+void ZapWindow::setSizeText(int winx, int winy)
+{
+  QString str;
+  str.sprintf(" %dx%d", winx, winy);
+  mSizeLabel->setText(str);
+}
+
 void ZapWindow::setSectionText(int section)
 {
   QString str;
@@ -434,6 +443,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.17  2005/03/29 00:59:25  mast
+Moved time to second toolbar
+
 Revision 4.16  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
