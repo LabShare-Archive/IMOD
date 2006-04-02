@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/1/06: Added continuous output of window or rubberband size to Zap toolbar.
+
 3/30/06: Automatically checking Seed mode and Autocenter in 3dmod Bead Fixer
 as needed when opening the .preali file.
 
