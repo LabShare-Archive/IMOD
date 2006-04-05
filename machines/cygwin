@@ -37,7 +37,7 @@ if ($compiler == intel) then
     # Get the version from icl, assuming we have matched c++/fortran compilers
     #
     icl >&! icl.tmp
-    set iclnum = `sed -n '/Version/s/.*Version \([0-9]*\).*/\1/p' icl.tmp`
+    set iclnum = `sed -n -e '/Version/s/.*Version \([0-9]*\).*/\1/p' -e '/[[:cntrl:]]/s///g' icl.tmp`
     \rm -f icl.tmp
     @ iclversion = 7
     if ("$iclnum" != "") @ iclversion = $iclnum
