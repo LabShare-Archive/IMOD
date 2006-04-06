@@ -49,6 +49,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2006/03/21 19:40:11  sueh
+ * <p> bug# 807 In displayCurTab():  moved all calculations and saved integers,
+ * <p> used for displaying the align tab, to SectionTableRow.  Passing the previous
+ * <p> row to SectionTableRow.displayCurTab().
+ * <p>
  * <p> Revision 1.24  2006/01/27 18:42:49  sueh
  * <p> bug# 801 Added validation for makejoin and finishjoin
  * <p>
@@ -847,6 +852,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     rows.add(rowIndex, rowMoveDown);
     addRowsToTable(rowIndex - 1);
     renumberTable(rowIndex - 1);
+    joinManager.getState().moveRowUp(rowIndex);
     configureRows();
     enableRowButtons(rowIndex - 1);
     repaint();
@@ -875,6 +881,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     rows.add(rowIndex + 1, rowMoveDown);
     addRowsToTable(rowIndex);
     renumberTable(rowIndex);
+    joinManager.getState().moveRowDown(rowIndex);
     configureRows();
     enableRowButtons(rowIndex + 1);
     repaint();
@@ -1025,6 +1032,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     row.remove();
     row.removeImod();
     renumberTable(rowIndex);
+    joinManager.getState().deleteRow(rowIndex);
     configureRows();
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
@@ -1078,7 +1086,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private void renumberTable(int startIndex) {
     int rowsSize = rows.size();
     for (int i = startIndex; i < rowsSize; i++) {
-      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1, i + 1 == rowsSize);
+      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
     }
   }
 
