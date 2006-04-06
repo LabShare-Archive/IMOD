@@ -22,6 +22,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -479,7 +480,7 @@ abstract class EtomoFrame extends JFrame {
   private int showOptionPane(String[] message, String title, int optionType,
       int messageType, Object[] options, Object initialValue,
       String[] optionStrings) {
-    currentPopupName = UIUtilities.convertLabelToName(title);
+    currentPopupName = Utilities.convertLabelToName(title);
     printName(currentPopupName, optionStrings, title, message);
     int result = JOptionPane.showOptionDialog(this, message, title, optionType,
         messageType, null, options, initialValue);
@@ -778,6 +779,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2006/03/20 18:02:15  sueh
+ * <p> bug# 835 Added menu option to create a new ParallelManager.
+ * <p>
  * <p> Revision 1.22  2006/01/20 21:09:53  sueh
  * <p> bug# 401 Added the ability for wrap(String, ArrayList) to wrap on commas.
  * <p>

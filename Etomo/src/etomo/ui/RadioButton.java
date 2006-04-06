@@ -4,6 +4,7 @@ import javax.swing.JRadioButton;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -23,7 +24,7 @@ final class RadioButton extends JRadioButton {
 
   public RadioButton(String text) {
     super(text);
-    String name = UIUtilities.convertLabelToName(text);
+    String name = Utilities.convertLabelToName(text);
     setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.RADIO_BUTTON_ATTRIB
@@ -71,6 +72,9 @@ final class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/01/12 17:37:28  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.3  2006/01/11 22:32:48  sueh
  * <p> bug# 675 fixed print names functionality
  * <p>

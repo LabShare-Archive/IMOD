@@ -13,6 +13,7 @@ import javax.swing.JSeparator;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.PanelHeaderState;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -58,7 +59,7 @@ final class PanelHeader implements Expandable {
 
   static PanelHeader getAdvancedBasicInstance(String title, Expandable panel,
       DialogType dialogType) {
-    return new PanelHeader(UIUtilities.convertLabelToName(title) + ".Header", title, panel,
+    return new PanelHeader(Utilities.convertLabelToName(title) + ".Header", title, panel,
         true, false, dialogType);
   }
 
@@ -238,6 +239,9 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/03/28 17:04:26  sueh
+ * <p> bug# 437 In setButtonStates, the default for btnOpenClose's state is true.
+ * <p>
  * <p> Revision 1.17  2006/03/28 00:55:33  sueh
  * <p> bug# 437 Change getButtonStateKey(DialogType) to
  * <p> createButtonStateKey(DialogType).  Set the name of each button.

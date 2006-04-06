@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2006/01/12 17:11:29  sueh
+ * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
+ * <p>
  * <p> Revision 1.10  2006/01/11 22:11:10  sueh
  * <p> bug# 675 corrected print name functionality
  * <p>
@@ -72,6 +75,7 @@ import javax.swing.SpinnerModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
+import etomo.util.Utilities;
 
 public class LabeledSpinner {
   public static final String rcsid = "$Id$";
@@ -88,7 +92,7 @@ public class LabeledSpinner {
    */
   public LabeledSpinner(String spinLabel, SpinnerModel model) {
     //set name
-    String name = UIUtilities.convertLabelToName(spinLabel);
+    String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.SPINNER_ATTRIB

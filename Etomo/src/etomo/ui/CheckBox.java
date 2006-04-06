@@ -4,6 +4,7 @@ import javax.swing.JCheckBox;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.util.Utilities;
 /**
 * <p>Description: </p>
 * 
@@ -18,6 +19,9 @@ import etomo.storage.autodoc.AutodocTokenizer;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2006/01/12 17:08:14  sueh
+* <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p>
 * <p> Revision 1.3  2006/01/11 21:58:46  sueh
 * <p> bug# 675 corrected print name functionality
 * <p>
@@ -34,7 +38,7 @@ final class CheckBox extends JCheckBox {
   
   public CheckBox(String text) {
     super(text);
-    String name = UIUtilities.convertLabelToName(text);
+    String name = Utilities.convertLabelToName(text);
     setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.CHECK_BOX_ATTRIB
@@ -68,6 +72,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2006/01/12 17:08:14  sueh
+* <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p>
 * <p> Revision 1.3  2006/01/11 21:58:46  sueh
 * <p> bug# 675 corrected print name functionality
 * <p>

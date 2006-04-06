@@ -12,6 +12,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
+import etomo.util.Utilities;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -39,6 +40,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2006/03/28 17:03:31  sueh
+ * <p> bug# 437 Added setOriginalProcessResultDisplayState to be used by
+ * <p> setButtonState.
+ * <p>
  * <p> Revision 3.17  2006/03/28 00:54:29  sueh
  * <p> bug# 437 Save dialogType and do a lazy creation of stateKey.  This allows
  * <p> more flexiblility in setting the name.  Change getButtonStateKey(DialogType)
@@ -236,7 +241,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param label
    */
   final void setName(String label) {
-    String name = UIUtilities.convertLabelToName(label);
+    String name = Utilities.convertLabelToName(label);
     button.setName(name);
     String buttonAttrib = toggleButton ? UITestConstants.TOGGLE_BUTTON_ATTRIB
         : UITestConstants.BUTTON_ATTRIB;

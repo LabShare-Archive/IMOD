@@ -8,6 +8,7 @@ import javax.swing.*;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.storage.autodoc.AutodocTokenizer;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/03/16 01:56:38  sueh
+ * <p> bug# 828 Added toString() and paramString().
+ * <p>
  * <p> Revision 3.13  2006/01/12 17:11:40  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
@@ -117,7 +121,7 @@ public class LabeledTextField {
 
   public LabeledTextField(String tfLabel) {
     //set name
-    String name = UIUtilities.convertLabelToName(tfLabel);
+    String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestConstants.TEXT_FIELD_ATTRIB
