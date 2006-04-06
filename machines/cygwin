@@ -31,7 +31,6 @@ if ($compiler == intel) then
     set rgbprogs = 
     set ldfflags = "/C90 /4Yportlib"
     set fortcomp = ifl
-    set delayload = gibberish
     set fcompFlags = "/4L132"
     
     # Get the version from icl, assuming we have matched c++/fortran compilers
@@ -45,13 +44,12 @@ if ($compiler == intel) then
     # version 8 and above: remove /C90, set record length to 4 bytes
     # also need to specify that \ is an escape character
     # Also stack size needs to be set high for a few programs (findwarp and ?)
-    # The delayload may be a temporary bug in the 9.0 that was tested 11/18/05
+    # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
         set fortcomp = ifort
         set ldfflags = "/4Yportlib /F66000000"
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132"
-        if ($iclversion == 9) set delayload = "DELAYLOAD"
     endif
     
 cat << EOF >> $configure
@@ -307,7 +305,6 @@ while ($i < 5)
         -e '/^	\$</d' -e '/{.*}.*{.*}/d'  -e '/UIC/s/-f *<< */\\/' \
         -e '/.SUFFIXES.*$/s//.SUFFIXES: .c .cpp .obj/'  \
         -e "/^C.*FLAGS[ 	]*=/s/-Od/$qopt/" \
-        -e "/\/${delayload}[^ ]*/s///g" \
         -e '/^install/a\	/usr/bin/cp \$(TARGET) '"$inst_bin_dir" \
         -e '/QMAKE.*Makefile/d' \
         < $qdir[$i]/makefile.tmp >! $qdir[$i]/Makefile
