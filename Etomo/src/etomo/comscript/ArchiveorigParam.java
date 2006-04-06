@@ -1,10 +1,10 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.type.EtomoNumber;
 import etomo.util.Utilities;
 
 /**
@@ -73,12 +73,20 @@ public class ArchiveorigParam implements ProcessDetails {
     return outputFile;
   }
   
-  public int getIntegerValue(int name) {
-    return EtomoNumber.INTEGER_NULL_VALUE;
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public boolean getBooleanValue(int name) {
-    return false;
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public AxisID getAxisID() {
@@ -87,6 +95,9 @@ public class ArchiveorigParam implements ProcessDetails {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2006/01/20 20:45:00  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.4  2005/11/19 01:45:53  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.
