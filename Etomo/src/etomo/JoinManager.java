@@ -10,6 +10,7 @@ import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
+import etomo.comscript.StartJoinParam;
 import etomo.comscript.XfalignParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
@@ -52,6 +53,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2006/03/20 17:49:16  sueh
+ * <p> bug# 835 Changed setTestParamFile to setParamFile
+ * <p>
  * <p> Revision 1.37  2006/01/27 18:38:02  sueh
  * <p> bug# 801 Added validation for makejoin and finishjoin
  * <p>
@@ -345,6 +349,7 @@ public final class JoinManager extends BaseManager {
   private final JoinMetaData metaData;
   private JoinProcessManager processMgr;
   private JoinState state;
+  private StartJoinParam startJoinParam = null;
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
@@ -614,7 +619,7 @@ public final class JoinManager extends BaseManager {
     String rootName = metaData.getRootName();
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
-    MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
+    MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state, this);
     if (paramFile == null) {
       endSetupMode();
     }
@@ -834,7 +839,11 @@ public final class JoinManager extends BaseManager {
       return;
     }
     try {
-      threadNameA = processMgr.startjoin();
+      if (startJoinParam == null) {
+        startJoinParam = new StartJoinParam(AxisID.ONLY);
+      }
+      threadNameA = processMgr.startjoin(startJoinParam);
+      startJoinParam = null;
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1001,11 +1010,16 @@ public final class JoinManager extends BaseManager {
   }
 
   protected void createState() {
-    state = new JoinState();
+    state = new JoinState(this);
   }
 
   public JoinState getState() {
     return state;
+  }
+  
+  public StartJoinParam newStartJoinParam() {
+    startJoinParam = new StartJoinParam(AxisID.ONLY);
+    return startJoinParam;
   }
 
   protected BaseState getBaseState() {
