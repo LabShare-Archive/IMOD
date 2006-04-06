@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.30  2006/01/27 18:42:31  sueh
+ * <p> bug# 801 Added validation for makejoin and finishjoin
+ * <p>
  * <p> Revision 1.29  2006/01/03 23:38:19  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
  * <p> toRadioButton.
@@ -647,7 +650,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       lblMidasLimit.setEnabled(true);
       spinDensityRefSection.setEnabled(true);
       btnChangeSetup.setEnabled(false);
-      btnRevertToLastSetup.setEnabled(false);
+      setRevertState(false);
       btnMakeSamples.setEnabled(true);
       break;
     case SAMPLE_PRODUCED_MODE:
@@ -657,7 +660,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       lblMidasLimit.setEnabled(false);
       spinDensityRefSection.setEnabled(false);
       btnChangeSetup.setEnabled(true);
-      btnRevertToLastSetup.setEnabled(false);
+      setRevertState(false);
       btnMakeSamples.setEnabled(false);
       break;
     case CHANGING_SAMPLE_MODE:
@@ -667,13 +670,18 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       lblMidasLimit.setEnabled(true);
       spinDensityRefSection.setEnabled(true);
       btnChangeSetup.setEnabled(false);
-      btnRevertToLastSetup.setEnabled(true);
+      setRevertState(true);
       btnMakeSamples.setEnabled(true);
       break;
     default:
       throw new IllegalStateException("mode=" + mode);
     }
     pnlSectionTable.setMode(mode);
+  }
+  
+  private void setRevertState(boolean enableRevert) {
+    btnRevertToLastSetup.setEnabled(enableRevert);
+    joinManager.getState().setRevertState(enableRevert);
   }
 
   private void createSetupPanel(String workingDirName) {
@@ -712,6 +720,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //btnChangeSetup.addActionListener(joinActionListener);
     setupPanel2.add(btnChangeSetup);
     btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
+    setRevertState(true);
     //btnRevertToLastSetup.addActionListener(joinActionListener);
     setupPanel2.add(btnRevertToLastSetup);
     //seventh component
@@ -1305,6 +1314,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       }
       pnlSectionTable.deleteSections();
       setMetaData(joinManager.getConstMetaData());
+      joinManager.getState().revert();
       setMode(SAMPLE_PRODUCED_MODE);
     }
     else if (!run3dmod(command, new Run3dmodMenuOptions())) {
