@@ -24,9 +24,10 @@ public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
+  public static final String ROTATED_TOMO_EXT = ".rot";
+  public static final String COMSCRIPT_EXT = ".com";
   
   private static final String TOMO_EXT = ".rec";
-  private static final String ROTATED_TOMO_EXT = ".rot";
   private static final String STACK_EXT = ".st";
 
   //Stacks
@@ -207,6 +208,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/03/20 18:09:15  sueh
+ * <p> bug# 835 Added a function to get the ParallelManager data file (.epp).
+ * <p>
  * <p> Revision 1.10  2006/01/19 21:35:59  sueh
  * <p> bug# 757 The path of the rotated tomogram should be property user dir
  * <p>
