@@ -153,7 +153,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
       try {
         String comFileName = chunkComscript.getName();
         ltfProcessName.setText(comFileName.substring(0, comFileName
-            .indexOf('-')));
+            .lastIndexOf('-')));
         workingDir = chunkComscript.getParentFile();
       }
       catch (Exception e) {
@@ -188,6 +188,10 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/03/28 00:55:47  sueh
+ * <p> bug# 437 Change getButtonStateKey(DialogType) to
+ * <p> createButtonStateKey(DialogType).
+ * <p>
  * <p> Revision 1.9  2006/03/20 18:05:32  sueh
  * <p> bug# 835 Dialog handling generic parallel processes.
  * <p> </p>
