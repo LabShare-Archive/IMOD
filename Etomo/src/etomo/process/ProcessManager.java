@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.93  2006/03/16 01:52:41  sueh
+ * bug#  830 Handling exitValue != 0 in setupComScripts()
+ *
  * Revision 3.92  2006/02/22 19:06:56  sueh
  * bug# 817 ModelToPatch():  don't try to move patch.out to patch.out~ if
  * patch.out doesn't exist.
@@ -1696,9 +1699,9 @@ public class ProcessManager extends BaseProcessManager {
       copyFiducialAlignFiles(axisID);
       if (processDetails != null) {
         state.setMadeZFactors(axisID, processDetails
-            .getBooleanValue(TiltalignParam.GET_USE_OUTPUT_Z_FACTOR_FILE));
+            .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
         state.setUsedLocalAlignments(axisID, processDetails
-            .getBooleanValue(TiltalignParam.GET_LOCAL_ALIGNMENTS));
+            .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
         appManager.setEnabledTiltParameters(script.getAxisID());
       }
     }
@@ -1711,7 +1714,7 @@ public class ProcessManager extends BaseProcessManager {
         appManager.getState().setNewstFiducialessAlignment(
             axisID,
             processDetails
-                .getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
+                .getBooleanValue(NewstParam.Fields.FIDUCIALESS_ALIGNMENT));
         appManager.setEnabledTiltParameters(script.getAxisID());
       }
     }
@@ -1763,11 +1766,11 @@ public class ProcessManager extends BaseProcessManager {
       }
       if (commandName.equals(TrimvolParam.getName())) {
         appManager.getState().setTrimvolFlipped(
-            processDetails.getBooleanValue(TrimvolParam.GET_SWAPYZ));
+            processDetails.getBooleanValue(TrimvolParam.Fields.SWAPYZ));
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
         appManager.getState().setSqueezevolFlipped(
-            processDetails.getBooleanValue(SqueezevolParam.GET_FLIPPED));
+            processDetails.getBooleanValue(SqueezevolParam.Fields.FLIPPED));
       }
       else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
         appManager.deleteOriginalStack(processDetails, process.getStdOutput());
