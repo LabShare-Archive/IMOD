@@ -424,8 +424,15 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(props.containsValue(value));
   }
 
-  //TODO
   public final void testRemove_Properties() {
+    String name = "test";
+    String value = "42";
+    Properties props = new Properties();
+    props.setProperty(name, value);
+    EtomoNumber test = new EtomoNumber(name);
+    test.remove(props);
+    assertFalse(props.containsKey(name));
+    assertFalse(props.containsValue(value));
   }
 
   //TODO
@@ -971,6 +978,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2006/04/06 22:18:39  sueh
+ * <p> bug# 692 Tested store(Properties, String).
+ * <p>
  * <p> Revision 1.14  2005/11/10 18:07:18  sueh
  * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
  * <p> instanciated once so there won't be a problem if the working directory is
