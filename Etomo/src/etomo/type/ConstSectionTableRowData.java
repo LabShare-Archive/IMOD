@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2006/03/21 19:34:41  sueh
+ * <p> corrected typo
+ * <p>
  * <p> Revision 1.15  2006/01/27 18:40:03  sueh
  * <p> bug# 801 Don't default joinFinalStart to 1
  * <p>
@@ -207,9 +210,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     setupFinalEnd.setDescription("Final, End");
     joinFinalStart.setDescription("Final, Start");
     joinFinalEnd.setDescription("Final, End");
-    rotationAngleX.setDefault(0).setDescription("Rotation Angles, X");
-    rotationAngleY.setDefault(0).setDescription("Rotation Angles, Y");
-    rotationAngleZ.setDefault(0).setDescription("Rotation Angles, Z");
+    rotationAngleX.setDescription("Rotation Angles, X");
+    rotationAngleY.setDescription("Rotation Angles, Y");
+    rotationAngleZ.setDescription("Rotation Angles, Z");
     //initialize
     this.rowNumber.set(rowNumber);
   }
@@ -324,6 +327,10 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String createPrepend(String prepend) {
+    return createPrepend(prepend, rowNumber);
+  }
+  
+  public static String createPrepend(String prepend, ConstEtomoNumber rowNumber) {
     if (prepend == "") {
       return groupString + "." + rowNumber.toString();
     }
@@ -524,7 +531,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     return rotationAngleX;
   }
 
-  public ScriptParameter getRotationAngleXParameter() {
+  public ConstEtomoNumber getRotationAngleXParameter() {
     return rotationAngleX;
   }
 
@@ -532,7 +539,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     return rotationAngleY;
   }
 
-  public ScriptParameter getRotationAngleYParameter() {
+  public ConstEtomoNumber getRotationAngleYParameter() {
     return rotationAngleY;
   }
 
@@ -540,7 +547,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     return rotationAngleZ;
   }
 
-  public ScriptParameter getRotationAngleZParameter() {
+  public ConstEtomoNumber getRotationAngleZParameter() {
     return rotationAngleZ;
   }
 
