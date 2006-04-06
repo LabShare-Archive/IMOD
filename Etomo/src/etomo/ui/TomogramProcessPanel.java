@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2005/11/14 22:29:45  sueh
+ * <p> bug# 762 Made buttonAxisAction() and stateChanged() protected.
+ * <p>
  * <p> Revision 1.17  2005/09/22 21:33:33  sueh
  * <p> bug# 532 Moved the parallel process panel to AxisProcessPanel.
  * <p>
@@ -111,11 +114,11 @@ import etomo.util.Utilities;
  */
 public class TomogramProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
-  
+
   private static final String bothAxisString = "Both";
   private static final String axisAString = "Axis A";
   private static final String axisBString = "Axis B";
-  
+
   private ProcessControlPanel procCtlPreProc = new ProcessControlPanel(
       DialogType.PRE_PROCESSING);
   private ProcessControlPanel procCtlCoarseAlign = new ProcessControlPanel(
@@ -154,7 +157,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     createProcessControlPanel();
     initializePanels();
   }
-  
+
   /**
    * 
    * @param event
@@ -162,7 +165,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   protected void buttonKillAction(ActionEvent event) {
     manager.kill(axisID);
   }
-  
+
   protected void buttonAxisAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(bothAxisString)) {
@@ -175,7 +178,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       uiHarness.showAxisB();
     }
   }
-    
+
   /**
    * Invoke the appropriate ApplicationManager method for the button press
    */
@@ -184,7 +187,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     Utilities.buttonTimestamp(command);
     applicationManager.saveCurrentDialog(axisID);
     ProcessControlPanel currentProcess = null;
-    
+
     if (command.equals(procCtlPreProc.getName())) {
       applicationManager.openPreProcDialog(axisID);
       return;
@@ -284,7 +287,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   public void setPostProcessingState(ProcessState state) {
     procCtlPostProcessing.setState(state);
   }
-  
+
   /**
    * 
    * @param state
@@ -302,9 +305,14 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     }
   }
   
+  private void showAxisOnly() {
+    setBackground(Colors.backgroundA);
+  }
+
   private void showAxisA(boolean showingBothAxis) {
     if (axisID != AxisID.FIRST) {
-      throw new IllegalStateException("Function should only be called for A axis panel.");
+      throw new IllegalStateException(
+          "Function should only be called for A axis panel.");
     }
     setBackground(Colors.backgroundA);
     if (showingBothAxis) {
@@ -317,14 +325,15 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     }
     axisButtonPanel.setVisible(true);
   }
-  
+
   void showAxisA() {
     showAxisA(false);
   }
-  
+
   private void showAxisB(boolean showingBothAxis) {
     if (axisID != AxisID.SECOND) {
-      throw new IllegalStateException("Function should only be called for B axis panel.");
+      throw new IllegalStateException(
+          "Function should only be called for B axis panel.");
     }
     setBackground(Colors.backgroundB);
     if (showingBothAxis) {
@@ -337,11 +346,11 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     }
 
   }
-  
+
   void showAxisB() {
     showAxisB(false);
   }
-  
+
   private void setBackground(Color color) {
     panelRoot.setBackground(color);
     outerStatusPanel.setBackground(color);
@@ -352,7 +361,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     axisButtonPanel.setBackground(color);
     progressPanel.setBackground(color);
   }
-  
+
   private void setButton(JButton button, String text, String tooltip) {
     button.setText(text);
     Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
@@ -361,7 +370,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     button.setSize((int) buttonSize.getWidth(), (int) buttonSize.getHeight());
     button.setToolTipText(tooltip);
   }
-  
+
   protected void createProcessControlPanel() {
     super.createProcessControlPanel();
     //  Bind each button to action listener and the generic mouse listener
@@ -372,9 +381,11 @@ public class TomogramProcessPanel extends AxisProcessPanel {
         this);
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
-    axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel,
-        BoxLayout.X_AXIS));
-    if (axisID != AxisID.ONLY) {
+    axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel, BoxLayout.X_AXIS));
+    if (axisID == AxisID.ONLY) {
+      showAxisOnly();
+    }
+    else {
       axisButton1.addActionListener(axisButtonListener);
       axisButton2.addActionListener(axisButtonListener);
       axisButtonPanel.add(axisButton1);
@@ -440,7 +451,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       procCtlPostProcessing.getContainer().setAlignmentX(
           Container.CENTER_ALIGNMENT);
       panelProcessSelect.add(procCtlPostProcessing.getContainer());
-      
+
       panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
       procCtlCleanUp.addMouseListener(mouseAdapter);
       procCtlCleanUp.setButtonActionListener(buttonListener);
@@ -505,7 +516,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlPostProcessing.setSelected(false);
     procCtlCleanUp.setSelected(false);
   }
-  
+
   /**
    * Initialize the tooltip text for the axis panel objects
    */
@@ -515,7 +526,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     bothAxisTooltip = tooltipFormatter.setText("See Axis A and B.").format();
     axisATooltip = tooltipFormatter.setText("See Axis A only.").format();
     axisBTooltip = tooltipFormatter.setText("See Axis B only.").format();
-    
+
     text = "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
         + " CCD rows from the raw projection stack.";
     procCtlPreProc.setToolTipText(tooltipFormatter.setText(text).format());
@@ -554,10 +565,9 @@ public class TomogramProcessPanel extends AxisProcessPanel {
         + " and squeeze the final reconstruction volume.";
     procCtlPostProcessing.setToolTipText(tooltipFormatter.setText(text)
         .format());
-    
+
     text = "Open the Clean Up panel to delete the intermediate files.";
-    procCtlCleanUp.setToolTipText(tooltipFormatter.setText(text)
-      .format());
+    procCtlCleanUp.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
   /**
@@ -574,14 +584,14 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       adaptee.buttonProcessAction(event);
     }
   }
-  
+
   class AxisButtonActionListener implements ActionListener {
     TomogramProcessPanel adaptee;
-    
+
     AxisButtonActionListener(TomogramProcessPanel adaptee) {
       this.adaptee = adaptee;
     }
-    
+
     public void actionPerformed(ActionEvent event) {
       adaptee.buttonAxisAction(event);
     }
