@@ -1,5 +1,7 @@
 package etomo.type;
 
+import etomo.util.DatasetFiles;
+
 /**
  * <p>Description: </p>
  *
@@ -13,6 +15,9 @@ package etomo.type;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2005/12/09 20:28:36  sueh
+ * <p> $bug# 776 Added tomosnapshot and equals()
+ * <p> $
  * <p> $Revision 1.6  2005/11/19 02:42:06  sueh
  * <p> $bug# 744 Added processchunks.
  * <p> $
@@ -38,7 +43,8 @@ package etomo.type;
  */
 public class ProcessName {
   public static final String rcsid = "$$Id$$";
-  //known process names
+  
+  //known process names  
   private static final String eraser = "eraser";
   private static final String xcorr = "xcorr";
   private static final String prenewst = "prenewst";
@@ -116,6 +122,10 @@ public class ProcessName {
    * string is not one of the known process names.
    */
   public static ProcessName fromString(String name) {
+    if (name.endsWith(DatasetFiles.COMSCRIPT_EXT)) {
+      int extIndex = name.lastIndexOf(DatasetFiles.COMSCRIPT_EXT);
+      name = name.substring(0, extIndex);
+    }
     if (name.compareToIgnoreCase(eraser) == 0) {
       return ERASER;
     }
@@ -211,10 +221,10 @@ public class ProcessName {
   }
   
   public String getCommand(AxisID axisID) {
-    return name + axisID.getExtension() + ".com";
+    return name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT;
   }
   
   public String[] getCommandArray(AxisID axisID) {
-    return new String[] { name + axisID.getExtension() + ".com" };
+    return new String[] { name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT };
   }
 }
