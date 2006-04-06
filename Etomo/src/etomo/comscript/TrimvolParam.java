@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2006/01/20 20:48:23  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 3.11  2005/11/19 01:54:59  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
@@ -108,6 +111,7 @@ package etomo.comscript;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Properties;
 
 import etomo.BaseManager;
@@ -119,8 +123,6 @@ import etomo.util.InvalidParameterException;
 
 public class TrimvolParam implements ProcessDetails {
   public static final String rcsid = "$Id$";
-
-  public static final int GET_SWAPYZ = -1;
 
   public static final String PARAM_ID = "Trimvol";
   public static final String XMIN = "XMin";
@@ -644,12 +646,19 @@ public class TrimvolParam implements ProcessDetails {
     outputFile = datasetName + ".rec";
   }
   
-  public boolean getBooleanValue(int name) {
-    switch (name) {
-    case GET_SWAPYZ:
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.SWAPYZ) {
       return swapYZ;
     }
-    return false;
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public String[] getCommandArray() {
@@ -672,8 +681,8 @@ public class TrimvolParam implements ProcessDetails {
     return commandName;
   }
   
-  public int getIntegerValue(int name) {
-    return Integer.MIN_VALUE;
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public int getCommandMode() {
@@ -742,5 +751,12 @@ public class TrimvolParam implements ProcessDetails {
       return false;
     }   
     return true;
+  }
+  
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+    
+    public static final Fields SWAPYZ = new Fields();
   }
 }
