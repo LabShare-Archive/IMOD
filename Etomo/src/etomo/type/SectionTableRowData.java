@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2006/01/20 00:15:51  sueh
+ * <p> bug# 804 The path of the rotated tomogram should be property user dir
+ * <p>
  * <p> Revision 1.8  2005/12/14 01:29:21  sueh
  * <p> bug# 782 Added toString().
  * <p>
@@ -324,10 +327,6 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   }
 
   public void setRowNumber(int rowNumber) {
-    this.rowNumber.set(rowNumber);
-  }
-
-  public void setRowNumber(String rowNumber) {
     this.rowNumber.set(rowNumber);
   }
 
