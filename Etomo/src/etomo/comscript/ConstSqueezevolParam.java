@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
@@ -26,6 +27,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2006/01/20 20:46:08  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.11  2005/11/19 01:51:54  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.
@@ -76,7 +80,6 @@ import etomo.type.EtomoNumber;
 public abstract class ConstSqueezevolParam implements ProcessDetails, Storable {
   public static  final String  rcsid =  "$Id$";
   
-  public static final int GET_FLIPPED = -1;
   protected static final String groupString = "Squeezevol";
   protected static final String linearInterpolationString = "LinearInterpolation";
   protected static final boolean defaultLinearInterpolation = false;
@@ -196,16 +199,23 @@ public abstract class ConstSqueezevolParam implements ProcessDetails, Storable {
     return commandArray;
   }
   
-  public boolean getBooleanValue(int name) {
-    switch (name) {
-    case GET_FLIPPED:
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.FLIPPED) {
       return flipped;
     }
-    return false;
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public int getIntegerValue(int name) {
-    return Integer.MIN_VALUE;
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public String getCommandName() {
@@ -258,5 +268,12 @@ public abstract class ConstSqueezevolParam implements ProcessDetails, Storable {
       return false;
     }
     return true;
+  }
+  
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+    
+    public static final Fields FLIPPED = new Fields();
   }
 }

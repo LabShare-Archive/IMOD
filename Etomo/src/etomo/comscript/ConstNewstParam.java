@@ -1,11 +1,11 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
 import etomo.type.AxisID;
-import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -20,6 +20,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/03/22 21:28:21  sueh
+ * <p> bug# 803 Added DATA_MODE_OPTION and
+ * <p> FLOAT_DENSITIES_OPTION.
+ * <p>
  * <p> Revision 3.13  2006/03/22 18:37:02  sueh
  * <p> bug# 803 Added statics FLOAT_DENSITIES_MEAN and
  * <p> FLOAT_DENSITIES_DEFAULT, which are used with floatDensities.
@@ -107,30 +111,25 @@ import etomo.type.EtomoNumber;
  */
 
 public class ConstNewstParam implements ProcessDetails {
-  public static final String rcsid = 
-  "$Id$";
-  
-  //generic gets
-  public static final int GET_FIDUCIALESS_ALIGNMENT = -1;
-  public static final int GET_BINNING = -2;
-  
+  public static final String rcsid = "$Id$";
+
   //command modes
   public static final int WHOLE_TOMOGRAM_SAMPLE_MODE = -1;
   public static final int FULL_ALIGNED_STACK_MODE = -2;
-  
+
   //data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
   public static final int DATA_MODE_BYTE = 0;
-  
+
   //float densities
   public static final String FLOAT_DENSITIES_OPTION = "-fl";
   public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
   public static final int FLOAT_DENSITIES_MEAN = 2;
-  
+
   private static final String commandFileName = "newst";
   private static final String commandFileExtension = ".com";
-  
+
   protected Vector inputFile;
   protected Vector outputFile;
   protected String fileOfInputs;
@@ -157,9 +156,9 @@ public class ConstNewstParam implements ProcessDetails {
   protected boolean fiducialessAlignment;
   protected int commandMode;
   protected String magGradientFile;
-  
+
   private AxisID axisID;
-  
+
   //defaults
   public static final int BIN_BY_FACTOR_DEFAULT = 1;
 
@@ -167,65 +166,74 @@ public class ConstNewstParam implements ProcessDetails {
     this.axisID = axisID;
     initializeEmpty();
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
+
   /**
    * @return Returns the applyOffsetsFirst.
    */
   public boolean isApplyOffsetsFirst() {
     return applyOffsetsFirst;
   }
+
   /**
    * @return Returns the binByFactor.
    */
   public int getBinByFactor() {
     return ParamUtilities.get(binByFactor, BIN_BY_FACTOR_DEFAULT);
   }
+
   /**
    * @return Returns the contrastBlackWhite.
    */
   public String getContrastBlackWhite() {
     return contrastBlackWhite.toString();
   }
+
   /**
    * @return Returns the distortionField.
    */
   public String getDistortionField() {
     return distortionField;
   }
+
   /**
    * @return Returns the expandByFactor.
    */
   public float getExpandByFactor() {
     return expandByFactor;
   }
+
   /**
    * @return Returns the fileOfInputs.
    */
   public String getFileOfInputs() {
     return fileOfInputs;
   }
+
   /**
    * @return Returns the fileOfOutputs.
    */
   public String getFileOfOutputs() {
     return fileOfOutputs;
   }
+
   /**
    * @return Returns the floatDensities.
    */
   public int getFloatDensities() {
     return floatDensities;
   }
+
   /**
    * @return Returns the imagesAreBinned.
    */
   public int getImagesAreBinned() {
     return imagesAreBinned;
   }
-  
+
   /**
    * Backward compatibility with pre PIP structure, just return the first input
    * file
@@ -234,7 +242,7 @@ public class ConstNewstParam implements ProcessDetails {
   public String getInputFile() {
     return (String) inputFile.get(0);
   }
-  
+
   /**
    * Create a defensive copy of the internal object inputFile
    * @return
@@ -243,43 +251,44 @@ public class ConstNewstParam implements ProcessDetails {
     Vector copy = new Vector(inputFile);
     return copy;
   }
-  
+
   /**
    * @return Returns the linearInterpolation.
    */
   public boolean isLinearInterpolation() {
     return linearInterpolation;
   }
+
   /**
    * @return Returns the modeToOutput.
    */
   public int getModeToOutput() {
     return modeToOutput;
   }
-  
+
   /**
    * @return Returns the numberToOutput.
    */
   public Vector getNumberToOutput() {
     return numberToOutput;
   }
-  
+
   /**
    * @return Returns the offsetsInXandY.
    */
   public String getOffsetsInXandY() {
     StringBuffer buffer = new StringBuffer();
-    for(Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
+    for (Iterator i = offsetsInXandY.iterator(); i.hasNext();) {
       buffer.append((String) i.next());
       buffer.append(",");
     }
     // Remove the trailing comma
-    if(buffer.length() > 0) {
-      buffer.deleteCharAt(buffer.length()-1);
+    if (buffer.length() > 0) {
+      buffer.deleteCharAt(buffer.length() - 1);
     }
     return buffer.toString();
   }
-  
+
   /**
    * Backward compatibility with pre PIP structure, just return the first ouput
    * file
@@ -291,7 +300,7 @@ public class ConstNewstParam implements ProcessDetails {
     }
     return (String) outputFile.get(0);
   }
-  
+
   /**
    * Create a defensive copy of the internal object inputFile
    * @return
@@ -300,25 +309,28 @@ public class ConstNewstParam implements ProcessDetails {
     Vector copy = new Vector(outputFile);
     return copy;
   }
-  
+
   /**
    * @return Returns the parameterFile.
    */
   public String getParameterFile() {
     return parameterFile;
   }
+
   /**
    * @return Returns the rotateByAngle.
    */
   public float getRotateByAngle() {
     return rotateByAngle;
   }
+
   /**
    * @return Returns the scaleMinAndMax.
    */
   public FortranInputString getScaleMinAndMax() {
     return scaleMinAndMax;
   }
+
   /**
    * @return Returns the sectionsToRead.
    */
@@ -326,32 +338,35 @@ public class ConstNewstParam implements ProcessDetails {
     Vector copy = new Vector(sectionsToRead);
     return copy;
   }
- 
+
   /**
    * @return Returns the sizeToOutputInXandY.
    */
   public String getSizeToOutputInXandY() {
     return sizeToOutputInXandY.toString();
   }
+
   /**
    * @return Returns the testLimits.
    */
   public String getTestLimits() {
     return testLimits.toString();
   }
+
   /**
    * @return Returns the transformFile.
    */
   public String getTransformFile() {
     return transformFile;
   }
+
   /**
    * @return Returns the useTransformLines.
    */
   public String getUseTransformLines() {
     return useTransformLines;
   }
-  
+
   /**
    * Initialize all of the attributes of this class to their empty
    * (unspecified) values.
@@ -364,7 +379,7 @@ public class ConstNewstParam implements ProcessDetails {
     sectionsToRead = new Vector();
     numberToOutput = new Vector();
     sizeToOutputInXandY = new FortranInputString(2);
-    boolean[] bothTrue = {true, true};
+    boolean[] bothTrue = { true, true };
     sizeToOutputInXandY.setIntegerType(bothTrue);
     modeToOutput = Integer.MIN_VALUE;
     offsetsInXandY = new Vector();
@@ -387,42 +402,59 @@ public class ConstNewstParam implements ProcessDetails {
     fiducialessAlignment = false;
     magGradientFile = null;
   }
-  
+
   public static String getCommandFileName(AxisID axisID) {
     return commandFileName + axisID.getExtension() + commandFileExtension;
   }
-  
+
   public String getCommandLine() {
     return getCommandFileName(axisID);
   }
-  
+
   public String getCommandName() {
     return commandFileName;
   }
+
   public String[] getCommandArray() {
     String[] array = { getCommandLine() };
     return array;
   }
+
   public int getCommandMode() {
     return commandMode;
   }
+
   public File getCommandOutputFile() {
     return null;
   }
 
-  public int getIntegerValue(int name) {
-    switch (name) {
-    case GET_BINNING:
+  public int getIntValue(etomo.comscript.Fields field) {
+    if (field == Fields.BINNING) {
       return getBinByFactor();
     }
-    return EtomoNumber.INTEGER_NULL_VALUE;
+    throw new IllegalArgumentException("field=" + field);
   }
-  
-  public boolean getBooleanValue(int name) {
-    switch (name) {
-    case GET_FIDUCIALESS_ALIGNMENT:
+
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.FIDUCIALESS_ALIGNMENT) {
       return fiducialessAlignment;
     }
-    return false;
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+
+    public static final Fields FIDUCIALESS_ALIGNMENT = new Fields();
+    public static final Fields BINNING = new Fields();
   }
 }

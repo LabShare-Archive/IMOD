@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.util.Hashtable;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -38,7 +39,6 @@ public class BlendmontParam implements CommandParam, ProcessDetails {
   public static final String OUTPUT_FILE_EXTENSION = ".ali";
   public static final String DISTORTION_CORRECTED_STACK_EXTENSION = ".dcst";
   public static final String BLENDMONT_STACK_EXTENSION = ".bl";
-  public static final int OLD_EDGE_FUNCTIONS_FIELD_NAME = 100;
 
   public static final String IMAGE_OUTPUT_FILE_KEY = "ImageOutputFile";
 
@@ -210,16 +210,23 @@ public class BlendmontParam implements CommandParam, ProcessDetails {
     return imageOutputFile;
   }
   
-  public int getIntegerValue(int name) {
-    return EtomoNumber.INTEGER_NULL_VALUE;
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public boolean getBooleanValue(int name) {
-    switch (name) {
-    case OLD_EDGE_FUNCTIONS_FIELD_NAME:
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.OLD_EDGE_FUNCTIONS) {
       return oldEdgeFunctions.is();
     }
-    throw new IllegalArgumentException("name=" + name);
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public AxisID getAxisID() {
@@ -271,9 +278,19 @@ public final void setBinByFactor(int binByFactor) {
   }  public final ConstEtomoNumber getBinByFactor() {
     return binByFactor;
   }
+  
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+    
+    public static final Fields OLD_EDGE_FUNCTIONS = new Fields();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/01/20 20:45:08  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 1.16  2005/11/19 01:49:47  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
