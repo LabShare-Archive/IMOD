@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
@@ -9,228 +10,283 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoNumber;
+import etomo.type.JoinState;
 import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
+import etomo.type.SlicerAngles;
+import etomo.util.DatasetFiles;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2002 - 2006</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> Old log: Makejoincom.java,v
-* <p> Revision 1.1.2.1  2004/09/29 17:46:50  sueh
-* <p> bug# 520 Class to run the makejoincom script.  Gets its options from
-* <p> ConstJoinMetaData.
-* <p> </p>
-* 
-* <p> $Log$
-* <p> Revision 1.16  2005/12/06 22:59:37  sueh
-* <p> bug# 757 Added maxxysize option
-* <p>
-* <p> Revision 1.15  2005/11/29 22:21:59  sueh
-* <p> bug# 757 Use setup section for make join.
-* <p>
-* <p> Revision 1.14  2005/11/19 01:52:56  sueh
-* <p> bug# 744 Moved functions only used by process manager post
-* <p> processing and error processing from Commands to ProcessDetails.
-* <p> This allows ProcesschunksParam to be passed to DetackedProcess
-* <p> without having to add unnecessary functions to it.
-* <p>
-* <p> Revision 1.13  2005/11/02 23:58:36  sueh
-* <p> bug# 738 Midas limit has a display value, so don't test for null.
-* <p>
-* <p> Revision 1.12  2005/11/02 23:57:01  sueh
-* <p> bug# 738 Added midas limit.
-* <p>
-* <p> Revision 1.11  2005/05/12 01:22:35  sueh
-* <p> bug# 520 Take rotation angle defaults from ConstEtomoNumber variables.
-* <p>
-* <p> Revision 1.10  2005/05/09 22:59:33  sueh
-* <p> bug# 658 Removed ScriptParameter.addToScript because is was only
-* <p> being use in one place.  In genOptions() replaced addToScript with code
-* <p> that does the same thing.
-* <p>
-* <p> Revision 1.9  2005/04/25 20:40:08  sueh
-* <p> bug# 615 Passing the axis where a command originates to the message
-* <p> functions so that the message will be popped up in the correct window.
-* <p> This requires adding AxisID to many objects.
-* <p>
-* <p> Revision 1.8  2005/01/25 22:47:02  sueh
-* <p> Adding boolean force parameter to ScriptParameter.addToScript() to tell
-* <p> the function to avoid checking isUseInScript()
-* <p>
-* <p> Revision 1.7  2005/01/25 21:42:02  sueh
-* <p> Converting EtomoNumbers parameters to ScriptParameters.
-* <p>
-* <p> Revision 1.6  2005/01/21 22:42:19  sueh
-* <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
-* <p> isSetAndNotDefault() as a standard why to decide if a parameter should
-* <p> be placed in a comscript.
-* <p>
-* <p> Revision 1.5  2005/01/08 01:39:40  sueh
-* <p> bug# 578 Updated Command interface.
-* <p>
-* <p> Revision 1.4  2004/12/08 21:21:27  sueh
-* <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
-* <p>
-* <p> Revision 1.3  2004/12/01 03:45:47  sueh
-* <p> bug# 520 Removed unnecessary member variable SystemProgram
-* <p> program.
-* <p>
-* <p> Revision 1.2  2004/11/19 23:04:18  sueh
-* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
-* <p>
-* <p> Revision 1.1.2.13  2004/11/19 00:01:10  sueh
-* <p> bug# 520 Removed unnecessary pass-through functions from
-* <p> ConstSectionTableRowData.
-* <p>
-* <p> Revision 1.1.2.12  2004/11/16 23:27:56  sueh
-* <p> bug# 520 Bug fix:  In genOptions(), checking for sectionData == null
-* <p> before using.
-* <p>
-* <p> Revision 1.1.2.11  2004/11/16 02:20:46  sueh
-* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
-* <p> EtomoLong with EtomoNumber.
-* <p>
-* <p> Revision 1.1.2.10  2004/11/15 22:17:10  sueh
-* <p> bug# 520 Implementing Command.
-* <p>
-* <p> Revision 1.1.2.9  2004/10/30 01:31:40  sueh
-* <p> bug# 520 bug fix: A missing rotationAngleX caused the param to not use
-* <p> the -rot options.  Now the option will be used if any rotation angle is set and
-* <p> the unset ones will be defaulted.
-* <p>
-* <p> Revision 1.1.2.8  2004/10/29 22:07:58  sueh
-* <p> bug# 520 Use -tmpext to set the temp file extension to .rot.
-* <p>
-* <p> Revision 1.1.2.7  2004/10/29 01:17:19  sueh
-* <p> bug# 520 Removed working directory from meta data.  Getting working
-* <p> directory from propertyUserDir.
-* <p>
-* <p> Revision 1.1.2.6  2004/10/22 20:57:50  sueh
-* <p> bug# 520 Simplifying ConstSectionTableRowData by passing
-* <p> EtomoSimpleType instead of String and int.
-* <p>
-* <p> Revision 1.1.2.5  2004/10/22 03:20:52  sueh
-* <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
-* <p> passing EtomoInteger, EtomoFloat, etc and using its get() and getString()
-* <p> functions.
-* <p>
-* <p> Revision 1.1.2.4  2004/10/21 02:34:59  sueh
-* <p> bug# 520 Removed unnecessary function run().
-* <p>
-* <p> Revision 1.1.2.3  2004/10/18 17:42:02  sueh
-* <p> bug# 520 Added -reference to the command string.
-* <p>
-* <p> Revision 1.1.2.2  2004/10/14 02:27:53  sueh
-* <p> bug# 520 Setting working directory in SystemProgram.
-* <p>
-* <p> Revision 1.1.2.1  2004/10/08 15:50:06  sueh
-* <p> bug# 520 Renamed Makejoincom to MakejoincomParam.  Switched from
-* <p> a command line to a command array because of the possibility of spaces
-* <p> within parameters.
-* <p> </p>
-*/
-public class MakejoincomParam implements ProcessDetails {
-  public static  final String  rcsid =  "$Id$";
-  
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> Old log: Makejoincom.java,v
+ * <p> Revision 1.1.2.1  2004/09/29 17:46:50  sueh
+ * <p> bug# 520 Class to run the makejoincom script.  Gets its options from
+ * <p> ConstJoinMetaData.
+ * <p> </p>
+ * 
+ * <p> $Log$
+ * <p> Revision 1.17  2006/01/20 20:47:21  sueh
+ * <p> updated copyright year
+ * <p>
+ * <p> Revision 1.16  2005/12/06 22:59:37  sueh
+ * <p> bug# 757 Added maxxysize option
+ * <p>
+ * <p> Revision 1.15  2005/11/29 22:21:59  sueh
+ * <p> bug# 757 Use setup section for make join.
+ * <p>
+ * <p> Revision 1.14  2005/11/19 01:52:56  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetackedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p>
+ * <p> Revision 1.13  2005/11/02 23:58:36  sueh
+ * <p> bug# 738 Midas limit has a display value, so don't test for null.
+ * <p>
+ * <p> Revision 1.12  2005/11/02 23:57:01  sueh
+ * <p> bug# 738 Added midas limit.
+ * <p>
+ * <p> Revision 1.11  2005/05/12 01:22:35  sueh
+ * <p> bug# 520 Take rotation angle defaults from ConstEtomoNumber variables.
+ * <p>
+ * <p> Revision 1.10  2005/05/09 22:59:33  sueh
+ * <p> bug# 658 Removed ScriptParameter.addToScript because is was only
+ * <p> being use in one place.  In genOptions() replaced addToScript with code
+ * <p> that does the same thing.
+ * <p>
+ * <p> Revision 1.9  2005/04/25 20:40:08  sueh
+ * <p> bug# 615 Passing the axis where a command originates to the message
+ * <p> functions so that the message will be popped up in the correct window.
+ * <p> This requires adding AxisID to many objects.
+ * <p>
+ * <p> Revision 1.8  2005/01/25 22:47:02  sueh
+ * <p> Adding boolean force parameter to ScriptParameter.addToScript() to tell
+ * <p> the function to avoid checking isUseInScript()
+ * <p>
+ * <p> Revision 1.7  2005/01/25 21:42:02  sueh
+ * <p> Converting EtomoNumbers parameters to ScriptParameters.
+ * <p>
+ * <p> Revision 1.6  2005/01/21 22:42:19  sueh
+ * <p> bug# 509 bug# 591  Added isUpdateCommand() in place of
+ * <p> isSetAndNotDefault() as a standard why to decide if a parameter should
+ * <p> be placed in a comscript.
+ * <p>
+ * <p> Revision 1.5  2005/01/08 01:39:40  sueh
+ * <p> bug# 578 Updated Command interface.
+ * <p>
+ * <p> Revision 1.4  2004/12/08 21:21:27  sueh
+ * <p> bug# 564 Added getBooleanValue() to get a misc boolean value.
+ * <p>
+ * <p> Revision 1.3  2004/12/01 03:45:47  sueh
+ * <p> bug# 520 Removed unnecessary member variable SystemProgram
+ * <p> program.
+ * <p>
+ * <p> Revision 1.2  2004/11/19 23:04:18  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p> Revision 1.1.2.13  2004/11/19 00:01:10  sueh
+ * <p> bug# 520 Removed unnecessary pass-through functions from
+ * <p> ConstSectionTableRowData.
+ * <p>
+ * <p> Revision 1.1.2.12  2004/11/16 23:27:56  sueh
+ * <p> bug# 520 Bug fix:  In genOptions(), checking for sectionData == null
+ * <p> before using.
+ * <p>
+ * <p> Revision 1.1.2.11  2004/11/16 02:20:46  sueh
+ * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+ * <p> EtomoLong with EtomoNumber.
+ * <p>
+ * <p> Revision 1.1.2.10  2004/11/15 22:17:10  sueh
+ * <p> bug# 520 Implementing Command.
+ * <p>
+ * <p> Revision 1.1.2.9  2004/10/30 01:31:40  sueh
+ * <p> bug# 520 bug fix: A missing rotationAngleX caused the param to not use
+ * <p> the -rot options.  Now the option will be used if any rotation angle is set and
+ * <p> the unset ones will be defaulted.
+ * <p>
+ * <p> Revision 1.1.2.8  2004/10/29 22:07:58  sueh
+ * <p> bug# 520 Use -tmpext to set the temp file extension to .rot.
+ * <p>
+ * <p> Revision 1.1.2.7  2004/10/29 01:17:19  sueh
+ * <p> bug# 520 Removed working directory from meta data.  Getting working
+ * <p> directory from propertyUserDir.
+ * <p>
+ * <p> Revision 1.1.2.6  2004/10/22 20:57:50  sueh
+ * <p> bug# 520 Simplifying ConstSectionTableRowData by passing
+ * <p> EtomoSimpleType instead of String and int.
+ * <p>
+ * <p> Revision 1.1.2.5  2004/10/22 03:20:52  sueh
+ * <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
+ * <p> passing EtomoInteger, EtomoFloat, etc and using its get() and getString()
+ * <p> functions.
+ * <p>
+ * <p> Revision 1.1.2.4  2004/10/21 02:34:59  sueh
+ * <p> bug# 520 Removed unnecessary function run().
+ * <p>
+ * <p> Revision 1.1.2.3  2004/10/18 17:42:02  sueh
+ * <p> bug# 520 Added -reference to the command string.
+ * <p>
+ * <p> Revision 1.1.2.2  2004/10/14 02:27:53  sueh
+ * <p> bug# 520 Setting working directory in SystemProgram.
+ * <p>
+ * <p> Revision 1.1.2.1  2004/10/08 15:50:06  sueh
+ * <p> bug# 520 Renamed Makejoincom to MakejoincomParam.  Switched from
+ * <p> a command line to a command array because of the possibility of spaces
+ * <p> within parameters.
+ * <p> </p>
+ */
+public final class MakejoincomParam implements ProcessDetails {
+  public static final String rcsid = "$Id$";
+
   public static final int MIDAS_LIMIT_DEFAULT = 1024;
-  
+
   private static final int commandSize = 3;
   private static final String commandName = "makejoincom";
-  
-  private ConstJoinMetaData metaData;
+
+  private final ConstJoinMetaData metaData;
+  private final JoinState state;
+  private final BaseManager manager;
+
   private String[] commandArray;
   private SystemProgram program;
-  
-  public MakejoincomParam(ConstJoinMetaData metaData) {
+
+  private Hashtable rotationAnglesList = null;
+  private boolean rotate = false;
+  private int totalRows = 0;
+
+  public MakejoincomParam(ConstJoinMetaData metaData, JoinState state,
+      BaseManager manager) {
     this.metaData = metaData;
+    this.state = state;
+    this.manager = manager;
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
+      //System.out.print(((String) options.get(i)) + " ");
     }
+    //System.out.println();
   }
-  
+
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
 
-  
   public String[] getCommandArray() {
     return commandArray;
   }
-  
+
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
     ArrayList sectionData = metaData.getSectionTableData();
     if (sectionData != null) {
-      int sectionDataSize = sectionData.size();
-      for (int i = 0; i < sectionDataSize; i++) {
-        ConstSectionTableRowData data = (SectionTableRowData) sectionData
+      totalRows = sectionData.size();
+      for (int i = 0; i < totalRows; i++) {
+        ConstSectionTableRowData screen = (SectionTableRowData) sectionData
             .get(i);
-        if (i < sectionDataSize - 1) {
+        File section = screen.getSetupSection();
+        if (i < totalRows - 1) {
           options.add("-top");
           //both numbers must exist
-          options.add(data.getSampleTopStart().toString() + ","
-              + data.getSampleTopEnd().toString());
+          options.add(screen.getSampleTopStart().toString() + ","
+              + screen.getSampleTopEnd().toString());
         }
         if (i != 0) {
           options.add("-bot");
           //both numbers must exist
-          options.add(data.getSampleBottomStart().toString() + ","
-              + data.getSampleBottomEnd().toString());
+          options.add(screen.getSampleBottomStart().toString() + ","
+              + screen.getSampleBottomEnd().toString());
         }
-        //Only add optional rotation angles if at least one of them is not
-        //default.
-        ScriptParameter rotationAngleX = data.getRotationAngleXParameter();
-        ScriptParameter rotationAngleY = data.getRotationAngleYParameter();
-        ScriptParameter rotationAngleZ = data.getRotationAngleZParameter();
-        if (rotationAngleX.isUseInScript() || rotationAngleY.isUseInScript()
-            || rotationAngleZ.isUseInScript()) {
-          options.add("-rot");
-          //All three numbers must exist in the script, if they are used.
-          StringBuffer buffer = new StringBuffer();
-          if (rotationAngleX.isNull()) {
-            buffer.append(rotationAngleX.getDefaultDouble());
-          }
-          else {
-            buffer.append(rotationAngleX.getDouble());
-          }
-          buffer.append(",");
-          if (rotationAngleY.isNull()) {
-            buffer.append(rotationAngleY.getDefaultDouble());
-          }
-          else {
-            buffer.append(rotationAngleY.getDouble());
-          }
-          buffer.append(",");
-          if (rotationAngleZ.isNull()) {
-            buffer.append(rotationAngleY.getDefaultDouble());
-          }
-          else {
-            buffer.append(rotationAngleZ.getDouble());
-          }
-          options.add(buffer.toString());
-          options.add("-maxxysize");
+        //Get the rotation angles from the screen.  Use 0 in place of null.
+        ConstEtomoNumber rotationAngleX = screen.getRotationAngleXParameter();
+        EtomoNumber rotAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
+            JoinState.ROTATION_ANGLE_X).set(0);
+        if (!rotationAngleX.isNull()) {
+          rotAngleX.set(rotationAngleX);
         }
-        options.add(data.getSetupSection().getAbsolutePath());
+        ConstEtomoNumber rotationAngleY = screen.getRotationAngleYParameter();
+        EtomoNumber rotAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
+            JoinState.ROTATION_ANGLE_X).set(0);
+        if (!rotationAngleY.isNull()) {
+          rotAngleY.set(rotationAngleY);
+        }
+        ConstEtomoNumber rotationAngleZ = screen.getRotationAngleZParameter();
+        EtomoNumber rotAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
+            JoinState.ROTATION_ANGLE_X).set(0);
+        if (!rotationAngleZ.isNull()) {
+          rotAngleZ.set(rotationAngleZ);
+        }
+        //Is the volume rotated?
+        if (!rotAngleX.equals(0) || !rotAngleY.equals(0)
+            || !rotAngleZ.equals(0)) {
+          rotate = true;
+          //Save the angles, so they can be saved in the state object.
+          SlicerAngles rotationAngles = new SlicerAngles();
+          rotationAngles.setX(rotAngleX);
+          rotationAngles.setY(rotAngleY);
+          rotationAngles.setZ(rotAngleZ);
+          if (rotationAnglesList == null) {
+            rotationAnglesList = new Hashtable();
+          }
+          Integer hashKey = new Integer(i);
+          rotationAnglesList.put(hashKey, rotationAngles);
+
+          //Get the .rot file
+          String rotFileName = section.getName();
+          int extIndex = rotFileName.lastIndexOf('.');
+          if (extIndex == -1) {
+            rotFileName = rotFileName + DatasetFiles.ROTATED_TOMO_EXT;
+          }
+          else {
+            rotFileName = rotFileName.substring(0, extIndex)
+                + DatasetFiles.ROTATED_TOMO_EXT;
+          }
+          File rotFile = new File(manager.getPropertyUserDir(), rotFileName);
+          //See if the rotation file exists and has the same angles
+          SlicerAngles curRotationAngles = state.getRotationAngles(hashKey);
+          if (rotFile.exists() && curRotationAngles != null
+              && rotAngleX.equals(curRotationAngles.getX())
+              && rotAngleY.equals(curRotationAngles.getY())
+              && rotAngleZ.equals(curRotationAngles.getZ())) {
+            //Use the existing .rot file, since the angles haven't changed.
+            options.add("-already");
+          }
+          else {
+            //The rotation file does not exist or the angles have changed.
+            //Add the -rot option to run rotatevol and save the angles.
+            options.add("-rot");
+            StringBuffer buffer = new StringBuffer();
+            buffer.append(rotAngleX);
+            buffer.append(",");
+            buffer.append(rotAngleY);
+            buffer.append(",");
+            buffer.append(rotAngleZ);
+            options.add(buffer.toString());
+            options.add("-maxxysize");
+          }
+        }
+        options.add(section.getAbsolutePath());
       }
     }
     options.add("-tmpext");
     options.add("rot");
-    ScriptParameter densityRefSection = metaData.getDensityRefSectionParameter();
+    ScriptParameter densityRefSection = metaData
+        .getDensityRefSectionParameter();
     if (densityRefSection.isUseInScript()) {
       options.add("-ref");
       options.add(densityRefSection.toString());
@@ -249,28 +305,54 @@ public class MakejoincomParam implements ProcessDetails {
     }
     return buffer.toString();
   }
-  
+
   public String getCommandName() {
     return commandName;
   }
-  
-  public int getIntegerValue(int name) {
-    return Integer.MIN_VALUE;
+
+  public int getIntValue(etomo.comscript.Fields field) {
+    if (field == Fields.TOTAL_ROWS) {
+      return totalRows;
+    }
+    throw new IllegalArgumentException("field=" + field);
   }
-  
-  public boolean getBooleanValue(int name) {
-    return false;
+
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.ROTATE) {
+      return rotate;
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    if (field == Fields.ROTATION_ANGLES_LIST) {
+      return rotationAnglesList;
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public int getCommandMode() {
     return 0;
   }
-  
+
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public static String getName() {
     return commandName;
+  }
+
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+
+    public static final Fields ROTATE = new Fields();
+    public static final Fields ROTATION_ANGLES_LIST = new Fields();
+    public static final Fields TOTAL_ROWS = new Fields();
   }
 }
