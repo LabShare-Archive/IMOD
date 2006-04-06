@@ -33,6 +33,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2006/03/21 19:42:53  sueh
+ * <p> bug# 807 Changed displayCurTab() so that the chunk display on the align
+ * <p> tab matches the row number.
+ * <p>
  * <p> Revision 1.15  2006/01/27 18:43:00  sueh
  * <p> bug# 801 Added validation for makejoin and finishjoin
  * <p>
@@ -662,7 +666,7 @@ public final class SectionTableRow {
     }
   }
 
-  void setRowNumber(int rowNumber, boolean maxRow) {
+  void setRowNumber(int rowNumber) {
     data.setRowNumber(rowNumber);
     this.rowNumber.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
   }
@@ -676,9 +680,9 @@ public final class SectionTableRow {
   }
 
   void setRotationAngles(SlicerAngles slicerAngles) {
-    rotationAngleX.setValue(slicerAngles.getXText());
-    rotationAngleY.setValue(slicerAngles.getYText());
-    rotationAngleZ.setValue(slicerAngles.getZText());
+    rotationAngleX.setValue(slicerAngles.getX().toString());
+    rotationAngleY.setValue(slicerAngles.getY().toString());
+    rotationAngleZ.setValue(slicerAngles.getZ().toString());
   }
 
   /**
