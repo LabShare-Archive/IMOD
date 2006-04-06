@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -23,6 +24,9 @@ import etomo.type.ScriptParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2006/01/20 20:48:32  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.11  2005/11/19 01:55:10  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.
@@ -170,12 +174,20 @@ public class XfalignParam implements ProcessDetails {
     return outputFile;
   }
   
-  public int getIntegerValue(int name) {
-    return Integer.MIN_VALUE;
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public boolean getBooleanValue(int name) {
-    return false;
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public double getDoubleValue(Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public int getCommandMode() {
