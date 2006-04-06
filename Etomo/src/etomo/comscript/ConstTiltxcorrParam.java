@@ -1,10 +1,10 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.TiltAngleSpec;
 
@@ -22,6 +22,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/01/20 20:46:33  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 3.12  2005/11/19 01:52:21  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
@@ -289,12 +292,20 @@ public class ConstTiltxcorrParam implements ConstCommandParam, ProcessDetails {
     return new File(manager.getPropertyUserDir(), outputFile);
   }
   
-  public int getIntegerValue(int name) {
-    return EtomoNumber.INTEGER_NULL_VALUE;
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public boolean getBooleanValue(int name) {
+  public boolean getBooleanValue(Fields field) {
     return false;
+  }
+  
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public AxisID getAxisID() {
