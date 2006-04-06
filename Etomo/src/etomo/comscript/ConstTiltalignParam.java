@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.util.Hashtable;
 
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -33,9 +34,6 @@ public class ConstTiltalignParam implements ProcessDetails {
   public static final int TILT_ALL_OPTION = 2;
   public static final int AUTOMAPPED_OPTION = 3;
   public static final int TILT_AUTOMAPPED_OPTION = 5;
-  
-  public static final int GET_USE_OUTPUT_Z_FACTOR_FILE = -1;
-  public static final int GET_LOCAL_ALIGNMENTS = -2;
   
   public static final String EXCLUDE_LIST_KEY = "ExcludeList";
   public static final String SEPARATE_GROUP_KEY = "SeparateGroup";
@@ -389,22 +387,28 @@ public class ConstTiltalignParam implements ProcessDetails {
     return null;
   }
   
-  public int getIntegerValue(int name) {
-    return EtomoNumber.INTEGER_NULL_VALUE;
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public boolean getBooleanValue(int name) {
-    switch (name) {
-    case GET_USE_OUTPUT_Z_FACTOR_FILE:
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.USE_OUTPUT_Z_FACTOR_FILE) {
       return useOutputZFactorFile();
-    case GET_LOCAL_ALIGNMENTS:
+    }
+    if (field == Fields.LOCAL_ALIGNMENTS) {
       return localAlignments.is();
     }
-    return false;
+    throw new IllegalArgumentException("field=" + field);
   }
   
-
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
   
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   /**
    * @return Returns the angleOffset.
    */
@@ -783,10 +787,21 @@ public class ConstTiltalignParam implements ProcessDetails {
   public boolean isOldVersion() {
     return loadedFromFile && imagesAreBinned.isNull();
   }
+  
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+    
+    public static final Fields USE_OUTPUT_Z_FACTOR_FILE = new Fields();
+    public static final Fields LOCAL_ALIGNMENTS = new Fields();
+  }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2006/01/20 20:46:19  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 3.22  2005/11/19 01:52:06  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.

@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -26,6 +27,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2006/01/20 20:47:02  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.16  2005/11/29 22:20:46  sueh
 * <p> bug# 757 Use join final start and end for finish join.
 * <p>
@@ -136,11 +140,6 @@ public class FinishjoinParam implements ProcessDetails {
   public static final int SIZE_IN_Y_INDEX = 4;
   public static final int OFFSET_IN_X_INDEX = 4;
   public static final int OFFSET_IN_Y_INDEX = 5;
-  public static final int GET_SIZE_IN_X = -1;
-  public static final int GET_SIZE_IN_Y = -2;
-  public static final int GET_SHIFT_IN_X = -3;
-  public static final int GET_SHIFT_IN_Y = -4;
-  public static final int GET_BINNING = -5;
   
   private static final String commandName = "finishjoin";
   private ConstJoinMetaData metaData;
@@ -175,25 +174,35 @@ public class FinishjoinParam implements ProcessDetails {
     return AxisID.ONLY;
   }
   
-  public int getIntegerValue(int name) {
-    switch (name) {
-    case GET_SIZE_IN_X:
+  public int getIntValue(etomo.comscript.Fields field) {
+    if (field == Fields.SIZE_IN_X) {
       return sizeInX;
-    case GET_SIZE_IN_Y:
-      return sizeInY;
-    case GET_SHIFT_IN_X:
-      return shiftInX;
-    case GET_SHIFT_IN_Y:
-      return shiftInY;
-    case GET_BINNING:
-      return binning;
-    default:
-      return Integer.MIN_VALUE;
     }
+    if (field == Fields.SIZE_IN_Y) {
+      return sizeInY;
+    }
+    if (field == Fields.SHIFT_IN_X) {
+      return shiftInX;
+    }
+    if (field == Fields.SHIFT_IN_Y) {
+      return shiftInY;
+    }
+    if (field == Fields.BINNING) {
+      return binning;
+    }
+    throw new IllegalArgumentException("field=" + field);
   }
   
-  public boolean getBooleanValue(int name) {
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
     return false;
+  }
+  
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public String[] getCommandArray() {
@@ -282,5 +291,16 @@ public class FinishjoinParam implements ProcessDetails {
       options.add(data.getJoinFinalStart().toString() + "," + data.getJoinFinalEnd().toString());
     }
     return options;
+  }
+  
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+
+    public static final Fields SIZE_IN_X = new Fields();
+    public static final Fields SIZE_IN_Y = new Fields();
+    public static final Fields SHIFT_IN_X = new Fields();
+    public static final Fields SHIFT_IN_Y = new Fields();
+    public static final Fields BINNING = new Fields();
   }
 }
