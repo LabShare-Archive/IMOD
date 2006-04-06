@@ -27,18 +27,19 @@ public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter
     if (file.isDirectory()) {
       return true;
     }
-    String fileName = file.getName();
-    int dashIndex = fileName.indexOf('-');
-    if (dashIndex <= 0 || !fileName.endsWith(".com")) {
+    if (!file.getName().endsWith("-001.com")) {
       return false;
     }
     return true;
   }
 
   public String getDescription() {
-    return ".com file for processchunks";
+    return "First chunk scripts";
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 17:52:58  sueh
+* <p> bug# 835 A file filter for parallel processing .com scripts.
+* <p> </p>
 */
