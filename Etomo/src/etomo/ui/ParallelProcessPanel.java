@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 
 import etomo.ParallelManager;
@@ -32,8 +33,28 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
   }
   
   void showBothAxis() {
+    setBackground(Colors.backgroundParallel);
+  }
+  
+  private void setBackground(Color color) {
+    panelRoot.setBackground(color);
+    outerStatusPanel.setBackground(color);
+    innerStatusPanel.setBackground(color);
+    parallelStatusPanel.setBackground(color);
+    panelDialog.setBackground(color);
+    panelProcessSelect.setBackground(color);
+    //axisButtonPanel.setBackground(color);
+    progressPanel.setBackground(color);
+  }
+  
+  protected void createProcessControlPanel() {
+    super.createProcessControlPanel();
+    showBothAxis();
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 18:05:57  sueh
+* <p> bug# 835 Added an AxisProcessPanel for ParallelManager.
+* <p> </p>
 */
