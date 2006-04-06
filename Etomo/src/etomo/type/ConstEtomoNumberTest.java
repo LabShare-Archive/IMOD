@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Properties;
 
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -383,7 +384,6 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
   
-  //TODO
   public final void testSetValidFloor_int() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     test.set(smallInteger);
@@ -413,8 +413,15 @@ public class ConstEtomoNumberTest extends TestCase {
     fail("write parameter to file test failed");
   }
 
-  //TODO
   public final void testStore_Properties_String() {
+    String name = "test";
+    String prepend = "prepend";
+    String value = "42";
+    Properties props = new Properties();
+    EtomoNumber test = new EtomoNumber(name).set(value);
+    test.store(props, prepend);
+    assertTrue(props.containsKey(prepend + "." + name));
+    assertTrue(props.containsValue(value));
   }
 
   //TODO
@@ -511,6 +518,10 @@ public class ConstEtomoNumberTest extends TestCase {
 
   //TODO
   public final void testIsNamed_String() {
+  }
+  
+  //TODO
+  public final void testEquals_ConstEtomoNumber() {
   }
 
   public final void testGetValue() {
@@ -960,6 +971,12 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2005/11/10 18:07:18  sueh
+ * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+ * <p> instanciated once so there won't be a problem if the working directory is
+ * <p> changed.  Added a root test directory File object to each of the suites,
+ * <p> which is based on the JUnitTests root test directory.
+ * <p>
  * <p> Revision 1.13  2005/10/27 00:31:54  sueh
  * <p> bug# 725 Added testNewNumber_float().
  * <p>
