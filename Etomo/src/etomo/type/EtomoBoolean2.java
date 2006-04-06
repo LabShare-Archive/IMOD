@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2005/09/21 16:14:53  sueh
+* <p> bug# 532 Add equals(boolean).
+* <p>
 * <p> Revision 1.12  2005/06/16 20:06:08  sueh
 * <p> bug# 692 EtomoBoolean2 is supposed to be a boolean which allows nulls.
 * <p> It should have nullIsValid = true.
@@ -144,7 +147,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     if (displayAsInteger) {
       return super.toString(value);
     }
-    if (equals(value, trueValue)) {
+    if (equals(value, newNumber(trueValue))) {
       return trueString;
     }
     return falseString;
