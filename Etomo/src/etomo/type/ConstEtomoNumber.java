@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2006/01/27 18:39:06  sueh
+ * <p> bug# 801 Added isInt() to get the type of the number.
+ * <p>
  * <p> Revision 1.30  2005/10/27 00:31:01  sueh
  * <p> bug# 725 Added newNumber(float) and validateInputType(float).
  * <p>
@@ -823,11 +826,18 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public boolean equals(ConstEtomoNumber that) {
+    if (that == null) {
+      return false;
+    }
     return equals(getValue(), that.getValue());
   }
 
   public boolean equals(int value) {
-    return equals(getValue(), value);
+    return equals(getValue(), newNumber(value));
+  }
+  
+  public boolean equals(double value) {
+    return equals(getValue(), newNumber(value));
   }
   
   /**
@@ -1183,30 +1193,7 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
   }
-
-  protected boolean equals(Number number, int compValue) {
-    if (isNull(number) && isNull(compValue)) {
-      return true;
-    }
-    if (isNull(number) || isNull(compValue)) {
-      return false;
-    }
-    validateInputType(number);
-    validateInputType(compValue);
-    switch (type) {
-    case DOUBLE_TYPE:
-      return number.doubleValue() == compValue;
-    case FLOAT_TYPE:
-      return number.floatValue() == compValue;
-    case INTEGER_TYPE:
-      return number.intValue() == compValue;
-    case LONG_TYPE:
-      return number.longValue() == compValue;
-    default:
-      throw new IllegalStateException("type=" + type);
-    }
-  }
-
+  
   /**
    * Validation to avoid data corruption
    *
