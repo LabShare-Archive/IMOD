@@ -41,7 +41,8 @@ if java -version 2>&1 | grep GNU > /dev/null ; then
 fi
 
 #  Workaround for java 1.4.0 / new threading library clash
-export LD_ASSUME_KERNEL=2.4.1
+#  Really needed to be gone for Fedora Core 5.
+#export LD_ASSUME_KERNEL=2.4.1
 
 #  Make sure awk produces . not , for decimal in floating point output
 export LC_NUMERIC=C
@@ -128,6 +129,9 @@ else
 fi
 
 # $Log$
+# Revision 1.18  2006/03/17 16:08:30  mast
+# Set LC_NUMERIC to C to prevent awk from using , for decimal place
+#
 # Revision 1.17  2005/12/23 01:53:18  sueh
 # bug# 786 Added help message to Etomo.  If -h or --help is detected in the
 # first parameters, don't use or roll the log files and don't run disconnected.
