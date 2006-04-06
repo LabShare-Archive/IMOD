@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/6/06: In Join, when creating a sample, no longer recreating the .rot files,
+unless the rotation angles have changed.
+
 4/1/06: Added continuous output of window or rubberband size to Zap toolbar.
 
 3/30/06: Automatically checking Seed mode and Autocenter in 3dmod Bead Fixer
