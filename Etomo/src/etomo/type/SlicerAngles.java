@@ -1,4 +1,7 @@
 package etomo.type;
+
+import java.util.Properties;
+
 /**
 * <p>Description: </p>
 * 
@@ -13,59 +16,88 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2004/11/19 23:40:04  sueh
+* <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/22 22:08:37  sueh
 * <p> bug# 520 Added a class to store slicer angles.
 * <p> </p>
 */
-public class SlicerAngles {
+public final class SlicerAngles {
   public static  final String  rcsid =  "$Id$";
-  double x = Double.NaN;
-  double y = Double.NaN;
-  double z = Double.NaN;
+  
+  private static final String NAME = "SlicerAngles";
+  
+  private final EtomoNumber x = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "X");
+  private final EtomoNumber y = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "Y");
+  private final EtomoNumber z = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "Z");
   
   public boolean isComplete() {
-    return !Double.isNaN(x) && !Double.isNaN(y) && !Double.isNaN(z);
+    return !x.isNull() && !y.isNull() && !z.isNull();
   }
   
-  public void add(String angleString) throws NumberFormatException {
+  public void add(String angle) throws NumberFormatException {
     if (isComplete()) {
       return;
     }
-    double angle = Double.parseDouble(angleString);
-    if (Double.isNaN(x)) {
-      x = angle;
+    if (x.isNull()) {
+      x.set(angle);
     }
-    else if (Double.isNaN(y)) {
-      y = angle;
+    else if (y.isNull()) {
+      y.set(angle);
     }
     else {
-      z = angle;
+      z.set(angle);
     }
+  }
+  
+  public void store(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    x.store(props, prepend);
+    y.store(props, prepend);
+    z.store(props, prepend);
+  }
+  
+  public void load(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    x.load(props, prepend);
+    y.load(props, prepend);
+    z.load(props, prepend);
+  }
+  
+  protected static String createPrepend(String prepend) {
+    if (prepend == "") {
+      return NAME;
+    }
+    return prepend + "." + NAME;
   }
   
   public boolean isEmpty() {
-    return Double.isNaN(x) && Double.isNaN(y) && Double.isNaN(z);
+    return x.isNull() && y.isNull() && z.isNull();
   }
   
-  public String getXText() {
-    if (x == Double.NaN) {
-      return "";
-    }
-    return Double.toString(x);
+  public void setX(ConstEtomoNumber x) {
+    this.x.set(x);
   }
   
-  public String getYText() {
-    if (y == Double.NaN) {
-      return "";
-    }
-    return Double.toString(y);
+  public void setY(ConstEtomoNumber y) {
+    this.y.set(y);
   }
   
-  public String getZText() {
-    if (z == Double.NaN) {
-      return "";
-    }
-    return Double.toString(z);
+  public void setZ(ConstEtomoNumber z) {
+    this.z.set(z);
+  }
+  
+  public ConstEtomoNumber getX() {
+    return x;
+  }
+  
+  public ConstEtomoNumber getY() {
+    return y;
+  }
+  
+  public ConstEtomoNumber getZ() {
+    return z;
   }
   
   public String toString() {
