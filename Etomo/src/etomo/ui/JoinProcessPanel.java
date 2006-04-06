@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 
 import etomo.JoinManager;
@@ -18,6 +19,10 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/09/22 21:04:29  sueh
+* <p> bug# 532 Added the BaseManager to AxisProcessPanel.  So do not need
+* <p> the join manager in the child class.
+* <p>
 * <p> Revision 1.3  2005/04/16 01:55:45  sueh
 * <p> bug# 615 Add empty showBothAxis() to implement abstract function.
 * <p>
@@ -55,6 +60,23 @@ public class JoinProcessPanel extends AxisProcessPanel {
   }
   
   void showBothAxis() {
+    setBackground(Colors.backgroundJoin);
+  }
+  
+  private void setBackground(Color color) {
+    panelRoot.setBackground(color);
+    outerStatusPanel.setBackground(color);
+    innerStatusPanel.setBackground(color);
+    parallelStatusPanel.setBackground(color);
+    panelDialog.setBackground(color);
+    panelProcessSelect.setBackground(color);
+    //axisButtonPanel.setBackground(color);
+    progressPanel.setBackground(color);
+  }
+  
+  protected void createProcessControlPanel() {
+    super.createProcessControlPanel();
+    showBothAxis();
   }
   
   /**
