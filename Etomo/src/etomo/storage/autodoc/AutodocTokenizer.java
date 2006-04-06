@@ -7,8 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 
-import etomo.ui.PrimativeTokenizer;
 import etomo.ui.Token;
+import etomo.util.PrimativeTokenizer;
 
 /**
 * <p>Description:
@@ -68,6 +68,9 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.1  2006/01/12 17:02:49  sueh
+* <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p> $
 * <p> $Revision 1.7  2005/11/10 18:16:10  sueh
 * <p> $bug# 733 Changed defaultDelimiter to DEFAULT_DELIMITER
 * <p> $
