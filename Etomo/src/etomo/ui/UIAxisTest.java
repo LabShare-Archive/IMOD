@@ -30,6 +30,7 @@ import etomo.storage.autodoc.NameValuePairLocation;
 import etomo.storage.autodoc.Section;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.type.DialogType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -45,6 +46,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2006/01/12 17:38:22  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.1  2006/01/11 22:45:29  sueh
  * <p> bug# 675 uitest-axis.adoc level test using JfcUnit
  * <p> </p>
@@ -242,7 +246,7 @@ final class UIAxisTest {
       //assuming that tomogram setup is already displayed
       //fill in the dataset name using data from the uitest.adoc Test section
       finder.setComponentClass(JTextField.class);
-      finder.setName(UIUtilities
+      finder.setName(Utilities
           .convertLabelToName(SetupDialog.DATASET_NAME_LABEL));
       JTextField textField = (JTextField) finder.find(panel, 0);
       JFCTestCase.assertNotNull("Unable to find field: "
@@ -250,7 +254,7 @@ final class UIAxisTest {
       helper.sendString(new StringEventData(testCase, textField, dataset));
       //fill in the fiducial diameter from the uitest.adoc Test section
       finder.setComponentClass(JTextField.class);
-      finder.setName(UIUtilities
+      finder.setName(Utilities
           .convertLabelToName(SetupDialog.FIDUCIAL_DIAMETER_LABEL));
       textField = (JTextField) finder.find(panel, 0);
       JFCTestCase.assertNotNull("Unable to find field: "
@@ -571,6 +575,9 @@ final class UIAxisTest {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/01/12 17:38:22  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.1  2006/01/11 22:45:29  sueh
  * <p> bug# 675 uitest-axis.adoc level test using JfcUnit
  * <p> </p>

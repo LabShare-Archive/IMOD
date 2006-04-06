@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2006/01/26 22:11:08  sueh
+ * <p> bug# 401 Fixed bug where a dash was not handled correctly in
+ * <p> convertLabelToName().
+ * <p>
  * <p> Revision 1.11  2006/01/20 21:14:34  sueh
  * <p> bug# 401 Added the ability for convertLabelToName() to ignore angle
  * <p> brackets.
@@ -67,7 +71,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.io.IOException;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -179,108 +182,5 @@ public class UIUtilities {
       screenSize.height -= estimatedMenuHeight;
     }
     return screenSize;
-  }
-
-  /**
-   * Convert a UI label to a name that can be used as a key. The returned string
-   * should contain no whitespace.  A single dash is used to separate words.
-   * Explanatory strings (stuff in parenthesis), punctuation (colons), and html
-   * (anything in angle brackets) are removed.  It also removes anything after a
-   * colon because there probably shouldn't be anything after a colon.
-   * 
-   * The returned string is not guaranteed to be unique in the UI panel or
-   * dialog.
-   * @param label
-   * @return
-   */
-  static final String convertLabelToName(String label) {
-    if (label == null) {
-      return null;
-    }
-    //Place the label into a tokenizer
-    String name = label.trim().toLowerCase();
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
-    StringBuffer buffer = new StringBuffer();
-    Token token = null;
-    try {
-      tokenizer.initialize();
-      token = tokenizer.next();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return label;
-    }
-    //Remove unnecessary symbols and strings from the label.
-    boolean ignoreParen = false;
-    boolean ignoreBracket = false;
-    while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
-      if (token.equals(Token.SYMBOL, '(')) {
-        //ignore parenthesis and everything in them
-        ignoreParen = true;
-      }
-      else if (token.equals(Token.SYMBOL, ')')) {
-        ignoreParen = false;
-      }
-      else if (token.equals(Token.SYMBOL, '<')) {
-        //Replace html (angle brackets and contents) with a space.  The space is
-        //necessary when a <br> is used.
-        ignoreBracket = true;
-        buffer.append(' ');
-      }
-      else if (token.equals(Token.SYMBOL, '>')) {
-        ignoreBracket = false;
-      }
-      else if (token.equals(Token.SYMBOL, ':')) {
-        //ignore colons and everything after them
-        break;
-      }
-      else if (!ignoreParen && !ignoreBracket) {
-        //Convert a dash to a space so that any mix of dashes and whitespace
-        //in the original label gets converted to a single dash in the next
-        //loop.
-        if (token.equals(Token.SYMBOL, '-')) {
-          buffer.append(' ');
-        }
-        else {
-          buffer.append(token.getValue());
-        }
-      }
-      try {
-        token = tokenizer.next();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        break;
-      }
-    }
-    //Load the processed string into the tokenizer
-    name = buffer.toString().trim();
-    tokenizer = new PrimativeTokenizer(name);
-    buffer = new StringBuffer();
-    try {
-      tokenizer.initialize();
-      token = tokenizer.next();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return name;
-    }
-    //Convert interior whitespace to a single dash
-    while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
-      if (token.is(Token.WHITESPACE)) {
-        buffer.append('-');
-      }
-      else {
-        buffer.append(token.getValue());
-      }
-      try {
-        token = tokenizer.next();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        break;
-      }
-    }
-    return buffer.toString();
   }
 }
