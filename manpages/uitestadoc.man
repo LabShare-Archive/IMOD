@@ -91,7 +91,7 @@ Default:  Test_section_name.
 .fi
 
 .TP
-.B datasetdir\fR[\fB.keep = \fIrelative_directory_path
+.B datasetdir\fR[\fB.keep\fR]\fB = \fIrelative_directory_path
 The directory path relative to the test directory which
 will contain the test dataset for the current test.
 IMPORTANT:  Unless the \fBkeep\fR option is used, this directory will be deleted
