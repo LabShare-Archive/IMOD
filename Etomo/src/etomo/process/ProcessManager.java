@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.94  2006/04/06 19:43:26  sueh
+ * bug# 808 Using Fields to pass requests to the generic gets in
+ * ProcessDetails.
+ *
  * Revision 3.93  2006/03/16 01:52:41  sueh
  * bug#  830 Handling exitValue != 0 in setupComScripts()
  *
@@ -1416,10 +1420,14 @@ public class ProcessManager extends BaseProcessManager {
       UIHarness.INSTANCE.openMessageDialog(
           "Setup combine failed.  Exit value = " + exitValue,
           "Setup Combine Failed", AxisID.ONLY);
+      if (processResultDisplay != null) {
       processResultDisplay.msgProcessFailed();
+      }
       return false;
     }
-    processResultDisplay.msgProcessSucceeded();
+    if (processResultDisplay != null) {
+      processResultDisplay.msgProcessSucceeded();
+    }
     appManager.msgSetupCombineScriptsSucceeded(setupCombine);
     return true;
   }
