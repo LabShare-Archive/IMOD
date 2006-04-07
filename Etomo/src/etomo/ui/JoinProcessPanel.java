@@ -19,6 +19,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2006/04/06 23:34:22  sueh
+* <p> bug# 844 Added a color for the join window.
+* <p>
 * <p> Revision 1.4  2005/09/22 21:04:29  sueh
 * <p> bug# 532 Added the BaseManager to AxisProcessPanel.  So do not need
 * <p> the join manager in the child class.
@@ -60,7 +63,7 @@ public class JoinProcessPanel extends AxisProcessPanel {
   }
   
   void showBothAxis() {
-    setBackground(Colors.backgroundJoin);
+    setBackground(Colors.getBackgroundJoin());
   }
   
   private void setBackground(Color color) {

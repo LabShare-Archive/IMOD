@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2006/04/06 23:35:20  sueh
+ * <p> bug# 844 Added a color for the single axis reconstruction window.
+ * <p>
  * <p> Revision 1.18  2005/11/14 22:29:45  sueh
  * <p> bug# 762 Made buttonAxisAction() and stateChanged() protected.
  * <p>
@@ -306,7 +309,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   }
   
   private void showAxisOnly() {
-    setBackground(Colors.backgroundA);
+    setBackground(Colors.getBackgroundA());
   }
 
   private void showAxisA(boolean showingBothAxis) {
@@ -314,7 +317,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       throw new IllegalStateException(
           "Function should only be called for A axis panel.");
     }
-    setBackground(Colors.backgroundA);
+    setBackground(Colors.getBackgroundA());
     if (showingBothAxis) {
       setButton(axisButton1, axisAString, axisATooltip);
       setButton(axisButton2, axisBString, axisBTooltip);
@@ -335,7 +338,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       throw new IllegalStateException(
           "Function should only be called for B axis panel.");
     }
-    setBackground(Colors.backgroundB);
+    setBackground(Colors.getBackgroundB());
     if (showingBothAxis) {
       axisButtonPanel.setVisible(false);
     }

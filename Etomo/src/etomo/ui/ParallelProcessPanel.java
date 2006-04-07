@@ -33,7 +33,7 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
   }
   
   void showBothAxis() {
-    setBackground(Colors.backgroundParallel);
+    setBackground(Colors.getBackgroundParallel());
   }
   
   private void setBackground(Color color) {
@@ -54,6 +54,9 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/04/06 23:34:45  sueh
+* <p> bug# 844 Added a color for the generic parallel processing window.
+* <p>
 * <p> Revision 1.1  2006/03/20 18:05:57  sueh
 * <p> bug# 835 Added an AxisProcessPanel for ParallelManager.
 * <p> </p>

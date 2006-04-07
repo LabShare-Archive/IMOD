@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.41  2006/04/06 20:34:58  sueh
+ * <p> $bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> $util.Utilities.
+ * <p> $
  * <p> $Revision 3.40  2006/03/20 18:10:07  sueh
  * <p> $bug# 835 Added getName (a convenience function) to the managers.
  * <p> $
@@ -226,6 +230,8 @@ public class Utilities {
   private static boolean timestamp = false;
   private static boolean setWindowsOS = false;
   private static boolean windowsOS = false;
+  private static boolean java1_5 = false;
+  private static boolean setJava1_5 = false;
   private static long startTime = 0;
   private static DecimalFormat timestampFormat = new DecimalFormat(".000");
   public static final String STARTED_STATUS = " started";
@@ -791,6 +797,15 @@ public class Utilities {
       setWindowsOS = true;
     }
     return windowsOS;
+  }
+  
+  public static boolean isJava1_5() {
+    if (!setJava1_5) {
+      String osName = System.getProperty("java.version").toLowerCase();
+      java1_5 = osName.startsWith("1.5");
+      setJava1_5 = true;
+    }
+    return java1_5;
   }
 
   /**
