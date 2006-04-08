@@ -39,14 +39,14 @@ DDEESSCCRRIIPPTTIIOONN
   are binned, these values specify frequencies in the binned image, so
   a higher cutoff (less filtering) might be appropriate.
   
-  The exclusion of a central peak can be essential when there is
-  fixed noise in the images due to inadequate gain normalization of CCD
-  camera images.  Because one image is stretched, this
-  spurious peak can actually occur anywhere in an elongated region
-  perpendicular to the tilt axis.  If the real alignment happens to
-  fall in that streak, then it will be ignored as well, and an
-  incorrect alignment will be found.  For this reason, this option 
-  should be used only when necessary.
+  The exclusion of a central peak may be helpful when there is fixed noise
+  in the images due to inadequate gain normalization of CCD camera
+  images. Because one image is stretched, this spurious peak can actually
+  occur anywhere in an elongated region perpendicular to the tilt axis.
+  If the real alignment happens to fall in that streak, then it will be
+  ignored as well, and an incorrect alignment will be found.  For this
+  reason, this option should be used only when necessary, as it will
+  misalign images that are already nearly aligned.
   
   Trimming some area off the edges of the images may be helpful if
   those areas are particularly out of focus or contain material with
@@ -90,6 +90,13 @@ DDEESSCCRRIIPPTTIIOONN
   inverse of the cosine of the tilt angle into the reference.  The
   "nostretch" option will disable the cosine stretching that is
   used before correlating an image with the reference.
+
+  If the object being viewed is compact rather than slab-like and it is
+  tilted close to 90 degrees, then the cosine stretching between views is
+  not appropriate.  Use the "nostretch" option in this case.  With this
+  option, the program will also not attempt to adjust the shifts between
+  images to keep the tilt axis in the center, a procedure which fails
+  close to 90 degrees.
 
   Tiltxcorr uses the PIP package for input (see the manual page for pip(1))
   and can still take sequential input interactively, to maintain compatibility

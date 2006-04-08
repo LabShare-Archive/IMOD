@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/8/06: Changed Tiltxcorr so that it will not shift images to keep tilt axis
+in center when the NoCosineStretch option is given, and to avoid numeric
+errors when the tilt angle is 90 degrees.
+
 4/6/06: In Join, when creating a sample, no longer recreating the .rot files,
 unless the rotation angles have changed.
 
