@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/8/06: IMOD_3-8-5 (eTomo unstable)
 4/8/06: Changed Tiltxcorr so that it will not shift images to keep tilt axis
 in center when the NoCosineStretch option is given, and to avoid numeric
 errors when the tilt angle is 90 degrees.
@@ -42,8 +43,8 @@ there was only one sample slice from the first section.
 from an aligned stack that is bigger than the original stack.
 
 3/22/06: In Tomogram Generation, backing up the fully aligned stack when "Use
-Filtered Stack" is pressed.  Also backing up the tomogaram when "Use Current
-Trial Tomogram is pressed.
+Filtered Stack" is pressed.  Also backing up the tomogram when "Use Current
+Trial Tomogram" is pressed.
 
 3/21/06: In the Join Align tab, moved the chunk display so the chunk number
 matched the row number.
@@ -106,11 +107,8 @@ the requested item, and made Copytomocoms pass error on. (In 3.7)
 2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when 
 patch.out is missing. (In 3.7)
 
-<<<<<<< History
-=======
 2/20/06: Fixed archiving of original stack to work under Windows. (In 3.7)
 
->>>>>>> 3.381
 2/15/06: Revised scripts to use new header and strip control characters from
 output of header and other programs, since new sed in cygwin does not take
 care of this unless CYGWIN is set to nobinmode. (In 3.7)
