@@ -2059,7 +2059,7 @@ C       Open output map file
       NSLICE=(JSLICE-ISLICE)/idelslice+1
       if (minTotSlice.gt.0 .and. islice .lt. 1)
      &    nslice = maxTotSlice + 1 - minTotSlice
-      print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
+c      print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
       if(nslice.le.0)call errorexit( 'SLICE NUMBERS REVERSED')
       if(iwide.gt.limwidth.and.nxwarp.ne.0)call errorexit('OUTPUT'//
      &    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
@@ -2779,6 +2779,10 @@ c         print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c       
 c       $Log$
+c       Revision 3.27  2006/03/24 23:11:03  mast
+c       Added ability for parallel runs to write directly to an existing
+c       output file
+c
 c       Revision 3.26  2006/03/21 06:27:57  mast
 c       Made it work with aligned stack bigger than "FULLIMAGE"
 c
