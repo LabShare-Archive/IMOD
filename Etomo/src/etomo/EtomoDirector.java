@@ -379,7 +379,7 @@ public class EtomoDirector {
   
   public UniqueKey openParallel(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openParallel(ParallelMetaData.getNewTitle(), makeCurrent, axisID);
+    return openParallel(ParallelMetaData.NEW_TITLE, makeCurrent, axisID);
   }
 
   private UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent,
@@ -417,7 +417,7 @@ public class EtomoDirector {
       AxisID axisID) {
     ParallelManager manager;
     if (parallelFileName == null
-        || parallelFileName.equals(ParallelMetaData.getNewTitle())) {
+        || parallelFileName.equals(ParallelMetaData.NEW_TITLE)) {
       manager = new ParallelManager();
       uiHarness.setEnabledNewParallelMenuItem(false);
     }
@@ -526,6 +526,9 @@ public class EtomoDirector {
     }
     if (currentManagerKey.getName().equals(ConstJoinMetaData.getNewFileTitle())) {
       uiHarness.setEnabledNewJoinMenuItem(true);
+    }
+    if (currentManagerKey.getName().equals(ParallelMetaData.NEW_TITLE)) {
+      uiHarness.setEnabledNewParallelMenuItem(true);
     }
   }
 
@@ -1005,6 +1008,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2006/03/20 17:48:39  sueh
+ * <p> bug# 835 Added ParallelManager.
+ * <p>
  * <p> Revision 1.40  2006/02/09 22:43:28  sueh
  * <p> Added the imod directory to the stderr prints
  * <p>

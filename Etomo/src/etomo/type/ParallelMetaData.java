@@ -20,9 +20,10 @@ import etomo.util.DatasetFiles;
 public final class ParallelMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
 
+  public static final String NEW_TITLE = "Parallel Processing";
+  
   private static final String REVISION_KEY = "Revision";
   private static final String CURRENT_REVISION = "1.0";
-  private static final String NEW_TITLE = "Parallel Processing";
   private static final String GROUP_KEY = "Parallel";
   private static final String ROOT_NAME_KEY = "RootName";
 
@@ -45,10 +46,6 @@ public final class ParallelMetaData extends BaseMetaData {
   private void reset() {
     revision = null;
     rootName = null;
-  }
-
-  public static String getNewTitle() {
-    return NEW_TITLE;
   }
 
   public String getName() {
@@ -115,5 +112,8 @@ public final class ParallelMetaData extends BaseMetaData {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/03/20 17:58:24  sueh
+ * <p> bug# 835 Meta data for ParallelManager.
+ * <p> </p>
  */
