@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/06: Fixed bug in Beadtrack error check of box size.
+
 4/8/06: IMOD_3-8-5 (eTomo unstable)
 4/8/06: Changed Tiltxcorr so that it will not shift images to keep tilt axis
 in center when the NoCosineStretch option is given, and to avoid numeric
