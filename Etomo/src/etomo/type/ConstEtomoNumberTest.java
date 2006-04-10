@@ -439,8 +439,12 @@ public class ConstEtomoNumberTest extends TestCase {
   public final void testRemove_Properties_prepend() {
   }
 
-  //TODO
   public final void testToString() {
+    String name = "test";
+    String prepend = "prepend";
+    String value = "42";
+    EtomoNumber test = new EtomoNumber(name).set("000" + value);
+    assertTrue(test.toString().equals(value));
   }
 
   //TODO
@@ -978,6 +982,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/04/06 23:40:21  sueh
+ * <p> bug# 692 Tested remove(Properties).
+ * <p>
  * <p> Revision 1.15  2006/04/06 22:18:39  sueh
  * <p> bug# 692 Tested store(Properties, String).
  * <p>
