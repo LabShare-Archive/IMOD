@@ -458,9 +458,9 @@ c
       nxpad=niceframe(nxbox+2*npad, 2, 19)
       nypad=niceframe(nybox+2*npad, 2, 19)
       npixbox=nxbox*nybox
+      nxpdim=nxpad+2
       if (npixbox .gt. maxbox**2 .or. nxpad * nxpdim .gt. maxarr)
      &    call errorexit('BOX SIZE TOO LARGE FOR ARRAYS', 0)
-      nxpdim=nxpad+2
       if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setctfwsr
      &    (sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltactf)
 c       
@@ -1643,6 +1643,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.21  2006/02/27 06:15:03  mast
+c       Increased maximum box size and added error check
+c
 c       Revision 3.20  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
