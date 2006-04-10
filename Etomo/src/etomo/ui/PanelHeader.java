@@ -103,7 +103,7 @@ final class PanelHeader implements Expandable {
     //title
     constraints.weightx = 1.0;
     constraints.weighty = 1.0;
-    cellTitle = new HeaderCell(title);
+    cellTitle = new HeaderCell(title, false);
     cellTitle.setBorderPainted(false);
     cellTitle.add(northPanel, layout, constraints);
     boolean expanded;
@@ -239,6 +239,10 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/04/06 20:17:29  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 1.18  2006/03/28 17:04:26  sueh
  * <p> bug# 437 In setButtonStates, the default for btnOpenClose's state is true.
  * <p>
