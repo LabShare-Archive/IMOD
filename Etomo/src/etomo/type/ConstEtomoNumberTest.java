@@ -435,8 +435,16 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(props.containsValue(value));
   }
 
-  //TODO
   public final void testRemove_Properties_prepend() {
+    String name = "test";
+    String prepend = "prepend";
+    String value = "42";
+    Properties props = new Properties();
+    props.setProperty(name, prepend + "." + value);
+    EtomoNumber test = new EtomoNumber(name);
+    test.remove(props, prepend);
+    assertFalse(props.containsKey(prepend + "." + name));
+    assertFalse(props.containsValue(value));
   }
 
   public final void testToString() {
@@ -982,6 +990,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/04/10 19:31:51  sueh
+ * <p> bug# 692 Tested toString().
+ * <p>
  * <p> Revision 1.16  2006/04/06 23:40:21  sueh
  * <p> bug# 692 Tested remove(Properties).
  * <p>
