@@ -26,6 +26,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2006/03/30 21:23:24  sueh
+ * <p> bug# 809 Sending seed mode, auto center, and diameter messages to
+ * <p> the bead fixer.
+ * <p>
  * <p> Revision 3.29  2005/11/02 21:57:48  sueh
  * <p> bug# 754 Getting error and warning tags from ProcessMessages.
  * <p>
@@ -733,11 +737,17 @@ public class ImodProcess {
   /**
    * Places arguments to open the beadfixer dialog on the argument list.
    */
-  public void setOpenBeadFixerMessage(boolean autoCenter, boolean seedMode) {
+  public void setOpenBeadFixerMessage() {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SEED_MODE, seedMode ? MESSAGE_ON : MESSAGE_OFF);
+  }
+  
+  public void setAutoCenter(boolean autoCenter) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER, autoCenter ? MESSAGE_ON : MESSAGE_OFF);
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String.valueOf(beadfixerDiameter));
+  }
+  
+  public void setSeedMode(boolean seedMode) {
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SEED_MODE, seedMode ? MESSAGE_ON : MESSAGE_OFF);
   }
   /**
    * Open the beadfixer dialog
@@ -784,6 +794,10 @@ public class ImodProcess {
     if (sendArguments.size() == 0) {
       return;
     }
+    /*for (int i = 0; i < sendArguments.size(); i++) {
+      System.out.print(sendArguments.get(i) + " ");
+    }
+    System.out.println();*/
     imodSendEvent((String[]) sendArguments.toArray(new String[sendArguments.size()]));
     sendArguments.clear();
   }

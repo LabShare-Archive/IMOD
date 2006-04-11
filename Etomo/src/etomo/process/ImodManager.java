@@ -31,6 +31,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2006/03/30 21:22:19  sueh
+ * <p> bug# 809 Setting beadfixer diameter (fiducial diameter in pixels) when the
+ * <p> reconstruction meta data is set.  Passing auto center and seed mode
+ * <p> settings to ImodProcess.
+ * <p>
  * <p> Revision 3.36  2005/12/14 01:27:50  sueh
  * <p> bug# 782 Printing an exception when a situation related to this bug is found.
  * <p>
@@ -775,37 +780,23 @@ public class ImodManager {
       throw new UnsupportedOperationException(
           "The Bead Fixer cannot be opened in 3dmodv");
     }
-    imodState.setOpenBeadFixer(openBeadFixer, false, false);
+    imodState.setOpenBeadFixer(openBeadFixer);
   }
-
-  public void setOpenBeadFixer(String key, AxisID axisID,
-      boolean openBeadFixer, boolean autoCenter) throws AxisTypeException,
-      SystemProcessException {
-    key = getPrivateKey(key);
+  
+  public void setAutoCenter(String key, AxisID axisID, boolean autoCenter) throws AxisTypeException{
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
     }
-    if (imodState.isUseModv()) {
-      throw new UnsupportedOperationException(
-          "The Bead Fixer cannot be opened in 3dmodv");
-    }
-    imodState.setOpenBeadFixer(openBeadFixer, autoCenter, false);
+    imodState.setAutoCenter(autoCenter);
   }
-
-  public void setOpenBeadFixer(String key, AxisID axisID,
-      boolean openBeadFixer, boolean autoCenter, boolean seedMode)
-      throws AxisTypeException, SystemProcessException {
-    key = getPrivateKey(key);
+  
+  public void setSeedMode(String key, AxisID axisID, boolean seedMode) throws AxisTypeException{
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
     }
-    if (imodState.isUseModv()) {
-      throw new UnsupportedOperationException(
-          "The Bead Fixer cannot be opened in 3dmodv");
-    }
-    imodState.setOpenBeadFixer(openBeadFixer, autoCenter, seedMode);
+    imodState.setSeedMode(seedMode);
   }
 
   public void setBinning(String key, AxisID axisID, int binning)
