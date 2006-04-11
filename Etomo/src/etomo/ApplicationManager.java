@@ -1801,7 +1801,8 @@ public class ApplicationManager extends BaseManager {
       imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
           true);
       imodManager
-      .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true, true, true);
+          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
+      imodManager.setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true,
           menuOptions);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1924,12 +1925,12 @@ public class ApplicationManager extends BaseManager {
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
     }
   }
-  
+
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
       ProcessResultDisplay processResultDisplay) {
     imodFixFiducials(axisID, menuOptions, processResultDisplay, false);
   }
-  
+
   public long getFiducialDiameterPerPixel() {
     return (long) (metaData.getFiducialDiameter() / metaData.getPixelSize());
   }
@@ -1938,19 +1939,16 @@ public class ApplicationManager extends BaseManager {
    * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay, boolean fixGaps) {
+      ProcessResultDisplay processResultDisplay, boolean autoCenter) {
     sendMsgProcessStarting(processResultDisplay);
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
         + ".fid";
     try {
-      if (fixGaps) {
       imodManager
-          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true, true);
-      }
-      else {
-        imodManager
-        .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
-      }
+          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
+      imodManager.setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID,
+          autoCenter);
+      imodManager.setSeedMode(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -3808,7 +3806,8 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     if (fullAlignedStack.exists() && filteredFullAlignedStack.exists()) {
       try {
-        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack.getAbsolutePath()
+        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
+            .getAbsolutePath()
             + "~"));
       }
       catch (IOException except) {
@@ -6169,6 +6168,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.218  2006/03/30 21:14:51  sueh
+ * <p> bug# 809 getFiducialDiameterPerPixel:  diameter per pixel is the same for
+ * <p> axis A and B.
+ * <p>
  * <p> Revision 3.217  2006/03/30 21:08:33  sueh
  * <p> bug# 809 Seed fiducial model opens bead fixer and sets auto center and
  * <p> seed mode.  Fix fiducial model sets auto center.
