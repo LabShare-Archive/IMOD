@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.30  2006/03/30 21:24:09  sueh
+ * <p> $bug# 809 Passing auto center and seed mode settings to ImodProcess.
+ * <p> $
  * <p> $Revision 1.29  2005/10/18 22:10:46  sueh
  * <p> $bug# 727 Can't reproduce this bug so added some prints to the error log
  * <p> $to document it, if it appears again.
@@ -330,6 +333,7 @@ public class ImodState {
   //sent with open bead fixer
   private boolean autoCenter = false;
   private boolean seedMode = false;
+  private boolean manageSeedMode = false;
   
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
@@ -522,7 +526,11 @@ public class ImodState {
       warnedStaleFile = false;
       //open bead fixer
       if (openBeadFixer) {
-        process.setOpenBeadFixerMessage(autoCenter, seedMode);
+        process.setOpenBeadFixerMessage();
+        process.setAutoCenter(autoCenter);
+        if (manageSeedMode) {
+          process.setSeedMode(seedMode);
+        }
       }
       //model will be opened
       if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
@@ -544,7 +552,11 @@ public class ImodState {
       }
       //open bead fixer
       if (openBeadFixer) {
-        process.setOpenBeadFixerMessage(autoCenter, seedMode);
+        process.setOpenBeadFixerMessage();
+        process.setAutoCenter(autoCenter);
+        if (manageSeedMode) {
+          process.setSeedMode(seedMode);
+        }
       }
       //reopen model
       if (!useModv && modelName != null && modelName.matches("\\S+")) {
@@ -799,10 +811,20 @@ public class ImodState {
   /**
    * @param openBeadFixer
    */
-  public void setOpenBeadFixer(boolean openBeadFixer, boolean autoCenter, boolean seedMode) {
+  public void setOpenBeadFixer(boolean openBeadFixer) {
     this.openBeadFixer = openBeadFixer;
+    this.autoCenter = false;
+    this.seedMode = false;
+    manageSeedMode = false;
+  }
+  
+  void setAutoCenter(boolean autoCenter) {
     this.autoCenter = autoCenter;
+  }
+  
+  void setSeedMode(boolean seedMode) {
     this.seedMode = seedMode;
+    manageSeedMode = true;
   }
 
   //initial state information
