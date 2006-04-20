@@ -1359,11 +1359,11 @@ void memreccpy
 }
 
 /* DNM: scan through all contours and set wild flag if Z is not the 
-   same throughout */
+   same throughout.  But 4/20/06: base it on nearest integer. */
 
 void ivwCheckWildFlag(Imod *imod)
 {
-  int ob, co, pt;
+  int ob, co, pt, iz;
   Iobj *obj;
   Icont *cont;
      
@@ -1372,10 +1372,13 @@ void ivwCheckWildFlag(Imod *imod)
     for (co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       cont->flags &= ~ICONT_WILD;
-      for (pt = 1; pt < cont->psize; pt++){
-        if (cont->pts[0].z != cont->pts[pt].z) {
-          cont->flags |= ICONT_WILD;
-          break;
+      if (cont->pts) {
+        iz =(int)floor(cont->pts->z + 0.5);
+        for (pt = 1; pt < cont->psize; pt++) {
+          if (iz != (int)floor(cont->pts[pt].z + 0.5)) {
+            cont->flags |= ICONT_WILD;
+            break;
+          }
         }
       }
     }
@@ -2435,6 +2438,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.43  2006/02/13 05:11:32  mast
+Added function to get movie/mouse mode
+
 Revision 4.42  2005/12/08 05:57:56  mast
 Chnage cache flushing routine to be able to flush images at one time
 
