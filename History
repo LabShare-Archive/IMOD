@@ -1,9 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/21/06: In etomo startup script, set LD_ASSUME_KERNEL only for a 2.4 kernel
+so it will work in FC5.  (In 3.7)
+
 4/20/06: Fixed display of ghost contours when there are tiny differences in Z
 values of points in a contour.
 
-4/10/06: Fixed bug in Beadtrack error check of box size.
+4/10/06: Fixed bug in Beadtrack error check of box size. (In 3.7)
 
 4/8/06: IMOD_3-8-5 (eTomo unstable)
 4/8/06: Changed Tiltxcorr so that it will not shift images to keep tilt axis
