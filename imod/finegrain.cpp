@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.7  2006/02/28 15:20:28  mast
+    Back out test changes that went in by mistake
+
     Revision 1.6  2006/02/27 19:44:20  mast
     Added go to next change functionality
 
@@ -476,6 +479,12 @@ static int getLoadedObjCont(int addType)
     fineGrainUpdate();
     return 1;
   }
+
+  if (fgd.contLoaded < 0) {
+    wprint("\aThere is no current contour\n");
+    return 1;
+  }
+
   fgd.cont = &fgd.obj->cont[fgd.contLoaded];
   if (fgd.ptContSurf == 2 && fgd.cont->surf != fgd.surfLoaded) {
     wprint("\aContour last loaded into Fine Grain dialog does not have the "
