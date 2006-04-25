@@ -135,7 +135,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 
   //  Construct the setup dialog
   public SetupDialog(ApplicationManager appMgr) {
-    super(appMgr, AxisID.ONLY, DialogType.SETUP);
+    super(appMgr, AxisID.ONLY, DialogType.SETUP_RECON);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
@@ -1083,6 +1083,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.45  2006/01/11 22:39:53  sueh
+ * <p> bug# 675 Made the labels of the dataset name field and fiducial diameter
+ * <p> field shareable
+ * <p>
  * <p> Revision 3.44  2006/01/03 23:53:29  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
  * <p> toRadioButton.
