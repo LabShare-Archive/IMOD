@@ -12,6 +12,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/11/14 22:18:11  sueh
+ * <p> bug# 762 The internal class is now accessing protected functions instead
+ * <p> of private variables.
+ * <p>
  * <p> Revision 3.8  2005/08/22 18:19:26  sueh
  * <p> bug# 532  Added an optional status string to be appended to the end
  * <p> state.
@@ -87,6 +91,8 @@ import etomo.util.Utilities;
 public class ProgressPanel {
   public static final String rcsid = "$Id$";
 
+  public static final String NAME = "progress-bar";
+  
   private JPanel panel = new JPanel();
   private JPanel progressPanel = new JPanel();
   private JLabel taskLabel = new JLabel();
@@ -111,6 +117,7 @@ public class ProgressPanel {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(taskLabel);
     panel.add(Box.createRigidArea(FixedDim.x0_y5));
+    progressBar.setName(NAME);
     panel.add(progressBar);
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     timer = new Timer(1000, new ProgressTimerActionListener(this));
