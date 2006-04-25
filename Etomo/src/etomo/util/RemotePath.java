@@ -12,6 +12,7 @@ import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 import etomo.ui.ProcessorTable;
 
 /**
@@ -249,7 +250,7 @@ public final class RemotePath {
   static final String REMOTE = "remote";
   static final String AUTODOC = Autodoc.CPU;
   static final String MOUNT_NAME = "mountname";
-  static final String MOUNT_NAME_TAG = '%' + MOUNT_NAME;
+  static final String MOUNT_NAME_TAG = EtomoAutodoc.VAR_TAG + MOUNT_NAME;
 
   private Vector localMountRules = null;
   private Vector remoteMountRules = null;
@@ -648,6 +649,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/01/12 17:39:10  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.4  2006/01/11 23:22:42  sueh
  * <p> bug# 675 Changed Attribute.getUnformattedValue to getValue.
  * <p>
