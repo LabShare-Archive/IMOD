@@ -18,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2006/03/20 17:59:32  sueh
+ * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+ * <p>
  * <p> Revision 3.4  2005/09/21 16:18:06  sueh
  * <p> bug# 532 Added setState(ProcessState, AxisID, ParallelDialog) and
  * <p> setState(ProcessState, AxisID, DialogType) so that one processchunks
@@ -331,7 +334,7 @@ public class ProcessTrack implements BaseProcessTrack {
     else if (dialogType == DialogType.PRE_PROCESSING) {
       setPreProcessingState(processState, axisID);
     }
-    else if (dialogType == DialogType.SETUP) {
+    else if (dialogType == DialogType.SETUP_RECON) {
       setSetupState(processState);
     }
     else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
