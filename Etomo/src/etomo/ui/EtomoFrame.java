@@ -1,6 +1,8 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.HeadlessException;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -8,7 +10,9 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -22,6 +26,8 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -37,7 +43,6 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-//TEMP should be package level
 abstract class EtomoFrame extends JFrame {
   public static final String rcsid = "$Id$";
 
@@ -52,7 +57,6 @@ abstract class EtomoFrame extends JFrame {
   private static final String OK = "OK";
 
   private boolean verbose = false;
-  private String currentPopupName = null;
   protected boolean main;
   protected EtomoMenu menu;
   protected JMenuBar menuBar;
@@ -72,6 +76,16 @@ abstract class EtomoFrame extends JFrame {
     createMenus();
   }
 
+  void moveSubFrame() {
+    if (subFrame != null) {
+      subFrame.moveSubFrame();
+    }
+  }
+
+  void toFront(AxisID axisID) {
+    getFrame(axisID).toFront();
+  }
+  
   final boolean isMenu3dmodStartupWindow() {
     return menu.isMenu3dmodStartupWindow();
   }
@@ -105,7 +119,7 @@ abstract class EtomoFrame extends JFrame {
     if (menu.equalsFileNewJoin(event)) {
       EtomoDirector.getInstance().openJoin(true, axisID);
     }
-    
+
     if (menu.equalsFileNewParallel(event)) {
       EtomoDirector.getInstance().openParallel(true, axisID);
     }
@@ -306,7 +320,7 @@ abstract class EtomoFrame extends JFrame {
       getOtherFrame().menu.setEnabledFileNewJoin(enable);
     }
   }
-  
+
   void setEnabledNewParallelMenuItem(boolean enable) {
     menu.setEnabledFileNewParallel(enable);
     EtomoFrame otherFrame = getOtherFrame();
@@ -480,23 +494,53 @@ abstract class EtomoFrame extends JFrame {
   private int showOptionPane(String[] message, String title, int optionType,
       int messageType, Object[] options, Object initialValue,
       String[] optionStrings) {
-    currentPopupName = Utilities.convertLabelToName(title);
-    printName(currentPopupName, optionStrings, title, message);
-    int result = JOptionPane.showOptionDialog(this, message, title, optionType,
-        messageType, null, options, initialValue);
-    currentPopupName = null;
+    int result = showOptionDialog(this, message, title, optionType,
+        messageType, null, options, initialValue, optionStrings);
     return result;
   }
 
-  final String getCurrentPopupName() {
-    return currentPopupName;
+  private int showOptionDialog(Component parentComponent, String[] message,
+      String title, int optionType, int messageType, Icon icon,
+      Object[] options, Object initialValue, String[] optionStrings)
+      throws HeadlessException {
+    JOptionPane pane = new JOptionPane(message, messageType, optionType, icon,
+        options, initialValue);
+
+    pane.setInitialValue(initialValue);
+    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane
+        .getRootFrame() : parentComponent).getComponentOrientation());
+
+    JDialog dialog = pane.createDialog(parentComponent, title);
+
+    pane.selectInitialValue();
+    String name = Utilities.convertLabelToName(title);
+    pane.setName(name);
+    printName(name, optionStrings, title, message);
+    dialog.setVisible(true);
+    dialog.dispose();
+
+    Object selectedValue = pane.getValue();
+
+    if (selectedValue == null)
+      return JOptionPane.CLOSED_OPTION;
+    if (options == null) {
+      if (selectedValue instanceof Integer)
+        return ((Integer) selectedValue).intValue();
+      return JOptionPane.CLOSED_OPTION;
+    }
+    for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++) {
+      if (options[counter].equals(selectedValue))
+        return counter;
+    }
+    return JOptionPane.CLOSED_OPTION;
   }
 
   private synchronized final void printName(String name,
       String[] optionStrings, String title, String[] message) {
     if (printNames) {
       //print waitfor popup name/value pair
-      StringBuffer buffer = new StringBuffer(UITestConstants.POPUP_ATTRIB
+      StringBuffer buffer = new StringBuffer(UITestAction.WAIT_FOR.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + UITestField.POPUP.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
       //if there are options, then print a popup name/value pair
@@ -779,6 +823,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2006/04/06 20:16:02  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 1.23  2006/03/20 18:02:15  sueh
  * <p> bug# 835 Added menu option to create a new ParallelManager.
  * <p>
