@@ -272,7 +272,7 @@ public class ApplicationManager extends BaseManager {
   public void openSetupDialog() {
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    setCurrentDialogType(DialogType.SETUP, AxisID.ONLY);
+    setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialog == null) {
       setupDialog = new SetupDialog(this);
       setupDialog.initializeFields((ConstMetaData) metaData);
@@ -6168,6 +6168,10 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.219  2006/04/11 13:36:56  sueh
+ * <p> bug# 809 Manage auto center and seed mode separately from
+ * <p> openBeadFixer so that seed mode doesn't always have to be managed.
+ * <p>
  * <p> Revision 3.218  2006/03/30 21:14:51  sueh
  * <p> bug# 809 getFiducialDiameterPerPixel:  diameter per pixel is the same for
  * <p> axis A and B.
