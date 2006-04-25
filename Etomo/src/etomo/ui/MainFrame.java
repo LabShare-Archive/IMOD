@@ -31,6 +31,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2006/03/20 18:03:09  sueh
+ * <p> bug# 835 Added getName (a convenience function) to the managers.
+ * <p>
  * <p> Revision 3.40  2006/01/11 22:14:53  sueh
  * <p> bug# 675 During JFCUnitTests prevent the main Etomo window from
  * <p> closing before the tearDown function is called by preventing
@@ -400,6 +403,8 @@ import etomo.util.UniqueKey;
 final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
   
+  public static final String NAME = "main-frame";
+  
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
   private static final String aAxisTitle = "A Axis - ";
@@ -430,6 +435,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
     rootPanel.setMaximumSize(rootPanelSize);
+    rootPanel.setName(NAME);
 
     //rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
 
