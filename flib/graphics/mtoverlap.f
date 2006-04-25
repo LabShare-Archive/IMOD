@@ -375,6 +375,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.4  2005/04/03 02:41:20  mast
 c       Removed imparm from trnc
 c       
@@ -1460,6 +1463,7 @@ c
         modelfile=' '
         go to 91
       else
+        call scale_model(0)
         nfile=nfile+1
         modelfile=newfile
         write(*,'(1x,a,$)')
