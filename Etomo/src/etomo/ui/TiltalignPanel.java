@@ -13,7 +13,6 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltalignParam;
@@ -66,7 +65,7 @@ public class TiltalignPanel {
    private final int defaultLocalSkewType = 3;
    private final int defaultLocalSkewGroupSize = 11;*/
 
-  private JTabbedPane tabPane = new JTabbedPane();
+  private TabbedPane tabPane = new TabbedPane();
 
   //  General pane
   private JPanel pnlGeneral = new JPanel();
@@ -1525,6 +1524,9 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2006/01/12 17:38:13  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 3.30  2006/01/03 23:57:54  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
  * <p> toRadioButton.
