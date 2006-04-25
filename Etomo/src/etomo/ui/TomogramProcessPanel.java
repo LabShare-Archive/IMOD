@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/04/07 23:32:47  sueh
+ * <p> bug# 846 Changing the background colors for java 1.5.
+ * <p>
  * <p> Revision 1.19  2006/04/06 23:35:20  sueh
  * <p> bug# 844 Added a color for the single axis reconstruction window.
  * <p>
@@ -118,9 +121,9 @@ import etomo.util.Utilities;
 public class TomogramProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
-  private static final String bothAxisString = "Both";
-  private static final String axisAString = "Axis A";
-  private static final String axisBString = "Axis B";
+  public static final String BOTH_AXIS_LABEL = "Both";
+  private static final String AXIS_A_LABEL = "Axis A";
+  private static final String AXIS_B_LABEL = "Axis B";
 
   private ProcessControlPanel procCtlPreProc = new ProcessControlPanel(
       DialogType.PRE_PROCESSING);
@@ -171,13 +174,13 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   protected void buttonAxisAction(ActionEvent event) {
     String command = event.getActionCommand();
-    if (command.equals(bothAxisString)) {
+    if (command.equals(BOTH_AXIS_LABEL)) {
       uiHarness.showBothAxis();
     }
-    else if (command.equals(axisAString)) {
+    else if (command.equals(AXIS_A_LABEL)) {
       uiHarness.showAxisA();
     }
-    else if (command.equals(axisBString)) {
+    else if (command.equals(AXIS_B_LABEL)) {
       uiHarness.showAxisB();
     }
   }
@@ -191,40 +194,40 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     applicationManager.saveCurrentDialog(axisID);
     ProcessControlPanel currentProcess = null;
 
-    if (command.equals(procCtlPreProc.getName())) {
+    if (command.equals(procCtlPreProc.getCommand())) {
       applicationManager.openPreProcDialog(axisID);
       return;
     }
-    if (command.equals(procCtlCoarseAlign.getName())) {
+    if (command.equals(procCtlCoarseAlign.getCommand())) {
       applicationManager.openCoarseAlignDialog(axisID);
       return;
     }
-    if (command.equals(procCtlFiducialModel.getName())) {
+    if (command.equals(procCtlFiducialModel.getCommand())) {
       applicationManager.openFiducialModelDialog(axisID);
       return;
     }
-    if (command.equals(procCtlFineAlignment.getName())) {
+    if (command.equals(procCtlFineAlignment.getCommand())) {
       applicationManager.openFineAlignmentDialog(axisID);
       return;
     }
-    if (command.equals(procCtlTomogramPositioning.getName())) {
+    if (command.equals(procCtlTomogramPositioning.getCommand())) {
       applicationManager.openTomogramPositioningDialog(axisID);
       return;
     }
-    if (command.equals(procCtlTomogramGeneration.getName())) {
+    if (command.equals(procCtlTomogramGeneration.getCommand())) {
       applicationManager.openTomogramGenerationDialog(axisID);
       return;
 
     }
-    if (command.equals(procCtlTomogramCombination.getName())) {
+    if (command.equals(procCtlTomogramCombination.getCommand())) {
       applicationManager.openTomogramCombinationDialog();
       return;
     }
-    if (command.equals(procCtlPostProcessing.getName())) {
+    if (command.equals(procCtlPostProcessing.getCommand())) {
       applicationManager.openPostProcessingDialog();
       return;
     }
-    if (command.equals(procCtlCleanUp.getName())) {
+    if (command.equals(procCtlCleanUp.getCommand())) {
       applicationManager.openCleanUpDialog();
       return;
     }
@@ -319,12 +322,12 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     }
     setBackground(Colors.getBackgroundA());
     if (showingBothAxis) {
-      setButton(axisButton1, axisAString, axisATooltip);
-      setButton(axisButton2, axisBString, axisBTooltip);
+      setButton(axisButton1, AXIS_A_LABEL, axisATooltip);
+      setButton(axisButton2, AXIS_B_LABEL, axisBTooltip);
     }
     else {
-      setButton(axisButton1, axisBString, axisBTooltip);
-      setButton(axisButton2, bothAxisString, bothAxisTooltip);
+      setButton(axisButton1, AXIS_B_LABEL, axisBTooltip);
+      setButton(axisButton2, BOTH_AXIS_LABEL, bothAxisTooltip);
     }
     axisButtonPanel.setVisible(true);
   }
@@ -343,8 +346,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       axisButtonPanel.setVisible(false);
     }
     else {
-      setButton(axisButton1, axisAString, axisATooltip);
-      setButton(axisButton2, bothAxisString, bothAxisTooltip);
+      setButton(axisButton1, AXIS_A_LABEL, axisATooltip);
+      setButton(axisButton2, BOTH_AXIS_LABEL, bothAxisTooltip);
       axisButtonPanel.setVisible(true);
     }
 
@@ -365,10 +368,11 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     progressPanel.setBackground(color);
   }
 
-  private void setButton(JButton button, String text, String tooltip) {
-    button.setText(text);
+  private void setButton(JButton button, String label, String tooltip) {
+    button.setText(label);
+    button.setName(Utilities.convertLabelToName(label));
     Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
-        .getStringBounds(axisAString.toCharArray(), 0, text.length(),
+        .getStringBounds(AXIS_A_LABEL.toCharArray(), 0, label.length(),
             button.getGraphics());
     button.setSize((int) buttonSize.getWidth(), (int) buttonSize.getHeight());
     button.setToolTipText(tooltip);
@@ -470,39 +474,39 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   public void selectButton(String name) {
     unSelectAll();
-    if (name.equals(procCtlPreProc.getName())) {
+    if (name.equals(procCtlPreProc.getCommand())) {
       procCtlPreProc.setSelected(true);
       return;
     }
-    if (name.equals(procCtlCoarseAlign.getName())) {
+    if (name.equals(procCtlCoarseAlign.getCommand())) {
       procCtlCoarseAlign.setSelected(true);
       return;
     }
-    if (name.equals(procCtlFiducialModel.getName())) {
+    if (name.equals(procCtlFiducialModel.getCommand())) {
       procCtlFiducialModel.setSelected(true);
       return;
     }
-    if (name.equals(procCtlFineAlignment.getName())) {
+    if (name.equals(procCtlFineAlignment.getCommand())) {
       procCtlFineAlignment.setSelected(true);
       return;
     }
-    if (name.equals(procCtlTomogramPositioning.getName())) {
+    if (name.equals(procCtlTomogramPositioning.getCommand())) {
       procCtlTomogramPositioning.setSelected(true);
       return;
     }
-    if (name.equals(procCtlTomogramGeneration.getName())) {
+    if (name.equals(procCtlTomogramGeneration.getCommand())) {
       procCtlTomogramGeneration.setSelected(true);
       return;
     }
-    if (name.equals(procCtlTomogramCombination.getName())) {
+    if (name.equals(procCtlTomogramCombination.getCommand())) {
       procCtlTomogramCombination.setSelected(true);
       return;
     }
-    if (name.equals(procCtlPostProcessing.getName())) {
+    if (name.equals(procCtlPostProcessing.getCommand())) {
       procCtlPostProcessing.setSelected(true);
       return;
     }
-    if (name.equals(procCtlCleanUp.getName())) {
+    if (name.equals(procCtlCleanUp.getCommand())) {
       procCtlCleanUp.setSelected(true);
       return;
     }
