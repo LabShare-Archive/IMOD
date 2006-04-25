@@ -12,6 +12,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -26,6 +27,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2006/03/20 18:01:42  sueh
+ * <p> Improved the name of the parameter of setParallelDialog
+ * <p>
  * <p> Revision 3.22  2006/01/12 17:06:02  sueh
  * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
  * <p>
@@ -200,7 +204,7 @@ abstract class AxisProcessPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private static final String KILL_BUTTON_LABEL = "Kill Process";
+  public static final String KILL_BUTTON_LABEL = "Kill Process";
   
   protected final BaseManager manager;
   protected final AxisID axisID;
@@ -236,6 +240,7 @@ abstract class AxisProcessPanel implements ContextMenu {
   AxisProcessPanel(AxisID axis, BaseManager manager) {
     axisID = axis;
     this.manager = manager;
+    buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL));
     //  Create the status panel
     actionListener = new KillButtonActionListener(this);
     buttonKillProcess.addActionListener(actionListener);
