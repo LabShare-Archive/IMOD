@@ -24,6 +24,7 @@ public class EtomoAutodoc {
   public static final String FIELD_SECTION_NAME = "field";
   public static final String REQUIRED_ATTRIBUTE_NAME = "required";
   public static final int REQUIRED_TRUE_VALUE = 1;
+  public static final char VAR_TAG = '%';
   
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
 
@@ -87,6 +88,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/01/12 17:04:10  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.8  2006/01/11 21:48:24  sueh
  * <p> bug# 675 Replaced attribute.getUnformattedValue() with attribute.getValue().
  * <p>
