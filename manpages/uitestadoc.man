@@ -29,7 +29,8 @@ See Note 2 in the \fBuitestaxisadoc\fR man page.
 
 .TP
 .B source = \fIrelative_directory_path
-The path of a directory which may contain the axis-level autodocs,
+The path of a directory which may contain the axis-level autodocs, secondary
+axis-level autodocs,
 dataset files to be copied, and/or
 files for comparison.  The absolute directory path will be
 $IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR.  One entry per file.
@@ -71,7 +72,7 @@ Only one dataset may be tested per section.
 Uitest-axis autodocs can be reused for different datasets.
 
 .TP
-.B copy = \fIfile_name\fR
+.B copy = \fIfile_name
 A dataset file to be copied into the dataset directory.
 The file will be copied from the most recently set \fBsource\fR directory.
 \fIFile_name\fR should not contain expandable characters such as "*".
@@ -80,6 +81,12 @@ which can be copied before Etomo starts running.
 If the \fBkeep\fR attribute is used with \fBdatasetdir\fR, then
 \fIfile_name\fR will only be copied if it
 doesn't exist in the dataset directory.
+
+.TP
+.B datafile = \fIdata_file_name
+Causes the test program to run etomo with an .edf file.
+Automatically overrides \fBdataset\fR, \fBfiducial-diameter\fR, and the SetupRecon
+Dialog section (see the axis level ui test autodoc).
 
 .TP
 .B dataset = \fIdataset_name
@@ -102,6 +109,13 @@ One entry per Test section.
 .nf
 Default absolute path:  /testdir/Test_section_name.
 .fi
+
+.TP
+.B duration = \fR[\fIdays\fR]\fI:\fR[\fIhours\fR]\fI:\fR[\fIminutes\fR]\fI:\fR[\fIseconds\fR]
+Required - duration must be greater then zero:  Causes the test program to end
+after the interval specified, if it has not already completed.  If the test
+program ends this way, it reports a failure.  This attribute ensures the
+completion of a test program which is waiting for a dialog, process, or popup.  
 
 .TP
 .B fiducial-diameter = \fIfiducial_diameter
