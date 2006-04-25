@@ -29,7 +29,7 @@ import etomo.util.UniqueKey;
 * 
 * @version $Revision$
 */
-public class UIHarness {
+public final class UIHarness {
   public static  final String  rcsid =  "$Id$";
   
   public static final UIHarness INSTANCE = new UIHarness();
@@ -42,18 +42,23 @@ public class UIHarness {
   private UIHarness() {
   }
   
-  final void setVerbose(boolean verbose) {
+  void setVerbose(boolean verbose) {
     this.verbose = verbose;
     if (isHead()) {
       mainFrame.setVerbose(verbose);
     }
   }
   
-  final String getCurrentPopupName() {
-    if (!isHead()) {
-      return null;
+  void moveSubFrame() {
+    if (isHead()) {
+      mainFrame.moveSubFrame();
     }
-    return mainFrame.getCurrentPopupName();
+  }
+  
+  void toFront(AxisID axisID) {
+    if (isHead()) {
+      mainFrame.toFront(axisID);
+    }
   }
   
   /**
@@ -62,7 +67,7 @@ public class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String message, String title, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       mainFrame.displayMessage(message, title, axisID);
     }
     else {
@@ -71,7 +76,7 @@ public class UIHarness {
   }
   
   public synchronized void openInfoMessageDialog(String message, String title, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       mainFrame.displayInfoMessage(message, title, axisID);
     }
     else {
@@ -85,7 +90,7 @@ public class UIHarness {
    * @param title
    */
   public synchronized void openErrorMessageDialog(ProcessMessages message, String title, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       mainFrame.displayErrorMessage(message, title, axisID);
     }
     else {
@@ -99,7 +104,7 @@ public class UIHarness {
    * @param title
    */
   public synchronized void openWarningMessageDialog(ProcessMessages messages, String title, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       mainFrame.displayWarningMessage(messages, title, axisID);
     }
     else {
@@ -113,7 +118,7 @@ public class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String message, String title) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       mainFrame.displayMessage(message, title);
     }
     else {
@@ -127,7 +132,7 @@ public class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String[] message, String title, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       mainFrame.displayMessage(message, title, axisID);
     }
     else {
@@ -136,7 +141,7 @@ public class UIHarness {
   }
   
   public synchronized int openYesNoCancelDialog(String[] message, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       return mainFrame.displayYesNoCancelMessage(message, axisID);
     }
     log("openYesNoCancelDialog", message, axisID);
@@ -144,7 +149,7 @@ public class UIHarness {
   }
   
   public synchronized boolean openYesNoDialog(String message, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       return mainFrame.displayYesNoMessage(message, axisID);
     }
     log("openYesNoDialog", message, axisID);
@@ -152,7 +157,7 @@ public class UIHarness {
   }
   
   public synchronized boolean openDeleteDialog(String[] message, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       return mainFrame.displayDeleteMessage(message, axisID);
     }
     log("openDeleteDialog", message, axisID);
@@ -160,7 +165,7 @@ public class UIHarness {
   }
   
   public synchronized boolean openYesNoWarningDialog(String message, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       return mainFrame.displayYesNoWarningDialog(message, axisID);
     }
     log("openYesNoWarningDialog", message, axisID);
@@ -168,7 +173,7 @@ public class UIHarness {
   }
   
   public synchronized boolean openYesNoDialog(String[] message, AxisID axisID) {
-    if (isHead()) {
+    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
       return mainFrame.displayYesNoMessage(message, axisID);
     }
     log("openYesNoDialog", message, axisID);
@@ -473,6 +478,9 @@ public class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.21  2006/03/20 18:08:05  sueh
+* <p> bug# 835 Added menu option to create a new ParallelManager.
+* <p>
 * <p> Revision 1.20  2006/01/11 23:16:43  sueh
 * <p> bug# 675 added setVerbose() and getCurrentPopupName().
 * <p>
