@@ -2,8 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry sourcepath="JRE_SRC" kind="var" path="JRE_LIB"/>
-	<classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.junit_3.8.1/junit.jar"/>
-	<classpathentry kind="var" path="ECLIPSE_HOME/plugins/junit.extensions.jfcunit/jfcunit.jar"/>
+	<classpathentry sourcepath="JUNIT_DOC/src.jar" kind="var" path="ECLIPSE_HOME/plugins/org.junit_3.8.1/junit.jar"/>
+	<classpathentry sourcepath="ECLIPSE_HOME/plugins/junit.extensions.jfcunit/src" kind="var" path="ECLIPSE_HOME/plugins/junit.extensions.jfcunit/jfcunit.jar"/>
 	<classpathentry kind="var" path="ECLIPSE_HOME/plugins/jakarta-regexp-1.4/jakarta-regexp-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
