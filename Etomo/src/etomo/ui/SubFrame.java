@@ -27,6 +27,8 @@ import etomo.BaseManager;
 final class SubFrame extends EtomoFrame {
   public static final String rcsid = "$Id$";
 
+  public static final String NAME = "sub-frame";
+  
   private MainFrame mainFrame;
   private JPanel rootPanel;
   private JLabel statusBar;
@@ -60,6 +62,7 @@ final class SubFrame extends EtomoFrame {
     mainPanel = mainFrame.getMainPanel();
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
+    rootPanel.setName(NAME);
     statusBar = new JLabel(mainPanel.getStatusBarText());
     //menu.setEnabled(currentManager);
     menu.setEnabled(getOtherFrame().menu);
@@ -126,23 +129,40 @@ final class SubFrame extends EtomoFrame {
     }
     rootPanel.add(statusBar, BorderLayout.SOUTH);
     if (bounds == null) {
-      Rectangle mainFrameBounds = mainFrame.getBounds();
-      Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
-      int xLocation = deviceBounds.x + mainFrameBounds.x
-          + mainFrameBounds.width;
-      if (xLocation > deviceBounds.x + deviceBounds.width) {
-        xLocation = (deviceBounds.x + deviceBounds.width) / 2;
-      }
-      setLocation(xLocation, deviceBounds.y + mainFrameBounds.y);
+      setLocation();
     }
     else {
       setLocation(bounds.x, bounds.y);
     }
     validate();
   }
+  
+  private void setLocation() {
+    Rectangle mainFrameBounds = mainFrame.getBounds();
+    Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
+    int xLocation = deviceBounds.x + mainFrameBounds.x
+        + mainFrameBounds.width;
+    if (xLocation > deviceBounds.x + deviceBounds.width) {
+      xLocation = (deviceBounds.x + deviceBounds.width) / 2;
+    }
+    setLocation(xLocation, deviceBounds.y + mainFrameBounds.y);
+  }
+  
+  void move() {
+    bounds = null;
+    setLocation();
+  }
+  
+  void moveSubFrame() {
+    move();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2005/12/09 20:35:54  sueh
+ * <p> bug# 776 In EtomoMenu removed the getActionCommand... functions and
+ * <p> replaced them with equals().
+ * <p>
  * <p> Revision 1.6  2005/04/27 02:19:03  sueh
  * <p> bug# 615 Preserve the location of SubFrame.  Attempting to use the
  * <p> relative position of SubFrame in the virtual desktop (this doesn't work, at
