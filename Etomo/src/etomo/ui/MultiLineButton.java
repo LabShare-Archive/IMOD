@@ -12,6 +12,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 import java.awt.Component;
@@ -40,6 +41,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2006/04/06 20:17:14  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 3.18  2006/03/28 17:03:31  sueh
  * <p> bug# 437 Added setOriginalProcessResultDisplayState to be used by
  * <p> setButtonState.
@@ -218,6 +223,7 @@ class MultiLineButton implements ProcessResultDisplay {
   protected final void setOriginalProcessResultDisplayState(boolean state) {
     processResultDisplayState.setOriginalState(state);
   }
+
   /**
    * Returns isSelected() since the button state is selected or not selected
    * @return
@@ -225,7 +231,7 @@ class MultiLineButton implements ProcessResultDisplay {
   boolean getButtonState() {
     return isSelected();
   }
-  
+
   /**
    * Sets manualName to true.  When manualName is true, setText() cannot change
    * the name.
@@ -243,18 +249,17 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setName(String label) {
     String name = Utilities.convertLabelToName(label);
     button.setName(name);
-    String buttonAttrib = toggleButton ? UITestConstants.TOGGLE_BUTTON_ATTRIB
-        : UITestConstants.BUTTON_ATTRIB;
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(buttonAttrib + AutodocTokenizer.SEPARATOR_CHAR + name
-          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(UITestField.BUTTON.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
   public final String getName() {
     return button.getName();
   }
-  
+
   /**
    * Sets stateKey.  For overriding createButtonStateKey().
    * @param stateKey

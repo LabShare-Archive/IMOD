@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2006/04/06 20:16:56  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 1.11  2006/01/12 17:11:29  sueh
  * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
  * <p>
@@ -75,6 +79,7 @@ import javax.swing.SpinnerModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 public class LabeledSpinner {
@@ -95,7 +100,7 @@ public class LabeledSpinner {
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(UITestConstants.SPINNER_ATTRIB
+      System.out.println(UITestField.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }

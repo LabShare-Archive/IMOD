@@ -8,6 +8,7 @@ import javax.swing.*;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -23,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2006/04/06 20:17:04  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 3.14  2006/03/16 01:56:38  sueh
  * <p> bug# 828 Added toString() and paramString().
  * <p>
@@ -124,7 +129,7 @@ public class LabeledTextField {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(UITestConstants.TEXT_FIELD_ATTRIB
+      System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }

@@ -4,6 +4,7 @@ import javax.swing.JRadioButton;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -27,7 +28,7 @@ final class RadioButton extends JRadioButton {
     String name = Utilities.convertLabelToName(text);
     setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(UITestConstants.RADIO_BUTTON_ATTRIB
+      System.out.println(UITestField.RADIO_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -72,6 +73,10 @@ final class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/04/06 20:17:51  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 1.4  2006/01/12 17:37:28  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
