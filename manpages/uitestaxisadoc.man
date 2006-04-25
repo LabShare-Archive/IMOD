@@ -36,9 +36,24 @@ Also changes the default timeout setting used with \fBpopup\fR attribute.
 One entry per file.  See Note 2.
 
 .TP
-.B sleep.button = \fIsleep_length
-Changes the sleep setting used with JButtons (\fBbn\fR) and JToggleButtons (\fBtb\fR).
+.B sleep.bn = \fIsleep_length
+Changes the sleep setting used with buttons (\fBbn\fR).
 One entry per file.  See Note 3.
+
+.TP
+.B testfrom = \fR[\fIDialog_name\fR]
+Tells the test program to start at the Dialog Section called \fIDialog_name\fR.
+Only one \fBtestfrom\fR can be used.
+The attribute can be used to test part of a uitest axis autodoc,
+in conjunction with \fBdatasetdir.keep\fR in the Test Section of the uitest autodoc.
+If \fIDialog_name\fR is not used, the axis will not tested.
+
+.TP
+.B waitfor = \fIDialog_name
+Causes the axis to wait for the other axis to complete the specified dialog.
+Only one is allowed in Global Attributes.  Waitfor is ignored when there is only
+one axis.  It Axis B should use a global \fBwaitfor\fR to wait for Axis A to
+complete the Setup Tomogram Dailog.
 
 .TP
 .B verbose =
@@ -53,7 +68,8 @@ Required.  The latest version of the autodoc language.
 
 .TP
 .B [Dialog = \fIDialog_name\fB]\fR
-Required.  The Dialog section header.  Causes the dialog to be displayed in Etomo (except for the
+Required.  The Dialog section header.  Begins the Dialog section.
+Causes the dialog to be displayed in Etomo (except for the
 Setup Tomogram dialog).  Each Dialog section should contain the information to manipulate the
 fields in the dialog.
 
@@ -62,11 +78,18 @@ The Setup Tomogram dialog.  This Dialog section is only valid in an A axis uites
 The dataset name in the Setup Tomogram dialog will be filled in automatically.
 
 .TP
-.B assert.\fR(\fBrb\fR|\fBtb\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
+.B adoc = \fIsecondary_uitest-axis.adoc
+A secondary \fBuitest-axis.adoc\fR may not contain any sections.
+It may use any of the \fBDialog Section Attributes\fR.
+It may not use any of the \fBGlobal Attributes\fR, except \fBVersion\fR.
+This attribute allows a set of attributes to be kept in a separate file and reused.
+
+.TP
+.B assert.\fR(\fBrb\fR|\fBbn\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
 Uses JUnit assert functionality to assert that a JRadioButton (\fBrb\fR) or JToggleButton
-(\fBtb\fR) named \fIname\fR is selected (\fB1\fR) or not selected (\fB0\fR).
+(\fBbn\fR) named \fIname\fR is selected (\fB1\fR) or not selected (\fB0\fR).
 A blank value asserts that the button is not selected.  The JToggleButton has a darker color when
-it is selected.
+it is selected.  If the button is a JButton, this assert will always fail.
 See Note 1.
 
 .TP
@@ -77,7 +100,7 @@ contains the value
 See Note 1.
 
 .TP
-.B assert.\fR(\fBbn\fR|\fBrb\fR|\fBtb\fR|\fBtf\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB.enabled = \fR[\fB0\fR|\fB1\fR]
+.B assert.\fR(\fBbn\fR|\fBrb\fR|\fBtf\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB.enabled = \fR[\fB0\fR|\fB1\fR]
 Uses JUnit assert functionality to assert that a button or field named \fIname\fR is
 enabled (\fB1\fR) or disabled (\fB0\fR).
 A blank value asserts that the button or field is disabled.
@@ -85,16 +108,23 @@ See Note 1.
 
 .TP
 .B bn.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fIsleep_length\fR]
-Used to click a button.  Clicks a JButton named \fIname\fR.
+Used to click a button.  Clicks button named \fIname\fR.  The button may be
+either a JButton or a JToggleButton.
 The test program will sleep after the button is pressed.
 See Note 1 and Note 3.
 
 .TP
-.B popup.\fIpopup_name\fB = \fR[\fItimeout_length\fB,\fR]\fIpopup_button_text
-Causes the test program to wait for a popup dialog and then close it using \fIpopup_button_text\fR.
-The popup name is derived from the popup dialog title and can be found by running Etomo with
-the "--names" option and bringing up the popup dialog.
-If the popup dialog does not appear, the test program will timeout and fail.  See Note 2.
+.B copy = \fIfile_name
+Copy \fIfile_name\fR into the dataset directory.  The file will be copied from
+the source directory last set in the current section of \fBuitest.adoc\fR.
+\fIFile_name\fR should not contain expandable characters such as "*".
+\fIFile_name\fR may contain two variables:  \fB%dataset\fR and \fB%axis\fR.
+
+.TP
+.B exit =
+Causes Etomo to exit.  Popups on exit will be handled by Etomo.  In a dual axis
+test \fBexit\fR can be preceded for a \fBwaitfor\fR attribute set to the last
+Dialog Section on the other axis.
 
 .TP
 .B rb.\fIname\fR[\fB.\fIindex\fR]\fB =
@@ -108,20 +138,53 @@ sleep length.  See Note 2.
 
 .TP
 .B sp.\fIname\fR[\fB.\fIindex\fR]\fB = \fR(\fBup\fR|\fBdown\fR)
-Used to spin a spinner.  Clicks the up or down arrow of a JSpinner named \fIname\fRonce.
+Used to spin a spinner.  Clicks the up or down arrow of a JSpinner named \fIname\fR once.
 See Note 1.
 
 .TP
-.B tb.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fIbutton_sleep_length\fR]
-Used to click a toggle button.  Clicks a JToggleButton named \fIname\fR.
-The test program will sleep after the button is pressed.
-See Note 1 and Note 3.
-
-.TP
-.B tf.\fIname\fR[\fB.\fIindex\fR]\fB = \fItext
+.B tf.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR]
 Used to place text into a text field.  Places \fItext\fR in a JTextField called
-\fIname\fR.
+\fIname\fR.  If \fItext\fR is not used, blanks out the text field.
 See Note 1.
+
+.TP
+.B tp.\fItabbed_pane_name\fB.\fItab_index\fB = 
+Clicks a tab on a tabbed pane.  The name of the tabbed pane is the name of the
+first tab.  Clicks the tab specified by the \fItab_index\fR (index starts from
+0).
+
+.TP
+.B waitfor = \fIDialog_name
+Causes the axis to wait for the other axis to complete the specified dialog.
+If the dialog is never completed, the test program will wait until it exceeds
+the duration set in \fBuitest.adoc\fR and fails.
+
+.TP
+.B waitfor.popup.\fIpopup_name\fB = \fIpopup_button_text
+Causes the test program to wait for a popup dialog and then close it using \fIpopup_button_text\fR.
+The popup name is derived from the popup dialog title and can be found by running Etomo with
+the "--names" option and bringing up the popup dialog.
+If the popup dialog does not appear, the test program will wait until it exceeds
+the duration set in \fBuitest.adoc\fR and fails.
+
+.TP
+.B waitfor.process = \fR(\fBdone\fR|\fBfailed\fR|\fBkilled\fR|\fBpaused\fR)
+Causes the test program to wait for the progress bar to show "done", "failed,
+"killed", or "paused".  If the
+process never completes, the test program will wait until it exceeds
+the duration set in \fBuitest.adoc\fR and fails.
+
+.TP
+.B %\fR[\fB{\fR]\fBaxis\fR[\fB}\fR]
+A variable which can be used with the \fBcopy\fR attribute.
+The value of \fB%axis\fR is based on the \fBadoc\fR attribute from the \fBuitest.adoc\fR.
+Use the {}'s unless the variable is preceded by a file separator character ("/" on Linux).
+
+.TP
+.B %\fR[\fB{\fR]\fBdataset\fR[\fB}\fR]
+A variable which can be used with the \fBcopy\fR attribute.
+The value of \fB%dataset\fR is based on the \fBdataset\fR attribute from the \fBuitest.adoc\fR.
+Use the {}'s unless the variable is preceded by a file separator character ("/" on Linux).
 
 .TP
 Note 1: \fIindex
@@ -130,12 +193,11 @@ duplicated on the same dialog.  The index starts at 0 and is based on the tab or
 fields in the dialog.  The default is 0.
 
 .TP
-Note 2: \fIsleep_length\fR and \fItimeout_length
-The  \fIsleep_length\fR and \fItimeout_length\fR refer to
-the number of milliseconds to sleep or timeout.
-They are used with the section-level \fBsleep\fR attribute for sleeping, and \fBpopup\fR attribute
-for timing out (timeout time is approximate).
-They default (in order) to the global-level \fBsleep\fR attribute,
+Note 2: \fIsleep_length
+The  \fIsleep_length\fR refers to
+the number of milliseconds to sleep.
+It is used with the section-level \fBsleep\fR attribute.
+It defaults (in order) to the global-level \fBsleep\fR attribute,
 the global-level \fBsleep\fR attribute in \fBuitest.adoc\fR,
 or 1000 milliseconds.
 
@@ -143,8 +205,8 @@ or 1000 milliseconds.
 Note 3: \fIbutton_sleep_length
 The  \fIbutton_sleep_length\fR refers to the number of
 milliseconds to sleep after a button has been pressed.
-It is used with the \fBbn\fR and \fBtb\fR attributes.
-It defaults (in order) to the global-level \fBsleep.button\fR attribute,
+It is used with the \fBbn\fR attribute.
+It defaults (in order) to the global-level \fBsleep.bn\fR attribute,
 or 100 milliseconds.
 
 .SH AUTHOR
