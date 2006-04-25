@@ -41,9 +41,16 @@ public final class NameValuePairLocation {
     }
     return index >= list.size();
   }
+  
+  public String toString() {
+    return "index=" + index;
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2006/01/12 17:03:12  sueh
+* <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p>
 * <p> Revision 1.1  2006/01/11 22:17:12  sueh
 * <p> bug# The location of a NameValuePair in a Vector.
 * <p> </p>
