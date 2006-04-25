@@ -77,6 +77,7 @@ public class EtomoDirector {
   private boolean outOfMemoryMessage = false;
   private String originalUserDir = null;
   private MemoryThread memoryThread = null;
+  private boolean testDone = false;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -530,6 +531,21 @@ public class EtomoDirector {
     if (currentManagerKey.getName().equals(ParallelMetaData.NEW_TITLE)) {
       uiHarness.setEnabledNewParallelMenuItem(true);
     }
+  }
+  
+  /**
+   * set failure while testing to prevent popups in a non-interactive session.
+   * @param failed
+   */
+  public void setTestDone(boolean testDone) {
+    if (!test) {
+      throw new IllegalStateException("test="+test);
+    }
+    this.testDone = testDone;
+  }
+  
+  public boolean isTestDone() {
+    return testDone;
   }
 
   /**
@@ -1008,6 +1024,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2006/04/10 19:02:33  sueh
+ * <p> buG# 835 enabling "New Parallel Process" when processchunks is run.
+ * <p>
  * <p> Revision 1.41  2006/03/20 17:48:39  sueh
  * <p> bug# 835 Added ParallelManager.
  * <p>
