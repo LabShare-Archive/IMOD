@@ -20,6 +20,11 @@ public class ProcessEndState {
   private static final int killedIndex = 2;
   private static final int pausedIndex = 3;
   
+  private static final String DONE_NAME = "done";
+  private static final String FAILED_NAME = "failed";
+  private static final String KILLED_NAME = "killed";
+  private static final String PAUSED_NAME = "paused";
+  
   public static final int TOTAL = pausedIndex + 1;
   
   private final String name;
@@ -70,18 +75,36 @@ public class ProcessEndState {
   private String toString(int index) {
     switch (index) {
     case doneIndex:
-      return "done";
+      return DONE_NAME;
     case failedIndex:
-      return "failed";
+      return FAILED_NAME;
     case killedIndex:
-      return "killed";
+      return KILLED_NAME;
     case pausedIndex:
-      return "paused";
+      return PAUSED_NAME;
     }
     return "";
   }
 
+  public static ProcessEndState getInstance(String name) {
+    if (name.equals(DONE_NAME)) {
+      return DONE;
+    }
+    if (name.equals(FAILED_NAME)) {
+      return FAILED;
+    }
+    if (name.equals(KILLED_NAME)) {
+      return KILLED;
+    }
+    if (name.equals(PAUSED_NAME)) {
+      return PAUSED;
+    }
+    return null;
+  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/26 23:01:37  sueh
+* <p> bug# 701 Enum of process end states.
+* <p> </p>
 */

@@ -14,6 +14,10 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2006/03/20 17:57:34  sueh
+ * <p> bug# 835 Added the PARALLEL dialog, made DialogType work with
+ * <p> different managers instead of just ApplicationManager.
+ * <p>
  * <p> Revision 1.4  2005/09/29 18:46:03  sueh
  * <p> bug# 532 Simplified the storable names.
  * <p>
@@ -53,6 +57,18 @@ public final class DialogType {
   private static final int parallelIndex = 0;
 
   public static final int TOTAL_PARALLEL = parallelIndex + 1;
+  
+  private static final String SETUP_RECON_NAME = "SetupRecon";
+  private static final String PRE_PROCESSING_NAME = "PreProc";
+  private static final String COARSE_ALIGNMENT_NAME = "CoarseAlign";
+  private static final String FIDUCIAL_MODEL_NAME = "FidModel";
+  private static final String FINE_ALIGNMENT_NAME = "FineAlign";
+  private static final String TOMOGRAM_POSITIONING_NAME = "TomoPos";
+  private static final String TOMOGRAM_GENERATION_NAME = "TomoGen";
+  private static final String TOMOGRAM_COMBINATION_NAME = "Combine";
+  private static final String POST_PROCESSING_NAME = "PostProc";
+  private static final String CLEAN_UP_NAME = "CleanUp";
+  private static final String PARALLEL_NAME = "Parallel";
 
   private final String name;
   private final int index;
@@ -79,7 +95,7 @@ public final class DialogType {
     return index;
   }
 
-  public static final DialogType SETUP = new DialogType(TabType.RECON, setupIndex);
+  public static final DialogType SETUP_RECON = new DialogType(TabType.RECON, setupIndex);
   public static final DialogType PRE_PROCESSING = new DialogType(TabType.RECON, 
       preProcessingIndex);
   public static final DialogType COARSE_ALIGNMENT = new DialogType(TabType.RECON, 
@@ -105,7 +121,7 @@ public final class DialogType {
     if (tabType == TabType.RECON) {
       switch (index) {
       case setupIndex:
-        return "Setup";
+        return "Setup Tomogram";
       case preProcessingIndex:
         return "Pre-processing";
       case coarseAlignmentIndex:
@@ -135,37 +151,89 @@ public final class DialogType {
     return "";
   }
 
+  /**
+   * Return a name without spaces.  All storable names must be unique to
+   * DialogType.
+   * @param tabType
+   * @param index
+   * @return
+   */
   private String getStorableName(TabType tabType, int index) {
     if (tabType == TabType.RECON) {
       switch (index) {
       case setupIndex:
-        return "Setup";
+        return SETUP_RECON_NAME;
       case preProcessingIndex:
-        return "PreProc";
+        return PRE_PROCESSING_NAME;
       case coarseAlignmentIndex:
-        return "CoarseAlign";
+        return COARSE_ALIGNMENT_NAME;
       case fiducialModelIndex:
-        return "FidModel";
+        return FIDUCIAL_MODEL_NAME;
       case fineAlignmentIndex:
-        return "FineAlign";
+        return FINE_ALIGNMENT_NAME;
       case tomogramPositioningIndex:
-        return "TomoPos";
+        return TOMOGRAM_POSITIONING_NAME;
       case tomogramGenerationIndex:
-        return "TomoGen";
+        return TOMOGRAM_GENERATION_NAME;
       case tomogramCombinationIndex:
-        return "Combine";
+        return TOMOGRAM_COMBINATION_NAME;
       case postProcessingIndex:
-        return "PostProc";
+        return POST_PROCESSING_NAME;
       case cleanUpIndex:
-        return "CleanUp";
+        return CLEAN_UP_NAME;
       }
     }
     else if (tabType == TabType.PARALLEL) {
       switch (index) {
       case parallelIndex:
-        return "Parallel";
+        return PARALLEL_NAME;
       }
     }
     return "";
+  }
+  
+  /**
+   * 
+   * @param storableName
+   * @return
+   */
+  public static DialogType getInstance(String storableName) {
+    if (storableName == null) {
+      return null;
+    }
+    if (storableName.equals(SETUP_RECON_NAME)) {
+      return SETUP_RECON;
+    }
+    if (storableName.equals(PRE_PROCESSING_NAME)) {
+      return PRE_PROCESSING;
+    }
+    if (storableName.equals(COARSE_ALIGNMENT_NAME)) {
+      return COARSE_ALIGNMENT;
+    }
+    if (storableName.equals(FIDUCIAL_MODEL_NAME)) {
+      return FIDUCIAL_MODEL;
+    }
+    if (storableName.equals(FINE_ALIGNMENT_NAME)) {
+      return FINE_ALIGNMENT;
+    }
+    if (storableName.equals(TOMOGRAM_POSITIONING_NAME)) {
+      return TOMOGRAM_POSITIONING;
+    }
+    if (storableName.equals(TOMOGRAM_GENERATION_NAME)) {
+      return TOMOGRAM_GENERATION;
+    }
+    if (storableName.equals(TOMOGRAM_COMBINATION_NAME)) {
+      return TOMOGRAM_COMBINATION;
+    }
+    if (storableName.equals(POST_PROCESSING_NAME)) {
+      return POST_PROCESSING;
+    }
+    if (storableName.equals(CLEAN_UP_NAME)) {
+      return CLEAN_UP;
+    }
+    if (storableName.equals(PARALLEL_NAME)) {
+      return PARALLEL;
+    }
+    return null;
   }
 }
