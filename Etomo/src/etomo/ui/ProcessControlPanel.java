@@ -21,6 +21,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/04/16 02:01:56  sueh
+ * <p> Changed the completed color in the process buttons to a color which is
+ * <p> easier to see when the button is toggled.
+ * <p>
  * <p> Revision 3.2  2005/01/14 03:09:07  sueh
  * <p> bug# 511 Added a DialogType member variable to identify the dialog the
  * <p> ProcessControlPanel is associated with.
@@ -65,7 +69,7 @@ public class ProcessControlPanel {
   static Color[] colorState =
     { colorNotStarted, colorInProgress, colorComplete };
 
-  private String name;
+  private String command;
   private JPanel panelRoot = new JPanel();
   private JToggleButton buttonRun = new JToggleButton();
 
@@ -74,7 +78,7 @@ public class ProcessControlPanel {
   private DialogType dialogType;
 
   ProcessControlPanel(DialogType dialogType) {
-    name = dialogType.toString();
+    command = dialogType.toString();
     this.dialogType = dialogType;
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.Y_AXIS));
 
@@ -90,11 +94,12 @@ public class ProcessControlPanel {
 
     updateLabel();
     panelRoot.add(buttonRun);
-    buttonRun.setActionCommand(name);
+    buttonRun.setActionCommand(command);
+    buttonRun.setName(dialogType.getStorableName());
   }
 
-  String getName() {
-    return name;
+  String getCommand() {
+    return command;
   }
   
   DialogType getDialogType() {
@@ -142,7 +147,7 @@ public class ProcessControlPanel {
   private void updateLabel() {
     buttonRun.setText(
       "<HTML><CENTER>"
-        + name
+        + command
         + "<br>"
         + highlightState.getSelectedText()
         + "</CENTER>");
