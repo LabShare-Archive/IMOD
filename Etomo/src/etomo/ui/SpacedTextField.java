@@ -9,6 +9,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.UITestField;
+import etomo.util.Utilities;
+
 /**
 * <p>Description: </p>
 * 
@@ -32,6 +37,14 @@ final class SpacedTextField {
   
   
   SpacedTextField(String label) {
+    //set name
+    String name = Utilities.convertLabelToName(label);
+    textField.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(UITestField.TEXT_FIELD.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
     label = label.trim();
     this.label = new JLabel(label);
     //panels
@@ -48,8 +61,6 @@ final class SpacedTextField {
     //yPanel
     yAxisPanel.add(fieldPanel);
     yAxisPanel.add(Box.createRigidArea(FixedDim.x0_y5));
-    //configure
-    textField.setName(label);
   }
   
   final void setToolTipText(String toolTipText) {
@@ -116,5 +127,11 @@ final class SpacedTextField {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/06 23:50:12  sueh
+* <p> bug# 437 Class to encapsulate rigid areas within a labeled text field.
+* <p> Uses two panels to hold the label, text field, and x and y rigid areas.
+* <p> Important for basic displays where there are a lot of advanced fields and
+* <p> many rigid areas between them.
+* <p> </p>
 */
