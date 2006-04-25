@@ -14,6 +14,8 @@ import etomo.storage.autodoc.NameValuePairLocation;
 import etomo.storage.autodoc.Section;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
+import etomo.type.UITestAction;
 import etomo.util.Utilities;
 import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
@@ -31,32 +33,42 @@ import junit.extensions.jfcunit.JFCTestHelper;
  * 
  * @version $Revision$
  */
-public class UITest extends JFCTestCase {
+public final class UITest extends JFCTestCase {
   public static final String rcsid = "$Id$";
 
   static final File TEST_REPOSITORY = Utilities.getExistingDir(
       "IMOD_UITEST_SOURCE", AxisID.ONLY);
-  static final String SLEEP_ATTRIB = "sleep";
+  static final long DEFAULT_SLEEP = 1000;
+  static final String DATASET_ATTRIB = "dataset";
 
   private static final String TEST_SECTION_TYPE = "Test";
   private static final String SOURCE_DIR_ATTRIB = "source";
-  private static final String[] ARGS = new String[] { "--selftest", "--test" };
+  private static final String[] ARGS = new String[] { "--selftest", "--test"/* , "--names"*/};
   private static final String FIDUCIAL_DIAMETER_ATTRIB = "fiducial-diameter";
   private static final String ADOC_ATTRIB = "adoc";
   private static final String COPY_ATTRIB = "copy";
-  private static final String DATASET_ATTRIB = "dataset";
   private static final String DATASET_DIR_ATTRIB = "datasetdir";
   private static final String KEEP_ATTRIB = "keep";
+  private static final String DURATION_ATTRIB = "duration";
+  private static final String DATAFILE_ATTRIB = "datafile";
 
   private File testDir = null;
   private Autodoc autodocA = null;
   private Autodoc autodocB = null;
   private JFCTestHelper helper = null;
   private EtomoDirector etomo = null;
-  private long sleep = 1000;
+  private long sleep = DEFAULT_SLEEP;
   private double fiducialDiameter = 0;
   private String dataset = null;
   private boolean keep = false;
+  private UIAxisTest axisAUITest = null;
+  private UIAxisTest axisBUITest = null;
+  private long duration = 0;
+  private File currentSourceDir = null;
+  private File autodocSourceDir = null;
+  private AxisID axisIDA = null;
+  private AxisID axisIDB = null;
+  private String dataFileName = null;
 
   protected void setUp() throws Exception {
     super.setUp();
@@ -65,18 +77,24 @@ public class UITest extends JFCTestCase {
   }
 
   protected void tearDown() throws Exception {
-    JFCTestHelper.cleanUp(this);
     if (etomo != null) {
-      etomo.exitProgram(AxisID.ONLY);
+      exit();
     }
+    JFCTestHelper.cleanUp(this);
     super.tearDown();
+  }
+
+  void exit() {
+    etomo.setTestDone(true);
+    etomo.exitProgram(AxisID.ONLY);
+    etomo = null;
   }
 
   /**
    * run all the tests in uitest.adoc
    * @throws IOException
    */
-  public final void test() throws IOException {
+  public void test() throws IOException {
     String testName = Utilities.getEnvironmentVariable(null,
         "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
@@ -99,15 +117,15 @@ public class UITest extends JFCTestCase {
     //get single entries
     testDir = getRelativeDir(autodoc, "testdir", JfcUnitTests.TEST_ROOT_DIR,
         true);
-    File sourceDir = getRelativeDir(autodoc, SOURCE_DIR_ATTRIB,
+    autodocSourceDir = getRelativeDir(autodoc, SOURCE_DIR_ATTRIB,
         TEST_REPOSITORY, false);
     setSleep(autodoc);
     //run each test specified in the Test sections
     SectionLocation testLoc = autodoc.getSectionLocation(TEST_SECTION_TYPE);
     Section test = autodoc.getSection(TEST_SECTION_TYPE, testName);
     if (test != null) {
-      processSection(test, sourceDir);
-      runAxisLevelTests(test, sourceDir);
+      processSection(test, autodocSourceDir);
+      runAxisLevelTests(test, autodocSourceDir);
       test = autodoc.nextSection(testLoc);
     }
   }
@@ -116,45 +134,51 @@ public class UITest extends JFCTestCase {
    * set required field fiducial diameter
    * @param autodoc
    */
-  private final void setFiducialDiameter(Section test) {
+  private void setFiducialDiameter(Section test) {
     Attribute fiducialDiameterAttrib = test
         .getAttribute(FIDUCIAL_DIAMETER_ATTRIB);
-    JFCTestCase.assertNotNull("In uitest.adoc:  the "
-        + FIDUCIAL_DIAMETER_ATTRIB + " attribute is required.",
-        fiducialDiameterAttrib);
+    assertNotNull(null, "In uitest.adoc:  the " + FIDUCIAL_DIAMETER_ATTRIB
+        + " attribute is required.", fiducialDiameterAttrib);
     String value = fiducialDiameterAttrib.getValue();
-    JFCTestCase.assertNotNull("In uitest.adoc:  the "
-        + FIDUCIAL_DIAMETER_ATTRIB + " attribute must have a value.", value);
+    assertNotNull(null, "In uitest.adoc:  the " + FIDUCIAL_DIAMETER_ATTRIB
+        + " attribute must have a value.", value);
     try {
       fiducialDiameter = Double.parseDouble(value);
     }
     catch (NumberFormatException e) {
-      JFCTestCase.fail("In uitest.adoc:  the " + FIDUCIAL_DIAMETER_ATTRIB
+      fail(null, "In uitest.adoc:  the " + FIDUCIAL_DIAMETER_ATTRIB
           + " value must be numeric.");
     }
   }
 
-  private final void setSleep(Autodoc autodoc) {
-    Attribute sleepAttrib = autodoc.getAttribute(SLEEP_ATTRIB);
+  private void setSleep(Autodoc autodoc) {
+    Attribute sleepAttrib = autodoc.getAttribute(UITestAction.SLEEP.toString());
     if (sleepAttrib == null) {
       return;
     }
     String value = sleepAttrib.getValue();
     if (value == null) {
-      JFCTestCase
-          .fail("In uitest.adoc:  the global sleep attribute must have a value.");
+      fail(null,
+          "In uitest.adoc:  the global sleep attribute must have a value.");
     }
     try {
       sleep = Long.parseLong(value);
     }
     catch (NumberFormatException e) {
-      JFCTestCase
-          .fail("In uitest.adoc:  the global sleep value must be numeric.");
+      fail(null, "In uitest.adoc:  the global sleep value must be numeric.");
     }
   }
 
-  final long getSleep() {
+  void moveSubFrame() {
+    UIHarness.INSTANCE.moveSubFrame();
+  }
+
+  long getSleep() {
     return sleep;
+  }
+
+  String getDataset() {
+    return dataset;
   }
 
   /**
@@ -164,7 +188,7 @@ public class UITest extends JFCTestCase {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private final void processSection(Section test, File sourceDir)
+  private void processSection(Section test, File sourceDir)
       throws FileNotFoundException, IOException {
     autodocA = null;
     autodocB = null;
@@ -175,7 +199,7 @@ public class UITest extends JFCTestCase {
     //set parameters
     setDataset(test);
     setFiducialDiameter(test);
-    File currentSourceDir = sourceDir;
+    currentSourceDir = sourceDir;
     NameValuePairLocation pairLoc = test.getNameValuePairLocation();
     NameValuePair pair = test.nextNameValuePair(pairLoc);
     while (pair != null) {
@@ -184,18 +208,52 @@ public class UITest extends JFCTestCase {
       }
       else if (pair.equalsName(COPY_ATTRIB, 0)) {
         //copy a file from the current source directory to the working directory
-        copyFile(pair, currentSourceDir);
+        copyFile(pair.getValue(), currentSourceDir);
       }
       else if (pair.equalsName(SOURCE_DIR_ATTRIB, 0)) {
         //Get a source directory relative to the test repository
         currentSourceDir = getRelativeDir(pair, TEST_REPOSITORY, false);
       }
+      else if (pair.equalsName(DURATION_ATTRIB, 0)) {
+        String[] durationArray = pair.getValue().split(":");
+        if (durationArray.length == 4) {
+          duration = Long.parseLong(durationArray[3]);
+        }
+        if (!durationArray[2].equals("")) {
+          duration += Long.parseLong(durationArray[2]) * 60;
+        }
+        if (!durationArray[1].equals("")) {
+          duration += Long.parseLong(durationArray[1]) * 60 * 60;
+        }
+        if (!durationArray[0].equals("")) {
+          duration += Long.parseLong(durationArray[1]) * 60 * 60 * 24;
+        }
+      }
+      else if (pair.equalsName(DATAFILE_ATTRIB, 0)) {
+        dataFileName = pair.getValue();
+      }
       pair = test.nextNameValuePair(pairLoc);
     }
     if (autodocA == null && autodocB == null) {
-      JFCTestCase.fail("In uitest.adoc:  at least one " + ADOC_ATTRIB
+      fail(null, "In uitest.adoc:  at least one " + ADOC_ATTRIB
           + " attribute is required.");
     }
+    if (duration <= 0) {
+      fail(null, "In uitest.adoc:  the " + DURATION_ATTRIB
+          + " attribute is missing, 0, or caused an overflow: " + duration);
+    }
+  }
+
+  File getCurrentSourceDir() {
+    return currentSourceDir;
+  }
+
+  long getDuration() {
+    return duration;
+  }
+
+  File getAutodocSourceDir() {
+    return autodocSourceDir;
   }
 
   /**
@@ -203,22 +261,31 @@ public class UITest extends JFCTestCase {
    * @param test
    * @param sourceDir
    */
-  private final void runAxisLevelTests(Section test, File sourceDir) {
+  private void runAxisLevelTests(Section test, File sourceDir) {
     if (autodocA == null && autodocB == null) {
       return;
     }
     //run Etomo
-    etomo = EtomoDirector.createInstance_test(ARGS);
+    if (dataFileName == null) {
+      etomo = EtomoDirector.createInstance_test(ARGS);
+    }
+    else {
+      File dataFile = new File(new File(testDir, test.getName()), dataFileName);
+      String[] args = new String[ARGS.length + 1];
+      for (int i = 0; i < ARGS.length; i++) {
+        args[i] = ARGS[i];
+      }
+      args[ARGS.length] = dataFile.getAbsolutePath();
+      etomo = EtomoDirector.createInstance_test(args);
+    }
     //Create the UIAxisTest instances
-    UIAxisTest axisAUITest = null;
-    UIAxisTest axisBUITest = null;
     if (autodocA != null) {
-      axisAUITest = new UIAxisTest(this, dataset, autodocA, sourceDir, helper,
-          fiducialDiameter);
+      axisAUITest = new UIAxisTest(this, dataset, autodocA, helper,
+          fiducialDiameter, axisIDA, dataFileName != null);
     }
     if (autodocB != null) {
-      axisBUITest = new UIAxisTest(this, dataset, autodocB, sourceDir, helper,
-          fiducialDiameter);
+      axisBUITest = new UIAxisTest(this, dataset, autodocB, helper,
+          fiducialDiameter, axisIDB, dataFileName != null);
     }
     //Test the axis or axes, taking turns if there are two
     boolean testingA = axisAUITest != null;
@@ -226,12 +293,25 @@ public class UITest extends JFCTestCase {
     while ((testingA && !axisAUITest.isDone())
         || (testingB && !axisBUITest.isDone())) {
       if (testingA && !axisAUITest.isDone()) {
-        axisAUITest.testAxis(testingB);
+        axisAUITest.testAxis();
       }
       if (testingB && !axisBUITest.isDone()) {
-        axisBUITest.testAxis(testingA);
+        axisBUITest.testAxis();
       }
     }
+  }
+
+  boolean removeDialog(AxisID axisID, DialogType dialogType) {
+    if (axisID == AxisID.SECOND) {
+      if (axisBUITest == null || axisBUITest.isDone()) {
+        return true;
+      }
+      return axisBUITest.removeDialog(dialogType);
+    }
+    if (axisAUITest == null || axisAUITest.isDone()) {
+      return true;
+    }
+    return axisAUITest.removeDialog(dialogType);
   }
 
   /**
@@ -239,11 +319,10 @@ public class UITest extends JFCTestCase {
    * @param attrib
    * @param sourceDir
    */
-  private final void copyFile(NameValuePair pair, File sourceDir) {
-    String value = pair.getValue();
-    JFCTestCase.assertNotNull("In uitest.adoc:  the " + COPY_ATTRIB
-        + " attribute must have a value.", value);
-    File file = new File(sourceDir, value);
+  void copyFile(String fileName, File sourceDir) {
+    assertNotNull("In uitest.adoc:  the " + COPY_ATTRIB
+        + " attribute must have a value.", fileName);
+    File file = new File(sourceDir, fileName);
     if (!file.exists() || file.isDirectory()) {
       throw new IllegalStateException("bad dataset file: "
           + file.getAbsolutePath());
@@ -267,14 +346,15 @@ public class UITest extends JFCTestCase {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private final void setAutodoc(NameValuePair adocPair, File sourceDir)
+  private void setAutodoc(NameValuePair adocPair, File sourceDir)
       throws FileNotFoundException, IOException {
     String value = adocPair.getValue();
-    JFCTestCase.assertNotNull("Unknown name/value pair format: "
+    assertNotNull(null, "Unknown name/value pair format: "
         + adocPair.getString(), value);
     //look for adoc = autodoc
     String axisName = adocPair.getName(1);
     if (axisName == null) {
+      axisIDA = AxisID.ONLY;
       //Set autodocA if it is not already set
       if (autodocA != null) {
         return;
@@ -285,6 +365,7 @@ public class UITest extends JFCTestCase {
     }
     //look for adoc.a = autodoc
     if (axisName.equals(AxisID.FIRST.getExtension())) {
+      axisIDA = AxisID.FIRST;
       //Set autodocA if it is not already set
       if (autodocA != null) {
         return;
@@ -295,6 +376,7 @@ public class UITest extends JFCTestCase {
     }
     //look for adoc.b = autodoc
     else if (axisName.equals(AxisID.SECOND.getExtension())) {
+      axisIDB = AxisID.SECOND;
       //Set autodocB if it is not already set
       if (autodocB != null) {
         return;
@@ -305,7 +387,7 @@ public class UITest extends JFCTestCase {
     }
   }
 
-  private final void setDataset(Section section) {
+  private void setDataset(Section section) {
     Attribute datasetAttrib = section.getAttribute(DATASET_ATTRIB);
     if (datasetAttrib == null) {
       //default value
@@ -313,7 +395,7 @@ public class UITest extends JFCTestCase {
       return;
     }
     String value = datasetAttrib.getValue();
-    JFCTestCase.assertNotNull("In uitest.adoc:  the " + DATASET_ATTRIB
+    assertNotNull(null, "In uitest.adoc:  the " + DATASET_ATTRIB
         + " attribute must have a value.", value);
     dataset = value;
   }
@@ -325,7 +407,7 @@ public class UITest extends JFCTestCase {
    * @param datasetDir
    * @return
    */
-  private final void cleanDatasetDir(Section section) {
+  private void cleanDatasetDir(Section section) {
     File datasetDir = null;
     //Get the directory name
     String dirName = null;
@@ -341,7 +423,7 @@ public class UITest extends JFCTestCase {
         //get optional keep attribute
         Attribute keepAttrib = dirAttrib.getAttribute(KEEP_ATTRIB);
         if (keepAttrib == null) {
-          JFCTestCase.fail(DATASET_DIR_ATTRIB
+          fail(null, DATASET_DIR_ATTRIB
               + " attribute can only be followed by a " + KEEP_ATTRIB
               + " attribute.");
         }
@@ -349,7 +431,7 @@ public class UITest extends JFCTestCase {
         //get directory name
         dirName = keepAttrib.getValue();
       }
-      JFCTestCase.assertNotNull("In uitest.adoc:  the " + DATASET_DIR_ATTRIB
+      assertNotNull(null, "In uitest.adoc:  the " + DATASET_DIR_ATTRIB
           + " attribute must have a value.", dirName);
       //make the directory path
       datasetDir = new File(testDir, dirName);
@@ -382,8 +464,8 @@ public class UITest extends JFCTestCase {
    * @param makeDirs - if true, make the directories
    * @return
    */
-  private final File getRelativeDir(Autodoc autodoc, String attribName,
-      File rootDir, boolean makeDirs) {
+  private File getRelativeDir(Autodoc autodoc, String attribName, File rootDir,
+      boolean makeDirs) {
     //Make the root directories on the root directory since it could be returned
     if (makeDirs && !rootDir.exists()) {
       rootDir.mkdirs();
@@ -396,7 +478,7 @@ public class UITest extends JFCTestCase {
       return rootDir;
     }
     dirName = dirAttrib.getValue();
-    JFCTestCase.assertNotNull("In uitest.adoc:  the " + attribName
+    assertNotNull(null, "In uitest.adoc:  the " + attribName
         + " attribute must have a value.", dirName);
     //make the directories
     File dir = new File(rootDir, dirName);
@@ -415,12 +497,11 @@ public class UITest extends JFCTestCase {
    * @param rootDir
    * @return the directory
    */
-  private final File getRelativeDir(NameValuePair pair, File rootDir,
-      boolean makeDirs) {
+  private File getRelativeDir(NameValuePair pair, File rootDir, boolean makeDirs) {
     //Get the directory name
     String dirName = pair.getValue();
-    JFCTestCase.assertNotNull("Unknown name/value pair format: "
-        + pair.getString(), dirName);
+    assertNotNull(null, "Unknown name/value pair format: " + pair.getString(),
+        dirName);
     //make the directories
     File dir = new File(rootDir, dirName);
     if (makeDirs && !dir.exists()) {
@@ -437,7 +518,7 @@ public class UITest extends JFCTestCase {
    * @param makeDirs
    * @return
    */
-  private final File getRequiredRelativeDir(Section section, File rootDir,
+  private File getRequiredRelativeDir(Section section, File rootDir,
       boolean makeDirs) {
     //Get the directory name
     String dirName = section.getName();
@@ -448,9 +529,63 @@ public class UITest extends JFCTestCase {
     }
     return dir;
   }
+
+  public void assertTrue(String sectionInfo, String message, boolean condition) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    assertTrue(message, condition);
+  }
+
+  public void fail(String sectionInfo, String message) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    fail(message);
+  }
+
+  public void assertNotNull(String sectionInfo, String message, Object object) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    assertNotNull(message, object);
+  }
+
+  public void assertFalse(String sectionInfo, String message, boolean condition) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    assertFalse(message, condition);
+  }
+
+  public void assertNull(String sectionInfo, String message, Object object) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    assertNull(message, object);
+  }
+
+  public void assertEquals(String sectionInfo, String message, Object expected,
+      Object actual) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    assertEquals(message, expected, actual);
+  }
+
+  public void assertEquals(String sectionInfo, String message, boolean expected,
+      boolean actual) {
+    if (sectionInfo != null) {
+      message = sectionInfo + ": " + message;
+    }
+    assertEquals(message, expected, actual);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/01/13 20:17:05  sueh
+ * <p> bug# 675 Added datasetdir.keep to avoid copying the dataset files.
+ * <p>
  * <p> Revision 1.8  2006/01/12 22:18:18  sueh
  * <p> bug# 675 removed unnecessary function enterClickAndLeave().
  * <p>
