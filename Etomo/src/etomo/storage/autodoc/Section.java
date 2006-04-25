@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.1  2006/01/12 17:03:24  sueh
+ * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p> $
  * <p> $Revision 1.7  2006/01/11 22:38:40  sueh
  * <p> $bug# 675 Implementing WriteOnlyAttributeMap and
  * <p> $WriteOnlyNameValuePairList
@@ -46,7 +49,7 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-public final class Section extends WriteOnlyNameValuePairList {
+public final class Section extends WriteOnlyNameValuePairList implements ReadOnlyNameValuePairList {
   public static final String rcsid = "$$Id$$";
 
   private String key = null; //required

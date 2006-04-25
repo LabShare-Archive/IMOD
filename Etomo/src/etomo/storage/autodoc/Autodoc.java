@@ -73,7 +73,8 @@ import java.util.Vector;
  *
  */
 
-public final class Autodoc extends WriteOnlyNameValuePairList {
+public final class Autodoc extends WriteOnlyNameValuePairList implements
+    ReadOnlyNameValuePairList {
   public static final String rcsid = "$$Id$$";
 
   public static final String VERSION = "1.2";
@@ -145,8 +146,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getUITestAxisInstance_test(File directory, String autodocFileName, AxisID axisID)
-      throws FileNotFoundException, IOException {
+  public static Autodoc getUITestAxisInstance_test(File directory,
+      String autodocFileName, AxisID axisID) throws FileNotFoundException,
+      IOException {
     if (!test) {
       throw new IllegalStateException("Not in test mode");
     }
@@ -270,7 +272,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
     Autodoc.test = test;
   }
 
-  public  String getName() {
+  public String getName() {
     return autodocFile.getName();
   }
 
@@ -301,37 +303,40 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
     }
     return attributeMap.addAttribute(name);
   }
-  
+
   public Attribute getAttribute(String name) {
     if (attributeMap == null) {
       return null;
     }
     return attributeMap.getAttribute(name);
   }
-  
+
   void addNameValuePair(Attribute attrib, int valueIndex) {
     if (attrib == null) {
       return;
     }
-    NameValuePair pair = new NameValuePair(attrib, attrib.getValueToken(valueIndex));
+    NameValuePair pair = new NameValuePair(attrib, attrib
+        .getValueToken(valueIndex));
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
     }
     nameValuePairList.add(pair);
   }
-  
+
   public NameValuePairLocation getNameValuePairLocation() {
     if (nameValuePairList == null) {
       return null;
     }
     return new NameValuePairLocation();
   }
-  
+
   public NameValuePair nextNameValuePair(NameValuePairLocation location) {
-    if (nameValuePairList == null || location == null || location.isOutOfRange(nameValuePairList)) {
+    if (nameValuePairList == null || location == null
+        || location.isOutOfRange(nameValuePairList)) {
       return null;
     }
-    NameValuePair pair = (NameValuePair) nameValuePairList.get(location.getIndex());
+    NameValuePair pair = (NameValuePair) nameValuePairList.get(location
+        .getIndex());
     location.increment();
     return pair;
   }
@@ -387,8 +392,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
    * @param attributeName
    * @return
    */
-  public HashMap getAttributeValues(String sectionType,
-      String attributeName) {
+  public HashMap getAttributeValues(String sectionType, String attributeName) {
     if (sectionType == null || attributeName == null || sectionList == null) {
       return null;
     }
@@ -409,8 +413,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
     while (section != null) {
       try {
         String sectionName = section.getName();
-        String attributeValue = section.getAttribute(attributeName)
-            .getValue();
+        String attributeValue = section.getAttribute(attributeName).getValue();
         attributeValues.put(sectionName, attributeValue);
       }
       catch (NullPointerException e) {
@@ -449,8 +452,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
    * @param axisID
    * @param envVariable
    */
-  private File setAutodocFile(String name, AxisID axisID,
-      String envVariable) {
+  private File setAutodocFile(String name, AxisID axisID, String envVariable) {
     File dir = getTestAutodocDir();
     if (dir != null) {
       return getAutodocFile(dir, name);
@@ -523,7 +525,11 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
     return dir;
   }
 
-  private  File getDir(String envVariable, String dirName, AxisID axisID) {
+  public String getString() {
+    return autodocFile.getAbsolutePath();
+  }
+
+  private File getDir(String envVariable, String dirName, AxisID axisID) {
     File parentDir = Utilities.getExistingDir(envVariable, axisID);
     if (parentDir == null) {
       return null;
@@ -579,7 +585,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
       //parser.test(false);
       //parser.test(true);
       //parser.test(false, true);
-      parser.test(true, true);
+      //parser.test(true, true);
     }
     else {
       parser.initialize();
@@ -591,6 +597,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.1  2006/01/12 17:02:22  sueh
+ *<p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ *<p> $
  *<p> $Revision 1.25  2006/01/11 21:55:25  sueh
  *<p> $bug# 675 Removed attributeList.  Added attributeMap and
  *<p> $nameValuePairList.  Removed getAttributeLocation and nextAttribute.
