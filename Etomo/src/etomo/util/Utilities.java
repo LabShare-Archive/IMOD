@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.42  2006/04/07 23:32:57  sueh
+ * <p> $bug# 846 Changing the background colors for java 1.5.
+ * <p> $
  * <p> $Revision 3.41  2006/04/06 20:34:58  sueh
  * <p> $bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> $util.Utilities.
@@ -504,8 +507,8 @@ public class Utilities {
 
     if (osName.startsWith("Windows")) {
       String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo "
-          + var, axisID);
+      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo " + var,
+          axisID);
       try {
         readEnvVar.run();
       }
@@ -534,7 +537,7 @@ public class Utilities {
         return stdout[0];
       }
     }
-    
+
     //  Non windows environment
     else {
       readEnvVar = new SystemProgram(propertyUserDir, "env", axisID);
@@ -786,7 +789,7 @@ public class Utilities {
     startTime = new Date().getTime();
   }
 
-  private static String getTimestamp() {
+  public static String getTimestamp() {
     return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
   }
 
@@ -798,7 +801,7 @@ public class Utilities {
     }
     return windowsOS;
   }
-  
+
   public static boolean isJava1_5() {
     if (!setJava1_5) {
       String osName = System.getProperty("java.version").toLowerCase();
@@ -1002,8 +1005,7 @@ public class Utilities {
     if (envVariable == null || envVariable.matches("\\s*+")) {
       return null;
     }
-    String dirName = getEnvironmentVariable(null, envVariable,
-        axisID);
+    String dirName = getEnvironmentVariable(null, envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*+")) {
       return null;
     }
@@ -1032,7 +1034,7 @@ public class Utilities {
     }
     return true;
   }
-  
+
   /**
    * Convert a UI label to a name that can be used as a key. The returned string
    * should contain no whitespace.  A single dash is used to separate words.
@@ -1093,7 +1095,9 @@ public class Utilities {
         if (token.equals(Token.SYMBOL, '-')) {
           buffer.append(' ');
         }
-        else {
+        //Remove "." because it is recognized by autodoc.  Assuming that the "."
+        //is from an abbreviation.
+        else if (!token.equals(Token.SYMBOL, '.')) {
           buffer.append(token.getValue());
         }
       }
