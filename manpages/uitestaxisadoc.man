@@ -36,11 +36,6 @@ Also changes the default timeout setting used with \fBpopup\fR attribute.
 One entry per file.  See Note 2.
 
 .TP
-.B sleep.bn = \fIsleep_length
-Changes the sleep setting used with buttons (\fBbn\fR).
-One entry per file.  See Note 3.
-
-.TP
 .B testfrom = \fR[\fIDialog_name\fR]
 Tells the test program to start at the Dialog Section called \fIDialog_name\fR.
 Only one \fBtestfrom\fR can be used.
@@ -85,9 +80,10 @@ It may not use any of the \fBGlobal Attributes\fR, except \fBVersion\fR.
 This attribute allows a set of attributes to be kept in a separate file and reused.
 
 .TP
-.B assert.\fR(\fBrb\fR|\fBbn\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
-Uses JUnit assert functionality to assert that a JRadioButton (\fBrb\fR) or JToggleButton
-(\fBbn\fR) named \fIname\fR is selected (\fB1\fR) or not selected (\fB0\fR).
+.B assert.\fR(\fBbn\fR|\fBcb\fR|\fBmb\fR|\fBrb\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
+Uses JUnit assert functionality to assert that a JCheckBox (\fBcb\fR), JRadioButton (\fBrb\fR), or JToggleButton
+(\fBbn\fR) named \fIname\fR is selected (\fB1\fR) or not selected (\fB0\fR);
+or, in the case of a mini-button, expanded or not expanded.
 A blank value asserts that the button is not selected.  The JToggleButton has a darker color when
 it is selected.  If the button is a JButton, this assert will always fail.
 See Note 1.
@@ -100,18 +96,29 @@ contains the value
 See Note 1.
 
 .TP
-.B assert.\fR(\fBbn\fR|\fBrb\fR|\fBtf\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB.enabled = \fR[\fB0\fR|\fB1\fR]
+.B assert.\fR(\fBbn\fR|\fBcb\fR|\fBmb\fR|\fBrb\fR|\fBtf\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB.enabled = \fR[\fB0\fR|\fB1\fR]
 Uses JUnit assert functionality to assert that a button or field named \fIname\fR is
 enabled (\fB1\fR) or disabled (\fB0\fR).
 A blank value asserts that the button or field is disabled.
 See Note 1.
 
 .TP
-.B bn.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fIsleep_length\fR]
+.B bn.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
 Used to click a button.  Clicks button named \fIname\fR.  The button may be
 either a JButton or a JToggleButton.
-The test program will sleep after the button is pressed.
-See Note 1 and Note 3.
+The value can be used to force the button to be either selected (\fB1\fR)
+or not selected (\fB0\fR).  If the button matches the value, it will not be
+pressed.  If the button is a JButton, the value will be ignored.
+The test program will sleep for 100 milliseconds after the button is pressed.
+See Note 1.
+
+.TP
+.B cb.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
+Used to check or uncheck a check box.  Selects a JCheckBox named \fIname\fR.
+The value can be used to force the check box to be either checked (\fB1\fR)
+or unchecked (\fB0\fR).  If the check box matches the value, it will not be
+changed.
+See Note 1.
 
 .TP
 .B copy = \fIfile_name
@@ -121,14 +128,25 @@ the source directory last set in the current section of \fBuitest.adoc\fR.
 \fIFile_name\fR may contain two variables:  \fB%dataset\fR and \fB%axis\fR.
 
 .TP
-.B exit =
-Causes Etomo to exit.  Popups on exit will be handled by Etomo.  In a dual axis
-test \fBexit\fR can be preceded for a \fBwaitfor\fR attribute set to the last
-Dialog Section on the other axis.
+.B mb.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
+Used to click a mini-button - a small square button that
+is used to change the amount of information a panel or column header displays.
+The mini-button name will be derived from the panel or column
+header title and the type of the mini-button ("open", "advanced", or "more").
+An "open" mini-button uses the symbols "+" and "-".
+An "advanced" mini-button uses the symbols "A" and "B".
+A "more" mini-button uses the symbols ">" and "<".
+The value (\fB1\fR) can be used to force the panel or column header controlled
+by the mini-button to be expanded (open, advanced, or more).
+The value (\fB0\fR) can be used to force the panel or column header to be contracted
+(closed, basic, or less).
+If the state of the panel or column header matches the value, the mini-button will not
+be pressed.
+See Note 1.
 
 .TP
 .B rb.\fIname\fR[\fB.\fIindex\fR]\fB =
-Used to click a radio button.  Clicks a JRadioButton named \fIname\fR.
+Used to select a radio button.  Selects a JRadioButton named \fIname\fR.
 See Note 1.
 
 .TP
@@ -140,6 +158,13 @@ sleep length.  See Note 2.
 .B sp.\fIname\fR[\fB.\fIindex\fR]\fB = \fR(\fBup\fR|\fBdown\fR)
 Used to spin a spinner.  Clicks the up or down arrow of a JSpinner named \fIname\fR once.
 See Note 1.
+
+.TP
+.B stop =
+Used to stop testing of an axis before the end of the autodoc is reached.
+Any attributes and sections following the \fBstop\fR attribute will be ignored.
+If one axis is stopped, a \fBwaitfor\fR on the other axis for a dialog
+that has not been completed will cause the other axis to stop.
 
 .TP
 .B tf.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR]
@@ -175,16 +200,16 @@ process never completes, the test program will wait until it exceeds
 the duration set in \fBuitest.adoc\fR and fails.
 
 .TP
-.B %\fR[\fB{\fR]\fBaxis\fR[\fB}\fR]
+(\fB%axis\fR|\fB%{axis}\fR)
 A variable which can be used with the \fBcopy\fR attribute.
 The value of \fB%axis\fR is based on the \fBadoc\fR attribute from the \fBuitest.adoc\fR.
-Use the {}'s unless the variable is preceded by a file separator character ("/" on Linux).
+Use the {}'s unless the variable is followed by a file separator character ("/" on Linux).
 
 .TP
-.B %\fR[\fB{\fR]\fBdataset\fR[\fB}\fR]
+(\fB%dataset\fR|\fB%{dataset}\fR)
 A variable which can be used with the \fBcopy\fR attribute.
 The value of \fB%dataset\fR is based on the \fBdataset\fR attribute from the \fBuitest.adoc\fR.
-Use the {}'s unless the variable is preceded by a file separator character ("/" on Linux).
+Use the {}'s unless the variable is followed by a file separator character ("/" on Linux).
 
 .TP
 Note 1: \fIindex
@@ -200,14 +225,6 @@ It is used with the section-level \fBsleep\fR attribute.
 It defaults (in order) to the global-level \fBsleep\fR attribute,
 the global-level \fBsleep\fR attribute in \fBuitest.adoc\fR,
 or 1000 milliseconds.
-
-.TP
-Note 3: \fIbutton_sleep_length
-The  \fIbutton_sleep_length\fR refers to the number of
-milliseconds to sleep after a button has been pressed.
-It is used with the \fBbn\fR attribute.
-It defaults (in order) to the global-level \fBsleep.bn\fR attribute,
-or 100 milliseconds.
 
 .SH AUTHOR
 Written by Sue Held.
