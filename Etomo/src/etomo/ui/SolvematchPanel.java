@@ -39,6 +39,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2006/03/27 21:07:03  sueh
+ * <p> bug# 836 Added DialogType to PanelHeader get instances functions so
+ * <p> that the buttons in PanelHeader could save themselves.
+ * <p>
  * <p> Revision 3.18  2006/03/16 01:59:33  sueh
  * <p> bug# 828 SolvematchPanel doesn't need to implement InitialCombineFields.
  * <p>
@@ -198,7 +202,7 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    header = PanelHeader.getInstance(headerGroup, "Solvematch Parameters", this, parent.getDialogType());
+    header = PanelHeader.getInstance("Solvematch Parameters", this, parent.getDialogType());
     pnlRoot.add(header.getContainer());
     pnlRoot.add(pnlBody);
 

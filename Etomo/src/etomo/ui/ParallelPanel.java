@@ -21,7 +21,6 @@ import etomo.process.ParallelProcessMonitor;
 import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
-import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
@@ -118,8 +117,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
     //header
-    header = PanelHeader.getMoreLessInstance(
-        BaseScreenState.PARALLEL_HEADER_GROUP, TITLE, this, null);
+    header = PanelHeader.getMoreLessInstance(TITLE, this, null);
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
@@ -466,6 +464,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2006/03/27 21:05:56  sueh
+ * <p> bug# 836 Added DialogType to PanelHeader get instances functions so
+ * <p> that the buttons in PanelHeader could save themselves.
+ * <p>
  * <p> Revision 1.34  2006/02/15 18:53:05  sueh
  * <p> bug# 796 remove unnecessary import
  * <p>

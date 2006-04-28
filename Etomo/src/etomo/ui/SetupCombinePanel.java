@@ -49,6 +49,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.34  2006/03/27 21:06:15  sueh
+ * bug# 836 Added DialogType to PanelHeader get instances functions so
+ * that the buttons in PanelHeader could save themselves.
+ *
  * Revision 3.33  2006/03/16 01:58:53  sueh
  * bug# 828 Added isEnabled() - always returns true.  Added
  * getScreenMatchMode() - returns the state of rbBtoA with a MatchMode.
@@ -404,7 +408,6 @@ public final class SetupCombinePanel implements ContextMenu,
     bgToSelector.add(rbBtoA);
     pnlToSelector.setBorder(BorderFactory.createEtchedBorder());
     toSelectorHeader = PanelHeader.getInstance(
-        ReconScreenState.COMBINE_SETUP_TO_SELECTOR_HEADER_GROUP,
         "Tomogram Matching Relationship", this, dialogType);
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
@@ -458,7 +461,6 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlPatchParamsBody.add(pnlPatchRegion);
     pnlPatchParams.setBorder(BorderFactory.createEtchedBorder());
     patchParamsHeader = PanelHeader.getInstance(
-        ReconScreenState.COMBINE_SETUP_PATCHCORR_HEADER_GROUP,
         "Patch Parameters for Refining Alignment", this, dialogType);
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
     pnlPatchParams.add(patchParamsHeader.getContainer());
@@ -468,9 +470,8 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlVolcombineControls.setLayout(new BoxLayout(pnlVolcombineControls,
         BoxLayout.Y_AXIS));
     pnlVolcombineControls.setBorder(BorderFactory.createEtchedBorder());
-    volcombineHeader = PanelHeader.getInstance(
-        ReconScreenState.COMBINE_SETUP_VOLCOMBINE_HEADER_GROUP,
-        "Volcombine Controls", this, dialogType);
+    volcombineHeader = PanelHeader.getInstance("Volcombine Controls", this,
+        dialogType);
     pnlVolcombineControls.add(volcombineHeader.getContainer());
     pnlVolcombineControlsBody.setLayout(new BoxLayout(
         pnlVolcombineControlsBody, BoxLayout.Y_AXIS));
@@ -490,9 +491,8 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlTempDirectoryBody.add(cbManualCleanup);
 
     pnlTempDirectory.setBorder(BorderFactory.createEtchedBorder());
-    tempDirectoryHeader = PanelHeader.getInstance(
-        ReconScreenState.COMBINE_SETUP_TEMP_DIR_HEADER_GROUP,
-        "Intermediate Data Storage", this, dialogType);
+    tempDirectoryHeader = PanelHeader.getInstance("Intermediate Data Storage",
+        this, dialogType);
     pnlTempDirectory
         .setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
     pnlTempDirectory.add(tempDirectoryHeader.getContainer());
@@ -550,10 +550,10 @@ public final class SetupCombinePanel implements ContextMenu,
     updateStartCombine();
     setToolTipText();
   }
-  
+
   static ProcessResultDisplay getCreateCombineDisplay(DialogType dialogType) {
-    return MultiLineButton
-    .getToggleButtonInstance("Create Combine Scripts", dialogType);
+    return MultiLineButton.getToggleButtonInstance("Create Combine Scripts",
+        dialogType);
   }
 
   static ProcessResultDisplay getCombineDisplay(DialogType dialogType) {
@@ -623,7 +623,7 @@ public final class SetupCombinePanel implements ContextMenu,
     tempDirectoryHeader.getState(screenState
         .getCombineSetupTempDirHeaderState());
   }
-  
+
   void setParameters(ReconScreenState screenState) {
     toSelectorHeader.setState(screenState
         .getCombineSetupToSelectorHeaderState());
@@ -640,11 +640,11 @@ public final class SetupCombinePanel implements ContextMenu,
     btnCombine.setButtonState(screenState.getButtonState(btnCombine
         .getButtonStateKey()));
   }
-  
+
   public boolean isEnabled() {
     return true;
   }
-  
+
   MatchMode getScreenMatchMode() {
     if (rbBtoA.isSelected()) {
       return MatchMode.B_TO_A;

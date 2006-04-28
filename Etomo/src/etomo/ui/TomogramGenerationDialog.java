@@ -71,6 +71,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.86  2006/03/27 21:08:12  sueh
+ * bug# 836 Added DialogType to PanelHeader get instances functions so
+ * that the buttons in PanelHeader could save themselves.
+ *
  * Revision 3.85  2006/03/22 00:36:53  sueh
  * bug# 836 buttonAction:  removed unnecessary calls to MultiLineButton.
  * msgProcessStarting.
@@ -1204,12 +1208,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = PanelHeader.getInstance(
-          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Blendmont", this, dialogType);
+      newstHeader = PanelHeader.getInstance("Blendmont", this, dialogType);
     }
     else {
-      newstHeader = PanelHeader.getInstance(
-          ReconScreenState.TOMO_GEN_NEWST_HEADER_GROUP, "Newstack", this, dialogType);
+      newstHeader = PanelHeader.getInstance("Newstack", this, dialogType);
     }
     //initialization
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
@@ -1262,7 +1264,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     filterHeader = PanelHeader.getAdvancedBasicInstance(
-        ReconScreenState.TOMO_GEN_MTFFILTER_HEADER_GROUP,
         "2D Filtering (optional)", this, dialogType);
     //buttonPanel
     buttonPanel.add(btnFilter);
@@ -1328,8 +1329,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     SpacedPanel buttonPanel = new SpacedPanel(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    tiltHeader = PanelHeader.getAdvancedBasicInstance(
-        ReconScreenState.TOMO_GEN_TILT_HEADER_GROUP, "Tilt", this, dialogType);
+    tiltHeader = PanelHeader.getAdvancedBasicInstance("Tilt", this, dialogType);
     //buttonPanel
     buttonPanel.add(btnTilt);
     buttonPanel.add(btn3dmodTomogram);
@@ -1404,8 +1404,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     SpacedPanel buttonPanel = new SpacedPanel();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
-    trialHeader = PanelHeader.getInstance(
-        ReconScreenState.TOMO_GEN_TRIAL_TILT_HEADER_GROUP, "Trial Tilt", this, dialogType);
+    trialHeader = PanelHeader.getInstance("Trial Tilt", this, dialogType);
     //buttonPanel
     buttonPanel.add(btnTrial);
     buttonPanel.add(btn3dmodTrial);
