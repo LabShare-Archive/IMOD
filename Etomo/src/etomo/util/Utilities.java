@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.43  2006/04/25 19:42:03  sueh
+ * <p> $bug# 787 Made getTimestamp() public.
+ * <p> $
  * <p> $Revision 3.42  2006/04/07 23:32:57  sueh
  * <p> $bug# 846 Changing the background colors for java 1.5.
  * <p> $
@@ -1111,6 +1114,10 @@ public class Utilities {
     }
     //Load the processed string into the tokenizer
     name = buffer.toString().trim();
+    //handle a string with nothing but strippable characters in it
+    if (name.length() == 0) {
+      return "-";
+    }
     tokenizer = new PrimativeTokenizer(name);
     buffer = new StringBuffer();
     try {
