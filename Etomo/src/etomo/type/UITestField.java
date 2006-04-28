@@ -17,6 +17,7 @@ public class UITestField {
   
   private static final String BUTTON_STRING = "bn";
   private static final String CHECK_BOX_STRING = "cb";
+  private static final String MINI_BUTTON_STRING = "mb";
   private static final String POPUP_STRING = "popup";
   private static final String PROCESS_STRING = "process";
   private static final String RADIO_BUTTON_STRING = "rb";
@@ -26,6 +27,7 @@ public class UITestField {
   
   public static final UITestField BUTTON = new UITestField(BUTTON_STRING);
   public static final UITestField CHECK_BOX = new UITestField(CHECK_BOX_STRING);
+  public static final UITestField MINI_BUTTON = new UITestField(MINI_BUTTON_STRING);
   public static final UITestField POPUP = new UITestField(POPUP_STRING);
   public static final UITestField PROCESS = new UITestField(PROCESS_STRING);
   public static final UITestField RADIO_BUTTON = new UITestField(RADIO_BUTTON_STRING);
@@ -50,6 +52,9 @@ public class UITestField {
     if (field.equals(CHECK_BOX_STRING)) {
       return CHECK_BOX;
     }
+    if (field.equals(MINI_BUTTON_STRING)) {
+      return MINI_BUTTON;
+    }
     if (field.equals(POPUP_STRING)) {
       return POPUP;
     }
@@ -72,5 +77,9 @@ public class UITestField {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/04/25 18:59:16  sueh
+* <p> bug# 787 An enum style class which contains the fields found in
+* <p> uitestaxis.adoc files.
+* <p> </p>
 */
