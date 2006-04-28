@@ -56,6 +56,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.44  2006/03/27 21:03:25  sueh
+ * bug# 836 Added DialogType to PanelHeader get instances functions so
+ * that the buttons in PanelHeader could save themselves.
+ *
  * Revision 3.43  2006/03/16 01:55:37  sueh
  * bug# 828 Added isEnabled().  Returns true if the final tab is enabled.
  *
@@ -433,9 +437,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel,
         BoxLayout.Y_AXIS));
     pnlPatchRegionModel.setBorder(BorderFactory.createEtchedBorder());
-    patchRegionModelHeader = PanelHeader.getInstance(
-        ReconScreenState.COMBINE_FINAL_PATCH_REGION_HEADER_GROUP,
-        "Patch Region Model", this, dialogType);
+    patchRegionModelHeader = PanelHeader.getInstance("Patch Region Model",
+        this, dialogType);
     pnlPatchRegionModel.add(patchRegionModelHeader.getContainer());
     pnlPatchRegionModel.add(pnlPatchRegionModelBody.getContainer());
 
@@ -486,7 +489,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorr.setLayout(new BoxLayout(pnlPatchcorr, BoxLayout.Y_AXIS));
     pnlPatchcorr.setBorder(BorderFactory.createEtchedBorder());
     patchcorrHeader = PanelHeader.getAdvancedBasicInstance(
-        ReconScreenState.COMBINE_FINAL_PATCHCORR_HEADER_GROUP,
         "Patchcorr Parameters", this, dialogType);
     pnlPatchcorr.add(patchcorrHeader.getContainer());
     pnlPatchcorr.add(pnlPatchcorrBody.getContainer());
@@ -528,7 +530,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarp.setLayout(new BoxLayout(pnlMatchorwarp, BoxLayout.Y_AXIS));
     pnlMatchorwarp.setBorder(BorderFactory.createEtchedBorder());
     matchorwarpHeader = PanelHeader.getAdvancedBasicInstance(
-        ReconScreenState.COMBINE_FINAL_MATCHORWARP_HEADER_GROUP,
         "Matchorwarp Parameters", this, dialogType);
     pnlMatchorwarp.add(matchorwarpHeader.getContainer());
     pnlMatchorwarp.add(pnlMatchorwarpBody);
@@ -551,7 +552,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
     pnlVolcombine.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getAdvancedBasicInstance(
-        ReconScreenState.COMBINE_FINAL_VOLCOMBINE_HEADER_GROUP,
         "Volcombine Parameters", this, dialogType);
     pnlVolcombine.add(volcombineHeader.getContainer());
     pnlVolcombine.add(pnlVolcombineBody);
