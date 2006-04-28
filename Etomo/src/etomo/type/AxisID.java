@@ -13,6 +13,12 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/07/18 17:54:08  sueh
+ * <p> bug# 692 Removed selftest function in AxisID because there are too many
+ * <p> situations where it is valid for it to fail.  Remove
+ * <p> AxisID.getStorageExtension() because it is the same as getExtension
+ * <p> without the call to the selftest function.
+ * <p>
  * <p> Revision 3.6  2005/06/21 00:46:31  sueh
  * <p> bug# 962 selfTestGetExtension() can be private.
  * <p>
@@ -58,7 +64,9 @@ public class AxisID {
   public static final String rcsid =
     "$Id$";
 
-  private static final String ONLY_AXIS_NAME = "Only";
+  private static final String ONLY_EXT_STRING = "";
+  private static final String FIRST_EXT_STRING = "a";
+  private static final String SECOND_EXT_STRING = "b";
   
   private final String name;
 
@@ -66,7 +74,7 @@ public class AxisID {
     this.name = name;
   }
 
-  public static final AxisID ONLY = new AxisID(ONLY_AXIS_NAME);
+  public static final AxisID ONLY = new AxisID("Only");
   public static final AxisID FIRST = new AxisID("First");
   public static final AxisID SECOND = new AxisID("Second");
 
@@ -76,6 +84,19 @@ public class AxisID {
   public String toString() {
     return name;
   }
+  
+  public static AxisID getInstance(String extension) {
+    if (extension.equals(ONLY_EXT_STRING)) {
+      return ONLY;
+    }
+    if (extension.equals(FIRST_EXT_STRING)) {
+      return FIRST;
+    }
+    if (extension.equals(SECOND_EXT_STRING)) {
+      return SECOND;
+    }
+    return null;
+  }
 
   /**
    * Returns the extension associated with the specific AxisID.  Used for
@@ -83,13 +104,13 @@ public class AxisID {
    */
   public String getExtension() {
     if (this == ONLY) {
-      return "";
+      return ONLY_EXT_STRING;
     }
     if (this == FIRST) {
-      return "a";
+      return FIRST_EXT_STRING;
     }
     if (this == SECOND) {
-      return "b";
+      return SECOND_EXT_STRING;
     }
     return "ERROR";
   }
