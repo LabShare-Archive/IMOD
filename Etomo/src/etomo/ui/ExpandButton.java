@@ -7,10 +7,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 
+import etomo.EtomoDirector;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.DialogType;
+import etomo.type.UITestField;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: Button with a expanded state variable.  When expanded is true,
@@ -31,6 +36,11 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2006/03/28 17:02:24  sueh
+ * <p> bug# 437 Overrode getButtonState() and setButtonState because state
+ * <p> in an expand button is associated with expanded/not expanded instead of
+ * <p> selected/not selected.
+ * <p>
  * <p> Revision 1.11  2006/03/28 00:49:30  sueh
  * <p> bug# 437 Always turn on MultiLineButton.manualName because expander
  * <p> buttons' text is a symbol, not a name.  Override MultiLineButton.
@@ -93,52 +103,27 @@ import etomo.type.DialogType;
 final class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
 
-  private static final String CONTRACTED_MORE_LESS_TOOL_TIP = "Show more.";
-  private static final String EXPANDED_MORE_LESS_TOOL_TIP = "Show less.";
+  private static final Type DEFAULT_TYPE = Type.MORE;
 
-  private String contractedState = "less";
-  private String expandedState = "more";
-  private String contractSymbol = "<html>&lt";
-  private String expandSymbol = "<html>&gt";
-  private String contractedToolTip;
-  private String expandedToolTip;
+  private final Type type;
+  private final Expandable container;
 
-  private boolean expanded = false;
-  private Expandable container = null;
+  private boolean expanded;
 
-  static ExpandButton getMoreLessInstance(Expandable container) {
-    ExpandButton instance = new ExpandButton(container);
-    instance.initialize(CONTRACTED_MORE_LESS_TOOL_TIP,
-        EXPANDED_MORE_LESS_TOOL_TIP);
+  static ExpandButton getInstance(Expandable container, ExpandButton.Type type) {
+    if (type == null) {
+      type = DEFAULT_TYPE;
+    }
+    ExpandButton instance = new ExpandButton(container, type);
     return instance;
   }
 
-  static ExpandButton getMoreLessInstance(Expandable container,
-      boolean expanded) {
-    ExpandButton instance = new ExpandButton(container);
-    instance.expanded = expanded;
-    instance.initialize(CONTRACTED_MORE_LESS_TOOL_TIP,
-        EXPANDED_MORE_LESS_TOOL_TIP);
-    return instance;
-  }
-
-  static ExpandButton getInstance(Expandable container,
-      String contractSymbol, String expandSymbol, String contractedState,
-      String expandedState, String contractedToolTip, String expandedToolTip) {
-    ExpandButton instance = new ExpandButton(container, contractSymbol,
-        expandSymbol, contractedState, expandedState);
-    instance.initialize(contractedToolTip, expandedToolTip);
-    return instance;
-  }
-
-  static ExpandButton getInstance(Expandable container,
-      String contractSymbol, String expandSymbol, String contractedState,
-      String expandedState, boolean expanded, String contractedToolTip,
-      String expandedToolTip) {
-    ExpandButton instance = new ExpandButton(container, contractSymbol,
-        expandSymbol, contractedState, expandedState);
-    instance.expanded = expanded;
-    instance.initialize(contractedToolTip, expandedToolTip);
+  static ExpandButton getExpandedInstance(Expandable container,
+      ExpandButton.Type type) {
+    if (type == null) {
+      type = DEFAULT_TYPE;
+    }
+    ExpandButton instance = new ExpandButton(container, type, true);
     return instance;
   }
 
@@ -150,37 +135,19 @@ final class ExpandButton extends MultiLineButton {
    * The button can be used on any ui.
    * @param component
    */
-  private ExpandButton(Expandable container) {
-    super();
-    this.container = container;
+  private ExpandButton(Expandable container, ExpandButton.Type type) {
+    this(container, type, false);
   }
 
-  private ExpandButton(Expandable container, String contractSymbol,
-      String expandSymbol, String contractedState, String expandedState) {
+  private ExpandButton(Expandable container, ExpandButton.Type type,
+      boolean expanded) {
     super();
     this.container = container;
-    this.contractSymbol = contractSymbol;
-    this.expandSymbol = expandSymbol;
-    this.contractedState = contractedState;
-    this.expandedState = expandedState;
-  }
-
-  /**
-   * only called by constructor
-   *
-   */
-  private void initialize(String contractedToolTip, String expandedToolTip) {
-    this.contractedToolTip = contractedToolTip;
-    this.expandedToolTip = expandedToolTip;
+    this.type = type;
+    this.expanded = expanded;
     super.setManualName();
-    if (expanded) {
-      super.setText(contractSymbol);
-      setToolTipText(expandedToolTip);
-    }
-    else {
-      super.setText(expandSymbol);
-      setToolTipText(contractedToolTip);
-    }
+    super.setText(type.getSymbol(expanded));
+    setToolTipText(type.getToolTip(expanded));
     addActionListener(new ExpandButtonActionListener(this));
     setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     Dimension size = getPreferredSize();
@@ -191,13 +158,33 @@ final class ExpandButton extends MultiLineButton {
   }
 
   /**
+   * Calls the setName function of the button.  Called when the text is set,
+   * unless manualName is true.
+   * @param label
+   */
+  final void setName(String label) {
+    String name = Utilities.convertLabelToName(label) + "-"
+        + type.getExpandedState();
+    getButton().setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(UITestField.MINI_BUTTON.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+  }
+
+  /**
    * 
    * @return expanded
    */
   boolean isExpanded() {
     return expanded;
   }
-  
+
+  static boolean isExpanded(JButton button) {
+    return Type.isExpandedSymbol(button.getText());
+  }
+
   /**
    * Overrides MultiLineButton.createButtonStateKey.  Necessary because an
    * expander button doesn't have a done state.
@@ -209,7 +196,7 @@ final class ExpandButton extends MultiLineButton {
     setStateKey(stateKey);
     return stateKey;
   }
-  
+
   /**
    * Overrides super class.Returns isExpanded() since the button state is
    * expanded or contracted
@@ -218,27 +205,24 @@ final class ExpandButton extends MultiLineButton {
   boolean getButtonState() {
     return isExpanded();
   }
-  
+
   final void setButtonState(boolean state) {
     setOriginalProcessResultDisplayState(state);
     setExpanded(state);
   }
 
   String getState() {
-    if (expanded) {
-      return expandedState;
-    }
-    return contractedState;
+    return type.getState(expanded);
   }
 
   void setState(String state) {
     if (state == null) {
       return;
     }
-    if (state.equals(expandedState) && !expanded) {
+    if (state.equals(type.getExpandedState()) && !expanded) {
       setExpanded(true);
     }
-    else if (state.equals(contractedState) && expanded) {
+    else if (state.equals(type.getContractedState()) && expanded) {
       setExpanded(false);
     }
   }
@@ -265,7 +249,7 @@ final class ExpandButton extends MultiLineButton {
    * @param expanded
    */
   public void setExpanded(boolean expanded) {
-    //prevent buttonAction from ignore an unchanged button value
+    //prevent buttonAction from ignoring an unchanged button value
     if (this.expanded == expanded) {
       this.expanded = !expanded;
     }
@@ -279,16 +263,9 @@ final class ExpandButton extends MultiLineButton {
    * the expand state.
    */
   protected void buttonAction() {
-    if (expanded) {
-      expanded = false;
-      super.setText(expandSymbol);
-      setToolTipText(contractedToolTip);
-    }
-    else {
-      expanded = true;
-      super.setText(contractSymbol);
-      setToolTipText(expandedToolTip);
-    }
+    expanded = !expanded;
+    super.setText(type.getSymbol(expanded));
+    setToolTipText(type.getToolTip(expanded));
     if (container == null) {
       return;
     }
@@ -308,6 +285,75 @@ final class ExpandButton extends MultiLineButton {
 
     public void actionPerformed(ActionEvent event) {
       adaptee.buttonAction();
+    }
+  }
+
+  static final class Type {
+
+    private static final String MORE_EXPANDED_SYMBOL = "<html>&lt";
+    private static final String ADVANCED_EXPANDED_SYMBOL = "B";
+    private static final String OPEN_EXPANDED_SYMBOL = "-";
+
+    static final Type MORE = new Type("more", MORE_EXPANDED_SYMBOL,
+        "Show less.", "less", "<html>&gt", "Show more.");
+    static final Type ADVANCED = new Type("advanced", ADVANCED_EXPANDED_SYMBOL,
+        "Show basic options.", "basic", "A", "Show all options.");
+    static final Type OPEN = new Type("open", OPEN_EXPANDED_SYMBOL,
+        "Close panel.", "closed", "+", "Open panel.");
+
+    private final String expandedState;
+    private final String expandedSymbol;
+    private final String expandedToolTip;
+    private final String contractedState;
+    private final String contractedSymbol;
+    private final String contractedToolTip;
+
+    private Type(String expandedState, String expandedSymbol,
+        String expandedToolTip, String contractedState,
+        String contractedSymbol, String contractedToolTip) {
+      this.expandedState = expandedState;
+      this.expandedSymbol = expandedSymbol;
+      this.expandedToolTip = expandedToolTip;
+      this.contractedState = contractedState;
+      this.contractedSymbol = contractedSymbol;
+      this.contractedToolTip = contractedToolTip;
+    }
+
+    static boolean isExpandedSymbol(String symbol) {
+      symbol = Utilities.convertLabelToName(symbol);
+      return symbol.equals(Utilities.convertLabelToName(MORE_EXPANDED_SYMBOL))
+          || symbol.equals(Utilities
+              .convertLabelToName(ADVANCED_EXPANDED_SYMBOL))
+          || symbol.equals(Utilities.convertLabelToName(OPEN_EXPANDED_SYMBOL));
+    }
+
+    String getState(boolean expanded) {
+      if (expanded) {
+        return expandedState;
+      }
+      return contractedState;
+    }
+
+    String getExpandedState() {
+      return expandedState;
+    }
+
+    String getContractedState() {
+      return contractedState;
+    }
+
+    String getSymbol(boolean expanded) {
+      if (expanded) {
+        return expandedSymbol;
+      }
+      return contractedSymbol;
+    }
+
+    String getToolTip(boolean expanded) {
+      if (expanded) {
+        return expandedToolTip;
+      }
+      return contractedToolTip;
     }
   }
 }
