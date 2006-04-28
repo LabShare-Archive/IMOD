@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2006/04/06 20:18:51  sueh
+ * <p> bug# 808 Calling functions in JoinState when deleting or moving a row.
+ * <p>
  * <p> Revision 1.25  2006/03/21 19:40:11  sueh
  * <p> bug# 807 In displayCurTab():  moved all calculations and saved integers,
  * <p> used for displaying the align tab, to SectionTableRow.  Passing the previous
@@ -308,6 +311,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private static final String flipWarning[] = {
       "Tomograms have to be flipped after generation",
       "in order to be in the right orientation for joining serial sections." };
+  private static final String HEADER1_SECTIONS_LABEL = "Sections";
 
   private final JPanel rootPanel = new JPanel();
   private final SpacedPanel pnlBorder = new SpacedPanel();
@@ -328,10 +332,10 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       "Get Angles from Slicer");
   //first header row
   private final HeaderCell header1Order = new HeaderCell("Order");
-  private final HeaderCell header1SetupSections = new HeaderCell("Sections",
+  private final HeaderCell header1SetupSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
       FixedDim.sectionsWidth);
   private ExpandButton button1ExpandSections = null;
-  private final HeaderCell header1JoinSections = new HeaderCell("Sections",
+  private final HeaderCell header1JoinSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
       FixedDim.sectionsWidth);
   private final HeaderCell header1Sample = new HeaderCell("Sample Slices");
   private final HeaderCell header1SlicesInSample = new HeaderCell("Slices in");
@@ -410,7 +414,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
-    button1ExpandSections = ExpandButton.getMoreLessInstance(this);
+    button1ExpandSections = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    button1ExpandSections.setName(HEADER1_SECTIONS_LABEL);
     addTablePanelComponents();
     //buttons
     createButtonsPanel();
