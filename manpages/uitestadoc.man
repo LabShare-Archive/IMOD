@@ -98,11 +98,12 @@ Default:  Test_section_name.
 .fi
 
 .TP
-.B datasetdir\fR[\fB.keep\fR]\fB = \fIrelative_directory_path
+.B datasetdir\fR[\fB.keep\fR]\fB = \fR[\fIrelative_directory_path\fR]
 The directory path relative to the test directory which
 will contain the test dataset for the current test.
-IMPORTANT:  Unless the \fBkeep\fR option is used, this directory will be deleted
-and recreated each time the test is run.
+The \fBdatasetdir\fR entry must appear before the first \fBcopy\fR entry, or it will be ignored.
+Use the \fBkeep\fR option is used to prevent the test directory for
+this section from being deleted and recreated each time the test is run.
 See \fBtestdir\fR in Global Attributes.
 The absolute directory path will be /testdir/\fIrelative_directory_path\fR.
 One entry per Test section.
@@ -112,10 +113,15 @@ Default absolute path:  /testdir/Test_section_name.
 
 .TP
 .B duration = \fR[\fIdays\fR]\fI:\fR[\fIhours\fR]\fI:\fR[\fIminutes\fR]\fI:\fR[\fIseconds\fR]
-Required - duration must be greater then zero:  Causes the test program to end
-after the interval specified, if it has not already completed.  If the test
-program ends this way, it reports a failure.  This attribute ensures the
-completion of a test program which is waiting for a dialog, process, or popup.  
+Duration causes the test program to end after the interval specified,
+if it has not already completed.
+If the test program ends this way,
+it reports a failure.
+This attribute ensures the completion of a test program which is waiting for a dialog,
+process, or popup. 
+.nf
+Default duration:  15 minutes.
+.fi 
 
 .TP
 .B fiducial-diameter = \fIfiducial_diameter
