@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2006/03/20 18:06:56  sueh
+ * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+ * <p>
  * <p> Revision 3.18  2006/01/31 20:32:52  sueh
  * <p> bug# 521 Added overrideable function done() to do clean up before the
  * <p> reference to a dialog is set to null.  This is important for removing
@@ -169,7 +172,7 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestConstants.DIALOG_SECTION_TYPE
+      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestAxisSectionCommand.SECTION_TYPE
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
     }
