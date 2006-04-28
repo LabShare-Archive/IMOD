@@ -41,6 +41,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/04/25 19:17:01  sueh
+ * <p> bug# 787 Added UITestField, an enum style class which contains the
+ * <p> fields found in uitestaxis.adoc files.
+ * <p>
  * <p> Revision 3.19  2006/04/06 20:17:14  sueh
  * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> util.Utilities.
@@ -180,6 +184,10 @@ class MultiLineButton implements ProcessResultDisplay {
     init();
     processResultDisplayState = new ProcessResultDisplayState(this);
   }
+  
+  static final MultiLineButton getToggleButtonInstance() {
+    return new MultiLineButton(null, true, null);
+  }
 
   static final MultiLineButton getToggleButtonInstance(String label,
       DialogType dialogType) {
@@ -246,7 +254,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * unless manualName is true.
    * @param label
    */
-  final void setName(String label) {
+  void setName(String label) {
     String name = Utilities.convertLabelToName(label);
     button.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
@@ -254,6 +262,10 @@ class MultiLineButton implements ProcessResultDisplay {
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
+  }
+  
+  protected final AbstractButton getButton() {
+    return button;
   }
 
   public final String getName() {
