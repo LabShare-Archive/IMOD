@@ -13,7 +13,6 @@ import javax.swing.JSeparator;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.PanelHeaderState;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -41,31 +40,24 @@ final class PanelHeader implements Expandable {
   private final ExpandButton btnOpenClose;
   private final HeaderCell cellTitle;
 
-  private final String group;
   private final DialogType dialogType;
 
   private ExpandButton btnAdvancedBasic = null;
   private ExpandButton btnMoreLess = null;
 
-  static PanelHeader getInstance(String group, String title, Expandable panel,
+  static PanelHeader getInstance(String title, Expandable panel,
       DialogType dialogType) {
-    return new PanelHeader(group, title, panel, false, false, dialogType);
-  }
-
-  static PanelHeader getAdvancedBasicInstance(String group, String title,
-      Expandable panel, DialogType dialogType) {
-    return new PanelHeader(group, title, panel, true, false, dialogType);
+    return new PanelHeader(title, panel, false, false, dialogType);
   }
 
   static PanelHeader getAdvancedBasicInstance(String title, Expandable panel,
       DialogType dialogType) {
-    return new PanelHeader(Utilities.convertLabelToName(title) + ".Header", title, panel,
-        true, false, dialogType);
+    return new PanelHeader(title, panel, true, false, dialogType);
   }
 
-  static PanelHeader getMoreLessInstance(String group, String title,
-      Expandable panel, DialogType dialogType) {
-    return new PanelHeader(group, title, panel, false, true, dialogType);
+  static PanelHeader getMoreLessInstance(String title, Expandable panel,
+      DialogType dialogType) {
+    return new PanelHeader(title, panel, false, true, dialogType);
   }
 
   /**
@@ -78,9 +70,8 @@ final class PanelHeader implements Expandable {
    * @param advancedBasic - true if an advance/basic button should be created
    * @param moreLess - true if an more/less button should be created
    */
-  private PanelHeader(String group, String title, Expandable panel,
-      boolean advancedBasic, boolean moreLess, DialogType dialogType) {
-    this.group = group;
+  private PanelHeader(String title, Expandable panel, boolean advancedBasic,
+      boolean moreLess, DialogType dialogType) {
     this.panel = panel;
     this.dialogType = dialogType;
     //panels
@@ -95,9 +86,9 @@ final class PanelHeader implements Expandable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     //open/close button - default: open
-    btnOpenClose = ExpandButton.getInstance(this, "-", "+", "closed", "open",
-        true, "Open panel.", "Close panel.");
-    btnOpenClose.setName(title + " open");
+    btnOpenClose = ExpandButton.getExpandedInstance(this,
+        ExpandButton.Type.OPEN);
+    btnOpenClose.setName(title);
     layout.setConstraints(btnOpenClose.getComponent(), constraints);
     northPanel.add(btnOpenClose.getComponent());
     //title
@@ -114,9 +105,9 @@ final class PanelHeader implements Expandable {
       if (!moreLess) {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
       }
-      btnAdvancedBasic = ExpandButton.getInstance(panel, "B", "A", "basic",
-          "advanced", "Show all options.", "Show basic options.");
-      btnAdvancedBasic.setName(title + " advanced");
+      btnAdvancedBasic = ExpandButton.getInstance(panel,
+          ExpandButton.Type.ADVANCED);
+      btnAdvancedBasic.setName(title);
       layout.setConstraints(btnAdvancedBasic.getComponent(), constraints);
       northPanel.add(btnAdvancedBasic.getComponent());
     }
@@ -124,8 +115,9 @@ final class PanelHeader implements Expandable {
     if (moreLess) {
       constraints.weightx = 0.0;
       constraints.weighty = 0.0;
-      btnMoreLess = ExpandButton.getMoreLessInstance(panel, true);
-      btnMoreLess.setName(title + " more");
+      btnMoreLess = ExpandButton.getExpandedInstance(panel,
+          ExpandButton.Type.MORE);
+      btnMoreLess.setName(title);
       layout.setConstraints(btnMoreLess.getComponent(), constraints);
       northPanel.add(btnMoreLess.getComponent());
     }
@@ -239,6 +231,9 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2006/04/10 19:09:11  sueh
+ * <p> bug# 846 Use the default color for the cell title.
+ * <p>
  * <p> Revision 1.19  2006/04/06 20:17:29  sueh
  * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> util.Utilities.
