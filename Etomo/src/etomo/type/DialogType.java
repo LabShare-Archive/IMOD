@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2006/04/25 18:56:17  sueh
+ * <p> bug# 787 Added getInstance(String).
+ * <p>
  * <p> Revision 1.5  2006/03/20 17:57:34  sueh
  * <p> bug# 835 Added the PARALLEL dialog, made DialogType work with
  * <p> different managers instead of just ApplicationManager.
@@ -190,6 +193,13 @@ public final class DialogType {
       }
     }
     return "";
+  }
+  
+  public boolean equals(String storableName) {
+    if (storableName == null) {
+      return false;
+    }
+    return getStorableName(tabType, index).equals(storableName);
   }
   
   /**
