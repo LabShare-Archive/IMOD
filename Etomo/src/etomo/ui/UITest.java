@@ -3,6 +3,7 @@ package etomo.ui;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import etomo.EtomoDirector;
 import etomo.JfcUnitTests;
@@ -41,15 +42,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   static final long DEFAULT_SLEEP = 1000;
   static final String DATASET_ATTRIB = "dataset";
 
-  private static final String SOURCE_DIR_ATTRIB = "source";
-  private static final String[] ARGS = new String[] { "--selftest", "--test"/*, "--names"*/};
-  private static final String FIDUCIAL_DIAMETER_ATTRIB = "fiducial-diameter";
-  private static final String ADOC_ATTRIB = "adoc";
-  private static final String COPY_ATTRIB = "copy";
-  private static final String DATASET_DIR_ATTRIB = "datasetdir";
-  private static final String KEEP_ATTRIB = "keep";
-  private static final String DURATION_ATTRIB = "duration";
-  private static final String DATAFILE_ATTRIB = "datafile";
+  private static final String[] ARGS = new String[] { "--selftest",
+      "--test"/*, "--names"*/, "--memory" };
 
   private AdocCommandReader reader = null;
   private File testDir = null;
@@ -58,7 +52,6 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   private JFCTestHelper helper = null;
   private EtomoDirector etomo = null;
   private long sleep = DEFAULT_SLEEP;
-  private double fiducialDiameter = 0;
   private String dataset = null;
   private boolean keep = false;
   private UITestAxis axisAUITest = null;
@@ -69,6 +62,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   private AxisID axisIDA = null;
   private AxisID axisIDB = null;
   private String dataFileName = null;
+  private ArrayList variablesA = null;
+  private ArrayList variablesB = null;
 
   protected void setUp() throws Exception {
     super.setUp();
@@ -146,22 +141,6 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     runAxisLevelTests();
   }
 
-  /**
-   * set fiducial diameter
-   * @param autodoc
-   */
-  private void setFiducialDiameter(UITestSectionCommand command) {
-    String value = command.getValue();
-    assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
-        + command, value);
-    try {
-      fiducialDiameter = Double.parseDouble(value);
-    }
-    catch (NumberFormatException e) {
-      fail(reader.getInfo(), "value must be numeric: " + command);
-    }
-  }
-
   private void setSleep(UITestCommand command) {
     String value = command.getValue();
     assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
@@ -213,6 +192,33 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     return value;
   }
 
+  private void setVariable(UITestSectionCommand command) {
+    AxisID axisID = command.getAxisID();
+    if (axisID == null || axisID == AxisID.ONLY || axisID == AxisID.FIRST) {
+      variablesA = setVariable(command, variablesA);
+    }
+    if (axisID == null || axisID == AxisID.SECOND) {
+      variablesB = setVariable(command, variablesB);
+    }
+  }
+
+  private ArrayList setVariable(UITestSectionCommand command,
+      ArrayList variables) {
+    if (variables == null) {
+      variables = new ArrayList();
+    }
+    variables.add(command.getVariable());
+    return variables;
+  }
+
+  private void setDataset(UITestSectionCommand command) {
+    String value = command.getValue();
+    assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
+        + command, value);
+    dataset = value;
+    setVariable(command);
+  }
+
   /**
    * Performs all commands and open all autodocs found in the section
    * @throws FileNotFoundException
@@ -239,7 +245,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
           dataFileName = getRequiredValue(command);
         }
         else if (action == UITestAction.DATASET) {
-          dataset = getRequiredValue(command);
+          setDataset(command);
         }
         else if (action == UITestAction.DATASET_DIR) {
           if (!datasetDirCommand) {
@@ -250,12 +256,12 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         else if (action == UITestAction.DURATION) {
           setDuration(command);
         }
-        else if (action == UITestAction.FIDUCIAL_DIAMETER) {
-          setFiducialDiameter(command);
-        }
         else if (action == UITestAction.SOURCE) {
           //Get a source directory relative to the test repository
           currentSourceDir = getRelativeDir(command, TEST_REPOSITORY, false);
+        }
+        else if (action == UITestAction.SET) {
+          setVariable(command);
         }
       }
       command = (UITestSectionCommand) reader.nextCommand(command, this);
@@ -265,8 +271,6 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     if (!datasetDirCommand) {
       setDatasetDir(null, false);
     }
-    assertFalse(reader.getInfo(), UITestAction.FIDUCIAL_DIAMETER
-        + " is required.", fiducialDiameter == 0);
   }
 
   File getCurrentSourceDir() {
@@ -306,12 +310,12 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
     //Create the UITestAxis instances
     if (autodocA != null) {
-      axisAUITest = new UITestAxis(this, dataset, autodocA, helper,
-          fiducialDiameter, axisIDA, dataFileName != null);
+      axisAUITest = new UITestAxis(this, autodocA, helper, axisIDA,
+          dataFileName != null, variablesA);
     }
     if (autodocB != null) {
-      axisBUITest = new UITestAxis(this, dataset, autodocB, helper,
-          fiducialDiameter, axisIDB, dataFileName != null);
+      axisBUITest = new UITestAxis(this, autodocB, helper, axisIDB,
+          dataFileName != null, variablesB);
     }
     //Test the axis or axes, taking turns if there are two
     boolean testingA = axisAUITest != null;
@@ -406,6 +410,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       throws FileNotFoundException, IOException {
     String value = command.getValue();
     assertNotNull(null, "Unknown name/value pair format: " + command, value);
+    setVariable(command);
     //look for adoc = autodoc
     AxisID axisID = command.getAxisID();
     if (axisID == AxisID.SECOND) {
@@ -596,6 +601,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/04/28 21:06:48  sueh
+ * <p> bug# 787 Simplify code by using AdocCommandReader instead of
+ * <p> keyed searches and NameValuePair.
+ * <p>
  * <p> Revision 1.10  2006/04/25 19:38:45  sueh
  * <p> bug# 787 Added duration and datafile.  Added removeDialog() to remove
  * <p> a done dialog, when checking for a completed dialog.

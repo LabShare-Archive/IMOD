@@ -31,6 +31,7 @@ final class UITestSectionCommand implements AdocCommand {
   private boolean known = false;
   private AxisID axisID = null;
   private boolean keep = false;
+  private Variable variable = null;
 
   public void set(NameValuePair pair) {
     reset();
@@ -48,20 +49,36 @@ final class UITestSectionCommand implements AdocCommand {
     value = pair.getValue();
     if (action == UITestAction.ADOC) {
       axisID = AxisID.getInstance(pair.getName(1));
+      if (axisID == null) {
+        axisID = AxisID.ONLY;
+      }
+      variable = new Variable("axis", axisID.getExtension());
     }
     else if (action == UITestAction.DATASET_DIR) {
-      String name = pair.getName(1);
-      if (name != null && name.equals(KEEP_STRING)) {
+      String keepString = pair.getName(1);
+      if (keepString != null && keepString.equals(KEEP_STRING)) {
         keep = true;
         return;
       }
+    }
+    else if (action == UITestAction.SET) {
+      String name = pair.getName(1);
+      axisID = AxisID.getInstance(name);
+      if (axisID == null) {
+        variable = new Variable(name, value);
+      }
+      else {
+        variable = new Variable(pair.getName(2), value);
+      }
+    }
+    else if (action == UITestAction.DATASET) {
+      variable = new Variable(action.toString(), value);
     }
     //ignore unknown commands
     if (action == UITestAction.ADOC || action == UITestAction.COPY
         || action == UITestAction.DATA_FILE || action == UITestAction.DATASET
         || action == UITestAction.DATASET_DIR
-        || action == UITestAction.DURATION
-        || action == UITestAction.FIDUCIAL_DIAMETER
+        || action == UITestAction.DURATION || action == UITestAction.SET
         || action == UITestAction.SOURCE) {
       known = true;
     }
@@ -78,12 +95,13 @@ final class UITestSectionCommand implements AdocCommand {
     string = "";
     axisID = null;
     keep = false;
+    variable = null;
   }
 
   AxisID getAxisID() {
     return axisID;
   }
-  
+
   boolean isKeep() {
     return keep;
   }
@@ -111,7 +129,35 @@ final class UITestSectionCommand implements AdocCommand {
   public boolean isSecondaryAutodoc() {
     return false;
   }
+
+  Variable getVariable() {
+    return variable;
+  }
+
+  static final class Variable {
+    private final String name;
+    private final String value;
+
+    Variable(String name, String value) {
+      this.name = name;
+      if (value == null) {
+        value = "";
+      }
+      this.value = value;
+    }
+
+    String getName() {
+      return name;
+    }
+
+    String getValue() {
+      return value;
+    }
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/04/28 21:11:31  sueh
+ * <p> bug# 787 Parses the uitest autodoc global name/value pairs.
+ * <p> </p>
  */

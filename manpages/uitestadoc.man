@@ -70,6 +70,7 @@ Specify the B axis when testing only the B axis.
 Uitest-axis autodocs can have any name, but they must have the extension .adoc.
 Only one dataset may be tested per section.
 Uitest-axis autodocs can be reused for different datasets.
+Also sets the "axis" variable for the specified axis.
 
 .TP
 .B copy = \fIfile_name
@@ -93,6 +94,7 @@ Dialog section (see the axis level ui test autodoc).
 The dataset that Etomo will create.
 \fIDataset_name\fR will be automatically added to the Setup dialog.
 One entry per Test section.
+Also sets the "dataset" variable.
 .nf
 Default:  Test_section_name.
 .fi
@@ -124,10 +126,18 @@ Default duration:  15 minutes.
 .fi 
 
 .TP
-.B fiducial-diameter = \fIfiducial_diameter
-Required.  The diameter of the fiducials used in the dataset.
-\fIfiducial_diameter\fR will be automatically added to the Setup Tomogram dialog.
-One entry per Test section.
+.B set\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB.\fIvariable_name\fB = \fR[\fIvalue\fR]
+Creates a variable called \fIvariable_name\fR and assigns it a value.
+These variables can be used in the value of an axis test section-level name/value pair.
+If \fIvalue\fR is not used, the variable will be replaced with an empty string.
+Axis-level variables can be set by using \fBa\fR or \fBb\fR.
+Variables persist until the test is over.
+They can be used as values in uitest axis autodoc section-level attributes.
+The symbol for a variable is "%".
+Do not use the variables names "dataset" or "axis"
+because they are set automatically.  Do not use the variable names "a" or "b".
+Variable names may not contain "." or the delimiter (default - "=").
+
 
 .TP
 .B source = \fIrelative_directory_path\fR
