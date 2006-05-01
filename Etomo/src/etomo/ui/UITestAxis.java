@@ -50,6 +50,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2006/05/01 21:20:31  sueh
+ * <p> bug# 787 Removed fiducial diameter, added set.  Handling all variables in
+ * <p> UITestAxisSectionCommand.
+ * <p>
  * <p> Revision 1.1  2006/04/28 21:07:53  sueh
  * <p> bug# 787 Renamed UIAxisTest to UITestAxis.  Using
  * <p> AdocCommandReader to read the global name/value pairs.  Added mini-
@@ -359,16 +363,6 @@ final class UITestAxis implements AdocCommandFactory {
       if (panel == null) {
         return;
       }
-      //assuming that tomogram setup is already displayed
-      //fill in the dataset name using data from the uitest.adoc Test reader
-     /* JTextField textField = (JTextField) getComponent(JTextField.class,
-          Utilities.convertLabelToName(SetupDialog.DATASET_NAME_LABEL));
-      helper.sendString(new StringEventData(testCase, textField, dataset));
-      //fill in the fiducial diameter from the uitest.adoc Test reader
-      textField = (JTextField) getComponent(JTextField.class, Utilities
-          .convertLabelToName(SetupDialog.FIDUCIAL_DIAMETER_LABEL));
-      helper.sendString(new StringEventData(testCase, textField, String
-          .valueOf(fiducialDiameter)));*/
     }
     else if (panel == null) {
       //need to click the process button to get the dialog to come up
@@ -959,6 +953,10 @@ private void testAssert(UITestAxisSectionCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/05/01 21:20:31  sueh
+ * <p> bug# 787 Removed fiducial diameter, added set.  Handling all variables in
+ * <p> UITestAxisSectionCommand.
+ * <p>
  * <p> Revision 1.1  2006/04/28 21:07:53  sueh
  * <p> bug# 787 Renamed UIAxisTest to UITestAxis.  Using
  * <p> AdocCommandReader to read the global name/value pairs.  Added mini-
