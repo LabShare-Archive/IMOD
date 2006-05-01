@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import etomo.storage.autodoc.AdocCommand;
 import etomo.storage.autodoc.NameValuePair;
@@ -29,6 +30,8 @@ final class UITestAxisSectionCommand implements AdocCommand {
   private static final String ENABLED_STRING = "enabled";
   static final String SECTION_TYPE = "Dialog";
 
+  private final ArrayList variables;
+
   private UITestAction action = null;
   private UITestField field = null;
   private String fieldName = null;
@@ -43,6 +46,10 @@ final class UITestAxisSectionCommand implements AdocCommand {
   private boolean known = false;
   private boolean secondaryAutodoc = false;
 
+  public UITestAxisSectionCommand(ArrayList variables) {
+    this.variables = variables;
+  }
+
   public void set(NameValuePair pair) {
     reset();
     if (pair == null) {
@@ -56,21 +63,23 @@ final class UITestAxisSectionCommand implements AdocCommand {
     int index = 0;
     //set the action
     action = UITestAction.getInstance(pair.getName(0));
-    if (action != UITestAction.SLEEP && action != UITestAction.COPY) {
-      //set the field
+    if (action == UITestAction.ADOC) {
+      secondaryAutodoc = true;
+    }
+    //set the field
+    if (action != UITestAction.ADOC && action != UITestAction.SLEEP
+        && action != UITestAction.STOP && action != UITestAction.COPY) {
       if (action == UITestAction.WAIT_FOR) {
         index++;
       }
       else if (action == UITestAction.ASSERT) {
         index++;
       }
-      else if (action == UITestAction.ADOC) {
-        secondaryAutodoc = true;
-      }
       setField(pair, index);
     }
     //get the value
     value = pair.getValue();
+    replaceVariables();
     if (action == UITestAction.WAIT_FOR) {
       //handle waitfor = 
       if (field == null) {
@@ -126,17 +135,34 @@ final class UITestAxisSectionCommand implements AdocCommand {
     }
   }
 
-  void setVariable(String variable, String assignment) {
-    if (formattedValue == null) {
-      formattedValue = value;
+  private void replaceVariable(String variable, String assignment) {
+    if (value == null) {
+      return;
     }
     if (formattedValue == null) {
-      return;
+      formattedValue = value;
     }
     formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + "\\"
         + "{" + variable + "}", assignment);
     formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + variable
         + File.separatorChar, assignment + File.separatorChar);
+    formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + variable
+        + '$', assignment);
+  }
+
+  void replaceVariables() {
+    if (variables == null || value == null
+        || value.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
+      return;
+    }
+    for (int i = 0; i < variables.size(); i++) {
+      if (formattedValue != null
+          && formattedValue.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
+        return;
+      }
+      UITestSectionCommand.Variable variable = (UITestSectionCommand.Variable) variables.get(i);
+      replaceVariable(variable.getName(), variable.getValue());
+    }
   }
 
   void unsetVariables() {
@@ -163,15 +189,15 @@ final class UITestAxisSectionCommand implements AdocCommand {
     return action;
   }
 
-  UITestField getField() {
+  UITestField getType() {
     return field;
   }
 
-  String getFieldName() {
+  public String getName() {
     return fieldName;
   }
 
-  int getFieldIndex() {
+  int getIndex() {
     return fieldIndex;
   }
 
@@ -205,13 +231,17 @@ final class UITestAxisSectionCommand implements AdocCommand {
   boolean isKnown() {
     return known;
   }
-  
+
   public boolean isSecondaryAutodoc() {
     return secondaryAutodoc;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/04/28 21:09:22  sueh
+ * <p> bug# 787 Was UITestCommand.  Parses the uitest axis autodoc section-
+ * <p> level name/value pairs.
+ * <p>
  * <p> Revision 1.1  2006/04/25 19:39:10  sueh
  * <p> bug# 787 Parses the name/value pair.  Was UIField.
  * <p> </p>
