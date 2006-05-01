@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/06: Fixed function passing mesh to Mtk so it will shift coordinates
+correctly when model loaded on a subset of the image.
+
 4/21/06: In etomo startup script, set LD_ASSUME_KERNEL only for a 2.4 kernel
 so it will work in FC5.  (In 3.7)
 

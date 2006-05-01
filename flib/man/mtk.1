@@ -18,8 +18,8 @@ DDEESSCCRRIIPPTTIIOONN
   are considered separately in the analysis.  For an open contour object, each
   contour forms a separate line.  It is possible to measure the closest
   approach of other items to the whole line, or to break the line into
-  multiple segments are measure the closest approaches to each of the
-  segments.  For a scattered point object, each point is separate item, a
+  multiple segments and measure the closest approaches to each of the
+  segments.  For a scattered point object, each point is a separate item, a
   sphere with a defined radius that may be different for each  point.
   Distances can be measured either from the center of the sphere or from its
   surface.  For a meshed object, each connected set of mesh triangles is
@@ -38,8 +38,8 @@ DDEESSCCRRIIPPTTIIOONN
   from the reference objects.  It also estimates the amount of volume at each
   distance from the reference objects, and divides the count by the volume to
   obtain a density at each distance.  Each kind of entity (point, line, line
-  segment, or mesh surface) can serve as either the reference or the
-  neighboring object.  
+  segment, or mesh surface) can serve as the reference object; while points,
+  whole lines, and mesh surfaces can serve as the neighboring object.  
 
   Ideally, a density analysis will give a graph that is flat or constant with
   distance when items are randomly arranged relative to each other.  This is
@@ -64,7 +64,7 @@ DDEESSCCRRIIPPTTIIOONN
 
   Mtk was first written to analyze closest approaches between the trajectories
   of microtubules in 3 dimensions (i.e. MicroTubule Kissing).  It was adapted
-  from Nda, and many of the entries and commands are identical. Some the
+  from Nda, and many of the entries and commands are identical. Some of the
   terminology used here is a holdover from these origins; for example, a
   "region" refers to the portion of a model being analyzed, which is generally
   the whole model here, and an IMOD model object is sometimes referred to as a
