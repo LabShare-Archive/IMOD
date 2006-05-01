@@ -464,7 +464,9 @@ int getimodscat (int ibase[],     /* index into coord array */
  * Returns mesh data for the given object [objnum].  The vertex/normal data
  * are returned in the array [verts], whose maximum size is specified by 
  * [limverts], and the index data are returned in the array [index], whose
- * maximum size is specified by [limindex].
+ * maximum size is specified by [limindex].  The vertex
+ * coordinates are shifted to correspond to image index coordinate coordinates
+ * of the full volume.
  */
 int  getimodmesh(int *objnum, float *verts, int *index, int *limverts, 
                   int *limindex)
@@ -472,11 +474,23 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
   int i, m, vsum, lsum, resol;
   Iobj *obj;
   Imesh *mesh;
+  Ipoint trans;
+  IrefImage *iref;
 
-  if (!Fimod) return(FWRAP_ERROR_NO_MODEL);
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
   Fimod->cindex.object = *objnum - 1;
   obj = &(Fimod->obj[Fimod->cindex.object]);
-  if (!obj->meshsize) return(-1);
+  if (!obj->meshsize)
+    return(-1);
+
+  trans.x = trans.y = trans.z = 0.;
+  iref = Fimod->refImage;
+  if (iref && (Fimod->flags & IMODF_OTRANS_ORIGIN)) {
+    trans.x = (iref->otrans.x - iref->ctrans.x) / iref->cscale.x;
+    trans.y = (iref->otrans.y - iref->ctrans.y) / iref->cscale.y;
+    trans.z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
+  }
 
   mesh = obj->mesh;
   imodMeshNearestRes(mesh, obj->meshsize, 0, &resol);
@@ -505,9 +519,9 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
   for (m = 0; m < obj->meshsize; m++) {
     if (imeshResol(mesh[m].flag) == resol) {
       for (i = 0; i < mesh[m].vsize; i++) {
-        *verts++ = mesh[m].vert[i].x;
-        *verts++ = mesh[m].vert[i].y; 
-        *verts++ = mesh[m].vert[i].z;
+        *verts++ = mesh[m].vert[i].x + trans.x;
+        *verts++ = mesh[m].vert[i].y + trans.y; 
+        *verts++ = mesh[m].vert[i].z + trans.z;
       }
       for (i = 0; i < mesh[m].lsize; i++)
         *index++ = mesh[m].list[i];
@@ -522,7 +536,9 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
  * The vertex data are returned in the array [verts], whose maximum size is 
  * specified by [limverts], and the index data are returned in the array 
  * [index], whose maximum size is specified by [limindex].  [nverts] and 
- * [nindex] are returned with the number of vertices and indexes.
+ * [nindex] are returned with the number of vertices and indexes.  The vertex
+ * coordinates are shifted to correspond to image index coordinate coordinates
+ * of the full volume.
  */
 int  getimodverts(int *objnum, float *verts, int *index, int *limverts, 
                    int *limindex, int *nverts, int *nindex)
@@ -530,11 +546,23 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
   int i, j, mi, resol, vsum, m, normAdd, vertBase, listInc;
   Iobj *obj;
   Imesh *mesh;
+  Ipoint trans;
+  IrefImage *iref;
 
-  if (!Fimod) return(FWRAP_ERROR_NO_MODEL);
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
   Fimod->cindex.object = *objnum - 1;
   obj = &(Fimod->obj[Fimod->cindex.object]);
-  if (!obj->meshsize) return(-1);
+  if (!obj->meshsize)
+    return(-1);
+
+  trans.x = trans.y = trans.z = 0.;
+  iref = Fimod->refImage;
+  if (iref && (Fimod->flags & IMODF_OTRANS_ORIGIN)) {
+    trans.x = (iref->otrans.x - iref->ctrans.x) / iref->cscale.x;
+    trans.y = (iref->otrans.y - iref->ctrans.y) / iref->cscale.y;
+    trans.z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
+  }
 
   mesh = obj->mesh;
   imodMeshNearestRes(mesh, obj->meshsize, 0, &resol);
@@ -560,11 +588,11 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
       continue;
     mi = mesh->vsize;
     for (i = 0; i < mi; i += 2) {
-      *verts = mesh->vert[i].x;
+      *verts = mesh->vert[i].x + trans.x;
       verts++;
-      *verts = mesh->vert[i].y; 
+      *verts = mesh->vert[i].y + trans.y; 
       verts++;
-      *verts = mesh->vert[i].z;
+      *verts = mesh->vert[i].z + trans.z;
       verts++;
     }
     *nverts += mi / 2;
@@ -1545,6 +1573,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.25  2005/12/07 21:25:03  mast
+Increased max # of objects
+
 Revision 3.24  2005/09/20 04:37:28  mast
 Fixed getimodnesting cleanup when there are empty contours
 
