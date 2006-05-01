@@ -1,55 +1,58 @@
-c	  NDA (Neighbor density analysis) is a program for analysis of spatial
-c	  point patterns where points may be of different types.  It produces
-c	  graphs of point density versus distance from a point and graphs of
-c	  point density as a function of angular separation between neighbors
-c	  to a reference point.  It can shuffle the types of points and create
-c	  random patterns of points within the boundary containing the real
-c	  points so as to evaluate the statistical significance of apparent
-c	  pattersn in the real points.  See the file NDA.DOC for instructions.
-c	  
-c	  Modules: NDA, NDMODEL, GRAPHDEN, ANGDIST, NDRANDOM, NDSUBS,
-c	  NDMTKRAND, NDMTKSUBS, CONVEXBOUND
-c	  
-c	  David Mastronarde  7/31/90
-c
-c	  $Author$
-c
-c	  $Date$
-c
-c	  $Revision$
-c
-c	  $Log$
-c	  Revision 3.8  2004/04/20 04:26:10  mast
-c	  Fixed some uninitialized variables
+c       NDA (Neighbor density analysis) is a program for analysis of spatial
+c       point patterns where points may be of different types.  It produces
+c       graphs of point density versus distance from a point and graphs of
+c       point density as a function of angular separation between neighbors
+c       to a reference point.  It can shuffle the types of points and create
+c       random patterns of points within the boundary containing the real
+c       points so as to evaluate the statistical significance of apparent
+c       pattersn in the real points.  See the file NDA.DOC for instructions.
+c       
+c       Modules: NDA, NDMODEL, GRAPHDEN, ANGDIST, NDRANDOM, NDSUBS,
+c       NDMTKRAND, NDMTKSUBS, CONVEXBOUND
+c       
+c       David Mastronarde  7/31/90
+c       
+c       $Author$
+c       
+c       $Date$
+c       
+c       $Revision$
+c       
+c       $Log$
+c       Revision 3.9  2004/04/20 05:42:04  mast
+c       initialize iwin
 c	
-c	  Revision 3.7  2003/11/26 07:15:06  mast
-c	  initialize ntypbound to 0
+c       Revision 3.8  2004/04/20 04:26:10  mast
+c       Fixed some uninitialized variables
 c	
-c	  Revision 3.6  2003/10/27 06:36:51  mast
-c	  Fix number of options needing model
+c       Revision 3.7  2003/11/26 07:15:06  mast
+c       initialize ntypbound to 0
 c	
-c	  Revision 3.5  2003/10/26 05:33:27  mast
-c	  change command files to use unit 4 instead reopening 5
+c       Revision 3.6  2003/10/27 06:36:51  mast
+c       Fix number of options needing model
 c	
-c	  Revision 3.4  2003/08/29 17:32:27  mast
-c	  Change to use new multithreaded Plax graphics
+c       Revision 3.5  2003/10/26 05:33:27  mast
+c       change command files to use unit 4 instead reopening 5
 c	
-c	  Revision 3.3  2003/08/08 16:38:17  mast
-c	  Allow startup without model file and add export option
+c       Revision 3.4  2003/08/29 17:32:27  mast
+c       Change to use new multithreaded Plax graphics
 c	
-c	  Revision 3.2  2002/07/07 04:42:24  mast
-c	  Remove extra argument from one call to getbinspec
+c       Revision 3.3  2003/08/08 16:38:17  mast
+c       Allow startup without model file and add export option
 c	
-c	  Revision 3.1  2002/06/05 21:09:56  mast
-c	  Pass size of vertex array to get_boundary_obj
+c       Revision 3.2  2002/07/07 04:42:24  mast
+c       Remove extra argument from one call to getbinspec
 c	
-c
-	call plax_initialize('nda')
-	call exit(0)
-	end
+c       Revision 3.1  2002/06/05 21:09:56  mast
+c       Pass size of vertex array to get_boundary_obj
+c	
+c       
+      call plax_initialize('nda')
+      call exit(0)
+      end
 
 	subroutine realgraphicsmain()
-	parameter (limgraphs=50,limbins=301,limpnts=50000,
+	parameter (limgraphs=50,limbins=1001,limpnts=50000,
      &	    limvert=5000,limregion=200,itypall=999)
 	parameter (limtyp=50,limrand=1000)
 	parameter (nOptNeedModel=12)

@@ -5,6 +5,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.3  2004/04/20 05:41:41  mast
 c       fix some misprinted variables
 c       
@@ -20,7 +23,7 @@ c       graphs being done
 c       
       subroutine getbinspec(delr,nbins,power,limfit,padbound,fracomit,
      &    ifbundend,samplen,ifcloseg,ifscatsurf)
-      parameter (limbins=301)
+      parameter (limbins=1001)
       logical didonce/.false./
       save didonce
       integer*4 in5

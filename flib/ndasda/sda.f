@@ -5,6 +5,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.4  2003/10/26 05:33:27  mast
 c       change command files to use unit 4 instead reopening 5
 c       
@@ -29,7 +32,7 @@ c
 
       subroutine realgraphicsmain()
       include 'sda.inc'
-      parameter (limgraphs=50,limbins=301,limregion=200,itypall=999)
+      parameter (limgraphs=50,limbins=1001,limregion=200,itypall=999)
       parameter (limtyp=50,limrand=1000)
       real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
       integer*4 itytmp(maxpore)

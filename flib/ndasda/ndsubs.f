@@ -1,8 +1,16 @@
+c	  $Author$
+c
+c	  $Date$
+c
+c	  $Revision$
+c
+c	  $Log$
+c
 c       GETBINSPEC gets a bin specification appropriate for the type of
 c       graphs being done
 c       
       subroutine getbinspec(ifangdiff,delr,nbins,rmin,rmax)
-      parameter (limbins=301)
+      parameter (limbins=1001)
       integer*4 in5
       common /nmsinput/ in5
       if(ifangdiff.eq.0)then
