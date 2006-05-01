@@ -23,8 +23,8 @@ public final class UITestAction {
   private static final String DATASET_STRING = "dataset";
   private static final String DATASET_DIR_STRING = "datasetdir";
   private static final String DURATION_STRING = "duration";
-  private static final String FIDUCIAL_DIAMETER_STRING = "fiducial-diameter";
   private static final String PROCESS_STRING = "process";
+  private static final String SET_STRING = "set";
   private static final String SLEEP_STRING = "sleep";
   private static final String SOURCE_STRING = "source";
   private static final String STOP_STRING = "stop";
@@ -40,7 +40,7 @@ public final class UITestAction {
   public static final UITestAction DATASET = new UITestAction(DATASET_STRING);
   public static final UITestAction DATASET_DIR = new UITestAction(DATASET_DIR_STRING);
   public static final UITestAction DURATION = new UITestAction(DURATION_STRING);
-  public static final UITestAction FIDUCIAL_DIAMETER = new UITestAction(FIDUCIAL_DIAMETER_STRING);
+  public static final UITestAction SET = new UITestAction(SET_STRING);
   public static final UITestAction SLEEP = new UITestAction(SLEEP_STRING);
   public static final UITestAction SOURCE = new UITestAction(SOURCE_STRING);
   public static final UITestAction STOP = new UITestAction(STOP_STRING);
@@ -81,8 +81,8 @@ public final class UITestAction {
     if (action.equals(DURATION_STRING)) {
       return DURATION;
     }
-    if (action.equals(FIDUCIAL_DIAMETER_STRING)) {
-      return FIDUCIAL_DIAMETER;
+    if (action.equals(SET_STRING)) {
+      return SET;
     }
     if (action.equals(SLEEP_STRING)) {
       return SLEEP;
@@ -110,6 +110,10 @@ public final class UITestAction {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/04/28 20:57:10  sueh
+* <p> bug# 787 Added actions for uitest.adoc and uitestaxis.adoc globals.
+* <p> Removed EXIT.
+* <p>
 * <p> Revision 1.1  2006/04/25 18:58:56  sueh
 * <p> bug# 787 An enum style class which contains the actions found in
 * <p> uitestaxis.adoc files.
