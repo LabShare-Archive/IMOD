@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/06: Increased allowed number of bins in nda, mtk, and sda to 1000.
+
 5/1/06: Fixed function passing mesh to Mtk so it will shift coordinates
 correctly when model loaded on a subset of the image.
 
