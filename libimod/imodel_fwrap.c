@@ -124,6 +124,7 @@ int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
                    float coord[][3], int color[][2], int *npoint, 
                    int *nobject);
 static void deleteFimod();
+static int getMeshTrans(Ipoint *trans);
 void putimodflag(int *objnum, int *flag);
 
 
@@ -157,6 +158,23 @@ static void deleteFimod()
   maxes_put = 0;
   zscale_put = NO_VALUE_PUT;
   rotation_put.x = rotation_put.y = rotation_put.z = NO_VALUE_PUT;
+}
+
+static int getMeshTrans(Ipoint *trans)
+{
+  IrefImage *iref;
+
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+
+  trans->x = trans->y = trans->z = 0.;
+  iref = Fimod->refImage;
+  if (iref && (Fimod->flags & IMODF_OTRANS_ORIGIN)) {
+    trans->x = (iref->otrans.x - iref->ctrans.x) / iref->cscale.x;
+    trans->y = (iref->otrans.y - iref->ctrans.y) / iref->cscale.y;
+    trans->z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
+  }
+  return 0;
 }
 
 /*!
@@ -475,22 +493,13 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
   Iobj *obj;
   Imesh *mesh;
   Ipoint trans;
-  IrefImage *iref;
 
-  if (!Fimod)
+  if (getMeshTrans(&trans))
     return(FWRAP_ERROR_NO_MODEL);
   Fimod->cindex.object = *objnum - 1;
   obj = &(Fimod->obj[Fimod->cindex.object]);
   if (!obj->meshsize)
     return(-1);
-
-  trans.x = trans.y = trans.z = 0.;
-  iref = Fimod->refImage;
-  if (iref && (Fimod->flags & IMODF_OTRANS_ORIGIN)) {
-    trans.x = (iref->otrans.x - iref->ctrans.x) / iref->cscale.x;
-    trans.y = (iref->otrans.y - iref->ctrans.y) / iref->cscale.y;
-    trans.z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
-  }
 
   mesh = obj->mesh;
   imodMeshNearestRes(mesh, obj->meshsize, 0, &resol);
@@ -518,10 +527,13 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
 
   for (m = 0; m < obj->meshsize; m++) {
     if (imeshResol(mesh[m].flag) == resol) {
-      for (i = 0; i < mesh[m].vsize; i++) {
+      for (i = 0; i < mesh[m].vsize; i += 2) {
         *verts++ = mesh[m].vert[i].x + trans.x;
         *verts++ = mesh[m].vert[i].y + trans.y; 
         *verts++ = mesh[m].vert[i].z + trans.z;
+        *verts++ = mesh[m].vert[i + 1].x;
+        *verts++ = mesh[m].vert[i + 1].y; 
+        *verts++ = mesh[m].vert[i + 1].z;
       }
       for (i = 0; i < mesh[m].lsize; i++)
         *index++ = mesh[m].list[i];
@@ -547,22 +559,13 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
   Iobj *obj;
   Imesh *mesh;
   Ipoint trans;
-  IrefImage *iref;
 
-  if (!Fimod)
+  if (getMeshTrans(&trans))
     return(FWRAP_ERROR_NO_MODEL);
   Fimod->cindex.object = *objnum - 1;
   obj = &(Fimod->obj[Fimod->cindex.object]);
   if (!obj->meshsize)
     return(-1);
-
-  trans.x = trans.y = trans.z = 0.;
-  iref = Fimod->refImage;
-  if (iref && (Fimod->flags & IMODF_OTRANS_ORIGIN)) {
-    trans.x = (iref->otrans.x - iref->ctrans.x) / iref->cscale.x;
-    trans.y = (iref->otrans.y - iref->ctrans.y) / iref->cscale.y;
-    trans.z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
-  }
 
   mesh = obj->mesh;
   imodMeshNearestRes(mesh, obj->meshsize, 0, &resol);
@@ -1089,14 +1092,23 @@ int putimodmesh(float *verts)
 {
   int i,mi;
   Iobj *obj = &(Fimod->obj[Fimod->cindex.object]);
-  float *fvert;
+  Ipoint *fvert;
+  Ipoint trans;
+
+  if (getMeshTrans(&trans))
+    return(FWRAP_ERROR_NO_MODEL);
 
   obj->mesh->flag |= IMESH_FLAG_NMAG;
-  mi = obj->mesh->vsize * 3;
-  fvert = (float *) obj->mesh->vert;
+  mi = obj->mesh->vsize;
+  fvert = obj->mesh->vert;
 
-  for (i = 0; i < mi; i++) {
-    fvert[i] = verts[i];
+  for (i = 0; i < mi; i += 2) {
+    fvert[i].x = *verts++ - trans.x;
+    fvert[i].y = *verts++ - trans.y;
+    fvert[i].z = *verts++ - trans.z;
+    fvert[i + 1].x = *verts++;
+    fvert[i + 1].y = *verts++;
+    fvert[i + 1].z = *verts++;
   }
   return FWRAP_NOERROR;
 }
@@ -1573,6 +1585,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.26  2006/05/01 18:55:11  mast
+Shifted mesh to full volume index coordinates
+
 Revision 3.25  2005/12/07 21:25:03  mast
 Increased max # of objects
 
