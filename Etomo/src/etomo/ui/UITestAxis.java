@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import javax.swing.AbstractButton;
@@ -20,7 +21,6 @@ import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.eventdata.JSpinnerMouseEventData;
 import junit.extensions.jfcunit.eventdata.JTabbedPaneMouseEventData;
 import junit.extensions.jfcunit.eventdata.MouseEventData;
-import junit.extensions.jfcunit.eventdata.StringEventData;
 import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.ComponentFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
@@ -50,6 +50,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2006/04/28 21:07:53  sueh
+ * <p> bug# 787 Renamed UIAxisTest to UITestAxis.  Using
+ * <p> AdocCommandReader to read the global name/value pairs.  Added mini-
+ * <p> buttons.
+ * <p>
  * <p> Revision 1.4  2006/04/25 19:35:33  sueh
  * <p> bug# 787 Added testfrom and global waitfor.  Added adoc, copy, exit, tab
  * <p> (tp), waitfor, waitfor.popup, waitfor.process.  Added variables $dataset
@@ -75,18 +80,16 @@ final class UITestAxis implements AdocCommandFactory {
   private static final long WAIT_SLEEP = 2000;
   private static final String TEST_FROM_ATTRIB = "testfrom";
 
-  private final String dataset;
   private final Autodoc autodoc;
   private final JFCTestHelper helper;
   private final UITest testCase;
-  private final double fiducialDiameter;
   private final HashSet finishedDialogs = new HashSet();
   private final AxisID axisID;
   private final double startTime;
   private final double duration;
   private final AdocCommandReader reader;
-  private UITestAxisSectionCommand command = new UITestAxisSectionCommand();
   private final boolean loadedDataFile;
+  private final ArrayList variables;
 
   private boolean verbose = false;
   private long sleep = -1;
@@ -102,17 +105,17 @@ final class UITestAxis implements AdocCommandFactory {
   private DialogType testFromDialog = null;
   private boolean test = true;
   private boolean stopped = false;
+  private UITestAxisSectionCommand command = null;
 
-  UITestAxis(UITest testCase, String dataset, Autodoc autodoc,
-      JFCTestHelper helper, double fiducialDiameter, AxisID axisID,
-      boolean loadedDataFile) {
+  UITestAxis(UITest testCase, Autodoc autodoc,
+      JFCTestHelper helper, AxisID axisID,
+      boolean loadedDataFile, ArrayList variables) {
     this.testCase = testCase;
-    this.dataset = dataset;
     this.autodoc = autodoc;
     this.helper = helper;
-    this.fiducialDiameter = fiducialDiameter;
     this.axisID = axisID;
     this.loadedDataFile = loadedDataFile;
+    this.variables = variables;
     startTime = Double.parseDouble(Utilities.getTimestamp());
     testCase.assertTrue(axisID.toString(), "Unable to get timestamp: "
         + startTime, startTime >= 0);
@@ -221,7 +224,7 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   public AdocCommand newAdocCommand() {
-    return new UITestAxisSectionCommand();
+    return new UITestAxisSectionCommand(variables);
   }
 
   private void timeout() {
@@ -274,7 +277,7 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   private boolean testCommand(UITestAxisSectionCommand command) {
-    boolean getNextPair = true;//true unless waiting
+    boolean getCommand = true;//true unless waiting
     UITestAction action = command.getAction();
     //handle asserts
     if (action == UITestAction.ASSERT) {
@@ -294,10 +297,10 @@ final class UITestAxis implements AdocCommandFactory {
     }
     //handle waitfors
     else if (action == UITestAction.WAIT_FOR) {
-      getNextPair = testWaitFor(command);
+      getCommand = testWaitFor(command);
     }
     else {
-      UITestField field = command.getField();
+      UITestField field = command.getType();
       if (field == UITestField.BUTTON) {
         clickButton(command);
       }
@@ -324,7 +327,7 @@ final class UITestAxis implements AdocCommandFactory {
             + command);
       }
     }
-    return getNextPair;
+    return getCommand;
   }
 
   private void getFrame() {
@@ -358,14 +361,14 @@ final class UITestAxis implements AdocCommandFactory {
       }
       //assuming that tomogram setup is already displayed
       //fill in the dataset name using data from the uitest.adoc Test reader
-      JTextField textField = (JTextField) getComponent(JTextField.class,
+     /* JTextField textField = (JTextField) getComponent(JTextField.class,
           Utilities.convertLabelToName(SetupDialog.DATASET_NAME_LABEL));
       helper.sendString(new StringEventData(testCase, textField, dataset));
       //fill in the fiducial diameter from the uitest.adoc Test reader
       textField = (JTextField) getComponent(JTextField.class, Utilities
           .convertLabelToName(SetupDialog.FIDUCIAL_DIAMETER_LABEL));
       helper.sendString(new StringEventData(testCase, textField, String
-          .valueOf(fiducialDiameter)));
+          .valueOf(fiducialDiameter)));*/
     }
     else if (panel == null) {
       //need to click the process button to get the dialog to come up
@@ -415,7 +418,7 @@ final class UITestAxis implements AdocCommandFactory {
         + command, command.getValue());
     JTabbedPane tabbedPane = (JTabbedPane) getTabbedPane(command);
     helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testCase,
-        tabbedPane, command.getFieldIndex(), 1));
+        tabbedPane, command.getIndex(), 1));
   }
 
   private void clickCheckBox(UITestAxisSectionCommand command) {
@@ -631,13 +634,11 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   private void copyFile(UITestAxisSectionCommand command) {
-    command.setVariable(UITest.DATASET_ATTRIB, testCase.getDataset());
-    command.setVariable("axis", axisID.getExtension());
     testCase.copyFile(command);
   }
 
   private boolean testWaitFor(UITestAxisSectionCommand command) {
-    UITestField field = command.getField();
+    UITestField field = command.getType();
     if (field == null) {
       return lookForDialog(command);
     }
@@ -653,8 +654,8 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-  private void testAssert(UITestAxisSectionCommand command) {
-    UITestField field = command.getField();
+private void testAssert(UITestAxisSectionCommand command) {
+    UITestField field = command.getType();
     if (field == UITestField.BUTTON) {
       assertButton(command);
     }
@@ -677,9 +678,7 @@ final class UITestAxis implements AdocCommandFactory {
       testCase.fail(reader.getInfo(), "Unknown name/value pair format: "
           + command);
     }
-  }
-
-  private void assertTextField(UITestAxisSectionCommand command) {
+  }  private void assertTextField(UITestAxisSectionCommand command) {
     JTextField textField = (JTextField) getComponent(command, JTextField.class);
     if (command.isEnabled()) {
       assertEnabled(command, textField);
@@ -844,7 +843,7 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   private JOptionPane getPopup(UITestAxisSectionCommand command) {
-    String name = command.getFieldName();
+    String name = command.getName();
     JOptionPane optionPane = (JOptionPane) getNamedComponentFinder(
         JOptionPane.class, name).find();
     return optionPane;
@@ -882,8 +881,8 @@ final class UITestAxis implements AdocCommandFactory {
    */
   private Component getComponent(JPanel panel,
       UITestAxisSectionCommand command, Class componentClass, boolean required) {
-    String name = command.getFieldName();
-    int index = command.getFieldIndex();
+    String name = command.getName();
+    int index = command.getIndex();
     Component component;
     finder = getNamedComponentFinder(componentClass, name);
     if (panel == null) {
@@ -928,7 +927,7 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   private Component getTabbedPane(UITestAxisSectionCommand command) {
-    String name = command.getFieldName();
+    String name = command.getName();
     Class componentClass = JTabbedPane.class;
     Component component;
     finder = getNamedComponentFinder(componentClass, name);
@@ -951,7 +950,8 @@ final class UITestAxis implements AdocCommandFactory {
     return button;
   }
 
-  private static final class UITestAxisCommandFactory implements AdocCommandFactory {
+  private static final class UITestAxisCommandFactory implements
+      AdocCommandFactory {
     public AdocCommand newAdocCommand() {
       return new UITestAxisCommand();
     }
@@ -959,6 +959,11 @@ final class UITestAxis implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/04/28 21:07:53  sueh
+ * <p> bug# 787 Renamed UIAxisTest to UITestAxis.  Using
+ * <p> AdocCommandReader to read the global name/value pairs.  Added mini-
+ * <p> buttons.
+ * <p>
  * <p> Revision 1.4  2006/04/25 19:35:33  sueh
  * <p> bug# 787 Added testfrom and global waitfor.  Added adoc, copy, exit, tab
  * <p> (tp), waitfor, waitfor.popup, waitfor.process.  Added variables $dataset
