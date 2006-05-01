@@ -200,16 +200,14 @@ process never completes, the test program will wait until it exceeds
 the duration set in \fBuitest.adoc\fR and fails.
 
 .TP
-(\fB%axis\fR|\fB%{axis}\fR)
-A variable which can be used with the \fBcopy\fR attribute.
-The value of \fB%axis\fR is based on the \fBadoc\fR attribute from the \fBuitest.adoc\fR.
-Use the {}'s unless the variable is followed by a file separator character ("/" on Linux).
-
-.TP
-(\fB%dataset\fR|\fB%{dataset}\fR)
-A variable which can be used with the \fBcopy\fR attribute.
-The value of \fB%dataset\fR is based on the \fBdataset\fR attribute from the \fBuitest.adoc\fR.
-Use the {}'s unless the variable is followed by a file separator character ("/" on Linux).
+(\fB%\fIvariable_name\fR|\fB%{\fIvariable_name\fB}\fR)
+A variable which can be part of the value of a section-level attribute.
+Variables are defined using the \fBset\fR attribute of the ui test autodoc sections.
+There are two variables that are set differently.
+The value of \fB%axis\fR is set by the ui test \fBadoc\fR attribute.
+The value of \fB%dataset\fR is set by the ui test \fBdataset\fR attribute.
+Use the {}'s unless the variable is at the end of the value or
+is followed by a file separator character ("/" on Linux).
 
 .TP
 Note 1: \fIindex
