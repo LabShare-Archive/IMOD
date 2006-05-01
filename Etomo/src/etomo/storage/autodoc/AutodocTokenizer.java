@@ -57,7 +57,7 @@ import etomo.util.PrimativeTokenizer;
 * strings matching keyword constants are ignored.
 </p>
 *
-* <p>Copyright: Copyright © 2002, 2003</p>
+* <p>Copyright: Copyright 2002 - 2006</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -68,6 +68,9 @@ import etomo.util.PrimativeTokenizer;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2006/04/06 20:08:58  sueh
+* <p> $Moved PrimativeTokenizer to util.
+* <p> $
 * <p> $Revision 1.1  2006/01/12 17:02:49  sueh
 * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
 * <p> $

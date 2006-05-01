@@ -61,7 +61,7 @@ import java.util.Vector;
  * 
  * </p>
  *
- * <p>Copyright: Copyright © 2002 - 2005</p>
+ * <p>Copyright: Copyright 2002 - 2005</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -597,6 +597,11 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.2  2006/04/25 18:54:22  sueh
+ *<p> $bug# 787 Implemented ReadOnlyNameValuePairList so that name/value
+ *<p> $pairs can be read from either a global or section area using the same
+ *<p> $code.
+ *<p> $
  *<p> $Revision 1.1  2006/01/12 17:02:22  sueh
  *<p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  *<p> $

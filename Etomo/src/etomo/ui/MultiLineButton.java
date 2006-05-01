@@ -30,7 +30,7 @@ import java.lang.String;
  * This prevents the text from changing color when the button is disabled, so
  * this class controls the text color on enable/disable.</p>
  *
- * <p>Copyright: Copyright © 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
@@ -41,6 +41,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/04/28 21:02:15  sueh
+ * <p> bug# 787 Added getButton and getToggleButtonInstance.
+ * <p>
  * <p> Revision 3.20  2006/04/25 19:17:01  sueh
  * <p> bug# 787 Added UITestField, an enum style class which contains the
  * <p> fields found in uitestaxis.adoc files.

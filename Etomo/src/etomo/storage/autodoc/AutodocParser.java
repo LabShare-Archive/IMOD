@@ -92,7 +92,7 @@ import etomo.ui.Token;
 * 
 * </p>
 * 
-* <p>Copyright: Copyright © 2002, 2003</p>
+* <p>Copyright: Copyright 2002 - 2006</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -103,6 +103,9 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.1  2006/01/12 17:02:37  sueh
+* <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p> $
 * <p> $Revision 1.10  2006/01/11 21:57:36  sueh
 * <p> $bug# 675 Replaced AttributeCollection with WriteOnlyAttributeMap.
 * <p> $

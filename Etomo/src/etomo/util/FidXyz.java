@@ -8,7 +8,7 @@ import java.io.IOException;
 /**
  * <p>Description: An interface to the fid.xyz file.</p>
  *
-* <p>Copyright: Copyright © 2002, 2003, 2004</p>
+* <p>Copyright: Copyright 2002 - 2006</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -19,6 +19,10 @@ import java.io.IOException;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2005/08/27 22:43:32  sueh
+ * <p> $bug# 532 In Utilities.timestamp() change the int status to String status,
+ * <p> $since it doesn't have to be compared.
+ * <p> $
  * <p> $Revision 1.7  2005/07/29 00:55:06  sueh
  * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> $because the current manager changes when the user changes the tab.

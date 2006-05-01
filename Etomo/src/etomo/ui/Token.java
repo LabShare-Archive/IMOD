@@ -55,7 +55,7 @@ package etomo.ui;
 *
 * </p>
 *
-* <p>Copyright: Copyright © 2002, 2003</p>
+* <p>Copyright: Copyright 2002 - 2006</p>
 *
 * <p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -66,6 +66,9 @@ package etomo.ui;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.9  2006/01/12 17:20:14  sueh
+* <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p> $
 * <p> $Revision 1.8  2006/01/11 21:44:03  sueh
 * <p> $bug# 675 Moved value formatting to Token.  Use
 * <p> $Token.getFormattedValues(boolean format) to get a value that has

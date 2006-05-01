@@ -7,7 +7,7 @@ import etomo.ui.Token;
 /**
  * <p>Description:</p>
  *
- * <p>Copyright: Copyright © 2002, 2003</p>
+ * <p>Copyright: Copyright 2002 - 2006</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -18,6 +18,11 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2006/04/25 18:55:17  sueh
+ * <p> $bug# 787 Implemented ReadOnlyNameValuePairList so that name/value
+ * <p> $pairs can be read from either a global or section area using the same
+ * <p> $code.
+ * <p> $
  * <p> $Revision 1.1  2006/01/12 17:03:24  sueh
  * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p> $
