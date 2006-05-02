@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/2/06: Added options to Tomopitch so that it can output original and new
+total values for shift, angle offset, and X-axis tilt.
+
 5/2/06: IMOD_3-8-6
 5/1/06: Big additions to testing functionality in eTomo; a full test can now
 be scripted.
