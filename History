@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/2/06: IMOD_3-8-6
+5/1/06: Big additions to testing functionality in eTomo; a full test can now
+be scripted.
+
 5/1/06: Increased allowed number of bins in nda, mtk, and sda to 1000.
 
 5/1/06: Fixed function passing mesh to Mtk so it will shift coordinates
