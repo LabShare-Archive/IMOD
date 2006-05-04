@@ -358,7 +358,8 @@ initialization tasks.  It first attempts to read options for the program
 fails, it falls back to calling \fBPipParseInput\fR to define
 \fInumOptions\fR options from the single string \fIoptions\fR, with the
 separator \fB@\fR between options.  It allows comma defaults with 
-\fBPipAllowCommaDefaults\fR, and calls \fBPipExitOnError\fR with the prefix
+\fBPipAllowCommaDefaults\fR, and calls both \fBPipExitOnError\fR and 
+\fBsetExitPrefix\fR with the prefix
 string in \fIexitString\fR.  If \fIinteractive\fR is \fB.true.\fR, the routine
 returns if there are no input arguments.  Otherwise, it checks for whether to
 print a usage output.  If the number of arguments is less than
@@ -710,6 +711,20 @@ int PipSetError(char *\fIerrString\fB);
 Sets the error string and, if PIP has been set to exit on error, prints
 an error message and exits.
 
+.ft B
+.nf
+subroutine exiterror(\fIerrString\fB)
+character*N \fIerrString\fB
+
+subroutine setExitPrefix(\fprefix\fB)
+character*N \fIprefix\fB
+.ft R
+.fi
+These functions are available from Fortran only.  \fBexiterror\fR prints the
+error string after the prefix, which is 'ERROR:' by default and 
+is set by calling \fBsetExitPrefix\fR.  The prefix is also set automatically
+by calling \fBPipReadOrParseOptions\fR.
+
 .SH ERRORS AND RETURN VALUES
 .nh
 All functions return a negative number if an error occurs.  Functions in which
@@ -718,6 +733,8 @@ or -2 if the option is abbreviated ambiguously.  An error string is available
 after an error by calling PipGetError.  Alternatively, the program can call
 PipExitOnError at any point, and PIP will print the error string itself and 
 exit with an error status.
+
+
 
 .SH AUTHOR
 David Mastronarde (mast@colorado.edu)
