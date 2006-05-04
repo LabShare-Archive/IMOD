@@ -11,49 +11,7 @@ c       $Date$
 c       
 c       $Revision$
 c       
-c       $Log$
-c       Revision 3.10  2005/02/16 06:44:51  mast
-c       Use the fiducial file image size if available for shifting absolute
-c       fiducial coordinates to center
-c       
-c       Revision 3.9  2004/08/22 14:58:37  mast
-c       Used line_is_filename as workaround to Windows problem
-c       
-c       Revision 3.8  2004/06/10 05:29:30  mast
-c       Added ability to deal with absolute coordinates
-c       
-c       Revision 3.7  2004/01/29 03:12:11  mast
-c       Fixed bug in getting output file for Pip input
-c       
-c       Revision 3.6  2003/12/24 19:03:20  mast
-c       Incorporated new method for handling fiducials on one surface and
-c       converted to PIP input.
-c       
-c       Revision 3.5  2003/05/20 23:43:45  mast
-c       Add space before wrlist output
-c       
-c       Revision 3.4  2002/11/11 22:26:37  mast
-c       Added argument to calls to do3multr and solve_wo_outlier for
-c       fixed column
-c       
-c       Revision 3.3  2002/07/28 00:24:47  mast
-c       Added a second level of indexing so that point numbers in the
-c       fiducial coordinate file are read and used to refer to points.
-c       Made the matching model points be referred to be a negative
-c       number.
-c       
-c       Revision 3.2  2002/07/21 19:26:30  mast
-c       *** empty log message ***
-c       
-c       Revision 3.1  2002/07/21 19:24:27  mast
-c       Resurrected the ability to use matching models, added scaling of
-c       coordinates based on information from model header, and added
-c       ability to solve for transformation using model files alone.  Also
-c       standardized error output. 
-c       
-c       David Mastronarde, 1995; modified for zero shifts, 7/4/97;
-c       Added outlier elimination and error exit, 6/5/99
-c       Added ability to start with small initial set of matches, 3/20/00
+c       Log at end
 c       
       implicit none
       include 'statsize.inc'
@@ -67,8 +25,19 @@ c
       integer*4 listcorra(idim),listcorrb(idim),icont2ptb(idim)
       integer*4 mapab(idim),nxyz(3,2),jxyz(3)/1,3,2/
       integer*4 iconta(idim),icontb(idim),icont2pta(idim)
+      integer*4 icontab(idim,2), icont2ptab(idim,2),listcorrab(idim,2)
+      equivalence (iconta, icontab), (icontb, icontab(1,2))
+      equivalence (icont2pta, icont2ptab), (icont2ptb, icont2ptab(1,2))
+      equivalence (listcorra, listcorrab), (listcorrb, listcorrab(1,2))
+      integer*4 npntab(2),npnta,npntb, listUse(idim)
+      equivalence (npnta, npntab(1)), (npntb, npntab(2))
+      real*4 transferX(idim,2), transferY(idim,2), fidModX(idim,2)
+      real*4 fidModY(idim,2)
+      integer*4 modObj(idim,2), modCont(idim,2), izbest(2), numFid(2)
+      integer*4 modObjFid(idim,2), modContFid(idim,2)
       character*80 filename
-      integer*4 nstartmin,itry,npnta,npntb,nlist,nlista,nlistb,ndat
+      character*1 abtext(2)/'A', 'B'/
+      integer*4 nstartmin,itry,nlist,nlista,nlistb,ndat
       integer*4 ia,nsurf,model,iftransp,nmodpt,ipt,ip,iobj,i,ndata
       integer*4 mod,j,ifadded,ipntmax,ipta,iptb,iptamin,iptbmin
       integer*4 maxdrop,ndrop,idum,iofs,ixyz, ierrFactor
@@ -78,11 +47,12 @@ c
       integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb,icolfix,k
       real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
       real*4 loMaxAvgRatio, hiMaxAvgRatio, loMaxLimRatio, hiMaxLimRatio
-      real*4 aDelta, bDelta, aPixelSize, bPixelSize, xcen, ycen
-      integer*4 nxFidA, nyFidA, nxFidB, nyFidB
-      logical relativeFids
+      real*4 aDelta, bDelta, aPixelSize, bPixelSize, xcen, ycen, transTol
+      integer*4 nxFidA, nyFidA, nxFidB, nyFidB, iTransA, iTransB, ifTransBtoA
+      integer*4 nTransCoord, izind, indA, indB, nListUse
+      logical*4 relativeFids, matchAtoB
 
-      logical readw_or_imod
+      logical readw_or_imod, b3dxor
       real*4 sind,cosd
       integer*4 getimodhead,getimodscales
 c       
@@ -91,6 +61,7 @@ c
       integer*4 PipGetInteger
       integer*4 PipGetString,PipGetTwoFloats,PipGetFloat
       integer*4 PipGetInOutFile
+      logical PipGetLogical
       character*6 modelOption(2)/'AMatch','BMatch'/
       character*9 tomoOption(2)/'ATomogram','BTomogram'/
       character*10240 listString
@@ -98,18 +69,19 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  solvematch
 c       
       integer numOptions
-      parameter (numOptions = 15)
+      parameter (numOptions = 20)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'output:OutputFile:FN:@afiducials:AFiducialFile:FN:@'//
-     &    'bfiducials:BFiducialFile:FN:@'//
-     &    'alist:ACorrespondenceList:LI:@'//
-     &    'blist:BCorrespondenceList:LI:@scales:ScaleFactors:FP:@'//
-     &    'xtilts:XAxisTilts:FP:@surfaces:SurfacesOrUseModels:I:@'//
-     &    'maxresid:MaximumResidual:F:@amatch:AMatchingModel:FN:@'//
-     &    'bmatch:BMatchingModel:FN:@'//
+     &    'bfiducials:BFiducialFile:FN:@alist:ACorrespondenceList:LI:@'//
+     &    'blist:BCorrespondenceList:LI:@'//
+     &    'transfer:TransferCoordinateFile:FN:@amodel:AFiducialModel:FN:@'//
+     &    'bmodel:BFiducialModel:FN:@use:UsePoints:LI:@'//
+     &    'atob:MatchingAtoB:B:@xtilts:XAxisTilts:FP:@'//
+     &    'surfaces:SurfacesOrUseModels:I:@maxresid:MaximumResidual:F:@'//
+     &    'amatch:AMatchingModel:FN:@bmatch:BMatchingModel:FN:@'//
      &    'atomogram:ATomogramOrSizeXYZ:CH:@'//
-     &    'btomogram:BTomogramOrSizeXYZ:CH:@'//
+     &    'btomogram:BTomogramOrSizeXYZ:CH:@scales:ScaleFactors:FP:@'//
      &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       don't add a point if it's this much higher than the limit for
@@ -142,6 +114,10 @@ c
       aPixelSize = 0.
       bPixelSize = 0.
       relativeFids = .true.
+      indA = 1
+      indB = 2
+      transTol = 3.
+      nTransCoord = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -155,6 +131,9 @@ c       Also get the surfaces option; if it's -2, then force models only
 c       even if there are fids
 c       
       if (pipinput) then
+        ierr = PipGetLogical('MatchingAtoB', matchAtoB)
+        if (matchAtoB) indA = 2
+        indB = 3 - indA
         ierr = PipGetString('AFiducialFile', filename)
         nsurf = 2
         ierr = PipGetInteger('SurfacesOrUseModels', nsurf)
@@ -174,19 +153,19 @@ c
       if (filename .eq. ' ')go to 40
 c       
       ncolfit = 4
-      call getFiducials(filename, iconta, pnta, npnta, idim,
-     &    'first tomogram', aPixelSize,  nxFidA, nyFidA)
+      call getFiducials(filename, iconta, pnta, npnta, modObj(1,1),
+     &    modCont(1,1), idim, 'first tomogram', aPixelSize,  nxFidA, nyFidA)
 c       
       if (pipinput) then
-        if (PipGetString('BFiducialFile', filename) .gt. 0) call errorexit
+        if (PipGetString('BFiducialFile', filename) .gt. 0) call exiterror
      &      ('NO FILE SPECIFIED FOR FIDUCIALS IN SECOND TILT SERIES')
       else
         write(*,'(1x,a,$)') 'Name of file with 3-D fiducial'//
      &      ' coordinates for second tilt series: '
         read(*,'(a)')filename
       endif
-      call getFiducials(filename, icontb, pntb, npntb, idim,
-     &    'second tomogram', bPixelSize, nxFidB, nyFidB)
+      call getFiducials(filename, icontb, pntb, npntb, modObj(1,2),
+     &    modCont(1,2), idim, 'second tomogram', bPixelSize, nxFidB, nyFidB)
 c       
 c       fill listcorr with actual contour numbers, and find maximum contours
 c       
@@ -205,98 +184,229 @@ c
 c       
 c       build index from contour numbers to points in array
 c       
-      if (maxconta.gt.idim.or.maxcontb.gt.idim)call errorexit(
+      if (maxconta.gt.idim.or.maxcontb.gt.idim)call exiterror(
      &    'CONTOUR NUMBERS TOO HIGH FOR ARRAYS')
-      do i=1,max(maxconta,maxcontb)
-        icont2pta(i)=0
-        icont2ptb(i)=0
-      enddo
-      do i=1,npnta
-        icont2pta(iconta(i))=i
-      enddo
-      do i=1,npntb
-        icont2ptb(icontb(i))=i
+      do j = 1, 2
+        do i=1,max(maxconta,maxcontb)
+          icont2ptab(i,j)=0
+        enddo
+        do i=1,npntab(j)
+          icont2ptab(icontab(i,j),j)=i
+        enddo
       enddo
 c       
-      nlist=min(npnta,npntb)
-      nlista=nlist
-      if (pipinput) then
-        if (PipGetString('ACorrespondenceList', listString) .eq. 0)
-     &      call parselist(listString, listcorra,nlista)
+      if (pipinput .and.
+     &    PipGetString('TransferCoordinateFile', filename) .eq. 0) then
+c           
+c         Read transfer file, get best section and coordinates
+c         
+        call dopen(1, filename, 'ro', 'f')
+        read(1,*)izbest(1),izbest(2),ifTransBtoA
+        i = 0
+11      read(1,*,err=12,end=12)(transferX(i+1, j), transferY(i+1, j), j=1,2)
+        i = i + 1
+        if (i .ge. idim) call exiterror(
+     &      'TOO MANY TRANSFER COORDINATES FOR ARRAYS')
+        goto 11
+12      nTransCoord = i
+c        print *,nTransCoord, ' transfer coords'
+c         
+c         Set up indexes to best z for the first and second model, and for
+c         accessing the absolute A or B axis transfer coords and fid coords
+c         
+        izind = 1
+        if (b3dxor(matchAtoB, ifTransBtoA .gt. 0)) izind = 2
+        iTransA = 1
+        if (ifTransBtoA .gt. 0) iTransA = 2
+        iTransB = 3 - iTransA
+        
+c         
+c         Read the two fiducial models and get coordinates at best Z and
+c         their objects and contours
+c         
+        call readFidModelFile('AFiducialModel', izbest(izind), abtext(indA),
+     &      fidModX(1,indA), fidModY(1,indA), modObjFid(1,indA),
+     &      modContFid(1,indA), numFid(indA), idim)
+        call readFidModelFile('BFiducialModel', izbest(3-izind),
+     &      abtext(indB), fidModX(1,indB), fidModY(1,indB),
+     &      modObjFid(1,indB), modContFid(1,indB), numFid(indB), idim)
+c         
+c         Get the list of points to use from the true A series
+c         
+        nListUse = npntab(indA)
+        do i = 1, npntab(indA)
+          listUse(i) = icontab(i, indA)
+        enddo
+        if (PipGetString('UsePoints', listString) .eq. 0)
+     &      call parselist(listString, listUse, nlistUse)
+c        print *,nListUse,' points:', (listUse(i), i = 1,nListUse)
+c         
+c         Build list of corresponding points
+c         
+        nlist = 0
+        do i = 1, nListUse
+          if (listUse(i) .gt. 0 .and. listUse(i) .le. max(maxconta,maxcontb)
+     &        .and. icont2ptab(listUse(i), indA) .gt. 0) then
+c             
+c             IF the point in A is a legal point from fid file, find the
+c             same object/contour in the fiducial model
+c             
+            ipta = icont2ptab(listUse(i), indA)
+c            print *,'legal point',i,listUse(i),ipta
+            ip = 0
+            do j = 1, numFid(1)
+              if (modObj(ipta, indA) .eq. modObjFid(j, 1) .and.
+     &            modCont(ipta, indA) .eq. modContFid(j, 1)) ip = j
+            enddo
+            if (ip .gt. 0) then
+c               
+c               Now match the model coords to the transfer coords
+c               
+c              print *,'matches in a fid model:', ip
+              ia = 0
+              do j = 1, nTransCoord
+                if (sqrt((fidModX(ip, 1) - transferX(j, iTransA))**2 +
+     &              (fidModY(ip, 1) - transferY(j, iTransA))**2) .lt.
+     &              transTol) ia = j
+              enddo
+              if (ia .gt. 0) then
+c                print *,'matches transfer:', ia
+c                 
+c                 Found one, then look for a match to the B transfer coords
+c                 in the B fiducial model
+c                 
+                ipt = 0
+                do j = 1, nTransCoord
+                  if (sqrt((fidModX(j, 2) - transferX(ia, iTransB))**2 +
+     &                (fidModY(j, 2) - transferY(ia, iTransB))**2) .lt.
+     &                transTol) ipt = j
+                enddo
+                if (ipt .gt. 0) then
+c                  print *,'matches in B fid model:', ipt
+c                   
+c                   Find the obj/cont in the points of the fid file
+c                   
+                  iptb = 0
+                  do j = 1, numFid(2)
+                    if (modObj(j, indB) .eq. modObjFid(ipt, 2) .and.
+     &                  modCont(j, indB) .eq. modContFid(ipt, 2)) iptb = j
+                  enddo
+                  if (iptb .gt. 0) then
+c                     
+c                     check for uniqueness
+c
+                    nlistb = 0
+                    do j = 1, nlist
+                      if (listCorrAB(j, indB) .eq. icontAB(iptb, indB))nlistb=1
+                    enddo
+                    if (nlistb .eq. 0) then
+c                     
+c                       Bingo: we have corresponding points
+c                       
+c                      print *,'Matching:', listUse(i),icontAB(iptb, indB)  
+                      nlist = nlist + 1
+                      listCorrAB(nlist, indA) = listUse(i)
+                      listCorrAB(nlist, indB) = icontAB(iptb, indB)
+                    endif
+                  endif
+                endif
+              endif
+            endif
+          endif
+        enddo
+        if (nlist .eq. 0) call exiterror(
+     &      'NO CORRESPONDING POINTS FOUND USING TRANSFER COORDS')
+        nlista = nlist
+        nlistb = nlist
+
       else
-        write (*,113)nlist
-113     format('Enter a list of points in the first series for which',
-     &      ' you are sure of the',/,' corresponding point in the',
-     &      ' second series (Ranges are OK;',/' enter / if the first',
-     &      i3, ' points are in one-to-one correspondence between',
-     &      ' the series')
-        call rdlist(5,listcorra,nlista)
+c         
+c         No transfer coordinates, get corresponding lists the old way
+c
+        nlist=min(npnta,npntb)
+        nlista=nlist
+        if (pipinput) then
+          if (PipGetString('ACorrespondenceList', listString) .eq. 0)
+     &        call parselist(listString, listcorra,nlista)
+        else
+          write (*,113)nlist
+113       format('Enter a list of points in the first series for which',
+     &        ' you are sure of the',/,' corresponding point in the',
+     &        ' second series (Ranges are OK;',/' enter / if the first',
+     &        i3, ' points are in one-to-one correspondence between',
+     &        ' the series')
+          call rdlist(5,listcorra,nlista)
+        endif
+        if (nlista .gt. idim) call exiterror('TOO MANY POINTS FOR ARRAYS')
+        if(nlista.gt.nlist)call exiterror(
+     &      'YOU HAVE ENTERED MORE NUMBERS THAN THE'//
+     &      ' MINIMUM NUMBER OF POINTS IN A AND B')
+c       
+        nlistb=nlista
+        if (pipinput) then
+          if (PipGetString('BCorrespondenceList', listString) .eq. 0)
+     &        call parselist(listString, listcorrb,nlistb)
+        else
+          write (*,114)
+114       format('Enter a list of the corresponding points in the',
+     &        ' second series ',/,' - enter / for ', $)
+          call wrlist(listcorrb, nlist)
+          call rdlist(5,listcorrb,nlistb)
+        endif
       endif
-      if (nlista .gt. idim) call errorexit('TOO MANY POINTS FOR ARRAYS')
+c
       if(nlista.lt.nstartmin)then
         print *
         print *,'ERROR: SOLVEMATCH - NEED AT LEAST',nstartmin,
      &      ' POINTS TO GET STARTED'
         call exit(1)
       endif
-      if(nlista.gt.nlist)call errorexit(
-     &    'YOU HAVE ENTERED MORE NUMBERS THAN THE'//
-     &    ' MINIMUM NUMBER OF POINTS IN A AND B')
-c       
-      nlistb=nlista
-      if (pipinput) then
-        if (PipGetString('BCorrespondenceList', listString) .eq. 0)
-     &      call parselist(listString, listcorrb,nlistb)
-      else
-        write (*,114)
-114     format('Enter a list of the corresponding points in the',
-     &      ' second series ',/,' - enter / for ', $)
-        call wrlist(listcorrb, nlist)
-        call rdlist(5,listcorrb,nlistb)
-      endif
-c       
       if(nlistb.ne.nlista)then
         print *
         print *,'ERROR: SOLVEMATCH - YOU MUST HAVE THE SAME NUMBER '
      &      //' OF ENTRIES IN EACH LIST','YOU MADE',nlista,' AND',
-     &      nlistb, 'ENTRIES FOR LISTS A AND B'
+     &      nlistb, 'ENTRIES FOR LISTS '//abtext(indA)//' AND '//abtext(indB)
         call exit(1)
       endif
 c       
 c       check legality and build map lists
 c       
+c      call wrlist(listcorra,nlista)
+c      call wrlist(listcorrb,nlistb)
       do i=1,nlista
-        if(listcorra(i).le.0.or.listcorrb(i).le.0)call errorexit(
+        if(listcorra(i).le.0.or.listcorrb(i).le.0)call exiterror(
      &      'YOU ENTERED A POINT NUMBER LESS '//
      &      'THAN OR EQUAL TO ZERO')
-        if(listcorra(i) .gt. maxconta)call errorexit(
+        if(listcorra(i) .gt. maxconta)call exiterror(
      &      ' YOU ENTERED A POINT NUMBER HIGHER'//
-     &      ' THAN THE NUMBER OF POINTS IN A')
+     &      ' THAN THE NUMBER OF POINTS IN '//abtext(indA))
         ipta = icont2pta(listcorra(i))
-        if(ipta .eq. 0)call errorexit(
+        if(ipta .eq. 0)call exiterror(
      &      ' YOU ENTERED A POINT NUMBER THAT IS NOT INCLUDED'//
-     &      ' IN THE POINTS FROM A')
-        if(listcorrb(i).gt. maxcontb)call errorexit(
+     &      ' IN THE POINTS FROM '//abtext(indA))
+        if(listcorrb(i).gt. maxcontb)call exiterror(
      &      ' YOU ENTERED A POINT NUMBER HIGHER'//
-     &      ' THAN THE NUMBER OF POINTS IN B')
+     &      ' THAN THE NUMBER OF POINTS IN '//abtext(indB))
         iptb = icont2ptb(listcorrb(i))
-        if(iptb .eq. 0)call errorexit(
+        if(iptb .eq. 0)call exiterror(
      &      ' YOU ENTERED A POINT NUMBER THAT IS NOT INCLUDED'//
-     &      ' IN THE POINTS FROM B')
+     &      ' IN THE POINTS FROM '//abtext(indB))
         if(mapab(ipta).ne.0)then
           print *
           print *,'ERROR: SOLVEMATCH - POINT #',listcorra(i),
-     &        ' IN A REFERRED TO TWICE'
+     &        ' IN '//abtext(indA)//' REFERRED TO TWICE'
           call exit(1)
         elseif(mapped(iptb).ne.0)then
           print *
           print *,'ERROR: SOLVEMATCH - POINT #',listcorrb(i),
-     &        ' IN B REFERRED TO TWICE'
+     &        ' IN '//abtext(indB)//' REFERRED TO TWICE'
           call exit(1)
         endif
         mapab(ipta)=iptb
         mapped(iptb)=ipta
       enddo
+c      print *,(mapab(i),i=1,npnta)
+c      print *,(mapped(i),i=1,npntb)
 c       
 c       Get tilt axis angle, plus try to get tomogram pixel size (delta)
 c       and compute scaling factors, overriden by an entry
@@ -401,7 +511,7 @@ c           print *,(xr(j,ndat),j=1,3),(xr(j,ndat),j=6,8)
         endif
       enddo
 c       
-      print *,ndat,' pairs of fiducial points'
+      print *,ndat,' pairs of fiducial points originally specified'
       if (.not. pipinput) then
         nsurf = 2
         write(*,'(1x,a,/,a,/,a,/,a,$)')'Enter 0 to solve for '//
@@ -442,7 +552,7 @@ c           print *,(nxyz(i,model),i=1,3)
      &          'Name of model file from tomogram',model,': '
             read(*,'(a)')filename
           endif
-          if(.not.readw_or_imod(filename))call errorexit(
+          if(.not.readw_or_imod(filename))call exiterror(
      &        'READING MODEL FILE')
 
           ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
@@ -467,7 +577,7 @@ c           print *,(nxyz(i,model),i=1,3)
           if(model.eq.1)ndata=nmodpt
           iofs=0
         enddo
-        if(nmodpt.ne.ndata)call errorexit(
+        if(nmodpt.ne.ndata)call exiterror(
      &      '# OF POINTS DOES NOT MATCH BETWEEN MATCHING MODELS')
         print *,nmodpt,' point pairs from models'
         iofs = ncolfit + 1
@@ -558,12 +668,12 @@ c         print *,iptbmin,iptamin,distmin,devavg,devmax
           iorig(ndat)=iconta(iptamin)
         endif
       enddo
-      if(ifadded.ne.0)then
+      if(ifadded.ne.0 .or. nTransCoord .gt. 0)then
 c         
 c         rebuild lists of actual contour numbers
 c         
         print *,'In the final list of correspondences used for',
-     &      ' fits, points from A are:'
+     &      ' fits, points from '//abtext(indA)//' are:'
         nlista=0
         do i=1,npnta
           if (mapab(i) .ne. 0)then
@@ -572,7 +682,7 @@ c
           endif
         enddo
         call wrlist(listcorra,nlista)
-        print *,'Points from B are:'
+        print *,'Points from '//abtext(indB)//' are:'
         nlistb=0
         do i=1,npntb
           if (mapped(i) .ne. 0)then
@@ -594,17 +704,27 @@ c       write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=1+iofs,3+iofs),j=1,ndat)
      &    ipntmax, devxyzmax)
 c       
       if(ndrop.ne.0)then
-        write(*,104)ndrop,devavg,devsd,(iorig(idrop(i)),i=1,ndrop)
+        write(*,104)ndrop,devavg,devsd,abtext(indA),(iorig(idrop(i)),i=1,ndrop)
         write(*,115)(xr(ncolfit+1,i),i=ndat+1-ndrop,ndat)
 104     format(/,i3,' points dropped by outlier elimination; ',
      &      'residual mean =',f7.2,', SD =',f7.2,/,
-     &      ' point # in A:',(11i6))
+     &      ' point # in ',a1,':',(11i6))
 115     format(' deviations  :',(11f6.1))
       endif
 c       
-      write(*,101)devavg,devmax,iorig(ipntmax),(devxyzmax(i),i=1,3)
-101   format(//,' Mean residual',f8.3,',  maximum',f9.3,
-     &    ' at point #',i4,' (in A)'/,'  Deviations:',3f9.3)
+      if (iorig(ipntmax) .le. maxconta .and. modObj(1,1) .gt. 0) then
+        ipta = icont2pta(iorig(ipntmax))
+        write(*,1011)devavg,devmax,iorig(ipntmax),modObj(ipta, 1),
+     &      modCont(ipta, 1),abtext(indA)
+1011    format(//,' Mean residual',f8.3,',  maximum',f9.3,
+     &      ' at point #',i4,' (Obj',i3,' cont',i4,' in ',a1,')')
+      else
+        write(*,1012)devavg,devmax,iorig(ipntmax),abtext(indA)
+1012    format(//,' Mean residual',f8.3,',  maximum',f9.3,
+     &      ' at point #',i4,' (in ',a1,')')
+      endif
+      write(*,1013)(devxyzmax(i),i=1,3)
+1013  format('  Deviations:',3f9.3)
 c       
       if (ncolfit .gt. 3) then
 c         
@@ -641,7 +761,7 @@ c
       filename = ' '
       if (pipinput) then
         if (PipGetInOutFile('OutputFile', 1, ' ', filename)
-     &      .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+     &      .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
       else
         print *,'Enter name of file to place transformation in, or ',
      &      'Return for none'
@@ -673,6 +793,13 @@ c
      &        f6.1, ' times the specified residual limit,',/,
      &        ' this is probably due to distortion between the volumes,',/,
      &        ' and you should probably just raise the residual limit')
+        elseif (nTransCoord .gt. 0) then
+          write(*,112)iorig(ipntmax)
+112       format('Since corresponding points were picked using coordinates ',
+     &        'from transferfid,',/,'this is probably due to distortion ',
+     &        'between the volumes.',/, 'You could raise the residual limit ',
+     &        'or start with a subset of points.',/,'Bad correspondence is ',
+     &        'unlikely but you could check points (especially',i4,').')
         elseif (devmax .gt. hiMaxAvgRatio * devavg .or.
      &        devmax .gt. hiMaxLimRatio * stoplim) then
           if (devmax .gt. hiMaxAvgRatio * devavg)
@@ -692,7 +819,7 @@ c
      &        ' bad correspondence list.'
           write (*,110)iorig(ipntmax)
         endif
-        call errorexit('MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED')
+        call exiterror('MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED')
       endif
       call exit(0)
       end
@@ -738,14 +865,15 @@ c       AXIS specifies the axis for a message
 c       If a pixel size is found on the first line, it is returned in
 c       PIXELSIZE, otherwise this is set to 0
 c       
-      subroutine getFiducials(filename, iconta, pnta, npnta, idim, axis,
-     &    pixelSize, nxFid, nyFid)
+      subroutine getFiducials(filename, iconta, pnta, npnta, modobj,
+     &    modcont, idim, axis, pixelSize, nxFid, nyFid)
       implicit none
       character*(*) filename
       character*(*) axis
       character*100 line
-      integer*4 iconta(*),idim,npnta,len,lnblnk,i,j,nxFid, nyFid
-      real*4 pnta(3, idim), pixelSize
+      integer*4 iconta(*),idim,npnta,len,lnblnk,i,j,nxFid, nyFid, nfields
+      integer*4 modobj(*), modcont(*), numeric(10)
+      real*4 pnta(3, idim), pixelSize, xnum(10)
 c       
       npnta = 0
       pixelSize = 0.
@@ -756,7 +884,7 @@ c
 c       get the first line and search for PixelSize: (first version)
 c       or Pix: and Dim: (second version)
 c       
-      read(1,'(a)',end=15)line
+      read(1,'(a)',err=10,end=15)line
       len = lnblnk(line)
       i = 1
       do while (i .lt. len - 11)
@@ -771,27 +899,130 @@ c
 c       
 c       process first line then loop until end
 c       
-8     read(line, *)iconta(1),(pnta(j,1),j=1,3)
-      go to 12
-c       
-10    read(1,*,end=15)iconta(npnta+1),(pnta(j,npnta+1),j=1,3)
-12    npnta=npnta+1
+      do while(1)
+        npnta=npnta+1
+        if (npnta.gt.idim)call exiterror('TOO MANY POINTS FOR ARRAYS')
+        call frefor2(line, xnum, numeric, nfields, 6)
+        if (nfields .eq. 6 .and. numeric(5) .eq. 1) then
+          read(line, *)iconta(npnta),(pnta(j,npnta),j=1,3),modobj(npnta),
+     &        modcont(npnta)
+        else
+          read(line, *)iconta(npnta),(pnta(j,npnta),j=1,3)
+          modobj(npnta) = 0
+          modcont(npnta) = 0
+        endif
 c       
 c       invert the Z coordinates because the tomogram built by TILT is
 c       inverted relative to the solution produced by TILTALIGN
 c       
-      pnta(3,npnta) = -pnta(3,npnta)
-      if (npnta.ge.idim)call errorexit('TOO MANY POINTS FOR ARRAYS')
-      go to 10
+        pnta(3,npnta) = -pnta(3,npnta)
+        read(1,'(a)',end=15,err=10)line
+      enddo
+c
 15    print *,npnta,' points from ', axis
       close(1)
       return
+10    call exiterror('READING FIDUCIAL POINT FILE')
+8     call exiterror('READING PIXEL SIZE OR DIMENSIONS FROM POINT FILE')
       end
 
 
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: SOLVEMATCH - ',message
-      call exit(1)
+c       readFidModel gets the filename with the given OPTION, reads fiducial
+c       model, finds points with Z = IZBEST, and returns their X/Y coords
+c       in FIDMODX, FIDMODY and their object and contour numbers in MODOBJFID
+c       and MODCONTFID.  NUMFID is the number of fiducials returned; iDIM 
+c       specifies the dimensions of the arrays; ABTEXT is A or B.
+c
+      subroutine readFidModelFile(option, izbest, abtext, fidModX,
+     &    fidModY, modObjFid, modContFid, numFid, idim)
+      implicit none
+      include 'model.inc'
+      character*(*) option
+      character*1 abtext
+      integer*4 izbest, idim, numFid, modObjFid(*), modContFid(*)
+      real*4 fidModX(*), fidModY(*)
+      character*160 filename
+      integer*4 iobj, ip, ipt
+      logical*4 looking
+      logical readw_or_imod
+      integer*4 PipGetString
+
+      if (PipGetString(option, filename) .ne. 0) call exiterror('FIDUCIAL '//
+     &    'MODELS FOR BOTH AXES MUST BE ENTERED TO USE TRANSFER COORDS')
+      if (.not.readw_or_imod(filename)) call exiterror(
+     &    'READING FIDUCIAL MODEL FOR AXIS '//abtext)
+      call scale_model(0)
+      numFid = 0
+      do iobj = 1, max_mod_obj
+        looking = .true.
+        ip = 1
+c         
+c         Find point at best z value, record it and its obj/cont
+c
+        do while (looking .and. ip .le. npt_in_obj(iobj))
+          ipt=abs(object(ibase_obj(iobj)+ip))
+          if (nint(p_coord(3, ipt)) .eq. izbest) then
+            numFid = numFid + 1
+            if (numFid .gt. idim) call exiterror('TOO MANY FIDUCIAL '//
+     &          'CONTOURS FOR ARRAYS IN MODEL FOR AXIS '//abtext)
+            fidModX(numFid) = p_coord(1, ipt)
+            fidModY(numFid) = p_coord(2, ipt)
+            call objtocont(iobj, obj_color, modObjFid(numFid),
+     &          modContFid(numFid))
+c            print *, modObjFid(numFid),modContFid(numFid),fidModX(numFid),
+c     &          fidModY(numFid)
+            looking = .false.
+          endif
+          ip = ip + 1
+        enddo
+      enddo
+      return
       end
+
+c
+c       $Log$
+c       Revision 3.11  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
+c       Revision 3.10  2005/02/16 06:44:51  mast
+c       Use the fiducial file image size if available for shifting absolute
+c       fiducial coordinates to center
+c       
+c       Revision 3.9  2004/08/22 14:58:37  mast
+c       Used line_is_filename as workaround to Windows problem
+c       
+c       Revision 3.8  2004/06/10 05:29:30  mast
+c       Added ability to deal with absolute coordinates
+c       
+c       Revision 3.7  2004/01/29 03:12:11  mast
+c       Fixed bug in getting output file for Pip input
+c       
+c       Revision 3.6  2003/12/24 19:03:20  mast
+c       Incorporated new method for handling fiducials on one surface and
+c       converted to PIP input.
+c       
+c       Revision 3.5  2003/05/20 23:43:45  mast
+c       Add space before wrlist output
+c       
+c       Revision 3.4  2002/11/11 22:26:37  mast
+c       Added argument to calls to do3multr and solve_wo_outlier for
+c       fixed column
+c       
+c       Revision 3.3  2002/07/28 00:24:47  mast
+c       Added a second level of indexing so that point numbers in the
+c       fiducial coordinate file are read and used to refer to points.
+c       Made the matching model points be referred to be a negative
+c       number.
+c       
+c       Revision 3.2  2002/07/21 19:26:30  mast
+c       *** empty log message ***
+c       
+c       Revision 3.1  2002/07/21 19:24:27  mast
+c       Resurrected the ability to use matching models, added scaling of
+c       coordinates based on information from model header, and added
+c       ability to solve for transformation using model files alone.  Also
+c       standardized error output. 
+c       
+c       David Mastronarde, 1995; modified for zero shifts, 7/4/97;
+c       Added outlier elimination and error exit, 6/5/99
+c       Added ability to start with small initial set of matches, 3/20/00
