@@ -3,7 +3,6 @@ Pip = 1
 
 [Field = OutputFile]
 short = output
-long = OutputFile
 type = FN
 usage = Output file for 3D transformation (optional)
 tooltip = 
@@ -11,7 +10,6 @@ manpage = Output file for 3D transformation.  This entry may be omitted.
 
 [Field = AFiducialFile]
 short = afiducials
-long = AFiducialFile
 type = FN
 usage =  File with coordinates of fiducials from first tilt series
 tooltip =
@@ -21,7 +19,6 @@ transformation using matching models only, omit this entry.
 
 [Field = BFiducialFile]
 short = bfiducials
-long = BFiducialFile
 type = FN
 usage = File with coordinates of fiducials from second tilt series
 tooltip =
@@ -30,7 +27,6 @@ series.  This entry is not needed when using matching models only.
 
 [Field = ACorrespondenceList]
 short = alist
-long = ACorrespondenceList
 type = LI
 usage = List of points in series 1 which have corresponding points in series 2
 tooltip = Enter the list of fiducials in A for which you know the corresponding
@@ -43,7 +39,6 @@ series.
 
 [Field = BCorrespondenceList]
 short = blist
-long = BCorrespondenceList
 type = LI
 usage = List of points in series 2 that correspond to list entered for
 series 1
@@ -54,9 +49,47 @@ number of values must be entered in this list as in the preceding
 list.  Again, the default is that all points correspond between the
 two series.
 
+[Field = TransferCoordinateFile]
+short = transfer
+type = FN
+usage = File of matching fiducial coordinates from transferfid
+tooltip =
+manpage = File of matching fiducial coordinates produced by running 
+transferfid with the -c option.
+
+[Field = AFiducialModel]
+short = amodel
+type = FN
+usage = Fiducial model file for first tilt series
+tooltip =
+manpage = Name of fiducial model file for first tilt series.  This entry
+is needed only when a transfer coordinate file is being used.
+
+[Field = BFiducialModel]
+short = bmodel
+type = FN
+usage = Fiducial model file for second tilt series
+tooltip =
+manpage = Name of fiducial model file for second tilt series.  This entry
+is needed only when a transfer coordinate file is being used.
+
+[Field = UsePoints]
+short = use
+type = LI
+usage = List of points to use from the A axis (first series taken)
+tooltip =
+manpage = 
+
+[Field = MatchingAtoB]
+short = atob
+type = B
+usage = The first series here is B and the second series is A
+tooltip =
+manpage = The first series here (referred to as A in these options) is the B
+axis, i.e. the second tilt series taken, and the second series is the A axis.
+
 [Field = XAxisTilts]
 short = xtilts
-long = XAxisTilts
 type = FP
 usage = X axis tilt used in generating the first and second tomograms
 tooltip =
@@ -67,7 +100,6 @@ the particles in the tomograms.  The default values are 0.
 
 [Field = SurfacesOrUseModels]
 short = surfaces
-long = SurfacesOrUseModels
 type = I
 usage = 0 to use matching models and fiducials if any, 2 for fiducials on both
 surfaces, 1 or -1 for fiducials on one surface (-1 if tomograms inverted), or
@@ -99,7 +131,6 @@ enum.2.tooltip = Select this option when there are fiducials distributed in Z.
 
 [Field = MaximumResidual]
 short = maxresid
-long = MaximumResidual
 type = F
 usage = Largest maximum residual that will allow normal completion of program
 tooltip = "Maximum residual allowed when fitting a 3D transformation to the
@@ -110,7 +141,6 @@ exit with an error if this value is exceeded.
 
 [Field = AMatchingModel]
 short = amatch
-long = AMatchingModel
 type = FN
 usage =  Model of points from the first tomogram
 tooltip =
@@ -118,7 +148,6 @@ manpage = Name of model of points from the first tomogram
 
 [Field = BMatchingModel]
 short = bmatch
-long = BMatchingModel
 type = FN
 usage =  Model of corresponding points from the second tomogram
 tooltip =
@@ -126,7 +155,6 @@ manpage = Name of model of corresponding points from the second tomogram
 
 [Field = ATomogramOrSizeXYZ]
 short = atomogram
-long = ATomogramOrSizeXYZ
 type = CH
 usage = File name or X, Y and Z size of the first tomogram
 tooltip =
@@ -135,7 +163,6 @@ tomogram.
 
 [Field = BTomogramOrSizeXYZ]
 short = btomogram
-long = BTomogramOrSizeXYZ
 type = CH
 usage = File name or X, Y and Z size of the second tomogram
 tooltip =
@@ -144,7 +171,6 @@ tomogram.
 
 [Field = ScaleFactors]
 short = scales
-long = ScaleFactors
 type = FP
 usage = Amounts to scale fiducial coordinates to match first and second 
 tomograms
@@ -160,7 +186,6 @@ name in the -atomogram and -btomogram options.
 
 [Field = ParameterFile]
 short = param
-long = ParameterFile
 type = PF
 usage = Read parameter entries from file
 tooltip = 
@@ -168,7 +193,6 @@ manpage = Read parameter entries as keyword-value pairs from a parameter file.
 
 [Field = usage]
 short = help
-long = usage
 type = B
 usage = Print help output
 tooltip = 
