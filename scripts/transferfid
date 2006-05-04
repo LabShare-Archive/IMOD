@@ -87,6 +87,8 @@ set src = a
 set dst = b
 set AA = A
 set BB = B
+set ifbtoa = 0
+set correspond = ""
 
 if ($#argv < 1) goto usage
 
@@ -128,6 +130,10 @@ while ($#argv > 1)
       set outfile = $argv[2]
       shift; shift
       breaksw
+    case -c:
+      set correspond = $argv[2]
+      shift; shift
+      breaksw
     case -a:
       @ angle = $argv[2]
       if ($angle < 0) set pmend = 0
@@ -151,6 +157,7 @@ while ($#argv > 1)
       set dst = a
       set AA = B
       set BB = A
+      set ifbtoa = 1
       shift
       breaksw
     case -h:
@@ -766,9 +773,11 @@ $fidfile
 $xyzname
 $tmpmap3
 $outfile
+$correspond
+$asecbest,$bsecbest,$ifbtoa
 EOF
 echo " "
-tail -n 10 $tmprplog
+awk '/follow/, /junk/' $tmprplog
 
 clean:
 if ($leavetmp == 0) then
@@ -810,6 +819,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.24  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.23  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
