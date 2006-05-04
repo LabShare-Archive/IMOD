@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/4/06: Fixed contour copy in the line tracker for Windows with Intel compiler
+8+. (In 3.7)
+
 5/2/06: Added options to Tomopitch so that it can output original and new
 total values for shift, angle offset, and X-axis tilt.
 
