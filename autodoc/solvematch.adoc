@@ -76,9 +76,11 @@ is needed only when a transfer coordinate file is being used.
 [Field = UsePoints]
 short = use
 type = LI
-usage = List of points to use from the A axis (first series taken)
+usage = List of starting points to use from the A axis (first series taken)
 tooltip =
-manpage = 
+manpage = List of starting points to use from the A axis (the first series 
+taken).  The program will start with these correspondences and add other
+pairs of points that appear to correspond.
 
 [Field = MatchingAtoB]
 short = atob

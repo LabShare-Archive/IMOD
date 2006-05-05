@@ -12,17 +12,34 @@ DDEESSCCRRIIPPTTIIOONN
   Solvematch will solve for a 3-dimensional linear transformation
   relating the tomogram volumes resulting from tilt series around two
   different axes.  It can use information from the 3-D coordinates of
-  fiducials found by Tiltalign, or from IMOD models of corresponding
+  fiducials found by Tiltalign(1), or from IMOD models of corresponding
   points in the two volumes, or from both of these sources together.
   Current versions of Tiltalign produce fiducial lists with coordinates
   corresponding the coordinates in the tomogram, thus providing all of
   the information that Solvematch needs to find the transformation.  Older
-  versions of Tiltalign produced coordinates centered around zero; this
+  versions of Tiltalign(1) produced coordinates centered around zero; this
   situation is discussed below.
 
 Using Fiducial Coordinates
   When you use fiducial coordinates, the program needs to know how the
-  fiducial points correspond between the two tilt series.  If it is given
+  fiducial points correspond between the two tilt series.  There are two
+  different ways that this information can be provided.
+  
+  If Transferfid(1) was used to produce the seed model for one of the axes
+  from the fiducial model for the other, then it can be given an option to
+  produce a file with the coordinates of corresponding fiducial points from
+  one view in each data set.  This file can be provided to Solvematch with
+  the "-transfer" option and the program will be able to deduce how the
+  points in the fiducial lists from Tiltalign(1) correspond.  This
+  capability allows you to add or delete fiducial points in either fiducial
+  model after running Transferfid(1) without having to keep track of how
+  this affects the correspondence between points.  This option requires
+  that both fiducial models be supplied to Solvematch.  Also, it is
+  essential that Solvematch be informed if the A axis being matched to the
+  B axis, with the -atob option.
+
+  In the absence of a transfer coordinate file, the program needs lists of
+  points that correspond between the two data sets.  If it is given
   a small list of points which do correspond, it can find the rest of the
   correspondences and ignore any points from either set that do not have a
   mate.  There are two restrictions in using this capability.  First, one
@@ -50,7 +67,7 @@ Using Fiducial Coordinates
   about this polarity in the fiducial coordinates.
 
 Using Matching Models
-  When fiducial points from Tiltalign are not available, you can use
+  When fiducial points from Tiltalign(1) are not available, you can use
   models of corresponding points to register the two volumes.  Pick a set
   of points that can be localized well in both tomograms and enter them in
   the same order into a model for each tomogram.  The points can be in the
@@ -63,12 +80,12 @@ Using Matching Models
   correlation, this is not necessary.
 
 Using Old, Relative Fiducial Coordinates
-  With fiducial coordinates from older versions of Tiltalign, the program
+  With fiducial coordinates from older versions of Tiltalign(1), the program
   can solve for the 3 by 3 transformation but not for the shifts in X, Y
   and Z.  There are two ways to get these shifts: by cross-correlation
   of one transformed volume with the other, and by giving Solvematch
   models of corresponding points in the two tomograms.  The shell script
-  that does correlations, Matchshifts, is generally successful.  If it
+  that does correlations, Matchshifts(1), is generally successful.  If it
   fails, you have two options: rerun Tiltalign to get absolute
   coordinates; or create matching models.  If you do this, 3-6 points are
   recommended.  If fiducials are essentially on one surface, then the
