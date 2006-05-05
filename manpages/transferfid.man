@@ -47,7 +47,16 @@ the image by 180 degrees, unless you specify the angle in advance with the
 option, but this large rotation will not cause problems.
 
 Once the seed model is created, the program analyzes contours in the fiducial
-model from the first axis and indicates what the correspondence between points
+model from the first axis to provide information that is needed when
+running solvematch(1).  If the 
+.B -c
+option is used, then corresponding coordinates of the transferred beads
+in the two data sets will be placed into the specified
+output file.  This information is sufficient for solvematch(1) to identify
+the corresponding fiducials in the final alignment, regardless of whether
+some seed points fail to track or some contours are deleted from either 
+fiducial model.  If this option is not
+used, the program indicates what the correspondence between points
 should be when running solvematch(1).  The list of points in A could be in 
 error in some cases unless a fiducial coordinate file (setnameafid.xyz) is
 also available.  For this reason, it is advisable to run tiltalign(1) at least
@@ -131,6 +140,11 @@ option is used; otherwise this parameter is taken from tracka.com (or
 trackb.com with the
 .B -b
 option.)
+.TP
+.B -c <file name>
+Use this option to have corresponding fiducial coordinates on the best matching
+views placed into an output file.  This file will also record the section
+numbers in the two sets and whether the transfer was from "b" to "a".
 .TP 
 .B -t
 Leave temporary files in /usr/tmp for diagnosing problems.
