@@ -20,6 +20,8 @@ set MATCHSHIFTINC = 100
 # Set this to "clip fft" if MAXPIXELS is increased near to value in ftbuf.inc
 set FFT3D = "fftrans -q"   # Command to get get fft - assumes -3d argument
 
+set pn = setupcombine
+
 set to_srcname = "g5a"
 set from_srcname = "g5b"
 set tmp_srcname = "g5tmpdir"
@@ -60,25 +62,138 @@ endif
 
 set noglob
 
-echo " "
-echo "This program sets up the file combine.com for combining two tomograms."
-echo "There are no command line arguments."
-echo "Just answer each of the questions in turn."
-echo "To interrupt, type Ctrl-C then Return"
-echo " "
+set uselist = "\/"
+set matchatob = 0
+set sedtranskey = "gibberish"
+set fromlet = "b"
+set tolet = "a"
+set transfile = ""
 
-echo -n "Enter root name of data sets (omitting a or b and extension): "
-set rootname = $<
-set tolet = "z"
-while ($tolet != "a" && $tolet != "b")
-    echo -n "Enter letter of tomogram being matched TO (a or b): "
-    set tolet = $<
-    if ($tolet == "a") then
-        set fromlet = "b"
-    else if ($tolet == "b") then
-        set fromlet = "a"
+if ($#argv > 0) then
+
+    set interactive = 0
+    set corrlist1 = "\/"
+    set corrlist2 = "\/"
+    set patchin = "M"
+    set tmproot = ""
+    set handclean = 0
+    set regionmod = ""
+
+    # process arguments
+    while ($#argv > 0)
+      switch ($argv[1])
+        case -h*:
+          goto usage
+          breaksw
+        case -na*:
+          set rootname = $argv[2]
+          shift; shift
+          breaksw
+        case -at*:
+          set fromlet = "a"
+          set tolet = "b"
+          set matchatob = 1
+          shift
+          breaksw
+        case -al*:
+          set corrlist1 = `echo $argv[2] | sed -e '/ /s///g' -e '/\//s//\\\//g'`
+          shift; shift
+          breaksw
+        case -bl*:
+          set corrlist2 = `echo $argv[2] | sed -e '/ /s///g' -e '/\//s//\\\//g'`
+          shift; shift
+          breaksw
+        case -tr*:
+          set transfile = $argv[2]
+          set sedtranskey = "#TransferCoordinateFile"
+          shift; shift
+          breaksw
+        case -us*:
+          set uselist = $argv[2]
+          shift; shift
+          breaksw
+        case -su*:
+          set modsurf = $argv[2]
+          if ("$modsurf" != "0" && "$modsurf" != "1" && "$modsurf" != "-1" && \
+              "$modsurf" != "2" && "$modsurf" != "-2") then
+              echo "ERROR: $pn - Illegal surface option $modsurf"  
+              exit 1
+          endif
+          shift; shift
+          breaksw
+        case -pa*:
+          set patchin = $argv[2]
+          shift; shift
+          breaksw
+        case -xl*:
+          set xlim = $argv[2]
+          shift; shift
+          breaksw
+        case -yl*:
+          set ylim = $argv[2]
+          shift; shift
+          breaksw
+        case -zl*:
+          set zlim = $argv[2]
+          shift; shift
+          breaksw
+        case -re*:
+          set regionmod = $argv[2]
+          shift; shift
+          breaksw
+        case -te*:
+          set tmproot = $argv[2]
+          shift; shift
+          breaksw
+        case -no*:
+          set handclean = 1
+          shift
+          breaksw
+        default:
+          echo "ERROR: $pn - unrecognized option $argv[1]"
+          exit 1
+      endsw
+    end
+
+    # Check validity of inputs
+    #
+    if (! $?rootname) then
+        echo "ERROR: $pn - You must enter a root name"
+        exit 1
     endif
-end
+    if (! $?modsurf) then
+        echo "ERROR: $pn - You must enter a surface/model option"
+        exit 1
+    endif
+    if (! $?zlim) then
+        echo "ERROR: $pn - You must enter Z limits for the patches"
+        exit 1
+    endif
+
+else
+
+    # INTERACTIVE - not much to get started
+    set interactive = 1
+    echo " "
+    echo "This program sets up the file combine.com for combining two tomograms."
+    echo "It can be run with command line arguments; enter -h for help."
+    echo "Just answer each of the questions in turn."
+    echo "To interrupt, type Ctrl-C then Return"
+    echo " "
+
+    echo -n "Enter root name of data sets (omitting a or b and extension): "
+    set rootname = $<
+    set tolet = "z"
+    while ($tolet != "a" && $tolet != "b")
+        echo -n "Enter letter of tomogram being matched TO (a or b): "
+        set tolet = $<
+        if ($tolet == "b") then
+            set fromlet = "a"
+            set matchatob = 1
+        endif
+    end
+endif
+
 set toname = $rootname$tolet
 set fromname = $rootname$fromlet
 set tilta = "tilt$tolet.com"
@@ -118,145 +233,226 @@ else
     echo2 "WARNING: $recfile NOT FOUND; SETTING SIZE TO $size FOR TEST PURPOSES"
 endif
 
-echo ""
-echo "Specify the correspondence between fiducial points in the two tilt alignments."
-echo "Enter a list of the points in tilt series $tolet for which you"
-echo "are sure of the corresponding point in tilt series $fromlet"
-echo " (ranges may be entered)."
-echo "Or just Return if the points are in one-to-one correspondence"
-echo "   or if there are no fiducial points"
-#
-# Need to strip spaces out of these lists and convert a / to \/
-#
-set corrlistin = "$<"
-set corrlistin = ($corrlistin)
-set corrlist1 = `echo $corrlistin | sed -e '/ /s///g' -e '/\//s//\\\//g'`
-
-set corrlist2 = "\/"
-if ("$corrlist1" != "") then
-    echo "Enter a list of the corresponding points in tilt series $fromlet"
-    set corrlistin = "$<"
-    set corrlist2 = `echo $corrlistin | sed -e '/ /s///g' -e '/\//s//\\\//g'`
-else
-    set corrlist1 = "\/"
-endif
-
-set modsurf = "z"
-while ($modsurf != "0" && $modsurf != "1" && $modsurf != "-1" && $modsurf != "2" && $modsurf != "-2")
-echo ""
-echo "Enter -2 to use just models of corresponding points ($toname.matmod and"
-echo " $fromname.matmod) to specify initial registration between tomograms;"
-echo " or 0 to use models of corresponding points along with relative fiducial"
-echo "    coordinates (for old fiducial coordinates); otherwise enter:"
-echo "   1 if fiducials are on only one surface and tomograms are NOT inverted,"
-echo "  -1 if fiducials are on only one surface and tomograms are inverted"
-echo "           relative to each other, or"
-echo -n "   2 if there are fiducials on both surfaces: "
-set modsurf = $<
-end
-
 @ nx = $size[1]
 @ ny = $size[3]
 @ nz = $size[2]
 
-set ifok = "0"
-while ($ifok == "0")
+if ($interactive) then
     echo ""
-    echo "Enter s for small patches ($PATCHXY[1] x $PATCHZ[1] x $PATCHXY[1]), m for medium patches ($PATCHXY[2] x $PATCHZ[2] x $PATCHXY[2]),"
-    echo -n " or l for large patches ($PATCHXY[3] x $PATCHZ[3] x $PATCHXY[3]) (Return for m): "
-    set patchin = $<
-    set ifok = "1"
-    if ($patchin == "") set patchin = "M"
-    if ($patchin == "s" || $patchin == "S") then
-	set indpatch = 1
-    else if ($patchin == "m" || $patchin == "M") then
-	set indpatch = 2
-    else if ($patchin == "l" || $patchin == "L") then
-	set indpatch = 3
+    echo "Specify the correspondence between fiducial points in the two tilt alignments."
+    echo "Enter a list of the points in tilt series $tolet for which you"
+    echo "are sure of the corresponding point in tilt series $fromlet"
+    echo " (ranges may be entered)."
+    echo "Or just Return if the points are in one-to-one correspondence"
+    echo "   or if there are no fiducial points"
+    #
+    # Need to strip spaces out of these lists and convert a / to \/
+    #
+    set corrlistin = "$<"
+    set corrlistin = ($corrlistin)
+    set corrlist1 = `echo $corrlistin | sed -e '/ /s///g' -e '/\//s//\\\//g'`
+
+    set corrlist2 = "\/"
+    if ("$corrlist1" != "") then
+        echo "Enter a list of the corresponding points in tilt series $fromlet"
+        set corrlistin = "$<"
+        set corrlist2 = `echo $corrlistin | sed -e '/ /s///g' -e '/\//s//\\\//g'`
     else
-	set ifok = "0"
+        set corrlist1 = "\/"
     endif
-end
+
+    set modsurf = "z"
+    while ($modsurf != "0" && $modsurf != "1" && $modsurf != "-1" && $modsurf != "2" && $modsurf != "-2")
+        echo ""
+        echo "Enter -2 to use just models of corresponding points ($toname.matmod and"
+        echo " $fromname.matmod) to specify initial registration between tomograms;"
+        echo " or 0 to use models of corresponding points along with relative fiducial"
+        echo "    coordinates (for old fiducial coordinates); otherwise enter:"
+        echo "   1 if fiducials are on only one surface and tomograms are NOT inverted,"
+        echo "  -1 if fiducials are on only one surface and tomograms are inverted"
+        echo "           relative to each other, or"
+        echo -n "   2 if there are fiducials on both surfaces: "
+        set modsurf = $<
+    end
+
+    set ifok = "0"
+    while ($ifok == "0")
+        echo ""
+        echo "Enter s for small patches ($PATCHXY[1] x $PATCHZ[1] x $PATCHXY[1]), m for medium patches ($PATCHXY[2] x $PATCHZ[2] x $PATCHXY[2]),"
+        echo -n " or l for large patches ($PATCHXY[3] x $PATCHZ[3] x $PATCHXY[3]) (Return for m): "
+        set patchin = $<
+        set ifok = "1"
+        if ($patchin == "") set patchin = "M"
+        if ($patchin == "s" || $patchin == "S") then
+            set indpatch = 1
+        else if ($patchin == "m" || $patchin == "M") then
+            set indpatch = 2
+        else if ($patchin == "l" || $patchin == "L") then
+            set indpatch = 3
+        else
+            set ifok = "0"
+        endif
+    end
+
+else
+
+    # Process patch input as letter or three numbers
+
+    if ($patchin == "s" || $patchin == "S") then
+        set indpatch = 1
+    else if ($patchin == "m" || $patchin == "M") then
+        set indpatch = 2
+    else if ($patchin == "l" || $patchin == "L") then
+        set indpatch = 3
+    else
+        set indpatch = 0
+        set patchxyz = `echo $patchin | sed -e '/,/s// /g' -e '/[^0-9 ]/s///g'`
+        if ($#patchxyz != 3) then
+            echo "ERROR: $pn - patch size entry ($patchin) must be S, M, L, or 3 numbers"
+            exit 1
+        endif
+        @ patchnx = $patchxyz[1]
+        @ patchny = $patchxyz[2]
+        @ patchnz = $patchxyz[3]
+    endif
+endif
+
+if ($indpatch) then
+    @ patchnx = $PATCHXY[$indpatch]
+    @ patchny = $PATCHXY[$indpatch]
+    @ patchnz = $PATCHZ[$indpatch]
+endif
 
 @ minsize = $nx
 if ($ny < $nx) @ minsize = $ny
 @ borderindex = 1 + $minsize / $BORDERINC
 if ($borderindex > $#XYBORDERS) @ borderindex = $#XYBORDERS
-set xyborder = $XYBORDERS[$borderindex]
+@ xyborder = $XYBORDERS[$borderindex]
+if ($xyborder > $minsize / 4) @ xyborder = $minsize / 4
 
-echo ""
-echo "Now specify the limits of the volume from which patches will be"
-echo "      extracted by patchcrawl3d."
-echo "The default upper limits for X and Y are based on a border of $xyborder pixels."
-set ifok = "0"
-while ($ifok == "0")
+if ($interactive) then
+    echo ""
+    echo "Now specify the limits of the volume from which patches will be"
+    echo "      extracted by patchcrawl3d."
+    echo "The default upper limits for X and Y are based on a border of $xyborder pixels."
+    set ifok = "0"
+    while ($ifok == "0")
+        @ patchxl = $xyborder
+        @ patchxu = $nx - $xyborder
+        echo -n "Lower X (left) limit of area (Return for $patchxl): "
+        set patchin = $<
+        if ($patchin != "") @ patchxl = $patchin
+        echo -n "Upper X (right) limit of area (Return for $patchxu): "
+        set patchin = $<
+        if ($patchin != "") @ patchxu = $patchin
+        if ($patchxl < 0 ) then
+            echo "Lower limit out of bounds, try again"
+        else if ($patchxu > $nx) then
+            echo "Upper limit out of bounds, try again"
+        else if ($patchxl >= $patchxu) then
+            echo "Lower limit greater than upper limit, try again"
+        else
+            set ifok = "1"
+        endif
+    end
+    set ifok = "0"
+    while ($ifok == "0")
+        @ patchyl = $xyborder
+        @ patchyu = $ny - $xyborder
+        echo -n "Lower Y (bottom) limit of area in flipped tomogram (Return for $patchyl): "
+        set patchin = $<
+        if ($patchin != "") @ patchyl = $patchin
+        echo -n "Upper Y (top) limit of area in flipped tomogram (Return for $patchyu): "
+        set patchin = $<
+        if ($patchin != "") @ patchyu = $patchin
+        if ($patchyl < 0 ) then
+            echo "Lower limit out of bounds, try again"
+        else if ($patchyu > $ny) then
+            echo "Upper limit out of bounds, try again"
+        else if ($patchyl >= $patchyu) then
+            echo "Lower limit greater than upper limit, try again"
+        else
+            set ifok = "1"
+        endif
+    end
+    set ifok = "0"
+    while ($ifok == "0")
+        set patchin = ""
+        while ($patchin == "")
+            echo -n "Lower Z limit of volume (bottom slice) in flipped tomogram: "
+            set patchin = $<
+            if ($patchin != "") then
+                @ patchzl = $patchin
+            endif
+        end
+
+        set patchin = ""
+        while ($patchin == "")
+            echo -n "Upper Z limit of volume (top slice) in flipped tomogram: "
+            set patchin = $<
+            if ($patchin != "") then
+                @ patchzu = $patchin
+            endif
+        end
+        if ($patchzl < 0 ) then
+            echo "Lower limit out of bounds, try again"
+        else if ($patchzu > $nz) then
+            echo "Upper limit out of bounds, try again"
+        else if ($patchzl >= $patchzu) then
+            echo "Lower limit greater than upper limit, try again"
+        else
+            set ifok = "1"
+        endif
+    end
+
+else
+
+    # Process patch limits from command line
+    #
     @ patchxl = $xyborder
     @ patchxu = $nx - $xyborder
-    echo -n "Lower X (left) limit of area (Return for $patchxl): "
-    set patchin = $<
-    if ($patchin != "") @ patchxl = $patchin
-    echo -n "Upper X (right) limit of area (Return for $patchxu): "
-    set patchin = $<
-    if ($patchin != "") @ patchxu = $patchin
-    if ($patchxl < 0 ) then
-	echo "Lower limit out of bounds, try again"
-    else if ($patchxu > $nx) then
-	echo "Upper limit out of bounds, try again"
-    else if ($patchxl >= $patchxu) then
-	echo "Lower limit greater than upper limit, try again"
-    else
-	set ifok = "1"
-    endif
-end
-set ifok = "0"
-while ($ifok == "0")
     @ patchyl = $xyborder
     @ patchyu = $ny - $xyborder
-    echo -n "Lower Y (bottom) limit of area in flipped tomogram (Return for $patchyl): "
-    set patchin = $<
-    if ($patchin != "") @ patchyl = $patchin
-    echo -n "Upper Y (top) limit of area in flipped tomogram (Return for $patchyu): "
-    set patchin = $<
-    if ($patchin != "") @ patchyu = $patchin
-    if ($patchyl < 0 ) then
-	echo "Lower limit out of bounds, try again"
-    else if ($patchyu > $ny) then
-	echo "Upper limit out of bounds, try again"
-    else if ($patchyl >= $patchyu) then
-	echo "Lower limit greater than upper limit, try again"
-    else
-	set ifok = "1"
+    if ($?xlim) then
+        set xlimlu = `echo $xlim | sed -e '/,/s// /g' -e '/[^0-9 ]/s///g'`
+        if ($#xlimlu != 2) then
+            echo "ERROR: $pn - X limits ($xlim) must consist of 2 numbers"
+            exit 1
+        endif
+        @ patchxl = $xlimlu[1]
+        @ patchxu = $xlimlu[2]
+        if ($patchxl < 0 || $patchxu > $nx || $patchxl >= $patchxu) then
+            echo "ERROR: $pn - X limits ($xlim) out of range or out of order"
+            exit 1
+        endif
     endif
-end
-set ifok = "0"
-while ($ifok == "0")
-    set patchin = ""
-    while ($patchin == "")
-	echo -n "Lower Z limit of volume (bottom slice) in flipped tomogram: "
-	set patchin = $<
-	if ($patchin != "") then
-	    @ patchzl = $patchin
-	endif
-    end
 
-    set patchin = ""
-    while ($patchin == "")
-	echo -n "Upper Z limit of volume (top slice) in flipped tomogram: "
-	set patchin = $<
-	if ($patchin != "") then
-	    @ patchzu = $patchin
-	endif
-    end
-    if ($patchzl < 0 ) then
-	echo "Lower limit out of bounds, try again"
-    else if ($patchzu > $nz) then
-	echo "Upper limit out of bounds, try again"
-    else if ($patchzl >= $patchzu) then
-	echo "Lower limit greater than upper limit, try again"
-    else
-	set ifok = "1"
+    if ($?ylim) then
+        set ylimlu = `echo $ylim | sed -e '/,/s// /g' -e '/[^0-9 ]/s///g'`
+        if ($#ylimlu != 2) then
+            echo "ERROR: $pn - Y limits ($ylim) must consist of 2 numbers"
+            exit 1
+        endif
+        @ patchyl = $ylimlu[1]
+        @ patchyu = $ylimlu[2]
+        if ($patchyl < 0 || $patchyu > $ny || $patchyl >= $patchyu) then
+            echo "ERROR: $pn - Y limits ($ylim) out of range or out of order"
+            exit 1
+        endif
     endif
-end
+
+    set zlimlu = `echo $zlim | sed -e '/,/s// /g' -e '/[^0-9 ]/s///g'`
+    if ($#zlimlu != 2) then
+        echo "ERROR: $pn - Z limits ($zlim) must consist of 2 numbers"
+        exit 1
+    endif
+    @ patchzl = $zlimlu[1]
+    @ patchzu = $zlimlu[2]
+    if ($patchzl < 0 || $patchzu > $nz || $patchzl >= $patchzu) then
+        echo "ERROR: $pn - Z limits ($zlim) out of range or out of order"
+        exit 1
+    endif
+endif
 
 # figure out a size in Y for matchshift block
 @ msyindex = $nz / $MATCHSHIFTINC
@@ -281,14 +477,17 @@ if ($msxz > $nx / 4) @ msxz = $nx / 4
 # Get patch model file
 
 set modeltext = "gibberish"
-echo "Enter name of model file with contours enclosing patches to use for fits,"
-echo -n "   or Return to use all patches: "
-set modelin = $<
-if ($modelin != "") then
+if ($interactive) then
+    echo "Enter name of model file with contours enclosing patches to use for fits,"
+    echo -n "   or Return to use all patches: "
+    set regionmod = $<
+endif
+
+if ($regionmod != "") then
     set modeltext = "matchorwarp -size"
-    if (! -e $modelin) then
+    if (! -e $regionmod) then
 	echo " "
-	echo2 "WARNING: file $modelin does not yet exist."
+	echo2 "WARNING: file $regionmod does not yet exist."
     endif
 endif
 
@@ -300,7 +499,7 @@ endif
 @ npatchz = 2
 if (($patchzu - $patchzl) >= $NZPATCH3) @ npatchz = 3
 if (($patchzu - $patchzl) >= $NZPATCH4) @ npatchz = 4
-if ($PATCHZ[$indpatch] > (2 * ($patchzu - $patchzl)) / 3) then
+if ($patchnz > (2 * ($patchzu - $patchzl)) / 3) then
     @ npatchz = 1
     echo " "
     echo2 "WARNING: Only one layer of patches will be computed in Z"
@@ -308,7 +507,6 @@ endif
 
 # If patch thickness is greater than extent cut it down
 #
-@ patchnz = $PATCHZ[$indpatch]
 if ($patchnz > $patchzu + 1 - $patchzl) then
     @ patchnz = $patchzu + 1 - $patchzl
     echo " "
@@ -326,69 +524,64 @@ if ($lim1 > $mbytes) @ mbytes = $lim1
 echo " "
 echo "$mbytes MBytes of disk space will be needed for combining"
 
-set ifok = "0"
-while ($ifok == "0")
+if ($interactive) then
     echo "If you want to use a local temporary directory, enter the path name of a"
     echo " directory in which the temporary directory can be created (e.g., /usr/tmp)"
     echo -n " or Return for no temporary directory: "
     set tmproot = $<
-    if ($tmproot == "") then
-	set tmpdir = ""
-	set tmppath = ""
-	set ifmkdir = '#$if'
-        set tempdirarg = " -tempdir "
-	set tmpmatfile = $matfile
-	set sedtmpdir = ""
-	set sedmatfile = $matfile
-        set sedtempkey = "gibberish"
-	set ifok = "1"
+    set handclean = "-1"
+endif
+
+if ("$tmproot" == "") then
+    set tmpdir = ""
+    set tmppath = ""
+    set ifmkdir = '#$if'
+    set tempdirarg = " -tempdir "
+    set tmpmatfile = $matfile
+    set sedtmpdir = ""
+    set sedmatfile = $matfile
+    set sedtempkey = "gibberish"
+else
+    # WORKAROUND 10/20/05: need to just exit since etomo doesn't check
+    if (! -d $tmproot) then
+        echo ""
+        echo "ERROR: $pn - $tmproot does not exist or is not a directory"
+        exit 1
+    else if (! -w $tmproot) then
+        echo ""
+        echo "ERROR: $pn - You do not have permission to write in $tmproot"
+        exit 1
     else
-        # WORKAROUND 10/20/05: need to just exit since etomo doesn't check
-	if (! -d $tmproot) then
-#	    echo "$tmproot does not exist or is not a directory; try again"
-            echo ""
-	    echo "ERROR: $tmproot does not exist or is not a directory"
-            exit 1
-	else if (! -w $tmproot) then
-#	    echo "You do not have permission to write in $tmproot; try again"
-            echo ""
-	    echo "ERROR: You do not have permission to write in $tmproot"
-            exit 1
-	else
-	    set tmpdir = $tmproot/combine.$$
-	    set tmppath = $tmpdir/
-	    set ifmkdir = '$if'
-	    set tempdirarg = "gibberish"
-	    set tmpmatfile = $tmppath$matfile
-	    set sedtmpdir = `echo $tmpdir | sed 's/\//\\\//g'`
-	    set sedmatfile = $sedtmpdir\\/$matfile
-            set sedtempkey = "TemporaryDir"
-	    set ifok = "1"
-	endif
+        set tmpdir = $tmproot/combine.$$
+        set tmppath = $tmpdir/
+        set ifmkdir = '$if'
+        set tempdirarg = "gibberish"
+        set tmpmatfile = $tmppath$matfile
+        set sedtmpdir = `echo $tmpdir | sed 's/\//\\\//g'`
+        set sedmatfile = $sedtmpdir\\/$matfile
+        set sedtempkey = "TemporaryDir"
     endif
-end
+endif
 
 set sumname = sum.rec
 
 # If there is an existing link to sum.rec, remove it
-if (-e sum.rec) then
-    set testlink = `ls -l sum.rec | awk '{print $1}' | grep l`
-    if ($testlink != "") \rm sum.rec
-endif
+\find . -type l -name sum.rec -exec rm -f "{}" \;
 
-set handclean = "-1"
 if ($tmpdir != "") then
-    echo " "
-    echo "The default is auto-cleanup of your temp directory.  You may choose"
-    echo " to clean up by hand if you want fastest possible access to sum.rec,"
-    echo " or if you want access to $matfile."
-    while ($handclean == "-1")
-	echo -n "Do you want to clean up by hand (enter y or n)? "
-	set ifhand = $<
-	if ($ifhand == "y" || $ifhand == "Y") set handclean = "1"
-	if ($ifhand == "n" || $ifhand == "N") set handclean = "0"
-    end
-    echo " "
+    if ($interactive) then
+        echo " "
+        echo "The default is auto-cleanup of your temp directory.  You may choose"
+        echo " to clean up by hand if you want fastest possible access to sum.rec,"
+        echo " or if you want access to $matfile."
+        while ($handclean == "-1")
+            echo -n "Do you want to clean up by hand (enter y or n)? "
+            set ifhand = $<
+            if ($ifhand == "y" || $ifhand == "Y") set handclean = "1"
+            if ($ifhand == "n" || $ifhand == "N") set handclean = "0"
+        end
+        echo " "
+    endif
     if ($handclean == "1") then
 	set sumname = $tmpdir/sum.rec
 	if (! -e sum.rec) ln -s $sumname .
@@ -422,6 +615,9 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/^BCorrespondenceList/s/[ 	].*/	$corrlist2/"\
     -e "/^XAxisTilts/s/[ 	].*/	$xaxisa[2],$xaxisb[2]/"\
     -e "/^SurfacesOrUseModel/s/[ 	].*/	$modsurf/"\
+    -e "/$sedtranskey/s/.*/TransferCoordinateFile	$transfile/"\
+    -e "/^UsePoints/s/[ 	].*/	$uselist/"\
+    -e "/^MatchingAtoB/s/[ 	].*/	$matchatob/"\
     -e "/matchshifts.*64 32 64/s/64 32 64/$msxz $msy $msxz/"\
 	<$srcdir/$matchshift | cat >$matchshift
 
@@ -453,12 +649,12 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/OutputSizeXYZ/s/\//$size/g"\
 	<$srcdir/$warpvol | cat >$warpvol
 
-sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $PATCHXY[$indpatch] $patchnz $PATCHXY[$indpatch]   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
+sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $patchnx $patchnz $patchny   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
     -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e s/$matfile/$sedmatfile/g\
     -e s/36,36,36,36/$xyborder,$xyborder,$xyborder,$xyborder/g\
-    -e "/boundary_model/s//$modelin/"\
+    -e "/boundary_model/s//$regionmod/"\
 	<$srcdir/$patchcorr | cat >$patchcorr
 
 sed -e s/$from_srcname/$fromname/g\
@@ -466,7 +662,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e "/mkdir/s/.*if/$ifmkdir/"\
     -e s/$matfile/$sedmatfile/g\
-    -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $modelin -size/"\
+    -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $regionmod -size/"\
     -e "/$tempdirarg/s///"\
 	<$srcdir/$matchorwarp | cat >$matchorwarp
 
@@ -612,16 +808,45 @@ $invfile
 EOCAT
 
 
-if ($handclean == "0") then
+if ($tmpdir != "" && $handclean == "0") then
 cat <<EOCAT | cat >> $volcombine
 \$\\rm -r $tmpdir
 EOCAT
 endif
 
 echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
+exit 0
+
+usage:
+cat <<EOF
+Usage: setupcombine -options
+Options may be abbreviated to unique strings of at least 2 characters;
+characters in [] are optional.
+Options:
+  -na[me]  name       Root name of dataset
+  -at[ob]             Match A to B instead of B to A
+  -al[ist]  list      List of points in that have corresponding points in B
+  -bl[ist]  list      List of the corresponding points in B
+  -tr[ansfer]  name   File from transferfid with corresponding coordinates
+  -us[elist]  list    List of points from A to use with transfer coordinates
+  -su[rfaces]  #      0 to use matching models and fiducials if any, 2 for
+                        fiducials on both surfaces, 1 or -1 for fiducials on
+                        one surface (-1 if tomograms inverted), or -2 to use
+                        matching models only
+  -pa[tchsize] size   Patch size, either S, M, L or 3 numbers for size in X,Y,Z
+  -xl[imits]  #,#     Lower and upper limits of patches in X
+  -yl[imits]  #,#     Lower and upper limits of patches in Y
+  -zl[imits]  #,#     Lower and upper limits of patches in Z
+  -re[gionmod]  name  Model with contours enclosing regions to do patches in
+  -te[mpdir]  name    Location to create a temporary local directory
+  -no[clean]          Do not clean up the temporary directory  
+EOF
 
 #
 #  $Log$
+#  Revision 3.32  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.31  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
