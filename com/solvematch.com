@@ -1,6 +1,6 @@
 # THIS COMMAND FILE RUNS SOLVEMATCH
 #
-####CreatedVersion#### 3.4.4
+####CreatedVersion#### 3.8.7
 #
 # It contains all of the entries needed for the three different modes of
 # operation: fiducials only, fiducials and matching models (obsolete), and
@@ -17,10 +17,19 @@ ACorrespondenceList	/
 # list of corresponding points in 2nd series (/ on both lines if all 1:1)
 #
 BCorrespondenceList	/
+#
+# Uncomment and insert name to use coordinate file from transferfid, makes
+# the correspondence lists irrelevant
+#
+#TransferCoordinateFile	
+UsePoints	/
 XAxisTilts	0,0
 SurfacesOrUseModels	2
 AMatchingModel	g5a.matmod
 BMatchingModel	g5b.matmod
+AFiducialModel	g5a.fid
+BFiducialModel	g5b.fid
+MatchingAtoB	0
 ATomogramOrSizeXYZ	g5a.rec
 BTomogramOrSizeXYZ	g5b.rec
 OutputFile	solvezero.xf
