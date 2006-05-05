@@ -721,7 +721,7 @@ character*N \fIprefix\fB
 .ft R
 .fi
 These functions are available from Fortran only.  \fBexiterror\fR prints the
-error string after the prefix, which is 'ERROR:' by default and 
+error string after the prefix, which 
 is set by calling \fBsetExitPrefix\fR.  The prefix is also set automatically
 by calling \fBPipReadOrParseOptions\fR.
 
