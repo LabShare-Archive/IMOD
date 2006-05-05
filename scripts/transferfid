@@ -811,6 +811,7 @@ Usage: $pn [options] setname
      -m            Run Midas to set initial translational/rotational alignment
      -r radius     Bead radius for Beadtrack; default is taken from tracka.com
      -l            Search for light rather than dark beads (only works with -r)
+     -c name       File to place corresponding coordinates in
      -t            Leave temporary files in $tmpdir
      -P            Output process ID (PID)
      -h            Help - print this usage
@@ -819,6 +820,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.25  2006/05/04 23:07:49  mast
+#  Added argument to provide file for repackseed to place corresponding coords
+#
 #  Revision 3.24  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
