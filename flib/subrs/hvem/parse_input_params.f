@@ -19,6 +19,10 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.9  2006/05/04 21:11:28  mast
+c       Added exiterror and subroutine to set error, prefix, called from
+c       read_or_parse_options
+c
 c       Revision 3.8  2003/10/11 04:22:36  mast
 c       Fix declaration of options as array in PipReadOrParse
 c	
@@ -246,7 +250,7 @@ c       prefix set by calling setExitPrefix
       subroutine exiterror(message)
       implicit none
       character*(*) message
-      character*32 prefix /'ERROR: '/
+      character*32 prefix
       common /exitprefix/ prefix
       integer*4 lnblnk
       write(*,'(/,a,a,a)')prefix(1:lnblnk(prefix)),' ',message
