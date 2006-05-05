@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/5/06: Setupcombine converted to take command line arguments and to set up
+solvematch.com correctly with a transfer coordinate file.
+
+5/5/06: Set up a system for getting information about corresponding fiducials
+directly from Transferfid to Solvematch: Transferfid (via Repackseed) outputs
+a file with coordinates of corresponding points, and Solvematch has options to
+use this information to match up the final fiducial points even if some points 
+have been deleted.
+
 5/4/06: Fixed contour copy in the line tracker for Windows with Intel compiler
 8+. (In 3.7)
 
