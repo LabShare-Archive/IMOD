@@ -60,8 +60,8 @@ c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger
       integer*4 PipGetString,PipGetTwoFloats,PipGetFloat
-      integer*4 PipGetInOutFile
-      logical PipGetLogical
+      integer*4 PipGetInOutFile,PipGetLogical
+       
       character*6 modelOption(2)/'AMatch','BMatch'/
       character*9 tomoOption(2)/'ATomogram','BTomogram'/
       character*10240 listString
@@ -899,7 +899,7 @@ c
 c       
 c       process first line then loop until end
 c       
-      do while(1)
+      do while(.true.)
         npnta=npnta+1
         if (npnta.gt.idim)call exiterror('TOO MANY POINTS FOR ARRAYS')
         call frefor2(line, xnum, numeric, nfields, 6)
@@ -981,6 +981,11 @@ c     &          fidModY(numFid)
 
 c
 c       $Log$
+c       Revision 3.12  2006/05/04 23:06:21  mast
+c       Added ability to use coordinates from transferfid to determine the match,
+c       made error messages specify A/B correctly if informed about direction of
+c       match, switched to new error exit function to avoid split lines
+c
 c       Revision 3.11  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
