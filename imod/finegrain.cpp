@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.8  2006/04/21 01:08:26  mast
+    Fixed problem with "d" output when no current contour defined
+
     Revision 1.7  2006/02/28 15:20:28  mast
     Back out test changes that went in by mistake
 
@@ -385,7 +388,6 @@ void ifgGapChanged(bool state)
 {
   if (getLoadedObjCont(-1))
     return;
-  fgd.vw->undo->contourDataChg();
   if (fgd.ptContSurf) {
     if (state)
       ifgIntChanged(GEN_STORE_GAP, 1);
@@ -393,6 +395,7 @@ void ifgGapChanged(bool state)
       ifgClearChange(GEN_STORE_GAP);
     return;
   }
+  fgd.vw->undo->contourDataChg();
   if (state) {
     fgd.store.type = GEN_STORE_GAP;
     fgd.store.flags = GEN_STORE_ONEPOINT;
@@ -416,6 +419,13 @@ void ifgConnectChanged(int value)
 {
   if (getLoadedObjCont(-1))
     return;
+  if (fgd.ptContSurf) {
+    if (value)
+      ifgIntChanged(GEN_STORE_CONNECT, value);
+    else
+      ifgClearChange(GEN_STORE_CONNECT);
+    return;
+  }
   fgd.vw->undo->contourDataChg();
   if (value) {
     fgd.store.type = GEN_STORE_CONNECT;
