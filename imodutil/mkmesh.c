@@ -131,6 +131,7 @@ static void invertConnectors(Connector *connects, int numCon,
                              int direction[2]);
 static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
                              int inside);
+static int robustCenterOfMass(Icont *cont, Ipoint *pt);
 
 static int fastmesh = 0;
 static Ipoint meshMin, meshMax;
@@ -1603,13 +1604,13 @@ int SkinObject
  Ipoint triMax,
  int (*inCB)(int))
 {
-  int co, tco, m;
+  int co, tco, bco, m;
   Imesh *nmesh = NULL;
   Icont *cont, *tcont, *bcont, *jcont;
   Icont **scancont;
   int zmin,zmax;
   int i, j, nummax;
-  int found_data;
+  int found_data, force, tCnctNum, bCnctNum;
   int *zlist;
   int zlsize = 0;
   int nextz, prevz;
@@ -1628,10 +1629,11 @@ int SkinObject
   int numnests = 0;
   Icont *econt;  /* The contour that will be tested    */
   int eco;       /* for being eaten all up.            */
-  float frac1, frac2;
+  float frac1, frac2, dist, minDist;
   Nesting *nest, *nests;
   int *nestind;
   int nind, zpass;
+  Ipoint bcm, tcm;
   static int numwarn = 0;
 
   /* start the timer if doing reports */
@@ -1842,19 +1844,28 @@ int SkinObject
             continue;
           if (connectBottom(jcont->flags))
             continue;
-          if (flags & IMESH_MK_SURF)
-            if (bcont->surf != jcont->surf)
-              continue;
-          if (flags & IMESH_MK_TIME)
-            if (bcont->type != jcont->type)
-              continue;
+          if ((flags & IMESH_MK_SURF) && bcont->surf != jcont->surf)
+            continue;
+          if ((flags & IMESH_MK_TIME) && bcont->type != jcont->type)
+            continue;
                          
           /* See if it overlaps any contour in bottom list */
+          tCnctNum = istoreConnectNumber(obj->store, tco);
           for (inl = 0; inl < nbot; inl++) {
             lind = blist[inl];
+
+            /* Skip if they both have connection numbers and don't match, or
+               force connection if they match */
+            bCnctNum = istoreConnectNumber(obj->store, lind);
+            if (tCnctNum >= 0 && bCnctNum >= 0 && tCnctNum != bCnctNum)
+              continue;
+            force = (tCnctNum >= 0 && bCnctNum >= 0 && tCnctNum == bCnctNum) 
+              ? 1 : 0;
+
             if (imodel_scans_overlap(scancont[lind], pmin[lind], pmax[lind],
-                                     scancont[tco], pmin[tco], pmax[tco])) {
-              if (overlap != 0.0) {
+                                     scancont[tco], pmin[tco], pmax[tco]) ||
+                force) {
+              if (!force && overlap != 0.0) {
                 /* contours must overlap by given fraction*/
                 imodel_overlap_fractions(&scancont[lind], pmin[lind], 
                                          pmax[lind], &scancont[tco],
@@ -1896,20 +1907,26 @@ int SkinObject
           if (connectTop(jcont->flags))
             continue;
                                    
-          if (flags & IMESH_MK_SURF)
-            if (bcont->surf != jcont->surf)
-              continue;
-          if (flags & IMESH_MK_TIME)
-            if (bcont->type != jcont->type)
-              continue;
+          if ((flags & IMESH_MK_SURF) && bcont->surf != jcont->surf)
+            continue;
+          if ((flags & IMESH_MK_TIME) && bcont->type != jcont->type)
+            continue;
 
           /* See if it overlaps any contour in top list */
+          bCnctNum = istoreConnectNumber(obj->store, tco);
           for (inl = 0; inl < ntop; inl++) {
             lind = tlist[inl];
-            if (imodel_scans_overlap(scancont[lind], pmin[lind], pmax[lind],
-                                     scancont[tco], pmin[tco], pmax[tco])) {
+            tCnctNum = istoreConnectNumber(obj->store, lind);
+            if (tCnctNum >= 0 && bCnctNum >= 0 && tCnctNum != bCnctNum)
+              continue;
+            force = (tCnctNum >= 0 && bCnctNum >= 0 && tCnctNum == bCnctNum) 
+              ? 1 : 0;
 
-              if (overlap != 0.0) {
+            if (imodel_scans_overlap(scancont[lind], pmin[lind], pmax[lind],
+                                     scancont[tco], pmin[tco], pmax[tco]) ||
+                force) {
+
+              if (!force && overlap != 0.0) {
                 /* contours must overlap by given fraction*/
                 imodel_overlap_fractions(&scancont[lind], pmin[lind],
                                          pmax[lind], &scancont[tco],
@@ -2337,73 +2354,79 @@ int SkinObject
   }   /* end of zpass loop */
      
   /* force connection of stray contours to nearest contour */
-  if (flags & IMESH_MK_STRAY)
-    for (co = 0; co < obj->contsize; co++) {
-      cont = &(obj->cont[co]);
-      if (!cont->psize)
-        continue;
-      if (connectTop(cont->flags))
+  if (flags & IMESH_MK_STRAY) {
+    for (indz = 0; indz < zmax + 1 - zmin; indz++) {
+
+      /* Loop on Z and get next Z value for connection */
+      if (flags & IMESH_MK_SKIP)
+        nextz = getnextz(zlist, zlsize, indz + zmin);
+      else
+        nextz = indz + zmin + incz;
+      if (nextz > zlist[zlsize - 1])
         continue;
 
-      tcont = NULL;
-      bcont = imodContourDup(cont);
-      if (!bcont) {
-        fprintf(stderr, "Fatal Error: couldn't get contour.\n");
-        return(-1);
-      }
-               
-      /* define z-sections that connections will be made to. */
-      if (flags & IMESH_MK_SKIP) {
-        nextz = getnextz(zlist, zlsize, contz[co]);
-      }else{
-        nextz = contz[co] + incz;
-      }
-      prevz = contz[co];
+      /* Loop on pairs of contours between the two sections */
+      do {
+        tcont = NULL;
+        for (kis = 0; kis < numatz[indz]; kis++) {
+          co = contatz[indz][kis];
+          cont = &(obj->cont[co]);
+          if (connectTop(cont->flags))
+            continue;
 
-      tcont = NULL;
-      for (lis = 0; lis < numatz[nextz - zmin]; lis++) {
-        tco = contatz[nextz - zmin][lis];
-        jcont = &(obj->cont[tco]);
-        if (!jcont->psize)
-          continue;
-        if (jcont->flags & CONNECT_BOTTOM)
-          continue;
-                    
-        /* if (contz[tco] != nextz)
-           continue; */
-                    
-        if (flags & IMESH_MK_SURF)
-          if (bcont->surf != jcont->surf)
-            continue;
-        if (flags & IMESH_MK_TIME)
-          if (bcont->type != jcont->type)
-            continue;
+          bCnctNum = istoreConnectNumber(obj->store, co);
+          robustCenterOfMass(cont, &bcm);
+          minDist = 1.e30;
+
+          for (lis = 0; lis < numatz[nextz - zmin]; lis++) {
+            eco = contatz[nextz - zmin][lis];
+            jcont = &(obj->cont[eco]);
+            if (jcont->flags & CONNECT_BOTTOM)
+              continue;
+            if ((flags & IMESH_MK_SURF) && cont->surf != jcont->surf)
+              continue;
+            if ((flags & IMESH_MK_TIME) && cont->type != jcont->type)
+              continue;
+            if (cont->psize == 1 && jcont->psize == 1)
+              continue;
+
+            /* Do not connect if they have non-matching connection numbers */
+            tCnctNum = istoreConnectNumber(obj->store, eco);
+            if (tCnctNum >= 0 && bCnctNum >= 0 && tCnctNum != bCnctNum)
+              continue;
+
+            robustCenterOfMass(jcont, &tcm);
+            dist = (tcm.x - bcm.x) * (tcm.x - bcm.x) + 
+              (tcm.y - bcm.y) * (tcm.y - bcm.y);
+
+            /* Keep track of closest pair of contours */
+            if (dist < minDist) {
+              tcont = jcont;
+              bcont = cont;
+              minDist = dist;
+              bco = co;
+              tco = eco;
+            }
+          }
+        }
 
         if (tcont) {
-          /* todo: grab the nearer contour */
-        }else{
-          tcont = jcont;
+          int intmp = 0;
+          if (obj->flags & IMOD_OBJFLAG_OUT)
+            intmp = 1 - intmp;
+          nmesh = imeshContoursCost(obj, bcont, tcont, scale, intmp, bco, tco);
+          if (nmesh) {
+            obj->mesh = imodel_mesh_add
+              (nmesh, obj->mesh, &(obj->meshsize));
+            free(nmesh);
+          }
+          bcont->flags |= CONNECT_TOP;
+          tcont->flags |= CONNECT_BOTTOM;
         }
-      }
-      if (tcont) {
-        int intmp = 0;
-        if (obj->flags & IMOD_OBJFLAG_OUT)
-          intmp = 1 - intmp;
-        if (bcont->psize == 1) imodPointAppend(bcont, bcont->pts);
-        if (tcont->psize == 1) imodPointAppend(tcont, tcont->pts);
-        nmesh = imeshContoursCost(obj, bcont, tcont, scale, intmp, co, tco);
-        if (nmesh) {
-          obj->mesh = imodel_mesh_add
-            (nmesh, obj->mesh, &(obj->meshsize));
-          free(nmesh);
-        }
-        bcont->flags |= CONNECT_TOP;
-        tcont->flags |= CONNECT_BOTTOM;
-      }
                
-      imodContourDelete(bcont);
+      } while (tcont);
     }
-     
+  }     
 
   report_time("Connected contours");
   /*
@@ -2462,16 +2485,13 @@ int SkinObject
         if (skipz)
           continue;
 
-        if ((cap == IMESH_CAP_ALL) || (cap == IMESH_CAP_ALL_FLAT)) {
+        if (cap == IMESH_CAP_ALL) {
 
           if (connectBottom(cont->flags))
             direction = 1;
           if (connectTop(cont->flags))
             direction = -1;
-          if (cap == IMESH_CAP_ALL_FLAT)
-            nmesh = imeshContourCap(obj, cont, co, direction, inside, scale);
-          else
-            nmesh = imeshContourCap(obj, cont, co, direction, inside, scale);
+          nmesh = imeshContourCap(obj, cont, co, direction, inside, scale);
           if (nmesh) {
             obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
             free(nmesh);
@@ -3020,7 +3040,19 @@ static float evaluate_break(Icont *cout, int *list, int *used,
   return (ratio);
 }
 
-
+/* Get center of mass; if it fails, take midpoint of bounding box */
+static int robustCenterOfMass(Icont *cont, Ipoint *cm)
+{
+  Ipoint  ll, ur;
+  if (imodContourCenterOfMass(cont, cm)) {
+    imodContourGetBBox(cont, &ll, &ur);
+    cm->x = (ll.x + ur.x) / 2.;
+    cm->y = (ll.y + ur.y) / 2.;
+    cm->z = (ll.z + ur.z) / 2.;
+    return 1;
+  }
+  return 0;
+}
 
 
 /*
@@ -3041,21 +3073,13 @@ static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int coNum, int side,
   int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_3DWIDTH | 
     CHANGED_TRANS;
 
-  Ipoint  cm, ll, ur;
+  Ipoint  cm;
   Imesh  *m;
   Icont *ncont, *scont;
   double rotation;
   float ratio, length, width, dely, nexty;
 
-  if (imodContourCenterOfMass(cont, &cm)) {
-    /* If the center of mass computation fails, take midpoint of the
-       bounding box */
-    imodContourGetBBox(cont, &ll, &ur);
-    cm.x = (ll.x + ur.x) / 2.;
-    cm.y = (ll.y + ur.y) / 2.;
-    cm.z = (ll.z + ur.z) / 2.;
-    failedcm = 1;
-  }
+  failedcm = robustCenterOfMass(cont, &cm);
   direction = imodContZDirection(cont);
   if (side == 1)
     cm.z += 0.5f;
@@ -4475,6 +4499,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.18  2006/01/11 05:53:50  mast
+Fixed test for gap at end of contour
+
 Revision 3.17  2005/09/22 15:12:46  mast
 Handled surface property changes for all caps, transferred contour/surface
 properties to first point of contour when joining contours
