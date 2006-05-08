@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2005/09/11 19:21:07  mast
+Added mina dn max arguments
+
 Revision 3.2  2004/11/05 19:05:29  mast
 Include local files with quotes, not brackets
 
@@ -38,8 +41,6 @@ Added flag definition for capping ends of tubes
 #define IMESH_CAP_OFF      0    /* Don't cap ends of surfaces. */
 #define IMESH_CAP_END      1    /* Just cap min and max ends.  */
 #define IMESH_CAP_ALL      2    /* Cap all stray ends.         */
-#define IMESH_CAP_END_FLAT 3    /* Don't round off ends.       */
-#define IMESH_CAP_ALL_FLAT 4    /* Don't round off any caps.   */
 
 
 
