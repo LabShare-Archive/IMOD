@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/8/06: In fine grain dialog, added ability to set contour connection numbers
+to force or prevent mesh connections between contours on adjacent sections.
+In Imodmmesh, implemented use of these connection numbers and fixed the forcing
+option to connect nearest pairs of contours.
+
 5/5/06: Setupcombine converted to take command line arguments and to set up
 solvematch.com correctly with a transfer coordinate file.
 
