@@ -163,7 +163,7 @@ void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int 
     gapCheckBox->setText(QString(ptContSurf ? "Turn off drawing" : "Gap to next point"));
     gapCheckBox->setEnabled(enabled);
     diaSetSpinBox(connectSpin, props->connect);
-    connectSpin->setEnabled(!ptContSurf && enabled);
+    connectSpin->setEnabled(ptContSurf < 2 && enabled);
 }
 
 void FineGrainForm::ptContSurfSelected( int which )

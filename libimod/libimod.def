@@ -73,6 +73,7 @@ EXPORTS
 	imodel_transform_slice
 	imodObjectClip
 	istorePointIsGap
+	istoreConnectNumber
 	imodViewDefault
 	imodWriteStore
 	imodGetByte

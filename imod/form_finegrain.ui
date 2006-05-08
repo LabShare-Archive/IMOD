@@ -1460,7 +1460,7 @@
                         <number>0</number>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Assign number for connecting points with matching numbers between contours</string>
+                        <string>Assign number for connecting points or contours with matching numbers</string>
                     </property>
                 </widget>
                 <spacer>
