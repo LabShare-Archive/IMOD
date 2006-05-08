@@ -123,6 +123,16 @@ remeshed.  If the option is given, then the surface-specific properties are
 not included in the mesh but are applied during display and can be changed
 dynamically.
 
+Connection numbers can be assigned to either points or contours and Imodmesh
+will use these numbers when making the mesh.  Point connection numbers can be
+used to force the mesh to join particular pairs of points between two
+contours.  See the Fine Grain dialog help for more details.
+To force a connection between two contours that do not overlap, give them both
+the same connection number.  To prevent a connection between contours that do
+overlap, give them different connection numbers.  If only one of a pair of
+contours has a connection number it will be ignored when deciding whether to
+join them.
+
 .SS Options
 .TP
 .B -c
@@ -173,12 +183,13 @@ and
 and use the minimum number of passes needed to make the desired connections.
 .TP
 .B -S
-This will forbid contours with different surface
-numbers from being connected.  The surface number
-was added in IMOD version 1.2 in order to help allow
-manual editing of connections.
-Contours with the same surface number on adjacent 
-sections will be connected.
+This will forbid contours with different surface numbers from being
+connected.  Contours with the same surface number
+sections will be connected, but ones with different surface numbers will not.
+Thus, if you use surface numbers at all, you must make all of the contours
+that belong in one meshed entity have the same surface number.  Contour
+connection numbers would be an easier way to control a small number of 
+misconnections.
 .TP
 .B -I
 Ignore time values and connect contours at different times.  By default,
@@ -190,11 +201,14 @@ inappropriate time information.
 .B -f
 Force more connections.  Do a final pass through
 the contour data and make any leftover connections
-with looser constraints on contour overlap.  This pass occurs after any
+with no requirement for contour overlap.  This pass occurs after any
 multiple passes selected with the
-.B
--P
-option.
+.B -P
+option.  Only contours on sections that would ordinarily be connected without
+the 
+.B -P
+option will be connected.  If this option makes undesirable connections, use
+contour connection numbers.
 .TP
 .B -t list
 Open contours are by default connected together in a mesh if possible.
