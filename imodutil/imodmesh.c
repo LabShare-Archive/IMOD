@@ -197,9 +197,6 @@ int main(int argc, char **argv)
       case 'f':
         stray = TRUE;
         break;
-      case 'F':
-        cap += 2;
-      break;
       case 'E':
         capTubes = TRUE;
         break;
@@ -907,6 +904,9 @@ int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.13  2005/09/13 02:38:05  mast
+Added environment variable for making backward compatible meshes
+
 Revision 3.12  2005/09/11 19:23:55  mast
 Changed for new style of mesh, added options to clip triangle output
 
