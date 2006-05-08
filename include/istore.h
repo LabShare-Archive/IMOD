@@ -14,6 +14,9 @@ $Date$
 $Revision$
     
 $Log$
+Revision 3.7  2005/10/13 20:02:13  mast
+Added checksum function
+
 Revision 3.6  2005/09/12 14:17:04  mast
 Fixed return value, added function to clear range
 
@@ -156,6 +159,7 @@ extern "C" {
   int istoreGenerateItems(Ilist **listp, DrawProps *props, int flags, 
                           int index, int genFlags);
   int istorePointIsGap(Ilist *list, int index);
+  int istoreConnectNumber(Ilist *list, int index);
   int istoreSkipToIndex(Ilist *list, int index);
 
 #ifdef __cplusplus

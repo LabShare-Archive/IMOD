@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.9  2006/02/27 19:37:20  mast
+Changed comment
+
 Revision 3.8  2006/02/27 15:25:52  mast
 Returned count from istoreCountObjectItems
 
@@ -1316,6 +1319,11 @@ int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps,
           contProps->gap = 1;
           break;
 
+        case GEN_STORE_CONNECT:
+          state |= CHANGED_CONNECT;
+          contProps->connect = stp->value.i;
+          break;
+
         case GEN_STORE_3DWIDTH:
           state |= CHANGED_3DWIDTH;
           contProps->linewidth = stp->value.i;
@@ -1773,6 +1781,25 @@ int istorePointIsGap(Ilist *list, int index)
     stp = istoreItem(list, i);
     if (stp->type == GEN_STORE_GAP)
       return 1;
+  }
+  return 0;
+}
+
+/*!
+ * Returns connection number for an item in [list] with point index equal to
+ * [index], or -1 if there is none.
+ */
+int istoreConnectNumber(Ilist *list, int index)
+{
+  int lookup, after, i;
+  Istore *stp;
+  lookup = istoreLookup(list, index, &after);
+  if (lookup < 0)
+    return -1;
+  for (i = lookup; i < after; i++) {
+    stp = istoreItem(list, i);
+    if (stp->type == GEN_STORE_CONNECT)
+      return stp->value.i;
   }
   return 0;
 }
