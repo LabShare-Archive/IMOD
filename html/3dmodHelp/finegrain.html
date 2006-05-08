@@ -112,13 +112,20 @@ gaps are introduced into the mesh when
 contour or surface properties are being shown, this button mutates to
 <B>Turn off drawing</B>, which lets you turn off an individual contour or
 surface.
-<LI><B>Mesh connection #</B> can be used to force particular points
+<LI><B>Mesh connection #</B> also has two different meanings.  When point
+properties are being shown, it can be used to force particular points
 in adjacent contours to be connected in a mesh, such as the points at
 the start of a gap.  The points to be connected need to be assigned the
 same unique connection number.  It may be necessary to connect three
 points rather than two to guarantee that a gap connects correctly
 between contours.  If there are more than three points with the same
 connection number, points after the third one will be silently ignored
-by <A HREF = "../man/imodmesh.html">Imodmesh</A>.
+by <A HREF = "../man/imodmesh.html">Imodmesh</A>.  If contour properties are
+being shown, then connection numbers can be used either to control whether
+contours on adjacent sections are meshed together by 
+<A HREF = "../man/imodmesh.html">Imodmesh</A>.  To connect two contours that
+do not overlap, give them the same connection number.  To prevent a connection
+between two contours that do overlap, give them two different connection
+numbers.
 <P>
 <A HREF="index.html">Help Index<A>
