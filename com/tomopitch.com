@@ -1,6 +1,6 @@
 # THIS IS A COMMAND FILE TO RUN TOMOPITCH ON ONE MODEL
 #
-####CreatedVersion#### 3.4.4
+####CreatedVersion#### 3.8.7
 #
 # YOU SHOULD CREATE THE MODEL WITH:
 #     3dmod top.rec mid.rec bot.rec tomopitch.mod
@@ -17,5 +17,5 @@ $tomopitch -StandardInput
 ModelFile	tomopitch.mod
 #
 # Pixels to add to thickness on each side, above and below model lines
-ExtraThickness	2
+ExtraThickness	5
 SpacingInY	0
