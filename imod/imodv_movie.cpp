@@ -367,7 +367,7 @@ static void imodvMakeMovie(int frames)
 
 
   movie->abort = 0;
-  for(frame = 0; frame < frames; frame++){
+  for(frame = 1; frame <= frames; frame++){
     if (movie->saved)
       imodv_auto_snapshot(NULL, movie->file_format);
     else
@@ -379,7 +379,7 @@ static void imodvMakeMovie(int frames)
       break;
 
     /* DNM: don't change the angle after the last step */
-    if (frame < frames - 1){
+    if (frame < frames){
 
       /* change zoom by a factor, not an increment */
       vw->rad   *= zfac;
@@ -584,6 +584,10 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.11  2005/04/06 15:52:25  mast
+    Disabled buffer swap and read from back buffer in montage mode to
+    prevent getting wrong buffer on mustang
+
     Revision 4.10  2004/11/29 19:25:21  mast
     Changes to do QImage instead of RGB snapshots
 
