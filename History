@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/10/06: Fixed model view movie maker which was taking first two pictures at 
+same X/Y/Z image location.
+
 5/8/06: In fine grain dialog, added ability to set contour connection numbers
 to force or prevent mesh connections between contours on adjacent sections.
 In Imodmmesh, implemented use of these connection numbers and fixed the forcing
