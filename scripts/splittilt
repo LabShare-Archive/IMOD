@@ -260,6 +260,9 @@ SLICE -1 -1\
 TOTALSLICES $mintotslice $maxtotslice\
 " \
     $comname >! $thiscom
+    cat <<EOF >> $thiscom
+\$sync
+EOF
 endif
 
 @ num = 0
@@ -286,6 +289,9 @@ while ($num < $numslabs)
     # Set the new slice command and the xtiltinterp control, and turn off
     # FBP for consistency
     #
+    cat <<EOF >! $thiscom
+\$sync
+EOF
     sed -e "/$recsed/s//$tempname/" \
         -e "/SLICE/d" \
         -e '/savework/d' \
@@ -300,7 +306,7 @@ TOTALSLICES $mintotslice $maxtotslice\
 " \
         -e "/THICKNESS/a\\
 $nofbp\
-" $comname >! $thiscom
+" $comname >> $thiscom
     cat <<EOF >> $thiscom
 \$echo CHUNK DONE
 EOF
@@ -333,6 +339,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.8  2006/03/25 06:11:26  mast
+#  Switched to using commands that make tilt write to single file
+#
 #  Revision 3.7  2006/03/24 00:33:03  mast
 #  Changed to use image size if available so it will work with subset or
 #  oversized stack.
