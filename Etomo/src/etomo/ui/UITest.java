@@ -42,8 +42,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   static final long DEFAULT_SLEEP = 1000;
   static final String DATASET_ATTRIB = "dataset";
 
-  private static final String[] ARGS = new String[] { "--selftest",
-      "--test"/*, "--names"*/, "--memory" };
+  private static final String[] ARGS = new String[] { "--selftest", "--test" };
 
   private AdocCommandReader reader = null;
   private File testDir = null;
@@ -601,6 +600,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2006/05/01 21:19:43  sueh
+ * <p> bug# 787 Removed fiducial diameter, added set.
+ * <p>
  * <p> Revision 1.11  2006/04/28 21:06:48  sueh
  * <p> bug# 787 Simplify code by using AdocCommandReader instead of
  * <p> keyed searches and NameValuePair.
