@@ -6,6 +6,7 @@ import java.util.Properties;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
@@ -28,7 +29,7 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   private static final String latestRevisionNumber = "1.7";
   private static final String newTomogramTitle = "Setup Tomogram";
-  
+
   protected static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
       .getStorableName()
       + AxisID.FIRST.getExtension().toUpperCase() + ".Tilt.Parallel";
@@ -36,12 +37,13 @@ public abstract class ConstMetaData extends BaseMetaData {
       .getStorableName()
       + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
   protected static final String COMBINE_VOLCOMBINE_PARALLEL_GROUP = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName() + ".Volcombine.Parallel";
+      .getStorableName()
+      + ".Volcombine.Parallel";
   protected static final String B_STACK_PROCESSED_GROUP = "BStackProcessed";
+  private static final int DEFAULT_SAMPLE_THICKNESS = 200;
 
-  
   private final ApplicationManager manager;
-  
+
   protected String datasetName = "";
   protected String backupDirectory = "";
   protected String distortionFile = "";
@@ -70,7 +72,7 @@ public abstract class ConstMetaData extends BaseMetaData {
       EtomoNumber.INTEGER_TYPE, "TomoGenBinningA");
   protected EtomoNumber tomoGenBinningB = new EtomoNumber(
       EtomoNumber.INTEGER_TYPE, "TomoGenBinningB");
-  
+
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
   protected String excludeProjectionsA = "";
@@ -89,16 +91,23 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final SqueezevolParam squeezevolParam;
   protected final TransferfidParam transferfidParamA;
   protected final TransferfidParam transferfidParamB;
-  protected final EtomoBoolean2 defaultParallel = new EtomoBoolean2("DefaultParallel");
+  protected final EtomoBoolean2 defaultParallel = new EtomoBoolean2(
+      "DefaultParallel");
   protected EtomoBoolean2 tomoGenTiltParallelA = null;
   protected EtomoBoolean2 tomoGenTiltParallelB = null;
   protected EtomoBoolean2 combineVolcombineParallel = null;
   protected EtomoBoolean2 bStackProcessed = null;
   private StringBuffer message = new StringBuffer();
+  protected final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST.toString()
+      + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
+  protected final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND
+      .toString()
+      + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
 
   public abstract void load(Properties props);
+
   public abstract void load(Properties props, String prepend);
-    
+
   public ConstMetaData(ApplicationManager manager) {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
@@ -109,6 +118,8 @@ public abstract class ConstMetaData extends BaseMetaData {
     fileExtension = ".edf";
     useZFactorsA.setDisplayValue(true);
     useZFactorsB.setDisplayValue(true);
+    sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
+    sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
   }
 
   /**
@@ -122,7 +133,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     else {
       prepend += ".Setup";
     }
-    group = prepend  + ".";
+    group = prepend + ".";
     props.setProperty(group + "RevisionNumber", latestRevisionNumber);
     props.setProperty(group + "ComScriptsCreated", String
         .valueOf(comScriptsCreated));
@@ -185,42 +196,44 @@ public abstract class ConstMetaData extends BaseMetaData {
       bStackProcessed.store(props, prepend);
     }
     defaultParallel.store(props, prepend);
+    sampleThicknessA.store(props, prepend);
+    sampleThicknessB.store(props, prepend);
   }
 
   public TrimvolParam getTrimvolParam() {
     return trimvolParam;
   }
-  
+
   public SqueezevolParam getSqueezevolParam() {
     return squeezevolParam;
   }
-  
+
   public void getTransferfidAFields(TransferfidParam transferfidParam) {
     this.transferfidParamA.getStorableFields(transferfidParam);
   }
-  
+
   public void getTransferfidBFields(TransferfidParam transferfidParam) {
     this.transferfidParamB.getStorableFields(transferfidParam);
   }
-  
+
   public String getDatasetName() {
     return datasetName;
   }
-  
+
   public String getMetaDataFileName() {
     if (datasetName.equals("")) {
       return "";
     }
     return datasetName + fileExtension;
   }
-  
+
   public String getName() {
     if (datasetName.equals("")) {
       return newTomogramTitle;
     }
     return datasetName;
   }
-  
+
   public static String getNewFileTitle() {
     return newTomogramTitle;
   }
@@ -232,15 +245,15 @@ public abstract class ConstMetaData extends BaseMetaData {
   public String getDistortionFile() {
     return distortionFile;
   }
-  
+
   public String getMagGradientFile() {
     return magGradientFile;
   }
-  
+
   public ConstEtomoNumber getAdjustedFocusA() {
     return adjustedFocusA;
   }
-  
+
   public ConstEtomoNumber getAdjustedFocusB() {
     return adjustedFocusB;
   }
@@ -263,36 +276,36 @@ public abstract class ConstMetaData extends BaseMetaData {
     }
     return useLocalAlignmentsA;
   }
-  
+
   public ConstEtomoNumber getTomoPosBinning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tomoPosBinningB;
     }
     return tomoPosBinningA;
   }
-  
+
   public ConstEtomoNumber getTomoGenBinning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tomoGenBinningB;
     }
     return tomoGenBinningA;
   }
-  
+
   public ConstEtomoNumber getCombineVolcombineParallel() {
     return combineVolcombineParallel;
   }
-  
+
   public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tomoGenTiltParallelB;
     }
     return tomoGenTiltParallelA;
   }
-  
+
   public ConstEtomoNumber getDefaultParallel() {
     return defaultParallel;
   }
-  
+
   public ConstEtomoNumber getUseZFactors(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return useZFactorsB;
@@ -314,9 +327,16 @@ public abstract class ConstMetaData extends BaseMetaData {
   public int getBinning() {
     return binning;
   }
-  
+
   public ConstEtomoNumber getBStackProcessed() {
     return bStackProcessed;
+  }
+
+  public EtomoNumber getSampleThickness(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleThicknessB;
+    }
+    return sampleThicknessA;
   }
 
   public TiltAngleSpec getTiltAngleSpecA() {
@@ -345,11 +365,11 @@ public abstract class ConstMetaData extends BaseMetaData {
     }
     return fiducialessAlignmentA;
   }
-  
+
   public boolean isDistortionCorrection() {
     return !distortionFile.equals("") || !magGradientFile.equals("");
   }
-  
+
   public boolean isWholeTomogramSample(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return wholeTomogramSampleB;
@@ -360,7 +380,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   public ConstCombineParams getConstCombineParams() {
     return combineParams;
   }
-  
+
   public CombineParams getCombineParams() {
     return combineParams;
   }
@@ -368,29 +388,29 @@ public abstract class ConstMetaData extends BaseMetaData {
   public boolean isValid() {
     return isValid(true, null);
   }
-  
+
   public boolean isValid(boolean fromScreen) {
     return isValid(fromScreen, null);
   }
-  
+
   public boolean isValid(File paramFile) {
     return isValid(false, paramFile);
   }
-  
+
   public boolean isValid(boolean fromScreen, File paramFile) {
     invalidReason = "";
-    
+
     String helpString;
     if (!fromScreen) {
-      helpString = "  Check the Etomo data file."; 
+      helpString = "  Check the Etomo data file.";
     }
     else {
       helpString = "";
     }
-    
-    if (axisType == null  || axisType == AxisType.NOT_SET) {
-      invalidReason =
-        "Axis type should be either Dual Axis or Single Axis." + helpString;
+
+    if (axisType == null || axisType == AxisType.NOT_SET) {
+      invalidReason = "Axis type should be either Dual Axis or Single Axis."
+          + helpString;
       return false;
     }
 
@@ -410,14 +430,14 @@ public abstract class ConstMetaData extends BaseMetaData {
       invalidReason = "Fiducial diameter is not greater than zero.";
       return false;
     }
-    
+
     return true;
   }
 
   public boolean isDatasetNameValid() {
     return isDatasetNameValid(null);
   }
-  
+
   public boolean isDatasetNameValid(File paramFile) {
     invalidReason = "";
     if (datasetName.equals("")) {
@@ -430,7 +450,8 @@ public abstract class ConstMetaData extends BaseMetaData {
       }
     }
     else {
-      if (getValidDatasetDirectory(new File(paramFile.getParent()).getAbsolutePath()) != null) {
+      if (getValidDatasetDirectory(new File(paramFile.getParent())
+          .getAbsolutePath()) != null) {
         return true;
       }
     }
@@ -516,7 +537,7 @@ public abstract class ConstMetaData extends BaseMetaData {
 
     return file.canRead() && (!writeable || file.canWrite());
   }
-  
+
   protected void appendMessage(String string) {
     message.append(string);
   }
@@ -543,7 +564,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     if (fileName == null || curDir == null || altDir == null
         || !isValid(curDir, true)) {
       throw new IllegalArgumentException(
-        "ConstMetaData.findValidFile(String,File,File)");
+          "ConstMetaData.findValidFile(String,File,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
@@ -583,7 +604,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected File findValidFile(String fileName, File curDir) {
     if (fileName == null || curDir == null || !isValid(curDir, true)) {
       throw new IllegalArgumentException(
-        "ConstMetaData.findValidFile(String,File)");
+          "ConstMetaData.findValidFile(String,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
@@ -678,6 +699,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.35  2006/03/23 19:45:54  sueh
+ * <p> bug# 609 Improving the error message when a dual axis image stack does
+ * <p> not end in a.st.
+ * <p>
  * <p> Revision 3.34  2006/03/16 01:53:41  sueh
  * <p> bug# 828 Added getCombineParams().
  * <p>
@@ -879,4 +904,4 @@ public abstract class ConstMetaData extends BaseMetaData {
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
-*/
+ */

@@ -20,6 +20,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2006/03/23 19:46:09  sueh
+ * <p> bug# 609 Improving the error message when a dual axis image stack does
+ * <p> not end in a.st.
+ * <p>
  * <p> Revision 3.27  2005/12/13 02:27:49  sueh
  * <p> bug# 773 Added defaultParallel
  * <p>
@@ -212,6 +216,8 @@ public class MetaData extends ConstMetaData {
     if (combineVolcombineParallel != null) {
       combineVolcombineParallel.reset();
     }
+    sampleThicknessA.reset();
+    sampleThicknessB.reset();
   }
 
   public void initialize() {
@@ -268,6 +274,15 @@ public class MetaData extends ConstMetaData {
 
   public void setTransferfidBFields(TransferfidParam param) {
     transferfidParamB.setStorableFields(param);
+  }
+  
+  public void setSampleThickness(AxisID axisID, String thickness) {
+    if (axisID == AxisID.SECOND) {
+      sampleThicknessB.set(thickness);
+    }
+    else {
+      sampleThicknessA.set(thickness);
+    }
   }
 
   /**
@@ -576,5 +591,7 @@ public class MetaData extends ConstMetaData {
       setBStackProcessed(propertyValue);
     }
     defaultParallel.load(props, prepend);
+    sampleThicknessA.load(props, prepend);
+    sampleThicknessB.load(props, prepend);
   }
 }
