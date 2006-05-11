@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2005/10/27 00:23:37  sueh
+ * <p> bug# 725 Modified setMontageFullImage() to only look in the stack.
+ * <p> Added setFullImage() for non-montage cases.
+ * <p>
  * <p> Revision 3.16  2005/08/01 17:59:36  sueh
  * <p> bug# 532 Added static command name.
  * <p>
@@ -141,20 +145,21 @@ import etomo.util.MRCHeader;
 import etomo.util.Montagesize;
 
 public class TiltParam extends ConstTiltParam implements CommandParam {
-  public static final String rcsid = 
-  "$Id$";
+  public static final String rcsid = "$Id$";
 
   public static final String COMMAND_NAME = "tilt";
+
   public TiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
     super(manager, datasetName, axisID);
   }
+
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+      throws BadComScriptException {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
@@ -278,7 +283,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
         idxXSubsetStart = Integer.parseInt(params[0]);
         idxYSubsetStart = Integer.parseInt(params[1]);
       }
-      if (tokens[0].equals("THICKNESS")) {
+      if (tokens[0].equals(THICKNESS_KEY)) {
         thickness = Integer.parseInt(tokens[1]);
       }
       if (tokens[0].equals("TILTFILE")) {
@@ -290,8 +295,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (tokens[0].equals("WIDTH")) {
         width = Integer.parseInt(tokens[1]);
       }
-      if (tokens[0].equals("XAXISTILT")) {
-        xAxisTilt = Float.parseFloat(tokens[1]);
+      if (tokens[0].equals(X_AXIS_TILT_KEY)) {
+        xAxisTilt = Double.parseDouble(tokens[1]);
       }
       if (tokens[0].equals("XTILTFILE")) {
         xTiltFile = tokens[1];
@@ -313,7 +318,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @param scriptCommand the script command to be updated
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+      throws BadComScriptException {
     // Create a new command line argument array
 
     ArrayList cmdLineArgs = new ArrayList(32);
@@ -345,11 +350,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     if (cosInterpOrder > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "COSINTERP "
-      + String.valueOf(cosInterpOrder)
-      + " "
-      + String.valueOf(cosInterpFactor));
+      newArg.setArgument("COSINTERP " + String.valueOf(cosInterpOrder) + " "
+          + String.valueOf(cosInterpFactor));
       cmdLineArgs.add(newArg);
     }
     if (!densityWeightParams.equals("")) {
@@ -374,17 +376,14 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     if (fastBackProjInterpOrder > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "FBPINTERP " + String.valueOf(fastBackProjInterpOrder));
+      newArg
+          .setArgument("FBPINTERP " + String.valueOf(fastBackProjInterpOrder));
       cmdLineArgs.add(newArg);
     }
     if (fullImageX > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "FULLIMAGE "
-      + String.valueOf(fullImageX)
-      + " "
-      + String.valueOf(fullImageY));
+      newArg.setArgument("FULLIMAGE " + String.valueOf(fullImageX) + " "
+          + String.valueOf(fullImageY));
       cmdLineArgs.add(newArg);
     }
     if (!include.equals("")) {
@@ -433,29 +432,20 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     if (!Float.isNaN(radialBandwidth)) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "RADIAL "
-      + String.valueOf(radialBandwidth)
-      + " "
-      + String.valueOf(radialFalloff));
+      newArg.setArgument("RADIAL " + String.valueOf(radialBandwidth) + " "
+          + String.valueOf(radialFalloff));
       cmdLineArgs.add(newArg);
     }
     if (nReplicate > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "REPLICATE "
-      + String.valueOf(nReplicate)
-      + " "
-      + String.valueOf(incReplicate));
+      newArg.setArgument("REPLICATE " + String.valueOf(nReplicate) + " "
+          + String.valueOf(incReplicate));
       cmdLineArgs.add(newArg);
     }
     if (!Float.isNaN(scaleFLevel)) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "SCALE "
-      + String.valueOf(scaleFLevel)
-      + " "
-      + String.valueOf(scaleCoeff));
+      newArg.setArgument("SCALE " + String.valueOf(scaleFLevel) + " "
+          + String.valueOf(scaleCoeff));
       cmdLineArgs.add(newArg);
     }
     if (!Float.isNaN(xOffset)) {
@@ -468,11 +458,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       cmdLineArgs.add(newArg);
     }
     if (idxSliceStart > Integer.MIN_VALUE) {
-      String arg = 
-      "SLICE "
-      + String.valueOf(idxSliceStart)
-      + " "
-      + String.valueOf(idxSliceStop);
+      String arg = "SLICE " + String.valueOf(idxSliceStart) + " "
+          + String.valueOf(idxSliceStop);
       if (incrSlice > Integer.MIN_VALUE) {
         arg += " " + String.valueOf(incrSlice);
       }
@@ -482,16 +469,13 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     if (idxXSubsetStart > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument(
-      "SUBSETSTART "
-      + String.valueOf(idxXSubsetStart)
-      + " "
-      + String.valueOf(idxYSubsetStart));
+      newArg.setArgument("SUBSETSTART " + String.valueOf(idxXSubsetStart) + " "
+          + String.valueOf(idxYSubsetStart));
       cmdLineArgs.add(newArg);
     }
     if (thickness > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("THICKNESS " + String.valueOf(thickness));
+      newArg.setArgument(THICKNESS_KEY + " " + String.valueOf(thickness));
       cmdLineArgs.add(newArg);
     }
     if (!tiltFile.equals("")) {
@@ -504,9 +488,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument("WIDTH " + String.valueOf(width));
       cmdLineArgs.add(newArg);
     }
-    if (xAxisTilt > Integer.MIN_VALUE) {
+    if (!Double.isNaN(xAxisTilt)) {
       newArg = new ComScriptInputArg();
-      newArg.setArgument("XAXISTILT " + String.valueOf(xAxisTilt));
+      newArg.setArgument(X_AXIS_TILT_KEY + " " + String.valueOf(xAxisTilt));
       cmdLineArgs.add(newArg);
     }
     if (!xTiltFile.equals("")) {
@@ -521,7 +505,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     if (useZFactors) {
       if (zFactorFileName == null || zFactorFileName.matches("\\s*")) {
-        zFactorFileName = TiltalignParam.getOutputZFactorFileName(datasetName, axisID);
+        zFactorFileName = TiltalignParam.getOutputZFactorFileName(datasetName,
+            axisID);
       }
       newArg = new ComScriptInputArg();
       newArg.setArgument("ZFACTORFILE " + zFactorFileName);
@@ -531,17 +516,17 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     newArg.setArgument("DONE");
     cmdLineArgs.add(newArg);
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setInputArguments(
-    (ComScriptInputArg[]) cmdLineArgs.toArray(new ComScriptInputArg[nArgs]));
+    scriptCommand.setInputArguments((ComScriptInputArg[]) cmdLineArgs
+        .toArray(new ComScriptInputArg[nArgs]));
   }
-  
+
   public void initializeDefaults() {
   }
-  
+
   public ConstEtomoNumber setImageBinned(int imageBinned) {
     return this.imageBinned.set(imageBinned);
   }
-  
+
   /**
    * If the current binning can be retrieved, set imageBinned to current
    * binning.  If not, and imageBinned is null then set imageBinned to 1.
@@ -554,7 +539,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       imageBinned.set(currentBinning);
     }
     else if (imageBinned.isNull()) {
-       imageBinned.set(1);
+      imageBinned.set(1);
     }
     return imageBinned;
   }
@@ -566,7 +551,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void setExcludeList(String list) {
     excludeList.parseString(list);
   }
-  
+
   /**
    * Sets the excludeList2.
    * @param excludeList2 The excludeList2 to set
@@ -578,7 +563,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void resetExcludeList() {
     excludeList.setNElements(0);
   }
-  
+
   public void setMontageFullImage() {
     Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     try {
@@ -586,8 +571,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (montagesize.isFileExists()) {
         Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
             axisID);
-        goodframe.run(montagesize.getX().getInt(), montagesize.getY()
-            .getInt());
+        goodframe.run(montagesize.getX().getInt(), montagesize.getY().getInt());
         fullImageX = goodframe.getFirstOutput().getInt();
         fullImageY = goodframe.getSecondOutput().getInt();
       }
@@ -599,7 +583,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       e.printStackTrace();
     }
   }
-  
+
   public void setFullImage(File stack) {
     try {
       MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
@@ -615,7 +599,6 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     catch (IOException e) {
     }
   }
-
 
   /**
    * @param i
@@ -798,12 +781,12 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     width = Integer.MIN_VALUE;
   }
 
-  public void setXAxisTilt(float angle) {
+  public void setXAxisTilt(double angle) {
     xAxisTilt = angle;
   }
 
   public void resetXAxisTilt() {
-    xAxisTilt = Float.NaN;
+    xAxisTilt = Double.NaN;
   }
 
   /**
@@ -827,11 +810,11 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   public void resetZOffset() {
     zOffset = Float.NaN;
   }
-  
+
   public void setUseZFactors(boolean useZFactors) {
     this.useZFactors = useZFactors;
   }
-  
+
   public void setFiducialess(boolean fiducialess) {
     this.fiducialess = fiducialess;
   }
@@ -842,7 +825,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @param scriptCommand the ComScriptCommand containing the tilt command
    */
   private ComScriptInputArg[] getInputArguments(ComScriptCommand scriptCommand)
-  throws BadComScriptException {
+      throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
     if (!scriptCommand.getCommand().equals("tilt")) {
@@ -852,15 +835,13 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     //  Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     if (inputArgs.length < 3) {
-      throw (
-      new BadComScriptException(
-      "Incorrect number of input arguments to tiltalign command\nGot "
-      + String.valueOf(inputArgs.length)
-      + " expected at least 3."));
+      throw (new BadComScriptException(
+          "Incorrect number of input arguments to tiltalign command\nGot "
+              + String.valueOf(inputArgs.length) + " expected at least 3."));
     }
     return inputArgs;
   }
-  
+
   /**
    * Backward compatibility fix.  Unbinned all the parameters which where binned
    * in the old version.  Ignore parameters with reset values.  Will throw an
