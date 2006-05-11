@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.95  2006/04/07 17:55:38  sueh
+ * setupCombineScripts:  processResultDisplay is null when dataflowtests
+ * is run.
+ *
  * Revision 3.94  2006/04/06 19:43:26  sueh
  * bug# 808 Using Fields to pass requests to the generic gets in
  * ProcessDetails.
@@ -769,6 +773,9 @@ import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CombineComscriptState;
+import etomo.comscript.Command;
+import etomo.comscript.CommandDetails;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
@@ -783,6 +790,7 @@ import etomo.comscript.SetupCombine;
 import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
+import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
@@ -1247,15 +1255,16 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run sample.com on.
    */
   public String createSample(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay, ConstTiltParam param)
+      throws SystemProcessException {
     //
     //  Create the required sample command
     //
-    String command = "sample" + axisID.getExtension() + ".com";
+    String command = ProcessName.SAMPLE + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
-        processResultDisplay);
+        processResultDisplay, param);
     return comScriptProcess.getName();
 
   }
@@ -1306,9 +1315,6 @@ public class ProcessManager extends BaseProcessManager {
    */
   public String mtffilter(AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
-    //
-    //  Create the required newst command
-    //
     String command = "mtffilter" + axisID.getExtension() + ".com";
     MtffilterProcessMonitor mtffilterProcessMonitor = new MtffilterProcessMonitor(
         appManager, axisID);
@@ -1340,7 +1346,30 @@ public class ProcessManager extends BaseProcessManager {
         tiltProcessMonitor, axisID, processResultDisplay);
 
     return comScriptProcess.getName();
+  }
 
+  /**
+   * Run the appropriate tilt com file for the given axis ID
+   * Use this for sampling a whole tomogram
+   * @param axisID
+   *          the AxisID to run tilt on.
+   */
+  public String tilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ConstTiltParam param) throws SystemProcessException {
+    //
+    //  Create the required tilt command
+    //
+    String command = "tilt" + axisID.getExtension() + ".com";
+
+    //  Instantiate the process monitor
+    TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
+        axisID);
+
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command,
+        tiltProcessMonitor, axisID, processResultDisplay, param);
+
+    return comScriptProcess.getName();
   }
 
   /**
@@ -1421,7 +1450,7 @@ public class ProcessManager extends BaseProcessManager {
           "Setup combine failed.  Exit value = " + exitValue,
           "Setup Combine Failed", AxisID.ONLY);
       if (processResultDisplay != null) {
-      processResultDisplay.msgProcessFailed();
+        processResultDisplay.msgProcessFailed();
       }
       return false;
     }
@@ -1700,28 +1729,30 @@ public class ProcessManager extends BaseProcessManager {
     // Script specific post processing
     ProcessName processName = script.getProcessName();
     ProcessDetails processDetails = script.getProcessDetails();
+    CommandDetails commandDetails = script.getCommandDetails();
     TomogramState state = appManager.getState();
     AxisID axisID = script.getAxisID();
     if (processName == ProcessName.ALIGN) {
       generateAlignLogs(axisID);
       copyFiducialAlignFiles(axisID);
-      if (processDetails != null) {
-        state.setMadeZFactors(axisID, processDetails
-            .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
-        state.setUsedLocalAlignments(axisID, processDetails
-            .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
-        appManager.setEnabledTiltParameters(script.getAxisID());
-      }
+      state.setMadeZFactors(axisID, processDetails
+          .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
+      state.setUsedLocalAlignments(axisID, processDetails
+          .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
+      appManager.setEnabledTiltParameters(script.getAxisID());
+      state.setAlignAxisZShift(axisID, processDetails
+          .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
+      state.setAlignAngleOffset(axisID, processDetails
+          .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
     }
     else if (processName == ProcessName.TOMOPITCH) {
-      appManager.openTomopitchLog(script.getAxisID());
+      appManager.setTomopitchOutput(axisID);
     }
     else if (processName == ProcessName.NEWST) {
-      if (processDetails != null
-          && processDetails.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
+      if (commandDetails.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
         appManager.getState().setNewstFiducialessAlignment(
             axisID,
-            processDetails
+            commandDetails
                 .getBooleanValue(NewstParam.Fields.FIDUCIALESS_ALIGNMENT));
         appManager.setEnabledTiltParameters(script.getAxisID());
       }
@@ -1730,30 +1761,41 @@ public class ProcessManager extends BaseProcessManager {
       appManager.setEnabledFixEdgesWithMidas(script.getAxisID());
     }
     else if (processName == ProcessName.XCORR) {
-      setInvalidEdgeFunctions(script.getProcessDetails(), true);
+      setInvalidEdgeFunctions(script.getCommand(), true);
     }
     else if (processName == ProcessName.PREBLEND) {
-      setInvalidEdgeFunctions(script.getProcessDetails(), true);
+      setInvalidEdgeFunctions(script.getCommand(), true);
+    }
+    else if (processName == ProcessName.TILT) {
+      //only create whole tomogram sample has a processDetail object
+      if (processDetails == null) {
+        return;
+      }
+      state.setXAxisTilt(axisID, processDetails
+          .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
+    }
+    else if (processName == ProcessName.SAMPLE) {
+      state.setXAxisTilt(axisID, processDetails
+          .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
     }
   }
 
   protected void errorProcess(ComScriptProcess script) {
     ProcessName processName = script.getProcessName();
     if (processName == ProcessName.XCORR) {
-      setInvalidEdgeFunctions(script.getProcessDetails(), false);
+      setInvalidEdgeFunctions(script.getCommand(), false);
     }
     else if (processName == ProcessName.PREBLEND) {
-      setInvalidEdgeFunctions(script.getProcessDetails(), false);
+      setInvalidEdgeFunctions(script.getCommand(), false);
     }
   }
 
-  private void setInvalidEdgeFunctions(ProcessDetails processDetails,
-      boolean succeeded) {
+  private void setInvalidEdgeFunctions(Command command, boolean succeeded) {
     if (appManager.getConstMetaData().getViewType() == ViewType.MONTAGE
-        && processDetails.getCommandName().equals(BlendmontParam.COMMAND_NAME)
-        && (processDetails.getCommandMode() == BlendmontParam.XCORR_MODE || processDetails
+        && command.getCommandName().equals(BlendmontParam.COMMAND_NAME)
+        && (command.getCommandMode() == BlendmontParam.XCORR_MODE || command
             .getCommandMode() == BlendmontParam.PREBLEND_MODE)) {
-      appManager.getState().setInvalidEdgeFunctions(processDetails.getAxisID(),
+      appManager.getState().setInvalidEdgeFunctions(command.getAxisID(),
           !succeeded);
     }
   }
@@ -1769,9 +1811,7 @@ public class ProcessManager extends BaseProcessManager {
         return;
       }
       ProcessDetails processDetails = process.getProcessDetails();
-      if (processDetails == null) {
-        return;
-      }
+      Command command = process.getCommand();
       if (commandName.equals(TrimvolParam.getName())) {
         appManager.getState().setTrimvolFlipped(
             processDetails.getBooleanValue(TrimvolParam.Fields.SWAPYZ));
@@ -1781,7 +1821,7 @@ public class ProcessManager extends BaseProcessManager {
             processDetails.getBooleanValue(SqueezevolParam.Fields.FLIPPED));
       }
       else if (commandName.equals(ArchiveorigParam.COMMAND_NAME)) {
-        appManager.deleteOriginalStack(processDetails, process.getStdOutput());
+        appManager.deleteOriginalStack(command, process.getStdOutput());
       }
     }
   }
