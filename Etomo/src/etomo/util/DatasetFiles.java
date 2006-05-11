@@ -6,6 +6,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -32,39 +33,39 @@ public final class DatasetFiles {
 
   //Stacks
 
-  public final static File getOriginalStack(BaseManager manager, AxisID axisID) {
+  public static File getOriginalStack(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + "_orig" + STACK_EXT);
   }
 
-  public final static File getStack(BaseManager manager, AxisID axisID) {
+  public static File getStack(BaseManager manager, AxisID axisID) {
     return getStack(manager.getPropertyUserDir(), manager.getBaseMetaData(),
         axisID);
   }
 
-  public final static File getStack(String propertyUserDir,
+  public static File getStack(String propertyUserDir,
       BaseMetaData metaData, AxisID axisID) {
     return new File(propertyUserDir, getStackName(metaData, axisID));
   }
 
-  public final static String getStackName(BaseManager manager, AxisID axisID) {
+  public static String getStackName(BaseManager manager, AxisID axisID) {
     return getStackName(manager.getBaseMetaData(), axisID);
   }
 
-  private final static String getStackName(BaseMetaData metaData, AxisID axisID) {
+  private static String getStackName(BaseMetaData metaData, AxisID axisID) {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + STACK_EXT;
   }
 
-  public final static String getStackName(String dataset, AxisType axisType,
+  public static String getStackName(String dataset, AxisType axisType,
       AxisID axisID) {
     axisID = correctAxisID(axisType, axisID);
     return dataset + axisID.getExtension() + STACK_EXT;
   }
 
-  public final static String getSeedName(String dataset, AxisType axisType,
+  public static String getSeedName(String dataset, AxisType axisType,
       AxisID axisID) {
     axisID = correctAxisID(axisType, axisID);
     return dataset + axisID.getExtension() + ".seed";
@@ -72,7 +73,7 @@ public final class DatasetFiles {
 
   //Tomograms
 
-  public final static File getTomogram(BaseManager manager, AxisID axisID) {
+  public static File getTomogram(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     if (axisID == AxisID.ONLY) {
@@ -83,21 +84,21 @@ public final class DatasetFiles {
         + axisID.getExtension() + TOMO_EXT);
   }
 
-  public final static File getCombinedTomogram(BaseManager manager) {
+  public static File getCombinedTomogram(BaseManager manager) {
     if (manager.getBaseMetaData().getAxisType() != AxisType.DUAL_AXIS) {
       return null;
     }
     return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT);
   }
 
-  public final static File getTrimmedTomogram(BaseManager manager, AxisID axisID) {
+  public static File getTrimmedTomogram(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), metaData.getName()
         + axisID.getExtension() + TOMO_EXT);
   }
 
-  public final static boolean isRotatedTomogram(File tomogram) {
+  public static boolean isRotatedTomogram(File tomogram) {
     String tomogramName = tomogram.getName();
     if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(
         ROTATED_TOMO_EXT)) {
@@ -106,7 +107,7 @@ public final class DatasetFiles {
     return false;
   }
 
-  public final static File getRotatedTomogram(BaseManager manager, File tomogram) {
+  public static File getRotatedTomogram(BaseManager manager, File tomogram) {
     String tomogramName = tomogram.getName();
     return new File(manager.getPropertyUserDir(), tomogramName.substring(0,
         tomogramName.lastIndexOf('.'))
@@ -115,35 +116,35 @@ public final class DatasetFiles {
 
   //Other dataset files
 
-  public final static File getRawTilt(BaseManager manager, AxisID axisID) {
+  public static File getRawTilt(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
         axisID));
   }
 
-  public final static String getRawTiltName(BaseManager manager, AxisID axisID) {
+  public static String getRawTiltName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
 
-  public final static File getPieceListFile(BaseManager manager, AxisID axisID) {
+  public static File getPieceListFile(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getPieceListFileName(manager,
         axisID));
   }
 
-  public final static String getPieceListFileName(BaseManager manager,
+  public static String getPieceListFileName(BaseManager manager,
       AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".pl";
   }
 
-  public final static File getMagGradient(BaseManager manager, AxisID axisID) {
+  public static File getMagGradient(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getMagGradientName(manager,
         axisID));
   }
 
-  public final static String getMagGradientName(BaseManager manager,
+  public static String getMagGradientName(BaseManager manager,
       AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -152,15 +153,15 @@ public final class DatasetFiles {
 
   //other etomo files
 
-  public final static File getCommandsFile(BaseManager manager, String rootName) {
+  public static File getCommandsFile(BaseManager manager, String rootName) {
     return new File(manager.getPropertyUserDir(), getCommandsFileName(rootName));
   }
 
-  public final static String getCommandsFileName(String rootName) {
+  public static String getCommandsFileName(String rootName) {
     return rootName + ".cmds";
   }
 
-  public final static File getAutodoc(File dir, String name) {
+  public static File getAutodoc(File dir, String name) {
     return new File(dir, getAutodocName(name));
   }
 
@@ -168,27 +169,33 @@ public final class DatasetFiles {
     return name + ".adoc";
   }
 
-  public final static File getShellScript(BaseManager manager,
+  public static File getShellScript(BaseManager manager,
       String commandName, AxisID axisID) {
     axisID = correctAxisID(manager.getBaseMetaData(), axisID);
     return new File(manager.getPropertyUserDir(), commandName
         + axisID.getExtension() + ".csh");
   }
 
-  public final static File getOutFile(BaseManager manager, String commandName,
+  public static File getOutFile(BaseManager manager, String commandName,
       AxisID axisID) {
     axisID = correctAxisID(manager.getBaseMetaData(), axisID);
     return new File(manager.getPropertyUserDir(), commandName
         + axisID.getExtension() + ".out");
   }
-
+  
+  //log files
+  
+  public static String getTomopitchLogFileName(BaseManager manager, AxisID axisID) {
+    return ProcessName.TOMOPITCH.toString() + correctAxisID(manager.getBaseMetaData(), axisID).getExtension() + ".log";
+  }
+  
   //private
 
-  private final static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
+  private static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
     return correctAxisID(metaData.getAxisType(), axisID);
   }
 
-  private final static AxisID correctAxisID(AxisType axisType, AxisID axisID) {
+  private static AxisID correctAxisID(AxisType axisType, AxisID axisID) {
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.ONLY) {
       return AxisID.FIRST;
     }
@@ -202,12 +209,15 @@ public final class DatasetFiles {
     return axisID;
   }
 
-  public final static String getParallelDataFileName(String rootName) {
+  public static String getParallelDataFileName(String rootName) {
     return rootName + PARALLEL_DATA_FILE_EXT;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2006/04/06 20:34:13  sueh
+ * <p> bug# 808 Added the comscript extension and the rotation file extension.
+ * <p>
  * <p> Revision 1.11  2006/03/20 18:09:15  sueh
  * <p> bug# 835 Added a function to get the ParallelManager data file (.epp).
  * <p>
