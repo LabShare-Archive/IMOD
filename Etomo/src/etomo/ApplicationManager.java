@@ -14,7 +14,7 @@ import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.CombineParams;
-import etomo.comscript.ProcessDetails;
+import etomo.comscript.Command;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
@@ -55,6 +55,7 @@ import etomo.process.SystemProcessException;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.storage.TomopitchLog;
 import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -97,6 +98,7 @@ import etomo.ui.SetupDialog;
 import etomo.ui.TextPageWindow;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
+import etomo.ui.TomogramPositioning;
 import etomo.ui.TomogramPositioningDialog;
 import etomo.util.DatasetFiles;
 import etomo.util.FidXyz;
@@ -144,7 +146,11 @@ public class ApplicationManager extends BaseManager {
   private TomogramPositioningDialog tomogramPositioningDialogA = null;
 
   private TomogramPositioningDialog tomogramPositioningDialogB = null;
+  
+  private TomogramPositioning tomogramPositioningA = null;
 
+  private TomogramPositioning tomogramPositioningB = null;
+  
   private TomogramGenerationDialog tomogramGenerationDialogA = null;
 
   private TomogramGenerationDialog tomogramGenerationDialogB = null;
@@ -825,7 +831,7 @@ public class ApplicationManager extends BaseManager {
     }
   }
 
-  public void deleteOriginalStack(ProcessDetails archiveorigParam,
+  public void deleteOriginalStack(Command archiveorigParam,
       String[] output) {
     AxisID axisID;
     int mode = archiveorigParam.getCommandMode();
@@ -1271,6 +1277,7 @@ public class ApplicationManager extends BaseManager {
     else {
       param.setFullImage(bStack);
     }
+    rollTiltComAngles(axisID);
     comScriptMgr.saveTilt(param, axisID);
     metaData.setBStackProcessed(true);
     saveIntermediateParamFile(axisID);
@@ -2556,6 +2563,7 @@ public class ApplicationManager extends BaseManager {
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
+      rollAlignComAngles(axisID);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
       updateTiltCom(tiltalignParam, axisID);
@@ -2604,6 +2612,7 @@ public class ApplicationManager extends BaseManager {
       tiltParam.setLocalAlignFile("");
     }
     tiltParam.setExcludeList(tiltalignParam.getExcludeList());
+    rollTiltComAngles(currentAxis);
     comScriptMgr.saveTilt(tiltParam, currentAxis);
   }
 
@@ -2660,12 +2669,12 @@ public class ApplicationManager extends BaseManager {
     // Get the tilt{|a|b}.com parameters
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    tomogramPositioningDialog.setTiltParams(tiltParam);
     //If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
       //upgrade and save param to comscript
       upgradeOldTiltCom(axisID, tiltParam);
     }
-    tomogramPositioningDialog.setTiltParams(tiltParam);
 
     // Get the tomopitch{|a|b}.com parameters
     comScriptMgr.loadTomopitch(axisID);
@@ -2721,7 +2730,7 @@ public class ApplicationManager extends BaseManager {
       if (updateAlignCom(tomogramPositioningDialog, axisID) == null) {
         return;
       }
-      if (!updateSampleTiltCom(axisID)) {
+      if (!updateTomoPosTiltCom(axisID, false)) {
         return;
       }
       if (!updateTomopitchCom(axisID)) {
@@ -2791,10 +2800,12 @@ public class ApplicationManager extends BaseManager {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updateSampleTiltCom(axisID)) {
+    if (!updateTomoPosTiltCom(axisID, true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    comScriptMgr.loadTilt(axisID);
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
 
@@ -2819,7 +2830,7 @@ public class ApplicationManager extends BaseManager {
 
     String threadName;
     try {
-      threadName = processMgr.createSample(axisID, processResultDisplay);
+      threadName = processMgr.createSample(axisID, processResultDisplay, tiltParam);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2833,6 +2844,13 @@ public class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Creating sample tomogram", axisID);
+  }
+  
+  private TomogramPositioning getDialogInterface(DialogType dialogType, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramPositioningB;
+    }
+    return tomogramPositioningA;
   }
 
   /**
@@ -2866,7 +2884,7 @@ public class ApplicationManager extends BaseManager {
         return;
       }
     }
-    if (!updateSampleTiltCom(axisID)) {
+    if (!updateTomoPosTiltCom(axisID, true)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -3003,10 +3021,18 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void openTomopitchLog(AxisID axisID) {
-    String logFileName = "tomopitch" + axisID.getExtension() + ".log";
+    String logFileName = DatasetFiles.getTomopitchLogFileName(this, axisID);
     TextPageWindow logFileWindow = new TextPageWindow();
     logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
         + File.separator + logFileName));
+  }
+  
+  public void setTomopitchOutput(AxisID axisID) {
+    TomopitchLog log = new TomopitchLog(this, axisID);
+    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
+    if (!tomogramPositioningDialog.setParameters(log)) {
+      openTomopitchLog(axisID);
+    }
   }
 
   /**
@@ -3052,7 +3078,7 @@ public class ApplicationManager extends BaseManager {
    * Update the tilt{|a|b}.com file with sample parameters for the specified
    * axis
    */
-  private boolean updateSampleTiltCom(AxisID axisID) {
+  private boolean updateTomoPosTiltCom(AxisID axisID, boolean sample) {
     //  Set a reference to the correct object
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
     // Make sure that we have an active positioning dialog
@@ -3066,7 +3092,11 @@ public class ApplicationManager extends BaseManager {
     // parameters back to the tilt{|a|b}.com
     try {
       TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+      if (sample) {
+        tomogramPositioningDialog.getTiltParamsForSample(tiltParam);
+      }
       tomogramPositioningDialog.getTiltParams(tiltParam);
+      tomogramPositioningDialog.getParameters(metaData);
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
         outputFileName = metaData.getDatasetName() + "_full.rec";
@@ -3081,6 +3111,7 @@ public class ApplicationManager extends BaseManager {
         //copytomocoms
         //tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
       }
+      rollTiltComAngles(axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -3113,6 +3144,7 @@ public class ApplicationManager extends BaseManager {
     // parameters back to the tilt{|a|b}.com
     try {
       TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
+      state.getParameters(axisID, tomopitchParam);
       tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
       comScriptMgr.saveTomopitch(tomopitchParam, axisID);
     }
@@ -3152,6 +3184,7 @@ public class ApplicationManager extends BaseManager {
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       tomogramPositioningDialog.getAlignParams(tiltalignParam);
+      rollAlignComAngles(axisID);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //update xfproduct in align.com
       XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
@@ -3178,6 +3211,22 @@ public class ApplicationManager extends BaseManager {
       return null;
     }
     return tiltalignParam;
+  }
+
+  private void rollAlignComAngles(AxisID axisID) {
+    TomogramPositioningDialog tomogramPositioningDialog = (TomogramPositioningDialog) getDialog(
+        DialogType.TOMOGRAM_POSITIONING, axisID);
+    if (tomogramPositioningDialog != null) {
+      tomogramPositioningDialog.rollAlignComAngles();
+    }
+  }
+  
+  private void rollTiltComAngles(AxisID axisID) {
+    TomogramPositioningDialog tomogramPositioningDialog = (TomogramPositioningDialog) getDialog(
+        DialogType.TOMOGRAM_POSITIONING, axisID);
+    if (tomogramPositioningDialog != null) {
+      tomogramPositioningDialog.rollTiltComAngles();
+    }
   }
 
   /**
@@ -3564,6 +3613,7 @@ public class ApplicationManager extends BaseManager {
         //copytomocoms
         //tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
       }
+      rollTiltComAngles(axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -3905,6 +3955,27 @@ public class ApplicationManager extends BaseManager {
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     tiltProcess(axisID, processResultDisplay);
+  }
+  
+  private void sampleTilt(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    TomogramPositioning dialogInterface = getDialogInterface(DialogType.TOMOGRAM_POSITIONING, axisID);
+    comScriptMgr.loadTilt(axisID);
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    String threadName;
+    try {
+      threadName = processMgr.tilt(axisID, processResultDisplay, tiltParam);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return;
+    }
+    setThreadName(threadName, axisID);
   }
 
   /**
@@ -5546,7 +5617,7 @@ public class ApplicationManager extends BaseManager {
   protected void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay) {
     if (nextProcess.equals("tilt")) {
-      tiltProcess(axisID, processResultDisplay);
+      sampleTilt(axisID, processResultDisplay);
     }
     else if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID, processResultDisplay);
@@ -5988,6 +6059,7 @@ public class ApplicationManager extends BaseManager {
     int correctionBinning = getBackwardCompatibleTiltBinning(axisID, tiltParam);
     long currentBinning = getStackBinning(axisID, ".ali");
     if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
+      rollTiltComAngles(axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
   }
@@ -6005,6 +6077,7 @@ public class ApplicationManager extends BaseManager {
     long correctionBinning = getBackwardCompatibleAlignBinning(axisID);
     long currentBinning = getStackBinning(axisID, ".preali");
     if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
+      rollAlignComAngles(axisID);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
     }
   }
@@ -6168,6 +6241,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.220  2006/04/25 18:50:39  sueh
+ * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
+ * <p>
  * <p> Revision 3.219  2006/04/11 13:36:56  sueh
  * <p> bug# 809 Manage auto center and seed mode separately from
  * <p> openBeadFixer so that seed mode doesn't always have to be managed.
