@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/10/06: IMOD_3-8-7 (eTomo unstable)
 5/10/06: Added sync statements to command files for running Tilt in parallel
 to stop problems on Macs.
 
