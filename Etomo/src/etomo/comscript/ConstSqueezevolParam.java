@@ -27,6 +27,10 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2006/04/06 18:49:18  sueh
+* <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+* <p> the generic gets.
+* <p>
 * <p> Revision 1.12  2006/01/20 20:46:08  sueh
 * <p> updated copyright year
 * <p>
@@ -77,7 +81,7 @@ import etomo.type.EtomoNumber;
 * <p> Stores parameters.
 * <p> </p>
 */
-public abstract class ConstSqueezevolParam implements ProcessDetails, Storable {
+public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
   public static  final String  rcsid =  "$Id$";
   
   protected static final String groupString = "Squeezevol";

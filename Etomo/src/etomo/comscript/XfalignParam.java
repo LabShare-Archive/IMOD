@@ -2,7 +2,6 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -24,6 +23,9 @@ import etomo.type.ScriptParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.13  2006/04/06 19:38:51  sueh
+* <p> bug# 808 Implementing ProcessDetails.
+* <p>
 * <p> Revision 1.12  2006/01/20 20:48:32  sueh
 * <p> updated copyright year
 * <p>
@@ -105,7 +107,7 @@ import etomo.type.ScriptParameter;
 * <p> bug# 520 Added a param to create the xfalign command.
 * <p> </p>
 */
-public class XfalignParam implements ProcessDetails {
+public class XfalignParam implements Command {
   public static final String  rcsid =  "$Id$";
   
   private static final int commandSize = 3;
@@ -172,22 +174,6 @@ public class XfalignParam implements ProcessDetails {
   
   public File getCommandOutputFile() {
     return outputFile;
-  }
-  
-  public int getIntValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public double getDoubleValue(Fields field) {
-    throw new IllegalArgumentException("field=" + field);
   }
   
   public int getCommandMode() {

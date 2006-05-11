@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2005/07/29 00:44:46  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.6  2005/06/10 22:49:57  sueh
  * <p> bug# 583, bug# 682 Moved binning calculation to ApplicationManager.
  * <p> Upgraded tilt.com to have all unbinned parameters and a binning value.
@@ -66,16 +71,20 @@
  */
 package etomo.comscript;
 
+import java.util.Hashtable;
+
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
 
-public class ConstTiltParam {
-  public static final String rcsid = 
-  "$Id$";
-  
+public class ConstTiltParam implements ProcessDetails {
+  public static final String rcsid = "$Id$";
+
+  public static final String THICKNESS_KEY = "THICKNESS";
+  public static final String X_AXIS_TILT_KEY = "XAXISTILT";
+
   protected String inputFile;
 
   protected String outputFile;
@@ -156,26 +165,27 @@ public class ConstTiltParam {
 
   protected int width;
 
-  protected float xAxisTilt;
+  protected double xAxisTilt;
 
   protected String xTiltFile;
 
   protected int xTiltInterp;
-  
+
   protected boolean fiducialess;
-  
+
   protected boolean useZFactors;
   protected String zFactorFileName;
   protected StringList excludeList2;
   protected ScriptParameter imageBinned;
-  
+
   protected boolean loadedFromFile = false;
   protected String datasetName;
   protected AxisID axisID;
-  
+
   protected final ApplicationManager manager;
 
-  public ConstTiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
+  public ConstTiltParam(ApplicationManager manager, String datasetName,
+      AxisID axisID) {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
@@ -227,7 +237,7 @@ public class ConstTiltParam {
     tiltFile = "";
     title = "";
     width = Integer.MIN_VALUE;
-    xAxisTilt = Float.NaN;
+    xAxisTilt = Double.NaN;
     xTiltFile = "";
     xTiltInterp = Integer.MIN_VALUE;
     fiducialess = false;
@@ -235,7 +245,7 @@ public class ConstTiltParam {
     excludeList2 = new StringList(0);
     imageBinned.reset();
   }
-  
+
   public ConstEtomoNumber getImageBinned() {
     return imageBinned;
   }
@@ -310,12 +320,12 @@ public class ConstTiltParam {
     return tiltFile;
   }
 
-  public float getXAxisTilt() {
+  public double getXAxisTilt() {
     return xAxisTilt;
   }
 
   public boolean hasXAxisTilt() {
-    if (Float.isNaN(xAxisTilt))
+    if (Double.isNaN(xAxisTilt))
       return false;
     return true;
   }
@@ -327,7 +337,7 @@ public class ConstTiltParam {
   public String getExcludeList() {
     return excludeList.toString();
   }
-  
+
   /**
    * Gets the excludeList2.
    * @return Returns a String
@@ -335,7 +345,6 @@ public class ConstTiltParam {
   public String getExcludeList2() {
     return excludeList2.toString();
   }
-
 
   /**
    * @return
@@ -382,11 +391,10 @@ public class ConstTiltParam {
       return false;
     return true;
   }
-  
+
   public boolean isUseZFactors() {
     return useZFactors;
   }
-
 
   /**
    * @return
@@ -420,7 +428,6 @@ public class ConstTiltParam {
       return false;
     return true;
   }
-
 
   /**
    * @return
@@ -481,12 +488,38 @@ public class ConstTiltParam {
   public int getFullImageY() {
     return fullImageY;
   }
-  
+
   /**
    * identifies an old version
    * @return
    */
   public boolean isOldVersion() {
     return loadedFromFile && imageBinned.isNull();
+  }
+
+  public boolean getBooleanValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public double getDoubleValue(etomo.comscript.Fields field) {
+    if (field == Fields.X_AXIS_TILT) {
+      return xAxisTilt;
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public int getIntValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public Hashtable getHashtable(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public static final class Fields implements etomo.comscript.Fields {
+    private Fields() {
+    }
+
+    public static final Fields X_AXIS_TILT = new Fields();
   }
 }

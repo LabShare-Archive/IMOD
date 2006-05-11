@@ -24,7 +24,7 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  */
-public class ConstTiltalignParam implements ProcessDetails {
+public class ConstTiltalignParam implements CommandDetails {
   public static final String rcsid =
     "$Id$";
 
@@ -402,6 +402,12 @@ public class ConstTiltalignParam implements ProcessDetails {
   }
   
   public double getDoubleValue(etomo.comscript.Fields field) {
+    if (field == Fields.AXIS_Z_SHIFT) {
+      return axisZShift.getDouble();
+    }
+    if (field == Fields.ANGLE_OFFSET) {
+      return angleOffset.getDouble();
+    }
     throw new IllegalArgumentException("field=" + field);
   }
   
@@ -794,11 +800,17 @@ public class ConstTiltalignParam implements ProcessDetails {
     
     public static final Fields USE_OUTPUT_Z_FACTOR_FILE = new Fields();
     public static final Fields LOCAL_ALIGNMENTS = new Fields();
+    public static final Fields AXIS_Z_SHIFT = new Fields();
+    public static final Fields ANGLE_OFFSET = new Fields();
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.24  2006/04/06 18:56:13  sueh
+ * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+ * <p> the generic gets.
+ * <p>
  * <p> Revision 3.23  2006/01/20 20:46:19  sueh
  * <p> updated copyright year
  * <p>

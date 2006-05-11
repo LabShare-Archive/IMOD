@@ -7,6 +7,7 @@ import java.util.HashMap;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
+import etomo.comscript.CommandDetails;
 import etomo.comscript.DetachedCommand;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
@@ -35,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2006/03/30 16:38:23  sueh
+ * <p> bug# 839 print any recursive kills in the error log.
+ * <p>
  * <p> Revision 1.39  2006/03/27 19:17:15  sueh
  * <p> Adding a print to killProcessAndDescendants.  We want to see how many
  * <p> processes are killed this was as apposed to the group kill
@@ -344,6 +348,14 @@ public abstract class BaseProcessManager {
     startSystemProgramThread(commandArray, AxisID.ONLY);
   }
 
+  protected ComScriptProcess startComScript(String command,
+      ProcessMonitor processMonitor, AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ProcessDetails processDetails) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), command, this,
+        axisID, null, processMonitor, processResultDisplay, processDetails), command,
+        processMonitor, axisID);
+  }
+  
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -383,11 +395,11 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startComScript(ProcessDetails processDetails,
+  protected ComScriptProcess startComScript(CommandDetails commandDetails,
       ProcessMonitor processMonitor, AxisID axisID)
       throws SystemProcessException {
-    return startComScript(new ComScriptProcess(getManager(), processDetails,
-        this, axisID, null, processMonitor), processDetails.getCommandLine(),
+    return startComScript(new ComScriptProcess(getManager(), commandDetails,
+        this, axisID, null, processMonitor), commandDetails.getCommandLine(),
         processMonitor, axisID);
   }
 
@@ -399,12 +411,20 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startComScript(ProcessDetails processDetails,
+  protected ComScriptProcess startComScript(CommandDetails commandDetails,
       ProcessMonitor processMonitor, AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(getManager(), processDetails,
+    return startComScript(new ComScriptProcess(getManager(), commandDetails,
         this, axisID, null, processMonitor, processResultDisplay),
-        processDetails.getCommandLine(), processMonitor, axisID);
+        commandDetails.getCommandLine(), processMonitor, axisID);
+  }
+  
+  protected ComScriptProcess startComScript(Command command,
+      ProcessMonitor processMonitor, AxisID axisID,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    return startComScript(new ComScriptProcess(getManager(), command,
+        this, axisID, null, processMonitor, processResultDisplay),
+        command.getCommandLine(), processMonitor, axisID);
   }
 
   /**
@@ -990,20 +1010,20 @@ public abstract class BaseProcessManager {
   }
 
   protected BackgroundProcess startBackgroundProcess(
-      ProcessDetails processDetails, AxisID axisID)
+      CommandDetails commandDetails, AxisID axisID)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        processDetails, this, axisID);
-    return startBackgroundProcess(backgroundProcess, processDetails
+        commandDetails, this, axisID);
+    return startBackgroundProcess(backgroundProcess, commandDetails
         .getCommandLine(), axisID, null);
   }
 
   protected BackgroundProcess startBackgroundProcess(
-      ProcessDetails processDetails, AxisID axisID,
+      CommandDetails commandDetails, AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        processDetails, this, axisID, processResultDisplay);
-    return startBackgroundProcess(backgroundProcess, processDetails
+        commandDetails, this, axisID, processResultDisplay);
+    return startBackgroundProcess(backgroundProcess, commandDetails
         .getCommandLine(), axisID, null);
   }
 
@@ -1016,11 +1036,11 @@ public abstract class BaseProcessManager {
   }
 
   protected BackgroundProcess startBackgroundProcess(
-      ProcessDetails processDetails, AxisID axisID, boolean forceNextProcess)
+      Command command, AxisID axisID, boolean forceNextProcess)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        processDetails, this, axisID, forceNextProcess);
-    return startBackgroundProcess(backgroundProcess, processDetails
+        command, this, axisID, forceNextProcess);
+    return startBackgroundProcess(backgroundProcess, command
         .getCommandLine(), axisID, null);
   }
 
@@ -1059,12 +1079,12 @@ public abstract class BaseProcessManager {
   }
 
   protected InteractiveSystemProgram startInteractiveSystemProgram(
-      ProcessDetails processDetails) throws SystemProcessException {
+      Command command) throws SystemProcessException {
     InteractiveSystemProgram program = new InteractiveSystemProgram(
-        getManager(), processDetails, this, processDetails.getAxisID());
+        getManager(), command, this, command.getAxisID());
     program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     Thread thread = new Thread(program);
-    getManager().saveIntermediateParamFile(processDetails.getAxisID());
+    getManager().saveIntermediateParamFile(command.getAxisID());
     thread.start();
     program.setName(thread.getName());
     if (etomoDirector.isDebug()) {

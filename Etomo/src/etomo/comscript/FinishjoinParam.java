@@ -27,6 +27,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.18  2006/04/06 18:58:57  sueh
+* <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+* <p> the generic gets.
+* <p>
 * <p> Revision 1.17  2006/01/20 20:47:02  sueh
 * <p> updated copyright year
 * <p>
@@ -128,7 +132,7 @@ import etomo.type.SectionTableRowData;
 * <p> bug# 520 Param for finishjoin.
 * <p> </p>
 */
-public class FinishjoinParam implements ProcessDetails {
+public class FinishjoinParam implements CommandDetails {
   public static final String  rcsid =  "$Id$";
   
   public static final int FINISH_JOIN_MODE = -1;
@@ -194,7 +198,7 @@ public class FinishjoinParam implements ProcessDetails {
   }
   
   public boolean getBooleanValue(etomo.comscript.Fields field) {
-    return false;
+    throw new IllegalArgumentException("field=" + field);
   }
   
   public Hashtable getHashtable(etomo.comscript.Fields field) {

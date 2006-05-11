@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.35  2006/01/31 20:43:00  sueh
+ * bug# 521 Added setProcessResultDisplay to SystemProcessInterface.
+ * This allows the last ProcessResultDisplay used by the combine monitor
+ * to be assigned to the process.
+ *
  * Revision 3.34  2006/01/26 21:54:17  sueh
  * bug# 401 Added a ProcessResultDisplay member variable
  *
@@ -343,6 +348,8 @@ import java.util.ArrayList;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.comscript.Command;
+import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -366,7 +373,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private StringBuffer cshProcessID;
   private AxisID axisID;
   private String watchedFileName;
+  private Command command = null;
   private ProcessDetails processDetails = null;
+  private CommandDetails commandDetails = null;
 
   private boolean started = false;
   private boolean error = false;
@@ -388,6 +397,20 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
   }
+  
+  public ComScriptProcess(BaseManager manager, String comScript,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay, ProcessDetails processDetails) {
+    this.manager = manager;
+    this.comScriptName = comScript;
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+    this.processDetails = processDetails;
+  }
 
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
@@ -401,32 +424,50 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
   }
 
-  public ComScriptProcess(BaseManager manager, ProcessDetails processDetails,
+  public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor) {
     this.manager = manager;
-    this.comScriptName = processDetails.getCommandLine();
+    this.comScriptName = commandDetails.getCommandLine();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
-    this.processDetails = processDetails;
+    processDetails = commandDetails;
+    command = commandDetails;
+    this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
   }
 
-  public ComScriptProcess(BaseManager manager, ProcessDetails processDetails,
+  public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay) {
     this.manager = manager;
-    this.comScriptName = processDetails.getCommandLine();
+    this.comScriptName = commandDetails.getCommandLine();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
-    this.processDetails = processDetails;
+    command = commandDetails;
+    processDetails = commandDetails;
+    this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
   }
+  
+  public ComScriptProcess(BaseManager manager, Command command,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay) {
+    this.manager = manager;
+    this.comScriptName = command.getCommandLine();
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.command = command;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+  } 
 
   /**
    * Set the working directory in which the com script is to be run.
@@ -543,6 +584,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
   public ProcessDetails getProcessDetails() {
     return processDetails;
+  }
+  
+  public Command getCommand() {
+    return command;
+  }
+  
+  public CommandDetails getCommandDetails() {
+    return commandDetails;
   }
 
   public ProcessName getProcessName() {

@@ -2,6 +2,9 @@ package etomo.comscript;
 
 import java.util.Vector;
 
+import etomo.type.EtomoNumber;
+import etomo.type.ScriptParameter;
+
 /**
  * <p>Description: A read only model of the parameter interface for the
  *  tiltxcorr program</p>
@@ -35,6 +38,9 @@ public class ConstTomopitchParam {
   protected double spacingInY;
   protected double scaleFactor;
   protected String parameterFile;
+  protected ScriptParameter angleOffsetOld = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "AngleOffsetOld");
+  protected ScriptParameter zShiftOld = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "ZShiftOld");
+  protected ScriptParameter xAxisTiltOld = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "XAxisTiltOld");
   
   public ConstTomopitchParam() {
     reset();

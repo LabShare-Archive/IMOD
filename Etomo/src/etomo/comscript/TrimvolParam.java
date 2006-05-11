@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2006/04/06 19:38:35  sueh
+ * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+ * <p> the generic gets.
+ * <p>
  * <p> Revision 3.12  2006/01/20 20:48:23  sueh
  * <p> updated copyright year
  * <p>
@@ -121,7 +125,7 @@ import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
 
-public class TrimvolParam implements ProcessDetails {
+public class TrimvolParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
   public static final String PARAM_ID = "Trimvol";

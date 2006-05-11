@@ -37,6 +37,12 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2006/04/06 19:33:36  sueh
+ * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+ * <p> the generic gets.  Added rotationAnglesList to save the rotation angles.
+ * <p> Using -already when a .rot file has already been generated with the same
+ * <p> angles.
+ * <p>
  * <p> Revision 1.17  2006/01/20 20:47:21  sueh
  * <p> updated copyright year
  * <p>
@@ -147,7 +153,7 @@ import etomo.util.DatasetFiles;
  * <p> within parameters.
  * <p> </p>
  */
-public final class MakejoincomParam implements ProcessDetails {
+public final class MakejoincomParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
   public static final int MIDAS_LIMIT_DEFAULT = 1024;

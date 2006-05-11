@@ -1,4 +1,9 @@
 package etomo.comscript;
+
+import java.io.File;
+
+import etomo.type.AxisID;
+
 /**
 * <p>Description: </p>
 * 
@@ -15,12 +20,18 @@ package etomo.comscript;
 public interface Command {
   public static  final String  rcsid =  "$Id$";
   
+  public int getCommandMode();
+  public File getCommandOutputFile();
   public String getCommandName();
   public String getCommandLine();
   public String[] getCommandArray();
+  public AxisID getAxisID();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2006/01/20 20:45:32  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.7  2005/11/19 01:50:22  sueh
 * <p> bug# 744 Moved functions only used by process manager post
 * <p> processing and error processing from Commands to ProcessDetails.

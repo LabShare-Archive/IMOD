@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
@@ -61,6 +62,18 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
       buildCommand();
     }
     return commandArray;
+  }
+  
+  public final int getCommandMode() {
+    return 0;
+  }
+  
+  public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
   }
 
   private final void buildCommand() {
@@ -282,6 +295,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2006/02/15 18:49:36  sueh
+ * <p> bug# 796 Windows fix:  put the path of the command file into single
+ * <p> quotes because it will be run from a file and it needs be translated into a
+ * <p> unix-style path by Cygwin.
+ * <p>
  * <p> Revision 1.14  2006/01/20 20:47:48  sueh
  * <p> updated copyright year
  * <p>

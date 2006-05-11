@@ -20,6 +20,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2006/04/06 18:49:04  sueh
+ * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+ * <p> the generic gets.
+ * <p>
  * <p> Revision 3.14  2006/03/22 21:28:21  sueh
  * <p> bug# 803 Added DATA_MODE_OPTION and
  * <p> FLOAT_DENSITIES_OPTION.
@@ -110,7 +114,7 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public class ConstNewstParam implements ProcessDetails {
+public class ConstNewstParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
   //command modes

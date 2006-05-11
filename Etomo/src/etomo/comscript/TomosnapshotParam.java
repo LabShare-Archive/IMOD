@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
@@ -43,6 +44,18 @@ public final class TomosnapshotParam implements Command {
     return commandArray;
   }
   
+  public int getCommandMode() {
+    return 0;
+  }
+  
+  public File getCommandOutputFile() {
+    return null;
+  }
+  
+  public AxisID getAxisID() {
+    return axisID;
+  }
+  
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add("tcsh");
@@ -79,6 +92,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/02/06 21:03:24  sueh
+* <p> bug# 776 Call script with tcsh -f, so it can be run on WIndows.
+* <p>
 * <p> Revision 1.2  2006/01/20 20:48:13  sueh
 * <p> updated copyright year
 * <p>

@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.comscript.Command;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
@@ -28,6 +29,10 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.17  2006/04/06 19:41:18  sueh
+ * <p> bug# 808 Added post processing for makejoincom and startjoin.  Added
+ * <p> StartJoinParam to startjoin().
+ * <p>
  * <p> Revision 1.16  2006/01/20 20:56:09  sueh
  * <p> updated copyright year
  * <p>
@@ -239,18 +244,25 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     ProcessDetails processDetails = process.getProcessDetails();
-    if (processDetails == null) {
-      return;
-    }
+    Command command = process.getCommand();
     if (commandName.equals(FlipyzParam.getName())) {
-      joinManager.addSection(processDetails.getCommandOutputFile());
+      if (command == null) {
+        return;
+      }
+      joinManager.addSection(command.getCommandOutputFile());
     }
     else if (commandName.equals(XfalignParam.getName())) {
-      joinManager.copyXfFile(processDetails.getCommandOutputFile());
+      if (command == null) {
+        return;
+      }
+      joinManager.copyXfFile(command.getCommandOutputFile());
       joinManager.enableMidas();
     }
     else if (commandName.equals(FinishjoinParam.getName())) {
-      int mode = processDetails.getCommandMode();
+      if (command == null) {
+        return;
+      }
+      int mode = command.getCommandMode();
       if (mode == FinishjoinParam.MAX_SIZE_MODE) {
         String[] stdOutput = process.getStdOutput();
         if (stdOutput != null) {
@@ -274,6 +286,9 @@ public class JoinProcessManager extends BaseProcessManager {
         return;
       }
       if (mode == FinishjoinParam.TRIAL_MODE) {
+        if (processDetails == null) {
+          return;
+        }
         JoinState state = joinManager.getState();
         state.setTrialBinning(processDetails
             .getIntValue(FinishjoinParam.Fields.BINNING));
@@ -288,6 +303,9 @@ public class JoinProcessManager extends BaseProcessManager {
       }
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
+      if (processDetails == null) {
+        return;
+      }
       if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
         StartJoinParam param = joinManager.newStartJoinParam();
         param.setRotate(true);
@@ -312,11 +330,11 @@ public class JoinProcessManager extends BaseProcessManager {
       joinManager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
-      ProcessDetails processDetails = process.getProcessDetails();
-      if (processDetails == null) {
+      Command command = process.getCommand();
+      if (command == null) {
         return;
       }
-      File outputFile = processDetails.getCommandOutputFile();
+      File outputFile = command.getCommandOutputFile();
       //A partially created flip file can cause an error when it is opened.
       if (outputFile != null) {
         outputFile.delete();
@@ -341,12 +359,12 @@ public class JoinProcessManager extends BaseProcessManager {
     if (commandName == null) {
       return;
     }
-    ProcessDetails processDetails = program.getProcessDetails();
-    if (processDetails == null) {
+    Command command = program.getCommand();
+    if (command == null) {
       return;
     }
     if (commandName.equals(MidasParam.getName())) {
-      File outputFile = processDetails.getCommandOutputFile();
+      File outputFile = command.getCommandOutputFile();
       if (outputFile != null
           && outputFile.exists()
           && outputFile.lastModified() > program.getOutputFileLastModified()

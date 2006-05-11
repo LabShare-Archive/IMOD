@@ -25,7 +25,7 @@ import etomo.type.ScriptParameter;
  * 
  * @version $Revision$
  */
-public class BlendmontParam implements CommandParam, ProcessDetails {
+public class BlendmontParam implements CommandParam, CommandDetails {
   public static final String rcsid = "$Id$";
 
   public static final String GOTO_LABEL = "doblend";
@@ -288,6 +288,10 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/04/06 18:48:54  sueh
+ * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
+ * <p> the generic gets.
+ * <p>
  * <p> Revision 1.17  2006/01/20 20:45:08  sueh
  * <p> updated copyright year
  * <p>

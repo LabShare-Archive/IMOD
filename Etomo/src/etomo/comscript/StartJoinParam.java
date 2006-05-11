@@ -19,7 +19,7 @@ import etomo.type.ProcessName;
 * 
 * @version $Revision$
 */
-public class StartJoinParam implements ProcessDetails {
+public class StartJoinParam implements CommandDetails {
   public static  final String  rcsid =  "$Id$";
   
   private static final ProcessName PROCESS_NAME = ProcessName.STARTJOIN;
@@ -106,5 +106,10 @@ public class StartJoinParam implements ProcessDetails {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/04/06 19:38:23  sueh
+* <p> bug# 808 Added this param so that it could hold state data that is passed
+* <p> to it when makejoincom is successful.  The data is passed to JoinState
+* <p> when startjoin is successful.
+* <p> </p>
 */

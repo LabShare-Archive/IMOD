@@ -2,7 +2,7 @@ package etomo.process;
 import java.io.*;
 
 import etomo.BaseManager;
-import etomo.comscript.ProcessDetails;
+import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
@@ -21,6 +21,12 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/11/19 02:27:15  sueh
+ * <p> bug# 744 Moved functions only used by process manager post
+ * <p> processing and error processing from Commands to ProcessDetails.
+ * <p> This allows ProcesschunksParam to be passed to DetachedProcess
+ * <p> without having to add unnecessary functions to it.
+ * <p>
  * <p> Revision 3.5  2005/07/29 00:52:00  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -106,9 +112,9 @@ public class InteractiveSystemProgram implements Runnable {
   /**
    * The command to run
    */
-  private String command = null;
+  private String commandLine = null;
   private String[] commandArray = null;
-  private ProcessDetails processDetails = null;
+  private Command command = null;
 
   /**
    * The buffered IO streams connecting to the commmand.
@@ -126,10 +132,10 @@ public class InteractiveSystemProgram implements Runnable {
    * argument <i>command</i>
    * @param command The string containng the command to run
    */
-  public InteractiveSystemProgram(BaseManager manager, String command, AxisID axisID) {
+  public InteractiveSystemProgram(BaseManager manager, String commandLine, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.command = command;
+    this.commandLine = commandLine;
   }
   
   /**
@@ -143,18 +149,18 @@ public class InteractiveSystemProgram implements Runnable {
     this.commandArray = commandArray;
   }
   
-  public InteractiveSystemProgram(BaseManager manager, ProcessDetails processDetails,
+  public InteractiveSystemProgram(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.processManager = processManager;
-    this.processDetails = processDetails;
+    this.command = command;
     
-    if (processDetails == null) {
+    if (command == null) {
       throw new IllegalArgumentException("CommandParam is null.");
     }
-    commandArray = processDetails.getCommandArray();
-    command = processDetails.getCommandLine();
+    commandArray = command.getCommandArray();
+    commandLine = command.getCommandLine();
   }
   
   public AxisID getAxisID() {
@@ -175,14 +181,14 @@ public class InteractiveSystemProgram implements Runnable {
   }
   
   public String getCommandLine() {
-    return command;
+    return commandLine;
   }
   
   public String getCommandName() {
-    if (processDetails == null) {
+    if (command == null) {
       return null;
     }
-    return processDetails.getCommandName();
+    return command.getCommandName();
   }
 
   /**
@@ -193,8 +199,8 @@ public class InteractiveSystemProgram implements Runnable {
     //  Setup the Process object and run the command
     Process process = null;
     File outputFile = null;
-    if (processDetails != null) {
-      outputFile = processDetails.getCommandOutputFile();
+    if (command != null) {
+      outputFile = command.getCommandOutputFile();
       outputFileLastModified.set(outputFile.lastModified());
     }
     try {
@@ -206,7 +212,7 @@ public class InteractiveSystemProgram implements Runnable {
               currentUserDirectory);
         }
         else {
-          process = Runtime.getRuntime().exec(command, null,
+          process = Runtime.getRuntime().exec(commandLine, null,
               currentUserDirectory);
         }
       }
@@ -216,7 +222,7 @@ public class InteractiveSystemProgram implements Runnable {
               workingDirectory);
         }
         else {
-          process = Runtime.getRuntime().exec(command, null, workingDirectory);
+          process = Runtime.getRuntime().exec(commandLine, null, workingDirectory);
         }
       }
 
@@ -294,8 +300,8 @@ public class InteractiveSystemProgram implements Runnable {
     return line;
   }
   
-  public ProcessDetails getProcessDetails() {
-    return processDetails;
+  public Command getCommand() {
+    return command;
   }
   
   public ConstEtomoNumber getOutputFileLastModified() {

@@ -21,6 +21,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2006/04/06 18:59:14  sueh
+* <p> bug# 808 Implementing ProcessDetails.
+* <p>
 * <p> Revision 1.8  2006/01/20 20:47:11  sueh
 * <p> updated copyright year
 * <p>
@@ -70,7 +73,7 @@ import etomo.type.AxisID;
 * <p> bug# 520 Object that creates a command line to run clipflipyz.
 * <p> </p>
 */
-public class FlipyzParam implements ProcessDetails {
+public class FlipyzParam implements CommandDetails {
   public static  final String  rcsid =  "$Id$";
   
   public static final String command = "clipflipyz";

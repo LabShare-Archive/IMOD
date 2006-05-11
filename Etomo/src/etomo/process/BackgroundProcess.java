@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
+import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -23,6 +24,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2006/01/31 20:37:56  sueh
+ * <p> bug# 521 Added setProcessResultDisplay to SystemProcessInterface.
+ * <p> This allows the last ProcessResultDisplay used by the combine monitor
+ * <p> to be assigned to the process.
+ * <p>
  * <p> Revision 3.24  2006/01/26 21:50:07  sueh
  * <p> bug# 401 Added a ProcessResultDisplay member variable
  * <p>
@@ -213,8 +219,9 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   private String[] stdError;
   private StringBuffer commandProcessID;
   private File outputFile = null;
-  private Command command = null;
   private ProcessDetails processDetails = null;
+  private Command command = null;
+  private CommandDetails commandDetails = null;
   private AxisID axisID;
   private boolean forceNextProcess = false;
 
@@ -247,25 +254,27 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
   }
 
-  public BackgroundProcess(BaseManager manager, ProcessDetails processDetails,
+  public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.processDetails = processDetails;
-    this.command = processDetails;
+    this.commandDetails = commandDetails;
+    command = commandDetails;
+    processDetails = commandDetails;
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
 
-  public BackgroundProcess(BaseManager manager, ProcessDetails processDetails,
+  public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     this.manager = manager;
     this.axisID = axisID;
-    this.processDetails = processDetails;
-    this.command = processDetails;
+    command = commandDetails;
+    processDetails = commandDetails;
+    this.commandDetails = commandDetails;
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
@@ -273,12 +282,11 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
   }
 
-  public BackgroundProcess(BaseManager manager, ProcessDetails processDetails,
+  public BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
     this.manager = manager;
     this.axisID = axisID;
-    this.processDetails = processDetails;
-    this.command = processDetails;
+    this.command = command;
     this.commandArray = command.getCommandArray();
     this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;

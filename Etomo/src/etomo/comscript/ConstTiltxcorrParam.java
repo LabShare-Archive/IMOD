@@ -1,7 +1,6 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -22,6 +21,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/04/06 18:56:26  sueh
+ * <p> bug# 808 Implementing ProcessDetails.
+ * <p>
  * <p> Revision 3.13  2006/01/20 20:46:33  sueh
  * <p> updated copyright year
  * <p>
@@ -86,7 +88,7 @@ import etomo.type.TiltAngleSpec;
  * <p> </p>
  */
 
-public class ConstTiltxcorrParam implements ConstCommandParam, ProcessDetails {
+public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   public static final String rcsid =
     "$Id$";
 
@@ -290,22 +292,6 @@ public class ConstTiltxcorrParam implements ConstCommandParam, ProcessDetails {
   
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), outputFile);
-  }
-  
-  public int getIntValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public boolean getBooleanValue(Fields field) {
-    return false;
-  }
-  
-  public double getDoubleValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
   }
   
   public AxisID getAxisID() {

@@ -2,7 +2,6 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -26,6 +25,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2006/04/06 19:33:50  sueh
+* <p> bug# 808 Implementing ProcessDetails.
+* <p>
 * <p> Revision 1.8  2006/01/20 20:47:31  sueh
 * <p> updated copyright year
 * <p>
@@ -82,7 +84,7 @@ import etomo.type.SectionTableRowData;
 * <p> bug# 520 Param for running Midas.
 * <p> </p>
 */
-public class MidasParam implements ProcessDetails {
+public class MidasParam implements Command {
   public static  final String  rcsid =  "$Id$";
   
   private static final int commandSize = 1;
@@ -164,22 +166,6 @@ public class MidasParam implements ProcessDetails {
   
   public File getCommandOutputFile() {
     return outputFile;
-  }
-  
-  public int getIntValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public double getDoubleValue(Fields field) {
-    throw new IllegalArgumentException("field=" + field);
   }
   
   public int getCommandMode() {

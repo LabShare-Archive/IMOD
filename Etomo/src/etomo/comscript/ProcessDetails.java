@@ -1,9 +1,6 @@
 package etomo.comscript;
 
-import java.io.File;
 import java.util.Hashtable;
-
-import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -18,19 +15,21 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  */
-public interface ProcessDetails extends Command {
+public interface ProcessDetails {
   public static final String rcsid = "$Id$";
 
-  public int getCommandMode();
-  public File getCommandOutputFile();
   public int getIntValue(etomo.comscript.Fields field);
   public boolean getBooleanValue(etomo.comscript.Fields field);
   public double getDoubleValue(etomo.comscript.Fields field);
-  public AxisID getAxisID();
   public Hashtable getHashtable(etomo.comscript.Fields field);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/04/06 19:36:31  sueh
+ * <p> bug# 808 Passing Fields to generic get classes.  Fields is an interface for
+ * <p> inner enum-type classes.  This is more reliable then using integers to
+ * <p> symbolize different fields.
+ * <p>
  * <p> Revision 1.2  2006/01/20 20:47:57  sueh
  * <p> updated copyright year
  * <p>
