@@ -160,6 +160,7 @@ void imodvControlZscale(int value, bool dragging)
          }
   */
   imodvDraw(Imodv);
+  imodvDrawImodImages();
   imodModelEditUpdate();
 }
 
@@ -403,6 +404,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.9  2005/12/11 18:23:54  mast
+    Added ability to set extreme clipping planes out farther
+
     Revision 4.8  2004/11/21 06:07:49  mast
     Changes for undo/redo
 
