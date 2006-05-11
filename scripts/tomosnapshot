@@ -26,7 +26,7 @@ set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_region.mod lslrt.out uname.out \
 processchunks.out processchunksa.out processchunksb.out \
-processchunks.csh processchunksa.csh processchunksb.csh)
+processchunks.csh processchunksa.csh processchunksb.csh transferfid.coord)
 
 echo "$pn : enter $pn -h for usage"
 while ($#argv > 0)
@@ -206,6 +206,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.11  2006/03/31 16:15:36  mast
+#  Added processchunks files
+#
 #  Revision 3.10  2006/02/16 06:32:33  mast
 #  Put IMOD on the path
 #
