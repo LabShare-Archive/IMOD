@@ -24,6 +24,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2006/04/25 19:15:33  sueh
+ * <p> bug# 787 Added UITestField, an enum style class which contains the
+ * <p> fields found in uitestaxis.adoc files.
+ * <p>
  * <p> Revision 3.15  2006/04/06 20:17:04  sueh
  * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> util.Utilities.
@@ -224,10 +228,15 @@ public class LabeledTextField {
   }
 
   public void setTextPreferredWidth(double minWidth) {
-    Font font = textField.getFont();
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
     textField.setPreferredSize(prefSize);
+  }
+  
+  public void setMinimumWidth(double minWidth) {
+    Dimension prefSize = textField.getPreferredSize();
+    prefSize.setSize(minWidth, prefSize.getHeight());
+    textField.setMinimumSize(prefSize);
   }
 
   /**
