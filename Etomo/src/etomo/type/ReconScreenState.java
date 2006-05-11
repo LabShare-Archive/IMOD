@@ -15,7 +15,7 @@ import java.util.Properties;
  * 
  * @version $Revision$
  */
-public class ReconScreenState extends BaseScreenState {
+public final class ReconScreenState extends BaseScreenState {
   public static final String rcsid = "$Id$";
 
   private static final String HEADER_GROUP = ".Header";
@@ -158,71 +158,74 @@ public class ReconScreenState extends BaseScreenState {
     }
   }
 
-  private final static String getAxisExtension(AxisID axisID) {
+  private static String getAxisExtension(AxisID axisID) {
     if (axisID == AxisID.ONLY) {
       axisID = AxisID.FIRST;
     }
     return axisID.getExtension().toUpperCase();
   }
 
-  public final PanelHeaderState getTomoGenNewstHeaderState() {
+  public PanelHeaderState getTomoGenNewstHeaderState() {
     return tomoGenNewstHeaderState;
   }
 
-  public final PanelHeaderState getTomoGenMtffilterHeaderState() {
+  public PanelHeaderState getTomoGenMtffilterHeaderState() {
     return tomoGenMtffilterHeaderState;
   }
 
-  public final PanelHeaderState getTomoGenTiltHeaderState() {
+  public PanelHeaderState getTomoGenTiltHeaderState() {
     return tomoGenTiltHeaderState;
   }
 
-  public final PanelHeaderState getTomoGenTrialTiltHeaderState() {
+  public PanelHeaderState getTomoGenTrialTiltHeaderState() {
     return tomoGenTrialTiltHeaderState;
   }
 
-  public final PanelHeaderState getCombineSetupToSelectorHeaderState() {
+  public PanelHeaderState getCombineSetupToSelectorHeaderState() {
     return combineSetupToSelectorHeaderState;
   }
 
-  public final PanelHeaderState getCombineSetupSolvematchHeaderState() {
+  public PanelHeaderState getCombineSetupSolvematchHeaderState() {
     return combineSetupSolvematchHeaderState;
   }
 
-  public final PanelHeaderState getCombineSetupPatchcorrHeaderState() {
+  public PanelHeaderState getCombineSetupPatchcorrHeaderState() {
     return combineSetupPatchcorrHeaderState;
   }
 
-  public final PanelHeaderState getCombineSetupTempDirHeaderState() {
+  public PanelHeaderState getCombineSetupTempDirHeaderState() {
     return combineSetupTempDirHeaderState;
   }
 
-  public final PanelHeaderState getCombineInitialSolvematchHeaderState() {
+  public PanelHeaderState getCombineInitialSolvematchHeaderState() {
     return combineInitialSolvematchHeaderState;
   }
 
-  public final PanelHeaderState getCombineFinalPatchRegionHeaderState() {
+  public PanelHeaderState getCombineFinalPatchRegionHeaderState() {
     return combineFinalPatchRegionHeaderState;
   }
 
-  public final PanelHeaderState getCombineFinalPatchcorrHeaderState() {
+  public PanelHeaderState getCombineFinalPatchcorrHeaderState() {
     return combineFinalPatchcorrHeaderState;
   }
 
-  public final PanelHeaderState getCombineFinalMatchorwarpHeaderState() {
+  public PanelHeaderState getCombineFinalMatchorwarpHeaderState() {
     return combineFinalMatchorwarpHeaderState;
   }
 
-  public final PanelHeaderState getCombineFinalVolcombineHeaderState() {
+  public PanelHeaderState getCombineFinalVolcombineHeaderState() {
     return combineFinalVolcombineHeaderState;
   }
-  
-  public final PanelHeaderState getCombineSetupVolcombineHeaderState() {
+
+  public PanelHeaderState getCombineSetupVolcombineHeaderState() {
     return combineSetupVolcombineHeaderState;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/01/20 21:08:38  sueh
+ * <p> updated copyright year
+ * <p>
  * <p> Revision 1.3  2005/10/13 22:15:26  sueh
  * <p> bug# 532 Added combineSetupVolcombineHeader.
  * <p>
