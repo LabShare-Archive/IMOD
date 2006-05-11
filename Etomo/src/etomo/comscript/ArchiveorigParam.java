@@ -1,7 +1,6 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -20,7 +19,7 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 */
-public class ArchiveorigParam implements ProcessDetails {
+public class ArchiveorigParam implements Command {
   public static  final String  rcsid =  "$Id$";
   
   public static final String COMMAND_NAME = "archiveorig";
@@ -73,28 +72,15 @@ public class ArchiveorigParam implements ProcessDetails {
     return outputFile;
   }
   
-  public int getIntValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public double getDoubleValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2006/04/06 18:48:12  sueh
+* <p> bug# 808 Implementing ProcessDetails.
+* <p>
 * <p> Revision 1.5  2006/01/20 20:45:00  sueh
 * <p> updated copyright year
 * <p>
