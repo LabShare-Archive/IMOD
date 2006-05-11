@@ -95,11 +95,11 @@ if ($#argv > 0) then
           set matchatob = 1
           shift
           breaksw
-        case -al*:
+        case -to*:
           set corrlist1 = `echo $argv[2] | sed -e '/ /s///g' -e '/\//s//\\\//g'`
           shift; shift
           breaksw
-        case -bl*:
+        case -fr*:
           set corrlist2 = `echo $argv[2] | sed -e '/ /s///g' -e '/\//s//\\\//g'`
           shift; shift
           breaksw
@@ -825,8 +825,10 @@ characters in [] are optional.
 Options:
   -na[me]  name       Root name of dataset
   -at[ob]             Match A to B instead of B to A
-  -al[ist]  list      List of points in that have corresponding points in B
-  -bl[ist]  list      List of the corresponding points in B
+  -to[list]  list     List of points in tomogram being match to that have 
+                        corresponding points 
+  -fr[omlist]  list   List of the corresponding points in the tomogram being
+                        transformed to match
   -tr[ansfer]  name   File from transferfid with corresponding coordinates
   -us[elist]  list    List of points from A to use with transfer coordinates
   -su[rfaces]  #      0 to use matching models and fiducials if any, 2 for
@@ -844,6 +846,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.33  2006/05/05 17:35:29  mast
+#  Converted to command-line arguments and change solvematch processing
+#
 #  Revision 3.32  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
