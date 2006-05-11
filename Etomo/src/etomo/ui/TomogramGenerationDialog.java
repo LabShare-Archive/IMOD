@@ -71,6 +71,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.87  2006/04/28 21:05:19  sueh
+ * bug# 787 PanelHeader:  Removed the member variable title, which was
+ * not used.
+ *
  * Revision 3.86  2006/03/27 21:08:12  sueh
  * bug# 836 Added DialogType to PanelHeader get instances functions so
  * that the buttons in PanelHeader could save themselves.
@@ -1000,7 +1004,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
       if (ltfXAxisTilt.getText().matches("\\S+")) {
         badParameter = ltfXAxisTilt.getLabel();
-        tiltParam.setXAxisTilt(Float.parseFloat(ltfXAxisTilt.getText()));
+        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTilt.getText()));
       }
       else {
         tiltParam.resetXAxisTilt();
