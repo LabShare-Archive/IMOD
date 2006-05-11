@@ -2,6 +2,8 @@ package etomo.comscript;
 
 import java.util.Vector;
 
+import etomo.type.ConstEtomoNumber;
+
 /**
  * <p>Description: </p>
  *
@@ -16,6 +18,9 @@ import java.util.Vector;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2004/06/13 17:03:23  rickg
+ * <p> $Solvematch mid change
+ * <p> $
  * <p> $Revision 1.6  2004/06/09 21:18:12  rickg
  * <p> $Changed upateParameter method to updateScriptParameter
  * <p> $
@@ -84,6 +89,15 @@ public class TomopitchParam
       if (scriptCommand.hasKeyword(PARAMETER_FILE)) {
         parameterFile = scriptCommand.getValue(PARAMETER_FILE);
       } 
+      if (scriptCommand.hasKeyword(angleOffsetOld.getName())) {
+        angleOffsetOld.set(scriptCommand.getValue(angleOffsetOld.getName()));
+      }
+      if (scriptCommand.hasKeyword(zShiftOld.getName())) {
+        zShiftOld.set(scriptCommand.getValue(zShiftOld.getName()));
+      }
+      if (scriptCommand.hasKeyword(xAxisTiltOld.getName())) {
+        xAxisTiltOld.set(scriptCommand.getValue(xAxisTiltOld.getName()));
+      }
       return;
     }
     int inputLine = 0;
@@ -128,6 +142,9 @@ public class TomopitchParam
       scriptCommand,
       PARAMETER_FILE,
       parameterFile);
+    angleOffsetOld.updateComScript(scriptCommand);
+    zShiftOld.updateComScript(scriptCommand);
+    xAxisTiltOld.updateComScript(scriptCommand);
   }
   
   public void initializeDefaults() {
@@ -150,6 +167,18 @@ public class TomopitchParam
   }
   public void setParameterFile(String parameterFile) {
     this.parameterFile = parameterFile;
+  }
+  
+  public void setAngleOffsetOld(ConstEtomoNumber angleOffsetOld) {
+    this.angleOffsetOld.set(angleOffsetOld);
+  }
+  
+  public void setZShiftOld(ConstEtomoNumber zShiftOld) {
+    this.zShiftOld.set(zShiftOld);
+  }
+  
+  public void setXAxisTiltOld(ConstEtomoNumber xAxisTiltOld) {
+    this.xAxisTiltOld.set(xAxisTiltOld);
   }
 
   /**
