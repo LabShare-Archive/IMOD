@@ -4487,7 +4487,7 @@ public class ApplicationManager extends BaseManager {
    */
   public void createCombineScripts(ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
-    mainPanel.setProgressBar("Creating combine scripts", 1, AxisID.ONLY);
+    mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY);
     updateCombineParams();
     try {
       if (!processMgr.setupCombineScripts(metaData, processResultDisplay)) {
@@ -4513,8 +4513,6 @@ public class ApplicationManager extends BaseManager {
     loadMatchorwarp();
     loadVolcombine();
     loadCombineComscript();
-
-    //tomogramCombinationDialog.enableCombineTabs(true);
     mainPanel.stopProgressBar(AxisID.ONLY);
   }
 
@@ -6241,6 +6239,12 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.221  2006/05/11 19:27:06  sueh
+ * <p> bug 838 Getting tomopitch results from the log file placing them in
+ * <p> Tomo Pos.  Dividing results into original, added, and total so that the user
+ * <p> can see what happed.  Align.com and tilt.com are saved with the total,
+ * <p> so roll the original and addded numbers into total (actually just hide them).
+ * <p>
  * <p> Revision 3.220  2006/04/25 18:50:39  sueh
  * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
  * <p>
