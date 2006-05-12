@@ -18,6 +18,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.11  2006/03/16 01:50:37  sueh
+ * bug# 828 Added matchMode.
+ * CombineParams.DialogMatchMode reflects the state of the dialog.
+ * CombineParams.MatchMode reflects the state of the script.
+ * MatchMode is set equal to dialogMatchMode when the script is updated.
+ *
  * Revision 3.10  2005/11/02 21:38:29  sueh
  * bug# 754 Parsing errors and warnings inside ProcessMessages.
  * Replaced warningMessage with processMessages.  Removed functions
@@ -163,6 +169,7 @@
 package etomo.comscript;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
@@ -179,7 +186,8 @@ public class SetupCombine {
   public static final String rcsid = "$Id$";
 
   private final SystemProgram setupcombine;
-  String commandLine;
+
+  private final ArrayList command = new ArrayList();
   int exitValue;
   ConstMetaData metaData;
   boolean debug;
@@ -195,19 +203,96 @@ public class SetupCombine {
     //  working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06  
-    commandLine = "tcsh -f " + ApplicationManager.getIMODBinPath()
-        + "setupcombine";
-    setupcombine = new SystemProgram(manager.getPropertyUserDir(), commandLine,
-        AxisID.ONLY);
-    genStdInputSequence();
+    // com scripts which require the -e flag.  RJG: 2003-11-06 
+    command.add("tcsh");
+    command.add("-f");
+    command.add(ApplicationManager.getIMODBinPath() + "setupcombine");
+    //StringBuffer commandLine = new StringBuffer("tcsh -f "
+    //    + ApplicationManager.getIMODBinPath() + "setupcombine");
+    genOptions();
+    String[] commandArray = new String[command.size()];
+    for (int i = 0; i < commandArray.length; i++) {
+      commandArray[i] = (String) command.get(i);
+    }
+    setupcombine = new SystemProgram(manager.getPropertyUserDir(), commandArray, AxisID.ONLY);
+    //genStdInputSequence();
   }
 
   public MatchMode getMatchMode() {
     return matchMode;
   }
 
+  private void genOptions() {
+    CombineParams combineParams = metaData.getCombineParams();
+    matchMode = combineParams.getDialogMatchMode();
+    String matchListTo;
+    String matchListFrom;
+    FiducialMatch fiducialMatch = combineParams.getFiducialMatch();
+    CombinePatchSize patchSize = combineParams.getPatchSize();
+    //dataset name
+    command.add("-name");
+    command.add(metaData.getDatasetName());
+    //matching relationship
+    if (matchMode == MatchMode.A_TO_B) {
+      command.add("-atob");
+      matchListTo = combineParams.getFiducialMatchListB();
+      matchListFrom = combineParams.getFiducialMatchListA();
+    }
+    else {
+      matchListTo = combineParams.getFiducialMatchListA();
+      matchListFrom = combineParams.getFiducialMatchListB();
+    }
+    //points lists
+    if (!matchListTo.equals("")) {
+      command.add("-tolist");
+      command.add(matchListTo);
+      command.add("-fromlist");
+      command.add(matchListFrom);
+    }
+    //fiducial surfaces / use model
+    if (fiducialMatch != null && fiducialMatch != FiducialMatch.NOT_SET) {
+      command.add("-surfaces");
+      command.add(fiducialMatch.getOption());
+    }
+    //patch sizes
+    if (patchSize != null) {
+      command.add("-patchsize");
+      command.add(patchSize.getOption());
+    }
+    int min = combineParams.getPatchXMin();
+    int max = combineParams.getPatchXMax();
+    if (min != 0 || max != 0) {
+      command.add("-xlimits");
+      command.add(String.valueOf(min) + "," + String.valueOf(max));
+    }
+    min = combineParams.getPatchYMin();
+    max = combineParams.getPatchYMax();
+    if (min != 0 || max != 0) {
+      command.add("-ylimits");
+      command.add(String.valueOf(min) + "," + String.valueOf(max));
+    }
+    min = combineParams.getPatchZMin();
+    max = combineParams.getPatchZMax();
+    if (min != 0 || max != 0) {
+      command.add("-zlimits");
+      command.add(String.valueOf(min) + "," + String.valueOf(max));
+    }
+    //patch region model
+    if (combineParams.usePatchRegionModel()) {
+      command.add("-regionmod");
+      command.add(combineParams.patchRegionModel);
+    }
+    if (!combineParams.tempDirectory.equals("")) {
+      command.add("-tempdir");
+      command.add(combineParams.tempDirectory);
+      if (combineParams.getManualCleanup()) {
+        command.add("-noclean");
+      }
+    }
+  }
+
   /**
+   * @deprecated
    * Generate the standard input sequence
    */
   private void genStdInputSequence() {
@@ -287,7 +372,7 @@ public class SetupCombine {
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMax());
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMin());
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
-
+    
     tempStdInput[lineCount++] = combineParams.patchRegionModel;
 
     tempStdInput[lineCount++] = combineParams.tempDirectory;
