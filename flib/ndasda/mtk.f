@@ -13,6 +13,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.9  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c
 c       Revision 3.8  2005/11/13 23:10:58  mast
 c       Fixed a format
 c	
@@ -616,7 +619,7 @@ c$$$    endif
 213   if(iopt.eq.13)go to 10
       if(nobjwin.gt.0.and.winmin.lt.winmax)then
         do iow=1,nobjwin
-          iobjwin(iow)=iobjmod(iobjwin(iow))
+          if (iobjwin(iow).gt.0) iobjwin(iow)=iobjmod(iobjwin(iow))
         enddo
         nobjwin=-nobjwin
       endif
