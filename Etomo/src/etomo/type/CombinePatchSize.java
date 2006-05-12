@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -24,7 +27,7 @@ package etomo.type;
  * <p> </p>
  */
 
-public class CombinePatchSize {
+public final class CombinePatchSize {
   public static final String rcsid =
     "$Id$";
 
@@ -61,6 +64,19 @@ public class CombinePatchSize {
       return LARGE;
     }
 
+    return null;
+  }
+  
+  public String getOption() {
+    if (this == SMALL) {
+      return "S";
+    }
+    if (this == MEDIUM) {
+      return "M";
+    }
+    if (this == LARGE) {
+      return "L";
+    }
     return null;
   }
 }

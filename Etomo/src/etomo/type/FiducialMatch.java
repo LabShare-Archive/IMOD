@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -26,7 +29,7 @@ package etomo.type;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class FiducialMatch {
+public final class FiducialMatch {
   public static final String rcsid =
     "$Id$";
 
@@ -72,6 +75,28 @@ public class FiducialMatch {
       return USE_MODEL_ONLY;
     }
 
+    return null;
+  }
+  
+  public String getOption() {
+    if (this == NOT_SET) {
+      return null;
+    }
+    if (this == BOTH_SIDES) {
+      return "2";
+    }
+    if (this == ONE_SIDE) {
+      return "1";
+    }
+    if (this == ONE_SIDE_INVERTED) {
+      return "-1";
+    }
+    if (this == USE_MODEL) {
+      return "0";
+    }
+    if (this == USE_MODEL_ONLY) {
+      return "-2";
+    }
     return null;
   }
 }
