@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/07/29 00:50:14  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.8  2005/07/18 17:53:10  sueh
  * <p> bug# 692 Removed selftest function in axis id because there are too many
  * <p> situations where it is valid for it to fail.  Remove
@@ -126,6 +131,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
+import etomo.util.DatasetFiles;
 
 public class TransferfidParam implements Storable {
   public static final String rcsid = "$Id$";
@@ -326,6 +332,7 @@ public class TransferfidParam implements Storable {
     if (runMidas.is()) {
       commandLine.append("-m ");
     }
+    commandLine.append("-c " + DatasetFiles.getTransferFidCoordFileName() + " ");
 
     commandLine.append(datasetName);
     return commandLine.toString();
