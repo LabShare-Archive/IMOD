@@ -20,7 +20,6 @@ import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
-import etomo.comscript.CombineParams;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.storage.autodoc.Autodoc;
@@ -56,6 +55,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2006/04/28 21:00:51  sueh
+ * bug# 787 Removed the member variable title, which was not used.
+ *
  * Revision 3.44  2006/03/27 21:03:25  sueh
  * bug# 836 Added DialogType to PanelHeader get instances functions so
  * that the buttons in PanelHeader could save themselves.
@@ -1017,7 +1019,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   /**
    * Get the combine parameters from the UI
    * @param combineParams
-   */
+   *//*
   public void getCombineParameters(CombineParams combineParams) {
     if (cbUsePatchRegionModel.isSelected()) {
       combineParams.setDefaultPatchRegionModel();
@@ -1025,7 +1027,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     else {
       combineParams.setPatchRegionModel("");
     }
-  }
+  }*/
 
   /**
    * Right mouse button context menu
