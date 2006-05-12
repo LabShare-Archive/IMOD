@@ -49,6 +49,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.35  2006/04/28 21:04:47  sueh
+ * bug# 787 PanelHeader:  Removed the member variable title, which was
+ * not used.
+ *
  * Revision 3.34  2006/03/27 21:06:15  sueh
  * bug# 836 Added DialogType to PanelHeader get instances functions so
  * that the buttons in PanelHeader could save themselves.
@@ -744,6 +748,9 @@ public final class SetupCombinePanel implements ContextMenu,
 
       if (cbPatchRegionModel.isSelected()) {
         combineParams.setDefaultPatchRegionModel();
+      }
+      else {
+        combineParams.setPatchRegionModel("");
       }
 
       badParameter = ltfXMin.getLabel();
