@@ -150,6 +150,10 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".maggrad";
   }
+  
+  public static String getTransferFidCoordFileName() {
+    return "transferfid.coord";
+  }
 
   //other etomo files
 
@@ -215,6 +219,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2006/05/11 19:59:45  sueh
+ * <p> bug# 838 Added getTomopitchLogFileName().
+ * <p>
  * <p> Revision 1.12  2006/04/06 20:34:13  sueh
  * <p> bug# 808 Added the comscript extension and the rotation file extension.
  * <p>
