@@ -27,6 +27,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.1  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c
 
       subroutine closedist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &    delr,nbins, ngraph,nreftyp,nneightyp,itypref, itypneigh,
@@ -793,11 +796,10 @@ c
                                   i=i+1
                                 enddo
                               endif
-                              if(ifsave.ne.0)call save_connector(x1,
-     &                            y1,z1,x2, y2,z2,xmt,ymt,zmt,limxyz,
-     &                            indfree, iobjref, iobjneigh,iobjwin,
-     &                            nobjwin, ninwin,ninwtot, nrefwin,
-     &                            nneighwin)
+                              if(ifsave.ne.0)call save_connector(x1,y1,z1,x2,
+     &                            y2,z2,xmt,ymt,zmt,limxyz, indfree, iobjref,
+     &                            iobjneigh,iobjwin, nobjwin, ninwin,ninwtot,
+     &                            nrefwin, nneighwin)
                             endif
                           endif
                         enddo
@@ -985,16 +987,12 @@ c
                                       if(distmin.lt.winmax.and.
      &                                    distmin.ge.winmin)then
                                         omt=1.-tref
-                                        x1min=xtmp(itmp)*omt+
-     &                                      xtmp(itmp+1)*tref
-                                        y1min=ytmp(itmp)*omt+ytmp(
-     &                                      itmp+1)*tref
-                                        z1min=ztmp(itmp)*omt+ztmp(
-     &                                      itmp+1)*tref
+                                        x1min=xtmp(itmp)*omt+xtmp(itmp+1)*tref
+                                        y1min=ytmp(itmp)*omt+ytmp(itmp+1)*tref
+                                        z1min=ztmp(itmp)*omt+ztmp(itmp+1)*tref
                                         xprime=xrot*cbet(itri)+
      &                                      zrot(itri)*sbet(itri)
-                                        x2min=xprime*cgam(itri)+
-     &                                      yrot*sgam(itri)
+                                        x2min=xprime*cgam(itri)+yrot*sgam(itri)
                                         y2min=-xprime*sgam(itri)+
      &                                      yrot*cgam(itri)
                                         z2min=-xrot*sbet(itri)+
@@ -1042,10 +1040,9 @@ c
 c                     take care of window stuff here
 c		      
                     if(distmin.lt.winmax.and.distmin.ge.winmin)
-     &                  call save_connector(x1min,y1min,z1min,x2min,
-     &                  y2min,z2min,xmt,ymt,zmt,limxyz,indfree,iobjref,
-     &                  iobjmesh(imesh),iobjwin,nobjwin,ninwin,ninwtot,
-     &                  nrefwin, nneighwin)
+     &                  call save_connector(x1min,y1min,z1min,x2min, y2min,
+     &                  z2min,xmt,ymt,zmt,limxyz,indfree,iobjref, -isurf,
+     &                  iobjwin,nobjwin,ninwin,ninwtot, nrefwin, nneighwin)
                   enddo
                 endif
               enddo
@@ -1301,7 +1298,7 @@ c
 c                       
                       if(distmin.lt.winmax.and.distmin.ge.winmin)
      &                    call save_connector(x1min,y1min,z1min,x2min,
-     &                    y2min,z2min,xmt,ymt,zmt,limxyz,indfree,iobjref,
+     &                    y2min,z2min,xmt,ymt,zmt,limxyz,indfree,-isurf,
      &                    iobjneigh,iobjwin,nobjwin,ninwin,ninwtot,
      &                    nrefwin, nneighwin)
                     endif
@@ -1320,7 +1317,7 @@ c
 c                     
                     if(distmin.lt.winmax.and.distmin.ge.winmin)
      &                  call save_connector(x1min,y1min,z1min,x2min,
-     &                  y2min,z2min,xmt,ymt,zmt,limxyz,indfree,iobjref,
+     &                  y2min,z2min,xmt,ymt,zmt,limxyz,indfree,-isurf,
      &                  iobjneigh,iobjwin,nobjwin,ninwin,ninwtot,
      &                  nrefwin, nneighwin)
                   endif
@@ -1404,18 +1401,12 @@ c                                     loop on triangles in reference polygon
 c                                     
                                     do itri=istrpoly(ipoly),
      &                                  istrpoly(ipoly)+ninpoly(ipoly)-1
-                                      if(xminnay-trixmax(itri)
-     &                                    .lt.distmin.and.
-     &                                    trixmin(itri)-xmaxnay
-     &                                    .lt.distmin.and.
-     &                                    yminnay-triymax(itri)
-     &                                    .lt.distmin.and.
-     &                                    triymin(itri)-ymaxnay
-     &                                    .lt.distmin.and.
-     &                                    zminnay-trizmax(itri)
-     &                                    .lt.distmin.and.
-     &                                    trizmin(itri)-zmaxnay
-     &                                    .lt.distmin)then
+                                      if(xminnay-trixmax(itri).lt.distmin.and.
+     &                                    trixmin(itri)-xmaxnay.lt.distmin.and.
+     &                                    yminnay-triymax(itri).lt.distmin.and.
+     &                                    triymin(itri)-ymaxnay.lt.distmin.and.
+     &                                    zminnay-trizmax(itri).lt.distmin.and.
+     &                                    trizmin(itri)-zmaxnay.lt.distmin)then
                                         call triangle_to_triangle(itri,jtri,
      &                                      xr1,yr1,zr1,xr2,yr2, itrir, dist)
                                         if(dist.lt.distmin)then
@@ -1457,8 +1448,8 @@ c
 c                           
                           if(distmin.lt.winmax.and.distmin.ge.winmin)
      &                        call save_connector(x1min,y1min,z1min,x2min,
-     &                        y2min,z2min,xmt,ymt,zmt,limxyz,indfree,iobjref,
-     &                        iobjneigh,iobjwin,nobjwin,ninwin,ninwtot,
+     &                        y2min,z2min,xmt,ymt,zmt,limxyz,indfree,-isurf,
+     &                        -jsurf,iobjwin,nobjwin,ninwin,ninwtot,
      &                        nrefwin, nneighwin)
                         endif
                         
