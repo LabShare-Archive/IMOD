@@ -277,6 +277,13 @@ Save transforms to a file with the given
 .I filname
 instead of to the file that transforms were read from.
 .TP
+.B -O <2 letters>
+Specify the colors for the previous and current image in overlay mode.  The
+colors must be two of r g b c m y which stand for red, green, blue, cyan 
+(green + blue), magenta (red + blue), and yellow (red + green).  The two
+letters must specify different channels; e.g., rc will work and rm will not.
+The default overlay colors are magenta and green (mg).
+.TP
 .B -D
 Run in debug mode, which means do not run the program in the background.
 .TP
