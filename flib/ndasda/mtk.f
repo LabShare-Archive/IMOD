@@ -12,41 +12,16 @@ c       $Date$
 c       
 c       $Revision$
 c       
-c       $Log$
-c       Revision 3.9  2006/05/01 21:14:50  mast
-c       Increased number of bins to 1001
-c
-c       Revision 3.8  2005/11/13 23:10:58  mast
-c       Fixed a format
-c	
-c       Revision 3.7  2004/04/20 05:41:41  mast
-c       fix some misprinted variables
-c	
-c       Revision 3.6  2004/04/20 04:26:49  mast
-c       Fixed some uninitialized variables
-c	
-c       Revision 3.5  2003/10/27 06:36:40  mast
-c       Fix number of options needing model
-c	
-c       Revision 3.4  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c	
-c       Revision 3.3  2003/08/29 17:32:42  mast
-c       Change to use new multithreaded Plax graphics
-c	
-c       Revision 3.2  2003/08/08 17:56:05  mast
-c       Added ability to start with no model, added option to export graph,
-c       made general changes in terminology, added report of object names
-c	
+c       log at end
 c       
       call plax_initialize('mtk')
       call exit(0)
       end
 
       subroutine realgraphicsmain()
-      parameter (limgraphs=50,limbins=1001,limwobj=30000,limxyz=100000,
+      parameter (limgraphs=50,limbins=1001,limwobj=100000,limxyz=2000000,
      &    limregion=200,itypall=999)
-      parameter (limtyp=50,limrand=1000,limflag=512)
+      parameter (limtyp=250,limrand=1000,limflag=512)
       parameter (limprobs=50,limprobsets=50)
       parameter (nOptNeedModel=10)
       real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
@@ -1298,3 +1273,33 @@ c
       go to (1001,1002,1003,1004),ireturn
 c       
       end
+
+c       $Log$
+c       Revision 3.10  2006/05/12 14:39:22  mast
+c       Change to accommodate surface in window being negative object number
+c
+c       Revision 3.9  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c
+c       Revision 3.8  2005/11/13 23:10:58  mast
+c       Fixed a format
+c	
+c       Revision 3.7  2004/04/20 05:41:41  mast
+c       fix some misprinted variables
+c	
+c       Revision 3.6  2004/04/20 04:26:49  mast
+c       Fixed some uninitialized variables
+c	
+c       Revision 3.5  2003/10/27 06:36:40  mast
+c       Fix number of options needing model
+c	
+c       Revision 3.4  2003/10/26 05:33:27  mast
+c       change command files to use unit 4 instead reopening 5
+c	
+c       Revision 3.3  2003/08/29 17:32:42  mast
+c       Change to use new multithreaded Plax graphics
+c	
+c       Revision 3.2  2003/08/08 17:56:05  mast
+c       Added ability to start with no model, added option to export graph,
+c       made general changes in terminology, added report of object names
+c	
