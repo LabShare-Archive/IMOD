@@ -171,6 +171,7 @@ struct Midas_view
   double globalRot; /* Global rotation value */
   int numChunks;    /* Number of chunks for chunk mode */
   int quiet;     /* Flag to avoid nag message when fixing edges */
+  int imageForChannel[3];  /* Which image to send to each channel */
   struct Midas_chunk *chunk;
 
   struct LoadInfo *li;
@@ -370,6 +371,9 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 
 /*
 $Log$
+Revision 3.10  2005/03/10 21:04:14  mast
+Added -q option for use from etomo
+
 Revision 3.9  2004/11/05 18:53:22  mast
 Include local files with quotes, not brackets
 

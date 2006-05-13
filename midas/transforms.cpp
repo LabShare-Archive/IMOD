@@ -95,6 +95,9 @@ int new_view(struct Midas_view *vw)
   vw->ctrlPressed = 0;
   vw->shiftPressed = 0;
   vw->midasWindow = NULL;
+  vw->imageForChannel[0] = 1;
+  vw->imageForChannel[1] = 2;
+  vw->imageForChannel[2] = 1;
   for (i = 0; i < 3; i++) {
     vw->incindex[i] = 4;
     vw->increment[i] = vw->midasSlots->getIncrement(4, i);
@@ -1670,6 +1673,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.14  2005/11/08 02:36:36  mast
+Fixed bug in getting local errors when pieces were missing
+
 Revision 3.13  2005/03/10 21:04:15  mast
 Added -q option for use from etomo
 

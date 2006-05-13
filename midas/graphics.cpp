@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2004/08/04 22:35:13  mast
+Changed unsigned long to b3dUInt32 for 64-bit use
+
 Revision 3.5  2003/12/17 21:43:04  mast
 Provide control-key dependent mouse action hints
 
@@ -424,6 +427,7 @@ void MidasGL::draw_image(struct Midas_view *vw, b3dUInt32 *image,
 /* Refill all image data buffers with refreshed data. */
 int MidasGL::fill_viewdata( struct Midas_view *vw)
 {
+  int i;
   int refz = vw->refz;
 
   Islice *prevSlice;
@@ -455,13 +459,16 @@ int MidasGL::fill_viewdata( struct Midas_view *vw)
   }
 
   if (vw->vmode == MIDAS_VIEW_COLOR){
-	  
-    /* fill the current transformed slice image data. */
-    fill_rgb(currImageData, vw->id, vw->xysize, 2, &vw->tr[vw->cz]);
 
-    /* fill the previous slice image data. */
-    fill_rgb(prevImageData, vw->id, vw->xysize, 3, &vw->tr[refz]);
-    fill_rgb(prevImageData, vw->id, vw->xysize, 1, &vw->tr[refz]);
+    /* Fill each channel from the indicated image */
+    for (i = 0; i < 3; i++) {
+      if (vw->imageForChannel[i] == 2)
+        fill_rgb(currImageData, vw->id, vw->xysize, i + 1, &vw->tr[vw->cz]);
+      else if (vw->imageForChannel[i] == 1)
+        fill_rgb(prevImageData, vw->id, vw->xysize, i + 1, &vw->tr[refz]);
+      else
+        fill_rgb(NULL, vw->id, vw->xysize, i + 1, &vw->tr[refz]);
+    }
     return(0);
   }	  
      
@@ -483,15 +490,18 @@ int MidasGL::fill_viewdata( struct Midas_view *vw)
  */
 int MidasGL::update_slice_view(void)
 {
+  int i;
   Islice *curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT);
 
   if (VW->vmode == MIDAS_VIEW_SINGLE)
     fill_viewdata(VW);
 
-  if (VW->vmode == MIDAS_VIEW_COLOR)
-    fill_rgb(curSlice->data.b, VW->id, 
-	     VW->xysize, 2, &VW->tr[VW->cz]);
-
+  if (VW->vmode == MIDAS_VIEW_COLOR) {
+    for (i = 0; i < 3; i++) {
+      if (VW->imageForChannel[i] == 2)
+        fill_rgb(curSlice->data.b, VW->id, VW->xysize, i + 1, &VW->tr[VW->cz]);
+    }
+  }
   draw();
   return(0);
 }

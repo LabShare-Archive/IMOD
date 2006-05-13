@@ -68,6 +68,8 @@ static void usage(void)
      qstr += "\t-a <angle>      rotate all images by angle.\n";
      qstr += "\t-o <filename>   output transforms to given file instead of "
        "input file\n";
+     qstr += "\t-O <letters>    two letters for colors of previous/current in"
+       " overlay\n";
      qstr += "\t-S              use single-buffered visual\n";
      qstr += "\t-D              debug mode - do not run in background\n";
      qstr += "\t-q              suppress reminder message when fixing edges\n";
@@ -89,6 +91,7 @@ int main (int argc, char **argv)
   QStringList chunkList;
   bool ok;
   int chunkErr = 0;
+  int oarg = 0;
 
 #ifdef NO_IMOD_FORK
   int dofork = 0;
@@ -186,7 +189,12 @@ int main (int argc, char **argv)
         vw->oname = strdup(argv[++i]);
         break;
 
+      case 'O':
+        oarg = ++i;
+        break;
+
       default:
+        printf("Illegal option entered: %s\n", argv[i]);
 	usage();
 	break;
       }
@@ -214,6 +222,49 @@ int main (int argc, char **argv)
 	      " transforms will be saved in a "
 	      "new file by that name.\n", vw->xname);
     }
+  }
+
+  // Process overlay color entry
+  if (oarg) {
+    if (strlen(argv[oarg]) != 2)
+      midas_error("Two letters must be entered with -O: two of r g b c m y",
+                  "", 1);
+    for (k = 0; k < 3; k++)
+      vw->imageForChannel[k] = 0;
+    for (k = 0; k < 2; k++) {
+      switch (argv[oarg][k]) {
+      case 'r':
+        vw->imageForChannel[2] += k + 1;
+        break;
+      case 'g':
+        vw->imageForChannel[1] += k + 1;
+        break;
+      case 'b':
+        vw->imageForChannel[0] += k + 1;
+        break;
+      case 'c':
+        vw->imageForChannel[1] += k + 1;
+        vw->imageForChannel[0] += k + 1;
+        break;
+      case 'm':
+        vw->imageForChannel[2] += k + 1;
+        vw->imageForChannel[0] += k + 1;
+        break;
+      case 'y':
+        vw->imageForChannel[2] += k + 1;
+        vw->imageForChannel[1] += k + 1;
+        break;
+      default:
+        midas_error("The letters entered with -O must be two of r g b c m y",
+                  "", 1);
+      }
+    }
+
+    // If there is any overlap one will add to 3
+    for (k = 0; k < 3; k++)
+      if (vw->imageForChannel[k] > 2)
+        midas_error("The two letters entered with -O must specify different "
+                    "color channels for previous and current images", "", 1);
   }
 
   // Check other entries if doing montage mode
@@ -807,6 +858,10 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.16  2006/03/01 19:16:03  mast
+    Fixed bug in setting window size and eliminated debug output, called 
+    library routines for limiting window size and position
+
     Revision 3.15  2005/03/10 21:04:14  mast
     Added -q option for use from etomo
 
