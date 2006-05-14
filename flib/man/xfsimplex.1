@@ -65,6 +65,14 @@ DDEESSCCRRIIPPTTIIOONN
   fine, then you should omit the initial minimization by specifying
   tolerances of zero for it.
 
+  At the end of the search, the program outputs the number of iterations,
+  the minimum difference/distance value found, and the transformation
+  parameters.  If semi-natural parameters were searched for, first those
+  parameters are output, then the formal parameter matrix is output.  The
+  difference measure is normalized to be the mean difference per pixel as a
+  multiple of the standard deviation of the first image.  The distance measure
+  is expressed as the mean distance per comparison point.
+
   The program prompts for all inputs, but all of the parameters have
   defaults which may be selected with , or / (the values in [] below
   and contained in [] in the prompts)

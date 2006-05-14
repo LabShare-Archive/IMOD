@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/13/06: Added option to Midas to set colors used in overlay display.
+
+5/13/06: Added option to Newstack to set fill value for areas without image
+data.
+
+5/13/06: Normalized difference measure output by Xfsimplex, added an option
+to Xfalign to output the difference measure, and adjusted scaling of 
+difference measure in Transferfid and Matchrotpairs.
+
 5/12/06: Fixed Mtk's reassignment of contours with close approaches to new
 objects when contour to mesh measurements are being done, and allowed contours
 associated with the meshes to be reassigned also.
