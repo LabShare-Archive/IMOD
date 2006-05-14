@@ -97,8 +97,8 @@ c
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
       integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
-      integer*4 nLineTemp,ifOnePerFile
-      real*4 fieldMaxY, binRatio, rotateAngle, expandFactor
+      integer*4 nLineTemp,ifOnePerFile,ifUseFill
+      real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
       real*8 dsum,dsumsq,tsum,tsumsq
       real*4 cosd, sind
       integer*4 lnblnk
@@ -112,25 +112,23 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 28)
+      parameter (numOptions = 29)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
-     &    'fileinlist:FileOfInputs:FN:@'//
-     &    'fileoutlist:FileOfOutputs:FN:@secs:SectionsToRead:LIM:@'//
-     &    'numout:NumberToOutput:IAM:@size:SizeToOutputInXandY:IP:@'//
-     &    'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
-     &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
-     &    'uselines:UseTransformLines:LIM:@'//
+     &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
+     &    'secs:SectionsToRead:LIM:@numout:NumberToOutput:IAM:@'//
+     &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
+     &    'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'//
+     &    'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'//
      &    'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'//
      &    'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
      &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
-     &    'contrast:ContrastBlackWhite:IP:@'//
-     &    'scale:ScaleMinAndMax:FP:@multadd:MultiplyAndAdd:FPM:@'//
-     &    'distort:DistortionField:FN:@'//
-     &    'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'//
-     &    'gradient:GradientFile:FN:@test:TestLimits:IP:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
+     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
+     &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
+     &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
+     &    'test:TestLimits:IP:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -161,6 +159,7 @@ c
       applyFirst = 0
       ifLinear = 0
       numScaleFacs = 0
+      ifUseFill = 0
 C       
 C       Read in list of input files
 C       
@@ -502,6 +501,7 @@ c
         ierr2 = 1 - PipGetTwoFloats('ScaleMinAndMax', dminspec, dmaxspec)
         ierr3 = 1 - PipGetInteger('FloatDensities', iffloat)
         call PipNumberOfEntries('MultiplyAndAdd', numScaleFacs)
+        ifUseFill = 1 - PipGetFloat('FillValue', fillVal)
         if (iffloat .ge. 4) then
           if (ierr2 .eq. 0) call errorexit
      &        ('You must enter -scale with -float 4')
@@ -1157,7 +1157,11 @@ c
 c           
 c           get the mean of section from previous scan, or a new scan
 c           
-          if(ifmean.ne.0)then
+          if (ifUseFill .ne. 0) then
+            dmeansec = fillVal
+            loadyst=-1
+            loadynd=-1
+          elseif(ifmean.ne.0)then
             dmeansec=secmean(ilis+listind(ifil)-1)
             loadyst=-1
             loadynd=-1
@@ -1785,6 +1789,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.38  2006/01/27 20:01:23  mast
+c       Fixed problem with one transform per file
+c
 c       Revision 3.37  2006/01/24 03:32:53  mast
 c       Added option for multiple distortion fields.
 c
