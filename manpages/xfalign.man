@@ -8,8 +8,8 @@ xfalign [options] <input image file>  <output transform file>
 .SH DESCRIPTION
 xfalign will search for the linear transformations that align each section to
 the previous one in an image stack, or that align each section to a single
-reference image.  It runs xfsimplex(1) repeatedly to find these 
-transformations.  Because xfsimplex performs an incremental search for a local
+reference image.  It runs Xfsimplex(1) repeatedly to find these 
+transformations.  Because Xfsimplex performs an incremental search for a local
 optimum in alignment, it cannot find the right alignment if there is a large
 displacement between the images.  Xfalign has options for initially finding
 such displacements by cross-correlation using tiltxcorr(1), and for working
@@ -30,7 +30,7 @@ more high-frequency noise.  The default reduction is by a factor of 2; no
 reduction should be needed for very small images and more reduction might be
 helpful for large images (say, 1K x 1K or bigger).
 
-Prefiltering is done with enhance(1) and uses the four parameters, Sigma1,
+Prefiltering is done with Enhance(1) and uses the four parameters, Sigma1,
 Sigma2, Radius1, Radius2.  Low-pass filtering to reduce noise (e.g.  Sigma2 =
 0.05, Radius2 = 0.25) is somewhat redundant to binning the images, and may not
 be needed with the default image reduction.  If the images contain large areas
@@ -112,7 +112,7 @@ Break the align after every pair of sections, i.e., at all even section
 numbers.
 .TP
 .B -size <X,Y>
-Set the X and Y dimensions of the images extracted by newstack to be 
+Set the X and Y dimensions of the images extracted by Newstack to be 
 fed to Xfsimplex.
 The default size is the whole image.
 .TP
@@ -134,30 +134,30 @@ values given by
 Do not leave spaces between these entries.
 .TP
 .B -reduce <value>
-In xfsimplex, reduce images by a factor of 2 the number of times given by
+In Xfsimplex, reduce images by a factor of 2 the number of times given by
 .I value.
 .TP
 .B -matt <value>
-In xfsimplex, omit areas of images near their edges.  Enter a
+In Xfsimplex, omit areas of images near their edges.  Enter a
 .I
 value
 < 1 to indicate the fraction of the image extent to omit, or > 1 to indicate
 the number of pixels to omit.
 .TP
 .B -params <value>
-In xfsimplex, search for the number of semi-natural parameters given by
+In Xfsimplex, search for the number of semi-natural parameters given by
 .I value.
 Enter 2 to search only for translations, 3 to search for rotations in
 addition, 4 to search for magnifications as well, or 6 to search for the
 full transformation as represented by semi-natural parameters (rotation,
 magnification, difference between X and Y axis rotation, difference between
 X and Y axis stretch.)  The latter does not have any known advantage over
-the default case, in which xfsimplex searches
+the default case, in which Xfsimplex searches
 for the transformation by varying the formal parameters of the 2 by 2
 transformation matrix.
 .TP
 .B -bilinear
-With this option, xfsimplex will use bilinear rather than nearest neighbor
+With this option, Xfsimplex will use bilinear rather than nearest neighbor
 interpolation when transforming an image.  This slower option should be
 used when trying to find accurate alignments between small images.
 .TP
@@ -184,6 +184,11 @@ averages in the image file.  The same number of transforms are assumed to be
 present in a file of initial alignments entered with the 
 .B -initial
 option.
+.TP
+.B -diff
+Output the final difference measure found by Xfsimplex for each pair of images.
+The value is the mean difference per pixel expressed as a multiple of the
+image standard deviation.
 .TP
 .B -P
 Output the process ID.
