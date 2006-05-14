@@ -6,54 +6,7 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.15  2006/02/16 06:47:09  mast
-#  Stripped control chars from output of sed/header etc for Windows
-#
-#  Revision 3.14  2006/01/16 05:32:46  mast
-#  Added option for breaking at all pairs
-#
-#  Revision 3.13  2005/12/13 17:05:36  mast
-#  Fixed problem with filtering odd sizes that result from rotations
-#
-#  Revision 3.12  2005/11/19 04:31:26  mast
-#  Quote path setting to preserve spaces
-#
-#  Revision 3.11  2004/10/16 02:42:04  mast
-#  Fixed bug in that prevented using a filter
-#
-#  Revision 3.10  2004/10/11 19:06:31  mast
-#  Added option -P to output PID
-#
-#  Revision 3.9  2004/08/27 05:46:48  mast
-#  Switched to using head -n and tail -n
-#
-#  Revision 3.8  2004/07/21 14:19:59  mast
-#  Added option to break alignment instead of skipping section and added
-#  special serial tomogram mode that maintains fewer transforms
-#
-#  Revision 3.7  2004/06/29 03:50:57  mast
-#  Added nohup
-#
-#  Revision 3.6  2003/10/24 02:14:00  mast
-#  source settmpdir to get tmpdir, better for Windows
-#
-#  Revision 3.5  2003/07/29 16:08:24  mast
-#  For Windows, needed to run script files explicitly with csh
-#
-#  Revision 3.4  2003/07/28 16:43:37  mast
-#  Switch from using 'file' command to using 'header' to test for MRC file
-#  versus text input file, because there is no 'file' in cygwin
-#
-#  Revision 3.3  2003/06/20 20:10:33  mast
-#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
-#
-#  Revision 3.2  2003/05/13 20:15:26  mast
-#  Eliminate using $0 to get temp file name, doesn't work on Windows
-#
-#  Revision 3.1  2002/04/29 22:03:34  mast
-#  Made first write to $seclist be via >! rather than >>
-#
+#  Log at end
 
 nohup
 
@@ -65,23 +18,24 @@ cat <<EOF
 Usage: xfalign options input_file output_transform_file
 input_file: an image stack, or a text file with a list of sections or files
 options: 
- -si[ze] X,Y              -  size to extract from image
- -o[ffset] dX,dY          -  center offset to subarea
- -f[ilter] s1,s2,r1,r2    -  Sigmas and Radii for prefilter
- -red[uce] n              -  # of times to reduce by 2 (default 1)
- -sk[ip] n1,n2,n3...      -  list of sections to skip (ranges OK)
- -br[eak] n1,n2,n3...     -  list of sections to break alignment at (ranges OK)
- -bp[air]                 -  break alignment for paired images
- -m[att] f                -  fraction of image to omit at edges, or # of pixels
- -pa[rams] n              -  0 for formal params, or # of semi-natural params
- -bi[linear]              -  to use bilinear interpolation
- -ref reference_file      -  to align stack to reference
- -pr[excorr]              -  to do initial cross-correlation alignment
- -x[cfilter] s1,s2,r1,r2  -  Sigmas and Radii for filter used in initial
-                               cross-correlation (default $xcfilter)
- -i[nitial] prexf_file    -  start with initial F alignments from file
- -t[omo]                  -  align top/bottom averages from serial tomograms
- -P                       -  Output process ID
+ -si[ze] X,Y              Size to extract from image
+ -o[ffset] dX,dY          Center offset to subarea
+ -f[ilter] s1,s2,r1,r2    Sigmas and Radii for prefilter
+ -red[uce] n              # of times to reduce by 2 (default 1)
+ -sk[ip] n1,n2,n3...      List of sections to skip (ranges OK)
+ -br[eak] n1,n2,n3...     List of sections to break alignment at (ranges OK)
+ -bp[air]                 Break alignment for paired images
+ -m[att] f                Fraction of image to omit at edges, or # of pixels
+ -pa[rams] n              0 for formal params, or # of semi-natural params
+ -bi[linear]              To use bilinear interpolation
+ -ref reference_file      To align stack to reference
+ -pr[excorr]              To do initial cross-correlation alignment
+ -x[cfilter] s1,s2,r1,r2  Sigmas and Radii for filter used in initial
+                            cross-correlation (default $xcfilter)
+ -i[nitial] prexf_file    Start with initial F alignments from file
+ -t[omo]                  Align top/bottom averages from serial tomograms
+ -d[iff]                  Output final difference measure for each pair
+ -P                       Output process ID
 EOF
 	exit 1
 endif
@@ -110,6 +64,7 @@ set prexcorr   = "0"
 set prexffile  = ""
 set iftomo     = 0
 set exitstat   = 1
+set diffout    = 0
 set noglob
 onintr clean
 
@@ -290,6 +245,10 @@ while($#argv > 2)
 
         case -t*:
             set iftomo = 1
+            breaksw
+
+        case -d*:
+            set diffout = 1
             breaksw
 
         case -P:
@@ -626,11 +585,17 @@ while ($#filesect != 0 )
 #
 #      Now do search for transform
 #
-	    xfsimplex < $runsearch > /dev/null
+	    xfsimplex < $runsearch >! $tmplog
             if ($status) then
                 echo "ERROR: $com - running xfsimplex"
-                goto clean
-        endif
+                goto error
+            endif
+            if ($diffout) then
+                set values = `awk '/FINAL VALUES/,/[0-9]/' $tmplog | tail -n 1`
+                if ($#values > 1) then
+                    echo "Difference:  $values[2]"
+                endif
+            endif
 #
 #      Add transform to file
 #
@@ -659,3 +624,55 @@ clean:
 unset noglob
 /bin/rm -f $tmpdir/$com.*.$$* $com.trim.$$
 exit $exitstat
+
+#  $Log$
+#  Revision 3.16  2006/02/17 21:50:20  mast
+#  Filter output of goodframe
+#
+#  Revision 3.15  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
+#  Revision 3.14  2006/01/16 05:32:46  mast
+#  Added option for breaking at all pairs
+#
+#  Revision 3.13  2005/12/13 17:05:36  mast
+#  Fixed problem with filtering odd sizes that result from rotations
+#
+#  Revision 3.12  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
+#  Revision 3.11  2004/10/16 02:42:04  mast
+#  Fixed bug in that prevented using a filter
+#
+#  Revision 3.10  2004/10/11 19:06:31  mast
+#  Added option -P to output PID
+#
+#  Revision 3.9  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
+#  Revision 3.8  2004/07/21 14:19:59  mast
+#  Added option to break alignment instead of skipping section and added
+#  special serial tomogram mode that maintains fewer transforms
+#
+#  Revision 3.7  2004/06/29 03:50:57  mast
+#  Added nohup
+#
+#  Revision 3.6  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
+#  Revision 3.5  2003/07/29 16:08:24  mast
+#  For Windows, needed to run script files explicitly with csh
+#
+#  Revision 3.4  2003/07/28 16:43:37  mast
+#  Switch from using 'file' command to using 'header' to test for MRC file
+#  versus text input file, because there is no 'file' in cygwin
+#
+#  Revision 3.3  2003/06/20 20:10:33  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
+#  Revision 3.2  2003/05/13 20:15:26  mast
+#  Eliminate using $0 to get temp file name, doesn't work on Windows
+#
+#  Revision 3.1  2002/04/29 22:03:34  mast
+#  Made first write to $seclist be via >! rather than >>
+#
