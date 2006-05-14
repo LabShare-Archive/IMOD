@@ -217,6 +217,15 @@ manpage = Rescale the densities of all sections by the same factors so that
 the original minimum and maximum density will be mapped to the Min and Max
 values that are entered.
 
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to fill empty image areas with, before scaling
+tooltip = 
+manpage = Value to fill areas of the output image that have no image data.
+The filling is done before intensity scaling, so the value in the filled areas
+will be modified by any scaling that is done.
+
 [Field = MultiplyAndAdd]
 short = multadd
 type = FPM
