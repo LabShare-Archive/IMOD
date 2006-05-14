@@ -9,35 +9,7 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 1.9  2006/03/12 18:45:29  mast
-#  Add option to output all transforms in ordered files
-#
-#  Revision 1.8  2006/03/01 18:15:33  mast
-#  Set it to use bilinear iterpolation in second simplex search
-#
-#  Revision 1.7  2006/02/28 05:46:22  mast
-#  Fixed minor problems and had it apply midas transform for initial
-#  rotation in following pairs, then use tiltxcorr for them
-#
-#  Revision 1.6  2006/02/16 06:47:09  mast
-#  Stripped control chars from output of sed/header etc for Windows
-#
-#  Revision 1.5  2005/11/19 04:31:26  mast
-#  Quote path setting to preserve spaces
-#
-#  Revision 1.4  2004/08/27 05:46:48  mast
-#  Switched to using head -n and tail -n
-#
-#  Revision 1.3  2004/07/08 22:54:18  mast
-#  Switched some echos to \echo to dodge Cygwin tcsh bug
-#
-#  Revision 1.2  2004/03/16 06:58:58  mast
-#  Fixed something with section limits
-#
-#  Revision 1.1  2004/02/29 18:54:13  mast
-#  Initial version
-#
+#  Log at end
 
 # Filter for tiltxcorr
 set sigma1 = 0.03
@@ -249,10 +221,9 @@ while ($count <= $nviewa)
 end
 
 #
-# Set up scaling based on range of density in B
+# Set up scaling assuming new normalization of difference to # Sd's per pixel
 #
-set densities = `header -min -max $imageb | sed '/[[:cntrl:]]/s///g'`
-set diffscale = `echo 1000. $densities[1] $densities[2] | awk '{print $1 / ($3 - $2)}'`
+set diffscale = 1000000
 
 #
 # set up for midas
@@ -526,3 +497,36 @@ Usage: $pn [options] image_file_a image_file_b output_file
      -h            Help - print this usage
 EOF
 exit 1
+
+#  $Log$
+#  Revision 1.10  2006/03/13 06:08:04  mast
+#  Fixed the -x option
+#
+#  Revision 1.9  2006/03/12 18:45:29  mast
+#  Add option to output all transforms in ordered files
+#
+#  Revision 1.8  2006/03/01 18:15:33  mast
+#  Set it to use bilinear iterpolation in second simplex search
+#
+#  Revision 1.7  2006/02/28 05:46:22  mast
+#  Fixed minor problems and had it apply midas transform for initial
+#  rotation in following pairs, then use tiltxcorr for them
+#
+#  Revision 1.6  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
+#  Revision 1.5  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
+#  Revision 1.4  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
+#  Revision 1.3  2004/07/08 22:54:18  mast
+#  Switched some echos to \echo to dodge Cygwin tcsh bug
+#
+#  Revision 1.2  2004/03/16 06:58:58  mast
+#  Fixed something with section limits
+#
+#  Revision 1.1  2004/02/29 18:54:13  mast
+#  Initial version
+#

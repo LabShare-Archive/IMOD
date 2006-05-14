@@ -391,9 +391,10 @@ end
 
 #
 # Set up scaling based on range of density in B
-#
-set densities = `header -min -max $imageb | sed '/[[:cntrl:]]/s///g'`
-set diffscale = `echo 1000. $densities[1] $densities[2] | awk '{print $1 / ($3 - $2)}'`
+# 5/13/06: Not any more, xfsimplex is normalizing to # Sd per pixel
+#set densities = `header -min -max $imageb | sed '/[[:cntrl:]]/s///g'`
+#set diffscale = `echo 1000. $densities[1] $densities[2] | awk '{print $1 / ($3 - $2)}'`
+set diffscale = 1000000
 
 #
 # set up for midas
@@ -820,6 +821,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.26  2006/05/05 18:11:57  mast
+#  Added -c option to usage
+#
 #  Revision 3.25  2006/05/04 23:07:49  mast
 #  Added argument to provide file for repackseed to place corresponding coords
 #
