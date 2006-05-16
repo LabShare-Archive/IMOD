@@ -16,6 +16,9 @@ import etomo.type.FiducialMatch;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2006/03/16 01:55:45  sueh
+* <p> $bug# 828 Added isEnabled().
+* <p> $
 * <p> $Revision 1.3  2004/06/14 23:39:53  rickg
 * <p> $Bug #383 Transitioned to using solvematch
 * <p> $
@@ -40,4 +43,8 @@ interface InitialCombineFields {
   public void setFiducialMatchListB(String fiducialMatchListB);
   public String getFiducialMatchListB();
   public boolean isEnabled();
+  public boolean isUseCorrespondingPoints();
+  public void setUseCorrespondingPoints(boolean use);
+  public void setUseList(String useList);
+  public String getUseList();
 }

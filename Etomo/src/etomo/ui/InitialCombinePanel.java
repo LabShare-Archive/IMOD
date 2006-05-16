@@ -12,7 +12,6 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
-import etomo.comscript.CombineParams;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
@@ -33,6 +32,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2006/03/28 00:54:50  sueh
+ * <p> bug# 437 Change getButtonStateKey(DialogType) to
+ * <p> createButtonStateKey(DialogType).
+ * <p>
  * <p> Revision 3.25  2006/03/16 01:56:07  sueh
  * <p> bug# 828 Added isEnabled().  Returns true if the initial tab is enabled.
  * <p>
@@ -231,6 +234,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlButton);
     pnlRoot.add(Box.createVerticalGlue());
+    pnlSolvematch.setVisibleUseCorrespondingPoints(false);
 
     //  Bind the UI objects to their ActionListeners
     ButtonActionListener buttonAction = new ButtonActionListener(this);
@@ -244,6 +248,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     setToolTipText();
   }
 
+  public boolean isUseCorrespondingPoints() {
+    return pnlSolvematch.isUseCorrespondingPoints();
+  }
+  
+  public void setUseCorrespondingPoints(boolean use) {
+    pnlSolvematch.setUseCorrespondingPoints(use);
+  }
+  
   public static ProcessResultDisplay getRestartCombineDisplay(
       DialogType dialogType) {
     return MultiLineButton.getToggleButtonInstance("Restart Combine",
@@ -296,15 +308,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         .getButtonStateKey()));
   }
 
-  /**
-   * Get the combine parameters from the UI
-   * @param combineParams
-   */
-  public void getCombineParameters(CombineParams combineParams) {
-    pnlSolvematch.getParameters(combineParams);
-  }
-
-  // InitialiCombineFields interface pass-thru
+  // InitialCombineFields interface pass-thru
   public FiducialMatch getSurfacesOrModels() {
     return pnlSolvematch.getSurfacesOrModels();
   }
@@ -320,9 +324,17 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setBinBy2(boolean state) {
     pnlSolvematch.setBinBy2(state);
   }
+  
+  public void setUseList(String useList) {
+    pnlSolvematch.setUseList(useList);
+  }
 
   public void setFiducialMatchListA(String fiducialMatchListA) {
     pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
+  }
+  
+  public String getUseList() {
+    return pnlSolvematch.getUseList();
   }
 
   public String getFiducialMatchListA() {
