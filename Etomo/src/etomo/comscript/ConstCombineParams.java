@@ -25,6 +25,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2006/03/16 01:48:38  sueh
+ * <p> bug# 828 Changed matchBtoA to dialogMatchMode.  Added matchMode.
+ * <p> DialogMatchMode reflects the state of the dialog.  MatchMode reflects the
+ * <p> state of the script.  MatchMode is set equal to dialogMatchMode when the
+ * <p> script is updated.
+ * <p>
  * <p> Revision 3.4  2005/07/29 00:44:21  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -83,11 +89,12 @@ import etomo.util.MRCHeader;
 public class ConstCombineParams {
   public static final String rcsid = "$Id$";
 
-  protected String revisionNumber = "1.1";
+  protected String revisionNumber = "1.2";
 
-  protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
+  //protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
   protected MatchMode matchMode = null;
   protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
+  protected StringList useList = new StringList(0);
   protected StringList fiducialMatchListA = new StringList(0);
   protected StringList fiducialMatchListB = new StringList(0);
   protected CombinePatchSize patchSize = CombinePatchSize.MEDIUM;
@@ -103,6 +110,7 @@ public class ConstCombineParams {
   protected String tempDirectory = "";
   protected boolean manualCleanup = false;
   protected boolean modelBased = false;
+  protected boolean transfer = true;
 
   protected final BaseManager manager;
 
@@ -117,13 +125,17 @@ public class ConstCombineParams {
   }
 
   public boolean equals(ConstCombineParams cmp) {
-    if (dialogMatchMode != cmp.dialogMatchMode) {
-      return false;
-    }
+    //if (dialogMatchMode != cmp.dialogMatchMode) {
+    //  return false;
+    //}
     if (matchMode != cmp.matchMode) {
       return false;
     }
     if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
+      return false;
+    }
+    
+    if (!useList.toString().equals(cmp.getUseList().toString())) {
       return false;
     }
     if (!fiducialMatchListA.toString().equals(
@@ -236,7 +248,13 @@ public class ConstCombineParams {
     }
     //get the tomogram header to check x, y, and z
     AxisID axisID;
-    if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
+    //if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
+    //  axisID = AxisID.FIRST;
+    //}
+    //else {
+    //  axisID = AxisID.SECOND;
+    //}
+    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
     }
     else {
@@ -292,20 +310,24 @@ public class ConstCombineParams {
     return revisionNumber;
   }
 
-  public MatchMode getDialogMatchMode() {
-    return dialogMatchMode;
-  }
+  //public MatchMode getDialogMatchMode() {
+  //  return dialogMatchMode;
+  //}
   
   public MatchMode getMatchMode() {
     return matchMode;
   }
-
-  public MatchMode getScriptMatchMode() {
-      return matchMode;
+  
+  public boolean isTransfer() {
+    return transfer;
   }
 
   public FiducialMatch getFiducialMatch() {
     return fiducialMatch;
+  }
+  
+  public String getUseList() {
+    return useList.toString();
   }
 
   public String getFiducialMatchListA() {

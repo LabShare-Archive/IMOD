@@ -25,6 +25,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/03/16 01:48:26  sueh
+ * <p> bug# 828 Changed matchBtoA to dialogMatchMode.  Added matchMode.
+ * <p> DialogMatchMode reflects the state of the dialog.  MatchMode reflects the
+ * <p> state of the script.  MatchMode is set equal to dialogMatchMode when the
+ * <p> script is updated.
+ * <p>
  * <p> Revision 3.7  2005/10/19 19:49:29  mast
  * <p> Limited borderindex by the number of xyborder values
  * <p>
@@ -126,9 +132,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
    */
   public CombineParams(ConstCombineParams src) {
     super(src);
-    dialogMatchMode = src.dialogMatchMode;
+    // dialogMatchMode = src.dialogMatchMode;
     matchMode = src.matchMode;
     fiducialMatch = src.fiducialMatch;
+    useList = new StringList(src.useList);
     fiducialMatchListA = new StringList(src.fiducialMatchListA);
     fiducialMatchListB = new StringList(src.fiducialMatchListB);
     patchSize = src.patchSize;
@@ -141,23 +148,33 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchRegionModel = src.patchRegionModel;
     tempDirectory = src.tempDirectory;
     manualCleanup = src.manualCleanup;
+    transfer = src.transfer;
   }
 
   public void setRevisionNumber(String revNumber) {
     revisionNumber = revNumber;
   }
 
-  public void setDialogMatchMode(boolean isBtoA) {
+  //  public void setDialogMatchMode(boolean isBtoA) {
+  //   if (isBtoA) {
+  //     dialogMatchMode = MatchMode.B_TO_A;
+  //   }
+  //   else {
+  //     dialogMatchMode = MatchMode.A_TO_B;
+  //   }
+  // }
+
+  public void setMatchMode(boolean isBtoA) {
     if (isBtoA) {
-      dialogMatchMode = MatchMode.B_TO_A;
+      matchMode = MatchMode.B_TO_A;
     }
     else {
-      dialogMatchMode = MatchMode.A_TO_B;
+      matchMode = MatchMode.A_TO_B;
     }
   }
-  
-  public void setMatchMode(MatchMode dialogMatchMode) {
-    matchMode = dialogMatchMode;
+
+  public void setMatchMode(MatchMode matchMode) {
+    this.matchMode = matchMode;
   }
 
   public void setFiducialMatch(FiducialMatch match) {
@@ -169,6 +186,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       modelBased = false;
     }
+  }
+
+  public void setUseList(String useList) {
+    this.useList.parseString(useList);
   }
 
   public void setFiducialMatchListA(String list) {
@@ -243,10 +264,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void setPatchZMin(int patchZMin) {
     this.patchZMin = patchZMin;
   }
-  
 
-  public void setMaxPatchZMax(String fileName) throws InvalidParameterException,
-      IOException {
+  public void setMaxPatchZMax(String fileName)
+      throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
@@ -266,7 +286,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       tempDirectory = directoryName;
     }
+  }
 
+  public void setTransfer(boolean transfer) {
+    this.transfer = transfer;
   }
 
   public void setManualCleanup(boolean isManual) {
@@ -306,15 +329,17 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     //Start backwards compatibility with RevisionNumber = 1.0
     props.remove(group + MATCH_B_TO_A_KEY);
+    //backwards compatibility with 1.1
+    props.remove(group + DIALOG_MATCH_MODE_KEY);
     //End backwards compatibility with RevisionNumber = 1.0
 
-    if (dialogMatchMode == null) {
-      props.remove(group + DIALOG_MATCH_MODE_KEY);
-    }
-    else {
-      props.setProperty(group + DIALOG_MATCH_MODE_KEY, dialogMatchMode
-          .toString());
-    }
+    //    if (dialogMatchMode == null) {
+    //     props.remove(group + DIALOG_MATCH_MODE_KEY);
+    //   }
+    //   else {
+    //     props.setProperty(group + DIALOG_MATCH_MODE_KEY, dialogMatchMode
+    //         .toString());
+    //  }
     if (matchMode == null) {
       props.remove(group + MATCH_MODE_KEY);
     }
@@ -322,6 +347,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
       props.setProperty(group + MATCH_MODE_KEY, matchMode.toString());
     }
     props.setProperty(group + "FiducialMatch", fiducialMatch.toString());
+    props.setProperty(group + "UseList", useList.toString());
     props.setProperty(group + "FiducialMatchListA", fiducialMatchListA
         .toString());
     props.setProperty(group + "FiducialMatchListB", fiducialMatchListB
@@ -337,6 +363,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
+    props.setProperty(group + "Transfer", String.valueOf(transfer));
     props.setProperty(group + "MaxPatchBoundaryZMax", String
         .valueOf(maxPatchZMax));
   }
@@ -360,13 +387,15 @@ public class CombineParams extends ConstCombineParams implements Storable {
     // Load the combine values if they are present, don't change the
     // current value if the property is not present
 
-    revisionNumber = props.getProperty(group + "RevisionNumber", "1.1");
+    revisionNumber = props.getProperty(group + "RevisionNumber", "1.2");
 
     //Start backwards compatibility with RevisionNumber = 1.0
     //load dialogMatchMode
     //old property was MatchBtoA.  MatchBtoA should be deleted in store()
     String dialogMatchModeString = props.getProperty(group
         + DIALOG_MATCH_MODE_KEY);
+    //backwards compatibility with 1.1
+    MatchMode dialogMatchMode = null;
     if (dialogMatchModeString == null) {
       String matchBtoA = props.getProperty(group + MATCH_B_TO_A_KEY);
       if (matchBtoA == null) {
@@ -391,6 +420,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
     if (matchMode == null) {
       matchMode = MatchMode.getInstance(props.getProperty(group
           + MATCH_MODE_KEY));
+      if (matchMode == null) {
+        //backwards compatibility with 1.1
+        matchMode = dialogMatchMode;
+      }
     }
     else {
       matchMode = MatchMode.getInstance(props.getProperty(group
@@ -399,6 +432,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     fiducialMatch = FiducialMatch.fromString(props.getProperty(group
         + "FiducialMatch", fiducialMatch.toString()));
+    
+    useList.parseString(props
+        .getProperty(group + "UseList", useList.toString()));
 
     fiducialMatchListA.parseString(props.getProperty(group
         + "FiducialMatchListA", fiducialMatchListA.toString()));
@@ -438,6 +474,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     modelBased = Boolean.valueOf(
         props.getProperty(group + "ModelBased", Boolean.toString(modelBased)))
+        .booleanValue();
+    transfer = Boolean.valueOf(
+        props.getProperty(group + "Transfer", Boolean.toString(transfer)))
         .booleanValue();
 
     if (fiducialMatch == FiducialMatch.USE_MODEL) {
