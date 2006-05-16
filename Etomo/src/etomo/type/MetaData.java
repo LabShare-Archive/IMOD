@@ -20,6 +20,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2006/05/11 19:57:53  sueh
+ * <p> bug# 838 Added sample thickness.
+ * <p>
  * <p> Revision 3.28  2006/03/23 19:46:09  sueh
  * <p> bug# 609 Improving the error message when a dual axis image stack does
  * <p> not end in a.st.
@@ -262,10 +265,6 @@ public class MetaData extends ConstMetaData {
         appendMessage("Dual axis image stack files must end in a.st and b.st.\n");
       }
     }
-  }
-
-  public CombineParams getCombineParams() {
-    return combineParams;
   }
 
   public void setTransferfidAFields(TransferfidParam param) {
