@@ -146,11 +146,11 @@ public class ApplicationManager extends BaseManager {
   private TomogramPositioningDialog tomogramPositioningDialogA = null;
 
   private TomogramPositioningDialog tomogramPositioningDialogB = null;
-  
+
   private TomogramPositioning tomogramPositioningA = null;
 
   private TomogramPositioning tomogramPositioningB = null;
-  
+
   private TomogramGenerationDialog tomogramGenerationDialogA = null;
 
   private TomogramGenerationDialog tomogramGenerationDialogB = null;
@@ -831,8 +831,7 @@ public class ApplicationManager extends BaseManager {
     }
   }
 
-  public void deleteOriginalStack(Command archiveorigParam,
-      String[] output) {
+  public void deleteOriginalStack(Command archiveorigParam, String[] output) {
     AxisID axisID;
     int mode = archiveorigParam.getCommandMode();
     if (mode == ArchiveorigParam.AXIS_A_MODE) {
@@ -2478,6 +2477,10 @@ public class ApplicationManager extends BaseManager {
     }
   }
 
+  public boolean coordFileExists() {
+    return DatasetFiles.getTransferFidCoordFile(this).exists();
+  }
+
   /**
    * Transfer the fiducial to the specified axis
    * 
@@ -2830,7 +2833,8 @@ public class ApplicationManager extends BaseManager {
 
     String threadName;
     try {
-      threadName = processMgr.createSample(axisID, processResultDisplay, tiltParam);
+      threadName = processMgr.createSample(axisID, processResultDisplay,
+          tiltParam);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2845,8 +2849,9 @@ public class ApplicationManager extends BaseManager {
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Creating sample tomogram", axisID);
   }
-  
-  private TomogramPositioning getDialogInterface(DialogType dialogType, AxisID axisID) {
+
+  private TomogramPositioning getDialogInterface(DialogType dialogType,
+      AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tomogramPositioningB;
     }
@@ -3026,7 +3031,7 @@ public class ApplicationManager extends BaseManager {
     logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
         + File.separator + logFileName));
   }
-  
+
   public void setTomopitchOutput(AxisID axisID) {
     TomopitchLog log = new TomopitchLog(this, axisID);
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
@@ -3220,7 +3225,7 @@ public class ApplicationManager extends BaseManager {
       tomogramPositioningDialog.rollAlignComAngles();
     }
   }
-  
+
   private void rollTiltComAngles(AxisID axisID) {
     TomogramPositioningDialog tomogramPositioningDialog = (TomogramPositioningDialog) getDialog(
         DialogType.TOMOGRAM_POSITIONING, axisID);
@@ -3956,10 +3961,11 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     tiltProcess(axisID, processResultDisplay);
   }
-  
+
   private void sampleTilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    TomogramPositioning dialogInterface = getDialogInterface(DialogType.TOMOGRAM_POSITIONING, axisID);
+    TomogramPositioning dialogInterface = getDialogInterface(
+        DialogType.TOMOGRAM_POSITIONING, axisID);
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     String threadName;
@@ -4185,7 +4191,7 @@ public class ApplicationManager extends BaseManager {
           .getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
         String recFileName;
-        MatchMode matchMode = combineParams.getDialogMatchMode();
+        MatchMode matchMode = combineParams.getMatchMode();
         if (matchMode == null || matchMode == MatchMode.B_TO_A) {
           recFileName = metaData.getDatasetName() + "a.rec";
         }
@@ -4217,12 +4223,13 @@ public class ApplicationManager extends BaseManager {
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-      tomogramCombinationDialog.setScriptMatchMode(combineParams
-          .getScriptMatchMode());
+      boolean combineScriptsExist = combineScriptsExist();
+      tomogramCombinationDialog.setCombineState(combineScriptsExist,
+          combineParams);
       // If setupcombine has been run load the com scripts, otherwise disable the
       // apropriate panels in the tomogram combination dialog
       //tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
-      if (combineScriptsExist() && tomogramCombinationDialog.isUpToDate()) {
+      if (!tomogramCombinationDialog.isChanged()) {
         // Check to see if a solvematch.com file exists and load it if so
         //otherwise load the correct old solvematch* file
         File solvematch = new File(propertyUserDir, "solvematch.com");
@@ -4250,9 +4257,7 @@ public class ApplicationManager extends BaseManager {
         loadVolcombine();
         loadCombineComscript();
         tomogramCombinationDialog.synchronize(
-            TomogramCombinationDialog.lblSetup, false);
-        //TEMP
-        updateCombineParams();
+            TomogramCombinationDialog.lblSetup, true/*false*/);
       }
     }
     tomogramCombinationDialog.setParameters(metaData);
@@ -4329,7 +4334,7 @@ public class ApplicationManager extends BaseManager {
     // Get the latest combine parameters from the dialog
     updateCombineParams();
     AxisID axisID;
-    MatchMode matchMode = metaData.getCombineParams().getDialogMatchMode();
+    MatchMode matchMode = metaData.getCombineParams().getMatchMode();
     //TEMP
     System.err.println("matchMode=" + matchMode);
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
@@ -4379,7 +4384,7 @@ public class ApplicationManager extends BaseManager {
    */
   public void imodMatchedToTomogram(Run3dmodMenuOptions menuOptions) {
     AxisID axisID;
-    MatchMode matchMode = metaData.getCombineParams().getDialogMatchMode();
+    MatchMode matchMode = metaData.getCombineParams().getMatchMode();
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
     }
@@ -4427,7 +4432,7 @@ public class ApplicationManager extends BaseManager {
       updateCombineParams();
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
-      if (tomogramCombinationDialog.isUpToDate()) {
+      if (!tomogramCombinationDialog.isChanged()) {
         if (!updateSolvematchCom()) {
           return;
         }
@@ -4521,7 +4526,7 @@ public class ApplicationManager extends BaseManager {
       throw new IllegalStateException(
           "tomogramCombinationDialog cannot be null");
     }
-    tomogramCombinationDialog.setScriptMatchMode(setupCombine.getMatchMode());
+    tomogramCombinationDialog.setCombineState(true, setupCombine);
   }
 
   /**
@@ -4544,7 +4549,7 @@ public class ApplicationManager extends BaseManager {
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
       String recFileName;
-      MatchMode matchMode = combineParams.getDialogMatchMode();
+      MatchMode matchMode = combineParams.getMatchMode();
       if (matchMode == null || matchMode == MatchMode.B_TO_A) {
         recFileName = metaData.getDatasetName() + "a.rec";
       }
@@ -4614,7 +4619,7 @@ public class ApplicationManager extends BaseManager {
     comScriptMgr.loadSolvematchmod();
     SolvematchmodParam solvematchmodParam = comScriptMgr.getSolvematchmod();
     //merge shift and mod into solvematch param
-    SolvematchParam solvematchParam = new SolvematchParam();
+    SolvematchParam solvematchParam = new SolvematchParam(this);
     solvematchParam.mergeSolvematchshift(solvematchshiftParam, modelBased);
     solvematchParam.mergeSolvematchmod(solvematchmodParam, modelBased);
     //update the dialog from the same source
@@ -4804,6 +4809,7 @@ public class ApplicationManager extends BaseManager {
     }
     tomogramCombinationDialog.setRunVolcombine(combineComscriptState
         .isRunVolcombine());
+    tomogramCombinationDialog.updateDisplay();
   }
 
   /**
@@ -6239,6 +6245,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.222  2006/05/12 17:12:44  sueh
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 3.221  2006/05/11 19:27:06  sueh
  * <p> bug 838 Getting tomopitch results from the log file placing them in
  * <p> Tomo Pos.  Dividing results into original, added, and total so that the user
