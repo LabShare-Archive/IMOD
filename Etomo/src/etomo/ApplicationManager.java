@@ -6245,8 +6245,11 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.224  2006/05/16 21:16:17  sueh
+ * <p> bug# 856 Fixing checkin comment
+ * <p>
  * <p> Revision 3.223  2006/05/16 21:13:52  sueh
- * <p> bug# 856 Removed dialogMatchMode from SolvematchParam.  Letting the
+ * <p> bug# 856 Removed dialogMatchMode from CombineParam.  Letting the
  * <p> screen save the script state, since it already is.  In
  * <p> loadCombineComscript(), added a call to
  * <p> TomogramCombinationDialog.updateDisplay() so that the tabs are correct.
