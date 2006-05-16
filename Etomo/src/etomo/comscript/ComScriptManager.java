@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2006/01/26 21:47:52  sueh
+ * <p> Added spaces to an error message.
+ * <p>
  * <p> Revision 3.39  2005/09/01 17:45:45  sueh
  * <p> bug# 688 putting temporary prints (for finding cause of undistort
  * <p> parameters being set in xcorr) into the error log
@@ -1046,7 +1049,7 @@ public class ComScriptManager {
 
     // Initialize a SolvematchParam object from the com script command
     // object
-    SolvematchParam solveMatchParam = new SolvematchParam();
+    SolvematchParam solveMatchParam = new SolvematchParam(appManager);
     initialize(solveMatchParam, scriptSolvematch, "solvematch", AxisID.ONLY);
     return solveMatchParam;
   }
