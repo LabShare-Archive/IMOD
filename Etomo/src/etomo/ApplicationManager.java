@@ -6245,6 +6245,19 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.223  2006/05/16 21:13:52  sueh
+ * <p> bug# 856 Removed dialogMatchMode from SolvematchParam.  Letting the
+ * <p> screen save the script state, since it already is.  In
+ * <p> loadCombineComscript(), added a call to
+ * <p> TomogramCombinationDialog.updateDisplay() so that the tabs are correct.
+ * <p> Passing the BaseManager to SolvematchParam so that it can get the fiducial
+ * <p> model.  Changed TomogramCombinationDialog.setScriptMatchMode() to
+ * <p> setCombineState() and making it handle the use corresponding list checkbox.
+ * <p> Changed TomogramCombinationDialog.isUpToDate() to isChanged().
+ * <p> IsChanged() looks at match direction and the use corresponding list checkbox
+ * <p> and also looks at whether the scripts exist.  Synchronizing setup to initial
+ * <p> on load.  The other doesn't work for match direction anymore.
+ * <p>
  * <p> Revision 3.222  2006/05/12 17:12:44  sueh
  * <p> *** empty log message ***
  * <p>
