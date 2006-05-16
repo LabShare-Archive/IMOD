@@ -21,6 +21,7 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
+import etomo.comscript.SetupCombine;
 
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
@@ -30,7 +31,6 @@ import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -50,6 +50,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2006/03/20 18:07:26  sueh
+ * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+ * <p>
  * <p> Revision 3.37  2006/03/16 02:01:31  sueh
  * <p> bug# 828 Added isUpToDate() which compares the dialog match mode
  * <p> against the script match mode.  Added scriptMatchMode.  Turning off
@@ -299,10 +302,12 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
   private JPanel parallelPanelContainer = new JPanel();
-  private MatchMode scriptMatchMode = null;
+  private boolean combineScriptsCreated = false;
 
   private JTabbedPane tabbedPane = new JTabbedPane();
   final String parallelProcessCheckBoxText;
+  private boolean constructed = false;
+  
   /**
    * This is the index of the last tab to keep track of what to sync from when
    * switching tabs
@@ -316,8 +321,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   protected String paramString() {
     return "pnlSetup=" + pnlSetup + ",\npnlInitial=" + pnlInitial
         + ",\npnlFinal=" + pnlFinal + ",\ncombinePanelEnabled="
-        + combinePanelEnabled + ",\nscriptMatchMode=" + scriptMatchMode
-        + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
+        + combinePanelEnabled + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
         + ",\nidxLastTab=" + idxLastTab;
   }
 
@@ -363,6 +367,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
+    constructed = true;
+    updateDisplay();
   }
 
   public static ProcessResultDisplay getCreateCombineDisplay() {
@@ -599,6 +605,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setBinBy2(fromPanel.isBinBy2());
     toPanel.setFiducialMatchListA(fromPanel.getFiducialMatchListA());
     toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
+    toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
+    toPanel.setUseList(fromPanel.getUseList());
   }
 
   /**
@@ -623,38 +631,28 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
     toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
-
-  public boolean isUpToDate() {
-    return scriptMatchMode == pnlSetup.getScreenMatchMode();
+  
+  public boolean isChanged() {
+    return !combineScriptsCreated || pnlSetup.isChanged();
   }
 
-  public void setScriptMatchMode(MatchMode scriptMatchMode) {
-    this.scriptMatchMode = scriptMatchMode;
-    updateDisplay();
+  public void updateDisplay() {
+    if (!constructed) {
+      return;
+    }
+    boolean enableTabs = !isChanged();
+    tabbedPane.setEnabledAt(INITIAL_INDEX, enableTabs);
+    tabbedPane.setEnabledAt(FINAL_INDEX, enableTabs);
   }
-
-  void updateDisplay() {
-    boolean enable = isUpToDate();
-    tabbedPane.setEnabledAt(INITIAL_INDEX, enable);
-    tabbedPane.setEnabledAt(FINAL_INDEX, enable);
+  
+  public void setCombineState(boolean combineScriptsCreated, ConstCombineParams param) {
+    this.combineScriptsCreated = combineScriptsCreated;
+    pnlSetup.setCombineState(param);
   }
-
-  /**
-   * Set the state of the initial and final match to the specified state.
-   * @param state
-   */
-  public void enableCombineTabs(boolean state) {
-    combinePanelEnabled = state;
-    tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Initial Match"), state);
-    tabbedPane.setEnabledAt(tabbedPane.indexOfTab("Final Match"), state);
-  }
-
-  /**
-   * Return true if the initial and final match panels are enabled. 
-   * @return The state of the initial and final match panels
-   */
-  public boolean isCombinePanelEnabled() {
-    return combinePanelEnabled;
+  
+  public void setCombineState(boolean combineScriptsCreated, SetupCombine combine) {
+    this.combineScriptsCreated = combineScriptsCreated;
+    pnlSetup.setCombineState(combine);
   }
 
   public boolean isRunVolcombine() {
