@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.SetupCombine;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
@@ -49,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.36  2006/05/12 17:22:46  sueh
+ * bug# 861 unset patch region model when checkbox is not checked
+ *
  * Revision 3.35  2006/04/28 21:04:47  sueh
  * bug# 787 PanelHeader:  Removed the member variable title, which was
  * not used.
@@ -392,6 +396,7 @@ public final class SetupCombinePanel implements ContextMenu,
       FinalCombinePanel.NO_VOLCOMBINE_TITLE);
   private final CheckBox cbParallelProcess;
   private final SetupCombineActionListener actionListener;
+  private MatchMode scriptMatchMode = null;
 
   /**
    * Default constructor
@@ -615,6 +620,14 @@ public final class SetupCombinePanel implements ContextMenu,
     return cbParallelProcess.isEnabled();
   }
 
+  public boolean isUseCorrespondingPoints() {
+    return pnlSolvematch.isUseCorrespondingPoints();
+  }
+
+  public void setUseCorrespondingPoints(boolean use) {
+    pnlSolvematch.setUseCorrespondingPoints(use);
+  }
+
   void getParameters(ReconScreenState screenState) {
     toSelectorHeader.getState(screenState
         .getCombineSetupToSelectorHeaderState());
@@ -686,7 +699,7 @@ public final class SetupCombinePanel implements ContextMenu,
    * @param combineParams
    */
   public void setParameters(ConstCombineParams combineParams) {
-    MatchMode matchMode = combineParams.getDialogMatchMode();
+    MatchMode matchMode = combineParams.getMatchMode();
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       rbBtoA.setSelected(true);
       matchBtoA = true;
@@ -733,7 +746,7 @@ public final class SetupCombinePanel implements ContextMenu,
       throws NumberFormatException {
     String badParameter = "unknown";
     try {
-      combineParams.setDialogMatchMode(rbBtoA.isSelected());
+      combineParams.setMatchMode(rbBtoA.isSelected());
       pnlSolvematch.getParameters(combineParams);
 
       if (rbSmallPatch.isSelected()) {
@@ -870,6 +883,14 @@ public final class SetupCombinePanel implements ContextMenu,
   public void setFiducialMatchListA(String fiducialMatchListA) {
     pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
   }
+  
+  public void setUseList(String useList) {
+    pnlSolvematch.setUseList(useList);
+  }
+  
+  public String getUseList() {
+    return pnlSolvematch.getUseList();
+  }
 
   public String getFiducialMatchListA() {
     return pnlSolvematch.getFiducialMatchListA();
@@ -923,14 +944,30 @@ public final class SetupCombinePanel implements ContextMenu,
     updateStartCombine();
   }
 
+  public void setCombineState(ConstCombineParams param) {
+    scriptMatchMode = param.getMatchMode();
+    pnlSolvematch.setCombineState(param);
+  }
+  
+  public void setCombineState(SetupCombine combine) {
+    scriptMatchMode = combine.getMatchMode();
+    pnlSolvematch.setCombineState(combine);
+  }
+
   /**
    * Manage radio button action events
    * 
    * @param event
    */
   protected void rbMatchToAction(ActionEvent event) {
-    tomogramCombinationDialog.updateDisplay();
     updateMatchTo();
+    tomogramCombinationDialog.updateDisplay();
+  }
+  
+  boolean isChanged() {
+    return (scriptMatchMode == MatchMode.A_TO_B && !rbAtoB
+        .isSelected())
+        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected()) || pnlSolvematch.isChanged();
   }
 
   private void updateMatchTo() {

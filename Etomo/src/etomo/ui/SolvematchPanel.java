@@ -17,6 +17,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.SetupCombine;
 import etomo.comscript.SolvematchParam;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.Section;
@@ -39,6 +40,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2006/04/28 21:05:06  sueh
+ * <p> bug# 787 PanelHeader:  Removed the member variable title, which was
+ * <p> not used.
+ * <p>
  * <p> Revision 3.19  2006/03/27 21:07:03  sueh
  * <p> bug# 836 Added DialogType to PanelHeader get instances functions so
  * <p> that the buttons in PanelHeader could save themselves.
@@ -116,7 +121,9 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Solvematch mid change
  * <p> </p>
  */
-public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButtonContainer, Expandable {
+public final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
+
+  //private static final String POINT_LIST_A = "Corresponding fiducial list A: ";
 
   private ApplicationManager applicationManager;
 
@@ -127,41 +134,46 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
   private ButtonGroup bgFiducialParams = new ButtonGroup();
   private RadioButton rbBothSides = new RadioButton("Fiducials on both sides");
   private RadioButton rbOneSide = new RadioButton(
-    "Fiducials on one side, NOT inverted");
+      "Fiducials on one side, NOT inverted");
   private RadioButton rbOneSideInverted = new RadioButton(
-    "Fiducials on one side, inverted");
+      "Fiducials on one side, inverted");
   private RadioButton rbUseModel = new RadioButton(
-    "Use matching models and fiducials");
+      "Use matching models and fiducials");
   private RadioButton rbUseModelOnly = new RadioButton(
-    "Use matching models only");
+      "Use matching models only");
 
   private JPanel pnlImodMatchModels = new JPanel();
   private CheckBox cbBinBy2 = new CheckBox("Load binned by 2");
   private Run3dmodButton btnImodMatchModels = new Run3dmodButton(
-    "<html><b>Create Matching Models in 3dmod</b>", this);
+      "<html><b>Create Matching Models in 3dmod</b>", this);
   private LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
-    "Corresponding fiducial list A: ");
+      "Corresponding fiducial list A: ");
   private LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
-    "Corresponding fiducial list B: ");
+      "Corresponding fiducial list B: ");
+  private LabeledTextField ltfUseList = new LabeledTextField(
+  "Starting points to use from A: ");
 
   private LabeledTextField ltfResidulThreshold = new LabeledTextField(
-    "Limit on maximum residual: ");
+      "Limit on maximum residual: ");
+  private CheckBox cbUseCorrespondingPoints = new CheckBox(
+      "Specify corresponding points instead of using coordinate file");
 
   private TomogramCombinationDialog tomogramCombinationDialog;
   private String parentTitle;
   private boolean binningWarning = false;
   private final PanelHeader header;
   private final String headerGroup;
+  private boolean scriptUseCorrespondingPoints = false;
 
   public SolvematchPanel(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr, String headerGroup) {
+      ApplicationManager appMgr, String headerGroup) {
     tomogramCombinationDialog = parent;
     parentTitle = title;
     applicationManager = appMgr;
     this.headerGroup = headerGroup;
     //  Create the fiducial relationship panel
     pnlFiducialRadio
-      .setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
+        .setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
 
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -179,15 +191,16 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     pnlFiducialRadio.add(rbUseModelOnly);
 
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels,
-      BoxLayout.Y_AXIS));
+        BoxLayout.Y_AXIS));
     pnlImodMatchModels.add(cbBinBy2);
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
-    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters
+        .getButtonDimension());
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect,
-      BoxLayout.X_AXIS));
+        BoxLayout.X_AXIS));
     UIUtilities.addWithSpace(pnlFiducialSelect, pnlFiducialRadio,
-      FixedDim.x20_y0);
+        FixedDim.x20_y0);
     pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
@@ -197,29 +210,38 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
 
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(pnlBody, pnlFiducialSelect, FixedDim.x0_y10);
+    UIUtilities.addWithYSpace(pnlBody, cbUseCorrespondingPoints);
+    UIUtilities.addWithYSpace(pnlBody, ltfUseList.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListA.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListB.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    header = PanelHeader.getInstance("Solvematch Parameters", this, parent.getDialogType());
+    header = PanelHeader.getInstance("Solvematch Parameters", this, parent
+        .getDialogType());
     pnlRoot.add(header.getContainer());
     pnlRoot.add(pnlBody);
+    setToolTipText();
+
+    if (!appMgr.coordFileExists()) {
+      cbUseCorrespondingPoints.setSelected(true);
+      cbUseCorrespondingPoints.setVisible(false);
+      ltfUseList.setVisible(false);
+      updateUseCorrespondingPoints();
+    }
 
     //  Bind the ui elements to their listeners
     SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
-      this);
+        this);
     btnImodMatchModels.addActionListener(actionListener);
     cbBinBy2.addActionListener(actionListener);
-
+    cbUseCorrespondingPoints.addActionListener(actionListener);
     RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
     rbBothSides.addActionListener(rbFiducialListener);
     rbOneSide.addActionListener(rbFiducialListener);
     rbOneSideInverted.addActionListener(rbFiducialListener);
     rbUseModel.addActionListener(rbFiducialListener);
     rbUseModelOnly.addActionListener(rbFiducialListener);
-
-    setToolTipText();
   }
 
   public Container getContainer() {
@@ -246,20 +268,25 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     }
     ltfFiducialMatchListA.setText(combineParams.getFiducialMatchListA());
     ltfFiducialMatchListB.setText(combineParams.getFiducialMatchListB());
+    ltfUseList.setText(combineParams.getUseList());
+    if (cbUseCorrespondingPoints.isVisible()) {
+      cbUseCorrespondingPoints.setSelected(!combineParams.isTransfer());
+      updateUseCorrespondingPoints();
+    }
   }
-  
+
   public void expand(ExpandButton button) {
     if (header != null && header.equalsOpenClose(button)) {
       pnlBody.setVisible(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
-  
+
   public void setVisible(boolean visible) {
     pnlRoot.setVisible(visible);
   }
-  
-  final PanelHeader getHeader() {
+
+  PanelHeader getHeader() {
     return header;
   }
 
@@ -284,27 +311,28 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     if (rbUseModelOnly.isSelected()) {
       combineParams.setFiducialMatch(FiducialMatch.USE_MODEL_ONLY);
     }
-
+    combineParams.setTransfer(!cbUseCorrespondingPoints.isSelected());
     combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
     combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
+    combineParams.setUseList(ltfUseList.getText());
   }
 
   void setParameters(ConstSolvematchParam solvematchParam) {
-
     setSurfacesOrModels(solvematchParam.getSurfacesOrModel());
     if (solvematchParam.isMatchBToA()) {
       ltfFiducialMatchListA.setText(solvematchParam.getToCorrespondenceList()
-        .toString());
+          .toString());
       ltfFiducialMatchListB.setText(solvematchParam.getFromCorrespondenceList()
-        .toString());
+          .toString());
     }
     else {
       ltfFiducialMatchListB.setText(solvematchParam.getToCorrespondenceList()
-        .toString());
+          .toString());
       ltfFiducialMatchListA.setText(solvematchParam.getFromCorrespondenceList()
-        .toString());
+          .toString());
     }
     ltfResidulThreshold.setText(solvematchParam.getMaximumResidual());
+    ltfUseList.setText(solvematchParam.getUsePoints().toString());
   }
 
   void visibleResidual(boolean state) {
@@ -317,20 +345,21 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
    * @param combineParams
    */
   void getParameters(SolvematchParam solvematchParam) {
-
     solvematchParam.setSurfacesOrModel(getSurfacesOrModels());
 
     if (solvematchParam.isMatchBToA()) {
       solvematchParam.setToCorrespondenceList(ltfFiducialMatchListA.getText());
       solvematchParam
-        .setFromCorrespondenceList(ltfFiducialMatchListB.getText());
+          .setFromCorrespondenceList(ltfFiducialMatchListB.getText());
     }
     else {
       solvematchParam
-        .setFromCorrespondenceList(ltfFiducialMatchListA.getText());
+          .setFromCorrespondenceList(ltfFiducialMatchListA.getText());
       solvematchParam.setToCorrespondenceList(ltfFiducialMatchListB.getText());
     }
     solvematchParam.setMaximumResidual(ltfResidulThreshold.getText());
+    solvematchParam.setTransferCoordinateFile(cbUseCorrespondingPoints.isSelected());
+    solvematchParam.setUsePoints(ltfUseList.getText());
   }
 
   /**
@@ -382,9 +411,17 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
   public void setBinBy2(boolean state) {
     cbBinBy2.setSelected(state);
   }
+  
+  void setUseList(String useList) {
+   ltfUseList.setText(useList);
+  }
 
   public void setFiducialMatchListA(String fiducialMatchListA) {
     ltfFiducialMatchListA.setText(fiducialMatchListA);
+  }
+  
+  String getUseList() {
+    return ltfUseList.getText();
   }
 
   public String getFiducialMatchListA() {
@@ -402,19 +439,21 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
-  
+
   public void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImodMatchModels.getActionCommand())) {
       applicationManager.imodMatchingModel(cbBinBy2.isSelected(), menuOptions);
     }
   }
-  
+
   //  Action functions for setup panel buttons
   protected void buttonAction(ActionEvent event) {
+    String command = event.getActionCommand();
+    if (command.equals(cbUseCorrespondingPoints.getActionCommand())) {
+      updateUseCorrespondingPoints();
+    }
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(parentTitle, true);
-
-    String command = event.getActionCommand();
     if (command.equals(cbBinBy2.getActionCommand())) {
       if (!binningWarning && cbBinBy2.isSelected()) {
         tomogramCombinationDialog.setBinningWarning(true);
@@ -442,6 +481,46 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     boolean enable = rbUseModel.isSelected() || rbUseModelOnly.isSelected();
     btnImodMatchModels.setEnabled(enable);
     cbBinBy2.setEnabled(enable);
+  }
+
+  void updateUseCorrespondingPoints() {
+    if (cbUseCorrespondingPoints.isSelected()) {
+      ltfFiducialMatchListA.setVisible(true);
+      ltfFiducialMatchListB.setVisible(true);
+      ltfUseList.setVisible(false);
+    }
+    else {
+      ltfFiducialMatchListA.setVisible(false);
+      ltfFiducialMatchListB.setVisible(false);
+      ltfUseList.setVisible(true);
+    }
+    tomogramCombinationDialog.updateDisplay();
+  }
+
+  public void setCombineState(ConstCombineParams param) {
+    scriptUseCorrespondingPoints = !param.isTransfer();
+  }
+
+  public void setCombineState(SetupCombine combine) {
+    scriptUseCorrespondingPoints = !combine.isTransfer();
+  }
+
+  boolean isChanged() {
+    return scriptUseCorrespondingPoints != cbUseCorrespondingPoints
+        .isSelected();
+  }
+
+  public boolean isUseCorrespondingPoints() {
+    return cbUseCorrespondingPoints.isSelected();
+  }
+
+  public void setVisibleUseCorrespondingPoints(boolean visible) {
+    cbUseCorrespondingPoints.setVisible(visible);
+  }
+
+  public void setUseCorrespondingPoints(boolean selected) {
+    cbUseCorrespondingPoints.setSelected(selected);
+    updateUseCorrespondingPoints();
   }
 
   /**
@@ -490,24 +569,42 @@ public class SolvematchPanel implements /*InitialCombineFields, */Run3dmodButton
     catch (IOException except) {
       except.printStackTrace();
     }
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, SolvematchParam.SURFACE_OR_USE_MODELS);
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        SolvematchParam.SURFACE_OR_USE_MODELS);
     if (section != null) {
-      rbBothSides.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.BOTH_SIDES_OPTION)).format());
-      rbOneSide.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.ONE_SIDE_OPTION)).format());
-      rbOneSideInverted.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.ONE_SIDE_INVERTED_OPTION)).format());
-      rbUseModel.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.USE_MODEL_OPTION)).format());
-      rbUseModelOnly.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, SolvematchParam.USE_MODEL_ONLY_OPTION)).format());
+      rbBothSides.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, SolvematchParam.BOTH_SIDES_OPTION))
+          .format());
+      rbOneSide.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, SolvematchParam.ONE_SIDE_OPTION))
+          .format());
+      rbOneSideInverted.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section,
+              SolvematchParam.ONE_SIDE_INVERTED_OPTION)).format());
+      rbUseModel.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, SolvematchParam.USE_MODEL_OPTION))
+          .format());
+      rbUseModelOnly.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section,
+              SolvematchParam.USE_MODEL_ONLY_OPTION)).format());
     }
 
     text = "Use binning by 2 when opening matching models to allow the two 3dmods "
-      + "to fit into the computer's memory.";
+        + "to fit into the computer's memory.";
     cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
 
     text = "Create models of corresponding points.";
     btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
 
-    ltfFiducialMatchListA.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, SolvematchParam.TO_CORRESPONDENCE_LIST)).format());
-    ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, SolvematchParam.FROM_CORRESPONDENCE_LIST)).format());
-    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, SolvematchParam.MAXIMUM_RESIDUAL)).format());
+    ltfFiducialMatchListA.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc
+            .getTooltip(autodoc, SolvematchParam.TO_CORRESPONDENCE_LIST))
+        .format());
+    ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            SolvematchParam.FROM_CORRESPONDENCE_LIST)).format());
+    ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, SolvematchParam.MAXIMUM_RESIDUAL))
+        .format());
   }
 }
