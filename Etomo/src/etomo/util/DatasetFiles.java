@@ -27,7 +27,7 @@ public final class DatasetFiles {
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
-  
+
   private static final String TOMO_EXT = ".rec";
   private static final String STACK_EXT = ".st";
 
@@ -45,8 +45,8 @@ public final class DatasetFiles {
         axisID);
   }
 
-  public static File getStack(String propertyUserDir,
-      BaseMetaData metaData, AxisID axisID) {
+  public static File getStack(String propertyUserDir, BaseMetaData metaData,
+      AxisID axisID) {
     return new File(propertyUserDir, getStackName(metaData, axisID));
   }
 
@@ -126,14 +126,19 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
+  
+  public static String getFiducialModel(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + ".fid";
+  }
 
   public static File getPieceListFile(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getPieceListFileName(manager,
         axisID));
   }
 
-  public static String getPieceListFileName(BaseManager manager,
-      AxisID axisID) {
+  public static String getPieceListFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".pl";
@@ -144,15 +149,18 @@ public final class DatasetFiles {
         axisID));
   }
 
-  public static String getMagGradientName(BaseManager manager,
-      AxisID axisID) {
+  public static String getMagGradientName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".maggrad";
   }
-  
+
   public static String getTransferFidCoordFileName() {
     return "transferfid.coord";
+  }
+
+  public static File getTransferFidCoordFile(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(), getTransferFidCoordFileName());
   }
 
   //other etomo files
@@ -173,8 +181,8 @@ public final class DatasetFiles {
     return name + ".adoc";
   }
 
-  public static File getShellScript(BaseManager manager,
-      String commandName, AxisID axisID) {
+  public static File getShellScript(BaseManager manager, String commandName,
+      AxisID axisID) {
     axisID = correctAxisID(manager.getBaseMetaData(), axisID);
     return new File(manager.getPropertyUserDir(), commandName
         + axisID.getExtension() + ".csh");
@@ -186,13 +194,23 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), commandName
         + axisID.getExtension() + ".out");
   }
-  
+
   //log files
-  
-  public static String getTomopitchLogFileName(BaseManager manager, AxisID axisID) {
-    return ProcessName.TOMOPITCH.toString() + correctAxisID(manager.getBaseMetaData(), axisID).getExtension() + ".log";
+
+  public static String getTomopitchLogFileName(BaseManager manager,
+      AxisID axisID) {
+    return ProcessName.TOMOPITCH.toString()
+        + correctAxisID(manager.getBaseMetaData(), axisID).getExtension()
+        + ".log";
   }
-  
+
+  //com scripts
+
+  public static File getCombineCom(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(), ProcessName.COMBINE
+        + COMSCRIPT_EXT);
+  }
+
   //private
 
   private static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
@@ -219,6 +237,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2006/05/12 18:25:04  sueh
+ * <p> bug# 856 Added getTransferFidCoordFileName
+ * <p>
  * <p> Revision 1.13  2006/05/11 19:59:45  sueh
  * <p> bug# 838 Added getTomopitchLogFileName().
  * <p>
