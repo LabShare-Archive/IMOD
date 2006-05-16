@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2005/02/23 01:39:37  sueh
+ * <p> bug# 600 Making solvematch radio button options public static final ints.
+ * <p>
  * <p> Revision 3.2  2004/06/14 23:39:53  rickg
  * <p> Bug #383 Transitioned to using solvematch
  * <p>
@@ -45,6 +48,11 @@ public class ConstSolvematchParam {
   public static final String SURFACE_OR_USE_MODELS = "SurfacesOrUseModels";
   public static final String TO_MATCHING_MODEL = "AMatchingModel";
   public static final String FROM_MATCHING_MODEL = "BMatchingModel";
+  public static final String MATCHING_A_TO_B = "MatchingAtoB";
+  public static final String TRANSFER_COORDINATE_FILE = "TransferCoordinateFile";
+  public static final String A_FIDUCIAL_MODEL = "AFiducialModel";
+  public static final String B_FIDUCIAL_MODEL = "BFiducialModel";
+  public static final String USE_POINTS = "UsePoints";
   
   public static final int USE_MODEL_ONLY_OPTION = -2;
   public static final int ONE_SIDE_INVERTED_OPTION = -1;
@@ -67,6 +75,10 @@ public class ConstSolvematchParam {
   protected String toTomogramOrSizeXYZ = "";
   protected String fromTomogramOrSizeXYZ = "";
   protected FortranInputString scaleFactors = new FortranInputString(2);
+  protected String transferCoordinateFile = null;
+  protected String aFiducialModel = null;
+  protected String bFiducialModel = null;
+  protected StringList usePoints = new StringList(0);
 
   /**
    * @return FortranInputString
@@ -149,6 +161,10 @@ public class ConstSolvematchParam {
    */
   public String getOutputFile() {
     return outputFile;
+  }
+  
+  public StringList getUsePoints() {
+    return usePoints;
   }
 
   /**

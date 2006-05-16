@@ -1,6 +1,9 @@
 package etomo.comscript;
 
+import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.FiducialMatch;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: A model of the solvematch com script.  The solvematch
@@ -17,6 +20,9 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2005/02/23 01:40:33  sueh
+ * <p> bug# 600 Making solvematch radio button options public static final ints.
+ * <p>
  * <p> Revision 3.7  2004/08/02 23:06:30  rickg
  * <p> Bug #523 Added call to setMatchBToA to the parse.. method
  * <p>
@@ -43,8 +49,14 @@ import etomo.type.FiducialMatch;
  * <p> </p>
  */
 
-public class SolvematchParam extends ConstSolvematchParam
-  implements CommandParam {
+public class SolvematchParam extends ConstSolvematchParam implements
+    CommandParam {
+
+  private final BaseManager manager;
+
+  public SolvematchParam(BaseManager manager) {
+    this.manager = manager;
+  }
 
   /**
    * Set this objects default values if any
@@ -56,8 +68,8 @@ public class SolvematchParam extends ConstSolvematchParam
    * Parse the parameter values from the specified comscript command object
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException, FortranInputSyntaxException,
-    InvalidParameterException {
+      throws BadComScriptException, FortranInputSyntaxException,
+      InvalidParameterException {
     //  Check to be sure that it is a solvematch command
     if (!scriptCommand.getCommand().equals("solvematch")) {
       throw (new BadComScriptException("Not a solvematch command"));
@@ -66,38 +78,56 @@ public class SolvematchParam extends ConstSolvematchParam
     // Set any of this class's attributes that are present in the script command
     // object
     outputFile = ParamUtilities.setParamIfPresent(scriptCommand, OUTPUT_FILE,
-      outputFile);
+        outputFile);
     toFiducialFile = ParamUtilities.setParamIfPresent(scriptCommand,
-      TO_FIDUCIAL_FILE, toFiducialFile);
+        TO_FIDUCIAL_FILE, toFiducialFile);
     fromFiducialFile = ParamUtilities.setParamIfPresent(scriptCommand,
-      FROM_FIDUCIAL_FILE, fromFiducialFile);
+        FROM_FIDUCIAL_FILE, fromFiducialFile);
     ParamUtilities.setParamIfPresent(scriptCommand, TO_CORRESPONDENCE_LIST,
-      toCorrespondenceList);
+        toCorrespondenceList);
     ParamUtilities.setParamIfPresent(scriptCommand, FROM_CORRESPONDENCE_LIST,
-      fromCorrespondenceList);
+        fromCorrespondenceList);
+    ParamUtilities.setParamIfPresent(scriptCommand, TRANSFER_COORDINATE_FILE,
+        transferCoordinateFile);
+    ParamUtilities.setParamIfPresent(scriptCommand, A_FIDUCIAL_MODEL,
+        aFiducialModel);
+    ParamUtilities.setParamIfPresent(scriptCommand, B_FIDUCIAL_MODEL,
+        bFiducialModel);
+    ParamUtilities.setParamIfPresent(scriptCommand, USE_POINTS, usePoints);
     ParamUtilities.setParamIfPresent(scriptCommand, XAXIS_TILTS, xAxistTilt);
     surfacesOrModel = ParamUtilities.setParamIfPresent(scriptCommand,
-      SURFACE_OR_USE_MODELS, surfacesOrModel);
+        SURFACE_OR_USE_MODELS, surfacesOrModel);
     maximumResidual = ParamUtilities.setParamIfPresent(scriptCommand,
-      MAXIMUM_RESIDUAL, maximumResidual);
+        MAXIMUM_RESIDUAL, maximumResidual);
     toMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
-      TO_MATCHING_MODEL, toMatchingModel);
+        TO_MATCHING_MODEL, toMatchingModel);
     fromMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
-      FROM_MATCHING_MODEL, fromMatchingModel);
+        FROM_MATCHING_MODEL, fromMatchingModel);
     toTomogramOrSizeXYZ = ParamUtilities.setParamIfPresent(scriptCommand,
-      TO_TOMOGRAM_OR_SIZE_XYZ, toTomogramOrSizeXYZ);
+        TO_TOMOGRAM_OR_SIZE_XYZ, toTomogramOrSizeXYZ);
     fromTomogramOrSizeXYZ = ParamUtilities.setParamIfPresent(scriptCommand,
-      FROM_TOMOGRAM_OR_SIZE_XYZ, fromTomogramOrSizeXYZ);
-    
-    //  Set the matching state based on the toFiducialFile name
-    setMatchBToA(toFiducialFile);
+        FROM_TOMOGRAM_OR_SIZE_XYZ, fromTomogramOrSizeXYZ);
+    //set matchBToA
+    //fiducial model parameters can be added regardless of the transfer coordinate file mode,
+    //so they can be used to check the version of the script
+    if (aFiducialModel == null) {
+      //backwards compatibility - set transferCoordinateFile, aFiducialModel, bFiducialModel
+      //  Set the matching state based on the toFiducialFile name
+      setMatchBToA(toFiducialFile);
+      transferCoordinateFile = null;
+    }
+    else {
+      //scripts contains a parameter for A to B, not B to A
+      matchBToA = !ParamUtilities.setParamIfPresent(scriptCommand,
+          MATCHING_A_TO_B, !matchBToA);
+    }
   }
 
   /**
    * Update the values in the comscript command with the values from this object
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
     if (!scriptCommand.getCommand().equals("solvematch")) {
       throw (new BadComScriptException("Not a solvematch command"));
     }
@@ -106,30 +136,41 @@ public class SolvematchParam extends ConstSolvematchParam
     scriptCommand.useKeywordValue();
 
     //  Update the values in the comscript command object
-    ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_FILE, outputFile);
+    ParamUtilities
+        .updateScriptParameter(scriptCommand, OUTPUT_FILE, outputFile);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_FIDUCIAL_FILE,
-      toFiducialFile);
+        toFiducialFile);
     ParamUtilities.updateScriptParameter(scriptCommand, FROM_FIDUCIAL_FILE,
-      fromFiducialFile);
+        fromFiducialFile);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_CORRESPONDENCE_LIST,
-      toCorrespondenceList.toString());
+        toCorrespondenceList.toString());
     ParamUtilities.updateScriptParameter(scriptCommand,
-      FROM_CORRESPONDENCE_LIST, fromCorrespondenceList.toString());
-    ParamUtilities.updateScriptParameter(scriptCommand, XAXIS_TILTS, xAxistTilt);
+        FROM_CORRESPONDENCE_LIST, fromCorrespondenceList.toString());
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        TRANSFER_COORDINATE_FILE, transferCoordinateFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, A_FIDUCIAL_MODEL,
+        aFiducialModel);
+    ParamUtilities.updateScriptParameter(scriptCommand, B_FIDUCIAL_MODEL,
+        bFiducialModel);
+    ParamUtilities.updateScriptParameter(scriptCommand, MATCHING_A_TO_B,
+        !matchBToA);
+    ParamUtilities.updateScriptParameter(scriptCommand, USE_POINTS, usePoints);
+    ParamUtilities
+        .updateScriptParameter(scriptCommand, XAXIS_TILTS, xAxistTilt);
     ParamUtilities.updateScriptParameter(scriptCommand, SURFACE_OR_USE_MODELS,
-      surfacesOrModel);
+        surfacesOrModel);
     ParamUtilities.updateScriptParameter(scriptCommand, MAXIMUM_RESIDUAL,
-      maximumResidual);
+        maximumResidual);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_MATCHING_MODEL,
-      toMatchingModel);
+        toMatchingModel);
     ParamUtilities.updateScriptParameter(scriptCommand, FROM_MATCHING_MODEL,
-      fromMatchingModel);
+        fromMatchingModel);
     ParamUtilities.updateScriptParameter(scriptCommand,
-      TO_TOMOGRAM_OR_SIZE_XYZ, toTomogramOrSizeXYZ);
+        TO_TOMOGRAM_OR_SIZE_XYZ, toTomogramOrSizeXYZ);
     ParamUtilities.updateScriptParameter(scriptCommand,
-      FROM_TOMOGRAM_OR_SIZE_XYZ, fromTomogramOrSizeXYZ);
+        FROM_TOMOGRAM_OR_SIZE_XYZ, fromTomogramOrSizeXYZ);
     ParamUtilities.updateScriptParameter(scriptCommand, SCALE_FACTORS,
-      scaleFactors);
+        scaleFactors);
   }
 
   /**
@@ -137,7 +178,7 @@ public class SolvematchParam extends ConstSolvematchParam
    * @param solvematchshift
    */
   public void mergeSolvematchshift(ConstSolvematchshiftParam solvematchshift,
-    boolean modelBased) {
+      boolean modelBased) {
     if (!modelBased) {
       toFiducialFile = solvematchshift.getToFiducialCoordinatesFile();
       setMatchBToA(toFiducialFile);
@@ -149,6 +190,8 @@ public class SolvematchParam extends ConstSolvematchParam
     }
     outputFile = solvematchshift.getOutputTransformationFile();
     maximumResidual = solvematchshift.getResidualThreshold();
+    //older version, so coordinate file would not exist
+    transferCoordinateFile = null;
   }
 
   /**
@@ -156,7 +199,7 @@ public class SolvematchParam extends ConstSolvematchParam
    * @param solvematchmod
    */
   public void mergeSolvematchmod(ConstSolvematchmodParam solvematchmod,
-    boolean modelBased) {
+      boolean modelBased) {
     if (modelBased) {
       toFiducialFile = solvematchmod.getToFiducialCoordinatesFile();
       setMatchBToA(toFiducialFile);
@@ -170,23 +213,36 @@ public class SolvematchParam extends ConstSolvematchParam
     fromMatchingModel = solvematchmod.getFromMatchingModel();
     toTomogramOrSizeXYZ = solvematchmod.getToReconstructionFile();
     fromTomogramOrSizeXYZ = solvematchmod.getFromReconstructionFile();
+    //older version so coordinate file would not exist
+    transferCoordinateFile = null;
   }
 
   /**
    * Detect the matching direction from name of the first fiducial file list
+   * Set all the fields that would change if the direction is changed, 
+   * except the parameters that are handled outside of the param object.
    * @param aFiducialFilename
    */
   protected void setMatchBToA(String aFiducialFilename) {
     if (aFiducialFilename == null || aFiducialFilename.matches("\\s*")) {
       return;
     }
+    aFiducialModel = null;
+    bFiducialModel = null;
     if (aFiducialFilename.matches("^\\s*\\S+?afid.xyz\\s*$")) {
       matchBToA = true;
+      aFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.FIRST);
+      bFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.SECOND);
     }
     else if (aFiducialFilename.matches("^\\s*\\S+?bfid.xyz\\s*$")) {
       matchBToA = false;
+      bFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.FIRST);
+      aFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.SECOND);
     }
-    return;
+  }
+  
+  public void setUsePoints(String usePoints) {
+    this.usePoints.parseString(usePoints);
   }
 
   /**
@@ -194,6 +250,19 @@ public class SolvematchParam extends ConstSolvematchParam
    */
   public void setFromCorrespondenceList(String string) {
     fromCorrespondenceList.parseString(string);
+  }
+
+  /**
+   * Set the transferCoordinateFile if useCorrespondenceList is false
+   * @param useCorrespondenceList
+   */
+  public void setTransferCoordinateFile(boolean useCorrespondenceList) {
+    if (useCorrespondenceList) {
+      transferCoordinateFile = null;
+    }
+    else {
+      transferCoordinateFile = DatasetFiles.getTransferFidCoordFileName();
+    }
   }
 
   /**
@@ -215,13 +284,6 @@ public class SolvematchParam extends ConstSolvematchParam
    */
   public void setFromTomogramOrSizeXYZ(String fromTomogramOrSizeXYZ) {
     this.fromTomogramOrSizeXYZ = fromTomogramOrSizeXYZ;
-  }
-
-  /**
-   * @param matchBToA The matchBToA to set.
-   */
-  public void setMatchBToA(boolean matchBToA) {
-    this.matchBToA = matchBToA;
   }
 
   /**
