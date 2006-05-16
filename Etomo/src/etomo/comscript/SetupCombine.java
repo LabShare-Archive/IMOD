@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2006/05/12 00:08:13  sueh
+ * bug# 857 Running setupcombine with command line arguments.
+ *
  * Revision 3.11  2006/03/16 01:50:37  sueh
  * bug# 828 Added matchMode.
  * CombineParams.DialogMatchMode reflects the state of the dialog.
@@ -181,6 +184,7 @@ import etomo.type.CombinePatchSize;
 import etomo.type.ConstMetaData;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
+import etomo.util.DatasetFiles;
 
 public class SetupCombine {
   public static final String rcsid = "$Id$";
@@ -193,6 +197,7 @@ public class SetupCombine {
   boolean debug;
   private final BaseManager manager;
   private MatchMode matchMode = null;
+  private boolean transfer = false;
 
   public SetupCombine(ApplicationManager manager) {
     this.manager = manager;
@@ -221,10 +226,14 @@ public class SetupCombine {
   public MatchMode getMatchMode() {
     return matchMode;
   }
+  
+  public boolean isTransfer() {
+    return transfer;
+  }
 
   private void genOptions() {
     CombineParams combineParams = metaData.getCombineParams();
-    matchMode = combineParams.getDialogMatchMode();
+    matchMode = combineParams.getMatchMode();
     String matchListTo;
     String matchListFrom;
     FiducialMatch fiducialMatch = combineParams.getFiducialMatch();
@@ -232,22 +241,35 @@ public class SetupCombine {
     //dataset name
     command.add("-name");
     command.add(metaData.getDatasetName());
+    //transfer fid coord file and point list
+    if (combineParams.isTransfer()) {
+      transfer = true;
+      command.add("-transfer");
+      command.add(DatasetFiles.getTransferFidCoordFileName());
+      command.add("-uselist");
+      command.add(combineParams.getUseList());
+    }
     //matching relationship
     if (matchMode == MatchMode.A_TO_B) {
       command.add("-atob");
-      matchListTo = combineParams.getFiducialMatchListB();
-      matchListFrom = combineParams.getFiducialMatchListA();
     }
-    else {
-      matchListTo = combineParams.getFiducialMatchListA();
-      matchListFrom = combineParams.getFiducialMatchListB();
-    }
-    //points lists
-    if (!matchListTo.equals("")) {
-      command.add("-tolist");
-      command.add(matchListTo);
-      command.add("-fromlist");
-      command.add(matchListFrom);
+    //corresponding lists
+    if (!transfer) {
+      if (matchMode == MatchMode.A_TO_B) {
+        matchListTo = combineParams.getFiducialMatchListB();
+        matchListFrom = combineParams.getFiducialMatchListA();
+      }
+      else {
+        matchListTo = combineParams.getFiducialMatchListA();
+        matchListFrom = combineParams.getFiducialMatchListB();
+      }
+      //points lists
+      if (!matchListTo.equals("")) {
+        command.add("-tolist");
+        command.add(matchListTo);
+        command.add("-fromlist");
+        command.add(matchListFrom);
+      }
     }
     //fiducial surfaces / use model
     if (fiducialMatch != null && fiducialMatch != FiducialMatch.NOT_SET) {
@@ -298,7 +320,7 @@ public class SetupCombine {
   private void genStdInputSequence() {
 
     CombineParams combineParams = metaData.getCombineParams();
-    matchMode = combineParams.getDialogMatchMode();
+    matchMode = combineParams.getMatchMode();
     //writing the script, so set the script match mode to be the same as the
     //screen match mode
     combineParams.setMatchMode(matchMode);
