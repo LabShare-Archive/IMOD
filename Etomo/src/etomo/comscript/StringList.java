@@ -15,6 +15,13 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/05/09 23:13:46  sueh
+ * <p> bug# 658 Added a key for saving to a comscript.  Added
+ * <p> StringList(String key).  Added a reset() function to remove data without
+ * <p> removing the key.  Added setKey() and getKey().  Added
+ * <p> parseString(StringList) to get data from another StringList without
+ * <p> changing the key.
+ * <p>
  * <p> Revision 3.1  2004/12/28 23:46:57  sueh
  * <p> bug# 567 Add default constructor.  Add constructor for String[].  Add
  * <p> parseString() for String[].
@@ -119,7 +126,7 @@ public class StringList {
    */
   public void parseString(String newList) {
     //  If the string is only white space set the StringList to the null set
-    if (newList.matches("\\s*")) {
+    if (newList == null || newList.matches("\\s*")) {
       elements = new String[0];
       return;
     }
