@@ -29,6 +29,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.15  2005/05/09 23:10:29  sueh
+ * <p> $bug# 658 Reformatted.
+ * <p> $
  * <p> $Revision 1.14  2004/12/30 17:57:27  sueh
  * <p> $bug# 567 Fixed valueOf(FortranInputString[]) - for loop was wrong.
  * <p> $
@@ -414,12 +417,16 @@ public class ParamUtilities {
    * @param parameter
    * @throws FortranInputSyntaxException, InvalidParameterException
    */
-  public static void setParamIfPresent(ComScriptCommand scriptCommand,
+  public static StringList setParamIfPresent(ComScriptCommand scriptCommand,
     String keyword, StringList stringList) throws InvalidParameterException {
     
     if (scriptCommand.hasKeyword(keyword)) {
+      if (stringList == null) {
+        stringList = new StringList();
+      }
       stringList.parseString(scriptCommand.getValue(keyword));
     }
+    return stringList;
   }
 
   /**
