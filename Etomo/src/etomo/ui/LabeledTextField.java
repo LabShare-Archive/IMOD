@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2006/05/11 19:27:44  sueh
+ * <p> bug# 838 Added setMinimumWidth
+ * <p>
  * <p> Revision 3.16  2006/04/25 19:15:33  sueh
  * <p> bug# 787 Added UITestField, an enum style class which contains the
  * <p> fields found in uitestaxis.adoc files.
@@ -129,19 +132,10 @@ public class LabeledTextField {
   }
 
   public LabeledTextField(String tfLabel) {
-    //set name
-    String name = Utilities.convertLabelToName(tfLabel);
-    textField.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(UITestField.TEXT_FIELD.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
-    }
     //set label
-    label.setText(tfLabel);
-
+    setLabel(tfLabel);
+    
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-
     panel.add(label);
     panel.add(textField);
 
@@ -155,6 +149,16 @@ public class LabeledTextField {
       maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
+  }
+  
+  private void setName(String tfLabel) {
+    String name = Utilities.convertLabelToName(tfLabel);
+    textField.setName(name);
+    if (EtomoDirector.getInstance().isPrintNames()) {
+      System.out.println(UITestField.TEXT_FIELD.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
   }
 
   public boolean equals(String thatText) {
@@ -180,6 +184,11 @@ public class LabeledTextField {
 
   public String getLabel() {
     return label.getText();
+  }
+  
+  public void setLabel(String label) {
+    this.label.setText(label);
+    setName(label);
   }
 
   public String getText() {

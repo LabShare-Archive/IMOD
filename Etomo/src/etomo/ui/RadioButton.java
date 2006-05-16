@@ -25,12 +25,21 @@ final class RadioButton extends JRadioButton {
 
   public RadioButton(String text) {
     super(text);
+    setName(text);
+  }
+
+  public void setText(String text) {
+    super.setText(text);
+    setName(text);
+  }
+
+  public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    setName(name);
+    super.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestField.RADIO_BUTTON.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name
-          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -73,6 +82,10 @@ final class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/04/25 19:19:47  sueh
+ * <p> bug# 787 Added UITestField, an enum style class which contains the
+ * <p> fields found in uitestaxis.adoc files.
+ * <p>
  * <p> Revision 1.5  2006/04/06 20:17:51  sueh
  * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> util.Utilities.

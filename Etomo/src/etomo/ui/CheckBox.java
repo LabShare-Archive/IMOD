@@ -20,6 +20,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2006/04/25 19:12:23  sueh
+* <p> bug# 787 Added UITestField, an enum style class which contains the
+* <p> fields found in uitestaxis.adoc files.
+* <p>
 * <p> Revision 1.5  2006/04/06 20:15:51  sueh
 * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
 * <p> util.Utilities.
@@ -43,8 +47,17 @@ final class CheckBox extends JCheckBox {
   
   public CheckBox(String text) {
     super(text);
+    setName(text);
+  }
+  
+  public void setText(String text) {
+    super.setText(text);
+    setName(text);
+  }
+  
+  public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    setName(name);
+    super.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestField.CHECK_BOX.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
@@ -77,6 +90,10 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2006/04/25 19:12:23  sueh
+* <p> bug# 787 Added UITestField, an enum style class which contains the
+* <p> fields found in uitestaxis.adoc files.
+* <p>
 * <p> Revision 1.5  2006/04/06 20:15:51  sueh
 * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
 * <p> util.Utilities.
