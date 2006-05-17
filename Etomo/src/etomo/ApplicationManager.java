@@ -3097,10 +3097,10 @@ public class ApplicationManager extends BaseManager {
     // parameters back to the tilt{|a|b}.com
     try {
       TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+      tomogramPositioningDialog.getTiltParams(tiltParam);
       if (sample) {
         tomogramPositioningDialog.getTiltParamsForSample(tiltParam);
       }
-      tomogramPositioningDialog.getTiltParams(tiltParam);
       tomogramPositioningDialog.getParameters(metaData);
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -6245,6 +6245,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.225  2006/05/16 21:17:47  sueh
+ * <p> bug# 856 Fixing checkin comment
+ * <p>
  * <p> Revision 3.224  2006/05/16 21:16:17  sueh
  * <p> bug# 856 Fixing checkin comment
  * <p>
