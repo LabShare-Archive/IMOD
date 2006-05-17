@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/16/06: IMOD_3-8-8
+5/16/06: eTomo now instructs Transferfid to output a transfer coordinate file,
+detects the presence of it on the combine panels, and modifies the interface
+appropriately so that transfer coordinates can be used.
+
+5/16/06: Prevented xyzproj from amplifying data near edges of tilted block.
+
 5/13/06: Added option to Midas to set colors used in overlay display.
 
 5/13/06: Added option to Newstack to set fill value for areas without image
@@ -12,6 +19,10 @@ difference measure in Transferfid and Matchrotpairs.
 5/12/06: Fixed Mtk's reassignment of contours with close approaches to new
 objects when contour to mesh measurements are being done, and allowed contours
 associated with the meshes to be reassigned also.
+
+5/11/06: eTomo now sends existing positioning information to Tomopitch, parses
+Tomopitch's output, and shows original, added, and total values for position
+parameters.
 
 5/10/06: IMOD_3-8-7 (eTomo unstable)
 5/10/06: Added sync statements to command files for running Tilt in parallel
