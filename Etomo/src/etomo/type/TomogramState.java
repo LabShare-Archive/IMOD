@@ -27,6 +27,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2006/05/11 19:59:04  sueh
+ * <p> bug# 838 Added angle offset, z shift, and x axis tilt.
+ * <p>
  * <p> Revision 1.16  2006/03/20 18:00:42  sueh
  * <p> bug# 835 Added getName (a convenience function) to managers.
  * <p>
@@ -142,12 +145,12 @@ public class TomogramState implements BaseState {
   public void getParameters(AxisID axisID, TomopitchParam param) {
     if (axisID == AxisID.SECOND) {
       param.setAngleOffsetOld(angleOffsetB);
-      param.setZShiftOld(angleOffsetB);
+      param.setZShiftOld(axisZShiftB);
       param.setXAxisTiltOld(xAxisTiltB);
     }
     else {
       param.setAngleOffsetOld(angleOffsetA);
-      param.setZShiftOld(angleOffsetA);
+      param.setZShiftOld(axisZShiftA);
       param.setXAxisTiltOld(xAxisTiltA);
     }
   }
