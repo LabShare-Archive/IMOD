@@ -55,7 +55,7 @@ public final class AdocCommandReader {
   public void setSecondaryAutodocSourceDir(File secondaryAutodocSourceDir) {
     this.secondaryAutodocSourceDir = secondaryAutodocSourceDir;
   }
-  
+
   public void setAxisID(AxisID axisID) {
     this.axisID = axisID;
     setInfo();
@@ -84,7 +84,7 @@ public final class AdocCommandReader {
   public String getName() {
     return name;
   }
-  
+
   public void setInfo() {
     StringBuffer buffer = new StringBuffer();
     if (axisID != null) {
@@ -97,9 +97,11 @@ public final class AdocCommandReader {
       buffer.append(secondaryAutodocName.toString() + ":");
     }
     if (buffer.length() == 0) {
-      info = AdocCommandReader.class.getSimpleName();
+      info = AdocCommandReader.class.getName();
     }
-    info = buffer.toString();
+    else {
+      info = buffer.toString();
+    }
   }
 
   public String getInfo() {
@@ -167,7 +169,7 @@ public final class AdocCommandReader {
     list = autodoc.nextSection(sectionLoc);
     setSection();
   }
-  
+
   public void setSection(String sectionName) {
     if (sectionLoc == null) {
       throw new IllegalStateException(axisID
@@ -176,7 +178,7 @@ public final class AdocCommandReader {
     list = autodoc.getSection(sectionType, sectionName);
     setSection();
   }
-  
+
   private void setSection() {
     readingSections = true;
     pairLoc = null;
@@ -290,6 +292,12 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/04/28 20:55:16  sueh
+ * <p> bug# 787 Was UITestSection.  Reads name/value pairs sequentially in
+ * <p> Autodoc files.  Can global or section name/value pairs.  Can jump to a
+ * <p> section via section name.  Can only read from one section type.  Parses
+ * <p> each name/value pair with an AdocCommand.
+ * <p>
  * <p> Revision 1.1  2006/04/25 19:40:56  sueh
  * <p> bug# 787 Manages pairs, sections, and secondary autodocs.  Can get the
  * <p> next section or the next pair.  Automatically switches to and from
