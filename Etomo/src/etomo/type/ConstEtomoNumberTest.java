@@ -455,8 +455,35 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.toString().equals(value));
   }
 
-  //TODO
-  public final void testGetInteger() {
+  public final void testGetInt() {
+    //int should succeed
+    EtomoNumber test = new EtomoNumber();
+    test.set(1);
+    test.getInt();
+    //float should fail
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test.set(1);
+    try {
+      test.getInt();
+    }
+    catch (IllegalStateException e) {
+    }
+    //long should fail
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test.set(1);
+    try {
+      test.getInt();
+    }
+    catch (IllegalStateException e) {
+    }
+    //double should fail
+    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test.set(1);
+    try {
+      test.getInt();
+    }
+    catch (IllegalStateException e) {
+    }
   }
 
   public final void testIs() {
@@ -990,6 +1017,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/04/11 14:07:05  sueh
+ * <p> bug# 692 Tested remove(Properties, String)
+ * <p>
  * <p> Revision 1.17  2006/04/10 19:31:51  sueh
  * <p> bug# 692 Tested toString().
  * <p>
