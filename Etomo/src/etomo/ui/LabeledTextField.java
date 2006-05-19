@@ -8,6 +8,7 @@ import javax.swing.*;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
@@ -24,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2006/05/16 21:36:20  sueh
+ * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
+ * <p> see what the name is.
+ * <p>
  * <p> Revision 3.17  2006/05/11 19:27:44  sueh
  * <p> bug# 838 Added setMinimumWidth
  * <p>
@@ -134,7 +139,7 @@ public class LabeledTextField {
   public LabeledTextField(String tfLabel) {
     //set label
     setLabel(tfLabel);
-    
+
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(label);
     panel.add(textField);
@@ -150,7 +155,7 @@ public class LabeledTextField {
     }
     textField.setMaximumSize(maxSize);
   }
-  
+
   private void setName(String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
@@ -185,7 +190,7 @@ public class LabeledTextField {
   public String getLabel() {
     return label.getText();
   }
-  
+
   public void setLabel(String label) {
     this.label.setText(label);
     setName(label);
@@ -193,6 +198,15 @@ public class LabeledTextField {
 
   public String getText() {
     return textField.getText();
+  }
+
+  public void setText(ConstEtomoNumber text) {
+    if (text == null) {
+      textField.setText("");
+    }
+    else {
+      textField.setText(text.toString());
+    }
   }
 
   public void setText(String text) {
@@ -241,7 +255,7 @@ public class LabeledTextField {
     prefSize.setSize(minWidth, prefSize.getHeight());
     textField.setPreferredSize(prefSize);
   }
-  
+
   public void setMinimumWidth(double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());

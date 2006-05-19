@@ -71,6 +71,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.88  2006/05/11 19:28:13  sueh
+ * bug# 838 Making x axis tilt a double everywhere.
+ *
  * Revision 3.87  2006/04/28 21:05:19  sueh
  * bug# 787 PanelHeader:  Removed the member variable title, which was
  * not used.
@@ -757,11 +760,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return cbFiducialess.isSelected();
   }
 
-  public void setTiltAxisAngle(float tiltAxisAngle) {
+  public void setImageRotation(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public float getTiltAxisAngle() throws NumberFormatException {
+  public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
 
@@ -996,7 +999,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
         badParameter = ltfTomoThickness.getLabel();
-        tiltParam.setThickness(Integer.parseInt(ltfTomoThickness.getText()));
+        tiltParam.setThickness(ltfTomoThickness.getText());
       }
       else {
         tiltParam.resetThickness();
@@ -1004,7 +1007,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
       if (ltfXAxisTilt.getText().matches("\\S+")) {
         badParameter = ltfXAxisTilt.getLabel();
-        tiltParam.setXAxisTilt(Double.parseDouble(ltfXAxisTilt.getText()));
+        tiltParam.setXAxisTilt(ltfXAxisTilt.getText());
       }
       else {
         tiltParam.resetXAxisTilt();
