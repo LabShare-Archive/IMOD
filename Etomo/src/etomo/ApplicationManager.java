@@ -19,7 +19,6 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
-import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.ExtractmagradParam;
@@ -43,7 +42,6 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
-import etomo.comscript.TomopitchParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.XfproductParam;
@@ -55,7 +53,6 @@ import etomo.process.SystemProcessException;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
-import etomo.storage.TomopitchLog;
 import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -88,18 +85,17 @@ import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
-import etomo.ui.FiducialessParams;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
 import etomo.ui.SetupDialog;
-import etomo.ui.TextPageWindow;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
-import etomo.ui.TomogramPositioning;
-import etomo.ui.TomogramPositioningDialog;
+import etomo.ui.TomogramPositioningExpert;
+import etomo.ui.UIExpert;
+import etomo.ui.UIExpertUtilities;
 import etomo.util.DatasetFiles;
 import etomo.util.FidXyz;
 import etomo.util.InvalidParameterException;
@@ -121,7 +117,7 @@ import etomo.util.Utilities;
  *
  * @version $Revision$
  */
-public class ApplicationManager extends BaseManager {
+public final class ApplicationManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   //  Process dialog references
@@ -143,13 +139,9 @@ public class ApplicationManager extends BaseManager {
 
   private AlignmentEstimationDialog fineAlignmentDialogB = null;
 
-  private TomogramPositioningDialog tomogramPositioningDialogA = null;
+  private TomogramPositioningExpert tomogramPositioningExpertA = null;
 
-  private TomogramPositioningDialog tomogramPositioningDialogB = null;
-
-  private TomogramPositioning tomogramPositioningA = null;
-
-  private TomogramPositioning tomogramPositioningB = null;
+  private TomogramPositioningExpert tomogramPositioningExpertB = null;
 
   private TomogramGenerationDialog tomogramGenerationDialogA = null;
 
@@ -506,8 +498,7 @@ public class ApplicationManager extends BaseManager {
   public void openPreProcDialog(AxisID axisID) {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
       return;
     }
     setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
@@ -888,7 +879,7 @@ public class ApplicationManager extends BaseManager {
     return null;
   }
 
-  public final void updateArchiveDisplay() {
+  public void updateArchiveDisplay() {
     if (cleanUpDialog == null) {
       return;
     }
@@ -1059,8 +1050,7 @@ public class ApplicationManager extends BaseManager {
   public void openCoarseAlignDialog(AxisID axisID) {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
       return;
     }
     setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
@@ -1098,7 +1088,7 @@ public class ApplicationManager extends BaseManager {
 
     coarseAlignDialog.setFiducialessAlignment(metaData
         .isFiducialessAlignment(axisID));
-    coarseAlignDialog.setTiltAxisAngle(metaData.getImageRotation(axisID));
+    coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID));
     coarseAlignDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
     setParallelDialog(axisID, coarseAlignDialog);
@@ -1144,7 +1134,8 @@ public class ApplicationManager extends BaseManager {
           && !updatePrenewstCom(axisID)) {
         return;
       }
-      if (!updateFiducialessParams(coarseAlignDialog, axisID)) {
+      if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+          coarseAlignDialog, axisID)) {
         return;
       }
       if (exitState == DialogExitState.EXECUTE) {
@@ -1152,7 +1143,7 @@ public class ApplicationManager extends BaseManager {
         mainPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
         //  Go to the fiducial model dialog by default
         if (metaData.isFiducialessAlignment(axisID)) {
-          openTomogramPositioningDialog(axisID);
+          getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
           // Check to see if the user wants to keep any coarse aligned imods
           // open
           try {
@@ -1231,7 +1222,7 @@ public class ApplicationManager extends BaseManager {
    * crossCorrelate().
    * @param axisID
    */
-  public final void preCrossCorrelate(AxisID axisID,
+  public void preCrossCorrelate(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
     sendMsgProcessStarting(processResultDisplay);
@@ -1276,7 +1267,7 @@ public class ApplicationManager extends BaseManager {
     else {
       param.setFullImage(bStack);
     }
-    rollTiltComAngles(axisID);
+    UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
     comScriptMgr.saveTilt(param, axisID);
     metaData.setBStackProcessed(true);
     saveIntermediateParamFile(axisID);
@@ -1480,7 +1471,8 @@ public class ApplicationManager extends BaseManager {
   public void midasRawStack(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateFiducialessParams(mapCoarseAlignDialog(axisID), axisID)) {
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+        mapCoarseAlignDialog(axisID), axisID)) {
       return;
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
@@ -1630,34 +1622,6 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Get the fiducialess parameters from the specified dialog and set the
-   * metaData and rotationXF script
-   * 
-   * @param axisID
-   * @param dialog
-   * @return
-   */
-  private boolean updateFiducialessParams(FiducialessParams dialog,
-      AxisID axisID) {
-    float tiltAxisAngle;
-    try {
-      tiltAxisAngle = dialog.getTiltAxisAngle();
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[2];
-      errorMessage[0] = "Tilt axis rotation format error";
-      errorMessage[1] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Tilt axis rotation syntax error", axisID);
-      return false;
-    }
-    metaData.setFiducialessAlignment(axisID, dialog.isFiducialessAlignment());
-    metaData.setImageRotation(tiltAxisAngle, axisID);
-    updateRotationXF(tiltAxisAngle, axisID);
-    return true;
-  }
-
-  /**
    * Return the CoarseAlignDialog associated the specified AxisID
    * 
    * @param axisID
@@ -1671,45 +1635,12 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Write out the rotation transform for the specified axis
-   * 
-   * @param axisID
-   */
-  private void updateRotationXF(float angle, AxisID axisID) {
-    //  Open the appropriate rotation file
-    String fnRotationXF = propertyUserDir + File.separator + "rotation"
-        + axisID.getExtension() + ".xf";
-    File rotationXF = new File(fnRotationXF);
-    try {
-      BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
-      //  Write out the transform to perform the rotation
-      double rads = -1 * angle * Math.PI / 180;
-      out.write(String.valueOf(Math.cos(rads)) + "   "
-          + String.valueOf(Math.sin(-rads)) + "   "
-          + String.valueOf(Math.sin(rads)) + "   "
-          + String.valueOf(Math.cos(rads)) + "   0   0");
-      out.newLine();
-      //  Close the file
-      out.close();
-    }
-    catch (IOException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Rotation Transform IO Exception";
-      errorMessage[1] = except.getMessage();
-      errorMessage[2] = fnRotationXF;
-      uiHarness.openMessageDialog(errorMessage,
-          "Rotation Transform IO Exception", axisID);
-    }
-  }
-
-  /**
    * Open the fiducial model generation dialog
    */
   public void openFiducialModelDialog(AxisID axisID) {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
       return;
     }
     setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
@@ -2029,8 +1960,7 @@ public class ApplicationManager extends BaseManager {
   public void openFineAlignmentDialog(AxisID axisID) {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
       return;
     }
     setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
@@ -2055,7 +1985,8 @@ public class ApplicationManager extends BaseManager {
     //If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
       //upgrade and save param to comscript
-      upgradeOldAlignCom(axisID, tiltalignParam);
+      UIExpertUtilities.INSTANCE.upgradeOldAlignCom(this, axisID,
+          tiltalignParam);
     }
     fineAlignmentDialog.setTiltalignParams(tiltalignParam);
     fineAlignmentDialog.setParameters(getScreenState(axisID));
@@ -2072,6 +2003,9 @@ public class ApplicationManager extends BaseManager {
    */
   public void saveCurrentDialog(AxisID axisID) {
     DialogType currentDialogType = getCurrentDialogType(axisID);
+    if (currentDialogType == DialogType.TOMOGRAM_POSITIONING) {
+      getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).doneDialog();
+    }
     ProcessDialog dialog = getDialog(currentDialogType, axisID);
     if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
       return;
@@ -2087,9 +2021,6 @@ public class ApplicationManager extends BaseManager {
     }
     else if (currentDialogType == DialogType.FINE_ALIGNMENT) {
       doneAlignmentEstimationDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.TOMOGRAM_POSITIONING) {
-      doneTomogramPositioningDialog(axisID);
     }
     else if (currentDialogType == DialogType.TOMOGRAM_GENERATION) {
       doneTomogramGenerationDialog(axisID);
@@ -2194,12 +2125,15 @@ public class ApplicationManager extends BaseManager {
     if (fineAlignmentDialogB != null) {
       saveAlignmentEstimationDialog(fineAlignmentDialogB, AxisID.SECOND);
     }
-    if (tomogramPositioningDialogA != null) {
-      saveTomogramPositioningDialog(tomogramPositioningDialogA, firstAxisID);
-    }
-    if (tomogramPositioningDialogB != null) {
-      saveTomogramPositioningDialog(tomogramPositioningDialogB, AxisID.SECOND);
-    }
+    
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog();
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog();
+    /*if (tomogramPositioningDialogA != null) {
+     saveTomogramPositioningDialog(tomogramPositioningDialogA, firstAxisID);
+     }
+     if (tomogramPositioningDialogB != null) {
+     saveTomogramPositioningDialog(tomogramPositioningDialogB, AxisID.SECOND);
+     }*/
     if (tomogramGenerationDialogA != null) {
       saveTomogramGenerationDialog(tomogramGenerationDialogA, firstAxisID);
     }
@@ -2252,9 +2186,6 @@ public class ApplicationManager extends BaseManager {
       else {
         return fineAlignmentDialogA;
       }
-    }
-    else if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
-      return mapPositioningDialog(axisID);
     }
     else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
       return mapGenerationDialog(axisID);
@@ -2319,7 +2250,7 @@ public class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
-        openTomogramPositioningDialog(axisID);
+        getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
 
         // Check to see if the user wants to keep any coarse aligned imods
         // open
@@ -2566,13 +2497,14 @@ public class ApplicationManager extends BaseManager {
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
-      rollAlignComAngles(axisID);
+      UIExpertUtilities.INSTANCE.rollAlignComAngles(this, axisID);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
       updateTiltCom(tiltalignParam, axisID);
       //update xfproduct in align.com
       XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
-      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
+      xfproductParam.setScaleShifts(UIExpertUtilities.INSTANCE.getStackBinning(
+          this, axisID, ".preali"));
       comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
       if (fineAlignmentDialog.getExitState() != DialogExitState.SAVE) {
         mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
@@ -2615,203 +2547,33 @@ public class ApplicationManager extends BaseManager {
       tiltParam.setLocalAlignFile("");
     }
     tiltParam.setExcludeList(tiltalignParam.getExcludeList());
-    rollTiltComAngles(currentAxis);
+    UIExpertUtilities.INSTANCE.rollTiltComAngles(this, currentAxis);
     comScriptMgr.saveTilt(tiltParam, currentAxis);
   }
 
-  /**
-   * Open the tomogram positioning dialog for the specified axis
-   * @param axisID
-   */
-  public void openTomogramPositioningDialog(AxisID axisID) {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
-      return;
-    }
-    setCurrentDialogType(DialogType.TOMOGRAM_POSITIONING, axisID);
-    mainPanel.selectButton(axisID, "Tomogram Positioning");
-    if (showIfExists(tomogramPositioningDialogA, tomogramPositioningDialogB,
-        axisID)) {
-      return;
-    }
-    // Create a new dialog panel and map it the generic reference
-    TomogramPositioningDialog tomogramPositioningDialog = new TomogramPositioningDialog(
-        this, axisID);
-    if (axisID == AxisID.SECOND) {
-      tomogramPositioningDialogB = tomogramPositioningDialog;
-    }
-    else {
-      tomogramPositioningDialogA = tomogramPositioningDialog;
-    }
-    // Read in the meta data parameters. WARNING this needs to be done
-    // before reading the tilt paramers below so that the GUI knows how to
-    // correctly scale the dimensions
-    tomogramPositioningDialog.setParameters(metaData);
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      comScriptMgr.loadNewst(axisID);
-      tomogramPositioningDialog.setParameters(comScriptMgr
-          .getNewstComNewstParam(axisID));
-    }
-    else {
-      comScriptMgr.loadBlend(axisID);
-      tomogramPositioningDialog.setParameters(comScriptMgr
-          .getBlendParam(axisID));
-    }
-
-    // Get the align{|a|b}.com parameters
-    comScriptMgr.loadAlign(axisID);
-    TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      //upgrade and save param to comscript
-      upgradeOldAlignCom(axisID, tiltalignParam);
-    }
-    tomogramPositioningDialog.setAlignParams(tiltalignParam);
-
-    // Get the tilt{|a|b}.com parameters
-    comScriptMgr.loadTilt(axisID);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    tomogramPositioningDialog.setTiltParams(tiltParam);
-    //If this is a montage, then binning can only be 1, so no need to upgrade
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      //upgrade and save param to comscript
-      upgradeOldTiltCom(axisID, tiltParam);
-    }
-
-    // Get the tomopitch{|a|b}.com parameters
-    comScriptMgr.loadTomopitch(axisID);
-    tomogramPositioningDialog.setTomopitchParams(comScriptMgr
-        .getTomopitchParam(axisID));
-
-    // Set the whole tomogram sampling state, fidcialess state, and tilt axis
-    // angle
-    tomogramPositioningDialog.setWholeTomogramSampling(metaData
-        .isWholeTomogramSample(axisID));
-
-    tomogramPositioningDialog.setFiducialessAlignment(metaData
-        .isFiducialessAlignment(axisID));
-    tomogramPositioningDialog.setTiltAxisAngle(metaData
-        .getImageRotation(axisID));
-    tomogramPositioningDialog.setParameters(getScreenState(axisID));
-    // Open the dialog panel
-    mainPanel.showProcess(tomogramPositioningDialog.getContainer(), axisID);
-    setParallelDialog(axisID, tomogramPositioningDialog);
-  }
-
-  /**
-   *  
-   */
-  public void doneTomogramPositioningDialog(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    super.doneProcessDialog(tomogramPositioningDialog);
-    saveTomogramPositioningDialog(tomogramPositioningDialog, axisID);
-    //  Clean up the existing dialog
-    if (axisID == AxisID.SECOND) {
-      tomogramPositioningDialogB = null;
-    }
-    else {
-      tomogramPositioningDialogA = null;
-    }
-    tomogramPositioningDialog = null;
-  }
-
-  /**
-   *  
-   */
-  public void saveTomogramPositioningDialog(
-      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-    setAdvanced(tomogramPositioningDialog.getDialogType(), axisID,
-        tomogramPositioningDialog.isAdvanced());
-    DialogExitState exitState = tomogramPositioningDialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      mainPanel.showBlankProcess(axisID);
-    }
-    else {
-      //  Get all of the parameters from the panel
-      if (updateAlignCom(tomogramPositioningDialog, axisID) == null) {
-        return;
-      }
-      if (!updateTomoPosTiltCom(axisID, false)) {
-        return;
-      }
-      if (!updateTomopitchCom(axisID)) {
-        return;
-      }
-      if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
-        return;
-      }
-      if (metaData.getViewType() != ViewType.MONTAGE
-          && updateNewstCom(tomogramPositioningDialog, axisID) == null) {
-        return;
-      }
-
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
-            axisID);
-        mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        openTomogramGenerationDialog(axisID);
-        try {
-          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)) {
-            String[] message = new String[2];
-            message[0] = "The sample reconstruction is open in 3dmod";
-            message[1] = "Should it be closed?";
-            if (uiHarness.openYesNoDialog(message, axisID)) {
-              imodManager.quit(ImodManager.SAMPLE_KEY, axisID);
-            }
-          }
+  public UIExpert getUIExpert(DialogType dialogType, AxisID axisID) {
+    if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      if (axisID == AxisID.SECOND) {
+        if (tomogramPositioningExpertB == null) {
+          tomogramPositioningExpertB = new TomogramPositioningExpert(this,
+              mainPanel, processTrack, imodManager, axisID);
         }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-              axisID);
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-              "Problem closing sample reconstruction", axisID);
-        }
+        return tomogramPositioningExpertB;
       }
-      saveIntermediateParamFile(axisID);
+      if (tomogramPositioningExpertA == null) {
+        tomogramPositioningExpertA = new TomogramPositioningExpert(this,
+            mainPanel, processTrack, imodManager, axisID);
+      }
+      return tomogramPositioningExpertA;
     }
+    return null;
   }
 
   /**
    * Run the sample com script
    */
-  public void createSample(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    sendMsgProcessStarting(processResultDisplay);
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Make sure that we have an active positioning dialog
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update sample.com without an active positioning dialog",
-          "Program logic error", axisID);
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    //  Get the user input data from the dialog box
-    if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    if (!updateTomoPosTiltCom(axisID, true)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    comScriptMgr.loadTilt(axisID);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-
+  public boolean createSample(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, TiltParam tiltParam) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -2844,18 +2606,10 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-      return;
+      return false;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Creating sample tomogram", axisID);
-  }
-
-  private TomogramPositioning getDialogInterface(DialogType dialogType,
-      AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return tomogramPositioningB;
-    }
-    return tomogramPositioningA;
+    return true;
   }
 
   /**
@@ -2863,39 +2617,8 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  public void wholeTomogram(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    sendMsgProcessStarting(processResultDisplay);
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Get the user input from the dialog
-    if (!updateFiducialessParams(tomogramPositioningDialog, axisID)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    ConstNewstParam newstParam = null;
-    BlendmontParam blendmontParam = null;
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      newstParam = updateNewstCom(tomogramPositioningDialog, axisID);
-      if (newstParam == null) {
-        sendMsgProcessFailedToStart(processResultDisplay);
-        return;
-      }
-    }
-    else {
-      blendmontParam = updateBlendCom(tomogramPositioningDialog, axisID);
-      if (blendmontParam == null) {
-        sendMsgProcessFailedToStart(processResultDisplay);
-        return;
-      }
-    }
-    if (!updateTomoPosTiltCom(axisID, true)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-
+  public boolean wholeTomogram(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ConstNewstParam param) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -2917,13 +2640,7 @@ public class ApplicationManager extends BaseManager {
 
     String threadName;
     try {
-      if (metaData.getViewType() != ViewType.MONTAGE) {
-        threadName = processMgr.newst(newstParam, axisID, processResultDisplay);
-      }
-      else {
-        threadName = processMgr.blend(blendmontParam, axisID,
-            processResultDisplay);
-      }
+      threadName = processMgr.newst(param, axisID, processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2933,10 +2650,54 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-      return;
+      return false;
     }
-    setNextProcess(axisID, "tilt");
     setThreadName(threadName, axisID);
+    return true;
+  }
+
+  /**
+   * Create a whole tomogram for positioning the tomogram in the volume
+   * 
+   * @param axisID
+   */
+  public boolean wholeTomogram(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, BlendmontParam param) {
+    // Make sure we have a current prexg and _nonfid.xf if fiducialess is
+    // selected
+    if (metaData.isFiducialessAlignment(axisID)) {
+      generateFiducialessTransforms(axisID);
+    }
+    else {
+      try {
+        processMgr.setupFiducialAlign(axisID);
+      }
+      catch (IOException except) {
+        except.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Problem copying fiducial alignment files";
+        message[1] = except.getMessage();
+        uiHarness.openMessageDialog(message,
+            "Unable to copy fiducial alignment files", axisID);
+      }
+    }
+
+    String threadName;
+    try {
+      threadName = processMgr.blend(param, axisID, processResultDisplay);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return false;
+    }
+    setThreadName(threadName, axisID);
+    return true;
   }
 
   /**
@@ -2994,14 +2755,9 @@ public class ApplicationManager extends BaseManager {
   /**
    *  
    */
-  public void tomopitch(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+  public boolean tomopitch(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateTomopitchCom(axisID)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
       threadName = processMgr.tomopitch(axisID, processResultDisplay);
@@ -3014,30 +2770,15 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-      return;
+      return false;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Finding sample position", axisID);
-  }
-
-  /**
-   * Open the tomopitch log file
-   * 
-   * @param axisID
-   */
-  public void openTomopitchLog(AxisID axisID) {
-    String logFileName = DatasetFiles.getTomopitchLogFileName(this, axisID);
-    TextPageWindow logFileWindow = new TextPageWindow();
-    logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
-        + File.separator + logFileName));
+    return true;
   }
 
   public void setTomopitchOutput(AxisID axisID) {
-    TomopitchLog log = new TomopitchLog(this, axisID);
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    if (!tomogramPositioningDialog.setParameters(log)) {
-      openTomopitchLog(axisID);
-    }
+    ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
+        axisID)).setTomopitchOutput(axisID);
   }
 
   /**
@@ -3046,19 +2787,9 @@ public class ApplicationManager extends BaseManager {
    * 
    * @param axisID
    */
-  public void finalAlign(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    sendMsgProcessStarting(processResultDisplay);
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    ConstTiltalignParam tiltalignParam = updateAlignCom(
-        tomogramPositioningDialog, axisID);
-    if (tiltalignParam == null) {
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
-    }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+  public boolean finalAlign(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstTiltalignParam tiltalignParam) {
     String threadName;
     try {
       threadName = processMgr.fineAlignment(tiltalignParam, axisID,
@@ -3073,218 +2804,10 @@ public class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute com script",
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
-      return;
+      return false;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Calculating final alignment", axisID);
-  }
-
-  /**
-   * Update the tilt{|a|b}.com file with sample parameters for the specified
-   * axis
-   */
-  private boolean updateTomoPosTiltCom(AxisID axisID, boolean sample) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Make sure that we have an active positioning dialog
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update sample.com without an active positioning dialog",
-          "Program logic error", axisID);
-      return false;
-    }
-    // Get the current tilt parameters, make any user changes and save the
-    // parameters back to the tilt{|a|b}.com
-    try {
-      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-      tomogramPositioningDialog.getTiltParams(tiltParam);
-      if (sample) {
-        tomogramPositioningDialog.getTiltParamsForSample(tiltParam);
-      }
-      tomogramPositioningDialog.getParameters(metaData);
-      String outputFileName;
-      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        outputFileName = metaData.getDatasetName() + "_full.rec";
-      }
-      else {
-        outputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + ".rec";
-      }
-      tiltParam.setOutputFile(outputFileName);
-      if (metaData.getViewType() == ViewType.MONTAGE) {
-        //binning is currently always 1 and correct size should be coming from
-        //copytomocoms
-        //tiltParam.setMontageFullImage(propertyUserDir, tomogramPositioningDialog.getBinning());
-      }
-      rollTiltComAngles(axisID);
-      comScriptMgr.saveTilt(tiltParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tilt Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error",
-          axisID);
-      return false;
-    }
     return true;
-  }
-
-  /**
-   * Update the tomopitch{|a|b}.com file with sample parameters for the
-   * specified axis
-   */
-  private boolean updateTomopitchCom(AxisID axisID) {
-    //  Set a reference to the correct object
-    TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
-    // Make sure that we have an active positioning dialog
-    if (tomogramPositioningDialog == null) {
-      uiHarness.openMessageDialog(
-          "Can not update tomopitch.com without an active positioning dialog",
-          "Program logic error", axisID);
-      return false;
-    }
-    // Get the current tilt parameters, make any user changes and save the
-    // parameters back to the tilt{|a|b}.com
-    try {
-      TomopitchParam tomopitchParam = comScriptMgr.getTomopitchParam(axisID);
-      state.getParameters(axisID, tomopitchParam);
-      tomogramPositioningDialog.getTomopitchParams(tomopitchParam);
-      comScriptMgr.saveTomopitch(tomopitchParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tomopitch Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Tomopitch Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Return the TomogramPositioningDialog associated the specified AxisID
-   * 
-   * @param axisID
-   * @return
-   */
-  private TomogramPositioningDialog mapPositioningDialog(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return tomogramPositioningDialogB;
-    }
-    return tomogramPositioningDialogA;
-  }
-
-  /**
-   * updateAlignCom updates the align{|a|b}.com scripts with the parameters
-   * from the tomogram positioning dialog. The positioning dialog is passed so
-   * that the signature is different from the standard method.
-   */
-  private ConstTiltalignParam updateAlignCom(
-      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-    TiltalignParam tiltalignParam;
-    try {
-      tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
-      tomogramPositioningDialog.getAlignParams(tiltalignParam);
-      rollAlignComAngles(axisID);
-      comScriptMgr.saveAlign(tiltalignParam, axisID);
-      //update xfproduct in align.com
-      XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
-      xfproductParam.setScaleShifts(getStackBinning(axisID, ".preali"));
-      comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Tiltalign Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Tiltalign Parameter Syntax Error", axisID);
-      return null;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Xfproduct Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Xfproduct Parameter Syntax Error", axisID);
-      return null;
-    }
-    return tiltalignParam;
-  }
-
-  private void rollAlignComAngles(AxisID axisID) {
-    TomogramPositioningDialog tomogramPositioningDialog = (TomogramPositioningDialog) getDialog(
-        DialogType.TOMOGRAM_POSITIONING, axisID);
-    if (tomogramPositioningDialog != null) {
-      tomogramPositioningDialog.rollAlignComAngles();
-    }
-  }
-
-  private void rollTiltComAngles(AxisID axisID) {
-    TomogramPositioningDialog tomogramPositioningDialog = (TomogramPositioningDialog) getDialog(
-        DialogType.TOMOGRAM_POSITIONING, axisID);
-    if (tomogramPositioningDialog != null) {
-      tomogramPositioningDialog.rollTiltComAngles();
-    }
-  }
-
-  /**
-   * Update the newst{|a|b}.com scripts with the parameters from the tomogram
-   * positioning dialog. The positioning dialog is passed so that the
-   * signature is different from the standard method.
-   * 
-   * @param tomogramPositioningDialog
-   * @param axisID
-   * @return
-   */
-  private ConstNewstParam updateNewstCom(
-      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-
-    //  Get the whole tomogram positions state
-    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
-        .isWholeTomogramSampling());
-
-    NewstParam newstParam = comScriptMgr.getNewstComNewstParam(axisID);
-    tomogramPositioningDialog.getNewstParamst(newstParam);
-    try {
-      // Make sure the size output is removed, it was only there as a 
-      // copytomocoms template
-      newstParam.setCommandMode(NewstParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
-      newstParam.setSizeToOutputInXandY("/");
-    }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-    }
-    comScriptMgr.saveNewst(newstParam, axisID);
-    return newstParam;
-  }
-
-  /**
-   * Update the blend{|a|b}.com scripts with the parameters from the tomogram
-   * positioning dialog. The positioning dialog is passed so that the
-   * signature is different from the standard method.
-   * 
-   * @param tomogramPositioningDialog
-   * @param axisID
-   * @return
-   */
-  private BlendmontParam updateBlendCom(
-      TomogramPositioningDialog tomogramPositioningDialog, AxisID axisID) {
-    //  Get the whole tomogram positions state
-    metaData.setWholeTomogramSample(axisID, tomogramPositioningDialog
-        .isWholeTomogramSampling());
-    BlendmontParam blendmontParam = comScriptMgr.getBlendParam(axisID);
-    tomogramPositioningDialog.getParams(blendmontParam);
-    blendmontParam.setMode(BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
-    blendmontParam.setBlendmontState();
-    comScriptMgr.saveBlend(blendmontParam, axisID);
-    return blendmontParam;
   }
 
   /**
@@ -3356,7 +2879,7 @@ public class ApplicationManager extends BaseManager {
       }
       double startingAngle = tiltAngleSpec.getRangeMin();
       double step = tiltAngleSpec.getRangeStep();
-      MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
+      MRCHeader rawStackHeader = MRCHeader.getInstance(this, axisID, ".st");
       rawStackHeader.read();
       int sections = rawStackHeader.getNSections();
       for (int curSection = 0; curSection < sections; curSection++) {
@@ -3441,8 +2964,7 @@ public class ApplicationManager extends BaseManager {
   public void openTomogramGenerationDialog(AxisID axisID) {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(axisID);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
       return;
     }
     //
@@ -3485,7 +3007,7 @@ public class ApplicationManager extends BaseManager {
     //If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
       //upgrade and save param to comscript
-      upgradeOldTiltCom(axisID, tiltParam);
+      UIExpertUtilities.INSTANCE.upgradeOldTiltCom(this, axisID, tiltParam);
     }
     tomogramGenerationDialog.setTiltParams(tiltParam);
     tomogramGenerationDialog.setMTFFilterParam(comScriptMgr
@@ -3496,7 +3018,7 @@ public class ApplicationManager extends BaseManager {
     tomogramGenerationDialog.setFiducialessAlignment(metaData
         .isFiducialessAlignment(axisID));
     tomogramGenerationDialog
-        .setTiltAxisAngle(metaData.getImageRotation(axisID));
+        .setImageRotation(metaData.getImageRotation(axisID));
     setEnabledTiltParameters(axisID);
 
     mainPanel.showProcess(tomogramGenerationDialog.getContainer(), axisID);
@@ -3536,7 +3058,8 @@ public class ApplicationManager extends BaseManager {
       //  Get the user input data from the dialog box
       tomogramGenerationDialog.getParameters(metaData);
       tomogramGenerationDialog.getParameters(getScreenState(axisID));
-      if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
+      if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+          tomogramGenerationDialog, axisID)) {
         return;
       }
       if (metaData.getViewType() == ViewType.MONTAGE) {
@@ -3618,7 +3141,7 @@ public class ApplicationManager extends BaseManager {
         //copytomocoms
         //tiltParam.setMontageFullImage(propertyUserDir, tomogramGenerationDialog.getBinning());
       }
-      rollTiltComAngles(axisID);
+      UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -3766,7 +3289,8 @@ public class ApplicationManager extends BaseManager {
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
 
     // Get the user input from the dialog
-    if (!updateFiducialessParams(tomogramGenerationDialog, axisID)) {
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this,
+        tomogramGenerationDialog, axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -3962,12 +3486,8 @@ public class ApplicationManager extends BaseManager {
     tiltProcess(axisID, processResultDisplay);
   }
 
-  private void sampleTilt(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    TomogramPositioning dialogInterface = getDialogInterface(
-        DialogType.TOMOGRAM_POSITIONING, axisID);
-    comScriptMgr.loadTilt(axisID);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+  public void sampleTilt(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, TiltParam tiltParam) {
     String threadName;
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, tiltParam);
@@ -4169,8 +3689,7 @@ public class ApplicationManager extends BaseManager {
   public void openTomogramCombinationDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(AxisID.ONLY);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY)) {
       return;
     }
     // Verify that this process is applicable
@@ -5224,8 +4743,7 @@ public class ApplicationManager extends BaseManager {
   public void openPostProcessingDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(AxisID.ONLY);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY)) {
       return;
     }
     //  Open the dialog in the appropriate mode for the current state of
@@ -5273,8 +4791,7 @@ public class ApplicationManager extends BaseManager {
   public void openCleanUpDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!metaData.getComScriptCreated()) {
-      setupRequestDialog(AxisID.ONLY);
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY)) {
       return;
     }
     //  Open the dialog in the appropriate mode for the current state of
@@ -5571,17 +5088,6 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
-   *  
-   */
-  private void setupRequestDialog(AxisID axisID) {
-    String[] message = new String[2];
-    message[0] = "The setup process has not been completed";
-    message[1] = "Complete the Setup process before opening other process dialogs";
-    uiHarness.openMessageDialog(message, "Program Operation Error", axisID);
-    return;
-  }
-
-  /**
    * Run the specified command as a background process with a indeterminate
    * progress bar.
    */
@@ -5620,8 +5126,10 @@ public class ApplicationManager extends BaseManager {
    */
   protected void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay) {
-    if (nextProcess.equals("tilt")) {
-      sampleTilt(axisID, processResultDisplay);
+    DialogType nextProcessDialogType = getNextProcessDialogType(axisID);
+    if (nextProcessDialogType != null) {
+      getUIExpert(nextProcessDialogType, axisID).startNextProcess(
+          processResultDisplay);
     }
     else if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID, processResultDisplay);
@@ -5722,9 +5230,9 @@ public class ApplicationManager extends BaseManager {
 
   protected void checkUpdateFiducialModel(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    FidXyz fidXyz = getFidXyz(axisID);
-    MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
+    FidXyz fidXyz = UIExpertUtilities.INSTANCE.getFidXyz(this, axisID);
+    MRCHeader prealiHeader = MRCHeader.getInstance(this, axisID, ".preali");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID, ".st");
     try {
       fidXyz.read();
       prealiHeader.read();
@@ -5767,18 +5275,6 @@ public class ApplicationManager extends BaseManager {
               "Prealigned image stack binning has changed", axisID);
     }
     processDone(axisID, processResultDisplay);
-  }
-
-  public FidXyz getFidXyz(AxisID axisID) {
-    return new FidXyz(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + "fid.xyz");
-  }
-
-  public MRCHeader getMrcHeader(AxisID axisID, String filename) {
-    File file = new File(propertyUserDir, metaData.getDatasetName()
-        + axisID.getExtension() + filename);
-    return MRCHeader.getInstance(propertyUserDir, file.getAbsolutePath(),
-        axisID);
   }
 
   protected void createComScriptManager() {
@@ -5869,221 +5365,8 @@ public class ApplicationManager extends BaseManager {
     processMgr.pause(axisID);
   }
 
-  /**
-   * Gets the binning that can be used to repair a older tilt.com file.  Older
-   * tilt.com file contain parameters, including full image size, which have
-   * been binned.  And they do not contain the binning.  Function calculates the
-   * binning from the raw stack full image size and the full image size in 
-   * tilt.com.
-   * @param axisID
-   * @param tiltParam
-   * @return
-   */
-  private int getBackwardCompatibleTiltBinning(AxisID axisID,
-      ConstTiltParam tiltParam) {
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    try {
-      rawstackHeader.read();
-    }
-
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    catch (IOException e) {
-      return 1;
-    }
-    int binning = 1;
-    int tiltFullImageX = tiltParam.getFullImageX();
-    //defaults to Integer.MIN_VALUE in ConstTiltParam
-    if (tiltFullImageX > 0) {
-      binning = Math.round(rawstackHeader.getNColumns() / tiltFullImageX);
-    }
-    if (binning < 1) {
-      return 1;
-    }
-    return binning;
-  }
-
-  /**
-   * Gets the binning that can be used to run tilt against a stack (.preali or
-   * .ali).  Function calculates the binning from the stack's pixel spacing and
-   * the raw stack's pixel spacing.
-   * @param axisID
-   * @param stackExtension
-   * @return
-   */
-  public long getStackBinning(AxisID axisID, String stackExtension) {
-    return getStackBinning(axisID, stackExtension, false);
-  }
-
-  /**
-   * Gets the binning that can be used to run tilt against a stack (.preali or
-   * .ali).  Function calculates the binning from the stack's pixel spacing and
-   * the raw stack's pixel spacing.
-   * @param axisID
-   * @param stackExtension .ali or .preali
-   * @param nullIfFailed when true returns null on failure, otherwise returns 1
-   * on failure.
-   * @return
-   */
-  public long getStackBinning(AxisID axisID, String stackExtension,
-      boolean nullIfFailed) {
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    MRCHeader stackHeader = getMrcHeader(axisID, stackExtension);
-    long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
-    try {
-      rawstackHeader.read();
-      stackHeader.read();
-    }
-    catch (InvalidParameterException e) {
-      //missing file
-      e.printStackTrace();
-      return defaultValue;
-    }
-    catch (IOException e) {
-      return defaultValue;
-    }
-    long binning = defaultValue;
-    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
-    if (rawstackXPixelSpacing > 0) {
-      binning = Math.round(stackHeader.getXPixelSpacing()
-          / rawstackXPixelSpacing);
-    }
-    if (binning != defaultValue && binning < 1) {
-      return 1;
-    }
-    return binning;
-  }
-
-  /**
-   * Gets the binning that can be used to repair a older align.com file.  Older
-   * align.com file contain a binned zshift parameter.  And they do not contain
-   * the binning.  Function calculates the binning from the raw stack pixel
-   * spacing and the fid.xyz pixel spacing (if it exists) or the .preali pixel
-   * spacing.  The fid.xyz pixel spacing is more accurate because the file is
-   * created by align when align succeeds.  If align fails, then the .preali
-   * pixel spacing will be inaccurate if the binning has changed since an
-   * the last time the .preali was built.
-   * @param axisID
-   * @param tiltParam
-   * @return
-   */
-  private long getBackwardCompatibleAlignBinning(AxisID axisID) {
-    MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
-    try {
-      rawstackHeader.read();
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    catch (IOException e) {
-      return 1;
-    }
-    FidXyz fidXyz = getFidXyz(axisID);
-    boolean fidXyzFailed = false;
-    try {
-      fidXyz.read();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      fidXyzFailed = true;
-    }
-    if (!fidXyzFailed) {
-      //Another layer of backward compatibility.  Handle the time before fid.xyz
-      //files where created.  This also handles the situation where align.com has
-      //not been run and has the original values from copytomocoms.
-      if (!fidXyz.exists()) {
-        return 1;
-      }
-      //Align.com must have failed.  The fallback is to use pixel spacing from
-      //.preali.
-      if (fidXyz.isEmpty()) {
-        fidXyzFailed = true;
-      }
-      //Another layer of backward compatibility.  There was a small period of
-      //time when binning existed but the pixel spacing was not added to fid.xyz
-      //(3.2.7 (3/16/04) - 3.2.20 (6/19/04).  If this fid.xyz was created before
-      //binning we could return 1, but we don't know that and we can't trust
-      //change times on old files that could have been copied, so we need to use
-      //the fallback in this case.
-      else if (!fidXyz.isPixelSizeSet()) {
-        fidXyzFailed = true;
-      }
-    }
-    double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
-    //Unable to calculate binning
-    if (rawstackXPixelSpacing <= 0) {
-      return 1;
-    }
-    //calculate binning from fid.xyz
-    if (!fidXyzFailed) {
-      long binning = Math.round(fidXyz.getPixelSize() / rawstackXPixelSpacing);
-      if (binning < 1) {
-        return 1;
-      }
-      return binning;
-    }
-    //fallback to .preali
-    MRCHeader stackHeader = getMrcHeader(axisID, ".preali");
-    try {
-      stackHeader.read();
-    }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return 1;
-    }
-    long binning = Math.round(stackHeader.getXPixelSpacing()
-        / rawstackXPixelSpacing);
-    if (binning < 1) {
-      return 1;
-    }
-    return binning;
-  }
-
   public void touch(File file) {
     processMgr.touch(file);
-  }
-
-  /**
-   * If tiltParam is an old version, upgrade it to the new version and save it
-   * to tilt.com.
-   * @param axisID
-   * @param tiltParam
-   */
-  private void upgradeOldTiltCom(AxisID axisID, TiltParam tiltParam) {
-    if (!tiltParam.isOldVersion()) {
-      return;
-    }
-    int correctionBinning = getBackwardCompatibleTiltBinning(axisID, tiltParam);
-    long currentBinning = getStackBinning(axisID, ".ali");
-    if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
-      rollTiltComAngles(axisID);
-      comScriptMgr.saveTilt(tiltParam, axisID);
-    }
-  }
-
-  /**
-   * If tiltalignParam is an old version, upgrade it to the new version and save
-   * it to align.com.
-   * @param axisID
-   * @param tiltalignParam
-   */
-  private void upgradeOldAlignCom(AxisID axisID, TiltalignParam tiltalignParam) {
-    if (!tiltalignParam.isOldVersion()) {
-      return;
-    }
-    long correctionBinning = getBackwardCompatibleAlignBinning(axisID);
-    long currentBinning = getStackBinning(axisID, ".preali");
-    if (tiltalignParam.upgradeOldVersion(correctionBinning, currentBinning)) {
-      rollAlignComAngles(axisID);
-      comScriptMgr.saveAlign(tiltalignParam, axisID);
-    }
   }
 
   private final SplittiltParam updateSplittiltParam(AxisID axisID) {
@@ -6168,18 +5451,17 @@ public class ApplicationManager extends BaseManager {
     return;
   }
 
-  private final String getNextProcessProcesschunksString(ProcessName processName) {
+  private String getNextProcessProcesschunksString(ProcessName processName) {
     return ProcessName.PROCESSCHUNKS + " " + processName;
   }
 
-  public final void processchunksTilt(AxisID axisID,
+  public void processchunksTilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
     processchunks(axisID, mapGenerationDialog(axisID), processResultDisplay);
   }
 
-  private final void processchunksVolcombine(
-      ProcessResultDisplay processResultDisplay) {
+  private void processchunksVolcombine(ProcessResultDisplay processResultDisplay) {
     processchunks(AxisID.ONLY, tomogramCombinationDialog, processResultDisplay);
   }
 
@@ -6187,7 +5469,7 @@ public class ApplicationManager extends BaseManager {
     return processMgr;
   }
 
-  protected final Storable[] getParamFileStorableArray(boolean includeMetaData) {
+  protected Storable[] getParamFileStorableArray(boolean includeMetaData) {
     boolean dualAxis = true;
     int arraySize = 5;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -6211,7 +5493,7 @@ public class ApplicationManager extends BaseManager {
     return storable;
   }
 
-  public final ReconScreenState getScreenState(AxisID axisID) {
+  public ReconScreenState getScreenState(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (screenStateB == null) {
         screenStateB = new ReconScreenState(axisID, metaData.getAxisType());
@@ -6224,7 +5506,7 @@ public class ApplicationManager extends BaseManager {
     return screenStateA;
   }
 
-  public final BaseScreenState getBaseScreenState(AxisID axisID) {
+  public BaseScreenState getBaseScreenState(AxisID axisID) {
     return (BaseScreenState) getScreenState(axisID);
   }
 
@@ -6235,7 +5517,7 @@ public class ApplicationManager extends BaseManager {
     return this.loadedParamFile;
   }
 
-  public final boolean canSnapshot() {
+  public boolean canSnapshot() {
     return !isNewManager();
   }
 
