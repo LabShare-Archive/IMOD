@@ -13,22 +13,11 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
-import etomo.comscript.BlendmontParam;
-import etomo.comscript.ConstNewstParam;
-import etomo.comscript.ConstTiltParam;
-import etomo.comscript.ConstTiltalignParam;
-import etomo.comscript.ConstTomopitchParam;
-import etomo.comscript.NewstParam;
-import etomo.comscript.TiltParam;
-import etomo.comscript.TiltalignParam;
-import etomo.comscript.TomopitchParam;
 import etomo.storage.TomopitchLog;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
-import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
@@ -47,6 +36,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2006/05/11 19:32:29  sueh
+ * <p> bug# 838 Added CalcPanel - a three variable panel which shows the
+ * <p> calculation of angles calculated by tomopitch.  Added x axis tilt and
+ * <p> thickness (separate from the sample thickness.)  Added extra thickness.
+ * <p>
  * <p> Revision 3.41  2006/02/06 21:22:42  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
@@ -290,7 +284,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   private final LabeledTextField ltfExtraThickness = new LabeledTextField(
       "Added border thickness (unbinned): ");
   private final LabeledTextField ltfThickness = new LabeledTextField(
-      "Thickness: ");
+      "Final Tomogram Thickness: ");
 
   private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private LabeledTextField ltfRotation = new LabeledTextField(
@@ -319,16 +313,16 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");
 
   private final MultiLineButton btnAlign;
+  private final TomogramPositioningExpert expert;
 
-  private static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
+  static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
 
-  //backward compatibility functionality - if the metadata binning is missing
-  //get binning from newst
-  private boolean getBinningFromNewst = true;
   private final LocalActionListener localActionListener;
 
-  public TomogramPositioningDialog(ApplicationManager appMgr, AxisID axisID) {
+  public TomogramPositioningDialog(ApplicationManager appMgr,
+      TomogramPositioningExpert expert, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_POSITIONING);
+    this.expert = expert;
     fixRootPanel(rootSize);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
@@ -409,7 +403,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
-    updateUIState();
+    expert.updateFiducialessDisplay(cbFiducialess.isSelected());
   }
 
   public static ProcessResultDisplay getSampleTomogramDisplay() {
@@ -427,110 +421,85 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
         DialogType.TOMOGRAM_POSITIONING);
   }
 
-  public void setFiducialessAlignment(boolean state) {
-    cbFiducialess.setSelected(state);
-    updateUIState();
+  public void setFiducialessAlignment(boolean fiducialess) {
+    cbFiducialess.setSelected(fiducialess);
+    expert.updateFiducialessDisplay(fiducialess);
   }
 
   public boolean isFiducialessAlignment() {
     return cbFiducialess.isSelected();
   }
 
-  public void setTiltAxisAngle(float tiltAxisAngle) {
+  public void setImageRotation(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public float getTiltAxisAngle() throws NumberFormatException {
+  public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
 
-  /**
-   * Set the align.com parameters in the dialog
-   * @param tiltalignParam
-   */
-  public void setAlignParams(ConstTiltalignParam tiltalignParam) {
-    cpTiltAngleOffset.set(tiltalignParam.getAngleOffset());
-    cpTiltAxisZShift.set(tiltalignParam.getAxisZShift());
+  void setTiltAngleOffset(ConstEtomoNumber angleOffset) {
+    cpTiltAngleOffset.set(angleOffset);
   }
 
-  public void setTiltParams(ConstTiltParam tiltParam) {
-    cpXAxisTilt.set(tiltParam.getXAxisTilt());
-    ltfThickness.setText(tiltParam.getThickness());
+  void setTiltAxisZShift(ConstEtomoNumber axisZShift) {
+    cpTiltAxisZShift.set(axisZShift);
   }
 
-  /**
-   * Get the align.com parameters from the dialog
-   * @param tiltalignParam
-   * @throws NumberFormatException
-   */
-  public void getAlignParams(TiltalignParam tiltalignParam) {
-    tiltalignParam.setAngleOffset(cpTiltAngleOffset.getTotal());
-    tiltalignParam.setAxisZShift(cpTiltAxisZShift.getTotal());
-    updateMetaData();
+  void setXAxisTilt(double xAxisTilt) {
+    cpXAxisTilt.set(xAxisTilt);
   }
 
-  private int getBinning() {
-    if (!cbWholeTomogram.isSelected()) {
-      return 1;
-    }
+  void setThickness(int thickness) {
+    ltfThickness.setText(thickness);
+  }
+
+  void setThickness(ConstEtomoNumber thickness) {
+    ltfThickness.setText(thickness);
+  }
+
+  String getTiltAngleOffsetTotal() {
+    return cpTiltAngleOffset.getTotal();
+  }
+
+  String getTiltAxisZShiftTotal() {
+    return cpTiltAxisZShift.getTotal();
+  }
+
+  String getExtraThickness() {
+    return ltfExtraThickness.getText();
+  }
+
+  String getXAxisTiltTotal() {
+    return cpXAxisTilt.getTotal();
+  }
+
+  String getThickness() {
+    return ltfThickness.getText();
+  }
+
+  String getSampleThickness() {
+    return ltfSampleThickness.getText();
+  }
+
+  boolean isWholeTomogram() {
+    return cbWholeTomogram.isSelected();
+  }
+
+  int getBinningValue() {
     return ((Integer) spinBinning.getValue()).intValue();
   }
 
-  /**
-   * Get the tomopitch.com parameters from the dialog
-   * @param TomopitchParam
-   */
-  public void getTomopitchParams(TomopitchParam tomopitchParam) {
-    tomopitchParam.setScaleFactor(getBinning());
-    tomopitchParam.setExtraThickness(ltfExtraThickness.getText());
-    updateMetaData();
+  void setBinning(ConstEtomoNumber binning) {
+    spinBinning.setValue(binning);
   }
 
-  /**
-   * Get the tilt.com parameters from the dialog
-   * @param tiltParam
-   * @throws NumberFormatException
-   */
-  public void getTiltParams(TiltParam tiltParam) {
-    tiltParam.setXAxisTilt(cpXAxisTilt.getTotalDouble());
-    tiltParam.setImageBinned(getBinning());
-    tiltParam.setThickness(Integer.parseInt(ltfThickness.getText()));
-    updateMetaData();
+  void setBinning(int binning) {
+    spinBinning.setValue(binning);
   }
 
-  public void getParameters(MetaData metaData) {
-    metaData.setSampleThickness(axisID, ltfSampleThickness.getText());
-  }
-
-  /**
-   * get sample thickness
-   * @param tiltParam
-   */
-  public void getTiltParamsForSample(TiltParam tiltParam) {
-    tiltParam.setThickness(Integer.parseInt(ltfSampleThickness.getText()));
-  }
-
-  private void updateMetaData() {
-    boolean wholeTomogram = cbWholeTomogram.isSelected();
-    MetaData metaData = applicationManager.getMetaData();
-    if (wholeTomogram != metaData.isWholeTomogramSample(axisID)) {
-      metaData.setWholeTomogramSample(axisID, wholeTomogram);
-    }
-    metaData.setTomoPosBinning(axisID, ((Integer) spinBinning.getValue())
-        .intValue());
-  }
-
-  /**
-   * Set the metadata parameters in the dialog
-   * @param newstParam
-   */
-  public void setParameters(ConstMetaData metaData) {
-    ConstEtomoNumber binning = metaData.getTomoPosBinning(axisID);
-    if (!binning.isNull()) {
-      getBinningFromNewst = false;
-      spinBinning.setValue(binning);
-    }
-    ltfSampleThickness.setText(metaData.getSampleThickness(axisID).toString());
+  void setSampleThickness(ConstEtomoNumber sampleThickness) {
+    ltfSampleThickness.setText(sampleThickness.toString());
   }
 
   public void done() {
@@ -539,7 +508,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnAlign.removeActionListener(localActionListener);
   }
 
-  public void setParameters(ReconScreenState screenState) {
+  public void setButtonState(ReconScreenState screenState) {
     btnSample.setButtonState(screenState.getButtonState(btnSample
         .getButtonStateKey()));
     btnTomopitch.setButtonState(screenState.getButtonState(btnTomopitch
@@ -548,117 +517,43 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
         .getButtonStateKey()));
   }
 
-  public void rollAlignComAngles() {
-    cpTiltAngleOffset.less();
-    cpTiltAxisZShift.less();
+  void updateTiltAngleOffsetDisplay(boolean more) {
+    cpTiltAngleOffset.updateDisplay(more);
   }
 
-  public void rollTiltComAngles() {
-    cpXAxisTilt.less();
+  void updateTiltAxisZShiftDisplay(boolean more) {
+    cpTiltAxisZShift.updateDisplay(more);
   }
 
-  /**
-   * Set the newst.com parameters in the dialog
-   * @param param
-   */
-  public void setParameters(ConstNewstParam param) {
-    if (getBinningFromNewst) {
-      spinBinning.setValue(param.getBinByFactor());
-    }
+  void updateXAxisTiltDisplay(boolean more) {
+    cpXAxisTilt.updateDisplay(more);
   }
 
-  public boolean setParameters(TomopitchLog log) {
-    boolean missingData = false;
-    ConstEtomoNumber total = log.getAngleOffsetTotal();
-    if (total.isNull()) {
-      missingData = true;
-    }
-    else {
-      cpTiltAngleOffset.set(log.getAngleOffsetOriginal(), log
-          .getAngleOffsetAdded(), total);
-    }
-    total = log.getAxisZShiftTotal();
-    if (total.isNull()) {
-      missingData = true;
-    }
-    else {
-      cpTiltAxisZShift.set(log.getAxisZShiftOriginal(), log
-          .getAxisZShiftAdded(), total);
-    }
-    total = log.getXAxisTiltTotal();
-    if (total.isNull()) {
-      missingData = true;
-    }
-    else {
-      cpXAxisTilt.set(log.getXAxisTiltOriginal(), log
-          .getXAxisTiltAdded(), total);
-    }
-    ConstEtomoNumber thickness = log.getThickness();
-    if (thickness.isNull()) {
-      missingData = true;
-    }
-    else {
-      ltfThickness.setText(thickness.toString());
-    }
-    UIHarness.INSTANCE.pack(axisID, applicationManager);
-    return !missingData;
+  boolean setTiltAngleOffset(TomopitchLog log) {
+    return cpTiltAngleOffset.set(log.getAngleOffsetOriginal(), log
+        .getAngleOffsetAdded(), log.getAngleOffsetTotal());
   }
 
-  /**
-   * Set the blend.com parameters in the dialog
-   * @param param
-   */
-  public void setParameters(BlendmontParam param) {
-    if (getBinningFromNewst) {
-      spinBinning.setValue(param.getBinByFactor());
-    }
+  boolean setTiltAxisZShift(TomopitchLog log) {
+    return cpTiltAxisZShift.set(log.getAxisZShiftOriginal(), log
+        .getAxisZShiftAdded(), log.getAxisZShiftTotal());
   }
 
-  public void setTomopitchParams(ConstTomopitchParam tomopitchParam) {
-    ltfExtraThickness.setText(tomopitchParam.getExtraThicknessString());
+  boolean setXAxisTilt(TomopitchLog log) {
+    return cpXAxisTilt.set(log.getXAxisTiltOriginal(), log.getXAxisTiltAdded(),
+        log.getXAxisTiltTotal());
   }
 
-  /**
-   * Get the newst.com parameters from the dialog
-   * @param newstParam
-   */
-  public void getNewstParamst(NewstParam newstParam) {
-    int binning = getBinning();
-    //Only whole tomogram can change binning
-    // Only explcitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
-    if (binning == 1) {
-      newstParam.setBinByFactor(Integer.MIN_VALUE);
-    }
-    else {
-      newstParam.setBinByFactor(binning);
-    }
-    updateMetaData();
-  }
-
-  /**
-   * Get the newst.com parameters from the dialog
-   * @param newstParam
-   */
-  public void getParams(BlendmontParam blendmontParam) {
-    blendmontParam.setBinByFactor(getBinning());
-    updateMetaData();
+  void setExtraThickness(String extraThickness) {
+    ltfExtraThickness.setText(extraThickness);
   }
 
   /**
    * Set the whole tomogram sampling state
    * @param state
    */
-  public void setWholeTomogramSampling(boolean state) {
+  public void setWholeTomogram(boolean state) {
     cbWholeTomogram.setSelected(state);
-  }
-
-  /**
-   * Get the whole tomogram sampling state
-   * @return
-   */
-  public boolean isWholeTomogramSampling() {
-    return cbWholeTomogram.isSelected();
   }
 
   /**
@@ -694,23 +589,23 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     String command = event.getActionCommand();
     if (command.equals(btnSample.getActionCommand())) {
       if (cbWholeTomogram.isSelected()) {
-        applicationManager.wholeTomogram(axisID, btnSample);
+        expert.wholeTomogram(btnSample);
       }
       else {
-        applicationManager.createSample(axisID, btnSample);
+        expert.createSample(btnSample);
       }
     }
     else if (command.equals(btnTomopitch.getActionCommand())) {
-      applicationManager.tomopitch(axisID, btnTomopitch);
+      expert.tomopitch(btnTomopitch);
     }
     else if (command.equals(btnAlign.getActionCommand())) {
-      applicationManager.finalAlign(axisID, btnAlign);
+      expert.finalAlign(btnAlign);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
-      updateUIState();
+      expert.updateFiducialessDisplay(cbFiducialess.isSelected());
     }
     else if (command.equals(cbWholeTomogram.getActionCommand())) {
-      updateUIState();
+      expert.updateFiducialessDisplay(cbFiducialess.isSelected());
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
@@ -726,43 +621,52 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     }
   }
 
-  public void updateUIState() {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    String text;
-    cpTiltAngleOffset.setEnabled(!cbFiducialess.isSelected());
-    cpTiltAxisZShift.setEnabled(!cbFiducialess.isSelected());
-    cpXAxisTilt.setEnabled(!cbFiducialess.isSelected());
-    btnAlign.setEnabled(!cbFiducialess.isSelected());
-    ltfRotation.setEnabled(cbFiducialess.isSelected());
+  void setTiltAngleOffsetEnabled(boolean enabled) {
+    cpTiltAngleOffset.setEnabled(enabled);
+  }
 
-    if (cbWholeTomogram.isSelected()) {
-      spinBinning.setEnabled(true);
-      btnSample.setText("Create Whole Tomogram");
-      text = "Create whole tomogram for drawing positioning model.";
-      btnSample.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-    else {
-      spinBinning.setEnabled(false);
-      btnSample.setText("Create Sample Tomograms");
-      text = SAMPLE_TOMOGRAMS_TOOLTIP;
-      btnSample.setToolTipText(tooltipFormatter.setText(text).format());
-    }
+  void setTiltAxisZShiftEnabled(boolean enabled) {
+    cpTiltAxisZShift.setEnabled(enabled);
+  }
+
+  void setXAxisTiltEnabled(boolean enabled) {
+    cpXAxisTilt.setEnabled(enabled);
+  }
+
+  void setAlignButtonEnabled(boolean enabled) {
+    btnAlign.setEnabled(enabled);
+  }
+
+  void setRotationEnabled(boolean enabled) {
+    ltfRotation.setEnabled(enabled);
+  }
+
+  void setBinningEnabled(boolean enabled) {
+    spinBinning.setEnabled(enabled);
+  }
+
+  void setSampleButton(String label) {
+    btnSample.setText(label);
+  }
+
+  void setSampleButtonToolTip(String formattedToolTip) {
+    btnSample.setToolTipText(formattedToolTip);
   }
 
   //  Action function overides for buttons
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
-    applicationManager.doneTomogramPositioningDialog(axisID);
+    expert.doneDialog();
   }
 
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
-    applicationManager.doneTomogramPositioningDialog(axisID);
+    expert.doneDialog();
   }
 
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
-    applicationManager.doneTomogramPositioningDialog(axisID);
+    expert.doneDialog();
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -877,7 +781,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       ltfOriginal.setText("0.0");
       ltfAdded.setText("0.0");
       ltfTotal.setText("0.0");
-      less();
+      updateDisplay(false);
     }
 
     Container getContainer() {
@@ -896,7 +800,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     }
 
     void set(ConstEtomoNumber total) {
-      less();
+      updateDisplay(false);
       set(total, ltfTotal);
     }
 
@@ -905,14 +809,16 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       set(number);
     }
 
-    void set(ConstEtomoNumber original, ConstEtomoNumber added,
+    boolean set(ConstEtomoNumber original, ConstEtomoNumber added,
         ConstEtomoNumber total) {
-      more = true;
-      ltfOriginal.setVisible(true);
-      ltfAdded.setVisible(true);
-      set(total, ltfTotal);
-      set(added, ltfAdded);
+      if (total.isNull()) {
+        return false;
+      }
+      updateDisplay(true);
       set(original, ltfOriginal);
+      set(added, ltfAdded);
+      set(total, ltfTotal);
+      return true;
     }
 
     private void set(ConstEtomoNumber number, LabeledTextField field) {
@@ -924,11 +830,11 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       }
     }
 
-    void less() {
-      if (more) {
-        more = false;
-        ltfOriginal.setVisible(false);
-        ltfAdded.setVisible(false);
+    void updateDisplay(boolean more) {
+      if (this.more != more) {
+        this.more = more;
+        ltfOriginal.setVisible(more);
+        ltfAdded.setVisible(more);
       }
     }
 
