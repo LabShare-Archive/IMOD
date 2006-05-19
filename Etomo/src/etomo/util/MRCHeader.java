@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -23,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2005/11/10 18:19:00  sueh
+ * <p> bug# 733 Changed propertyUserDir to fileLocation since it doesn't have to
+ * <p> be the working directory.
+ * <p>
  * <p> Revision 3.18  2005/11/02 22:16:05  sueh
  * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
  * <p>
@@ -176,7 +181,13 @@ public class MRCHeader {
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
   }
-  
+
+  public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
+      String filename) {
+    return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
+        .getDatasetFile(manager, axisID, filename).getAbsolutePath(), axisID);
+  }
+
   /**
    * Function to get an instance of the class
    * @param directory
@@ -194,6 +205,7 @@ public class MRCHeader {
     }
     return mrcHeader;
   }
+
   /**
    * Function to create and save an instance of the class.  Just returns the
    * instance if it already exists.
@@ -213,6 +225,7 @@ public class MRCHeader {
     mrcHeader.selfTestInvariants();
     return mrcHeader;
   }
+
   /**
    * Make a unique key from a file
    * @param file
@@ -221,19 +234,22 @@ public class MRCHeader {
   private static String makeKey(File file) {
     return file.getAbsolutePath();
   }
+
   //
   //other functions
   //
   /**
    * @returns true if a read was attempted
    */
-  public synchronized boolean read() throws IOException, InvalidParameterException {
+  public synchronized boolean read() throws IOException,
+      InvalidParameterException {
     File file = Utilities.getFile(fileLocation, filename);
     if (filename == null || filename.matches("\\s*") || file.isDirectory()) {
       throw new IOException("No filename specified");
     }
     if (!file.exists()) {
-      throw new IOException("file, " + file.getAbsolutePath() + ", does not exist");
+      throw new IOException("file, " + file.getAbsolutePath()
+          + ", does not exist");
     }
     //If the file hasn't changed, don't reread
     if (!modifiedFlag.isModifiedSinceLastRead()) {
@@ -243,11 +259,10 @@ public class MRCHeader {
 
     // Run the header command on the filename, need to use a String[] here to
     // prevent the Runtime from breaking up the command and arguments at spaces.
-		String[] commandArray = new String[2];
+    String[] commandArray = new String[2];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
-    SystemProgram header = new SystemProgram(fileLocation,
-        commandArray, axisID);
+    SystemProgram header = new SystemProgram(fileLocation, commandArray, axisID);
     header.setDebug(Utilities.isDebug());
     modifiedFlag.setReadingNow();
     header.run();
@@ -288,8 +303,10 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 10) {
-          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-          throw new IOException("Header returned less than three parameters for image size");
+          Utilities.timestamp("read", "header", filename,
+              Utilities.FAILED_STATUS);
+          throw new IOException(
+              "Header returned less than three parameters for image size");
         }
         nColumns = Integer.parseInt(tokens[7]);
         try {
@@ -298,8 +315,10 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nRows = -1;
-          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-          throw new NumberFormatException("nRows not set, token is " + tokens[8]);
+          Utilities.timestamp("read", "header", filename,
+              Utilities.FAILED_STATUS);
+          throw new NumberFormatException("nRows not set, token is "
+              + tokens[8]);
         }
         try {
           nSections = Integer.parseInt(tokens[9]);
@@ -307,8 +326,10 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nSections = -1;
-          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-          throw new NumberFormatException("nSections not set, token is " + tokens[9]);
+          Utilities.timestamp("read", "header", filename,
+              Utilities.FAILED_STATUS);
+          throw new NumberFormatException("nSections not set, token is "
+              + tokens[9]);
         }
       }
 
@@ -316,8 +337,10 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Map mode")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 5) {
-          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-          throw new IOException("Header returned less than one parameter for the mode");
+          Utilities.timestamp("read", "header", filename,
+              Utilities.FAILED_STATUS);
+          throw new IOException(
+              "Header returned less than one parameter for the mode");
         }
         mode = Integer.parseInt(tokens[4]);
       }
@@ -326,13 +349,15 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Pixel spacing")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 7) {
-          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-          throw new IOException("Header returned less than three parameters for pixel size");
+          Utilities.timestamp("read", "header", filename,
+              Utilities.FAILED_STATUS);
+          throw new IOException(
+              "Header returned less than three parameters for pixel size");
         }
         xPixelSize = Double.parseDouble(tokens[4]);
         yPixelSize = Double.parseDouble(tokens[5]);
         zPixelSize = Double.parseDouble(tokens[6]);
-        
+
         xPixelSpacing = xPixelSize;
         yPixelSpacing = yPixelSize;
         zPixelSpacing = zPixelSize;
@@ -340,10 +365,10 @@ public class MRCHeader {
 
       // If the pixel sizes are default value scan for FEI pixel size in the
       // comment section
-      if(xPixelSize == 1.0 && yPixelSize == 1.0 && yPixelSize == 1.0) {
+      if (xPixelSize == 1.0 && yPixelSize == 1.0 && yPixelSize == 1.0) {
         parseFEIPixelSize(stdOutput[i]);
       }
-      
+
       // Parse the rotation angle and/or binning from the comment section
       parseTiltAxis(stdOutput[i]);
       parseBinning(stdOutput[i]);
@@ -351,6 +376,7 @@ public class MRCHeader {
     Utilities.timestamp("read", "header", filename, Utilities.FINISHED_STATUS);
     return true;
   }
+
   /**
    * Returns the nColumns.
    * @return int
@@ -382,6 +408,7 @@ public class MRCHeader {
   public int getMode() {
     return mode;
   }
+
   /**
    * Return the image rotation in degrees if present in the header.  If the
    * header has not been read or the image rotation is not available return
@@ -391,6 +418,7 @@ public class MRCHeader {
   public double getImageRotation() {
     return imageRotation;
   }
+
   /**
    * @return
    */
@@ -411,7 +439,7 @@ public class MRCHeader {
   public double getZPixelSize() {
     return zPixelSize;
   }
-  
+
   /**
    * 
    * @return
@@ -419,12 +447,12 @@ public class MRCHeader {
   public double getXPixelSpacing() {
     return xPixelSpacing;
   }
-  
+
   /**
    * Return the binning value found in the header or Ingeter.MIN_VALUE if
    * no binning value was found
    */
-  public int getBinning(){
+  public int getBinning() {
     return binning;
   }
 
@@ -434,11 +462,11 @@ public class MRCHeader {
    * @param line
    */
   private void parseTiltAxis(String line) {
-    if(line.matches(".*Tilt axis angle =.*")){
+    if (line.matches(".*Tilt axis angle =.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 5) {
-        imageRotation = 
-          Double.parseDouble(tokens[5].substring(0, tokens[5].length()-1));
+        imageRotation = Double.parseDouble(tokens[5].substring(0, tokens[5]
+            .length() - 1));
         return;
       }
     }
@@ -449,26 +477,26 @@ public class MRCHeader {
       }
     }
   }
-  
+
   /**
    * Parse the binning parameter from the comments
    * @param line
    */
-  private void parseBinning(String line){
-    if(line.matches(".*, binning =.*")){
+  private void parseBinning(String line) {
+    if (line.matches(".*, binning =.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 8) {
         binning = Integer.parseInt(tokens[8]);
       }
     }
   }
-  
+
   /**
    * FEI pixel size parser
    * @param line
    */
-  private void parseFEIPixelSize(String line){
-    if(line.matches(".*Pixel size in nanometers.*")){
+  private void parseFEIPixelSize(String line) {
+    if (line.matches(".*Pixel size in nanometers.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 6) {
         xPixelSize = Double.parseDouble(tokens[6]) * 10.0;
@@ -482,7 +510,7 @@ public class MRCHeader {
   //self test functions
   //
   void selfTestInvariants() {
-    if(!Utilities.isSelfTest()) {
+    if (!Utilities.isSelfTest()) {
       return;
     }
     if (instances == null) {
@@ -493,7 +521,8 @@ public class MRCHeader {
     }
     String key = makeKey(Utilities.getFile(fileLocation, filename));
     if (key == null || key.matches("\\s*")) {
-      throw new IllegalStateException("unable to make key: filename=" + filename);
+      throw new IllegalStateException("unable to make key: filename="
+          + filename);
     }
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null || mrcHeader != this) {
@@ -501,7 +530,7 @@ public class MRCHeader {
           + key + ",filename=" + filename);
     }
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + super.toString() + paramString() + "]";
   }
@@ -511,8 +540,8 @@ public class MRCHeader {
         + nRows + ",\nnSections=" + nSections + ",mode=" + mode
         + ",\nxPixelSize=" + xPixelSize + ",yPixelSize=" + yPixelSize
         + ",\nzPixelSize=" + zPixelSize + ",xPixelSpacing=" + xPixelSpacing
-        + ",\nyPixelSpacing=" + yPixelSpacing + ",zPixelSpacing=" + zPixelSpacing
-        + ",\nimageRotation=" + imageRotation + ",binning=" + binning
-        + ",\naxisID=" + axisID;
+        + ",\nyPixelSpacing=" + yPixelSpacing + ",zPixelSpacing="
+        + zPixelSpacing + ",\nimageRotation=" + imageRotation + ",binning="
+        + binning + ",\naxisID=" + axisID;
   }
 }
