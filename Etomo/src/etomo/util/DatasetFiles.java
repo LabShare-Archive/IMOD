@@ -116,6 +116,13 @@ public final class DatasetFiles {
 
   //Other dataset files
 
+  public static File getDatasetFile(BaseManager manager, AxisID axisID, String filename) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return new File(manager.getPropertyUserDir(), metaData.getName()
+        + axisID.getExtension() + filename);
+  }
+
   public static File getRawTilt(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
         axisID));
@@ -126,7 +133,7 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
-  
+
   public static String getFiducialModel(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -237,6 +244,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2006/05/16 21:39:22  sueh
+ * <p> bug# 856 Added getCombineCom(), getFiducialMode(), and
+ * <p> getTransferFidCoorFile().
+ * <p>
  * <p> Revision 1.14  2006/05/12 18:25:04  sueh
  * <p> bug# 856 Added getTransferFidCoordFileName
  * <p>
