@@ -6,8 +6,10 @@ import java.io.IOException;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ViewType;
+import etomo.ui.TomogramPositioningExpert;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -70,8 +72,8 @@ public class DataFlowTests {
     argsIn[2] = System.getProperty("user.dir") + File.separator + datasetName
         + ".edf";
     /*String[] argsIn = new String[1];
-    argsIn[0] = System.getProperty("user.dir") + File.separator + datasetName
-        + ".edf";*/
+     argsIn[0] = System.getProperty("user.dir") + File.separator + datasetName
+     + ".edf";*/
     EtomoDirector.createInstance(argsIn);
     applicationManager = (ApplicationManager) EtomoDirector.getInstance()
         .getCurrentManager();
@@ -260,9 +262,11 @@ public class DataFlowTests {
   }
 
   private static void tomogramPositioning(AxisID axisID) {
-    applicationManager.openTomogramPositioningDialog(axisID);
+    TomogramPositioningExpert expert = (TomogramPositioningExpert) applicationManager
+        .getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID);
+    expert.openDialog();
     uiHarness.pack(applicationManager);
-    applicationManager.createSample(axisID, null);
+    expert.createSample(null);
     waitForThread(axisID);
     try {
       copyFromDataSource("tomopitch" + axisID.getExtension() + ".mod");
@@ -272,18 +276,18 @@ public class DataFlowTests {
       return;
     }
     if (applicationManager.getMetaData().isWholeTomogramSample(axisID)) {
-      applicationManager.wholeTomogram(axisID, null);
+      expert.wholeTomogram(null);
     }
     else {
-      applicationManager.tomopitch(axisID, null);
+      expert.tomopitch(null);
     }
     waitForThread(axisID);
 
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      applicationManager.finalAlign(axisID, null);
+      expert.finalAlign(null);
       waitForThread(axisID);
     }
-    applicationManager.doneTomogramPositioningDialog(axisID);
+    expert.doneDialog();
   }
 
   private static void tomogramGeneration(AxisID axisID) {
@@ -346,6 +350,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2006/02/06 20:58:31  sueh
+ * <p> bug# 521 Added ProcessResultDisplay to ApplicationManager.findXrays.
+ * <p>
  * <p> Revision 3.16  2006/01/26 21:47:18  sueh
  * <p> bug# 401 Calling process functions with null when there is a
  * <p> ProcessResultDisplay parameter.
