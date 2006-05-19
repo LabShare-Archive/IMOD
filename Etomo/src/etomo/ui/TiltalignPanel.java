@@ -74,8 +74,7 @@ public class TiltalignPanel {
       "Threshold for residual report: ");
 
   private RadioButton rbResidAllViews = new RadioButton("All views");
-  private RadioButton rbResidNeighboring = new RadioButton(
-      "Neighboring views");
+  private RadioButton rbResidNeighboring = new RadioButton("Neighboring views");
   private ButtonGroup bgResidualThreshold = new ButtonGroup();
   private JPanel pnlResidualThreshold = new JPanel();
 
@@ -110,7 +109,8 @@ public class TiltalignPanel {
       "Min. local patch size or overlap factor (x,y): ");
   private LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
       "Min. # of fiducials (total, each surface): ");
-  private CheckBox cbFixXYZCoordinates = new CheckBox("Use global X-Y-Z coordinates");
+  private CheckBox cbFixXYZCoordinates = new CheckBox(
+      "Use global X-Y-Z coordinates");
 
   //  Global variables pane
   private JPanel pnlGlobalVariable = new JPanel();
@@ -119,8 +119,7 @@ public class TiltalignPanel {
   private RadioButton rbTiltAngleFixed = new RadioButton("Fixed tilt angles");
   private RadioButton rbTiltAngleAll = new RadioButton(
       "Solve for all except minimum tilt");
-  private RadioButton rbTiltAngleAutomap = new RadioButton(
-      "Group tilt angles ");
+  private RadioButton rbTiltAngleAutomap = new RadioButton("Group tilt angles ");
   private ButtonGroup bgTiltAngleSolution = new ButtonGroup();
   private JPanel pnlTiltAngleSolution = new JPanel();
 
@@ -231,8 +230,7 @@ public class TiltalignPanel {
 
   //  Rotation pane
   private RadioButton rbRotationNone = new RadioButton("No rotation");
-  private RadioButton rbRotationAll = new RadioButton(
-      "Solve for all rotations");
+  private RadioButton rbRotationAll = new RadioButton("Solve for all rotations");
   private RadioButton rbRotationAutomap = new RadioButton("Group rotations");
   private ButtonGroup bgRotationSolution = new ButtonGroup();
   private JPanel pnlRotationSolution = new JPanel();
@@ -292,7 +290,7 @@ public class TiltalignPanel {
     ltfSeparateViewGroups.setText(params.getSeparateGroup());
     ltfTiltAngleOffset.setText(params.getAngleOffset().toString());
     ltfTiltAxisZShift.setText(params.getAxisZShift().toString());
-    
+
     ltfMetroFactor.setText(params.getMetroFactor().toString());
     ltfCycleLimit.setText(params.getMaximumCycles().toString());
 
@@ -466,7 +464,8 @@ public class TiltalignPanel {
   public void getParameters(TiltalignParam params)
       throws FortranInputSyntaxException {
     String badParameter = "";
-    params.setImagesAreBinned(appMgr.getStackBinning(axisID, ".preali"));
+    params.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
+        appMgr, axisID, ".preali"));
     try {
       if (rbDualFiducialSurfaces.isSelected()) {
         params.setSurfacesToAnalyze(2);
@@ -513,7 +512,7 @@ public class TiltalignPanel {
 
       badParameter = ltfMinLocalFiducials.getLabel();
       params.setMinFidsTotalAndEachSurface(ltfMinLocalFiducials.getText());
-      
+
       badParameter = cbFixXYZCoordinates.getText();
       params.setFixXYZCoordinates(cbFixXYZCoordinates.isSelected());
 
@@ -1055,7 +1054,8 @@ public class TiltalignPanel {
         magnificationRadioListener);
     createVariablePanel(pnlMagnificationSolution, pnlRBMagnification,
         ltfMagnificationReferenceView, ltfMagnificationGroupSize,
-        ltfMagnificationNonDefaultGroups, null, null, "Magnification Solution Type");
+        ltfMagnificationNonDefaultGroups, null, null,
+        "Magnification Solution Type");
 
     // Layout the global distortion pane
 
@@ -1209,16 +1209,18 @@ public class TiltalignPanel {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
     buttonPanel.add(checkBox);
-    createVariablePanel(panel, buttonPanel, field1, field2, field3, null, null, title);
+    createVariablePanel(panel, buttonPanel, field1, field2, field3, null, null,
+        title);
   }
-  
+
   private void createVariablePanel(JPanel panel, CheckBox checkBox1,
       LabeledTextField field1, LabeledTextField field2,
       LabeledTextField field3, CheckBox checkBox2, String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
     buttonPanel.add(checkBox1);
-    createVariablePanel(panel, buttonPanel, field1, field2, field3, null, checkBox2, title);
+    createVariablePanel(panel, buttonPanel, field1, field2, field3, null,
+        checkBox2, title);
   }
 
   /*
@@ -1234,7 +1236,8 @@ public class TiltalignPanel {
 
   private void createVariablePanel(JPanel panel, JPanel buttonPanel,
       LabeledTextField field1, LabeledTextField field2,
-      LabeledTextField field3, LabeledTextField field4, CheckBox checkBox, String title) {
+      LabeledTextField field3, LabeledTextField field4, CheckBox checkBox,
+      String title) {
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
@@ -1405,7 +1408,7 @@ public class TiltalignPanel {
   /**
    * Initialize the tooltip text for the axis panel objects
    */
-private void setToolTipText() {
+  private void setToolTipText() {
     String text;
     Section section;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
@@ -1420,65 +1423,131 @@ private void setToolTipText() {
       except.printStackTrace();
     }
     // General tab
-    ltfExcludeList.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.EXCLUDE_LIST_KEY)).format());
-    ltfSeparateViewGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SEPARATE_GROUP_KEY)).format());
-    
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
-    if (section  != null ) {
-      ltfResidualThreshold.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section)).format());
-      rbResidAllViews.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "all")).format());
-      rbResidNeighboring.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "neighboring")).format());
-    }
-    
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.SURFACES_TO_ANALYZE_KEY);
+    ltfExcludeList.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.EXCLUDE_LIST_KEY))
+        .format());
+    ltfSeparateViewGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SEPARATE_GROUP_KEY))
+        .format());
+
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
     if (section != null) {
-      rbSingleFiducialSurface.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "1")).format());
-      rbDualFiducialSurfaces.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, "2")).format());
+      ltfResidualThreshold.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section)).format());
+      rbResidAllViews.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, "all")).format());
+      rbResidNeighboring.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, "neighboring")).format());
     }
 
-    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ANGLE_OFFSET_KEY)).format());
-    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.AXIS_Z_SHIFT_KEY)).format());
-    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.METRO_FACTOR_KEY)).format());
-    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAXIMUM_CYCLES_KEY)).format());
-    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ALIGNMENTS_KEY)).format());
-    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY)).format());
-    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY)).format());
-    ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY)).format());
-    cbFixXYZCoordinates.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.FIX_XYZ_COORDINATES_KEY)).format());
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.SURFACES_TO_ANALYZE_KEY);
+    if (section != null) {
+      rbSingleFiducialSurface.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, "1")).format());
+      rbDualFiducialSurfaces.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, "2")).format());
+    }
+
+    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ANGLE_OFFSET_KEY))
+        .format());
+    ltfTiltAxisZShift.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.AXIS_Z_SHIFT_KEY))
+        .format());
+    ltfMetroFactor.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.METRO_FACTOR_KEY))
+        .format());
+    ltfCycleLimit.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAXIMUM_CYCLES_KEY))
+        .format());
+    cbLocalAlignments.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ALIGNMENTS_KEY))
+        .format());
+    ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY)).format());
+    ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY)).format());
+    ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY)).format());
+    cbFixXYZCoordinates.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc
+            .getTooltip(autodoc, TiltalignParam.FIX_XYZ_COORDINATES_KEY))
+        .format());
 
     //  Global variables
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.TILT_OPTION_KEY);
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.TILT_OPTION_KEY);
     if (section != null) {
-      rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.FIXED_OPTION)).format());
-      rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.TILT_ALL_OPTION)).format());
-      rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.TILT_AUTOMAPPED_OPTION)).format());
-    }
-    
-    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.TILT_DEFAULT_GROUPING_KEY)).format());
-    ltfTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.TILT_NONDEFAULT_GROUP_KEY)).format());
-
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.MAG_OPTION_KEY);
-    if (section != null) {
-      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.FIXED_OPTION)).format());
-      rbMagnificationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.ALL_OPTION)).format());
-      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION)).format());
+      rbTiltAngleFixed.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.FIXED_OPTION))
+          .format());
+      rbTiltAngleAll.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.TILT_ALL_OPTION))
+          .format());
+      rbTiltAngleAutomap.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section,
+              TiltalignParam.TILT_AUTOMAPPED_OPTION)).format());
     }
 
-    ltfMagnificationReferenceView.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAG_REFERENCE_VIEW_KEY))
-        .format());
-    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAG_DEFAULT_GROUPING_KEY)).format());
-    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MAG_NONDEFAULT_GROUP_KEY)).format());
-    
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.ROT_OPTION_KEY);
+    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.TILT_DEFAULT_GROUPING_KEY)).format());
+    ltfTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.TILT_NONDEFAULT_GROUP_KEY)).format());
+
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.MAG_OPTION_KEY);
     if (section != null) {
-      rbRotationNone.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.NONE_OPTION)).format());
-      rbRotationAll.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.ALL_OPTION)).format());
-      rbRotationAutomap.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION)).format());
+      rbMagnificationFixed.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.FIXED_OPTION))
+          .format());
+      rbMagnificationAll
+          .setToolTipText(tooltipFormatter.setText(
+              EtomoAutodoc.getTooltip(section, TiltalignParam.ALL_OPTION))
+              .format());
+      rbMagnificationAutomap.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION))
+          .format());
     }
 
-    ltfRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_DEFAULT_GROUPING_KEY)).format());
-    ltfRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.ROT_NONDEFAULT_GROUP_KEY)).format());
+    ltfMagnificationReferenceView.setToolTipText(tooltipFormatter
+        .setText(
+            EtomoAutodoc.getTooltip(autodoc,
+                TiltalignParam.MAG_REFERENCE_VIEW_KEY)).format());
+    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.MAG_DEFAULT_GROUPING_KEY)).format());
+    ltfMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.MAG_NONDEFAULT_GROUP_KEY)).format());
+
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.ROT_OPTION_KEY);
+    if (section != null) {
+      rbRotationNone.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.NONE_OPTION))
+          .format());
+      rbRotationAll
+          .setToolTipText(tooltipFormatter.setText(
+              EtomoAutodoc.getTooltip(section, TiltalignParam.ALL_OPTION))
+              .format());
+      rbRotationAutomap.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION))
+          .format());
+    }
+
+    ltfRotationGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.ROT_DEFAULT_GROUPING_KEY)).format());
+    ltfRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.ROT_NONDEFAULT_GROUP_KEY)).format());
 
     text = "Do not solve for distortions in the plane of section.";
     rbDistortionDisabled
@@ -1488,24 +1557,56 @@ private void setToolTipText() {
     rbDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text)
         .format());
 
-    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_OPTION_KEY)).format());
-    ltfXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.X_STRETCH_DEFAULT_GROUPING_KEY)).format());
-    ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
-    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_DEFAULT_GROUPING_KEY)).format());
-    ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_NONDEFAULT_GROUP_KEY)).format());
-    cbProjectionStretch.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.PROJECTION_STRETCH_KEY)).format());
+    rbDistortionSkew.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.SKEW_OPTION_KEY))
+        .format());
+    ltfXstretchGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.X_STRETCH_DEFAULT_GROUPING_KEY)).format());
+    ltfXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
+    ltfSkewGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.SKEW_DEFAULT_GROUPING_KEY)).format());
+    ltfSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.SKEW_NONDEFAULT_GROUP_KEY)).format());
+    cbProjectionStretch.setToolTipText(tooltipFormatter
+        .setText(
+            EtomoAutodoc.getTooltip(autodoc,
+                TiltalignParam.PROJECTION_STRETCH_KEY)).format());
 
     //local variables
-    cbLocalRotation.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_OPTION_KEY)).format());
-    ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_DEFAULT_GROUPING_KEY)).format());
-    ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_NONDEFAULT_GROUP_KEY)).format());
-    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_OPTION_KEY)).format());
-    ltfLocalTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_DEFAULT_GROUPING_KEY)).format());
-    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_NONDEFAULT_GROUP_KEY)).format());
-    cbLocalMagnification.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_OPTION_KEY)).format());
-    ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY)).format());
-    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_NONDEFAULT_GROUP_KEY)).format());
-    
+    cbLocalRotation.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_ROT_OPTION_KEY))
+        .format());
+    ltfLocalRotationGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_ROT_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalRotationNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_ROT_NONDEFAULT_GROUP_KEY)).format());
+    cbLocalTiltAngle.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_TILT_OPTION_KEY))
+        .format());
+    ltfLocalTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_TILT_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalTiltAngleNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_TILT_NONDEFAULT_GROUP_KEY)).format());
+    cbLocalMagnification.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_MAG_OPTION_KEY))
+        .format());
+    ltfLocalMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalMagnificationNonDefaultGroups.setToolTipText(tooltipFormatter
+        .setText(
+            EtomoAutodoc.getTooltip(autodoc,
+                TiltalignParam.LOCAL_MAG_NONDEFAULT_GROUP_KEY)).format());
+
     text = "Do not solve for local distortions in the plane of section.";
     rbLocalDistortionDisabled.setToolTipText(tooltipFormatter.setText(text)
         .format());
@@ -1514,16 +1615,29 @@ private void setToolTipText() {
     rbLocalDistortionFullSolution.setToolTipText(tooltipFormatter.setText(text)
         .format());
 
-    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_OPTION_KEY)).format());
-    ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY)).format());
-    ltfLocalXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
-    ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY)).format());
-    ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY)).format());
+    rbLocalDistortionSkew.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc, TiltalignParam.LOCAL_SKEW_OPTION_KEY))
+        .format());
+    ltfLocalXstretchGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalXstretchNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY)).format());
+    ltfLocalSkewGroupSize.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY)).format());
+    ltfLocalSkewNonDefaultGroups.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc.getTooltip(autodoc,
+            TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY)).format());
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.32  2006/04/25 19:23:53  sueh
+ * <p> bug# 787 Changing the type of tabPane to TabbedPane.
+ * <p>
  * <p> Revision 3.31  2006/01/12 17:38:13  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
