@@ -52,6 +52,9 @@ public class ConstTomopitchParam {
     spacingInY = Double.NaN;
     scaleFactor = Double.NaN;
     parameterFile = new String();
+    angleOffsetOld.reset();
+    zShiftOld.reset();
+    xAxisTiltOld.reset();
   }
 
   public int getModelFilesSize() {
