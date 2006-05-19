@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2006/05/11 19:49:03  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p> Changed xAxisTilt to double.
+ * <p>
  * <p> Revision 3.17  2005/10/27 00:23:37  sueh
  * <p> bug# 725 Modified setMontageFullImage() to only look in the stack.
  * <p> Added setFullImage() for non-montage cases.
@@ -139,6 +145,7 @@ import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.ui.UIExpertUtilities;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -534,7 +541,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public ConstEtomoNumber setImageBinned() {
     EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    currentBinning.set(manager.getStackBinning(axisID, ".ali", true));
+    currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinning(manager,
+        axisID, ".ali", true));
     if (!currentBinning.isNull()) {
       imageBinned.set(currentBinning);
     }
@@ -736,8 +744,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     idxYSubsetStart = Integer.MIN_VALUE;
   }
 
-  public void setThickness(int newThickness) {
-    thickness = newThickness;
+  public void setThickness(String newThickness) {
+    thickness = Integer.parseInt(newThickness);
   }
 
   public void resetThickness() {
@@ -781,8 +789,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     width = Integer.MIN_VALUE;
   }
 
-  public void setXAxisTilt(double angle) {
-    xAxisTilt = angle;
+  public void setXAxisTilt(String angle) {
+    xAxisTilt = Double.parseDouble(angle);
   }
 
   public void resetXAxisTilt() {
