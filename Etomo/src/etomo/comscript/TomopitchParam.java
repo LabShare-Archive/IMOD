@@ -18,6 +18,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2006/05/11 19:50:03  sueh
+ * <p> $bug# 838 Add xAxisTiltOld, angleOffsetOld, and zShiftOld.
+ * <p> $
  * <p> $Revision 1.7  2004/06/13 17:03:23  rickg
  * <p> $Solvematch mid change
  * <p> $
@@ -173,8 +176,16 @@ public class TomopitchParam
     this.angleOffsetOld.set(angleOffsetOld);
   }
   
+  public void resetAngleOffsetOld() {
+    this.angleOffsetOld.reset();
+  }
+  
   public void setZShiftOld(ConstEtomoNumber zShiftOld) {
     this.zShiftOld.set(zShiftOld);
+  }
+  
+  public void resetZShiftOld() {
+    this.zShiftOld.reset();
   }
   
   public void setXAxisTiltOld(ConstEtomoNumber xAxisTiltOld) {
