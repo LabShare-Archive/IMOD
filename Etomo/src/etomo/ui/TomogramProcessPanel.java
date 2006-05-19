@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/04/25 19:27:04  sueh
+ * <p>  bug# 787 Made the both axis label public.
+ * <p>
  * <p> Revision 1.20  2006/04/07 23:32:47  sueh
  * <p> bug# 846 Changing the background colors for java 1.5.
  * <p>
@@ -211,7 +214,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       return;
     }
     if (command.equals(procCtlTomogramPositioning.getCommand())) {
-      applicationManager.openTomogramPositioningDialog(axisID);
+      ((TomogramPositioningExpert) applicationManager.getUIExpert(
+          DialogType.TOMOGRAM_POSITIONING, axisID)).openDialog();
       return;
     }
     if (command.equals(procCtlTomogramGeneration.getCommand())) {
@@ -310,7 +314,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       showAxisB(true);
     }
   }
-  
+
   private void showAxisOnly() {
     setBackground(Colors.getBackgroundA());
   }
