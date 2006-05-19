@@ -11,7 +11,10 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2004/05/25 23:24:53  rickg
+ * <p> Bug #391 initial revision
+ * <p> </p>
  */
 package etomo.ui;
 
@@ -20,6 +23,6 @@ public interface FiducialessParams {
   public static final String rcsid = "$Id$";
   public void setFiducialessAlignment(boolean state);
   public boolean isFiducialessAlignment();
-  public void setTiltAxisAngle(float tiltAxisAngle);
-  public float getTiltAxisAngle() throws NumberFormatException;
+  public void setImageRotation(float imageRotation);
+  public float getImageRotation() throws NumberFormatException;
 }

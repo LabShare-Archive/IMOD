@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2006/03/30 16:47:29  sueh
+ * <p> bug# 437 Moved coarse align button to PrenewstPanel.
+ * <p>
  * <p> Revision 3.33  2006/03/27 21:00:37  sueh
  * <p> bug# 836 Moved btnCrossCorrelate to CrossCorrelationPanel.
  * <p>
@@ -423,11 +426,11 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     return cbFiducialess.isSelected();
   }
 
-  public void setTiltAxisAngle(float tiltAxisAngle) {
+  public void setImageRotation(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public float getTiltAxisAngle() throws NumberFormatException {
+  public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
 
