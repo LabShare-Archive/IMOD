@@ -27,6 +27,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -92,6 +93,8 @@ public abstract class BaseManager {
   private boolean exiting = false;
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
   private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
+  private DialogType nextProcessDialogTypeA = null;
+  private DialogType nextProcessDialogTypeB = null;
 
   protected abstract void createComScriptManager();
 
@@ -143,7 +146,7 @@ public abstract class BaseManager {
 
   protected abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay);
-  
+
   public abstract String getName();
 
   public BaseManager() {
@@ -717,6 +720,7 @@ public abstract class BaseManager {
     }
     if (axisID == AxisID.SECOND) {
       nextProcessB = nextProcess;
+
     }
     else {
       nextProcessA = nextProcess;
@@ -748,20 +752,45 @@ public abstract class BaseManager {
 
   private final boolean isNextProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      if (!nextProcessB.equals("")) {
+      if (!nextProcessB.equals("") || nextProcessDialogTypeB != null) {
         if (debug) {
           System.err.println("nextProcessB=" + nextProcessB);
         }
         return true;
       }
     }
-    else if (!nextProcessA.equals("")) {
+    else if (!nextProcessA.equals("") || nextProcessDialogTypeA != null) {
       if (debug) {
-        System.err.println("nextProcessB=" + nextProcessB);
+        System.err.println("nextProcessA=" + nextProcessA);
       }
       return true;
     }
     return false;
+  }
+
+  public void setNextProcessDialogType(AxisID axisID, DialogType dialogType) {
+    if (axisID == AxisID.SECOND) {
+      nextProcessDialogTypeB = dialogType;
+    }
+    else {
+      nextProcessDialogTypeA = dialogType;
+    }
+  }
+
+  public void resetNextProcessDialogType(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      nextProcessDialogTypeB = null;
+    }
+    else {
+      nextProcessDialogTypeA = null;
+    }
+  }
+
+  public DialogType getNextProcessDialogType(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return nextProcessDialogTypeB;
+    }
+    return nextProcessDialogTypeA;
   }
 
   /**
@@ -938,7 +967,8 @@ public abstract class BaseManager {
    * @param axisID
    * @param dialog
    */
-  public final void setParallelDialog(AxisID axisID, AbstractParallelDialog dialog) {
+  public final void setParallelDialog(AxisID axisID,
+      AbstractParallelDialog dialog) {
     getMainPanel().setParallelDialog(axisID, dialog.isParallel());
   }
 
@@ -979,6 +1009,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.55  2006/03/22 00:34:59  sueh
+ * <p> bug# 836 Preventing savePreferences() from running when the axis is
+ * <p> busy
+ * <p>
  * <p> Revision 1.54  2006/03/20 17:48:14  sueh
  * <p> bug# 835 ParallelManager is overriding processChunks
  * <p>
