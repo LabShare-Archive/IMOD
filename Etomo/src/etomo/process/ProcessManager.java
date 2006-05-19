@@ -20,6 +20,13 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.96  2006/05/11 19:55:54  sueh
+ * bug# 838 Add CommandDetails, which extends Command and
+ * ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * functions.  Command contains all the command oriented functions.
+ * Added post-processing to save that angle offset and z shift after align and
+ * the x axis tilt after tilt.
+ *
  * Revision 3.95  2006/04/07 17:55:38  sueh
  * setupCombineScripts:  processResultDisplay is null when dataflowtests
  * is run.
@@ -1771,11 +1778,15 @@ public class ProcessManager extends BaseProcessManager {
       if (processDetails == null) {
         return;
       }
-      state.setXAxisTilt(axisID, processDetails
+      state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
+      state.setSampleAngleOffset(axisID, state.getAlignAngleOffset(axisID));
+      state.setSampleXAxisTilt(axisID, processDetails
           .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
     }
     else if (processName == ProcessName.SAMPLE) {
-      state.setXAxisTilt(axisID, processDetails
+      state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
+      state.setSampleAngleOffset(axisID, state.getAlignAngleOffset(axisID));
+      state.setSampleXAxisTilt(axisID, processDetails
           .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
     }
   }
