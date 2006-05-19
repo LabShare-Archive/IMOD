@@ -9,7 +9,6 @@ import etomo.EtomoDirector;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.TiltalignParam;
-import etomo.comscript.TomopitchParam;
 import etomo.comscript.TrimvolParam;
 import etomo.util.MRCHeader;
 
@@ -128,31 +127,31 @@ public class TomogramState implements BaseState {
   private final EtomoNumber axisZShiftB = new EtomoNumber(
       EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.ALIGN + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
-  private final EtomoNumber xAxisTiltA = new EtomoNumber(
+
+  private final EtomoNumber sampleAngleOffsetA = new EtomoNumber(
       EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.TILT + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
-  private final EtomoNumber xAxisTiltB = new EtomoNumber(
+          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
+  private final EtomoNumber sampleAngleOffsetB = new EtomoNumber(
       EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.TILT + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
+          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
+  private final EtomoNumber sampleAxisZShiftA = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
+  private final EtomoNumber sampleAxisZShiftB = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
+  private final EtomoNumber sampleXAxisTiltA = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+          + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
+  private final EtomoNumber sampleXAxisTiltB = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+          + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
 
   private final BaseManager manager;
 
   public TomogramState(BaseManager manager) {
     this.manager = manager;
     reset();
-  }
-
-  public void getParameters(AxisID axisID, TomopitchParam param) {
-    if (axisID == AxisID.SECOND) {
-      param.setAngleOffsetOld(angleOffsetB);
-      param.setZShiftOld(axisZShiftB);
-      param.setXAxisTiltOld(xAxisTiltB);
-    }
-    else {
-      param.setAngleOffsetOld(angleOffsetA);
-      param.setZShiftOld(axisZShiftA);
-      param.setXAxisTiltOld(xAxisTiltA);
-    }
   }
 
   private void reset() {
@@ -170,8 +169,12 @@ public class TomogramState implements BaseState {
     axisZShiftB.reset();
     angleOffsetA.reset();
     angleOffsetB.reset();
-    xAxisTiltA.reset();
-    xAxisTiltB.reset();
+    sampleAxisZShiftA.reset();
+    sampleAxisZShiftB.reset();
+    sampleAngleOffsetA.reset();
+    sampleAngleOffsetB.reset();
+    sampleXAxisTiltA.reset();
+    sampleXAxisTiltB.reset();
   }
 
   public void initialize() {
@@ -204,12 +207,16 @@ public class TomogramState implements BaseState {
     usedLocalAlignmentsB.store(props, prepend);
     invalidEdgeFunctionsA.store(props, prepend);
     invalidEdgeFunctionsB.store(props, prepend);
-    angleOffsetA.store(props,prepend);
-    angleOffsetB.store(props,prepend);
-    axisZShiftA.store(props,prepend);
-    axisZShiftB.store(props,prepend);
-    xAxisTiltA.store(props,prepend);
-    xAxisTiltB.store(props,prepend);
+    angleOffsetA.store(props, prepend);
+    angleOffsetB.store(props, prepend);
+    axisZShiftA.store(props, prepend);
+    axisZShiftB.store(props, prepend);
+    sampleAngleOffsetA.store(props, prepend);
+    sampleAngleOffsetB.store(props, prepend);
+    sampleAxisZShiftA.store(props, prepend);
+    sampleAxisZShiftB.store(props, prepend);
+    sampleXAxisTiltA.store(props, prepend);
+    sampleXAxisTiltB.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -271,12 +278,16 @@ public class TomogramState implements BaseState {
     usedLocalAlignmentsB.load(props, prepend);
     invalidEdgeFunctionsA.load(props, prepend);
     invalidEdgeFunctionsB.load(props, prepend);
-    angleOffsetA.load(props,prepend);
-    angleOffsetB.load(props,prepend);
-    axisZShiftA.load(props,prepend);
-    axisZShiftB.load(props,prepend);
-    xAxisTiltA.load(props,prepend);
-    xAxisTiltB.load(props,prepend);
+    angleOffsetA.load(props, prepend);
+    angleOffsetB.load(props, prepend);
+    axisZShiftA.load(props, prepend);
+    axisZShiftB.load(props, prepend);
+    sampleAngleOffsetA.load(props, prepend);
+    sampleAngleOffsetB.load(props, prepend);
+    sampleAxisZShiftA.load(props, prepend);
+    sampleAxisZShiftB.load(props, prepend);
+    sampleXAxisTiltA.load(props, prepend);
+    sampleXAxisTiltB.load(props, prepend);
   }
 
   public ConstEtomoNumber setTrimvolFlipped(boolean trimvolFlipped) {
@@ -303,6 +314,29 @@ public class TomogramState implements BaseState {
     }
   }
 
+  public ConstEtomoNumber getAlignAxisZShift(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return axisZShiftB;
+    }
+    return axisZShiftA;
+  }
+
+  public ConstEtomoNumber getSampleAxisZShift(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleAxisZShiftB;
+    }
+    return sampleAxisZShiftA;
+  }
+
+  public void setSampleAxisZShift(AxisID axisID, ConstEtomoNumber axisZShift) {
+    if (axisID == AxisID.SECOND) {
+      sampleAxisZShiftB.set(axisZShift);
+    }
+    else {
+      sampleAxisZShiftA.set(axisZShift);
+    }
+  }
+
   public void setAlignAngleOffset(AxisID axisID, double angleOffset) {
     if (axisID == AxisID.SECOND) {
       angleOffsetB.set(angleOffset);
@@ -311,13 +345,43 @@ public class TomogramState implements BaseState {
       angleOffsetA.set(angleOffset);
     }
   }
-  
-  public void setXAxisTilt(AxisID axisID, double xAxisTilt) {
+
+  public ConstEtomoNumber getAlignAngleOffset(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      xAxisTiltB.set(xAxisTilt);
+      return angleOffsetB;
+    }
+    return angleOffsetA;
+  }
+
+  public ConstEtomoNumber getSampleAngleOffset(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleAngleOffsetB;
+    }
+    return sampleAngleOffsetA;
+  }
+
+  public void setSampleAngleOffset(AxisID axisID, ConstEtomoNumber angleOffset) {
+    if (axisID == AxisID.SECOND) {
+      sampleAngleOffsetB.set(angleOffset);
     }
     else {
-      xAxisTiltA.set(xAxisTilt);
+      sampleAngleOffsetA.set(angleOffset);
+    }
+  }
+
+  public ConstEtomoNumber getSampleXAxisTilt(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleXAxisTiltB;
+    }
+    return sampleXAxisTiltA;
+  }
+
+  public void setSampleXAxisTilt(AxisID axisID, double xAxisTilt) {
+    if (axisID == AxisID.SECOND) {
+      sampleXAxisTiltB.set(xAxisTilt);
+    }
+    else {
+      sampleXAxisTiltA.set(xAxisTilt);
     }
   }
 
