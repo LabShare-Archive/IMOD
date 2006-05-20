@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/19/06: IMOD_3-8-9
+5/19/06: Fixed bugs in new handling of tomogram positioning information and
+restructured code controlling the positioning dialog. 
+
 5/16/06: IMOD_3-8-8
 5/16/06: eTomo now instructs Transferfid to output a transfer coordinate file,
 detects the presence of it on the combine panels, and modifies the interface
