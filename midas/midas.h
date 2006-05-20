@@ -85,6 +85,7 @@ enum MenuIDs {
   EDIT_MENU_STORE,
   EDIT_MENU_RESET,
   EDIT_MENU_REVERT,
+  EDIT_MENU_MIRROR,
   HELP_MENU_ABOUT,
   HELP_MENU_CONTROLS,
   HELP_MENU_HOTKEYS,
@@ -371,6 +372,9 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 
 /*
 $Log$
+Revision 3.11  2006/05/13 22:52:52  mast
+Changes to allow overlay colors to be specified
+
 Revision 3.10  2005/03/10 21:04:14  mast
 Added -q option for use from etomo
 

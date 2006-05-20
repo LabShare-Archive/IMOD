@@ -453,6 +453,25 @@ void MidasSlots::slotEditmenu(int item)
     VW->changed = 1;
     break;
 
+  case EDIT_MENU_MIRROR: /* Mirror around X axis  */
+	  /* get unit transform and modify to mirror */
+    inv = tramat_create();
+    inv[4] = -1.0;
+    getChangeLimits(&ist, &ind);
+
+    for (i = ist; i <= ind; i++) {
+      tr = &(VW->tr[i]);
+      tramat_multiply(tr->mat, inv, prod);
+      tramat_copy(prod, tr->mat);
+    }
+    tramat_free(inv);
+
+    synchronizeChunk(VW->cz);
+    update_parameters();
+    retransform_slice();
+    VW->changed = 1;
+    break;
+	  
 
   }
   return;
@@ -562,7 +581,9 @@ void MidasSlots::control_help()
      "that was specified with the -s option when starting the program.  "
      "Images will NOT be transformed; that should be done with "
      "Newstack.  A byte file will be created regardless of the mode of "
-     "the input file.\n\n"
+     "the input file.\n"
+     "\tTransform Model: will transform a model using the current set "
+     "of transformations.\n\n",
 
      "Edit Menu Items:\n",
      "\tStore Section Transform: will store the transform for the "
@@ -571,8 +592,9 @@ void MidasSlots::control_help()
      "slice to unity (no translation, rotation, etc.).\n"
      "\tRevert to Stored Transform: will restore the transform for the "
      "current section from the transform stored in the internal list.\n"
-     "\tTransform Model: will transform a model using the current set "
-     "of transformations.\n\n",
+     "\tMirror around X axis: will apply an additional transformation to the "
+     "current section to mirror it around the X axis.  To mirror around the Y "
+     "axis just rotate by 180 degrees before or after this operation.\n\n"
 
      "Controls when Fixing Montages:\n",
      "\tX edges are between adjacent pieces in a row and are numbered "
@@ -1909,6 +1931,9 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
 
 /*
 $Log$
+Revision 3.12  2005/11/08 02:36:58  mast
+Fixed X and Y labels on error buttons
+
 Revision 3.11  2005/03/10 21:04:15  mast
 Added -q option for use from etomo
 

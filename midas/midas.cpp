@@ -377,8 +377,11 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent,
   editMenu->insertItem("&Store section transform", EDIT_MENU_STORE);
   editMenu->insertItem("&Reset to unit transform", EDIT_MENU_RESET);
   editMenu->insertItem("Re&vert to stored transform", EDIT_MENU_REVERT);
+  editMenu->insertItem("&Mirror around X axis", EDIT_MENU_MIRROR);
   QObject::connect(editMenu, SIGNAL(activated(int)), VW->midasSlots,
 		   SLOT(slotEditmenu(int)));
+  if (VW->xtype == XTYPE_MONT)
+    fileMenu->setItemEnabled(EDIT_MENU_MIRROR, false);
   
   // Create Help menu
   QPopupMenu *helpMenu = new QPopupMenu;
@@ -858,6 +861,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.17  2006/05/13 22:52:52  mast
+    Changes to allow overlay colors to be specified
+
     Revision 3.16  2006/03/01 19:16:03  mast
     Fixed bug in setting window size and eliminated debug output, called 
     library routines for limiting window size and position
