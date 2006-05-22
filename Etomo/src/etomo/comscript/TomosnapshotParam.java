@@ -8,54 +8,52 @@ import etomo.type.AxisID;
 import etomo.type.ProcessName;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005 - 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005 - 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ */
 public final class TomosnapshotParam implements Command {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public static final String OUTPUT_LINE = "Snapshot done";
-  private static final String COMMAND_NAME = ProcessName.TOMOSNAPSHOT.toString();
+  private static final String COMMAND_NAME = ProcessName.TOMOSNAPSHOT
+      .toString();
 
   private final AxisID axisID;
   private final BaseManager manager;
-  
+
   private String[] commandArray = null;
-  
+
   public TomosnapshotParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
   }
-  
-  public final String[] getCommand() {
-    if (commandArray == null) {
-      buildCommand();
-    }
-    return commandArray;
+
+  public final String getCommand() {
+    return COMMAND_NAME;
   }
-  
+
   public int getCommandMode() {
     return 0;
   }
-  
+
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
-  
+
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add("tcsh");
@@ -69,13 +67,13 @@ public final class TomosnapshotParam implements Command {
       commandArray[i] = (String) command.get(i);
     }
   }
-  
+
   public final String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
   public final String getCommandLine() {
-    getCommand();
+    getCommandArray();
     if (commandArray == null) {
       return null;
     }
@@ -85,20 +83,28 @@ public final class TomosnapshotParam implements Command {
     }
     return buffer.toString();
   }
-  
+
   public String[] getCommandArray() {
-    return getCommand();
+    if (commandArray == null) {
+      buildCommand();
+    }
+    return commandArray;
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.3  2006/02/06 21:03:24  sueh
-* <p> bug# 776 Call script with tcsh -f, so it can be run on WIndows.
-* <p>
-* <p> Revision 1.2  2006/01/20 20:48:13  sueh
-* <p> updated copyright year
-* <p>
-* <p> Revision 1.1  2005/12/09 20:25:02  sueh
-* <p> bug# 776 A param for the tomosnapshot command
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.4  2006/05/11 19:50:20  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
+ * <p> Revision 1.3  2006/02/06 21:03:24  sueh
+ * <p> bug# 776 Call script with tcsh -f, so it can be run on WIndows.
+ * <p>
+ * <p> Revision 1.2  2006/01/20 20:48:13  sueh
+ * <p> updated copyright year
+ * <p>
+ * <p> Revision 1.1  2005/12/09 20:25:02  sueh
+ * <p> bug# 776 A param for the tomosnapshot command
+ * <p> </p>
+ */

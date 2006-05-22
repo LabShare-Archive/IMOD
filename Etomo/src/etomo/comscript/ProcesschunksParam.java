@@ -57,14 +57,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     nice.setCeiling(NICE_CEILING);
   }
 
-  public final String[] getCommand() {
-    if (commandArray == null) {
-      buildCommand();
-    }
-    return commandArray;
+  public String getCommand() {
+    return ProcessName.PROCESSCHUNKS.toString();
   }
   
-  public final int getCommandMode() {
+  public int getCommandMode() {
     return 0;
   }
   
@@ -76,7 +73,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return axisID;
   }
 
-  private final void buildCommand() {
+  private void buildCommand() {
     ArrayList command = new ArrayList();
     command.add("tcsh");
     command.add(COMMAND_FILE_OPTION);
@@ -207,7 +204,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   public String getCommandLine() {
-    String[] commandArray = getCommand();
+    String[] commandArray = getCommandArray();
     if (commandArray == null || commandArray.length == 0) {
       return null;
     }
@@ -219,7 +216,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   public String[] getCommandArray() {
-    return getCommand();
+    if (commandArray == null) {
+      buildCommand();
+    }
+    return commandArray;
   }
 
   /**
@@ -228,7 +228,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * path spaces have been back-slashed.
    */
   public final String getCommandString() {
-    getCommand();
+    getCommandArray();
     if (commandArray == null) {
       return null;
     }
@@ -295,6 +295,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/05/11 19:47:34  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 1.15  2006/02/15 18:49:36  sueh
  * <p> bug# 796 Windows fix:  put the path of the command file into single
  * <p> quotes because it will be run from a file and it needs be translated into a
