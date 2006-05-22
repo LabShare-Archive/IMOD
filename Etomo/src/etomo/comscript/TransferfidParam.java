@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/05/12 18:24:34  sueh
+ * <p> bug# 856 Added the "-c" option.
+ * <p>
  * <p> Revision 3.9  2005/07/29 00:50:14  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -119,6 +122,7 @@
 
 package etomo.comscript;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 import etomo.ApplicationManager;
@@ -283,59 +287,74 @@ public class TransferfidParam implements Storable {
   /**
    * Get the command string specified by the current state
    */
-  public String getCommandString() {
+  public ArrayList getCommand() {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06  
-    StringBuffer commandLine = new StringBuffer("tcsh -f "
-        + ApplicationManager.getIMODBinPath() + "transferfid -P ");
+    // com scripts which require the -e flag.  RJG: 2003-11-06
+    ArrayList command = new ArrayList();
+    command.add("tcsh");
+    command.add("-f");
+    command.add(ApplicationManager.getIMODBinPath() + "transferfid");
+    command.add("-P");
+    //StringBuffer commandLine = new StringBuffer("tcsh -f "
+   //     + ApplicationManager.getIMODBinPath() + "transferfid -P ");
 
     if (bToA.is()) {
-      commandLine.append("-b ");
+      command.add("-b");
     }
     if (!inputImageFile.equals("")) {
-      commandLine.append("-ia " + inputImageFile + " ");
+      command.add("-ia");
+      command.add(inputImageFile);
     }
 
     if (!outputImageFile.equals("")) {
-      commandLine.append("-ib " + outputImageFile + " ");
+      command.add("-ib");
+      command.add(outputImageFile);
     }
 
     if (!inputModelFile.equals("")) {
-      commandLine.append("-f " + inputModelFile + " ");
+      command.add("-f");
+      command.add(inputModelFile);
     }
 
     if (!outputModelFile.equals("")) {
-      commandLine.append("-o " + outputModelFile + " ");
+      command.add("-o");
+      command.add(outputModelFile);
     }
 
     if (!centerViewA.isNull()) {
-      commandLine.append("-za " + centerViewA.toString() + " ");
+      command.add("-za");
+      command.add(centerViewA.toString());
     }
 
     if (!centerViewB.isNull()) {
-      commandLine.append("-zb " + centerViewB.toString() + " ");
+      command.add("-zb");
+      command.add(centerViewB.toString());
     }
 
     if (numberViews.isUseInScript()) {
-      commandLine.append("-n " + numberViews.toString() + " ");
+      command.add("-n");
+      command.add(numberViews.toString());
     }
 
     if (searchDirection.isPositive()) {
-      commandLine.append("-a 90 ");
+      command.add("-a");
+      command.add("90");
     }
 
     if (searchDirection.isNegative()) {
-      commandLine.append("-a -90 ");
+      command.add("-a");
+      command.add("-90");
     }
 
     if (runMidas.is()) {
-      commandLine.append("-m ");
+      command.add("-m");
     }
-    commandLine.append("-c " + DatasetFiles.getTransferFidCoordFileName() + " ");
+    command.add("-c");
+    command.add(DatasetFiles.getTransferFidCoordFileName());
 
-    commandLine.append(datasetName);
-    return commandLine.toString();
+    command.add(datasetName);
+    return command;
   }
 
   /**

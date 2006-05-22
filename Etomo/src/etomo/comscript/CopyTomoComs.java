@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2006/03/16 01:49:31  sueh
+ * bug# 830 Handling exitValue != 0 without an exception.
+ *
  * Revision 3.15  2005/11/02 21:35:51  sueh
  * bug# 754 Parsing errors and warnings inside ProcessMessages.
  * Replaced getErrors() and getWarnings() with getProcessMessages.
@@ -179,7 +182,7 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
@@ -193,16 +196,18 @@ import etomo.type.DataSource;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
 
-
-public class CopyTomoComs {
+public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
-  SystemProgram copytomocoms;
-  StringBuffer commandLine = new StringBuffer();
-  int exitValue;
-  ConstMetaData metaData;
-  Vector options;
-  boolean debug;
+  
+  private final ArrayList command = new ArrayList();
+  
   private final BaseManager manager;
+  private final SystemProgram copytomocoms;
+  
+  private StringBuffer commandLine = null;
+  private int exitValue;
+  private ConstMetaData metaData;
+  private boolean debug;
 
   public CopyTomoComs(ApplicationManager manager) {
     this.manager = manager;
@@ -214,14 +219,11 @@ public class CopyTomoComs {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    commandLine = new StringBuffer("tcsh -f "
-        + ApplicationManager.getIMODBinPath() + "copytomocoms");
+    command.add("tcsh");
+    command.add("-f");
+    command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     genOptions();
-    for (int i = 0; i < options.size(); i++) {
-      commandLine.append(" " + options.get(i));
-    }
-    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), commandLine
-        .toString(), AxisID.ONLY, true);
+    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command, AxisID.ONLY, true);
     //genStdInputSequence();
   }
 
@@ -231,103 +233,111 @@ public class CopyTomoComs {
    * @return
    */
   public String getCommandLine() {
-    return commandLine.toString();
+    return copytomocoms.getCommandLine();
   }
 
   private void genOptions() {
     boolean montage = false;
     boolean gradient = false;
-    options = new Vector();
     //  Dataset name
-    options.add("-name " + metaData.getDatasetName());
+    command.add("-name");
+    command.add(metaData.getDatasetName());
     //  View type: single or montaged
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      options.add("-montage");
+      command.add("-montage");
       montage = true;
     }
     //  Backup directory
     String backupDirectory = metaData.getBackupDirectory();
     if (!backupDirectory.equals("")) {
-      options.add("-backup " + metaData.getBackupDirectory());
+      command.add("-backup");
+      command.add(metaData.getBackupDirectory());
     }
     //  Data source: CCD or film
     if (metaData.getDataSource() == DataSource.FILM) {
-      options.add("-film");
+      command.add("-film");
     }
     //  Pixel size
-    options.add("-pixel " + String.valueOf(metaData.getPixelSize()));
+    command.add("-pixel");
+    command.add(String.valueOf(metaData.getPixelSize()));
     //  Fiducial diameter
-    options.add("-gold " + String.valueOf(metaData.getFiducialDiameter()));
+    command.add("-gold");
+    command.add(String.valueOf(metaData.getFiducialDiameter()));
     // Image rotation
-    options.add("-rotation "
-        + String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
+    command.add("-rotation");
+    command.add(String.valueOf(metaData.getImageRotation(AxisID.FIRST)));
     // A first tilt angle and tilt angle incriment
     if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
-      options.add("-firstinc "
-          + String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
+      command.add("-firstinc");
+      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
           + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
     }
     // Use an existing rawtilt file (this assumes that one is there and has
     // not been deleted by checkTiltAngleFiles()
     else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-      options.add("-userawtlt");
+      command.add("-userawtlt");
     }
     //  Extract the tilt angle data from the stack
     else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
-      options.add("-extract");
+      command.add("-extract");
     }
     //List of views to exclude from processing
     String excludeProjections = metaData.getExcludeProjectionsA();
     if (!excludeProjections.equals("")) {
-      options.add("-skip " + excludeProjections);
+      command.add("-skip");
+      command.add(excludeProjections);
     }
 
     //Undistort images with the given .idf file
     String distortionFile = metaData.getDistortionFile();
     if (!distortionFile.equals("")) {
-      options.add("-distort " + distortionFile);
+      command.add("-distort");
+      command.add(distortionFile);
     }
     //Binning of raw stacks (needed to undistort if ambiguous)
-    options.add("-binning " + metaData.getBinning());
+    command.add("-binning");
+    command.add(String.valueOf(metaData.getBinning()));
     // Mag gradients correction file
     String magGradientFile = metaData.getMagGradientFile();
     if (!magGradientFile.equals("")) {
-      options.add("-gradient " + magGradientFile);
+      command.add("-gradient");
+      command.add(magGradientFile);
       gradient = true;
       //It is only necessary to know if the focus was adjusted between montages
       //if a mag gradients correction file is being used.
       if (montage && metaData.getAdjustedFocusA().is()) {
-        options.add("-focus");
+        command.add("-focus");
       }
     }
 
     //  Axis type: single or dual
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      options.add("-dual");
+      command.add("-dual");
       // B image rotation
-      options.add("-brotation "
-          + String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
+      command.add("-brotation");
+      command.add(String.valueOf(metaData.getImageRotation(AxisID.SECOND)));
       // B first tilt angle and tilt angle incriment
       if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
-        options.add("-bfirstinc "
-            + String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
+        command.add("-bfirstinc");
+        command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
             + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
       }
       //Take tilt angle from a .rawtlt file - B
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-        options.add("-buserawtlt");
+        command.add("-buserawtlt");
       }
       //  Extract the tilt angle data from the stack - B
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-        options.add("-bextract");
+        command.add("-bextract");
       }
       //List of views to exclude from processing - B
       excludeProjections = metaData.getExcludeProjectionsB();
       if (!excludeProjections.equals("")) {
-        options.add("-bskip " + excludeProjections);
+        command.add("-bskip");
+        command.add(excludeProjections);
       }
       if (montage && gradient && metaData.getAdjustedFocusB().is()) {
-        options.add("-bfocus");
+        command.add("-bfocus");
       }
     }
     // Options removed:
@@ -390,7 +400,7 @@ public class CopyTomoComs {
 
     // Image rotation
     tempStdInput[lineCount++] = String.valueOf(metaData
-      .getImageRotation(AxisID.FIRST));
+        .getImageRotation(AxisID.FIRST));
 
     //  Extract the tilt angle data from the stack
     if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
@@ -403,7 +413,7 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "1";
       tempStdInput[lineCount++] = String.valueOf(metaData.getTiltAngleSpecA()
-        .getRangeMin()
+          .getRangeMin()
           + "," + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
     }
     // Use an existing rawtilt file (this assumes that one is there and has
@@ -417,7 +427,7 @@ public class CopyTomoComs {
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "-1";
       System.err
-        .println("Specification of all tilt alngles is not yet implemented");
+          .println("Specification of all tilt alngles is not yet implemented");
     }
 
     //  Exclude list
@@ -428,7 +438,7 @@ public class CopyTomoComs {
 
       //    Image rotation
       tempStdInput[lineCount++] = String.valueOf(metaData
-        .getImageRotation(AxisID.SECOND));
+          .getImageRotation(AxisID.SECOND));
 
       //    Extract the tilt angle data from the stack
       if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
@@ -441,8 +451,8 @@ public class CopyTomoComs {
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "1";
         tempStdInput[lineCount++] = String
-          .valueOf(metaData.getTiltAngleSpecB().getRangeMin() + ","
-              + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+            .valueOf(metaData.getTiltAngleSpecB().getRangeMin() + ","
+                + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
       }
 
       //    Specify a range, creating the rawtilt file
@@ -455,7 +465,7 @@ public class CopyTomoComs {
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "-1";
         System.err
-          .println("Specification of all tilt alngles is not yet implemented");
+            .println("Specification of all tilt alngles is not yet implemented");
       }
 
       //  Exclude list
@@ -490,17 +500,21 @@ public class CopyTomoComs {
     exitValue = copytomocoms.getExitValue();
     return exitValue;
   }
+  
+  public String getStdErrorString() {
+    return copytomocoms.getStdErrorString();
+  }
 
   public String[] getStdError() {
     return copytomocoms.getStdError();
   }
-  
+
   /**
    * returns a String array of warnings - one warning per element
    * make sure that warnings get into the error log
    * @return
    */
-  public final ProcessMessages getProcessMessages() {
+  public ProcessMessages getProcessMessages() {
     return copytomocoms.getProcessMessages();
   }
 
