@@ -21,6 +21,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2006/05/11 19:52:19  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.6  2005/11/19 02:27:15  sueh
  * <p> bug# 744 Moved functions only used by process manager post
  * <p> processing and error processing from Commands to ProcessDetails.
@@ -126,18 +131,6 @@ public class InteractiveSystemProgram implements Runnable {
   private File workingDirectory = null;
 
   private String exceptionMessage = "";
-
-  /**
-   * Creates a SystemProgram object to execute the program specified by the
-   * argument <i>command</i>
-   * @param command The string containng the command to run
-   */
-  public InteractiveSystemProgram(BaseManager manager, String commandLine, AxisID axisID) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.commandLine = commandLine;
-  }
-  
   /**
    * Creates a SystemProgram object to execute the program specified by the
    * argument <i>command</i>

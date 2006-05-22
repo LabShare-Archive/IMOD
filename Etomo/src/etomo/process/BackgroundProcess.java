@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.comscript.Command;
@@ -24,6 +25,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2006/05/11 19:51:23  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.25  2006/01/31 20:37:56  sueh
  * <p> bug# 521 Added setProcessResultDisplay to SystemProcessInterface.
  * <p> This allows the last ProcessResultDisplay used by the combine monitor
@@ -233,22 +239,14 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   private final BaseManager manager;
   private SystemProgram program = null;
   private ProcessResultDisplay processResultDisplay = null;
+  private ArrayList commandArrayList = null;
 
-  public BackgroundProcess(BaseManager manager, String commandLine,
-      BaseProcessManager processManager, AxisID axisID) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.commandLine = commandLine.trim();
-    this.processManager = processManager;
-    commandProcessID = new StringBuffer("");
-  }
-
-  public BackgroundProcess(BaseManager manager, String commandLine,
+  public BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     this.manager = manager;
     this.axisID = axisID;
-    this.commandLine = commandLine.trim();
+    this.commandArrayList = commandArrayList;
     this.processManager = processManager;
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
@@ -262,7 +260,6 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     command = commandDetails;
     processDetails = commandDetails;
     this.commandArray = command.getCommandArray();
-    this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
@@ -276,7 +273,6 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processDetails = commandDetails;
     this.commandDetails = commandDetails;
     this.commandArray = command.getCommandArray();
-    this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
@@ -288,7 +284,6 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.axisID = axisID;
     this.command = command;
     this.commandArray = command.getCommandArray();
-    this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
@@ -320,7 +315,6 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.axisID = axisID;
     this.command = command;
     this.commandArray = command.getCommandArray();
-    this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
@@ -354,8 +348,9 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   final ProcessResultDisplay getProcessResultDisplay() {
     return processResultDisplay;
   }
-  
-  public final void setProcessResultDisplay(ProcessResultDisplay processResultDisplay) {
+
+  public final void setProcessResultDisplay(
+      ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
 
@@ -396,20 +391,33 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * @return File
    */
   public final String getCommandLine() {
-    if (commandLine != null) {
-      return commandLine;
-    }
-    else if (commandArray != null) {
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < commandArray.length; i++) {
-        buffer.append(commandArray[i] + " ");
+    StringBuffer buffer;
+    if (commandLine == null) {
+      buffer = new StringBuffer();
+      if (commandArray != null) {
+        for (int i = 0; i < commandArray.length; i++) {
+          buffer.append(commandArray[i] + " ");
+        }
+        commandLine = buffer.toString();
       }
-      return buffer.toString();
+      else if (command != null) {
+        commandLine = command.getCommandLine().trim();
+      }
+      else if (commandDetails != null) {
+        commandLine = commandDetails.getCommandLine().trim();
+      }
+      else if (commandArrayList != null) {
+        buffer = new StringBuffer();
+        for (int i = 0; i < commandArrayList.size(); i++) {
+          buffer.append((String) commandArrayList.get(i));
+        }
+        commandLine = buffer.toString();
+      }
     }
-    else if (command != null) {
-      return command.getCommandLine();
+    if (commandLine == null) {
+      throw new IllegalStateException("commandLine is null");
     }
-    return null;
+    return commandLine.toString();
   }
 
   public final ProcessDetails getProcessDetails() {
@@ -427,11 +435,8 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     if (commandArray != null) {
       return commandArray[0];
     }
-    if (commandLine != null) {
-      String[] words = commandLine.split("\\s");
-      return words[0];
-    }
-    return null;
+    String[] words = getCommandLine().split("\\s");
+    return words[0];
   }
 
   /**
@@ -465,9 +470,9 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
       program = new SystemProgram(manager.getPropertyUserDir(), command
           .getCommandArray(), axisID);
     }
-    else if (commandLine != null) {
-      program = new SystemProgram(manager.getPropertyUserDir(), commandLine,
-          axisID);
+    else if (commandArrayList != null) {
+      program = new SystemProgram(manager.getPropertyUserDir(),
+          commandArrayList, axisID);
     }
     else {
       processDone(1);

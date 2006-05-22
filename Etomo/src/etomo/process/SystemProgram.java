@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/11/19 02:41:13  sueh
+ * <p> bug# 744 Added another option to ProcessMessage constructor.  Made the
+ * <p> constructor private and used getInstance functions to simply its use.
+ * <p>
  * <p> Revision 3.29  2005/11/10 18:06:58  sueh
  * <p> bug# 758 Correcting a line that prints in the error log.  propertyUserDir
  * <p> may not always be the same as user.dir.
@@ -238,15 +242,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 
 import etomo.type.AxisID;
 import etomo.util.Utilities;
 
-
 public class SystemProgram implements Runnable {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private boolean debug = false;
   private int exitValue = Integer.MIN_VALUE;
@@ -259,35 +262,43 @@ public class SystemProgram implements Runnable {
   private boolean started = false;
   private boolean done = false;
   private Date runTimestamp = null;
-  private AxisID axisID;
+  private final AxisID axisID;
   private final String propertyUserDir;
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
   private final ProcessMessages processMessages;
+  private StringBuffer commandLine = null;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
    * argument <i>command</i> 
    * @param command The string containng the command and arguments to run.
    * 
-   * WARNING: The comand string is split at whitespace to create command and
-   * arguments.  This behavior is for backward compatibility.  It is suggested
+   * It is suggested
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String propertyUserDir, String command, AxisID axisID) {
-    this.propertyUserDir = propertyUserDir;
-    this.axisID = axisID;
-    processMessages = ProcessMessages.getInstance();
-    commandArray = command.split("\\s+");
-  }
-  
-  public SystemProgram(String propertyUserDir, String command, AxisID axisID, boolean multiLineMessages) {
+  public SystemProgram(String propertyUserDir, ArrayList command,
+      AxisID axisID, boolean multiLineMessages) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getMultiLineInstance();
-    commandArray = command.split("\\s+");
+    commandArray = new String[command.size()];
+    for (int i = 0; i < command.size(); i++) {
+      commandArray[i] = (String) command.get(i);
+    }
+  }
+  
+  public SystemProgram(String propertyUserDir, ArrayList command,
+      AxisID axisID) {
+    this.propertyUserDir = propertyUserDir;
+    this.axisID = axisID;
+    processMessages = ProcessMessages.getMultiLineInstance();
+    commandArray = new String[command.size()];
+    for (int i = 0; i < command.size(); i++) {
+      commandArray[i] = (String) command.get(i);
+    }
   }
 
   /**
@@ -305,28 +316,6 @@ public class SystemProgram implements Runnable {
   }
 
   /**
-   * Creates a SystemProgram object to execute the program specified by the
-   * argument <i>command</i> with input sequence specified in
-   * <i>programInput</n>.
-   * @param command The string containng the command to run.
-   * @param programInput A string array containing the standard input to the
-   * program each string should contain one line of input for the program.
-   * 
-   * WARNING: The comand string is split at whitespace to create command and
-   * arguments.  This behavior is for backward compatibility.  It is suggested
-   * that SystemProgram(String[] arg) for be used so that spaces are not
-   * accidentally lost in path or arguments. 
-   */
-  public SystemProgram(String propertyUserDir, String command,
-      String[] programInput, AxisID axisID) {
-    this.propertyUserDir = propertyUserDir;
-    this.axisID = axisID;
-    processMessages = ProcessMessages.getInstance();
-		commandArray = command.split("\\s+");
-    stdInput = programInput;
-  }
-
-  /**
    * Specify the standard input to the program
    * @param programInput A string array containing the standard input to the
    * program each string should contain one line of input for the program.
@@ -334,7 +323,7 @@ public class SystemProgram implements Runnable {
   public void setStdInput(String[] programInput) {
     stdInput = programInput;
   }
-  
+
   public void setCurrentStdInput(String input) throws IOException {
     if (cmdInBuffer != null) {
       cmdInBuffer.write(input);
@@ -361,9 +350,9 @@ public class SystemProgram implements Runnable {
   public void run() {
     started = true;
     /*for (int i = 0; i < commandArray.length; i++) {
-        System.out.print(commandArray[i] + " ");
-      }
-    System.out.println();*/
+     System.out.print(commandArray[i] + " ");
+     }
+     System.out.println();*/
     if (debug) {
       System.err.println("");
       System.err.println("SystemProgram: command array: ");
@@ -373,8 +362,7 @@ public class SystemProgram implements Runnable {
       System.err.print("SystemProgram: working directory: ");
       if (workingDirectory == null) {
         System.err.println("null");
-        System.err.println("SystemProgram: using:  "
-            + propertyUserDir);
+        System.err.println("SystemProgram: using:  " + propertyUserDir);
       }
       else {
         System.err.println(workingDirectory.getAbsoluteFile());
@@ -387,7 +375,8 @@ public class SystemProgram implements Runnable {
       if (debug)
         System.err.print("SystemProgram: Exec'ing process...");
 
-      if (workingDirectory == null && propertyUserDir != null && !propertyUserDir.matches("\\s*+")) {
+      if (workingDirectory == null && propertyUserDir != null
+          && !propertyUserDir.matches("\\s*+")) {
         workingDirectory = new File(propertyUserDir);
       }
       //timestamp
@@ -397,12 +386,13 @@ public class SystemProgram implements Runnable {
       }
       Utilities.timestamp(timestampString.toString(), Utilities.STARTED_STATUS);
       runTimestamp = new Date();
-      
+
       if (workingDirectory == null) {
         process = Runtime.getRuntime().exec(commandArray, null);
       }
       else {
-        process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
+        process = Runtime.getRuntime().exec(commandArray, null,
+            workingDirectory);
       }
       waitForProcess();
       if (debug)
@@ -449,8 +439,8 @@ public class SystemProgram implements Runnable {
         System.err.println("Done writing to process stdin");
         if (stdInput != null && stdInput.length > 0) {
           System.err.println("SystemProgram: Wrote to process stdin:");
-          System.err.println(
-            "------------------------------------------------------------");
+          System.err
+              .println("------------------------------------------------------------");
           for (int i = 0; i < stdInput.length; i++) {
             System.err.println(stdInput[i]);
           }
@@ -471,10 +461,11 @@ public class SystemProgram implements Runnable {
       }
       catch (InterruptedException except) {
         except.printStackTrace();
-        System.err.println(
-          "SystemProgram:: interrupted waiting for process to finish!");
+        System.err
+            .println("SystemProgram:: interrupted waiting for process to finish!");
       }
-      Utilities.timestamp(timestampString.toString(), Utilities.FINISHED_STATUS);
+      Utilities
+          .timestamp(timestampString.toString(), Utilities.FINISHED_STATUS);
       // Inform the output manager threads that the process is done
       stdout.setProcessDone(true);
       stderr.setProcessDone(true);
@@ -485,8 +476,8 @@ public class SystemProgram implements Runnable {
       exitValue = getProcessExitValue(process);
 
       if (debug)
-        System.err.println(
-          "SystemProgram: Exit value: " + String.valueOf(exitValue));
+        System.err.println("SystemProgram: Exit value: "
+            + String.valueOf(exitValue));
 
       //  Wait for the manager threads to complete
       try {
@@ -495,8 +486,8 @@ public class SystemProgram implements Runnable {
       }
       catch (InterruptedException except) {
         except.printStackTrace();
-        System.err.println(
-          "SystemProgram:: interrupted waiting for reader threads!");
+        System.err
+            .println("SystemProgram:: interrupted waiting for reader threads!");
       }
       if (debug)
         System.err.print("SystemProgram: Reading from process stdout: ");
@@ -529,8 +520,8 @@ public class SystemProgram implements Runnable {
     if (debug) {
       if (stdout.size() > 0) {
         System.err.println("SystemProgram: Read from process stdout:");
-        System.err.println(
-          "------------------------------------------------------------");
+        System.err
+            .println("------------------------------------------------------------");
         for (int i = 0; i < stdout.size(); i++) {
           System.err.println(stdout.get(i));
         }
@@ -539,8 +530,8 @@ public class SystemProgram implements Runnable {
       }
       if (stderr.size() > 0) {
         System.err.println("SystemProgram: Read from process stderr:");
-        System.err.println(
-          "------------------------------------------------------------");
+        System.err
+            .println("------------------------------------------------------------");
         for (int i = 0; i < stderr.size(); i++) {
           System.err.println(stderr.get(i));
         }
@@ -560,15 +551,15 @@ public class SystemProgram implements Runnable {
         e.printStackTrace();
       }
     }
-    
+
     //  Set the done flag for the thread
     done = true;
   }
-  
+
   protected OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
     return new OutputBufferManager(cmdBuffer);
   }
-  
+
   protected OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
     return new OutputBufferManager(cmdBuffer);
   }
@@ -584,7 +575,7 @@ public class SystemProgram implements Runnable {
 
     }
   }
-  
+
   /**
    * 
    * @param process
@@ -593,8 +584,13 @@ public class SystemProgram implements Runnable {
   protected int getProcessExitValue(Process process) {
     return process.exitValue();
   }
-  
-  /**
+
+  /**    if (commandLine == null) {
+   commandLine = new StringBuffer();
+   for (int i = 0;i<command.size();i++) {
+   }
+   return commandLine.toString();
+   }
    * Get the standard output from the execution of the program.
    * @return String[] An array of strings containing the standard output from
    * the program.  Each line of standard out is stored in a String.
@@ -603,7 +599,7 @@ public class SystemProgram implements Runnable {
     if (stdout == null) {
       return null;
     }
-    String[] stdOutputArray  = stdout.get();
+    String[] stdOutputArray = stdout.get();
     return stdOutputArray;
   }
 
@@ -615,7 +611,10 @@ public class SystemProgram implements Runnable {
   }
 
   public String getStdErrorString() {
-    String[] stdErrorArray = stderr.get();
+    String[] stdErrorArray = getStdError();
+    if (stdErrorArray == null) {
+      return null;
+    }
     String stdErrorString = null;
     for (int i = 0; i < stdErrorArray.length; i++) {
       stdErrorString = stdErrorArray[i] + "\n";
@@ -631,18 +630,20 @@ public class SystemProgram implements Runnable {
     exitValue = value;
   }
 
-  String getCommandLine() {
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < commandArray.length; i++) {
-      buffer.append(commandArray[i] + " ");
+  public String getCommandLine() {
+    if (commandLine == null) {
+      commandLine = new StringBuffer();
+      for (int i = 0; i < commandArray.length; i++) {
+        commandLine.append(commandArray[i] + " ");
+      }
     }
-    return buffer.toString();
+    return commandLine.toString();
   }
-  
+
   public String getExceptionMessage() {
     return exceptionMessage;
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
@@ -676,18 +677,18 @@ public class SystemProgram implements Runnable {
   public boolean isDone() {
     return done;
   }
-  
+
   public Timestamp getRunTimestamp() {
     if (runTimestamp == null) {
       return null;
     }
     return new Timestamp(runTimestamp.getTime());
   }
- 
+
   public final ProcessMessages getProcessMessages() {
     return processMessages;
   }
- 
+
   /**
    * 
    * @param acceptInputWhileRunning

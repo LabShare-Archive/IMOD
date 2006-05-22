@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.36  2006/05/11 19:52:08  sueh
+ * bug# 838 Add CommandDetails, which extends Command and
+ * ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * functions.  Command contains all the command oriented functions.
+ *
  * Revision 3.35  2006/01/31 20:43:00  sueh
  * bug# 521 Added setProcessResultDisplay to SystemProcessInterface.
  * This allows the last ProcessResultDisplay used by the combine monitor
@@ -397,10 +402,11 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
   }
-  
+
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay, ProcessDetails processDetails) {
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
+      ProcessDetails processDetails) {
     this.manager = manager;
     this.comScriptName = comScript;
     this.processManager = processManager;
@@ -428,7 +434,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor) {
     this.manager = manager;
-    this.comScriptName = commandDetails.getCommandLine();
+    this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
@@ -443,7 +449,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay) {
     this.manager = manager;
-    this.comScriptName = commandDetails.getCommandLine();
+    this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
@@ -454,12 +460,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
   }
-  
+
   public ComScriptProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay) {
     this.manager = manager;
-    this.comScriptName = command.getCommandLine();
+    this.comScriptName = command.getCommand();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
     this.axisID = axisID;
@@ -467,7 +473,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.command = command;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-  } 
+  }
 
   /**
    * Set the working directory in which the com script is to be run.
@@ -494,7 +500,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     if (demoMode) {
       try {
         started = true;
-        csh = new SystemProgram(manager.getPropertyUserDir(), "nothing", axisID);
+        csh = new SystemProgram(manager.getPropertyUserDir(),
+            new String[] { "nothing" }, axisID);
         csh.setExitValue(0);
         sleep(demoTime);
       }
@@ -585,11 +592,11 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ProcessDetails getProcessDetails() {
     return processDetails;
   }
-  
+
   public Command getCommand() {
     return command;
   }
-  
+
   public CommandDetails getCommandDetails() {
     return commandDetails;
   }
@@ -680,7 +687,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    csh = new SystemProgram(manager.getPropertyUserDir(), "tcsh -ef", axisID);
+    csh = new SystemProgram(manager.getPropertyUserDir(), new String[] {
+        "tcsh", "-ef" }, axisID);
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
@@ -706,10 +714,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // Redirecting stdin for the command does not work even when a shell is
     // called, need to pump the com file directly into the stdin of vmstocsh
     String[] comSequence = loadFile();
-    String commandLine = ApplicationManager.getIMODBinPath() + "vmstocsh "
-        + parseBaseName(comScriptName, ".com") + ".log";
-    vmstocsh = new SystemProgram(manager.getPropertyUserDir(), commandLine,
-        axisID);
+    String[] command = new String[] {
+        ApplicationManager.getIMODBinPath() + "vmstocsh",
+        parseBaseName(comScriptName, ".com") + ".log" };
+    vmstocsh = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
     vmstocsh.setDebug(debug);
