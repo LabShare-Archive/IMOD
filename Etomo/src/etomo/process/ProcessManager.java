@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.97  2006/05/19 19:40:12  sueh
+ * bug# 838 Copying align z shift and angle offset to sample z shift and angle offset
+ * when sample is completed.
+ *
  * Revision 3.96  2006/05/11 19:55:54  sueh
  * bug# 838 Add CommandDetails, which extends Command and
  * ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -855,6 +859,8 @@ public class ProcessManager extends BaseProcessManager {
           "Copytomocoms Warning", axisID);
     }
     if (exitValue != 0) {
+      UIHarness.INSTANCE.openMessageDialog(copyTomoComs.getStdErrorString(),
+          "Copytomocoms Error", axisID);
       return false;
     }
     return true;
@@ -1101,15 +1107,15 @@ public class ProcessManager extends BaseProcessManager {
     //  Construct the command line strings
     String[] commandArray = new String[3];
 
-    String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
-    String stack = getDatasetName() + axisID.getExtension() + ".st ";
-    String xform = getDatasetName() + axisID.getExtension() + ".prexf ";
+    String stack = getDatasetName() + axisID.getExtension() + ".st";
+    String xform = getDatasetName() + axisID.getExtension() + ".prexf";
 
-    String commandLine = ApplicationManager.getIMODBinPath() + "midas "
-        + options + stack + xform;
+    String[] command = new String[] {
+        ApplicationManager.getIMODBinPath() + "midas", "-a",
+        String.valueOf(-1 * imageRotation), stack, xform };
 
     //  Start the system program thread
-    startSystemProgramThread(commandLine, axisID);
+    startSystemProgramThread(command, axisID);
   }
 
   public void midasBlendStack(AxisID axisID, float imageRotation) {
@@ -1117,15 +1123,16 @@ public class ProcessManager extends BaseProcessManager {
     //  Construct the command line strings
     String[] commandArray = new String[3];
 
-    String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
-    String stack = getDatasetName() + axisID.getExtension() + ".bl ";
-    String xform = getDatasetName() + axisID.getExtension() + ".prexf ";
+    //String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
+    String stack = getDatasetName() + axisID.getExtension() + ".bl";
+    String xform = getDatasetName() + axisID.getExtension() + ".prexf";
 
-    String commandLine = ApplicationManager.getIMODBinPath() + "midas "
-        + options + stack + xform;
+    String[] command = new String[] {
+        ApplicationManager.getIMODBinPath() + "midas", "-a",
+        String.valueOf(-1 * imageRotation), stack, xform };
 
     //  Start the system program thread
-    startSystemProgramThread(commandLine, axisID);
+    startSystemProgramThread(command, axisID);
   }
 
   public void midasFixEdges(AxisID axisID) {
@@ -1139,17 +1146,18 @@ public class ProcessManager extends BaseProcessManager {
     else {
       stackExtension = ".st";
     }
-    String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl "
-        + "-b 0 -q ";
-    String stack = getDatasetName() + axisID.getExtension() + stackExtension
-        + " ";
-    String xform = getDatasetName() + axisID.getExtension() + ".ecd ";
+    //String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl "
+    //   + "-b 0 -q ";
+    String stack = getDatasetName() + axisID.getExtension() + stackExtension;
+    String xform = getDatasetName() + axisID.getExtension() + ".ecd";
 
-    String commandLine = ApplicationManager.getIMODBinPath() + "midas "
-        + options + stack + xform;
+    String[] command = new String[] {
+        ApplicationManager.getIMODBinPath() + "midas", "-p ",
+        getDatasetName() + axisID.getExtension() + ".pl", "-b", "0", "-q",
+        stack, xform };
 
     //  Start the system program thread
-    startSystemProgramThread(commandLine, axisID);
+    startSystemProgramThread(command, axisID);
   }
 
   /**
@@ -1250,7 +1258,7 @@ public class ProcessManager extends BaseProcessManager {
       axisID = AxisID.FIRST;
     }
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        transferfidParam.getCommandString(), axisID, processResultDisplay);
+        transferfidParam.getCommand(), axisID, processResultDisplay);
     transferfidCommandLine = backgroundProcess.getCommandLine();
     return backgroundProcess.getName();
   }
@@ -1493,13 +1501,13 @@ public class ProcessManager extends BaseProcessManager {
   public String combine(CombineComscriptState combineComscriptState,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Create the required combine command
-    String command = CombineComscriptState.COMSCRIPT_NAME + ".com";
+    String comscript = CombineComscriptState.COMSCRIPT_NAME + ".com";
 
     CombineProcessMonitor combineProcessMonitor = new CombineProcessMonitor(
         appManager, AxisID.ONLY, combineComscriptState, processResultDisplay);
 
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startBackgroundComScript(command,
+    ComScriptProcess comScriptProcess = startBackgroundComScript(comscript,
         combineProcessMonitor, AxisID.ONLY, combineComscriptState,
         CombineComscriptState.COMSCRIPT_WATCHED_FILE);
     return comScriptProcess.getName();
@@ -1621,23 +1629,6 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   /**
-   * Run the comand specified by the argument string
-   */
-  public String test(String commandLine, AxisID axisID) {
-    BackgroundProcess command = new BackgroundProcess(appManager, commandLine,
-        this, axisID);
-    command.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
-    command.setDebug(EtomoDirector.getInstance().isDebug());
-    command.start();
-
-    if (EtomoDirector.getInstance().isDebug()) {
-      System.err.println("Started " + commandLine);
-      System.err.println("  Name: " + command.getName());
-    }
-    return command.getName();
-  }
-
-  /**
    * Unique case to parse the output of transferfid and save it to a file
    * 
    * @param process
@@ -1673,7 +1664,7 @@ public class ProcessManager extends BaseProcessManager {
 
   private void printPsOutput(AxisID axisID) {
     SystemProgram ps = new SystemProgram(appManager.getPropertyUserDir(),
-        "ps axl", axisID);
+        new String[] { "ps", "axl" }, axisID);
     ps.run();
     System.out.println("ps axl date=" + ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
