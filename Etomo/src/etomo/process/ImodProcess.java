@@ -1,4 +1,3 @@
-
 package etomo.process;
 
 import java.io.File;
@@ -26,6 +25,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2006/04/11 13:47:20  sueh
+ * <p> bug# 809 Manage auto center and seed mode separately from
+ * <p> openBeadFixer so that seed mode doesn't always have to be managed.
+ * <p>
  * <p> Revision 3.30  2006/03/30 21:23:24  sueh
  * <p> bug# 809 Sending seed mode, auto center, and diameter messages to
  * <p> the bead fixer.
@@ -267,12 +270,12 @@ public class ImodProcess {
   public static final String BF_MESSAGE_DIAMETER = "5";
   public static final String MESSAGE_ON = "1";
   public static final String MESSAGE_OFF = "0";
-  
+
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
   public static final String SLICER_ANGLES_RESULTS_STRING1 = "Slicer";
   public static final String SLICER_ANGLES_RESULTS_STRING2 = "angles:";
-  
+
   public static final String TRUE = "1";
   public static final String FALSE = "0";
   public static final int CIRCLE = 1;
@@ -320,8 +323,9 @@ public class ImodProcess {
     this.axisID = axisID;
     datasetName = dataset;
   }
-  
-  public ImodProcess(BaseManager manager, String dataset, AxisID axisID, long beadfixerDiameter) {
+
+  public ImodProcess(BaseManager manager, String dataset, AxisID axisID,
+      long beadfixerDiameter) {
     this.manager = manager;
     this.axisID = axisID;
     datasetName = dataset;
@@ -339,7 +343,7 @@ public class ImodProcess {
     datasetName = dataset;
     modelName = model;
   }
-  
+
   /**
    * Dataset and model file constructor
    * 
@@ -360,7 +364,7 @@ public class ImodProcess {
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
   }
-  
+
   /**
    * Sets the -f command line option
    * @param frames
@@ -368,7 +372,7 @@ public class ImodProcess {
   public void setFrames(boolean frames) {
     this.frames = frames;
   }
-  
+
   public void setPieceListFileName(String pieceListFileName) {
     this.pieceListFileName = pieceListFileName;
   }
@@ -385,7 +389,7 @@ public class ImodProcess {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
-  
+
   /**
    * When openWithModel is true 3dmod will open with a model, if a model is set.
    * The default for openWithModel is true.
@@ -395,10 +399,11 @@ public class ImodProcess {
    * @param openWithoutModel
    */
   public void setOpenWithModel(boolean openWithModel) {
-    this.openWithModel = openWithModel; 
+    this.openWithModel = openWithModel;
   }
-  
-  private final int calcCurrentBinning(int binning, Run3dmodMenuOptions menuOptions) {
+
+  private final int calcCurrentBinning(int binning,
+      Run3dmodMenuOptions menuOptions) {
     int currentBinning;
     if (binning == defaultBinning) {
       currentBinning = 0;
@@ -415,7 +420,8 @@ public class ImodProcess {
   /**
    * Open the 3dmod process if is not already open.
    */
-  public void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException {
+  public void open(Run3dmodMenuOptions menuOptions)
+      throws SystemProcessException {
     if (isRunning()) {
       raise3dmod();
       return;
@@ -436,7 +442,7 @@ public class ImodProcess {
     if (frames) {
       commandOptions.add("-f");
     }
-    
+
     if (pieceListFileName != null && pieceListFileName.matches("\\S+")) {
       commandOptions.add("-p");
       commandOptions.add(pieceListFileName);
@@ -449,35 +455,39 @@ public class ImodProcess {
     if (useModv) {
       commandOptions.add("-view");
     }
-    
-    if (binning > defaultBinning || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
+
+    if (binning > defaultBinning
+        || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
-      commandOptions.add(Integer.toString(calcCurrentBinning(binning, menuOptions)));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binning,
+          menuOptions)));
     }
-    
-    if (binningXY > defaultBinning || (menuOptions.isBinBy2() && !menuOptions.isAllowBinningInZ())) {
+
+    if (binningXY > defaultBinning
+        || (menuOptions.isBinBy2() && !menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-b");
-      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY, menuOptions)));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY,
+          menuOptions)));
     }
-    
+
     if (menuOptions.isStartupWindow()) {
       commandOptions.add("-O");
     }
-    
+
     if (!datasetName.equals("")) {
       commandOptions.add(datasetName);
     }
-    
+
     if (datasetNameArray != null) {
       for (int i = 0; i < datasetNameArray.length; i++) {
         commandOptions.add(datasetNameArray[i]);
       }
     }
-    
+
     if (openWithModel && !modelName.equals("")) {
       commandOptions.add(modelName);
     }
-    
+
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
@@ -508,7 +518,7 @@ public class ImodProcess {
           String[] words = line.split("\\s+");
           if (words.length < 4) {
             throw (new SystemProcessException(
-              "Could not parse window ID from imod\n"));
+                "Could not parse window ID from imod\n"));
           }
           windowID = words[3];
         }
@@ -571,6 +581,7 @@ public class ImodProcess {
     sendArguments.add(MESSAGE_OPEN_MODEL);
     sendArguments.add(newModelName);
   }
+
   /**
    * Open a new model file
    */
@@ -622,7 +633,7 @@ public class ImodProcess {
     args[0] = MESSAGE_VIEW_MODEL;
     imodSendEvent(args);
   }
-  
+
   /**
    * Adds a message which sets new contours to be open
    * Message description:
@@ -637,7 +648,7 @@ public class ImodProcess {
   public void setNewContoursMessage(boolean open) {
     setNewObjectMessage(0, open, CIRCLE, 7, 0);
   }
-  
+
   /**
    * 
    * @param object
@@ -646,20 +657,16 @@ public class ImodProcess {
    * @param size
    * @param size3D
    */
-  public void setNewObjectMessage(
-    int object,
-    boolean open,
-    int symbol,
-    int size,
-    int size3D) {
+  public void setNewObjectMessage(int object, boolean open, int symbol,
+      int size, int size3D) {
     sendArguments.add(MESSAGE_NEWOBJ_PROPERTIES);
     sendArguments.add(String.valueOf(object));
     sendArguments.add(open ? TRUE : FALSE);
     sendArguments.add(String.valueOf(symbol));
     sendArguments.add(String.valueOf(size));
     sendArguments.add(String.valueOf(size3D));
-  } 
- 
+  }
+
   /**
    * Places arguments to set model mode on the argument list.
    */
@@ -716,7 +723,7 @@ public class ImodProcess {
     args[0] = MESSAGE_RAISE;
     imodSendEvent(args);
   }
-  
+
   /**
    * Places arguments to open one zap window and raise 3dmod on the argument
    * list.
@@ -724,7 +731,7 @@ public class ImodProcess {
   public void setOpenZapWindowMessage() {
     sendArguments.add(MESSAGE_ONE_ZAP_OPEN);
   }
-  
+
   /**
    * Open one zap window and raise 3dmod.
    */
@@ -740,15 +747,19 @@ public class ImodProcess {
   public void setOpenBeadFixerMessage() {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
   }
-  
+
   public void setAutoCenter(boolean autoCenter) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER, autoCenter ? MESSAGE_ON : MESSAGE_OFF);
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String.valueOf(beadfixerDiameter));
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER,
+        autoCenter ? MESSAGE_ON : MESSAGE_OFF);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
+        .valueOf(beadfixerDiameter));
   }
-  
+
   public void setSeedMode(boolean seedMode) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SEED_MODE, seedMode ? MESSAGE_ON : MESSAGE_OFF);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SEED_MODE,
+        seedMode ? MESSAGE_ON : MESSAGE_OFF);
   }
+
   /**
    * Open the beadfixer dialog
    * 
@@ -759,7 +770,7 @@ public class ImodProcess {
     args[0] = MESSAGE_OPEN_BEADFIXER;
     imodSendEvent(args);
   }
-  
+
   /**
    * Sends message requesting rubberband coordinates.
    * Should not be used with sendMessages().
@@ -771,13 +782,13 @@ public class ImodProcess {
     args[0] = MESSAGE_RUBBERBAND;
     return imodSendAndReceive(args);
   }
-  
+
   public Vector getSlicerAngles() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_SLICER_ANGLES;
     return imodSendAndReceive(args);
   }
-  
+
   private void addPluginMessage(String plugin, String message, String value) {
     sendArguments.add(MESSAGE_PLUGIN_MESSAGE);
     sendArguments.add(plugin);
@@ -795,20 +806,22 @@ public class ImodProcess {
       return;
     }
     /*for (int i = 0; i < sendArguments.size(); i++) {
-      System.out.print(sendArguments.get(i) + " ");
-    }
-    System.out.println();*/
-    imodSendEvent((String[]) sendArguments.toArray(new String[sendArguments.size()]));
+     System.out.print(sendArguments.get(i) + " ");
+     }
+     System.out.println();*/
+    imodSendEvent((String[]) sendArguments.toArray(new String[sendArguments
+        .size()]));
     sendArguments.clear();
   }
-  
+
   /**
    * Sends a message and then records the results found in the error stream.
    * @param args
    * @return
    * @throws SystemProcessException
    */
-  protected Vector imodSendAndReceive(String[] args) throws SystemProcessException {
+  protected Vector imodSendAndReceive(String[] args)
+      throws SystemProcessException {
     Vector results = new Vector();
     imodSendEvent(args, results);
     //3dmod sends the results before it returns 
@@ -827,12 +840,12 @@ public class ImodProcess {
         String[] words = line.split("\\s+");
         for (int i = 0; i < words.length; i++) {
           results.add(words[i]);
-        } 
+        }
       }
     } while ((line = imod.readStderr()) != null);
     return results;
   }
-  
+
   protected boolean parseError(String line, Vector errorMessage) {
     //Currently assuming that an error or warning message will be only one
     //line and contain ERROR_STRING or WARNING_STRING.
@@ -849,23 +862,27 @@ public class ImodProcess {
     return false;
   }
 
-
   private void imodSendEvent(String[] args) throws SystemProcessException {
     imodSendEvent(args, null);
   }
+
   /**
    * Send an event to 3dmod using the imodsendevent command
    */
-  private void imodSendEvent(String[] args, Vector messages) throws SystemProcessException {
+  private void imodSendEvent(String[] args, Vector messages)
+      throws SystemProcessException {
     if (windowID.equals("")) {
       throw (new SystemProcessException("No window ID available for imod"));
     }
-    String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
-        + windowID + " ";
+    String[] command = new String[2 + args.length];
+    command[0] = ApplicationManager.getIMODBinPath() + "imodsendevent";
+    command[1] = windowID;
+    //String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
+    //    + windowID + " ";
     for (int i = 0; i < args.length; i++) {
-      command = command + args[i] + " ";
+      command[i + 2] = args[i];
     }
-    if(EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
@@ -880,7 +897,7 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    if(EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("...done");
     }
 
@@ -903,7 +920,7 @@ public class ImodProcess {
         message = message + "stdout: " + line + "\n";
         line = imodSendEvent.readStdout();
       }
-      
+
       if (messages == null) {
         throw (new SystemProcessException(message));
       }
@@ -999,7 +1016,7 @@ public class ImodProcess {
   public void setOutputWindowID(boolean b) {
     outputWindowID = b;
   }
-  
+
   public void setBinning(int binning) {
     if (binning < defaultBinning) {
       this.binning = defaultBinning;
@@ -1008,7 +1025,7 @@ public class ImodProcess {
       this.binning = binning;
     }
   }
-  
+
   public void setBinningXY(int binningXY) {
     if (binningXY < defaultBinning) {
       this.binningXY = defaultBinning;
@@ -1024,9 +1041,9 @@ public class ImodProcess {
 
   protected String paramString() {
     return ",datasetName=" + datasetName + ", modelName=" + modelName
-        + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", modelView=" 
-        + modelView + ", useModv=" + useModv
-        + ", outputWindowID=" + outputWindowID + ", binning=" + binning;
+        + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", modelView="
+        + modelView + ", useModv=" + useModv + ", outputWindowID="
+        + outputWindowID + ", binning=" + binning;
   }
 
 }
