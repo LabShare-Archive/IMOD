@@ -35,7 +35,8 @@ public class ConstEtomoNumberTest extends TestCase {
   private static final int bigInteger = 999999999;
   private static final int smallInteger = -999999999;
 
-  private static final File testDir = new File(TypeTests.TEST_ROOT_DIR, "ConstEtomoNumber");
+  private static final File testDir = new File(TypeTests.TEST_ROOT_DIR,
+      "ConstEtomoNumber");
   private static final File propertiesFile = new File(testDir, "properties");
 
   /*
@@ -323,7 +324,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInt(), smallInteger);
     test.selfTestInvariants();
   }
-  
+
   public final void testSetNullIsValid_boolean() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: setNullIsValid sets invalidReason
@@ -383,7 +384,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isValid());
     test.selfTestInvariants();
   }
-  
+
   public final void testSetValidFloor_int() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     test.set(smallInteger);
@@ -465,6 +466,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.set(1);
     try {
       test.getInt();
+      fail("getInt() should fail when the type is float");
     }
     catch (IllegalStateException e) {
     }
@@ -473,6 +475,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.set(1);
     try {
       test.getInt();
+      fail("getInt() should fail when the type is long");
     }
     catch (IllegalStateException e) {
     }
@@ -481,6 +484,7 @@ public class ConstEtomoNumberTest extends TestCase {
     test.set(1);
     try {
       test.getInt();
+      fail("getInt() should fail when the type is double");
     }
     catch (IllegalStateException e) {
     }
@@ -534,12 +538,25 @@ public class ConstEtomoNumberTest extends TestCase {
     test.selfTestInvariants();
   }
 
-  //TODO
-  public final void testValidateReturnTypeLong() {
-  }
-
-  //TODO
   public final void testGetLong() {
+    EtomoNumber test = new EtomoNumber();
+    test.getLong();
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test.getLong();
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    try {
+      test.getLong();
+      fail("getLong() should fail when the type is float");
+    }
+    catch (IllegalStateException e) {
+    }
+    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    try {
+      test.getLong();
+      fail("getLong() should fail when the type is double");
+    }
+    catch (IllegalStateException e) {
+    }
   }
 
   //TODO
@@ -565,7 +582,7 @@ public class ConstEtomoNumberTest extends TestCase {
   //TODO
   public final void testIsNamed_String() {
   }
-  
+
   //TODO
   public final void testEquals_ConstEtomoNumber() {
   }
@@ -756,7 +773,7 @@ public class ConstEtomoNumberTest extends TestCase {
   //TODO
   public final void testValidateInputType_double() {
   }
-  
+
   //TODO
   public final void testNewNumber_float() {
   }
@@ -934,10 +951,10 @@ public class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.selfTestInvariants();
   }
-  
+
   //TODO
-  public final void  testGe_Number_Number() {
-    
+  public final void testGe_Number_Number() {
+
   }
 
   public final void testLt_Number_Number() {
@@ -1017,6 +1034,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/05/19 22:56:52  sueh
+ * <p> bug# 692 Added testGenInt().
+ * <p>
  * <p> Revision 1.18  2006/04/11 14:07:05  sueh
  * <p> bug# 692 Tested remove(Properties, String)
  * <p>
