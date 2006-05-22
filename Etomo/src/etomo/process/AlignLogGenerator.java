@@ -10,7 +10,12 @@
  * 
  * @version $Revision$
  * 
- * <p> $Log$ 
+ * <p> $Log$
+ * <p> Revision 3.4  2005/07/29 00:50:40  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p> 
  * </p>
  */
 
@@ -28,7 +33,7 @@ import etomo.type.AxisID;
 public class AlignLogGenerator {
 
   AxisID axisID;
-  String alignLogCommand;
+  String[] alignLogCommand = new String[5];
   private final BaseManager manager;
 
   public AlignLogGenerator(BaseManager manager, AxisID id) {
@@ -37,8 +42,10 @@ public class AlignLogGenerator {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    alignLogCommand = "tcsh -f " + ApplicationManager.getIMODBinPath()
-        + "alignlog ";
+    alignLogCommand[0] = "tcsh";
+    alignLogCommand[1] = "-f";
+    alignLogCommand[2] = ApplicationManager.getIMODBinPath() + "alignlog";
+    alignLogCommand[4] = axisID.getExtension();
   }
 
   public void run() throws IOException {
@@ -52,8 +59,9 @@ public class AlignLogGenerator {
   }
 
   private void runArgument(String argument, String logFile) throws IOException {
+    alignLogCommand[3] = argument;
     SystemProgram alignlog = new SystemProgram(manager.getPropertyUserDir(),
-        alignLogCommand + argument + " " + axisID.getExtension(), axisID);
+        alignLogCommand, axisID);
 
     alignlog.run();
 

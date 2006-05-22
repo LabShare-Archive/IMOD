@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/01/26 21:49:58  sueh
+ * <p> bug# 401 Added a ProcessResultDisplay member variable
+ * <p>
  * <p> Revision 1.19  2005/11/19 02:04:01  sueh
  * <p> bug# 744 Removing BackgroundComScriptMonitor.  Using
  * <p> DetachedProcessMonitor with both DetachedProcess and
@@ -212,12 +215,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       groupPid = parsePIDString(pidFile);
     }
     if (groupPid == null) {
-      lsof = new SystemProgram(manager.getPropertyUserDir(),
-          "/usr/sbin/lsof -w -S -l -M -L", axisID);
+      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
+          "-M", "-L" };
+      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
     }
     else {
-      lsof = new SystemProgram(manager.getPropertyUserDir(),
-          "/usr/sbin/lsof -w -S -l -M -L -g " + groupPid, axisID);
+      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
+          "-M", "-L", "-g", groupPid };
+      lsof = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
     }
     lsof.run();
     String[] stdout = lsof.getStdOutput();
