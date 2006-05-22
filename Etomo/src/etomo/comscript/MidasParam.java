@@ -25,6 +25,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2006/05/11 19:44:50  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p>
 * <p> Revision 1.9  2006/04/06 19:33:50  sueh
 * <p> bug# 808 Implementing ProcessDetails.
 * <p>
@@ -137,6 +142,10 @@ public class MidasParam implements Command {
   }
   
   public String getCommandName() {
+    return commandName;
+  }
+  
+  public String getCommand() {
     return commandName;
   }
   

@@ -366,9 +366,12 @@ public class ConstTiltalignParam implements CommandDetails {
     return (includeStartEndInc.isDefault() || !includeStartEndInc.valuesSet()) && includeList.getNElements() == 0;
   }
 
+  public String getCommand() {
+    return commandFileName + axisID.getExtension() + commandFileExtension;
+  }
   
   public String getCommandLine() {
-    return commandFileName + axisID.getExtension() + commandFileExtension;
+    return getCommand();
   }
   public String getCommandName() {
     return commandFileName;
@@ -807,6 +810,11 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2006/05/11 19:41:43  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.24  2006/04/06 18:56:13  sueh
  * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
  * <p> the generic gets.

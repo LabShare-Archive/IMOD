@@ -191,6 +191,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   }
   
   public String getCommandLine() {
+    return getCommand();
+  }
+  
+  public String getCommand() {
     return getProcessName().getCommand(axisID);
   }
   
@@ -288,6 +292,11 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/05/11 19:37:53  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 1.18  2006/04/06 18:48:54  sueh
  * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
  * <p> the generic gets.

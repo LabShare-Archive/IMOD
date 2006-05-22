@@ -37,6 +37,11 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2006/05/11 19:44:38  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 1.18  2006/04/06 19:33:36  sueh
  * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
  * <p> the generic gets.  Added rotationAnglesList to save the rotation angles.
@@ -302,6 +307,10 @@ public final class MakejoincomParam implements CommandDetails {
     options.add(metaData.getMidasLimit().toString());
     options.add(metaData.getRootName());
     return options;
+  }
+  
+  public String getCommand() {
+    return commandName;
   }
 
   public String getCommandLine() {

@@ -47,6 +47,10 @@ public class StartJoinParam implements CommandDetails {
   }
   
   public String getCommandLine() {
+    return getCommand();
+  }
+  
+  public String getCommand() {
     return PROCESS_NAME.getCommand(axisID);
   }
   
@@ -107,6 +111,11 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/05/11 19:48:22  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p>
 * <p> Revision 1.1  2006/04/06 19:38:23  sueh
 * <p> bug# 808 Added this param so that it could hold state data that is passed
 * <p> to it when makejoincom is successful.  The data is passed to JoinState

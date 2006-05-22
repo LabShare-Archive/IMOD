@@ -20,6 +20,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2006/05/11 19:39:07  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.15  2006/04/06 18:49:04  sueh
  * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
  * <p> the generic gets.
@@ -405,6 +410,10 @@ public class ConstNewstParam implements CommandDetails {
     parameterFile = "";
     fiducialessAlignment = false;
     magGradientFile = null;
+  }
+  
+  public String getCommand() {
+    return getCommandFileName(axisID);
   }
 
   public static String getCommandFileName(AxisID axisID) {

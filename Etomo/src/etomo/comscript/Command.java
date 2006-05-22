@@ -26,9 +26,15 @@ public interface Command {
   public String getCommandLine();
   public String[] getCommandArray();
   public AxisID getAxisID();
+  public String getCommand();//return the command or comscript file name
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2006/05/11 19:38:30  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p>
 * <p> Revision 1.8  2006/01/20 20:45:32  sueh
 * <p> updated copyright year
 * <p>

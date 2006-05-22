@@ -53,6 +53,10 @@ public class ArchiveorigParam implements Command {
     return COMMAND_NAME;
   }
   
+  public String getCommand() {
+    return COMMAND_NAME;
+  }
+  
   public String getCommandLine() {
     if (commandArray == null) {
       return "";
@@ -78,6 +82,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2006/05/11 19:33:59  sueh
+* <p> bug# 838 Implement Command instead of CommandDetails
+* <p>
 * <p> Revision 1.6  2006/04/06 18:48:12  sueh
 * <p> bug# 808 Implementing ProcessDetails.
 * <p>

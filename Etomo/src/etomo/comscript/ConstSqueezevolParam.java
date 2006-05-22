@@ -27,6 +27,11 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2006/05/11 19:39:30  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p>
 * <p> Revision 1.13  2006/04/06 18:49:18  sueh
 * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
 * <p> the generic gets.
@@ -223,6 +228,10 @@ public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
   }
   
   public String getCommandName() {
+    return commandName;
+  }
+  
+  public String getCommand() {
     return commandName;
   }
   

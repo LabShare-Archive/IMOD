@@ -27,6 +27,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.19  2006/05/11 19:43:18  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p>
 * <p> Revision 1.18  2006/04/06 18:58:57  sueh
 * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
 * <p> the generic gets.
@@ -222,6 +227,10 @@ public class FinishjoinParam implements CommandDetails {
   }
   
   public String getCommandName() {
+    return commandName;
+  }
+  
+  public String getCommand() {
     return commandName;
   }
   

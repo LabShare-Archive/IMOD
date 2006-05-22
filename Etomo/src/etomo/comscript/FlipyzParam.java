@@ -21,6 +21,11 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2006/05/11 19:43:29  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p>
 * <p> Revision 1.9  2006/04/06 18:59:14  sueh
 * <p> bug# 808 Implementing ProcessDetails.
 * <p>
@@ -126,6 +131,10 @@ public class FlipyzParam implements CommandDetails {
   }
   
   public String getCommandName() {
+    return command;
+  }
+  
+  public String getCommand() {
     return command;
   }
   

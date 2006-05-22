@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2006/05/11 19:50:36  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.13  2006/04/06 19:38:35  sueh
  * <p> bug# 808 Implementing ProcessDetails.  Added Fields to pass requests to
  * <p> the generic gets.
@@ -682,6 +687,10 @@ public class TrimvolParam implements CommandDetails {
   }
   
   public String getCommandName() {
+    return commandName;
+  }
+  
+  public String getCommand() {
     return commandName;
   }
   
