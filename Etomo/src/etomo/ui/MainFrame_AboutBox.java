@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/09/09 21:47:03  sueh
+ * <p> bug# 532 Handling null from stderr and stdout.
+ * <p>
  * <p> Revision 3.5  2005/07/29 00:54:18  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -167,7 +170,7 @@ public class MainFrame_AboutBox extends JDialog {
 	 * Run 3dmod -h to version and copyright information.
 	 */
 	private void getImodVersion(AxisID axisID) {
-		String command = ApplicationManager.getIMODBinPath() + "imodinfo";
+		String[] command = new String[] {ApplicationManager.getIMODBinPath() + "imodinfo"};
 		SystemProgram threeDmod_h = new SystemProgram(manager.getPropertyUserDir(),
         command, axisID);
 

@@ -12,6 +12,11 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.44  2006/04/28 21:13:14  sueh
+ * <p> $bug# 787 ConvertLabelToName:  when there is nothing in the string
+ * <p> $except for characters to be stripped, return "-".  This makes the expand
+ * <p> $button work.
+ * <p> $
  * <p> $Revision 3.43  2006/04/25 19:42:03  sueh
  * <p> $bug# 787 Made getTimestamp() public.
  * <p> $
@@ -510,8 +515,8 @@ public class Utilities {
 
     if (osName.startsWith("Windows")) {
       String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(propertyUserDir, "cmd.exe /C echo " + var,
-          axisID);
+      readEnvVar = new SystemProgram(propertyUserDir, new String[] { "cmd.exe",
+          "/C", "echo", var }, axisID);
       try {
         readEnvVar.run();
       }
@@ -543,7 +548,7 @@ public class Utilities {
 
     //  Non windows environment
     else {
-      readEnvVar = new SystemProgram(propertyUserDir, "env", axisID);
+      readEnvVar = new SystemProgram(propertyUserDir, new String[] {"env"}, axisID);
       try {
         readEnvVar.run();
       }

@@ -556,7 +556,7 @@ public final class RemotePath {
    */
   private final String getHostName(BaseManager manager, AxisID axisID) {
     SystemProgram hostname = new SystemProgram(manager.getPropertyUserDir(),
-        "hostname", axisID);
+        new String[] {"hostname"}, axisID);
     hostname.run();
     String[] stdout = hostname.getStdOutput();
     if (stdout == null || stdout.length < 1) {
@@ -649,6 +649,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/04/25 19:41:31  sueh
+ * <p> bug# 787 Moved the autodoc variable tag (%) to EtomoAutodoc.
+ * <p>
  * <p> Revision 1.5  2006/01/12 17:39:10  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
