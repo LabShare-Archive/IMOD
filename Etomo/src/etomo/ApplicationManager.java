@@ -5088,14 +5088,6 @@ public final class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Run the specified command as a background process with a indeterminate
-   * progress bar.
-   */
-  public void backgroundProcess(String commandLine, AxisID axisID) {
-    processMgr.test(commandLine, axisID);
-  }
-
-  /**
    * Start generic progress bar
    * @param value
    * @param axisID
@@ -5527,6 +5519,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.227  2006/05/19 19:24:28  sueh
+ * <p> bug# 866 Moved tomo pos functions to TomogramPositioningExpert and
+ * <p> UIExpertUtilities.
+ * <p>
  * <p> Revision 3.225  2006/05/16 21:17:47  sueh
  * <p> bug# 856 Fixing checkin comment
  * <p>
