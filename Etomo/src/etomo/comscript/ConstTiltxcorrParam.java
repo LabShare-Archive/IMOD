@@ -21,6 +21,11 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2006/05/11 19:42:11  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.14  2006/04/06 18:56:26  sueh
  * <p> bug# 808 Implementing ProcessDetails.
  * <p>
@@ -193,10 +198,6 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   public String getProcessNameString() {
     return processName.toString();
   }
-  
-  public String getCommand() {
-    return command;
-  }
 
   public String getInputFile() {
     return inputFile;
@@ -279,8 +280,12 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
     return command;
   }
   
-  public String getCommandLine() {
+  public String getCommand() {
     return processName.getCommand(axisID);
+  }
+  
+  public String getCommandLine() {
+    return getCommand();
   }
   public String[] getCommandArray() {
     return processName.getCommandArray(axisID);
