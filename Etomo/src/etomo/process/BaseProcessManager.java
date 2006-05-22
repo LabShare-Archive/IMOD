@@ -36,6 +36,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2006/05/11 19:51:55  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 1.40  2006/03/30 16:38:23  sueh
  * <p> bug# 839 print any recursive kills in the error log.
  * <p>
@@ -350,12 +355,13 @@ public abstract class BaseProcessManager {
 
   protected ComScriptProcess startComScript(String command,
       ProcessMonitor processMonitor, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessDetails processDetails) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay, ProcessDetails processDetails)
+      throws SystemProcessException {
     return startComScript(new ComScriptProcess(getManager(), command, this,
-        axisID, null, processMonitor, processResultDisplay, processDetails), command,
-        processMonitor, axisID);
+        axisID, null, processMonitor, processResultDisplay, processDetails),
+        command, processMonitor, axisID);
   }
-  
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -418,13 +424,13 @@ public abstract class BaseProcessManager {
         this, axisID, null, processMonitor, processResultDisplay),
         commandDetails.getCommandLine(), processMonitor, axisID);
   }
-  
+
   protected ComScriptProcess startComScript(Command command,
       ProcessMonitor processMonitor, AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(getManager(), command,
-        this, axisID, null, processMonitor, processResultDisplay),
-        command.getCommandLine(), processMonitor, axisID);
+    return startComScript(new ComScriptProcess(getManager(), command, this,
+        axisID, null, processMonitor, processResultDisplay), command
+        .getCommandLine(), processMonitor, axisID);
   }
 
   /**
@@ -435,15 +441,15 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  protected ComScriptProcess startBackgroundComScript(String command,
+  protected ComScriptProcess startBackgroundComScript(String comscript,
       DetachedProcessMonitor processMonitor, AxisID axisID,
       ComscriptState comscriptState, String watchedFileName)
       throws SystemProcessException {
     BackgroundComScriptProcess process = new BackgroundComScriptProcess(
-        getManager(), command, this, axisID, watchedFileName, processMonitor,
+        getManager(), comscript, this, axisID, watchedFileName, processMonitor,
         comscriptState);
     processMonitor.setProcess(process);
-    return startComScript(process, command, processMonitor, axisID);
+    return startComScript(process, comscript, processMonitor, axisID);
   }
 
   protected ComScriptProcess startBackgroundComScript(String command,
@@ -698,14 +704,16 @@ public abstract class BaseProcessManager {
     //there are no more unkilled child processes so kill process with a SIGKILL
     //signal
     kill("-9", processID, axisID);
-    System.err.println("killProcessAndDescendants:kill " + "-9" + " " + processID);
+    System.err.println("killProcessAndDescendants:kill " + "-9" + " "
+        + processID);
     //record killed process
     killedList.put(processID, "");
   }
 
   private void kill(String signal, String processID, AxisID axisID) {
     SystemProgram killShell = new SystemProgram(getManager()
-        .getPropertyUserDir(), "kill " + signal + " " + processID, axisID);
+        .getPropertyUserDir(), new String[] { "kill", signal, processID },
+        axisID);
     killShell.run();
     //System.out.println("kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
     Utilities.debugPrint("kill " + signal + " " + processID + " at "
@@ -725,7 +733,7 @@ public abstract class BaseProcessManager {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
     //ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(getManager().getPropertyUserDir(),
-        "ps axl", axisID);
+        new String[] {"ps","axl"}, axisID);
     ps.run();
     //System.out.println("ps axl date=" +  ps.getRunTimestamp());
     //  Find the index of the Parent ID and ProcessID
@@ -806,7 +814,7 @@ public abstract class BaseProcessManager {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
     //ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(getManager().getPropertyUserDir(),
-        "ps axl", axisID);
+        new String[] {"ps","axl"}, axisID);
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -941,19 +949,12 @@ public abstract class BaseProcessManager {
    * @param axisID
    * @throws SystemProcessException
    */
-  protected BackgroundProcess startBackgroundProcess(String commandLine,
-      AxisID axisID) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        commandLine, this, axisID);
-    return startBackgroundProcess(backgroundProcess, commandLine, axisID, null);
-  }
-
-  protected BackgroundProcess startBackgroundProcess(String commandLine,
+  protected BackgroundProcess startBackgroundProcess(ArrayList command,
       AxisID axisID, ProcessResultDisplay processResultDisplay)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
-        commandLine, this, axisID, processResultDisplay);
-    return startBackgroundProcess(backgroundProcess, commandLine, axisID, null);
+        command, this, axisID, processResultDisplay);
+    return startBackgroundProcess(backgroundProcess, backgroundProcess.getCommandLine(), axisID, null);
   }
 
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
@@ -1035,13 +1036,12 @@ public abstract class BaseProcessManager {
         axisID, null);
   }
 
-  protected BackgroundProcess startBackgroundProcess(
-      Command command, AxisID axisID, boolean forceNextProcess)
-      throws SystemProcessException {
+  protected BackgroundProcess startBackgroundProcess(Command command,
+      AxisID axisID, boolean forceNextProcess) throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(getManager(),
         command, this, axisID, forceNextProcess);
-    return startBackgroundProcess(backgroundProcess, command
-        .getCommandLine(), axisID, null);
+    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
+        axisID, null);
   }
 
   private BackgroundProcess startBackgroundProcess(
@@ -1103,13 +1103,13 @@ public abstract class BaseProcessManager {
         .getPropertyUserDir(), command, axisID);
     startSystemProgramThread(sysProgram);
   }
-
+/*
   protected void startSystemProgramThread(String command, AxisID axisID) {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(getManager()
         .getPropertyUserDir(), command, axisID);
     startSystemProgramThread(sysProgram);
-  }
+  }*/
 
   private void startSystemProgramThread(SystemProgram sysProgram) {
     sysProgram.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
