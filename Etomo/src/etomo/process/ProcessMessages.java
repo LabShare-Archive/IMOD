@@ -47,7 +47,7 @@ public final class ProcessMessages {
   private Vector errorList = null;
   private Vector chunkErrorList = null;
 
-  final static ProcessMessages getInstance() {
+  static ProcessMessages getInstance() {
     return new ProcessMessages(false, false);
   }
 
@@ -153,7 +153,7 @@ public final class ProcessMessages {
     getErrorList().add("");
   }
 
-  synchronized final void addError(String[] errors) {
+  synchronized void addError(String[] errors) {
     if (errors == null || errors.length == 0) {
       return;
     }
@@ -162,32 +162,32 @@ public final class ProcessMessages {
     }
   }
 
-  synchronized final void addError(ProcessMessages processMessages) {
+  synchronized void addError(ProcessMessages processMessages) {
     if (processMessages.errorList != null
         && processMessages.errorList.size() > 0) {
       getErrorList().addAll(processMessages.getErrorList());
     }
   }
 
-  synchronized final void addWarning(String warning) {
+  synchronized void addWarning(String warning) {
     getWarningList().add(warning);
   }
 
-  public final int errorListSize() {
+  public int errorListSize() {
     if (errorList == null) {
       return 0;
     }
     return errorList.size();
   }
 
-  public final int warningListSize() {
+  public int warningListSize() {
     if (warningList == null) {
       return 0;
     }
     return warningList.size();
   }
 
-  final int infoListSize() {
+  int infoListSize() {
     if (infoList == null) {
       return 0;
     }
@@ -216,7 +216,7 @@ public final class ProcessMessages {
     return (String) infoList.get(infoIndex);
   }
 
-  public final String getLastChunkError() {
+  public String getLastChunkError() {
     if (chunkErrorList == null || chunkErrorList.size() == 0) {
       return null;
     }
@@ -229,11 +229,11 @@ public final class ProcessMessages {
     printInfo();
   }
 
-  final boolean isError() {
+  boolean isError() {
     return errorList != null && errorList.size() > 0;
   }
 
-  public final void printError() {
+  public void printError() {
     if (errorList == null) {
       return;
     }
@@ -242,7 +242,7 @@ public final class ProcessMessages {
     }
   }
 
-  public final void printWarning() {
+  public void printWarning() {
     if (warningList == null) {
       return;
     }
@@ -251,7 +251,7 @@ public final class ProcessMessages {
     }
   }
 
-  private final void printInfo() {
+  private void printInfo() {
     if (infoList == null) {
       return;
     }
@@ -260,7 +260,7 @@ public final class ProcessMessages {
     }
   }
 
-  private final void parse() {
+  private void parse() {
     parsePipWarning();
     if (chunks) {
       if (multiLineMessages) {
@@ -285,7 +285,7 @@ public final class ProcessMessages {
    * Should be run before parseMultiLineMessage or parseSingleListMessage.
    * When it is done, line will be pointing to an unparsed string.
    */
-  private final void parsePipWarning() {
+  private void parsePipWarning() {
     if (line == null) {
       return;
     }
@@ -661,7 +661,7 @@ public final class ProcessMessages {
    * Returns infoList.  Never returns null.  
    * @return
    */
-  private final Vector getInfoList() {
+  private Vector getInfoList() {
     if (infoList == null) {
       infoList = new Vector();
     }
@@ -672,15 +672,43 @@ public final class ProcessMessages {
    * Returns chunkErrorList.  Never returns null.  
    * @return
    */
-  private final Vector getChunkErrorList() {
+  private Vector getChunkErrorList() {
     if (chunkErrorList == null) {
       chunkErrorList = new Vector();
     }
     return chunkErrorList;
   }
+  
+  public String toString() {
+    StringBuffer buffer = new StringBuffer();
+    if (infoList != null) {
+      for (int i = 0;i <infoList.size();i++) {
+        buffer.append(infoList.get(i)+"\n");
+      }
+    }
+    if (warningList != null) {
+      for (int i = 0;i <warningList.size();i++) {
+        buffer.append(warningList.get(i)+"\n");
+      }
+    }
+    if (errorList != null) {
+      for (int i = 0;i <errorList.size();i++) {
+        buffer.append(errorList.get(i)+"\n");
+      }
+    }
+    if (chunkErrorList != null) {
+      for (int i = 0;i <chunkErrorList.size();i++) {
+        buffer.append(chunkErrorList.get(i)+"\n");
+      }
+    }
+    return buffer.toString();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/03/16 01:53:06  sueh
+ * <p> Made constructor private
+ * <p>
  * <p> Revision 1.3  2005/11/30 21:15:11  sueh
  * <p> bug# 744 Adding addProcessOutput(String[]) to get standard out error
  * <p> messages.
