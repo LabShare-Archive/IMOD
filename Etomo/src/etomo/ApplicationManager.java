@@ -1761,6 +1761,59 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
+  private boolean okToFiducialModelTrack(AxisID axisID) {
+    File fiducialFile = DatasetFiles.getFiducialModelFile(this, axisID);
+    if (!fiducialFile.exists()) {
+      return true;
+    }
+    long fiducialLastModified = fiducialFile.lastModified();
+    ConstEtomoNumber fiducialLastTracked = state.getFidFileLastModified(axisID);
+    long seedLastModified = 0;
+    File seedFile = DatasetFiles.getSeedFile(this, axisID);
+    if (seedFile.exists()) {
+      seedLastModified = seedFile.lastModified();
+    }
+    //If the fid file is more recent and it is not the product of tracking
+    //then ask before overwriting it by tracking
+    if (fiducialLastModified > seedLastModified
+        && !fiducialLastTracked.isNull()
+        && fiducialLastModified != fiducialLastTracked.getLong()) {
+      return uiHarness
+          .openYesNoWarningDialog(
+              "If you track fiducials now, you will overwrite the fiducial file you just modified.\nFirst press the "
+                  + FiducialModelDialog.USE_MODEL_LABEL
+                  + " button.\n\nWARNING:  If you press Yes, you will overwrite your fiducial file.",
+              axisID);
+    }
+    return true;
+  }
+
+  private boolean okToMakeFiducialModelSeedModel(AxisID axisID) {
+    File seedFile = DatasetFiles.getSeedFile(this, axisID);
+    if (!seedFile.exists()) {
+      return true;
+    }
+    long seedLastModified = seedFile.lastModified();
+    ConstEtomoNumber seedLastCopied = state.getSeedFileLastModified(axisID);
+    long fiducialLastModified = 0;
+    File fiducialFile = DatasetFiles.getFiducialModelFile(this, axisID);
+    if (fiducialFile.exists()) {
+      fiducialLastModified = fiducialFile.lastModified();
+    }
+    //If the seed file is more recent then the fid file
+    //then ask before overwriting it by copying the fid file into the seed file.
+    if (seedLastModified > fiducialLastModified
+        && seedLastModified != seedLastCopied.getLong()) {
+      return uiHarness
+          .openYesNoWarningDialog(
+              "If you copy the fiducial file to the seed file now, you will overwrite the seed file you just modified.\nFirst press the "
+                  + FiducialModelDialog.TRACK_LABEL
+                  + " button.\n\nWARNING:  If you press Yes, you will overwrite your seed file.",
+              axisID);
+    }
+    return true;
+  }
+
   /**
    * Get the beadtrack parameters from the fiducial model dialog and run the
    * track com script
@@ -1770,6 +1823,9 @@ public final class ApplicationManager extends BaseManager {
     sendMsgProcessStarting(processResultDisplay);
     if (!updateTrackCom(axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    if (!okToFiducialModelTrack(axisID)) {
       return;
     }
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1802,16 +1858,24 @@ public final class ApplicationManager extends BaseManager {
     String fiducialModelFilename = propertyUserDir + File.separator
         + metaData.getDatasetName() + axisID.getExtension() + ".fid";
     File fiducialModel = new File(fiducialModelFilename);
-    if (seedModel.exists()
-        && seedModel.lastModified() > fiducialModel.lastModified()) {
-      String[] message = new String[3];
-      message[0] = "WARNING: The seed model file is more recent the fiducial model file";
-      message[1] = "To avoid losing your changes to the seed model file,";
-      message[2] = "track fiducials before pressing Use Fiducial Model as Seed.";
-      uiHarness.openMessageDialog(message, "Use Fiducial Model as Seed Failed",
-          axisID);
+    if (!fiducialModel.exists()) {
+      uiHarness.openMessageDialog("Fiducial model does not exist.",
+          FiducialModelDialog.USE_MODEL_LABEL + " failed.", axisID);
       return;
     }
+    if (!okToMakeFiducialModelSeedModel(axisID)) {
+      return;
+    }/*
+     if (seedModel.exists()
+     && seedModel.lastModified() > fiducialModel.lastModified()) {
+     String[] message = new String[3];
+     message[0] = "WARNING: The seed model file is more recent the fiducial model file";
+     message[1] = "To avoid losing your changes to the seed model file,";
+     message[2] = "track fiducials before pressing Use Fiducial Model as Seed.";
+     uiHarness.openMessageDialog(message, "Use Fiducial Model as Seed Failed",
+     axisID);
+     return;
+     }*/
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1853,6 +1917,13 @@ public final class ApplicationManager extends BaseManager {
     catch (SystemProcessException e) {
       e.printStackTrace();
       System.err.println("System process exception in replaceRawStack");
+    }
+    File seedFile = DatasetFiles.getSeedFile(this, axisID);
+    if (seedFile.exists()) {
+      state.setSeedFileLastModified(axisID, seedFile.lastModified());
+    }
+    else {
+      state.resetSeedFileLastModified(axisID);
     }
     mainPanel.stopProgressBar(axisID);
     if (axisID == AxisID.SECOND) {
@@ -2125,7 +2196,7 @@ public final class ApplicationManager extends BaseManager {
     if (fineAlignmentDialogB != null) {
       saveAlignmentEstimationDialog(fineAlignmentDialogB, AxisID.SECOND);
     }
-    
+
     getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog();
     getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog();
     /*if (tomogramPositioningDialogA != null) {
@@ -5519,6 +5590,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.228  2006/05/22 22:34:14  sueh
+ * <p> bug# 577 Removed unused function backgroundProcess(String, AxisID).
+ * <p>
  * <p> Revision 3.227  2006/05/19 19:24:28  sueh
  * <p> bug# 866 Moved tomo pos functions to TomogramPositioningExpert and
  * <p> UIExpertUtilities.
