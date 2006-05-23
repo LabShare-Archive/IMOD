@@ -20,6 +20,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2006/05/16 21:28:40  sueh
+ * <p> bug# 856 Added a and bFiducialModel, usePoints, and transferCoordinateFile.
+ * <p> Using matchBToA to add the atob parameter to the script.
+ * <p>
  * <p> Revision 3.8  2005/02/23 01:40:33  sueh
  * <p> bug# 600 Making solvematch radio button options public static final ints.
  * <p>
@@ -231,13 +235,13 @@ public class SolvematchParam extends ConstSolvematchParam implements
     bFiducialModel = null;
     if (aFiducialFilename.matches("^\\s*\\S+?afid.xyz\\s*$")) {
       matchBToA = true;
-      aFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.FIRST);
-      bFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.SECOND);
+      aFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.FIRST);
+      bFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.SECOND);
     }
     else if (aFiducialFilename.matches("^\\s*\\S+?bfid.xyz\\s*$")) {
       matchBToA = false;
-      bFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.FIRST);
-      aFiducialModel = DatasetFiles.getFiducialModel(manager, AxisID.SECOND);
+      bFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.FIRST);
+      aFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.SECOND);
     }
   }
   
