@@ -29,6 +29,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/03/30 21:25:38  sueh
+ * <p> bug# 809 Do fix fiducials with auto center on.
+ * <p>
  * <p> Revision 3.20  2006/02/06 21:20:54  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
@@ -194,6 +197,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
+  public static final String USE_MODEL_LABEL = "Use Fiducial Model as Seed";
+  public static final String TRACK_LABEL = "Track Fiducial Seed Model";
+
   private JPanel pnlFiducialModel = new JPanel();
 
   private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
@@ -205,8 +211,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
 
   private final MultiLineButton btnTrack;
 
-  private MultiLineButton btnUseModel = new MultiLineButton(
-      "<html><b>Use Fiducial Model as Seed</b>");
+  private MultiLineButton btnUseModel = new MultiLineButton(USE_MODEL_LABEL);
 
   private final Run3dmodButton btnFixModel;
 
@@ -305,7 +310,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public static ProcessResultDisplay getTrackFiducialsDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Track Fiducial Seed Model",
+    return MultiLineButton.getToggleButtonInstance(TRACK_LABEL,
         DialogType.FIDUCIAL_MODEL);
   }
 
@@ -439,7 +444,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
     }
     else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel, true);
+      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel,
+          true);
     }
   }
 
