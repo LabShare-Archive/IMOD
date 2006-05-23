@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.98  2006/05/22 22:49:55  sueh
+ * bug# 577 popuping up dialog when copyTomoComs doesn't return 0
+ *
  * Revision 3.97  2006/05/19 19:40:12  sueh
  * bug# 838 Copying align z shift and angle offset to sample z shift and angle offset
  * when sample is completed.
@@ -779,6 +782,7 @@ import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
 import etomo.ui.UIHarness;
+import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
@@ -1779,6 +1783,15 @@ public class ProcessManager extends BaseProcessManager {
       state.setSampleAngleOffset(axisID, state.getAlignAngleOffset(axisID));
       state.setSampleXAxisTilt(axisID, processDetails
           .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
+    }
+    else if (processName == ProcessName.TRACK) {
+      File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
+      if (fiducialFile.exists()) {
+        state.setFidFileLastModified(axisID, fiducialFile.lastModified());
+      }
+      else {
+        state.resetFidFileLastModified(axisID);
+      }
     }
   }
 
