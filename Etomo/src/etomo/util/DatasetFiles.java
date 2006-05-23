@@ -65,10 +65,11 @@ public final class DatasetFiles {
     return dataset + axisID.getExtension() + STACK_EXT;
   }
 
-  public static String getSeedName(String dataset, AxisType axisType,
-      AxisID axisID) {
-    axisID = correctAxisID(axisType, axisID);
-    return dataset + axisID.getExtension() + ".seed";
+  public static File getSeedFile(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return new File(manager.getPropertyUserDir(), metaData.getName()
+        + axisID.getExtension() + ".seed");
   }
 
   //Tomograms
@@ -116,7 +117,8 @@ public final class DatasetFiles {
 
   //Other dataset files
 
-  public static File getDatasetFile(BaseManager manager, AxisID axisID, String filename) {
+  public static File getDatasetFile(BaseManager manager, AxisID axisID,
+      String filename) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), metaData.getName()
@@ -134,10 +136,14 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
 
-  public static String getFiducialModel(BaseManager manager, AxisID axisID) {
+  public static String getFiducialModelName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".fid";
+  }
+
+  public static File getFiducialModelFile(BaseManager manager, AxisID axisID) {
+    return new File(getFiducialModelName(manager, axisID));
   }
 
   public static File getPieceListFile(BaseManager manager, AxisID axisID) {
@@ -244,6 +250,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/05/19 19:54:09  sueh
+ * <p> bug# 866 Added getDatasetFile()
+ * <p>
  * <p> Revision 1.15  2006/05/16 21:39:22  sueh
  * <p> bug# 856 Added getCombineCom(), getFiducialMode(), and
  * <p> getTransferFidCoorFile().
