@@ -143,7 +143,8 @@ public final class DatasetFiles {
   }
 
   public static File getFiducialModelFile(BaseManager manager, AxisID axisID) {
-    return new File(getFiducialModelName(manager, axisID));
+    return new File(manager.getPropertyUserDir(), getFiducialModelName(manager,
+        axisID));
   }
 
   public static File getPieceListFile(BaseManager manager, AxisID axisID) {
@@ -250,6 +251,11 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/05/23 21:02:06  sueh
+ * <p> bug# 617 Changed getFiducialModel() to getFiducialModelName(). Added
+ * <p> getFiducialModelFile() and getSeedFile().  Removed unused function
+ * <p> getSeedName.
+ * <p>
  * <p> Revision 1.16  2006/05/19 19:54:09  sueh
  * <p> bug# 866 Added getDatasetFile()
  * <p>
