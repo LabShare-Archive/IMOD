@@ -559,12 +559,15 @@ public class ConstEtomoNumberTest extends TestCase {
     }
   }
 
-  //TODO
-  public final void validateReturnTypeDouble() {
-  }
-
-  //TODO
   public final void testGetDouble() {
+    EtomoNumber test = new EtomoNumber();
+    test.getDouble();
+    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test.getDouble();
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test.getDouble();
+    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test.getDouble();
   }
 
   //TODO
@@ -1034,6 +1037,9 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2006/05/22 23:06:45  sueh
+ * <p> bug# 692 Implemented getGetLong().
+ * <p>
  * <p> Revision 1.19  2006/05/19 22:56:52  sueh
  * <p> bug# 692 Added testGenInt().
  * <p>
