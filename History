@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/23/06: eTomo now warns the user if they try to overwrite a modified seed file
+or fiducial file with the "Track Fiducial Seed Model" or "Use Fiducial Model As
+Seed" buttons.
+
 5/19/06: IMOD_3-8-9
 5/19/06: Fixed bugs in new handling of tomogram positioning information and
 restructured code controlling the positioning dialog. 
