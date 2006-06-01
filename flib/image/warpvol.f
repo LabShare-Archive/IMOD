@@ -15,45 +15,13 @@ c       ROTATEVOL for rotating large volumes.
 c       
 c       See man page for more details
 c       
-c       David Mastronarde, 11/15/96; modified for 3-D matrix of
-c       transformations, 7/23/97
-c       DNM 2/26/01: add temporary directory entry and semi-unique filenames
-c       DNM 11/6/01: fixed problem with output array size not being respected
-c       
 c       $Author$
 c       
 c       $Date$
 c       
 c       $Revision$
-c       
-c       $Log$
-c       Revision 3.8  2006/01/23 19:31:22  mast
-c       Increased format for status output from i4 to i6
-c	
-c       Revision 3.7  2005/03/01 00:01:41  mast
-c       Needed to iterate finding that extra pixels were needed for input
-c	
-c       Revision 3.6  2004/11/10 02:05:18  mast
-c       Do two passes of allocating data into cubes to avoid overflow, and
-c       also sample positions along edges of cubes to determine real range
-c       needed for loading data
-c	
-c       Revision 3.5  2004/07/24 17:35:38  mast
-c       Added progress output
-c	
-c       Revision 3.4  2003/10/10 20:37:06  mast
-c       Changed to use subroutines in rotmatwarpsubs.f and include file.
-c       Converted to PIP/autodoc input and added linear interpolation option.
-c	
-c       Revision 3.3  2003/10/02 19:59:05  mast
-c       Changed method of writing sections to avoid having to fit output
-c       section into array all at once.
-c       Increased array size and put big array in common
-c	
-c       Revision 3.2  2003/03/14 22:54:09  mast
-c       Standardized error outout and implemented implicit none
-c	
-
+c       Log at end
+c
       implicit none
       include 'rotmatwarp.inc'
       integer maxloc
@@ -86,8 +54,8 @@ c
       real*4 xofsout,xp,yp,zp,bval,dx,dy,dz,v2,v4,v6,v5,v8,vu,vd,vmin,vmax
       real*4 a,b,c,d,e,f,tmin,tmax,tmean,dmean,dminin,dmaxin,d11,d12,d21,d22
       integer*4 iunit,longint,l,izp,izpp1,izpm1,nLinesOut,interpOrder, nExtra
-      integer*4 newExtra
-      real*4 baseInt
+      integer*4 newExtra,nck
+      real*4 baseInt,rnck
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -110,6 +78,8 @@ c       set defaults here
 c       
       interpOrder = 2
       baseInt = 0.5
+      nck = 2
+      rnck = nck
       tempdir = ' '
       tempext='wrp      1'
       call time(tim)
@@ -124,7 +94,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 
       if (PipGetInOutFile('InputFile', 1, 'Name of input file', filein)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exiterror('NO INPUT FILE SPECIFIED')
       call imopen(5,filein,'RO')
       call irdhdr(5,nxyzin,mxyzin,mode,dminin,dmaxin,dmeanin)
       nxout=nzin
@@ -132,13 +102,13 @@ c
       nzout=nxin
 c       
       if (PipGetInOutFile('OutputFile', 2, 'Name of output file', fileout)
-     &    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+     &    .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
 c       
       if (pipinput) then
         ierr = PipGetString('TemporaryDirectory', tempdir)
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
         ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
-        if (PipGetString('TransformFile', fileinv) .ne. 0) call errorexit(
+        if (PipGetString('TransformFile', fileinv) .ne. 0) call exiterror(
      &      'NO FILE WITH INVERSE TRANSFORMS SPECIFIED')
       else
         write(*,'(1x,a,/,a,$)')'Enter path name of directory for '//
@@ -175,7 +145,7 @@ c
       zlocst=1.e10
       zlocmax=-1.e10
       nloctot=nlocx*nlocz*nlocy
-      if(nloctot.gt.maxloc)call errorexit(
+      if(nloctot.gt.maxloc)call exiterror(
      &    'TOO MANY TRANSFORMATIONS TO FIT IN ARRAYS')
 
       do l=1,nloctot
@@ -208,6 +178,15 @@ c
         enddo
       enddo
 c       
+c       DNM 7/26/02: transfer pixel spacing to same axes
+c       
+      call irtdel(5,delta)
+      do i=1,3
+        cell(i)=nxyzout(i)*delta(i)
+        cell(i+3)=90.
+        cxyzout(i)=nxyzout(i)/2.
+      enddo
+c       
 c       Get provisional setup of cubes then find actual limits of input
 c       cubes with this setup - loop until no new extra pixels needed
 c       
@@ -222,33 +201,42 @@ c
           do ixcube=1,ncubes(1)
             do iycube=1,ncubes(2)
 c               
-c               back-transform the corner coordinates of the output cube to
+c               back-transform the faces of the output cube to
 c               find the limiting index coordinates of the input cube
 c               
               do i=1,3
                 inmin(i)=100000
                 inmax(i)=-100000
               enddo
-              do ifx=0,16
-                do ify=0,16
-                  do ifz=0,16
-                    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/16.-cxout
-                    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/16.-cyout
-                    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/16.-czout
-                    call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
-     &                  zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
-     &                  zcen,minv,cxyzin) 
-                    do i=1,3
-                      ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
-     &                    minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
-                      inmin(i)=max(0,min(inmin(i),ival-2))
-                      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
-c			
-c                       See if any extra pixels are needed in input
+              do ifx=0,nck
+                do ify=0,nck
+                  do ifz=0,nck
+                    if (ifx .eq. 0 .or. ifx .eq. nck .or. ify .eq. 0 .or.
+     &                  ify .eq. nck .or. ifz .eq. 0 .or. ifz .eq. nck) then
+                      xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/rnck-cxout
+                      ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/rnck-cyout
+                      zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/rnck-czout
+                      call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
+     &                    zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
+     &                    zcen,minv,cxyzin) 
+                      do i=1,3
+                        ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
+     &                      minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
+                        inmin(i)=max(0,min(inmin(i),ival-2))
+                        inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
+c                         
+c                         See if any extra pixels are needed in input
 c                       
-                      newExtra = max(newExtra, inmax(i) + 1 - inmin(i) -
-     &                    inpdim)
-                    enddo
+c                         if (newExtra .lt.inmax(i) + 1-inmin(i)-inpdim) then
+c                          print *,ixcube,iycube,izcube,xcen,ycen,zcen,
+c     &                        inmax(i) + 1 - inmin(i) -
+c     &                        inpdim,i, ival, inmin(i), inmax(i)
+c                          print *,minv(i,1),minv(i,2),minv(i,3),cxyzin(i)
+c                        endif
+                        newExtra = max(newExtra, inmax(i) + 1 - inmin(i) -
+     &                      inpdim)
+                      enddo
+                    endif
                   enddo
                 enddo
               enddo
@@ -266,15 +254,6 @@ c
       call setup_cubes_scratch(devmx, nExtra, filein, tempdir, tempext, tim)
 c       
       call imopen(6,fileout,'NEW')
-c       
-c       DNM 7/26/02: transfer pixel spacing to same axes
-c       
-      call irtdel(5,delta)
-      do i=1,3
-        cell(i)=nxyzout(i)*delta(i)
-        cell(i+3)=90.
-        cxyzout(i)=nxyzout(i)/2.
-      enddo
 c       
       call icrhdr(6,nxyzout,nxyzout,mode,title,0)
       call ialcel(6,cell)
@@ -309,28 +288,31 @@ c
         do ixcube=1,ncubes(1)
           do iycube=1,ncubes(2)
 c             
-c             back-transform the corner coordinates of the output cube to
+c             back-transform the faces of the output cube to
 c             find the limiting index coordinates of the input cube
 c             
             do i=1,3
               inmin(i)=100000
               inmax(i)=-100000
             enddo
-            do ifx=0,16
-              do ify=0,16
-                do ifz=0,16
-                  xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/16-cxout
-                  ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/16-cyout
-                  zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/16-czout
-                  call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
-     &                zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
-     &                zcen,minv,cxyzin) 
-                  do i=1,3
-                    ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
-     &                  minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
-                    inmin(i)=max(0,min(inmin(i),ival-2))
-                    inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
-                  enddo
+            do ifx=0,nck
+              do ify=0,nck
+                do ifz=0,nck
+                  if (ifx .eq. 0 .or. ifx .eq. nck .or. ify .eq. 0 .or.
+     &                ify .eq. nck .or. ifz .eq. 0 .or. ifz .eq. nck) then
+                    xcen=ixyzcube(1,ixcube)+ifx*nxyzcube(1,ixcube)/rnck-cxout
+                    ycen=ixyzcube(2,iycube)+ify*nxyzcube(2,iycube)/rnck-cyout
+                    zcen=ixyzcube(3,izcube)+ifz*nxyzcube(3,izcube)/rnck-czout
+                    call interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,
+     &                  zlocst,dzloc, nlocx, nlocy, nlocz, xcen,ycen,
+     &                  zcen,minv,cxyzin) 
+                    do i=1,3
+                      ival=nint(minv(i,1)*xcen+minv(i,2)*ycen+
+     &                    minv(i,3)*zcen+cxyzin(i)+nxyzin(i)/2)
+                      inmin(i)=max(0,min(inmin(i),ival-2))
+                      inmax(i)=min(nxyzin(i)-1,max(inmax(i),ival+2))
+                    enddo
+                  endif
                 enddo
               enddo
             enddo
@@ -342,11 +324,13 @@ c
 c             load the input cube
 c             
             if(ifempty.eq.0)then
+c              print *,ixcube,iycube,izcube,inmin(3),inmax(3),
+c               inmax(3)+1-inmin(3)
               do iz=inmin(3),inmax(3)
                 call imposn(5,iz,0)
-c		  write(*,'(10i5)')ixcube,iycube,izcube,iz,iz+1-inmin(3)
-c                 &		      ,inmin(1), inmax(1),inmin(2),inmax(2)
-c		  call flush(6)
+c                write(*,'(10i5)')ixcube,iycube,izcube,iz,iz+1-inmin(3)
+c     &              ,inmin(1), inmax(1),inmin(2),inmax(2)
+c                call flush(6)
                 call irdpas(5,array(1,1,iz+1-inmin(3)),inpdim,inpdim,
      &              inmin(1),inmax(1),inmin(2),inmax(2),*99)
               enddo
@@ -503,15 +487,7 @@ c
         call imclose(i)
       enddo
       call exit(0)
-99    call errorexit('READING FILE')
-      end
-
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: WARPVOL - ',message
-      call exit(1)
+99    call exiterror('READING FILE')
       end
 
 
@@ -577,3 +553,39 @@ c
       enddo
       return
       end
+
+c       
+c       $Log$
+c       Revision 3.9  2006/02/27 05:25:05  mast
+c       Defer opening output file until all errors are assessed
+c
+c       Revision 3.8  2006/01/23 19:31:22  mast
+c       Increased format for status output from i4 to i6
+c	
+c       Revision 3.7  2005/03/01 00:01:41  mast
+c       Needed to iterate finding that extra pixels were needed for input
+c	
+c       Revision 3.6  2004/11/10 02:05:18  mast
+c       Do two passes of allocating data into cubes to avoid overflow, and
+c       also sample positions along edges of cubes to determine real range
+c       needed for loading data
+c	
+c       Revision 3.5  2004/07/24 17:35:38  mast
+c       Added progress output
+c	
+c       Revision 3.4  2003/10/10 20:37:06  mast
+c       Changed to use subroutines in rotmatwarpsubs.f and include file.
+c       Converted to PIP/autodoc input and added linear interpolation option.
+c	
+c       Revision 3.3  2003/10/02 19:59:05  mast
+c       Changed method of writing sections to avoid having to fit output
+c       section into array all at once.
+c       Increased array size and put big array in common
+c	
+c       Revision 3.2  2003/03/14 22:54:09  mast
+c       Standardized error outout and implemented implicit none
+c	
+c       David Mastronarde, 11/15/96; modified for 3-D matrix of
+c       transformations, 7/23/97
+c       DNM 2/26/01: add temporary directory entry and semi-unique filenames
+c       DNM 11/6/01: fixed problem with output array size not being respected
