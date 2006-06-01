@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/1/06: Fixed bug in Warpvol's checking of input cube sizes created 2/26/06.
+
 5/23/06: eTomo now warns the user if they try to overwrite a modified seed file
 or fiducial file with the "Track Fiducial Seed Model" or "Use Fiducial Model As
 Seed" buttons.
@@ -41,7 +43,7 @@ same X/Y/Z image location.
 
 5/8/06: In fine grain dialog, added ability to set contour connection numbers
 to force or prevent mesh connections between contours on adjacent sections.
-In Imodmmesh, implemented use of these connection numbers and fixed the forcing
+In Imodmesh, implemented use of these connection numbers and fixed the forcing
 option to connect nearest pairs of contours.
 
 5/5/06: Setupcombine converted to take command line arguments and to set up
