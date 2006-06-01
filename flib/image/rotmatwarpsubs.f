@@ -8,6 +8,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2006/01/23 19:31:22  mast
+c	  Increased format for status output from i4 to i6
+c	
 c	  Revision 3.4  2004/11/10 02:06:03  mast
 c	  Rearranged setup_cubes to allow it to be called twice from warpvol
 c	  and to provide a factor for extra pixels needed in input
@@ -49,9 +52,12 @@ c	  volume, store the starting index coordinates
 c
 	do i=1,3
 	  ncubes(i)=(nxyzout(i)-1)/idimout+1
-	  if(ncubes(i).gt.lmcube) call errorexit(
-     &	      'TOO MANY CUBES IN LONGEST DIRECTION TO FIT IN ARRAYS')
-
+	  if(ncubes(i).gt.lmcube) then
+            if (filein .ne. ' ' .or. nExtra .lt. 100) call exiterror(
+     &          'TOO MANY CUBES IN LONGEST DIRECTION TO FIT IN ARRAYS')
+            call exiterror('TOO MANY CUBES FOR ARRAYS, CHECK FOR WILD '//
+     &          'VECTORS/BIG JUMPS BETWEEN TRANSFORMS')
+          endif
 	  nxyzcubas(i)=nxyzout(i)/ncubes(i)
 	  nbigcube(i)=mod(nxyzout(i),ncubes(i))
 	  ind=0
@@ -64,7 +70,7 @@ c
 	  nxyzscr(i)=nxyzcubas(i)+1
 	enddo
 	if (nxout * (nxyzcubas(2) + 1) .ge. inpdim**3)
-     &	    call errorexit('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
+     &	    call exiterror('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
 c	  
 c	  get an array of file numbers for each cube in X/Y plane
 c
@@ -350,7 +356,7 @@ c
 	  call imclose(i)
 	enddo
 	call exit(0)
-99	call errorexit('READING FILE')
+99	call exiterror('READING FILE')
 	end
 
 
@@ -388,7 +394,7 @@ c
 	  tsum = tsum + tmpsum / nyout
 	enddo
 	return
-99	call errorexit('READING FILE')
+99	call exiterror('READING FILE')
 	end
 
 
