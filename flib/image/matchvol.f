@@ -9,42 +9,12 @@ c       uses the same algorithm as ROTATEVOL for rotating large volumes.
 c       
 c       See man page for more information
 c       
-c       David Mastronarde, 1995
-c       DNM 2/26/01: add temporary directory entry and semi-unique filenames
-c       DNM 11/6/01: fixed problem with output array size not being respected
-c       
 c       $Author$
 c       
 c       $Date$
 c       
 c       $Revision$
-c       
-c       $Log$
-c       Revision 3.7  2005/10/11 22:27:15  mast
-c       Preserve the origin value, so squeezevol doesn't have to
-c	
-c       Revision 3.6  2005/10/11 21:35:57  mast
-c       Fixed fallback params
-c	
-c       Revision 3.5  2004/11/10 02:06:27  mast
-c       Added argument to call to setup cubes
-c	
-c       Revision 3.4  2003/10/10 20:37:53  mast
-c       Changed to use subroutines in rotmatwarpsubs.f and include file.
-c       Converted to PIP/autodoc input and added linear interpolation option
-c       and option to set center of input area.
-c	
-c       Revision 3.3  2003/10/02 19:58:27  mast
-c       Changed method of writing sections to avoid having to fit output
-c       section into array all at once.
-c       Increased array size and put big array in common
-c	
-c       Revision 3.2  2003/03/14 23:43:50  mast
-c       Replace stop statement with standard error output
-c	
-c       Revision 3.1  2002/07/31 23:55:45  mast
-c       Made it preserve pixel size
-c	
+c       Log and other history at end
 c       
       implicit none
       include 'rotmatwarp.inc'
@@ -102,7 +72,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 
       if (PipGetInOutFile('InputFile', 1, 'Name of input file', filein)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exiterror('NO INPUT FILE SPECIFIED')
 
       call imopen(5,filein,'RO')
       call irdhdr(5,nxyzin,mxyzin,mode,dminin,dmaxin,dmeanin)
@@ -113,7 +83,7 @@ c
       enddo
 c       
       if (PipGetInOutFile('OutputFile', 2, 'Name of output file', imfileout)
-     &    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+     &    .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
 c       
       if (pipinput) then
         ierr = PipGetString('TemporaryDirectory', tempdir)
@@ -127,7 +97,7 @@ c
         ierr = PipNumberOfEntries('TransformFile', numXFiles)
         ierr = PipNumberOfEntries('3DTransform', numXLines)
         ntrans = numXFiles + numXLines
-        if (ntrans .eq. 0) call errorexit('NO TRANSFORMS SPECIFIED')
+        if (ntrans .eq. 0) call exiterror('NO TRANSFORMS SPECIFIED')
         call PipAllowCommaDefaults(0)
         do itrans=1,ntrans
           if (itrans .le.numXFiles) then
@@ -269,11 +239,36 @@ c
       call transform_cubes(interpOrder)
       end
 
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: MATCHVOL - ',message
-      call exit(1)
-      end
-
+c       
+c       $Log$
+c       Revision 3.8  2006/02/27 05:25:15  mast
+c       Defer opening output file until all errors are assessed
+c
+c       Revision 3.7  2005/10/11 22:27:15  mast
+c       Preserve the origin value, so squeezevol doesn't have to
+c	
+c       Revision 3.6  2005/10/11 21:35:57  mast
+c       Fixed fallback params
+c	
+c       Revision 3.5  2004/11/10 02:06:27  mast
+c       Added argument to call to setup cubes
+c	
+c       Revision 3.4  2003/10/10 20:37:53  mast
+c       Changed to use subroutines in rotmatwarpsubs.f and include file.
+c       Converted to PIP/autodoc input and added linear interpolation option
+c       and option to set center of input area.
+c	
+c       Revision 3.3  2003/10/02 19:58:27  mast
+c       Changed method of writing sections to avoid having to fit output
+c       section into array all at once.
+c       Increased array size and put big array in common
+c	
+c       Revision 3.2  2003/03/14 23:43:50  mast
+c       Replace stop statement with standard error output
+c	
+c       Revision 3.1  2002/07/31 23:55:45  mast
+c       Made it preserve pixel size
+c	
+c       David Mastronarde, 1995
+c       DNM 2/26/01: add temporary directory entry and semi-unique filenames
+c       DNM 11/6/01: fixed problem with output array size not being respected
