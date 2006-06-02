@@ -6,6 +6,9 @@ IMOD History
 or fiducial file with the "Track Fiducial Seed Model" or "Use Fiducial Model As
 Seed" buttons.
 
+5/20/06: Added menu entry to Midas to mirror image around X axis, modified
+amat_to_rotmagstr to handle inverted axes as negative stretch.
+
 5/19/06: IMOD_3-8-9
 5/19/06: Fixed bugs in new handling of tomogram positioning information and
 restructured code controlling the positioning dialog. 
