@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/06: IMOD_3-8-10
+6/2/06: Added option to Transferfid to deal with mirror-image data sets.
+
 6/1/06: Fixed bug in Warpvol's checking of input cube sizes created 2/26/06.
+Increased Rotatevol, Matchvol, and Warpvol array allocation to 500 MB.
 
 5/23/06: eTomo now warns the user if they try to overwrite a modified seed file
 or fiducial file with the "Track Fiducial Seed Model" or "Use Fiducial Model As
