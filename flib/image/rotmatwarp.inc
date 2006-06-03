@@ -8,6 +8,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.3  2006/06/01 14:17:48  mast
+c       Increased dimensions to nominal 256 MB
+c
 c       Revision 3.2  2005/04/14 00:35:58  mast
 c       *** empty log message ***
 c	
@@ -19,7 +22,7 @@ c       keep limdim less than 2/3 of inpdim**2
 c       with this assumptiom, memory in MB is 16/3 * inpdim**3 + 10 * inpdim**2
 c       
       integer inpdim, limdim, lmcube, limout
-      parameter (inpdim=360,limdim=86000,lmcube=limdim/inpdim)
+      parameter (inpdim=450,limdim=130000,lmcube=limdim/inpdim)
       parameter (limout=(inpdim*3)/2)
 c       
       real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
