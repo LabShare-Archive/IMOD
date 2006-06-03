@@ -89,6 +89,7 @@ set AA = A
 set BB = B
 set ifbtoa = 0
 set correspond = ""
+set mirror = 0
 
 if ($#argv < 1) goto usage
 
@@ -150,6 +151,10 @@ while ($#argv > 1)
       breaksw
     case -m:
       set midas = 1
+      shift
+      breaksw
+    case -x:
+      set mirror = 1
       shift
       breaksw
     case -b:
@@ -423,10 +428,18 @@ while ($bsecind <= $nviews)
 	set pmdiffs = ()
 	while ($plusminus <= $pmend)
 	    if ($plusminus) then
-		\echo "0 -1 1 0 -1 0" >! $tmprot90
+		if ($mirror) then
+                    \echo "0 -1 -1 0 -1 -1" >! $tmprot90
+                else
+                    \echo "0 -1 1 0 -1 0" >! $tmprot90
+                endif
 		set pmangle = +90
 	    else
-		\echo "0 1 -1 0 0 -1" >! $tmprot90
+		if ($mirror) then
+                    \echo "0 1 1 0 0 0" >! $tmprot90
+                else
+                    \echo "0 1 -1 0 0 -1" >! $tmprot90
+                endif
 		set pmangle = -90
 	    endif
 	    # 
@@ -809,6 +822,7 @@ Usage: $pn [options] setname
                       view closest to zero tilt in setnameb.rawtlt)
      -a #          Rotation direction or angle to search (+1, -1, +90, -90
                       all work, default is to search both directions)
+     -x            Mirror one image around X axis
      -m            Run Midas to set initial translational/rotational alignment
      -r radius     Bead radius for Beadtrack; default is taken from tracka.com
      -l            Search for light rather than dark beads (only works with -r)
@@ -821,6 +835,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.27  2006/05/14 03:14:00  mast
+#  Changed scaling to accomodate xfsimplex change
+#
 #  Revision 3.26  2006/05/05 18:11:57  mast
 #  Added -c option to usage
 #
