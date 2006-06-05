@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.37  2006/05/22 22:46:41  sueh
+ * bug# 577 Removed constructors which accepted a String command.
+ *
  * Revision 3.36  2006/05/11 19:52:08  sueh
  * bug# 838 Add CommandDetails, which extends Command and
  * ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -381,6 +384,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private Command command = null;
   private ProcessDetails processDetails = null;
   private CommandDetails commandDetails = null;
+  private final ProcessData processData;
 
   private boolean started = false;
   private boolean error = false;
@@ -401,6 +405,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, String comScript,
@@ -416,6 +421,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     this.processDetails = processDetails;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, String comScript,
@@ -428,6 +434,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
@@ -443,6 +450,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     command = commandDetails;
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
@@ -459,6 +467,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, Command command,
@@ -473,6 +482,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.command = command;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
   }
 
   /**
@@ -491,12 +501,16 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
   }
 
+  public final ProcessData getProcessData() {
+    return processData;
+  }
+
   /**
    * Execute the specified com script. This can be initiated by the start()
    * function for the thread.
    */
   public void run() {
-
+    processData.reset();
     if (demoMode) {
       try {
         started = true;
@@ -692,7 +706,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
-    ParsePID parsePID = new ParsePID(csh, cshProcessID);
+    ParsePID parsePID = new ParsePID(csh, cshProcessID, processData);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
 

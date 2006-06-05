@@ -9,6 +9,7 @@ import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.ui.UIHarness;
 
@@ -25,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2006/05/22 22:45:14  sueh
+ * <p> bug# 577 Removed constructors which accepted a String command.
+ * <p>
  * <p> Revision 3.26  2006/05/11 19:51:23  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -230,6 +234,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   private CommandDetails commandDetails = null;
   private AxisID axisID;
   private boolean forceNextProcess = false;
+  private final ProcessData processData;
 
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
@@ -243,17 +248,18 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
 
   public BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArrayList = commandArrayList;
     this.processManager = processManager;
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -262,11 +268,12 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.commandArray = command.getCommandArray();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     command = commandDetails;
@@ -276,10 +283,12 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processManager = processManager;
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
+      BaseProcessManager processManager, AxisID axisID,
+      boolean forceNextProcess, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -287,51 +296,36 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processManager = processManager;
     this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
-  }
-
-  public BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.commandArray = commandArray;
-    this.processManager = processManager;
-    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
     this.commandArray = command.getCommandArray();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
-  }
-
-  public BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess) {
-    this.manager = manager;
-    this.axisID = axisID;
-    this.commandArray = commandArray;
-    this.processManager = processManager;
-    this.forceNextProcess = forceNextProcess;
-    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
-      boolean forceNextProcess, ProcessResultDisplay processResultDisplay) {
+      boolean forceNextProcess, ProcessResultDisplay processResultDisplay,
+      ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -339,6 +333,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.forceNextProcess = forceNextProcess;
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
   public final AxisID getAxisID() {
@@ -352,6 +347,10 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   public final void setProcessResultDisplay(
       ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
+  }
+
+  public final ProcessData getProcessData() {
+    return processData;
   }
 
   /**
@@ -409,7 +408,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
       else if (commandArrayList != null) {
         buffer = new StringBuffer();
         for (int i = 0; i < commandArrayList.size(); i++) {
-          buffer.append((String) commandArrayList.get(i));
+          buffer.append((String) commandArrayList.get(i) + " ");
         }
         commandLine = buffer.toString();
       }
@@ -485,6 +484,12 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return null;
   }
 
+  protected void waitForPid() {
+    ParsePID parsePID = new ParsePID(program, commandProcessID, processData);
+    Thread parsePIDThread = new Thread(parsePID);
+    parsePIDThread.start();
+  }
+
   /**
    * Execute the command and notify the ProcessManager when it is done
    */
@@ -508,9 +513,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     }
     else {
       // Execute the command
-      ParsePID parsePID = new ParsePID(program, commandProcessID);
-      Thread parsePIDThread = new Thread(parsePID);
-      parsePIDThread.start();
+      waitForPid();
       program.run();
     }
 
