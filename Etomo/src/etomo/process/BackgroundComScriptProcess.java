@@ -12,7 +12,6 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ComscriptState;
 import etomo.type.AxisID;
-import etomo.type.ProcessResultDisplay;
 import etomo.util.Utilities;
 
 /**
@@ -32,6 +31,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/05/22 22:44:21  sueh
+ * <p> bug# 577 Placed the command in a String[] rather then a String.
+ * <p>
  * <p> Revision 1.20  2006/01/26 21:49:58  sueh
  * <p> bug# 401 Added a ProcessResultDisplay member variable
  * <p>
@@ -182,17 +184,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     this.manager = manager;
   }
 
-  public BackgroundComScriptProcess(BaseManager manager, String comScript,
-      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      DetachedProcessMonitor monitor, ComscriptState comscriptState,
-      ProcessResultDisplay processResultDisplay) {
-    super(manager, comScript, processManager, axisID, watchedFileName, monitor);
-    this.comscriptState = comscriptState;
-    this.axisID = axisID;
-    this.manager = manager;
-    setProcessResultDisplay(processResultDisplay);
-  }
-
   /**
    * Since background processes can run after etomo has exited, it would be
    * easy to start a second combine that would interfer and cause
@@ -315,7 +306,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     program.setDebug(EtomoDirector.getInstance().isDebug());
 
     ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID,
-        outFile);
+        outFile, getProcessData());
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
 
@@ -415,6 +406,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
           }
         }
       }
+      getProcessData().setPid(PID.toString());
     }
     catch (IOException e) {
       e.printStackTrace();
