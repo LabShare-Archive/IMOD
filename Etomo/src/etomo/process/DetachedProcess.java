@@ -9,6 +9,7 @@ import etomo.BaseManager;
 import etomo.comscript.DetachedCommand;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
@@ -31,21 +32,12 @@ final class DetachedProcess extends BackgroundProcess {
 
   private final AxisID axisID;
   private final BaseManager manager;
-  private final DetachedProcessMonitor monitor;
-
-  public DetachedProcess(BaseManager manager, DetachedCommand command,
-      BaseProcessManager processManager, AxisID axisID,
-      DetachedProcessMonitor monitor) {
-    super(manager, command, processManager, axisID);
-    this.axisID = axisID;
-    this.manager = manager;
-    this.monitor = monitor;
-  }
+  private final OutfileProcessMonitor monitor;
   
   public DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
-      DetachedProcessMonitor monitor, ProcessResultDisplay processResultDisplay) {
-    super(manager, command, processManager, axisID);
+      OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay, ProcessName processName) {
+    super(manager, command, processManager, axisID,processName);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
@@ -67,6 +59,14 @@ final class DetachedProcess extends BackgroundProcess {
     program.setAcceptInputWhileRunning(true);
     setProgram(program);
     return true;
+  }
+  
+  protected void waitForPid() {
+    if (monitor == null) {
+      super.waitForPid();
+      return;
+    }
+    new Thread(new PidThread(monitor, getProcessData())).start();
   }
 
   private final String[] makeRunFile() throws IOException {
@@ -123,9 +123,48 @@ final class DetachedProcess extends BackgroundProcess {
   final String getStatusString() {
     return monitor.getStatusString();
   }
+  
+  final class PidThread implements Runnable {
+    private final OutfileProcessMonitor monitor;
+    private final ProcessData threadData;
+    
+    PidThread(OutfileProcessMonitor monitor, ProcessData threadData) {
+      this.monitor = monitor;
+      this.threadData = threadData;
+    }
+    
+    public void run() {
+      //wait until monitor is running
+      while (!monitor.isProcessRunning()) {
+        try {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException except) {
+          return;
+        } 
+      }
+      //wait for pid
+      String pid = null;
+      while (pid == null && monitor.isProcessRunning()) {
+        try {
+          pid = monitor.getPid();
+          Thread.sleep(100);
+        }
+        catch (InterruptedException except) {
+          return;
+        }
+      }
+      if (pid != null) {
+        threadData.setPid(pid);
+      }
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/01/26 21:54:28  sueh
+ * <p> bug# 401 Added a ProcessResultDisplay member variable
+ * <p>
  * <p> Revision 1.3  2006/01/06 02:39:47  sueh
  * <p> bug# 792 Using DetachedCommand instead of Command because it can
  * <p> create a safe command string that can go into a run file.
