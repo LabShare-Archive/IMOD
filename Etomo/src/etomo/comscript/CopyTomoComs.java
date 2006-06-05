@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2006/05/22 22:38:36  sueh
+ * bug# 577 Placed the command in an ArrayList rather then a String.
+ *
  * Revision 3.16  2006/03/16 01:49:31  sueh
  * bug# 830 Handling exitValue != 0 without an exception.
  *
@@ -223,7 +226,7 @@ public final class CopyTomoComs {
     command.add("-f");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     genOptions();
-    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command, AxisID.ONLY, true);
+    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command, AxisID.ONLY);
     //genStdInputSequence();
   }
 
