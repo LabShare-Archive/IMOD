@@ -18,6 +18,8 @@ import etomo.process.ImodProcess;
 import etomo.process.ProcessMessages;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
+import etomo.process.SystemProcessInterface;
+import etomo.process.ProcessData;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -91,6 +93,7 @@ public abstract class BaseManager {
   //private static variables
   private static boolean debug = false;
   private boolean exiting = false;
+  private boolean initialized = false;
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
   private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
   private DialogType nextProcessDialogTypeA = null;
@@ -125,7 +128,7 @@ public abstract class BaseManager {
   public abstract void pause(AxisID axisID);
 
   protected abstract Storable[] getParamFileStorableArray(
-      boolean includeMetaData);
+      boolean includeMetaData, int baseElements);
 
   public abstract void touch(File file);
 
@@ -222,6 +225,7 @@ public abstract class BaseManager {
         loadedParamFile = loadTestParamFile(etomoDataFile, axisID);
       }
     }
+    initialized = true;
   }
 
   public final void saveIntermediateParamFile(AxisID axisID) {
@@ -242,7 +246,7 @@ public abstract class BaseManager {
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
       return true;
     }
-    save(getParamFileStorableArray(true), axisID);
+    save(getStorableArray(true), axisID);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
@@ -252,6 +256,17 @@ public abstract class BaseManager {
       processTrack.resetModified();
     }
     return true;
+  }
+
+  private Storable[] getStorableArray(boolean includeMetaData) {
+    //if starting or exiting etomo, include the thread data
+    if (exiting || !initialized) {
+      Storable[] storableArray = getParamFileStorableArray(includeMetaData, 2);
+      storableArray[0] = getProcessManager().getProcessData(AxisID.FIRST);
+      storableArray[1] = getProcessManager().getProcessData(AxisID.SECOND);
+      return storableArray;
+    }
+    return getParamFileStorableArray(includeMetaData, 0);
   }
 
   /** 
@@ -327,33 +342,11 @@ public abstract class BaseManager {
           return false;
         }
       }
-      /*//handle background processes
-       if (!threadNameA.equals("none") && backgroundProcessA) {
-       messageArray.add("The " + backgroundProcessNameA
-       + " process will continue to run after Etomo ends.");
-       String osName = System.getProperty("os.name").toLowerCase();
-       if (osName.indexOf("linux") == -1 && osName.indexOf("mac os") == -1) {
-       messageArray
-       .add("Etomo will not be able to warn you if you interfere with this process by running another at the same time.");
-       }
-       messageArray
-       .add("Check " + backgroundProcessNameA + ".log for status.");
-       messageArray.add(" ");
-       }
-       //handle regular processes
-       if ((!threadNameA.equals("none") && !backgroundProcessA)
-       || !threadNameB.equals("none")) {
-       messageArray.add("There are still processes running.");
-       messageArray.add("Exiting Etomo now may terminate those processes.");
-       }
-       if (messageArray.size() > 0) {
-       messageArray.add("Do you still wish to exit the program?");
-       if (!uiHarness.openYesNoDialog((String[]) messageArray
-       .toArray(new String[messageArray.size()]), axisID)) {
-       exiting = false;
-       return false;
-       }
-       }*/
+      if (!checkUnidentifiedProcess(AxisID.FIRST)
+          || !checkUnidentifiedProcess(AxisID.SECOND)) {
+        exiting = false;
+        return false;
+      }
       //  Should we close the 3dmod windows
       try {
         if (imodManager.isOpen()) {
@@ -381,6 +374,23 @@ public abstract class BaseManager {
       e.printStackTrace();
       return true;
     }
+  }
+
+  private boolean checkUnidentifiedProcess(AxisID axisID) {
+    SystemProcessInterface thread = getProcessManager().getThread(axisID);
+    if (thread == null) {
+      return true;
+    }
+    ProcessData processData = thread.getProcessData();
+    if (processData != null && processData.isEmpty()) {
+      if (!uiHarness
+          .openYesNoWarningDialog(
+              "There currently is an unidentified process running.\nPlease wait a few seconds while it is identified.\n\nExit without waiting?",
+              axisID)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -498,7 +508,7 @@ public abstract class BaseManager {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
       paramStore.load(getBaseMetaData());
-      Storable[] storable = getParamFileStorableArray(false);
+      Storable[] storable = getStorableArray(false);
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
@@ -1009,6 +1019,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.56  2006/05/19 19:26:03  sueh
+ * <p> bug# 866 Added nextProcessDialogType, to let the manager call
+ * <p> UIExpert.nextProcess()
+ * <p>
  * <p> Revision 1.55  2006/03/22 00:34:59  sueh
  * <p> bug# 836 Preventing savePreferences() from running when the axis is
  * <p> busy
