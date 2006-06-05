@@ -103,6 +103,9 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2006/05/01 21:16:57  sueh
+* <p> $bug# 854
+* <p> $
 * <p> $Revision 1.1  2006/01/12 17:02:37  sueh
 * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
 * <p> $
@@ -418,7 +421,6 @@ final class AutodocParser {
    * @throws IOException
    */
   private boolean attribute(WriteOnlyAttributeMap writeOnlyAttributeMap) throws IOException {
-    //System.out.println("0token="+token);
     Attribute attribute = null;
     testStartFunction("attribute");
     if (!delimiterInLine) {
@@ -426,29 +428,23 @@ final class AutodocParser {
         "A multi-line value cannot contain embedded empty lines or comments starting with '"
           + AutodocTokenizer.COMMENT_CHAR
           + "'.");
-      //System.out.println("1return false");
       return false;
     }
     if (!token.is(Token.WORD) && !token.is(Token.KEYWORD)) {
-      //System.out.println("2return false");
-      //new Exception().printStackTrace();
       return false;
     }
     attributeNameStart = token;
     attributeNameEnd = attributeNameStart;
     attribute = (Attribute) writeOnlyAttributeMap.addAttribute(attributeNameStart);
     nextToken();
-    //System.out.println("1token="+token);
     if (token.is(Token.SEPARATOR)) {
       while (token.is(Token.SEPARATOR)) {
         nextToken();
-        //System.out.println("2token="+token);
         if (!testEndFunction(attribute(attribute))) {
           reportError(
             "An attribute names cannot end with a separator ('"
               + AutodocTokenizer.SEPARATOR_CHAR
               + "').");
-          //System.out.println("3return false");
           return false;
         }
       }
@@ -456,7 +452,6 @@ final class AutodocParser {
     else {
       if (token.is(Token.WHITESPACE)) {
         nextToken();
-        //System.out.println("3token="+token);
       }
       if (!token.is(Token.DELIMITER)) {
         reportError(
