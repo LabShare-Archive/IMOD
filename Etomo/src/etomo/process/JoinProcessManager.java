@@ -14,6 +14,7 @@ import etomo.comscript.StartJoinParam;
 import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
 import etomo.type.JoinState;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -29,6 +30,11 @@ import etomo.type.JoinState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.18  2006/05/11 19:54:31  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 1.17  2006/04/06 19:41:18  sueh
  * <p> bug# 808 Added post processing for makejoincom and startjoin.  Added
  * <p> StartJoinParam to startjoin().
@@ -156,7 +162,7 @@ public class JoinProcessManager extends BaseProcessManager {
   JoinManager joinManager;
 
   public JoinProcessManager(JoinManager joinMgr) {
-    super();
+    super(joinMgr);
     joinManager = joinMgr;
   }
 
@@ -166,7 +172,7 @@ public class JoinProcessManager extends BaseProcessManager {
   public String makejoincom(MakejoincomParam makejoincomParam)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        makejoincomParam, AxisID.ONLY);
+        makejoincomParam, AxisID.ONLY, ProcessName.MAKEJOINCOM);
     return backgroundProcess.getName();
   }
 
@@ -176,7 +182,7 @@ public class JoinProcessManager extends BaseProcessManager {
   public String finishjoin(FinishjoinParam finishjoinParam)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        finishjoinParam, AxisID.ONLY);
+        finishjoinParam, AxisID.ONLY, ProcessName.FINISHJOIN);
     return backgroundProcess.getName();
   }
 
@@ -186,7 +192,7 @@ public class JoinProcessManager extends BaseProcessManager {
   public String xfalign(XfalignParam xfalignParam)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(xfalignParam,
-        AxisID.ONLY);
+        AxisID.ONLY, ProcessName.XFALIGN);
     return backgroundProcess.getName();
   }
 
@@ -195,7 +201,7 @@ public class JoinProcessManager extends BaseProcessManager {
    */
   public String flipyz(FlipyzParam flipyzParam) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(flipyzParam,
-        AxisID.ONLY);
+        AxisID.ONLY, ProcessName.CLIPFLIPYZ);
     return backgroundProcess.getName();
   }
 
@@ -227,7 +233,8 @@ public class JoinProcessManager extends BaseProcessManager {
       joinManager.setMode();
       if (processDetails.getBooleanValue(StartJoinParam.Fields.ROTATE)) {
         JoinState state = joinManager.getState();
-        state.setTotalRows(processDetails.getIntValue(StartJoinParam.Fields.TOTAL_ROWS));
+        state.setTotalRows(processDetails
+            .getIntValue(StartJoinParam.Fields.TOTAL_ROWS));
         state.setRotationAnglesList(processDetails
             .getHashtable(StartJoinParam.Fields.ROTATION_ANGLES_LIST));
       }
