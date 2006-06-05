@@ -5532,9 +5532,10 @@ public final class ApplicationManager extends BaseManager {
     return processMgr;
   }
 
-  protected Storable[] getParamFileStorableArray(boolean includeMetaData) {
+  protected Storable[] getParamFileStorableArray(boolean includeMetaData,
+      int baseElements) {
     boolean dualAxis = true;
-    int arraySize = 5;
+    int arraySize = 5 + baseElements;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       dualAxis = false;
       arraySize--;
@@ -5543,7 +5544,7 @@ public final class ApplicationManager extends BaseManager {
       arraySize--;
     }
     Storable[] storable = new Storable[arraySize];
-    int index = 0;
+    int index = baseElements;
     if (includeMetaData) {
       storable[index++] = metaData;
     }
@@ -5590,6 +5591,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.229  2006/05/23 21:00:13  sueh
+ * <p> bug# 617 Added okToFiducialModelTrack() and
+ * <p> okToMakeFiducialModelSeedModel().
+ * <p>
  * <p> Revision 3.228  2006/05/22 22:34:14  sueh
  * <p> bug# 577 Removed unused function backgroundProcess(String, AxisID).
  * <p>

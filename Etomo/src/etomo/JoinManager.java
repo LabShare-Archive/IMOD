@@ -53,6 +53,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2006/04/06 18:47:32  sueh
+ * <p> bug# 808 Added newStartJoinParam and to manage StartJoinParam so
+ * <p> that it can be modified by another process.
+ * <p>
  * <p> Revision 1.38  2006/03/20 17:49:16  sueh
  * <p> bug# 835 Changed setTestParamFile to setParamFile
  * <p>
@@ -1058,13 +1062,13 @@ public final class JoinManager extends BaseManager {
     return processMgr;
   }
 
-  protected final Storable[] getParamFileStorableArray(boolean includeMetaData) {
-    int arraySize = 2;
+  protected final Storable[] getParamFileStorableArray(boolean includeMetaData, int baseElements) {
+    int arraySize = 2 + baseElements;
     if (!includeMetaData) {
       arraySize--;
     }
     Storable[] storable = new Storable[arraySize];
-    int index = 0;
+    int index = baseElements;
     if (includeMetaData) {
       storable[index++] = metaData;
     }

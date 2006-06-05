@@ -106,13 +106,13 @@ public final class ParallelManager extends BaseManager {
     return mainPanel;
   }
 
-  protected final Storable[] getParamFileStorableArray(boolean includeMetaData) {
-    int arraySize = 2;
+  protected final Storable[] getParamFileStorableArray(boolean includeMetaData, int baseElements) {
+    int arraySize = 2 + baseElements;
     if (!includeMetaData) {
       arraySize--;
     }
     Storable[] storable = new Storable[arraySize];
-    int index = 0;
+    int index = baseElements;
     if (includeMetaData) {
       storable[index++] = metaData;
     }
@@ -251,5 +251,9 @@ public final class ParallelManager extends BaseManager {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/03/20 17:50:19  sueh
+ * <p> bug# 835 Manager (at the same level as ApplicationManager and
+ * <p> JoinManager) to manage generic parallel processes.
+ * <p> </p>
  */
