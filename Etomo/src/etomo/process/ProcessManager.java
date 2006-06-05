@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.99  2006/05/23 21:05:37  sueh
+ * bug# 617 Setting fidFileLastModified in TomogramState when track fiducials
+ * succeeds.
+ *
  * Revision 3.98  2006/05/22 22:49:55  sueh
  * bug# 577 popuping up dialog when copyTomoComs doesn't return 0
  *
@@ -827,7 +831,7 @@ public class ProcessManager extends BaseProcessManager {
   String transferfidCommandLine;
 
   public ProcessManager(ApplicationManager appMgr) {
-    super();
+    super(appMgr);
     appManager = appMgr;
   }
 
@@ -929,7 +933,7 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Create the required tiltalign command
     String command = BlendmontParam.getProcessName(
-        BlendmontParam.UNDISTORT_MODE).getCommand(axisID);
+        BlendmontParam.UNDISTORT_MODE).getComscript(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.UNDISTORT_MODE);
@@ -988,7 +992,7 @@ public class ProcessManager extends BaseProcessManager {
   public String blend(BlendmontParam blendmontParam, AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Create the required tiltalign command
-    String command = blendmontParam.getProcessName().getCommand(axisID);
+    String command = blendmontParam.getProcessName().getComscript(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, blendmontParam.getMode());
@@ -1262,7 +1266,8 @@ public class ProcessManager extends BaseProcessManager {
       axisID = AxisID.FIRST;
     }
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        transferfidParam.getCommand(), axisID, processResultDisplay);
+        transferfidParam.getCommand(), axisID, processResultDisplay,
+        ProcessName.TRANSFERFID);
     transferfidCommandLine = backgroundProcess.getCommandLine();
     return backgroundProcess.getName();
   }
@@ -1397,7 +1402,7 @@ public class ProcessManager extends BaseProcessManager {
   public String splittilt(SplittiltParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), axisID, processResultDisplay);
+        .getCommand(), axisID, processResultDisplay, ProcessName.SPLITTILT);
     return backgroundProcess.getName();
   }
 
@@ -1408,7 +1413,7 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new ExtracttiltsParam(appManager, axisID).getCommand(), axisID, true,
-        processResultDisplay);
+        processResultDisplay, ProcessName.EXTRACTTILTS);
     return backgroundProcess.getName();
   }
 
@@ -1419,7 +1424,7 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new ExtractpiecesParam(appManager, axisID).getCommand(), axisID, true,
-        processResultDisplay);
+        processResultDisplay, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 
@@ -1429,7 +1434,8 @@ public class ProcessManager extends BaseProcessManager {
   public String extractmagrad(ExtractmagradParam param, AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), axisID, true, processResultDisplay);
+        .getCommand(), axisID, true, processResultDisplay,
+        ProcessName.EXTRACTMAGRAD);
     return backgroundProcess.getName();
   }
 
@@ -1439,7 +1445,8 @@ public class ProcessManager extends BaseProcessManager {
   public String splitcombine(ProcessResultDisplay processResultDisplay)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        new SplitcombineParam().getCommand(), AxisID.ONLY, processResultDisplay);
+        new SplitcombineParam().getCommand(), AxisID.ONLY,
+        processResultDisplay, ProcessName.SPLITCOMBINE);
     return backgroundProcess.getName();
   }
 
@@ -1608,7 +1615,7 @@ public class ProcessManager extends BaseProcessManager {
   public String trimVolume(TrimvolParam trimvolParam,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
-        AxisID.ONLY, processResultDisplay);
+        AxisID.ONLY, processResultDisplay, ProcessName.TRIMVOL);
     return backgroundProcess.getName();
   }
 
@@ -1618,7 +1625,7 @@ public class ProcessManager extends BaseProcessManager {
   public String archiveOrig(ArchiveorigParam param)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, true);
+        AxisID.ONLY, true, ProcessName.ARCHIVEORIG);
     return backgroundProcess.getName();
   }
 
@@ -1628,7 +1635,8 @@ public class ProcessManager extends BaseProcessManager {
   public String squeezeVolume(ConstSqueezevolParam squeezevolParam,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        squeezevolParam, AxisID.ONLY, processResultDisplay);
+        squeezevolParam, AxisID.ONLY, processResultDisplay,
+        ProcessName.SQUEEZEVOL);
     return backgroundProcess.getName();
   }
 
