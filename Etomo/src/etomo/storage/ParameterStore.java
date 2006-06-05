@@ -16,6 +16,11 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2005/09/12 23:58:38  sueh
+ * <p> bug# 532 Added save() to save a Storable class without overwriting
+ * <p> preference entries from other Storable classes.  Added load(Storable) to
+ * <p> load a single storable class.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -31,8 +36,7 @@ import java.util.*;
  * <p> </p>
  */
 public class ParameterStore {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private File paramFile;
 
@@ -45,6 +49,20 @@ public class ParameterStore {
     this.paramFile = paramFile;
   }
 
+  public void save(Storable storable) throws IOException {
+    //get the existing property values from paramFile
+    FileInputStream inFile = new FileInputStream(paramFile);
+    Properties props = new Properties();
+    props.load(inFile);
+    inFile.close();
+    //let storable overwrite its values
+    storable.store(props);
+    //write the property values to paramFile
+    FileOutputStream outFile = new FileOutputStream(paramFile);
+    props.store(outFile, null);
+    outFile.close();
+  }
+
   /**
    * Save opens the given parameter file, collects the property key value
    * pairs from the array of storable objects and stores them to the file.
@@ -52,7 +70,6 @@ public class ParameterStore {
    * to collect the
    */
   public void save(Storable[] storableArray) throws IOException {
-
     //
     //  Open the parameter file
     //
@@ -63,7 +80,9 @@ public class ParameterStore {
     //
     Properties props = new Properties();
     for (int i = 0; i < storableArray.length; i++) {
-      storableArray[i].store(props);
+      if (storableArray[i] != null) {
+        storableArray[i].store(props);
+      }
     }
 
     //
@@ -76,14 +95,15 @@ public class ParameterStore {
     //
     outFile.close();
   }
-  
+
   /**
    * Save opens the given parameter file, collects the property key value
    * pairs from the array of storable objects and stores them to the file.
    * @param storableArray an array of storable objects that are iterated over
    * to collect the
    */
-  public void save(Storable[] storableArray, int numberStorablesExpected) throws IOException {
+  public void save(Storable[] storableArray, int numberStorablesExpected)
+      throws IOException {
     Properties props = null;
     if (storableArray.length < numberStorablesExpected) {
       //if not all the storables are being saved, don't overwrite the ones that
@@ -124,12 +144,15 @@ public class ParameterStore {
     //
     outFile.close();
   }
-  
+
   /**
    * Load in the stored property key value pairs and send them to the
    * storable object.
    */
   public void load(Storable storable) throws IOException {
+    if (paramFile == null) {
+      return;
+    }
     //
     //  Open the parameter file
     //
@@ -145,13 +168,12 @@ public class ParameterStore {
     //
     storable.load(props);
   }
-  
+
   /**
    * Load in the stored property key value pairs and send them to the array of
    * storable objects.
    */
   public void load(Storable[] storableArray) throws IOException {
-
     //
     //  Open the parameter file
     //
@@ -167,7 +189,9 @@ public class ParameterStore {
     //  Send the key/value pairs to the array of storable objects
     //
     for (int i = 0; i < storableArray.length; i++) {
-      storableArray[i].load(props);
+      if (storableArray[i] != null) {
+        storableArray[i].load(props);
+      }
     }
   }
 }
