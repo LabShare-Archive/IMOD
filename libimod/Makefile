@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2005/06/20 22:25:07  mast
+#  Added istore
+#
 #  Revision 3.9  2005/01/18 22:08:23  mast
 #  Needed to add / after INCDIR
 #
@@ -52,7 +55,8 @@ CFLAGS = $(LIBCFLAGS)
 IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
              imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
-	     ilist.$(O) ilabel.$(O) b3dutil.$(O) parselist.$(O) istore.$(O)
+	     ilist.$(O) ilabel.$(O) b3dutil.$(O) parselist.$(O) istore.$(O)\
+             amoeba.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O)
 
