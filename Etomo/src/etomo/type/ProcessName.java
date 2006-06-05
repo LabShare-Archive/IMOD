@@ -15,6 +15,10 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2006/04/06 20:13:59  sueh
+ * <p> $bug# 808 Added the ability to strip the extension in equals().  Getting the
+ * <p> $extension from DatasetFiles.
+ * <p> $
  * <p> $Revision 1.7  2005/12/09 20:28:36  sueh
  * <p> $bug# 776 Added tomosnapshot and equals()
  * <p> $
@@ -43,7 +47,7 @@ import etomo.util.DatasetFiles;
  */
 public class ProcessName {
   public static final String rcsid = "$$Id$$";
-  
+
   //known process names  
   private static final String eraser = "eraser";
   private static final String xcorr = "xcorr";
@@ -69,9 +73,22 @@ public class ProcessName {
   private static final String startjoin = "startjoin";
   private static final String processchunks = "processchunks";
   private static final String tomosnapshot = "tomosnapshot";
-  
+  private static final String transferfid = "transferfid";
+  private static final String clipflipyz = "clipflipyz";
+  private static final String finishjoin = "finishjoin";
+  private static final String makejoincom = "makejoincom";
+  private static final String trimvol = "trimvol";
+  private static final String squeezevol = "squeezevol";
+  private static final String archiveorig = "archiveorig";
+  private static final String splittilt = "splittilt";
+  private static final String splitcombine = "splitcombine";
+  private static final String extractmagrad = "extractmagrad";
+  private static final String extracttilts = "extracttilts";
+  private static final String extractpieces = "extractpieces";
+  private static final String xfalign = "xfalign";
+
   private final String name;
-  
+
   private ProcessName(String name) {
     this.name = name;
   }
@@ -84,7 +101,8 @@ public class ProcessName {
   public static final ProcessName NEWST = new ProcessName(newst);
   public static final ProcessName TILT = new ProcessName(tilt);
   public static final ProcessName MTFFILTER = new ProcessName(mtffilter);
-  public static final ProcessName SOLVEMATCHSHIFT = new ProcessName(solvematchshift);
+  public static final ProcessName SOLVEMATCHSHIFT = new ProcessName(
+      solvematchshift);
   public static final ProcessName SOLVEMATCHMOD = new ProcessName(solvematchmod);
   public static final ProcessName PATCHCORR = new ProcessName(patchcorr);
   public static final ProcessName MATCHORWARP = new ProcessName(matchorwarp);
@@ -100,14 +118,27 @@ public class ProcessName {
   public static final ProcessName STARTJOIN = new ProcessName(startjoin);
   public static final ProcessName PROCESSCHUNKS = new ProcessName(processchunks);
   public static final ProcessName TOMOSNAPSHOT = new ProcessName(tomosnapshot);
-  
+  public static final ProcessName TRANSFERFID = new ProcessName(transferfid);
+  public static final ProcessName CLIPFLIPYZ = new ProcessName(clipflipyz);
+  public static final ProcessName FINISHJOIN = new ProcessName(finishjoin);
+  public static final ProcessName MAKEJOINCOM = new ProcessName(makejoincom);
+  public static final ProcessName TRIMVOL = new ProcessName(trimvol);
+  public static final ProcessName SQUEEZEVOL = new ProcessName(squeezevol);
+  public static final ProcessName ARCHIVEORIG = new ProcessName(archiveorig);
+  public static final ProcessName SPLITTILT = new ProcessName(splittilt);
+  public static final ProcessName SPLITCOMBINE = new ProcessName(splitcombine);
+  public static final ProcessName EXTRACTMAGRAD = new ProcessName(extractmagrad);
+  public static final ProcessName EXTRACTTILTS = new ProcessName(extracttilts);
+  public static final ProcessName EXTRACTPIECES = new ProcessName(extractpieces);
+  public static final ProcessName XFALIGN = new ProcessName(xfalign);
+
   /**
    * Returns a string representation of the object.
    */
   public String toString() {
     return name;
   }
-  
+
   public final boolean equals(String name) {
     if (fromString(name) == this) {
       return true;
@@ -198,20 +229,57 @@ public class ProcessName {
     if (name.compareToIgnoreCase(tomosnapshot) == 0) {
       return TOMOSNAPSHOT;
     }
+    if (name.compareToIgnoreCase(transferfid) == 0) {
+      return TRANSFERFID;
+    }
+    if (name.compareToIgnoreCase(clipflipyz) == 0) {
+      return CLIPFLIPYZ;
+    }
+    if (name.compareToIgnoreCase(finishjoin) == 0) {
+      return FINISHJOIN;
+    }
+    if (name.compareToIgnoreCase(makejoincom) == 0) {
+      return MAKEJOINCOM;
+    }
+    if (name.compareToIgnoreCase(trimvol) == 0) {
+      return TRIMVOL;
+    }
+    if (name.compareToIgnoreCase(squeezevol) == 0) {
+      return SQUEEZEVOL;
+    }
+    if (name.compareToIgnoreCase(archiveorig) == 0) {
+      return ARCHIVEORIG;
+    }
+    if (name.compareToIgnoreCase(splittilt) == 0) {
+      return SPLITTILT;
+    }
+    if (name.compareToIgnoreCase(splitcombine) == 0) {
+      return SPLITCOMBINE;
+    }
+    if (name.compareToIgnoreCase(extractmagrad) == 0) {
+      return EXTRACTMAGRAD;
+    }
+    if (name.compareToIgnoreCase(extracttilts) == 0) {
+      return EXTRACTTILTS;
+    }
+    if (name.compareToIgnoreCase(extractpieces) == 0) {
+      return EXTRACTPIECES;
+    }
+    if (name.compareToIgnoreCase(xfalign) == 0) {
+      return XFALIGN;
+    }
     return null;
   }
-  
-  public static ProcessName fromFileName(
-    String fileName,
-    AxisID axisID,
-    String extension) {
+
+  public static ProcessName fromFileName(String fileName, AxisID axisID,
+      String extension) {
     String base = stripExtension(fileName, extension);
     if (axisID != AxisID.ONLY) {
       base = stripExtension(base, axisID.getExtension());
     }
     return fromString(base);
   }
-  
+
   private static String stripExtension(String fileName, String extension) {
     int extensionIndex = fileName.lastIndexOf(extension);
     if (extensionIndex > 0) {
@@ -219,12 +287,13 @@ public class ProcessName {
     }
     return fileName;
   }
-  
-  public String getCommand(AxisID axisID) {
+
+  public String getComscript(AxisID axisID) {
     return name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT;
   }
-  
-  public String[] getCommandArray(AxisID axisID) {
-    return new String[] { name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT };
+
+  public String[] getComscriptArray(AxisID axisID) {
+    return new String[] { name + axisID.getExtension()
+        + DatasetFiles.COMSCRIPT_EXT };
   }
 }
