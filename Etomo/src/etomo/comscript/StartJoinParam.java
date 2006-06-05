@@ -51,7 +51,7 @@ public class StartJoinParam implements CommandDetails {
   }
   
   public String getCommand() {
-    return PROCESS_NAME.getCommand(axisID);
+    return PROCESS_NAME.getComscript(axisID);
   }
   
   public AxisID getAxisID() {
@@ -111,6 +111,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/05/22 22:40:37  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.2  2006/05/11 19:48:22  sueh
 * <p> bug# 838 Add CommandDetails, which extends Command and
 * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
