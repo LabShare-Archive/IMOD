@@ -23,6 +23,9 @@ import java.io.IOException;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2004/08/25 23:02:27  sueh
+ * <p> $bug# 508 closing buffered reader on combine.out
+ * <p> $
  * <p> $Revision 1.3  2004/08/23 23:38:08  sueh
  * <p> $bug# 508 inheriting ParsePID
  * <p> $
@@ -35,14 +38,17 @@ import java.io.IOException;
  * <p> $$ </p>
  */
 
-public class ParseBackgroundPID extends ParsePID {
+public final class ParseBackgroundPID extends ParsePID {
   public static final String rcsid = "$$Id$$";
-  File outFile = null;
-  public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID, File outFile) {
-    super(cshProcess, bufPID);
+  
+  private final File outFile;
+
+  public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID,
+      File outFile, ProcessData threadData) {
+    super(cshProcess, bufPID, threadData);
     this.outFile = outFile;
   }
-  
+
   protected void parsePIDString() {
     BufferedReader bufferedReader = null;
     try {
@@ -58,7 +64,7 @@ public class ParseBackgroundPID extends ParsePID {
         if (line.startsWith("Shell PID:")) {
           String[] tokens = line.split("\\s+");
           if (tokens.length > 2) {
-            PID.append(tokens[2]);
+            appendPID(tokens[2]);
           }
         }
       }
@@ -67,7 +73,7 @@ public class ParseBackgroundPID extends ParsePID {
     }
     closeFile(bufferedReader);
   }
-  
+
   private void closeFile(BufferedReader bufferedReader) {
     try {
       if (bufferedReader != null) {

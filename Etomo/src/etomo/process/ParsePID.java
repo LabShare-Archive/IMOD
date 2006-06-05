@@ -16,6 +16,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2005/09/09 21:41:14  sueh
+ * <p> bug# 532 Handling null from stderr and stdout.
+ * <p>
  * <p> Revision 3.2  2004/08/24 23:08:56  sueh
  * <p> bug# 508 place the pid found in the err log
  * <p>
@@ -37,16 +40,18 @@ package etomo.process;
  */
 public class ParsePID implements Runnable {
   public static final String rcsid = "$Id$";
-  SystemProgram csh;
-  StringBuffer PID;
-  
-  public ParsePID(SystemProgram cshProcess, StringBuffer bufPID) {
+  private final SystemProgram csh;
+  private final StringBuffer PID;
+  private final ProcessData threadData;
+
+  public ParsePID(SystemProgram cshProcess, StringBuffer bufPID,
+      ProcessData threadData) {
     csh = cshProcess;
     PID = bufPID;
+    this.threadData = threadData;
   }
 
-
-  public void run() {
+  public final void run() {
     //  Wait for the csh thread to start
     while (!csh.isStarted()) {
       try {
@@ -54,7 +59,7 @@ public class ParsePID implements Runnable {
       }
       catch (InterruptedException except) {
         return;
-      }
+      } 
     }
 
     // Once it is started scan the stderr output for the appropriate string
@@ -67,7 +72,12 @@ public class ParsePID implements Runnable {
         return;
       }
     }
+    threadData.setPid(PID.toString());
     System.err.println("PID:" + PID);
+  }
+
+  protected final void appendPID(String PID) {
+    this.PID.append(PID);
   }
 
   /**
@@ -88,4 +98,3 @@ public class ParsePID implements Runnable {
     }
   }
 }
-
