@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2006/05/16 21:21:41  sueh
+ * <p> bug# 856 Passing the BaseManager to SolvematchParam so that it can get the
+ * <p> fiducial model.
+ * <p>
  * <p> Revision 3.40  2006/01/26 21:47:52  sueh
  * <p> Added spaces to an error message.
  * <p>
@@ -1505,7 +1509,7 @@ public class ComScriptManager {
   private ComScript loadComScript(ProcessName processName, AxisID axisID,
     boolean parseComments) {
     Utilities.timestamp("load", processName, Utilities.STARTED_STATUS);
-    String command = processName.getCommand(axisID);
+    String command = processName.getComscript(axisID);
     File comFile = new File(appManager.getPropertyUserDir(), command);
 
     ComScript comScript = new ComScript(comFile);

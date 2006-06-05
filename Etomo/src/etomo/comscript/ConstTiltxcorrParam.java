@@ -21,6 +21,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2006/05/22 22:36:55  sueh
+ * <p> bug# 577 Changed getCommand() to conform with the Command interface.
+ * <p>
  * <p> Revision 3.15  2006/05/11 19:42:11  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -281,14 +284,14 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
   }
   
   public String getCommand() {
-    return processName.getCommand(axisID);
+    return processName.getComscript(axisID);
   }
   
   public String getCommandLine() {
     return getCommand();
   }
   public String[] getCommandArray() {
-    return processName.getCommandArray(axisID);
+    return processName.getComscriptArray(axisID);
   }
   
   public int getCommandMode() {

@@ -195,11 +195,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   }
   
   public String getCommand() {
-    return getProcessName().getCommand(axisID);
+    return getProcessName().getComscript(axisID);
   }
   
   public String[] getCommandArray() {
-    return getProcessName().getCommandArray(axisID);
+    return getProcessName().getComscriptArray(axisID);
   }
   
   public int getCommandMode() {
@@ -292,6 +292,9 @@ public final void setBinByFactor(int binByFactor) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2006/05/22 22:35:02  sueh
+ * <p> bug# 577 Added getCommand().
+ * <p>
  * <p> Revision 1.19  2006/05/11 19:37:53  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
