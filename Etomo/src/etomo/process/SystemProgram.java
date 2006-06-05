@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2006/05/22 22:50:56  sueh
+ * <p> bug# 577 Removed constructors which accepted a String command.
+ * <p>
  * <p> Revision 3.30  2005/11/19 02:41:13  sueh
  * <p> bug# 744 Added another option to ProcessMessage constructor.  Made the
  * <p> constructor private and used getInstance functions to simply its use.
@@ -280,17 +283,6 @@ public class SystemProgram implements Runnable {
    * accidentally lost in path or arguments. 
    */
   public SystemProgram(String propertyUserDir, ArrayList command,
-      AxisID axisID, boolean multiLineMessages) {
-    this.propertyUserDir = propertyUserDir;
-    this.axisID = axisID;
-    processMessages = ProcessMessages.getMultiLineInstance();
-    commandArray = new String[command.size()];
-    for (int i = 0; i < command.size(); i++) {
-      commandArray[i] = (String) command.get(i);
-    }
-  }
-  
-  public SystemProgram(String propertyUserDir, ArrayList command,
       AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
@@ -298,7 +290,9 @@ public class SystemProgram implements Runnable {
     commandArray = new String[command.size()];
     for (int i = 0; i < command.size(); i++) {
       commandArray[i] = (String) command.get(i);
+      //System.out.print(commandArray[i]+" ");
     }
+    //System.out.println();
   }
 
   /**
