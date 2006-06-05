@@ -31,7 +31,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
+public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     ParallelProcessMonitor {
   public static final String rcsid = "$Id$";
 
@@ -48,7 +48,7 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
   private final String rootName;
   private final String computerList;
   private final ProcessMessages messages = ProcessMessages
-  .getInstanceForParallelProcessing();
+      .getInstanceForParallelProcessing();
 
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
@@ -61,7 +61,7 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
   private boolean pausing = false;
   private boolean killing = false;
   private File processOutputFile = null;
-
+  private String pid = null;
 
   /**
    * Default constructor
@@ -80,7 +80,7 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
     debug = EtomoDirector.getInstance().isDebug();
     parallelProgressDisplay.setParallelProcessMonitor(this);
   }
-  
+
   public void setProcess(SystemProcessInterface process) {
   }
 
@@ -116,6 +116,10 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
     processRunning = false;//the only place that this should be changed
   }
 
+  public String getPid() {
+    return pid;
+  }
+
   protected final boolean updateState() throws IOException {
     if (bufferedReader == null) {
       bufferedReader = getProcessOutputBufferedReader();
@@ -128,6 +132,13 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
     boolean failed = false;
     while ((line = bufferedReader.readLine()) != null) {
       line = line.trim();
+      //get the first pid
+      if (pid == null && line.startsWith("Shell PID:")) {
+        String[] array = line.split("\\s+");
+        if (array.length == 3) {
+          pid = array[2].trim();
+        }
+      }
       //System.out.println(line);
       messages.addProcessOutput(line);
       if (messages.isError()) {
@@ -359,20 +370,20 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
   public final boolean isProcessRunning() {
     return processRunning;
   }
-  
+
   /**
    * make sure process output file is new and set processOutputFile.  This
    * function should be first run before the process starts.
    */
   private synchronized final void makeProcessOutputFile() {
     if (processOutputFile == null) {
-      processOutputFile = DatasetFiles.getOutFile(manager, ProcessName.PROCESSCHUNKS
-          .toString(), axisID);
+      processOutputFile = DatasetFiles.getOutFile(manager,
+          ProcessName.PROCESSCHUNKS.toString(), axisID);
       //delete it the first time to avoid looking at a file from a previous run
       processOutputFile.delete();
     }
   }
-  
+
   public final String getProcessOutputFileName() {
     makeProcessOutputFile();
     return processOutputFile.getName();
@@ -394,6 +405,10 @@ public class ProcesschunksProcessMonitor implements DetachedProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/01/31 20:45:04  sueh
+ * <p> bug# 521 Added the process to combine monitor.  This allows the last
+ * <p> ProcessResultDisplay used by the monitor to be assigned to the process.
+ * <p>
  * <p> Revision 1.16  2006/01/06 23:17:08  sueh
  * <p> bug# 795 Fixed a bug in updateState where it ends the monitor as soon as
  * <p> it sees an error message.  This means that the error messages popped
