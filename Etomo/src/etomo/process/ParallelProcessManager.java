@@ -23,7 +23,7 @@ public final class ParallelProcessManager extends BaseProcessManager {
   private final ParallelManager manager;
   
   public ParallelProcessManager(ParallelManager manager) {
-    super();
+    super(manager);
     this.manager = manager;
   }
   
@@ -44,5 +44,8 @@ public final class ParallelProcessManager extends BaseProcessManager {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 17:52:03  sueh
+* <p> bug# 835 A process manager for ParallelManager.
+* <p> </p>
 */
