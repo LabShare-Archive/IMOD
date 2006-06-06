@@ -23,6 +23,9 @@ import java.io.IOException;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2006/06/05 16:29:28  sueh
+ * <p> $bug# 766 Setting the pid in ProcessData.
+ * <p> $
  * <p> $Revision 1.4  2004/08/25 23:02:27  sueh
  * <p> $bug# 508 closing buffered reader on combine.out
  * <p> $
@@ -44,8 +47,8 @@ public final class ParseBackgroundPID extends ParsePID {
   private final File outFile;
 
   public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID,
-      File outFile, ProcessData threadData) {
-    super(cshProcess, bufPID, threadData);
+      File outFile, ProcessData processData) {
+    super(cshProcess, bufPID, processData);
     this.outFile = outFile;
   }
 

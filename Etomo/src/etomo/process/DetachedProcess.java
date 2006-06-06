@@ -126,11 +126,11 @@ final class DetachedProcess extends BackgroundProcess {
   
   final class PidThread implements Runnable {
     private final OutfileProcessMonitor monitor;
-    private final ProcessData threadData;
+    private final ProcessData processData;
     
-    PidThread(OutfileProcessMonitor monitor, ProcessData threadData) {
+    PidThread(OutfileProcessMonitor monitor, ProcessData processData) {
       this.monitor = monitor;
-      this.threadData = threadData;
+      this.processData = processData;
     }
     
     public void run() {
@@ -155,13 +155,17 @@ final class DetachedProcess extends BackgroundProcess {
         }
       }
       if (pid != null) {
-        threadData.setPid(pid);
+        processData.setPid(pid);
       }
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/06/05 16:24:25  sueh
+ * <p> bug# 766 Added ProcessData to the base class.  Added class to get the pid from
+ * <p> the monitor.
+ * <p>
  * <p> Revision 1.4  2006/01/26 21:54:28  sueh
  * <p> bug# 401 Added a ProcessResultDisplay member variable
  * <p>
