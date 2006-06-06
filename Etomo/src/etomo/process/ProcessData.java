@@ -39,7 +39,7 @@ public final class ProcessData implements Storable {
   private static final String PROCESS_NAME_KEY = "ProcessName";
 
   private final AxisID axisID;
-  private final String threadDataPrepend;
+  private final String processDataPrepend;
   private final BaseManager manager;
 
   private String pid = null;
@@ -59,10 +59,10 @@ public final class ProcessData implements Storable {
    */
   static ProcessData getManagedInstance(AxisID axisID, BaseManager manager,
       ProcessName processName) {
-    ProcessData threadData = new ProcessData(axisID, manager);
-    threadData.processName = processName;
-    threadData.readOnly = true;
-    return threadData;
+    ProcessData processData = new ProcessData(axisID, manager);
+    processData.processName = processName;
+    processData.readOnly = true;
+    return processData;
   }
 
   ProcessData(AxisID axisID, BaseManager manager) {
@@ -70,7 +70,7 @@ public final class ProcessData implements Storable {
       axisID = AxisID.FIRST;
     }
     this.axisID = axisID;
-    threadDataPrepend = "ProcessData" + "." + axisID.getExtension();
+    processDataPrepend = "ProcessData" + "." + axisID.getExtension();
     this.manager = manager;
   }
 
@@ -149,10 +149,10 @@ public final class ProcessData implements Storable {
 
   private String getPrepend(String prepend) {
     if (prepend == "") {
-      prepend = threadDataPrepend;
+      prepend = processDataPrepend;
     }
     else {
-      prepend += "." + threadDataPrepend;
+      prepend += "." + prepend;
     }
     return prepend;
   }
@@ -213,5 +213,9 @@ public final class ProcessData implements Storable {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/06/05 16:31:34  sueh
+ * <p> bug# 766 A class that can get process data from the ps command and store and
+ * <p> load it.
+ * <p> </p>
  */

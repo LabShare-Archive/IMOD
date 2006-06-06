@@ -16,6 +16,9 @@ package etomo.process;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2006/06/05 16:29:38  sueh
+ * <p> bug# 766 Setting the pid in ProcessData.
+ * <p>
  * <p> Revision 3.3  2005/09/09 21:41:14  sueh
  * <p> bug# 532 Handling null from stderr and stdout.
  * <p>
@@ -42,13 +45,13 @@ public class ParsePID implements Runnable {
   public static final String rcsid = "$Id$";
   private final SystemProgram csh;
   private final StringBuffer PID;
-  private final ProcessData threadData;
+  private final ProcessData processData;
 
   public ParsePID(SystemProgram cshProcess, StringBuffer bufPID,
-      ProcessData threadData) {
+      ProcessData processData) {
     csh = cshProcess;
     PID = bufPID;
-    this.threadData = threadData;
+    this.processData = processData;
   }
 
   public final void run() {
@@ -72,7 +75,7 @@ public class ParsePID implements Runnable {
         return;
       }
     }
-    threadData.setPid(PID.toString());
+    processData.setPid(PID.toString());
     System.err.println("PID:" + PID);
   }
 
