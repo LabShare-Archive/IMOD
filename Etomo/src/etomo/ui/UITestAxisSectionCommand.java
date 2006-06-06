@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import etomo.storage.autodoc.AdocCommand;
@@ -145,7 +144,7 @@ final class UITestAxisSectionCommand implements AdocCommand {
     formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + "\\"
         + "{" + variable + "}", assignment);
     formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + variable
-        + File.separatorChar, assignment + File.separatorChar);
+        + "/", assignment + "/");
     formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + variable
         + '$', assignment);
   }
@@ -238,6 +237,9 @@ final class UITestAxisSectionCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/05/01 21:21:07  sueh
+ * <p> bug# 787 Handling all variables in UITestAxisSectionCommand.
+ * <p>
  * <p> Revision 1.1  2006/04/28 21:09:22  sueh
  * <p> bug# 787 Was UITestCommand.  Parses the uitest axis autodoc section-
  * <p> level name/value pairs.
