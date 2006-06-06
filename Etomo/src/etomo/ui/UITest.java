@@ -95,6 +95,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       autodoc = Autodoc.getInstance(Autodoc.UITEST, AxisID.ONLY);
     }
     catch (FileNotFoundException e) {
+      fail(e.getMessage());
       return;
     }
     catch (IllegalStateException e) {
@@ -102,6 +103,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       fail(e.getMessage());
     }
     if (autodoc == null) {
+      fail("Missing autodoc");
       return;
     }
     reader = new AdocCommandReader(autodoc, UITestSectionCommand.SECTION_TYPE);
@@ -600,6 +602,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2006/05/11 19:33:00  sueh
+ * <p> Removed unnessary strings from ARGS.
+ * <p>
  * <p> Revision 1.12  2006/05/01 21:19:43  sueh
  * <p> bug# 787 Removed fiducial diameter, added set.
  * <p>
