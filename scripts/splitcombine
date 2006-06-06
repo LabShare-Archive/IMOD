@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.5  2005/07/24 17:03:41  mast
 #  Made tmpdir be a variable in the command file and had it work appropriately
 #  for the machine running the file
@@ -74,7 +77,7 @@ endif
 
 # Figure out how many pieces
 #
-set numpieces = `sed -n -e '/^.*COMBINING PIECE *1 *of /s///p' -e '/[[:cntrl:]]/s///g' $comname`
+set numpieces = `sed -n -e '/[[:cntrl:]]/s///g' -e '/^.*COMBINING PIECE *1 *of /s///p' $comname`
 @ numpieces = $numpieces
 
 set optionline = `grep 'set *combinefft_.*=' $comname`
