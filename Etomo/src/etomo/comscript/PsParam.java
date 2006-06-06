@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.util.ArrayList;
 
 import etomo.type.Time;
+import etomo.util.Utilities;
 
 /**
  * <p>Description:
@@ -25,8 +26,11 @@ public final class PsParam {
   private static final String PID_HEADER = "PID";
   private static final String PARENT_PID_HEADER = "PPID";
   private static final String GROUP_PID_HEADER = "PGID";
-  private static final String START_TIME_HEADER = "STARTED";
-  private static final String PWD_TAG = "PWD=";
+  private static final String WINDOW_PID_HEADER = "WINPID";
+  private static final String TERMINAL_HEADER = "TTY";
+  private static final String USER_ID_HEADER = "UID";
+  private static final String START_TIME_HEADER = Utilities.isWindowsOS() ? "STIME"
+      : "STARTED";
 
   private final ArrayList command = new ArrayList();
   private final ArrayList valuesArray = new ArrayList();
@@ -35,10 +39,26 @@ public final class PsParam {
 
   private int pidStartIndex = -1;
   private int pidEndIndex = -1;
+  private int parentPidStartIndex = -1;
+  private int parentPidEndIndex = -1;
   private int groupPidStartIndex = -1;
   private int groupPidEndIndex = -1;
+  private int windowPidStartIndex = -1;
+  private int windowPidEndIndex = -1;
+  private int terminalStartIndex = -1;
+  private int terminalEndIndex = -1;
+  private int userIdStartIndex = -1;
+  private int userIdEndIndex = -1;
   private int startTimeStartIndex = -1;
   private int startTimeEndIndex = -1;
+
+  private boolean pidColumn = true;
+  private boolean parentPidColumn = false;
+  private boolean groupPidColumn = true;
+  private boolean windowPidColumn = false;
+  private boolean terminalColumn = false;
+  private boolean userIdColumn = false;
+  private boolean startTimeColumn = true;
 
   /**
    * Builds the ps commmand.  Uses the pid to limit the output to one process.
@@ -46,12 +66,20 @@ public final class PsParam {
    */
   public PsParam(String pid) {
     command.add("ps");
-    command.add("-p");
-    command.add(pid);
-    command.add("-o");
-    command.add("pid,pgid,lstart");
+    if (Utilities.isWindowsOS()) {
+      parentPidColumn = true;
+      windowPidColumn = true;
+      terminalColumn = true;
+      userIdColumn = true;
+    }
+    else {
+      command.add("-p");
+      command.add(pid);
+      command.add("-o");
+      command.add("pid,pgid,lstart");
+    }
   }
-  
+
   public Row getRow() {
     return new Row(this);
   }
@@ -72,14 +100,42 @@ public final class PsParam {
       return;
     }
     //set the indexes based on the header
-    pidStartIndex = 0;
-    pidEndIndex = output[0].indexOf(PID_HEADER) + PID_HEADER.length();
-    groupPidStartIndex = pidEndIndex + 1;
-    groupPidEndIndex = output[0].indexOf(GROUP_PID_HEADER)
-        + GROUP_PID_HEADER.length();
-    startTimeStartIndex = groupPidEndIndex + 1;
-    startTimeEndIndex = output[0].indexOf(START_TIME_HEADER)
-        + START_TIME_HEADER.length();
+    int endIndex = -1;
+    if (pidColumn) {
+      pidStartIndex = endIndex + 1;
+      endIndex = pidEndIndex = output[0].indexOf(PID_HEADER)
+          + PID_HEADER.length();
+    }
+    if (parentPidColumn) {
+      parentPidStartIndex = endIndex + 1;
+      endIndex = parentPidEndIndex = output[0].indexOf(PARENT_PID_HEADER)
+          + PARENT_PID_HEADER.length();
+    }
+    if (groupPidColumn) {
+      groupPidStartIndex = endIndex + 1;
+      endIndex = groupPidEndIndex = output[0].indexOf(GROUP_PID_HEADER)
+          + GROUP_PID_HEADER.length();
+    }
+    if (windowPidColumn) {
+      windowPidStartIndex = endIndex + 1;
+      endIndex = windowPidEndIndex = output[0].indexOf(WINDOW_PID_HEADER)
+          + WINDOW_PID_HEADER.length();
+    }
+    if (terminalColumn) {
+      terminalStartIndex = endIndex + 1;
+      endIndex = terminalEndIndex = output[0].indexOf(TERMINAL_HEADER)
+          + TERMINAL_HEADER.length();
+    }
+    if (userIdColumn) {
+      userIdStartIndex = endIndex + 1;
+      endIndex = userIdEndIndex = output[0].indexOf(USER_ID_HEADER)
+          + USER_ID_HEADER.length();
+    }
+    if (startTimeColumn) {
+      startTimeStartIndex = endIndex + 1;
+      startTimeEndIndex = output[0].indexOf(START_TIME_HEADER)
+          + START_TIME_HEADER.length();
+    }
     loadValues();
   }
 
@@ -129,16 +185,16 @@ public final class PsParam {
     }
     return false;
   }
-  
+
   String getGroupPid(int rowIndex) {
-    if (rowIndex == -1||valuesArray.size() <= rowIndex) {
+    if (rowIndex == -1 || valuesArray.size() <= rowIndex) {
       return null;
     }
     return ((Values) valuesArray.get(rowIndex)).getGroupPid();
   }
 
   Time getStartTime(int rowIndex) {
-    if (rowIndex == -1||valuesArray.size() <= rowIndex) {
+    if (rowIndex == -1 || valuesArray.size() <= rowIndex) {
       return null;
     }
     return ((Values) valuesArray.get(rowIndex)).getStartTime();
@@ -208,13 +264,13 @@ public final class PsParam {
 
   public class Row {
     private final PsParam psParam;
-    
+
     private int index = -1;
-    
+
     Row(PsParam psParam) {
       this.psParam = psParam;
     }
-    
+
     /**
      * Find the process which matches the pid.
      * @param command
@@ -228,7 +284,7 @@ public final class PsParam {
       }
       return false;
     }
-    
+
     public String getGroupPid() {
       return psParam.getGroupPid(index);
     }
@@ -239,5 +295,8 @@ public final class PsParam {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/06/05 16:16:02  sueh
+ * <p> bug# 766 Class to create ps commands and interprete their output.
+ * <p> </p>
  */
