@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/6/06: Fixed control-stripping for Windows in Copytomocoms, Makejoincom,
+Tomosnapshot, Trimvol (all in 3.7), Splitcombine and Selfalign.
+
+6/6/06: Fixed Tilt to keep min/max/mean output line from being broken in two, 
+and converted Splittilt and Trimvol to unix line endings in Cygwin.
+
+6/6/06: Made Copytomocoms put control-character stripping commands in 
+sample.com for Windows (in 3.7).
+
 6/2/06: IMOD_3-8-10
 6/2/06: Added option to Transferfid to deal with mirror-image data sets.
 
