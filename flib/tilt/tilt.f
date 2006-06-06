@@ -449,7 +449,7 @@ C       Close files
         WRITE(6,930)
         CALL IRDHDR(2,nxyztmp,nxyzst,MODE,DMIN,DMAX,DMEAN)
       else
-        print *,'Min, max, mean, # pixels=',dmin,dmax,dmean,
+        write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dmin,dmax,dmean,
      &      float(NSLICE)*IWIDE*ITHICK
       endif
       CALL IMCLOSE(2)
@@ -2779,6 +2779,9 @@ c         print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
 
 c       
 c       $Log$
+c       Revision 3.28  2006/04/09 00:11:49  mast
+c       Commented out debugging statement
+c
 c       Revision 3.27  2006/03/24 23:11:03  mast
 c       Added ability for parallel runs to write directly to an existing
 c       output file
