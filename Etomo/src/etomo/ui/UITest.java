@@ -88,6 +88,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     String testName = Utilities.getEnvironmentVariable(null,
         "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
+    if (testName == null || testName.matches("\\*+")) {
+      fail("$IMOD_TEST_SECTION has not been set");
+    }
     //get the uitest.adoc
     Autodoc.setTest(true);
     Autodoc autodoc = null;
@@ -139,6 +142,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       return;
     }
     processSection();
+    UIHarness.INSTANCE.setLog(true);
     runAxisLevelTests();
   }
 
@@ -602,6 +606,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2006/06/06 17:21:45  sueh
+ * <p> bug# 766 Add fails when autodoc is not found
+ * <p>
  * <p> Revision 1.13  2006/05/11 19:33:00  sueh
  * <p> Removed unnessary strings from ARGS.
  * <p>
