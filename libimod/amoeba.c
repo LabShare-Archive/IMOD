@@ -27,11 +27,40 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2006/06/05 16:29:38  mast
+    Added to libimod
+
 */
 
 #include <math.h>
+#include "imodconfig.h"
+
+#ifdef F77FUNCAP
+#define amoebafwrap AMOEBA
+#else
+#define amoebafwrap amoeba_
+#endif
+
 #define NMAX  20
-void amoeba(float *p, float *y, int mp, int np, int ndim, float ftol, 
+
+/*!
+ * Performs a multidimensional search to minimize the function [funk] which is 
+ * a float function of [ndim] variables that are passed in a float array.
+ * [p] is a 2-dimensional array dimensioned to at least one more than the 
+ * number of variables ineac dimension, and [mp] specifies its fastest 
+ * dimension (second in C, first in fortran).  [y] is a one-dimensional array 
+ * also dimensioned to at least one more than the number of variables.
+ * Both of these should be preloaded by calling amoebaInit.  
+ * Termination is controlled by [ftol], which is an 
+ * absolute limit for the change in function value, and the array [ptol],
+ * which has limits for the change of each variable.  [iterP] is returned with 
+ * the number of iterations; [iloP] is returned with the index of the minimum
+ * vector in p (p[i][iloP] in C, p(iloP, i) in fortran).
+ * ^ From fortran the subroutine is called as:
+ * ^ call amoeba(p, y, mp, np, ndim, ftol, funk, iter, ptol, ilo)
+ * ^ where the unneeded argument [np] is the second dimension of [p]
+ */
+void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
             float (*funk)(float *), int *iterP, float *ptol, int *iloP)
 {
   float alpha = 1.0,beta = 0.5,gamma = 2.0;
@@ -143,10 +172,46 @@ void amoeba(float *p, float *y, int mp, int np, int ndim, float ftol,
   return;
 }
 
-void amoeba_(float *p, float *y, int *mp, int *np, int *ndim, float *ftol, 
+/*!
+ * Initializes the arrays [p], [y], and [ptol] before calling amoeba.
+ * [a] is an array with the initial values of the variable.  
+ * [da] is an array with
+ * factors proportional to the magnitude of the components of [a].
+ * The initial step size for each variable is set to [delfac] times [da],
+ * while the termination tolerance for each variable is set to [ptolFac] times
+ * [da].  Other variables are as just described.  From fortran it is called as:
+ * ^ call amoebaInit(p, y, mp, ndim, delfac, ptolFac, a, da, func, ptol)
+ */
+void amoebaInit(float *p, float *y, int mp, int ndim, float delfac, 
+                float ptolFac, float *a, float *da, float (*funk)(float *), 
+                float *ptol)
+{
+  int i, j;
+  float ptmp[NMAX];
+
+  for (j = 0; j < ndim + 1; j++) {
+    for (i = 0; i < ndim; i++) {
+      p[j + i * mp] = a[i];
+      if (j && i == j - 1)
+        p[j + i * mp] = a[i] + delfac * da[i];
+      ptmp[i] = p[j + i * mp];
+      ptol[i] = da[i] * ptolFac;
+    }
+    y[j] = funk(ptmp);
+  }
+}
+
+void amoebafwrap(float *p, float *y, int *mp, int *np, int *ndim, float *ftol, 
             float (*funk)(float *), int *iter, float *ptol, int *ilo)
 {
   int iloc;
-  amoeba(p, y, *mp, *np, *ndim, *ftol, funk, iter, ptol, &iloc);
+  amoeba(p, y, *mp, *ndim, *ftol, funk, iter, ptol, &iloc);
   *ilo = iloc + 1;
+}
+
+void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac, 
+                float *ptolFac, float *a, float *da, float (*funk)(float *), 
+                float *ptol)
+{
+  amoebaInit(p, y, *mp, *ndim, *delfac, *ptolFac, a, da, funk, ptol);
 }

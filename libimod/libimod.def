@@ -162,6 +162,7 @@ EXPORTS
 	PUTIMODMAXES
 	imodContourGetPoint
 	imodMatCopy
+	amoebainitfwrap
 	imodContourFreeZTables
 	imodObjectGetNext
 	istoreCountItems
@@ -256,6 +257,7 @@ EXPORTS
 	imodContourCenterOfMass
 	PipGetFloat
 	PipSetError
+	amoebaInit
 	PipGetIntegerArray
 	imodContourFindPoint
 	imodContourArea
