@@ -642,7 +642,7 @@ while ($itomo <= $ntomo)
         if ($#newmode == 0) set newmode = 0
     else
         echo "Determining scaling for tomogram # $itomo ..."
-        set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n -e '/Scale factor.*:/s///p' -e '/[[:cntrl:]]/s///g'`
+        set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n -e '/[[:cntrl:]]/s///g' -e '/Scale factor.*:/s///p'`
     endif
     if ($#scaling < 2) then
         echo "WARNING: Densmatch failed for tomogram # $itomo ; using 1.,0. for scaling"
@@ -791,6 +791,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.15  2006/02/17 21:50:46  mast
+#  Filter output of goodframe
+#
 #  Revision 3.14  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #

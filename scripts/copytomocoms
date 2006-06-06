@@ -550,9 +550,9 @@ while ($iaxis < $numax)
             set xysize = `header -si $stackname | sed '/[[:cntrl:]]/s///g'`
         else if ((-e $piecename) || ($filmccd != "F")) then
             if (-e $piecename) then
-                set xysize = `montagesize $stackname $piecename | sed -n -e '/Total/s/Total.*://p' -e '/[[:cntrl:]]/s///g'`
+                set xysize = `montagesize $stackname $piecename | sed -n -e '/[[:cntrl:]]/s///g' -e '/Total/s/Total.*://p'`
             else
-                set xysize = `montagesize $stackname | sed -n -e '/Total/s/Total.*://p' -e '/[[:cntrl:]]/s///g'`
+                set xysize = `montagesize $stackname | sed -n -e '/[[:cntrl:]]/s///g' -e '/Total/s/Total.*://p'`
             endif
         endif
         if ("$xysize" != "0") then
@@ -1363,6 +1363,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.49  2006/06/06 17:12:27  mast
+#  Add control character filters to sed commands in sample.com
+#
 #  Revision 3.48  2006/02/24 22:10:32  mast
 #  Made it detect error from extracttilts and exit if non-interactive
 #

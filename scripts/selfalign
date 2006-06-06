@@ -105,7 +105,7 @@ if (-e $imfile) then
     set xfin2 = ""
     @ numsec =  `header -si $imfile | sed '/[[:cntrl:]]/s///g' | awk '{print $3}'`
 else
-    set modmaxes = `imodinfo -a $infile | sed -n -e '/^max /p' -e '/[[:cntrl:]]/s///g'`
+    set modmaxes = `imodinfo -a $infile | sed -n -e '/[[:cntrl:]]/s///g' -e '/^max /p'`
     @ xmax = $modmaxes[2]
     @ ymax = $modmaxes[3]
     @ xcen = $xmax / 2

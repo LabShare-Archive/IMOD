@@ -83,8 +83,8 @@ endif
 # Get set name and axis type from edf file
 #
 if ("$edffile" != "")then
-    set setname = `sed -n -e '/Setup.DatasetName=/s///p' -e '/[[:cntrl:]]/s///g' $edffile`
-    set axistype = `sed -n -e '/Setup.AxisType=/s///p' -e '/[[:cntrl:]]/s///g' $edffile`
+    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e '/Setup.DatasetName=/s///p'' $edffile`
+    set axistype = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Setup.AxisType=/s///p' $edffile`
 endif
 
 # Get the axis type from xcorr.com as fallback
@@ -116,7 +116,7 @@ endif
 # Get the setname from xcorr.com as fallback
 #
 if ("$setname" == "") then
-    set setname = `sed -n -e "/InputFile[[:space:]]*\(.*\)$axislet.st/s//\1/p" -e '/[[:cntrl:]]/s///g' $xcorrfile`
+    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e "/InputFile[[:space:]]*\(.*\)$axislet.st/s//\1/p"' $xcorrfile`
     if ($setname == "") then
         echo "ERROR: $pn - Cannot find DatasetName in edf file or $xcorrfile"
         exit 1
@@ -206,6 +206,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.12  2006/05/11 22:02:56  mast
+#  Added transferfid.coord
+#
 #  Revision 3.11  2006/03/31 16:15:36  mast
 #  Added processchunks files
 #
