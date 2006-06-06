@@ -1177,7 +1177,7 @@ EOF
         cat << EOF >> $dstfile
 \$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
  -e '/$setname.*\.rec/s//$bmtarr[$ind]/' -e '/SLICE/d' -e '/WIDTH/d' \
- -e '/THICKNESS/a\\\\\\
+ -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\\\\\
 SLICE $slmin $slmax 1\\\\
 ' tilt$dstext |tilt
 EOF
@@ -1363,6 +1363,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.48  2006/02/24 22:10:32  mast
+#  Made it detect error from extracttilts and exit if non-interactive
+#
 #  Revision 3.47  2006/02/17 21:49:59  mast
 #  Filter output of goodframe
 #
