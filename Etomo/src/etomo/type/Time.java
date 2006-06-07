@@ -3,8 +3,12 @@ package etomo.type;
 /**
  * <p>Description:
  * Represents hours, minutes, and seconds.  Can pull hours, minutes, and seconds
- * out of a date string.  Can compare times with almost equals, which allows
- * off-by-one errors in seconds.</p>
+ * out of a longer string.  Can compare times with almost equals, which allows
+ * off-by-one errors in seconds.
+ * 
+ * Formats parsed:
+ * hours:minutes:seconds
+ * hours:minutesAM/PM</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -35,8 +39,9 @@ public final class Time{
   }
 
   /**
-   * Finds a string of the format HH:MM:SS or HH:MMAM in the date parameter and
-   * uses it to set its member variables.
+   * Finds the first instance of a substring with the format
+   * hours:minutes:seconds or hours:minutesAM/PM in the date parameter and uses
+   * it to set the member variables.
    * @param date
    */
   private void parse(String date) {
@@ -54,12 +59,12 @@ public final class Time{
           continue;
         }
         if (timeArray.length == 3) {
-          if (parseHHMMSS(timeArray)) {
+          if (parseHoursMinutesSeconds(timeArray)) {
             break;
           }
         }
         else if (timeArray.length == 2) {
-          if (parseHHMMAMPM(timeArray)) {
+          if (parseHoursMinutesAMPM(timeArray)) {
             break;
           }
         }
@@ -67,7 +72,7 @@ public final class Time{
     }
   }
   
-  private boolean parseHHMMSS(String[] timeArray) {
+  private boolean parseHoursMinutesSeconds(String[] timeArray) {
     reset();
     try {
       hours = Integer.parseInt(timeArray[0]);
@@ -81,24 +86,25 @@ public final class Time{
     return true;
   }
   
-  private boolean parseHHMMAMPM(String[] timeArray) {
+  private boolean parseHoursMinutesAMPM(String[] timeArray) {
     reset();
     try {
       hours = Integer.parseInt(timeArray[0]);
-      minutes = Integer.parseInt(timeArray[1].substring(0,3));
     }
     catch (NumberFormatException e) {
       reset();
       return false;
     }
-    String amPm = timeArray[1].substring(3,5);
+    int amPmStartIndex = timeArray[1].length() - 2;
+    String amPm = timeArray[1].substring(amPmStartIndex,timeArray[1].length());
     if (amPm.equals("PM")){
-      hours +=12;
+      hours += 12;
     }
     else if (!amPm.equals("AM")) {
       reset();
       return false;
     }
+    minutes = Integer.parseInt(timeArray[1].substring(0,amPmStartIndex));
     return true;
   }
 
@@ -126,6 +132,10 @@ public final class Time{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/07 20:38:36  sueh
+ * <p> bug# 766 Added HH:MMAM time format.  Fix almostEquals to add up all the
+ * <p> seconds before comparing.
+ * <p>
  * <p> Revision 1.1  2006/06/05 18:07:09  sueh
  * <p> bug# 766 A class that stores a time string and can compare handle off-by-one
  * <p> errors in the seconds value.
