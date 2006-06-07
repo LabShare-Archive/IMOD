@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2006/05/16 21:27:58  sueh
+ * bug# 856 Added transfer and useList.
+ *
  * Revision 3.12  2006/05/12 00:08:13  sueh
  * bug# 857 Running setupcombine with command line arguments.
  *
@@ -219,14 +222,15 @@ public class SetupCombine {
     for (int i = 0; i < commandArray.length; i++) {
       commandArray[i] = (String) command.get(i);
     }
-    setupcombine = new SystemProgram(manager.getPropertyUserDir(), commandArray, AxisID.ONLY);
+    setupcombine = new SystemProgram(manager.getPropertyUserDir(),
+        commandArray, AxisID.ONLY);
     //genStdInputSequence();
   }
 
   public MatchMode getMatchMode() {
     return matchMode;
   }
-  
+
   public boolean isTransfer() {
     return transfer;
   }
@@ -246,8 +250,11 @@ public class SetupCombine {
       transfer = true;
       command.add("-transfer");
       command.add(DatasetFiles.getTransferFidCoordFileName());
-      command.add("-uselist");
-      command.add(combineParams.getUseList());
+      String useList = combineParams.getUseList();
+      if (useList != null && !useList.matches("\\s*")) {
+        command.add("-uselist");
+        command.add(combineParams.getUseList());
+      }
     }
     //matching relationship
     if (matchMode == MatchMode.A_TO_B) {
@@ -394,7 +401,7 @@ public class SetupCombine {
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchYMax());
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMin());
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
-    
+
     tempStdInput[lineCount++] = combineParams.patchRegionModel;
 
     tempStdInput[lineCount++] = combineParams.tempDirectory;
