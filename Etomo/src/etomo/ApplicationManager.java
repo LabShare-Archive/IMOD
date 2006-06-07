@@ -1934,11 +1934,6 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
-  public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay) {
-    imodFixFiducials(axisID, menuOptions, processResultDisplay, false);
-  }
-
   public long getFiducialDiameterPerPixel() {
     return (long) (metaData.getFiducialDiameter() / metaData.getPixelSize());
   }
@@ -1947,15 +1942,19 @@ public final class ApplicationManager extends BaseManager {
    * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay, boolean autoCenter) {
+      ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
+    //if fix fiducials has already run, don't change auto center
+    boolean setAutoCenter = !state.isFixedFiducials(axisID);
     String fiducialModel = metaData.getDatasetName() + axisID.getExtension()
         + ".fid";
     try {
       imodManager
           .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
-      imodManager.setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          autoCenter);
+      if (setAutoCenter) {
+        imodManager
+            .setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
+      }
       imodManager.setSeedMode(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
@@ -1966,6 +1965,7 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
+      return;
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1973,7 +1973,9 @@ public final class ApplicationManager extends BaseManager {
           "Can't open 3dmod on coarse aligned stack with model: "
               + fiducialModel, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
+      return;
     }
+    state.setFixedFiducials(axisID, true);
   }
 
   /**
@@ -5591,6 +5593,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.230  2006/06/05 15:59:46  sueh
+ * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
+ * <p>
  * <p> Revision 3.229  2006/05/23 21:00:13  sueh
  * <p> bug# 617 Added okToFiducialModelTrack() and
  * <p> okToMakeFiducialModelSeedModel().
