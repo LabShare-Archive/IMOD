@@ -16,31 +16,30 @@ package etomo.type;
  * 
  * @version $Revision$
  */
-public final class Time {
+public final class Time{
   public static final String rcsid = "$Id$";
 
   private static final char DIVIDER = ':';
-  private String hours = null;
-  private String minutes = null;
-  private String seconds = null;
+  private int hours = 0;
+  private int minutes = 0;
+  private int seconds = 0;
 
   public Time(String date) {
-    set(date);
+    parse(date);
   }
 
   private void reset() {
-    hours = null;
-    minutes = null;
-    seconds = null;
+    hours = 0;
+    minutes = 0;
+    seconds = 0;
   }
 
   /**
-   * Finds a string of the format HH:MM:SS in the date parameter and uses it to
-   * set its member variables.
+   * Finds a string of the format HH:MM:SS or HH:MMAM in the date parameter and
+   * uses it to set its member variables.
    * @param date
    */
-  public void set(String date) {
-    reset();
+  private void parse(String date) {
     if (date == null) {
       return;
     }
@@ -51,33 +50,60 @@ public final class Time {
     for (int i = 0; i < dateArray.length; i++) {
       if (dateArray[i] != null && dateArray[i].indexOf(DIVIDER) != -1) {
         String[] timeArray = dateArray[i].split(String.valueOf(DIVIDER));
-        if (timeArray == null || timeArray.length != 3) {
+        if (timeArray == null) {
           continue;
         }
-        try {
-          Integer.parseInt(timeArray[0]);
-          Integer.parseInt(timeArray[1]);
-          Integer.parseInt(timeArray[2]);
+        if (timeArray.length == 3) {
+          if (parseHHMMSS(timeArray)) {
+            break;
+          }
         }
-        catch (NumberFormatException e) {
-          continue;
+        else if (timeArray.length == 2) {
+          if (parseHHMMAMPM(timeArray)) {
+            break;
+          }
         }
-        hours = timeArray[0].trim();
-        minutes = timeArray[1].trim();
-        seconds = timeArray[2].trim();
       }
     }
   }
-
-  public String toString() {
-    return hours + DIVIDER + minutes + DIVIDER + seconds;
+  
+  private boolean parseHHMMSS(String[] timeArray) {
+    reset();
+    try {
+      hours = Integer.parseInt(timeArray[0]);
+      minutes = Integer.parseInt(timeArray[1]);
+      seconds = Integer.parseInt(timeArray[2]);
+    }
+    catch (NumberFormatException e) {
+      reset();
+      return false;
+    }
+    return true;
+  }
+  
+  private boolean parseHHMMAMPM(String[] timeArray) {
+    reset();
+    try {
+      hours = Integer.parseInt(timeArray[0]);
+      minutes = Integer.parseInt(timeArray[1].substring(0,3));
+    }
+    catch (NumberFormatException e) {
+      reset();
+      return false;
+    }
+    String amPm = timeArray[1].substring(3,5);
+    if (amPm.equals("PM")){
+      hours +=12;
+    }
+    else if (!amPm.equals("AM")) {
+      reset();
+      return false;
+    }
+    return true;
   }
 
-  private int getSeconds() {
-    if (seconds == null) {
-      return 0;
-    }
-    return Integer.parseInt(seconds);
+  public String toString() {
+    return String.valueOf(hours) + DIVIDER + String.valueOf(minutes) + DIVIDER + String.valueOf(seconds);
   }
 
   /**
@@ -87,16 +113,21 @@ public final class Time {
    * @return
    */
   public boolean almostEquals(Time anotherTime) {
-    if (!hours.equals(anotherTime.hours)
-        || !minutes.equals(anotherTime.minutes)) {
-      return false;
-    }
-    int iSeconds = getSeconds();
-    int anotherTimeSeconds = anotherTime.getSeconds();
-    return iSeconds == anotherTimeSeconds || iSeconds == anotherTimeSeconds + 1
-        || iSeconds == anotherTimeSeconds - 1;
+    return Math.abs(getTime() - anotherTime.getTime()) <= 1;
+  }
+  
+  /**
+   * Gets total time in seconds
+   * @return
+   */
+  private long getTime() {
+    return hours * 60 + minutes * 60 + seconds * 60;
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/06/05 18:07:09  sueh
+ * <p> bug# 766 A class that stores a time string and can compare handle off-by-one
+ * <p> errors in the seconds value.
+ * <p> </p>
  */
