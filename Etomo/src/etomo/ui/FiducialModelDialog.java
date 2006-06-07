@@ -29,6 +29,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/05/23 21:07:28  sueh
+ * <p> bug# 617 Sharing button label text, so it can be used in messages.
+ * <p>
  * <p> Revision 3.21  2006/03/30 21:25:38  sueh
  * <p> bug# 809 Do fix fiducials with auto center on.
  * <p>
@@ -444,8 +447,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
     }
     else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel,
-          true);
+      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel);
     }
   }
 
