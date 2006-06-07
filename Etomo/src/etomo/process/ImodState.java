@@ -174,6 +174,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.31  2006/04/11 13:47:58  sueh
+ * <p> $bug# 809 Manage auto center and seed mode separately from
+ * <p> $openBeadFixer so that seed mode doesn't always have to be managed.
+ * <p> $Reset auto center and seed mode when setOpenBeadFixer is called.
+ * <p> $
  * <p> $Revision 1.30  2006/03/30 21:24:09  sueh
  * <p> $bug# 809 Passing auto center and seed mode settings to ImodProcess.
  * <p> $
@@ -331,6 +336,7 @@ public class ImodState {
   private boolean openContours;
   
   //sent with open bead fixer
+  private boolean setAutoCenter = false;
   private boolean autoCenter = false;
   private boolean seedMode = false;
   private boolean manageSeedMode = false;
@@ -527,7 +533,9 @@ public class ImodState {
       //open bead fixer
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
+        if (setAutoCenter) {
         process.setAutoCenter(autoCenter);
+        }
         if (manageSeedMode) {
           process.setSeedMode(seedMode);
         }
@@ -553,7 +561,9 @@ public class ImodState {
       //open bead fixer
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
+        if (setAutoCenter) {
         process.setAutoCenter(autoCenter);
+        }
         if (manageSeedMode) {
           process.setSeedMode(seedMode);
         }
@@ -813,12 +823,14 @@ public class ImodState {
    */
   public void setOpenBeadFixer(boolean openBeadFixer) {
     this.openBeadFixer = openBeadFixer;
-    this.autoCenter = false;
-    this.seedMode = false;
+    setAutoCenter = false;
+    autoCenter = false;
+    seedMode = false;
     manageSeedMode = false;
   }
   
   void setAutoCenter(boolean autoCenter) {
+    setAutoCenter = true;
     this.autoCenter = autoCenter;
   }
   
