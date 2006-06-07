@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2006/06/05 16:10:46  sueh
+ * <p> bug# 766 Removed the constructor with the multi line messages boolean
+ * <p> because all the processes that are created with an ArrayList are already using
+ * <p> multi line messages.
+ * <p>
  * <p> Revision 3.31  2006/05/22 22:50:56  sueh
  * <p> bug# 577 Removed constructors which accepted a String command.
  * <p>
@@ -512,7 +517,7 @@ public class SystemProgram implements Runnable {
     processMessages.addProcessOutput(stderr);
 
     if (debug) {
-      if (stdout.size() > 0) {
+      if (stdout != null && stdout.size() > 0) {
         System.err.println("SystemProgram: Read from process stdout:");
         System.err
             .println("------------------------------------------------------------");
@@ -522,7 +527,7 @@ public class SystemProgram implements Runnable {
 
         System.err.println("");
       }
-      if (stderr.size() > 0) {
+      if (stderr != null && stderr.size() > 0) {
         System.err.println("SystemProgram: Read from process stderr:");
         System.err
             .println("------------------------------------------------------------");
