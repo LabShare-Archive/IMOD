@@ -127,6 +127,17 @@ public class EtomoDirector {
   }
 
   private void initialize(String[] args) {
+    // Get the HOME directory environment variable to find the program
+    // configuration file
+    homeDirectory = System.getProperty("user.home");
+    if (homeDirectory.equals("")) {
+      String[] message = new String[2];
+      message[0] = "Can not find home directory! Unable to load user preferences";
+      message[1] = "Set HOME environment variable and restart program to fix this problem";
+      uiHarness.openMessageDialog(message, "Program Initialization Error",
+          AxisID.ONLY);
+      System.exit(1);
+    }
     createUserConfiguration();
     ArrayList paramFileNameList = parseCommandLine(args);
     if (help) {
@@ -153,6 +164,9 @@ public class EtomoDirector {
         }
         else if (paramFileName.endsWith(".ejf")) {
           managerKey = openJoin(paramFileName, false, AxisID.ONLY);
+        }
+        else if (paramFileName.endsWith(".epp")) {
+          managerKey = openParallel(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
           saveKey = managerKey;
@@ -204,17 +218,6 @@ public class EtomoDirector {
     System.err.println("user.name:  " + System.getProperty("user.name"));
     System.err.println("user.home:  " + System.getProperty("user.home"));
     System.err.println("user.dir:  " + originalUserDir);
-    // Get the HOME directory environment variable to find the program
-    // configuration file
-    homeDirectory = System.getProperty("user.home");
-    if (homeDirectory.equals("")) {
-      String[] message = new String[2];
-      message[0] = "Can not find home directory! Unable to load user preferences";
-      message[1] = "Set HOME environment variable and restart program to fix this problem";
-      uiHarness.openMessageDialog(message, "Program Initialization Error",
-          AxisID.ONLY);
-      System.exit(1);
-    }
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
@@ -1024,6 +1027,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2006/04/25 18:52:45  sueh
+ * <p> bug# 787 Added testDone to EtomoDirector so that Etomo can exit
+ * <p> without popups when the UITest package fails or asks Etomo to exit.
+ * <p>
  * <p> Revision 1.42  2006/04/10 19:02:33  sueh
  * <p> buG# 835 enabling "New Parallel Process" when processchunks is run.
  * <p>
