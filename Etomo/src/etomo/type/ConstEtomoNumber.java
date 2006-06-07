@@ -21,6 +21,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2006/04/06 20:09:48  sueh
+ * <p> bug# 808 Fixed a bug: equals(constEtomoNumber) wasn't handling a null
+ * <p> ConstEtomoNumber.
+ * <p>
  * <p> Revision 1.31  2006/01/27 18:39:06  sueh
  * <p> bug# 801 Added isInt() to get the type of the number.
  * <p>
@@ -289,7 +293,6 @@ public abstract class ConstEtomoNumber implements Storable {
         validValues.add(newNumber((Number) that.validValues.get(i)));
       }
     }
-    selfTestCopy(that);
   }
   
   public String getDescription() {
@@ -486,7 +489,7 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
-  void selfTestInvariants() {
+  void internalTest() {
     if (!Utilities.isSelfTest()) {
       return;
     }
@@ -1299,7 +1302,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * Use self test on this because, if one copy works, they all should work.
    * @param original
    */
-  private void selfTestCopy(ConstEtomoNumber original) {
+  void internalTestDeepCopy(ConstEtomoNumber original) {
     if (!Utilities.isSelfTest()) {
       return;
     }
