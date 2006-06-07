@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/7/06: eTomo is now turning off auto-centering when fix fiducials is first run,
+and not managing it after that.
+
+6/7/06: eTomo now keeps data from processes in its data file when it exits.
+eTomo will not allow a new process to be run when a process started by eTomo is
+still running on the same axis.
+
 6/6/06: Fixed control-stripping for Windows in Copytomocoms, Makejoincom,
 Tomosnapshot, Trimvol (all in 3.7), Splitcombine and Selfalign.
 
