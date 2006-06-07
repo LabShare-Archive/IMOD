@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/05/23 21:06:23  sueh
+ * <p> bug# 617 Added fidFileLastModfied and seedFileLastModified.
+ * <p>
  * <p> Revision 1.19  2006/05/19 19:44:53  sueh
  * <p> bug# 838 Added sampleAngleOffset and SampleAxisZShift.  Changed xAxisTil
  * <p> to sampleXAxisTilt.
@@ -108,6 +111,7 @@ public class TomogramState implements BaseState {
   private static final String groupString = "ReconstructionState";
   private static final String LAST_MODIFIED = "LastModified";
   private static final String USE_FID_AS_SEED = "UseFidAsSeed";
+  private static final String FIXED_FIDUCIALS_KEY = "FixedFiducials";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
@@ -152,7 +156,7 @@ public class TomogramState implements BaseState {
   private final EtomoNumber sampleXAxisTiltB = new EtomoNumber(
       EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
-  
+
   private final EtomoNumber fidFileLastModifiedA = new EtomoNumber(
       EtomoNumber.LONG_TYPE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.TRACK + '.' + LAST_MODIFIED);
@@ -165,6 +169,12 @@ public class TomogramState implements BaseState {
   private final EtomoNumber seedFileLastModifiedB = new EtomoNumber(
       EtomoNumber.LONG_TYPE, AxisID.SECOND.getExtension() + '.'
           + USE_FID_AS_SEED + '.' + LAST_MODIFIED);
+  private final EtomoBoolean2 fixedFiducialsA = new EtomoBoolean2(AxisID.FIRST
+      .getExtension()
+      + "." + FIXED_FIDUCIALS_KEY);
+  private final EtomoBoolean2 fixedFiducialsB = new EtomoBoolean2(AxisID.SECOND
+      .getExtension()
+      + "." + FIXED_FIDUCIALS_KEY);
 
   private final BaseManager manager;
 
@@ -198,6 +208,8 @@ public class TomogramState implements BaseState {
     fidFileLastModifiedB.reset();
     seedFileLastModifiedA.reset();
     seedFileLastModifiedB.reset();
+    fixedFiducialsA.reset();
+    fixedFiducialsB.reset();
   }
 
   public void initialize() {
@@ -244,6 +256,8 @@ public class TomogramState implements BaseState {
     fidFileLastModifiedB.store(props, prepend);
     seedFileLastModifiedA.store(props, prepend);
     seedFileLastModifiedB.store(props, prepend);
+    fixedFiducialsA.store(props, prepend);
+    fixedFiducialsB.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -349,8 +363,10 @@ public class TomogramState implements BaseState {
     fidFileLastModifiedB.load(props, prepend);
     seedFileLastModifiedA.load(props, prepend);
     seedFileLastModifiedB.load(props, prepend);
+    fixedFiducialsA.load(props, prepend);
+    fixedFiducialsB.load(props, prepend);
   }
-  
+
   public ConstEtomoNumber setTrimvolFlipped(boolean trimvolFlipped) {
     return this.trimvolFlipped.set(trimvolFlipped);
   }
@@ -397,7 +413,7 @@ public class TomogramState implements BaseState {
       sampleAxisZShiftA.set(axisZShift);
     }
   }
-  
+
   public void setFidFileLastModified(AxisID axisID, long fidFileLastModified) {
     if (axisID == AxisID.SECOND) {
       fidFileLastModifiedB.set(fidFileLastModified);
@@ -406,7 +422,16 @@ public class TomogramState implements BaseState {
       fidFileLastModifiedA.set(fidFileLastModified);
     }
   }
-  
+
+  public void setFixedFiducials(AxisID axisID, boolean fixedFiducials) {
+    if (axisID == AxisID.SECOND) {
+      fixedFiducialsB.set(fixedFiducials);
+    }
+    else {
+      fixedFiducialsA.set(fixedFiducials);
+    }
+  }
+
   public void setSeedFileLastModified(AxisID axisID, long seedFileLastModified) {
     if (axisID == AxisID.SECOND) {
       seedFileLastModifiedB.set(seedFileLastModified);
@@ -415,7 +440,7 @@ public class TomogramState implements BaseState {
       seedFileLastModifiedA.set(seedFileLastModified);
     }
   }
-  
+
   public void resetFidFileLastModified(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       fidFileLastModifiedB.reset();
@@ -424,7 +449,7 @@ public class TomogramState implements BaseState {
       fidFileLastModifiedA.reset();
     }
   }
-  
+
   public void resetSeedFileLastModified(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       seedFileLastModifiedB.reset();
@@ -442,19 +467,26 @@ public class TomogramState implements BaseState {
       angleOffsetA.set(angleOffset);
     }
   }
-  
+
   public ConstEtomoNumber getFidFileLastModified(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return fidFileLastModifiedB;
     }
     return fidFileLastModifiedA;
   }
-  
+
   public ConstEtomoNumber getSeedFileLastModified(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return seedFileLastModifiedB;
     }
     return seedFileLastModifiedA;
+  }
+
+  public boolean isFixedFiducials(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fixedFiducialsB.is();
+    }
+    return fixedFiducialsA.is();
   }
 
   public ConstEtomoNumber getAlignAngleOffset(AxisID axisID) {
