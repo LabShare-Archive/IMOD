@@ -31,6 +31,8 @@ public final class PsParam {
   private static final String USER_ID_HEADER = "UID";
   private static final String START_TIME_HEADER = Utilities.isWindowsOS() ? "STIME"
       : "STARTED";
+  private static final String START_TIME_COMMAND = Utilities.isMacOS() ? "start"
+      : "lstart";
 
   private final ArrayList command = new ArrayList();
   private final ArrayList valuesArray = new ArrayList();
@@ -72,12 +74,17 @@ public final class PsParam {
       terminalColumn = true;
       userIdColumn = true;
     }
+    else if (Utilities.isMacOS()) {
+      command.add("-A");
+    }
     else {
       command.add("-p");
       command.add(pid);
-      command.add("-o");
-      command.add("pid,pgid,lstart");
     }
+    if (!Utilities.isWindowsOS()) {
+      command.add("-o");
+    }
+    command.add("pid,pgid," + START_TIME_COMMAND);
   }
 
   public Row getRow() {
@@ -296,6 +303,11 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/06 17:16:28  sueh
+ * <p> bug# 766 Implementing ps for windows.  Add a boolean for each column, so that column reading
+ * <p> works with any OS.  When the OS is windows change the command and
+ * <p> change column booleans.
+ * <p>
  * <p> Revision 1.1  2006/06/05 16:16:02  sueh
  * <p> bug# 766 Class to create ps commands and interprete their output.
  * <p> </p>
