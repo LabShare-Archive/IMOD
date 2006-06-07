@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.45  2006/05/22 22:53:12  sueh
+ * <p> $bug# 577 Placed commands in a String[] rather then a String.
+ * <p> $
  * <p> $Revision 3.44  2006/04/28 21:13:14  sueh
  * <p> $bug# 787 ConvertLabelToName:  when there is nothing in the string
  * <p> $except for characters to be stripped, return "-".  This makes the expand
@@ -241,6 +244,8 @@ public class Utilities {
   private static boolean timestamp = false;
   private static boolean setWindowsOS = false;
   private static boolean windowsOS = false;
+  private static boolean setMacOS = false;
+  private static boolean macOS = false;
   private static boolean java1_5 = false;
   private static boolean setJava1_5 = false;
   private static long startTime = 0;
@@ -808,6 +813,15 @@ public class Utilities {
       setWindowsOS = true;
     }
     return windowsOS;
+  }
+  
+  public static boolean isMacOS() {
+    if (!setMacOS) {
+      String osName = System.getProperty("os.name").toLowerCase();
+      macOS = osName.indexOf("mac") != -1;
+      setMacOS = true;
+    }
+    return macOS;
   }
 
   public static boolean isJava1_5() {
