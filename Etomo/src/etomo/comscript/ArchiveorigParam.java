@@ -41,7 +41,8 @@ public class ArchiveorigParam implements Command {
       mode = AXIS_B_MODE;
     }
     File stack = Utilities.getFile(manager, false, axisID, ".st", "");
-    commandArray = new String[] { COMMAND_NAME, "-P", stack.getName() };
+    commandArray = new String[] { "tcsh", "-f",
+        BaseManager.getIMODBinPath()+COMMAND_NAME, "-P", stack.getName() };
     outputFile = Utilities.getFile(manager, false, axisID, "_xray.st.gz", "");
   }
   
@@ -82,6 +83,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2006/05/22 22:34:45  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.7  2006/05/11 19:33:59  sueh
 * <p> bug# 838 Implement Command instead of CommandDetails
 * <p>
