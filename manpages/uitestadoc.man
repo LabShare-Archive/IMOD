@@ -71,6 +71,7 @@ Uitest-axis autodocs can have any name, but they must have the extension .adoc.
 Only one dataset may be tested per section.
 Uitest-axis autodocs can be reused for different datasets.
 Also sets the "axis" variable for the specified axis.
+See \fBman uitestaxisadoc\fR.
 
 .TP
 .B copy = \fIfile_name
@@ -136,7 +137,7 @@ They can be used as values in uitest axis autodoc section-level attributes.
 The symbol for a variable is "%".
 Do not use the variables names "dataset" or "axis"
 because they are set automatically.  Do not use the variable names "a" or "b".
-Variable names may not contain "." or the delimiter (default - "=").
+Variable names may not contain ".", "/", "\", or the delimiter (default - "=").
 
 
 .TP

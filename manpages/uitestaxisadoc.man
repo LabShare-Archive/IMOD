@@ -207,7 +207,8 @@ There are two variables that are set differently.
 The value of \fB%axis\fR is set by the ui test \fBadoc\fR attribute.
 The value of \fB%dataset\fR is set by the ui test \fBdataset\fR attribute.
 Use the {}'s unless the variable is at the end of the value or
-is followed by a file separator character ("/" on Linux).
+is followed by a file separator character ("/" on Linux and Mac, "\" on Windows).
+See \fBman uitestadoc\fR.
 
 .TP
 Note 1: \fIindex
