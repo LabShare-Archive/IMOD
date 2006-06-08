@@ -21,7 +21,7 @@ options:
  -si[ze] X,Y              Size to extract from image
  -o[ffset] dX,dY          Center offset to subarea
  -f[ilter] s1,s2,r1,r2    Sigmas and Radii for prefilter
- -red[uce] n              # of times to reduce by 2 (default 1)
+ -red[uce] n              Binning factor to reduce by (default 2)
  -sk[ip] n1,n2,n3...      List of sections to skip (ranges OK)
  -br[eak] n1,n2,n3...     List of sections to break alignment at (ranges OK)
  -bp[air]                 Break alignment for paired images
@@ -116,9 +116,9 @@ set FRACMATT = ","
 # respectively [1]
 set RANGEMEAN = ","
 #
-# Set NREDUCE to the # of times to reduce images by factor of 2 in x and y [1]
+# Set NREDUCE to the binning factor to reduce images by in X and Y [2]
 # set by -reduce option
-set NREDUCE = "1"
+set NREDUCE = "2"
 #
 # set DIFFDIST to 0 to use the difference between images as a measure of the
 # match between images, or 1 to use the sum of distances between points in the
@@ -626,6 +626,9 @@ unset noglob
 exit $exitstat
 
 #  $Log$
+#  Revision 3.17  2006/05/14 03:02:54  mast
+#  Added option to output the difference measure
+#
 #  Revision 3.16  2006/02/17 21:50:20  mast
 #  Filter output of goodframe
 #
