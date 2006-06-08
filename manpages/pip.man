@@ -351,7 +351,7 @@ integer*4 \fInumOptArg\fB, \fInumNonOptArg\fB    [Returned arguments]
 .ft R
 .fi
 
-This function, available only from Fortran, performs a sequence of
+This Fortran subroutine performs a sequence of
 initialization tasks.  It first attempts to read options for the program
 \fIprogName\fR from an autodoc file using \fBPipReadOptionFile\fR then
 \fBPipParseEntries\fR.  If this
@@ -368,6 +368,27 @@ print a usage output.  If the number of arguments is less than
 for the number of input and output files, then exits.
 The option \fBhelp\fR must therefore be defined.
 
+.ft B
+.nf
+void PipReadOrParseOptions(int \fIargc\fB, char \fI*argv[]\fB, char \fI*options[]\fB,
+                           int \fInumOptions\fB, char \fI*progName\fB, 
+                           int \fIminArgs\fB, int \fInumInFiles\fB, 
+                           int \fInumOutFiles\fB, int \fI*numOptArgs\fB, 
+                           int \fI*numNonOptArgs\fB);
+.ft R
+.fi
+
+This C function performs a similar sequence of
+initialization tasks.  It first attempts to read options for the program
+\fIprogName\fR from an autodoc file using \fBPipReadOptionFile\fR then
+\fBPipParseEntries\fR.  If this
+fails, and if \fInumOptions\fR options are provided in an array of 
+strings, \fIoptions\fR, it falls back to calling \fBPipParseInput\fR.
+It calls \fBPipExitOnError\fR with "ERROR: \fIprogName\fR - " as the error
+string, defining standard out as the destination for error output.
+If the number of arguments is less than \fIminArgs\fR, it calls
+\fBPipPrintHelp\fR with \fInumInFiles\fR and \fInumOutFiles\fR as arguments
+for the number of input and output files, then exits.
 
 .ft B
 .nf
@@ -604,6 +625,8 @@ option.
 
 .nf
 .ft B
+int PipGetInOutFile(char *\fIoption\fB, int \fInonOptArgNo\fB, char **\fIfilename\fB)
+
 integer*4 function PipGetInOutFile(\fIoption\fB, \fInonOptArgNo\fB, \fIprompt\fB,
                                    \fIfilename\fB)
 character*N \fIoption\fB, \fIprompt\fB
@@ -612,16 +635,17 @@ character*N \fIfilename\fB           [Returned argument]
 .ft R
 .fi
 
-This function is available from Fortran only.  It gets a filename specified
+This function gets a filename specified
 by \fIoption\fR; if that option was not entered, it gets the non-option
 argument in the \fInonOptArgNo\fR position.  If that argument does not
-exist either, it returns with an error.  Alternatively, if interactive
+exist either, it returns with an error.
+Alternatively for Fortran, if interactive
 input is being used, it prompts for the filename interactively with the
-string in \fIprompt\fR.
+string in \fIprompt\fR.  If
+there is no interactive input, supply an empty string for \fIprompt\fR.
 
 To prevent the function from looking for a non-option argument, call it
-with \fInonOptArgNo\fR bigger than the value of \fInumNonOptArg\fR.  If
-there is no interactive input, supply an empty string for \fIprompt\fR.
+with \fInonOptArgNo\fR bigger than the value of \fInumNonOptArg\fR. 
 
 
 .SS Functions for Help, Cleanup, and Errors
@@ -642,7 +666,8 @@ usage output is produced.  A value of 1 produces output for a man page to
 be interpreted by \fBnroff\fR (a .man file), while -1 produces output for a
 preformatted man page (a .1 file).  A value of -2 produces the complete 
 Fortran code for a fallback option string to be passed to
-\fBPipReadOrParseOptions\fR.
+\fBPipReadOrParseOptions\fR, while 2 produces output for C code defining
+an array of option strings.
 
 .nh
 .ft B
@@ -708,22 +733,32 @@ an error string including the name given in \fIroutine\fR and calls
 int PipSetError(char *\fIerrString\fB);
 .ft R
 .fi
+
 Sets the error string and, if PIP has been set to exit on error, prints
 an error message and exits.
 
 .ft B
 .nf
-subroutine exiterror(\fIerrString\fB)
+void exitError(char *\fIformat\fB, ...);
+
+subroutine exitError(\fIerrString\fB)
 character*N \fIerrString\fB
 
-subroutine setExitPrefix(\fprefix\fB)
+void setExitPrefix(char *\fIprefix\fB);
+
+subroutine setExitPrefix(\fIprefix\fB)
 character*N \fIprefix\fB
 .ft R
 .fi
-These functions are available from Fortran only.  \fBexiterror\fR prints the
-error string after the prefix, which 
-is set by calling \fBsetExitPrefix\fR.  The prefix is also set automatically
-by calling \fBPipReadOrParseOptions\fR.
+
+\fBexitError\fR prints an error string after the prefix, which 
+is set by calling \fBsetExitPrefix\fR.  The Fortran version takes the 
+error string while the C version takes variable arguments like \fBprintf\fR.
+The prefix is also set automatically
+by calling \fBPipReadOrParseOptions\fR or \fBPipExitOnError\fR; in the latter
+case the destination for error output can be specified, whereas using 
+\fBsetExitPrefix\fR will cause output to go to standard out.  These two
+functions can be used by programs that do not call anything else in PIP.
 
 .SH ERRORS AND RETURN VALUES
 .nh
