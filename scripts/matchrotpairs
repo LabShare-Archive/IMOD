@@ -148,16 +148,11 @@ set nxyz =  `header -si $imageb | sed '/[[:cntrl:]]/s///g'`
 @ nzb = $nxyz[3]
 
 #
-# Set the number of reductions by 2 needed to get image size to 512 or less
+# Set the binning needed to get image size to 512 or less
 #
-@ size = $nxb
-if ($nyb > $size) @ size = $nyb
-@ reduce = 0
-@ sizered = $size
-while ($sizered > 512)
-    @ sizered = $sizered / 2
-    @ reduce++
-end
+@ size = `echo $nxa  $nxb | awk '{print int(sqrt($1 * $2))}'`
+@ limit = 512
+@ reduce = ($size + $limit - 1) / $limit
 
 # Get starting and ending section numbers
 #
@@ -499,6 +494,9 @@ EOF
 exit 1
 
 #  $Log$
+#  Revision 1.11  2006/05/14 03:13:47  mast
+#  Changed scaling to accomodate xfsimplex change
+#
 #  Revision 1.10  2006/03/13 06:08:04  mast
 #  Fixed the -x option
 #

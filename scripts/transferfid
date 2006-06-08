@@ -340,18 +340,12 @@ if ($pixela[1] != $pixelb[1]) then
 endif
 
 #
-# Set the number of reductions by 2 needed to get image size to 512 or less
+# Set the binning needed to get image size to 512 or less
 #
-@ size = $nxb
-if ($nyb > $size) @ size = $nyb
-@ reduce = 0
-@ sizered = $size
-while ($sizered > 512)
-    @ sizered = $sizered / 2
-    @ reduce++
-end
+@ size = `echo $nxa  $nxb | awk '{print int(sqrt($1 * $2))}'`
+@ limit = 512
+@ reduce = ($size + $limit - 1) / $limit
 
-#echo "reduce = $reduce"
 #
 # Get starting and ending section numbers
 #
@@ -835,6 +829,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.28  2006/06/03 00:00:06  mast
+#  Added option to mirror around X
+#
 #  Revision 3.27  2006/05/14 03:14:00  mast
 #  Changed scaling to accomodate xfsimplex change
 #
