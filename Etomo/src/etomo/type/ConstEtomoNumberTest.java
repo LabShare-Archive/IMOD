@@ -23,7 +23,7 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  */
-public class ConstEtomoNumberTest extends TestCase {
+public final class ConstEtomoNumberTest extends TestCase {
   public static final String rcsid = "$Id$";
 
   private static final double bigDouble = 999999999999999999999999999999999999999.3421D;
@@ -34,6 +34,11 @@ public class ConstEtomoNumberTest extends TestCase {
   private static final long smallLong = -999999999999999999L;
   private static final int bigInteger = 999999999;
   private static final int smallInteger = -999999999;
+  private static final double easyDouble = 1D;
+  private static final float easyFloat = 1F;
+  private static final long easyLong = 1L;
+  private static final double easyInteger = 1;
+  
 
   private static final File testDir = new File(TypeTests.TEST_ROOT_DIR,
       "ConstEtomoNumber");
@@ -63,12 +68,29 @@ public class ConstEtomoNumberTest extends TestCase {
     propertiesFile.delete();
   }
 
-  final public void testConstEtomoNumber() {
+  public void testConstEtomoNumber() {
     EtomoNumber test = new EtomoNumber();
+    assertEquals(test.getType(),EtomoNumber.INTEGER_TYPE);
+    assertTrue(test.getName().equals(test.getDescription()));
+    test.internalTest();
+    testInitialize();
+  }
+  
+  public void testInitialize() {
+    testNewNumber();
+    testInitialize_Number();
+  }
+  
+  public void testInitialize_Number() {
+    testNewNumber();
+    EtomoNumber test = new EtomoNumber();
+    assertEquals(test.getDisplayInteger(),EtomoNumber.INTEGER_NULL_VALUE);
+    assertEquals(test.getInt(),EtomoNumber.INTEGER_NULL_VALUE);
     test.internalTest();
   }
-
-  final public void testConstEtomoNumber_String() {
+  
+  //TODO
+  public void testConstEtomoNumber_String() {
     String name = "ConstEtomoNumberTest";
     EtomoNumber test = new EtomoNumber(name);
     test.internalTest();
@@ -78,7 +100,7 @@ public class ConstEtomoNumberTest extends TestCase {
     assertTrue(name.equals(test.getDescription()));
   }
 
-  final public void testConstEtomoNumber_int() {
+  public void testConstEtomoNumber_int() {
     //double
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     test.internalTest();
@@ -586,8 +608,13 @@ public class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  //TODO
   public final void testGetNumber() {
+    testGetValue();
+    testGetNumber_Number();
+  }
+  
+  //TODO
+  public final void testGetNumber_Number() {
   }
 
   //TODO
@@ -1053,6 +1080,12 @@ public class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2006/06/07 23:51:53  sueh
+ * <p> bug# 692 Changed ConstEtomoNumber.selfTest to internalTest.  Changed
+ * <p> ConstEtomoNumber.setTestCopy to internalTestDeepCopy.  Calling internalTest
+ * <p> whenever a ConstEtomoNumber instance is created.  Calling
+ * <p> internalTestDeepCopy from testConstEtomoNumber_ConstEtomoNumber.
+ * <p>
  * <p> Revision 1.21  2006/05/23 21:20:51  sueh
  * <p> bug# 692 Implemented testGetDouble().
  * <p>
