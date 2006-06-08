@@ -162,7 +162,6 @@ EXPORTS
 	PUTIMODMAXES
 	imodContourGetPoint
 	imodMatCopy
-	amoebainitfwrap
 	imodContourFreeZTables
 	imodObjectGetNext
 	istoreCountItems
@@ -198,6 +197,7 @@ EXPORTS
 	imodMatFindVector
 	imodGetInt
 	GETIMODSCAT
+	setExitPrefix
 	imodPutShort
 	imodel_contour_centroid
 	PipNumberOfEntries
@@ -235,6 +235,7 @@ EXPORTS
 	istoreInvert
 	PIPSETERROR
 	imodObjectGet
+	exitError
 	c2fString
 	PipExitOnError
 	imod_to_wmod
@@ -274,6 +275,7 @@ EXPORTS
 	imodel_dist
 	GETIMODOBJLIST
 	PIPADDOPTION
+	AMOEBAINIT
 	ilistFirst
 	istoreGenPointItems
 	imodMeshDup
@@ -336,6 +338,7 @@ EXPORTS
 	imodWrite
 	imodContourNew
 	imodPointDot
+	PipReadOrParseOptions
 	PIPGETINTEGERARRAY
 	imodContourGetMaxPoint
 	istoreNextObjItem
@@ -450,6 +453,7 @@ EXPORTS
 	imodGetBytes
 	substr
 	PIPGETFLOAT
+	PipGetInOutFile
 	DELETEIMOD
 	PipPrintHelp
 	imodDelCurrentContour
