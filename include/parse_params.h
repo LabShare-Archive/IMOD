@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2003/10/08 17:20:39  mast
+New functions for autodoc files
+
 Revision 3.2  2003/08/08 16:21:33  mast
 Add functions for getting two numbers
 
@@ -27,6 +30,8 @@ extern "C" {
 
 int PipInitialize(int numOpts);
 int PipExitOnError(int useStdErr, char *prefix);
+void exitError(char *format, ...);
+void setExitPrefix(char *prefix);
 int PipAddOption(char *optionString);
 int PipNextArg(char *argString);
 void PipNumberOfArgs(int *numOptArgs, int *numNonOptArgs);
@@ -55,6 +60,11 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir);
 int PipMemoryError(void *ptr, char *routine);
 void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
+int PipGetInOutFile(char *option, int nonOptArgNo, char **filename);
+void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
+                           int numOpts, char *progName, 
+                           int minArgs, int numInFiles, int numOutFiles,
+                           int *numOptArgs, int *numNonOptArgs);
 #ifdef __cplusplus
 }
 #endif
