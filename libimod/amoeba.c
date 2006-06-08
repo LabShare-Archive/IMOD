@@ -27,6 +27,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2006/06/06 16:22:15  mast
+    Added initialization func and documentation
+
 
     Revision 3.1  2006/06/05 16:29:38  mast
     Added to libimod
@@ -68,6 +71,7 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
   float pr[NMAX], prr[NMAX], pbar[NMAX];
   int iter, ilo, mpts, ihi, inhi, i, ifnear, j;
   float ypr, yprr, rtol;
+  int iterMax = 1000;
   
   mpts = ndim + 1;
   iter = 0;
@@ -111,6 +115,9 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
       break;
 
 	iter++;
+    if (iter > iterMax)
+      break;
+
     for (j = 0; j < ndim; j++)
 	  pbar[j] = 0.;
     for (i = 0; i < mpts; i++) {
