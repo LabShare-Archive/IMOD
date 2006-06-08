@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.4  2004/06/29 03:54:10  mast
 #  Fixed better
 #
@@ -168,8 +171,8 @@ set FRACMATT = ","
 # respectively [1]
 set RANGEMEAN = ","
 #
-# Set NREDUCE to the # of times to reduce images by factor of 2 in x and y [1]
-set NREDUCE = "0"
+# Set NREDUCE to binning factor to reduce images by in x and y [1]
+set NREDUCE = "1"
 #
 # set DIFFDIST to 0 to use the difference between images as a measure of the
 # match between images, or 1 to use the sum of distances between points in the
