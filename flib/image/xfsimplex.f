@@ -17,6 +17,10 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.7  2006/05/14 03:13:15  mast
+c       Output normalized difference and distance measures, standardize
+c       error outputs
+c
 c       Revision 3.6  2005/05/26 04:34:52  mast
 c       Made sums args for iclavgsd real*8
 c	
@@ -39,15 +43,16 @@ c       Revision 3.1  2002/04/29 16:18:37  mast
 c       Added test to keep it from failing when images match perfectly
 c	
 *       
-      parameter (ixlim=2100,iylim=2100,idima=4100*4100)
-      parameter (isub=ixlim*iylim/3,limspir=1000)
+      parameter (idima=4100*2100, lenTemp = 32000*64)
+      parameter (isub=idima/3,limspir=1000)
       parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
       COMMON //NX,NY,NZ
-      DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),ARRAY(idima)
+      integer*4 NXYZ(3),MXYZ(3),NXYZST(3)
       EQUIVALENCE (NX,NXYZ)
 C       
-      CHARACTER*80 FILIN1,FILIN2,DATOUT,xfinfile
+      CHARACTER*160 FILIN1,FILIN2,DATOUT,xfinfile
 C       
+      real*4 temp(lenTemp)
       DATA NXYZST/0,0,0/
       real*4 a(6),da(6),amat(2,2),anat(6),danat(6),acall(6)
       real*4 pp(7,7),yy(7),ptmp(6),ptol(6)
@@ -73,7 +78,7 @@ c
       equivalence (pclo(1),percen(1,1)),(pchi(1),percen(1,2))
 c       array for second image if doing diffs, using same storage as
 c       all the arrays for doing distances
-      real*4 brray(ixlim*iylim)
+      real*4 brray(idima),ARRAY(idima)
       external func
       equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
      &    ,(brray(isubt2),ixcomp(1)),(brray(isubt25),iycomp(1))
@@ -84,7 +89,7 @@ C
 c       default values for potentially input parameters
       data ftol1/5.e-4/,ptol1/.02/,ftol2/5.e-3/,ptol2/.2/
       data delfac/2/
-      data iflmean/1/,ifreduce/1/
+      data iflmean/1/,ibinning/2/
       data idredun/0/,radius/4/,difflim/0.05/,nrange/2/
       data pclo/0.,92.,8*0./,pchi/8.,100.,8*0./
 c       
@@ -171,9 +176,10 @@ c
      &    ' 1 to float to mean&sd, -1 no float [',iflmean,']: '
       read(*,*)iflmean
 c       
-      write(*,'(1x,a,i1,a,$)')'# of times to reduce image by 2 ['
-     &    ,ifreduce,']: '
-      read(*,*)ifreduce
+      write(*,'(1x,a,i1,a,$)')'Binning to apply to image ['
+     &    ,ibinning,']: '
+      read(*,*)ibinning
+      ibinning = max(1, ibinning)
 c       
       write(*,'(1x,a,i1,a,$)')'0 for difference,'//
      &    ' 1 for distance measure [',ifdist,']: '
@@ -188,8 +194,8 @@ c
 c         change defaults based on image size and reduction by 2
 c         
         npixel=nx*ny
-        if(ifreduce.gt.0)then
-          npixel=npixel/(4**ifreduce)
+        if(ibinning.gt.1)then
+          npixel=npixel/(ibinning**2)
           radius=4.
         else
           radius=5.
@@ -241,32 +247,26 @@ C       NOTE: ABSOLUTELY NEED TO READ HEADER AGAIN
 C       
       CALL IMOPEN(2,FILIN2,'RO')
       CALL IRDHDR(2,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
-      nxorig=nx
-      nyorig=ny
 C       
 C       Open data file for transform
 C       
       CALL DOPEN(4,DATOUT,'NEW','F')
 C       
-      IF (NX*NY.GT.idima) GOTO 94
+      nx = nx / ibinning
+      ny = ny / ibinning
+      if (nx*ny.gt.idima) goto 94
 C       just get second section to work with 
-      call irdsec(2,array,*99)
+      call irdbinned(2,0, array,nx, ny, 0, 0, ibinning, nx, ny, temp, lentemp,
+     &    ierr)
+      if (ierr .ne. 0) goto 99
 c       
-      rds=1.
-c       
-c       Reduce array sizes by requested amount before doing searches.
-c       Notice assumption of no trip trough loop if ifreduce = 0
-      do nreduce=1,ifreduce
-        CALL REDUCE2D(ARRAY,NX,NY)
-C         
-        rds=2.*rds
-        da(1)=da(1)/2.
-        da(2)=da(2)/2.
-        a(1)=a(1)/2.
-        a(2)=a(2)/2.
-      enddo
+      rds=ibinning
+      da(1)=da(1)/rds
+      da(2)=da(2)/rds
+      a(1)=a(1)/rds
+      a(2)=a(2)/rds
+
 c       check reduced size against size of B
-      if (nx*ny.gt.ixlim*iylim) goto 94
 
 c       Just deal with points in central portion
       if(fracmatt.ge.1.)then
@@ -360,15 +360,9 @@ c                 just store density temporarily here
         print *,ncompare,' points for comparison'
       endif
 C       Now get first section
-      nx=nxorig
-      ny=nyorig
-      call irdsec(1,array,*99)
-c       
-c       Reduce array sizes by requested amount before doing searches
-c       
-      do nreduce=1,ifreduce
-        CALL REDUCE2D(ARRAY,NX,NY)
-      enddo
+      call irdbinned(1,0, array,nx, ny, 0, 0, ibinning, nx, ny, temp, lentemp,
+     &    ierr)
+      if (ierr .ne. 0) goto 99
 C       
       CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2
      &    ,DMIN1,DMAX1,tsum,tsumsq,DMEAN1,sd1)
@@ -444,31 +438,15 @@ c
       if (delmin.gt.0.) then
         ptfac=ptol1
         if(ftol2.gt.0.or.ptol2.gt.0)ptfac=ptol2
-        do j=1,ivend+1
-          do i=1,ivend
-            pp(j,i)=a(i)
-            if(j.gt.1.and.i.eq.j-1)pp(j,i)=a(i)+delfac*da(i)
-            ptmp(i)=pp(j,i)
-            ptol(i)=da(i)*ptfac
-          enddo
-          yy(j)=func(ptmp)
-        enddo
+        call amoebaInit(pp, yy, 7, ivend, delfac, ptfac, a, da, func, ptol)
         if(ftol2.gt.0.or.ptol2.gt.0)then
           call amoeba(pp,yy,7,7,ivend,ftol2,func,iter,ptol,jmin)
           if(trace)print *,'restarting'
           deltmin=1.e30
           do i=1,ivend
-            pp(1,i)=pp(jmin,i)
-            ptol(i)=da(i)*ptol1
+            a(i)=pp(jmin,i)
           enddo
-          do j=1,ivend+1
-            do i=1,6
-              pp(j,i)=pp(1,i)
-              if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i)
-              ptmp(i)=pp(j,i)
-            enddo
-            yy(j)=func(ptmp)
-          enddo
+          call amoebaInit(pp, yy, 7, ivend, delfac, ptol1, a, da, func, ptol)
         endif
         call amoeba(pp,yy,7,7,ivend,ftol1,func,iter,ptol,jmin)
 C         
@@ -495,7 +473,7 @@ C
 C       
       call exit(0)
 C       
-94    call exiterror('IMAGE TOO BIG FOR ARRAYS')
+94    call exiterror('IMAGE TOO BIG FOR ARRAYS - USE HIGHER BINNING')
 99    call exiterror('READING FILE')
       END
 C       
@@ -661,50 +639,17 @@ c
 C       
       END
       
-C*********************************************************************
-C       
-C       Halves the dimensions of the image to speed up search.
-C       
-C*******************************************************************
-C       
-      SUBROUTINE REDUCE2D(ARRAY,NX,NY)
-C       
-      DIMENSION ARRAY(NX,NY)
-C       
-C       AVERAGE pixels
-C       
-      DO  JJ=1,NY/2
-        J=(JJ*2)-1
-C         
-        DO II=1,NX/2
-C           
-          I=(II*2)-1
-C           
-          ARRAY(II,JJ)=(ARRAY(I,J)+ARRAY(I+1,J)+ARRAY(I,J+1)
-     &        +ARRAY(I+1,J+1))/4.
-C           
-        enddo
-      enddo
-      call irepak(array,array,nx,ny,0,nx/2-1,0,ny/2-1)
-c	
-      NX=NX/2
-      NY=NY/2
-C       
-      RETURN
-C       
-      END
-
 
 
 c       Function to be called by minimization routine
 c       
       function func(x)
       real*4 x(*),a(6)
-      parameter (ixlim=2100,iylim=2100,limspir=1000,idima=4100*4100)
-      parameter (isub=ixlim*iylim/3)
+      parameter (limspir=1000,idima=4100*2100)
+      parameter (isub=idima/3)
       parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
       COMMON //NX,NY,NZ
-      real*4 array(idima),brray(ixlim*iylim)
+      real*4 array(idima),brray(idima)
       integer*4 idxspir(limspir),idyspir(limspir)
       integer*2 ixcomp(isub),iycomp(isub)
       real*4 distspir(limspir),denlo(isub),denhi(isub)
