@@ -11,32 +11,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 1.8  2005/02/11 01:40:44  mast
-Added some includes, switched to simple b3dIMin/Max functions
-
-Revision 1.7  2004/11/12 15:21:56  mast
-Added min and max functions with variable arguments
-
-Revision 1.6  2004/06/10 22:47:43  mast
-Reserved a bunch of extra header flags to avoid transition problems
-
-Revision 1.5  2004/03/18 17:55:32  mast
-Added routine with extra header byte information
-
-Revision 1.4  2004/01/17 20:35:48  mast
-Move file I/O and seek routines here, add rewind routine
-
-Revision 1.3  2003/11/01 16:41:56  mast
-changed to use new error processing routine
-
-Revision 1.2  2003/10/24 19:53:25  mast
-Add stdlib.h for SGI
-
-Revision 1.1  2003/10/24 03:01:34  mast
-initial creation, consolidating routines from elsewhere
-
+Log at end
 */
 
 #include <stdio.h>
@@ -239,6 +214,7 @@ void b3dError(FILE *out, char *format, ...)
   vsprintf(errorMess, format, args);
   if (out && !storeError)
     fprintf(out, errorMess);
+  va_end(args);
 }
 
 /*! Sets flag to print messages passed by [b3dError] if [ival] is 0 (the 
@@ -406,3 +382,34 @@ int b3dIMax(int narg, ...)
   }
   return(extreme);
 }
+
+/*
+$Log$
+Revision 1.9  2006/01/23 06:40:23  mast
+Documented
+
+Revision 1.8  2005/02/11 01:40:44  mast
+Added some includes, switched to simple b3dIMin/Max functions
+
+Revision 1.7  2004/11/12 15:21:56  mast
+Added min and max functions with variable arguments
+
+Revision 1.6  2004/06/10 22:47:43  mast
+Reserved a bunch of extra header flags to avoid transition problems
+
+Revision 1.5  2004/03/18 17:55:32  mast
+Added routine with extra header byte information
+
+Revision 1.4  2004/01/17 20:35:48  mast
+Move file I/O and seek routines here, add rewind routine
+
+Revision 1.3  2003/11/01 16:41:56  mast
+changed to use new error processing routine
+
+Revision 1.2  2003/10/24 19:53:25  mast
+Add stdlib.h for SGI
+
+Revision 1.1  2003/10/24 03:01:34  mast
+initial creation, consolidating routines from elsewhere
+
+*/
