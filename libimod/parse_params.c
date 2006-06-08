@@ -18,7 +18,7 @@ Log at end of file
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdarg.h>
 
 #define NON_OPTION_STRING "NonOptionArgument"
 #define STANDARD_INPUT_STRING "StandardInput"
@@ -233,6 +233,15 @@ int PipExitOnError(int useStdErr, char *prefix)
     exit(1);
   }
   return 0;
+}
+
+/*
+ * Function for compatibility with Fortran routines, so setExitPrefix and
+ * exitError can be used without using PIP
+ */
+void setExitPrefix(char *prefix)
+{
+  PipExitOnError(0, prefix);
 }
 
 void PipAllowCommaDefaults(int val)
@@ -655,7 +664,8 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
                         "      character*(40 * numOptions) options(1)\n"
                         "      options(1) =\n     &    '", numReal);
         
-        optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4;
+        optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4 +
+          optTable[i].multiple;
         
         if (linePos + optLen + (lastOpt ? 0 : 3) > 79) {
           fprintf(out, "'//\n     &    '");
@@ -663,6 +673,27 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         }
         fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
                 optTable[i].multiple ? "M:" : ":", lastOpt ? "'\n" : "@");
+        linePos += optLen;
+        numOut++;
+        continue;
+      }
+      
+      /* Fallback output for C code */
+      if (outputManpage == 2) {
+        lastOpt = (i == numOptions - 1);
+        if (!numOut) {
+          fprintf(out, "  int numOptions = %d;\n"
+                  "  char *options[] = {\n    ", numReal);
+          linePos = 4;
+        }
+        optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 7 +
+          optTable[i].multiple;
+        if (linePos + optLen > 79) {
+          fprintf(out, "\n    ");
+          linePos = 4;
+        }
+        fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, optTable[i].type, 
+                optTable[i].multiple ? "M:" : ":", lastOpt ? "};\n" : ", ");
         linePos += optLen;
         numOut++;
         continue;
@@ -764,6 +795,16 @@ int PipSetError(char *errString)
     exit(1);
   }
   return 0;
+}
+
+void exitError(char *format, ...)
+{
+  char errorMess[512];
+  va_list args;
+  va_start(args, format);
+  vsprintf(errorMess, format, args);
+  PipSetError(errorMess);
+  exit(1);
 }
 
 /*
@@ -1113,6 +1154,61 @@ int PipParseEntries(int argc, char *argv[], int *numOptArgs,
     }
   }
   PipNumberOfArgs(numOptArgs, numNonOptArgs);
+  return 0;
+}
+
+/*
+ * High-level routine to initialize from autodoc with optional fallback options
+ * Set exit string and output to stdout, print usage if not enough arguments
+ */
+void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
+                           int numOpts, char *progName,
+                           int minArgs, int numInFiles, int numOutFiles,
+                           int *numOptArgs, int *numNonOptArgs)
+{
+  int ierr;
+  char *errString;
+  char *prefix;
+  prefix = (char *)malloc(strlen(progName) + 12);
+  sprintf(prefix, "ERROR: %s - ", progName);
+
+  /* Startup with fallback */
+  ierr = PipReadOptionFile(progName, 0, 0);
+  PipExitOnError(0, prefix);
+  free(prefix);
+  if (!ierr) {
+    PipParseEntries(argc, argv, numOptArgs, numNonOptArgs);
+  } else {
+    PipGetError(&errString);
+    if (!options || !numOpts)
+      PipSetError(errString);
+    if (errString) {
+      printf("PIP WARNING: %s\nUsing fallback options in C code\n", errString);
+      free(errString);
+    }
+    PipParseInput(argc, argv, options, numOpts, numOptArgs,
+                  numNonOptArgs);
+  }
+
+  /* Output usage and exit if not enough arguments */
+  if (*numOptArgs + *numNonOptArgs < minArgs) {
+    imodVersion(progName);
+    imodCopyright();
+    PipPrintHelp(progName, 0, numInFiles, numOutFiles);
+    exit(0);
+  }
+}
+
+/*
+ * Routine to get input/output file from parameter or non-option args
+ */
+int PipGetInOutFile(char *option, int nonOptArgNo, char **filename)
+{
+  if (PipGetString(option, filename)) {
+    if (nonOptArgNo >= optTable[nonOptInd].count)
+      return 1;
+    PipGetNonOptionArg(nonOptArgNo, filename);
+  }
   return 0;
 }
 
@@ -1606,6 +1702,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.17  2006/02/27 05:56:24  mast
+Modified to put out Fortran fixed format line to column 79
+
 Revision 3.16  2005/11/18 20:25:52  mast
 Fixed problem with section headers giving wrong number of options in
 Fortran fallback output
