@@ -27,6 +27,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2006/06/08 03:12:02  mast
+    Added termination on 1000 iterations; probably not needed.
+
     Revision 3.3  2006/06/06 16:22:15  mast
     Added initialization func and documentation
 
@@ -41,8 +44,10 @@
 
 #ifdef F77FUNCAP
 #define amoebafwrap AMOEBA
+#define amoebainitfwrap AMOEBAINIT
 #else
 #define amoebafwrap amoeba_
+#define amoebainitfwrap amoebainit_
 #endif
 
 #define NMAX  20
