@@ -1,7 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/7/06: eTomo is now turning off auto-centering when fix fiducials is first run,
-and not managing it after that.
+6/8/06: Made Xfsimplex read in data binned so there are no limitations on
+input data size as long as data are binned to < 2Kx4K; changed it so that the
+reduction parameter specifies binning rather than successive reductions by 2.
+Changed Xfalign, Transferfid, Matchrotpairs, Setupcoms and Setuplong to
+accommodate this.
+
+6/7/06: eTomo is now turning off auto-centering when fix fiducials is first 
+run, and not managing it after that.
 
 6/7/06: eTomo now keeps data from processes in its data file when it exits.
 eTomo will not allow a new process to be run when a process started by eTomo is
