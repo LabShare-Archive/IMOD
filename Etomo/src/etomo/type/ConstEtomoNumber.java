@@ -21,6 +21,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2006/06/07 23:50:18  sueh
+ * <p> bug# 692 Changed selfTest to internalTest.  Changed setTestCopy to
+ * <p> internalTestDeepCopy and stopped calling it from the copy constructor.
+ * <p>
  * <p> Revision 1.32  2006/04/06 20:09:48  sueh
  * <p> bug# 808 Fixed a bug: equals(constEtomoNumber) wasn't handling a null
  * <p> ConstEtomoNumber.
@@ -204,8 +208,8 @@ public abstract class ConstEtomoNumber implements Storable {
   public static final int LONG_TYPE = -4;
 
   //null values
-  private static final double doubleNullValue = Double.NaN;
-  private static final float floatNullValue = Float.NaN;
+  private static final double DOUBLE_NULL_VALUE = Double.NaN;
+  private static final float FLOAT_NULL_VALUE = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   public static final long LONG_NULL_VALUE = Long.MIN_VALUE;
   //null for types not currently supported
@@ -935,9 +939,9 @@ public abstract class ConstEtomoNumber implements Storable {
   protected Number newNumber() {
     switch (type) {
     case DOUBLE_TYPE:
-      return new Double(doubleNullValue);
+      return new Double(DOUBLE_NULL_VALUE);
     case FLOAT_TYPE:
-      return new Float(floatNullValue);
+      return new Float(FLOAT_NULL_VALUE);
     case INTEGER_TYPE:
       return new Integer(INTEGER_NULL_VALUE);
     case LONG_TYPE:
