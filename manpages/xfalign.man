@@ -134,7 +134,7 @@ values given by
 Do not leave spaces between these entries.
 .TP
 .B -reduce <value>
-In Xfsimplex, reduce images by a factor of 2 the number of times given by
+In Xfsimplex, reduce images by binning by the amount given by
 .I value.
 .TP
 .B -matt <value>
