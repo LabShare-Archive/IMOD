@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/8/06: Added an attribute to cpu.adoc:  "separate-chunks".  When
+"separate-chunks" is present in cpu.adoc and not set to "0", splittilt will be run
+with a "-c" option.  The "separate-chunks" attribute is a global attribute - it
+is only valid when it is placed before the sections.
+
 6/8/06: Made Xfsimplex read in data binned so there are no limitations on
 input data size as long as data are binned to < 2Kx4K; changed it so that the
 reduction parameter specifies binning rather than successive reductions by 2.
