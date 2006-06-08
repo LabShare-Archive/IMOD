@@ -50,6 +50,7 @@ import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
+import etomo.storage.CpuAdoc;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -5444,6 +5445,7 @@ public final class ApplicationManager extends BaseManager {
     if (!mainPanel.getParallelPanel(axisID).getParameters(param)) {
       return null;
     }
+    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(axisID));
     return param;
   }
 
@@ -5593,6 +5595,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.231  2006/06/07 22:23:05  sueh
+ * <p> bug# 766 imodFixFiducials():  turning off auto center when fix fiducials is first run.
+ * <p>
  * <p> Revision 3.230  2006/06/05 15:59:46  sueh
  * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
  * <p>
