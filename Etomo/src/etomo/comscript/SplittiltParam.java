@@ -28,6 +28,7 @@ public class SplittiltParam {
   private String[] commandArray = null;
   private EtomoNumber numMachines;
   private AxisID axisID;
+  private boolean separateChunks = false;
   
   public SplittiltParam(AxisID axisID) {
     this.axisID = axisID;
@@ -50,6 +51,9 @@ public class SplittiltParam {
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     command.add("-n");
     command.add(numMachines.toString());
+    if (separateChunks) {
+      command.add("-c");
+    }
     command.add("tilt" + axisID.getExtension());
     int commandSize = command.size();
     commandArray = new String[commandSize];
@@ -61,7 +65,14 @@ public class SplittiltParam {
   public ConstEtomoNumber setNumMachines(String numMachines) {
     return this.numMachines.set(numMachines);
   }
+  
+  public void setSeparateChunks(boolean separateChunks) {
+    this.separateChunks = separateChunks;
+  }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/07/21 21:33:12  sueh
+* <p> bug# 532 param object for the splittilt command.
+* <p> </p>
 */
