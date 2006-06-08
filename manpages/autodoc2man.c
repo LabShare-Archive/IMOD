@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2003/10/25 02:53:30  mast
+    add a ;
+
     Revision 3.2  2003/10/24 19:50:06  mast
     Remove unused argument in usage statement
 
@@ -31,6 +34,7 @@ int main(int argc , char **argv)
             "   type = -2 for fallback Fortran option code\n"
             "          -1 for cat output (.1)\n"
             "           1 for man output (.man)\n"
+            "           2 for fallback C option code\n"
             "   directories_up = number of ../ to find autodoc directory\n");
     exit(1);
   }
@@ -47,4 +51,13 @@ int main(int argc , char **argv)
   PipSetManpageOutput(mantype);
   PipPrintHelp(argv[3], 0, 0, 0);
   return 0;
+}
+
+/* Stubs to avoid having to link with libimod */
+int imodVersion(char *pname)
+{
+  return 0;
+}
+void imodCopyright(void)
+{
 }
