@@ -38,7 +38,6 @@ public final class ConstEtomoNumberTest extends TestCase {
   private static final float easyFloat = 1F;
   private static final long easyLong = 1L;
   private static final double easyInteger = 1;
-  
 
   private static final File testDir = new File(TypeTests.TEST_ROOT_DIR,
       "ConstEtomoNumber");
@@ -70,72 +69,81 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public void testConstEtomoNumber() {
     EtomoNumber test = new EtomoNumber();
-    assertEquals(test.getType(),EtomoNumber.INTEGER_TYPE);
+    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
     testInitialize();
   }
-  
+
   public void testInitialize() {
     testNewNumber();
     testInitialize_Number();
   }
-  
+
   public void testInitialize_Number() {
     testNewNumber();
     EtomoNumber test = new EtomoNumber();
-    assertEquals(test.getDisplayInteger(),EtomoNumber.INTEGER_NULL_VALUE);
-    assertEquals(test.getInt(),EtomoNumber.INTEGER_NULL_VALUE);
+    assertEquals(test.getDisplayInteger(), EtomoNumber.INTEGER_NULL_VALUE);
+    assertEquals(test.getInt(), EtomoNumber.INTEGER_NULL_VALUE);
     test.internalTest();
   }
-  
-  //TODO
+
   public void testConstEtomoNumber_String() {
-    String name = "ConstEtomoNumberTest";
+    String name = "test";
     EtomoNumber test = new EtomoNumber(name);
-    test.internalTest();
-    //test name
+    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
     assertTrue(name.equals(test.getName()));
-    //test description
-    assertTrue(name.equals(test.getDescription()));
+    assertTrue(test.getName().equals(test.getDescription()));
+    test.internalTest();
+    testInitialize();
   }
 
   public void testConstEtomoNumber_int() {
-    //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
+    assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    test.internalTest();
-    //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    test.internalTest();
-    //long
     test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    assertEquals(test.getType(), EtomoNumber.LONG_TYPE);
+    assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    assertEquals(test.getType(), EtomoNumber.FLOAT_TYPE);
+    assertTrue(test.getName().equals(test.getDescription()));
+    test.internalTest();
+    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    assertEquals(test.getType(), EtomoNumber.DOUBLE_TYPE);
+    assertTrue(test.getName().equals(test.getDescription()));
+    test.internalTest();
+    testInitialize();
   }
 
   final public void testConstEtomoNumber_int_String() {
-    //double
-    String name = "ConstEtomoNumberTest";
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, name);
+    String name = "test";
+    EtomoNumber test = new EtomoNumber(EtomoNumber.INTEGER_TYPE, name);
+    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
+    assertTrue(name.equals(test.getName()));
+    assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    ///test: name
-    assertTrue("name test failed: name=" + name + ",test.getName()="
-        + test.getName(), name.equals(test.getName()));
-    ///test: description
-    assertTrue(name.equals(test.getDescription()));
-    //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE, name);
-    test.internalTest();
-    //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE, name);
-    test.internalTest();
-    //long
     test = new EtomoNumber(EtomoNumber.LONG_TYPE, name);
+    assertEquals(test.getType(), EtomoNumber.LONG_TYPE);
+    assertTrue(name.equals(test.getName()));
+    assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
+    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE, name);
+    assertEquals(test.getType(), EtomoNumber.FLOAT_TYPE);
+    assertTrue(name.equals(test.getName()));
+    assertTrue(test.getName().equals(test.getDescription()));
+    test.internalTest();
+    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, name);
+    assertEquals(test.getType(), EtomoNumber.DOUBLE_TYPE);
+    assertTrue(name.equals(test.getName()));
+    assertTrue(test.getName().equals(test.getDescription()));
+    test.internalTest();
+    testInitialize();
   }
 
+  //TODO
   final public void testConstEtomoNumber_ConstEtomoNumber() {
     String name = "ConstEtomoNumberTest";
     String description = "testConstEtomoNumber_ConstEtomoNumber";
@@ -612,7 +620,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     testGetValue();
     testGetNumber_Number();
   }
-  
+
   //TODO
   public final void testGetNumber_Number() {
   }
@@ -1080,6 +1088,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2006/06/08 19:46:45  sueh
+ * <p> bug# 692 added tests
+ * <p>
  * <p> Revision 1.22  2006/06/07 23:51:53  sueh
  * <p> bug# 692 Changed ConstEtomoNumber.selfTest to internalTest.  Changed
  * <p> ConstEtomoNumber.setTestCopy to internalTestDeepCopy.  Calling internalTest
