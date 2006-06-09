@@ -2076,9 +2076,13 @@ public final class ApplicationManager extends BaseManager {
    */
   public void saveCurrentDialog(AxisID axisID) {
     DialogType currentDialogType = getCurrentDialogType(axisID);
-    if (currentDialogType == DialogType.TOMOGRAM_POSITIONING) {
-      getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).doneDialog();
+    //handle dialogs with experts
+    UIExpert expert = getUIExpert(currentDialogType, axisID);
+    if (expert != null) {
+      expert.doneDialog(DialogExitState.SAVE);
+      return;
     }
+    //handle accessible dialogs
     ProcessDialog dialog = getDialog(currentDialogType, axisID);
     if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
       return;
@@ -2160,7 +2164,7 @@ public final class ApplicationManager extends BaseManager {
 
   public boolean save(AxisID axisID) {
     mainPanel.done();
-    saveDialog();
+    saveDialogs();
     return saveParamFile(axisID);
   }
 
@@ -2168,7 +2172,7 @@ public final class ApplicationManager extends BaseManager {
    * Saves all dialogs that are not set to null.  Called by exitProgram().
    *
    */
-  public void saveDialog() {
+  public void saveDialogs() {
     if (metaData == null) {
       return;
     }
@@ -2199,8 +2203,8 @@ public final class ApplicationManager extends BaseManager {
       saveAlignmentEstimationDialog(fineAlignmentDialogB, AxisID.SECOND);
     }
 
-    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog();
-    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog();
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog(DialogExitState.SAVE);
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog(DialogExitState.SAVE);
     /*if (tomogramPositioningDialogA != null) {
      saveTomogramPositioningDialog(tomogramPositioningDialogA, firstAxisID);
      }
@@ -5589,6 +5593,12 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.233  2006/06/09 16:28:04  sueh
+ * <p> bug# 869 openTomogramCombinationDialog():  Saving combine script creation
+ * <p> states in TomogramState.  For backward compatibility using combineScriptsExist
+ * <p> to check for combine scripts if the state isn't found.  Changed
+ * <p> combineScriptsExist to backwardCompatibilityCombineScriptsExist.
+ * <p>
  * <p> Revision 3.232  2006/06/08 19:03:41  sueh
  * <p> bug# 867 updateSplittiltParam:  Setting separate chunks.
  * <p>
