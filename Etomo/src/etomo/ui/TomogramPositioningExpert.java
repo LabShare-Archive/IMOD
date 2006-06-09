@@ -187,16 +187,42 @@ public final class TomogramPositioningExpert implements UIExpert {
     mainPanel.setParallelDialog(axisID, dialog.isParallel());
   }
 
-  public void doneDialog() {
+  public void doneDialog(DialogExitState exitState) {
     if (dialog == null) {
       return;
+    }
+    dialog.setExitState(exitState);
+    doneDialog();
+  }
+
+  void doneDialog() {
+    if (dialog == null) {
+      return;
+    }
+    if (dialog.getExitState() == DialogExitState.EXECUTE) {
+      if (dialog.isTomopitchButtonSelected() && !dialog.isAlignButtonSelected()) {
+        if (!UIHarness.INSTANCE
+            .openYesNoWarningDialog(
+                "Final alignment is not done or is out of date.\nReally leave Tomogram Positioning?",
+                axisID)) {
+          return;
+        }
+      }
     }
     dialog.done();
     saveDialog();
     dialog = null;
   }
 
-  public void saveDialog() {
+  public void saveDialog(DialogExitState exitState) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setExitState(exitState);
+    saveDialog();
+  }
+
+  private void saveDialog() {
     if (dialog == null) {
       return;
     }
@@ -224,7 +250,6 @@ public final class TomogramPositioningExpert implements UIExpert {
           && updateNewstCom() == null) {
         return;
       }
-
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
             axisID);
@@ -258,6 +283,7 @@ public final class TomogramPositioningExpert implements UIExpert {
       }
       manager.saveIntermediateParamFile(axisID);
     }
+    return;
   }
 
   /**
@@ -805,5 +831,9 @@ public final class TomogramPositioningExpert implements UIExpert {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/05/19 19:52:01  sueh
+ * <p> bug# 866 Class to contain all the functionality details associated with
+ * <p> tomogram positioning.
+ * <p> </p>
  */
