@@ -14,6 +14,7 @@
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
     <section ref="./modelHeader.html" title="Model Header Dialog"/>
+    <section ref="./objectEdit.html" title="Object Edit Dialog"/>
     <section ref="./contourJoin.html" title="Contour Joining"/>
     <section ref="./contourMove.html" title="Contour Moving"/>
     <section ref="./imageMovie.html" title="Image Movie Control"/>
