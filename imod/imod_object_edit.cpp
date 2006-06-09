@@ -43,56 +43,7 @@ static ImodObjColor *colorObjects[MAX_COLOR_SELECTORS];
 
 void ioew_help(void)
 {
-  dia_vasmsg
-    ("Object Type Help\n",
-     "-------------------\n",
-     "This dialog edits the current object. ",
-     "One can leave this dialog open and change the current ",
-     "object.\n\n"
-     "Object Name:\n",
-     "\tEnter a name for the object.\n\n",
-     "Draw:\n",
-     "\tTurns drawing on/off in image windows.\n\n",
-     "Open/Closed/Scattered radio buttons:\n",
-     "\tSet how points in object are connected.  Open and closed "
-     "contour objects are drawn with lines between the points; "
-     "closed contours have a line connecting the last point back "
-     "to the first one; scattered point objects have no "
-     "connecting lines.\n\n",
-     "Front Face:\n",
-     "\tOutside/Inside toggles select which side of the contours "
-     "will be brightly lit after the object is meshed.  This "
-     "feature can also be used to select an area of interest as "
-     "inside or outside the contours, for some programs.\n\n",
-     "Symbols:\n",
-     "\tChooses how symbols are drawn.  Open or filled symbols of "
-     "three shapes may be drawn at each model point.  Symbol size "
-     "is governed by the Size slider.  Independent of whether "
-     "symbols are drawn at each point, if Mark Ends is selected, "
-     "green and red crosses are drawn over the first and last "
-     "points of a contour.\n\n",
-     "Sphere radius for points:\n",
-     "\tIf this sphere size is nonzero, then spheres will be drawn "
-     "in 3-D at every point of the object.  These spheres appear in"
-     " the model view window and appear in cross-section on "
-     "one or more slices of the image display.  The units are pixels in the "
-     "image file, i.e., unbinned pixels if images are loaded in binned.\n\n",
-     "Line Width:\n",
-     "\tSets the width for lines drawn on images, but not for "
-     "lines in 3D.\n\n",
-     "Time data:\n",
-     "\tIf multiple image files are loaded, this toggle button "
-     "controls whether time information is encoded "
-     "in contours as they are drawn.  If the button is on, then "
-     "each new contour that is created will be assigned to the "
-     "currently displayed time, and it will appear only over "
-     "images at that time.  In addition, the Time Index text box "
-     "in the Contour/Surface/Point window can be used to adjust the "
-     "time value of a contour.  If the button is off, then new "
-     "contours will not be assigned to the current time but "
-     "rather will have a time value of 0 and will appear over "
-     "images at all times.",
-     NULL);
+  imodShowHelpPage("objectEdit.html");
 }
 
 static void setObjectFlag(bool state, int symflag, b3dUInt32 flag)
@@ -480,6 +431,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.14  2006/06/09 20:25:39  mast
+Added ability to display spheres on center section only
+
 Revision 4.13  2005/03/20 19:55:36  mast
 Eliminating duplicate functions
 
