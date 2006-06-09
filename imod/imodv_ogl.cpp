@@ -37,6 +37,32 @@ Log at end of file
 #define DRAW_OBJECT -1
 #define NO_NAME 0xffffffff
 
+static int begCount = 0;
+void myGlEnd()
+{
+  imodPrintStderr("End %d\n", begCount--);
+  glEnd();
+  GLenum error = glGetError();
+  if (error)
+    imodPrintStderr("GL error: %s\n", gluErrorString(error));
+}
+
+void myGlVertex3f( GLfloat x, GLfloat y, GLfloat z )
+{
+  imodPrintStderr("Vertex %.1f %.1f %.1f\n", x, y, z);
+  glVertex3f(x,y,z);
+}
+
+void myGlBegin( GLenum mode )
+{
+  imodPrintStderr("Begin mode %d  count %d\n", mode, begCount++);
+  glBegin(mode);
+}
+
+// For debugging some calls
+//#define glEnd myGlEnd
+//#define glBegin myGlBegin
+//#define glVertex3f myGlVertex3f
 
 static void imodvDraw_spheres(Iobj *obj, double zscale, int style, 
                               int drawTrans);
@@ -1886,10 +1912,14 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
           glNormal3fv((float *)&(vert[li + 1])); 
           glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
         } else {
-          
+
+          // Isolate a triangle with changes from other triangles with an
+          // End/begin pair regardless of type of change - needed on non-quadro
+          // Nvidia in Linux, and Nvidia on a Mac
+          glEnd();
+
           // Get the next change for the first point
           if (stateFlags || i == nextChange) {
-            glEnd();
             nextChange = ifgHandleMeshChange
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
@@ -1911,9 +1941,9 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
                 imodPrintStderr("Skipping to %d\n", i);
               continue;
             }
-            glBegin(GL_TRIANGLES);
           }
 
+          glBegin(GL_TRIANGLES);
           for (j = 0; j < 3; j++) {
             if (j && (stateFlags || i == nextChange))
               nextChange = ifgHandleMeshChange
@@ -1923,14 +1953,17 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
             glNormal3fv((float *)&(vert[li + 1])); 
             glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
           }
+
+          // Again, isolate this triangle from further ones.
+          glEnd();
+
           /*imodPrintStderr("after changes %d  state %d  nextch %d nii %d\n",
             i - 3, stateFlags, nextChange, nextItemIndex); */
           // Reset if not in default state and the next positive change will
           // not be in the next triangle
           if (stateFlags && (nextItemIndex < i || nextItemIndex > i + 2 ||
                              list[i] == IMOD_MESH_ENDPOLY)) {
-            /* imodPrintStderr("resetting, state %d\n", stateFlags); */
-            glEnd();
+            /*imodPrintStderr("resetting, state %d\n", stateFlags); */
             nextChange = ifgHandleMeshChange
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
@@ -1944,8 +1977,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
               if (imodDebug('v'))
                 imodPrintStderr("Skipping to %d\n", i);
             }
-            glBegin(GL_TRIANGLES);
           }
+          glBegin(GL_TRIANGLES);
         }
         
       }
@@ -2365,6 +2398,11 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.27  2005/12/11 18:26:29  mast
+Fixed perspective so the slider really does set the angular field of view
+regardless of clipping plane setting, and changed kicking out of extreme
+clipping planes so it is less by default and canbe increased by choice.
+
 Revision 4.26  2005/11/19 16:59:25  mast
 Fix fmod calls to use two floats for Intel compiler
 
