@@ -17,18 +17,19 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
-import etomo.comscript.SetupCombine;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.EtomoBoolean2;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TomogramState;
 
 /**
  * <p>
@@ -50,6 +51,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.37  2006/05/16 21:37:35  sueh
+ * bug# 856 Added useCorrespondingPoints and useList.  Added isChanged(),
+ * which looks at useCorrespondingPoints.
+ *
  * Revision 3.36  2006/05/12 17:22:46  sueh
  * bug# 861 unset patch region model when checkbox is not checked
  *
@@ -396,7 +401,6 @@ public final class SetupCombinePanel implements ContextMenu,
       FinalCombinePanel.NO_VOLCOMBINE_TITLE);
   private final CheckBox cbParallelProcess;
   private final SetupCombineActionListener actionListener;
-  private MatchMode scriptMatchMode = null;
 
   /**
    * Default constructor
@@ -556,7 +560,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlRoot.addMouseListener(mouseAdapter);
     pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
-    updateStartCombine();
+    //updateStartCombine();
     setToolTipText();
   }
 
@@ -579,6 +583,10 @@ public final class SetupCombinePanel implements ContextMenu,
 
   void getParameters(MetaData metaData) {
     metaData.setCombineVolcombineParallel(cbParallelProcess.isSelected());
+  }
+
+  void updateDisplay(boolean enable) {
+    btnCombine.setEnabled(enable);
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -734,7 +742,7 @@ public final class SetupCombinePanel implements ContextMenu,
 
     pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
-    updateStartCombine();
+    //updateStartCombine();
   }
 
   /**
@@ -883,11 +891,11 @@ public final class SetupCombinePanel implements ContextMenu,
   public void setFiducialMatchListA(String fiducialMatchListA) {
     pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
   }
-  
+
   public void setUseList(String useList) {
     pnlSolvematch.setUseList(useList);
   }
-  
+
   public String getUseList() {
     return pnlSolvematch.getUseList();
   }
@@ -941,17 +949,7 @@ public final class SetupCombinePanel implements ContextMenu,
       run3dmod(command, new Run3dmodMenuOptions());
     }
     //  Check the combine scripts state and set the start button accordingly
-    updateStartCombine();
-  }
-
-  public void setCombineState(ConstCombineParams param) {
-    scriptMatchMode = param.getMatchMode();
-    pnlSolvematch.setCombineState(param);
-  }
-  
-  public void setCombineState(SetupCombine combine) {
-    scriptMatchMode = combine.getMatchMode();
-    pnlSolvematch.setCombineState(combine);
+   //updateStartCombine();
   }
 
   /**
@@ -963,11 +961,16 @@ public final class SetupCombinePanel implements ContextMenu,
     updateMatchTo();
     tomogramCombinationDialog.updateDisplay();
   }
-  
-  boolean isChanged() {
-    return (scriptMatchMode == MatchMode.A_TO_B && !rbAtoB
-        .isSelected())
-        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected()) || pnlSolvematch.isChanged();
+
+  boolean isChanged(TomogramState state) {
+    EtomoBoolean2 scriptsCreated = state.getCombineScriptsCreated();
+    if (scriptsCreated == null || !scriptsCreated.is()) {
+      return true;
+    }
+    MatchMode scriptMatchMode = state.getCombineMatchMode();
+    return (scriptMatchMode == null || scriptMatchMode == MatchMode.A_TO_B
+        && !rbAtoB.isSelected())
+        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected());
   }
 
   private void updateMatchTo() {
@@ -1008,10 +1011,10 @@ public final class SetupCombinePanel implements ContextMenu,
 
   /**
    * Enable/disable the start combine button w.r.t. the existence of the scripts
-   */
+   
   private void updateStartCombine() {
     btnCombine.setEnabled(applicationManager.combineScriptsExist());
-  }
+  }*/
 
   /**
    * Right mouse btn context menu
