@@ -17,7 +17,6 @@ import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
-import etomo.comscript.SetupCombine;
 import etomo.comscript.SolvematchParam;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.Section;
@@ -40,6 +39,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2006/05/16 21:37:50  sueh
+ * <p> bug# 856 Added useCorrespondingPoints and useList.  Added isChanged(),
+ * <p> which looks at useCorrespondingPoints.
+ * <p>
  * <p> Revision 3.20  2006/04/28 21:05:06  sueh
  * <p> bug# 787 PanelHeader:  Removed the member variable title, which was
  * <p> not used.
@@ -163,7 +166,6 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
   private boolean binningWarning = false;
   private final PanelHeader header;
   private final String headerGroup;
-  private boolean scriptUseCorrespondingPoints = false;
 
   public SolvematchPanel(TomogramCombinationDialog parent, String title,
       ApplicationManager appMgr, String headerGroup) {
@@ -497,25 +499,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
     tomogramCombinationDialog.updateDisplay();
   }
 
-  public void setCombineState(ConstCombineParams param) {
-    scriptUseCorrespondingPoints = !param.isTransfer();
-  }
-
-  public void setCombineState(SetupCombine combine) {
-    scriptUseCorrespondingPoints = !combine.isTransfer();
-  }
-
-  boolean isChanged() {
-    return scriptUseCorrespondingPoints != cbUseCorrespondingPoints
-        .isSelected();
-  }
-
   public boolean isUseCorrespondingPoints() {
     return cbUseCorrespondingPoints.isSelected();
-  }
-
-  public void setVisibleUseCorrespondingPoints(boolean visible) {
-    cbUseCorrespondingPoints.setVisible(visible);
   }
 
   public void setUseCorrespondingPoints(boolean selected) {
