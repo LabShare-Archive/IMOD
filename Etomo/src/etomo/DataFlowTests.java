@@ -6,6 +6,7 @@ import java.io.IOException;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ViewType;
@@ -287,7 +288,7 @@ public class DataFlowTests {
       expert.finalAlign(null);
       waitForThread(axisID);
     }
-    expert.doneDialog();
+    expert.doneDialog(DialogExitState.SAVE);
   }
 
   private static void tomogramGeneration(AxisID axisID) {
@@ -350,6 +351,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2006/05/19 19:27:05  sueh
+ * <p> bug# 866 Calling tomo pos function in TomogramPositioningExpert instead of
+ * <p> ApplicationManager.
+ * <p>
  * <p> Revision 3.17  2006/02/06 20:58:31  sueh
  * <p> bug# 521 Added ProcessResultDisplay to ApplicationManager.findXrays.
  * <p>
