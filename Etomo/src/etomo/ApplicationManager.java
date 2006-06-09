@@ -32,7 +32,6 @@ import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SetParam;
-import etomo.comscript.SetupCombine;
 import etomo.comscript.SolvematchParam;
 import etomo.comscript.SolvematchmodParam;
 import etomo.comscript.SolvematchshiftParam;
@@ -3816,13 +3815,11 @@ public final class ApplicationManager extends BaseManager {
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-      boolean combineScriptsExist = combineScriptsExist();
-      tomogramCombinationDialog.setCombineState(combineScriptsExist,
-          combineParams);
+      backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable the
       // apropriate panels in the tomogram combination dialog
       //tomogramCombinationDialog.enableCombineTabs(combineScriptsExist());
-      if (!tomogramCombinationDialog.isChanged()) {
+      if (state.isCombineScriptsCreated()) {
         // Check to see if a solvematch.com file exists and load it if so
         //otherwise load the correct old solvematch* file
         File solvematch = new File(propertyUserDir, "solvematch.com");
@@ -4025,7 +4022,7 @@ public final class ApplicationManager extends BaseManager {
       updateCombineParams();
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
-      if (!tomogramCombinationDialog.isChanged()) {
+      if (!tomogramCombinationDialog.isChanged(state)) {
         if (!updateSolvematchCom()) {
           return;
         }
@@ -4058,7 +4055,10 @@ public final class ApplicationManager extends BaseManager {
    * 
    * @return true if the combine scripts exist
    */
-  public boolean combineScriptsExist() {
+  public void backwardsCompatibilityCombineScriptsExist() {
+    if (state.getCombineScriptsCreated() != null) {
+      return;
+    }
     File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
     File solvematchmod = new File(propertyUserDir, "solvematchmod.com");
     File solvematch = new File(propertyUserDir, "solvematch.com");
@@ -4067,12 +4067,14 @@ public final class ApplicationManager extends BaseManager {
     File patchcorr = new File(propertyUserDir, "patchcorr.com");
     File volcombine = new File(propertyUserDir, "volcombine.com");
     File warpvol = new File(propertyUserDir, "warpvol.com");
-    return (solvematch.exists() || (solvematchshift.exists() && solvematchmod
+    if ((solvematch.exists() || (solvematchshift.exists() && solvematchmod
         .exists()))
         && matchvol1.exists()
         && matchorwarp.exists()
         && patchcorr.exists()
-        && volcombine.exists() && warpvol.exists();
+        && volcombine.exists() && warpvol.exists()) {
+      state.setCombineScriptsCreated(true);
+    }
   }
 
   /**
@@ -4112,14 +4114,6 @@ public final class ApplicationManager extends BaseManager {
     loadVolcombine();
     loadCombineComscript();
     mainPanel.stopProgressBar(AxisID.ONLY);
-  }
-
-  public void msgSetupCombineScriptsSucceeded(SetupCombine setupCombine) {
-    if (tomogramCombinationDialog == null) {
-      throw new IllegalStateException(
-          "tomogramCombinationDialog cannot be null");
-    }
-    tomogramCombinationDialog.setCombineState(true, setupCombine);
   }
 
   /**
@@ -5595,6 +5589,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.232  2006/06/08 19:03:41  sueh
+ * <p> bug# 867 updateSplittiltParam:  Setting separate chunks.
+ * <p>
  * <p> Revision 3.231  2006/06/07 22:23:05  sueh
  * <p> bug# 766 imodFixFiducials():  turning off auto center when fix fiducials is first run.
  * <p>
