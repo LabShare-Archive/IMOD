@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import etomo.type.DialogExitState;
 import etomo.type.ProcessResultDisplay;
 
 /**
@@ -20,9 +21,12 @@ public interface UIExpert {
 
   public void startNextProcess(ProcessResultDisplay processResultDisplay);
   public void openDialog();
-  public void doneDialog();
-  public void saveDialog();
+  public void doneDialog(DialogExitState exitState);
+  public void saveDialog(DialogExitState exitState);
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/05/19 19:53:13  sueh
+ * <p> bug# 866 Interface for TomogramPositioningExpert.
+ * <p> </p>
  */
