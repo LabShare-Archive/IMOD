@@ -36,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2006/05/19 19:51:27  sueh
+ * <p> bug# 866 Moved set/getParam functions, and updateDisplay functions to TomogramPositioningExpert.
+ * <p> Added field-level set, get, and setEnabled functions.
+ * <p>
  * <p> Revision 3.42  2006/05/11 19:32:29  sueh
  * <p> bug# 838 Added CalcPanel - a three variable panel which shows the
  * <p> calculation of angles calculated by tomopitch.  Added x axis tilt and
@@ -506,6 +510,14 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnSample.removeActionListener(localActionListener);
     btnTomopitch.removeActionListener(localActionListener);
     btnAlign.removeActionListener(localActionListener);
+  }
+  
+  boolean isTomopitchButtonSelected() {
+    return btnTomopitch.isSelected();
+  }
+  
+  boolean isAlignButtonSelected() {
+    return btnAlign.isSelected();
   }
 
   public void setButtonState(ReconScreenState screenState) {
