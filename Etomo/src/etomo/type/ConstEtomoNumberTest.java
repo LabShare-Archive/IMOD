@@ -71,6 +71,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
     assertTrue(test.getName().equals(test.getDescription()));
+    assertTrue(test.isValid());
     test.internalTest();
     testInitialize();
   }
@@ -85,15 +86,17 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     assertEquals(test.getDisplayInteger(), EtomoNumber.INTEGER_NULL_VALUE);
     assertEquals(test.getInt(), EtomoNumber.INTEGER_NULL_VALUE);
+    assertTrue(test.isValid());
     test.internalTest();
   }
 
   public void testConstEtomoNumber_String() {
-    String name = "test";
+    String name = "name";
     EtomoNumber test = new EtomoNumber(name);
     assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
+    assertTrue(test.isValid());
     test.internalTest();
     testInitialize();
   }
@@ -114,12 +117,13 @@ public final class ConstEtomoNumberTest extends TestCase {
     test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     assertEquals(test.getType(), EtomoNumber.DOUBLE_TYPE);
     assertTrue(test.getName().equals(test.getDescription()));
+    assertTrue(test.isValid());
     test.internalTest();
     testInitialize();
   }
 
   final public void testConstEtomoNumber_int_String() {
-    String name = "test";
+    String name = "name";
     EtomoNumber test = new EtomoNumber(EtomoNumber.INTEGER_TYPE, name);
     assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
     assertTrue(name.equals(test.getName()));
@@ -139,36 +143,74 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getType(), EtomoNumber.DOUBLE_TYPE);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
+    assertTrue(test.isValid());
     test.internalTest();
     testInitialize();
   }
 
-  //TODO
   final public void testConstEtomoNumber_ConstEtomoNumber() {
-    String name = "ConstEtomoNumberTest";
-    String description = "testConstEtomoNumber_ConstEtomoNumber";
-    int currentValue = 1;
+    //test null parameter
+    EtomoNumber test = null;
+    EtomoNumber copy = new EtomoNumber(test);
+    assertEquals(copy.getType(), EtomoNumber.INTEGER_TYPE);
+    assertTrue(copy.getName().equals(copy.getDescription()));
+    assertTrue(copy.isValid());
+    copy.internalTest();
+    testInitialize();
+    //make copy
+    int floor = 0;
+    int validFloor = 1;
     int displayValue = 2;
-    EtomoNumber test = new EtomoNumber(name);
-    test.setDescription(description);
+    int validValue = 3;
+    int ceiling = 4;
+    int currentValue = 5;
+    test = new EtomoNumber("name");
+    test.setDescription("description");
     test.set(currentValue);
     test.setDisplayValue(displayValue);
-    EtomoNumber copy = new EtomoNumber(test);
+    test.setCeiling(ceiling);
+    test.setFloor(floor);
+    test.setNullIsValid(false);
+    test.setValidFloor(validFloor);
+    test.setValidValues(new int[] { displayValue,validValue});
+    copy = new EtomoNumber(test);
+    //test copy
+    assertTrue(test.equals(copy));
+    assertEquals(test.getType(), copy.getType());
+    assertEquals(test.getName(), copy.getName());
+    assertEquals(test.getDescription(), copy.getDescription());
+    assertEquals(test.getInt(), copy.getInt());
+    assertEquals(test.getDisplayInteger(), copy.getDisplayInteger());
+    assertFalse(test.isValid());
+    assertFalse(copy.isValid());
     //test deep copy
-    assertFalse(test == copy);
-    //test name copy
-    assertTrue(copy.getName().equals(name));
-    //test description copy
-    assertTrue(copy.getDescription().equals(description));
-    //test currentValue copy
-    assertEquals(copy.getInt(), currentValue);
-    //test displayValue copy
-    assertEquals(copy.getDisplayInteger(), displayValue);
+    assertNotSame(test, copy);
+    copy.internalTestDeepCopy(test);
+    copy.setDescription("different description");
+    assertFalse(test.getDescription().equals(copy.getDescription()));
+    ///make copy valid
+    copy.set(displayValue);
+    assertFalse(test.equals(copy));
+    assertFalse(test.isValid());
+    assertTrue(copy.isValid());
+    ///make test valid and copy invalid
+    test.setValidValues(null);
+    copy.set(ceiling);
+    assertTrue(test.isValid());
+    assertFalse(copy.isValid());
+    ///make test invalid and copy valid
+    test.set(floor);
+    copy.setDisplayValue(null);
+    copy.reset();
+    copy.setNullIsValid(true);
+    assertFalse(test.isValid());
+    assertTrue(copy.isValid());
+    //internal tests
     test.internalTest();
     copy.internalTest();
-    copy.internalTestDeepCopy(test);
   }
 
+  //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
     //double
@@ -400,6 +442,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
+  //TODO
   public final void testSetValidValues_intArray() {
     int validNumber = 3;
     EtomoNumber test = new EtomoNumber();
@@ -1088,6 +1131,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2006/06/09 17:25:33  sueh
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 1.23  2006/06/08 19:46:45  sueh
  * <p> bug# 692 added tests
  * <p>
