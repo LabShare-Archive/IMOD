@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/06/07 22:25:16  sueh
+ * <p> bug# 862 Added fixedFiducials, which is set to true that first time fix fiducials is
+ * <p> used.
+ * <p>
  * <p> Revision 1.20  2006/05/23 21:06:23  sueh
  * <p> bug# 617 Added fidFileLastModfied and seedFileLastModified.
  * <p>
@@ -112,6 +116,12 @@ public class TomogramState implements BaseState {
   private static final String LAST_MODIFIED = "LastModified";
   private static final String USE_FID_AS_SEED = "UseFidAsSeed";
   private static final String FIXED_FIDUCIALS_KEY = "FixedFiducials";
+  private static final String COMBINE_MATCH_MODE_KEY = DialogType.TOMOGRAM_COMBINATION
+      .getStorableName()
+      + "." + "MatchMode";
+  private static final String COMBINE_SCRIPTS_CREATED_KEY = DialogType.TOMOGRAM_COMBINATION
+      .getStorableName()
+      + "." + "ScriptsCreated";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
@@ -175,6 +185,8 @@ public class TomogramState implements BaseState {
   private final EtomoBoolean2 fixedFiducialsB = new EtomoBoolean2(AxisID.SECOND
       .getExtension()
       + "." + FIXED_FIDUCIALS_KEY);
+  private MatchMode combineMatchMode = null;
+  private EtomoBoolean2 combineScriptsCreated = null;
 
   private final BaseManager manager;
 
@@ -210,6 +222,8 @@ public class TomogramState implements BaseState {
     seedFileLastModifiedB.reset();
     fixedFiducialsA.reset();
     fixedFiducialsB.reset();
+    combineMatchMode = null;
+    combineScriptsCreated = null;
   }
 
   public void initialize() {
@@ -258,6 +272,15 @@ public class TomogramState implements BaseState {
     seedFileLastModifiedB.store(props, prepend);
     fixedFiducialsA.store(props, prepend);
     fixedFiducialsB.store(props, prepend);
+    if (combineMatchMode == null) {
+      props.remove(prepend + "." + COMBINE_MATCH_MODE_KEY);
+    }
+    else {
+      props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY,
+          combineMatchMode.toString());
+    }
+    EtomoBoolean2.store(combineScriptsCreated, props, prepend,
+        COMBINE_SCRIPTS_CREATED_KEY);
   }
 
   public boolean equals(TomogramState that) {
@@ -321,6 +344,21 @@ public class TomogramState implements BaseState {
     if (!seedFileLastModifiedB.equals(that.seedFileLastModifiedB)) {
       return false;
     }
+    if (fixedFiducialsA != that.fixedFiducialsA) {
+      return false;
+    }
+    if (fixedFiducialsB != that.fidFileLastModifiedB) {
+      return false;
+    }
+    if (combineMatchMode != that.combineMatchMode) {
+      return false;
+    }
+    if (combineScriptsCreated == null && that.combineScriptsCreated != null) {
+      return false;
+    }
+    if (!combineScriptsCreated.equals(that.combineScriptsCreated)) {
+      return false;
+    }
     return true;
   }
 
@@ -365,6 +403,35 @@ public class TomogramState implements BaseState {
     seedFileLastModifiedB.load(props, prepend);
     fixedFiducialsA.load(props, prepend);
     fixedFiducialsB.load(props, prepend);
+    combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
+        + COMBINE_MATCH_MODE_KEY));
+    combineScriptsCreated = EtomoBoolean2.getInstance(combineScriptsCreated,
+        COMBINE_SCRIPTS_CREATED_KEY, props, prepend);
+  }
+
+  public void setCombineScriptsCreated(boolean combineScriptsCreated) {
+    this.combineScriptsCreated = EtomoBoolean2.getInstance(
+        this.combineScriptsCreated, COMBINE_SCRIPTS_CREATED_KEY,
+        combineScriptsCreated);
+  }
+
+  public EtomoBoolean2 getCombineScriptsCreated() {
+    return combineScriptsCreated;
+  }
+
+  public boolean isCombineScriptsCreated() {
+    if (combineScriptsCreated == null) {
+      return false;
+    }
+    return combineScriptsCreated.is();
+  }
+
+  public void setCombineMatchMode(MatchMode combineMatchMode) {
+    this.combineMatchMode = combineMatchMode;
+  }
+
+  public MatchMode getCombineMatchMode() {
+    return combineMatchMode;
   }
 
   public ConstEtomoNumber setTrimvolFlipped(boolean trimvolFlipped) {
