@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/04/28 21:03:51  sueh
+ * <p> bug# 787 Removed UITestConstants.  Moved constants to
+ * <p> implementations of AdocCommand.
+ * <p>
  * <p> Revision 3.19  2006/03/20 18:06:56  sueh
  * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
  * <p>
@@ -139,7 +143,7 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
 
   protected boolean isAdvanced;
 
-  protected DialogExitState exitState = DialogExitState.SAVE;
+  private DialogExitState exitState = DialogExitState.SAVE;
 
   protected Dimension rootSize = new Dimension(620, 680);
 
@@ -201,6 +205,10 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     btnPostpone.addActionListener(new buttonPostponeActionAdapter(this));
     btnExecute.addActionListener(new buttonExecuteActionAdapter(this));
     btnAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
+  }
+  
+  void setExitState(DialogExitState exitState){
+    this.exitState = exitState;
   }
 
   public Container getContainer() {
