@@ -21,8 +21,6 @@ import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
-import etomo.comscript.SetupCombine;
-
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
@@ -35,6 +33,7 @@ import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
+import etomo.type.TomogramState;
 
 /**
  * <p>Description: </p>
@@ -50,6 +49,11 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2006/05/16 21:38:35  sueh
+ * <p> bug# 856 Changed TomogramCombinationDialog.isUpToDate() to isChanged().
+ * <p> IsChanged() looks at match direction and the use corresponding list checkbox
+ * <p> and also looks at whether the scripts exist.
+ * <p>
  * <p> Revision 3.38  2006/03/20 18:07:26  sueh
  * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
  * <p>
@@ -302,7 +306,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
   private JPanel parallelPanelContainer = new JPanel();
-  private boolean combineScriptsCreated = false;
 
   private JTabbedPane tabbedPane = new JTabbedPane();
   final String parallelProcessCheckBoxText;
@@ -632,27 +635,18 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
   
-  public boolean isChanged() {
-    return !combineScriptsCreated || pnlSetup.isChanged();
+  public boolean isChanged(TomogramState state) {
+    return pnlSetup.isChanged(state);
   }
 
   public void updateDisplay() {
     if (!constructed) {
       return;
     }
-    boolean enableTabs = !isChanged();
+    boolean enableTabs = !isChanged(applicationManager.getState());
     tabbedPane.setEnabledAt(INITIAL_INDEX, enableTabs);
     tabbedPane.setEnabledAt(FINAL_INDEX, enableTabs);
-  }
-  
-  public void setCombineState(boolean combineScriptsCreated, ConstCombineParams param) {
-    this.combineScriptsCreated = combineScriptsCreated;
-    pnlSetup.setCombineState(param);
-  }
-  
-  public void setCombineState(boolean combineScriptsCreated, SetupCombine combine) {
-    this.combineScriptsCreated = combineScriptsCreated;
-    pnlSetup.setCombineState(combine);
+    pnlSetup.updateDisplay(enableTabs);
   }
 
   public boolean isRunVolcombine() {
