@@ -1,15 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/9/06: Fixed problems with missing trinagles in multicolored meshes seen on 
+some NVidia cards on Mac and Linux.
+
+6/9/06: Added option in Edit-Object dialog to display spheres only on the
+central section in the Zap and XYZ windows.
+
 6/9/06: In Tomogram Positioning, eTomo now warns the user if they press the
 "Done" button when the final Alignment has not been done or is out of date.
 
-6/9/06: In Tomogram Combination, eTomo now turns off the Combine button when the
-scripts don't exist or are no up to date.
+6/9/06: In Tomogram Combination, eTomo now turns off the Combine button when
+the scripts don't exist or are no up to date. 
 
 6/8/06: Added an attribute to cpu.adoc:  "separate-chunks".  When
-"separate-chunks" is present in cpu.adoc and not set to "0", splittilt will be run
-with a "-c" option.  The "separate-chunks" attribute is a global attribute - it
-is only valid when it is placed before the sections.
+"separate-chunks" is present in cpu.adoc and not set to "0", splittilt will be
+run with a "-c" option.  The "separate-chunks" attribute is a global 
+attribute - it is only valid when it is placed before the sections.
 
 6/8/06: Made Xfsimplex read in data binned so there are no limitations on
 input data size as long as data are binned to < 2Kx4K; changed it so that the
