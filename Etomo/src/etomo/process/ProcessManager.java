@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.100  2006/06/05 16:31:58  sueh
+ * bug# 766 Added manager to the base class.  Passing the process name to the
+ * processes.
+ *
  * Revision 3.99  2006/05/23 21:05:37  sueh
  * bug# 617 Setting fidFileLastModified in TomogramState when track fiducials
  * succeeds.
@@ -1471,6 +1475,7 @@ public class ProcessManager extends BaseProcessManager {
       UIHarness.INSTANCE.openMessageDialog(messages.getWarning(i),
           "Setup Combine Warning", AxisID.ONLY);
     }
+    TomogramState state = appManager.getState();
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(
           "Setup combine failed.  Exit value = " + exitValue,
@@ -1478,12 +1483,15 @@ public class ProcessManager extends BaseProcessManager {
       if (processResultDisplay != null) {
         processResultDisplay.msgProcessFailed();
       }
+      state.setCombineMatchMode(null);
+      state.setCombineScriptsCreated(false);
       return false;
     }
     if (processResultDisplay != null) {
       processResultDisplay.msgProcessSucceeded();
     }
-    appManager.msgSetupCombineScriptsSucceeded(setupCombine);
+    state.setCombineMatchMode(setupCombine.getMatchMode());
+    state.setCombineScriptsCreated(true);
     return true;
   }
 
