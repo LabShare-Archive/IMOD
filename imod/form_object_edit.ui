@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>objectEditForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>223</width>
-            <height>459</height>
+            <width>224</width>
+            <height>533</height>
         </rect>
     </property>
     <property name="caption">
@@ -457,6 +457,17 @@
                 </widget>
             </hbox>
         </widget>
+        <widget class="QCheckBox">
+            <property name="name">
+                <cstring>onSecCheckBox</cstring>
+            </property>
+            <property name="text">
+                <string>Show spheres on-section only</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Display circle in Zap only on central section</string>
+            </property>
+        </widget>
         <widget class="QLayoutWidget">
             <property name="name">
                 <cstring>Layout10</cstring>
@@ -717,6 +728,12 @@
         <receiver>objectEditForm</receiver>
         <slot>OKPressed()</slot>
     </connection>
+    <connection>
+        <sender>onSecCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>toggledOnSection(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">control.h</include>
@@ -738,19 +755,23 @@
     <slot>toggledFill( bool state )</slot>
     <slot>toggledMarkEnds( bool state )</slot>
     <slot>toggledTime( bool state )</slot>
+    <slot>toggledOnSection( bool state )</slot>
     <slot>widthChanged( int value )</slot>
     <slot>setSymbolProperties( int which, bool fill, bool markEnds, int size )</slot>
     <slot>setDrawBox( bool state )</slot>
     <slot>setObjectName( char * name )</slot>
     <slot>setTimeBox( bool state, bool enabled )</slot>
+    <slot>setOnSecBox( bool state )</slot>
     <slot>setPointRadius( int value )</slot>
     <slot>setFrontSurface( int value )</slot>
     <slot>setObjectType( int value )</slot>
     <slot>setLineWidth( int value )</slot>
-    <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
 </slots>
+<functions>
+    <function>closeEvent( QCloseEvent * e )</function>
+</functions>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

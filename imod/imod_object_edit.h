@@ -1,30 +1,5 @@
-/*  IMOD VERSION 2.7.8
- *
- *  $Id$
- *
- *  Original Author: David Mastronarde   email: mast@colorado.edu
+/*  imod_object_edit.h - declarations for imod_object_edit.cpp
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-1998 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -32,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
 Revision 1.1.2.4  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -88,6 +66,7 @@ void ioew_pointsize(int value);
 void ioew_nametext(const char *name);
 void ioew_symbol(int value);
 void ioew_symsize(int value);
+void ioew_sphere_on_sec(int state);
 void ioew_time(int state);
 int imod_object_edit_draw(void);
 int  imod_object_edit();

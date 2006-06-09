@@ -3307,22 +3307,20 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
           if (drawsize > 3)
             b3dDrawPlus(zapXpos(zap, cont->pts[pt].x), 
                         zapYpos(zap, cont->pts[pt].y), 3);
-        }else{
-          if (drawsize > 1){
-            /* DNM: fixed this at last, but let size round
-               down so circles get smaller*/
-            /* draw a smaller circ if further away. */
-            delz = (cont->pts[pt].z - zap->section) * zscale;
-            if (delz < 0)
-              delz = -delz;
-                        
-            if (delz < drawsize - 0.01) {
-              radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
-                             * zap->zoom);
-              b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
-                            zapYpos(zap, cont->pts[pt].y),
-                            radius);
-            }
+        } else if (drawsize > 1 && !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
+          /* DNM: fixed this at last, but let size round
+             down so circles get smaller*/
+          /* draw a smaller circ if further away. */
+          delz = (cont->pts[pt].z - zap->section) * zscale;
+          if (delz < 0)
+            delz = -delz;
+          
+          if (delz < drawsize - 0.01) {
+            radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
+                           * zap->zoom);
+            b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
+                          zapYpos(zap, cont->pts[pt].y),
+                          radius);
           }
         }
     }
@@ -3734,6 +3732,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.79  2006/04/01 23:43:14  mast
+Added size output to toolbar
+
 Revision 4.78  2006/03/01 19:13:06  mast
 Moved window size/position routines from xzap to dia_qtutils
 

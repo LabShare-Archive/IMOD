@@ -234,6 +234,11 @@ void ioew_time(int state)
   setObjectFlag(state, 0, IMOD_OBJFLAG_TIME);
 }
 
+void ioew_sphere_on_sec(int state)
+{
+  setObjectFlag(state, 0, IMOD_OBJFLAG_PNT_ON_SEC);
+}
+
 /* 
  * Open the object edit dialog
  */
@@ -301,6 +306,7 @@ int imod_object_edit_draw(void)
   Ioew_dialog->setLineWidth((int)obj->linewidth2);
   Ioew_dialog->setTimeBox((obj->flags & IMOD_OBJFLAG_TIME) != 0,
                           App->cvi->nt != 0);
+  Ioew_dialog->setOnSecBox((obj->flags & IMOD_OBJFLAG_PNT_ON_SEC) != 0);
 
   if (obj->flags & IMOD_OBJFLAG_SCAT)
     state = 2;
@@ -474,6 +480,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.13  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
+
 Revision 4.12  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 

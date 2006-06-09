@@ -1260,7 +1260,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
         } else {
           /* for off-section, compute size of circle and draw 
              that */
-          if (drawsize > 1) {
+          if (drawsize > 1 && !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
             /* draw a smaller circ if further away. */
             delz = (point->z - vi->zmouse) * zscale;
             if (delz < 0)
@@ -1285,7 +1285,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
           if (drawsize > 3)
             b3dDrawPlus((int)(bx + z * point->x),
                         (int)(by2 + z * point->z), 3);
-        } else if (delz < drawsize - 0.01) {
+        } else if (delz < drawsize - 0.01 && 
+                   !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
           radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
                          * z);
           b3dDrawCircle((int)(bx + z * point->x),
@@ -1302,7 +1303,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
           if (drawsize > 3)
             b3dDrawPlus((int)(bx2 + z * point->z),
                         (int)(by + z * point->y), 3);
-        } else if (delz < drawsize - 0.01) {
+        } else if (delz < drawsize - 0.01 &&
+                   !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
           radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
                          * z);
           b3dDrawCircle((int)(bx2 + z * point->z),
@@ -1720,6 +1722,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.26  2005/06/26 19:38:10  mast
+Added logic for fine-grained changes
+
 Revision 4.25  2005/03/20 19:55:37  mast
 Eliminating duplicate functions
 

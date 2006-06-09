@@ -70,6 +70,11 @@ void objectEditForm::toggledTime( bool state )
     ioew_time(state ? 1 : 0);
 }
 
+void objectEditForm::toggledOnSection( bool state )
+{
+  ioew_sphere_on_sec(state ? 1 : 0);
+}
+
 void objectEditForm::widthChanged( int value )
 {
      ioew_linewidth(value);
@@ -102,6 +107,11 @@ void objectEditForm::setTimeBox( bool state, bool enabled )
 {
     diaSetChecked(timeCheckBox, state);
     timeCheckBox->setEnabled(enabled);
+}
+
+void objectEditForm::setOnSecBox( bool state )
+{
+  diaSetChecked(onSecCheckBox, state);
 }
 
 void objectEditForm::setPointRadius( int value )
@@ -144,3 +154,4 @@ void objectEditForm::keyReleaseEvent( QKeyEvent * e )
 {
     ivwControlKey(1, e);
 }
+
