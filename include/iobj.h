@@ -38,6 +38,7 @@
 #define IMOD_OBJFLAG_LIGHT   (1l << 13) /* Use lighting for rendering in 3D  */
 #define IMOD_OBJFLAG_FCOLOR  (1l << 14) /* Use Fill color                    */
 #define IMOD_OBJFLAG_FCOLOR_PNT (1l << 6)  /* Use fill color for spheres     */
+#define IMOD_OBJFLAG_PNT_ON_SEC (1l << 7)  /* Show spheres only on-section   */
 #define IMOD_OBJFLAG_ANTI_ALIAS (1l << 15) /* Render using anti alias. */
 #define IMOD_OBJFLAG_SCALAR  (1l << 16) /* Normals have magnitude. */
 #define IMOD_OBJFLAG_MCOLOR  (1l << 17) /* Use color map for scalar values.  */
@@ -148,6 +149,9 @@ extern "C" {
 
 /*
     $Log$
+    Revision 3.9  2005/09/11 19:19:15  mast
+    Added temporary flag
+
     Revision 3.8  2005/06/06 17:27:23  mast
     Dropped 2DPOINT and 3DPOINT flags and added FCOLOR_PNT flag
 
