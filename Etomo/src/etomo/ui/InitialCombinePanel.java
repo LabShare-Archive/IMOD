@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2006/05/16 21:36:08  sueh
+ * <p> bug# 856 Added useCorrespondingPoints and useList.
+ * <p>
  * <p> Revision 3.26  2006/03/28 00:54:50  sueh
  * <p> bug# 437 Change getButtonStateKey(DialogType) to
  * <p> createButtonStateKey(DialogType).
@@ -234,7 +237,6 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRoot.add(pnlButton);
     pnlRoot.add(Box.createVerticalGlue());
-    pnlSolvematch.setVisibleUseCorrespondingPoints(false);
 
     //  Bind the UI objects to their ActionListeners
     ButtonActionListener buttonAction = new ButtonActionListener(this);
