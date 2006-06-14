@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.3  2006/05/01 21:17:36  sueh
+ * <p> $bug# 854
+ * <p> $
  * <p> $Revision 1.2  2006/04/25 18:55:17  sueh
  * <p> $bug# 787 Implemented ReadOnlyNameValuePairList so that name/value
  * <p> $pairs can be read from either a global or section area using the same
@@ -62,6 +65,10 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
   private Token name = null; //required
   private AttributeMap attributeMap = null;//optional
   private Vector nameValuePairList = null;
+  
+  boolean isGlobal() {
+    return false;
+  }
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";

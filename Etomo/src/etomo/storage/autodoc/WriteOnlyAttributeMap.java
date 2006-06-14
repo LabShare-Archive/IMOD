@@ -16,12 +16,16 @@ import etomo.ui.Token;
 * @version $Revision$
 */
 abstract class WriteOnlyAttributeMap {
-  public static  final String  rcsid =  "$Id$";
+  public static final String rcsid = "$Id$";
   
   abstract WriteOnlyAttributeMap addAttribute(Token name);
+  abstract boolean isGlobal();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2006/01/12 17:03:46  sueh
+* <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p>
 * <p> Revision 1.1  2006/01/11 23:21:20  sueh
 * <p> bug# 675 Renamed AttributeCollection to WriteOnlyAttributeMap for better
 * <p> name flexibility.
