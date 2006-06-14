@@ -1,145 +1,133 @@
 package etomo.ui;
 
 /**
-* <p>Description:
-* A class to encapsulate a token type and value.  Provides tools for comparing
-* tokens, saving tokens with a key, and for values made of multiple tokens.
-* 
-* Token type:
-* Token types are integers. Use typeToString() to get name of the type.
-* Unknown token types are allowed.  See Possible Upgrades.
-* 
-* Token value:
-* Tokens with a NULL, EOF, and EOL type always have a null token value.
-* 
-* Comparing tokens:
-* Tokens can be compared with an is(int type) function and various equals()
-* functions.  All token value comparisons are done using the result of the
-* static function getKey(String value).
-* 
-* Saving tokens with a key:
-* The getKey() functions are public and can be used to create standard keys for
-* saving and retrieving tokens.
-* 
-* Values made up of multiple tokens:
-* Link list:
-* This class can be used to make a linked list of tokens.  The next token can be
-* set.  A token can be removed from the list (see dropFromList()).  The next
-* token can be retrieved.
-* Values:
-* Values and keys made of multiple tokens can be retrieved.  See
-* getValue(boolean includeNext) and getKey(boolean includeNext).  When
-* retrieving a string made of multiple tokens, one space with be appended to the
-* string for each null value.
-* 
-* Inheritance:
-* This class is not designed to be inherited.
-* 
-* 
-* 
-* Possible Upgrades:
-* This class could be upgraded to allow the addition or an
-* Vector of new token types.  The existing token numbers are all negative, so
-* they wouldn't have to change.
-* 
-* New fields:
-* private Vector typeList = null;
-* 
-* Function changes:
-* Token(Vector)
-* typeToString()
-* set(Token)
-* 
-* Drawbacks:
-* The static function typeToString(int type) could not return the new types.
-*
-* </p>
-*
-* <p>Copyright: Copyright 2002 - 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-*
-* @author $$Author$$
-*
-* @version $$Revision$$
-*
-* <p> $$Log$
-* <p> $Revision 1.9  2006/01/12 17:20:14  sueh
-* <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
-* <p> $
-* <p> $Revision 1.8  2006/01/11 21:44:03  sueh
-* <p> $bug# 675 Moved value formatting to Token.  Use
-* <p> $Token.getFormattedValues(boolean format) to get a value that has
-* <p> $formatting strings.  If format is true then use the formatting strings,
-* <p> $otherwise string them.
-* <p> $
-* <p> $Revision 1.7  2006/01/03 23:59:21  sueh
-* <p> $bug# 675 Added information to toString().  Renamed the original toString()
-* <p> $to getString().
-* <p> $
-* <p> $Revision 1.6  2005/12/23 02:23:48  sueh
-* <p> $bug# 675 Changed static getKey(String) to convertToKey() for clarity.
-* <p> $Removed unnecessary parameter String includeNext in getKey().
-* <p> $
-* <p> $Revision 1.5  2005/02/15 20:41:08  sueh
-* <p> $bug# 602 Added BREAKK and INDENT types.  Added length(), which
-* <p> $returns the length of the value.  Added numberOf(char searchChar, int
-* <p> $fromIndex), which returns the number of contiguous searchChars starting
-* <p> $from fromIndex in the value.  Added split(), which splits the token into
-* <p> $two tokens.
-* <p> $
-* <p> $Revision 1.4  2003/12/31 17:48:42  sueh
-* <p> $bug# 372 change doc
-* <p> $
-* <p> $Revision 1.3  2003/12/31 01:32:01  sueh
-* <p> $bug# 372 added doc, added link list connectors
-* <p> $
-* <p> $Revision 1.2  2003/12/23 21:34:43  sueh
-* <p> $bug# 372 Reformatting.
-* <p> $
-* <p> $Revision 1.1  2003/12/22 23:51:49  sueh
-* <p> $bug# 372 encapsulates token type and value.  Handles
-* <p> $comparisons.
-* <p> $$ </p>
-*/
-public class Token {
-  public static final String rcsid =
-    "$$Id$$";
-
-  public static final int NULL = -1;
-  public static final int EOF = -2;
-  public static final int EOL = -3;
-  public static final int ALPHANUM = -4;
-  public static final int SYMBOL = -5;
-  public static final int WHITESPACE = -6;
-  public static final int COMMENT = -7;
-  public static final int SEPARATOR = -8;
-  public static final int OPEN = -9;
-  public static final int CLOSE = -10;
-  public static final int DELIMITER = -11;
-  public static final int WORD = -12;
-  public static final int KEYWORD = -13;
-  public static final int BREAK = -14;
-  public static final int INDENT = -15;
-
-  private int type = NULL;
+ * <p>Description:
+ * A class to encapsulate a token type and value.  Provides tools for comparing
+ * tokens, saving tokens with a key, and for values made of multiple tokens.
+ * 
+ * Token type:
+ * Token types are integers. Use typeToString() to get name of the type.
+ * Unknown token types are allowed.  See Possible Upgrades.
+ * 
+ * Token value:
+ * Tokens with a NULL, EOF, and EOL type always have a null token value.
+ * 
+ * Comparing tokens:
+ * Tokens can be compared with an is(int type) function and various equals()
+ * functions.  All token value comparisons are done using the result of the
+ * static function getKey(String value).
+ * 
+ * Saving tokens with a key:
+ * The getKey() functions are public and can be used to create standard keys for
+ * saving and retrieving tokens.
+ * 
+ * Values made up of multiple tokens:
+ * Link list:
+ * This class can be used to make a linked list of tokens.  The next token can be
+ * set.  A token can be removed from the list (see dropFromList()).  The next
+ * token can be retrieved.
+ * Values:
+ * Values and keys made of multiple tokens can be retrieved.  See
+ * getValue(boolean includeNext) and getKey(boolean includeNext).  When
+ * retrieving a string made of multiple tokens, one space with be appended to the
+ * string for each null value.
+ * 
+ * Inheritance:
+ * This class is not designed to be inherited.
+ * 
+ * 
+ * 
+ * Possible Upgrades:
+ * This class could be upgraded to allow the addition or an
+ * Vector of new token types.  The existing token numbers are all negative, so
+ * they wouldn't have to change.
+ * 
+ * New fields:
+ * private Vector typeList = null;
+ * 
+ * Function changes:
+ * Token(Vector)
+ * typeToString()
+ * set(Token)
+ * 
+ * Drawbacks:
+ * The static function typeToString(int type) could not return the new types.
+ *
+ * </p>
+ *
+ * <p>Copyright: Copyright 2002 - 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ *
+ * @author $$Author$$
+ *
+ * @version $$Revision$$
+ *
+ * <p> $$Log$
+ * <p> $Revision 1.10  2006/05/01 21:19:02  sueh
+ * <p> $bug# 854
+ * <p> $
+ * <p> $Revision 1.9  2006/01/12 17:20:14  sueh
+ * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p> $
+ * <p> $Revision 1.8  2006/01/11 21:44:03  sueh
+ * <p> $bug# 675 Moved value formatting to Token.  Use
+ * <p> $Token.getFormattedValues(boolean format) to get a value that has
+ * <p> $formatting strings.  If format is true then use the formatting strings,
+ * <p> $otherwise string them.
+ * <p> $
+ * <p> $Revision 1.7  2006/01/03 23:59:21  sueh
+ * <p> $bug# 675 Added information to toString().  Renamed the original toString()
+ * <p> $to getString().
+ * <p> $
+ * <p> $Revision 1.6  2005/12/23 02:23:48  sueh
+ * <p> $bug# 675 Changed static getKey(String) to convertToKey() for clarity.
+ * <p> $Removed unnecessary parameter String includeNext in getKey().
+ * <p> $
+ * <p> $Revision 1.5  2005/02/15 20:41:08  sueh
+ * <p> $bug# 602 Added BREAKK and INDENT types.  Added length(), which
+ * <p> $returns the length of the value.  Added numberOf(char searchChar, int
+ * <p> $fromIndex), which returns the number of contiguous searchChars starting
+ * <p> $from fromIndex in the value.  Added split(), which splits the token into
+ * <p> $two tokens.
+ * <p> $
+ * <p> $Revision 1.4  2003/12/31 17:48:42  sueh
+ * <p> $bug# 372 change doc
+ * <p> $
+ * <p> $Revision 1.3  2003/12/31 01:32:01  sueh
+ * <p> $bug# 372 added doc, added link list connectors
+ * <p> $
+ * <p> $Revision 1.2  2003/12/23 21:34:43  sueh
+ * <p> $bug# 372 Reformatting.
+ * <p> $
+ * <p> $Revision 1.1  2003/12/22 23:51:49  sueh
+ * <p> $bug# 372 encapsulates token type and value.  Handles
+ * <p> $comparisons.
+ * <p> $$ </p>
+ */
+public final class Token {
+  public static final String rcsid = "$$Id$$";
+  
+  private Type type = Type.NULL;
   private String value = null;
   private String key = null;
 
   private Token next = null;
   private Token previous = null;
+  private boolean active = true;
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
   protected String paramString() {
-    return /*"type=" + typeToString(type) + */",value=" + value /*+ ",key="
-        + key + ",\nnext=" + next + ",\nprevious="
-        + previous + ",\n" + super.toString()*/;
+    return "type=" + type + ",value=" + value /*+ ",key="
+     + key + ",\nnext=" + next + ",\nprevious="
+     + previous + ",\n" + super.toString()*/;
   }
+
   /**
    * Converts a string into a standard key for saving and retrieving tokens.
    * This function is unnecessary when using Token.equals() functions because it
@@ -150,7 +138,7 @@ public class Token {
    * @param token value
    * @return a key
    */
-  public static final String convertToKey(String value) {
+  public static String convertToKey(String value) {
     return value.toLowerCase();
   }
 
@@ -164,78 +152,22 @@ public class Token {
    * @param token
    */
   public Token(Token token) {
-    set(token);
+    copy(token);
   }
 
-  public final int getType() {
+  public Type getType() {
     return type;
   }
 
-  /**
-   * @return the name of the type
-   */
-  public final String typeToString() {
-    return typeToString(type);
-  }
-
-  /**
-   * Static function that converts and integer into the name of the 
-   * corresponding type.
-   * 
-   * @param type
-   * @return
-   */
-  public static final String typeToString(int type) {
-    if (type == NULL) {
-      return "NULL";
-    }
-    else if (type == EOF) {
-      return "EOF";
-    }
-    else if (type == EOL) {
-      return "EOL";
-    }
-    else if (type == ALPHANUM) {
-      return "ALPHANUM";
-    }
-    else if (type == SYMBOL) {
-      return "SYMBOL";
-    }
-    else if (type == WHITESPACE) {
-      return "WHITESPACE";
-    }
-    else if (type == COMMENT) {
-      return "COMMENT";
-    }
-    else if (type == SEPARATOR) {
-      return "SEPARATOR";
-    }
-    else if (type == OPEN) {
-      return "OPEN";
-    }
-    else if (type == CLOSE) {
-      return "CLOSE";
-    }
-    else if (type == DELIMITER) {
-      return "DELIMITER";
-    }
-    else if (type == WORD) {
-      return "WORD";
-    }
-    else if (type == KEYWORD) {
-      return "KEYWORD";
-    }
-    else if (type == BREAK) {
-      return "BREAK";
-    }
-    else if (type == INDENT) {
-      return "INDENT";
-    }
-    return "UNKNOWN";
-  }
-
-  public final String getValue() {
+  public String getValue() {
     return value;
+  }
+
+  public char getChar() {
+    if (value == null) {
+      return ' ';
+    }
+    return value.charAt(0);
   }
 
   /**
@@ -245,7 +177,7 @@ public class Token {
    * @param includeNext
    * @return
    */
-  public final String getValues() {
+  public String getValues() {
     Token token = this;
     StringBuffer buffer = new StringBuffer();
     while (token != null) {
@@ -259,7 +191,7 @@ public class Token {
     }
     return buffer.toString();
   }
-  
+
   /**
    * Returns a string containing all values in the
    * token link list concatenated together.  Null values are converted to ' '.
@@ -267,14 +199,37 @@ public class Token {
    * @param format
    * @return
    */
-  public final String getFormattedValues(boolean format) {
+  public String getFormattedValues(boolean format) {
     Token token = this;
     StringBuffer buffer = new StringBuffer();
+    boolean breakFound = false;
     while (token != null) {
-      if (format && token.is(Token.BREAK)) {
+      //treat inactive BREAK tokens as regular characters; they have no effect on the format
+      if (token.is(Type.BREAK) && token.active) {
+        //use break only when formatting
+        if (format) {
           buffer.append("\n");
+          breakFound = true;
+        }
       }
-      else if (!format || (format && token.is(Token.INDENT))) {
+      else if (token.is(Type.WHITESPACE)) {
+        if (token.next != null && token.next.is(Type.BREAK)
+            && token.next.active) {
+          //ignore whitespace preceding break whether formatting or not
+        }
+        else if (breakFound) {
+          breakFound = false;
+          //use whitespace after break only when formatting
+          if (format) {
+            buffer.append(token.value);
+          }
+        }
+        else {
+          buffer.append(token.value);
+        }
+      }
+      else {
+        breakFound = false;
         if (token.value == null) {
           buffer.append(' ');
         }
@@ -294,7 +249,7 @@ public class Token {
    * @param includeNext
    * @return
    */
-  public final String getKey() {
+  public String getKey() {
     StringBuffer buffer = new StringBuffer();
     if (key == null) {
       buffer.append(' ');
@@ -314,14 +269,14 @@ public class Token {
     }
     return buffer.toString();
   }
-  
+
   /**
    * Finds the number of contiguous searchChars, start from fromIndex.
    * @param searchChar
    * @param fromIndex
    * @return
    */
-  public final int numberOf(char searchChar, int fromIndex) {
+  public int numberOf(char searchChar, int fromIndex) {
     if (value == null) {
       System.out.println("valid is null");
       return 0;
@@ -346,18 +301,18 @@ public class Token {
     }
     return numberFound;
   }
-  
+
   /**
    * Returns the number of characters in the value.
    * @return
    */
-  public final int length() {
+  public int length() {
     if (value == null) {
       return 0;
     }
     return value.length();
   }
-  
+
   /**
    * Split off a new token from this token.  Set the new token type to the type
    * parameter.  Set the new token value to a substring of the value in this
@@ -367,7 +322,7 @@ public class Token {
    * @param startIndex
    * @param size
    */
-  public final Token split(int type, int startIndex, int size) {
+  public Token split(Type type, int startIndex, int size) {
     if (value == null || value.length() <= startIndex + size) {
       throw new IndexOutOfBoundsException("startIndex + size, " + startIndex
           + size + ", must be less then value.length," + value.length() + ".");
@@ -388,8 +343,9 @@ public class Token {
   /**
    * Sets the type of the token to NULL.
    */
-  public final void reset() {
-    type = NULL;
+  public void reset() {
+    type = Type.NULL;
+    active = true;
     value = null;
     key = null;
   }
@@ -398,8 +354,9 @@ public class Token {
    * Makes a deep copy of a token.
    * @param token
    */
-  public final void set(Token token) {
+  public void copy(Token token) {
     type = token.type;
+    active = token.active;
     if (token.value == null) {
       value = null;
       key = null;
@@ -416,8 +373,8 @@ public class Token {
    * @param type
    * @param value
    */
-  public final void set(int type, String value) {
-    this.type = type;
+  public void set(Type type, String value) {
+    setType(type);
     set(value);
   }
 
@@ -426,8 +383,8 @@ public class Token {
    * @param type
    * @param value
    */
-  public final void set(int type, char value) {
-    this.type = type;
+  public void set(Type type, char value) {
+    setType(type);
     set(new StringBuffer().append(value).toString());
   }
 
@@ -436,7 +393,7 @@ public class Token {
    * @param type
    * @param valueBuffer
    */
-  public final void set(int type, StringBuffer valueBuffer) {
+  public void set(Type type, StringBuffer valueBuffer) {
     set(type, valueBuffer.toString());
   }
 
@@ -445,33 +402,45 @@ public class Token {
    * NULL, EOF, or EOL.
    * @param type
    */
-  public final void set(int type) {
-    this.type = type;
-    set();
-  }
-
-  /**
-   * Sets the value of the token.
-   * @param value
-   */
-  public final void set(String value) {
-    this.value = new String(value);
-    key = convertToKey(this.value);
-    set();
-  }
-
-  private void set() {
-    if (type == NULL || type == EOF || type == EOL) {
+  public void set(Type type) {
+    setType(type);
+    if (type == Type.NULL || type == Type.EOF || type == Type.EOL) {
       value = null;
       key = null;
     }
   }
 
   /**
+   * Sets the value of the token.
+   * @param value
+   */
+  public void set(String value) {
+    if (type == Type.NULL || type == Type.EOF || type == Type.EOL) {
+      value = null;
+      key = null;
+    }
+    else {
+      this.value = new String(value);
+      key = convertToKey(this.value);
+    }
+  }
+
+  private void setType(Type type) {
+    this.type = type;
+    if (type == Type.BREAK) {
+      active = false;
+    }
+  }
+  
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
+  /**
    * @param type
    * @return true if type equals the token type
    */
-  public final boolean is(int type) {
+  public boolean is(Type type) {
     return this.type == type;
   }
 
@@ -479,7 +448,7 @@ public class Token {
    * @param token
    * @return true if the type and key of this token are the same
    */
-  public final boolean equals(Token token) {
+  public boolean equals(Token token) {
     return type == token.type && equals(token.value);
   }
 
@@ -487,7 +456,7 @@ public class Token {
    * @return true if the type and key of this token are the same as the type and
    * getKey(value).
    */
-  public final boolean equals(int type, String value) {
+  public boolean equals(Type type, String value) {
     return this.type == type && equals(value);
   }
 
@@ -495,7 +464,7 @@ public class Token {
    * @return true if the type and key of this token are the same as the type and
    * getKey(value).
    */
-  public final boolean equals(int type, char value) {
+  public boolean equals(Type type, char value) {
     if (this.type != type) {
       return false;
     }
@@ -506,9 +475,9 @@ public class Token {
   }
 
   /**
-  * @return true if the key of this token are the same as getKey(value).
-  */
-  public final boolean equals(String value) {
+   * @return true if the key of this token are the same as getKey(value).
+   */
+  public boolean equals(String value) {
     if (this.value == value) {
       return true;
     }
@@ -521,11 +490,11 @@ public class Token {
     return false;
   }
 
-  public final String getString() {
+  public String getString() {
     if (value == null) {
-      return "(" + typeToString() + ")";
+      return "(" + type + ")";
     }
-    return "(" + typeToString() + "," + value + ")";
+    return "(" + type + "," + value + ")";
   }
 
   /**
@@ -533,7 +502,10 @@ public class Token {
    * @param token
    * @return the next token
    */
-  public final Token setNext(Token token) {
+  public Token setNext(Token token) {
+    if (token == this) {
+      return token;
+    }
     next = token;
     if (token != null) {
       token.previous = this;
@@ -544,7 +516,7 @@ public class Token {
   /**
    * @return the next token
    */
-  public final Token next() {
+  public Token next() {
     return next;
   }
 
@@ -553,7 +525,7 @@ public class Token {
    * @return The previous token on the list, if it exists.  If not, returns the
    * next token on the list.
    */
-  public final Token dropFromList() {
+  public Token dropFromList() {
     Token list = null;
     if (previous == null) {
       list = next;
@@ -570,5 +542,69 @@ public class Token {
     previous = null;
     next = null;
     return list;
+  }
+  
+  public static final class Type {
+    public static final Type NULL = new Type();
+    public static final Type EOF = new Type();
+    public static final Type EOL = new Type();
+    public static final Type ALPHANUM = new Type();
+    public static final Type SYMBOL = new Type();
+    public static final Type WHITESPACE = new Type();
+    public static final Type COMMENT = new Type();
+    public static final Type SEPARATOR = new Type();
+    public static final Type OPEN = new Type();
+    public static final Type CLOSE = new Type();
+    public static final Type DELIMITER = new Type();
+    public static final Type WORD = new Type();
+    public static final Type KEYWORD = new Type();
+    public static final Type BREAK = new Type();
+    
+    public String toString() {
+   
+      if (this == NULL) {
+        return "NULL";
+      }
+      else if (this == EOF) {
+        return "EOF";
+      }
+      else if (this == EOL) {
+        return "EOL";
+      }
+      else if (this == ALPHANUM) {
+        return "ALPHANUM";
+      }
+      else if (this == SYMBOL) {
+        return "SYMBOL";
+      }
+      else if (this == WHITESPACE) {
+        return "WHITESPACE";
+      }
+      else if (this == COMMENT) {
+        return "COMMENT";
+      }
+      else if (this == SEPARATOR) {
+        return "SEPARATOR";
+      }
+      else if (this == OPEN) {
+        return "OPEN";
+      }
+      else if (this == CLOSE) {
+        return "CLOSE";
+      }
+      else if (this == DELIMITER) {
+        return "DELIMITER";
+      }
+      else if (this == WORD) {
+        return "WORD";
+      }
+      else if (this == KEYWORD) {
+        return "KEYWORD";
+      }
+      else if (this == BREAK) {
+        return "BREAK";
+      }
+      return "UNKNOWN";
+    }
   }
 }
