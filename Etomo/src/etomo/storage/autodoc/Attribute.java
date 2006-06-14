@@ -19,6 +19,9 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2006/05/01 21:16:12  sueh
+* <p> $bug# 854
+* <p> $
 * <p> $Revision 1.1  2006/01/12 17:01:17  sueh
 * <p> $bug# 798 Moved the autodoc classes to etomo.storage.
 * <p> $
@@ -76,6 +79,10 @@ public final class Attribute extends WriteOnlyAttributeMap {
     this.nameValuePairList = nameValuePairList;
     this.name = name;
     key = name.getKey();
+  }
+  
+  boolean isGlobal() {
+    return parent.isGlobal();
   }
   
   public static String getKey(Token name) {
