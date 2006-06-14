@@ -336,6 +336,10 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   boolean isGlobal() {
     return true;
   }
+  
+  boolean isAttribute() {
+    return false;
+  }
 
   WriteOnlyAttributeMap addAttribute(Token name) {
     if (attributeMap == null) {
@@ -648,6 +652,11 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.4  2006/06/14 00:15:20  sueh
+ *<p> $bug# 852 Added densmatch because it is small and good for basic debugging of
+ *<p> $the parcer.  Added getInstance(String fileName...) so that it is easy to open a
+ *<p> $uitestaxis autodoc in the ui test source directory.
+ *<p> $
  *<p> $Revision 1.3  2006/05/01 21:16:26  sueh
  *<p> $bug# 854
  *<p> $

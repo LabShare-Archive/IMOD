@@ -18,6 +18,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2006/06/14 00:33:58  sueh
+ * <p> $bug# 852 Added function isGlobal so that it is possible to tell whether an attribute
+ * <p> $is global or part of a section.
+ * <p> $
  * <p> $Revision 1.3  2006/05/01 21:17:36  sueh
  * <p> $bug# 854
  * <p> $
@@ -67,6 +71,10 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
   private Vector nameValuePairList = null;
   
   boolean isGlobal() {
+    return false;
+  }
+  
+  boolean isAttribute() {
     return false;
   }
 

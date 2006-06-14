@@ -20,9 +20,14 @@ abstract class WriteOnlyAttributeMap {
   
   abstract WriteOnlyAttributeMap addAttribute(Token name);
   abstract boolean isGlobal();
+  abstract boolean isAttribute();  
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/06/14 00:35:06  sueh
+* <p> bug# 852 Added function isGlobal so that it is possible to tell whether an attribute
+* <p> is global or part of a section.
+* <p>
 * <p> Revision 1.1  2006/01/12 17:03:46  sueh
 * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
 * <p>
