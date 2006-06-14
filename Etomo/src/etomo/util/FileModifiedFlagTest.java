@@ -38,7 +38,6 @@ public class FileModifiedFlagTest extends TestCase {
   
   public final void testfileModifiedFlag() {
     FileModifiedFlag fileModifiedFlag = new FileModifiedFlag(testFile);
-    fileModifiedFlag.selfTestInvariants();
   }
   
   //TODO
@@ -51,6 +50,12 @@ public class FileModifiedFlagTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.13  2005/11/10 18:18:13  sueh
+* <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+* <p> instanciated once so there won't be a problem if the working directory is
+* <p> changed.  Added a root test directory File object to each of the suites,
+* <p> which is based on the JUnitTests root test directory.
+* <p>
 * <p> Revision 1.12  2005/07/01 21:27:26  sueh
 * <p> Removed an unnecessary import.
 * <p>
