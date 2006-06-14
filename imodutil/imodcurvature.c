@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2006/06/14 04:28:43  mast
+Initial creation
+
 
 */
 
@@ -607,7 +610,7 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
                       float sample, int needFull, float zscale, float *xx,
                       float *yy, float *zz, int *numPts)
 {
-  Ipoint *pts = cont->pts;;
+  Ipoint *pts = cont->pts;
   int lastPt, ptBefore, ptAfter, nextPt;
   float length, lenBefore, lenAfter, skip,segment;
 
