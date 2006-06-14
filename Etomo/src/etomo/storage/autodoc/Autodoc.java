@@ -92,6 +92,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   public static final String UITEST = "uitest";
   public static final String CPU = "cpu";
   public static final String UITEST_AXIS = "uitest_axis";
+  public static final String DENS_MATCH = "densmatch";
 
   private static Autodoc TILTXCORR_INSTANCE = null;
   private static Autodoc TEST_INSTANCE = null;
@@ -103,14 +104,16 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private static Autodoc SOLVEMATCH_INSTANCE = null;
   private static Autodoc BEADTRACK_INSTANCE = null;
   private static Autodoc CPU_INSTANCE = null;
+  private static Autodoc DENS_MATCH_INSTANCE = null;
+
   private static HashMap UITEST_AXIS_MAP = null;
 
   private static String testDir = null;
   private static boolean test = false;
+  private static boolean internalTest = false;
 
   private File autodocFile = null;
   private AutodocParser parser = null;
-  private boolean internalTest = false;
 
   //data
   private AttributeMap attributeMap = null;
@@ -136,6 +139,23 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     autodoc = new Autodoc();
     autodoc.initialize(name, axisID);
     return autodoc;
+  }
+
+  public static Autodoc getInstance(String fileName, String name, AxisID axisID)
+      throws FileNotFoundException, IOException {
+    if (name == null) {
+      throw new IllegalStateException("name is null");
+    }
+    Autodoc autodoc = getExistingAutodoc(fileName, name);
+    if (autodoc != null) {
+      return autodoc;
+    }
+    autodoc = new Autodoc();
+    if (name.equals(UITEST_AXIS)) {
+      autodoc.initialize(fileName, axisID, "IMOD_UITEST_SOURCE");
+      return autodoc;
+    }
+    throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
   /**
@@ -207,6 +227,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     else if (name.equals(CPU)) {
       CPU_INSTANCE = null;
     }
+    else if (name.equals(DENS_MATCH)) {
+      DENS_MATCH_INSTANCE = null;
+    }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
@@ -218,6 +241,16 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     Autodoc autodoc = (Autodoc) UITEST_AXIS_MAP.get(autodocFile);
     return autodoc;
+  }
+  
+  private static Autodoc getExistingAutodoc(String fileName, String name) {
+    if (name.equals(UITEST_AXIS)) {
+      if (UITEST_AXIS_MAP == null) {
+        return null;
+      }
+      return (Autodoc) UITEST_AXIS_MAP.get(fileName);
+    }
+    throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
   private static Autodoc getExistingAutodoc(String name) {
@@ -250,6 +283,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     if (name.equals(CPU)) {
       return CPU_INSTANCE;
+    }
+    if (name.equals(DENS_MATCH)) {
+      return DENS_MATCH_INSTANCE;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
@@ -295,6 +331,10 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       return newSection;
     }
     return existingSection;
+  }
+
+  boolean isGlobal() {
+    return true;
   }
 
   WriteOnlyAttributeMap addAttribute(Token name) {
@@ -564,6 +604,17 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
   }
 
+  public static void setInternalTest(boolean internalTest) {
+    Autodoc.internalTest = internalTest;
+  }
+
+  boolean isError() {
+    if (parser == null) {
+      return true;
+    }
+    return parser.isError();
+  }
+
   private void initialize(String name, AxisID axisID, String envVariable)
       throws FileNotFoundException, IOException {
     if (autodocFile == null) {
@@ -582,7 +633,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       //parser.testAutodocTokenizer(true);
       //parser.testPreprocessor(false);
       //parser.testPreprocessor(true);
-      //parser.test(false);
+      parser.test(false);
       //parser.test(true);
       //parser.test(false, true);
       //parser.test(true, true);
@@ -597,6 +648,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.3  2006/05/01 21:16:26  sueh
+ *<p> $bug# 854
+ *<p> $
  *<p> $Revision 1.2  2006/04/25 18:54:22  sueh
  *<p> $bug# 787 Implemented ReadOnlyNameValuePairList so that name/value
  *<p> $pairs can be read from either a global or section area using the same
