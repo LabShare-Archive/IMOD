@@ -68,6 +68,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2006/06/14 00:32:28  sueh
+ * <p> $bug# 852 Added some comments.  Simplified findDelimiter().
+ * <p> $
  * <p> $Revision 1.3  2006/05/01 21:17:15  sueh
  * <p> $bug# 854
  * <p> $
@@ -285,11 +288,9 @@ public final class AutodocTokenizer {
     while (!success && primativeToken.is(Token.Type.SYMBOL) && index < length
         && delimiterString.charAt(index) == symbol) {
       if (delimiterBuffer == null) {
-        delimiterBuffer = new StringBuffer(symbol);
+        delimiterBuffer = new StringBuffer();
       }
-      else {
-        delimiterBuffer.append(symbol);
-      }
+      delimiterBuffer.append(symbol);
       if (index == length - 1) {
         //found the whole delimiterString - succeed
         success = true;
