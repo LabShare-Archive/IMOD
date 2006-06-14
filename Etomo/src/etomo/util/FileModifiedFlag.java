@@ -17,7 +17,11 @@ import etomo.type.EtomoNumber;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/06/20 17:04:28  sueh
+* <p> bug# 522 A class to hold the last read state of a file.  Can be used to
+* <p> prevent unnecessary reads.
+* <p> </p>
 */
 class FileModifiedFlag {
   public static  final String  rcsid =  "$Id$";
@@ -27,7 +31,6 @@ class FileModifiedFlag {
   
   FileModifiedFlag(File file) {
     this.file = file;
-    selfTestInvariants();
   }
   
   boolean isModifiedSinceLastRead() {
@@ -39,15 +42,6 @@ class FileModifiedFlag {
   
   void setReadingNow() {
     lastModified = file.lastModified();
-  }
-  
-  void selfTestInvariants() {
-    if(!Utilities.isSelfTest()) {
-      return;
-    }
-    if (file == null) {
-      throw new IllegalStateException("file is null");
-    }
   }
   
   long getLastModified() {
