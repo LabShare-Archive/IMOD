@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.13  2005/11/23 16:24:37  mast
+#  Use strip variable
+#
 #  Revision 3.12  2005/10/19 14:42:52  mast
 #  Switched imodtrans to using libiimod
 #
@@ -54,7 +57,8 @@ IILIBS    = $(LIMOD) $(LIIMOD) $(TIFFLIBS)
 PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  imodcmopp$(E) rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
- patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) $(IMODWINCPU)
+ patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
+ $(IMODWINCPU)
 
 all : $(PROGS)
 
@@ -117,6 +121,9 @@ echo2$(E) : echo2.$(O)
 
 imodfillin$(E) : imodfillin.$(O)
 	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+
+imodcurvature$(E) : imodcurvature.$(O)
+	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
 imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
