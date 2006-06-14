@@ -57,6 +57,13 @@ public class AutodocTest extends TestCase {
     Autodoc.setTest(false);
   }
   
+  public void testUITestAxis_setup_recon() throws FileNotFoundException, IOException{
+    Autodoc.setTest(true);
+    Autodoc autodoc = Autodoc.getInstance("setup-recon", Autodoc.UITEST_AXIS, AxisID.ONLY);
+    assertFalse(autodoc.isError());
+    Autodoc.setTest(false);
+  }
+  
   public void testBeadtrack() throws FileNotFoundException, IOException{
     Autodoc autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, AxisID.ONLY);
     assertFalse(autodoc.isError());
@@ -105,5 +112,9 @@ public class AutodocTest extends TestCase {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/06/14 00:23:02  sueh
+* <p> bug# 852 Tests for Autodoc.  Parses autodocs and then checks the parser for an
+* <p> error.
+* <p> </p>
 */
