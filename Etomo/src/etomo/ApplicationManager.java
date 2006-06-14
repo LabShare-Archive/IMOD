@@ -49,11 +49,11 @@ import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
-import etomo.storage.CpuAdoc;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.storage.XrayStackArchiveFilter;
+import etomo.storage.autodoc.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -5593,6 +5593,12 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.234  2006/06/09 19:48:50  sueh
+ * <p> bug# 870 For Tomo Pos forcing the exit state of the dialog to be SAVE when
+ * <p> running doneDialog and saveDialog.  Application manager only calls these
+ * <p> functions when exiting or switching dialogs without (not using the Cancel,
+ * <p> Postpone, or Done buttons).
+ * <p>
  * <p> Revision 3.233  2006/06/09 16:28:04  sueh
  * <p> bug# 869 openTomogramCombinationDialog():  Saving combine script creation
  * <p> states in TomogramState.  For backward compatibility using combineScriptsExist
