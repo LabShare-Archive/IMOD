@@ -29,6 +29,8 @@ import etomo.storage.autodoc.AdocCommand;
 import etomo.storage.autodoc.AdocCommandFactory;
 import etomo.storage.autodoc.AdocCommandReader;
 import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.UITestAxisCommand;
+import etomo.storage.autodoc.UITestAxisDialogCommand;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
@@ -50,9 +52,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2006/05/01 21:24:02  sueh
+ * <p> bug# 787 removed commented out code
+ * <p>
  * <p> Revision 1.2  2006/05/01 21:20:31  sueh
  * <p> bug# 787 Removed fiducial diameter, added set.  Handling all variables in
- * <p> UITestAxisSectionCommand.
+ * <p> UITestAxisDialogCommand.
  * <p>
  * <p> Revision 1.1  2006/04/28 21:07:53  sueh
  * <p> bug# 787 Renamed UIAxisTest to UITestAxis.  Using
@@ -109,7 +114,7 @@ final class UITestAxis implements AdocCommandFactory {
   private DialogType testFromDialog = null;
   private boolean test = true;
   private boolean stopped = false;
-  private UITestAxisSectionCommand command = null;
+  private UITestAxisDialogCommand command = null;
 
   UITestAxis(UITest testCase, Autodoc autodoc,
       JFCTestHelper helper, AxisID axisID,
@@ -125,7 +130,7 @@ final class UITestAxis implements AdocCommandFactory {
         + startTime, startTime >= 0);
     duration = testCase.getDuration();
     reader = new AdocCommandReader(autodoc,
-        UITestAxisSectionCommand.SECTION_TYPE);
+        UITestAxisDialogCommand.SECTION_TYPE);
     reader.setAxisID(axisID);
     reader.setSecondaryAutodocSourceDir(testCase.getAutodocSourceDir());
   }
@@ -187,7 +192,7 @@ final class UITestAxis implements AdocCommandFactory {
           && (!loadedDataFile || !DialogType.SETUP_RECON.equals(reader
               .getName()))) {
         //Since this is a new reader, get the first name/value pair
-        command = (UITestAxisSectionCommand) reader.nextCommand(command, this);
+        command = (UITestAxisDialogCommand) reader.nextCommand(command, this);
         //start a new reader
         getDialog();
       }
@@ -207,7 +212,7 @@ final class UITestAxis implements AdocCommandFactory {
         }
         if (getNextCommand) {
           //get the next command if not waiting
-          command = (UITestAxisSectionCommand) reader
+          command = (UITestAxisDialogCommand) reader
               .nextCommand(command, this);
         }
         if (turnOver) {
@@ -228,7 +233,7 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   public AdocCommand newAdocCommand() {
-    return new UITestAxisSectionCommand(variables);
+    return new UITestAxisDialogCommand(variables);
   }
 
   private void timeout() {
@@ -280,7 +285,7 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-  private boolean testCommand(UITestAxisSectionCommand command) {
+  private boolean testCommand(UITestAxisDialogCommand command) {
     boolean getCommand = true;//true unless waiting
     UITestAction action = command.getAction();
     //handle asserts
@@ -374,12 +379,12 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-  private void fillInTextField(UITestAxisSectionCommand command) {
+  private void fillInTextField(UITestAxisDialogCommand command) {
     JTextField textField = (JTextField) getComponent(command, JTextField.class);
     textField.setText(command.getValue());
   }
 
-  private void spinSpinner(UITestAxisSectionCommand command) {
+  private void spinSpinner(UITestAxisDialogCommand command) {
     JSpinner spinner = (JSpinner) getComponent(command, JSpinner.class);
     int subComponent = 0;
     String direction = command.getValue();
@@ -399,7 +404,7 @@ final class UITestAxis implements AdocCommandFactory {
         subComponent));
   }
 
-  private void clickRadioButton(UITestAxisSectionCommand command) {
+  private void clickRadioButton(UITestAxisDialogCommand command) {
     testCase.assertNull(reader.getInfo(), "Unknown name/value pair format: "
         + command, command.getValue());
     JRadioButton radioButton = (JRadioButton) getComponent(command,
@@ -407,7 +412,7 @@ final class UITestAxis implements AdocCommandFactory {
     helper.enterClickAndLeave(new MouseEventData(testCase, radioButton));
   }
 
-  private void clickTab(UITestAxisSectionCommand command) {
+  private void clickTab(UITestAxisDialogCommand command) {
     testCase.assertNull(reader.getInfo(), "Unknown name/value pair format: "
         + command, command.getValue());
     JTabbedPane tabbedPane = (JTabbedPane) getTabbedPane(command);
@@ -415,7 +420,7 @@ final class UITestAxis implements AdocCommandFactory {
         tabbedPane, command.getIndex(), 1));
   }
 
-  private void clickCheckBox(UITestAxisSectionCommand command) {
+  private void clickCheckBox(UITestAxisDialogCommand command) {
     testCase.assertNull(reader.getInfo(), "Unknown name/value pair format: "
         + command, command.getValue());
     JCheckBox checkBox = (JCheckBox) getComponent(command, JCheckBox.class);
@@ -434,7 +439,7 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-  private void clickButton(UITestAxisSectionCommand command) {
+  private void clickButton(UITestAxisDialogCommand command) {
     AbstractButton button = (AbstractButton) getButton(command);
     String value = command.getValue();
     if (value == null || button instanceof JButton) {
@@ -467,7 +472,7 @@ final class UITestAxis implements AdocCommandFactory {
     UIHarness.INSTANCE.toFront(axisID);
   }
 
-  private void clickMiniButton(UITestAxisSectionCommand command) {
+  private void clickMiniButton(UITestAxisDialogCommand command) {
     JButton button = (JButton) getComponent(command, JButton.class, false);
     if (button == null) {
       //mini-button may be on the parallel processing panel, so look for it in
@@ -499,7 +504,7 @@ final class UITestAxis implements AdocCommandFactory {
     return sleep;
   }
 
-  private void sleep(UITestAxisSectionCommand command) {
+  private void sleep(UITestAxisDialogCommand command) {
     String sleepValue = command.getValue();
     int sleep = -1;
     if (sleepValue != null) {
@@ -519,7 +524,7 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-  private boolean lookForDialog(UITestAxisSectionCommand command) {
+  private boolean lookForDialog(UITestAxisDialogCommand command) {
     DialogType dialogType = command.getDialogType();
     testCase.assertNotNull(reader.getInfo(), "Unknown name/value pair format "
         + command, dialogType);
@@ -567,7 +572,7 @@ final class UITestAxis implements AdocCommandFactory {
    * @param command
    * @return
    */
-  private boolean lookForProcessEnd(UITestAxisSectionCommand command) {
+  private boolean lookForProcessEnd(UITestAxisDialogCommand command) {
     ProcessEndState endState = command.getProcessEndState();
     if (endState == null) {
       testCase.fail(reader.getInfo(), "Invalid waitfor process format: "
@@ -606,7 +611,7 @@ final class UITestAxis implements AdocCommandFactory {
    * @param command
    * @return
    */
-  private boolean lookForPopup(UITestAxisSectionCommand command) {
+  private boolean lookForPopup(UITestAxisDialogCommand command) {
     JOptionPane optionPane = getPopup(command);
     if (optionPane == null) {
       turnOver = true;
@@ -627,11 +632,11 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-  private void copyFile(UITestAxisSectionCommand command) {
+  private void copyFile(UITestAxisDialogCommand command) {
     testCase.copyFile(command);
   }
 
-  private boolean testWaitFor(UITestAxisSectionCommand command) {
+  private boolean testWaitFor(UITestAxisDialogCommand command) {
     UITestField field = command.getType();
     if (field == null) {
       return lookForDialog(command);
@@ -648,7 +653,7 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-private void testAssert(UITestAxisSectionCommand command) {
+private void testAssert(UITestAxisDialogCommand command) {
     UITestField field = command.getType();
     if (field == UITestField.BUTTON) {
       assertButton(command);
@@ -672,7 +677,7 @@ private void testAssert(UITestAxisSectionCommand command) {
       testCase.fail(reader.getInfo(), "Unknown name/value pair format: "
           + command);
     }
-  }  private void assertTextField(UITestAxisSectionCommand command) {
+  }  private void assertTextField(UITestAxisDialogCommand command) {
     JTextField textField = (JTextField) getComponent(command, JTextField.class);
     if (command.isEnabled()) {
       assertEnabled(command, textField);
@@ -681,7 +686,7 @@ private void testAssert(UITestAxisSectionCommand command) {
     assertEquals(command, textField);
   }
 
-  private void assertSpinner(UITestAxisSectionCommand command) {
+  private void assertSpinner(UITestAxisDialogCommand command) {
     JSpinner spinner = (JSpinner) getComponent(command, JSpinner.class);
     if (command.isEnabled()) {
       assertEnabled(command, spinner);
@@ -691,7 +696,7 @@ private void testAssert(UITestAxisSectionCommand command) {
         command.getValue()), (Integer) spinner.getValue());
   }
 
-  private void assertRadioButton(UITestAxisSectionCommand command) {
+  private void assertRadioButton(UITestAxisDialogCommand command) {
     JRadioButton radioButton = (JRadioButton) getComponent(command,
         JRadioButton.class);
     if (command.isEnabled()) {
@@ -701,7 +706,7 @@ private void testAssert(UITestAxisSectionCommand command) {
     assertSelected(command, radioButton);
   }
 
-  private void assertCheckBox(UITestAxisSectionCommand command) {
+  private void assertCheckBox(UITestAxisDialogCommand command) {
     JCheckBox checkBox = (JCheckBox) getComponent(command, JCheckBox.class);
     if (command.isEnabled()) {
       assertEnabled(command, checkBox);
@@ -710,7 +715,7 @@ private void testAssert(UITestAxisSectionCommand command) {
     assertSelected(command, checkBox);
   }
 
-  private void assertButton(UITestAxisSectionCommand command) {
+  private void assertButton(UITestAxisDialogCommand command) {
     AbstractButton button = (AbstractButton) getComponent(command,
         AbstractButton.class);
     if (command.isEnabled()) {
@@ -720,7 +725,7 @@ private void testAssert(UITestAxisSectionCommand command) {
     assertSelected(command, button);
   }
 
-  private void assertMiniButton(UITestAxisSectionCommand command) {
+  private void assertMiniButton(UITestAxisDialogCommand command) {
     JButton button = (JButton) getComponent(command, JButton.class);
     if (command.isEnabled()) {
       assertEnabled(command, button);
@@ -736,7 +741,7 @@ private void testAssert(UITestAxisSectionCommand command) {
         ExpandButton.isExpanded(button));
   }
 
-  private void assertEnabled(UITestAxisSectionCommand command,
+  private void assertEnabled(UITestAxisDialogCommand command,
       Component component) {
     testCase.assertTrue(reader.getInfo(), "bad call to assertEnabled", command
         .isEnabled());
@@ -750,7 +755,7 @@ private void testAssert(UITestAxisSectionCommand command) {
         enabled, component.isEnabled());
   }
 
-  private void assertSelected(UITestAxisSectionCommand command,
+  private void assertSelected(UITestAxisDialogCommand command,
       AbstractButton button) {
     boolean selected = false;
     String value = command.getValue();
@@ -761,7 +766,7 @@ private void testAssert(UITestAxisSectionCommand command) {
         button.isSelected());
   }
 
-  private void assertEquals(UITestAxisSectionCommand command,
+  private void assertEquals(UITestAxisDialogCommand command,
       JTextComponent textComponent) {
     String value = command.getValue();
     if (value == null) {
@@ -771,13 +776,16 @@ private void testAssert(UITestAxisSectionCommand command) {
         textComponent.getText());
   }
 
-  private AbstractButton getButton(UITestAxisSectionCommand command) {
+  private AbstractButton getButton(UITestAxisDialogCommand command) {
     AbstractButton button = (AbstractButton) getComponent(command,
         JButton.class, false);
     if (button == null) {
       button = (AbstractButton) getComponent(command, JToggleButton.class);
     }
     return button;
+  }
+  
+  private void callFunction(UITestAxisDialogCommand command) {
   }
 
   private AbstractButton getButton(String name) {
@@ -836,14 +844,14 @@ private void testAssert(UITestAxisSectionCommand command) {
     return componentFinder = new ComponentFinder(JOptionPane.class);
   }
 
-  private JOptionPane getPopup(UITestAxisSectionCommand command) {
+  private JOptionPane getPopup(UITestAxisDialogCommand command) {
     String name = command.getName();
     JOptionPane optionPane = (JOptionPane) getNamedComponentFinder(
         JOptionPane.class, name).find();
     return optionPane;
   }
 
-  private Component getComponent(UITestAxisSectionCommand command,
+  private Component getComponent(UITestAxisDialogCommand command,
       Class fieldClass) {
     return getComponent(command, fieldClass, true);
   }
@@ -855,13 +863,13 @@ private void testAssert(UITestAxisSectionCommand command) {
    * @param required
    * @return
    */
-  private Component getComponent(UITestAxisSectionCommand command,
+  private Component getComponent(UITestAxisDialogCommand command,
       Class componentClass, boolean required) {
     return getComponent(panel, command, componentClass, required);
   }
 
   private Component getComponent(JPanel panel,
-      UITestAxisSectionCommand command, Class componentClass) {
+      UITestAxisDialogCommand command, Class componentClass) {
     return getComponent(panel, command, componentClass, true);
   }
 
@@ -874,7 +882,7 @@ private void testAssert(UITestAxisSectionCommand command) {
    * @return
    */
   private Component getComponent(JPanel panel,
-      UITestAxisSectionCommand command, Class componentClass, boolean required) {
+      UITestAxisDialogCommand command, Class componentClass, boolean required) {
     String name = command.getName();
     int index = command.getIndex();
     Component component;
@@ -920,7 +928,7 @@ private void testAssert(UITestAxisSectionCommand command) {
     return component;
   }
 
-  private Component getTabbedPane(UITestAxisSectionCommand command) {
+  private Component getTabbedPane(UITestAxisDialogCommand command) {
     String name = command.getName();
     Class componentClass = JTabbedPane.class;
     Component component;
@@ -953,9 +961,12 @@ private void testAssert(UITestAxisSectionCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/05/01 21:24:02  sueh
+ * <p> bug# 787 removed commented out code
+ * <p>
  * <p> Revision 1.2  2006/05/01 21:20:31  sueh
  * <p> bug# 787 Removed fiducial diameter, added set.  Handling all variables in
- * <p> UITestAxisSectionCommand.
+ * <p> UITestAxisDialogCommand.
  * <p>
  * <p> Revision 1.1  2006/04/28 21:07:53  sueh
  * <p> bug# 787 Renamed UIAxisTest to UITestAxis.  Using
