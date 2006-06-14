@@ -1,0 +1,82 @@
+.na
+.nh
+.TH imodcurvature 1 2.50 BL3DEMC
+.SH NAME
+imodcurvature \- Measures radius of curvature of model objects
+.SH SYNOPSIS
+imodcurvature options in_model out_model
+.SH DESCRIPTION
+This program will compute the local radius of curvature of objects in a model
+and encode that value into the model as a color or a 2D or 3D point size.
+It can compute either a 2D or a 3D radius of curvature by fitting circles or
+spheres to contours.
+For fitting in 2D, it computes the radius of curvature at each point in a
+contour by fitting to a segment of the contour centered on the point; the
+length of this segment is set by a parameter called the window length.  This
+parameter should be varied to explore the tradeoff between averaging over
+larger areas and having a less noisy result.
+This 2D fitting should be very reliable because the search for the center and
+radius of the circle is initialized by an explicit solution for the circle
+through three widely spaced points along the contour.   However, the 2D
+fitting will produce a gradient of
+curvatures in a spherical object because the radius of cross-sections
+decreases away from the equator.
+.P
+The 3D fitting is activated by specifying
+a parameter for the range in Z over which to fit.  The objects to be fit must
+contain a mesh (produced by Imodmesh(1)) so that connections between contours
+can be deduced.  In this case the program
+computes the radius for each point by sampling points from contours above and
+below the point in Z.  The fit of 4 parameters to these sample points may be
+somewhat less reliable because it is still initialized by the explicit solution
+for a circle fit to the central contour.  No fit is done to a point unless
+there is at least one contour above and one contour below the point in Z.
+Here one may need to explore the
+effects of varying both the window length and the Z range.
+.P
+A radius of curvature is encoded into the model only if it falls within the
+range of the lower and upper criteria set with the 
+.B -rc
+option.  In addition, a
+criterion for the root mean square error of the fit may be set with the 
+.B -fc
+option, in which case a radius is encoded only if the fit gave an error
+less than this criterion.
+
+The radius value can be used to set a color, a 3D point size, or a 2D symbol
+size for each individual point that meets the criteria.  One or a few colors
+can be specified with the 
+.B -co
+option, or a full false-color palette can be used with the 
+.B -pa
+option.  The model would need to be remeshed to see the colors in the model
+view of 3dmod(1).  The 3D points are useful for seeing the exact values of the
+radius by opening the Surface/Contour/Point dialog in 3dmod(1).  They 
+could also be useful for visualizing the fit in the
+3dmod(1) Zap window, provided that one selects the option in the Edit Object
+dialog to show the spheres only on their central section.  These spheres will
+impair the display in the model view window, however.  An alternative is to
+encode the radius as 
+circular symbols; however, they will only have the right size at the
+particular zoom specified with the
+.B sy
+option.
+
+.SS Options
+Imodcurvature uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+3dmod(1), imodmesh(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.

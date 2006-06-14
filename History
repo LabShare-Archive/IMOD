@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/9/06: Fixed problems with missing trinagles in multicolored meshes seen on 
+6/13/06: IMOD_3-8-11
+6/13/06: Added imodcurvature to measure radius of curvature and encode in
+model as color changes or point sizes.
+
+6/9/06: Fixed problems with missing triangles in multicolored meshes seen on 
 some NVidia cards on Mac and Linux.
 
 6/9/06: Added option in Edit-Object dialog to display spheres only on the

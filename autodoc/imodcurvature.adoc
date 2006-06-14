@@ -1,0 +1,142 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = in
+type = FN
+usage = Input model filename
+tooltip = 
+manpage = Name of input model file.  If it is not entered with this option it 
+must be entered with the first non-option argument.
+
+[Field = OutputFile]
+type = FN
+usage = Output model filename
+tooltip = 
+manpage = Name of output model file.  If it is not entered with this option it 
+must be entered with the second non-option argument.
+
+
+[Field = WindowLength]
+short = wl
+type = FP
+usage = Window length over which to fit circle
+tooltip = 
+manpage = Length in pixels over which to fit a circle to the contour data
+around a point.  The default is the mean of the lower and upper radius
+criteria.
+
+[Field = ZRangeToFit]
+short = zr
+type = F
+usage = Range of contours in Z to include for fitting to a sphere
+tooltip = 
+manpage = Range of contours in Z to include for fitting to a sphere.  The
+value should specify the actual distance in Z after Z-scaling, if any.
+The default is 0 to fit just one contour at a time to a circle.
+
+[Field = RadiusCriterion]
+short = rc
+type = FP
+usage = Lower and upper criteria for radius of curvature
+tooltip = 
+manpage = Lower and upper criteria for radius of curvature.  When the radius
+at a point is within this range, it will be encoded into the model.
+
+[Field = FitCriterion]
+short = fc
+type = F
+usage = Criterion for RMS error of circle fit (default 0)
+tooltip = 
+manpage = Criterion for root mean squared error of the local fit to a circle.
+If a non-zero value is entered, then the RMS error must be less than the given
+value for a radius of curvature to be encoded at that point.  With the default
+value of 0, the curvature will be encoded regardless of the error of the fit.
+
+[Field = ObjectsToDo]
+short = ob
+type = LI
+usage = List of objects to encode
+tooltip = 
+manpage = 
+
+[Field = PointSize]
+short = ps
+type = B
+usage = Use spherical point size to encode radius of curvature
+tooltip = 
+manpage = Use spherical point size to encode radius of curvature.  Each point 
+that meets
+the criterion will be given a point size equal to the radius of curvature;
+other points will have individual point sizes set to 0.
+
+[Field = SymbolZoom]
+short = sy
+type = F
+usage = Use circular symbols to encode radius with given zoom factor
+tooltip = 
+manpage = Use circular symbols to encode radius of curvature, where the
+circles will have the right size when the image is displayed with the given
+zoom factor.
+
+[Field = Color]
+short = co
+type = ITM
+usage = Color to set for points meeting criteria (r,g,b between 0 and 255)
+tooltip = 
+manpage = Use this entry to specify one or more colors to change points to
+when their radius of curvature meets the criteria.  Enter r,g,b values
+between 0 and 255.  When multiple colors are entered, the behavior is
+controlled by the -di option.  
+
+[Field = DivideRange]
+short = di
+type = B
+usage = Subdivide radius range to use all colors entered
+tooltip = 
+manpage = When multiple colors are entered, by default they will be
+applied to successive objects being analyzed.  If this option is
+entered, then the range of radii between the low and high criterion will be
+subdivided by the number of colors, and points within each subrange will be
+assigned to a different color.
+
+[Field = UsePalette]
+short = pa
+type = B
+usage = Use 256-color false color palette for colors and subdivide
+tooltip = 
+manpage = Use the 256-color false color palette from 3dmod for the colors.
+This option will automatically subdivide the radius range into 256 levels.
+
+[Field = SampleSpacing]
+short = sa
+type = F
+usage = Spacing of sample points along contour for fitting (default 2)
+tooltip = 
+manpage = 
+
+[Field = Verbose]
+short = ve
+type = B
+usage = Verbose output for testing or seeing mean errors
+tooltip = 
+manpage = The verbose output will show the number of points being fit, the
+center and radius, and the root mean squared error for each point being fit.
+It could be useful for getting a sense of the RMS errors.
+
+[Field = TestCircleFits]
+short = tc
+type = B
+usage = Test circle fitting
+tooltip = 
+manpage = Test circle fitting by fitting a circle to each contour in object 1
+and putting a point with the given location and radius in a new object.
+
+[Field = TestSphereFits]
+short = ts
+type = IP
+usage = Test sphere fits at given contour and point #
+tooltip = 
+manpage = Test sphere fitting by making a new object with the points being
+fit to and the fitted sphere for the given contour and point number.
+
