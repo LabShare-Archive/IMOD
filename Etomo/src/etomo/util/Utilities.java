@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.46  2006/06/07 20:38:56  sueh
+ * <p> $bug# 766 Added isMacOS().
+ * <p> $
  * <p> $Revision 3.45  2006/05/22 22:53:12  sueh
  * <p> $bug# 577 Placed commands in a String[] rather then a String.
  * <p> $
@@ -1089,24 +1092,24 @@ public class Utilities {
     //Remove unnecessary symbols and strings from the label.
     boolean ignoreParen = false;
     boolean ignoreBracket = false;
-    while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
-      if (token.equals(Token.SYMBOL, '(')) {
+    while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
+      if (token.equals(Token.Type.SYMBOL, '(')) {
         //ignore parenthesis and everything in them
         ignoreParen = true;
       }
-      else if (token.equals(Token.SYMBOL, ')')) {
+      else if (token.equals(Token.Type.SYMBOL, ')')) {
         ignoreParen = false;
       }
-      else if (token.equals(Token.SYMBOL, '<')) {
+      else if (token.equals(Token.Type.SYMBOL, '<')) {
         //Replace html (angle brackets and contents) with a space.  The space is
         //necessary when a <br> is used.
         ignoreBracket = true;
         buffer.append(' ');
       }
-      else if (token.equals(Token.SYMBOL, '>')) {
+      else if (token.equals(Token.Type.SYMBOL, '>')) {
         ignoreBracket = false;
       }
-      else if (token.equals(Token.SYMBOL, ':')) {
+      else if (token.equals(Token.Type.SYMBOL, ':')) {
         //ignore colons and everything after them
         break;
       }
@@ -1114,12 +1117,12 @@ public class Utilities {
         //Convert a dash to a space so that any mix of dashes and whitespace
         //in the original label gets converted to a single dash in the next
         //loop.
-        if (token.equals(Token.SYMBOL, '-')) {
+        if (token.equals(Token.Type.SYMBOL, '-')) {
           buffer.append(' ');
         }
         //Remove "." because it is recognized by autodoc.  Assuming that the "."
         //is from an abbreviation.
-        else if (!token.equals(Token.SYMBOL, '.')) {
+        else if (!token.equals(Token.Type.SYMBOL, '.')) {
           buffer.append(token.getValue());
         }
       }
@@ -1148,8 +1151,8 @@ public class Utilities {
       return name;
     }
     //Convert interior whitespace to a single dash
-    while (token != null && !token.is(Token.EOF) && !token.is(Token.EOL)) {
-      if (token.is(Token.WHITESPACE)) {
+    while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
+      if (token.is(Token.Type.WHITESPACE)) {
         buffer.append('-');
       }
       else {
