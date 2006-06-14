@@ -19,6 +19,10 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.3  2006/06/14 00:13:27  sueh
+* <p> $bug# 852 Added function isGlobal so that it is possible to tell whether an attribute
+* <p> $is global or part of a section.
+* <p> $
 * <p> $Revision 1.2  2006/05/01 21:16:12  sueh
 * <p> $bug# 854
 * <p> $
@@ -83,6 +87,14 @@ public final class Attribute extends WriteOnlyAttributeMap {
   
   boolean isGlobal() {
     return parent.isGlobal();
+  }
+  
+  boolean isBase() {
+    return !parent.isAttribute();
+  }
+  
+  boolean isAttribute() {
+    return true;
   }
   
   public static String getKey(Token name) {
