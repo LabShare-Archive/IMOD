@@ -14,6 +14,8 @@ import etomo.storage.autodoc.AdocCommandReader;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.NameValuePair;
 import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.UITestCommand;
+import etomo.storage.autodoc.UITestTestCommand;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.UITestAction;
@@ -109,7 +111,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       fail("Missing autodoc");
       return;
     }
-    reader = new AdocCommandReader(autodoc, UITestSectionCommand.SECTION_TYPE);
+    reader = new AdocCommandReader(autodoc, UITestTestCommand.SECTION_TYPE);
     UITestCommandFactory factory = new UITestCommandFactory();
     UITestCommand command = (UITestCommand) reader.nextCommand(null, factory);
     //process commands in the global section
@@ -171,10 +173,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   }
 
   public AdocCommand newAdocCommand() {
-    return new UITestSectionCommand();
+    return new UITestTestCommand();
   }
 
-  private void setDuration(UITestSectionCommand command) {
+  private void setDuration(UITestTestCommand command) {
     String[] durationArray = command.getValue().split(":");
     if (durationArray.length == 4) {
       duration = Long.parseLong(durationArray[3]);
@@ -190,14 +192,14 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
   }
 
-  private String getRequiredValue(UITestSectionCommand command) {
+  private String getRequiredValue(UITestTestCommand command) {
     String value = command.getValue();
     assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
         + command, value);
     return value;
   }
 
-  private void setVariable(UITestSectionCommand command) {
+  private void setVariable(UITestTestCommand command) {
     AxisID axisID = command.getAxisID();
     if (axisID == null || axisID == AxisID.ONLY || axisID == AxisID.FIRST) {
       variablesA = setVariable(command, variablesA);
@@ -207,7 +209,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
   }
 
-  private ArrayList setVariable(UITestSectionCommand command,
+  private ArrayList setVariable(UITestTestCommand command,
       ArrayList variables) {
     if (variables == null) {
       variables = new ArrayList();
@@ -216,7 +218,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     return variables;
   }
 
-  private void setDataset(UITestSectionCommand command) {
+  private void setDataset(UITestTestCommand command) {
     String value = command.getValue();
     assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
         + command, value);
@@ -230,7 +232,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   private void processSection() throws FileNotFoundException, IOException {
-    UITestSectionCommand command = (UITestSectionCommand) reader.nextCommand(
+    UITestTestCommand command = (UITestTestCommand) reader.nextCommand(
         null, this);
     boolean datasetDirCommand = false;
     while (!command.isEmpty()) {
@@ -269,7 +271,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
           setVariable(command);
         }
       }
-      command = (UITestSectionCommand) reader.nextCommand(command, this);
+      command = (UITestTestCommand) reader.nextCommand(command, this);
     }
     assertTrue(reader.getInfo(), UITestAction.ADOC + " is required.",
         autodocA != null || autodocB != null);
@@ -411,7 +413,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private void setAutodoc(UITestSectionCommand command)
+  private void setAutodoc(UITestTestCommand command)
       throws FileNotFoundException, IOException {
     String value = command.getValue();
     assertNotNull(null, "Unknown name/value pair format: " + command, value);
@@ -468,7 +470,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     System.setProperty("user.dir", datasetDir.getAbsolutePath());
   }
 
-  private void setDatasetDir(UITestSectionCommand command) {
+  private void setDatasetDir(UITestTestCommand command) {
     File datasetDir = null;
     //Get the directory name
     String dirName = command.getValue();
@@ -606,6 +608,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2006/06/06 18:16:19  sueh
+ * <p> bug# 766 Fail when test name is not set.  Setting log in UIHarness.
+ * <p>
  * <p> Revision 1.14  2006/06/06 17:21:45  sueh
  * <p> bug# 766 Add fails when autodoc is not found
  * <p>
