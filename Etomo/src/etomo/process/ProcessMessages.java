@@ -355,9 +355,10 @@ public final class ProcessMessages {
     }
     //look for a message
     int errorIndex = line.indexOf(ERROR_TAG);
+    int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
     int infoIndex = line.indexOf(INFO_TAG);
-    boolean error = errorIndex != -1;
+    boolean error = errorIndex != -1 && (!chunks || chunkErrorIndex == -1);
     boolean warning = warningIndex != -1;
     boolean info = infoIndex != -1;
     if (!error && !warning && !info) {
@@ -706,6 +707,9 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/05/22 22:50:34  sueh
+ * <p> bug# 577 Added toString().
+ * <p>
  * <p> Revision 1.4  2006/03/16 01:53:06  sueh
  * <p> Made constructor private
  * <p>
