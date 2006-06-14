@@ -52,6 +52,9 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.2  2006/05/01 21:22:20  sueh
+* <p> $bug# 854
+* <p> $
 * <p> $Revision 1.1  2006/04/06 20:34:40  sueh
 * <p> $Moved PrimativeTokenizer to util.
 * <p> $
@@ -140,26 +143,26 @@ public class PrimativeTokenizer {
 
     if (nextTokenFound) {
       found = true;
-      token.set(nextToken);
+      token.copy(nextToken);
       nextToken.reset();
       nextTokenFound = false;
       tokenizer.nextToken();
     }
     while (!found) {
       if (tokenizer.ttype == StreamTokenizer.TT_EOF) {
-        token.set(Token.EOF);
+        token.set(Token.Type.EOF);
         found = true;
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
-        token.set(Token.EOL);
+        token.set(Token.Type.EOL);
         found = true;
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
-        token.set(Token.ALPHANUM, tokenizer.sval);
+        token.set(Token.Type.ALPHANUM, tokenizer.sval);
         found = true;
       }
       else if (symbols.indexOf(tokenizer.ttype) != -1) {
-        token.set(Token.SYMBOL, (char) tokenizer.ttype);
+        token.set(Token.Type.SYMBOL, (char) tokenizer.ttype);
         found = true;
       }
       else {
@@ -175,8 +178,8 @@ public class PrimativeTokenizer {
       if (found) {
         if (whitespaceFound) {
           nextTokenFound = true;
-          nextToken.set(token);
-          token.set(Token.WHITESPACE, whitespaceBuffer);
+          nextToken.copy(token);
+          token.set(Token.Type.WHITESPACE, whitespaceBuffer);
           whitespaceBuffer = null;
           whitespaceFound = false;
         }
@@ -205,14 +208,14 @@ public class PrimativeTokenizer {
       if (tokens) {
         System.out.println(token.toString());
       }
-      else if (token.is(Token.EOL)) {
+      else if (token.is(Token.Type.EOL)) {
         System.out.println();
       }
-      else if (!token.is(Token.EOF)) {
+      else if (!token.is(Token.Type.EOF)) {
         System.out.print(token.getValue());
       }
     }
-    while (!token.is(Token.EOF));
+    while (!token.is(Token.Type.EOF));
   }
 
   /**
