@@ -133,7 +133,7 @@ import etomo.ui.Token;
  * Flags:
  * The KeyValueDelimiter attribute changes the delimiter string for subsequent
  * lines.  It can be used as often as needed and placed anywhere in the autodoc
- * file.
+ * file.  The value of a KeyValueDelimiter must be one line
  * 
  * Preprocessor:
  * Sets flags decribing the current line: delimiterInLine and line number.
@@ -154,6 +154,15 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2006/06/14 00:22:19  sueh
+ * <p> $bug# 852 Rewrote the autodoc language definitions to make them simpler and
+ * <p> $easier to understand.  Fixed an incorrect definition in Attribute.  Added a
+ * <p> $definition for sub-sections.  Rewrote the parser to conform to the new definitions.
+ * <p> $Added LinkList inner class to handle elements made of multiple Tokens.
+ * <p> $Removes all the preprocessor flags except for delimiterInLine.  Handling
+ * <p> $BREAK in the parser instead of the preprocessor.  Fixed the internal test
+ * <p> $print statements so that they are clearer.
+ * <p> $
  * <p> $Revision 1.3  2006/06/05 18:05:47  sueh
  * <p> $bug# 766 Removed commented out print statements.
  * <p> $
@@ -589,7 +598,7 @@ final class AutodocParser {
    */
   private Attribute name(WriteOnlyAttributeMap attributeMap) throws IOException {
     testStartFunction("name");
-    Attribute attributeTree = attribute(attributeMap, true);
+    Attribute attributeTree = attribute(attributeMap);
     if (attributeTree == null) {
       //bad name
       reportError("Missing attribute.");
@@ -597,7 +606,7 @@ final class AutodocParser {
     }
     while (matchToken(Token.Type.SEPARATOR)) {
       //add the attribute to the map, point to the child attribute
-      attributeTree = attribute(attributeTree, false);
+      attributeTree = attribute(attributeTree);
       if (attributeTree == null) {
         //bad name
         reportError("Attribute must follow separator (\""
@@ -616,16 +625,13 @@ final class AutodocParser {
    * attributes.
    * @return attributeMap or null
    */
-  private Attribute attribute(WriteOnlyAttributeMap attributeMap, boolean base)
+  private Attribute attribute(WriteOnlyAttributeMap attributeMap)
       throws IOException {
     testStartFunction("attribute");
     if (matchToken(Token.Type.WORD) || matchToken(Token.Type.KEYWORD)) {
       //add the attribute to the map
       testEndFunction("attribute", true);
       //return the new attribute
-      if (base) {
-        processMetaData(attributeMap, prevToken);
-      }
       return (Attribute) attributeMap.addAttribute(prevToken);
     }
     //did not find attribute
@@ -648,19 +654,26 @@ final class AutodocParser {
       value.append(token);
       nextToken();
     }
+    //Finished the first line of the value (excluding the EOL) if this is
+    //delimiter reassignment, it must be done now, or the following pair will be
+    //mistaken for part of this value.
+    processMetaData(attribute, value.getList());
     value.append(token);
     nextToken();
     //look for value lines
     while (!error && valueLine(value)) {
     }
     //Strip non-embedded EOL, EOF, and WHITESPACE
-    while (value.size() > 0 && (value.isFirstElement(Token.Type.WHITESPACE)
-        || value.isFirstElement(Token.Type.EOL)
-        || value.isFirstElement(Token.Type.EOF))) {
-      value.dropFirstElement();}
-    while (value.size() > 0 && (value.isLastElement(Token.Type.WHITESPACE)
-        || value.isLastElement(Token.Type.EOL)
-        || value.isLastElement(Token.Type.EOF))) {
+    while (value.size() > 0
+        && (value.isFirstElement(Token.Type.WHITESPACE)
+            || value.isFirstElement(Token.Type.EOL) || value
+            .isFirstElement(Token.Type.EOF))) {
+      value.dropFirstElement();
+    }
+    while (value.size() > 0
+        && (value.isLastElement(Token.Type.WHITESPACE)
+            || value.isLastElement(Token.Type.EOL) || value
+            .isLastElement(Token.Type.EOF))) {
       value.dropLastElement();
     }
     attribute.setValue(value.getList());
@@ -817,17 +830,23 @@ final class AutodocParser {
 
   //postprocessor
 
-  private void processMetaData(WriteOnlyAttributeMap attributeMap, Token token) {
-    if (!attributeMap.isGlobal()) {
+  private void processMetaData(Attribute attribute, Token value) {
+    if (!attribute.isBase()) {
       return;
     }
-    if (token.equals(Token.Type.KEYWORD, AutodocTokenizer.VERSION_KEYWORD)) {
-      versionFound = true;
-      return;
+    Token name = attribute.getNameToken();
+    if (attribute.isGlobal()) {
+      if (name.equals(Token.Type.KEYWORD, AutodocTokenizer.VERSION_KEYWORD)) {
+        versionFound = true;
+        return;
+      }
+      if (name.equals(Token.Type.KEYWORD, AutodocTokenizer.PIP_KEYWORD)) {
+        pipFound = true;
+        return;
+      }
     }
-    if (token.equals(Token.Type.KEYWORD, AutodocTokenizer.PIP_KEYWORD)) {
-      pipFound = true;
-      return;
+    if (name.equals(Token.Type.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
+      tokenizer.setDelimiterString(value.getValues());
     }
   }
 
@@ -967,7 +986,7 @@ final class AutodocParser {
     int size() {
       return size;
     }
-    
+
     boolean isFirstElement(Token.Type compareType) {
       if (list == null) {
         return false;
@@ -981,7 +1000,7 @@ final class AutodocParser {
       }
       return endList.is(compareType);
     }
-    
+
     void dropFirstElement() {
       if (list == null) {
         return;
