@@ -33,7 +33,7 @@ public class AutodocTest extends TestCase {
 
     super.tearDown();
   }
-  
+  /*
   public void testUITest() throws FileNotFoundException, IOException{
     //Autodoc.setInternalTest(true);
     Autodoc.setTest(true);
@@ -63,7 +63,7 @@ public class AutodocTest extends TestCase {
     assertFalse(autodoc.isError());
     Autodoc.setTest(false);
   }
-  
+  */
   public void testBeadtrack() throws FileNotFoundException, IOException{
     Autodoc autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, AxisID.ONLY);
     assertFalse(autodoc.isError());
@@ -113,6 +113,9 @@ public class AutodocTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/06/14 00:31:25  sueh
+* <p> bug# 852 Added a test for setup-recon.adoc.
+* <p>
 * <p> Revision 1.1  2006/06/14 00:23:02  sueh
 * <p> bug# 852 Tests for Autodoc.  Parses autodocs and then checks the parser for an
 * <p> error.
