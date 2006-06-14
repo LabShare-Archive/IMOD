@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/06/09 19:50:48  sueh
+ * <p> bug# 870 Added setExitState().
+ * <p>
  * <p> Revision 3.20  2006/04/28 21:03:51  sueh
  * <p> bug# 787 Removed UITestConstants.  Moved constants to
  * <p> implementations of AdocCommand.
@@ -129,6 +132,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.storage.autodoc.UITestAxisDialogCommand;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
@@ -176,7 +180,7 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestAxisSectionCommand.SECTION_TYPE
+      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestAxisDialogCommand.SECTION_TYPE
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
     }
