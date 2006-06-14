@@ -28,28 +28,29 @@ import etomo.type.ReconScreenState;
  *
  * @version $Revision$
  */
-public class TransferfidPanel {
+public final class TransferfidPanel {
   public static final String rcsid = "$Id$";
 
-  private JPanel panelTransferfid = new JPanel();
+  private final JPanel panelTransferfid = new JPanel();
   MultiLineButton buttonTransferfid = null;
   private boolean includeButton = false;
 
-  private CheckBox cbRunMidas = new CheckBox("Run midas");
-  private LabeledTextField ltfCenterViewA = new LabeledTextField(
+  private final CheckBox cbRunMidas = new CheckBox("Run midas");
+  private final LabeledTextField ltfCenterViewA = new LabeledTextField(
       "Center view A: ");
-  private LabeledTextField ltfCenterViewB = new LabeledTextField(
+  private final LabeledTextField ltfCenterViewB = new LabeledTextField(
       "Center view B: ");
-  private LabeledTextField ltfNumberViews = new LabeledTextField(
+  private final LabeledTextField ltfNumberViews = new LabeledTextField(
       "Number of views in the search: ");
+  private final CheckBox cbMirrorInX = new CheckBox("Mirror one image around the X axis");
 
-  private JPanel panelSearchDirection = new JPanel();
-  private ButtonGroup bgSearchDirection = new ButtonGroup();
-  private RadioButton rbSearchBoth = new RadioButton("Both directions");
-  private RadioButton rbSearchPlus90 = new RadioButton("+90 (CCW) only");
-  private RadioButton rbSearchMinus90 = new RadioButton("-90 (CW) only");
-  private MetaData metaData;
-  private AxisID axisID;
+  private final JPanel panelSearchDirection = new JPanel();
+  private final ButtonGroup bgSearchDirection = new ButtonGroup();
+  private final RadioButton rbSearchBoth = new RadioButton("Both directions");
+  private final RadioButton rbSearchPlus90 = new RadioButton("+90 (CCW) only");
+  private final RadioButton rbSearchMinus90 = new RadioButton("-90 (CW) only");
+  private final MetaData metaData;
+  private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
 
@@ -95,6 +96,8 @@ public class TransferfidPanel {
     panelSearchDirection.add(rbSearchMinus90);
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
     panelTransferfid.add(panelSearchDirection);
+    cbMirrorInX.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    panelTransferfid.add(cbMirrorInX);
     panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));
 
     if (includeButton) {
@@ -136,9 +139,10 @@ public class TransferfidPanel {
     if (params.getSearchDirection().isPositive()) {
       rbSearchPlus90.setSelected(true);
     }
+    cbMirrorInX.setSelected(params.getMirrorInX().is());
   }
 
-  public final void setParameters(ReconScreenState screenState) {
+  public void setParameters(ReconScreenState screenState) {
     if (buttonTransferfid != null) {
       buttonTransferfid.setButtonState(screenState
           .getButtonState(buttonTransferfid.getButtonStateKey()));
@@ -166,6 +170,7 @@ public class TransferfidPanel {
       params.setSearchDirection(-1);
     }
     params.setNumberViews(ltfNumberViews.getText());
+    params.setMirrorInX(cbMirrorInX.isSelected());
     if (axisID == AxisID.SECOND) {
       metaData.setTransferfidBFields(params);
     }
@@ -183,6 +188,7 @@ public class TransferfidPanel {
     ltfCenterViewB.setVisible(isAdvanced);
     ltfNumberViews.setVisible(isAdvanced);
     panelSearchDirection.setVisible(isAdvanced);
+    cbMirrorInX.setVisible(isAdvanced);
   }
 
   public void setEnabled(boolean isEnabled) {
@@ -194,6 +200,7 @@ public class TransferfidPanel {
     rbSearchBoth.setEnabled(isEnabled);
     rbSearchPlus90.setEnabled(isEnabled);
     rbSearchMinus90.setEnabled(isEnabled);
+    cbMirrorInX.setEnabled(isEnabled);
   }
 
   public MultiLineButton getButton() {
@@ -240,6 +247,9 @@ public class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.8  2006/02/06 21:22:53  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.7  2006/01/26 22:09:09  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
