@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/05/22 22:42:40  sueh
+ * <p> bug# 577 Placed the command in an ArrayList rather then a String.
+ * <p>
  * <p> Revision 3.10  2006/05/12 18:24:34  sueh
  * <p> bug# 856 Added the "-c" option.
  * <p>
@@ -137,26 +140,27 @@ import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.util.DatasetFiles;
 
-public class TransferfidParam implements Storable {
+public final class TransferfidParam implements Storable {
   public static final String rcsid = "$Id$";
   
   protected static final String group = "Transferfid";
   
-  String inputImageFile;
-  String outputImageFile;
-  String inputModelFile;
-  String outputModelFile;
-  String datasetName;
-  EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
-  EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
+  private String inputImageFile;
+  private String outputImageFile;
+  private String inputModelFile;
+  private String outputModelFile;
+  private String datasetName;
+  private final EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
+  private final EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
   //null => both, -1 => -90, 1=> +90  
-  EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SearchDirection"); 
-  EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewA");
-  EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewB");
-  ScriptParameter numberViews = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "NumberViews");
+  private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SearchDirection"); 
+  private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewA");
+  private final EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewB");
+  private final ScriptParameter numberViews = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "NumberViews");
+  private final EtomoBoolean2 mirrorInX = new EtomoBoolean2("MirrorInX");
 
   private ConstMetaData metaData = null;
-  boolean createLog = false;
+  private boolean createLog = false;
   private String groupString;
   private final ApplicationManager manager;
 
@@ -193,6 +197,7 @@ public class TransferfidParam implements Storable {
     centerViewA.reset();
     centerViewB.reset();
     numberViews.reset();
+    mirrorInX.reset();
   }
   
   public void initialize() {
@@ -200,6 +205,14 @@ public class TransferfidParam implements Storable {
     setCenterViewBResetValue();
     centerViewA.reset();
     centerViewB.reset();
+  }
+  
+  public void setMirrorInX(boolean mirrorInX) {
+    this.mirrorInX.set(mirrorInX);
+  }
+  
+  public ConstEtomoNumber getMirrorInX() {
+    return mirrorInX;
   }
   
   private void setCenterViewAResetValue() {
@@ -234,6 +247,7 @@ public class TransferfidParam implements Storable {
     that.centerViewA.set(centerViewA);
     that.centerViewB.set(centerViewB);
     that.numberViews.set(numberViews);
+    that.mirrorInX.set(mirrorInX);
   }
   
   /**
@@ -246,6 +260,7 @@ public class TransferfidParam implements Storable {
     centerViewA.set(that.centerViewA);
     centerViewB.set(that.centerViewB);
     numberViews.set(that.numberViews);
+    mirrorInX.set(that.mirrorInX);
   }
   
   public void store(Properties props) {
@@ -254,12 +269,12 @@ public class TransferfidParam implements Storable {
   
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
-
     runMidas.store(props, prepend);
     searchDirection.store(props, prepend);
     centerViewA.store(props, prepend);
     centerViewB.store(props, prepend);
     numberViews.store(props, prepend);
+    mirrorInX.store(props, prepend);
   }
   
   public void load(Properties props) {
@@ -275,6 +290,7 @@ public class TransferfidParam implements Storable {
     centerViewA.load(props, prepend);
     centerViewB.load(props, prepend);
     numberViews.load(props, prepend);
+    mirrorInX.load(props, prepend);
   } 
 
   protected String createPrepend(String prepend) {
@@ -345,6 +361,10 @@ public class TransferfidParam implements Storable {
     if (searchDirection.isNegative()) {
       command.add("-a");
       command.add("-90");
+    }
+    
+    if (mirrorInX.is()) {
+      command.add("-x");
     }
 
     if (runMidas.is()) {
