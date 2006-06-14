@@ -32,7 +32,7 @@ public class RemotePathTest extends TestCase {
   public static final String rcsid = "$Id$";
 
   private static final String RCSID = "rcsid";
-  private static final BaseManager MANAGER = EtomoDirector.getInstance()
+  private static final BaseManager MANAGER = EtomoDirector.createInstance_test(new String[] {"--test", "--headless"})
       .getCurrentManager_test();
   private static final File TEST_DIR = new File(UtilTests.TEST_ROOT_DIR,
       "RemotePath");
@@ -971,6 +971,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2006/01/12 17:39:20  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 1.27  2006/01/11 23:22:51  sueh
  * <p> bug# 675 Changed Attribute.getUnformattedValue to getValue.
  * <p>
