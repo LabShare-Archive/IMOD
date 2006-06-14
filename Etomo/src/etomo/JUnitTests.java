@@ -7,6 +7,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import etomo.comscript.ComScriptTests;
 import etomo.process.ProcessTests;
+import etomo.storage.autodoc.AutodocTests;
 import etomo.type.TypeTests;
 import etomo.util.UtilTests;
 
@@ -39,15 +40,6 @@ public class JUnitTests {
     //$JUnit-BEGIN$
     //$JUnit-END$
     
-    testSuite = (TestSuite) TypeTests.suite();
-    tests = testSuite.tests();
-    while (tests.hasMoreElements()) {
-      test = tests.nextElement();
-      if (test instanceof Test) {
-        suite.addTest((Test) test);
-      }
-    }
-   
     testSuite = (TestSuite) ComScriptTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
@@ -58,6 +50,24 @@ public class JUnitTests {
     }
 
     testSuite = (TestSuite) ProcessTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
+    
+    testSuite = (TestSuite) AutodocTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
+    
+    testSuite = (TestSuite) TypeTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
       test = tests.nextElement();
@@ -80,6 +90,9 @@ public class JUnitTests {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2005/12/23 02:04:12  sueh
+* <p> bug# 675 This class should not depend on EtomoDirector.
+* <p>
 * <p> Revision 1.3  2005/11/15 21:21:28  sueh
 * <p> bug# 733 fixing IMODBuild
 * <p>
