@@ -23,7 +23,6 @@ public final class UITestAction {
   private static final String DATASET_STRING = "dataset";
   private static final String DATASET_DIR_STRING = "datasetdir";
   private static final String DURATION_STRING = "duration";
-  private static final String PROCESS_STRING = "process";
   private static final String SET_STRING = "set";
   private static final String SLEEP_STRING = "sleep";
   private static final String SOURCE_STRING = "source";
@@ -110,6 +109,9 @@ public final class UITestAction {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/05/01 21:18:17  sueh
+* <p> bug# 787 Removed fiducial diameter, replacing it with set.
+* <p>
 * <p> Revision 1.2  2006/04/28 20:57:10  sueh
 * <p> bug# 787 Added actions for uitest.adoc and uitestaxis.adoc globals.
 * <p> Removed EXIT.
