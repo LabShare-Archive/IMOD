@@ -12,156 +12,209 @@ import java.util.Vector;
 import etomo.ui.Token;
 
 /**
-* <p>Description:
-* Parses an autodoc file.  Finds and saves autodoc elements in an Autodoc
-* object.
-* 
-* AutodocParser is not case sensitive.  It stores all text in the original case.
-* It retains the original whitespace, except for end of line.  It substitute one
-* space for each end of line character in a multi-line value.  Comments are not
-* stored.  Messages about syntax errors are sent to System.err.  It is extremely
-* important to keep the language definition up to date.
-*
-* To Use:
-* Construct the class with an Autodoc.
-* Run initialize().
-* Run parse().
-* 
-* Testing:
-* Do not call initialize() when testing.
-* Call test() to test this class.
-* Call testPreprocessor() to test only the preprocessor in this class.
-* Call testAutodocTokenizer() to test the AutodocTokenizer.
-* Call testPrimativeTokenizer() to test the PrimativeTokenizer.
-* Call testStreamTokenizer() to test the StreamTokenizer.
-*
-*
-* Language Definition:
-*
-* Syntax of language definition:
-* => equals
-* TOKEN
-* {  0 or more  }
-* [  1 or more  ]
-* {n  0 up to n  n}
-* (  group together  )
-* (boolean value)
-* \any token except these\
-* | => or
-* & => and
-* EOL => EOL & EOF
-* 
-* Definition:
-* Autodoc => { (emptyLine) | comment | attribute | section }
-* 
-* comment => (startOfLine) {1 WHITESPACE 1} COMMENT { \EOL\ } EOL
-* 
-* section => (startOfLine && delimiterInLine) {1 WHITESPACE 1} OPEN 
-*            sectionHeader CLOSE { EmptyLine | comment | attribute }
-* 
-* sectionHeader => (!startOfLine && delimiterInLine) WORD {1 WHITESPACE 1}
-*                  DELIMITER {1 WHITESPACE 1} sectionName
-* 
-* sectionName = (!startOfLine && delimiterInLine) [ \CLOSE & WHITESPACE & EOL\ ]
-* 
-* attribute => (startOfLine && delimiterInLine)
-*              ( ( WORD { SEPARATOR attribute } ) |
-*                ( {1 WHITESPACE 1} DELIMITER {1 WHITESPACE 1} {1 value 1} )
-*              )
-* 
-* value => { \EOL\ } EOL  
-*          { (!delimiterInLine && !emptyLine && !comment)
-*            (startOfLine) {1 (breakInLine) {1 WHITESPACE 1} BREAK {1 INDENT 1} 1}
-*            { \DELIMITER & EOL\ } EOL
-*          }
-* 
-* Required Elements:
-* Top level attributes (meta data):  Version and Pip.
-* 
-* Flags:
-* The KeyValueDelimiter attribute changes the delimiter string for subsequent
-* lines.  It can be used as often as needed and placed anywhere in the autodoc
-* file.
-* 
-* Preprocessor:
-* Sets flags decribing the line and position of the current token: emptyLine,
-* delimiterInLine, and startOfLine.
-* 
-* Postprocessor:
-* Checks for required elements.
-* 
-* </p>
-* 
-* <p>Copyright: Copyright 2002 - 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-*
-* @author $$Author$$
-*
-* @version $$Revision$$
-*
-* <p> $$Log$
-* <p> $Revision 1.2  2006/05/01 21:16:57  sueh
-* <p> $bug# 854
-* <p> $
-* <p> $Revision 1.1  2006/01/12 17:02:37  sueh
-* <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
-* <p> $
-* <p> $Revision 1.10  2006/01/11 21:57:36  sueh
-* <p> $bug# 675 Replaced AttributeCollection with WriteOnlyAttributeMap.
-* <p> $
-* <p> $Revision 1.9  2005/11/10 18:15:22  sueh
-* <p> $bug# 733 Changed the missing meta data warning to a single line warning.
-* <p> $
-* <p> $Revision 1.8  2005/09/21 16:36:58  sueh
-* <p> $bug# 532 Changed Autodoc.getFile() to getAutodocFile().
-* <p> $
-* <p> $Revision 1.7  2005/09/01 17:59:47  sueh
-* <p> $bug# 532 Allow a comment inside a section.  Changed the language
-* <p> $definition and section().
-* <p> $
-* <p> $Revision 1.6  2005/02/15 19:51:54  sueh
-* <p> $bug# 602 Preprocessor:  Converting BREAK token to WORD when it is
-* <p> $not at the beginning of a line.  Converting the spaces following a BREAK
-* <p> $to an INDENT.
-* <p> $Parcer:  Saving BREAKS and INDENTS.  In value(), ignoring
-* <p> $WHITESPACE that preceeds a BREAK.
-* <p> $
-* <p> $Revision 1.5  2004/01/01 00:45:17  sueh
-* <p> $bug# 372 correcting interface name
-* <p> $
-* <p> $Revision 1.4  2003/12/31 17:47:41  sueh
-* <p> $bug# 372 add doc, get file from Autodoc
-* <p> $
-* <p> $Revision 1.3  2003/12/31 01:27:04  sueh
-* <p> $bug# 372 save recognized data, testing, delimiter change on
-* <p> $the fly, checking for meta data
-* <p> $
-* <p> $Revision 1.2  2003/12/23 21:32:25  sueh
-* <p> $bug# 372 Reformating.  Creating parser.  Test function for
-* <p> $preprocessor.  Fixing preprocessor.
-* <p> $
-* <p> $Revision 1.1  2003/12/22 23:48:50  sueh
-* <p> $bug# 372 parser and preprocessor for autodoc files.  Stores
-* <p> $autodoc data.
-* <p> $$ </p>
-*/
+ * <p>Description:
+ * Parses an autodoc file.  Finds and saves autodoc elements in an Autodoc
+ * object.
+ * 
+ * AutodocParser is not case sensitive.  It stores all text in the original case.
+ * It retains the original whitespace, except for end of line.  It substitute one
+ * space for each end of line character in a multi-line value.  Comments are not
+ * stored.  Messages about syntax errors are sent to System.err.  It is extremely
+ * important to keep the language definition up to date.
+ *
+ * To Use:
+ * Construct the class with an Autodoc.
+ * Run initialize().
+ * Run parse().
+ * 
+ * Testing:
+ * Do not call initialize() when testing.
+ * Call test() to test this class.
+ * Call testPreprocessor() to test only the preprocessor in this class.
+ * Call testAutodocTokenizer() to test the AutodocTokenizer.
+ * Call testPrimativeTokenizer() to test the PrimativeTokenizer.
+ * Call testStreamTokenizer() to test the StreamTokenizer.
+ *
+ *
+ * Language Definition:
+ * 
+ * Valid Autodoc Tokens:
+ * 
+ * Special Character Tokens:
+ * OPEN => [
+ * CLOSE => ]
+ * SEPARATOR => .
+ * BREAK => ^ (formatting character - ignored except in valueline at startline)
+ * COMMENT => #
+ * 
+ * Other Tokens:
+ * EOL => end of line
+ * EOF => end of file
+ * DELIMETER => A definable string of non-alphnumeric characters.  May not
+ *              include characters used by Special Character Tokens.  The default
+ *              is "=".
+ * WHITESPACE => The largest possible string of whitespace.
+ * WORD => The largest possible string of everything not used by other Autodoc
+ *         tokens.
+ * KEYWORD => A WORD that match an autodoc keyword:  Version, Pip, KeyValueDelimiter
+ *
+ *
+ * Language definition for the parser:
+ * Syntax of language definition:
+ * => equals
+ * TOKEN
+ * {  0 or more  }
+ * [  1 or more  ]
+ * {n  0 up to n  n}
+ * (  group together  )
+ * (boolean value)
+ * \any token except these\
+ * -optional-
+ * | => or
+ * & => and
+ * ^ => beginning of the line
+ * 
+ * Preprocessor flags:
+ * DelimiterInLine
+ * 
+ * Definition:
+ * 
+ * Autodoc => { emptyLine | comment | pair | section } EOF
+ * 
+ * section => startLineDelimiter OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
+ *            { emptyLine | comment | pair | subSection }
+ *            
+ * 
+ * sectionHeader => -WHITESPACE- sectionType -WHITESPACE- DELIMITER -WHITESPACE-
+ *                  sectionName -WHITESPACE-
+ *                  
+ * sectionType => ( WORD | KEYWORD )
+ * 
+ * sectionName = [ \CLOSE & WHITESPACE & EOL & EOF\ ]
+ *               
+ * subSection => startLineDelimiter OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
+ *               { emptyLine | comment | pair }
+ *               -subSectionClose-
+ *               
+ * subSectionClose -> startLine OPEN OPEN CLOSE CLOSE
+ *               
+ * pair => startLineDelimiter name -WHITESPACE- DELIMITER -WHITESPACE- value
+ *         
+ * name => attribute { SEPARATOR attribute }
+ *         
+ * attribute => ( WORD | KEYWORD )
+ * 
+ * value => { \EOL & EOF\ } ( EOL | EOF ) { valueline }  
+ *  
+ * valueLine => startLineDelimiter !emptyLine !comment -indent- 
+ *              { \DELIMITER & EOL & EOF\ } ( EOL | EOF )
+ *          
+ * indent => startLine BREAK -WHITESPACE-
+ * 
+ * These elements are not saved:
+ *               
+ * comment => startline COMMENT { \EOL\ } ( EOL | EOF )
+ * 
+ * emptyLine => emptyline => startLine ( EOL | EOF )
+ * 
+ * startLineDelimiter => (DelimiterInLine == true) startLine
+ * 
+ * startLineWithOutDelimiter => (DelimiterInLine == false) startLine
+ * 
+ * startLine => ^ -WHITESPACE-
+ *
+ *
+ * Non-embedded EOL and WHITESPACE are stripped from values.
+ * Optional WHITESPACE is ignored in other elements.
+ *               
+ * Required pairs:
+ * Top level attributes (meta data):  Version and Pip.
+ * 
+ * Flags:
+ * The KeyValueDelimiter attribute changes the delimiter string for subsequent
+ * lines.  It can be used as often as needed and placed anywhere in the autodoc
+ * file.
+ * 
+ * Preprocessor:
+ * Sets flags decribing the current line: delimiterInLine and line number.
+ * 
+ * Postprocessor:
+ * Checks for required elements.
+ * 
+ * </p>
+ * 
+ * <p>Copyright: Copyright 2002 - 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ *
+ * @author $$Author$$
+ *
+ * @version $$Revision$$
+ *
+ * <p> $$Log$
+ * <p> $Revision 1.3  2006/06/05 18:05:47  sueh
+ * <p> $bug# 766 Removed commented out print statements.
+ * <p> $
+ * <p> $Revision 1.2  2006/05/01 21:16:57  sueh
+ * <p> $bug# 854
+ * <p> $
+ * <p> $Revision 1.1  2006/01/12 17:02:37  sueh
+ * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p> $
+ * <p> $Revision 1.10  2006/01/11 21:57:36  sueh
+ * <p> $bug# 675 Replaced AttributeCollection with WriteOnlyAttributeMap.
+ * <p> $
+ * <p> $Revision 1.9  2005/11/10 18:15:22  sueh
+ * <p> $bug# 733 Changed the missing meta data warning to a single line warning.
+ * <p> $
+ * <p> $Revision 1.8  2005/09/21 16:36:58  sueh
+ * <p> $bug# 532 Changed Autodoc.getFile() to getAutodocFile().
+ * <p> $
+ * <p> $Revision 1.7  2005/09/01 17:59:47  sueh
+ * <p> $bug# 532 Allow a comment inside a section.  Changed the language
+ * <p> $definition and section().
+ * <p> $
+ * <p> $Revision 1.6  2005/02/15 19:51:54  sueh
+ * <p> $bug# 602 Preprocessor:  Converting BREAK token to WORD when it is
+ * <p> $not at the beginning of a line.  Converting the spaces following a BREAK
+ * <p> $to an INDENT.
+ * <p> $Parcer:  Saving BREAKS and INDENTS.  In value(), ignoring
+ * <p> $WHITESPACE that preceeds a BREAK.
+ * <p> $
+ * <p> $Revision 1.5  2004/01/01 00:45:17  sueh
+ * <p> $bug# 372 correcting interface name
+ * <p> $
+ * <p> $Revision 1.4  2003/12/31 17:47:41  sueh
+ * <p> $bug# 372 add doc, get file from Autodoc
+ * <p> $
+ * <p> $Revision 1.3  2003/12/31 01:27:04  sueh
+ * <p> $bug# 372 save recognized data, testing, delimiter change on
+ * <p> $the fly, checking for meta data
+ * <p> $
+ * <p> $Revision 1.2  2003/12/23 21:32:25  sueh
+ * <p> $bug# 372 Reformating.  Creating parser.  Test function for
+ * <p> $preprocessor.  Fixing preprocessor.
+ * <p> $
+ * <p> $Revision 1.1  2003/12/22 23:48:50  sueh
+ * <p> $bug# 372 parser and preprocessor for autodoc files.  Stores
+ * <p> $autodoc data.
+ * <p> $$ </p>
+ */
 
 final class AutodocParser {
-  public static final String rcsid =
-    "$$Id$$";
+  public static final String rcsid = "$$Id$$";
 
   private AutodocTokenizer tokenizer;
   private String name = null;
   private File file = null;
-  private Vector line = null;
-  private Vector prevLine = null;
+  private final Vector line = new Vector();
   private int tokenIndex = 0;
   private Autodoc autodoc = null;
   private Token token = null;
   private Token prevToken = null;
+  private Token prevPrevToken = null;
   private boolean parsed = false;
 
   //error flags
@@ -172,29 +225,17 @@ final class AutodocParser {
   private boolean test = false;
   private boolean detailedTest = false;
   private boolean testWithTokens = false;
-  private int lastTokenType = Token.NULL;
+  private Token.Type lastTokenType = Token.Type.NULL;
   private int testIndent = -1;
 
   //Preprocessor flags
-  private boolean startOfLine = true;
   private boolean delimiterInLine = false;
-  private boolean emptyLine = false;
-  private boolean breakInLine = false;
   private int lineNum = 0;
+  private int lastLinePrinted = 0;
 
   //Postprocessor flags
   private boolean versionFound = false;
   private boolean pipFound = false;
-
-  //Values
-  private Token sectionTypeStart = null;
-  private Token sectionTypeEnd = null;
-  private Token sectionNameStart = null;
-  private Token sectionNameEnd = null;
-  private Token attributeNameStart = null;
-  private Token attributeNameEnd = null;
-  private Token valueStart = null;
-  private Token valueEnd = null;
 
   AutodocParser(Autodoc autodoc) {
     if (autodoc == null) {
@@ -210,379 +251,490 @@ final class AutodocParser {
     tokenizer.initialize();
   }
 
+  boolean isError() {
+    return error;
+  }
+
   /**
    * Parses an autodoc file.
    * This function can be run only once per instance of the object.
    * @throws IOException
    */
   void parse() throws IOException {
-    //System.out.println("0token="+token);
+    autodoc();
+  }
+
+  /**
+   * Autodoc => { emptyLine | comment | pair | section } EOF
+   * 
+   * Parses an autodoc file.
+   * This function can be run only once per instance of the object.
+   * @throws IOException
+   */
+  private void autodoc() throws IOException {
     if (parsed) {
       return;
     }
     parsed = true;
-    testStartFunction("parse");
     nextToken();
-    //System.out.println("1token="+token);
-    while (!token.is(Token.EOF)) {
-      error = false;
-      if (emptyLine) {
-        nextToken();
-        //System.out.println("2token="+token);
-        continue;
+    while (!token.is(Token.Type.EOF)) {
+      if (emptyLine()) {
       }
-      if (testEndFunction(comment())) {
-        continue;
+      else if (comment()) {
       }
-      if (testEndFunction(section())) {
-        continue;
+      else if (section()) {
       }
-      if (testEndFunction(attribute(autodoc))) {
-        processMetaData();
-        continue;
+      else if (pair(autodoc)) {
       }
-      reportError("Unknown statement.");
+      else {
+        reportError("Unknown statement.");
+      }
     }
     postprocess();
-    testEndFunction(true);
+  }
+
+  /** 
+   * emptyLine => emptyLine => startLine ( EOL | EOF )
+   * 
+   * @return
+   * @throws IOException
+   */
+  private boolean emptyLine() throws IOException {
+    if (!startLine()
+        || (!matchToken(Token.Type.EOL) && !matchToken(Token.Type.EOF))) {
+      //not an empty line
+      return false;
+    }
+    testStartFunction("emptyline");
+    testEndFunction("emptyline", true);
+    return true;
   }
 
   /**
+   * startLineDelimiter => (DelimiterInLine == true) startLine
+   * 
+   * runs startLine if the delimiter is there, otherwise returns false
+   */
+  private boolean startLineDelimiter() throws IOException {
+    if (!delimiterInLine) {
+      //delimiter is missing, so fail start line
+      return false;
+    }
+    return startLine();
+  }
+
+  /**
+   * startLineWithOutDelimiter => (DelimiterInLine == false) startLine
+   * 
+   * runs startLine if the delimiter is there, otherwise returns false
+   */
+  private boolean startLineWithOutDelimiter() throws IOException {
+    if (delimiterInLine) {
+      //delimiter is missing, so fail start line
+      return false;
+    }
+    return startLine();
+  }
+
+  /**
+
+   * 
+   * startLine => ^ -WHITESPACE-
+   * 
+   * @return true if the token is the first token on the line, or the first
+   * token except for whitespace.
+   * StartLine will eat only the first whitespace of the line.
+   * StartLine can be called more then once per line.
+   * StartLine does not print a test line.
+   * @throws IOException
+   */
+  private boolean startLine() throws IOException {
+    if (prevToken == null || prevToken.is(Token.Type.EOL)) {
+      //start of line - first whitespace may not have been eaten
+      //eat up the optional whitespace at the start of the line
+      if (test) {
+        printTestLine();
+      }
+      matchToken(Token.Type.WHITESPACE);
+      return true;
+    }
+    if ((prevPrevToken == null || prevPrevToken.is(Token.Type.EOL))
+        && prevToken.is(Token.Type.WHITESPACE)) {
+      //start of line - whitespace was eaten by a previous call to startLine()
+      return true;
+    }
+    //not start of line
+    return false;
+  }
+
+  /**
+   * comment => startLine COMMENT { \EOL\ } EOL
+   * 
    * Parses a comment.
    * @return true if comment found
    * @throws IOException
    */
   private boolean comment() throws IOException {
+    if (!startLine() || !matchToken(Token.Type.COMMENT)) {
+      //not a comment
+      return false;
+    }
     testStartFunction("comment");
-    if (!startOfLine) {
-      return false;
-    }
-    if (token.is(Token.WHITESPACE)) {
+    //eat up comment line
+    while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
       nextToken();
     }
-    if (!token.is(Token.COMMENT)) {
-      return false;
-    }
-    nextToken();
-    while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
-      nextToken();
-    }
-    if (!token.is(Token.EOF)) {
-      nextToken();
-    }
+    //eat up the EOL
+    matchToken(Token.Type.EOL);
+    testEndFunction("comment", true);
     return true;
   }
 
   /**
+   * section => startLineDelimiter OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF )
+   *            { emptyline | comment | pair | subsection }
+   *            
    * Parses a section.
    * @return true if section found
    * @throws IOException
    */
   private boolean section() throws IOException {
-    //System.out.println("0token="+token);
     WriteOnlyAttributeMap section = null;
+    if (!startLineDelimiter()) {
+      //not a section
+      return false;
+    }
+    if (!matchToken(Token.Type.OPEN)) {
+      //not a section
+      return false;
+    }
     testStartFunction("section");
-    if (!startOfLine) {
-      return false;
-    }
-    if (token.is(Token.WHITESPACE)) {
-      nextToken();
-      //System.out.println("1token="+token);
-    }
-    if (!token.is(Token.OPEN)) {
-      return false;
-    }
-    if (!delimiterInLine) {
-      reportError(
-        "A section header must contain a delimiter (\""
-          + tokenizer.getDelimiterString()
-          + "\").");
-      return false;
-    }
-    nextToken();
-    //System.out.println("2token="+token);
+    //save the new section
     section = sectionHeader();
-    if (testEndFunction(section == null)) {
+    if (section == null) {
+      testEndFunction("section", false);
       return false;
     }
-    if (!token.is(Token.CLOSE)) {
-      reportError(
-        "A section header must end with '"
-          + AutodocTokenizer.CLOSE_CHAR
-          + "'.");
+    if (!matchToken(Token.Type.CLOSE)) {
+      //bad section
+      reportError("A section header must end with \""
+          + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("section", false);
       return false;
     }
-    nextToken();
-    //System.out.println("3token="+token);
-    while (!token.is(Token.EOF)) {
-      if (token.is(Token.WHITESPACE) || token.is(Token.EOL) || emptyLine) {
-        nextToken();
-        //System.out.println("4token="+token);
+    matchToken(Token.Type.WHITESPACE);
+    if (!matchToken(Token.Type.EOL) && !matchToken(Token.Type.EOF)) {
+      //bad section
+      reportError("A section header must end with \""
+          + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("section", false);
+      return false;
+    }
+    while (!token.is(Token.Type.EOF)) {
+      //look for elements in the section
+      if (emptyLine()) {
       }
-      else if (!testEndFunction(comment())) {
-        if (!testEndFunction(attribute(section))) {
-          return true;
-        }
+      else if (comment()) {
+      }
+      else if (subSection()) {
+      }
+      else if (pair(section)) {
+      }
+      else {
+        //end of section
+        testEndFunction("section", true);
+        return true;
       }
     }
-
+    //empty section
+    testEndFunction("section", true);
     return true;
   }
 
+  private boolean subSection() throws IOException {
+    return false;
+  }
+
   /**
-   * @return true if sectionHeader found
+   * Returns true and calls nextToken(), if token is tokenType.
+   * If token is not tokenType, returns false and does not call nextToken().
+   * @param tokenType
+   * @return
+   */
+  private boolean matchToken(Token.Type tokenType) throws IOException {
+    if (token.is(tokenType)) {
+      nextToken();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * sectionHeader => -WHITESPACE- sectionType -WHITESPACE- DELIMITER -WHITESPACE-
+   *                  sectionName -WHITESPACE-
+   * 
+   * @return a Section if sectionHeader found, otherwise return null
    * @throws IOException
    */
   private Section sectionHeader() throws IOException {
     testStartFunction("sectionHeader");
-    if (startOfLine) {
-      reportError(
-        "A section header must start with '"
-          + AutodocTokenizer.OPEN_CHAR
-          + "'.");
-      return null;
-    }
-    if (!delimiterInLine) {
-      reportError(
-        "A section header must contain a delimiter (\""
-          + tokenizer.getDelimiterString()
-          + "\").");
-      return null;
-    }
-    if (!token.is(Token.WORD) && !token.is(Token.KEYWORD)) {
+    matchToken(Token.Type.WHITESPACE);
+    //get the section type
+    Token type = sectionType();
+    if (type == null) {
+      //bad section header
       reportError("A section header must contain a section type.");
+      testEndFunction("sectionHeader", false);
       return null;
     }
-    sectionTypeStart = token;
-    sectionTypeEnd = sectionTypeStart;
-    nextToken();
-    if (token.is(Token.WHITESPACE)) {
-      nextToken();
-    }
-    if (!token.is(Token.DELIMITER)) {
-      reportError(
-        "A section header must contain a delimiter (\""
-          + tokenizer.getDelimiterString()
-          + "\").");
+    matchToken(Token.Type.WHITESPACE);
+    if (!matchToken(Token.Type.DELIMITER)) {
+      //bad section header
+      reportError("A section header must contain a delimiter (\""
+          + tokenizer.getDelimiterString() + "\").");
+      testEndFunction("sectionHeader", false);
       return null;
     }
-    nextToken();
-    if (token.is(Token.WHITESPACE)) {
-      nextToken();
-    }
-    if (!testEndFunction(sectionName())) {
+    matchToken(Token.Type.WHITESPACE);
+    //get the section name
+    LinkList name = sectionName();
+    if (name.size() == 0) {
+      //bad section header
       reportError("A section header must contain a section name.");
+      testEndFunction("sectionHeader", false);
       return null;
     }
-    return autodoc.addSection(sectionTypeStart, sectionNameStart);
+    matchToken(Token.Type.WHITESPACE);
+    testEndFunction("sectionHeader", true);
+    return autodoc.addSection(type, name.getList());
   }
 
   /**
-   * @return true if sectionName found
-   */
-  private boolean sectionName() throws IOException {
-    testStartFunction("sectionName");
-    if (startOfLine) {
-      reportError(
-        "A section header must start with '"
-          + AutodocTokenizer.OPEN_CHAR
-          + "'.");
-      return false;
-    }
-    if (!delimiterInLine) {
-      reportError(
-        "A section header must contain a delimiter (\""
-          + tokenizer.getDelimiterString()
-          + "\").");
-      return false;
-    }
-    sectionNameStart = token;
-    sectionNameEnd = sectionNameStart;
-    boolean found = false;
-    while (!token.is(Token.CLOSE)
-      && !token.is(Token.WHITESPACE)
-      && !token.is(Token.EOL)
-      && !token.is(Token.EOF)) {
-      found = true;
-      nextToken();
-      sectionNameEnd = sectionNameEnd.setNext(token);
-    }
-    sectionNameEnd = sectionNameEnd.dropFromList();
-    if (!found) {
-      sectionNameStart = null;
-      reportError("A section header must contain a section name.");
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * @return true if attribute found
-   * @throws IOException
-   */
-  private boolean attribute(WriteOnlyAttributeMap writeOnlyAttributeMap) throws IOException {
-    Attribute attribute = null;
-    testStartFunction("attribute");
-    if (!delimiterInLine) {
-      reportError(
-        "A multi-line value cannot contain embedded empty lines or comments starting with '"
-          + AutodocTokenizer.COMMENT_CHAR
-          + "'.");
-      return false;
-    }
-    if (!token.is(Token.WORD) && !token.is(Token.KEYWORD)) {
-      return false;
-    }
-    attributeNameStart = token;
-    attributeNameEnd = attributeNameStart;
-    attribute = (Attribute) writeOnlyAttributeMap.addAttribute(attributeNameStart);
-    nextToken();
-    if (token.is(Token.SEPARATOR)) {
-      while (token.is(Token.SEPARATOR)) {
-        nextToken();
-        if (!testEndFunction(attribute(attribute))) {
-          reportError(
-            "An attribute names cannot end with a separator ('"
-              + AutodocTokenizer.SEPARATOR_CHAR
-              + "').");
-          return false;
-        }
-      }
-    }
-    else {
-      if (token.is(Token.WHITESPACE)) {
-        nextToken();
-      }
-      if (!token.is(Token.DELIMITER)) {
-        reportError(
-          "A full-line value cannot contain the delimiter string (\""
-            + tokenizer.getDelimiterString()
-            + "\").");
-        //System.out.println("4return false");
-        return false;
-      }
-      nextToken();
-      //System.out.println("4token="+token);
-      if (token.is(Token.WHITESPACE)) {
-        nextToken();
-        //System.out.println("5token="+token);
-      }
-      boolean oneLine =
-        attributeNameStart.equals(
-          Token.KEYWORD,
-          AutodocTokenizer.DELIMITER_KEYWORD);
-      testEndFunction(value(attribute, oneLine));
-    }
-    return true;
-  }
-
-  /**
+   * sectionType => ( WORD | KEYWORD )
    * 
-   * @param attribute
-   * @param oneLine - if its a known one line attribute, such as the keyword to
-   * set the delimiter
-   * @return
+   * @return section type or null
+   */
+  private Token sectionType() throws IOException {
+    testStartFunction("sectionType");
+    if (matchToken(Token.Type.WORD) || matchToken(Token.Type.KEYWORD)) {
+      //return the section type
+      testEndFunction("sectionType", true);
+      return prevToken;
+    }
+    //did not find section type
+    testEndFunction("sectionType", false);
+    return null;
+  }
+
+  /**
+   * sectionName = [ \CLOSE & WHITESPACE & EOL\ ]
+   * 
+   * @return section name or null
+   */
+  private LinkList sectionName() throws IOException {
+    testStartFunction("sectionName");
+    //section name may contain multiple tokens
+    LinkList name = new LinkList(token);
+    //link the section name together
+    while (!token.is(Token.Type.CLOSE) && !token.is(Token.Type.WHITESPACE)
+        && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
+      name.append(token);
+      nextToken();
+    }
+    if (name.size() == 0) {
+      //bad section name
+      reportError("Missing section name.");
+      testEndFunction("sectionName", false);
+      return null;
+    }
+    testEndFunction("sectionName", true);
+    return name;
+  }
+
+  /**
+   * pair => startLineDelimiter name -WHITESPACE- DELIMITER -WHITESPACE- value
+   *         
+   * Adds an attribute tree to the attribute map.
    * @throws IOException
    */
-  private boolean value(Attribute attribute, boolean oneLine)
-    throws IOException {
-    //System.out.println("attribute="+attribute+",oneLine="+oneLine+",token="+token);
+  private boolean pair(WriteOnlyAttributeMap attributeMap) throws IOException {
+    if (!startLineDelimiter() || token.is(Token.Type.OPEN)) {
+      //not a pair
+      return false;
+    }
+    testStartFunction("pair");
+    Attribute leafAttribute = name(attributeMap);
+    if (leafAttribute == null) {
+      //bad pair
+      testEndFunction("pair", false);
+      return false;
+    }
+    matchToken(Token.Type.WHITESPACE);
+    if (!matchToken(Token.Type.DELIMITER)) {
+      //bad pair
+      testEndFunction("pair", false);
+      return false;
+    }
+    matchToken(Token.Type.WHITESPACE);
+    //attach the value to the last attribute
+    value(leafAttribute);
+    testEndFunction("pair", true);
+    return true;
+  }
+
+  /**
+   * name => attribute { SEPARATOR attribute }
+   * 
+   * @throws IOException
+   */
+  private Attribute name(WriteOnlyAttributeMap attributeMap) throws IOException {
+    testStartFunction("name");
+    Attribute attributeTree = attribute(attributeMap, true);
+    if (attributeTree == null) {
+      //bad name
+      reportError("Missing attribute.");
+      testEndFunction("name", false);
+    }
+    while (matchToken(Token.Type.SEPARATOR)) {
+      //add the attribute to the map, point to the child attribute
+      attributeTree = attribute(attributeTree, false);
+      if (attributeTree == null) {
+        //bad name
+        reportError("Attribute must follow separator (\""
+            + AutodocTokenizer.SEPARATOR_CHAR + "\")" + ".");
+        testEndFunction("name", false);
+      }
+    }
+    testEndFunction("name", true);
+    return attributeTree;
+  }
+
+  /**
+   * attribute => ( WORD | KEYWORD )
+   * 
+   * Adds attributes to an attribute map.  An attribute map is a tree of
+   * attributes.
+   * @return attributeMap or null
+   */
+  private Attribute attribute(WriteOnlyAttributeMap attributeMap, boolean base)
+      throws IOException {
+    testStartFunction("attribute");
+    if (matchToken(Token.Type.WORD) || matchToken(Token.Type.KEYWORD)) {
+      //add the attribute to the map
+      testEndFunction("attribute", true);
+      //return the new attribute
+      if (base) {
+        processMetaData(attributeMap, prevToken);
+      }
+      return (Attribute) attributeMap.addAttribute(prevToken);
+    }
+    //did not find attribute
+    testEndFunction("attribute", false);
+    return null;
+  }
+
+  /**
+   * value => { \EOL & EOF\ } ( EOL | EOF ) { valueLine }  
+   * 
+   * sets the value in the attribute, if the value exists
+   * @throws IOException
+   */
+  private void value(Attribute attribute) throws IOException {
     testStartFunction("value");
-    valueStart = token;
-    valueEnd = valueStart;
-    boolean found = false;
-    //{ \EOL\ }
-    while (!token.is(Token.EOL) && !token.is(Token.EOF)) {
-      found = true;
+    //values can be made of multiple tokens, so use a link list
+    LinkList value = new LinkList(token);
+    while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
+      //add the token to the value link list
+      value.append(token);
       nextToken();
-      //System.out.println("1token="+token);
-      valueEnd = valueEnd.setNext(token);
     }
-    //{ (!delimiterInLine && !emptyLine && !comment)
-    //            (startOfLine) {1 (breakInLine) {1 WHITESPACE 1} BREAK {1 INDENT 1} 1}
-    //            { \DELIMITER & EOL\ } EOL
-    //}
-    if (!oneLine) {
+    value.append(token);
+    nextToken();
+    //look for value lines
+    while (!error && valueLine(value)) {
+    }
+    //Strip non-embedded EOL, EOF, and WHITESPACE
+    while (value.size() > 0 && (value.isFirstElement(Token.Type.WHITESPACE)
+        || value.isFirstElement(Token.Type.EOL)
+        || value.isFirstElement(Token.Type.EOF))) {
+      value.dropFirstElement();}
+    while (value.size() > 0 && (value.isLastElement(Token.Type.WHITESPACE)
+        || value.isLastElement(Token.Type.EOL)
+        || value.isLastElement(Token.Type.EOF))) {
+      value.dropLastElement();
+    }
+    attribute.setValue(value.getList());
+    testEndFunction("value", true);
+    return;
+  }
+
+  /**
+   * valueLine => startLine !emptyLine !comment -indent-
+   *              { \DELIMITER & EOL & EOF\ } ( EOL | EOF )
+   *              
+   * Adds to the end of a value link list
+   * returns the new end of the link list
+   * @throws IOException
+   */
+  private boolean valueLine(LinkList value) throws IOException {
+    if (!startLineWithOutDelimiter() || token.is(Token.Type.EOL)
+        || token.is(Token.Type.EOF) || token.is(Token.Type.COMMENT)) {
+      //not a value line
+      return false;
+    }
+    testStartFunction("valueLine");
+    //add the option indent to the value link list
+    indent(value);
+    while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL)
+        && !token.is(Token.Type.EOF)) {
+      //add the token to the value link list
+      value.append(token);
       nextToken();
-      //System.out.println("2token="+token);
-      while (!delimiterInLine
-        && !emptyLine
-        && !token.is(Token.EOF)
-        && !testEndFunction(comment())) {
-        valueEnd = valueEnd.setNext(token);
-        //(startOfLine) {1 (breakInLine) {1 WHITESPACE 1} BREAK {1 INDENT 1} 1}
-        if (startOfLine && breakInLine) {
-          //ignore whitespace before a break
-          if (token.is(Token.WHITESPACE)) {
-            valueEnd = valueEnd.dropFromList();
-            nextToken();
-            //System.out.println("3token="+token);
-          }
-          if (!token.is(Token.BREAK)) {
-            reportError("breakInLine is true, but BREAK is missing (" + token + ").");
-              return false;
-          }
-          //found break
-          nextToken();
-          //System.out.println("4token="+token);
-          valueEnd = valueEnd.setNext(token);
-          //find optional indent
-          if (token.is(Token.INDENT)) {
-            nextToken();
-            //System.out.println("5token="+token);
-            valueEnd = valueEnd.setNext(token);
-          }
-        }
-        while (!token.is(Token.DELIMITER)
-          && !token.is(Token.EOL)
-          && !token.is(Token.EOF)) {
-          found = true;
-          nextToken();
-          //System.out.println("6token="+token);
-          valueEnd = valueEnd.setNext(token);
-        }
-        if (token.is(Token.DELIMITER)) {
-          valueStart = null;
-          reportError(
-            "A full-line value cannot contain the delimiter string (\""
-              + tokenizer.getDelimiterString()
-              + "\").");
-          return false;
-        }
-        nextToken();
-        //System.out.println("7token="+token);
-      }
     }
-    if (found) {
-      valueEnd = valueEnd.dropFromList();
-      attribute.setValue(valueStart);
-      if (oneLine) {
-        if (attributeNameStart
-          .equals(Token.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
-          tokenizer.setDelimiterString(valueStart.getValues());
-        }
-        nextToken();
-        System.out.println("8token="+token);
-      }
+    if (token.is(Token.Type.DELIMITER)) {
+      //bad value line
+      reportError("A value line cannot contain the delimiter string (\""
+          + tokenizer.getDelimiterString() + "\").");
+      testEndFunction("valueLine", false);
+      return false;
     }
-    else {
-      //signal to Attribute that the delimiter has been found
-      attribute.setValue(null);
-      valueStart = null;
+    value.append(token);
+    nextToken();
+    testEndFunction("valueLine", true);
+    return true;
+  }
+
+  /**
+   * indent => startLine BREAK -WHITESPACE-
+   * 
+   * looks for the BREAK token at the start of the line
+   * @throws IOException
+   */
+  private void indent(LinkList value) throws IOException {
+    if (!startLine() || !matchToken(Token.Type.BREAK)) {
+      //not an indent
+      return;
     }
-    return found;
+    testStartFunction("indent");
+    //activate BREAK so it can be used in formatting as a new line character
+    prevToken.setActive(true);
+    //add the break character to the value link list
+    value.append(prevToken);
+    if (matchToken(Token.Type.WHITESPACE)) {
+      //white space was matched - this is the indentation
+      value.append(prevToken);
+    }
+    testEndFunction("indent", true);
+    return;
   }
 
   private void reportError(String message) throws IOException {
-    if (error) {
-      return;
-    }
     if (message == null) {
       message = "Unknown error.";
     }
     error = true;
-    String errorMessage =
-      new String("Line# " + lineNum + ": " + token + ": " + message);
+    String errorMessage = new String("Line# " + lineNum + ": " + token + ": "
+        + message);
     int errorIndex = tokenIndex - 1;
     int size = line.size();
     Token token = null;
@@ -624,110 +776,56 @@ final class AutodocParser {
   }
 
   /**
-   * set token level preprocessor flag: startOfLine
+   * get the next token
+   * set prevToken and prevPrevToken
    */
   private void nextToken() throws IOException {
+    if (token != null && token.is(Token.Type.EOF)) {
+      return;
+    }
     if (line == null || tokenIndex == line.size()) {
-      if (test && line != null) {
-        printTestLine();
-      }
       preprocess();
       tokenIndex = 0;
     }
+    prevPrevToken = prevToken;
     prevToken = token;
     token = (Token) line.get(tokenIndex);
-    if (tokenIndex == 0
-      || (tokenIndex == 1 && prevToken.is(Token.WHITESPACE))) {
-      startOfLine = true;
-    }
-    else {
-      startOfLine = false;
-    }
     tokenIndex++;
     if (detailedTest) {
-      System.out.println(
-        tokenIndex
-          + ":"
-          + token
-          + ",startOfLine="
-          + startOfLine
-          + ",emptyLine="
-          + emptyLine
-          + ",delimiterInLine="
-          + delimiterInLine
-          + ",breakInLine="
-          + breakInLine);
+      System.err.println(tokenIndex + ":" + token + ",delimiterInLine="
+          + delimiterInLine);
     }
   }
 
   /**
-   * set line level preprocessor flags: emptyLine, delimiterInLine, lineNum, breakInLine
+   * Set line level preprocessor flag delimiterInLine.
+   * Also set the line number
    */
   private void preprocess() throws IOException {
-    boolean breakDetected = false;
     Token token = null;
     lineNum++;
-    if (line != null) {
-      prevLine = line;
-    }
-    line = new Vector();
+    line.clear();
     delimiterInLine = false;
-    emptyLine = true;
-    breakInLine = false;
     do {
       token = tokenizer.next();
-      //Handle an indent following a break:
-      //If the next token is whitespace, make all the spaces following the break
-      //character into an indent token.
-      if (breakDetected) {
-        breakDetected = false;
-        if (token.is(Token.WHITESPACE)) {
-          int indentSize = token.numberOf(' ', 0);
-          if (indentSize != 0) {
-            if (indentSize == token.length()) {
-              token.set(Token.INDENT);
-            }
-            else {
-              line.add(token.split(Token.INDENT, 0, indentSize));
-            }
-          }
-        }
-      }
-      //BREAK token only functions as a break if it is at the beginning of the
-      //line, except for whitespace.
-      if (token.is(Token.BREAK)) {
-        if (emptyLine) {
-          breakDetected = true;
-          breakInLine = true;
-        }
-        else {
-          token.set(Token.WORD);
-        }
-      }
-      if (emptyLine
-        && (!token.is(Token.WHITESPACE)
-          && !token.is(Token.EOL)
-          && !token.is(Token.EOF))) {
-        emptyLine = false;
-      }
-      if (token.is(Token.DELIMITER)) {
+      if (token.is(Token.Type.DELIMITER)) {
         delimiterInLine = true;
       }
       line.add(token);
-    }
-    while (!token.is(Token.EOL) && !token.is(Token.EOF));
+    } while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF));
   }
 
   //postprocessor
 
-  private void processMetaData() {
-    if (attributeNameStart
-      .equals(Token.KEYWORD, AutodocTokenizer.VERSION_KEYWORD)) {
+  private void processMetaData(WriteOnlyAttributeMap attributeMap, Token token) {
+    if (!attributeMap.isGlobal()) {
+      return;
+    }
+    if (token.equals(Token.Type.KEYWORD, AutodocTokenizer.VERSION_KEYWORD)) {
       versionFound = true;
       return;
     }
-    if (attributeNameStart
-      .equals(Token.KEYWORD, AutodocTokenizer.PIP_KEYWORD)) {
+    if (token.equals(Token.Type.KEYWORD, AutodocTokenizer.PIP_KEYWORD)) {
       pipFound = true;
       return;
     }
@@ -753,25 +851,23 @@ final class AutodocParser {
 
   void testPreprocessor(boolean tokens) throws IOException {
     if (tokens) {
-      System.out.println("(type,value):startOfLine,emptyLine,delimiterInLine,breakInLine");
+      System.err.println("(type,value):delimiterInLine");
     }
     tokenizer.initialize();
     do {
       nextToken();
       if (tokens) {
-        System.out.println(token.toString() + ":" + startOfLine + ","
-            + emptyLine + "," + delimiterInLine + "," + breakInLine);
+        System.err.println(token.toString() + ":" + delimiterInLine);
       }
-      else if (token.is(Token.EOL)) {
-        System.out.println();
+      else if (token.is(Token.Type.EOL)) {
+        System.err.println();
       }
-      else if (!token.is(Token.EOF)) {
-        System.out.print(token.getValue());
+      else if (!token.is(Token.Type.EOF)) {
+        System.err.print(token.getValue());
       }
-    }
-    while (!token.is(Token.EOF));
+    } while (!token.is(Token.Type.EOF));
   }
-  
+
   /**
    * 
    * @param tokens: display tokens rather then text
@@ -800,19 +896,18 @@ final class AutodocParser {
     if (test) {
       testIndent++;
       printTestIndent();
-      System.out.println(functionName + " {");
+      System.err.println(functionName + " {");
     }
   }
 
-  private boolean testEndFunction(boolean result) {
-    //System.out.println("in testEndFunction");
+  private boolean testEndFunction(String functionName, boolean result) {
     if (test) {
       printTestIndent();
       if (result) {
-        System.out.println("} succeeded");
+        System.err.println(functionName + " } succeeded");
       }
       else {
-        System.out.println("} failed");
+        System.err.println(functionName + " } failed");
       }
       testIndent--;
     }
@@ -820,26 +915,103 @@ final class AutodocParser {
   }
 
   private void printTestLine() {
+    if (lastLinePrinted == lineNum) {
+      return;
+    }
+    lastLinePrinted = lineNum;
     Token token = null;
     int size = line.size();
     printTestIndent();
-    System.out.print("\tLine# " + lineNum + ": ");
+    System.err.print("Line# " + lineNum + ": ");
     for (int index = 0; index < size; index++) {
       token = (Token) line.get(index);
       if (testWithTokens) {
-        System.out.print(token);
+        System.err.print(token);
       }
-      else if (!token.is(Token.EOL) && !token.is(Token.EOF)) {
-        System.out.print(token.getValue());
+      else if (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
+        System.err.print(token.getValue());
       }
     }
-    System.out.println();
+    System.err.println();
   }
 
   private void printTestIndent() {
     for (int i = 0; i < testIndent; i++) {
-      System.out.print("\t");
+      System.err.print("\t");
     }
   }
 
+  private final static class LinkList {
+    Token list;
+    Token endList;
+    int size;
+
+    LinkList(Token start) {
+      list = start;
+      endList = list;
+      size = 1;
+    }
+
+    void append(Token token) {
+      if (endList == null) {
+        list = token;
+        endList = token;
+        size = 1;
+      }
+      else {
+        endList = endList.setNext(token);
+        size++;
+      }
+    }
+
+    int size() {
+      return size;
+    }
+    
+    boolean isFirstElement(Token.Type compareType) {
+      if (list == null) {
+        return false;
+      }
+      return list.is(compareType);
+    }
+
+    boolean isLastElement(Token.Type compareType) {
+      if (endList == null) {
+        return false;
+      }
+      return endList.is(compareType);
+    }
+    
+    void dropFirstElement() {
+      if (list == null) {
+        return;
+      }
+      list = list.dropFromList();
+      if (list == null) {
+        endList = null;
+        size = 0;
+      }
+      else {
+        size--;
+      }
+    }
+
+    void dropLastElement() {
+      if (endList == null) {
+        return;
+      }
+      endList = endList.dropFromList();
+      if (endList == null) {
+        list = null;
+        size = 0;
+      }
+      else {
+        size--;
+      }
+    }
+
+    Token getList() {
+      return list;
+    }
+  }
 }
