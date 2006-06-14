@@ -5,6 +5,7 @@ import java.io.File;
 import etomo.JUnitTests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+
 /**
  * <p>Description: Test suite for etomo.util </p>
  * 
@@ -19,26 +20,30 @@ import junit.framework.TestSuite;
  * @version $Revision$
  */
 public class UtilTests {
-	public static final String rcsid = "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private static final String TEST_DIR = "etomo/util";
   static final File TEST_ROOT_DIR = new File(JUnitTests.TEST_ROOT_DIR, TEST_DIR);
-  
+
   public static Test suite() {
     TestSuite suite = new TestSuite("Test:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(FileModifiedFlagTest.class);
-		suite.addTestSuite(MRCHeaderTest.class);
-		suite.addTestSuite(CircularBufferTest.class);
+    suite.addTestSuite(MRCHeaderTest.class);
+    suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
-    //suite.addTest(new RemotePathTest("test_getRemotePath_unknownPath"));
     suite.addTestSuite(UtilitiesTest.class);
+
+    //suite.addTest(new RemotePathTest("test_getRemotePath_globalRules"));
     //$JUnit-END$
-		return suite;
-	}
+    return suite;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/01/04 20:29:22  sueh
+ * <p> bug# 675 Removed unnecessary import.
+ * <p>
  * <p> Revision 1.8  2006/01/04 00:35:00  sueh
  * <p> bug# 675 Added constructors RemotePathTest, so a single test or all tests
  * <p> could be run.
@@ -68,4 +73,4 @@ public class UtilTests {
  * <p> Revision 1.1  2004/01/13 23:00:55  rickg
  * <p> Initial revision
  * <p> </p>
-*/
+ */
