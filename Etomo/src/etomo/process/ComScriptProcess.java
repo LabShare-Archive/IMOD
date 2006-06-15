@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.38  2006/06/05 16:22:29  sueh
+ * bug# 766 Added ProcessData.
+ *
  * Revision 3.37  2006/05/22 22:46:41  sueh
  * bug# 577 Removed constructors which accepted a String command.
  *
@@ -817,6 +820,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    */
   public boolean isError() {
     return error;
+  }
+  
+  /**
+   * Always returns true because all comscripts a piped to tcsh and do not
+   * disconnect when etomo exits.
+   */
+  public boolean isNohup() {
+    return true;
   }
 
   /**

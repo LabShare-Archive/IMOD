@@ -32,9 +32,13 @@ public interface SystemProcessInterface {
   public void signalKill(AxisID axisID);
   public void setProcessResultDisplay(ProcessResultDisplay processResultDisplay);
   public ProcessData getProcessData();
+  public boolean isNohup();
 }
 /**
 * <p> $Log$
+* <p> Revision 3.9  2006/06/05 18:03:44  sueh
+* <p> bug# Added getPRocessData().
+* <p>
 * <p> Revision 3.8  2006/01/31 20:46:20  sueh
 * <p> bug# 521 Added setProcessResultDisplay to SystemProcessInterface.
 * <p> This allows the last ProcessResultDisplay used by the combine monitor

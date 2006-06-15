@@ -26,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2006/06/05 16:18:12  sueh
+ * <p> bug# 766 Added ProcessData.
+ * <p>
  * <p> Revision 3.27  2006/05/22 22:45:14  sueh
  * <p> bug# 577 Removed constructors which accepted a String command.
  * <p>
@@ -371,6 +374,18 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
 
   final boolean isForceNextProcess() {
     return forceNextProcess;
+  }
+  
+  /**
+   * Always returns false because this object mostly runs scripts, which stop
+   * when etomo exits.  It also runs extractmagrad, extracttilts, and
+   * extractpieces, which are not scripts.  I don't know if they hang up or not
+   * because they finish too quickly.  Because they are so quick I'm defining all
+   * background process as nohup = false.  If we get a slow backgroup process
+   * that doesn't stop when etomo exits, then we'll need to set this.
+   */
+  public boolean isNohup() {
+    return false;
   }
 
   /**

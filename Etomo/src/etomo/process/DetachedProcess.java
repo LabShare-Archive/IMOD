@@ -68,6 +68,13 @@ final class DetachedProcess extends BackgroundProcess {
     }
     new Thread(new PidThread(monitor, getProcessData())).start();
   }
+  
+  /**
+   * Always returns true because the process is detached.
+   */
+  public boolean isNohup() {
+    return true;
+  }
 
   private final String[] makeRunFile() throws IOException {
     String commandName = getCommandName();
@@ -162,6 +169,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/06/06 17:16:54  sueh
+ * <p> bug# change threadData to processData.
+ * <p>
  * <p> Revision 1.5  2006/06/05 16:24:25  sueh
  * <p> bug# 766 Added ProcessData to the base class.  Added class to get the pid from
  * <p> the monitor.
