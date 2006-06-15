@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/15/06: If a script is being run by eTomo, a warning message will pop up when
+the user exits.
+
 6/14/06: IMOD_3-8-12
 6/14/06: Added a checkbox to the transfer fiducials panel which causes one of
 the images to be mirrored around X.
