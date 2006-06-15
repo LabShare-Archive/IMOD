@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2006/06/14 21:24:32  sueh
+ * <p> $bug# 852 Added isAttribute().
+ * <p> $
  * <p> $Revision 1.4  2006/06/14 00:33:58  sueh
  * <p> $bug# 852 Added function isGlobal so that it is possible to tell whether an attribute
  * <p> $is global or part of a section.
@@ -138,6 +141,13 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
     }
     return this.type.getKey().equals(Token.convertToKey(type));
   }
+  
+  public Token getTypeToken() {
+    if (type == null) {
+      throw new IllegalStateException("type is required");
+    }
+    return type;
+  }
 
   public String getKey() {
     return key;
@@ -148,6 +158,13 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
       throw new IllegalStateException("name is required");
     }
     return name.getValues();
+  }
+  
+  public Token getNameToken() {
+    if (name == null) {
+      throw new IllegalStateException("name is required");
+    }
+    return name;
   }
 
   public int hashCode() {
