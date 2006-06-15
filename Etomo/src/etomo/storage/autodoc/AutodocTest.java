@@ -38,35 +38,24 @@ public class AutodocTest extends TestCase {
 
   /*
    public void testUITest() throws FileNotFoundException, IOException{
-   //Autodoc.setInternalTest(true);
+   Autodoc.setInternalTest(true);
    Autodoc.setTest(true);
    Autodoc autodoc = Autodoc.getInstance(Autodoc.UITEST, AxisID.ONLY);
    assertFalse(autodoc.isError());
    Autodoc.setTest(false);
-   //Autodoc.setInternalTest(false);
+   Autodoc.setInternalTest(false);
    }
    
    public void testUITestAxis_testa() throws FileNotFoundException, IOException{
+   Autodoc.setInternalTest(true);
    Autodoc.setTest(true);
    Autodoc autodoc = Autodoc.getInstance("testa", Autodoc.UITEST_AXIS, AxisID.ONLY);
    assertFalse(autodoc.isError());
    Autodoc.setTest(false);
-   }
-   
-   public void testUITestAxis_testb() throws FileNotFoundException, IOException{
-   Autodoc.setTest(true);
-   Autodoc autodoc = Autodoc.getInstance("testb", Autodoc.UITEST_AXIS, AxisID.ONLY);
-   assertFalse(autodoc.isError());
-   Autodoc.setTest(false);
-   }
-   
-   public void testUITestAxis_setup_recon() throws FileNotFoundException, IOException{
-   Autodoc.setTest(true);
-   Autodoc autodoc = Autodoc.getInstance("setup-recon", Autodoc.UITEST_AXIS, AxisID.ONLY);
-   assertFalse(autodoc.isError());
-   Autodoc.setTest(false);
+   Autodoc.setInternalTest(false);
    }
    */
+  
   public void testBeadtrack() throws FileNotFoundException, IOException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, AxisID.ONLY);
     assertFalse(autodoc.isError());
@@ -109,6 +98,9 @@ public class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/06/15 17:55:14  sueh
+ * <p> bug# 876 Remove test against cpu.adoc because cpu.adoc is optional.
+ * <p>
  * <p> Revision 1.4  2006/06/15 16:19:02  sueh
  * <p> bug# 876 testCpu():  cpu.adoc is optional so catch FileNotFoundException.
  * <p>
