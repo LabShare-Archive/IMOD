@@ -82,15 +82,6 @@ public class AutodocTest extends TestCase {
     assertFalse(autodoc.isError());
   }
 
-  public void testCpu() throws IOException {
-    try {
-      Autodoc autodoc = Autodoc.getInstance(Autodoc.CPU, AxisID.ONLY);
-      assertFalse(autodoc.isError());
-    }
-    catch (FileNotFoundException e) {
-    }
-  }
-
   public void testDensmatch() throws FileNotFoundException, IOException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.DENS_MATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
@@ -118,6 +109,9 @@ public class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/06/15 16:19:02  sueh
+ * <p> bug# 876 testCpu():  cpu.adoc is optional so catch FileNotFoundException.
+ * <p>
  * <p> Revision 1.3  2006/06/14 16:26:04  sueh
  * <p> bug# 852 Fixed problem with tests
  * <p>
