@@ -42,7 +42,8 @@ public final class TransferfidPanel {
       "Center view B: ");
   private final LabeledTextField ltfNumberViews = new LabeledTextField(
       "Number of views in the search: ");
-  private final CheckBox cbMirrorInX = new CheckBox("Mirror one image around the X axis");
+  private final CheckBox cbMirrorInX = new CheckBox(
+      "Mirror one image around the X axis");
 
   private final JPanel panelSearchDirection = new JPanel();
   private final ButtonGroup bgSearchDirection = new ButtonGroup();
@@ -241,12 +242,18 @@ public final class TransferfidPanel {
     text = "Run Transferfid to make a seed model for this axis from fiducial model for "
         + "the other axis.";
     buttonTransferfid.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    cbMirrorInX.setToolTipText(tooltipFormatter.setText(
+        "Mirror one image around the X axis before rotating by 90 degrees.")
+        .format());
   }
-
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.9  2006/06/14 21:25:33  sueh
+ * <p> bug# 873 Added cbMirrorInX.
+ * <p>
  * <p> Revision 3.8  2006/02/06 21:22:53  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
