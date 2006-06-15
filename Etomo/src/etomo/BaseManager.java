@@ -304,7 +304,23 @@ public abstract class BaseManager {
   public boolean exitProgram(AxisID axisID) {
     exiting = true;
     try {
-      //  Check to see if any processes are still running
+      //Check for processes that will die if etomo exits
+      SystemProcessInterface processA = getProcessManager().getThread(
+          AxisID.FIRST);
+      SystemProcessInterface processB = getProcessManager().getThread(
+          AxisID.SECOND);
+      boolean nohupA = processA == null || processA.isNohup();
+      boolean nohupB = processB == null || processB.isNohup();
+      if (!nohupA || !nohupB) {
+        if (!uiHarness
+            .openYesNoWarningDialog(
+                "WARNING!!\nThere is process running which will stop if eTomo exits.\nDo you still wish to exit the program?"
+                    .toString(), axisID)) {
+          exiting = false;
+          return false;
+        }
+      }
+      //  Check to see if next processes have to be done
       ArrayList messageArray = new ArrayList();
       String nextProcessA = null;
       String nextProcessB = null;
@@ -1019,6 +1035,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.57  2006/06/05 16:01:01  sueh
+ * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.  Add  initialized so that the
+ * <p> manager can tell when an .edf is first loaded.
+ * <p>
  * <p> Revision 1.56  2006/05/19 19:26:03  sueh
  * <p> bug# 866 Added nextProcessDialogType, to let the manager call
  * <p> UIExpert.nextProcess()
