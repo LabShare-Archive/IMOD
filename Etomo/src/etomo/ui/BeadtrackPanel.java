@@ -6,16 +6,22 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
+import etomo.ApplicationManager;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.InvalidEtomoNumberException;
+import etomo.type.ProcessResultDisplay;
 
 /**
  * <p>Description: </p>
@@ -30,6 +36,9 @@ import etomo.type.InvalidEtomoNumberException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2006/01/12 17:06:14  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p>
  * <p> Revision 3.11  2006/01/03 23:29:43  sueh
  * <p> bug# 675 Converted JCheckBoxes to CheckBox
  * <p>
@@ -103,195 +112,272 @@ import etomo.type.InvalidEtomoNumberException;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class BeadtrackPanel {
-  public static final String rcsid =
-    "$Id$";
+public final class BeadtrackPanel implements Expandable {
+  public static final String rcsid = "$Id$";
 
-  private JPanel panelBeadtrack = new JPanel();
-  private AxisID axisID;
+  public static final String TRACK_LABEL = "Track Fiducial Seed Model";
+  public static final String USE_MODEL_LABEL = "Use Fiducial Model as Seed";
 
-  private LabeledTextField ltfInputImage =
-    new LabeledTextField("Input image file: ");
-  private LabeledTextField ltfSeedModelFile =
-    new LabeledTextField("Seed model file: ");
-  private LabeledTextField ltfOutputModelFile =
-    new LabeledTextField("Output model file: ");
-  private LabeledTextField ltfViewSkipList =
-    new LabeledTextField("View skip list: ");
-  private LabeledTextField ltfAdditionalViewSets =
-    new LabeledTextField("Separate view groups: ");
-  private LabeledTextField ltfTiltAngleGroupSize =
-    new LabeledTextField("Tilt angle group size: ");
-  private LabeledTextField ltfTiltAngleGroups =
-    new LabeledTextField("Non-default tilt angle groups: ");
-  private LabeledTextField ltfMagnificationGroupSize =
-    new LabeledTextField("Magnification group size: ");
-  private LabeledTextField ltfMagnificationGroups =
-    new LabeledTextField("Non-default magnification groups: ");
-  private LabeledTextField ltfNMinViews =
-    new LabeledTextField("Minimum # of views for tilt alignment: ");
-  private LabeledTextField ltfCentroidRadius =
-    new LabeledTextField("Fiducial marker radius: ");
-  private CheckBox cbLightBeads = new CheckBox("Light fiducial markers");
+  private final JPanel panelBeadtrack = new JPanel();
+  private final JPanel panelBeadtrackBody = new JPanel();
+  private final AxisID axisID;
+
+  private final LabeledTextField ltfViewSkipList = new LabeledTextField(
+      "View skip list: ");
+  private final LabeledTextField ltfAdditionalViewSets = new LabeledTextField(
+      "Separate view groups: ");
+  private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
+      "Tilt angle group size: ");
+  private final LabeledTextField ltfTiltAngleGroups = new LabeledTextField(
+      "Non-default tilt angle groups: ");
+  private final LabeledTextField ltfMagnificationGroupSize = new LabeledTextField(
+      "Magnification group size: ");
+  private final LabeledTextField ltfMagnificationGroups = new LabeledTextField(
+      "Non-default magnification groups: ");
+  private final LabeledTextField ltfNMinViews = new LabeledTextField(
+      "Minimum # of views for tilt alignment: ");
+  private final LabeledTextField ltfCentroidRadius = new LabeledTextField(
+      "Fiducial marker radius: ");
+  private final CheckBox cbLightBeads = new CheckBox("Light fiducial markers");
   CheckBox cbFillGaps = new CheckBox("Fill seed model gaps");
-  private LabeledTextField ltfMaxGap =
-    new LabeledTextField("Maximum gap size: ");
-  private LabeledTextField ltfMinTiltRangeToFindAxis =
-    new LabeledTextField("Minimum tilt range for finding axis: ");
-  private LabeledTextField ltfMinTiltRangeToFindAngle =
-    new LabeledTextField("Minimum tilt range for finding angles: ");
-  private LabeledTextField ltfSearchBoxPixels =
-    new LabeledTextField("Search box size (pixels): ");
-  private LabeledTextField ltfMaxFiducialsAvg =
-    new LabeledTextField("Maximum # of views for fiducial avg.: ");
-  private LabeledTextField ltfFiducialExtrapolationParams =
-    new LabeledTextField("Fiducial extrapolation limits: ");
-  private LabeledTextField ltfRescueAttemptParams =
-    new LabeledTextField("Rescue attempt criteria: ");
-  private LabeledTextField ltfMinRescueDistance =
-    new LabeledTextField("Distance criterion for rescue (pixels): ");
-  private LabeledTextField ltfRescueRelaxtionParams =
-    new LabeledTextField("Rescue relaxation factors: ");
-  private LabeledTextField ltfResidualDistanceLimit =
-    new LabeledTextField("First pass residual limit for deletion: ");
-  private LabeledTextField ltfMeanResidChangeLimits =
-    new LabeledTextField("Residual change limits: ");
-  private LabeledTextField ltfDeletionParams =
-    new LabeledTextField("Deletion residual parameters: ");
-  private LabeledTextField ltfDensityRelaxationPostFit = new LabeledTextField(
+  private final LabeledTextField ltfMaxGap = new LabeledTextField(
+      "Maximum gap size: ");
+  private final LabeledTextField ltfMinTiltRangeToFindAxis = new LabeledTextField(
+      "Minimum tilt range for finding axis: ");
+  private final LabeledTextField ltfMinTiltRangeToFindAngle = new LabeledTextField(
+      "Minimum tilt range for finding angles: ");
+  private final LabeledTextField ltfSearchBoxPixels = new LabeledTextField(
+      "Search box size (pixels): ");
+  private final LabeledTextField ltfMaxFiducialsAvg = new LabeledTextField(
+      "Maximum # of views for fiducial avg.: ");
+  private final LabeledTextField ltfFiducialExtrapolationParams = new LabeledTextField(
+      "Fiducial extrapolation limits: ");
+  private final LabeledTextField ltfRescueAttemptParams = new LabeledTextField(
+      "Rescue attempt criteria: ");
+  private final LabeledTextField ltfMinRescueDistance = new LabeledTextField(
+      "Distance criterion for rescue (pixels): ");
+  private final LabeledTextField ltfRescueRelaxtionParams = new LabeledTextField(
+      "Rescue relaxation factors: ");
+  private final LabeledTextField ltfResidualDistanceLimit = new LabeledTextField(
+      "First pass residual limit for deletion: ");
+  private final LabeledTextField ltfMeanResidChangeLimits = new LabeledTextField(
+      "Residual change limits: ");
+  private final LabeledTextField ltfDeletionParams = new LabeledTextField(
+      "Deletion residual parameters: ");
+  private final LabeledTextField ltfDensityRelaxationPostFit = new LabeledTextField(
       "Second pass density relaxation: ");
-  private LabeledTextField ltfMaxRescueDistance = new LabeledTextField(
-  "Second pass maximum rescue distance: ");
-  
-  private CheckBox cbLocalAreaTracking = new CheckBox("Local tracking");
-  private LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
+  private final LabeledTextField ltfMaxRescueDistance = new LabeledTextField(
+      "Second pass maximum rescue distance: ");
+
+  private final CheckBox cbLocalAreaTracking = new CheckBox("Local tracking");
+  private final LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
       "Local area size: ");
-  private LabeledTextField ltfMinBeadsInArea = new LabeledTextField(
+  private final LabeledTextField ltfMinBeadsInArea = new LabeledTextField(
       "Minimum beads in area: ");
-  private LabeledTextField ltfMinOverlapBeads = new LabeledTextField(
-  "Minimum beads overlapping: ");
-  private LabeledTextField ltfMaxViewsInAlign = new LabeledTextField(
-  "Max. # views to include in align: ");
-  private LabeledTextField ltfRoundsOfTracking = new LabeledTextField(
-  "Rounds of tracking: ");
-  
-  private JPanel pnlCheckbox = new JPanel();
-  private JPanel pnlLightBeads = new JPanel();
-  private JPanel pnlLocalAreaTracking = new JPanel();
-  
+  private final LabeledTextField ltfMinOverlapBeads = new LabeledTextField(
+      "Minimum beads overlapping: ");
+  private final LabeledTextField ltfMaxViewsInAlign = new LabeledTextField(
+      "Max. # views to include in align: ");
+  private final LabeledTextField ltfRoundsOfTracking = new LabeledTextField(
+      "Rounds of tracking: ");
+
+  private final JPanel pnlCheckbox = new JPanel();
+  private final JPanel pnlLightBeads = new JPanel();
+  private final JPanel pnlLocalAreaTracking = new JPanel();
+  private final JPanel pnlExpertParameters = new JPanel();
+  private final JPanel pnlExpertParametersBody = new JPanel();
+
+  private final PanelHeader expertParametersHeader;
+  private final PanelHeader header;
+  private final ApplicationManager manager;
+  private final MultiLineButton btnTrack;
+  private final MultiLineButton btnUseModel = new MultiLineButton(
+      USE_MODEL_LABEL);
+  private final JPanel pnlTrack = new JPanel();
+  private final BeadtrackPanelActionListener actionListener = new BeadtrackPanelActionListener(
+      this);
+
   /**
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
    */
-  public BeadtrackPanel(AxisID id) {
+  public BeadtrackPanel(ApplicationManager manager, AxisID id, DialogType dialogType) {
+    this.manager = manager;
     axisID = id;
-    setToolTipText();
+    btnTrack = (MultiLineButton) manager.getProcessResultDisplayFactory(axisID)
+        .getTrackFiducials();
+    expertParametersHeader = PanelHeader.getInstance("Expert Parameters", this,
+        dialogType);
+    header = PanelHeader.getAdvancedBasicInstance("Beadtracker", this,
+        dialogType);
 
-    BeadtrackPanelActionListener listener = new BeadtrackPanelActionListener(this);
-    cbLocalAreaTracking.addActionListener(listener);
-    
-    panelBeadtrack.setLayout(new BoxLayout(panelBeadtrack, BoxLayout.Y_AXIS));
+    panelBeadtrackBody.setLayout(new BoxLayout(panelBeadtrackBody,
+        BoxLayout.Y_AXIS));
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelBeadtrackBody.add(ltfViewSkipList.getContainer());
+    panelBeadtrackBody.add(ltfViewSkipList.getContainer());
+    panelBeadtrackBody.add(ltfAdditionalViewSets.getContainer());
+    panelBeadtrackBody.add(ltfTiltAngleGroupSize.getContainer());
+    panelBeadtrackBody.add(ltfTiltAngleGroups.getContainer());
+    panelBeadtrackBody.add(ltfMagnificationGroupSize.getContainer());
+    panelBeadtrackBody.add(ltfMagnificationGroups.getContainer());
+    panelBeadtrackBody.add(ltfNMinViews.getContainer());
+    panelBeadtrackBody.add(ltfCentroidRadius.getContainer());
 
-    panelBeadtrack.add(ltfInputImage.getContainer());
-//    panelBeadtrack.add(ltfPiceListFile.getContainer());
-    panelBeadtrack.add(ltfSeedModelFile.getContainer());
-    panelBeadtrack.add(ltfOutputModelFile.getContainer());
-    panelBeadtrack.add(ltfViewSkipList.getContainer());
-    panelBeadtrack.add(ltfViewSkipList.getContainer());
-    panelBeadtrack.add(ltfAdditionalViewSets.getContainer());
-    panelBeadtrack.add(ltfTiltAngleGroupSize.getContainer());
-    panelBeadtrack.add(ltfTiltAngleGroups.getContainer());
-    panelBeadtrack.add(ltfMagnificationGroupSize.getContainer());
-    panelBeadtrack.add(ltfMagnificationGroups.getContainer());
-    panelBeadtrack.add(ltfNMinViews.getContainer());
-    panelBeadtrack.add(ltfCentroidRadius.getContainer());
-    
     pnlLightBeads.setLayout(new BoxLayout(pnlLightBeads, BoxLayout.Y_AXIS));
     pnlLightBeads.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLightBeads.add(cbLightBeads);
-    panelBeadtrack.add(pnlLightBeads);
-    
+    panelBeadtrackBody.add(pnlLightBeads);
     pnlCheckbox.setLayout(new BoxLayout(pnlCheckbox, BoxLayout.Y_AXIS));
     pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCheckbox.add(cbFillGaps);
-    
-    panelBeadtrack.add(pnlCheckbox);
-    panelBeadtrack.add(ltfMaxGap.getContainer());
-    
-    pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking, BoxLayout.Y_AXIS));
+
+    panelBeadtrackBody.add(pnlCheckbox);
+    panelBeadtrackBody.add(ltfMaxGap.getContainer());
+
+    pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking,
+        BoxLayout.Y_AXIS));
     pnlLocalAreaTracking.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLocalAreaTracking.add(cbLocalAreaTracking);
-    panelBeadtrack.add(pnlLocalAreaTracking);
+    panelBeadtrackBody.add(pnlLocalAreaTracking);
+
+    panelBeadtrackBody.add(ltfLocalAreaTargetSize.getContainer());
+    panelBeadtrackBody.add(ltfMinBeadsInArea.getContainer());
+    panelBeadtrackBody.add(ltfMinOverlapBeads.getContainer());
+    panelBeadtrackBody.add(ltfMaxViewsInAlign.getContainer());
+    panelBeadtrackBody.add(ltfRoundsOfTracking.getContainer());
+
+    panelBeadtrackBody.add(ltfMinTiltRangeToFindAxis.getContainer());
+    panelBeadtrackBody.add(ltfMinTiltRangeToFindAngle.getContainer());
+    panelBeadtrackBody.add(ltfSearchBoxPixels.getContainer());
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    pnlExpertParametersBody.setLayout(new BoxLayout(pnlExpertParametersBody,
+        BoxLayout.Y_AXIS));
+    pnlExpertParametersBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlExpertParametersBody.add(ltfMaxFiducialsAvg.getContainer());
+    pnlExpertParametersBody.add(ltfFiducialExtrapolationParams.getContainer());
+    pnlExpertParametersBody.add(ltfRescueAttemptParams.getContainer());
+    pnlExpertParametersBody.add(ltfMinRescueDistance.getContainer());
+    pnlExpertParametersBody.add(ltfRescueRelaxtionParams.getContainer());
+    pnlExpertParametersBody.add(ltfResidualDistanceLimit.getContainer());
+    pnlExpertParametersBody.add(ltfDensityRelaxationPostFit.getContainer());
+    pnlExpertParametersBody.add(ltfMaxRescueDistance.getContainer());
+    pnlExpertParametersBody.add(ltfMeanResidChangeLimits.getContainer());
+    pnlExpertParametersBody.add(ltfDeletionParams.getContainer());
+
+    pnlExpertParameters.setLayout(new BoxLayout(pnlExpertParameters,
+        BoxLayout.Y_AXIS));
+    pnlExpertParameters.setBorder(BorderFactory.createEtchedBorder());
+    pnlExpertParameters.add(expertParametersHeader.getContainer());
+    pnlExpertParameters.add(pnlExpertParametersBody);
+    panelBeadtrackBody.add(pnlExpertParameters);
+
+    btnTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnTrack.setSize();
+    btnUseModel.setSize();
+    pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
+    pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlTrack.add(btnTrack.getComponent());
+    pnlTrack.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlTrack.add(btnUseModel.getComponent());
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelBeadtrackBody.add(pnlTrack);
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
+
+    panelBeadtrack.setLayout(new BoxLayout(panelBeadtrack, BoxLayout.Y_AXIS));
+    panelBeadtrack.setBorder(BorderFactory.createEtchedBorder());
+    panelBeadtrack.add(header.getContainer());
+    panelBeadtrack.add(panelBeadtrackBody);
     
-    panelBeadtrack.add(ltfLocalAreaTargetSize.getContainer());
-    panelBeadtrack.add(ltfMinBeadsInArea.getContainer());
-    panelBeadtrack.add(ltfMinOverlapBeads.getContainer());
-    panelBeadtrack.add(ltfMaxViewsInAlign.getContainer());
-    panelBeadtrack.add(ltfRoundsOfTracking.getContainer());
-    
-    panelBeadtrack.add(ltfMinTiltRangeToFindAxis.getContainer());
-    panelBeadtrack.add(ltfMinTiltRangeToFindAngle.getContainer());
-    panelBeadtrack.add(ltfSearchBoxPixels.getContainer());
-    panelBeadtrack.add(ltfMaxFiducialsAvg.getContainer());
-    panelBeadtrack.add(ltfFiducialExtrapolationParams.getContainer());
-    panelBeadtrack.add(ltfRescueAttemptParams.getContainer());
-    panelBeadtrack.add(ltfMinRescueDistance.getContainer());
-    panelBeadtrack.add(ltfRescueRelaxtionParams.getContainer());
-    panelBeadtrack.add(ltfResidualDistanceLimit.getContainer());
-    panelBeadtrack.add(ltfDensityRelaxationPostFit.getContainer());
-    panelBeadtrack.add(ltfMaxRescueDistance.getContainer());
-    panelBeadtrack.add(ltfMeanResidChangeLimits.getContainer());
-    panelBeadtrack.add(ltfDeletionParams.getContainer());
+    setToolTipText();
+    cbLocalAreaTracking.addActionListener(actionListener);
+    btnTrack.addActionListener(actionListener);
+    btnUseModel.addActionListener(actionListener);
+  }
+  
+  public static ProcessResultDisplay getTrackFiducialsDisplay(DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance(TRACK_LABEL,
+        dialogType);
+  }
+
+  public void expand(ExpandButton button) {
+    if (expertParametersHeader.equalsOpenClose(button)) {
+      pnlExpertParametersBody.setVisible(button.isExpanded());
+    }
+    else if (header.equalsOpenClose(button)) {
+      panelBeadtrackBody.setVisible(button.isExpanded());
+    }
+    else if (header.equalsAdvancedBasic(button)) {
+      setAdvanced(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+
+  public void setParameters(BaseScreenState screenState) {
+    expertParametersHeader.setButtonStates(screenState, false);
+    header.setButtonStates(screenState);
+  }
+
+  public void getParameters(BaseScreenState screenState) {
+    expertParametersHeader.getButtonStates(screenState);
+    header.getButtonStates(screenState);
+    btnTrack.setButtonState(screenState.getButtonState(btnTrack
+        .getButtonStateKey()));
   }
 
   /**
    * Set the field values for the panel from the ConstBeadtrackParam object
    */
-  public void setParameters(/*Const*/BeadtrackParam beadtrackParams) {
+  public void setParameters(BeadtrackParam beadtrackParams) {
     ConstEtomoNumber field = null;
-    ltfInputImage.setText(beadtrackParams.getInputFile());
-//    ltfPiceListFile.setText(beadtrackParams.getPieceListFile());
-    ltfSeedModelFile.setText(beadtrackParams.getSeedModelFile());
-    ltfOutputModelFile.setText(beadtrackParams.getOutputModelFile());
     ltfViewSkipList.setText(beadtrackParams.getSkipViews());
     ltfAdditionalViewSets.setText(beadtrackParams.getAdditionalViewGroups());
-    ltfTiltAngleGroupSize.setText(beadtrackParams.getTiltDefaultGrouping().toString());
+    ltfTiltAngleGroupSize.setText(beadtrackParams.getTiltDefaultGrouping()
+        .toString());
     ltfTiltAngleGroups.setText(beadtrackParams.getTiltAngleGroups());
-    ltfMagnificationGroupSize.setText(
-      beadtrackParams.getMagnificationGroupSize());
+    ltfMagnificationGroupSize.setText(beadtrackParams
+        .getMagnificationGroupSize());
     ltfMagnificationGroups.setText(beadtrackParams.getMagnificationGroups());
     ltfNMinViews.setText(beadtrackParams.getMinViewsForTiltalign().toString());
     ltfCentroidRadius.setText(beadtrackParams.getCentroidRadius().toString());
     cbLightBeads.setSelected(beadtrackParams.getLightBeads().is());
     cbFillGaps.setSelected(beadtrackParams.getFillGaps());
     ltfMaxGap.setText(beadtrackParams.getMaxGapSize().toString());
-    ltfMinTiltRangeToFindAxis.setText(beadtrackParams.getMinTiltRangeToFindAxis().toString());
-    ltfMinTiltRangeToFindAngle.setText(beadtrackParams.getMinTiltRangeToFindAngles().toString());
+    ltfMinTiltRangeToFindAxis.setText(beadtrackParams
+        .getMinTiltRangeToFindAxis().toString());
+    ltfMinTiltRangeToFindAngle.setText(beadtrackParams
+        .getMinTiltRangeToFindAngles().toString());
     ltfSearchBoxPixels.setText(beadtrackParams.getSearchBoxPixels());
-    ltfMaxFiducialsAvg.setText(beadtrackParams.getMaxBeadsToAverage().toString());
-    ltfFiducialExtrapolationParams.setText(
-      beadtrackParams.getFiducialExtrapolationParams());
+    ltfMaxFiducialsAvg.setText(beadtrackParams.getMaxBeadsToAverage()
+        .toString());
+    ltfFiducialExtrapolationParams.setText(beadtrackParams
+        .getFiducialExtrapolationParams());
     ltfRescueAttemptParams.setText(beadtrackParams.getRescueAttemptParams());
-    ltfMinRescueDistance.setText(beadtrackParams.getDistanceRescueCriterion().toString());
-    ltfRescueRelaxtionParams.setText(
-      beadtrackParams.getRescueRelaxationParams());
-    ltfResidualDistanceLimit.setText(
-      beadtrackParams.getPostFitRescueResidual().toString());
+    ltfMinRescueDistance.setText(beadtrackParams.getDistanceRescueCriterion()
+        .toString());
+    ltfRescueRelaxtionParams.setText(beadtrackParams
+        .getRescueRelaxationParams());
+    ltfResidualDistanceLimit.setText(beadtrackParams.getPostFitRescueResidual()
+        .toString());
     ltfDensityRelaxationPostFit.setText(beadtrackParams
         .getDensityRelaxationPostFit().toString());
     ltfMaxRescueDistance.setText(beadtrackParams.getMaxRescueDistance()
         .toString());
-    ltfMeanResidChangeLimits.setText(
-      beadtrackParams.getMeanResidChangeLimits());
+    ltfMeanResidChangeLimits
+        .setText(beadtrackParams.getMeanResidChangeLimits());
     ltfDeletionParams.setText(beadtrackParams.getDeletionParams());
-    
-    cbLocalAreaTracking.setSelected(beadtrackParams.getLocalAreaTracking().is());
-    ltfLocalAreaTargetSize.setText(beadtrackParams.getLocalAreaTargetSize().toString());
+
+    cbLocalAreaTracking
+        .setSelected(beadtrackParams.getLocalAreaTracking().is());
+    ltfLocalAreaTargetSize.setText(beadtrackParams.getLocalAreaTargetSize()
+        .toString());
     ltfMinBeadsInArea.setText(beadtrackParams.getMinBeadsInArea().toString());
     ltfMinOverlapBeads.setText(beadtrackParams.getMinOverlapBeads().toString());
     ltfMaxViewsInAlign.setText(beadtrackParams.getMaxViewsInAlign().toString());
-    ltfRoundsOfTracking.setText(beadtrackParams.getRoundsOfTracking().toString());
-    
+    ltfRoundsOfTracking.setText(beadtrackParams.getRoundsOfTracking()
+        .toString());
+
     setEnabled();
   }
 
@@ -300,10 +386,6 @@ public class BeadtrackPanel {
    */
   public void getParameters(BeadtrackParam beadtrackParams)
       throws FortranInputSyntaxException, InvalidEtomoNumberException {
-    beadtrackParams.setInputFile(ltfInputImage.getText());
-    //      beadtrackParams.setPieceListFile(ltfPiceListFile.getText());
-    beadtrackParams.setSeedModelFile(ltfSeedModelFile.getText());
-    beadtrackParams.setOutputModelFile(ltfOutputModelFile.getText());
     beadtrackParams.setFillGaps(cbFillGaps.isSelected());
     String errorTitle = "Field Error";
     String badParameter = "";
@@ -403,28 +485,28 @@ public class BeadtrackPanel {
         badParameter = cbLightBeads.getText();
         beadtrackParams.setLightBeads(cbLightBeads.isSelected()).validate(
             errorTitle, badParameter, axisID);
-        
-        
+
         badParameter = cbLocalAreaTracking.getText();
         beadtrackParams.setLocalAreaTracking(cbLocalAreaTracking.isSelected())
             .validate(errorTitle, badParameter, axisID);
-        
+
         badParameter = ltfLocalAreaTargetSize.getText();
-        beadtrackParams.setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText())
-            .validate(errorTitle, badParameter, axisID);
-        
+        beadtrackParams
+            .setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText()).validate(
+                errorTitle, badParameter, axisID);
+
         badParameter = ltfMinBeadsInArea.getText();
         beadtrackParams.setMinBeadsInArea(ltfMinBeadsInArea.getText())
             .validate(errorTitle, badParameter, axisID);
-        
+
         badParameter = ltfMinOverlapBeads.getText();
         beadtrackParams.setMinOverlapBeads(ltfMinOverlapBeads.getText())
             .validate(errorTitle, badParameter, axisID);
-        
+
         badParameter = ltfMaxViewsInAlign.getText();
         beadtrackParams.setMaxViewsInAlign(ltfMaxViewsInAlign.getText())
             .validate(errorTitle, badParameter, axisID);
-        
+
         badParameter = ltfRoundsOfTracking.getText();
         beadtrackParams.setRoundsOfTracking(ltfRoundsOfTracking.getText())
             .validate(errorTitle, badParameter, axisID);
@@ -442,39 +524,33 @@ public class BeadtrackPanel {
   public JPanel getContainer() {
     return panelBeadtrack;
   }
-  
+
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
+    if (command.equals(btnTrack.getActionCommand())) {
+      manager.fiducialModelTrack(axisID, btnTrack);
+    }
+    else if (command.equals(btnUseModel.getActionCommand())) {
+      manager.makeFiducialModelSeedModel(axisID);
+      if (btnTrack.isSelected()) {
+        btnTrack.setSelected(false);
+      }
+    }
     if (command.equals(cbLocalAreaTracking.getText())) {
       setEnabled();
     }
   }
-  
+
   private void setEnabled() {
     ltfLocalAreaTargetSize.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinBeadsInArea.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinOverlapBeads.setEnabled(cbLocalAreaTracking.isSelected());
   }
 
-  public void setVisible(boolean state) {
-    panelBeadtrack.setVisible(state);
-  }
-
   /**
    * Makes the advanced components visible or invisible
    */
   void setAdvanced(boolean state) {
-    //  always visible components
-    //ltfViewSkipList.setVisible(state);
-    //ltfNAdditionalViewSets.setVisible(state);
-    //ltfAdditionalViewSets.setVisible(state);
-    //ltfTiltAngleGroupParams.setVisible(state);
-    //ltfTiltAngleGroups.setVisible(state);
-    //chkboxFillGaps.setVisible(state);
-    ltfInputImage.setVisible(state);
-//    ltfPiceListFile.setVisible(state);
-    ltfSeedModelFile.setVisible(state);
-    ltfOutputModelFile.setVisible(state);
     ltfTiltAngleGroupSize.setVisible(state);
     ltfTiltAngleGroups.setVisible(state);
     ltfMagnificationGroupSize.setVisible(state);
@@ -482,25 +558,19 @@ public class BeadtrackPanel {
     ltfNMinViews.setVisible(state);
     ltfCentroidRadius.setVisible(state);
     cbLightBeads.setVisible(state);
-    
     ltfMaxGap.setVisible(state);
     ltfMinTiltRangeToFindAxis.setVisible(state);
     ltfMinTiltRangeToFindAngle.setVisible(state);
     ltfSearchBoxPixels.setVisible(state);
-    ltfMaxFiducialsAvg.setVisible(state);
-    ltfFiducialExtrapolationParams.setVisible(state);
-    ltfRescueAttemptParams.setVisible(state);
-    ltfMinRescueDistance.setVisible(state);
-    ltfRescueRelaxtionParams.setVisible(state);
-    ltfResidualDistanceLimit.setVisible(state);
-    ltfDensityRelaxationPostFit.setVisible(state);
-    ltfMaxRescueDistance.setVisible(state);
-    ltfMeanResidChangeLimits.setVisible(state);
-    ltfDeletionParams.setVisible(state);
-    
+    pnlExpertParameters.setVisible(state);
     ltfMinBeadsInArea.setVisible(state);
     ltfMinOverlapBeads.setVisible(state);
     ltfRoundsOfTracking.setVisible(state);
+    btnUseModel.setVisible(state);
+  }
+  
+  public void done() {
+    btnTrack.removeActionListener(actionListener);
   }
 
   //  ToolTip string setup
@@ -520,15 +590,6 @@ public class BeadtrackPanel {
     if (autodoc == null) {
       return;
     }
-    ltfInputImage.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.INPUT_FILE_KEY))
-        .format());
-    ltfSeedModelFile.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.SEED_MODEL_FILE_KEY))
-        .format());
-    ltfOutputModelFile.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.OUTPUT_MODEL_FILE_KEY))
-        .format());
     ltfViewSkipList.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.SKIP_VIEW_LIST_KEY))
         .format());
@@ -602,7 +663,7 @@ public class BeadtrackPanel {
     ltfDeletionParams.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.DELETION_PARAMS_KEY))
         .format());
-    
+
     cbLocalAreaTracking.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc
             .getTooltip(autodoc, BeadtrackParam.LOCAL_AREA_TRACKING_KEY))
@@ -624,8 +685,15 @@ public class BeadtrackPanel {
         .setText(
             EtomoAutodoc.getTooltip(autodoc,
                 BeadtrackParam.ROUNDS_OF_TRACKING_KEY)).format());
+    text = "Run Beadtrack to produce fiducial model from seed model.";
+    btnTrack.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Turn the output of Beadtrack (fiducial model) into a new seed model.  "
+        + "Your original seed model will be moved into an _orig.seed file."
+        + "To use the new seed model, press Track Fiducial Seed Model.";
+    btnUseModel.setToolTipText(tooltipFormatter.setText(text).format());
   }
-  
+
   private class BeadtrackPanelActionListener implements ActionListener {
 
     BeadtrackPanel adaptee;
