@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/16/06: Added open/close and advanced/basic mini-buttons to the fiducial model
+dialog.
+
 6/15/06: If a script is being run by eTomo, a warning message will pop up when
 the user exits.
 
