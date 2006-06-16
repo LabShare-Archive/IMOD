@@ -122,7 +122,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     testInitialize();
   }
 
-  final public void testConstEtomoNumber_int_String() {
+  public void testConstEtomoNumber_int_String() {
     String name = "name";
     EtomoNumber test = new EtomoNumber(EtomoNumber.INTEGER_TYPE, name);
     assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
@@ -148,7 +148,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     testInitialize();
   }
 
-  final public void testConstEtomoNumber_ConstEtomoNumber() {
+  public void testConstEtomoNumber_ConstEtomoNumber() {
     //test null parameter
     EtomoNumber test = null;
     EtomoNumber copy = new EtomoNumber(test);
@@ -209,6 +209,10 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
     copy.internalTest();
   }
+  
+  public void testGetDisplayInteger() {
+    testValidateReturnTypeInteger();
+  }
 
   //TODO
   public final void testValidateReturnTypeInteger() {
@@ -244,19 +248,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     try {
       test.getDisplayInteger();
       fail("A long can't be returned in an integer");
-    }
-    catch (IllegalStateException e) {
-    }
-    test.internalTest();
-  }
-
-  public final void testGetDisplayInteger() {
-    //test: validateReturnTypeInteger() is being called
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    ///test corruption prevention
-    try {
-      test.getDisplayInteger();
-      fail("validateReturnTypeInteger() is not being called");
     }
     catch (IllegalStateException e) {
     }
@@ -1131,6 +1122,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2006/06/09 21:54:01  sueh
+ * <p> bug# 692 Reimplemented testConstEtomoNumber_ConstEtomoNumber().
+ * <p>
  * <p> Revision 1.24  2006/06/09 17:25:33  sueh
  * <p> *** empty log message ***
  * <p>
