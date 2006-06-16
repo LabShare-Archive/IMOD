@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.Container;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -11,6 +12,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.TransferfidParam;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
@@ -28,12 +30,14 @@ import etomo.type.ReconScreenState;
  *
  * @version $Revision$
  */
-public final class TransferfidPanel {
+public final class TransferfidPanel implements Expandable {
   public static final String rcsid = "$Id$";
 
   private final JPanel panelTransferfid = new JPanel();
-  MultiLineButton buttonTransferfid = null;
+  private final JPanel panelTransferfidBody = new JPanel();
+  private MultiLineButton buttonTransferfid = null;
   private boolean includeButton = false;
+  private final PanelHeader header;
 
   private final CheckBox cbRunMidas = new CheckBox("Run midas");
   private final LabeledTextField ltfCenterViewA = new LabeledTextField(
@@ -62,7 +66,19 @@ public final class TransferfidPanel {
     this.dialogType = dialogType;
     metaData = manager.getMetaData();
     includeButton = inclButton;
+    header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this,
+        dialogType);
     setup();
+  }
+
+  public void expand(ExpandButton button) {
+    if (header.equalsOpenClose(button)) {
+      panelTransferfidBody.setVisible(button.isExpanded());
+    }
+    else if (header.equalsAdvancedBasic(button)) {
+      setAdvanced(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
 
   public static ProcessResultDisplay getTransferFiducialsDisplay(
@@ -72,18 +88,16 @@ public final class TransferfidPanel {
   }
 
   private void setup() {
-    panelTransferfid
-        .setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
-    panelTransferfid.setBorder(new EtchedBorder("Transferfid Parameters")
-        .getBorder());
+    panelTransferfidBody
+        .setLayout(new BoxLayout(panelTransferfidBody, BoxLayout.Y_AXIS));
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    panelTransferfid.add(cbRunMidas);
+    panelTransferfidBody.add(cbRunMidas);
 
     //  Add a horizontal strut to keep the panel a minimum size    
-    panelTransferfid.add(Box.createHorizontalStrut(300));
-    panelTransferfid.add(ltfCenterViewA.getContainer());
-    panelTransferfid.add(ltfCenterViewB.getContainer());
-    panelTransferfid.add(ltfNumberViews.getContainer());
+    panelTransferfidBody.add(Box.createHorizontalStrut(300));
+    panelTransferfidBody.add(ltfCenterViewA.getContainer());
+    panelTransferfidBody.add(ltfCenterViewB.getContainer());
+    panelTransferfidBody.add(ltfNumberViews.getContainer());
 
     bgSearchDirection.add(rbSearchBoth);
     bgSearchDirection.add(rbSearchPlus90);
@@ -96,19 +110,23 @@ public final class TransferfidPanel {
     panelSearchDirection.add(rbSearchPlus90);
     panelSearchDirection.add(rbSearchMinus90);
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
-    panelTransferfid.add(panelSearchDirection);
+    panelTransferfidBody.add(panelSearchDirection);
     cbMirrorInX.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    panelTransferfid.add(cbMirrorInX);
-    panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelTransferfidBody.add(cbMirrorInX);
+    panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
     if (includeButton) {
       buttonTransferfid = (MultiLineButton) manager
           .getProcessResultDisplayFactory(axisID).getTransferFiducials();
       buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
       buttonTransferfid.setSize();
-      panelTransferfid.add(buttonTransferfid.getComponent());
-      panelTransferfid.add(Box.createRigidArea(FixedDim.x0_y5));
+      panelTransferfidBody.add(buttonTransferfid.getComponent());
+      panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
     }
+    panelTransferfid.setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
+    panelTransferfid.setBorder(BorderFactory.createEtchedBorder());
+    panelTransferfid.add(header.getContainer());
+    panelTransferfid.add(panelTransferfidBody);
 
     setToolTipText();
   }
@@ -148,6 +166,11 @@ public final class TransferfidPanel {
       buttonTransferfid.setButtonState(screenState
           .getButtonState(buttonTransferfid.getButtonStateKey()));
     }
+    header.setButtonStates(screenState);
+  }
+  
+  public void getParameters(BaseScreenState screenState) {
+    header.getButtonStates(screenState);
   }
 
   public void getParameters() {
@@ -242,7 +265,7 @@ public final class TransferfidPanel {
     text = "Run Transferfid to make a seed model for this axis from fiducial model for "
         + "the other axis.";
     buttonTransferfid.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
     cbMirrorInX.setToolTipText(tooltipFormatter.setText(
         "Mirror one image around the X axis before rotating by 90 degrees.")
         .format());
@@ -251,6 +274,9 @@ public final class TransferfidPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.10  2006/06/15 16:20:03  sueh
+ * <p> bug# 873 Added tooltip for mirrorInX.
+ * <p>
  * <p> Revision 3.9  2006/06/14 21:25:33  sueh
  * <p> bug# 873 Added cbMirrorInX.
  * <p>
