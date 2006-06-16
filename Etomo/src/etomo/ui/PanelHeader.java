@@ -198,11 +198,15 @@ final class PanelHeader implements Expandable {
   }
 
   public void setButtonStates(BaseScreenState screenState) {
+    setButtonStates(screenState, true);
+  }
+  
+  public void setButtonStates(BaseScreenState screenState, boolean defaultIsOpen) {
     if (screenState == null) {
       return;
     }
     btnOpenClose.setButtonState(screenState.getButtonState(btnOpenClose
-        .createButtonStateKey(dialogType), true));
+        .createButtonStateKey(dialogType), defaultIsOpen));
     if (btnAdvancedBasic != null) {
       btnAdvancedBasic.setButtonState(screenState
           .getButtonState(btnAdvancedBasic.createButtonStateKey(dialogType)));
@@ -231,6 +235,11 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/04/28 21:00:35  sueh
+ * <p> bug# 787 Removed the member variable title, which was not used.
+ * <p> ExpandButton:  Moved type information (which kind of expander) and
+ * <p> strings associated with the type to a static inner class called Type.
+ * <p>
  * <p> Revision 1.20  2006/04/10 19:09:11  sueh
  * <p> bug# 846 Use the default color for the cell title.
  * <p>
