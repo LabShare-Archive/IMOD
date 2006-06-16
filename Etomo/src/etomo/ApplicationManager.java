@@ -82,6 +82,7 @@ import etomo.type.TiltAngleType;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.ui.AlignmentEstimationDialog;
+import etomo.ui.BeadtrackPanel;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
@@ -1707,6 +1708,7 @@ public final class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
+      fiducialModelDialog.getParameters(getScreenState(axisID));
       fiducialModelDialog.getTransferFidParams();
       //  Get the user input data from the dialog box
       if (!updateTrackCom(axisID)) {
@@ -1781,7 +1783,7 @@ public final class ApplicationManager extends BaseManager {
       return uiHarness
           .openYesNoWarningDialog(
               "If you track fiducials now, you will overwrite the fiducial file you just modified.\nFirst press the "
-                  + FiducialModelDialog.USE_MODEL_LABEL
+                  + BeadtrackPanel.USE_MODEL_LABEL
                   + " button.\n\nWARNING:  If you press Yes, you will overwrite your fiducial file.",
               axisID);
     }
@@ -1807,7 +1809,7 @@ public final class ApplicationManager extends BaseManager {
       return uiHarness
           .openYesNoWarningDialog(
               "If you copy the fiducial file to the seed file now, you will overwrite the seed file you just modified.\nFirst press the "
-                  + FiducialModelDialog.TRACK_LABEL
+                  + BeadtrackPanel.TRACK_LABEL
                   + " button.\n\nWARNING:  If you press Yes, you will overwrite your seed file.",
               axisID);
     }
@@ -1860,7 +1862,7 @@ public final class ApplicationManager extends BaseManager {
     File fiducialModel = new File(fiducialModelFilename);
     if (!fiducialModel.exists()) {
       uiHarness.openMessageDialog("Fiducial model does not exist.",
-          FiducialModelDialog.USE_MODEL_LABEL + " failed.", axisID);
+          BeadtrackPanel.USE_MODEL_LABEL + " failed.", axisID);
       return;
     }
     if (!okToMakeFiducialModelSeedModel(axisID)) {
@@ -5593,6 +5595,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.235  2006/06/14 00:05:32  sueh
+ * <p> bug# 852 Moved classes that know a autodoc language.
+ * <p>
  * <p> Revision 3.234  2006/06/09 19:48:50  sueh
  * <p> bug# 870 For Tomo Pos forcing the exit state of the dialog to be SAVE when
  * <p> running doneDialog and saveDialog.  Application manager only calls these
