@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.6  2006/06/15 18:47:27  sueh
+ * <p> $bug# 852 Added getTypeToken() and getNameToken().
+ * <p> $
  * <p> $Revision 1.5  2006/06/14 21:24:32  sueh
  * <p> $bug# 852 Added isAttribute().
  * <p> $
@@ -64,7 +67,8 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-public final class Section extends WriteOnlyNameValuePairList implements ReadOnlyNameValuePairList {
+public final class Section extends WriteOnlyNameValuePairList implements
+    ReadOnlyNameValuePairList {
   public static final String rcsid = "$$Id$$";
 
   private String key = null; //required
@@ -72,11 +76,11 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
   private Token name = null; //required
   private AttributeMap attributeMap = null;//optional
   private Vector nameValuePairList = null;
-  
+
   boolean isGlobal() {
     return false;
   }
-  
+
   boolean isAttribute() {
     return false;
   }
@@ -141,7 +145,7 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
     }
     return this.type.getKey().equals(Token.convertToKey(type));
   }
-  
+
   public Token getTypeToken() {
     if (type == null) {
       throw new IllegalStateException("type is required");
@@ -159,7 +163,7 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
     }
     return name.getValues();
   }
-  
+
   public Token getNameToken() {
     if (name == null) {
       throw new IllegalStateException("name is required");
@@ -188,6 +192,13 @@ public final class Section extends WriteOnlyNameValuePairList implements ReadOnl
       nameValuePairList = new Vector();
     }
     nameValuePairList.add(pair);
+  }
+
+  void addSection(Token type, Token name) {
+    if (nameValuePairList == null) {
+      nameValuePairList = new Vector();
+    }
+    nameValuePairList.add(new NameValuePair(new Section(type, name)));
   }
 
   public NameValuePairLocation getNameValuePairLocation() {
