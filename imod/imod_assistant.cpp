@@ -33,14 +33,18 @@
  * message box, or NULL not to ^
  * {absolute} (default false) should be [true] if {path} is an absolute 
  * location or [false] if it is relative to the environment variable IMOD_DIR ^
+ * {keepSideBar} (default false) should eb true to avoid starting with the
+ * argument to hide the sidebar ^
  * The object emits a signal to pass on the error signal from its assistant 
  * client:  [void error(const QString &msg);]
  */
 ImodAssistant::ImodAssistant(const char *path, const char *adpFile, 
-                             char *messageTitle, bool absolute)
+                             char *messageTitle, bool absolute,
+                             bool keepSideBar)
 {
   mAssistant = NULL;
   mAssumedIMOD = false;
+  mKeepSideBar = keepSideBar;
   if (messageTitle)
     mTitle = QString(messageTitle) + " Error";
 
@@ -116,7 +120,8 @@ int ImodAssistant::showPage(const char *page)
     // Hide the side bar and define the adp file if any
 #if QT_VERSION >= 0x030200
     QStringList args;
-    args << "-hideSidebar";
+    if (!mKeepSideBar)
+      args << "-hideSidebar";
     if (!mAdp.isEmpty()) {
       if (QDir::isRelativePath(mAdp))
         fileOnly = mPath + sep + mAdp;
@@ -127,7 +132,8 @@ int ImodAssistant::showPage(const char *page)
       else
         retval = -1;
     }
-    mAssistant->setArguments(args);
+    if (!args.empty())
+      mAssistant->setArguments(args);
 #endif
   }
 
@@ -175,6 +181,9 @@ void ImodAssistant::assistantError(const QString &msg)
 
 /*
     $Log$
+    Revision 1.10  2005/02/24 22:29:44  mast
+    Added fallback for IMOD_DIR and enhanced error message if fallback used
+
     Revision 1.9  2004/12/24 02:11:05  mast
     Have it take determine if page is an absolute path instead of requiring
     argument
