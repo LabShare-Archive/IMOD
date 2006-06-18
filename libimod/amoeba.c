@@ -27,6 +27,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2006/06/08 05:13:05  mast
+    Added defines on init function fwrap
+
     Revision 3.4  2006/06/08 03:12:02  mast
     Added termination on 1000 iterations; probably not needed.
 
@@ -53,24 +56,27 @@
 #define NMAX  20
 
 /*!
- * Performs a multidimensional search to minimize the function [funk] which is 
- * a float function of [ndim] variables that are passed in a float array.
+ * Performs a multidimensional search to minimize a function of [ndim] 
+ * variables.  The function value is computed by * [funk],
+ * a void function of two variables: a float array containing the values of
+ * the [ndim] variables, and a pointer to a float for the function value.
  * [p] is a 2-dimensional array dimensioned to at least one more than the 
- * number of variables ineac dimension, and [mp] specifies its fastest 
+ * number of variables in each dimension, and [mp] specifies its fastest 
  * dimension (second in C, first in fortran).  [y] is a one-dimensional array 
  * also dimensioned to at least one more than the number of variables.
  * Both of these should be preloaded by calling amoebaInit.  
  * Termination is controlled by [ftol], which is an 
- * absolute limit for the change in function value, and the array [ptol],
+ * limit for the fractional change in function value, and the array [ptol],
  * which has limits for the change of each variable.  [iterP] is returned with 
  * the number of iterations; [iloP] is returned with the index of the minimum
  * vector in p (p[i][iloP] in C, p(iloP, i) in fortran).
  * ^ From fortran the subroutine is called as:
- * ^ call amoeba(p, y, mp, np, ndim, ftol, funk, iter, ptol, ilo)
- * ^ where the unneeded argument [np] is the second dimension of [p]
+ * ^ call amoeba(p, y, mp, ndim, ftol, funk, iter, ptol, ilo)
+ * ^ where [funk] is: 
+ * ^ subroutine funk(a, value)
  */
 void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
-            float (*funk)(float *), int *iterP, float *ptol, int *iloP)
+            void (*funk)(float *, float *), int *iterP, float *ptol, int *iloP)
 {
   float alpha = 1.0,beta = 0.5,gamma = 2.0;
   float pr[NMAX], prr[NMAX], pbar[NMAX];
@@ -114,6 +120,9 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
     if (ifnear)
       break;
 
+    /* DNM 6/17/06: protect against hard zeros by testing for equality first */
+    if (y[ihi] == y[ilo])
+      break;
 	rtol = 2.*fabs((double)(y[ihi] - y[ilo]))/
       (fabs((double)y[ihi])+ fabs((double)y[ilo]));
 	if (rtol < ftol)
@@ -135,11 +144,11 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
 	  pbar[j] = pbar[j]/ndim;
 	  pr[j] = (1.+alpha)*pbar[j] - alpha*p[ihi + j * mp];
     }
-	ypr = funk(pr);
+	funk(pr, &ypr);
     if (ypr <= y[ilo]) {
 	  for (j = 0; j < ndim; j++)
 	    prr[j] = gamma*pr[j]+(1. - gamma)*pbar[j];
-	  yprr = funk(prr);
+	  funk(prr, &yprr);
 	  if (yprr < y[ilo]) {
 	    for (j = 0; j < ndim; j++)
 	      p[ihi + j * mp] = prr[j];
@@ -157,19 +166,19 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
 	  }
       for (j = 0; j < ndim; j++)
 	    prr[j] = beta*p[ihi + j * mp]+(1. - beta)*pbar[j];
-	  yprr = funk(prr);
+	  funk(prr, &yprr);
       if (yprr < y[ihi]) {
 	    for (j = 0; j < ndim; j++)
 	      p[ihi + j * mp] = prr[j];
 	    y[ihi] = yprr;
       } else {
-	    for (i = 0; i < mpts; i++) {
+        for (i = 0; i < mpts; i++) {
 	      if (i != ilo) {
             for (j = 0; j < ndim; j++) {
               pr[j] = 0.5*(p[i + j * mp]+p[ilo + j * mp]);
               p[i + j * mp] = pr[j];
             }
-            y[i] = funk(pr);
+            funk(pr, &y[i]);
 	      }
         }
 	  }
@@ -196,8 +205,8 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
  * ^ call amoebaInit(p, y, mp, ndim, delfac, ptolFac, a, da, func, ptol)
  */
 void amoebaInit(float *p, float *y, int mp, int ndim, float delfac, 
-                float ptolFac, float *a, float *da, float (*funk)(float *), 
-                float *ptol)
+                float ptolFac, float *a, float *da, 
+                void (*funk)(float *, float *), float *ptol)
 {
   int i, j;
   float ptmp[NMAX];
@@ -210,12 +219,13 @@ void amoebaInit(float *p, float *y, int mp, int ndim, float delfac,
       ptmp[i] = p[j + i * mp];
       ptol[i] = da[i] * ptolFac;
     }
-    y[j] = funk(ptmp);
+    funk(ptmp, &y[j]);
   }
 }
 
-void amoebafwrap(float *p, float *y, int *mp, int *np, int *ndim, float *ftol, 
-            float (*funk)(float *), int *iter, float *ptol, int *ilo)
+void amoebafwrap(float *p, float *y, int *mp, int *ndim, float *ftol, 
+                 void (*funk)(float *, float *), int *iter, float *ptol, 
+                 int *ilo)
 {
   int iloc;
   amoeba(p, y, *mp, *ndim, *ftol, funk, iter, ptol, &iloc);
@@ -223,8 +233,8 @@ void amoebafwrap(float *p, float *y, int *mp, int *np, int *ndim, float *ftol,
 }
 
 void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac, 
-                float *ptolFac, float *a, float *da, float (*funk)(float *), 
-                float *ptol)
+                     float *ptolFac, float *a, float *da, 
+                     void (*funk)(float *, float *), float *ptol)
 {
   amoebaInit(p, y, *mp, *ndim, *delfac, *ptolFac, a, da, funk, ptol);
 }
