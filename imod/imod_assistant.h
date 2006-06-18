@@ -9,6 +9,9 @@
     $Revision$
 
     $Log$
+    Revision 1.6  2005/02/24 22:28:07  mast
+    Added variables for fallback IMOD_DIR
+
     Revision 1.5  2004/12/24 02:11:40  mast
     Removed absolute argument from show page
 
@@ -41,7 +44,7 @@ class ImodAssistant : public QObject
 
 public:
   ImodAssistant(const char *path, const char *adpFile, char *messageTitle,
-                bool absolute = false);
+                bool absolute = false, bool keepSideBar = false);
   ~ImodAssistant();
   int showPage(const char *page);
 
@@ -56,6 +59,7 @@ private:
   QString mAdp;
   QString mImodDir;
   bool mAssumedIMOD;
+  bool mKeepSideBar;
   QAssistantClient *mAssistant;
   QString mTitle;
 };
