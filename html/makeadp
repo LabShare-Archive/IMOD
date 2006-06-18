@@ -1,0 +1,29 @@
+#!/bin/csh -f
+
+# Script to take the adpStub and insert the 3dmod help pages and the man
+# pages as subsections.
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+
+set instext1 = "INSERT 3DMOD.ADP"
+set instext2 = "INSERT MAN PAGES"
+set adpout = IMOD.adp
+set adpin = adpStub
+
+awk "NR==1, /$instext1/" $adpin | grep -v "INSERT" >! $adpout
+awk '/<DCF/,/<\/DCF/' 3dmodHelp/3dmod.adp | grep -v "DCF" >> $adpout
+awk "/$instext1/, /$instext2/" $adpin | grep -v "INSERT" >> $adpout
+
+foreach i (man/*.html)
+cat <<EOF >> $adpout
+    <section ref ="$i" title="$i:r:t"/>
+EOF
+end
+
+awk "/$instext2/, /GobbledyGook/" $adpin | grep -v "INSERT" >> $adpout
