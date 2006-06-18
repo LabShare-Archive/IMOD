@@ -4,7 +4,7 @@
 .SH NAME
 imodqtassist \- Displays html pages through Qt Assistant
 .SH SYNOPSIS
-imodqtassist [-a | -p adp_file] document_path
+imodqtassist [-a | -p adp_file| -k] document_path
 .SH DESCRIPTION
 This program will run Qt Assistant and send it commands to display html
 documents.  The command line arguments indicate where the documents are,
@@ -55,6 +55,13 @@ redundancy here if absolute paths are used, since if both the
 and the individual pages are entered with absolute paths, the
 .B document_path
 becomes irrelevant.
+.P
+By default, the Assistant sidebar will be started with an argument to hide the
+sidebar.  Use the 
+.B -k
+option to omit this argument and keep the sidebar open if the user had opened
+it.
+
 
 .SH AUTHOR
 David Mastronarde,  mast@colorado.edu
