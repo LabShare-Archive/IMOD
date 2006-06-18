@@ -17,6 +17,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.8  2006/06/08 18:31:15  mast
+c       Changed to read in data binned and to handle 4x2K after binning
+c
 c       Revision 3.7  2006/05/14 03:13:15  mast
 c       Output normalized difference and distance measures, standardize
 c       error outputs
@@ -440,7 +443,7 @@ c
         if(ftol2.gt.0.or.ptol2.gt.0)ptfac=ptol2
         call amoebaInit(pp, yy, 7, ivend, delfac, ptfac, a, da, func, ptol)
         if(ftol2.gt.0.or.ptol2.gt.0)then
-          call amoeba(pp,yy,7,7,ivend,ftol2,func,iter,ptol,jmin)
+          call amoeba(pp,yy,7,ivend,ftol2,func,iter,ptol,jmin)
           if(trace)print *,'restarting'
           deltmin=1.e30
           do i=1,ivend
@@ -448,7 +451,7 @@ c
           enddo
           call amoebaInit(pp, yy, 7, ivend, delfac, ptol1, a, da, func, ptol)
         endif
-        call amoeba(pp,yy,7,7,ivend,ftol1,func,iter,ptol,jmin)
+        call amoeba(pp,yy,7,ivend,ftol1,func,iter,ptol,jmin)
 C         
         do i=1,ivend
           a(i)=pp(jmin,i)
@@ -643,8 +646,8 @@ C
 
 c       Function to be called by minimization routine
 c       
-      function func(x)
-      real*4 x(*),a(6)
+      subroutine func(x, error)
+      real*4 x(*),a(6), error
       parameter (limspir=1000,idima=4100*2100)
       parameter (isub=idima/3)
       parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
@@ -671,7 +674,7 @@ c
         CALL DIST(DELTA,ARRAY,A,NX,NY,ixcomp,iycomp,denlo,denhi,
      &      ncompare,idxspir,idyspir,distspir,nspiral,natural)
       endif
-      func=delta
+      error=delta
       ntrial=ntrial+1
       if(iftrace.ne.0)then
         starout=' '

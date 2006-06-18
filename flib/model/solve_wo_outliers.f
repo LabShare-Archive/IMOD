@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2005/10/19 16:44:57  mast
+c	  Increased maxerr to 40000 to match patch limits
+c	
 c	  Revision 3.5  2005/03/27 18:57:00  mast
 c	  Moved erfcc to library
 c	
@@ -186,23 +189,25 @@ c
 	integer*4 ndat,ncolin,ndo,ipntmax,icolfix,icolfixin
 	real*4 devavg,devsd,devmax,xmsav(6)
 	integer*4 ixyz,i,j,ipnt,ncoldo,k,km
-	real*4 const,rsq,fra,devsum,devsq,devpnt, amat(2,2)
+	real*4 const,rsq,fra,devsum,devsq,devpnt, amat(2,2), funcErr
 	real*8 smsq(4,6), aa(3,3), errMin
 	integer*4 nullAxis, mSign, ifTrace,nTrial
 	common /funccom/nullAxis, mSign, ifTrace, nTrial, errMin, smsq, aa
 	real*8 sum
 	real*4 pp(7,7),yy(7),ptmp(6),ptol(6), da(6), ptol1, ftol1,delfac,var(6)
+        real*4 ftol2, ptol2
 	data da/2.,2.,.02,.02,2.,2./
 	integer*4 jmin, iter, icol
 	logical firstTime
 	data firstTime/.true./
 	save var, firstTime
 	
-	real*4 func
 	external func
 c	  
 c	  values for simplex fit
 c
+	ptol2 = 5.e-4
+	ftol2 = 5.e-4
 	ptol1 = 1.e-5
 	ftol1 = 1.e-5
 	delfac = 2.
@@ -322,43 +327,25 @@ c
 	    var(6) = 0.
 	  endif
 	  firstTime = .false.
-c	    
-c	    set up for minimization
-c	    
-	  do j = 1, 7
-	    do i = 1, 6
-	      pp(j,i) = var(i)
-	      if(j.gt.1.and.i.eq.j-1)pp(j,i)=var(i)+delfac*da(i)
-	      ptmp(i)=pp(j,i)
-	      ptol(i)=da(i)*ptol1
-	    enddo
-	    yy(j)=func(ptmp)
-	  enddo
-	  call amoeba(pp,yy,7,7,6,ftol1,func,iter,ptol,jmin)
+          call amoebaInit(pp, yy, 7, 6, delfac, ptol2, var, da, func, ptol)
+	  call amoeba(pp,yy,7,6,ftol2,func,iter,ptol,jmin)
 c	    
 c	    per Press et al. recommendation, just restart at current location
 c	    
 	  do i=1,6
-	    pp(1,i)=pp(jmin,i)
+	    var(i) = pp(jmin, i)
 	  enddo
-	  do j=1,7
-	    do i=1,6
-	      pp(j,i)=pp(1,i)
-	      if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i)
-	      ptmp(i)=pp(j,i)
-	    enddo
-	    yy(j)=func(ptmp)
-	  enddo
-	  call amoeba(pp,yy,7,7,6,ftol1,func,iter,ptol,jmin)
+          call amoebaInit(pp, yy, 7, 6, delfac, ptol1, var, da, func, ptol)
+	  call amoeba(pp,yy,7,6,ftol1,func,iter,ptol,jmin)
 c	    
 c	    recover result, get aa matrix from best result, compute dxyz
 c
 	  do i = 1, 6
 	    var(i) = pp(jmin, i)
 	  enddo
-	  yy(jmin) = sqrt(max(0.,func(var) / ndo))
+	  funcErr = sqrt(max(0.,yy(jmin) / ndo))
 	  if (iftrace .ne. 0) write(*,'(i5,f10.4, 2f9.2,2f9.4,2f9.2)')
-     &	      iter,yy(jmin), (var(i), i = 1,6)
+     &	      iter,funcErr, (var(i), i = 1,6)
 	  do i = 1, 3
 	    cenloc(i) = xmsav(i+3)
 	    dxyz(i) = xmsav(i+3)
@@ -408,9 +395,9 @@ c
 c	  FUNC is called by the simplex routine to compute the sum squared
 c	  error for the solution vector in P
 c
-	real*4 function func(p)
+	subroutine func(p, funcErr)
 	implicit none
-	real*4 p(*)
+	real*4 p(*), funcErr
 	real*8 smsq(4,6), aa(3,3), errMin
 	integer*4 nullAxis, mSign, ifTrace,nTrial
 	common /funccom/nullAxis, mSign, ifTrace, nTrial, errMin, smsq, aa
@@ -498,7 +485,7 @@ c
 c	  
 c	  get error sum
 c
-	func = (a11**2 + a21**2 + a31**2) * smsq(1,1) +
+	funcErr = (a11**2 + a21**2 + a31**2) * smsq(1,1) +
      &	    2. * (a11*a12 + a21*a22 + a31*a32) * smsq(1,2) +
      &	    2. * (a11*a13 + a21*a23 + a31*a33) * smsq(1,3) +
      &	    (a12**2 + a22**2 + a32**2) * smsq(2,2) +
@@ -511,12 +498,12 @@ c
 	
 	if (ifTrace .gt. 1) then
 	  starout=' '
-	  if(func.lt.errMin)then
+	  if(funcErr.lt.errMin)then
 	    starout='*'
-	    errMin=func
+	    errMin=funcErr
 	  endif
-	  if(iftrace.gt.2.or.func.lt.errMin)
-     &	      write(*,72)starout,nTrial,func, (p(i), i = 1,6)
+	  if(iftrace.gt.2.or.funcErr.lt.errMin)
+     &	      write(*,72)starout,nTrial,funcErr, (p(i), i = 1,6)
 72	  format(1x,a1,i4,f15.5, 2f9.3,2f9.5,2f9.3)
 	endif
 	  

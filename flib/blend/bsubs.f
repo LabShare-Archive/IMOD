@@ -30,6 +30,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.19  2006/02/27 15:20:20  mast
+c       g77 wanted find_best_shift called with an equivalenced real*8 array
+c
 c       Revision 3.18  2006/02/26 18:29:50  mast
 c       Converted to using double precision for solving shift equations and 
 c       only used as much of the array as necessary for this.
@@ -1900,7 +1903,6 @@ c
       real*4 ptol1, ftol1,ptol2,ftol2,delfac,var(nvar)
       data da/0.5,0.2/
       integer*4 jmin, iter, i, j
-      real*4 gradfunc
       external gradfunc
 c       
       integer*4 nedg, ifTrace, nTrial,izedge
@@ -1987,39 +1989,25 @@ c
       nTrial = 0
       var(1) = 0.
       var(2) = 0.
-      do j = 1, nvar+1
-        do i = 1, nvar
-          pp(j,i) = var(i)
-          if(j.gt.1.and.i.eq.j-1)pp(j,i)=var(i)+delfac*da(i)
-          ptmp(i)=pp(j,i)
-          ptol(i)=da(i)*ptol2
-        enddo
-        yy(j)=gradfunc(ptmp)
-      enddo
-      call amoeba(pp,yy,nvar+1,nvar+1,nvar,ftol2,gradfunc,iter,ptol,jmin)
+      call amoebaInit(pp, yy, nvar + 1, nvar, delfac, ptol2, var, da, 
+     &    gradfunc,ptol)
+      call amoeba(pp,yy,nvar+1,nvar,ftol2,gradfunc,iter,ptol,jmin)
 c       
 c       per Press et al. recommendation, just restart at current location
 c       
       do i=1,nvar
-        pp(1,i)=pp(jmin,i)
+        var(i)=pp(jmin,i)
       enddo
-      do j=1,nvar+1
-        do i=1,nvar
-          pp(j,i)=pp(1,i)
-          if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i) / 4.
-          ptmp(i)=pp(j,i)
-          ptol(i)=da(i)*ptol1
-        enddo
-        yy(j)=gradfunc(ptmp)
-      enddo
-      call amoeba(pp,yy,nvar+1,nvar+1,nvar,ftol1,gradfunc,iter,ptol,jmin)
+      call amoebaInit(pp, yy, nvar + 1, nvar, delfac / 4., ptol1, var, da, 
+     &    gradfunc,ptol)
+      call amoeba(pp,yy,nvar+1,nvar,ftol1,gradfunc,iter,ptol,jmin)
 c       
 c       recover result
 c       
       do i = 1, nvar
         var(i) = pp(jmin, i)
       enddo
-      errMin = gradfunc(var) - 0.001
+      call gradfunc(var, errMin)
       write(*,73)var(1),var(2),errMin
 73    format(' Implied incremental gradient:',2f9.4,'  mean error:',f10.4)
       call flush(6)
@@ -2029,9 +2017,9 @@ c
       end
 
 
-      real*4 function gradfunc(p)
+      subroutine gradfunc(p, funcErr)
       implicit none
-      real*4 p(*)
+      real*4 p(*), funcErr
       include 'blend.inc'
 
       integer*4 nedg, ifTrace, nTrial,izedge
@@ -2082,22 +2070,22 @@ c
       call find_best_shifts(array8, nxpieces * nypieces, dxadj, dyadj,
      &    1, izedge, h, iedge, bmean, bmax, aftmean, aftmax)
 
-      gradfunc = aftmean
+      funcErr = aftmean
       if (ifTrace .gt. 0) then
         starout=' '
-        if(gradfunc.lt.errMin)then
+        if(funcErr.lt.errMin)then
           starout='*'
-          errMin=gradfunc
+          errMin=funcErr
         endif
         if(iftrace.gt.1.or.starout.eq.'*')
-     &      write(*,72)starout,nTrial,gradfunc, (p(ied), ied = 1,2)
+     &      write(*,72)starout,nTrial,funcErr, (p(ied), ied = 1,2)
 72      format(1x,a1,i4,f15.5, 2f9.4)
         call flush(6)
       endif
 c       
-c       Amoeba flails on hard zeros so add something
+c       Amoeba flails on hard zeros so add something (no longer, 6/17/06)
 c       
-      gradfunc = gradfunc + 0.001
+      funcErr = funcErr
       return
       end
 

@@ -19,6 +19,9 @@ c
 c       $Revision$
 c
 c       $Log$
+c       Revision 1.2  2006/02/08 05:38:33  mast
+c       Added header to file
+c
 c
       implicit none
 c       
@@ -30,7 +33,6 @@ c
       real*4 ptol1, ftol1,ptol2,ftol2,delfac,var(maxvar), da(maxvar)
       data da/0.5,0.2,2.0/
       integer*4 jmin, iter, i, j
-      real*4 func
       external func
 c       
 c       Common for func
@@ -95,15 +97,15 @@ c
 c       Pip startup: set error, parse options, do help output
 c       
       call PipReadOrParseOptions(options, numOptions, 'findgradient',
-     &    'ERROR: findgradient - ', .false., 0, 0, 0, numOptArg,
+     &    'ERROR: FINDGRADIENT - ', .false., 0, 0, 0, numOptArg,
      &    numNonOptArg)
 
       if (PipGetString('RootNameForFiles', rootname) .ne. 0) call
-     &    errorexit('NO ROOT NAME FOR TEMP FILES SPECIFIED')
+     &    exitError('NO ROOT NAME FOR TEMP FILES SPECIFIED')
       if (PipGetString('ImageInputFile', imageName) .ne. 0) call
-     &    errorexit('NO IMAGE FILE SPECIFIED')
+     &    exitError('NO IMAGE FILE SPECIFIED')
       if (PipGetString('PieceListInput', plName) .ne. 0) call
-     &    errorexit('NO PIECE LIST FILE SPECIFIED')
+     &    exitError('NO PIECE LIST FILE SPECIFIED')
       if (PipGetString('SectionsToDo', sectionList) .eq. 0)
      &    call parselist(sectionList, izdo, nzlist)
       ierr = PipGetInteger('ImagesAreBinned', inputBinning)
@@ -123,20 +125,20 @@ c
       ierr = PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot,
      &    tiltAngle)
       ierr = PipGetTwoFloats('AddToGradient', dmagStart, drotStart)
-      if (pixelMagGrad .eq. 0. .and. gradName .eq. ' ') call errorexit(
+      if (pixelMagGrad .eq. 0. .and. gradName .eq. ' ') call exitError(
      &    'EITHER GradientFile OR TiltGeometry MUST BE ENTERED')
       ierr = PipGetLogical('AdjustedFocus', focusAdjusted)
       ierr = PipGetInteger('TraceOutput', ifTrace)
       ierr = PipGetLogical('RunSeparately', separate)
       if (separate) then
-        if (sectionList .eq. ' ') call errorexit(
+        if (sectionList .eq. ' ') call exitError(
      &      'SECTIONS MUST BE ENTERED WITH -section TO RUN SEPARATELY')
         nzdo = nzlist
       endif
       ierr = PipGetFloat('OffsetTilts', tiltOffStart)
       ierr = PipGetInteger('SearchType', nSearch)
       ierr = PipNumberOfEntries('BlendOption', numBlendOpt)
-      if (numBlendOpt .gt. limopt) call errorexit (
+      if (numBlendOpt .gt. limopt) call exitError (
      &    'TOO MANY BLEND OPTIONS FOR ARRAYS')
       do iz = 1, numBlendOpt
         ierr = PipGetString('BlendOption', blendOption(iz))
@@ -144,9 +146,9 @@ c
 c       
       call PipDone()
       if (nSearch .eq. 0 .or. nSearch .gt. 3 .or. nSearch .lt. -2)
-     &    call errorexit('SEARCH TYPE OUT OF ALLOWED RANGE (-1, -2 and 1-3)')
+     &    call exitError('SEARCH TYPE OUT OF ALLOWED RANGE (-1, -2 and 1-3)')
       if (nSearch .eq. 3 .and. (nAngles .eq. 0 .or. nzlist .lt. 2 .or.
-     &    separate)) call errorexit(
+     &    separate)) call exitError(
      &    'SEARCH TYPE 3 NEEDS TILT ANGLES AND MULTIPLE SECTIONS')
 
       nvar = abs(nSearch)
@@ -190,7 +192,7 @@ c           loop until can't improve error by moving in direction of implied
 c           gradient
 c
           do while (numSince .lt. 8 .and. nTrial .lt. 200)
-            errNew = func(var) - 0.001
+            call func(var, errNew)
             dmagInc = 0.
             drotInc = 0.
             do i = 1, nError
@@ -237,32 +239,18 @@ c
           var(2) = drotStart
           var(3) = tiltOffStart
           if (nvar .eq. 1) var(1) = var(3)
-          do j = 1, nvar+1
-            do i = 1, nvar
-              pp(j,i) = var(i)
-              if(j.gt.1.and.i.eq.j-1)pp(j,i)=var(i)+delfac*da(i)
-              ptmp(i)=pp(j,i)
-              ptol(i)=da(i)*ptol2
-            enddo
-            yy(j)=func(ptmp)
-          enddo
-          call amoeba(pp,yy,maxvar+1,maxvar+1,nvar,ftol2,func,iter,ptol,jmin)
+          call amoebaInit(pp, yy, maxvar + 1, nvar, delfac, ptol2, var, da, 
+     &        func,ptol)
+          call amoeba(pp,yy,maxvar+1,nvar,ftol2,func,iter,ptol,jmin)
 c           
 c           per Press et al. recommendation, just restart at current location
 c           
           do i=1,nvar
-            pp(1,i)=pp(jmin,i)
+            var(i)=pp(jmin,i)
           enddo
-          do j=1,nvar+1
-            do i=1,nvar
-              pp(j,i)=pp(1,i)
-              if(j.gt.1.and.i.eq.j-1)pp(j,i)=pp(1,i)+delfac*da(i) / 4.
-              ptmp(i)=pp(j,i)
-              ptol(i)=da(i)*ptol1
-            enddo
-            yy(j)=func(ptmp)
-          enddo
-          call amoeba(pp,yy,maxvar+1,maxvar+1,nvar,ftol1,func,iter,ptol,jmin)
+          call amoebaInit(pp, yy, maxvar + 1, nvar, delfac / 4., ptol1, var,
+     &        da, func,ptol)
+          call amoeba(pp,yy,maxvar+1,nvar,ftol1,func,iter,ptol,jmin)
 c           
 c           recover result
 c           
@@ -270,20 +258,20 @@ c
             var(i) = pp(jmin, i)
           enddo
         endif
-        errMin = func(var) - 0.001
+        call func(var, errMin2)
 c
         write(*,'(/,a,/,a)')'Final results:','Section - mean error'
         write(*, '(i5,f12.3)')(izsect(i), sectErrs(i), i = 1, nError)
         if (nvar .eq. 2) then
-          write(*,73)nTrial,errMin,var(1),var(2)
+          write(*,73)nTrial,errMin2,var(1),var(2)
 73        format(i5,' trials, error= ',f10.4,', gradient=',f8.3,' %/um,',
      &        f8.3, ' deg/um')
         else if (nvar .eq. 3) then
-          write(*,74)nTrial,errMin,var(1),var(2),var(3)
+          write(*,74)nTrial,errMin2,var(1),var(2),var(3)
 74        format(i5,', err=',f9.4,', grad=',f8.3,' %/um,',
      &        f8.3, ' deg/um, offset=',f6.2,' deg')
         else
-          write(*,75)nTrial,errMin,var(1)
+          write(*,75)nTrial,errMin2,var(1)
 75        format(i5,' trials, error =',f10.4,', offset =',f6.2,' deg')
         endif
 
@@ -296,11 +284,11 @@ c
 
 c       The function called by AMOEBA with the current values
 c       
-      real*4 function func(p)
+      subroutine func(p, funcErr)
       implicit none
       integer limnum
       parameter (limnum=20)
-      real*4 p(*)
+      real*4 p(*), funcErr
       include 'findgradient.inc'
 c       
       character*80 paramName,outName
@@ -379,7 +367,7 @@ c
      &      'gradient:') then
           call frefor2(comString, xnum, numeric, nfield, limnum)
           if (nfield .lt. 9 .or. numeric(9) .eq. 0 .or. numeric(2) .eq. 0)
-     &        call errorexit('READING GRADIENT OUTPUT FROM BLENDMONT')
+     &        call exitError('READING GRADIENT OUTPUT FROM BLENDMONT')
           error = xnum(9)
           errSum = errSum + error
           nError = nError + 1
@@ -391,34 +379,32 @@ c
      &        'Implied') .and. nError .gt. 0) then
           call frefor2(comString, xnum, numeric, nfield, limnum)
           if (nfield .lt. 5 .or. numeric(4) .eq. 0 .or. numeric(5) .eq. 0)
-     &        call errorexit('READING IMPLIED GRADIENT OUTPUT FROM BLENDMONT')
+     &        call exitError('READING IMPLIED GRADIENT OUTPUT FROM BLENDMONT')
           sectDmag(nError) = xnum(4)
           sectDrot(nError) = xnum(5)
         endif
       enddo
-20    if (nError .eq. 0) call errorexit(
+20    if (nError .eq. 0) call exitError(
      &    'NO EDGE ERRORS FOUND IN BLENDMONT OUTPUT')
-      func = errSum / nError
+      funcErr = errSum / nError
       starout=' '
-      if(func.lt.errMin)then
+      if(funcErr.lt.errMin)then
         starout='*'
-        errMin=func
+        errMin=funcErr
       endif
       if(iftrace.gt.1.or.(iftrace.gt.0.and.starout.eq.'*')) then
-        write(*,72)starout,nTrial,func, (p(i), i = 1,nvar)
+        write(*,72)starout,nTrial,funcErr, (p(i), i = 1,nvar)
 72      format(1x,a1,i4,f15.5, 3f9.4)
         call flush(6)
       endif
 c       
-c       Amoeba flails on hard zeros so add something
+c       Amoeba flails on hard zeros so add something (no longer 6/17/06)
 c       
-      func = func + 0.001
-
       close(3)
       return
-96    call errorexit('OPENING BLENDMONT PARAMETER FILE')
-97    call errorexit('OPENING BLENDMONT OUTPUT FILE')
-98    call errorexit('READING BLENDMONT OUTPUT')
+96    call exitError('OPENING BLENDMONT PARAMETER FILE')
+97    call exitError('OPENING BLENDMONT OUTPUT FILE')
+98    call exitError('READING BLENDMONT OUTPUT')
       end
 
 
@@ -432,7 +418,7 @@ c       reliably.
 c
       subroutine minimize1D(pmin, funk, pstep, ptol, scanInt, numScan)
       implicit none
-      real*4 funk, pmin, pstep, ptol, scanInt
+      real*4 pmin, pstep, ptol, scanInt
       external funk
       integer*4 idir, iter, maxiter, numScan
       real*4 fnew, pnew, fmin, fAbove, pAbove, fBelow, pBelow, equalCrit
@@ -440,7 +426,7 @@ c
 
       maxiter = 500
       idir = 1
-      fmin = funk(pmin)
+      call funk(pmin, fmin)
       equalCrit = 1.e-6 * abs(fmin)
       scanning = .true.
       bigScanned = .false.
@@ -449,7 +435,7 @@ c
 c         
 c         Take a step from current minimum
         pnew = pmin + idir * pstep
-        fnew = funk(pnew)
+        call funk(pnew, fnew)
         iter = iter + 1
         if (fnew .gt. fmin) then
 c           
@@ -505,7 +491,7 @@ c           Go in the given direction halfway between min and endpoint
           else
             pnew = (pmin + pBelow) / 2.
           endif
-          fnew = funk(pnew)
+          call funk(pnew, fnew)
           iter = iter + 1
           if (abs(fnew - fmin) .lt. equalCrit) then
 c             
@@ -548,7 +534,7 @@ c             Or replace the endpoint, go in opposite direction
       subroutine specialScan(funk, pBelow, fBelow, pAbove, fAbove, pmin, fmin,
      &    equalCrit, numScan, iter)
       implicit none
-      real*4 funk, pBelow, fBelow, pAbove, fAbove, pmin, fmin, equalCrit
+      real*4 pBelow, fBelow, pAbove, fAbove, pmin, fmin, equalCrit
       integer*4 numScan, iter, iScan, iAbove, iBelow
       external funk
       real*4 fScan(51), fnew, pnew, delScan
@@ -558,7 +544,7 @@ c             Or replace the endpoint, go in opposite direction
       delScan =  (pAbove - pBelow) / numScan
       do iScan = 2, numScan
         pnew = pBelow + (iScan - 1) * delScan
-        fnew = funk(pnew)
+        call funk(pnew, fnew)
         fScan(iScan) = fnew
         if (fnew .lt. fmin) fmin = fnew
       enddo
@@ -593,12 +579,4 @@ c
         fAbove = fScan(iAbove)
       endif
       return
-      end
-
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: FINDGRADIENT - ',message
-      call exit(1)
       end
