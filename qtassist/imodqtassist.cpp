@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
   int retval, ind = 1;
   char *adp = NULL;
   bool absPath = false;
+  bool keepBar = false;
 
   // Start the application 
   QApplication qapp(argc, argv);
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\t-a\tpath_to_documents is absolute, not relative to"
             " $IMOD_DIR\n");
     fprintf(stderr, "\t-p file\tName of adp (document profile) file\n");
+    fprintf(stderr, "\t-k\tKeep the sidebar (do not hide it)\n");
     exit(1);
   }
 
@@ -70,6 +72,10 @@ int main(int argc, char *argv[])
 
       case 'a':
         absPath = true;
+        break;
+
+      case 'k':
+        keepBar = true;
         break;
 
       case 'p':
@@ -88,7 +94,7 @@ int main(int argc, char *argv[])
   }
 
   // start the help object
-  imodHelp = new ImodAssistant(argv[ind], adp, NULL, absPath);
+  imodHelp = new ImodAssistant(argv[ind], adp, NULL, absPath, keepBar);
 
   // Get a listener for the errors and timer
   AssistantListener *listener = new AssistantListener();
@@ -238,6 +244,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.6  2005/11/19 16:58:30  mast
+    Corrected print statement
+
     Revision 1.5  2004/12/24 02:20:46  mast
     Added usage statement, made warning come out only once
 
