@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/07/01 14:09:18  mast
+#  Do not clean up libhelp - it is an install directory
+#
 #  Revision 3.7  2005/03/20 20:43:35  mast
 #  Clean libhelp here not from libdoc
 #
@@ -43,6 +46,7 @@ NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp
 
 install : clean
 	cd libdoc ; $(MAKE)
+	./makeadp
 	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
 
 clean : 
