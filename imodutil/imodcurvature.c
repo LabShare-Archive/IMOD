@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2006/06/14 14:21:01  mast
+Needed to eliminate ;;
+
 Revision 3.1  2006/06/14 04:28:43  mast
 Initial creation
 
@@ -38,8 +41,8 @@ static int circleThrough3Pts(float x1, float y1, float x2, float y2, float x3,
 static int fitSphere(float *xpt, float *ypt, float *zpt, int numPts,
                      float *rad, float *xcen, float *ycen, float *zcen,
                      float *rmsErr);
-static float circleErr(float *y);
-static float sphereErr(float *y);
+static void circleErr(float *y, float *error);
+static void sphereErr(float *y, float *error);
 static int encodeCurvature(Imod *mod, Iobj *obj, float rCritLo, float rCritHi,
                            float window, float sample, float fitCrit,
                            int pointSize, float symZoom, int numCol,
@@ -888,7 +891,7 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
   int iter, jmin, i, j, nvar;
   float errmin, ftol1, ftol2, delfac, ptol1, ptol2;
   float da[MAXVAR] = {2., 2., 2., 2.};
-  float (*funk)(float *) = circleErr;
+  void (*funk)(float *, float *) = circleErr;
   
   delfac = 2.;
   ftol2 = 5.e-4;
@@ -911,7 +914,7 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
     nvar = 4;
   }
 
-  errmin = funk(a);
+  funk(a, &errmin);
   if (errmin > 0.) {
     amoebaInit(&pp[0][0], yy, MAXVAR + 1, nvar, delfac, ptol2, a, da, funk,
                ptol);
@@ -924,7 +927,7 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
     amoeba(&pp[0][0], yy, MAXVAR + 1, nvar, ftol1, funk, &iter, ptol, &jmin);
     for (i = 0; i < nvar; i++)
       a[i] = pp[i][jmin];
-    errmin = funk(a);
+    funk(a, &errmin);
   }
 
   *rad  = a[0];
@@ -937,7 +940,7 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
 }
 
 /* Function to compute the error of the circle fit for given vector y */
-static float circleErr(float *y)
+static void circleErr(float *y, float *error)
 {
   float xcen, ycen, rad;
   double delx, dely, delrad, err;
@@ -954,11 +957,11 @@ static float circleErr(float *y)
     err += delrad * delrad;
   }
 
-  return (float)(err / numpt);
+  *error = (float)(err / numpt);
 }
 
 /* Function to compute the error of the sphere fit for given vector y */
-static float sphereErr(float *y)
+static void sphereErr(float *y, float *error)
 {
   float xcen, ycen, zcen, rad;
   double delx, dely, delz, delrad, err;
@@ -977,7 +980,7 @@ static float sphereErr(float *y)
     err += delrad * delrad;
   }
 
-  return (float)(err / numpt);
+  *error = (float)(err / numpt);
 }
 
 
