@@ -620,11 +620,12 @@ extern "C" {
   int *parselist (char *line, int *nlist);
 
   /* amoeba.c - simplex minimization routine */
-  void amoeba(float *p, float *y, int mp,  int ndim, float ftol, 
-              float (*funk)(float *), int *iterP, float *ptol, int *iloP);
+  void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
+              void (*funk)(float *, float *), int *iterP, float *ptol,
+              int *iloP);
   void amoebaInit(float *p, float *y, int mp, int ndim, float delfac, 
-                  float ptolFac, float *a, float *da, float (*funk)(float *), 
-                  float *ptol);
+                  float ptolFac, float *a, float *da, 
+                  void (*funk)(float *, float *), float *ptol);
 
 #ifdef __cplusplus
 }
@@ -632,6 +633,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.30  2006/06/06 16:25:06  mast
+    Added amoeba declarations
+
     Revision 3.29  2005/12/11 18:24:36  mast
     Added world flag for kicking extreme clipping planes farther out
 
