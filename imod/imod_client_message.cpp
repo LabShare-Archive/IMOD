@@ -66,7 +66,19 @@ static int message_action = MESSAGE_NO_ACTION;
 static QStringList messageStrings;
 static int message_stamp = -1;
 
-ImodClipboard::ImodClipboard()
+#define STDIN_INTERVAL  50
+#define MAX_LINE 256
+static char threadLine[MAX_LINE];
+static bool gotLine = false;
+static int lineLen;
+
+#ifdef QT_THREAD_SUPPORT
+static QMutex mutex;
+static StdinThread *stdThread = NULL;
+#endif
+
+
+ImodClipboard::ImodClipboard(bool useStdin)
   : QObject()
 {
   QClipboard *cb = QApplication::clipboard();
@@ -75,17 +87,37 @@ ImodClipboard::ImodClipboard()
   mExiting = false;
   mClipTimer = NULL;
   mClipHackTimer = NULL;
+  mStdinTimer = NULL;
+  mUseStdin = useStdin;
+  if (useStdin) {
+#ifdef QT_THREAD_SUPPORT
+    stdThread = new StdinThread();
+    stdThread->start();
+#endif
+    mStdinTimer = new QTimer(this);
+    connect(mStdinTimer, SIGNAL(timeout()), this, SLOT(stdinTimeout()));
+    mStdinTimer->start(STDIN_INTERVAL);
+  } else {
 
-  // If the hack is needed, start a timer to check the clipboard
+    // If the hack is needed, start a timer to check the clipboard
 #ifdef CLIPBOARD_TIMER_HACK
-  mClipHackTimer = new QTimer(this);
-  connect(mClipHackTimer, SIGNAL(timeout()), this, SLOT(clipHackTimeout()));
-  mSavedClipboard = cb->text();
-  mClipHackTimer->start(CLIPBOARD_TIMER_HACK);
+    mClipHackTimer = new QTimer(this);
+    connect(mClipHackTimer, SIGNAL(timeout()), this, SLOT(clipHackTimeout()));
+    mSavedClipboard = cb->text();
+    mClipHackTimer->start(CLIPBOARD_TIMER_HACK);
 #else
+    
+    // Otherwise just connect to signal for changes
+    connect(cb, SIGNAL(dataChanged()), this, SLOT(clipboardChanged()));
+#endif
+  }
+}
 
-  // Otherwise just connect to signal for changes
-  connect(cb, SIGNAL(dataChanged()), this, SLOT(clipboardChanged()));
+ImodClipboard::~ImodClipboard()
+{
+#ifdef QT_THREAD_SUPPORT
+  if (mUseStdin && stdThread->running())
+    stdThread->terminate();
 #endif
 }
 
@@ -157,6 +189,31 @@ void ImodClipboard::clipHackTimeout()
   clipboardChanged();
 }
 
+// Timer to check for stdin messages
+void ImodClipboard::stdinTimeout()
+{
+#ifdef QT_THREAD_SUPPORT
+
+  // See if the thread got a line
+  // Copy the line while we have the mutex
+  bool gotOne;
+  QString text;
+  mutex.lock();
+  gotOne = gotLine;
+  gotLine = false;
+  if (gotOne)
+     text = threadLine;
+  mutex.unlock();
+  if (!gotOne)
+    return;
+  messageStrings = QStringList::split(" ", text);
+
+  // Start timer to execute message just as for clipboard
+  mClipTimer = new QTimer(this);
+  connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
+  mClipTimer->start(10, true);
+#endif
+}
 
 // Parse the message, see if it is for us, and save in local variables
 bool ImodClipboard::handleMessage()
@@ -220,7 +277,7 @@ bool ImodClipboard::executeMessage()
   int numArgs = messageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
-  for (arg = 2; arg < numArgs; arg++) {
+  for (arg = mUseStdin ? 0 : 2; arg < numArgs; arg++) {
     imod = App->cvi->imod;
 
     // Get the action, then check that there are enough values for it
@@ -463,6 +520,7 @@ bool ImodClipboard::executeMessage()
   return message_action == MESSAGE_QUIT;
 }
 
+// Send response to clipboard or standard error
 void ImodClipboard::sendResponse(int succeeded)
 {
   static int lastResponse = 0;
@@ -471,9 +529,13 @@ void ImodClipboard::sendResponse(int succeeded)
     succeeded = lastResponse;
   lastResponse = succeeded;
   str.sprintf("%u %s", ourWindowID(), succeeded ? "OK" : "ERROR");
-  QClipboard *cb = QApplication::clipboard();
-  cb->setSelectionMode(false);
-  cb->setText(str);
+  if (mUseStdin) {
+    imodPrintStderr("%s\n", str.latin1());
+  } else {
+    QClipboard *cb = QApplication::clipboard();
+    cb->setSelectionMode(false);
+    cb->setText(str);
+  }
 }
 
 unsigned int ImodClipboard::ourWindowID()
@@ -483,8 +545,40 @@ unsigned int ImodClipboard::ourWindowID()
   return (unsigned int)Imodv->mainWin->winId();
 }
 
+#ifdef QT_THREAD_SUPPORT
+
+// The thread loops on reading a line and sets the flag when it gets one
+void StdinThread::run()
+{
+  bool gotOne;
+  while (1) {
+    mutex.lock();
+    gotOne = gotLine;
+    mutex.unlock();
+
+    // Do not go for another line until the main thread has cleared the flag
+    if (gotOne)
+      continue;
+    
+    fgets(threadLine, MAX_LINE, stdin);
+    if (threadLine[MAX_LINE - 1])
+      threadLine[MAX_LINE - 1] = 0x00;
+    while (threadLine[strlen(threadLine) - 1] == '\n' || 
+           threadLine[strlen(threadLine) - 1] == '\r')
+      threadLine[strlen(threadLine) - 1] = 0x00;
+    mutex.lock();
+    gotLine = true;
+    mutex.unlock();
+  }
+}    
+#endif
+
+
 /*
 $Log$
+Revision 4.22  2005/10/14 22:04:39  mast
+Changes for Model reload capability
+
 Revision 4.21  2004/09/24 18:08:59  mast
 Added message for passing message to plugins
 
