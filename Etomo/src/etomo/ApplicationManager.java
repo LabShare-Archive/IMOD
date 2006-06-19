@@ -476,6 +476,8 @@ public final class ApplicationManager extends BaseManager {
       metaData.setComScriptCreated(true);
       EtomoDirector.getInstance().renameCurrentManager(
           metaData.getDatasetName());
+      closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
+      closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
     }
     //  Switch the main window to the procesing panel
     openProcessingPanel();
@@ -567,34 +569,15 @@ public final class ApplicationManager extends BaseManager {
     }
     else {
       updateEraserCom(axisID, false);
-      // If there are raw stack imod processes open ask the user if they
-      // should be closed.
-      try {
-        if (exitState != DialogExitState.SAVE
-            && imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
-          String[] message = new String[2];
-          message[0] = "The raw stack is open in 3dmod";
-          message[1] = "Should it be closed?";
-          if (uiHarness.openYesNoDialog(message, axisID)) {
-            imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
-          }
-        }
-      }
-      catch (AxisTypeException except) {
-        except.printStackTrace();
-        uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-            axisID);
-      }
-      catch (SystemProcessException except) {
-        except.printStackTrace();
-        uiHarness.openMessageDialog(except.getMessage(),
-            "Problem closing raw stack", axisID);
-      }
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
         mainPanel.setPreProcessingState(ProcessState.COMPLETE, axisID);
         //  Go to the coarse align dialog by default
         openCoarseAlignDialog(axisID);
+        // If there are raw stack imod processes open ask the user if they
+        // should be closed.
+        closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack");
+        closeImod(ImodManager.ERASED_STACK_KEY, axisID, "fixed stack");
       }
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
@@ -935,24 +918,7 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       sendMsgProcessFailed(processResultDisplay);
     }
-    try {
-      if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
-        String[] message = new String[2];
-        message[0] = "The replaced raw stack is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(message, axisID)) {
-          imodManager.quit(ImodManager.RAW_STACK_KEY, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-      System.err.println("Axis type exception in replaceRawStack");
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      System.err.println("System process exception in replaceRawStack");
-    }
+    closeImod(ImodManager.RAW_STACK_KEY, axisID, "raw stack");
     //An _orig.st file may have been created, so refresh the Clean Up dialog's
     //archive fields.
     if (cleanUpDialog != null) {
@@ -1147,26 +1113,7 @@ public final class ApplicationManager extends BaseManager {
           getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
           // Check to see if the user wants to keep any coarse aligned imods
           // open
-          try {
-            if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
-              String[] message = new String[2];
-              message[0] = "The coarsely aligned stack is open in 3dmod";
-              message[1] = "Should it be closed?";
-              if (uiHarness.openYesNoDialog(message, axisID)) {
-                imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
-              }
-            }
-          }
-          catch (AxisTypeException except) {
-            except.printStackTrace();
-            uiHarness.openMessageDialog(except.getMessage(),
-                "AxisType problem", axisID);
-          }
-          catch (SystemProcessException except) {
-            except.printStackTrace();
-            uiHarness.openMessageDialog(except.getMessage(),
-                "Problem closing coarse stack", axisID);
-          }
+          closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID, "coarsely aligned stack");
         }
         else {
           openFiducialModelDialog(axisID);
@@ -2205,8 +2152,10 @@ public final class ApplicationManager extends BaseManager {
       saveAlignmentEstimationDialog(fineAlignmentDialogB, AxisID.SECOND);
     }
 
-    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog(DialogExitState.SAVE);
-    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog(DialogExitState.SAVE);
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog(
+        DialogExitState.SAVE);
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog(
+        DialogExitState.SAVE);
     /*if (tomogramPositioningDialogA != null) {
      saveTomogramPositioningDialog(tomogramPositioningDialogA, firstAxisID);
      }
@@ -2329,32 +2278,85 @@ public final class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
-        getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
-
         // Check to see if the user wants to keep any coarse aligned imods
         // open
-        try {
-          if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
-            String[] message = new String[2];
-            message[0] = "The coarsely aligned stack is open in 3dmod";
-            message[1] = "Should it be closed?";
-            if (uiHarness.openYesNoDialog(message, axisID)) {
-              imodManager.quit(ImodManager.COARSE_ALIGNED_KEY, axisID);
-            }
-          }
-        }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-              axisID);
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-              "Problem closing coarse stack", axisID);
-        }
+        closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID, "coarsely aligned stack");
+        closeImod(ImodManager.FIDUCIAL_MODEL_KEY, axisID, "fiducial model");
+        getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
       }
       saveIntermediateParamFile(axisID);
+    }
+  }
+  
+  private void closeImods(String key, AxisID axisID, String description) {
+    // Check to see if the user wants to keep any imods open
+    try {
+      if (imodManager.isOpen(key, axisID)) {
+        String[] message = new String[2];
+        message[0] = description + "(s) are open in 3dmod";
+        message[1] = "Should they be closed?";
+        if (uiHarness.openYesNoDialog(message, axisID)) {
+          imodManager.quitAll(key, axisID);
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem closing 3dmod", axisID);
+    }
+  }
+  
+  private void closeImod(String key, String description) {
+    // Check to see if the user wants to keep any imods open
+    try {
+      if (imodManager.isOpen(key)) {
+        String[] message = new String[2];
+        message[0] = "The " + description + " is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (uiHarness.openYesNoDialog(message, AxisID.ONLY)) {
+          imodManager.quit(key);
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem closing 3dmod", AxisID.ONLY);
+    }
+  }
+
+  public void closeImod(String key, AxisID axisID, String description) {
+    // Check to see if the user wants to keep any imods open
+    try {
+      if (imodManager.isOpen(key, axisID)) {
+        String[] message = new String[2];
+        message[0] = "The " + description + " is open in 3dmod";
+        message[1] = "Should it be closed?";
+        if (uiHarness.openYesNoDialog(message, axisID)) {
+          imodManager.quit(key, axisID);
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(),
+          "Problem closing 3dmod", axisID);
     }
   }
 
@@ -2635,13 +2637,13 @@ public final class ApplicationManager extends BaseManager {
       if (axisID == AxisID.SECOND) {
         if (tomogramPositioningExpertB == null) {
           tomogramPositioningExpertB = new TomogramPositioningExpert(this,
-              mainPanel, processTrack, imodManager, axisID);
+              mainPanel, processTrack, axisID);
         }
         return tomogramPositioningExpertB;
       }
       if (tomogramPositioningExpertA == null) {
         tomogramPositioningExpertA = new TomogramPositioningExpert(this,
-            mainPanel, processTrack, imodManager, axisID);
+            mainPanel, processTrack, axisID);
       }
       return tomogramPositioningExpertA;
     }
@@ -3164,6 +3166,8 @@ public final class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         mainPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
+        closeImod(ImodManager.MTF_FILTER_KEY, axisID, "filtered stack");
+        closeImods(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, "Trial tomogram");
         if (isDualAxis()) {
           mainPanel.showBlankProcess(axisID);
         }
@@ -3487,24 +3491,7 @@ public final class ApplicationManager extends BaseManager {
       sendMsgProcessFailed(processResultDisplay);
       return;
     }
-    try {
-      if (imodManager.isOpen(ImodManager.FINE_ALIGNED_KEY, axisID)) {
-        String[] message = new String[2];
-        message[0] = "The original full aligned stack is open in 3dmod";
-        message[1] = "Should it be closed?";
-        if (uiHarness.openYesNoDialog(message, axisID)) {
-          imodManager.quit(ImodManager.FINE_ALIGNED_KEY, axisID);
-        }
-      }
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-      System.err.println("Axis type exception in useMtfFilter");
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      System.err.println("System process exception in useMtfFilter");
-    }
+    closeImod(ImodManager.FINE_ALIGNED_KEY, axisID, "original full aligned stack");
     mainPanel.stopProgressBar(axisID);
     sendMsgProcessSucceeded(processResultDisplay);
   }
@@ -4050,6 +4037,10 @@ public final class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
+        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, "axis A full volume");
+        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, "axis B full volume");
+        closeImod(ImodManager.MATCH_CHECK_KEY, AxisID.SECOND, "match check volume");
+        closeImod(ImodManager.PATCH_VECTOR_MODEL_KEY, "patch vector model");
         openPostProcessingDialog();
       }
       saveIntermediateParamFile(AxisID.ONLY);
@@ -4910,6 +4901,9 @@ public final class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
+        closeImod(ImodManager.COMBINED_TOMOGRAM_KEY, "combined tomogram");
+        closeImod(ImodManager.TRIMMED_VOLUME_KEY, "trimmedl volume");
+        closeImod(ImodManager.SQUEEZED_VOLUME_KEY, "squeezed volume");
         openCleanUpDialog();
       }
       saveIntermediateParamFile(AxisID.ONLY);
@@ -5595,6 +5589,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.236  2006/06/16 15:23:48  sueh
+ * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
+ * <p> dialog.
+ * <p>
  * <p> Revision 3.235  2006/06/14 00:05:32  sueh
  * <p> bug# 852 Moved classes that know a autodoc language.
  * <p>
