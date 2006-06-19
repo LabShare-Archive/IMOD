@@ -71,6 +71,7 @@ typedef struct imod_autox_struct Autox;
 typedef struct xbldrcoloramp Cramp;
 class ImodWorkproc;
 class ImodAssistant;
+class ImodClipboard;
 
 typedef struct
 {
@@ -203,6 +204,7 @@ extern char *Imod_imagefile;
 extern QString Imod_cwdpath;
 extern QString Imod_IFDpath;
 extern ImodAssistant *ImodHelp;
+extern ImodClipboard *ClipHandler;
 
 extern int Rampbase;
 extern int (*ivwFastGetValue)(int x, int y, int z);
@@ -259,6 +261,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.31  2005/10/14 22:02:19  mast
+Added reloadable variable
+
 Revision 3.30  2004/12/04 02:10:16  mast
 Moved declaration of ImodHelp into here
 
