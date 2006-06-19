@@ -31,6 +31,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2006/04/11 13:47:10  sueh
+ * <p> bug# 809 Manage auto center and seed mode separately from
+ * <p> openBeadFixer so that seed mode doesn't always have to be managed.
+ * <p>
  * <p> Revision 3.37  2006/03/30 21:22:19  sueh
  * <p> bug# 809 Setting beadfixer diameter (fiducial diameter in pixels) when the
  * <p> reconstruction meta data is set.  Passing auto center and seed mode
@@ -365,7 +369,7 @@ import etomo.type.Run3dmodMenuOptions;
 public class ImodManager {
   public static final String rcsid = "$Id$";
 
-  public  static final int DEFAULT_BEADFIXER_DIAMETER = 3;
+  public static final int DEFAULT_BEADFIXER_DIAMETER = 3;
   private AxisType axisType = AxisType.SINGLE_AXIS;
   private String datasetName = "";
   private HashMap imodMap;
@@ -478,7 +482,8 @@ public class ImodManager {
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
     createPrivateKeys();
-    beadFixerDiameter = ((ApplicationManager) manager).getFiducialDiameterPerPixel();
+    beadFixerDiameter = ((ApplicationManager) manager)
+        .getFiducialDiameterPerPixel();
     if (axisType == AxisType.SINGLE_AXIS) {
       loadSingleAxisMap();
     }
@@ -728,7 +733,6 @@ public class ImodManager {
 
   public void quit(String key) throws AxisTypeException, SystemProcessException {
     quit(key, null);
-    //combinedTomogram.quit();
   }
 
   public void quit(String key, AxisID axisID) throws AxisTypeException,
@@ -738,7 +742,25 @@ public class ImodManager {
     if (imodState != null) {
       imodState.quit();
     }
-    //coarseAligned.quit();
+  }
+
+  public void quitAll(String key, AxisID axisID) throws AxisTypeException,
+      SystemProcessException {
+    Vector imodStateVector = getVector(getPrivateKey(key), axisID);
+    if (imodStateVector == null || imodStateVector.size() == 0) {
+      return;
+    }
+    for (int i = 0; i < imodStateVector.size(); i++) {
+      ImodState imodState = (ImodState) imodStateVector.get(i);
+      if (imodState != null && imodState.isOpen()) {
+        imodState.quit();
+        try {
+          Thread.sleep(500);
+        }
+        catch (InterruptedException e) {
+        }
+      }
+    }
   }
 
   public void quit() throws AxisTypeException, SystemProcessException {
@@ -782,16 +804,18 @@ public class ImodManager {
     }
     imodState.setOpenBeadFixer(openBeadFixer);
   }
-  
-  public void setAutoCenter(String key, AxisID axisID, boolean autoCenter) throws AxisTypeException{
+
+  public void setAutoCenter(String key, AxisID axisID, boolean autoCenter)
+      throws AxisTypeException {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
     }
     imodState.setAutoCenter(autoCenter);
   }
-  
-  public void setSeedMode(String key, AxisID axisID, boolean seedMode) throws AxisTypeException{
+
+  public void setSeedMode(String key, AxisID axisID, boolean seedMode)
+      throws AxisTypeException {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
@@ -1127,7 +1151,8 @@ public class ImodManager {
 
   protected ImodState newCoarseAligned(AxisID axisID) {
     ImodState imodState;
-    imodState = new ImodState(manager, axisID, datasetName, ".preali", beadFixerDiameter);
+    imodState = new ImodState(manager, axisID, datasetName, ".preali",
+        beadFixerDiameter);
     return imodState;
   }
 
