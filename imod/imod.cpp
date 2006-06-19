@@ -70,7 +70,8 @@ QString Imod_cwdpath;
 int    Imod_debug = FALSE;
 int    ImodTrans  = TRUE;
 int    Rampbase = RAMPBASE;
-ImodAssistant *ImodHelp;
+ImodAssistant *ImodHelp = NULL;
+ImodClipboard *ClipHandler = NULL;
 
 /*****************************************************************************/
 
@@ -159,6 +160,7 @@ int main( int argc, char *argv[])
   char *cmdLineStyle = NULL;
   int doImodv = 0;
   int overEntered = 0;
+  bool useStdin = false;
   int argScan;
   int nChars;
   QRect infoGeom;
@@ -192,6 +194,15 @@ int main( int argc, char *argv[])
     }
     if (!strcmp("-W", argv[i]))
       doFork = 0;
+
+    if (!strcmp("-L", argv[i])) {
+      doFork = 0;
+#ifndef QT_THREAD_SUPPORT
+      imodError(NULL, "Error: -L option cannot be used because "
+                "3dmod was not built with Qt thread support\n");
+      exit(1);
+#endif
+    }
 
     if (!strcmp("-ci", argv[i]))
       App->rgba = -1;  /* Set to -1 to force worthless Color index visual */
@@ -464,6 +475,10 @@ int main( int argc, char *argv[])
           iiRawSetSwap();
           break;
         
+        case 'L':
+          useStdin = true;
+          break;
+        
         default:
           break;
         
@@ -704,7 +719,7 @@ int main( int argc, char *argv[])
   }
 
   /* Get the clipboard messaging object on heap (doesn't work on stack!) */
-  ImodClipboard *clipHandler = new ImodClipboard();
+  ClipHandler = new ImodClipboard(useStdin);
 
   /********************************************/
   /* Load in image data, set up image buffer. */
@@ -802,6 +817,8 @@ void imod_exit(int retcode)
     ImodPrefs->saveSettings();       // specify settings
   if (ImodHelp)
     delete ImodHelp;
+  if (ClipHandler)
+    delete ClipHandler;
   // It did NOT work to use qApp->closeAllWindows after this
   if (!loopStarted)
     exit(retcode);
@@ -1046,6 +1063,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.53  2006/01/14 18:15:18  mast
+Call new function for model initialization
+
 Revision 4.52  2005/10/14 22:02:50  mast
 Call new function to set Imod_filename
 

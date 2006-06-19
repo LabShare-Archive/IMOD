@@ -405,7 +405,7 @@ int imodv_main(int argc, char **argv)
 {
   int i;
   int printID = 0;
-  ImodClipboard *clipHandler;
+  bool useStdin = false;
   ImodvApp *a = Imodv;
   char *windowKeys = NULL;
   a->standalone = 1;
@@ -443,6 +443,10 @@ int imodv_main(int argc, char **argv)
         windowKeys = strdup(argv[++i]);
         break;
 
+      case 'L':
+        useStdin = true;
+        break;
+        
       case 'h':
         usage(argv[0]);
         exit(1);
@@ -489,8 +493,9 @@ int imodv_main(int argc, char **argv)
   if (printID) {
     unsigned int winID = (unsigned int)a->mainWin->winId();
     imodPrintStderr("Window id = %u\n", winID);
-    clipHandler = new ImodClipboard();
   }
+  if (printID || useStdin)
+    ClipHandler = new ImodClipboard(useStdin);
 
   imodvOpenSelectedWindows(windowKeys);
 
@@ -664,6 +669,8 @@ void imodvQuit()
     // imod_info_input();   // This made it crash
     if (ImodHelp)
       delete ImodHelp;
+    if (ClipHandler)
+      delete ClipHandler;
     QApplication::exit(0);
   }
   return;
@@ -671,6 +678,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.28  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 4.27  2005/10/16 20:27:07  mast
 INitialize scaling of all views in standalone mode too
 
