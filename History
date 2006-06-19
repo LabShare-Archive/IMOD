@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/18/06: Added ability to use standard input instead of clipboard for messaging
+to 3dmod.
+
+6/18/06: Fixed programs using new version of amoeba search routine, broken
+at least in 64-bit Linux.
+
 6/16/06: Added open/close and advanced/basic mini-buttons to the fiducial model
 dialog.
 

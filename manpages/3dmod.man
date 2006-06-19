@@ -354,6 +354,10 @@ depth cue and S for stereo.
 Output the window ID of the 3dmod Information Window and do not put 3dmod
 in the background automatically.
 .TP
+.B -L
+Listen for messages on standard input instead of the clipboard, and do not 
+put 3dmod in the background automatically.
+.TP
 .B -D
 Run in debug mode with diagnostic output and without becoming a background
 process.  Key letters can be added after the D (but with no intervening

@@ -33,6 +33,10 @@ Open the windows specified by the key letters, which are the same as the
 hot keys for opening windows (m, O, C, L, B, M, V, I), plus D for
 depth cue and S for stereo.
 .TP
+.B -L
+Listen for messages on standard input instead of the clipboard, and do not 
+put 3dmodv in the background automatically.
+.TP
 .B -D
 Run in debug mode with diagnostic output and without becoming a background
 process.
