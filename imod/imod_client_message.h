@@ -1,30 +1,9 @@
-/*  IMOD VERSION 2.7.2
- *
- *  $Id$
+/*
+ * imod_client_message.h
  *
  *  Original Author: David Mastronarde   email: mast@colorado.edu
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-1998 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -69,8 +48,8 @@ class ImodClipboard : public QObject
   Q_OBJECT
 
  public:
-  ImodClipboard();
-  ~ImodClipboard() {};
+  ImodClipboard(bool useStdin);
+  ~ImodClipboard();
   bool handleMessage();
   bool executeMessage();
   void sendResponse(int succeeded);
@@ -78,22 +57,42 @@ class ImodClipboard : public QObject
 
   QTimer *mClipTimer;
   QTimer *mClipHackTimer;
+  QTimer *mStdinTimer;
 
  public slots:
   void clipTimeout();
+  void stdinTimeout();
   void clipHackTimeout();
   void clipboardChanged();
 
  private:  
   bool mHandling;
   bool mExiting;
+  bool mUseStdin;
   QString mSavedClipboard;
 };
+
+#ifdef QT_THREAD_SUPPORT
+#include <qthread.h>
+
+class StdinThread : public QThread
+{
+ public:
+  StdinThread() {};
+  ~StdinThread() {};
+
+ protected:
+  void run();
+};
+#endif
 
 
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.12  2006/02/13 05:09:13  mast
+Added beadfixer messages
+
 Revision 3.11  2004/09/24 17:59:02  mast
 Added plugin definitions
 
