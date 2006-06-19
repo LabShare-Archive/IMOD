@@ -16,6 +16,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2006/02/19 17:53:53  mast
+Allocate an array only big enough for the data type, test on array 
+allocation, and issue standard error messages (but still to stderr)
+
 Revision 3.5  2005/02/11 01:42:34  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -80,6 +84,9 @@ int main(int argc, char *argv[])
     psize = 1;
     break;
   case MRC_MODE_SHORT:
+    psize = 2;
+    break;
+  case MRC_MODE_USHORT:
     psize = 2;
     break;
   case MRC_MODE_RGB:

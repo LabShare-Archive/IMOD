@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2005/02/11 01:42:34  mast
+    Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
     Revision 3.3  2004/09/10 21:33:31  mast
     Eliminated long variables
 
@@ -802,11 +805,13 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 
   dataSize = xsize * ysize;
   switch(mode){
-  case 0:
+  case MRC_MODE_BYTE:
     pixSize = 1; break;
-  case 1:
+  case MRC_MODE_SHORT:
     pixSize = 2; break;
-  case 16:
+  case MRC_MODE_USHORT:
+    pixSize = 2; break;
+  case MRC_MODE_RGB:
     pixSize = 3; break;
   default:
     return(-50);
@@ -848,8 +853,9 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
     tiff_write_entry(278, 4, 1, ysize, fout);
     tiff_write_entry(279, 4, 1, xysize*pixSize, fout);
     tiff_write_entry(296, 3, 1, 1, fout);
-    if (mode)
-      tiff_write_entry(339, 3, 1, 2, fout);   /* signed integer */
+    
+    if (mode)   /* unsigned or signed integer */
+      tiff_write_entry(339, 3, 1, mode == MRC_MODE_USHORT ? 1 : 2, fout);   
     fwrite(&pixel, 4, 1, fout);
   }else{
     short bps = 8;
