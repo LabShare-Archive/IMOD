@@ -17,11 +17,9 @@ import etomo.comscript.TomopitchParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessState;
-import etomo.process.SystemProcessException;
 import etomo.storage.TomopitchLog;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.AxisTypeException;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
@@ -56,7 +54,6 @@ public final class TomogramPositioningExpert implements UIExpert {
   private final TomogramState state;
   private final MainTomogramPanel mainPanel;
   private final ProcessTrack processTrack;
-  private final ImodManager imodManager;
 
   private TomogramPositioningDialog dialog = null;
 
@@ -69,8 +66,7 @@ public final class TomogramPositioningExpert implements UIExpert {
   private boolean getBinningFromNewst = true;
 
   public TomogramPositioningExpert(ApplicationManager manager,
-      MainTomogramPanel mainPanel, ProcessTrack processTrack,
-      ImodManager imodManager, AxisID axisID) {
+      MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     comScriptMgr = manager.getComScriptManager();
@@ -78,7 +74,6 @@ public final class TomogramPositioningExpert implements UIExpert {
     state = manager.getState();
     this.mainPanel = mainPanel;
     this.processTrack = processTrack;
-    this.imodManager = imodManager;
   }
 
   private void setNextProcess(AxisID axisID, String nextProcess) {
@@ -259,27 +254,8 @@ public final class TomogramPositioningExpert implements UIExpert {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
         mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
+        manager.closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction");
         manager.openTomogramGenerationDialog(axisID);
-        try {
-          if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)) {
-            String[] message = new String[2];
-            message[0] = "The sample reconstruction is open in 3dmod";
-            message[1] = "Should it be closed?";
-            if (UIHarness.INSTANCE.openYesNoDialog(message, axisID)) {
-              imodManager.quit(ImodManager.SAMPLE_KEY, axisID);
-            }
-          }
-        }
-        catch (AxisTypeException except) {
-          except.printStackTrace();
-          UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-              "AxisType problem", axisID);
-        }
-        catch (SystemProcessException except) {
-          except.printStackTrace();
-          UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-              "Problem closing sample reconstruction", axisID);
-        }
       }
       manager.saveIntermediateParamFile(axisID);
     }
@@ -832,6 +808,10 @@ public final class TomogramPositioningExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/09 19:52:23  sueh
+ * <p> bug# 870 Added ways for ApplicationManager to force an exit state:
+ * <p> doneDialog(DialogExitState) and saveDialog(DialogExitState).
+ * <p>
  * <p> Revision 1.1  2006/05/19 19:52:01  sueh
  * <p> bug# 866 Class to contain all the functionality details associated with
  * <p> tomogram positioning.
