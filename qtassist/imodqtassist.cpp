@@ -159,17 +159,14 @@ void AssistantListener::timerEvent(QTimerEvent *e)
 #else
 
   // Non-windows fallback from threads uses the select operation on stdin
-  bool firstTime = true;
-  static fd_set readfds, writefds, exceptfds;
+  // Note that it did not work to keep these as statics and get first time only
+  fd_set readfds, writefds, exceptfds;
   struct timeval timeout;
 
-  if (firstTime) {
-    FD_ZERO(&readfds);
-    FD_ZERO(&writefds);
-    FD_ZERO(&exceptfds);
-    FD_SET(fileno(stdin), &readfds);
-    firstTime = false;
-  }
+  FD_ZERO(&readfds);
+  FD_ZERO(&writefds);
+  FD_ZERO(&exceptfds);
+  FD_SET(fileno(stdin), &readfds);
   timeout.tv_sec = 0;
   timeout.tv_usec = 0;
   if (select(1, &readfds, &writefds, &exceptfds, &timeout) <= 0)
@@ -218,8 +215,10 @@ void AssistantThread::run()
     mutex.unlock();
 
     // Do not go for another line until the main thread has cleared the flag
-    if (gotOne)
+    if (gotOne) {
+      usleep(20000);
       continue;
+    }
     
     lineLen = readLine(threadLine);
     mutex.lock();
@@ -234,16 +233,23 @@ void AssistantThread::run()
 // Common routine to read a line, strip endings, and return length
 static int readLine(char *line)
 {
-  fgets(line, MAX_LINE, stdin);
+  if (!fgets(line, MAX_LINE, stdin)) {
+    line[0] = 0x00;
+    return 0;
+  }
   if (line[MAX_LINE - 1])
     line[MAX_LINE - 1] = 0x00;
-  while (line[strlen(line) - 1] == '\n' || line[strlen(line) - 1] == '\r')
+  while (strlen(line) > 0 && 
+         (line[strlen(line) - 1] == '\n' || line[strlen(line) - 1] == '\r'))
     line[strlen(line) - 1] = 0x00;
   return strlen(line);
 }
 
 /*
     $Log$
+    Revision 1.7  2006/06/18 23:42:24  mast
+    Added option to keep sidebar
+
     Revision 1.6  2005/11/19 16:58:30  mast
     Corrected print statement
 
