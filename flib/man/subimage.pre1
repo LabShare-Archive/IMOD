@@ -28,8 +28,6 @@ INSERT OPTION TEXT HERE
   If there are no command-line arguments, Subimage takes sequential input
   the old way, with the following entries:
 
-  Inputs to the program are:
-
   Image file A
 
   List of section numbers for the images from file A; ranges may be entered,
