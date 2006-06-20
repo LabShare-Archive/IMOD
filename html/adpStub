@@ -7,7 +7,7 @@
     <property name="title">IMOD Help</property>
 </profile>
 
-<DCF  title="IMOD Help Pages">
+<DCF ref="./guide.html" title="IMOD Help Pages">
   <section ref="./guide.html" title="IMOD Guide"/>
   <section ref="./3dmodguide.html" title="3dmod Introduction"/>
   <section ref="./UsingEtomo.html" title="Using eTomo"/>
@@ -26,7 +26,7 @@
 INSERT 3DMOD.ADP
   </section>
 
-  <section  title="Man Pages">
+  <section ref="./program_listing.html" title="Man Pages">
 INSERT MAN PAGES
   </section>
 

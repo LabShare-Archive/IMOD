@@ -27,11 +27,13 @@ c       intordxtilt  order for interpolating X-tilted slice
 c       reproj     Flag to reproject at zero tilt
 c       
       integer limstack, limmask, limview, limwpos, limwidth, limwarp
+      integer limrays, limreproj
       parameter (limstack=120000000)
 c       parameter (limstack=2200000)
       parameter (limmask=20000)
       parameter (limview=720,limwidth=20000)
       parameter (limwpos=1600,limwarp=192000)
+      parameter (limrays = 2 * limwidth, limreproj = 40)
 c       
       integer*4 NSTACK,maxstack
       real*4 ARRAY(limstack)
@@ -39,8 +41,8 @@ c
 c       
       integer*4 npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE,npad,ithickout
       integer*4 nprj, mprj, nviews
-      real*4 ANGLES(limview),TITLE(20),pmin,pmax
-      COMMON /HEADER/npxyz,pmin,pmax,IWIDE,ITHICK,ISLICE,JSLICE
+      real*4 ANGLES(limview),TITLE(20),pmin,pmax,pmean
+      COMMON /HEADER/npxyz,pmin,pmax,pmean,IWIDE,ITHICK,ISLICE,JSLICE
      &    ,ANGLES,TITLE,npad,ithickout
       equivalence (nprj,npxyz(1)),(mprj,npxyz(2)),(nviews,npxyz(3))
 c       
@@ -85,3 +87,9 @@ c
       common /warps/ nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp,
      &    ifdelalpha,indwarp,delbeta, delalpha,cwarpb,swarpb,
      &    cwarpa,swarpa,fw,warpXZfac, warpYZfac
+c       
+      integer*4 nreproj, nraymax(limreproj), nrayinc(limrays)
+      real*4 xraystr(limrays), yraystr(limrays), cosReproj(limreproj)
+      real*4 sinReproj(limreproj)
+      common /reprjc/nreproj, nraymax, nrayinc, xraystr, yraystr, cosReproj,
+     &    sinReproj

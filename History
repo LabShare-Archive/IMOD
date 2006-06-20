@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/19/06: Added ability for Tilt to make reprojections at multiple nonzero 
+angles.
+
+6/19/06: Fixed polarity of projections from Xyzproj so that it will match
+input to Tilt, fixed a half-pixel shift, and converted to PIP.
+
 6/19/06: mrc2tif will now write unsigned integer files.
 
 6/19/06: Fixed a scaling problem in newstack when input was floating point.
