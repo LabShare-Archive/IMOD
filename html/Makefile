@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2006/06/19 14:11:48  mast
+#  Passed install dir to makeadp
+#
 #  Revision 3.9  2006/06/18 23:43:55  mast
 #  Added makeadp
 #
@@ -45,7 +48,7 @@
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages
 
 install : clean
 	cd libdoc ; $(MAKE)
