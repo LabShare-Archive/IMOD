@@ -44,8 +44,8 @@ request for a page.  If there is actually an error starting Qt Assistant,
 the program will exit with a non-zero exit status.  This will not happen until
 the first command to display a page.
 .P
-Enter a blank line to terminate the program and close the current Qt Assistant
-if one is open.
+Enter a line with just a "q" to terminate the program and close the current 
+Qt Assistant if one is open.
 .P
 Each page file entry is assumed to be relative to the 
 .B document_path
