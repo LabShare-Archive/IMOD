@@ -13,6 +13,11 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2006/05/17 00:09:15  mast
+c       Fixed scaling to avoid excessive amplification near edges; it now
+c       scales as if the block is padded with fill data on the sides.
+c       Added proper error exits.
+c
 c       Revision 3.3  2005/12/09 04:45:32  mast
 c       gfortran: .xor., continuation, or byte fixes
 c	
@@ -29,7 +34,7 @@ c
       parameter (limstack=20000000,limpix=40000,
      &    limproj=1440,limray=180*40000)
       real*4 array(limstack)
-      character*80 filin,filout
+      character*160 filin,filout
       character*1 xyz
       integer*4 nxyzin(3),mxyzin(3),nxyzout(3),nxyzst(3)
       real*4 cell(6),title(20)
@@ -46,27 +51,60 @@ c
       real*4 dmin,dmax,dmean,tiltstr,tiltend,tiltinc,scaladd,scalfac
       real*4 fill,dmin2,dmax2,dmean2,dsum,angle
       integer*4 istackdel,limslices,nloads,ioutbase,iproj,ixout
-      integer*4 iyoutstr,nslices,load1
+      integer*4 iyoutstr,nslices,load1,invertAng
       integer*4 izsec,indstack,iraybase,nraypts,iray,ipix
       real*4 xray,yray,dx,dy,v2,v4,v5,v6,v8,vmin,vmax,a,b,c,d
       real*4 sumtmp,rayfac,rayadd,tmin,tmax,tmean
-      integer*4 ixr,iyr,ixy,ixy4,ixy6,ixy8,ixy2,indout,kti,i,ind,iload
+      integer*4 ixr,iyr,ixy,ixy4,ixy6,ixy8,ixy2,indout,kti,i,ind,iload,ierr
       real*4 sind,cosd
       common /bigarr/ array,xraystr,yraystr,nrayinc
 c       
 c       7/7/00 CER: remove the encode's; titlech is the temp space
 c       
       character*80 titlech
+      character dat*9,tim*8
+c
+      logical pipinput
+      integer*4 numOptArg, numNonOptArg
+      integer*4 PipGetInteger,PipGetTwoFloats,PipGetFloat
+      integer*4 PipGetString,PipGetTwoIntegers,PipGetThreeFloats
+      integer*4 PipGetInOutFile
 c       
-      call setExitPrefix('ERROR: XYZPROJ - ')
-      write(*,'(1x,a,$)')'Input image file: '
-      read(*,'(a)')filin
+c       fallbacks from ../../manpages/autodoc2man -2 2  xyzproj
+c       
+      integer numOptions
+      parameter (numOptions = 13)
+      character*(40 * numOptions) options(1)
+      options(1) =
+     &    'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &    'axis:AxisToTiltAround:CH:@xminmax:XMinAndMax:IP:@'//
+     &    'yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@'//
+     &    'angles:StartEndIncAngle:FT:@mode:ModeToOutput:I:@'//
+     &    'width:WidthToOutput:I:@addmult:AddThenMultiply:FP:@'//
+     &    'fill:FillValue:F:@param:ParameterFile:PF:@help:usage:B:'
+c       
+      tiltstr = 0.
+      tiltend = 0.
+      tiltinc = 1.
+      scaladd=0.
+      scalfac=1. 
+      ifrayscale=1
+c       
+c       Pip startup: set error, parse options, check help, set flag if used
+c       
+      call PipReadOrParseOptions(options, numOptions, 'xyzproj',
+     &    'ERROR: XYZPROJ - ', .true., 3, 1, 1, numOptArg,
+     &    numNonOptArg)
+      pipinput = numOptArg + numNonOptArg .gt. 0
+
+      if (PipGetInOutFile('InputFile', 1, 'Name of input file', filin)
+     &    .ne. 0) call exiterror('NO INPUT FILE SPECIFIED')
 c       
       call imopen(1,filin,'ro')
       call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
 c       
-      write(*,'(1x,a,$)')'Output image file: '
-      read(*,'(a)')filout
+      if (PipGetInOutFile('OutputFile', 2, 'Name of output file', filout)
+     &    .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
 c       
       ix0=0
       ix1=nxin-1
@@ -74,10 +112,16 @@ c
       iy1=nyin-1
       iz0=0
       iz1=nzin-1
-      write(*,'(1x,a,/,a,$)')
-     &    'Enter index coordinates of block: ix0,ix1,iy0,iy1,iz0,iz1'
-     &    ,' (or / for whole volume): '
-      read(*,*)ix0,ix1,iy0,iy1,iz0,iz1
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('XMinAndMax', ix0, ix1)
+        ierr = PipGetTwoIntegers('YMinAndMax', iy0, iy1)
+        ierr = PipGetTwoIntegers('ZMinAndMax', iz0, iz1)
+      else
+        write(*,'(1x,a,/,a,$)')
+     &      'Enter index coordinates of block: ix0,ix1,iy0,iy1,iz0,iz1'
+     &      ,' (or / for whole volume): '
+        read(*,*)ix0,ix1,iy0,iy1,iz0,iz1
+      endif
       ix0=max(0,ix0)
       ix1=min(ix1,nxin-1)
       iy0=max(0,iy0)
@@ -86,11 +130,17 @@ c
       iz1=max(0,min(iz1,nzin-1))
       if(ix0.gt.ix1.or.iy0.gt.iy1)call exiterror('No volume specified')
 c       
-      write(*,'(1x,a,$)')'Axis to project around (enter X, Y or Z): '
-      read(*,'(a)')xyz
+      if (pipinput) then
+        if (PipGetString('AxisToTiltAround', xyz) .ne. 0) call exiterror(
+     &      'YOU MUST ENTER AN AXIS TO TILT AROUND')
+        ierr = PipGetThreeFloats('StartEndIncAngle', tiltstr,tiltend,tiltinc)
+      else
+        write(*,'(1x,a,$)')'Axis to project around (enter X, Y or Z): '
+        read(*,'(a)')xyz
 c       
-      write(*,'(1x,a,$)')'Starting, ending, increment tilt angles: '
-      read(*,*)tiltstr,tiltend,tiltinc
+        write(*,'(1x,a,$)')'Starting, ending, increment tilt angles: '
+        read(*,*)tiltstr,tiltend,tiltinc
+      endif
       do while (tiltstr.gt.180.)
         tiltstr=tiltstr-360.
       enddo
@@ -122,6 +172,7 @@ c
 c       set up size of slices within which to project sets of lines,
 c       total # of slices, and other parameters for the 3 cases
 c       
+      invertAng = 1
       if(xyz.eq.'x'.or.xyz.eq.'X')then          !tilt around X
         nxslice=nzblock
         nyslice=nyblock
@@ -136,42 +187,52 @@ c
         lenload=nxblock
         load0=iy0
         loaddir=1
-      else					!tilt around Z
+        invertAng = -1
+      elseif(xyz.eq.'z'.or.xyz.eq.'Z')then      !tilt around Z
         nxslice=nxblock
         nyslice=nyblock
         nyout=nzblock
         lenload=0
         load0=iz0
         loaddir=idirz
+      else
+        call exiterror('YOU MUST ENTER ONE OF X, Y, Z, x, y, or z FOR AXIS')
       endif
 c       
       nxout=nxslice
-      write(*,'(1x,a,i5,a,$)')'Width of output image [/ for',
-     &    nxout,']: '
-      read(*,*)nxout
-c       
       modeout=1
       if(modein.eq.2)modeout=2
-      write(*,'(1x,a,i2,a,$)')'Output data mode [/ ',modeout,
-     &    ']: '
-      read(*,*)modeout
-c       
-      ifrayscale=1
-c	write(*,'(1x,a,$)')'0 to scale by 1/(vertical thickness),'//
-c       &	    ' or 1 to scale by 1/(ray length): '
-c	read(*,*)ifrayscale
-c       
-      scaladd=0.
-      scalfac=1. 
-      write(*,'(1x,a,$)') 'Additional scaling factors to add '//
-     &    'then multiply by [/ for 0,1]: '
-      read(*,*)scaladd,scalfac
-c       
       fill=dmean
-      write(*,'(1x,a,/,a,f10.2,a,$)')
-     &    'Value to fill parts of output not projected to',
+c
+      if (pipinput) then
+        ierr = PipGetInteger('WidthToOutput', nxout)
+        ierr = PipGetInteger('ModeToOutput', modeout)
+        ierr = PipGetTwoFloats('AddThenMultiply', scaladd, scalfac)
+        ierr = PipGetFloat('FillValue', fill)
+
+      else
+        write(*,'(1x,a,i5,a,$)')'Width of output image [/ for',
+     &      nxout,']: '
+        read(*,*)nxout
+c         
+        write(*,'(1x,a,i2,a,$)')'Output data mode [/ ',modeout,
+     &      ']: '
+        read(*,*)modeout
+c         
+c         write(*,'(1x,a,$)')'0 to scale by 1/(vertical thickness),'//
+c         &	    ' or 1 to scale by 1/(ray length): '
+c         read(*,*)ifrayscale
+c         
+        write(*,'(1x,a,$)') 'Additional scaling factors to add '//
+     &      'then multiply by [/ for 0,1]: '
+        read(*,*)scaladd,scalfac
+c         
+        write(*,'(1x,a,/,a,f10.2,a,$)')
+     &      'Value to fill parts of output not projected to',
      &    '   (before scaling, if any) [/ for mean=',dmean,']: '
-      read(*,*)fill
+        read(*,*)fill
+      endif
+
       fill=(fill+scaladd)*scalfac
 c       
 c       set up output file and header
@@ -186,14 +247,15 @@ c
         cell(i)=nxyzout(i)
       enddo
       call ialcel(2,cell)
+      call time(tim)
+      call date(dat)
 c       
 c       7/7/00 CER: remove the encodes
 c       
 C       encode(80,301,title)ix0,ix1,iy0,iy1,iz0,iz1,xyz
-      write(titlech,301) ix0,ix1,iy0,iy1,iz0,iz1,xyz
+      write(titlech,301) ix0,ix1,iy0,iy1,iz0,iz1,xyz,dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
-301   format('Projection of block x:',2i4,'; y:'
-     &    ,2i4,'; z: ',2i4,' tilted around ',a1)
+301   format('XYZPROJ: x',2i5,', y',2i5,', z ',2i5,' about ',a1,t57,a9,2x,a8)
       dmax2=-1.e20
       dmin2=1.e20
       dsum=0.
@@ -211,15 +273,14 @@ c
 c       analyse the number of points on each ray in each projection
 c       
       do iproj=0,nzout-1
-        angle=tiltstr+iproj*tiltinc
+        angle=invertAng * (tiltstr+iproj*tiltinc)
         sinang(iproj)=sind(angle)
         cosang(iproj)=cosd(angle)
         iraybase=iproj*nxout
-        call set_projection_rays(angle, nxslice, nyslice, nxout,
-     &      xraystr(irayBase+1), yraystr(irayBase+1), nrayinc(irayBase+1),
-     &      nraymax(iproj))
+        call set_projection_rays(sinang(iproj), cosang(iproj), nxslice,
+     &      nyslice, nxout, xraystr(irayBase+1), yraystr(irayBase+1),
+     &      nrayinc(irayBase+1), nraymax(iproj))
       enddo
-
 c       
 c       loop on loads of several to many slices at once
 c       
@@ -292,9 +353,9 @@ c
 c               move along ray, computing at each point indexes and factors
 c               for quadratic interpolation
 c               
-              if (sinang(iproj).ne.0..or.cosang(iproj).ne.1.)then
+              if (sinang(iproj) .ne. 0.)then
                 do iray=0,nraypts-1
-                  xray=xraystr(ixout+iraybase)-iray*sinang(iproj)
+                  xray=xraystr(ixout+iraybase)+iray*sinang(iproj)
                   yray=yraystr(ixout+iraybase)+iray*cosang(iproj)
                   ixr=nint(xray)
                   iyr=nint(yray)
@@ -339,12 +400,13 @@ c                 simple case of straight projection
 c                 
                 ixr=nint(xraystr(ixout+iraybase))
                 iyr=nint(yraystr(ixout+iraybase))
+                ixy8 = sign(1., cosang(iproj))
                 do ipix=1,nslices
                   ixy=ixr+(iyr-1)*nxslice
                   sumtmp=0.
                   do iray=0,nraypts-1
                     sumtmp=sumtmp+array(ixy)
-                    ixy=ixy+nxslice
+                    ixy=ixy+nxslice*ixy8
                   enddo
                   ixr=ixr+istackdel
                   pixtmp(ipix)=sumtmp
