@@ -72,7 +72,7 @@ class ImodClipboard : public QObject
   QString mSavedClipboard;
 };
 
-#ifdef QT_THREAD_SUPPORT
+#if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
 #include <qthread.h>
 
 class StdinThread : public QThread
@@ -90,6 +90,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.13  2006/06/19 05:30:38  mast
+Added thread and timer for using standard input
+
 Revision 3.12  2006/02/13 05:09:13  mast
 Added beadfixer messages
 
