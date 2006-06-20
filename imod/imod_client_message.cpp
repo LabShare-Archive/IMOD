@@ -6,26 +6,6 @@
  *  Original author: David Mastronarde   email: mast@colorado.edu
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -38,6 +18,10 @@ Log at end of file
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#ifndef _WIN32
+#include <sys/select.h>
+#include <sys/time.h>
+#endif
 #include <qdir.h>
 #include <qregexp.h>
 #include <qtimer.h>
@@ -72,11 +56,12 @@ static char threadLine[MAX_LINE];
 static bool gotLine = false;
 static int lineLen;
 
-#ifdef QT_THREAD_SUPPORT
+#if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
 static QMutex mutex;
 static StdinThread *stdThread = NULL;
 #endif
 
+static int readLine(char *line);
 
 ImodClipboard::ImodClipboard(bool useStdin)
   : QObject()
@@ -90,7 +75,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
   mStdinTimer = NULL;
   mUseStdin = useStdin;
   if (useStdin) {
-#ifdef QT_THREAD_SUPPORT
+#if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
     stdThread = new StdinThread();
     stdThread->start();
 #endif
@@ -115,7 +100,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
 
 ImodClipboard::~ImodClipboard()
 {
-#ifdef QT_THREAD_SUPPORT
+#if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
   if (mUseStdin && stdThread->running())
     stdThread->terminate();
 #endif
@@ -192,12 +177,14 @@ void ImodClipboard::clipHackTimeout()
 // Timer to check for stdin messages
 void ImodClipboard::stdinTimeout()
 {
-#ifdef QT_THREAD_SUPPORT
+  QString text;
+  if (mHandling)
+    return;
 
+#ifdef _WIN32
   // See if the thread got a line
   // Copy the line while we have the mutex
   bool gotOne;
-  QString text;
   mutex.lock();
   gotOne = gotLine;
   gotLine = false;
@@ -206,13 +193,38 @@ void ImodClipboard::stdinTimeout()
   mutex.unlock();
   if (!gotOne)
     return;
+#else
+  fd_set readfds, writefds, exceptfds;
+  struct timeval timeout;
+
+  FD_ZERO(&readfds);
+  FD_ZERO(&writefds);
+  FD_ZERO(&exceptfds);
+  FD_SET(fileno(stdin), &readfds);
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+  if (select(1, &readfds, &writefds, &exceptfds, &timeout) <= 0)
+    return;
+
+  lineLen = readLine(threadLine);
+  text = threadLine;
+#endif
+
+  if (!lineLen) {
+    disconnect(mStdinTimer);
+    delete mStdinTimer;
+    mStdinTimer = NULL;
+    sendResponse(1);
+    return;
+  }
+
   messageStrings = QStringList::split(" ", text);
 
   // Start timer to execute message just as for clipboard
+  mHandling = true;
   mClipTimer = new QTimer(this);
   connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
   mClipTimer->start(10, true);
-#endif
 }
 
 // Parse the message, see if it is for us, and save in local variables
@@ -528,10 +540,10 @@ void ImodClipboard::sendResponse(int succeeded)
   if (succeeded < 0)
     succeeded = lastResponse;
   lastResponse = succeeded;
-  str.sprintf("%u %s", ourWindowID(), succeeded ? "OK" : "ERROR");
   if (mUseStdin) {
-    imodPrintStderr("%s\n", str.latin1());
+    imodPrintStderr("%s\n", succeeded ? "OK" : "ERROR");
   } else {
+    str.sprintf("%u %s", ourWindowID(), succeeded ? "OK" : "ERROR");
     QClipboard *cb = QApplication::clipboard();
     cb->setSelectionMode(false);
     cb->setText(str);
@@ -545,37 +557,56 @@ unsigned int ImodClipboard::ourWindowID()
   return (unsigned int)Imodv->mainWin->winId();
 }
 
-#ifdef QT_THREAD_SUPPORT
+#if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
 
 // The thread loops on reading a line and sets the flag when it gets one
 void StdinThread::run()
 {
   bool gotOne;
+  bool quit;
   while (1) {
     mutex.lock();
     gotOne = gotLine;
     mutex.unlock();
 
     // Do not go for another line until the main thread has cleared the flag
-    if (gotOne)
+    if (gotOne) {
+      usleep(20000);
       continue;
+    }
     
-    fgets(threadLine, MAX_LINE, stdin);
-    if (threadLine[MAX_LINE - 1])
-      threadLine[MAX_LINE - 1] = 0x00;
-    while (threadLine[strlen(threadLine) - 1] == '\n' || 
-           threadLine[strlen(threadLine) - 1] == '\r')
-      threadLine[strlen(threadLine) - 1] = 0x00;
+    lineLen = readLine(threadLine);
+    quit = (strlen(threadLine) == 1 && threadLine[0] == '4') || !lineLen;
     mutex.lock();
     gotLine = true;
     mutex.unlock();
+    if (quit)
+      break;
   }
 }    
 #endif
 
+// Common routine to read a line, strip endings, and return length
+static int readLine(char *line)
+{
+  if (!fgets(line, MAX_LINE, stdin)) {
+    line[0] = 0x00;
+    return 0;
+  }
+  if (line[MAX_LINE - 1])
+    line[MAX_LINE - 1] = 0x00;
+  while (strlen(line) > 0 && 
+         (line[strlen(line) - 1] == '\n' || line[strlen(line) - 1] == '\r'))
+    line[strlen(line) - 1] = 0x00;
+  return strlen(line);
+}
+
 
 /*
 $Log$
+Revision 4.23  2006/06/19 05:30:17  mast
+Added ability to use standard input instead of clipboard
+
 Revision 4.22  2005/10/14 22:04:39  mast
 Changes for Model reload capability
 
