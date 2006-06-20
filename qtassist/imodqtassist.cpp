@@ -178,10 +178,12 @@ void AssistantListener::timerEvent(QTimerEvent *e)
 #endif
 
   // Exit if blank line
-  if (!lineLen) {
+  if (lineLen == 1 && threadLine[0] == 'q') {
     QApplication::exit(0);
     return;
   }
+  if (!lineLen)
+    return;
 
   // Otherwise show page and report results
   err = imodHelp->showPage(line);
@@ -224,7 +226,7 @@ void AssistantThread::run()
     mutex.lock();
     gotLine = true;
     mutex.unlock();
-    if (!lineLen)
+    if (lineLen == 1 && threadLine[0] == 'q')
       return;
   }
 }    
@@ -247,6 +249,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.8  2006/06/20 04:39:47  mast
+    Cleanup up logic after experimenting in 3dmod and with no thread version
+
     Revision 1.7  2006/06/18 23:42:24  mast
     Added option to keep sidebar
 
