@@ -5,36 +5,38 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2006/05/17 00:05:18  mast
+c	  Added to library after extracting from xyzproj
+c	
 c
 c       !
-c       Sets up information about projection rays at the given [angle] through
+c       Sets up information about projection rays at an angle whose sine and
+c       cosine are [sinang] and [cosang], through
 c       an image slice whose size is [nxslice] by [nyslice].  The number of 
 c       rays, i.e. the size of centered output in X, is given by [nxout].
 c       The arrays [xraystr] and [yraystr] are returned with the coordinates
 c       at which to start each ray, the array [nrayinc] is returned with the
 c       number of points in each ray, and [nraymax] is returned with the 
-c       maximum number of points.
+c       maximum number of points.  [sinang] and [cosang] may be modified for
+c       projections very near vertical or horizontal.
 c       !
-      subroutine set_projection_rays(angle, nxslice, nyslice, nxout, xraystr,
-     &    yraystr, nrayinc, nraymax)
+      subroutine set_projection_rays(sinang, cosang, nxslice, nyslice,
+     &    nxout, xraystr, yraystr, nrayinc, nraymax)
       implicit none
-      real*4 angle, xraystr(*), yraystr(*)
+      real*4 xraystr(*), yraystr(*)
       integer*4 nxslice, nyslice, nxout, nrayinc(*), nraymax
       real*4 sinang, cosang, xraytmp, yraytmp,xgood(4),ygood(4)
       integer*4 nraytmp,ngoodinter,indgood,ixout
       real*4 tanang,rayintcp,xleft,xright,ybot,ytop,yleft,yright,xtop,xbot
       logical b3dxor
-      real*4 cosd, sind
-
-      sinang = sind(angle)
-      cosang = cosd(angle)
+c
       nraymax = 0
       do ixout=1,nxout
         nraytmp=0
 c         
 c         if a near-vertical projection, set up to be exactly vertical
-c         
-        if(abs(sinang).lt.0.01)then
+c         (limit was 0.01, try it at 0.001)
+        if(abs(sinang).lt.0.001)then
           sinang=0.
           cosang=sign(1.,cosang)
           if(cosang.gt.0.)then
@@ -42,19 +44,19 @@ c
             xraytmp=nxslice/2 + ixout - nxout/2
           else
             yraytmp=nyslice-1.
-            xraytmp=nxslice/2 + 2 + nxout/2 - ixout 
+            xraytmp=nxslice/2 + 1 + nxout/2 - ixout 
           endif		
           if(xraytmp.gt.1 .and. xraytmp.lt.nxslice)
      &        nraytmp=nyslice-2
 c           
 c           if a near-horizontal projection, set up to be exactly horizontal
 c           
-        elseif(abs(cosang).lt.0.01)then
+        elseif(abs(cosang).lt.0.001)then
           sinang=sign(1.,sinang)
           cosang=0.
-          if(sinang.lt.0.)then
+          if(sinang.gt.0.)then
             xraytmp=2.
-            yraytmp=nyslice/2 + 2 + nxout/2 - ixout
+            yraytmp=nyslice/2 + 1 + nxout/2 - ixout
           else
             xraytmp=nxslice-1.
             yraytmp=nyslice/2 + ixout - nxout/2
@@ -67,21 +69,21 @@ c
         else
           ngoodinter=0
           tanang=sinang/cosang
-          rayintcp=(ixout-1-nxout/2)/sinang
+          rayintcp=-(ixout-0.5-nxout/2)/sinang
 c           
 c           coordinates of edges of slice box
 c           
-          xleft=0.51-(nxslice/2)
-          xright=nxslice - 1.51 - (nxslice/2)
-          ybot=0.51-(nyslice/2)
-          ytop=nyslice - 1.51 - (nyslice/2)
+          xleft=1.01-(nxslice/2)
+          xright=nxslice - 1.01 - (nxslice/2)
+          ybot=1.01-(nyslice/2)
+          ytop=nyslice - 1.01 - (nyslice/2)
 c           
 c           corresponding intersections of the ray with extended edges
 c           
-          yleft=-xleft/tanang + rayintcp
-          yright=-xright/tanang + rayintcp
-          xbot=-(ybot-rayintcp)*tanang
-          xtop=-(ytop-rayintcp)*tanang
+          yleft=xleft/tanang + rayintcp
+          yright=xright/tanang + rayintcp
+          xbot=(ybot-rayintcp)*tanang
+          xtop=(ytop-rayintcp)*tanang
 c           
 c           make list of intersections that are actually within slice box
 c           
@@ -111,8 +113,8 @@ c
           if(ngoodinter.gt.0)then
             indgood=1
             if(b3dxor(ygood(2).lt.ygood(1), cosang.lt.0))indgood=2
-            xraytmp=xgood(indgood)+nxslice/2+1
-            yraytmp=ygood(indgood)+nyslice/2+1
+            xraytmp=xgood(indgood)+nxslice/2+0.5
+            yraytmp=ygood(indgood)+nyslice/2+0.5
             nraytmp=1+
      &          sqrt((xgood(1)-xgood(2))**2+(ygood(1)-ygood(2))**2)
             if(nraytmp.lt.3)nraytmp=0
