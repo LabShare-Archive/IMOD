@@ -197,7 +197,7 @@ int main( int argc, char *argv[])
 
     if (!strcmp("-L", argv[i])) {
       doFork = 0;
-#ifndef QT_THREAD_SUPPORT
+#if defined(_WIN32) && !defined(QT_THREAD_SUPPORT)
       imodError(NULL, "Error: -L option cannot be used because "
                 "3dmod was not built with Qt thread support\n");
       exit(1);
@@ -1063,6 +1063,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.54  2006/06/19 05:29:14  mast
+Added -L option to use stdin for messages; delete clipboard object on exit
+
 Revision 4.53  2006/01/14 18:15:18  mast
 Call new function for model initialization
 
