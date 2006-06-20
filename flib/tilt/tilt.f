@@ -29,11 +29,12 @@ c
       integer*4 lsstart,lsend,lsmin,lsmax,lslice,needstart,needend,itryend
       integer*4 itry,ifenough,laststart,lastend,ixleft,nxassay,minslice,i
       integer*4 maxslice,iassay,ixsam,iv,iy,ind1,ind2,ind3,ind4,iyp,nalready
-      real*4 dtot,dmin,dmax,ycenfix,abssal,tanalpha,dxassay,dxtmp,xx,yy,zz
+      real*4 dmin,dmax,ycenfix,abssal,tanalpha,dxassay,dxtmp,xx,yy,zz
       real*4 xp,yp,xp2,yp2,xp3,yp3,xp4,yp4,f1,f2,f3,f4,valmin,xsum,stmean
       integer*4 ibase,lstart,nv,ISTART,NL,iyload,nsum,ix,ipad,ioffset
       integer*4 iringstart,mode
-      real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN
+      real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
+      real*8 dtot8
 
       TMASK = -1.E+30
       maxSTACK=limstack
@@ -41,9 +42,10 @@ c
       nsliceout=0
       memBigCrit = 20000000
       memBigOutLim = 10
-      DTOT=0.
+      DTOT8=0.
       DMIN=1.E30
       DMAX=-1.E30
+      call setExitPrefix('ERROR: TILT - ')
 C       
 C       Open files and read control data
       CALL INPUT
@@ -286,7 +288,7 @@ c
             enddo
 c             print *,'itryend,needstart,needend,lastready',itryend,
 c             &           needstart,needend,lastready
-            if(needend.eq.0) call errorexit
+            if(needend.eq.0) call exitError
      &          ('INSUFFICIENT STACK SPACE TO DO A SINGLE SLICE')
 c             
 c             if some are already loaded, need to shift them down
@@ -411,7 +413,7 @@ c           print *,'composing',lsliceout,' from',lvsstart,lvsend,iringstart
         endif
 C         
 C         Write out current slice
-        CALL DUMP(LSLICEout,DMIN,DMAX,DTOT)
+        CALL DUMP(LSLICEout,DMIN,DMAX,DTOT8)
 c         DNM 10/22/03:  Can't use flush in Windows/Intel because of sample.com
 c         call flush(6)
 c         
@@ -424,7 +426,7 @@ c
           nxyztmp(3)=nsliceout
           if(mod(nsliceout,interhsave).eq.1)then 
             call ialsiz(2,nxyztmp,nxyzst)
-            DMEAN=DTOT/(float(NSLICEout)*IWIDE*ITHICK)
+            DMEAN=DTOT8/(float(NSLICEout)*IWIDE*ITHICK)
             CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
             call imposn(2,nsliceout,0)
           endif
@@ -438,7 +440,10 @@ C-----------------
 C       
 C       Close files
       CALL IMCLOSE(1)
-      DMEAN=DTOT/(float(NSLICE)*IWIDE*ITHICK)
+      pixelTot = float(NSLICE)*IWIDE*ITHICK
+      if (reproj) pixelTot = float(NSLICE)*IWIDE*nreproj
+      print *,pixeltot,dtot8
+      DMEAN=DTOT8/pixelTot
 
       if (minTotSlice.le.0) then
         if(perp.and.interhsave.gt.0.and..not.reproj)then
@@ -450,7 +455,7 @@ C       Close files
         CALL IRDHDR(2,nxyztmp,nxyzst,MODE,DMIN,DMAX,DMEAN)
       else
         write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dmin,dmax,dmean,
-     &      float(NSLICE)*IWIDE*ITHICK
+     &      pixelTot
       endif
       CALL IMCLOSE(2)
       if(fastbp)then
@@ -470,12 +475,12 @@ C
 C       
 900   FORMAT(//' STACK LOADING'
      &    /' -------------'
-     &    //' Total stack size           ',I10/
-     &    /,1x,a20,'         ',I8/,a,//,
-     &    ' Output slice                 ',I8,/)
-901   format(' Stretching buffer            ',I8,/)
-902   format(1x,i4,  ' Untilted slices         ',I8,/)
-903   format(1X,I4,' Transposed projections  ',I8,/)
+     &    //' Total stack size           ',I11/
+     &    /,1x,a20,'         ',I9/,a,//,
+     &    ' Output slice                 ',I9,/)
+901   format(' Stretching buffer            ',I9,/)
+902   format(1x,i4,  ' Untilted slices         ',I9,/)
+903   format(1X,I4,' Transposed projections  ',I9,/)
 905   format(//' To scale output to bytes (10-245), use SCALE',f12.3,
      &    f12.5)
 910   FORMAT(//' Reconstruction of',I5,' slices complete.',
@@ -1371,20 +1376,21 @@ c             print *,'filling',j
       end
 C       
 C-------------------------------------------------------------------------
-      SUBROUTINE DUMP(LSLICE,DMIN,DMAX,DTOT)
+      SUBROUTINE DUMP(LSLICE,DMIN,DMAX,DTOT8)
 C       --------------------------------------
 C       
       implicit none
       include 'tilt.inc'
-      integer*4 lslice,nparextra,iend,index,i,j
-      real*4 DMIN,DMAX,DTOT,dtmp
+      integer*4 lslice,nparextra,iend,index,i,j,iaryBase
+      real*4 DMIN,DMAX,fill,projline(limwidth)
+      real*8 dtot8,dtmp8
 c       
       nparextra=100
       IEND=IMAP+ITHickout*iwide-1
 C       
 C       Scale
 c       DNM simplified and fixed bug in getting min/max/mean
-      dtmp=0.
+      dtmp8=0.
 c       
 c       DNM 9/23/04: incorporate reproj option
 c       
@@ -1398,21 +1404,26 @@ C--------------Scale
             ARRAY(I)=(ARRAY(I)+FLEVL)*SCALE
           END IF
         enddo
-        index=imap+iwide
-        do j=2,ithick
-          do i=0,iwide-1
-            array(imap+i)=array(imap+i)+array(index+i)
+c         
+c         Fill value assumes zero mean from radial filtering
+c
+        fill = flevl * scale
+        do j = 1, nreproj
+          i=(j-1) * iwide + 1
+          call reproject(array(imap), iwide, ithick, iwide, sinReproj(j),
+     &        cosReproj(j), xraystr(i), yraystr(i),
+     &        nrayinc(i), nraymax(j), fill, projline)
+          do i=1,iwide
+            DMIN=AMIN1(PROJLINE(I),DMIN)
+            DMAX=AMAX1(PROJLINE(I),DMAX)
+            DTmp8=DTmp8+PROJLINE(I)
           enddo
-          index=index+iwide
+                  i = (lslice - islice) / idelslice
+          if (minTotSlice .gt. 0) i = lslice - minTotSlice
+          call imposn(2, j - 1, i)
+          call iwrlin(2,projline)
         enddo
-        do i=imap,imap+iwide-1
-          array(i)=array(i)/ithick
-          DMIN=AMIN1(ARRAY(I),DMIN)
-          DMAX=AMAX1(ARRAY(I),DMAX)
-          DTmp=DTmp+ARRAY(I)
-        enddo
-        dtot=dtot+dtmp
-        call iwrlin(2,array(imap))
+        dtot8=dtot8+dtmp8
         return
       endif
 c       
@@ -1426,10 +1437,10 @@ C--------------Scale
         END IF
         DMIN=AMIN1(ARRAY(I),DMIN)
         DMAX=AMAX1(ARRAY(I),DMAX)
-        DTmp=DTmp+ARRAY(I)
+        DTmp8=DTmp8+ARRAY(I)
 C         
       enddo
-      dtot=dtot+dtmp
+      dtot8=dtot8+dtmp8
 C       
 C       Dump slice
       IF(PERP)THEN
@@ -1502,7 +1513,7 @@ c
       real*4 repinc(limview)
       include 'fbpswitch.inc'
       integer*4 mode,newangles,iftiltfile,nvuse,nvexcl
-      real*4 pmean, delang,compfac,globalpha,xoffset,scalelocal,rrmax,rfall
+      real*4 delang,compfac,globalpha,xoffset,scalelocal,rrmax,rfall
       integer*4 irmax,ifall,ncompress,nxfull,nyfull,ixsubset,iysubset
       integer*4 interpfbp,kti,indbase,ipos,idtype,lens,label
       integer*4 nd1,nd2,nv,nslice,indi,i,iex,nvorig,irep,iv
@@ -1525,7 +1536,7 @@ C       Open input projection file
       CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
       NVIEWS=NPXYZ(3)
 c       
-      if (nviews.gt.limview) call errorexit
+      if (nviews.gt.limview) call exitError
      &    ('Too many images in tilt series.')
       newangles=0
       iftiltfile=0
@@ -1605,6 +1616,7 @@ c...... Default double-width linear interpolation in cosine stretching
       interpfbp=-1
       perp=.true.
       reproj=.false.
+      nreproj = 0
 c       
 c...... Default title
       CALL DATE(DAT)
@@ -1643,7 +1655,7 @@ C
 C       THICKNESS card
 300   IF(NFIELDS.NE.1)GO TO 9999
       ITHICK=INUM(1)
-      if(ithick.gt.limmask)call errorexit('Thickness too high for arrays')
+      if(ithick.gt.limmask)call exitError('Thickness too high for arrays')
       ifThickIn = 1
       GO TO 1
 C       
@@ -1690,16 +1702,16 @@ c
 c       MODE card
 1000  newmode=inum(1)
       if(newmode.lt.0.or.newmode.gt.15 .or.
-     &    (newmode.gt.2.and.newmode.lt.9))call errorexit(
+     &    (newmode.gt.2.and.newmode.lt.9))call exitError(
      &    'Illegal output mode')
       write(6,1001)newmode
       go to 1
 C       
 c       INCLUDE card
-1100  if(nvexcl.gt.0)call errorexit(
+1100  if(nvexcl.gt.0)call exitError(
      &    'Illegal to have both INCLUDE and EXCLUDE cards')
       do 1110 i=1,nfields
-        if(inum(i).lt.1.or.inum(i).gt.nviews) call errorexit(
+        if(inum(i).lt.1.or.inum(i).gt.nviews) call exitError(
      &      'Illegal view number in INCLUDE list')
         nvuse=nvuse+1
         mapuse(nvuse)=inum(i)
@@ -1707,10 +1719,10 @@ c       INCLUDE card
       go to 1
 C       
 c       EXCLUDE card
-1200  if(nvuse.gt.0)call errorexit(
+1200  if(nvuse.gt.0)call exitError(
      &    'Illegal to have both INCLUDE and EXCLUDE cards')
       do 1210 i=1,nfields
-        if(inum(i).lt.1.or.inum(i).gt.nviews)call errorexit(
+        if(inum(i).lt.1.or.inum(i).gt.nviews)call exitError(
      &      'Illegal view number in EXCLUDE list')
         nvexcl=nvexcl+1
         ivexcl(nvexcl)=inum(i)
@@ -1718,11 +1730,11 @@ c       EXCLUDE card
       go to 1
 c       
 c       EXCLUDELIST card
-1250  if(nvuse.gt.0)call errorexit(
+1250  if(nvuse.gt.0)call exitError(
      &    'Illegal to have both INCLUDE and EXCLUDE cards')
       call parselist(card,ivexcl(nvexcl+1),nexclist)
       do i=nvexcl+1,nvexcl+nexclist
-        if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)call errorexit(
+        if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)call exitError(
      &      'Illegal view number in EXCLUDE list')
       enddo
       nvexcl=nvexcl+nexclist
@@ -1822,6 +1834,7 @@ c       read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
       call frefor(titlech,delbeta,ninp)
       ifdelalpha=0
       if(ninp.gt.6)ifdelalpha=nint(delbeta(7))
+      pixelLocal = 0.
       if (ninp .gt. 7) pixelLocal = delbeta(8)
       localZfacs = 0
       if (ninp .gt. 8) localZfacs = delbeta(9)
@@ -1832,7 +1845,7 @@ c       read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
       idxwarp=nint(delbeta(5))
       idywarp=nint(delbeta(6))
       if(nxwarp*nywarp.gt.limwpos.or.nxwarp*nywarp*nviews.gt.limwarp)
-     &    call errorexit(
+     &    call exitError(
      &    'ARRAY SIZE INSUFFICIENT FOR LOCAL TILT ALIGNMENT DATA')
       indbase=0
       do ipos=1,nxwarp*nywarp
@@ -1866,7 +1879,7 @@ c
       close(3)
       write(6,2401)
       go to 1
-2410  call errorexit(
+2410  call exitError(
      &    'ERROR READING LOCAL TILT ALIGNMENT DATA FROM FILE')
 c       
 c       LOCALSCALE card
@@ -1919,9 +1932,20 @@ c       XTILTINTERP card
       endif
       go to 1
 C       
-C       REPROJECT card
-3100  reproj=.TRUE.
-      WRITE(6,3101)
+C       REPROJECT card - may have no entry or angles
+3100  if (nfields.eq.0) then
+        nfields = 1
+        xnum(1) = 0.
+      endif
+      if (nfields + nreproj .gt. limreproj) call exitError(
+     &    'TOO MANY REPROJECTION ANGLES FOR ARRAYS')
+      do i = 1, nfields
+        nreproj = nreproj + 1
+        cosReproj(nreproj) = cos(dtor * xnum(i))
+        sinReproj(nreproj) = sin(dtor * xnum(i))
+      enddo      
+      if (.not.reproj)WRITE(6,3101)
+      reproj=.TRUE.
       GO TO 1
 c       
 c       ZFACTORFILE card
@@ -1948,16 +1972,16 @@ C       End of data deck
 C-------------------------------------------------------------
 C       
 999   WRITE(6,48)
-      if(ifalpha.ne.0.and.abs(idelslice).ne.1)call errorexit(
+      if(ifalpha.ne.0.and.abs(idelslice).ne.1)call exitError(
      &    'Cannot do X axis tilt with non-consecutive slices')
-      if(nxwarp.ne.0.and.abs(idelslice).ne.1)call errorexit(
+      if(nxwarp.ne.0.and.abs(idelslice).ne.1)call exitError(
      &    'Cannot do local alignments with non-consecutive slices')
-      if(minTotSlice.gt.0.and. idelslice.ne.1)call errorexit(
+      if(minTotSlice.gt.0.and. idelslice.ne.1)call exitError(
      &    'Cannot do chunk writing with non-consecutive slices')
       if(nxfull.eq.0.and.nyfull.eq.0.and.
-     &    (ixsubset.ne.0.or.iysubset.ne.0))call errorexit(
+     &    (ixsubset.ne.0.or.iysubset.ne.0))call exitError(
      &    'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
-      if (.not.perp .and. minTotSlice.gt.0) call errorexit(
+      if (.not.perp .and. minTotSlice.gt.0) call exitError(
      &    'Cannot do chunk writing with parallel slices')
 c       
 c       scale dimensions down by binning then report them
@@ -2007,9 +2031,9 @@ c
 c         
         call irtdat(1,idtype,lens,nd1,nd2,vd1,vd2)
 c         
-        if (idtype.ne.1) call errorexit( ' Not tilt data.')
+        if (idtype.ne.1) call exitError( ' Not tilt data.')
 c         
-        if (nd1.ne.2) call errorexit(' Tilt axis not along Y.')
+        if (nd1.ne.2) call exitError(' Tilt axis not along Y.')
 c         
         dtheta = vd1
         theta = vd2
@@ -2021,14 +2045,14 @@ c
 c         
       else
         if(iftiltfile.eq.1.and.newangles.ne.0)then
-          call errorexit(
+          call exitError(
      &        'Tried to enter angles with both ANGLES and TILTFILE')
         elseif(iftiltfile.eq.1)then
           write(6,*)' Tilt angles were entered from a tilt file'
         elseif(newangles.eq.nviews)then
           write(6,*)' Tilt angles were entered with ANGLES card(s)'
         else
-          call errorexit('If using ANGLES, a value must be '//
+          call exitError('If using ANGLES, a value must be '//
      &        'entered for each view')
         endif
       endif
@@ -2038,7 +2062,7 @@ c
           write(6,*)
      &        ' Compression values were entered with COMPRESS card(s)'
         else
-          call errorexit('If using COMPRESS, a value must be '//
+          call exitError('If using COMPRESS, a value must be '//
      &        'entered for each view')
         endif
         do nv=1,nviews
@@ -2054,14 +2078,14 @@ c
 C       
 C       Open output map file
       if((minTotSlice.le.0 .and. (islice.lt.1.or.jslice.lt.1))
-     &    .or.islice.gt.npxyz(2).or. jslice.gt.npxyz(2)) call errorexit(
+     &    .or.islice.gt.npxyz(2).or. jslice.gt.npxyz(2)) call exitError(
      &    'SLICE NUMBERS OUT OF RANGE')
       NSLICE=(JSLICE-ISLICE)/idelslice+1
       if (minTotSlice.gt.0 .and. islice .lt. 1)
      &    nslice = maxTotSlice + 1 - minTotSlice
 c      print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
-      if(nslice.le.0)call errorexit( 'SLICE NUMBERS REVERSED')
-      if(iwide.gt.limwidth.and.nxwarp.ne.0)call errorexit('OUTPUT'//
+      if(nslice.le.0)call exitError( 'SLICE NUMBERS REVERSED')
+      if(iwide.gt.limwidth.and.nxwarp.ne.0)call exitError('OUTPUT'//
      &    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
 c       
 c       DNM 7/27/02: transfer pixel sizes depending on orientation of output
@@ -2082,9 +2106,18 @@ c
       END IF
       if (reproj)then
         NOXYZ(2)=NSLICE
-        NOXYZ(3)=1
+        NOXYZ(3)=nreproj
         cell(2)=abs(nslice*idelslice)*delta(2)
-        cell(3)=delta(1)
+        cell(3)=delta(1)*nreproj
+        if (iwide * nreproj .gt. limrays) call exitError(
+     &      'TOO MANY REPROJECTIONS FOR ARRAYS WITH IMAGES THIS WIDE')
+        if (iwide .gt. limwidth) call exitError(
+     &      'OUTPUT TOO WIDE FOR REPROJECTION ARRAY')
+        do i = 1, nreproj
+          j=(i-1) * iwide + 1
+          call set_projection_rays(sinReproj(i), cosReproj(i), iwide, ithick,
+     &        iwide, xraystr(j), yraystr(j), nrayinc(j), nraymax(i))
+        enddo
       endif
 c       
 c       open old file if in chunk mode and there is real starting slice
@@ -2492,7 +2525,7 @@ c
       endif
       RETURN
 C       
-9999  call errorexit('Wrong number of fields on card')
+9999  call exitError('Wrong number of fields on card')
 C       
 C       
 48    FORMAT(//,1X,78('-'))
@@ -2549,7 +2582,7 @@ C
      &    'interpolation order', i2)
 3001  format(/,' X-tilting with vertical slices, if any, will have ',
      &    'interpolation order', i2)
-3101  format(/,' Output will be a reprojection at zero degrees')
+3101  format(/,' Output will be one or more reprojections')
 3201  format(/,' Z-dependent shifts to be applied with factors from file'
      &    )
 3301  format(/,' Dimensions and coordinates will be scaled down by a ',
@@ -2606,7 +2639,7 @@ C
 C       Unidentified tag
       WRITE(6,20)CARD
 20    FORMAT(/' Unidentified line: ',A80)
-      call errorexit('Unidentified line')
+      call exitError('Unidentified line')
 C       
 C       Tag found
 200   LABEL=KTAG
@@ -2769,16 +2802,65 @@ c         print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
       end
 
 
-      subroutine errorexit(message)
+      subroutine reproject(array, nxs, nys, nxout, sinang, cosang, xraystr,
+     &    yraystr, nrayinc, nraymax, fill, projline)
       implicit none
-      character*(*) message
-      print *,' '
-      print *,'ERROR: TILT - ',message
-      call exit(1)
+      integer*4 nxs, nys, nxout, nrayinc(*), nraymax
+      real*4 array(nxs, nys), xraystr(*), yraystr(*), fill, projline(*)
+      integer*4 ixout, iray, ixr,iyr, nraypts, idir
+      real*4 sinang, cosang, rayfac, rayadd, xray, yray, pixtmp
+      real *4 dx, dy, v2, v4, v6, v8, v5, a, b, c, d
+c       
+      do ixout = 1, nxout
+        projLine(ixout) = fill
+        nraypts=nrayinc(ixout)
+        if(nraypts.gt.0)then
+          pixtmp = 0.
+          if (sinang.ne. 0.)then
+            do iray=0,nraypts-1
+              xray=xraystr(ixout)+iray*sinang
+              yray=yraystr(ixout)+iray*cosang
+              ixr=nint(xray)
+              iyr=nint(yray)
+              dx=xray-ixr
+              dy=yray-iyr
+              v2=array(ixr, iyr - 1)
+              v4=array(ixr - 1, iyr)
+              v5=array(ixr, iyr)
+              v6=array(ixr + 1, iyr)
+              v8=array(ixr, iyr + 1)
+C                     
+              A = (V6 + V4)*.5 - V5
+              B = (V8 + V2)*.5 - V5
+              C = (V6 - V4)*.5
+              D = (V8 - V2)*.5
+              pixtmp = pixtmp + A*DX*DX + B*DY*DY + C*DX + D*DY + V5
+            enddo
+          else
+c             
+c             vertical projection
+c
+            ixr=nint(xraystr(ixout))
+            iyr=nint(yraystr(ixout))
+            idir = sign(1., cosang)
+            do iray=0,nraypts-1
+              pixtmp = pixtmp+ array(ixr, iyr + idir * iray)
+            enddo
+          endif
+
+          rayfac=1./nraymax
+          rayadd=rayfac * (nraymax - nraypts) * fill
+          projLine(ixout) = rayfac * pixtmp + rayadd
+        endif
+      enddo
+      return
       end
 
 c       
 c       $Log$
+c       Revision 3.29  2006/06/06 17:17:38  mast
+c       Changes mmm/pixel output to formatted write to keep it on one line
+c
 c       Revision 3.28  2006/04/09 00:11:49  mast
 c       Commented out debugging statement
 c
