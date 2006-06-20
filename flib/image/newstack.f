@@ -929,11 +929,11 @@ c
           if(mode.eq.newmode)bottomout=bottomin
           rescale=.false.
 c           
-c           for no float: if mode = 2, no rescale;
+c           for no float: if either mode = 2, no rescale;
 c           otherwise rescale from input range to output range only if
 c           mode is changing
 c           
-          if(iffloat.eq.0.and.newmode.ne.2)then
+          if(iffloat.eq.0.and.newmode.ne.2 .and. mode.ne.2) then
             rescale=mode.ne.newmode
           elseif(iffloat.ne.0)then
             rescale=.true.
@@ -1301,7 +1301,7 @@ c
                 if(val.gt.tmpmax)tmpmax=val
               enddo
             endif
-            if(iffloat.eq.0.and.newmode.ne.2)then
+            if(iffloat.eq.0.and.newmode.ne.2 .and. mode.ne.2)then
 c               
 c               6/27/01: really want to truncate rather than rescale; so if
 c               the min or max is now out of range for the input mode,
@@ -1789,6 +1789,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.39  2006/05/14 01:45:05  mast
+c       Added option to set fill value
+c
 c       Revision 3.38  2006/01/27 20:01:23  mast
 c       Fixed problem with one transform per file
 c
