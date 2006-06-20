@@ -1,0 +1,102 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input image file
+tooltip = 
+manpage = Input image file to project.  If this option
+is not entered, the first non-option argument will be used for the input
+file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output image file
+tooltip = 
+manpage = Output file for projection.  If this option
+is not entered, the second non-option argument will be used for the output
+file.
+
+[Field = AxisToTiltAround]
+short = axis
+type = CH
+usage = Axis to tilt around (X, Y, or Z)
+tooltip = 
+manpage = 
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending X index coordinates of block to project
+tooltip = 
+manpage = Starting and ending X index coordinates of block to project
+(numbered from 0).  The default is the whole extent in X.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y index coordinates of block to project
+tooltip = 
+manpage = Starting and ending Y index coordinates of block to project
+(numbered from 0).  The default is the whole extent in Y.
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending Z index coordinates of block to project
+tooltip = 
+manpage = Starting and ending Z index coordinates of block to project
+(numbered from 0).  The default is the whole extent in Z.
+
+[Field = StartEndIncAngle]
+short = angles
+type = FT
+usage = Starting, ending, and increment tilt angle
+tooltip = 
+manpage = Starting, ending, and increment tilt angle.  Enter the same value
+for starting and ending angle to get only one image.
+
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Mode of output file (0 for byte, 1 for integer, 2 for real)
+tooltip = 
+manpage = Mode of output file (0 for byte, 1 for integer, 2 for real).  The
+default is mode 1 for input mode 0 or 1, mode 2 for input mode 2.
+
+[Field = WidthToOutput]
+short = width
+type = I
+usage = Width of output file (default is same as width of input coordinates)
+tooltip = 
+manpage = 
+
+[Field = AddThenMultiply]
+short = addmult
+type = FP
+usage = Factors to add then multiply by (default 0,1)
+tooltip = 
+manpage = 
+
+[Field = FillValue]
+short = fill 
+type = F
+usage = Value to fill empty areas with (default is mean)
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
