@@ -125,9 +125,9 @@ int main(int argc, char *argv[])
 
 void AssistantListener::assistantError(const QString &msg)
 {
-  fprintf(stderr, "Error starting Qt Assistant: %s\n", msg.latin1());
+  fprintf(stderr, "WARNING: Qt Assistant generated error: %s\n", msg.latin1());
   fflush(stderr);
-  QApplication::exit(1);
+  //QApplication::exit(1);
 }
 
 
@@ -249,6 +249,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.9  2006/06/20 17:23:09  mast
+    Changed exit signal to a q
+
     Revision 1.8  2006/06/20 04:39:47  mast
     Cleanup up logic after experimenting in 3dmod and with no thread version
 
