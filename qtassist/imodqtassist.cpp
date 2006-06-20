@@ -188,7 +188,7 @@ void AssistantListener::timerEvent(QTimerEvent *e)
   // Otherwise show page and report results
   err = imodHelp->showPage(line);
   if (err > 0)
-    fprintf(stderr, "Page %s not found\n", line);
+    fprintf(stderr, "WARNING: Page %s not found\n", line);
   else
     fprintf(stderr, "Page %s displayed\n", line);
   if (err < 0 && !mWarned) {
@@ -249,6 +249,9 @@ static int readLine(char *line)
 
 /*
     $Log$
+    Revision 1.10  2006/06/20 22:07:53  mast
+    Do not exit on error, add WARNING: prefix to message
+
     Revision 1.9  2006/06/20 17:23:09  mast
     Changed exit signal to a q
 
