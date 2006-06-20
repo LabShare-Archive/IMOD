@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/19/06: mrc2tif will now write unsigned integer files.
+
+6/19/06: Fixed a scaling problem in newstack when input was floating point.
+
 6/18/06: Added ability to use standard input instead of clipboard for messaging
 to 3dmod.
 
