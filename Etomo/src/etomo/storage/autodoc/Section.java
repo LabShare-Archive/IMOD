@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2006/06/16 17:48:25  sueh
+ * <p> $bug# 852 Added addSection().
+ * <p> $
  * <p> $Revision 1.6  2006/06/15 18:47:27  sueh
  * <p> $bug# 852 Added getTypeToken() and getNameToken().
  * <p> $
@@ -76,6 +79,7 @@ public final class Section extends WriteOnlyNameValuePairList implements
   private Token name = null; //required
   private AttributeMap attributeMap = null;//optional
   private Vector nameValuePairList = null;
+  private boolean subsection = false;
 
   boolean isGlobal() {
     return false;
@@ -194,11 +198,14 @@ public final class Section extends WriteOnlyNameValuePairList implements
     nameValuePairList.add(pair);
   }
 
-  void addSection(Token type, Token name) {
+  Section addSection(Token type, Token name) {
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
     }
-    nameValuePairList.add(new NameValuePair(new Section(type, name)));
+    Section section = new Section(type, name);
+    section.subsection = true;
+    nameValuePairList.add(new NameValuePair(section));
+    return section;
   }
 
   public NameValuePairLocation getNameValuePairLocation() {
