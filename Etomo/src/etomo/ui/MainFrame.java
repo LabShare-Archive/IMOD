@@ -31,6 +31,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2006/04/25 19:16:14  sueh
+ * <p> bug# 787 Named the main frame so it can be found by a JfcUnit finder.
+ * <p>
  * <p> Revision 3.41  2006/03/20 18:03:09  sueh
  * <p> bug# 835 Added getName (a convenience function) to the managers.
  * <p>
@@ -514,7 +517,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
 
   //  Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
+    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "", currentManager, getAxisID());
   }
 
   void addWindow(BaseManager manager, UniqueKey managerKey) {

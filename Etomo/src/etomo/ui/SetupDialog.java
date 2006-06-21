@@ -602,7 +602,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
    **/
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "INITIAL STEPS");
+        "INITIAL STEPS", applicationManager, axisID);
   }
 
   //
@@ -1083,6 +1083,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.46  2006/04/25 19:20:46  sueh
+ * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
+ * <p>
  * <p> Revision 3.45  2006/01/11 22:39:53  sueh
  * <p> bug# 675 Made the labels of the dataset name field and fiducial diameter
  * <p> field shareable

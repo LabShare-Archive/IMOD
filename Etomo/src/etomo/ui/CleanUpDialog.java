@@ -127,7 +127,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    new ContextPopup(rootPanel, mouseEvent, "Cleaning Up", ContextPopup.TOMO_GUIDE);
+    new ContextPopup(rootPanel, mouseEvent, "Cleaning Up", ContextPopup.TOMO_GUIDE, applicationManager, axisID);
   }
 
   /**
@@ -196,6 +196,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2005/11/14 21:39:38  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 1.8  2005/10/19 00:18:15  sueh
  * <p> bug# 673 Added updateArchiveDisplay() to enable/disable the archive
  * <p> button.

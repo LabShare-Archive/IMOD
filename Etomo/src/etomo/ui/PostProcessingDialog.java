@@ -211,7 +211,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
     //    ContextPopup contextPopup =
     new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage);
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, applicationManager, axisID);
   }
 
   /**
@@ -300,6 +300,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2006/01/31 21:00:03  sueh
+ * <p> bug# 521 Managing trimvol and squeezevol buttons in
+ * <p> ProcessResultDisplayFactory.  Made trimvol a toggle button.
+ * <p>
  * <p> Revision 3.25  2006/01/26 22:05:54  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is

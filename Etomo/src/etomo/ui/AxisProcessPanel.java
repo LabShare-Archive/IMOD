@@ -27,6 +27,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2006/04/25 19:00:18  sueh
+ * <p> bug# 787 Giving the "Kill Process" button a name and making the name
+ * <p> public.
+ * <p>
  * <p> Revision 3.23  2006/03/20 18:01:42  sueh
  * <p> Improved the name of the parameter of setParallelDialog
  * <p>
@@ -472,7 +476,7 @@ abstract class AxisProcessPanel implements ContextMenu {
      * Right mouse button context menu
      */
   public final void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "");
+    ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "", manager, axisID);
   }
 
   /**
