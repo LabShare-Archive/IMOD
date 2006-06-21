@@ -15,6 +15,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.process.ImodqtassistProcess;
 import etomo.process.ProcessMessages;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
@@ -384,10 +385,12 @@ public abstract class BaseManager {
         uiHarness.openMessageDialog(except.getMessage(),
             "Problem closing 3dmod", axisID);
       }
+      ImodqtassistProcess.INSTANCE.quit();
       return true;
     }
     catch (Throwable e) {
       e.printStackTrace();
+      ImodqtassistProcess.INSTANCE.quit();
       return true;
     }
   }
@@ -1035,6 +1038,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.58  2006/06/15 16:12:42  sueh
+ * <p> bug# 871 exitProgram():  Added a test for running processes that can't continue
+ * <p> if etomo exits.
+ * <p>
  * <p> Revision 1.57  2006/06/05 16:01:01  sueh
  * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.  Add  initialized so that the
  * <p> manager can tell when an .edf is first loaded.
