@@ -21,6 +21,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2006/06/09 21:53:32  sueh
+ * <p> bug# 692 Added resetInvalidReason() calls to setValidValues() and
+ * <p> setNullIsValid().  Added debug, which can be set  for an instance and used to
+ * <p> debug validation.
+ * <p>
  * <p> Revision 1.34  2006/06/08 19:46:21  sueh
  * <p> bug# 692 Changed the float and double null constants to capitals
  * <p>
@@ -402,7 +407,7 @@ public abstract class ConstEtomoNumber implements Storable {
       System.err.println(description + ":end setInvalidReason:  valid");
     }
   }
-
+//TODO test
   /**
    * Returns ceilingValue if value > ceilingValue.
    * Otherwise returns value.
@@ -511,6 +516,9 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public String getInvalidReason() {
+    if (invalidReason == null) {
+      return "";
+    }
     return invalidReason.toString();
   }
 
@@ -851,6 +859,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public ConstEtomoNumber setValidFloor(int validFloor) {
+    resetInvalidReason();
     this.validFloor = newNumber(validFloor);
     setInvalidReason();
     return this;
