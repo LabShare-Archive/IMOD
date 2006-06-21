@@ -55,17 +55,19 @@ else
     exit 1
 endif
 
-# Done if no library location defined
+# Get a DLL destination dir
 #
-if ($qtlibdir == "") exit 0
+set dlldestdir = `sed -n '/DLLDESTDIR/s/^.*= *//p' configure`
+if ("$dlldestdir" == "") set dlldestdir = $qtlibdir
 
-# Make directory, copy the real file, make the links
+# Done if no destination location defined
 #
-if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
+if ($dlldestdir == "") exit 0
 
-# Get the library extension, but don't worry if it's not defined
+# Get the dynamic library extension, which can be recursively defined
 #
 set libext = `sed -n '/^LIBEXT.*=/s/^.*= *//p' configure`
+set dllext = `sed -n '/^DLLEXT.*=/s/^.*= *//p' configure | sed "/.*LIBEXT.*/s//$libext/"`
 
 #
 # Copy DLL's from various places to the install directory
@@ -77,13 +79,21 @@ while ($dllnum < 100)
     set dlllist = `sed -n "/DLLSTOCOPY$dllnum/s/^.*= *//p" configure`
     if ("$dlllist" != "") then
         foreach i ($dlllist)
-            \cp "$dlldir"/$i $instdir/$qtlibdir
+            \cp -R "$dlldir"/$i.*$dllext $instdir/$dlldestdir
         end
     else
         break
     endif
     @ dllnum++
 end
+
+# Now done if no Qt library location defined
+#
+if ($qtlibdir == "") exit 0
+
+# Make directory, copy the real file, make the links
+#
+if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
 
 #
 # grab the name of the Qt lib from the ever-useful sendevent Makefile
@@ -121,7 +131,7 @@ set qtlib = $qtlib[1]
 @ whichlib = 0
 while ($whichlib < 2)
     @ numreal = 0
-    foreach i ($QTDIR/lib/${qtlib}.*${libext}*)
+    foreach i ($QTDIR/lib/${qtlib}.*${dllext}*)
         if ((! -l $i) && $i:e != "prl" && $i:e != "la") then
             @ numreal++
             set realname = $i
@@ -142,7 +152,7 @@ while ($whichlib < 2)
 
     cd $instdir/$qtlibdir
     \cp $realname .
-    foreach i ($QTDIR/lib/${qtlib}*${libext}*)
+    foreach i ($QTDIR/lib/${qtlib}*${dllext}*)
         if (-l $i) then
             \rm -f $i:t
             ln -s $realname:t $i:t
@@ -153,13 +163,16 @@ while ($whichlib < 2)
     # Copy libqassistantclient the same way if it is a shared lib
     #
     set qtlib = libqassistantclient
-    if (! -e $QTDIR/lib/${qtlib}.${libext}) break;
+    if (! -e $QTDIR/lib/${qtlib}.${dllext}) break;
     @ whichlib++
 end
 exit 0
 
 #
 #  $Log$
+#  Revision 3.25  2005/02/24 04:03:32  mast
+#  Needed to make directory for assistant if not there yet
+#
 #  Revision 3.24  2005/02/23 03:44:12  mast
 #  Needed to put assistant in bin for Linux without Qt included
 #
