@@ -47,6 +47,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.31  2006/04/06 20:16:45  sueh
+ * <p> bug# 808 Added setRevertState(boolean) to do all work associated with
+ * <p> enabling and disabling revert in Setup.
+ * <p>
  * <p> Revision 1.30  2006/01/27 18:42:31  sueh
  * <p> bug# 801 Added validation for makejoin and finishjoin
  * <p>
@@ -1242,19 +1246,19 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       logFile = new String[] { "startjoin.log" };
       contextPopup = new ContextPopup(rootPanel, mouseEvent, "Setup",
           ContextPopup.JOIN_GUIDE, manPagelabel, manPage, logFileLabel,
-          logFile, joinManager);
+          logFile, joinManager, axisID);
       break;
     case ALIGN_TAB:
       manPagelabel = new String[] { "Xfalign", "Midas", "3dmod" };
       manPage = new String[] { "xfalign.html", "midas.html", "3dmod.html" };
       contextPopup = new ContextPopup(rootPanel, mouseEvent, "Align",
-          ContextPopup.JOIN_GUIDE, manPagelabel, manPage);
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, joinManager, axisID);
       break;
     case JOIN_TAB:
       manPagelabel = new String[] { "Finishjoin", "3dmod" };
       manPage = new String[] { "finishjoin.html", "3dmod.html" };
       contextPopup = new ContextPopup(rootPanel, mouseEvent, "Joining",
-          ContextPopup.JOIN_GUIDE, manPagelabel, manPage);
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, joinManager, axisID);
       break;
     }
   }

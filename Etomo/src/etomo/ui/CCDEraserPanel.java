@@ -397,7 +397,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
         "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage,
-        logFileLabel, logFile, applicationManager);
+        logFileLabel, logFile, applicationManager, axisID);
   }
 
   private void enableXRayReplacement() {
@@ -540,6 +540,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.18  2006/02/06 21:20:38  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.17  2006/01/26 22:03:43  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is

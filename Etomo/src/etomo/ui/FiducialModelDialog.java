@@ -30,6 +30,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2006/06/16 15:25:10  sueh
+ * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
+ * <p> dialog.
+ * <p>
  * <p> Revision 3.23  2006/06/07 22:25:47  sueh
  * <p> bug# 766 ApplicationManager.imodFixFiducials():  turning off auto center when
  * <p> fix fiducials is first run.
@@ -397,7 +401,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     //    ContextPopup contextPopup =
     new ContextPopup(pnlFiducialModel, mouseEvent, "GETTING FIDUCIAL",
         ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        applicationManager);
+        applicationManager, axisID);
   }
 
   /**

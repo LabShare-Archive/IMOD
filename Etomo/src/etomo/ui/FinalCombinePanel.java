@@ -55,6 +55,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.46  2006/05/12 17:20:47  sueh
+ * bug# 861 removed unused code
+ *
  * Revision 3.45  2006/04/28 21:00:51  sueh
  * bug# 787 Removed the member variable title, which was not used.
  *
@@ -1039,7 +1042,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     String[] logFile = { "patchcorr.log", "matchorwarp.log", "volcombine.log" };
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
         "Patch Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel,
-        manPage, logFileLabel, logFile, applicationManager);
+        manPage, logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {

@@ -51,6 +51,12 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.38  2006/06/09 17:04:07  sueh
+ * bug# 869 Getting script creation mode from TomogramState.  Removed
+ * scriptMatchMode.  Added updateDisplay().  Removed setCombineState().
+ * IsChanged():  checking TomogramState.combineScriptsCreated and
+ * CombineMatchMode.  Removed updateStartCombine().
+ *
  * Revision 3.37  2006/05/16 21:37:35  sueh
  * bug# 856 Added useCorrespondingPoints and useList.  Added isChanged(),
  * which looks at useCorrespondingPoints.
@@ -1031,7 +1037,7 @@ public final class SetupCombinePanel implements ContextMenu,
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
         "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager);
+        logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
   //	Button action listener

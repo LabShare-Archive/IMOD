@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2006/06/09 19:51:29  sueh
+ * <p> bug# 870 Added isTomopitchButtonSelected() and isAlignButtonSelected().
+ * <p>
  * <p> Revision 3.43  2006/05/19 19:51:27  sueh
  * <p> bug# 866 Moved set/getParam functions, and updateDisplay functions to TomogramPositioningExpert.
  * <p> Added field-level set, get, and setEnabled functions.
@@ -583,7 +586,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM POSITIONING", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager);
+        logFileLabel, logFile, applicationManager, axisID);
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {

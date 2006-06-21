@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2006/06/09 16:59:54  sueh
+ * <p> bug# 869 Using "Use corresponding points" checkbox in the initial panel.
+ * <p>
  * <p> Revision 3.27  2006/05/16 21:36:08  sueh
  * <p> bug# 856 Added useCorrespondingPoints and useList.
  * <p>
@@ -362,7 +365,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
         "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel,
-        manPage, logFileLabel, logFile, applicationManager);
+        manPage, logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {

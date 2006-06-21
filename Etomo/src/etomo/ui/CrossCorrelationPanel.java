@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2006/03/30 16:48:02  sueh
+ * <p> bug# 437 Passing the dialog type to getCrossCorrelateDIsplay().
+ * <p>
  * <p> Revision 3.18  2006/03/27 21:01:10  sueh
  * <p> bug# 836 Moved btnCrossCorrelate to CrossCorrelationPanel.  Added a
  * <p> PanelHeader.
@@ -392,7 +395,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCrossCorrelation,
         mouseEvent, "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel,
-        manPage, logFileLabel, logFile, applicationManager);
+        manPage, logFileLabel, logFile, applicationManager, axisID);
   }
 
   class CrossCorrelationActionListener implements ActionListener {

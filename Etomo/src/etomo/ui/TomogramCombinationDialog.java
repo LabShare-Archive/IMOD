@@ -49,6 +49,11 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2006/06/09 17:08:51  sueh
+ * <p> bug# 869 Not checking script creation status in this class.  Removed
+ * <p> combineScriptsCreated.  Calling pnlSetup.updateDisplay() in updateDisplay().
+ * <p> Removed  setCombineState().
+ * <p>
  * <p> Revision 3.39  2006/05/16 21:38:35  sueh
  * <p> bug# 856 Changed TomogramCombinationDialog.isUpToDate() to isChanged().
  * <p> IsChanged() looks at match direction and the use corresponding list checkbox
@@ -716,7 +721,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
         "Matchorwarp.log" };
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFileLabel, applicationManager);
+        logFileLabel, logFileLabel, applicationManager, axisID);
   }
 
   public boolean isTabEnabled(String tabLabel) {

@@ -71,6 +71,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.89  2006/05/19 19:48:19  sueh
+ * bug# 866 Added setText(ConstEtomoNumber)
+ *
  * Revision 3.88  2006/05/11 19:28:13  sueh
  * bug# 838 Making x axis tilt a double everywhere.
  *
@@ -1491,7 +1494,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager);
+        logFileLabel, logFile, applicationManager, axisID);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {

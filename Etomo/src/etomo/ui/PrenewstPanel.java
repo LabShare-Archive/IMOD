@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2006/03/30 16:48:27  sueh
+ * <p> bug# 437 Added header and btnCoarseAlign
+ * <p>
  * <p> Revision 1.17  2006/03/28 00:56:13  sueh
  * <p> bug# 803 Fixed the tooltips.
  * <p>
@@ -262,7 +265,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
     logFile[0] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlPrenewst, mouseEvent,
         "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager);
+        logFileLabel, logFile, applicationManager, axisID);
   }
 
   /**

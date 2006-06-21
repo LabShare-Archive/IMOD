@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2006/05/19 19:46:42  sueh
+ * <p> bug# 866 Changed set/getTiltAxisAngle to set/getImageRotation.
+ * <p>
  * <p> Revision 3.34  2006/03/30 16:47:29  sueh
  * <p> bug# 437 Moved coarse align button to PrenewstPanel.
  * <p>
@@ -475,7 +478,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     logFile[1] = alignLogfile + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
         "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager);
+        logFileLabel, logFile, applicationManager, axisID);
   }
 
   /**
