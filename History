@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/06: In etomo:  displaying help in imodqtassist.
+
 6/19/06: Added ability for Tilt to make reprojections at multiple nonzero 
 angles.
 
