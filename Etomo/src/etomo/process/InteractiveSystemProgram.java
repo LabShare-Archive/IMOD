@@ -21,6 +21,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/05/22 22:48:26  sueh
+ * <p> bug# 577 Removed constructors which accepted a String command.
+ * <p>
  * <p> Revision 3.7  2006/05/11 19:52:19  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -124,13 +127,15 @@ public class InteractiveSystemProgram implements Runnable {
   /**
    * The buffered IO streams connecting to the commmand.
    */
-  BufferedWriter inputBuffer;
+  BufferedWriter inputBuffer = null;
   BufferedReader outputBuffer;
   BufferedReader errorBuffer;
 
   private File workingDirectory = null;
 
   private String exceptionMessage = "";
+
+  private OutputStream cmdIn = null;
   /**
    * Creates a SystemProgram object to execute the program specified by the
    * argument <i>command</i>
@@ -154,6 +159,17 @@ public class InteractiveSystemProgram implements Runnable {
     }
     commandArray = command.getCommandArray();
     commandLine = command.getCommandLine();
+  }
+  
+  public void setCurrentStdInput(String input) throws IOException {
+    if (inputBuffer != null) {
+      inputBuffer.write(input);
+      inputBuffer.newLine();
+      inputBuffer.flush();
+    }
+    if (cmdIn != null) {
+      cmdIn.flush();
+    }
   }
   
   public AxisID getAxisID() {
@@ -188,7 +204,6 @@ public class InteractiveSystemProgram implements Runnable {
    * Execute the command.
    */
   public void run() {
-
     //  Setup the Process object and run the command
     Process process = null;
     File outputFile = null;
@@ -221,7 +236,7 @@ public class InteractiveSystemProgram implements Runnable {
 
       //  Create a buffered writer to handle the stdin, stdout and stderr
       //  streams of the process
-      OutputStream cmdIn = process.getOutputStream();
+      cmdIn = process.getOutputStream();
       OutputStreamWriter cmdInWriter = new OutputStreamWriter(cmdIn);
       inputBuffer = new BufferedWriter(cmdInWriter);
 
@@ -232,7 +247,6 @@ public class InteractiveSystemProgram implements Runnable {
       InputStream cmdErr = process.getErrorStream();
       InputStreamReader cmdErrReader = new InputStreamReader(cmdErr);
       errorBuffer = new BufferedReader(cmdErrReader);
-
     }
 
     // TOD need better error handling, what should be the state if an
