@@ -442,7 +442,6 @@ C       Close files
       CALL IMCLOSE(1)
       pixelTot = float(NSLICE)*IWIDE*ITHICK
       if (reproj) pixelTot = float(NSLICE)*IWIDE*nreproj
-      print *,pixeltot,dtot8
       DMEAN=DTOT8/pixelTot
 
       if (minTotSlice.le.0) then
@@ -2858,6 +2857,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.30  2006/06/20 22:10:59  mast
+c       Added ability to reproject at multiple angles
+c
 c       Revision 3.29  2006/06/06 17:17:38  mast
 c       Changes mmm/pixel output to formatted write to keep it on one line
 c
