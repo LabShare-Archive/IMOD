@@ -16,6 +16,7 @@ import javax.swing.JPopupMenu;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
 
 /**
@@ -31,6 +32,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2005/11/14 21:46:24  sueh
+ * <p> bug# 762 The internal class is now accessing protected functions instead
+ * <p> of private variables.
+ * <p>
  * <p> Revision 3.8  2005/05/20 21:18:16  sueh
  * <p> bug# 664 Attempting to recover from OutOfMemoryError, version 2:
  * <p> call logFileWindow.dispose() when an OutOfMemoryError is caught.
@@ -163,7 +168,9 @@ public class ContextPopup {
   public ContextPopup(
     Component component,
     MouseEvent mouseEvent,
-    String tomoAnchor) {
+    String tomoAnchor,
+    final BaseManager manager,
+    final AxisID axisID) {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
@@ -177,7 +184,7 @@ public class ContextPopup {
         if (anchor != null && !anchor.equals("")) {
           tomoGuideLocation += "#" + anchor;
         }
-        globalItemAction(actionEvent, tomoGuideLocation);
+        globalItemAction(actionEvent, tomoGuideLocation, manager, axisID);
         setVisible(false);
       }
     };
@@ -202,7 +209,9 @@ public class ContextPopup {
     String tomoAnchor,
     final String guideToAnchor,
     String[] manPageLabel,
-    String[] manPage) {
+    String[] manPage,
+    final BaseManager manager,
+    final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -226,13 +235,11 @@ public class ContextPopup {
 
         for (int i = 0; i < getManPageItem().length; i++) {
           if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
-            HTMLPageWindow manpage = new HTMLPageWindow();
-            manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
-            manpage.setVisible(true);
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i], axisID);
           }
         }
 
-        globalItemAction(actionEvent, guideLocation, guideToAnchor);
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
         //  Close the menu
         setVisible(false);
@@ -256,7 +263,9 @@ public class ContextPopup {
       Component component,
       MouseEvent mouseEvent,
       String tomoAnchor,
-      final String guideToAnchor) {
+      final String guideToAnchor,
+      final BaseManager manager,
+      final AxisID axisID) {
 
       this.mouseEvent = mouseEvent;
       anchor = tomoAnchor;
@@ -270,7 +279,7 @@ public class ContextPopup {
           if (anchor != null && !anchor.equals("")) {
             guideLocation += "#" + anchor;
           }
-          globalItemAction(actionEvent, guideLocation, guideToAnchor);
+          globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
           //  Close the menu
           setVisible(false);
         }
@@ -303,7 +312,8 @@ public class ContextPopup {
       String[] manPage,
       String[] logFileLabel,
       String[] logFile,
-      final BaseManager manager) {
+      final BaseManager manager,
+      final AxisID axisID) {
 
       // Check to make sure that the menu label and man page arrays are the same
       // length
@@ -332,9 +342,10 @@ public class ContextPopup {
           JMenuItem[] manPageItem = getManPageItem();
           for (int i = 0; i < manPageItem.length; i++) {
             if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
-              HTMLPageWindow manpage = new HTMLPageWindow();
+              /*HTMLPageWindow manpage = new HTMLPageWindow();
               manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
-              manpage.setVisible(true);
+              manpage.setVisible(true);*/
+              ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i], axisID);
             }
           }
 
@@ -350,7 +361,7 @@ public class ContextPopup {
         }
 
           //  Search the standard items
-          globalItemAction(actionEvent, guideLocation, guideToAnchor);
+          globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
           //  Close the  the menu
           setVisible(false);
@@ -424,9 +435,7 @@ public class ContextPopup {
 
         for (int i = 0; i < getManPageItem().length; i++) {
           if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
-            HTMLPageWindow manpage = new HTMLPageWindow();
-            manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
-            manpage.setVisible(true);
+            ImodqtassistProcess.INSTANCE.open(applicationManager, "man/" + getManPageName()[i], axisID);
           }
         }
 
@@ -478,7 +487,7 @@ public class ContextPopup {
           }
         }
         //  Search the standard items
-        globalItemAction(actionEvent, tomoGuideLocation);
+        globalItemAction(actionEvent, tomoGuideLocation, applicationManager, axisID);
 
         //  Close the  the menu
         setVisible(false);
@@ -529,8 +538,8 @@ public class ContextPopup {
 
   protected void globalItemAction(
       ActionEvent actionEvent,
-      String tomoGuideLocation) {
-    globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE);
+      String tomoGuideLocation, BaseManager manager, AxisID axisID) {
+    globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE, manager, axisID);
   }
   
   /**
@@ -540,45 +549,60 @@ public class ContextPopup {
    */
   protected void globalItemAction(
     ActionEvent actionEvent,
-    String guideLocation, String guide) {
+    String guideLocation, String guide, BaseManager manager, AxisID axisID) {
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
       if (guide.equals(TOMO_GUIDE)) {
         manpage.openURL(imodURL + guideLocation);
       }
       else {
         manpage.openURL(imodURL + TOMO_GUIDE);
       }
-      manpage.setVisible(true);
+      manpage.setVisible(true);*/
+      if (guide.equals(TOMO_GUIDE)) {
+        ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
+      }
+      else {
+        ImodqtassistProcess.INSTANCE.open(manager, TOMO_GUIDE, axisID);
+      }
     }
 
     if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "guide.html");
-      manpage.setVisible(true);
+      manpage.setVisible(true);*/
+      ImodqtassistProcess.INSTANCE.open(manager, "guide.html", axisID);
     }
 
     if (actionEvent.getActionCommand() == it3dmodGuide.getText()) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "3dmodguide.html");
-      manpage.setVisible(true);
+      manpage.setVisible(true);*/
+      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html", axisID);
     }
 
     if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "UsingEtomo.html");
-      manpage.setVisible(true);
+      manpage.setVisible(true);*/
+      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html", axisID);
     }
     
     if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
       if (guide.equals(JOIN_GUIDE)) {
         manpage.openURL(imodURL + guideLocation);
       }
       else {
         manpage.openURL(imodURL + JOIN_GUIDE);
       }
-      manpage.setVisible(true);
+      manpage.setVisible(true);*/
+      if (guide.equals(JOIN_GUIDE)) {
+        ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
+      }
+      else {
+        ImodqtassistProcess.INSTANCE.open(manager, JOIN_GUIDE, axisID);
+      }
     }
   }
 

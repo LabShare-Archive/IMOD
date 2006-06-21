@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ImodqtassistProcess;
 import etomo.process.ProcessMessages;
 import etomo.storage.DataFileFilter;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -201,33 +202,27 @@ abstract class EtomoFrame extends JFrame {
     }
 
     if (menu.equalsTomoGuide(event)) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
+      //TODO
+      /*HTMLPageWindow manpage = new HTMLPageWindow();
       manpage.openURL(imodURL + "tomoguide.html");
-      manpage.setVisible(true);
+      manpage.setVisible(true);*/
+      ImodqtassistProcess.INSTANCE.open(currentManager, "tomoguide.html", getAxisID());
     }
 
     if (menu.equalsImodGuide(event)) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "guide.html");
-      manpage.setVisible(true);
+      ImodqtassistProcess.INSTANCE.open(currentManager, "guide.html", getAxisID());
     }
 
     if (menu.equals3dmodGuide(event)) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "3dmodguide.html");
-      manpage.setVisible(true);
+      ImodqtassistProcess.INSTANCE.open(currentManager, "3dmodguide.html", getAxisID());
     }
 
     if (menu.equalsEtomoGuide(event)) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "UsingEtomo.html");
-      manpage.setVisible(true);
+      ImodqtassistProcess.INSTANCE.open(currentManager, "UsingEtomo.html", getAxisID());
     }
 
     if (menu.equalsJoinGuide(event)) {
-      HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "tomojoin.html");
-      manpage.setVisible(true);
+      ImodqtassistProcess.INSTANCE.open(currentManager, "tomojoin.html", getAxisID());
     }
 
     if (menu.equalsHelpAbout(event)) {
@@ -778,7 +773,7 @@ abstract class EtomoFrame extends JFrame {
     return null;
   }
 
-  private AxisID getAxisID() {
+  protected AxisID getAxisID() {
     if (!main) {
       return AxisID.SECOND;
     }
@@ -820,9 +815,16 @@ abstract class EtomoFrame extends JFrame {
     return mainFrame;
   }
 
+  
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2006/04/25 19:15:04  sueh
+ * <p> bug# 787 Implemented the OptionPane function showOptionDialog() so
+ * <p> that the popups could be named and found by JfcUnit.
+ * <p> NamedComponentFinder.  This replaces the currentPopupName
+ * <p> functionality.
+ * <p>
  * <p> Revision 1.24  2006/04/06 20:16:02  sueh
  * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> util.Utilities.
