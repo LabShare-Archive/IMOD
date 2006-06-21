@@ -213,8 +213,39 @@ public final class ConstEtomoNumberTest extends TestCase {
   public void testGetDisplayInteger() {
     testValidateReturnTypeInteger();
   }
-
+  
+  public final void testSetInvalidReason() {
+    EtomoNumber test = new EtomoNumber();
+    //Pass when there are no validation settings
+    test.setInvalidReason();
+    assertTrue(test.isValid());
+    //Catch illegal null values
+    test.setNullIsValid(false);
+    assertFalse(test.isValid());
+    assertTrue(test.getInvalidReason().indexOf("This field cannot be empty") != -1);
+    test.set(1);
+    assertTrue(test.isValid());
+    assertEquals(test.getInvalidReason().length(), 0);
+    //Validate against validValues, overrides validFloor
+    test.setValidValues(new int[] { 2, 3 });
+    assertFalse(test.isValid());
+    test.setValidFloor(1);
+    assertFalse(test.isValid());
+    assertTrue(test.getInvalidReason().indexOf("Valid values are") != -1);
+    //If validValues is not set, validate against validFloor
+    test.setValidValues(null);
+    assertTrue(test.isValid());
+    assertEquals(test.getInvalidReason().length(), 0);
+    test.set(0);
+    assertFalse(test.isValid());
+    assertTrue(test.getInvalidReason().indexOf("Valid values are greater or equal to") != -1);
+    test.set(2);
+    assertTrue(test.isValid());
+    assertEquals(test.getInvalidReason().length(), 0);
+    test.internalTest();
+  }
   //TODO
+
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
     //double
@@ -251,31 +282,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     catch (IllegalStateException e) {
     }
-    test.internalTest();
-  }
-
-  public final void testSetInvalidReason() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    //test nullIsValid == true
-    test.setInvalidReason();
-    assertTrue(test.isValid());
-    //test nullIsValid == false
-    test.setNullIsValid(false);
-    ///null
-    assertFalse(test.isValid());
-    ///not null
-    test.resetInvalidReason();
-    test.set(1);
-    assertTrue(test.isValid());
-    //test validValues
-    test.resetInvalidReason();
-    test.setValidValues(new int[] { 2, 3 });
-    assertFalse(test.isValid());
-    //test validFloor
-    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    test.set(smallInteger);
-    test.setValidFloor(bigInteger);
-    assertFalse(test.isValid());
     test.internalTest();
   }
 
@@ -1122,6 +1128,10 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2006/06/16 17:01:10  sueh
+ * <p> bug# #692 Changed testGetDisplayInteger() so that it just calls testValidateReturnType, which reflects what is happening in the tested code and
+ * <p> prevents duplicate test code.
+ * <p>
  * <p> Revision 1.25  2006/06/09 21:54:01  sueh
  * <p> bug# 692 Reimplemented testConstEtomoNumber_ConstEtomoNumber().
  * <p>
