@@ -17,6 +17,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.9  2006/06/18 19:37:59  mast
+c       Changed to use new C function for amoeba
+c
 c       Revision 3.8  2006/06/08 18:31:15  mast
 c       Changed to read in data binned and to handle 4x2K after binning
 c
@@ -94,10 +97,13 @@ c       default values for potentially input parameters
       data delfac/2/
       data iflmean/1/,ibinning/2/
       data idredun/0/,radius/4/,difflim/0.05/,nrange/2/
-      data pclo/0.,92.,8*0./,pchi/8.,100.,8*0./
 c       
-c       default values for parameters in common
+c       default values for parameters in common and equivalenced arrays
 c       
+      pclo(1) = 0.
+      pclo(2) = 92.
+      pchi(1) = 8.
+      pchi(2) = 100.
       iftrace=0
       fracmatt=0.05
       ifdist=0
