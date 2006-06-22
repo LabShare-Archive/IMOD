@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.6  2005/12/09 20:56:00  mast
+#  Generalized fortran library copying to take a variable and list
+#
 #  Revision 1.5  2005/06/10 19:48:03  mast
 #  Copied libg2c.dylib from /usr/local/lib to IMOD/lib
 #
@@ -47,11 +50,13 @@ set imsecont = sendevent/imodsendevent.app/Contents
 # Loop on programs, copy PkgInfo, and Info.plist with possible name change
 #
 foreach prog ($fprogs)
-    set contents = $instdir/bin/${prog}.app/Contents
-    if (! -e $contents/MacOS) mkdir -p $contents/MacOS
-    \cp $imsecont/PkgInfo $contents
-    sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
-    \mv $instdir/bin/$prog $contents/MacOS
+    if (-e $instdir/bin/$prog) then
+        set contents = $instdir/bin/${prog}.app/Contents
+        if (! -e $contents/MacOS) mkdir -p $contents/MacOS
+        \cp $imsecont/PkgInfo $contents
+        sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
+        \mv $instdir/bin/$prog $contents/MacOS
+    endif
 end
 
 #
@@ -63,13 +68,3 @@ foreach i ($instdir/html/3dmodguide.html $instdir/html/3dmodHelp/*.html)
     \mv ctrltmp $i
 end
 \rm -f ctrltmp
-
-#
-# Copy specified fortran library(s) if it exists (-R makes it simple)
-#
-set fortlibs = `sed -n '/COPYFORTLIB/s/^.*= *//p' configure`
-if ("$fortlibs" == "") exit
-foreach i ($fortlibs) 
-    if (-e /usr/local/lib/$i.dylib) \
-    \cp -R /usr/local/lib/$i.*dylib $instdir/lib
-end
