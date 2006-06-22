@@ -11,35 +11,60 @@ if ($tifflibs == true) set c_includes = '-I$(QTDIR)/include -I/usr/local/include
 
 echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
 
+
 # DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
 # qconfigures - it doesn't work anymore on OS 10.3
 
 echo "CC        = gcc"              >> $configure
 
-set fcompFlags = "-ffixed-line-length-0"
+# Set default compiler to intel for intel chip
+#
+if ($compiler == default && $intel == true) set compiler = ifort
 
-gcc -v >&! gfortran.tmp
-set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
-\rm -f gfortran.tmp
-if ($#fortvers < 2) set fortvers = 3
-if ($fortvers[1] == 3) then
-    echo "FC        = g77"              >> $configure
+if ($compiler == ifort) then
+    echo "FC        = ifort"              >> $configure
+    set fcompFlags = "-132 -assume bscc"
 
-    # tell the C routines being called by Fortran that they need two __
-    #
-    echo '#define G77__HACK' >> $hconfigure
-    echo "COPYFORTLIB = libg2c" >> $configure
+    echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+    set fortvers = 3
+    set ldfflags = '-L$(LIBDIR) -i-dynamic -Wl,-dynamic -Wl,-read_only_relocs,warning'
+    set fcmpldFlags = "-i-dynamic"
+    set exefflags = "-mdynamic-no-pic"
+    set fortdir = `which ifort`
+    set fortlibdir = $fortdir:h:h/lib
+    echo "DLLSOURCEDIR1 = $fortlibdir" >> $configure
+    echo "DLLSTOCOPY1 = libifcore libifport libirc libimf libsvml" >> $configure
+    
 else
-    #
-    # gfortran needs unlimited fixed format, and date and time subroutines
-    #
-    echo "FC        = gfortran"              >> $configure
-    echo "DATESRC   = compat/datetime.f" >> $configure
-    echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
-    echo "DATEOBJ  = datetime.o" >> $configure
-    echo "COPYFORTLIB = libgfortran" >> $configure
-endif
 
+    set fcompFlags = "-ffixed-line-length-0"
+    set exefflags = ""
+    set fcmpldFlags = $ldfflags
+
+    gcc -v >&! gfortran.tmp
+    set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+    \rm -f gfortran.tmp
+    if ($#fortvers < 2) set fortvers = 3
+    echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
+    if ($fortvers[1] == 3) then
+        echo "FC        = g77"              >> $configure
+
+        # tell the C routines being called by Fortran that they need two __
+        #
+        echo '#define G77__HACK' >> $hconfigure
+        echo "DLLSTOCOPY1 = libg2c" >> $configure
+    else
+        #
+        # gfortran needs unlimited fixed format, and date and time subroutines
+        #
+        echo "FC        = gfortran"              >> $configure
+        echo "DATESRC   = compat/datetime.f" >> $configure
+        echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
+        echo "DATEOBJ  = datetime.o" >> $configure
+        echo "DLLSTOCOPY1 = libgfortran" >> $configure
+    endif
+endif
+echo "DLLDESTDIR = lib" >> $configure
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
@@ -55,12 +80,13 @@ set release = `echo $URELEASE | sed 's/\./ /g'`
 if ($shared_libs != false) then
 	echo "AR      = c++"                 >> $configure
 	echo "ARCPP   = c++"                >> $configure
-	echo "ARFLAGS = $flags -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
+	echo "ARFLAGS = $flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = dylib"                 >> $configure
         if ($majorrel > 7) then
             set far = "g77"
             if ($fortvers[1] != 3) set far = "gfortran"
+            if ($compiler == ifort) set far = "ifort"
             set makenondll = "ar -sruv "
             set nmcarext = "a"
             if ($tifflibs == true) echo 'LIBIIMODDEF = -ltiff -lSystemStubs' >> $configure
@@ -80,22 +106,26 @@ echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 # 7/12/05: But needed on 10.4 with gcc 3.3
 set fort_cpplibs = -lstdc++
 if ($fortvers[1] != 3) set fort_cpplibs = "-lstdc++.6"
+if ($compiler == ifort) set fort_cpplibs = "-lstdc++ -lgcc_s.1"
 
 echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
-echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
-
-# For OS 10.3, clip needed libgcc.a to define restFP and saveFP (-lgcc no good)
-#
-echo 'FLCC      = $(FC)'              >> $configure
-echo "F77LIBS   = /usr/lib/libgcc.a"                  >> $configure
+# Removed FLCC and F77LIBS since clip no longer needs fortran
 
 # 
 # tell the C routines which way to swap floats
 #
 echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
+
+# 
+# tell the C and fortran routines to swap the bytes for INTEL
+#
+if ($intel == true) then
+    echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
+    \cp $endian_dir/little_endian.inc $endian_dir/endian.inc
+endif
 
 #
 # Fork does not work
@@ -111,25 +141,33 @@ echo '#define MAC103_BIGFILE' >> $hconfigure
 set optimization = "-O3 -w"
 # 12/9/05: hurt more than helped on G5
 #if ($fortvers[1] != 3) set optimization = "-O3 -w -ftree-vectorize -maltivec"
+if ($compiler == ifort) set optimization = "-O2"
 if ($debug == true) set optimization = "-g -O0"
 
 set cflags = "$flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $fcompFlags $ldfflags $optimization $include_flags"
+set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
 echo "CXXFLAGS = $cflags" >> $configure
-echo "FFLAGS  = $fflags" >> $configure
-echo "NOOPFFLAGS = $fflags -O0" >> $configure
+echo "FFLAGS  = $fflags $exefflags" >> $configure
+echo "NOOPFFLAGS = $fflags $exefflags -O0" >> $configure
 echo "LIBCFLAGS  = $cflags" >> $configure
 echo "LIBFFLAGS  = $fflags" >> $configure
 
 # 7/6/05: took out the fallbacks; no longer needed on SGI
 #
 
-# Use fortran code for tilt program, make extra fortran libs
+# Use fortran code for tilt program
 echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
-echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 
+# make extra fortran libs
+if ($compiler == ifort) then
+    echo 'LINUXFLIBS = ' >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod" >> $configure
+else
+    echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
+endif
 #
 # Set the switch point include file for the FBP algorithm in Tilt
 #
@@ -245,4 +283,8 @@ set ld_lib_var      = DYLD_LIBRARY_PATH
 echo 'MACAPPS = mtk nda sda genhstplt mtoverlap mtpairing avgstatplot' >> $configure
 set qtapp_path  = '$1.app/Contents/MacOS/'
 echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.bashrc linklibs-mac' >> $configure
-if ($distname == "") set distname = _osx
+if ($distname == "") then
+    set distname = _osx
+    if ($intel == true) set distname = _osx_intel 
+endif
+

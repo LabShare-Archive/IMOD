@@ -18,6 +18,7 @@ if ($no_xlibs == false) then
 endif
 
 set fcompFlags = ""
+set fcmpldFlag = ""
 
 if ($compiler == intel) then
     set c_includes =  '-I"$(QTDIR)\include"'
@@ -29,7 +30,7 @@ if ($compiler == intel) then
     set moc = `cygpath $QTDIR/bin/moc`
     set inc_dir = `cygpath --mixed $inc_dir`
     set rgbprogs = 
-    set ldfflags = "/C90 /4Yportlib"
+    set fcmpldFlags = "/C90 /4Yportlib"
     set fortcomp = ifl
     set fcompFlags = "/4L132"
     
@@ -47,10 +48,11 @@ if ($compiler == intel) then
     # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
         set fortcomp = ifort
-        set ldfflags = "/4Yportlib /F66000000"
+        set fcmpldFlags = "/4Yportlib /F66000000"
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132"
     endif
+    set ldfflags = '$(LDFLAGS) '"$fcmpldFlags"
     
 cat << EOF >> $configure
 LDFLAGS = /nologo /MD -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:libc.lib
@@ -181,10 +183,6 @@ endif
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
-
-echo 'FLCC      = $(FC)'              >> $configure
-echo "F77LIBS   = $wrapper"                  >> $configure
-
 # 
 # tell the C routines to swap the bytes for INTEL
 #
@@ -218,7 +216,7 @@ endif
 
 set flags = "$flags /MD"
 set cflags = "$flags $optimization $defines $include_flags $c_includes"
-set fflags = "$flags $fcompFlags $ldfflags $optimization $include_flags"
+set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 cat << EOF >> $configure
 CFLAGS  = $cflags
