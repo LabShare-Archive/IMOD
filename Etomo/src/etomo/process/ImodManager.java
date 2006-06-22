@@ -5,6 +5,7 @@ import java.util.Vector;
 import java.util.Set;
 import java.util.Iterator;
 import java.io.File;
+import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
@@ -31,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2006/06/19 17:06:17  sueh
+ * <p> bug# 851 Added quiteAll() to quit all 3dmods in a vector.
+ * <p>
  * <p> Revision 3.38  2006/04/11 13:47:10  sueh
  * <p> bug# 809 Manage auto center and seed mode separately from
  * <p> openBeadFixer so that seed mode doesn't always have to be managed.
@@ -504,18 +508,16 @@ public class ImodManager {
     loadJoinMap();
   }
 
-  public int newImod(String key) throws AxisTypeException,
-      SystemProcessException {
+  public int newImod(String key) throws AxisTypeException{
     return newImod(key, null, null);
   }
 
-  public int newImod(String key, AxisID axisID) throws AxisTypeException,
-      SystemProcessException {
+  public int newImod(String key, AxisID axisID) throws AxisTypeException {
     return newImod(key, axisID, null);
   }
 
   public int newImod(String key, AxisID axisID, String datasetName)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     Vector vector;
     ImodState imodState;
     key = getPrivateKey(key);
@@ -535,8 +537,7 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
-  public int newImod(String key, File file) throws AxisTypeException,
-      SystemProcessException {
+  public int newImod(String key, File file) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
     key = getPrivateKey(key);
@@ -551,19 +552,20 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
-  public void open(String key) throws AxisTypeException, SystemProcessException {
+  public void open(String key) throws AxisTypeException,
+      SystemProcessException, IOException {
     open(key, null, null, new Run3dmodMenuOptions());
   }
 
   public void open(String key, Run3dmodMenuOptions menuOptions)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException, SystemProcessException, IOException {
     open(key, null, null, menuOptions);
     //used for:
     //openCombinedTomogram
   }
 
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException, SystemProcessException, IOException {
     open(key, axisID, null, menuOptions);
     //used for:
     //openCoarseAligned
@@ -572,13 +574,13 @@ public class ImodManager {
   }
 
   public void open(String key, AxisID axisID, String model)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException, SystemProcessException, IOException {
     open(key, axisID, model, new Run3dmodMenuOptions());
   }
 
   public void open(String key, AxisID axisID, String model,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException {
+      SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -608,7 +610,7 @@ public class ImodManager {
    */
   public void open(String key, AxisID axisID, String model, boolean modelMode,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException {
+      SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -634,7 +636,7 @@ public class ImodManager {
    */
   public void open(String key, AxisID axisID, int vectorIndex,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException {
+      SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID, vectorIndex);
     if (imodState == null) {
@@ -647,7 +649,7 @@ public class ImodManager {
 
   public void open(String key, int vectorIndex, File file,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException {
+      SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -658,7 +660,7 @@ public class ImodManager {
   }
 
   public void delete(String key, int vectorIndex) throws AxisTypeException,
-      SystemProcessException {
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -712,7 +714,7 @@ public class ImodManager {
   }
 
   public Vector getRubberbandCoordinates(String key) throws AxisTypeException,
-      SystemProcessException {
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -722,7 +724,7 @@ public class ImodManager {
   }
 
   public Vector getSlicerAngles(String key, int vectorIndex)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException,  IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
@@ -731,12 +733,13 @@ public class ImodManager {
     return imodState.getSlicerAngles();
   }
 
-  public void quit(String key) throws AxisTypeException, SystemProcessException {
+  public void quit(String key) throws AxisTypeException,
+      IOException {
     quit(key, null);
   }
 
   public void quit(String key, AxisID axisID) throws AxisTypeException,
-      SystemProcessException {
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState != null) {
@@ -745,7 +748,7 @@ public class ImodManager {
   }
 
   public void quitAll(String key, AxisID axisID) throws AxisTypeException,
-      SystemProcessException {
+      IOException {
     Vector imodStateVector = getVector(getPrivateKey(key), axisID);
     if (imodStateVector == null || imodStateVector.size() == 0) {
       return;
@@ -763,7 +766,8 @@ public class ImodManager {
     }
   }
 
-  public void quit() throws AxisTypeException, SystemProcessException {
+  public void quit() throws AxisTypeException, 
+      IOException {
     if (imodMap.size() == 0) {
       return;
     }
@@ -781,8 +785,26 @@ public class ImodManager {
     }
   }
 
-  public void setSwapYZ(String key, boolean swapYZ) throws AxisTypeException,
-      SystemProcessException {
+  public void disconnect() throws AxisTypeException, 
+      IOException {
+    if (imodMap.size() == 0) {
+      return;
+    }
+    Set set = imodMap.keySet();
+    Iterator iterator = set.iterator();
+    while (iterator.hasNext()) {
+      Vector vector = getVector((String) iterator.next(), true);
+      int size = vector.size();
+      for (int i = 0; i < size; i++) {
+        ImodState imodState = (ImodState) vector.get(i);
+        if (imodState != null && imodState.isOpen()) {
+          imodState.disconnect();
+        }
+      }
+    }
+  }
+
+  public void setSwapYZ(String key, boolean swapYZ) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -792,7 +814,7 @@ public class ImodManager {
   }
 
   public void setOpenBeadFixer(String key, AxisID axisID, boolean openBeadFixer)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -824,7 +846,7 @@ public class ImodManager {
   }
 
   public void setBinning(String key, AxisID axisID, int binning)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -835,8 +857,7 @@ public class ImodManager {
     }
   }
 
-  public void setBinning(String key, int binning) throws AxisTypeException,
-      SystemProcessException {
+  public void setBinning(String key, int binning) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -848,7 +869,7 @@ public class ImodManager {
   }
 
   public void setBinning(String key, int vectorIndex, int binning)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -858,8 +879,7 @@ public class ImodManager {
     imodState.setBinning(binning);
   }
 
-  public void setBinningXY(String key, int binning) throws AxisTypeException,
-      SystemProcessException {
+  public void setBinningXY(String key, int binning) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -871,7 +891,7 @@ public class ImodManager {
   }
 
   public void setBinningXY(String key, int vectorIndex, int binning)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -882,7 +902,7 @@ public class ImodManager {
   }
 
   public void setOpenContours(String key, AxisID axisID, boolean openContours)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -894,8 +914,7 @@ public class ImodManager {
   }
 
   public void setPreserveContrast(String key, AxisID axisID,
-      boolean preserveContrast) throws AxisTypeException,
-      SystemProcessException {
+      boolean preserveContrast) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -907,7 +926,7 @@ public class ImodManager {
   }
 
   public void setFrames(String key, AxisID axisID, boolean frames)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -919,8 +938,7 @@ public class ImodManager {
   }
 
   public void setPieceListFileName(String key, AxisID axisID,
-      String pieceListFileName) throws AxisTypeException,
-      SystemProcessException {
+      String pieceListFileName) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -941,7 +959,7 @@ public class ImodManager {
   }
 
   public boolean warnStaleFile(String key, AxisID axisID)
-      throws AxisTypeException, SystemProcessException {
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState != null && !imodState.isWarnedStaleFile()

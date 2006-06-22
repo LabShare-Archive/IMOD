@@ -3,6 +3,7 @@ package etomo.process;
 //import java.lang.IllegalStateException;
 import java.util.Vector;
 import java.io.File;
+import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -174,6 +175,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.32  2006/06/07 22:24:34  sueh
+ * <p> $bug# 862 Added setAutoCenter member variable.  Auto center should not be
+ * <p> $modified unless setAutoCenter() is called.
+ * <p> $
  * <p> $Revision 1.31  2006/04/11 13:47:58  sueh
  * <p> $bug# 809 Manage auto center and seed mode separately from
  * <p> $openBeadFixer so that seed mode doesn't always have to be managed.
@@ -318,13 +323,13 @@ public class ImodState {
   public static final int MODEL_VIEW = -3;
   //useModv
   public static final int MODV = -4;
-  
+
   //unchanging state information
   private String datasetName = "";
   private boolean modelView = false;
   private boolean useModv = false;
   private AxisID axisID;
-  
+
   //current state information
   //reset to initial state
   private String modelName;
@@ -334,21 +339,21 @@ public class ImodState {
   private boolean preserveContrast;
   private boolean openBeadFixer;
   private boolean openContours;
-  
+
   //sent with open bead fixer
   private boolean setAutoCenter = false;
   private boolean autoCenter = false;
   private boolean seedMode = false;
   private boolean manageSeedMode = false;
-  
+
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
   private boolean usingMode = false;
-  
+
   //don't reset
   private boolean allowMenuBinningInZ = false;
   private boolean noMenuOptions = false;
-  
+
   //reset values
   //initial state information
   private String initialModelName = "";
@@ -361,7 +366,7 @@ public class ImodState {
   private static final boolean defaultOpenContours = false;
   private static final boolean defaultFrames = false;
   private static final int defaultBinning = 1;
-    
+
   //internal state information
   private final ImodProcess process;
   private boolean warnedStaleFile = false;
@@ -373,7 +378,7 @@ public class ImodState {
   //constructors
   //they can set final state variables
   //they can also set initialModelName
-  
+
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess().
@@ -384,7 +389,7 @@ public class ImodState {
     process = new ImodProcess(manager, axisID);
     reset();
   }
-  
+
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess() and set either model view or imodv.
@@ -396,7 +401,7 @@ public class ImodState {
     setModelViewType(modelViewType);
     reset();
   }
-  
+
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset).
@@ -408,7 +413,7 @@ public class ImodState {
     process = new ImodProcess(manager, datasetName, axisID);
     reset();
   }
-  
+
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset) and set either model view or imodv.
@@ -423,7 +428,6 @@ public class ImodState {
     reset();
   }
 
-  
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset, String model).
@@ -437,7 +441,7 @@ public class ImodState {
     process = new ImodProcess(manager, datasetName, modelName);
     reset();
   }
-  
+
   public ImodState(BaseManager manager, File file, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
@@ -445,7 +449,6 @@ public class ImodState {
     reset();
   }
 
-  
   /**
    * Use this constructor to insert the axis letter and create an instance of
    * ImodProcess using ImodProcess(String dataset).  This will work for any kind
@@ -470,7 +473,7 @@ public class ImodState {
     process = new ImodProcess(manager, this.datasetName, axisID);
     reset();
   }
-  
+
   public ImodState(BaseManager manager, AxisID axisID, String datasetName,
       String datasetExt, long beadfixerDiameter) {
     this.manager = manager;
@@ -480,10 +483,11 @@ public class ImodState {
       throw new IllegalArgumentException(axisID.toString());
     }
     this.datasetName = datasetName + axisExtension + datasetExt;
-    process = new ImodProcess(manager, this.datasetName, axisID, beadfixerDiameter);
+    process = new ImodProcess(manager, this.datasetName, axisID,
+        beadfixerDiameter);
     reset();
   }
-  
+
   /**
    * Use this constructor to insert the axis letter and create an instance of
    * ImodProcess using ImodProcess(String dataset, String model).  This will
@@ -521,7 +525,7 @@ public class ImodState {
    * @throws SystemProcessException
    */
   public void open(Run3dmodMenuOptions menuOptions)
-      throws SystemProcessException, NullPointerException {
+      throws SystemProcessException, IOException {
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.getOptions();
     menuOptions.setAllowBinningInZ(allowMenuBinningInZ);
@@ -534,7 +538,7 @@ public class ImodState {
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
         if (setAutoCenter) {
-        process.setAutoCenter(autoCenter);
+          process.setAutoCenter(autoCenter);
         }
         if (manageSeedMode) {
           process.setSeedMode(seedMode);
@@ -562,7 +566,7 @@ public class ImodState {
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
         if (setAutoCenter) {
-        process.setAutoCenter(autoCenter);
+          process.setAutoCenter(autoCenter);
         }
         if (manageSeedMode) {
           process.setSeedMode(seedMode);
@@ -594,6 +598,7 @@ public class ImodState {
     process.sendMessages();
     reset();
   }
+
   /**
    * Opens a process using the modelName parameter.  Ignores mode setting.
    * 
@@ -603,34 +608,38 @@ public class ImodState {
    * @param modelName
    * @throws SystemProcessException
    */
-  public void open(String modelName, Run3dmodMenuOptions menuOptions) throws SystemProcessException {
+  public void open(String modelName, Run3dmodMenuOptions menuOptions)
+      throws SystemProcessException, IOException {
     setModelName(modelName);
     open(menuOptions);
-  } 
-  
-  public void open(String modelName, boolean modelMode, Run3dmodMenuOptions menuOptions) throws SystemProcessException {
+  }
+
+  public void open(String modelName, boolean modelMode,
+      Run3dmodMenuOptions menuOptions) throws SystemProcessException,
+      IOException {
     setModelName(modelName);
     setModelMode(modelMode);
     open(menuOptions);
-  } 
+  }
 
-  public Vector getRubberbandCoordinates() throws SystemProcessException {
+  public Vector getRubberbandCoordinates() throws IOException {
     return process.getRubberbandCoordinates();
   }
-  
-  public Vector getSlicerAngles() throws SystemProcessException {
+
+  public Vector getSlicerAngles() throws IOException {
     return process.getSlicerAngles();
   }
 
-  
   /**
    * Tells process to quit.
-   * @throws SystemProcessException
    */
-  public void quit() throws SystemProcessException {
+  public void quit() throws IOException {
     process.quit();
   }
 
+  public void disconnect() throws IOException {
+    process.disconnect();
+  }
 
   /**
    * @param modelViewType either MODEL_VIEW or MODV
@@ -649,7 +658,7 @@ public class ImodState {
     process.setModelView(modelView);
     process.setUseModv(useModv);
   }
-  
+
   protected void reset() {
     //reset to initial state
     setModelName(initialModelName);
@@ -676,8 +685,7 @@ public class ImodState {
       return "ERROR:" + Integer.toString(mode);
     }
   }
- 
- 
+
   //unchanging state information
   /**
    * @return datasetName
@@ -685,7 +693,7 @@ public class ImodState {
   public String getDatasetName() {
     return datasetName;
   }
-  
+
   /**
    * 
    * @return modelView
@@ -693,14 +701,14 @@ public class ImodState {
   public boolean isModelView() {
     return modelView;
   }
-  
+
   /**
    * @return useModv
    */
   public boolean isUseModv() {
     return useModv;
   }
-  
+
   //current state information
   /**
    * @return modelName
@@ -708,37 +716,40 @@ public class ImodState {
   public String getModelName() {
     return modelName;
   }
+
   public void setModelName(String modelName) {
     this.modelName = modelName;
     process.setModelName(modelName);
   }
-  
+
   /**
    * @return usingMode
    */
   public boolean isUsingMode() {
     return usingMode;
   }
+
   /**
    * @param usingMode
    */
-  public void setUsingMode(boolean usingMode){
+  public void setUsingMode(boolean usingMode) {
     this.usingMode = usingMode;
   }
-  
+
   /**
    * @return openContours
    */
   public boolean isOpenContours() {
     return openContours;
   }
+
   /**
    * @param usingOpenContour
    */
-  public void setOpenContours(boolean openContours){
+  public void setOpenContours(boolean openContours) {
     this.openContours = openContours;
   }
-  
+
   final AxisID getAxisID() {
     return axisID;
   }
@@ -749,12 +760,14 @@ public class ImodState {
   public int getMode() {
     return mode;
   }
+
   /**
    * @return mode
    */
   public String getModeString() {
     return getModeString(mode);
   }
+
   /**
    * set the mode to model or movie.
    */
@@ -762,6 +775,7 @@ public class ImodState {
     usingMode = true;
     this.mode = mode;
   }
+
   /**
    * Sets the mode (model or movie)
    * @param modelMode
@@ -782,6 +796,7 @@ public class ImodState {
   public boolean isSwapYZ() {
     return swapYZ;
   }
+
   /**
    * @param swapYZ
    */
@@ -796,6 +811,7 @@ public class ImodState {
   public boolean isPreserveContrast() {
     return preserveContrast;
   }
+
   /**
    * @param preserveContrast
    */
@@ -807,17 +823,18 @@ public class ImodState {
   public void setFrames(boolean frames) {
     process.setFrames(frames);
   }
-  
+
   public void setPieceListFileName(String pieceListFileName) {
     process.setPieceListFileName(pieceListFileName);
   }
-  
+
   /**
    * @return openBeadFixer
    */
   public boolean isOpenBeadFixer() {
     return openBeadFixer;
   }
+
   /**
    * @param openBeadFixer
    */
@@ -828,12 +845,12 @@ public class ImodState {
     seedMode = false;
     manageSeedMode = false;
   }
-  
+
   void setAutoCenter(boolean autoCenter) {
     setAutoCenter = true;
     this.autoCenter = autoCenter;
   }
-  
+
   void setSeedMode(boolean seedMode) {
     this.seedMode = seedMode;
     manageSeedMode = true;
@@ -846,19 +863,21 @@ public class ImodState {
   public String getInitialModelName() {
     return initialModelName;
   }
-  
+
   /**
    * @return
    */
   public int getInitialMode() {
     return initialMode;
   }
+
   /**
    * @return
    */
   public String getInitialModeString() {
     return getModeString(initialMode);
   }
+
   /**
    * @param initialMode
    */
@@ -870,10 +889,11 @@ public class ImodState {
     setMode(initialMode);
     initialModeSet = true;
   }
-  
+
   public boolean isInitialSwapYZ() {
     return initialSwapYZ;
   }
+
   public void setInitialSwapYZ(boolean initialSwapYZ) {
     if (initialSwapYZSet) {
       return;
@@ -882,17 +902,17 @@ public class ImodState {
     setSwapYZ(initialSwapYZ);
     initialSwapYZSet = true;
   }
-  
+
   //default state information
-  
+
   public boolean isDefaultOpenWithModel() {
     return defaultOpenWithModel;
   }
-  
+
   public boolean isDefaultPreserveContrast() {
     return defaultPreserveContrast;
   }
-  
+
   //user controlled state information - pass through to ImodProcess
   /**
    * @return true if process is running
@@ -900,26 +920,26 @@ public class ImodState {
   public boolean isOpen() {
     return process.isRunning();
   }
-  
+
   final void setAllowMenuBinningInZ(boolean allowMenuBinningInZ) {
     this.allowMenuBinningInZ = allowMenuBinningInZ;
   }
-  
+
   final void setNoMenuOptions(boolean noMenuOptions) {
     this.noMenuOptions = noMenuOptions;
   }
-  
+
   /**
    * @param binning
    */
   public void setBinning(int binning) {
     process.setBinning(binning);
   }
-  
+
   public void setBinningXY(int binning) {
     process.setBinningXY(binning);
   }
-  
+
   /**
    * @param workingDirectory
    */
@@ -934,6 +954,7 @@ public class ImodState {
   public boolean isWarnedStaleFile() {
     return warnedStaleFile;
   }
+
   /**
    * 
    * @param warnedStaleFile
@@ -941,7 +962,6 @@ public class ImodState {
   public void setWarnedStaleFile(boolean warnedStaleFile) {
     this.warnedStaleFile = warnedStaleFile;
   }
-  
 
   /**
    * @return string
@@ -958,29 +978,29 @@ public class ImodState {
     params.add("datasetName=" + getDatasetName());
     params.add("modelView=" + isModelView());
     params.add("useModv=" + isUseModv());
-    
+
     params.add("modelName=" + getModelName());
     params.add("usingMode=" + isUsingMode());
     params.add("mode=" + getModeString());
-    
+
     params.add("swapYZ=" + isSwapYZ());
     params.add("preserveContrast=" + isPreserveContrast());
     params.add("openBeadFixer=" + isOpenBeadFixer());
-    
+
     params.add("initialModelName=" + getInitialModelName());
     params.add("initialMode=" + getInitialModeString());
     params.add("initialSwapYZ=" + isInitialSwapYZ());
-    
+
     params.add("defaultOpenWithModel=" + isDefaultOpenWithModel());
     params.add("defaultPreserveContrast=" + isDefaultPreserveContrast());
     params.add("process=" + process.toString());
-    
+
     params.add("warnedStaleFile=" + isWarnedStaleFile());
     params.add("openContours=" + isOpenContours());
-    
+
     return params.toString();
   }
-  
+
   /**
    * 
    * @param imodState
@@ -997,7 +1017,7 @@ public class ImodState {
     }
     return false;
   }
-  
+
   /**
    * 
    * @param imodState
@@ -1010,15 +1030,14 @@ public class ImodState {
         && modelName.equals(imodState.getModelName())
         && usingMode == imodState.isUsingMode()
         && openContours == imodState.isOpenContours()
-        && mode == imodState.getMode()
-        && swapYZ == imodState.isSwapYZ()
+        && mode == imodState.getMode() && swapYZ == imodState.isSwapYZ()
         && preserveContrast == imodState.isPreserveContrast()
         && openBeadFixer == imodState.isOpenBeadFixer()) {
       return true;
     }
     return false;
   }
-  
+
   /**
    * 
    * @param imodState
@@ -1027,7 +1046,7 @@ public class ImodState {
    */
   public boolean equals(ImodState imodState) {
     return equalsInitialConfiguration(imodState)
-      && equalsCurrentConfiguration(imodState);
+        && equalsCurrentConfiguration(imodState);
   }
 
 }
