@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Vector;
 
 import etomo.comscript.ComScriptManager;
@@ -14,9 +13,7 @@ import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
-import etomo.process.ImodProcess;
 import etomo.process.ImodqtassistProcess;
-import etomo.process.ProcessMessages;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
@@ -380,17 +377,12 @@ public abstract class BaseManager {
         uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
             axisID);
       }
-      catch (SystemProcessException except) {
-        except.printStackTrace();
-        uiHarness.openMessageDialog(except.getMessage(),
-            "Problem closing 3dmod", axisID);
-      }
       ImodqtassistProcess.INSTANCE.quit();
+      imodManager.disconnect();
       return true;
     }
     catch (Throwable e) {
       e.printStackTrace();
-      ImodqtassistProcess.INSTANCE.quit();
       return true;
     }
   }
@@ -435,43 +427,10 @@ public abstract class BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           axisID);
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Unable to retrieve rubberband coordinates from " + imodKey + ".",
-          axisID);
-    }
-    Vector messageArray = new Vector();
-    if (results == null) {
-      messageArray.add("Unable to retrieve rubberband coordinates from "
-          + imodKey + ".");
-      return null;
-    }
-    else {
-      boolean success = false;
-      String result = null;
-      Iterator i = results.iterator();
-      while (i.hasNext()) {
-        result = (String) i.next();
-        if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
-            || result.indexOf(ProcessMessages.ERROR_TAG) != -1
-            || result.indexOf(ProcessMessages.WARNING_TAG) != -1) {
-          messageArray.add(result);
-          i.remove();
-        }
-        if (result.indexOf(ImodProcess.RUBBERBAND_RESULTS_STRING) != -1) {
-          success = true;
-        }
-      }
-      if (!success) {
-        messageArray.add("Unable to retrieve rubberband coordinates from "
-            + imodKey + ".");
-      }
-    }
-    if (messageArray.size() > 0) {
-      String[] messages = (String[]) messageArray
-          .toArray(new String[messageArray.size()]);
-      uiHarness.openMessageDialog(messages, "Rubberband Coordinates", axisID);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
     return results;
   }
@@ -1038,6 +997,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.59  2006/06/21 15:46:19  sueh
+ * <p> bug# 581 Quitting Imodqtassist process when etomo exits.
+ * <p>
  * <p> Revision 1.58  2006/06/15 16:12:42  sueh
  * <p> bug# 871 exitProgram():  Added a test for running processes that can't continue
  * <p> if etomo exits.
