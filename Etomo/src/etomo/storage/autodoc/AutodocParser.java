@@ -82,7 +82,7 @@ import etomo.ui.Token;
  * Autodoc => { emptyLine | comment | pair | section } EOF
  * 
  * section => startLineDelimiter OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
- *            { emptyLine | comment | pair | subSection }
+ *            { emptyLine | comment | pair | subsection }
  *            
  * 
  * sectionHeader => -WHITESPACE- sectionType -WHITESPACE- DELIMITER -WHITESPACE-
@@ -92,11 +92,11 @@ import etomo.ui.Token;
  * 
  * sectionName = [ \CLOSE & WHITESPACE & EOL & EOF\ ]
  *               
- * subSection => startLineDelimiter OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
+ * subsection => startLineDelimiter OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
  *               { emptyLine | comment | pair }
- *               -subSectionClose-
+ *               -subsectionClose-
  *               
- * subSectionClose -> startLine OPEN OPEN CLOSE CLOSE
+ * subsectionClose -> startLine OPEN OPEN CLOSE CLOSE
  *               
  * pair => startLineDelimiter name -WHITESPACE- DELIMITER -WHITESPACE- value
  *         
@@ -154,6 +154,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2006/06/14 21:22:06  sueh
+ * <p> $bug# 852 Moving the call the processMetaData() to value().  Passing the first
+ * <p> $line of the value to processMetaData to handle DelimiterKeyValue.
+ * <p> $
  * <p> $Revision 1.4  2006/06/14 00:22:19  sueh
  * <p> $bug# 852 Rewrote the autodoc language definitions to make them simpler and
  * <p> $easier to understand.  Fixed an incorrect definition in Attribute.  Added a
@@ -408,7 +412,7 @@ final class AutodocParser {
    * @throws IOException
    */
   private boolean section() throws IOException {
-    WriteOnlyAttributeMap section = null;
+    Section section = null;
     if (!startLineDelimiter()) {
       //not a section
       return false;
@@ -418,9 +422,10 @@ final class AutodocParser {
       return false;
     }
     testStartFunction("section");
-    //save the new section
-    section = sectionHeader();
+    //save the new section in the autodoc
+    section = sectionHeader(autodoc);
     if (section == null) {
+      //bad section
       testEndFunction("section", false);
       return false;
     }
@@ -445,7 +450,7 @@ final class AutodocParser {
       }
       else if (comment()) {
       }
-      else if (subSection()) {
+      else if (subsection(section)) {
       }
       else if (pair(section)) {
       }
@@ -460,8 +465,96 @@ final class AutodocParser {
     return true;
   }
 
-  private boolean subSection() throws IOException {
-    return false;
+  /**
+   * subsection => startLineDelimiter OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
+   *               { emptyLine | comment | pair }
+   *               -subsectionClose-
+   * Parses a subsection
+   * @return
+   * @throws IOException
+   */
+  private boolean subsection(Section section)
+      throws IOException {
+    WriteOnlyAttributeMap subsection = null;
+    if (!startLineDelimiter()) {
+      //not a section
+      return false;
+    }
+    //use look ahead because this could be a section
+    if (!token.is(Token.Type.OPEN) || !lookAhead().is(Token.Type.OPEN)) {
+      //not a section
+      return false;
+    }
+    testStartFunction("subsection");
+    //its a subsection so eat up OPEN OPEN
+    nextToken();
+    nextToken();
+    //save the new subsection in the section
+    subsection = sectionHeader(section);
+    if (subsection == null) {
+      //bad subsection
+      testEndFunction("subsection", false);
+      return false;
+    }
+    if (!matchToken(Token.Type.CLOSE)) {
+      //bad subsection
+      reportError("A subsection header must end with \""
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("subsection", false);
+      return false;
+    }
+    if (!matchToken(Token.Type.CLOSE)) {
+      //bad subsection
+      reportError("A subsection header must end with \""
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("subsection", false);
+      return false;
+    }
+    while (!token.is(Token.Type.EOF) && !subsectionClose()) {
+      //look for elements in the subsection
+      if (emptyLine()) {
+      }
+      else if (comment()) {
+      }
+      else if (pair(subsection)) {
+      }
+      else {
+        //end of subsection
+        testEndFunction("subsection", true);
+        return true;
+      }
+    }
+    //empty subsection
+    testEndFunction("subsection", true);
+    return true;
+  }
+
+  /**
+   * subsectionClose -> startLine OPEN OPEN CLOSE CLOSE
+   * @return
+   */
+  private boolean subsectionClose() throws IOException {
+    //use look ahead because this could be a section or a subsection
+    if (!token.is(Token.Type.OPEN) || !lookAhead().is(Token.Type.OPEN)
+        || !lookAheadAhead().is(Token.Type.CLOSE)) {
+      //not a subsectionClose
+      return false;
+    }
+    testStartFunction("subsectionClose");
+    //its a subsectionClose so eat up OPEN OPEN CLOSE
+    nextToken();
+    nextToken();
+    nextToken();
+    if (!matchToken(Token.Type.CLOSE)) {
+      //bad subsection
+      reportError("A subsection close must have the format \""
+          + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("subsectionClose", false);
+      return false;
+    }
+    testEndFunction("subsectionClose", true);
+    return true;
   }
 
   /**
@@ -485,7 +578,7 @@ final class AutodocParser {
    * @return a Section if sectionHeader found, otherwise return null
    * @throws IOException
    */
-  private Section sectionHeader() throws IOException {
+  private Section sectionHeader(WriteOnlyNameValuePairList nameValuePairList) throws IOException {
     testStartFunction("sectionHeader");
     matchToken(Token.Type.WHITESPACE);
     //get the section type
@@ -515,7 +608,7 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     testEndFunction("sectionHeader", true);
-    return autodoc.addSection(type, name.getList());
+    return nameValuePairList.addSection(type, name.getList());
   }
 
   /**
@@ -808,6 +901,36 @@ final class AutodocParser {
       System.err.println(tokenIndex + ":" + token + ",delimiterInLine="
           + delimiterInLine);
     }
+  }
+
+  /**
+   * Look ahead to the next token.  Only looks to the end of the line - cannot
+   * look at the next line.  NextToken() should be run at least once for this to
+   * work.
+   * @return
+   */
+  private Token lookAhead() {
+    if (line == null || token == null || token.is(Token.Type.EOL)
+        || token.is(Token.Type.EOF)) {
+      return token;
+    }
+    return (Token) line.get(tokenIndex);
+  }
+
+  /**
+   * Look ahead to the token after the next token.  Only looks to the end of the
+   * line - cannot look at the next line.  NextToken() should be run at least
+   * once for this to work.
+   * @return
+   */
+  private Token lookAheadAhead() {
+    Token lookAheadToken = lookAhead();
+    if (line == null || lookAheadToken == null
+        || lookAheadToken.is(Token.Type.EOL)
+        || lookAheadToken.is(Token.Type.EOF)) {
+      return lookAheadToken;
+    }
+    return (Token) line.get(tokenIndex + 1);
   }
 
   /**
