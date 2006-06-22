@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2005/11/23 16:50:36  mast
+#  Remove dependency on recl_bytes since it is created by setup
+#
 #  Revision 3.5  2005/11/19 17:01:44  mast
 #  Added dependency on recl_bytes.inc
 #
@@ -26,7 +29,7 @@ include ../configure
 
 O        = $(OBJEXT)
 E        = $(BINEXT)
-LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+LDFLG    = $(LDFFLAGS)
 PROGS = blendmont$(E) reducemont$(E)
 
 BLOBJS = blendmont.$(O) bsubs.$(O) edgesubs.$(O) shuffler.$(O) smoothgrid.$(O)\

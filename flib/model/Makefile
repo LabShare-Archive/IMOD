@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/05/12 05:07:40  mast
+#  Use strip variable
+#
 #  Revision 3.4  2004/09/10 18:10:59  mast
 #  Added sumdensity
 #
@@ -23,7 +26,7 @@ include ../configure
 
 E        = $(BINEXT)
 O        = $(OBJEXT)
-LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+LDFLG    = $(LDFFLAGS)
 
 PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  xfmodel$(E) boxstartend$(E) endmodel$(E) realscalemod$(E) scalemodel$(E) \

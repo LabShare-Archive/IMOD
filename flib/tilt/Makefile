@@ -15,6 +15,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/05/12 05:07:41  mast
+#  Use strip variable
+#
 #  Revision 3.4  2003/11/12 22:02:32  mast
 #  Use variables from config for making static library
 #
@@ -37,7 +40,7 @@ all: $(PROG)
 
 $(PROG): tilt.$(O) licenseusfft.$(O) $(TILTOBJS) $(FBPLIB) 
 	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O) $(TILTOBJS) \
-	 $(FBPLIB) $(LDFFLAGS) $(LDFLAGS) $(IMLIBS) $(USFFTLIBS) $(FORTCLIBS)
+	 $(FBPLIB) $(LDFFLAGS) $(IMLIBS) $(USFFTLIBS) $(FORTCLIBS)
 
 libfbp.a: fbplib/*.f
 	(cd fbplib ; $(MAKE) )

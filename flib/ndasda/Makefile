@@ -1,7 +1,7 @@
 include ../configure
 O        = $(OBJEXT)
 E        = $(BINEXT)
-LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+LDFLG    = $(LDFFLAGS)
 
 # DNM 3/11/01: renamed MODIMLIBS to GRAPHLIBS
 

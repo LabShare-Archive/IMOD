@@ -15,7 +15,7 @@ tiltalign.$(O): tiltalign.f
 	$(FC) -c $(NOOPFFLAGS) tiltalign.f
 
 $(PROG): $(TAOBJS)
-	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LDFLAGS) $(IMLIBS) \
+	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(IMLIBS) \
 	$(FORTCLIBS) $(TILTALILIB)
 
 

@@ -14,7 +14,7 @@ tiltali.$(O): tiltali.f
 	$(FC) -c $(NOOPFFLAGS) tiltali.f
 
 $(PROG): $(BDOBJS)
-	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LDFLAGS) $(IMLIBS) \
+	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(IMLIBS) \
 	$(FORTCLIBS) $(TILTALILIB)
 
 beadtrack.$(O):   $(INCDIR)/model.inc  $(INCDIR)/statsize.inc \

@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.4  2006/03/04 00:35:46  mast
+#  Added fitrotsearch
+#
 #  Revision 1.3  2006/02/06 21:31:21  mast
 #  Added several programs
 #
@@ -21,7 +24,7 @@ include ../configure
 
 O        = $(OBJEXT)
 E        = $(BINEXT)
-LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+LDFLG    = $(LDFFLAGS)
 PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E) \
         fitrotsearch$(E)
 

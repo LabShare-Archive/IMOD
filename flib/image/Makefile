@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2005/11/25 18:50:19  mast
+#  Made vmstocsh nonoptimized due to 64-bit Intel compiler bug
+#
 #  Revision 3.9  2005/05/12 05:07:40  mast
 #  Use strip variable
 #
@@ -37,7 +40,7 @@ include ../configure
 
 O        = $(OBJEXT)
 E        = $(BINEXT)
-LDFLG    = $(LDFFLAGS) $(LDFLAGS)
+LDFLG    = $(LDFFLAGS)
 
 PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  avgstack$(E) boxavg$(E) calc$(E) checkxforms$(E) combinefft$(E) \
