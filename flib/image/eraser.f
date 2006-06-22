@@ -44,12 +44,13 @@ c	  it is better to keep dirt off of theimages in the first place.
 c	  
 c	  David Mastronarde 2/27/89
 c
-	parameter (imsiz=2100,limpt=100000)
+	parameter (imsiz=4100,limpt=100000)
 	real*4 array(imsiz*imsiz),title(20)
 	integer*4 nxyz(3),mxyz(3)
 	equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
 	character*80 infile,outfile,ptfile
 	integer*4 ixfix(limpt),iyfix(limpt),izfix(limpt)
+        common /bigarr/array
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
