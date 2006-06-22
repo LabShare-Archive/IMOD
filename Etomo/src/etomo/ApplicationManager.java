@@ -614,6 +614,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(),
           "Axis type problem in 3dmod erase", axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -713,6 +718,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(),
           "Problem opening coarse stack", axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -738,6 +748,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
           "Problem opening erased stack", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -1008,6 +1023,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
           "Problem opening raw stack", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -1411,6 +1431,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(),
           "Problem opening coarse stack", axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -1708,6 +1733,11 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   private boolean okToFiducialModelTrack(AxisID axisID) {
@@ -1863,9 +1893,10 @@ public final class ApplicationManager extends BaseManager {
       e.printStackTrace();
       System.err.println("Axis type exception in replaceRawStack");
     }
-    catch (SystemProcessException e) {
+    catch (IOException e) {
       e.printStackTrace();
-      System.err.println("System process exception in replaceRawStack");
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
     if (seedFile.exists()) {
@@ -1923,6 +1954,11 @@ public final class ApplicationManager extends BaseManager {
               + fiducialModel, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
     state.setFixedFiducials(axisID, true);
   }
@@ -2305,10 +2341,10 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           axisID);
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem closing 3dmod", axisID);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
   
@@ -2329,10 +2365,10 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem closing 3dmod", AxisID.ONLY);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -2353,10 +2389,10 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           axisID);
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Problem closing 3dmod", axisID);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -2422,6 +2458,11 @@ public final class ApplicationManager extends BaseManager {
           "Can't open 3dmod on coarse aligned stack with model: "
               + fiducialModel, axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -2442,6 +2483,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
           "Can't open 3dmod on fine aligned stack", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -2465,6 +2511,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(),
           "Can't open 3dmod on fine aligned stack", axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -2486,6 +2537,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
           "Can't open 3dmod on MTF filter results", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -2805,6 +2861,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(),
           "Problem opening sample reconstruction", axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -2830,6 +2891,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(),
           "Problem opening sample reconstruction", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -3615,6 +3681,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(),
           "Can't open 3dmod with the tomogram", axisID);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -3650,7 +3721,12 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           axisID);
     }
-  }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
+ }
 
   public void commitTestVolume(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
@@ -3888,6 +3964,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
+    }
   }
 
   /**
@@ -3906,6 +3987,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -3941,6 +4027,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
+    }
   }
 
   /**
@@ -3959,6 +4050,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -3986,6 +4082,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -4674,8 +4775,10 @@ public final class ApplicationManager extends BaseManager {
     catch (AxisTypeException e) {
       e.printStackTrace();
     }
-    catch (SystemProcessException e) {
+    catch (IOException e) {
       e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", axisID);
     }
   }
 
@@ -4956,6 +5059,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
+    }
   }
 
   /**
@@ -5001,6 +5109,11 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
+    }
   }
 
   /**
@@ -5027,6 +5140,11 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -5589,6 +5707,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.237  2006/06/19 17:05:39  sueh
+ * <p> bug# 851 Added closeImod() and closeImods().  Closing 3dmods when they are
+ * <p> not needed.
+ * <p>
  * <p> Revision 3.236  2006/06/16 15:23:48  sueh
  * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
  * <p> dialog.

@@ -53,6 +53,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2006/06/05 16:01:17  sueh
+ * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
+ * <p>
  * <p> Revision 1.39  2006/04/06 18:47:32  sueh
  * <p> bug# 808 Added newStartJoinParam and to manage StartJoinParam so
  * <p> that it can be modified by another process.
@@ -463,6 +466,11 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
           + " in 3dmod ", AxisID.ONLY);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
+    }
   }
 
   /**
@@ -481,6 +489,11 @@ public final class JoinManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
           + " in 3dmod ", AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -508,6 +521,11 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
           + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
     }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
+    }
     return imodIndex;
   }
 
@@ -528,10 +546,10 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't delete "
-          + imodKey + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -549,10 +567,10 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
           AxisID.ONLY);
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't get rotation angles from " + imodKey + " 3dmod.", AxisID.ONLY);
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(),
+          "IO Exception", AxisID.ONLY);
     }
     Vector messageArray = new Vector();
     SlicerAngles slicerAngles = null;
@@ -567,8 +585,7 @@ public final class JoinManager extends BaseManager {
       String result = null;
       for (int i = 0; i < results.size(); i++) {
         result = (String) results.get(i);
-        if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
-            || result.indexOf(ProcessMessages.ERROR_TAG) != -1
+        if (result.indexOf(ProcessMessages.ERROR_TAG) != -1
             || result.indexOf(ProcessMessages.WARNING_TAG) != -1) {
           messageArray.add(result);
         }
