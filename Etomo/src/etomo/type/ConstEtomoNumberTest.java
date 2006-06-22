@@ -244,6 +244,28 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInvalidReason().length(), 0);
     test.internalTest();
   }
+
+  
+  public final void testApplyCeilingValue_Number() {
+    int lowValue = 2;
+    int ceilingValue = 3;
+    int highValue = 4;
+    EtomoNumber test = new EtomoNumber();
+    test.setCeiling(ceilingValue);
+    //test (value < ceiling) => value
+    assertEquals(test.applyCeilingValue(new Integer(lowValue)).intValue(),
+        lowValue);
+    //test (value == ceiling) => ceiling
+    assertEquals(test.applyCeilingValue(new Integer(ceilingValue)).intValue(),
+        ceilingValue);
+    //test (value > ceiling) => ceiling
+    assertEquals(test.applyCeilingValue(new Integer(highValue)).intValue(),
+        ceilingValue);
+    test.internalTest();
+    testIsNull_Number();
+    testGt_Number_Number();
+    testNewNumber_Number();
+  }
   //TODO
 
   public final void testValidateReturnTypeInteger() {
@@ -282,24 +304,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     catch (IllegalStateException e) {
     }
-    test.internalTest();
-  }
-
-  public final void testApplyCeilingValue() {
-    int lowValue = 2;
-    int ceilingValue = 3;
-    int highValue = 4;
-    EtomoNumber test = new EtomoNumber();
-    test.setCeiling(ceilingValue);
-    //test (value < ceiling) => value
-    assertEquals(test.applyCeilingValue(new Integer(lowValue)).intValue(),
-        lowValue);
-    //test (value == ceiling) => ceiling
-    assertEquals(test.applyCeilingValue(new Integer(ceilingValue)).intValue(),
-        ceilingValue);
-    //test (value > ceiling) => ceiling
-    assertEquals(test.applyCeilingValue(new Integer(highValue)).intValue(),
-        ceilingValue);
     test.internalTest();
   }
 
@@ -1128,6 +1132,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2006/06/21 16:50:37  sueh
+ * <p> bug# 692 Modified testSetInvalidReason().
+ * <p>
  * <p> Revision 1.26  2006/06/16 17:01:10  sueh
  * <p> bug# #692 Changed testGetDisplayInteger() so that it just calls testValidateReturnType, which reflects what is happening in the tested code and
  * <p> prevents duplicate test code.
