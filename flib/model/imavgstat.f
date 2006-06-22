@@ -237,6 +237,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.3  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.2  2003/03/14 01:56:45  mast
 c       Added linear argument to interpolation calls
 c       
@@ -251,6 +254,7 @@ c
       real*4 array(4*idimbc),brray(idimbc),crray(idimbc),drray(idimbc)
       equivalence (brray(1),array(1+idimbc))
      &    ,(crray(1),array(1+2*idimbc)),(drray(1),array(1+3*idimbc))
+      common /bigarr/array
 c       
       integer*4 listind(npixlim),npixarea(narealim),nxyz(3)
       integer*4 iobjin(narealim),nsumarea(narealim),mxyz(3)

@@ -32,7 +32,7 @@ c
 c	  David Mastronarde 12/4/98
 c
 c
-	parameter (imsiz=3100)
+	parameter (imsiz=4200)
 	parameter (mxd=50)
 	real*4 array(imsiz*imsiz),title(20),orig(3),delt(3)
 	integer*4 nxyz(3),mxyz(3)
@@ -41,6 +41,7 @@ c
 	real*4 xfix(5000),yfix(5000)
 	include 'model.inc'
 	logical readw_or_imod, typeonlist
+        common /bigarr/array
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c

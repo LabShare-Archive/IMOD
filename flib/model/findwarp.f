@@ -170,6 +170,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.9  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.8  2005/10/19 16:43:52  mast
 c       Increased patch limit to 40000
 c       
@@ -248,6 +251,7 @@ c       integer*4 ixdrop(idim),iydrop(idim),izdrop(idim),ntimes(idim)
       real*4 devavavg,devmaxavg,devavmax
       integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop,ixd,iyd,izd
       integer*4 left,ifon,ndrop,ifflip,indpat,indloc,icolfix
+      common /bigarr/xr,cx,dx,asave,censave,dxyzsave,xvert,yvert
       indpat(ix,iy,iz)=ix + (iy-1)*npatx + (iz-1)*npatx*npaty
       indloc(ix,iy,iz)=ix + (iy-1)*nlocx + (iz-1)*nlocx*nlocy
 c       
