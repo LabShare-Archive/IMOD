@@ -21,6 +21,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2006/06/21 16:50:11  sueh
+ * <p> bug# 692 Fix null pointer exception in getInvalidReason().  Add
+ * <p> resetInvalidReason() call to setValidFloor().
+ * <p>
  * <p> Revision 1.35  2006/06/09 21:53:32  sueh
  * <p> bug# 692 Added resetInvalidReason() calls to setValidValues() and
  * <p> setNullIsValid().  Added debug, which can be set  for an instance and used to
@@ -407,7 +411,7 @@ public abstract class ConstEtomoNumber implements Storable {
       System.err.println(description + ":end setInvalidReason:  valid");
     }
   }
-//TODO test
+
   /**
    * Returns ceilingValue if value > ceilingValue.
    * Otherwise returns value.
@@ -422,7 +426,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return value;
   }
-
+//TODO test
   /**
    * Returns floorValue if value < floorValue.  Otherwise returns values.
    * Ignores null.
