@@ -379,15 +379,15 @@ EOF
         if ($distname == "") set distname = _win64
         set strip = true
         echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files (x86)/GnuWin32/bin" >> $configure
-        echo 'DLLSTOCOPY1 = libtiff.dll' >> $configure
+        echo 'DLLSTOCOPY1 = libtiff' >> $configure
     else
         if ($distname == "") set distname = _win
         echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files/GnuWin32/bin" >> $configure
-        echo 'DLLSTOCOPY1 = libtiff.dll libjpeg.dll zlib.dll' >> $configure
+        echo 'DLLSTOCOPY1 = libtiff libjpeg zlib' >> $configure
     endif
     if ($iclversion == 7) then
         echo "DLLSOURCEDIR2 = $SYSTEMDRIVE/Program Files/Intel/Compiler70/IA32/Bin" >> $configure
-        echo 'DLLSTOCOPY2 = libCEPCF90MD.dll libF90MD.dll libIEPCF90MD.dll libPCEPCF90MD.dll libintrinsMD.dll libmmd.dll' >> $configure
+        echo 'DLLSTOCOPY2 = libCEPCF90MD libF90MD libIEPCF90MD libPCEPCF90MD libintrinsMD libmmd' >> $configure
     else
 
         # Version 8 or higher has different libraries, and also needs to
@@ -395,11 +395,11 @@ EOF
         #
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
         echo "DLLSOURCEDIR2 = $fortbin" >> $configure
-        echo 'DLLSTOCOPY2 = libifcoremd.dll libifportmd.dll libmmd.dll' >> $configure
+        echo 'DLLSTOCOPY2 = libifcoremd libifportmd libmmd' >> $configure
         if ($m64bit == false) then
             set dllsrc3 = `cygpath $SYSTEMROOT/system32`
             echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
-            echo 'DLLSTOCOPY3 = msvcr71.dll msvcp71.dll' >> $configure
+            echo 'DLLSTOCOPY3 = msvcr71 msvcp71' >> $configure
         endif
     endif
 
