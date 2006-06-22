@@ -210,7 +210,7 @@ cat <<EOF >! $imod_dir/runimod
 setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 set background = 1
 foreach i (\$*)
-    if ("\$i" == '-D' || "\$i" == '-W') set background = 0
+    if ("\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L') set background = 0
 end
 if (\$background == 0) then
     \$IMOD_DIR/bin/${imod_target} \$*
@@ -224,7 +224,7 @@ cat <<EOF >! $imod_dir/runimodv
 setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
 set background = 1
 foreach i (\$*)
-    if ("\$i" == '-D') set background = 0
+    if ("\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L') set background = 0
 end
 if (\$background == 0) then
     \$IMOD_DIR/bin/${imod_target} -view \$*
