@@ -52,7 +52,7 @@ if ($compiler == intel) then
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132"
     endif
-    set ldfflags = '$(LDFLAGS) '"$fcmpldFlags"
+    set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
     
 cat << EOF >> $configure
 LDFLAGS = /nologo /MD -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:libc.lib
