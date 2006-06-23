@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.12  2006/06/06 23:04:49  mast
+#  Moved control stripping before /p
+#
 #  Revision 3.11  2006/03/08 05:16:28  mast
 #  Add arguments to set X/Y and switch to new findcontrast input
 #
@@ -40,6 +43,7 @@ set doflip = "0"
 set fliparg = ""
 set sxarg = ""
 set syarg = ""
+set dorot = "0"
 
 if ($#argv == 0)then
   echo "Usage: $pn [options] input_file output_file"
@@ -60,6 +64,7 @@ cat <<EOF
      -sx start,end   Starting and ending X coordinates to use to find contrast
      -sy start,end   Starting and ending Y coordinates to use to find contrast
      -yz             Flip Y and Z in output volume
+     -rx             Rotate volume by -90 around X axis
      -i              Treat as index coordinates (numbered from 0) rather than
                            as 3dmod coordinates (numbered from 1, the default)
      -f              Treat coordinates as coming from a flipped volume
@@ -129,7 +134,11 @@ while ($#argv > 2)
       shift; shift
       breaksw
     case -yz:
-      set doflip = "1"
+      set doflip = "flipyz"
+      shift
+      breaksw
+    case -rx:
+      set dorot = "1"
       shift
       breaksw
     case -f:
@@ -181,6 +190,14 @@ endif
 if ($?izt && $?inzt) then
     echo "ERROR: $pn - cannot use both -z and -nz options"
     exit 1
+endif
+
+if ($dorot) then
+    if ($doflip != "0") then
+        echo "ERROR: $pn - cannot use both -yz and -rx options"
+        exit 1
+    endif
+    set doflip = "rotx"
 endif
 
 if ($flipyz == "0") then
@@ -323,7 +340,7 @@ if ($?contrast) then
 endif
 
 set newstout = $argv[2]
-if ($doflip == "1") set newstout = $argv[1].tmp.$$
+if ($doflip != "0") set newstout = $argv[1].tmp.$$
 
 if ($?slices) then
     set contslice = `echo $slices | sed 's/,/ /g'`
@@ -373,9 +390,9 @@ echo " "
 echo "The newstack command was:"
 echo "newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout"
 
-if ($doflip == "1") then
-    echo "Flipping Y and Z..."
-    clip flipyz $newstout $argv[2]
+if ($doflip != "0") then
+    echo "Running clip $doflip ..."
+    clip $doflip $newstout $argv[2]
     if ($status) goto clean
     \rm -f $newstout
 endif
