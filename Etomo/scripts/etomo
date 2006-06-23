@@ -44,8 +44,10 @@ fi
 #  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
 osname=`uname -s`
 if [ $osname == 'Linux' ] ; then
-  kvers=(`uname -r | sed '/\./s// /g'`)
-  if [[ ${#kvers[*]} -gt 1 && ${kvers[0]} -eq 2 && ${kvers[1]} -eq 4 ]] ; then
+  kvers=`uname -r | sed '/\./s// /g'`
+  kvers1=`echo $kvers | awk '{print $1}'`
+  kvers2=`echo $kvers | awk '{print $2}'`
+  if [[ ${kvers1} -eq 2 && ${kvers2} -eq 4 ]] ; then
     export LD_ASSUME_KERNEL=2.4.1
   fi
 fi
@@ -135,6 +137,9 @@ else
 fi
 
 # $Log$
+# Revision 1.21  2006/06/23 16:11:23  mast
+# Check kernel version only on Linux
+#
 # Revision 1.20  2006/04/21 16:02:08  mast
 # Set LD_ASSUME_KERNEL for a 2.4 kernel only
 #
