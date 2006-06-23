@@ -46,7 +46,13 @@ set volcombine = volcombine.com
 #
 
 if ($?IMOD_DIR) then
+
+    # Set the com directory.  If on cygwin, convert to cygwin path otherwise
+    # sed's create extra ^M (although the | cat's prevent this)
+    #
     set srcdir = "$IMOD_DIR/com"
+    set test = `which cygpath`
+    if (! $status) set srcdir = `cygpath $IMOD_DIR`/com
     setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
@@ -846,6 +852,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.34  2006/05/11 23:39:08  mast
+#  Changed list arguments and usage output to remove a-b confusion
+#
 #  Revision 3.33  2006/05/05 17:35:29  mast
 #  Converted to command-line arguments and change solvematch processing
 #
