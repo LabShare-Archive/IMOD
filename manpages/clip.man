@@ -62,6 +62,9 @@ Apply Prewitt filter as in 3dmod image processing.
 .I resize
 Box out image to a new size.
 .TP
+.I rotx
+Rotate a volume by -90 degrees about X axis.
+.TP
 .I shadow
 Adjust darkness of image by scaling intensities.
 .TP
@@ -350,13 +353,15 @@ where r is the radius in cycles/pixel.
 .TP
 .B flip
 The flip command is just the root of several types of
-image image transformations.  The flipx, flipy, and flipz
-commands will each create a new file that is the mirror 
-image of the input file around the x, y, or z axis.
+image transformations.  The flipx and flipy 
+commands will each create a new file where each slice is the mirror
+image of the input slice around the x or y axis.  The flipz command will
+invert the order of slices (mirror around the x/y plane).
 The flipxy, flipyz, flipzx commands will flip the
 xy, yz or zx indices and change the size of the
 output file to match.  No input size or centering, or output size or mode 
-options will be applied.
+options will be applied.  All of these options invert the handedness of the
+structures in the image file.
 .TP
 .B gradient
 .PD 0
@@ -416,6 +421,12 @@ size.
 The default padding is the average value of the 
 input file; the padding can be changed with the -p option.
 Resize 2d cuts out a list of slices specified by the
+.TP
+.B rotx
+Rotate an image volume by -90 degrees about the X axis.  This rotation is
+preferable to flipyz because it preserves the handedness of structures.
+The origin and tilt angles in the header will be modified to retain the
+coordinate system of the original volume, as is done by Rotatevol(1).  
 .B -iz
 entry.  
 .TP
