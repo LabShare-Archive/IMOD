@@ -41,26 +41,27 @@ void usage(void)
   fprintf(stderr, 
           "%s [process] [options] [input files...] [output file]\n", name);
   fprintf(stderr, "\nprocess:\n");
-  /*     fprintf(stderr, "\tadd         - add images together.(future)\n"); */
-  fprintf(stderr, "\taverage     - average files together.\n");
+  /*     fprintf(stderr, "\tadd         - Add images together.(future)\n"); */
+  fprintf(stderr, "\taverage     - Average files together.\n");
   fprintf(stderr, "\tbrightness  - Increase or decrease brightness.\n");
-  fprintf(stderr, "\tcolor       - add false color.\n");
+  fprintf(stderr, "\tcolor       - Add false color.\n");
   fprintf(stderr, "\tcontrast    - Increase or decrease contrast.\n");
-  fprintf(stderr, "\tcorrelation - do a auto/cross correlation.\n");
+  fprintf(stderr, "\tcorrelation - Do a auto/cross correlation.\n");
   fprintf(stderr, "\tdiffusion   - Do 2-D anisotropic diffusion on slices.\n");
   fprintf(stderr, "\tgradient    - Compute gradient as in 3dmod.\n");
   fprintf(stderr, "\tgraham      - Apply Graham filter as in 3dmod.\n");
-  fprintf(stderr, "\tinfo        - print information to stdout.\n");
-  fprintf(stderr, "\tfft         - do a fft or inverse fft transform.\n");
-  fprintf(stderr, "\tfilter      - do a bandpass filter.\n");
-  fprintf(stderr, "\tflip        - rotate image by 90 deg. steps.\n");
-  /*     fprintf(stderr, "\tpeak        - find peaks in image.\n"); */
+  fprintf(stderr, "\tinfo        - Print information to stdout.\n");
+  fprintf(stderr, "\tfft         - Do a fft or inverse fft transform.\n");
+  fprintf(stderr, "\tfilter      - Do a bandpass filter.\n");
+  fprintf(stderr, "\tflip..      - Flip image about various axes.\n");
+  /*     fprintf(stderr, "\tpeak        - Find peaks in image.\n"); */
   fprintf(stderr, "\tjoinrgb     - Join 3 byte files into an RGB file.\n");
   fprintf(stderr, "\tlaplacian   - Apply Laplacian filter as in 3dmod.\n");
   fprintf(stderr, "\tmedian      - Do median filtering.\n");
   fprintf(stderr, "\tprewitt     - Apply Prewitt filter as in 3dmod.\n");
-  fprintf(stderr, "\tresize      - cut out and/or pad image data.\n");
-  /* fprintf(stderr, "\trotation    - rotate image\n"); */
+  fprintf(stderr, "\tresize      - Cut out and/or pad image data.\n");
+  fprintf(stderr, "\trotx        - Rotate volume by -90 about X axis.\n");
+  /* fprintf(stderr, "\trotation    - Rotate image\n"); */
   fprintf(stderr, "\tshadow      - Increase or decrease image shadows.\n");
   fprintf(stderr, "\tsharpen     - Sharpen image as in 3dmod.\n");
   fprintf(stderr, "\tsmooth      - Smooth image as in 3dmod.\n");
@@ -184,6 +185,8 @@ int main( int argc, char *argv[] )
     process = IP_FILTER;
 
   if (!strncmp( argv[1], "flip", 4))
+    process = IP_FLIP;
+  if (!strncmp( argv[1], "rotx", 4))
     process = IP_FLIP;
   if (!strncmp( argv[1], "gradient", 4))
     process = IP_GRADIENT;
@@ -609,6 +612,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.15  2005/01/28 05:42:22  mast
+Set low to IP_DEFAULT so default would work for diffusion
+
 Revision 3.14  2005/01/27 05:55:17  mast
 Added anisotropic diffusion option
 
