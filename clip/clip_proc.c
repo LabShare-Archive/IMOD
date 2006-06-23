@@ -433,7 +433,8 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
  */
 int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
-  int i,j,k;
+  int i,j,k, rotx;
+  float ycen, zcen;
   Islice *sl, *tsl;
   Ival val;
 
@@ -503,8 +504,13 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     return(0);
   }
   if ((!strncmp(opt->command, "flipyz",6)) ||
-      (!strncmp(opt->command, "flipzy",6))){
-    mrc_head_label(hout, "clip: flipyz");
+      (!strncmp(opt->command, "flipzy",6)) ||
+      (!strncmp(opt->command, "rotx",4))) {
+    rotx = strncmp(opt->command, "rotx",4) ? 0 : 1;
+    if (rotx)
+      mrc_head_label(hout, "clip: rotx - rotation by -90 around X");
+    else
+      mrc_head_label(hout, "clip: flipyz");
     hout->nx = hin->nx;
     hout->mx = hin->mx;
     hout->xlen = hin->xlen;
@@ -514,13 +520,26 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     hout->nz = hin->ny;
     hout->mz = hin->my;
     hout->zlen = hin->ylen;
+
+    /* For rotation try to adjust the header as in rotatevol */
+    if (rotx && hin->my && hin->ylen && hin->mz && hin->zlen ) {
+      for (i = 0; i < 3; i++)
+        hout->tiltangles[i] = hout->tiltangles[i + 3];
+      hout->tiltangles[3] -= 90.;
+      ycen = hin->ny / 2. - hin->yorg * hin->my / hin->ylen;
+      zcen = hin->nz / 2. - hin->zorg * hin->mz / hin->zlen;
+      hout->yorg = (hout->ny / 2. - zcen) * hout->ylen / hout->my;
+      hout->zorg = (hout->nz / 2. + ycen) * hout->zlen / hout->mz;
+    }
+      
     if (mrc_head_write(hout->fp, hout))
       return -1;
     sl = sliceCreate(hout->nx, hout->ny, hout->mode);
-    for(k = 0, j = 0; k < hin->ny; k++,j++){
+    for (k = 0, j = 0; k < hin->ny; k++,j++) {
       if (mrc_read_slice(sl->data.b, hin->fp, hin, j, 'y'))
         return -1;
-      if (mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z'))
+      if (mrc_write_slice(sl->data.b, hout->fp, hout, 
+                          rotx ? hin->ny - k - 1 : k, 'z'))
         return -1;
     }
     sliceFree(sl);
@@ -1445,6 +1464,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.15  2005/11/15 19:55:28  mast
+Fixed initialization of grand sum for stat
+
 Revision 3.14  2005/11/11 22:14:56  mast
 Changes for unsigned file mode
 
