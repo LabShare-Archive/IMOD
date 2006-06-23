@@ -190,14 +190,18 @@ c
       call irttlt(6,tiltnew)
       call icalc_matrix(tiltnew,mnew)
       call irtorg(5,orig(1),orig(2),orig(3))
-      xcen=cxin-orig(1)/delta(1)
-      ycen=cyin-orig(2)/delta(2)
-      zcen=czin-orig(3)/delta(3)
+c       
+c       Need to add 0.5 back to all these center coordinates to get
+c       it right for actual 90 degree rotation
+c
+      xcen=cxin+0.5-orig(1)/delta(1)
+      ycen=cyin+0.5-orig(2)/delta(2)
+      zcen=czin+0.5-orig(3)/delta(3)
       do i=1,3
         xtmp(i)=moldinv(i,1)*xcen+moldinv(i,2)*ycen+moldinv(i,3)*zcen
       enddo
       do i=1,3
-        orig(i)=delta(i) * (cxyzout(i)-
+        orig(i)=delta(i) * (cxyzout(i)+0.5-
      &      (mnew(i,1)*xtmp(1)+mnew(i,2)*xtmp(2)+mnew(i,3)*xtmp(3)))
       enddo
       call ialorg(6,orig(1),orig(2),orig(3))
@@ -221,6 +225,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.9  2006/06/01 14:17:08  mast
+c       Swirched to exiterror
+c
 c       Revision 3.8  2005/12/01 06:38:42  mast
 c       Added query option to determine maximum needed size for rotated vol
 c	
