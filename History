@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/06: Fixed etomo startup script for SGI (broke 4/21/06) (in 3.7).
+
+6/23/06: Added options to Clip and Trimvol to rotate volumes by 90 degrees
+instead of flipping Y and Z.
+
 6/22/06: etomo no longer uses imodsendevent to communicate with 3dmod.
 
 6/21/06: In etomo:  displaying help in imodqtassist.
