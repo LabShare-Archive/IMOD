@@ -284,7 +284,7 @@ echo 'MACAPPS = mtk nda sda genhstplt mtoverlap mtpairing avgstatplot' >> $confi
 set qtapp_path  = '$1.app/Contents/MacOS/'
 echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.bashrc linklibs-mac' >> $configure
 if ($distname == "") then
-    set distname = _osx
+    set distname = _osx_ppc
     if ($intel == true) set distname = _osx_intel 
 endif
 
