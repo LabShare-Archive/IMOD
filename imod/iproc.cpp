@@ -203,7 +203,8 @@ static void fft_cb()
   ix1 = ix0 + nxuse - 1;
   iy1 = iy0 + nyuse - 1;
   setSliceMinMax(false);
-  proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning, ix0, ix1, iy0, iy1);
+  proc.fftScale = sliceByteBinnedFFT(&s, proc.fftBinning, ix0, ix1, iy0, iy1,
+                                     &proc.fftXcen, &proc.fftYcen);
 }
 
 // Median filter
@@ -566,6 +567,22 @@ static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 
   proc.fftLabel1 = diaLabel("  ", parent, layout);
   proc.fftLabel2 = diaLabel("  ", parent, layout);
+
+  hLayout = new QHBoxLayout(layout);
+  QHBox *spacer = new QHBox(parent);
+  hLayout->addWidget(spacer);
+  hLayout->setStretchFactor(spacer, 10);
+  proc.freqButton = diaPushButton("Report frequency", parent, hLayout);
+  QObject::connect(proc.freqButton, SIGNAL(clicked()), win,
+                   SLOT(reportFreqClicked()));
+  QToolTip::add(proc.freqButton,
+                "Compute resolution at current marker or model point");
+  proc.freqButton->setEnabled(false);
+  spacer = new QHBox(parent);
+  hLayout->addWidget(spacer);
+  hLayout->setStretchFactor(spacer, 10);
+
+  proc.fftLabel3 = diaLabel("  ", parent, layout);
   win->limitFFTbinning();
 }
 
@@ -782,6 +799,40 @@ void IProcWindow::subsetChanged(bool state)
 {
   proc.fftSubset = state;
 }
+
+void IProcWindow::reportFreqClicked()
+{
+  double dx, dy, xpt, ypt, dist;
+  Ipoint *curpt;
+  QString str;
+  Imod *imod = proc.vi->imod;
+    
+  if (proc.fftScale <= 0.)
+    return;
+
+  // Use the current model point if defined and in model mode, or use 
+  // current marker point
+  curpt = imodPointGet(imod);
+  if (proc.vi->imod->mousemode == IMOD_MMODEL && curpt) {
+    xpt = curpt->x - 0.5f;
+    ypt = curpt->y - 0.5f;
+  } else {
+    xpt = (int)proc.vi->xmouse;
+    ypt = (int)proc.vi->ymouse;
+  }
+  dx = xpt - proc.fftXcen;
+  dy = ypt - proc.fftYcen;
+  dist = proc.fftScale * sqrt(dx * dx + dy * dy) / 
+    (imod->pixsize * proc.vi->xybin);
+  if (dist) 
+    str.sprintf("Freq: %.4g/%s  (%.4g %s)", dist, imodUnits(imod), 
+                1. / dist, imodUnits(imod));
+  else
+    str.sprintf("Freq: 0/%s", imodUnits(imod));
+  proc.fftLabel3->setText(str);
+}
+
+
 void IProcWindow::growChanged(bool state)
 {
   proc.threshGrow = state;
@@ -964,6 +1015,9 @@ void IProcWindow::startProcess()
   int i;
   if (!proc_data[ip->procnum].cb)
     return;
+  ip->fftScale = 0.;
+  ip->freqButton->setEnabled(false);
+
 #ifdef QT_THREAD_SUPPORT
 
   // If running in a thread, set flag, disable buttons except help,
@@ -1008,6 +1062,7 @@ void IProcWindow::finishProcess()
     yrange = yrange <= 0.5 ? yrange : 0.5f;
     str.sprintf("Range: +/- %.4f in X, +/- %.4f in Y", xrange, yrange);
     ip->fftLabel2->setText(str);
+    ip->freqButton->setEnabled(true);
   }
   if (ip->andfIterDone) {
     str.sprintf("%d done", ip->andfIterDone);
@@ -1101,6 +1156,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.19  2005/03/23 18:46:37  mast
+    Added a and b hot keys, consolidated grow and shrink in threshold
+
     Revision 4.18  2005/03/09 21:20:12  mast
     converted diffusion to floats
 

@@ -30,6 +30,7 @@ class QListBox;
 class QVBoxLayout;
 class QLabel;
 class QSpinBox;
+class QPushButton;
 class ToolEdit;
 
 typedef struct ViewInfo ImodView;
@@ -75,6 +76,7 @@ class IProcWindow : public DialogFrame
   void andfIterChanged(int val);
   void andfFuncClicked(int val);
   void andfKEntered();
+  void reportFreqClicked();
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -125,6 +127,10 @@ typedef struct
   QSpinBox      *fftBinSpin;
   QLabel        *fftLabel1;
   QLabel        *fftLabel2;
+  QLabel        *fftLabel3;
+  QPushButton   *freqButton;
+  int           fftXcen;
+  int           fftYcen;
   bool          median3D;
   int           medianSize;
   struct MRCvolume medianVol;
@@ -157,6 +163,9 @@ bool iprocBusy(void);
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.13  2005/03/23 18:47:29  mast
+    Added threshold grow and shrink states
+
     Revision 3.12  2005/03/09 21:20:12  mast
     converted diffusion to floats
 
