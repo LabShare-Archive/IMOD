@@ -1663,7 +1663,8 @@ static void fillImageArray(SlicerStruct *ss)
       }
       slice->min = minval;
       slice->max = maxval;
-      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1) > 0) {
+      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1, &i, &j) 
+          > 0) {
         bdata = slice->data.b;
         for (j = 0; j < jsize; j++)
           for (i = j * ss->winx; i < j * ss->winx + isize; i++)
@@ -2218,6 +2219,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.28  2005/03/08 15:49:36  mast
+Added FFT mode
+
 Revision 4.27  2004/11/21 05:50:34  mast
 Switch from int to float for nearest point distance measurement
 
