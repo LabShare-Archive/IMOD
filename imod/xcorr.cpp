@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2005/03/08 02:50:48  mast
+Fix a return value
+
 Revision 1.5  2005/03/08 02:36:04  mast
 Put FFT of subarea into the subarea, filled with mean
 
@@ -43,7 +46,7 @@ Initial creation
  * Desired range of scaled output should be in sin->min, sin->max
  */
 float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
-                         int iy1)
+                         int iy1, int *xcen, int *ycen)
 {
   int nxin = sin->xsize;
   int nyin = sin->ysize;
@@ -126,8 +129,8 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   fillVal = (b3dUByte)(scale * log(logScale * sum / nPadPix + 1.) + sin->min);
 
   // Loop on output lines
-  ixcen = binning * (ix1 + 1 + ix0) / 2;
-  iycen = binning * (iy1 + 1 + iy0) / 2;
+  *xcen = ixcen = binning * (ix1 + 1 + ix0) / 2;
+  *ycen = iycen = binning * (iy1 + 1 + iy0) / 2;
   iyin = nPadSize - nyin / 2;
   for (iyout = 0; iyout < nyin; iyout++) {
     iyin = iyout - iycen;

@@ -7,6 +7,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2004/11/11 15:55:34  mast
+    Changes to do FFT in a subarea
+
     Revision 1.1  2004/11/07 22:59:09  mast
     Initial creation
 
@@ -19,7 +22,7 @@ extern "C" {
 #endif
   
 float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
-                         int iy1);
+                         int iy1, int *xcen, int *ycen);
 int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
                        float radius2);
 void XCorrTaperOutPad(void *array, int type, int nxbox, int nybox, 
