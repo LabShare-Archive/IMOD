@@ -1,13 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/06: Added button to 3dmod image processing window to report the frequency
+of a position in an FFT.
+
 6/23/06: Fixed etomo startup script for SGI (broke 4/21/06) (in 3.7).
 
 6/23/06: Added options to Clip and Trimvol to rotate volumes by 90 degrees
 instead of flipping Y and Z.
 
-6/22/06: etomo no longer uses imodsendevent to communicate with 3dmod.
+6/22/06: Etomo no longer uses imodsendevent to communicate with 3dmod.
 
-6/21/06: In etomo:  displaying help in imodqtassist.
+6/21/06: Etomo is now displaying help with Qt Assistant, and the full IMOD 
+documentation is available and searchable.
 
 6/19/06: Added ability for Tilt to make reprojections at multiple nonzero 
 angles.
@@ -28,8 +32,8 @@ at least in 64-bit Linux.
 6/16/06: Added open/close and advanced/basic mini-buttons to the fiducial model
 dialog.
 
-6/15/06: If a script is being run by eTomo, a warning message will pop up when
-the user exits.
+6/15/06: If a script is being run by eTomo, a warning message that it will 
+probably not finish will pop up when the user exits 
 
 6/14/06: IMOD_3-8-12
 6/14/06: Added a checkbox to the transfer fiducials panel which causes one of
