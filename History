@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/06: Fixed Copytomocoms and Setupcombine to work around a bug in Cygwin
+sed 4.1.5. (In 3.7)
+
 6/24/06: Added button to 3dmod image processing window to report the frequency
 of a position in an FFT.
 
