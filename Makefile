@@ -380,7 +380,7 @@ csrc : ALWAYS
 	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
 	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
-	html/3dmodHelp html/joinImages \
+	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
@@ -426,6 +426,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.57  2006/03/01 02:17:01  mast
+#  Add an ALWAYS
+#
 #  Revision 3.56  2006/02/11 14:56:44  mast
 #  Fixed imod/README in make src, and -depth args
 #
