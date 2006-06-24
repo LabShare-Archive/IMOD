@@ -53,17 +53,20 @@ the rubber band is on in the active Zap window, the FFT will be taken
 of the area inside the rubber band.  Otherwise, the area used will be 
 the portion of the image showing in the window.
 <P>
-The panel also shows a scale that can be used to convert from pixels 
-in the FFT to frequency units.  To determine the frequency at a 
-location, measure the distance from the origin (at the center of the 
-image) to the given location.  (For example, draw a model line 
-between them and use <B>Edit-Point-Distance</B>.)  Multiply the distance 
-in pixels times the scale to get the frequency in cycles/pixel.  
-To determine the frequency in actual units such as reciprocal 
-nanometers, divide this frequency by the pixel size (e.g., in nm).  
-To get a resolution value in real-space units, 
-divide the pixel size by the frequency in cycles/pixel.
+The <B>Compute frequency</B> button can be used to 
+determine the frequency at a particular location in the FFT.  First, click on
+that location with the first mouse button, or deposit a model point there,
+then press the button.  If you are in model mode and there is a current
+model point, its position will be used; otherwise the current image
+position is used.  The current image position is rounded to the nearest pixel
+while a model point can provide subpixel accuracy if needed.
+The program will compute the frequency in reciprocal
+pixels then divide by the pixel size in the model header to get the frequency
+that is show (e.g., reciprocal nanometers).  The inverse of this value is also
+shown to provide a resolution value in real space units.
 <P>
+The panel also shows the scale that is used to convert from pixels 
+in the FFT to frequency units.  
 <H4>Median Filtering</H4>
 Median filtering replaces each pixel by the median value of neighboring
 pixels, where the <B>Size</B> parameter determines the size of the block of
