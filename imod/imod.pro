@@ -109,7 +109,6 @@ SOURCES	+= autox.cpp \
 	imod_workprocs.cpp \
 	iproc.cpp \
 	pixelview.cpp \
-	samplemeansd.c \
 	slicer.cpp \
 	slicer_classes.cpp \
 	wprint.cpp \
