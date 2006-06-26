@@ -21,8 +21,9 @@ Log at end of file
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "imodel.h"
 #include <math.h>
+#include "imodel.h"
+#include "b3dutil.h"
 
 #define MINFO_SPECIAL  99
 #define MINFO_STANDARD 1
@@ -2207,6 +2208,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 
 /*
 $Log$
+Revision 3.15  2005/09/11 19:22:11  mast
+Changes for new style of mesh
+
 Revision 3.14  2005/04/04 22:41:32  mast
 Fixed problem with argument order to imdContourGetBBox
 

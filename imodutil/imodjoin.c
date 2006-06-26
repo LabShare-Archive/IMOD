@@ -14,40 +14,11 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.9  2005/10/17 04:37:30  mast
-Added model transformation to common coordinate system
-
-Revision 3.8  2005/03/20 19:56:05  mast
-Eliminating duplicate functions
-
-Revision 3.7  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.6  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2004/06/16 21:06:42  mast
-Forgot to delete copies of library functions from debugging
-
-Revision 3.4  2004/06/11 02:29:59  mast
-Fixed bug with trying to use the zero-th view when there are no real views
-
-Revision 3.3  2003/10/24 03:05:24  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.2  2003/07/31 21:45:47  mast
-Transfer object views appropriately from each model file, add new
-views from later files if they have more views than the first file,
-and stop big memory leaks by deleting contours and meshes of unused
-objects.
-
-Revision 3.1  2003/02/21 23:18:03  mast
-Open output file in binary mode
-
+Log at end
 */
 
 #include "imodel.h"
+#include "b3dutil.h"
 #include "mrcfiles.h"
 
 static void usage()
@@ -505,3 +476,40 @@ int main(int argc, char **argv)
   imodWriteFile(inModel);
   exit(0);
 }
+
+/*
+$Log$
+Revision 3.10  2005/10/17 15:18:02  mast
+Fixed calls to imodTransFrom
+
+Revision 3.9  2005/10/17 04:37:30  mast
+Added model transformation to common coordinate system
+
+Revision 3.8  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
+Revision 3.7  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
+Revision 3.6  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.5  2004/06/16 21:06:42  mast
+Forgot to delete copies of library functions from debugging
+
+Revision 3.4  2004/06/11 02:29:59  mast
+Fixed bug with trying to use the zero-th view when there are no real views
+
+Revision 3.3  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.2  2003/07/31 21:45:47  mast
+Transfer object views appropriately from each model file, add new
+views from later files if they have more views than the first file,
+and stop big memory leaks by deleting contours and meshes of unused
+objects.
+
+Revision 3.1  2003/02/21 23:18:03  mast
+Open output file in binary mode
+
+*/

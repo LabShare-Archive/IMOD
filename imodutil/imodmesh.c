@@ -23,6 +23,7 @@ Log at end
 #include <math.h>
 
 #include "imodel.h"
+#include "b3dutil.h"
 #include "mkmesh.h"
 
 void switchskin(Imod *imod, Imod *simod, int append, int list[], int nlist,
@@ -904,6 +905,9 @@ int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.14  2006/05/08 16:49:15  mast
+Removed -F option
+
 Revision 3.13  2005/09/13 02:38:05  mast
 Added environment variable for making backward compatible meshes
 

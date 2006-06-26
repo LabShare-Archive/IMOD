@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2006/06/18 19:37:11  mast
+Changed for new amoeba function type
+
 Revision 3.2  2006/06/14 14:21:01  mast
 Needed to eliminate ;;
 
@@ -29,6 +32,7 @@ Initial creation
 #include <string.h>
 #include <math.h>
 #include "imodel.h"
+#include "b3dutil.h"
 #include "parse_params.h"
 
 static void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window, 

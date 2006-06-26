@@ -14,38 +14,12 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.9  2005/06/03 20:07:50  mast
-Copied many object properties to new objecta
-
-Revision 3.8  2005/05/27 04:54:17  mast
-Added clean surf call to end of sorting routine
-
-Revision 3.7  2005/05/27 04:50:37  mast
-Added ability to sort into different objects.
-
-Revision 3.6  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.5  2005/01/28 19:32:41  mast
-Make it zero out existing surface information to avoid empty surfaces
-
-Revision 3.4  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.2  2003/10/24 03:05:24  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.1  2003/02/21 23:16:15  mast
-Open output file in binary mode
-
+Log at end
 */
 
 #include <string.h>
 #include "imodel.h"
+#include "b3dutil.h"
 
 int imodObjSortSurf(Iobj *obj);
 int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf);
@@ -471,3 +445,37 @@ int imodSplitSurfsToObjs(Imod *mod, int ob, int keepColor, int keepSurf)
   imodObjectCleanSurf(obj);
   return 0;
 }
+
+/*
+$Log$
+Revision 3.10  2005/09/11 19:22:54  mast
+Changed for new mesh style and managed general store items
+
+Revision 3.9  2005/06/03 20:07:50  mast
+Copied many object properties to new objecta
+
+Revision 3.8  2005/05/27 04:54:17  mast
+Added clean surf call to end of sorting routine
+
+Revision 3.7  2005/05/27 04:50:37  mast
+Added ability to sort into different objects.
+
+Revision 3.6  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.5  2005/01/28 19:32:41  mast
+Make it zero out existing surface information to avoid empty surfaces
+
+Revision 3.4  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
+Revision 3.3  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.2  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.1  2003/02/21 23:16:15  mast
+Open output file in binary mode
+
+*/

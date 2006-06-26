@@ -14,42 +14,15 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.9  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.8  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.7  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.6  2003/10/26 14:46:41  mast
-fixed problem in eliminating getopt
-
-Revision 3.5  2003/10/24 03:05:23  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.4  2003/08/01 00:16:14  mast
-Complete object views when saving model, since there may be new objects
-
-Revision 3.3  2003/02/21 23:15:33  mast
-Open new file as wb
-
-Revision 3.2  2002/06/21 00:26:03  mast
-Needed to swap points from first triangle of a strip if they were out of
-order relative to the following points of the strip
-
-Revision 3.1  2001/12/17 18:53:55  mast
-First version of program
-
+log at end
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "imodel.h"
+#include "b3dutil.h"
 
-int *parselist (char *line, int *nlist);
 void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol);
 #define DEFAULT_TOL 0.25
 
@@ -350,3 +323,37 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
   }
 }
      
+/*
+$Log$
+Revision 3.10  2005/09/11 19:22:11  mast
+Changes for new style of mesh
+
+Revision 3.9  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.8  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
+Revision 3.7  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.6  2003/10/26 14:46:41  mast
+fixed problem in eliminating getopt
+
+Revision 3.5  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.4  2003/08/01 00:16:14  mast
+Complete object views when saving model, since there may be new objects
+
+Revision 3.3  2003/02/21 23:15:33  mast
+Open new file as wb
+
+Revision 3.2  2002/06/21 00:26:03  mast
+Needed to swap points from first triangle of a strip if they were out of
+order relative to the following points of the strip
+
+Revision 3.1  2001/12/17 18:53:55  mast
+First version of program
+
+*/
