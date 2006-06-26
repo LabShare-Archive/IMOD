@@ -27,6 +27,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2006/06/22 21:01:43  sueh
+ * <p> bug# 797 Stop using imodSendEvent.  Added sendCommand(s() and
+ * <p> sendRequest().
+ * <p>
  * <p> Revision 3.32  2006/05/22 22:47:22  sueh
  * <p> bug# 577 Formatted
  * <p>
@@ -859,62 +863,15 @@ public class ImodProcess {
    * @throws IOException
    * messages are received and imodReturnValues is null.
    */
-  private void sendCommands(String[] args, Vector imodReturnValues)
+  private synchronized void sendCommands(String[] args, Vector imodReturnValues)
       throws IOException {
-    //make sure that 3dmod is running
-    if (imod == null) {
-      if (imodReturnValues != null) {
-        //unable to get return values
-        UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-            "3dmod Warning", axisID);
-      }
-      return;
-    }
-    boolean responseReceived = false;
-    //build a string to send
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < args.length; i++) {
-      buffer.append(args[i] + " ");
-    }
-    if (buffer.length() > 0) {
-      try {
-        if (EtomoDirector.getInstance().isDebug()) {
-          System.err.println(buffer.toString());
-        }
-        //send the string to 3dmod's stdin
-        if (!isRunning()) {
-          if (imodReturnValues != null) {
-            //unable to get return values
-            UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-                "3dmod Warning", axisID);
-          }
-          return;
-        }
-        imod.setCurrentStdInput(buffer.toString());
-      }
-      catch (IOException e) {
-        //make sure that 3dmod is running
-        if (e.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
-          if (imodReturnValues != null) {
-            //unable to get return values
-            UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
-                "3dmod Warning", axisID);
-          }
-          return;
-        }
-        else {
-          throw e;
-        }
-      }
-    }
-    //read the response from 3dmod
-    ResponseReader responseReader = new ResponseReader(imodReturnValues);
+    MessageSender messageSender = new MessageSender(args, imodReturnValues);
     if (imodReturnValues == null) {
-      new Thread(responseReader).start();
+      new Thread(messageSender).start();
     }
     else {
       //get return values
-      responseReader.run();
+      messageSender.run();
     }
   }
 
@@ -1036,20 +993,87 @@ public class ImodProcess {
         + outputWindowID + ", binning=" + binning;
   }
 
-  private final class ResponseReader implements Runnable {
+  /**
+   * Class to send a message to 3dmod.  Can be run on a separate thread to
+   * avoid locking up the GUI.
+   */
+  private class MessageSender implements Runnable{
+    private final String[] args;
     private final Vector imodReturnValues;
 
-    private ResponseReader(Vector imodReturnValues) {
+    private MessageSender(String[] args, Vector imodReturnValues) {
       this.imodReturnValues = imodReturnValues;
+      this.args = args;
     }
-
+    
+    /**
+     * Send the message and wait for a response.
+     */
     public void run() {
+      //make sure that 3dmod is running
+      if (imod == null) {
+        if (imodReturnValues != null) {
+          //unable to get return values
+          UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+              "3dmod Warning", getAxisID());
+        }
+        return;
+      }
+      //boolean responseReceived = false;
+      //build a string to send
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < args.length; i++) {
+        buffer.append(args[i] + " ");
+      }
+      if (buffer.length() > 0) {
+        try {
+          if (EtomoDirector.getInstance().isDebug()) {
+            System.err.println(buffer.toString());
+          }
+          //send the string to 3dmod's stdin
+          if (!isRunning()) {
+            if (imodReturnValues != null) {
+              //unable to get return values
+              UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+                  "3dmod Warning", getAxisID());
+            }
+            return;
+          }
+          imod.setCurrentStdInput(buffer.toString());
+        }
+        catch (IOException exception) {
+          //make sure that 3dmod is running
+          if (exception.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
+            if (imodReturnValues != null) {
+              //unable to get return values
+              UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
+                  "3dmod Warning", getAxisID());
+            }
+            return;
+          }
+          else {
+            exception.printStackTrace();
+            UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
+                "3dmod Exception", getAxisID());
+          }
+        }
+      }
+      //read the response from 3dmod
+      readResponse();
+    }
+    
+    /**
+     * Wait for a response to the message and pop up a message if there is
+     * a problem.
+     */
+    public void readResponse() {
       boolean responseReceived = false;
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       StringBuffer exceptionMessage = new StringBuffer();
       //wait for the response for at most 5 seconds
       for (int timeout = 0; timeout < 10; timeout++) {
+        System.err.println("timeout=" + timeout);
         if (responseReceived) {
           break;
         }
@@ -1057,6 +1081,7 @@ public class ImodProcess {
           Thread.sleep(500);
         }
         catch (InterruptedException e) {
+          System.out.println("InterruptedException");
         }
         //process response
         boolean failure = false;
@@ -1066,11 +1091,14 @@ public class ImodProcess {
             System.err.println(response);
           }
           response = response.trim();
+          if (response.equals("OK")) {
+            //OK is sent last, so this is done
+            break;
+          }
           //if the response is not OK or an error message meant for the user
           //then either its a requested return string, or an exception must be
           //thrown
-          if (!response.equals("OK")
-              && !parseUserMessages(response, userMessage)) {
+          if (!parseUserMessages(response, userMessage)) {
             if (imodReturnValues != null && !failure
                 && !response.startsWith("imodExecuteMessage:")) {
               String[] words = response.split("\\s+");
@@ -1115,7 +1143,7 @@ public class ImodProcess {
         }
       }
     }
-
+    
     /**
      * Parse messages that are directed at the user - mesages that contain
      * ERROR_TAG or WARNING_TAG.
