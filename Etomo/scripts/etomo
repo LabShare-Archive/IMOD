@@ -12,7 +12,7 @@
 
 # To increase the memory limit for Java, increase the number here
 #
-javaMemLim=128m
+export JAVA_MEM_LIM=128m
 
 # If you wish to use a different java runtime than the default uncomment the
 # following line and define the path to the desired runtime directory
@@ -129,14 +129,17 @@ if [ ${help} -eq 0 ] ; then
 
 
   echo "starting eTomo"
-  java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
+  java -Xmx${JAVA_MEM_LIM} -cp ${IMOD_DIR}/bin/etomo \
    -jar ${IMOD_DIR}/bin/etomo.jar $@ 2>${errlog} >${outlog} &
 else
-  java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
+  java -Xmx${JAVA_MEM_LIM} -cp ${IMOD_DIR}/bin/etomo \
    -jar ${IMOD_DIR}/bin/etomo.jar $@
 fi
 
 # $Log$
+# Revision 1.22  2006/06/23 19:50:06  mast
+# But needed to eliminate () construct even from inside if block
+#
 # Revision 1.21  2006/06/23 16:11:23  mast
 # Check kernel version only on Linux
 #
