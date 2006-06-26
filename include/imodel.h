@@ -616,23 +616,15 @@ extern "C" {
   int     imodLabelItemMatch(Ilabel *label, char *tstr, int index);
   int     ilabelMatchReg(char *exp, char *str);
 
-  /* parselist.c  - for parsing a list of integers */
-  int *parselist (char *line, int *nlist);
-
-  /* amoeba.c - simplex minimization routine */
-  void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
-              void (*funk)(float *, float *), int *iterP, float *ptol,
-              int *iloP);
-  void amoebaInit(float *p, float *y, int mp, int ndim, float delfac, 
-                  float ptolFac, float *a, float *da, 
-                  void (*funk)(float *, float *), float *ptol);
-
 #ifdef __cplusplus
 }
 #endif
 
 /*    
     $Log$
+    Revision 3.31  2006/06/18 19:35:14  mast
+    Changed function type in amoeba
+
     Revision 3.30  2006/06/06 16:25:06  mast
     Added amoeba declarations
 

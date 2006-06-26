@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2005/02/11 01:41:04  mast
+Swicthed to b3dIMin/Max
+
 Revision 1.6  2004/11/12 15:22:13  mast
 Added min and max functions and macros
 
@@ -66,6 +69,22 @@ extern "C" {
 
   int b3dIMin(int narg, ...);
   int b3dIMax(int narg, ...);
+
+  /* parselist.c  - for parsing a list of integers */
+  int *parselist (char *line, int *nlist);
+
+  /* amoeba.c - simplex minimization routine */
+  void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
+              void (*funk)(float *, float *), int *iterP, float *ptol,
+              int *iloP);
+  void amoebaInit(float *p, float *y, int mp, int ndim, float delfac, 
+                  float ptolFac, float *a, float *da, 
+                  void (*funk)(float *, float *), float *ptol);
+
+  /* samplemeansd.c - for computing mean and SD quickly by sampling */
+  int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
+                   float sample, int nxMatt, int myMatt, int nxUse, int nyUse,
+                   float *mean, float *sd);
 
 #ifdef __cplusplus
 }
