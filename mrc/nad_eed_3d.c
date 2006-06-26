@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2005/03/14 18:32:18  mast
+    Fixed crash with bad argument
+
     Revision 3.3  2005/03/12 15:50:45  mast
     Added imodel.h include for parselist
 
@@ -952,7 +955,6 @@ return;
 #include "b3dutil.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
-#include "imodel.h"
 
 void usage(char *progname, float ht, int pmax, float sigma, float lambda)
 {
