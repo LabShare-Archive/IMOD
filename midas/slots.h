@@ -59,6 +59,7 @@ class MidasSlots : public QObject
   void slotOverlay(bool state);
   void slotGlobRot(int value);
   void slotConstrainMouse(bool state);
+  void slotAutoContrast();
   void slotMidas_quit();
  
  private:

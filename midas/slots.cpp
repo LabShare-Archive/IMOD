@@ -29,6 +29,7 @@ Log at end of file
 #include <qmessagebox.h>
 #include <qfiledialog.h>
 #include "dia_qtutils.h"
+#include "b3dutil.h"
 
 static int incDecimals[3] = {2, 4, 2};
 static int paramDecimals[5] = {2, 4, 4, 2, 2};
@@ -515,7 +516,12 @@ void MidasSlots::control_help()
      "for all sections in parallel.  If this box is selected, then "
      "changes will adjust the contrast for just one section, the one "
      "currently being displayed (or the current section, if the display "
-     "shows both sections in overlay.)\n\n"
+     "shows both sections in overlay.)\n"
+     "\tThe Auto Contrast button will adjust the contrast based on the mean "
+     "and standard deviation of the currently displayed section (or the "
+     "current section, if the display shows an overlay).  The contrast "
+     "setting is tha same as the default for auto contrast setting in "
+     "3dmod.\n\n"
 
      "Display Controls:\n",
      "\tThe Up and Down Arrows for \"Zoom\" increase and decrease the "
@@ -663,6 +669,7 @@ void MidasSlots::hotkey_help()
      "F7\tDecrease contrast\n"
      "F8\tIncrease contrast\n"
      "F11\tReverse contrast\n"
+     "Ctrl A\tSet contrast automatically based on mean and SD\n"
      "PageUp\t\tShow current section\n"
      "PageDown \tShow reference section\n"
      "End\t\tShow reference section\n"
@@ -1454,6 +1461,52 @@ void MidasSlots::slotKeepdiff(bool state)
     VW->keepsecdiff = state ? 1 : 0;
 }
 
+/* Auto contrast */
+void MidasSlots::slotAutoContrast()
+{
+  float matt = 0.1;
+  float sample, mean, sd;
+  int i, ixStart, iyStart, nxUse, nyUse, black, white;
+  int ind = get_bw_index();
+  float targetMean = 150., targetSD = 40.;
+  Islice *slice;
+  unsigned char **lines;
+
+  // Set area to use
+  ixStart = VW->xsize * matt;
+  iyStart = VW->ysize * matt;
+  nxUse = VW->xsize - 2 * ixStart;
+  nyUse = VW->ysize - 2 * iyStart;
+  sample = 10000.0/(nxUse * nyUse);
+  if (sample > 1.0)
+    sample = 1.0;
+
+  // Get slice and make line pointers
+  slice = getRawSlice(VW, ind);
+  lines = (unsigned char **)malloc(sizeof(unsigned char *) * VW->ysize);
+  if (!lines) {
+    midas_error("Error getting memory for doing auto-contrast", "", 0);
+    return;
+  }
+  for (i = 0; i < VW->ysize; i++)
+    lines[i] = slice->data.b + i * VW->xsize;
+
+  // Get mean and Sd and convert to BW levels
+  if (sampleMeanSD(lines, 0, VW->xsize, VW->ysize, sample,
+                   ixStart, iyStart, nxUse, nyUse, &mean, &sd)) {
+    midas_error("Error computing auto-contrast", "", 0);
+    free(lines);
+    return;
+  }
+  black = (int)(mean - sd * targetMean / targetSD + 0.5);
+  white = (int)(mean + sd * (255 - targetMean) / targetSD + 0.5);
+  if (black < 0)
+    black = 0;
+  if (white > 255)
+    white = 255;
+  setbwlevels(black, white, 1);
+  free(lines);
+}
 
 /* Display change callbacks */
 void MidasSlots::show_ref()
@@ -1700,6 +1753,8 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       slotEdge(1);
     else if ((event->state() & ShiftButton) && VW->numChunks)
       slotChunkValue(VW->curChunk + 2);
+    else if (event->state() & ControlButton)
+      slotAutoContrast();
     else
       sectionInc(1);
     break;
@@ -1931,6 +1986,9 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
 
 /*
 $Log$
+Revision 3.13  2006/05/20 16:07:56  mast
+Changes to allow mirroring around X axis
+
 Revision 3.12  2005/11/08 02:36:58  mast
 Fixed X and Y labels on error buttons
 

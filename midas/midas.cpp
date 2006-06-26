@@ -405,7 +405,7 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent,
   setCentralWidget(mainbox);
   QVBox *outer = new QVBox(mainbox);
   QVBox *col = new QVBox(outer);
-  col->setSpacing(7);
+  col->setSpacing(4);
   col->setMargin(5);
 
   // Need GLwidget next
@@ -839,8 +839,12 @@ void MidasWindow::createContrastControls(QVBox *parent)
   VW->reversetoggle->setFocusPolicy(NoFocus);
   QObject::connect(VW->reversetoggle, SIGNAL(toggled(bool)), VW->midasSlots,
 		     SLOT(slotReverse(bool)));
-}
 
+  QPushButton *button = new QPushButton("Auto Contrast", parent);
+  button->setFocusPolicy(NoFocus);
+  QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
+		     SLOT(slotAutoContrast()));
+}
 
 
 
@@ -861,6 +865,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.18  2006/05/20 16:07:56  mast
+    Changes to allow mirroring around X axis
+
     Revision 3.17  2006/05/13 22:52:52  mast
     Changes to allow overlay colors to be specified
 
