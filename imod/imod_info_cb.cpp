@@ -20,6 +20,7 @@ Log at end of file
 #include <stdlib.h>
 #include <math.h>
 #include <qapplication.h>
+#include "b3dutil.h"
 #include "imod_object_edit.h"
 #include "form_info.h"
 
@@ -37,12 +38,6 @@ Log at end of file
 #include "xzap.h"
 #include "control.h"
 #include "finegrain.h"
-
-extern "C" {
-int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
-                 float sample, int nxMatt, int myMatt, int nxUse, int nyUse,
-                 float *mean, float *sd);
-}
 
 static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart, 
                             int &nxUse, int &nyUse, float &sample);
@@ -799,6 +794,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.22  2005/06/26 19:37:24  mast
+Added fine-grain entries
+
 Revision 4.21  2005/06/15 23:00:46  mast
 Set reference black/white before instead of after draws so changes in
 black/white do not get undone by bwfloat
