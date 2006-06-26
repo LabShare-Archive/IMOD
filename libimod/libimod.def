@@ -155,6 +155,7 @@ EXPORTS
 	PIPINITIALIZE
 	imodContourUnique
 	imodMeshAddVert
+	sampleMeanSD
 	imodMatNew
 	imodViewModelNew
 	imodContourGetSurface
