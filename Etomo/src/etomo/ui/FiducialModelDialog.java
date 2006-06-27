@@ -30,6 +30,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2006/06/21 15:52:51  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.24  2006/06/16 15:25:10  sueh
  * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
  * <p> dialog.
@@ -356,7 +359,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   
   public void getParameters(BaseScreenState screenState) {
     pnlBeadtrack.getParameters(screenState);
-    pnlTransferfid.getParameters(screenState);
+    if (pnlTransferfid != null) {
+      pnlTransferfid.getParameters(screenState);
+    }
   }
 
   public final void setParameters(ReconScreenState screenState) {
