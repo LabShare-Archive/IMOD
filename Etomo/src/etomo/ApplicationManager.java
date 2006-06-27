@@ -5096,7 +5096,7 @@ public final class ApplicationManager extends BaseManager {
     postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
       imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam
-          .isSwapYZ());
+          .isSwapYZ() && !trimvolParam.isRotateX());
       imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, menuOptions);
     }
     catch (SystemProcessException except) {
@@ -5707,6 +5707,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.238  2006/06/22 20:54:08  sueh
+ * <p> bug# 797 Catching io exception when opening 3dmods.
+ * <p>
  * <p> Revision 3.237  2006/06/19 17:05:39  sueh
  * <p> bug# 851 Added closeImod() and closeImods().  Closing 3dmods when they are
  * <p> not needed.
