@@ -34,6 +34,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2006/01/31 21:01:36  sueh
+ * <p> bug# 521 Managing the trimvol button in ProcessResultDisplayFactory.
+ * <p> Made trimvol a toggle button.
+ * <p>
  * <p> Revision 3.11  2006/01/04 00:05:47  sueh
  * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted
  * <p> JRadioButton's to RadioButton.
@@ -153,7 +157,11 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
   private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" Z max: ");
 
-  private CheckBox cbSwapYZ = new CheckBox("Swap Y and Z dimensions");
+  private final JPanel pnlSwap = new JPanel();
+  private final ButtonGroup  bgSwap = new ButtonGroup();
+  private final RadioButton rbNoChange = new RadioButton("Do not change");
+  private final RadioButton rbSwapYZ = new RadioButton("Swap Y and Z dimensions");
+  private final RadioButton rbRotateX = new RadioButton("Rotate 90 degrees in X");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = new Run3dmodButton(
@@ -240,8 +248,18 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    cbSwapYZ.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    pnlTrimvol.add(cbSwapYZ);
+    pnlSwap.setLayout(new BoxLayout(pnlSwap, BoxLayout.Y_AXIS));
+    pnlSwap.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    bgSwap.add(rbNoChange);
+    bgSwap.add(rbSwapYZ);
+    bgSwap.add(rbRotateX);
+    rbNoChange.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbSwapYZ.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbRotateX.setAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlSwap.add(rbNoChange);
+    pnlSwap.add(rbSwapYZ);
+    pnlSwap.add(rbRotateX);
+    pnlTrimvol.add(pnlSwap);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -280,7 +298,15 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     ltfYMax.setText(trimvolParam.getZMax());
     ltfZMin.setText(trimvolParam.getYMin());
     ltfZMax.setText(trimvolParam.getYMax());
-    cbSwapYZ.setSelected(trimvolParam.isSwapYZ());
+    if (trimvolParam.isSwapYZ()) {
+      rbSwapYZ.setSelected(true);
+    }
+    else if (trimvolParam.isRotateX()) {
+      rbRotateX.setSelected(true);
+    }
+    else {
+      rbNoChange.setSelected(true);
+    }
 
     cbConvertToBytes.setSelected(trimvolParam.isConvertToBytes());
     if (trimvolParam.isFixedScaling()) {
@@ -308,7 +334,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     trimvolParam.setYMax(Integer.parseInt(ltfZMax.getText()));
     trimvolParam.setZMin(Integer.parseInt(ltfYMin.getText()));
     trimvolParam.setZMax(Integer.parseInt(ltfYMax.getText()));
-    trimvolParam.setSwapYZ(cbSwapYZ.isSelected());
+    trimvolParam.setSwapYZ(rbSwapYZ.isSelected());
+    trimvolParam.setRotateX(rbRotateX.isSelected());
 
     trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
     if (rbScaleFixed.isSelected()) {
@@ -507,9 +534,22 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     text = "Maximum Z section of the subset to analyze for contrast range.";
     ltfSectionScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
 
+    rbNoChange.setToolTipText(tooltipFormatter.setText(
+        "Do not change the orientation of the output volume.  "
+            + "The file will need to be flipped when loaded into 3dmod.")
+        .format());
+
     text = "Flip Y and Z in the output volume so that the file does not need to be "
         + "flipped when loaded into 3dmod.";
-    cbSwapYZ.setToolTipText(tooltipFormatter.setText(text).format());
+    rbSwapYZ.setToolTipText(tooltipFormatter.setText(text).format());
+
+    rbRotateX
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Rotate the output volume by -90 degrees around the X axis, "
+                    + "by first creating a temporary trimmed volume with newstack then running \"clip rotx\" on this volume to create the final output file.  "
+                    + "The slices will look the same as with the -yz option but rotating instead of flipping will preserve the handedness of structures.")
+            .format());
 
     text = "View the original, untrimmed volume in 3dmod.";
     btnImodFull.setToolTipText(tooltipFormatter.setText(text).format());
