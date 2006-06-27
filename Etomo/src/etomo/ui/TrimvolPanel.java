@@ -34,6 +34,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2006/06/27 17:55:37  sueh
+ * <p> bug# 897 Simplifying rotate x label.
+ * <p>
  * <p> Revision 3.13  2006/06/27 17:49:38  sueh
  * <p> bug# 879 Make the swap yz check box a radio button.  Added a rotate in x radio
  * <p> button and a do not change radio button.
@@ -161,11 +164,12 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
   private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" Z max: ");
 
-  private final JPanel pnlSwap = new JPanel();
-  private final ButtonGroup  bgSwap = new ButtonGroup();
-  private final RadioButton rbNoChange = new RadioButton("Do not change");
-  private final RadioButton rbSwapYZ = new RadioButton("Swap Y and Z dimensions");
-  private final RadioButton rbRotateX = new RadioButton("Rotate in X");
+  private final JPanel pnlReorientation = new JPanel();
+  private final ButtonGroup bgSwap = new ButtonGroup();
+  private final RadioButton rbNone = new RadioButton("None");
+  private final RadioButton rbSwapYZ = new RadioButton(
+      "Swap Y and Z dimensions");
+  private final RadioButton rbRotateX = new RadioButton("Rotate around X axis");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = new Run3dmodButton(
@@ -252,18 +256,20 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlSwap.setLayout(new BoxLayout(pnlSwap, BoxLayout.Y_AXIS));
-    pnlSwap.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    bgSwap.add(rbNoChange);
+    pnlReorientation
+        .setLayout(new BoxLayout(pnlReorientation, BoxLayout.Y_AXIS));
+    pnlReorientation.setBorder(new EtchedBorder("Reorientation:").getBorder());
+    pnlReorientation.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    bgSwap.add(rbNone);
     bgSwap.add(rbSwapYZ);
     bgSwap.add(rbRotateX);
-    rbNoChange.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbNone.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbSwapYZ.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbRotateX.setAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlSwap.add(rbNoChange);
-    pnlSwap.add(rbSwapYZ);
-    pnlSwap.add(rbRotateX);
-    pnlTrimvol.add(pnlSwap);
+    pnlReorientation.add(rbNone);
+    pnlReorientation.add(rbSwapYZ);
+    pnlReorientation.add(rbRotateX);
+    pnlTrimvol.add(pnlReorientation);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -309,7 +315,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
       rbRotateX.setSelected(true);
     }
     else {
-      rbNoChange.setSelected(true);
+      rbNone.setSelected(true);
     }
 
     cbConvertToBytes.setSelected(trimvolParam.isConvertToBytes());
@@ -538,7 +544,12 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     text = "Maximum Z section of the subset to analyze for contrast range.";
     ltfSectionScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
 
-    rbNoChange.setToolTipText(tooltipFormatter.setText(
+    pnlReorientation.setToolTipText(tooltipFormatter.setText(
+        "If the output volume is not reoriented, "
+            + "the file will need to be flipped when loaded into 3dmod.")
+        .format());
+    
+    rbNone.setToolTipText(tooltipFormatter.setText(
         "Do not change the orientation of the output volume.  "
             + "The file will need to be flipped when loaded into 3dmod.")
         .format());
