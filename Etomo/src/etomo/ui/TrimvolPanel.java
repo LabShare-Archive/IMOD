@@ -34,6 +34,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2006/06/27 17:49:38  sueh
+ * <p> bug# 879 Make the swap yz check box a radio button.  Added a rotate in x radio
+ * <p> button and a do not change radio button.
+ * <p>
  * <p> Revision 3.12  2006/01/31 21:01:36  sueh
  * <p> bug# 521 Managing the trimvol button in ProcessResultDisplayFactory.
  * <p> Made trimvol a toggle button.
@@ -161,7 +165,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private final ButtonGroup  bgSwap = new ButtonGroup();
   private final RadioButton rbNoChange = new RadioButton("Do not change");
   private final RadioButton rbSwapYZ = new RadioButton("Swap Y and Z dimensions");
-  private final RadioButton rbRotateX = new RadioButton("Rotate 90 degrees in X");
+  private final RadioButton rbRotateX = new RadioButton("Rotate in X");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = new Run3dmodButton(
