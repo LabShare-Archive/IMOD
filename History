@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/26/06: IMOD_3-8-13
 6/26/06: Added autocontrast function to Midas.
 
 6/24/06: Fixed Copytomocoms and Setupcombine to accommodate a change in Cygwin
