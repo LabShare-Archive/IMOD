@@ -18,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2006/04/25 18:57:30  sueh
+ * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
+ * <p>
  * <p> Revision 3.5  2006/03/20 17:59:32  sueh
  * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
  * <p>
@@ -161,7 +164,7 @@ public class ProcessTrack implements BaseProcessTrack {
       group + "TomogramCombination",
       tomogramCombination.toString());
 
-    props.setProperty(group + "PostProcessing", cleanUp.toString());
+    props.setProperty(group + "PostProcessing", postProcessing.toString());
     props.setProperty(group + "CleanUp", cleanUp.toString());
   }
 
