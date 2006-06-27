@@ -73,16 +73,12 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
     test.internalTest();
-    testInitialize();
   }
 
   public void testInitialize() {
-    testNewNumber();
-    testInitialize_Number();
   }
 
   public void testInitialize_Number() {
-    testNewNumber();
     EtomoNumber test = new EtomoNumber();
     assertEquals(test.getDisplayInteger(), EtomoNumber.INTEGER_NULL_VALUE);
     assertEquals(test.getInt(), EtomoNumber.INTEGER_NULL_VALUE);
@@ -98,7 +94,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
     test.internalTest();
-    testInitialize();
   }
 
   public void testConstEtomoNumber_int() {
@@ -119,7 +114,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
     test.internalTest();
-    testInitialize();
   }
 
   public void testConstEtomoNumber_int_String() {
@@ -145,7 +139,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
     test.internalTest();
-    testInitialize();
   }
 
   public void testConstEtomoNumber_ConstEtomoNumber() {
@@ -156,7 +149,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(copy.getName().equals(copy.getDescription()));
     assertTrue(copy.isValid());
     copy.internalTest();
-    testInitialize();
     //make copy
     int floor = 0;
     int validFloor = 1;
@@ -211,10 +203,9 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
   
   public void testGetDisplayInteger() {
-    testValidateReturnTypeInteger();
   }
   
-  public final void testSetInvalidReason() {
+  public void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber();
     //Pass when there are no validation settings
     test.setInvalidReason();
@@ -244,9 +235,8 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInvalidReason().length(), 0);
     test.internalTest();
   }
-
   
-  public final void testApplyCeilingValue_Number() {
+  public void testApplyCeilingValue_Number() {
     int lowValue = 2;
     int ceilingValue = 3;
     int highValue = 4;
@@ -255,19 +245,34 @@ public final class ConstEtomoNumberTest extends TestCase {
     //test (value < ceiling) => value
     assertEquals(test.applyCeilingValue(new Integer(lowValue)).intValue(),
         lowValue);
-    //test (value == ceiling) => ceiling
+    //test (value == ceiling) => value
     assertEquals(test.applyCeilingValue(new Integer(ceilingValue)).intValue(),
         ceilingValue);
     //test (value > ceiling) => ceiling
     assertEquals(test.applyCeilingValue(new Integer(highValue)).intValue(),
         ceilingValue);
     test.internalTest();
-    testIsNull_Number();
-    testGt_Number_Number();
-    testNewNumber_Number();
   }
-  //TODO
 
+  public void testApplyFloorValue_Number() {
+    int lowValue = 2;
+    int floorValue = 3;
+    int highValue = 4;
+    EtomoNumber test = new EtomoNumber();
+    test.setFloor(floorValue);
+    //test (value > floor) => value
+    assertEquals(test.applyFloorValue(new Integer(highValue)).intValue(),
+        highValue);
+    //test (value == floor) => value
+    assertEquals(test.applyFloorValue(new Integer(floorValue)).intValue(),
+        floorValue);
+    //test (value < floor) => floor
+    assertEquals(test.applyFloorValue(new Integer(lowValue)).intValue(),
+        floorValue);
+    test.internalTest();
+  }
+  
+  //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
     //double
@@ -1132,6 +1137,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2006/06/22 21:14:41  sueh
+ * <p> bug# 692 Adding to test applyCeilingValue(Number).
+ * <p>
  * <p> Revision 1.27  2006/06/21 16:50:37  sueh
  * <p> bug# 692 Modified testSetInvalidReason().
  * <p>
