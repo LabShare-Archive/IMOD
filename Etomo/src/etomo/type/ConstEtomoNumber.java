@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2006/06/22 21:13:58  sueh
+ * <p> *** empty log message ***
+ * <p>
  * <p> Revision 1.36  2006/06/21 16:50:11  sueh
  * <p> bug# 692 Fix null pointer exception in getInvalidReason().  Add
  * <p> resetInvalidReason() call to setValidFloor().
@@ -426,7 +429,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return value;
   }
-//TODO test
+
   /**
    * Returns floorValue if value < floorValue.  Otherwise returns values.
    * Ignores null.
