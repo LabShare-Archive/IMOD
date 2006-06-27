@@ -2,6 +2,7 @@ package etomo.storage.autodoc;
 
 import java.util.ArrayList;
 
+import etomo.type.CallbackClassEnum;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessEndState;
@@ -42,6 +43,7 @@ public final class UITestAxisDialogCommand implements AdocCommand {
   private boolean empty = true;
   private boolean known = false;
   private boolean secondaryAutodoc = false;
+  private CallbackClassEnum callbackClassEnum = null;
 
   public UITestAxisDialogCommand(ArrayList variables) {
     this.variables = variables;
@@ -52,46 +54,52 @@ public final class UITestAxisDialogCommand implements AdocCommand {
     if (pair == null) {
       return;
     }
-    empty = false;
-    string = pair.getString();
-    if (pair.levels() == 0) {
-      return;
+    if (pair.isSection()) {
+      action = UITestAction.FUNCTION;
+      callbackClassEnum = CallbackClassEnum.getInstance(pair.getName(0));
     }
-    int index = 0;
-    //set the action
-    action = UITestAction.getInstance(pair.getName(0));
-    if (action == UITestAction.ADOC) {
-      secondaryAutodoc = true;
-    }
-    //set the field
-    if (action != UITestAction.ADOC && action != UITestAction.SLEEP
-        && action != UITestAction.STOP && action != UITestAction.COPY) {
+    else {
+      empty = false;
+      string = pair.getString();
+      if (pair.levels() == 0) {
+        return;
+      }
+      int index = 0;
+      //set the action
+      action = UITestAction.getInstance(pair.getName(0));
+      if (action == UITestAction.ADOC) {
+        secondaryAutodoc = true;
+      }
+      //set the field
+      if (action != UITestAction.ADOC && action != UITestAction.SLEEP
+          && action != UITestAction.STOP && action != UITestAction.COPY) {
+        if (action == UITestAction.WAIT_FOR) {
+          index++;
+        }
+        else if (action == UITestAction.ASSERT) {
+          index++;
+        }
+        setField(pair, index);
+      }
+      //get the value
+      value = pair.getValue();
+      replaceVariables();
       if (action == UITestAction.WAIT_FOR) {
-        index++;
-      }
-      else if (action == UITestAction.ASSERT) {
-        index++;
-      }
-      setField(pair, index);
-    }
-    //get the value
-    value = pair.getValue();
-    replaceVariables();
-    if (action == UITestAction.WAIT_FOR) {
-      //handle waitfor = 
-      if (field == null) {
-        dialogType = DialogType.getInstance(value);
-      }
-      //handle waitfor.process = 
-      else if (field == UITestField.PROCESS) {
-        processEndState = ProcessEndState.getInstance(value);
+        //handle waitfor = 
+        if (field == null) {
+          dialogType = DialogType.getInstance(value);
+        }
+        //handle waitfor.process = 
+        else if (field == UITestField.PROCESS) {
+          processEndState = ProcessEndState.getInstance(value);
+        }
       }
     }
     //this ignores the Version name/value pair
     if (action == UITestAction.ADOC || action == UITestAction.ASSERT
         || action == UITestAction.COPY || action == UITestAction.SLEEP
         || action == UITestAction.STOP || action == UITestAction.WAIT_FOR
-        || field != null) {
+        || action == UITestAction.FUNCTION || field != null) {
       known = true;
     }
     else {
@@ -158,7 +166,8 @@ public final class UITestAxisDialogCommand implements AdocCommand {
           && formattedValue.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
         return;
       }
-      UITestTestCommand.Variable variable = (UITestTestCommand.Variable) variables.get(i);
+      UITestTestCommand.Variable variable = (UITestTestCommand.Variable) variables
+          .get(i);
       replaceVariable(variable.getName(), variable.getValue());
     }
   }
@@ -210,6 +219,10 @@ public final class UITestAxisDialogCommand implements AdocCommand {
     return dialogType;
   }
 
+  public CallbackClassEnum getCallbackClassEnum() {
+    return callbackClassEnum;
+  }
+
   public ProcessEndState getProcessEndState() {
     return processEndState;
   }
@@ -232,6 +245,10 @@ public final class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/06/14 00:34:23  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.
+ * <p>
  * <p> Revision 1.3  2006/06/06 17:23:13  sueh
  * <p> bug# 766 replaceVariable():  Since autodoc test files are shared between OSs, always use
  * <p> the "/" path character.
