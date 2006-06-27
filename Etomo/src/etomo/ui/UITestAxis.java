@@ -52,6 +52,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2006/06/14 00:42:29  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.  Renamed the section level command
+ * <p> objects to make them less generic.
+ * <p>
  * <p> Revision 1.3  2006/05/01 21:24:02  sueh
  * <p> bug# 787 removed commented out code
  * <p>
@@ -307,6 +312,9 @@ final class UITestAxis implements AdocCommandFactory {
     //handle waitfors
     else if (action == UITestAction.WAIT_FOR) {
       getCommand = testWaitFor(command);
+    }
+    else if (action == UITestAction.FUNCTION) {
+      callFunction(command);
     }
     else {
       UITestField field = command.getType();
@@ -786,6 +794,7 @@ private void testAssert(UITestAxisDialogCommand command) {
   }
   
   private void callFunction(UITestAxisDialogCommand command) {
+    command.getCallbackClassEnum().getCallbackClass().callback(command);
   }
 
   private AbstractButton getButton(String name) {
@@ -961,6 +970,11 @@ private void testAssert(UITestAxisDialogCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/06/14 00:42:29  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.  Renamed the section level command
+ * <p> objects to make them less generic.
+ * <p>
  * <p> Revision 1.3  2006/05/01 21:24:02  sueh
  * <p> bug# 787 removed commented out code
  * <p>
