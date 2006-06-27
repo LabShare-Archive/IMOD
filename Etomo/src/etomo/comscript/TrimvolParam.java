@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2006/05/22 22:42:51  sueh
+ * <p> bug# 577 Added getCommand().
+ * <p>
  * <p> Revision 3.14  2006/05/11 19:50:36  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -147,6 +150,7 @@ public class TrimvolParam implements CommandDetails {
   public static final String FIXED_SCALE_MIN = "FixedScaleMin";
   public static final String FIXED_SCALE_MAX = "FixedScaleMax";
   private static final String swapYZString = "SwapYZ";
+  private static final String ROTATE_X_KEY = "RotateX";
   public static final String INPUT_FILE = "InputFile";
   public static final String OUTPUT_FILE = "OutputFile";
   
@@ -166,6 +170,7 @@ public class TrimvolParam implements CommandDetails {
   private int fixedScaleMin = Integer.MIN_VALUE;
   private int fixedScaleMax = Integer.MIN_VALUE;
   private boolean swapYZ = true;
+  private boolean rotateX = false;
   private String inputFile = "";
   private String outputFile = "";
   private String[] commandArray;
@@ -211,6 +216,7 @@ public class TrimvolParam implements CommandDetails {
     props.setProperty(group + FIXED_SCALE_MIN, String.valueOf(fixedScaleMin));
     props.setProperty(group + FIXED_SCALE_MAX, String.valueOf(fixedScaleMax));
     props.setProperty(group + swapYZString, String.valueOf(swapYZ)  );
+    props.setProperty(group + ROTATE_X_KEY, String.valueOf(rotateX));
     props.setProperty(group + INPUT_FILE, inputFile);
     props.setProperty(group + OUTPUT_FILE, outputFile);
   }
@@ -314,6 +320,11 @@ public class TrimvolParam implements CommandDetails {
       Boolean
         .valueOf(props.getProperty(group + swapYZString, Boolean.toString(swapYZ)))
         .booleanValue();
+    
+    rotateX =
+      Boolean
+        .valueOf(props.getProperty(group + ROTATE_X_KEY, Boolean.toString(rotateX)))
+        .booleanValue();
         
     inputFile = props.getProperty(group + INPUT_FILE, inputFile);
       
@@ -384,6 +395,10 @@ public class TrimvolParam implements CommandDetails {
     if (swapYZ) {
       options.add("-yz");
     }
+    
+    if (rotateX) {
+      options.add("-rx");
+    }
     // TODO check to see that filenames are apropriate
     options.add(inputFile);
     options.add(outputFile);
@@ -431,6 +446,10 @@ public class TrimvolParam implements CommandDetails {
    */
   public boolean isSwapYZ() {
     return swapYZ;
+  }
+  
+  public boolean isRotateX() {
+    return rotateX;
   }
 
   /**
@@ -522,6 +541,10 @@ public class TrimvolParam implements CommandDetails {
   public void setSwapYZ(boolean swapYZ) {
     this.swapYZ = swapYZ;
   }
+  
+  public void setRotateX(boolean rotateX) {
+    this.rotateX = rotateX;
+  }
 
   /**
    * Sets the xMax.
@@ -596,9 +619,9 @@ public class TrimvolParam implements CommandDetails {
     zMin = 1;
     zMax = mrcHeader.getNSections();
 
-    // Check the swapped YZ state to decide which dimension to use for the 
+    // Check the swapped YZ state or rotateX state to decide which dimension to use for the 
     // section range
-    if (swapYZ) {
+    if (swapYZ || rotateX) {
       sectionScaleMin = yMax / 3;
       sectionScaleMax = yMax * 2 / 3;
     }
@@ -753,6 +776,9 @@ public class TrimvolParam implements CommandDetails {
       return false;
     }
     if (swapYZ != trim.isSwapYZ()) {
+      return false;
+    }
+    if (rotateX != trim.isRotateX()) {
       return false;
     }
     if (!inputFile.equals(trim.getInputFileName())
