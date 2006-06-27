@@ -107,7 +107,7 @@ Flip Y and Z in the output volume by first creating a temporary trimmed volume
 with newstack then running "clip flipyz" on this volume to create the final
 output file.
 .TP
-.B -yz
+.B -rx
 Rotate the output volume by -90 degrees around the X axis, by first creating a
 temporary trimmed volume
 with newstack then running "clip rotx" on this volume to create the final
