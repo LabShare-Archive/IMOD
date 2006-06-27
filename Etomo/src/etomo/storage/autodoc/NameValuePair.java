@@ -45,6 +45,10 @@ public final class NameValuePair {
       names.add(list.get(i));
     }
   }
+  
+  boolean isSection() {
+    return isSection;
+  }
 
   NameValuePair(Section section) {
     names.add(section.getTypeToken());
@@ -105,6 +109,10 @@ public final class NameValuePair {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/15 18:46:56  sueh
+ * <p> bug# 852 Added NameValuePair(Section), so sub-sections can be stored in
+ * <p> order.
+ * <p>
  * <p> Revision 1.1  2006/01/12 17:03:00  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
