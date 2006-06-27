@@ -23,6 +23,7 @@ public final class UITestAction {
   private static final String DATASET_STRING = "dataset";
   private static final String DATASET_DIR_STRING = "datasetdir";
   private static final String DURATION_STRING = "duration";
+  private static final String FUNCTION_STRING = "function";
   private static final String SET_STRING = "set";
   private static final String SLEEP_STRING = "sleep";
   private static final String SOURCE_STRING = "source";
@@ -39,6 +40,7 @@ public final class UITestAction {
   public static final UITestAction DATASET = new UITestAction(DATASET_STRING);
   public static final UITestAction DATASET_DIR = new UITestAction(DATASET_DIR_STRING);
   public static final UITestAction DURATION = new UITestAction(DURATION_STRING);
+  public static final UITestAction FUNCTION = new UITestAction(FUNCTION_STRING);
   public static final UITestAction SET = new UITestAction(SET_STRING);
   public static final UITestAction SLEEP = new UITestAction(SLEEP_STRING);
   public static final UITestAction SOURCE = new UITestAction(SOURCE_STRING);
@@ -80,6 +82,9 @@ public final class UITestAction {
     if (action.equals(DURATION_STRING)) {
       return DURATION;
     }
+    if (action.equals(FUNCTION_STRING)) {
+      return FUNCTION;
+    }
     if (action.equals(SET_STRING)) {
       return SET;
     }
@@ -109,6 +114,9 @@ public final class UITestAction {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2006/06/14 00:35:32  sueh
+* <p> bug# 852 Removed PROCESS, it is not an action.
+* <p>
 * <p> Revision 1.3  2006/05/01 21:18:17  sueh
 * <p> bug# 787 Removed fiducial diameter, replacing it with set.
 * <p>
