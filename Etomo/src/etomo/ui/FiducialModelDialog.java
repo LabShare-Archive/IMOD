@@ -30,6 +30,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2006/06/27 23:12:16  sueh
+ * <p> bug# 887 getParameters(BaseScreenState):  fixed null pointer exception.
+ * <p>
  * <p> Revision 3.25  2006/06/21 15:52:51  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -355,6 +358,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     }
     btnSeed.removeActionListener(actionListener);
     btnFixModel.removeActionListener(actionListener);
+    pnlBeadtrack.done();
   }
   
   public void getParameters(BaseScreenState screenState) {
