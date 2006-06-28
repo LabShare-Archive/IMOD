@@ -17,6 +17,10 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.2  2006/03/07 20:05:18  mast
+c       Converted to PIP and made it take unflipped coordinates with option
+c       for flipped.
+c
 c       Revision 3.1  2006/02/26 20:21:19  mast
 c       Made it read sections in chunks, standardize error exit
 c
@@ -62,17 +66,17 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
       
       if (PipGetInOutFile('InputFile', 1, 'Name of image file', filbig)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
 C       
 C	Open image file
 C       
       CALL IMOPEN(1,filbig,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
-      if (mode.ne.1.and.(dmin.lt.-limden.or.dmax.gt.limden)) call errorexit(
+      if (mode.ne.1.and.(dmin.lt.-limden.or.dmax.gt.limden)) call exitError(
      &    '- DATA VALUES HAVE TOO LARGE A RANGE FOR ARRAYS')
 
-      if (nx .gt. idim) call errorexit('IMAGES TOO LARGE IN X FOR ARRAYS')
+      if (nx .gt. idim) call exitError('IMAGES TOO LARGE IN X FOR ARRAYS')
 
       flipped = .not.pipinput
       if (pipinput) ierr = PipGetLogical('FlipYandZ', flipped)
@@ -107,17 +111,17 @@ c
      &      '  (/ for ',ixlo,ixhi,iylo,iyhi,'): '
         read(5,*)ixlo,ixhi,iylo,iyhi
       endif
-      if (izlo.le.0.or.izhi.gt.izlim.or.izlo.gt.izhi)call errorexit(
+      if (izlo.le.0.or.izhi.gt.izlim.or.izlo.gt.izhi)call exitError(
      &      'SLICE NUMBERS OUTSIDE RANGE OF IMAGE FILE')
       izlo=izlo-1
       izhi=izhi-1
 c       
       if(ixlo.lt.0.or.ixhi.ge.nx.or.ixlo.ge.ixhi.or.
-     &    iylo.lt.0.or.iyhi.ge.iylim.or.iylo.gt.iyhi) call errorexit(
+     &    iylo.lt.0.or.iyhi.ge.iylim.or.iylo.gt.iyhi) call exitError(
      &    'X OR Y VALUES OUTSIDE RANGE OF VOLUME')
 c       
-      areafac=max(1.,nx*ny*1.e-6)
-      ntrunclo=areafac*(iyhi+1-iylo)
+      areafac=max(1.,nx*iylim*1.e-6)
+      ntrunclo=areafac*(izhi+1-izlo)
       ntrunchi=ntrunclo
       if (pipinput) then
         ierr = PipGetTwoIntegers('TruncateBlackAndWhite', ntrunclo,ntrunchi)
@@ -192,9 +196,3 @@ c	write(*,'(i7,9i8)')(ihist(i),i=ivmin,ivmax)
       call exit(0)
       END
 
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: FINDCONTRAST - ',message
-      call exit(1)
-      end
