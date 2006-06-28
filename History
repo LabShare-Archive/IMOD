@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/06: Fixed a bug in eTomo where action listeners where not being removed
+from the tracking button, making it try to performe its action multiple time
+when pressed.
+
 6/27/06: IMOD_3-8-14
 6/27/06: Post-Processing:  Added an option in the trimvol panel which allows 
 the trimmed tomogram to be rotated in X.
