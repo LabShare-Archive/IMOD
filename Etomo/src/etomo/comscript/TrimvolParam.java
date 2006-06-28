@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2006/06/27 17:47:19  sueh
+ * <p> bug# 879 Add rotateX.
+ * <p>
  * <p> Revision 3.15  2006/05/22 22:42:51  sueh
  * <p> bug# 577 Added getCommand().
  * <p>
@@ -129,6 +132,8 @@ import java.util.Properties;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
@@ -163,6 +168,10 @@ public class TrimvolParam implements CommandDetails {
   private int yMax = Integer.MIN_VALUE;
   private int zMin = Integer.MIN_VALUE;
   private int zMax = Integer.MIN_VALUE;
+  private final EtomoNumber scaleXMin = new EtomoNumber("ScaleXMin");
+  private final EtomoNumber scaleXMax = new EtomoNumber("ScaleXMax");
+  private final EtomoNumber scaleYMin = new EtomoNumber("ScaleYMin");
+  private final EtomoNumber scaleYMax = new EtomoNumber("ScaleYMax");
   private boolean convertToBytes = true;
   private boolean fixedScaling = false;
   private int sectionScaleMin = Integer.MIN_VALUE;
@@ -193,12 +202,14 @@ public class TrimvolParam implements CommandDetails {
   }
   public void store(Properties props, String prepend) {
     String group;
-    if (prepend == "") {
+    prepend += PARAM_ID;
+    group = prepend + ".";
+   /* if (prepend == "") {
       group = PARAM_ID + ".";
     }
     else {
       group = prepend + PARAM_ID + ".";
-    }
+    }*/
     props.setProperty(group + XMIN, String.valueOf(xMin));
     props.setProperty(group + XMAX, String.valueOf(xMax));
     props.setProperty(group + YMIN, String.valueOf(yMin));
@@ -219,6 +230,10 @@ public class TrimvolParam implements CommandDetails {
     props.setProperty(group + ROTATE_X_KEY, String.valueOf(rotateX));
     props.setProperty(group + INPUT_FILE, inputFile);
     props.setProperty(group + OUTPUT_FILE, outputFile);
+    scaleXMin.store(props, prepend);
+    scaleXMax.store(props, prepend);
+    scaleYMin.store(props, prepend);
+    scaleYMax.store(props, prepend);
   }
 
   /**
@@ -229,12 +244,14 @@ public class TrimvolParam implements CommandDetails {
   }
   public void load(Properties props, String prepend) {
     String group;
-    if (prepend == "") {
+    prepend += PARAM_ID;
+    group = prepend + ".";
+   /* if (prepend == "") {
       group = PARAM_ID + ".";
     }
     else {
       group = prepend + PARAM_ID + ".";
-    }
+    }*/
 
     // Load the trimvol values if they are present, don't change the
     // current value if the property is not present
@@ -329,6 +346,11 @@ public class TrimvolParam implements CommandDetails {
     inputFile = props.getProperty(group + INPUT_FILE, inputFile);
       
     outputFile = props.getProperty(group + OUTPUT_FILE, outputFile);
+    
+    scaleXMin.load(props, prepend);
+    scaleXMax.load(props, prepend);
+    scaleYMin.load(props, prepend);
+    scaleYMax.load(props, prepend);
   }
 
   /**
@@ -389,6 +411,14 @@ public class TrimvolParam implements CommandDetails {
       else {
         options.add("-s");
         options.add(String.valueOf(sectionScaleMin) + "," + String.valueOf(sectionScaleMax));
+        if (!scaleXMin.isNull() && !scaleXMax.isNull()) {
+          options.add("-sx");
+          options.add(scaleXMin.toString() + "," + scaleXMax.toString());
+        }
+        if (!scaleYMin.isNull() && !scaleYMax.isNull()) {
+          options.add("-sy");
+          options.add(scaleYMin.toString() + "," + scaleYMax.toString());
+        }
       }
     }
 
@@ -478,6 +508,35 @@ public class TrimvolParam implements CommandDetails {
    */
   public int getYMin() {
     return yMin;
+  }
+
+  
+  /**
+   * @return int
+   */
+  public ConstEtomoNumber getScaleXMax() {
+    return scaleXMax;
+  }
+
+  /**
+   * @return int
+   */
+  public ConstEtomoNumber getScaleXMin() {
+    return scaleXMin;
+  }
+
+  /**
+   * @return int
+   */
+  public ConstEtomoNumber getScaleYMax() {
+    return scaleYMax;
+  }
+
+  /**
+   * @return int
+   */
+  public ConstEtomoNumber getScaleYMin() {
+    return scaleYMin;
   }
 
   /**
@@ -577,6 +636,36 @@ public class TrimvolParam implements CommandDetails {
   public void setYMin(int yMin) {
     this.yMin = yMin;
   }
+  
+  
+  public void setScaleXMax(String scaleXMax) {
+    this.scaleXMax.set(scaleXMax);
+  }
+
+  /**
+   * Sets the scaleXMin.
+   * @param scaleXMin The scaleXin to set
+   */
+  public void setScaleXMin(String scaleXMin) {
+    this.scaleXMin.set(scaleXMin);
+  }
+
+  /**
+   * Sets the scaleYMax.
+   * @param scaleYMax The scaleYMax to set
+   */
+  public void setScaleYMax(String scaleYMax) {
+    this.scaleYMax.set(scaleYMax);
+  }
+
+  /**
+   * Sets the scaleYMin.
+   * @param scaleYMin The scaleYMin to set
+   */
+  public void setScaleYMin(String scaleYMin) {
+    this.scaleYMin.set(scaleYMin);
+  }
+
 
   /**
    * Sets the zMax.
@@ -788,7 +877,19 @@ public class TrimvolParam implements CommandDetails {
     if (!outputFile.equals(trim.getCommandOutputFile())
       && (outputFile.equals("\\S+") || trim.getCommandOutputFile().equals("\\S+"))) {
       return false;
-    }   
+    }  
+    if (!scaleXMin.equals(trim.getScaleXMin())) {
+      return false;
+    }
+    if (!scaleXMax.equals(trim.getScaleXMax())) {
+      return false;
+    }
+    if (!scaleYMin.equals(trim.getScaleYMin())) {
+      return false;
+    }
+    if (!scaleYMax.equals(trim.getScaleYMax())) {
+      return false;
+    }
     return true;
   }
   
