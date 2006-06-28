@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/06: Post-Processing:  Added an option in the trimvol panel which allows the
+scaling to be based on the range of constract in an XY volume as well as a
+subset of slices.
+
 6/28/06: Fixed a bug in eTomo where action listeners where not being removed
-from the tracking button, making it try to performe its action multiple time
+from the tracking button, making it try to perform its action multiple time
 when pressed.
 
 6/27/06: IMOD_3-8-14
