@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/27/06: Post-Processing:  Added an option in the trimvol panel which allows the
-trimmed tomogram to be rotated in X.
+6/27/06: IMOD_3-8-14
+6/27/06: Post-Processing:  Added an option in the trimvol panel which allows 
+the trimmed tomogram to be rotated in X.
+
+6/27/06: Fixed eTomo bug in running alignlog for single axis tomogram.
 
 6/26/06: IMOD_3-8-13
 6/26/06: Added autocontrast function to Midas.
