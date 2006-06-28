@@ -27,6 +27,12 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2006/06/26 18:56:12  sueh
+ * <p> bug# 797 Want the send and receive message attempts to exclude other send
+ * <p> and receive attempts while they are working, without locking up the GUI.
+ * <p> Remove ResponseReader and add MessageSender.  GUI will be locked when a
+ * <p> message requiring a reply is sent.
+ * <p>
  * <p> Revision 3.33  2006/06/22 21:01:43  sueh
  * <p> bug# 797 Stop using imodSendEvent.  Added sendCommand(s() and
  * <p> sendRequest().
@@ -1073,7 +1079,6 @@ public class ImodProcess {
       StringBuffer exceptionMessage = new StringBuffer();
       //wait for the response for at most 5 seconds
       for (int timeout = 0; timeout < 10; timeout++) {
-        System.err.println("timeout=" + timeout);
         if (responseReceived) {
           break;
         }
