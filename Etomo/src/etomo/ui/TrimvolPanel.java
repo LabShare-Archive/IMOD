@@ -34,6 +34,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2006/06/27 23:47:59  sueh
+ * <p> bug# 879 Placed swapYZ and rotateX into a labeled panel.
+ * <p>
  * <p> Revision 3.14  2006/06/27 17:55:37  sueh
  * <p> bug# 897 Simplifying rotate x label.
  * <p>
@@ -182,6 +185,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private JPanel pnlImodFull = new JPanel();
   private final DialogType dialogType;
   private final ButtonListener buttonActonListener;
+  private final RubberbandPanel pnlScaleRubberband;
 
   /**
    * Default constructor
@@ -189,6 +193,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   public TrimvolPanel(ApplicationManager appMgr, DialogType dialogType) {
     applicationManager = appMgr;
     this.dialogType = dialogType;
+    pnlScaleRubberband = new RubberbandPanel(appMgr);
     btnTrimvol = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getTrimVolume();
 
@@ -234,6 +239,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlScale.add(cbConvertToBytes);
     pnlScale.add(pnlScaleFixed);
     pnlScale.add(pnlScaleSection);
+    pnlScale.add(pnlScaleRubberband.getComponent());
 
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
@@ -330,6 +336,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
       rbScaleSection.setSelected(true);
     }
     setScaleState();
+    pnlScaleRubberband.setParameters(trimvolParam);
   }
 
   /**
@@ -362,6 +369,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
       trimvolParam.setSectionScaleMax(Integer.parseInt(ltfSectionScaleMax
           .getText()));
     }
+    pnlScaleRubberband.getParameters(trimvolParam);
   }
 
   public void setParameters(ReconScreenState screenState) {
@@ -404,7 +412,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
    *
    */
   private void setScaleState() {
-
     rbScaleFixed.setEnabled(cbConvertToBytes.isSelected());
     rbScaleSection.setEnabled(cbConvertToBytes.isSelected());
     boolean fixedState = cbConvertToBytes.isSelected()
@@ -415,6 +422,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
         && rbScaleSection.isSelected();
     ltfSectionScaleMin.setEnabled(scaleState);
     ltfSectionScaleMax.setEnabled(scaleState);
+    pnlScaleRubberband.setEnabled(scaleState);
   }
 
   /**
@@ -533,8 +541,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
         + "contrast.";
     ltfFixedScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
 
-    text = "Set the scaling based on the range of contrast in a subset of sections. "
-        + "Exclude sections with extreme densities that can be truncated (gold "
+    text = "Set the scaling based on the range of contrast in a subset of sections and XY volume.  "
+        + "Exclude areas with extreme densities that can be truncated (gold "
         + "particles).";
     rbScaleSection.setToolTipText(tooltipFormatter.setText(text).format());
 
