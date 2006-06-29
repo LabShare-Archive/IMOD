@@ -26,20 +26,18 @@ INCOBJS = sda.$(O) sdmodel.$(O) sddist.$(O) surfden.$(O) kerneldens.$(O) \
 #CFLAGS = -O -I$(INCDIR)
 #FFLAGS = -O -I$(INCDIR) 
 
-NDALIBS = $(GRAPHLIBS) $(FORTCLIBS)
-MTKLIBS = $(GRAPHLIBS) $(FORTCLIBS)
-SDALIBS = $(GRAPHLIBS) $(FORTCLIBS)
+LIBS = $(LWMOD) $(GRAPHLIBS) $(FORTCLIBS)
 
 all: $(PROGS)
 
 nda$(E): $(NDAOBJS)
-	$(FC)  -o nda $(NDAOBJS) $(LDFLG) $(NDALIBS)
+	$(FC)  -o nda $(NDAOBJS) $(LDFLG) $(LIBS)
 
 mtk$(E): $(MTKOBJS)
-	$(FC)  -o mtk $(MTKOBJS) $(LDFLG) $(MTKLIBS)
+	$(FC)  -o mtk $(MTKOBJS) $(LDFLG) $(LIBS)
 
 sda$(E): $(SDAOBJS)
-	$(FC)  -o sda $(SDAOBJS) $(LDFLG) $(SDALIBS)
+	$(FC)  -o sda $(SDAOBJS) $(LDFLG) $(LIBS)
 
 
 $(INCOBJS): sda.inc

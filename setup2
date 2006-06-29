@@ -92,6 +92,10 @@ set makenondll      = '$(AR) $(ARFLAGS)'
 set modelallo       = 'model/*.$(OBJEXT)'
 set nmcarext        = '$(LIBEXT)'
 set far             = '$(AR)'
+set lwmod           = -lwmod
+set lsmlmod         = -lsmlmod
+set wmodext         = '$(DLLEXT)'
+set makewmod        = '$(FAR) $(ARFLAGS)'
 set junit_home      = /usr/local/junit
 set jfcunit_home      = /usr/local/jfcunit
 set class_sep       = ':'
@@ -715,9 +719,12 @@ echo "MAKESTATICLIB = $makestaticlib" >> $configure
 echo "STATICRANLIB = $staticranlib" >> $configure
 echo "DLLEXT = $dllext" >> $configure
 echo "MAKENONDLL = $makenondll" >> $configure
-echo "MODELALLO = $modelallo" >> $configure
 echo "NMCAREXT = $nmcarext" >> $configure
 echo "FAR = $far" >> $configure
+echo "WMODEXT = $wmodext" >> $configure
+echo "MAKEWMOD = $makewmod" >> $configure
+echo "LWMOD = $lwmod" >> $configure
+echo "LSMLMOD = $lsmlmod" >> $configure
 echo "JUNIT_HOME = $junit_home" >> $configure
 echo "JFCUNIT_HOME = $jfcunit_home" >> $configure
 echo "CLASS_SEPARATOR = $class_sep" >> $configure
@@ -833,6 +840,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.16  2006/06/22 01:11:04  mast
+#  Changes for Intel Mac
+#
 #  Revision 1.15  2006/01/23 06:40:56  mast
 #  Changed copyright year
 #

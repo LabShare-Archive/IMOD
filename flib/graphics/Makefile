@@ -7,19 +7,21 @@ LDFLG    = $(LDFFLAGS)
 
 PROGS = genhstplt$(E) avgstatplot$(E) mtpairing$(E) mtoverlap$(E)
 
+LIBS = $(GRAPHLIBS) $(FORTCLIBS)
+
 all: $(PROGS)
 
 genhstplt$(E): genhstplt.$(O)
-	$(FC) -o genhstplt genhstplt.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
+	$(FC) -o genhstplt genhstplt.$(O) $(LDFLG) $(LIBS)
 
 avgstatplot$(E): avgstatplot.$(O)
-	$(FC) -o avgstatplot avgstatplot.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
+	$(FC) -o avgstatplot avgstatplot.$(O) $(LDFLG) $(LIBS)
 
 mtpairing$(E): mtpairing.$(O)
-	$(FC) -o mtpairing mtpairing.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
+	$(FC) -o mtpairing mtpairing.$(O) $(LDFLG) $(LWMOD) $(LIBS)
 
 mtoverlap$(E): mtoverlap.$(O)
-	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(GRAPHLIBS) $(FORTCLIBS)
+	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(LWMOD) $(LIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)

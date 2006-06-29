@@ -136,12 +136,14 @@ if ($compiler == intel) then
             # common in the program
             #
             set makenondll = 'link -lib /NOLOGO /out:'
-            set modelallo =
-            echo "LIBWMOD = libwmod.lib"  >> $configure
         else
             echo "ARFLAGS = -lib /NOLOGO /out:"                >> $configure
             echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
         endif
+        set lwmod = 'libwmod.lib'
+        set lsmlmod = 'libsmlmod.lib'
+        set wmodext = 'lib'
+        set makewmod = '$(MAKENONDLL)'
         echo "LIBEXT  = lib"                  >> $configure
 	echo "RANLIB    = true"            >> $configure
         set makestaticlib = "link -lib /NOLOGO /out:"
