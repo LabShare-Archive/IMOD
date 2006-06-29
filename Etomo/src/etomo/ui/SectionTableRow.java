@@ -33,6 +33,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2006/06/29 20:10:23  sueh
+ * <p> bug# 880 Adding orderCut.  Displaying orderCut instead of rowNumber.
+ * <p> RowNumber is still used as the key in the .ejf file.
+ * <p>
  * <p> Revision 1.17  2006/04/06 20:32:45  sueh
  * <p> bug# 808 In SlicerAngles, turned x, y, and z into EtomoNumbers.
  * <p>
@@ -500,7 +504,6 @@ public final class SectionTableRow {
    *
    */
   private void displayData() {
-    orderCut.setText(data.getOrderCut().toString());
     setSectionText();
     sampleBottomStart.setValue(data.getSampleBottomStart().toString());
     sampleBottomEnd.setValue(data.getSampleBottomEnd().toString());
@@ -570,7 +573,6 @@ public final class SectionTableRow {
         displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
-    data.setOrderCut(orderCut.getText());
     return valid;
   }
 
@@ -665,7 +667,6 @@ public final class SectionTableRow {
   }
 
   void setOrderCut(int orderCut) {
-    data.setOrderCut(orderCut);
     this.orderCut.setText(Integer.toString(orderCut));
   }
 
