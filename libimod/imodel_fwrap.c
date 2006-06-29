@@ -77,6 +77,7 @@ Log at end of file
 #define imodpartialmode IMODPARTIALMODE
 #define getimodobjlist  GETIMODOBJLIST
 #define getimodobjrange GETIMODOBJRANGE
+#define imodarraylimits IMODARRAYLIMITS
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -113,6 +114,7 @@ Log at end of file
 #define imodpartialmode imodpartialmode_
 #define getimodobjlist  getimodobjlist_
 #define getimodobjrange getimodobjrange_
+#define imodarraylimits imodarraylimits_
 #endif
 
 /* Declare anything that is going to be called internally! */
@@ -131,6 +133,8 @@ void putimodflag(int *objnum, int *flag);
 static Imod *Fimod = NULL;
 
 static int partialMode = 0;
+static int maxObjects = FWRAP_MAX_OBJECT;
+static int maxPoints = FWRAP_MAX_POINTS;
 static int nflags_put = 0;
 static int *flags_put = NULL;
 static int maxes_put = 0;
@@ -175,6 +179,15 @@ static int getMeshTrans(Ipoint *trans)
     trans->z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
   }
   return 0;
+}
+
+/*!
+ * Sets limit on number of points and objects in calling arrays 
+ */
+void imodarraylimits(int *maxpt, int *maxob)
+{
+  maxObjects = *maxob;
+  maxPoints = *maxpt;
 }
 
 /*!
@@ -332,13 +345,13 @@ int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
       npoints += obj->cont[co].psize;
   }
   
-  if (ncontour > FWRAP_MAX_OBJECT) {
+  if (ncontour > maxObjects) {
     fprintf(stderr, "getimod: Too many contours in model for Fortran "
             "program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
 
-  if (npoints > FWRAP_MAX_POINTS) {
+  if (npoints > maxPoints) {
     fprintf(stderr, "getimod: Too many points in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
@@ -437,12 +450,12 @@ int getimodscat (int ibase[],     /* index into coord array */
       npoints += obj->cont[co].psize;
   }
 
-  if (maxobj > FWRAP_MAX_OBJECT) {
+  if (maxobj > maxObjects) {
     fprintf(stderr, "getimodscat: Too many contours in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
 
-  if (npoints > FWRAP_MAX_POINTS) {
+  if (npoints > maxPoints) {
     fprintf(stderr, "getimodscat: Too many points in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
@@ -1585,6 +1598,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.27  2006/05/01 20:44:59  mast
+Distinguished vectors from normals and shifted mesh back on output
+
 Revision 3.26  2006/05/01 18:55:11  mast
 Shifted mesh to full volume index coordinates
 
