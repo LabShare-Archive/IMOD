@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2006/04/28 21:04:30  sueh
+ * <p> bug# 787 Named the expander button.
+ * <p>
  * <p> Revision 1.26  2006/04/06 20:18:51  sueh
  * <p> bug# 808 Calling functions in JoinState when deleting or moving a row.
  * <p>
@@ -312,6 +315,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       "Tomograms have to be flipped after generation",
       "in order to be in the right orientation for joining serial sections." };
   private static final String HEADER1_SECTIONS_LABEL = "Sections";
+  static final String ORDER_CUT_TOOLTIP = "The order in which the section was cut.  "
+      + "Placing the last section cut at the top of the table will preserve the original handedness.";
 
   private final JPanel rootPanel = new JPanel();
   private final SpacedPanel pnlBorder = new SpacedPanel();
@@ -332,11 +337,11 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       "Get Angles from Slicer");
   //first header row
   private final HeaderCell header1Order = new HeaderCell("Order");
-  private final HeaderCell header1SetupSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
-      FixedDim.sectionsWidth);
+  private final HeaderCell header1SetupSections = new HeaderCell(
+      HEADER1_SECTIONS_LABEL, FixedDim.sectionsWidth);
   private ExpandButton button1ExpandSections = null;
-  private final HeaderCell header1JoinSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
-      FixedDim.sectionsWidth);
+  private final HeaderCell header1JoinSections = new HeaderCell(
+      HEADER1_SECTIONS_LABEL, FixedDim.sectionsWidth);
   private final HeaderCell header1Sample = new HeaderCell("Sample Slices");
   private final HeaderCell header1SlicesInSample = new HeaderCell("Slices in");
   private final HeaderCell header1CurrentChunk = new HeaderCell("Current");
@@ -346,7 +351,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header1JoinFinal = new HeaderCell("Final");
   private final HeaderCell header1Rotation = new HeaderCell("Rotation Angles");
   //second header row
-  private final HeaderCell header2Order = new HeaderCell();
+  private final HeaderCell header2Order = new HeaderCell("Cut");
   private final HeaderCell header2SetupSections = new HeaderCell();
   private final HeaderCell header2JoinSections = new HeaderCell("In Final");
   private final HeaderCell header2SampleBottom = new HeaderCell("Bottom");
@@ -414,7 +419,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
-    button1ExpandSections = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    button1ExpandSections = ExpandButton.getInstance(this,
+        ExpandButton.Type.MORE);
     button1ExpandSections.setName(HEADER1_SECTIONS_LABEL);
     addTablePanelComponents();
     //buttons
@@ -515,7 +521,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header3RotationZ.add(pnlTable, layout, constraints);
   }
-  
+
   final int getMode() {
     return mode;
   }
@@ -650,7 +656,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       pnlButtons.add(btnGetAngles);
     }
   }
-  
+
   void displayCurTab() {
     rootPanel.removeAll();
     pnlButtons.removeAll();
@@ -1013,6 +1019,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     row.setMode(mode);
     row.add(pnlTable);
     rows.add(row);
+    renumberOrderCut();
     int tableSize = rows.size();
     configureRows();
     joinDialog.setNumSections(tableSize);
@@ -1090,8 +1097,24 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    */
   private void renumberTable(int startIndex) {
     int rowsSize = rows.size();
+    int orderCut = rowsSize;
+    SectionTableRow row;
     for (int i = startIndex; i < rowsSize; i++) {
-      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
+      row = (SectionTableRow) rows.get(i);
+      row.setRowNumber(i + 1);
+      row.setOrderCut(orderCut--);
+    }
+    renumberOrderCut();
+  }
+  
+  /**
+   * Renumber the order cut starting from the row in the ArrayList at startIndex.
+   * @param startIndex
+   */
+  private void renumberOrderCut() {
+    int orderCut = rows.size();
+    for (int i = 0; i < rows.size(); i++) {
+      ((SectionTableRow) rows.get(i)).setOrderCut(orderCut--);
     }
   }
 
@@ -1131,7 +1154,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     return success;
   }
-  
+
   boolean validateMakejoincom() {
     if (rows == null) {
       return true;
@@ -1143,7 +1166,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     return true;
   }
-  
+
   boolean validateFinishjoin() {
     if (rows == null) {
       return true;
@@ -1355,8 +1378,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     btnDeleteSection.setToolTipText(tooltipFormatter.setText(
         "The order of the sections in the joined tomogram.").format());
 
-    String toolTip = tooltipFormatter.setText(
-        "The order of the sections in the joined tomogram.").format();
+    String toolTip = tooltipFormatter.setText(ORDER_CUT_TOOLTIP).format();
     header1Order.setToolTipText(toolTip);
     header2Order.setToolTipText(toolTip);
     header3Order.setToolTipText(toolTip);
