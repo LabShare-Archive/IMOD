@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/04/28 20:55:37  sueh
+ * <p> bug# 787 Added getInstance(String).
+ * <p>
  * <p> Revision 3.7  2005/07/18 17:54:08  sueh
  * <p> bug# 692 Removed selftest function in AxisID because there are too many
  * <p> situations where it is valid for it to fail.  Remove
@@ -86,6 +89,9 @@ public class AxisID {
   }
   
   public static AxisID getInstance(String extension) {
+    if (extension == null) {
+      return null;
+    }
     if (extension.equals(ONLY_EXT_STRING)) {
       return ONLY;
     }
