@@ -40,7 +40,7 @@ $(LIBWMOD): model/*.f $(INCDIR)/model.inc
 
 $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 	(cd smallmodel ; $(MAKE) all)
-	$(FAR) $(ARFLAGS)$(LIBSMLMOD) smallmodel/*.$(O)
+	$(MAKEWMOD)$(LIBSMLMOD) smallmodel/*.$(O)
 	$(RANLIB) $(LIBSMLMOD)
 	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
