@@ -336,16 +336,17 @@ switch($target_computer)
                 breaksw
 
         # Cygwin on Intel 
-        case i686__CYGWIN_NT-5.*__*__*:
-                echo $target_computer is Intel running Cygwin under Windows
-                set machine = cygwin
-                goto cygwin
-                breaksw
-
+        case *__CYGWIN_NT-5.*WOW64__*__*:
         case x86_64__CYGWIN_NT-5.*__*__*:
                 echo $target_computer is Intel running Cygwin under Windows-64
                 set machine = cygwin64
                 goto cygwin64
+                breaksw
+
+        case i686__CYGWIN_NT-5.*__*__*:
+                echo $target_computer is Intel running Cygwin under Windows
+                set machine = cygwin
+                goto cygwin
                 breaksw
 
 	case Power_Macintosh__Darwin__*__*:
@@ -840,6 +841,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.17  2006/06/29 05:10:21  mast
+#  Changes for new model libraries
+#
 #  Revision 1.16  2006/06/22 01:11:04  mast
 #  Changes for Intel Mac
 #
