@@ -10,6 +10,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.1  2005/04/07 03:56:31  mast
+c	  New version with local tracking, new mapping, outliers, etc.
+c	
 c
 	subroutine proc_model(xcen,ycen,xdelt,ydelt,xorig,yorig,scalexy,
      &	    nviewtot,mininview,izcur,nzlocal,listobj,ninlist,ninview,
@@ -17,7 +20,7 @@ c
      &	    nview, nprojpt,nrealpt)
 c
 	implicit none
-	include 'model.inc'
+	include 'smallmodel.inc'
 	real*4 xx(*),yy(*)
 	integer*4 isecview(*),irealstr(*),listobj(*)
 	integer*4 ninview(*),ivorig(*),iobjali(*)

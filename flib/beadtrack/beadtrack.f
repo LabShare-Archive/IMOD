@@ -15,7 +15,7 @@ c
 c       $Revision$
 c       Log at end of file
       implicit none
-      include 'model.inc'
+      include 'smallmodel.inc'
       include 'statsize.inc'
       include 'alivar.inc'
       include 'tltcntrl.inc'
@@ -47,7 +47,7 @@ C
       character*6 areaObjStr
       character*9 dat
       character*8 tim
-      logical exist,readw_or_imod
+      logical exist,readSmallMod
 C       
       EQUIVALENCE (NX,NXYZ)
 c       
@@ -257,7 +257,7 @@ c
      &    modelfile) .ne. 0) call errorexit
      &    ('NO INPUT SEED MODEL FILE SPECIFIED', 0)
 c       
-      exist=readw_or_imod(modelfile)
+      exist=readSmallMod(modelfile)
       if(.not.exist)call errorexit('READING SEED MODEL FILE', 0)
 c       
 c       convert to image index coordinates and change the origin and delta
@@ -1643,6 +1643,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.22  2006/04/10 23:43:28  mast
+c       Fixed use of uninitialized variable in error check
+c
 c       Revision 3.21  2006/02/27 06:15:03  mast
 c       Increased maximum box size and added error check
 c

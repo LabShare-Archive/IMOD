@@ -5,6 +5,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.6  2006/01/26 05:50:04  mast
+c       Made it restart on too many cycle error also
+c
 c       Revision 3.5  2005/04/10 18:06:21  mast
 c       Actually changed metro factor on repeats
 c	
@@ -22,7 +25,7 @@ c
       implicit none
       include 'alivar.inc'
       include 'tltcntrl.inc'
-      include 'model.inc'
+      include 'smallmodel.inc'
 c       
 c       IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
 c       var to maxmetro
