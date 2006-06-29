@@ -7,35 +7,42 @@ LIBIM    = libim.$(DLLEXT)
 LIBNMCAR = libdnmncar.$(NMCAREXT)
 LIBCOMPAT = libb3dcmpt.$(DLLEXT)
 LIBTRACK  = libtrack.$(DLLEXT)
+LIBSMLMOD = libsmlmod.$(WMODEXT)
+LIBWMOD = libwmod.$(WMODEXT)
 
 COMPATSRC = compat/ransub.f compat/ourrnd.c compat/degtrig.f $(DATESRC)
 COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
   $(DIRDATEOBJ)
 
-LIBS = $(LIBHVEM) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS)
+LIBS = $(LIBHVEM) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
+ $(LIBWMOD) $(LIBSMLMOD)
 
-all : $(LIBS) $(BLOCKIO) $(LIBWMOD)
+all : $(LIBS)
 
 
-$(LIBHVEM): $(LIBIM) model/*.f piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f \
-	$(INCDIR)/model.inc
-	(cd model ; $(MAKE) all)
+$(LIBHVEM): $(LIBIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
 	(cd statsubs ; $(MAKE) all)
 	\rm -f $(LIBHVEM)
 	$(FAR) $(ARFLAGS)$(LIBHVEM) $(LIBHVEMDEF) \
-	$(MODELALLO) piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
+	piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
 	$(RANLIB) $(LIBHVEM)
 	$(CP) libhvem.$(LIBEXT) $(LIBDIR)
 
-libwmod.lib: model/*.f $(INCDIR)/model.inc
+$(LIBWMOD): model/*.f $(INCDIR)/model.inc
 	(cd model ; $(MAKE) all)
 	\rm -f $(LIBWMOD)
-	$(MAKENONDLL)$(LIBWMOD) model/*.$(O)
+	$(MAKEWMOD)$(LIBWMOD) model/*.$(O)
 	$(RANLIB) $(LIBWMOD)
 	$(CP) $(LIBWMOD) $(LIBDIR)
+
+$(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
+	(cd smallmodel ; $(MAKE) all)
+	$(FAR) $(ARFLAGS)$(LIBSMLMOD) smallmodel/*.$(O)
+	$(RANLIB) $(LIBSMLMOD)
+	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
 $(LIBIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
@@ -46,12 +53,7 @@ $(LIBIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 	$(RANLIB) $(LIBIM)
 	$(CP) libim.$(LIBEXT) $(LIBDIR)
 
-libblockio.a:  imsubs/blockio.c
-	(cd imsubs; make blockio.o)
-	\rm -f libblockio.a
-	ar ruv libblockio.a imsubs/blockio.o
-	ranlib libblockio.a
-	$(CP) libblockio.a $(LIBDIR)
+# libblockio eliminated version 3.15, 6/28/06
 
 $(LIBIFFT):	ifftsub/*.f
 	(cd ifftsub ; $(MAKE) all)
