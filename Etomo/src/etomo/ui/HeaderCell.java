@@ -41,6 +41,10 @@ class HeaderCell {
     this(text, -1, fixedColor);
   }
   
+  HeaderCell(int width) {
+    this(null, width, true);
+  }
+  
   HeaderCell(String text, int width) {
     this(text, width, true);
   }
@@ -112,6 +116,10 @@ class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.11  2006/04/10 19:08:43  sueh
+ * * <p> bug# 846 Added fixedColor parameter to constructor to preserve the color
+ * * <p> relationships in the tables.
+ * * <p>
  * * <p> Revision 1.10  2006/01/27 18:41:58  sueh
  * * <p> bug# 801 Need to set text to "" when clearing the button text
  * * <p>
