@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/12/09 04:39:44  mast
+c	  gfortran: .xor., continuation, byte, or open fixes
+c	
 c	  Revision 3.2  2005/05/24 17:53:37  mast
 c	  Added routines for reading selected objects from model
 c	
@@ -28,6 +31,8 @@ c
 	integer*1 ptbyte
 c
 	readw_or_imod=.true.
+        call imodArrayLimits(max_pt, max_obj_num)
+c
 	ierr=getimod(ibase_obj,npt_in_obj,p_coord,obj_color,n_point,
      &      n_object,filename)
 	if(ierr.eq.0)then
