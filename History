@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/29/06: Fixed fatal problem in tomosnapshot caused by change on 6/6 (In 3.7).
+
 6/28/04: IMOD_3-8-15
 6/28/06: Fixed bug in setting truncation limits in Findcontrast.
 
