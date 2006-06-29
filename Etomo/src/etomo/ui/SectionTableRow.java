@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2006/04/06 20:32:45  sueh
+ * <p> bug# 808 In SlicerAngles, turned x, y, and z into EtomoNumbers.
+ * <p>
  * <p> Revision 1.16  2006/03/21 19:42:53  sueh
  * <p> bug# 807 Changed displayCurTab() so that the chunk display on the align
  * <p> tab matches the row number.
@@ -207,7 +210,7 @@ public final class SectionTableRow {
   private final MultiLineButton highlighterButton;
 
   private SectionTableRowData data;
-  private HeaderCell rowNumber;
+  private final HeaderCell orderCut = new HeaderCell(FixedDim.rowNumberWidth);
 
   private int imodIndex = -1;
   private int imodRotIndex = -1;
@@ -224,7 +227,7 @@ public final class SectionTableRow {
     this(manager, table, sectionExpanded);
     data = new SectionTableRowData(manager, rowNumber);
     data.setSetupSection(tomogram);
-    init();
+    displayData();
     setToolTipText();
   }
 
@@ -233,7 +236,7 @@ public final class SectionTableRow {
     this(manager, table, sectionExpanded);
     this.data = new SectionTableRowData(manager, data);
     this.sectionExpanded = sectionExpanded;
-    init();
+    displayData();
     setToolTipText();
   }
 
@@ -269,19 +272,9 @@ public final class SectionTableRow {
         + joinFinalStart + ",\njoinFinalEnd=" + joinFinalEnd
         + ",\nrotationAngleX=" + rotationAngleX + ",rotationAngleY="
         + rotationAngleY + ",\nrotationAngleZ=" + rotationAngleZ
-        + ",\nhighlighterButton=" + highlighterButton + ",rowNumber="
-        + rowNumber + ",\nimodIndex=" + imodIndex + ",imodRotIndex="
-        + imodRotIndex + ",\nsectionExpanded=" + sectionExpanded + ",valid="
-        + valid + "," + super.toString();
-  }
-
-  /**
-   * construction work that depends on data
-   */
-  private final void init() {
-    rowNumber = new HeaderCell(data.getRowNumber().toString(),
-        FixedDim.rowNumberWidth);
-    displayData();
+        + ",\nhighlighterButton=" + highlighterButton + ",\nimodIndex="
+        + imodIndex + ",imodRotIndex=" + imodRotIndex + ",\nsectionExpanded="
+        + sectionExpanded + ",valid=" + valid + "," + super.toString();
   }
 
   void setInUse() {
@@ -308,7 +301,7 @@ public final class SectionTableRow {
   }
 
   void remove() {
-    rowNumber.remove();
+    orderCut.remove();
     table.removeCell(highlighterButton.getComponent());
     setupSection.remove();
     sampleBottomStart.remove();
@@ -415,7 +408,7 @@ public final class SectionTableRow {
       int bottomSampleSlices = getBottomSampleSlices(prevRow);
       int topSampleSlices = getTopSampleSlices(totalRows, rowNum);
       int prevTopSampleSlices = getPrevTopSampleSlices(prevRow);
-      
+
       slicesInSample.setRangeValue(prevSampleEnd + 1, prevSampleEnd
           + bottomSampleSlices + topSampleSlices);
       if (prevRow == null) {
@@ -451,7 +444,7 @@ public final class SectionTableRow {
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    rowNumber.add(panel, layout, constraints);
+    orderCut.add(panel, layout, constraints);
     table.addCell(highlighterButton.getComponent());
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
@@ -474,7 +467,7 @@ public final class SectionTableRow {
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    rowNumber.add(panel, layout, constraints);
+    orderCut.add(panel, layout, constraints);
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
     constraints.gridwidth = 1;
@@ -491,7 +484,7 @@ public final class SectionTableRow {
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    rowNumber.add(panel, layout, constraints);
+    orderCut.add(panel, layout, constraints);
     table.addCell(highlighterButton.getComponent());
     constraints.gridwidth = 2;
     joinSection.add(panel, layout, constraints);
@@ -507,7 +500,7 @@ public final class SectionTableRow {
    *
    */
   private void displayData() {
-    rowNumber.setText(data.getRowNumber().toString());
+    orderCut.setText(data.getOrderCut().toString());
     setSectionText();
     sampleBottomStart.setValue(data.getSampleBottomStart().toString());
     sampleBottomEnd.setValue(data.getSampleBottomEnd().toString());
@@ -532,7 +525,7 @@ public final class SectionTableRow {
    */
   private boolean retrieveData(boolean displayErrorMessage) {
     valid = true;
-    String errorTitle = "Invalid number in row " + rowNumber.getText();
+    String errorTitle = "Invalid number in section " + orderCut.getText();
     if (!data.setSampleBottomStart(sampleBottomStart.getValue()).isValid(
         displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
@@ -577,12 +570,13 @@ public final class SectionTableRow {
         displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
     }
+    data.setOrderCut(orderCut.getText());
     return valid;
   }
 
   boolean validateMakejoincom() {
     retrieveData(false);
-    String errorTitle = "Invalid numbers in row " + rowNumber.getText();
+    String errorTitle = "Invalid numbers in section " + orderCut.getText();
     validate(data.getSampleBottomStart(), data.getSampleBottomEnd(),
         errorTitle, true);
     validate(data.getSampleTopStart(), data.getSampleTopEnd(), errorTitle, true);
@@ -591,7 +585,7 @@ public final class SectionTableRow {
 
   boolean validateFinishjoin() {
     retrieveData(false);
-    String errorTitle = "Invalid numbers in row " + rowNumber.getText();
+    String errorTitle = "Invalid numbers in section " + orderCut.getText();
     validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), errorTitle,
         false);
     return valid;
@@ -668,7 +662,11 @@ public final class SectionTableRow {
 
   void setRowNumber(int rowNumber) {
     data.setRowNumber(rowNumber);
-    this.rowNumber.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
+  }
+
+  void setOrderCut(int orderCut) {
+    data.setOrderCut(orderCut);
+    this.orderCut.setText(Integer.toString(orderCut));
   }
 
   void setImodIndex(int imodIndex) {
@@ -863,8 +861,8 @@ public final class SectionTableRow {
 
   private void setToolTipText() {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    rowNumber.setToolTipText(tooltipFormatter.setText(
-        "The number of the section.").format());
+    orderCut.setToolTipText(tooltipFormatter.setText(
+        SectionTablePanel.ORDER_CUT_TOOLTIP).format());
     highlighterButton.setToolTipText(tooltipFormatter.setText(
         "Press to select the section.").format());
     currentChunk.setToolTipText(tooltipFormatter.setText(
