@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.32  2006/06/21 15:53:44  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 1.31  2006/04/06 20:16:45  sueh
  * <p> bug# 808 Added setRevertState(boolean) to do all work associated with
  * <p> enabling and disabling revert in Setup.
@@ -636,14 +639,14 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   public final void setMode(int mode) {
     if (mode == SETUP_MODE) {
-      ltfWorkingDir.setEnabled(true);
+      ltfWorkingDir.setEditable(true);
       btnWorkingDir.setEnabled(true);
-      ltfRootName.setEnabled(true);
+      ltfRootName.setEditable(true);
     }
     else {
-      ltfWorkingDir.setEnabled(false);
+      ltfWorkingDir.setEditable(false);
       btnWorkingDir.setEnabled(false);
-      ltfRootName.setEnabled(false);
+      ltfRootName.setEditable(false);
     }
     switch (mode) {
     case SETUP_MODE:
