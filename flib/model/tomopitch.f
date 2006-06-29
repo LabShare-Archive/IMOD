@@ -21,13 +21,13 @@ c
 c       Log at end
 c       
       implicit none
-      include 'model.inc'
+      include 'smallmodel.inc'
       integer limtot
       parameter (limtot=500)
 C       
       CHARACTER*120 FILIN
 C	
-      logical readw_or_imod,usetimes
+      logical readSmallMod,usetimes
       integer getimodhead,getimodmaxes,getimodtimes,getimodscales
       real*4 xcen(limtot),ycen(limtot),thkmid(limtot),ysamp(limtot)
       integer*4 ifuse(limtot),itimes(max_obj_num)
@@ -77,7 +77,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
       if (pipinput) then
         ierr = PipNumberOfEntries('ModelFile', nfiles)
-        if (nfiles .eq. 0) call errorexit(
+        if (nfiles .eq. 0) call exitError(
      &      'ERROR: TOMOPITCH - NO MODEL FILE ENTERED')
         ierr = PipGetFloat('SpacingInY', deltay)
         ierr = PipGetFloat('ExtraThickness', border)
@@ -122,7 +122,7 @@ c
             write(*,'(1x,a,i2,a,$)')'Name of model file #',ifile,': '
             read(5,'(a)')FILIN
           endif
-          if(.not.readw_or_imod(filin))then
+          if(.not.readSmallMod(filin))then
             print *,' '
             print *, 'ERROR: TOMOPITCH - READING MODEL FILE ',filin
             call exit(1)
@@ -203,7 +203,7 @@ c
                   else if (zspan .lt.
      &                  0.2 * abs(p_coord(1, ip1) - p_coord(1, ip2))) then
                     nHoriz = nHoriz + 1
-                    if (nHoriz .gt. limtot) call errorexit(
+                    if (nHoriz .gt. limtot) call exitError(
      &                  'TOO MANY LINES FOR ARRAYS')
                     iobjHoriz(nHoriz) = iobj
                     zmean(nHoriz) = zval
@@ -222,9 +222,9 @@ c
 c               Now require 2 horiz & 2 vert, or even number of horiz lines
 c               
               if (nVertical .gt. 0 .and. nVertical .ne. 2 .and.
-     &            nHoriz .ne. 2) call errorexit('TO USE CROSSED LINES'//
+     &            nHoriz .ne. 2) call exitError('TO USE CROSSED LINES'//
      &            ', YOU MUST HAVE 2 HORIZONTAL AND 2 VERTICAL LINES')
-              if (mod(nHoriz, 2) .ne. 0) call errorexit(
+              if (mod(nHoriz, 2) .ne. 0) call exitError(
      &            'YOU MUST HAVE AN EVEN NUMBER OF LINES '//
      &            'IN A SINGLE MODEL FILE')
               if (nVertical .gt. 0) then
@@ -239,7 +239,7 @@ c
                   indHoriz(2) = 1
                 endif
                 if (abs(zmean(1) - zmean(2)) .gt. 0.3 *
-     &              min(zSpanVert(1), zSpanVert(2))) call errorexit(
+     &              min(zSpanVert(1), zSpanVert(2))) call exitError(
      &              'DISTANCE BETWEEN HORIZONTAL LINES MUST BE LESS '
      &              //'THAN 0.3 TIMES LENGTH OF VERTICAL ONES')
 
@@ -268,7 +268,7 @@ c
      &                zmean(indHoriz(j + 1)) - zmean(indHoriz(j)))
                   if (zmean(indHoriz(j)) - zmean(indHoriz(j - 1)) .gt.
      &                0.3 * diffMin)
-     &                call errorexit('THE SPACING BETWEEN TWO LINES '//
+     &                call exitError('THE SPACING BETWEEN TWO LINES '//
      &                'OF A PAIR MUST BE LESS THAN 0.3 TIMES THE '//
      &                'SPACING BETWEEN PAIRS')
                 enddo
@@ -282,7 +282,7 @@ c
             endif
           endif
         endif
-        if(nfiles*npatch.gt.limtot)call errorexit(
+        if(nfiles*npatch.gt.limtot)call exitError(
      &      'ERROR: TOMOPITCH - TOO MANY TOTAL PATCHES FOR ARRAYS')
 c         
 c         now get the first 2 contours in model or time or next pair
@@ -422,7 +422,7 @@ c
      &    scaleFac, indy, maxx,
      &    xcen, ycen, thkmid, ifuse, ysamp, npatch, ipbase)
       implicit none
-      include 'model.inc'
+      include 'smallmodel.inc'
       character*(*) message
       integer*4 iobj1, iobj2, npatch, ipbase, maxx, indy, ifuse(*)
       real*4 ysample, border, scaleFac, xcen(*), ycen(*), thkmid(*), ysamp(*)
@@ -583,14 +583,10 @@ c
       return
       end
 
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: TOMOPITCH - ',message
-      call exit(1)
-      end
-
 c       $Log$
+c       Revision 3.13  2006/05/02 19:41:21  mast
+c       Added options to enter old values and get sums for output
+c
 c       Revision 3.12  2005/10/11 21:37:30  mast
 c       Updated fallback PIP options
 c	
