@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2006/04/06 20:14:25  sueh
+ * <p> bug# 808 Removed setRowNumber(String) because it is not being used.
+ * <p>
  * <p> Revision 1.9  2006/01/20 00:15:51  sueh
  * <p> bug# 804 The path of the rotated tomogram should be property user dir
  * <p>
@@ -166,6 +169,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     if (storedVersion == null || !storedVersion.equals(VERSION)) {
       convertVersion(storedVersion, props, prepend);
     }
+    orderCut.load(props, prepend);
   }
 
   /**
@@ -328,6 +332,14 @@ public class SectionTableRowData extends ConstSectionTableRowData {
 
   public void setRowNumber(int rowNumber) {
     this.rowNumber.set(rowNumber);
+  }
+  
+  public void setOrderCut(String orderCut) {
+    this.orderCut.set(orderCut);
+  }
+  
+  public void setOrderCut(int orderCut) {
+    this.orderCut.set(orderCut);
   }
 
   /**
