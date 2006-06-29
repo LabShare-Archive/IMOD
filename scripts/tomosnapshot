@@ -83,7 +83,7 @@ endif
 # Get set name and axis type from edf file
 #
 if ("$edffile" != "")then
-    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e '/Setup.DatasetName=/s///p'' $edffile`
+    set setname = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Setup.DatasetName=/s///p' $edffile`
     set axistype = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Setup.AxisType=/s///p' $edffile`
 endif
 
@@ -206,6 +206,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.13  2006/06/06 23:04:49  mast
+#  Moved control stripping before /p
+#
 #  Revision 3.12  2006/05/11 22:02:56  mast
 #  Added transferfid.coord
 #
