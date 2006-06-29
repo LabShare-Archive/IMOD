@@ -49,6 +49,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2006/06/29 20:09:32  sueh
+ * <p> bug# 880 Added renumberOrderCut().  Renumbering orderCut each time a sample
+ * <p> is added or deleted.
+ * <p>
  * <p> Revision 1.27  2006/04/28 21:04:30  sueh
  * <p> bug# 787 Named the expander button.
  * <p>
@@ -317,6 +321,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private static final String HEADER1_SECTIONS_LABEL = "Sections";
   static final String ORDER_CUT_TOOLTIP = "The order in which the section was cut.  "
       + "Placing the last section cut at the top of the table will preserve the original handedness.";
+  private static final String HEADER2_ORDER_CUT_LABEL = "Cut";
 
   private final JPanel rootPanel = new JPanel();
   private final SpacedPanel pnlBorder = new SpacedPanel();
@@ -336,7 +341,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final MultiLineButton btnGetAngles = new MultiLineButton(
       "Get Angles from Slicer");
   //first header row
-  private final HeaderCell header1Order = new HeaderCell("Order");
+  private final HeaderCell header1OrderCut = new HeaderCell("Order");
   private final HeaderCell header1SetupSections = new HeaderCell(
       HEADER1_SECTIONS_LABEL, FixedDim.sectionsWidth);
   private ExpandButton button1ExpandSections = null;
@@ -351,7 +356,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header1JoinFinal = new HeaderCell("Final");
   private final HeaderCell header1Rotation = new HeaderCell("Rotation Angles");
   //second header row
-  private final HeaderCell header2Order = new HeaderCell("Cut");
+  private final HeaderCell header2OrderCut = new HeaderCell(HEADER2_ORDER_CUT_LABEL);
   private final HeaderCell header2SetupSections = new HeaderCell();
   private final HeaderCell header2JoinSections = new HeaderCell("In Final");
   private final HeaderCell header2SampleBottom = new HeaderCell("Bottom");
@@ -364,7 +369,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header2JoinFinal = new HeaderCell();
   private final HeaderCell header2Rotation = new HeaderCell();
   //third header row
-  private final HeaderCell header3Order = new HeaderCell();
+  private final HeaderCell header3OrderCut = new HeaderCell();
   private final HeaderCell header3SetupSections = new HeaderCell();
   private final HeaderCell header3JoinSections = new HeaderCell();
   private final HeaderCell header3SampleBottomStart = new HeaderCell("Start",
@@ -483,7 +488,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
-    header1Order.add(pnlTable, layout, constraints);
+    header1OrderCut.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     constraints.weightx = 1.0;
     header1SetupSections.add(pnlTable, layout, constraints);
@@ -498,7 +503,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     //second row
     constraints.weighty = 1.0;
     constraints.gridwidth = 2;
-    header2Order.add(pnlTable, layout, constraints);
+    header2OrderCut.add(pnlTable, layout, constraints);
     header2SetupSections.add(pnlTable, layout, constraints);
     header2SampleBottom.add(pnlTable, layout, constraints);
     header2SampleTop.add(pnlTable, layout, constraints);
@@ -507,7 +512,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     header2Rotation.add(pnlTable, layout, constraints);
     //Third row
     constraints.gridwidth = 2;
-    header3Order.add(pnlTable, layout, constraints);
+    header3OrderCut.setText();
+    header3OrderCut.add(pnlTable, layout, constraints);
     header3SetupSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     header3SampleBottomStart.add(pnlTable, layout, constraints);
@@ -534,7 +540,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
-    header1Order.add(pnlTable, layout, constraints);
+    header1OrderCut.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
     header1SetupSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
@@ -549,7 +555,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     //second row
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    header2Order.add(pnlTable, layout, constraints);
+    header2OrderCut.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
     header2SetupSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
@@ -567,7 +573,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
-    header1Order.add(pnlTable, layout, constraints);
+    header1OrderCut.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     constraints.weightx = 1.0;
     header1JoinSections.add(pnlTable, layout, constraints);
@@ -579,7 +585,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       //Second row
       constraints.weighty = 1.0;
       constraints.gridwidth = 2;
-      header2Order.add(pnlTable, layout, constraints);
+      header3OrderCut.setText();
+      header2OrderCut.add(pnlTable, layout, constraints);
       constraints.gridwidth = 2;
       header2JoinSections.add(pnlTable, layout, constraints);
       constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -587,12 +594,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       header3JoinSections.setText("Orientation");
     }
     else {
+      header3OrderCut.setText(HEADER2_ORDER_CUT_LABEL);
       header3JoinSections.setText();
     }
     //Third row
     constraints.weighty = 1.0;
     constraints.gridwidth = 2;
-    header3Order.add(pnlTable, layout, constraints);
+    header3OrderCut.add(pnlTable, layout, constraints);
     header3JoinSections.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     header3JoinFinalStart.add(pnlTable, layout, constraints);
@@ -1097,12 +1105,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    */
   private void renumberTable(int startIndex) {
     int rowsSize = rows.size();
-    int orderCut = rowsSize;
     SectionTableRow row;
     for (int i = startIndex; i < rowsSize; i++) {
-      row = (SectionTableRow) rows.get(i);
-      row.setRowNumber(i + 1);
-      row.setOrderCut(orderCut--);
+      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
     }
     renumberOrderCut();
   }
@@ -1195,6 +1200,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       row.setMode(mode);
       row.add(pnlTable);
     }
+    renumberOrderCut();
     configureRows();
     joinDialog.setNumSections(rows.size());
     repaint();
@@ -1379,9 +1385,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
         "The order of the sections in the joined tomogram.").format());
 
     String toolTip = tooltipFormatter.setText(ORDER_CUT_TOOLTIP).format();
-    header1Order.setToolTipText(toolTip);
-    header2Order.setToolTipText(toolTip);
-    header3Order.setToolTipText(toolTip);
+    header1OrderCut.setToolTipText(toolTip);
+    header2OrderCut.setToolTipText(toolTip);
+    header3OrderCut.setToolTipText(toolTip);
 
     toolTip = tooltipFormatter.setText(
         "The sections used in the joined tomogram.").format();
