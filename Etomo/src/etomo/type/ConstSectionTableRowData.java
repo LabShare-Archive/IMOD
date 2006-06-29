@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2006/06/29 20:06:00  sueh
+ * <p> bug# 880 Added orderCut
+ * <p>
  * <p> Revision 1.17  2006/04/06 20:10:20  sueh
  * <p> bug# 808 Stopped using setDefault for the rotation angles.
  * <p>
@@ -149,8 +152,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String setupZMaxString = "ZMax";
   protected static final double COS_X_Y_THRESHOLD = 0.5;
 
-  protected final EtomoNumber rowNumber;
-  protected final EtomoNumber orderCut;
+  protected final EtomoNumber rowNumber;//key in the .ejf file, not displayed
   protected final EtomoNumber sampleBottomStart;
   protected final EtomoNumber sampleBottomEnd;
   protected final EtomoNumber sampleTopStart;
@@ -190,7 +192,6 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected ConstSectionTableRowData(int rowNumber) {
     //construct
     this.rowNumber = new EtomoNumber("RowNumber");
-    orderCut = new EtomoNumber("OrderCut");
     sampleBottomStart = new EtomoNumber("SampleBottomStart");
     sampleBottomEnd = new EtomoNumber("SampleBottomEnd");
     sampleTopStart = new EtomoNumber("SampleTopStart");
@@ -240,7 +241,7 @@ public abstract class ConstSectionTableRowData implements Storable {
         + ",\nsetupYMax=" + setupYMax + ",joinYMax=" + joinYMax + ",setupZMax="
         + setupZMax + ",\njoinZMax=" + joinZMax + ",imodIndex=" + imodIndex
         + ",\nimodRotIndex=" + imodRotIndex + ",sectionExpanded="
-        + sectionExpanded + ",\ninvalidReason=" + invalidReason + ","+",orderCut="+orderCut
+        + sectionExpanded + ",\ninvalidReason=" + invalidReason
         + super.toString();
   }
 
@@ -255,7 +256,6 @@ public abstract class ConstSectionTableRowData implements Storable {
     imodRotIndex = constSectionTableRowData.imodRotIndex;
     sectionExpanded = constSectionTableRowData.sectionExpanded;
     rowNumber = new EtomoNumber(constSectionTableRowData.rowNumber);
-    orderCut = new EtomoNumber(constSectionTableRowData.orderCut);
     if (constSectionTableRowData.setupSection == null) {
       setupSection = null;
     }
@@ -313,7 +313,6 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleX.store(props, prepend);
     rotationAngleY.store(props, prepend);
     rotationAngleZ.store(props, prepend);
-    orderCut.store(props, prepend);
   }
 
   void remove(Properties props, String prepend) {
@@ -331,7 +330,6 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleX.remove(props, prepend);
     rotationAngleY.remove(props, prepend);
     rotationAngleZ.remove(props, prepend);
-    orderCut.remove(props, prepend);
   }
 
   protected String createPrepend(String prepend) {
@@ -430,10 +428,6 @@ public abstract class ConstSectionTableRowData implements Storable {
 
   public ConstEtomoNumber getRowNumber() {
     return rowNumber;
-  }
-  
-  public ConstEtomoNumber getOrderCut() {
-    return orderCut;
   }
 
   public int getRowIndex() {

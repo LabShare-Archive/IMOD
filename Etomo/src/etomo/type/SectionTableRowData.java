@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2006/06/29 20:06:21  sueh
+ * <p> bug# 880 Added orderCut.
+ * <p>
  * <p> Revision 1.10  2006/04/06 20:14:25  sueh
  * <p> bug# 808 Removed setRowNumber(String) because it is not being used.
  * <p>
@@ -169,7 +172,6 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     if (storedVersion == null || !storedVersion.equals(VERSION)) {
       convertVersion(storedVersion, props, prepend);
     }
-    orderCut.load(props, prepend);
   }
 
   /**
@@ -332,14 +334,6 @@ public class SectionTableRowData extends ConstSectionTableRowData {
 
   public void setRowNumber(int rowNumber) {
     this.rowNumber.set(rowNumber);
-  }
-  
-  public void setOrderCut(String orderCut) {
-    this.orderCut.set(orderCut);
-  }
-  
-  public void setOrderCut(int orderCut) {
-    this.orderCut.set(orderCut);
   }
 
   /**
