@@ -390,6 +390,7 @@ EXPORTS
 	imodClipsInitialize
 	imodMatRotateVector
 	b3dRewind
+	IMODARRAYLIMITS
 	IMODGETENV
 	imod_mesh_to_synu
 	imodContourDefault
