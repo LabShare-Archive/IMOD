@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.47  2006/06/14 00:47:26  sueh
+ * <p> $bug# 852 Changed the int type to an inner Type claass.
+ * <p> $
  * <p> $Revision 3.46  2006/06/07 20:38:56  sueh
  * <p> $bug# 766 Added isMacOS().
  * <p> $
@@ -236,10 +239,8 @@ import etomo.type.ProcessName;
 import etomo.ui.Token;
 import etomo.ui.UIHarness;
 import etomo.comscript.ComScript;
-import etomo.process.SystemProgram;
 
 public class Utilities {
-
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
@@ -506,88 +507,6 @@ public class Utilities {
         System.err.println(string);
       }
     }
-  }
-
-  /**
-   * Return an environment variable value
-   * 
-   * @param varName
-   * @return String
-   */
-  static public String getEnvironmentVariable(String propertyUserDir,
-      String varName, AxisID axisID) {
-    //  There is not a real good way to access the system environment variables
-    //  since the primary method was deprecated
-    SystemProgram readEnvVar;
-    String osName = System.getProperty("os.name");
-
-    if (osName.startsWith("Windows")) {
-      String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(propertyUserDir, new String[] { "cmd.exe",
-          "/C", "echo", var }, axisID);
-      try {
-        readEnvVar.run();
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-        System.err.println(excep.getMessage());
-        System.err.println("Unable to run cmd command to find " + varName
-            + " environment variable");
-
-        return "";
-      }
-      String[] stderr = readEnvVar.getStdError();
-      if (stderr != null && stderr.length > 0) {
-        System.err.println("Error running 'cmd.exe' command");
-        for (int i = 0; i < stderr.length; i++) {
-          System.err.println(stderr[i]);
-        }
-      }
-      // Return the first line from the command
-      String[] stdout = readEnvVar.getStdOutput();
-      if (stdout != null && stdout.length > 0) {
-        if (stdout[0].equals(var)) {
-          //if the variable isn't set, echo will return the string sent to it
-          return "";
-        }
-        return stdout[0];
-      }
-    }
-
-    //  Non windows environment
-    else {
-      readEnvVar = new SystemProgram(propertyUserDir, new String[] {"env"}, axisID);
-      try {
-        readEnvVar.run();
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-        System.err.println(excep.getMessage());
-        System.err.println("Unable to run env command to find " + varName
-            + " environment variable");
-
-        return "";
-      }
-      String[] stderr = readEnvVar.getStdError();
-      if (stderr.length > 0) {
-        System.err.println("Error running 'env' command");
-        for (int i = 0; i < stderr.length; i++) {
-          System.err.println(stderr[i]);
-        }
-      }
-
-      // Search through the evironment string array to find the request
-      // environment variable
-      String searchString = varName + "=";
-      int nChar = searchString.length();
-      String[] stdout = readEnvVar.getStdOutput();
-      for (int i = 0; i < stdout.length; i++) {
-        if (stdout[i].indexOf(searchString) == 0) {
-          return stdout[i].substring(nChar);
-        }
-      }
-    }
-    return "";
   }
 
   /**
@@ -1030,7 +949,7 @@ public class Utilities {
     if (envVariable == null || envVariable.matches("\\s*+")) {
       return null;
     }
-    String dirName = getEnvironmentVariable(null, envVariable, axisID);
+    String dirName = EnvironmentVariable.INSTANCE.getValue(null, envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*+")) {
       return null;
     }
