@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/30/06: eTomo:  improved performance by storing environment variables rather
+then retrieving them each time.
+
 6/29/06: eTomo Join:  numbering samples by order cut.
 
 6/29/06: Fixed fatal problem in tomosnapshot caused by change on 6/6 (In 3.7).
