@@ -53,11 +53,19 @@ public class IntermittentSystemProgram extends SystemProgram {
   }
   
   public void msgDroppedMonitor(IntermittentProcessMonitor monitor) {
+    if (stdout != null) {
     stdout.drop(monitor);
+    }
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.13  2005/09/14 20:26:10  sueh
+* <p> bug# 532 Added drop() to remove a monitor from the listener list.  It is
+* <p> important for the called to prevent any last-minute gets after the drop() is
+* <p> called; the get() will add the monitor back to the listener list, if it is sent
+* <p> after the drop().
+* <p>
 * <p> Revision 1.12  2005/09/10 02:12:40  sueh
 * <p> bug# 532 Handling stderr differently from stdout.  Stderr does not filter on
 * <p> key phrase.
