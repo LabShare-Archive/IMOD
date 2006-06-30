@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/30/06: Fixed a bug where exiting eTomo cause errors in the Combine dialog.
+
 6/30/06: eTomo:  improved performance by storing environment variables rather
 then retrieving them each time.
 
