@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2006/06/21 15:50:42  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.35  2006/05/19 19:46:42  sueh
  * <p> bug# 866 Changed set/getTiltAxisAngle to set/getImageRotation.
  * <p>
@@ -397,14 +400,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     pnlPrenewst.getParameters(blendmontParam);
   }
 
-  public void done() {
-    pnlCrossCorrelation.done();
-    pnlPrenewst.done();
-    btnDistortionCorrectedStack.removeActionListener(actionListener);
-    btnFixEdgesMidas.removeActionListener(actionListener);
-    btnMidas.removeActionListener(actionListener);
-  }
-
   public void setParameters(ReconScreenState screenState) {
     pnlCrossCorrelation.setParameters(screenState);
     pnlPrenewst.setParameters(screenState);
@@ -534,20 +529,15 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
-
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  protected void done() {
+    pnlCrossCorrelation.done();
+    pnlPrenewst.done();
+    btnDistortionCorrectedStack.removeActionListener(actionListener);
+    btnFixEdgesMidas.removeActionListener(actionListener);
+    btnMidas.removeActionListener(actionListener);
     applicationManager.doneCoarseAlignDialog(axisID);
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.doneCoarseAlignDialog(axisID);
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.doneCoarseAlignDialog(axisID);
+    setDisplayed(false);
   }
 
   class CoarseAlignActionListener implements ActionListener {

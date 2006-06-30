@@ -33,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/02/06 21:20:27  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.19  2006/01/26 22:03:29  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
@@ -328,10 +331,6 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     return MultiLineButton.getToggleButtonInstance("Compute Alignment",
         DialogType.FINE_ALIGNMENT);
   }
-  
-  public void done() {
-    btnComputeAlignment.removeActionListener(actionListener);
-  }
 
   public final void setParameters(ReconScreenState screenState) {
     btnComputeAlignment.setButtonState(screenState
@@ -389,21 +388,11 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel,
         logFile, applicationManager, alignCommandName, axisID);
   }
-
-  //  Action function overides for exit buttons
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  protected void done() {
+    btnComputeAlignment.removeActionListener(actionListener);
     applicationManager.doneAlignmentEstimationDialog(axisID);
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.doneAlignmentEstimationDialog(axisID);
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.doneAlignmentEstimationDialog(axisID);
+    setDisplayed(false);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

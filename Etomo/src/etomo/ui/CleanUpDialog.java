@@ -137,22 +137,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
   
-  //
-  //  Action function overides for buttons
-  //
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  protected void done() {
     applicationManager.doneCleanUp();
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.doneCleanUp();
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.doneCleanUp();
+    setDisplayed(false);
   }
   
   protected void buttonAction(ActionEvent event) {
@@ -196,6 +183,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/06/21 15:50:25  sueh
+ * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
+ * <p> be run.
+ * <p>
  * <p> Revision 1.9  2005/11/14 21:39:38  sueh
  * <p> bug# 762 Made buttonAction() protected.
  * <p>
