@@ -149,10 +149,6 @@ public final class UITestAxisDialogCommand implements AdocCommand {
     }
     formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + "\\"
         + "{" + variable + "}", assignment);
-    formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + variable
-        + "/", assignment + "/");
-    formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + variable
-        + '$', assignment);
   }
 
   private void replaceVariables() {
@@ -245,6 +241,9 @@ public final class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/27 22:33:00  sueh
+ * <p> bug# 582 Treating all subsections as CallbackClassEnum's.
+ * <p>
  * <p> Revision 1.1  2006/06/14 00:34:23  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.

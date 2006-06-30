@@ -134,7 +134,7 @@ If \fIvalue\fR is not used, the variable will be replaced with an empty string.
 Axis-level variables can be set by using \fBa\fR or \fBb\fR.
 Variables persist until the test is over.
 They can be used as values in uitest axis autodoc section-level attributes.
-The symbol for a variable is "%".
+Variables are refered to with the syntax \fB%{\fIvariable_name\fB}.
 Do not use the variables names "dataset" or "axis"
 because they are set automatically.  Do not use the variable names "a" or "b".
 Variable names may not contain ".", "/", "\", or the delimiter (default - "=").

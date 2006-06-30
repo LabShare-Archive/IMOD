@@ -200,14 +200,12 @@ process never completes, the test program will wait until it exceeds
 the duration set in \fBuitest.adoc\fR and fails.
 
 .TP
-(\fB%\fIvariable_name\fR|\fB%{\fIvariable_name\fB}\fR)
+.B%{\fIvariable_name\fB}
 A variable which can be part of the value of a section-level attribute.
 Variables are defined using the \fBset\fR attribute of the ui test autodoc sections.
 There are two variables that are set differently.
-The value of \fB%axis\fR is set by the ui test \fBadoc\fR attribute.
-The value of \fB%dataset\fR is set by the ui test \fBdataset\fR attribute.
-Use the {}'s unless the variable is at the end of the value or
-is followed by a file separator character ("/" on Linux and Mac, "\" on Windows).
+The value of \fB%{axis}\fR is set by the ui test \fBadoc\fR attribute.
+The value of \fB%{dataset}\fR is set by the ui test \fBdataset\fR attribute.
 See \fBman uitestadoc\fR.
 
 .TP
