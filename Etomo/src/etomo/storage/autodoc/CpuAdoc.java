@@ -46,8 +46,9 @@ public class CpuAdoc {
         e.printStackTrace();
       }
       if (autodoc == null) {
-        System.err
-            .println("Missing $IMOD_CALIB_DIR/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
+        System.err.println("Missing $IMOD_CALIB_DIR/cpu.adoc file.\n"
+            + "Parallel processing cannot be used.\n"
+            + "See $IMOD_DIR/autodoc/cpu.adoc.");
       }
     }
     return autodoc;
@@ -57,8 +58,7 @@ public class CpuAdoc {
     if (separateChunks == null) {
       separateChunks = new EtomoBoolean2();
       try {
-        Attribute attrib = getAutodoc(axisID)
-            .getAttribute("separate-chunks");
+        Attribute attrib = getAutodoc(axisID).getAttribute("separate-chunks");
         if (attrib != null && !attrib.getValue().equals("0")) {
           separateChunks.set(true);
         }
@@ -75,6 +75,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/06/14 00:33:47  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.
+ * <p>
  * <p> Revision 1.1  2006/06/08 19:04:38  sueh
  * <p> bug# 867 Class to read the cpu autodoc.
  * <p> </p>
