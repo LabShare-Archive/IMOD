@@ -423,7 +423,6 @@ public final class ApplicationManager extends BaseManager {
    * Close message from the setup dialog window
    */
   public void doneSetupDialog() {
-    super.doneProcessDialog(setupDialog);
     //  Get the selected exit button
     DialogExitState exitState = setupDialog.getExitState();
     if (exitState != DialogExitState.CANCEL) {
@@ -541,7 +540,6 @@ public final class ApplicationManager extends BaseManager {
     else {
       preProcDialog = preProcDialogA;
     }
-    super.doneProcessDialog(preProcDialog);
     savePreProcDialog(preProcDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -616,8 +614,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -720,8 +717,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -751,8 +747,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1026,8 +1021,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1087,7 +1081,6 @@ public final class ApplicationManager extends BaseManager {
   public void doneCoarseAlignDialog(AxisID axisID) {
     //  Set a reference to the correct object
     CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
-    super.doneProcessDialog(coarseAlignDialog);
     saveCoarseAlignDialog(coarseAlignDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1133,7 +1126,8 @@ public final class ApplicationManager extends BaseManager {
           getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
           // Check to see if the user wants to keep any coarse aligned imods
           // open
-          closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID, "coarsely aligned stack");
+          closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID,
+              "coarsely aligned stack");
         }
         else {
           openFiducialModelDialog(axisID);
@@ -1433,8 +1427,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1656,7 +1649,6 @@ public final class ApplicationManager extends BaseManager {
     else {
       fiducialModelDialog = fiducialModelDialogA;
     }
-    super.doneProcessDialog(fiducialModelDialog);
     saveFiducialModelDialog(fiducialModelDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -1735,8 +1727,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -1895,8 +1886,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
     if (seedFile.exists()) {
@@ -1957,8 +1947,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
     state.setFixedFiducials(axisID, true);
   }
@@ -2054,8 +2043,8 @@ public final class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Calls done function for the dialog type, if the dialog exit state is SAVE.
-   * This is the default and means that no exit button was pressed.
+   * Calls saveAction for the dialog type.  SaveAction() is a way to call the
+   * dialog's done function without pressing an exit button.
    * @param dialogType
    * @param axisID
    */
@@ -2064,37 +2053,14 @@ public final class ApplicationManager extends BaseManager {
     //handle dialogs with experts
     UIExpert expert = getUIExpert(currentDialogType, axisID);
     if (expert != null) {
-      expert.doneDialog(DialogExitState.SAVE);
+      expert.saveAction();
       return;
     }
     //handle accessible dialogs
     ProcessDialog dialog = getDialog(currentDialogType, axisID);
-    if (dialog == null || dialog.getExitState() != DialogExitState.SAVE) {
+    if (dialog != null) {
+      dialog.saveAction();
       return;
-    }
-    if (currentDialogType == DialogType.PRE_PROCESSING) {
-      donePreProcDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.COARSE_ALIGNMENT) {
-      doneCoarseAlignDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.FIDUCIAL_MODEL) {
-      doneFiducialModelDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.FINE_ALIGNMENT) {
-      doneAlignmentEstimationDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.TOMOGRAM_GENERATION) {
-      doneTomogramGenerationDialog(axisID);
-    }
-    else if (currentDialogType == DialogType.TOMOGRAM_COMBINATION) {
-      doneTomogramCombinationDialog();
-    }
-    else if (currentDialogType == DialogType.POST_PROCESSING) {
-      donePostProcessing();
-    }
-    else if (currentDialogType == DialogType.CLEAN_UP) {
-      doneCleanUp();
     }
   }
 
@@ -2278,7 +2244,6 @@ public final class ApplicationManager extends BaseManager {
     else {
       fineAlignmentDialog = fineAlignmentDialogA;
     }
-    super.doneProcessDialog(fineAlignmentDialog);
     saveAlignmentEstimationDialog(fineAlignmentDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -2316,14 +2281,15 @@ public final class ApplicationManager extends BaseManager {
         mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         // Check to see if the user wants to keep any coarse aligned imods
         // open
-        closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID, "coarsely aligned stack");
+        closeImod(ImodManager.COARSE_ALIGNED_KEY, axisID,
+            "coarsely aligned stack");
         closeImod(ImodManager.FIDUCIAL_MODEL_KEY, axisID, "fiducial model");
         getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
       }
       saveIntermediateParamFile(axisID);
     }
   }
-  
+
   private void closeImods(String key, AxisID axisID, String description) {
     // Check to see if the user wants to keep any imods open
     try {
@@ -2343,11 +2309,10 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
-  
+
   private void closeImod(String key, String description) {
     // Check to see if the user wants to keep any imods open
     try {
@@ -2367,8 +2332,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -2391,8 +2355,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2460,8 +2423,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2486,8 +2448,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2513,8 +2474,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2540,8 +2500,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2863,8 +2822,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -2894,8 +2852,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -3178,7 +3135,6 @@ public final class ApplicationManager extends BaseManager {
   public void doneTomogramGenerationDialog(AxisID axisID) {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
-    super.doneProcessDialog(tomogramGenerationDialog);
     saveTomogramGenerationDialog(tomogramGenerationDialog, axisID);
     //  Clean up the existing dialog
     if (axisID == AxisID.SECOND) {
@@ -3557,7 +3513,8 @@ public final class ApplicationManager extends BaseManager {
       sendMsgProcessFailed(processResultDisplay);
       return;
     }
-    closeImod(ImodManager.FINE_ALIGNED_KEY, axisID, "original full aligned stack");
+    closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
+        "original full aligned stack");
     mainPanel.stopProgressBar(axisID);
     sendMsgProcessSucceeded(processResultDisplay);
   }
@@ -3683,8 +3640,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -3723,10 +3679,9 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
- }
+  }
 
   public void commitTestVolume(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
@@ -3919,6 +3874,7 @@ public final class ApplicationManager extends BaseManager {
             TomogramCombinationDialog.lblSetup, true/*false*/);
       }
     }
+    tomogramCombinationDialog.show();
     tomogramCombinationDialog.setParameters(metaData);
     tomogramCombinationDialog.setParameters(getScreenState(AxisID.ONLY));
     //  Show the process panel
@@ -3966,8 +3922,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -3990,8 +3945,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -4029,8 +3983,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -4053,8 +4006,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -4085,8 +4037,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -4094,7 +4045,6 @@ public final class ApplicationManager extends BaseManager {
    * Tomogram combination done method, move on to the post processing window
    */
   public void doneTomogramCombinationDialog() {
-    super.doneProcessDialog(tomogramCombinationDialog);
     saveTomogramCombinationDialog(tomogramCombinationDialog);
   }
 
@@ -4103,6 +4053,12 @@ public final class ApplicationManager extends BaseManager {
    */
   public void saveTomogramCombinationDialog(
       TomogramCombinationDialog tomogramCombinationDialog) {
+    //if the dialog isn't displayed, it wouldn't have been changed since it was
+    //last saved
+    if (tomogramCombinationDialog == null
+        || !tomogramCombinationDialog.isDisplayed()) {
+      return;
+    }
     setAdvanced(tomogramCombinationDialog.getDialogType(),
         tomogramCombinationDialog.isAdvanced());
     DialogExitState exitState = tomogramCombinationDialog.getExitState();
@@ -4138,9 +4094,12 @@ public final class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
         mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
-        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST, "axis A full volume");
-        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND, "axis B full volume");
-        closeImod(ImodManager.MATCH_CHECK_KEY, AxisID.SECOND, "match check volume");
+        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.FIRST,
+            "axis A full volume");
+        closeImod(ImodManager.FULL_VOLUME_KEY, AxisID.SECOND,
+            "axis B full volume");
+        closeImod(ImodManager.MATCH_CHECK_KEY, AxisID.SECOND,
+            "match check volume");
         closeImod(ImodManager.PATCH_VECTOR_MODEL_KEY, "patch vector model");
         openPostProcessingDialog();
       }
@@ -4777,8 +4736,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
   }
 
@@ -4978,7 +4936,6 @@ public final class ApplicationManager extends BaseManager {
    * Close the post processing dialog panel
    */
   public void donePostProcessing() {
-    super.doneProcessDialog(postProcessingDialog);
     savePostProcessing(postProcessingDialog);
     postProcessingDialog = null;
   }
@@ -5017,7 +4974,6 @@ public final class ApplicationManager extends BaseManager {
    * Close the clean up dialog panel
    */
   public void doneCleanUp() {
-    super.doneProcessDialog(cleanUpDialog);
     saveCleanUp(cleanUpDialog);
     cleanUpDialog = null;
     mainPanel.showBlankProcess(AxisID.ONLY);
@@ -5061,8 +5017,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -5096,7 +5051,8 @@ public final class ApplicationManager extends BaseManager {
     postProcessingDialog.getTrimvolParams(trimvolParam);
     try {
       imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam
-          .isSwapYZ() && !trimvolParam.isRotateX());
+          .isSwapYZ()
+          && !trimvolParam.isRotateX());
       imodManager.open(ImodManager.TRIMMED_VOLUME_KEY, menuOptions);
     }
     catch (SystemProcessException except) {
@@ -5111,8 +5067,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -5143,8 +5098,7 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -5707,6 +5661,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.239  2006/06/27 17:45:42  sueh
+ * <p> bug# 879 imodTrimmedVolume():  set swap yz in 3dmod if both swap yz and
+ * <p> rotate x are not used.
+ * <p>
  * <p> Revision 3.238  2006/06/22 20:54:08  sueh
  * <p> bug# 797 Catching io exception when opening 3dmods.
  * <p>
