@@ -21,11 +21,15 @@ public interface UIExpert {
 
   public void startNextProcess(ProcessResultDisplay processResultDisplay);
   public void openDialog();
-  public void doneDialog(DialogExitState exitState);
+  public void saveAction();
   public void saveDialog(DialogExitState exitState);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/09 19:53:02  sueh
+ * <p> bug# 870 Added ways for ApplicationManager to force an exit state.  Added a
+ * <p> DialogExitState parameter to doneDialogand saveDialog.
+ * <p>
  * <p> Revision 1.1  2006/05/19 19:53:13  sueh
  * <p> bug# 866 Interface for TomogramPositioningExpert.
  * <p> </p>
