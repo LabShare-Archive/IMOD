@@ -231,6 +231,13 @@ public class EtomoDirector {
           System.err.println("IMOD_CALIB_DIR (env): " + imodCalibDirectoryName);
         }
       }
+      else {
+        System.err
+            .println("WARNING:\nThe environment variable IMOD_CALIB_DIR is not set.\n"
+                + "Several eTomo functions will not be available:\n"
+                + "Image distortion field files, "
+                + "Mag gradient correction, " + "and parallel processing.\n");
+      }
     }
     else {
       if (debug) {
@@ -264,8 +271,8 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodDirectoryName = System.getProperty("IMOD_DIR");
     if (imodDirectoryName == null) {
-      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, "IMOD_DIR",
-          AxisID.ONLY);
+      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null,
+          "IMOD_DIR", AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
@@ -381,7 +388,7 @@ public class EtomoDirector {
     closeDefaultWindow(axisID);
     return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent, axisID);
   }
-  
+
   public UniqueKey openParallel(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
     return openParallel(ParallelMetaData.NEW_TITLE, makeCurrent, axisID);
@@ -394,15 +401,15 @@ public class EtomoDirector {
     }
     return openJoin(etomoJoinFile.getAbsolutePath(), makeCurrent, axisID);
   }
-  
+
   private UniqueKey openParallel(File etomoParallelFile, boolean makeCurrent,
       AxisID axisID) {
     if (etomoParallelFile == null) {
       return openParallel(makeCurrent, axisID);
     }
-    return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent, axisID);
+    return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent,
+        axisID);
   }
-
 
   private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent,
       AxisID axisID) {
@@ -417,7 +424,7 @@ public class EtomoDirector {
     }
     return setManager(manager, makeCurrent);
   }
-  
+
   private UniqueKey openParallel(String parallelFileName, boolean makeCurrent,
       AxisID axisID) {
     ParallelManager manager;
@@ -536,18 +543,18 @@ public class EtomoDirector {
       uiHarness.setEnabledNewParallelMenuItem(true);
     }
   }
-  
+
   /**
    * set failure while testing to prevent popups in a non-interactive session.
    * @param failed
    */
   public void setTestDone(boolean testDone) {
     if (!test) {
-      throw new IllegalStateException("test="+test);
+      throw new IllegalStateException("test=" + test);
     }
     this.testDone = testDone;
   }
-  
+
   public boolean isTestDone() {
     return testDone;
   }
@@ -883,7 +890,7 @@ public class EtomoDirector {
   public boolean isNewstuff() {
     return newstuff;
   }
-  
+
   public boolean isPrintNames() {
     return printNames;
   }
@@ -1028,6 +1035,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2006/06/30 16:29:37  sueh
+ * <p> bug# 883 Added EnvironmentVariable, a class to get and store environment
+ * <p> variables.
+ * <p>
  * <p> Revision 1.44  2006/06/07 23:33:53  sueh
  * <p> bug# 766 Getting home directory earlier because parallel processing needs it
  * <p> immediately to load the parallel processing table.  Adding parellel processing
