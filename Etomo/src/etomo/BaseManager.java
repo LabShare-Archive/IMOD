@@ -37,7 +37,6 @@ import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
-import etomo.ui.ProcessDialog;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -987,16 +986,13 @@ public abstract class BaseManager {
     getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
         axisID);
   }
-
-  protected void doneProcessDialog(ProcessDialog processDialog) {
-    if (processDialog == null) {
-      throw new IllegalStateException("dialog is null:" + processDialog);
-    }
-    processDialog.done();
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.60  2006/06/22 20:58:26  sueh
+ * <p> bug# 797 imodGetRubberbandCoordinates() checking for errors before getting to
+ * <p> this function
+ * <p>
  * <p> Revision 1.59  2006/06/21 15:46:19  sueh
  * <p> bug# 581 Quitting Imodqtassist process when etomo exits.
  * <p>
