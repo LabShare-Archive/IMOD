@@ -14,6 +14,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2006/06/30 20:03:10  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.  Added displayed.
+ * <p>
  * <p> Revision 3.22  2006/06/14 00:36:03  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.
@@ -295,7 +301,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   }
 
   public void saveAction() {
-    Utilities.buttonTimestamp("save", dialogType.toString());
+    Utilities.timestamp("save", dialogType.toString());
     exitState = DialogExitState.SAVE;
     done();
   }
