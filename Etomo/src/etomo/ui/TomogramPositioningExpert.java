@@ -189,6 +189,13 @@ public final class TomogramPositioningExpert implements UIExpert {
     dialog.setExitState(exitState);
     doneDialog();
   }
+  
+  public void saveAction() {
+    if (dialog == null) {
+      return;
+    }
+    dialog.saveAction();
+  }
 
   void doneDialog() {
     if (dialog == null) {
@@ -204,7 +211,6 @@ public final class TomogramPositioningExpert implements UIExpert {
         }
       }
     }
-    dialog.done();
     saveDialog();
     dialog = null;
   }
@@ -808,6 +814,10 @@ public final class TomogramPositioningExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/06/19 17:07:43  sueh
+ * <p> bug# 851 saveDialog():  calling manager.closeImod to close the sample 3dmod
+ * <p> instead of doing it in this class.
+ * <p>
  * <p> Revision 1.2  2006/06/09 19:52:23  sueh
  * <p> bug# 870 Added ways for ApplicationManager to force an exit state:
  * <p> doneDialog(DialogExitState) and saveDialog(DialogExitState).
