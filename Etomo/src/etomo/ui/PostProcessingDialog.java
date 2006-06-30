@@ -110,11 +110,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
         DialogType.POST_PROCESSING);
   }
 
-  public void done() {
-    btnSqueezeVolume.removeActionListener(actionListener);
-    trimvolPanel.done();
-  }
-
   /**
    * Set the panel values with the specified parameters
    * @param squeezevolParam
@@ -211,7 +206,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
     //    ContextPopup contextPopup =
     new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, applicationManager, axisID);
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, applicationManager,
+        axisID);
   }
 
   /**
@@ -243,22 +239,11 @@ public final class PostProcessingDialog extends ProcessDialog implements
     }
   }
 
-  //
-  //  Action function overides for buttons
-  //
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  protected void done() {
+    btnSqueezeVolume.removeActionListener(actionListener);
+    trimvolPanel.done();
     applicationManager.donePostProcessing();
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.donePostProcessing();
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.donePostProcessing();
+    setDisplayed(false);
   }
 
   class PostProcessingDialogActionListener implements ActionListener {
@@ -300,6 +285,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2006/06/21 15:54:19  sueh
+ * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
+ * <p> be run.
+ * <p>
  * <p> Revision 3.26  2006/01/31 21:00:03  sueh
  * <p> bug# 521 Managing trimvol and squeezevol buttons in
  * <p> ProcessResultDisplayFactory.  Made trimvol a toggle button.

@@ -27,6 +27,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2006/02/06 21:21:16  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.8  2006/01/26 22:08:15  sueh
  * <p> bug# 401 For MultiLineButton toggle buttons:  save the state and keep
  * <p> the buttons turned on each they are run, unless the process fails or is
@@ -171,10 +174,6 @@ public class PreProcessingDialog extends ProcessDialog {
     panelCCDEraser.setParameters(ccdEraserParams);
   }
   
-  public void done() {
-    panelCCDEraser.done();
-  }
-  
   public final void setParameters(ReconScreenState screenState) {
     panelCCDEraser.setParameters(screenState);
   }
@@ -204,24 +203,11 @@ public class PreProcessingDialog extends ProcessDialog {
     cbUniqueHeaders.setSelected(false);
     pnlDMConvert.setVisible(false);
   }
-
-  //
-  //  Action function overides for buttons
-  //
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  protected void done() {
+    panelCCDEraser.done();
     applicationManager.donePreProcDialog(axisID);
+    setDisplayed(false);
   }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.donePreProcDialog(axisID);
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.donePreProcDialog(axisID);
-  }
-
 }
 

@@ -30,6 +30,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2006/06/28 18:44:50  sueh
+ * <p> bug# 889 done():  Calling beadtrack done.
+ * <p>
  * <p> Revision 3.26  2006/06/27 23:12:16  sueh
  * <p> bug# 887 getParameters(BaseScreenState):  fixed null pointer exception.
  * <p>
@@ -351,15 +354,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       throws FortranInputSyntaxException, InvalidEtomoNumberException {
     pnlBeadtrack.getParameters(beadtrackParams);
   }
-
-  public void done() {
-    if (btnTransferFiducials != null) {
-      btnTransferFiducials.removeActionListener(actionListener);
-    }
-    btnSeed.removeActionListener(actionListener);
-    btnFixModel.removeActionListener(actionListener);
-    pnlBeadtrack.done();
-  }
   
   public void getParameters(BaseScreenState screenState) {
     pnlBeadtrack.getParameters(screenState);
@@ -451,21 +445,16 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
-
-  //  Action function overides for buttons
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  protected void done() {
+    if (btnTransferFiducials != null) {
+      btnTransferFiducials.removeActionListener(actionListener);
+    }
+    btnSeed.removeActionListener(actionListener);
+    btnFixModel.removeActionListener(actionListener);
+    pnlBeadtrack.done();
     applicationManager.doneFiducialModelDialog(axisID);
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.doneFiducialModelDialog(axisID);
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.doneFiducialModelDialog(axisID);
+    setDisplayed(false);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
