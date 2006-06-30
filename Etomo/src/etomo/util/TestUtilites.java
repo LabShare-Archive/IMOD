@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2005/11/10 22:22:02  sueh
+ * <p> bug# 748 Removed print statements.
+ * <p>
  * <p> Revision 1.11  2005/11/10 18:21:38  sueh
  * <p> bug# 748 Added getVector, a function that tries to get the test vector from
  * <p> the workspace directory tree before checking them out.
@@ -112,10 +115,10 @@ public class TestUtilites {
     File testDir = new File(testRootDir, testDirName);
     File target = new File(testDir, vectorName);
     //save time by looking for already checked out files in workspace directory
-    String homeDirName = Utilities.getEnvironmentVariable(null, "HOME",
+    String homeDirName = EnvironmentVariable.INSTANCE.getValue(null, "HOME",
         AxisID.ONLY);
     if (homeDirName != null && !homeDirName.matches("\\s*+")) {
-      File homeDir = new File(Utilities.getEnvironmentVariable(null, "HOME",
+      File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(null, "HOME",
           AxisID.ONLY));
       if (homeDir.exists() && homeDir.canRead()) {
         File vector = new File(
@@ -186,7 +189,7 @@ public class TestUtilites {
       //report error
       String message = cvs.getStdErrorString()
           + "\nCVSROOT="
-          + Utilities.getEnvironmentVariable(manager.getPropertyUserDir(),
+          + EnvironmentVariable.INSTANCE.getValue(manager.getPropertyUserDir(),
               "CVSROOT", AxisID.ONLY) + "manager.getPropertyUserDir()="
           + manager.getPropertyUserDir() + ",testRootDir="
           + testRootDir.getAbsolutePath() + "\ntestDir="

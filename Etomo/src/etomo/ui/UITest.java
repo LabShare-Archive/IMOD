@@ -19,6 +19,7 @@ import etomo.storage.autodoc.UITestTestCommand;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.UITestAction;
+import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
 import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
@@ -87,7 +88,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   public void test() throws IOException {
-    String testName = Utilities.getEnvironmentVariable(null,
+    String testName = EnvironmentVariable.INSTANCE.getValue(null,
         "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
     if (testName == null || testName.matches("\\*+")) {
@@ -608,6 +609,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/06/14 00:41:33  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.
+ * <p>
  * <p> Revision 1.15  2006/06/06 18:16:19  sueh
  * <p> bug# 766 Fail when test name is not set.  Setting log in UIHarness.
  * <p>

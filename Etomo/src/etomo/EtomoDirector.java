@@ -23,6 +23,7 @@ import etomo.type.ParallelMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
+import etomo.util.EnvironmentVariable;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
@@ -223,7 +224,7 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodCalibDirectoryName = System.getProperty("IMOD_CALIB_DIR");
     if (imodCalibDirectoryName == null) {
-      imodCalibDirectoryName = Utilities.getEnvironmentVariable(null,
+      imodCalibDirectoryName = EnvironmentVariable.INSTANCE.getValue(null,
           "IMOD_CALIB_DIR", AxisID.ONLY);
       if (!imodCalibDirectoryName.equals("")) {
         if (debug) {
@@ -263,7 +264,7 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodDirectoryName = System.getProperty("IMOD_DIR");
     if (imodDirectoryName == null) {
-      imodDirectoryName = Utilities.getEnvironmentVariable(null, "IMOD_DIR",
+      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, "IMOD_DIR",
           AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
@@ -1027,6 +1028,11 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2006/06/07 23:33:53  sueh
+ * <p> bug# 766 Getting home directory earlier because parallel processing needs it
+ * <p> immediately to load the parallel processing table.  Adding parellel processing
+ * <p> managers to the manager list.
+ * <p>
  * <p> Revision 1.43  2006/04/25 18:52:45  sueh
  * <p> bug# 787 Added testDone to EtomoDirector so that Etomo can exit
  * <p> without popups when the UITest package fails or asks Etomo to exit.
