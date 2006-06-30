@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/06/14 00:36:03  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.
+ * <p>
  * <p> Revision 3.21  2006/06/09 19:50:48  sueh
  * <p> bug# 870 Added setExitState().
  * <p>
@@ -138,7 +142,7 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.util.Utilities;
 
-public abstract class ProcessDialog implements ExitButtons, AbstractParallelDialog {
+public abstract class ProcessDialog implements AbstractParallelDialog {
   public static final String rcsid = "$Id$";
 
   protected ApplicationManager applicationManager;
@@ -166,6 +170,10 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
 
   protected final DialogType dialogType;
 
+  private boolean displayed = false;
+
+  protected abstract void done();
+
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
    * execute, and advanced) available for use.  The action adapters for the
@@ -173,6 +181,7 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
    */
   public ProcessDialog(ApplicationManager appManager, AxisID axisID,
       DialogType dialogType) {
+    displayed = true;
     applicationManager = appManager;
     this.axisID = axisID;
     this.dialogType = dialogType;
@@ -180,8 +189,9 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
-      System.out.println(AutodocTokenizer.OPEN_CHAR + UITestAxisDialogCommand.SECTION_TYPE
-          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
+      System.out.println(AutodocTokenizer.OPEN_CHAR
+          + UITestAxisDialogCommand.SECTION_TYPE + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
     }
     //  Get the default initial advanced state
@@ -210,8 +220,8 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     btnExecute.addActionListener(new buttonExecuteActionAdapter(this));
     btnAdvanced.addActionListener(new buttonAdvancedActionAdapter(this));
   }
-  
-  void setExitState(DialogExitState exitState){
+
+  void setExitState(DialogExitState exitState) {
     this.exitState = exitState;
   }
 
@@ -231,9 +241,6 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons);
   }
-  
-  public void done() {
-  }
 
   public DialogType getDialogType() {
     return dialogType;
@@ -249,6 +256,14 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     //    rootPanel.setMaximumSize(rootSize);
   }
 
+  protected void setDisplayed(boolean displayed) {
+    this.displayed = displayed;
+  }
+  
+  public boolean isDisplayed() {
+    return displayed;
+  }
+
   /**
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
@@ -256,6 +271,7 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
   public void buttonCancelAction(ActionEvent event) {
     Utilities.buttonTimestamp("cancel", dialogType.toString());
     exitState = DialogExitState.CANCEL;
+    done();
   }
 
   /**
@@ -265,6 +281,7 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
   public void buttonPostponeAction(ActionEvent event) {
     Utilities.buttonTimestamp("postpone", dialogType.toString());
     exitState = DialogExitState.POSTPONE;
+    done();
   }
 
   /**
@@ -274,6 +291,13 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
   public void buttonExecuteAction(ActionEvent event) {
     Utilities.buttonTimestamp("done", dialogType.toString());
     exitState = DialogExitState.EXECUTE;
+    done();
+  }
+
+  public void saveAction() {
+    Utilities.buttonTimestamp("save", dialogType.toString());
+    exitState = DialogExitState.SAVE;
+    done();
   }
 
   /**
@@ -328,21 +352,6 @@ public abstract class ProcessDialog implements ExitButtons, AbstractParallelDial
     line2 = "options for each of the underlying processes.";
     btnAdvanced.setToolTipText(line1 + line2);
   }
-}
-
-/**
- * Defines four button events for the cancel, postpose, execute and advanced
- * buttons
- */
-
-interface ExitButtons {
-  void buttonCancelAction(ActionEvent event);
-
-  void buttonPostponeAction(ActionEvent event);
-
-  void buttonExecuteAction(ActionEvent event);
-
-  void buttonAdvancedAction(ActionEvent event);
 }
 
 /**
