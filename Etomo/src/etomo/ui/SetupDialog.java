@@ -836,32 +836,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   protected void btnViewRawStackBAction(Run3dmodMenuOptions menuOptions) {
     applicationManager.imodPreview(AxisID.SECOND, menuOptions);
   }
-
-  /**
-   * Action to take when the cancel button is pressed, the default action is
-   * to set the exitState attribute to CANCEL.
-   */
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  public void done() {
     applicationManager.doneSetupDialog();
-  }
-
-  /**
-   * Action to take when the postpone button is pressed, the default action is
-   * to set the exitState attribute to POSTPONE.
-   */
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.doneSetupDialog();
-  }
-
-  /**
-   * Action to take when the execute button is pressed, the default action is
-   * to set the exitState attribute to EXECUTE.
-   */
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    applicationManager.doneSetupDialog();
+    setDisplayed(false);
   }
 
   private void setToolTipText() {
@@ -1083,6 +1061,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.47  2006/06/21 15:54:53  sueh
+ * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
+ * <p> be run.
+ * <p>
  * <p> Revision 3.46  2006/04/25 19:20:46  sueh
  * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
  * <p>

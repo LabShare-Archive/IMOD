@@ -28,6 +28,7 @@ import etomo.type.AxisID;
 import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
+import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
@@ -49,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2006/06/21 15:55:04  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.40  2006/06/09 17:08:51  sueh
  * <p> bug# 869 Not checking script creation status in this class.  Removed
  * <p> combineScriptsCreated.  Calling pnlSetup.updateDisplay() in updateDisplay().
@@ -494,6 +498,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     synchronize(lblSetup, false);
     pnlSetup.getParameters(metaData);
   }
+  
+  public void show() {
+    setDisplayed(true);
+  }
 
   public void setParameters(ConstMetaData metaData) {
     pnlSetup.setParameters(metaData);
@@ -676,23 +684,13 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       throws NumberFormatException {
     pnlFinal.getMatchorwarpParams(matchorwarpParams);
   }
-
-  //  Action function overides for buttons
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  public void done() {
+    if (getExitState() != DialogExitState.CANCEL) {
+      synchronize(tabbedPane.getTitleAt(idxLastTab), true);
+    }
     applicationManager.doneTomogramCombinationDialog();
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    synchronize(tabbedPane.getTitleAt(idxLastTab), true);
-    applicationManager.doneTomogramCombinationDialog();
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    synchronize(tabbedPane.getTitleAt(idxLastTab), true);
-    applicationManager.doneTomogramCombinationDialog();
+    setDisplayed(false);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

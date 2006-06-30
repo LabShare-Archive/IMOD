@@ -71,6 +71,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.90  2006/06/21 15:55:14  sueh
+ * bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ *
  * Revision 3.89  2006/05/19 19:48:19  sueh
  * bug# 866 Added setText(ConstEtomoNumber)
  *
@@ -776,15 +779,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     if (getBinningFromNewst) {
       spinBinning.setValue(newstParam.getBinByFactor());
     }
-  }
-
-  public void done() {
-    btnNewst.removeActionListener(tomogramGenerationListener);
-    btnTilt.removeActionListener(tomogramGenerationListener);
-    btnDeleteStack.removeActionListener(tomogramGenerationListener);
-    btnUseFilter.removeActionListener(tomogramGenerationListener);
-    btnUseTrial.removeActionListener(tomogramGenerationListener);
-    btnFilter.removeActionListener(tomogramGenerationListener);
   }
 
   public final void setParameters(ReconScreenState screenState) {
@@ -1527,20 +1521,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   protected void updateFiducialess() {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
-
-  //  Action function overides for process state buttons
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
-    applicationManager.doneTomogramGenerationDialog(axisID);
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    applicationManager.doneTomogramGenerationDialog(axisID);
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
+  
+  public void done() {
+    btnNewst.removeActionListener(tomogramGenerationListener);
+    btnTilt.removeActionListener(tomogramGenerationListener);
+    btnDeleteStack.removeActionListener(tomogramGenerationListener);
+    btnUseFilter.removeActionListener(tomogramGenerationListener);
+    btnUseTrial.removeActionListener(tomogramGenerationListener);
+    btnFilter.removeActionListener(tomogramGenerationListener);
+    setDisplayed(false);
     applicationManager.doneTomogramGenerationDialog(axisID);
   }
 

@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2006/06/21 15:55:26  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.44  2006/06/09 19:51:29  sueh
  * <p> bug# 870 Added isTomopitchButtonSelected() and isAlignButtonSelected().
  * <p>
@@ -508,12 +511,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setSampleThickness(ConstEtomoNumber sampleThickness) {
     ltfSampleThickness.setText(sampleThickness.toString());
   }
-
-  public void done() {
-    btnSample.removeActionListener(localActionListener);
-    btnTomopitch.removeActionListener(localActionListener);
-    btnAlign.removeActionListener(localActionListener);
-  }
   
   boolean isTomopitchButtonSelected() {
     return btnTomopitch.isSelected();
@@ -667,21 +664,13 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setSampleButtonToolTip(String formattedToolTip) {
     btnSample.setToolTipText(formattedToolTip);
   }
-
-  //  Action function overides for buttons
-  public void buttonCancelAction(ActionEvent event) {
-    super.buttonCancelAction(event);
+  
+  public void done() {
+    btnSample.removeActionListener(localActionListener);
+    btnTomopitch.removeActionListener(localActionListener);
+    btnAlign.removeActionListener(localActionListener);
     expert.doneDialog();
-  }
-
-  public void buttonPostponeAction(ActionEvent event) {
-    super.buttonPostponeAction(event);
-    expert.doneDialog();
-  }
-
-  public void buttonExecuteAction(ActionEvent event) {
-    super.buttonExecuteAction(event);
-    expert.doneDialog();
+    setDisplayed(false);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
