@@ -30,6 +30,7 @@ import etomo.type.ProcessTrack;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -132,7 +133,9 @@ public final class TomogramPositioningExpert implements UIExpert {
       return;
     }
     // Create a new dialog panel and map it the generic reference
+    Utilities.timestamp("new", "TomogramPositioningDialog", Utilities.STARTED_STATUS);
     dialog = new TomogramPositioningDialog(manager, this, axisID);
+    Utilities.timestamp("new", "TomogramPositioningDialog", Utilities.FINISHED_STATUS);
     // Read in the meta data parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
@@ -814,6 +817,12 @@ public final class TomogramPositioningExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/06/30 20:04:44  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.  Added saveAction().
+ * <p>
  * <p> Revision 1.3  2006/06/19 17:07:43  sueh
  * <p> bug# 851 saveDialog():  calling manager.closeImod to close the sample 3dmod
  * <p> instead of doing it in this class.

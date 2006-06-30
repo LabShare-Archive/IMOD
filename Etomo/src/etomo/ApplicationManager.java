@@ -273,7 +273,9 @@ public final class ApplicationManager extends BaseManager {
     //  processing
     setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialog == null) {
+      Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
       setupDialog = new SetupDialog(this);
+      Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
       setupDialog.initializeFields((ConstMetaData) metaData);
     }
     mainPanel.openSetupPanel(setupDialog);
@@ -513,7 +515,9 @@ public final class ApplicationManager extends BaseManager {
     if (showIfExists(preProcDialogA, preProcDialogB, axisID)) {
       return;
     }
+    Utilities.timestamp("new", "PreProcessingDialog", Utilities.STARTED_STATUS);
     PreProcessingDialog preProcDialog = new PreProcessingDialog(this, axisID);
+    Utilities.timestamp("new", "PreProcessingDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       preProcDialogB = preProcDialog;
     }
@@ -1039,7 +1043,9 @@ public final class ApplicationManager extends BaseManager {
     if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
       return;
     }
+    Utilities.timestamp("new", "CoarseAlignDialog", Utilities.STARTED_STATUS);
     CoarseAlignDialog coarseAlignDialog = new CoarseAlignDialog(this, axisID);
+    Utilities.timestamp("new", "CoarseAlignDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       coarseAlignDialogB = coarseAlignDialog;
     }
@@ -1615,8 +1621,10 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Create a new dialog panel and map it the generic reference
+    Utilities.timestamp("new", "FiducialModelDialog", Utilities.STARTED_STATUS);
     FiducialModelDialog fiducialModelDialog = new FiducialModelDialog(this,
         axisID);
+    Utilities.timestamp("new", "FiducialModelDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       fiducialModelDialogB = fiducialModelDialog;
     }
@@ -2016,8 +2024,10 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Create a new dialog panel and map it the generic reference
+    Utilities.timestamp("new", "AlignmentEstimationDialog", Utilities.STARTED_STATUS);
     AlignmentEstimationDialog fineAlignmentDialog = new AlignmentEstimationDialog(
         this, axisID);
+    Utilities.timestamp("new", "AlignmentEstimationDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       fineAlignmentDialogB = fineAlignmentDialog;
     }
@@ -3079,8 +3089,10 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Create a new dialog panel and map it the generic reference
+    Utilities.timestamp("new", "TomogramGenerationDialog", Utilities.STARTED_STATUS);
     TomogramGenerationDialog tomogramGenerationDialog = new TomogramGenerationDialog(
         this, axisID);
+    Utilities.timestamp("new", "TomogramGenerationDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       tomogramGenerationDialogB = tomogramGenerationDialog;
     }
@@ -3799,7 +3811,9 @@ public final class ApplicationManager extends BaseManager {
     setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
     mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
     if (tomogramCombinationDialog == null) {
+      Utilities.timestamp("new", "TomogramCombinationDialog", Utilities.STARTED_STATUS);
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
+      Utilities.timestamp("new", "TomogramCombinationDialog", Utilities.FINISHED_STATUS);
       // Get the setupcombine parameters and set the default patch
       // boundaries if
       // they have not already been set
@@ -4877,7 +4891,9 @@ public final class ApplicationManager extends BaseManager {
     setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
     mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
     if (postProcessingDialog == null) {
+      Utilities.timestamp("new", "PostProcessingDialog", Utilities.STARTED_STATUS);
       postProcessingDialog = new PostProcessingDialog(this);
+      Utilities.timestamp("new", "PostProcessingDialog", Utilities.FINISHED_STATUS);
       //  Set the appropriate input and output files
       TrimvolParam trimvolParam = metaData.getTrimvolParam();
       try {
@@ -4925,7 +4941,9 @@ public final class ApplicationManager extends BaseManager {
     setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
     mainPanel.selectButton(AxisID.ONLY, "Clean Up");
     if (cleanUpDialog == null) {
+      Utilities.timestamp("new", "CleanUpDialog", Utilities.STARTED_STATUS);
       cleanUpDialog = new CleanUpDialog(this);
+      Utilities.timestamp("new", "CleanUpDialog", Utilities.FINISHED_STATUS);
     }
     updateArchiveDisplay();
     mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
@@ -5661,6 +5679,11 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.240  2006/06/30 19:58:27  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called from the button action functions and saveAction() in
+ * <p> ProcessDialog.
+ * <p>
  * <p> Revision 3.239  2006/06/27 17:45:42  sueh
  * <p> bug# 879 imodTrimmedVolume():  set swap yz in 3dmod if both swap yz and
  * <p> rotate x are not used.
