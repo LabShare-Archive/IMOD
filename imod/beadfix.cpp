@@ -263,6 +263,13 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
   int action = (*strings)[*arg].toInt();
   switch (action) {
   case MESSAGE_BEADFIX_OPENFILE:
+
+    // The message is really to open if not open, so etomo can send it always
+    // without reopening inappropriately
+    if (plug->filename) {
+      ++(*arg);
+      return 0;
+    }
     return plug->window->openFileByName((*strings)[++(*arg)].latin1());
   case MESSAGE_BEADFIX_REREAD:
     return plug->window->reread();
@@ -1635,6 +1642,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.29  2006/03/01 19:13:06  mast
+    Moved window size/position routines from xzap to dia_qtutils
+
     Revision 1.28  2006/03/01 18:20:51  mast
     Made fixing all in local area stop displaying image and listing residuals
 
