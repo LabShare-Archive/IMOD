@@ -29,6 +29,7 @@ Log at end of file
 #include <qclipboard.h>
 #include "imod.h"
 #include "imod_display.h"
+#include "dia_qtutils.h"
 #include "imodv.h"
 #include "imodv_objed.h"
 #include "imodv_input.h"
@@ -98,13 +99,36 @@ ImodClipboard::ImodClipboard(bool useStdin)
   }
 }
 
-ImodClipboard::~ImodClipboard()
+/*
+ * Functions to disconnect on Windows using stadard input
+ * First request the disconnect, which should send a blank line
+ */
+void ImodClipboard::startDisconnect()
 {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
   if (mUseStdin && stdThread->running())
-    stdThread->terminate();
+    imodPrintStderr("REQUEST STOP LISTENING\n");
 #endif
 }
+
+// Then wait until the thread exits or give error
+int ImodClipboard::waitForDisconnect()
+{
+#if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
+  int timeout = 5000;
+  if (mUseStdin && stdThread->running()) {
+    if (stdThread->wait(timeout))
+      return 0;
+    dia_err("3dmod is stuck listening for input and is unable to terminate"
+            " cleanly\nYou need to kill it in Task Manager or with Ctrl C");
+    stdThread->terminate();
+  }
+  return 1;
+#else
+  return 0;
+#endif
+}
+
 
 /*
  * Clipboard change event slot and timeout for performing actions
@@ -571,7 +595,7 @@ void StdinThread::run()
 
     // Do not go for another line until the main thread has cleared the flag
     if (gotOne) {
-      usleep(20000);
+      msleep(20);
       continue;
     }
     
@@ -604,6 +628,10 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.24  2006/06/20 17:26:53  mast
+Changed stdin listening to use select function instead of thread
+except in windows, because of problems killing thread in Linux
+
 Revision 4.23  2006/06/19 05:30:17  mast
 Added ability to use standard input instead of clipboard
 
