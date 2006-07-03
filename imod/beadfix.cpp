@@ -1903,16 +1903,21 @@ void AlignThread::run()
   if (dotPos > 0)
     fileStr.truncate(dotPos);
 
-  vmsStr = QString(imodDir) + "/bin/vmstocsh";
-  comStr.sprintf("%s %s.log < %s.com | %s -ef", 
-                 (QDir::convertSeparators(vmsStr)).latin1(),
-                 fileStr.latin1(), fileStr.latin1(), cshell);
+  // 7/3/06: The old way was to run vmstocsh and pipe to tcsh in the command
+  // A wonder it ever worked in Windows, but it hung with -L listening to stdin
+  // So now run it through submfg and it is OK for now (try QProcess next)
+  vmsStr = QString(imodDir) + "/bin/submfg -q";
+  comStr.sprintf("%s -f %s %s", cshell, 
+                 (QDir::convertSeparators(vmsStr)).latin1(), fileStr.latin1());
   plug->alignExitCode = system(comStr.latin1());
 }
 #endif
 
 /*
     $Log$
+    Revision 1.32  2006/07/03 21:16:49  mast
+    Fixed saving of show mode and made it move arrow up as well as down
+
     Revision 1.31  2006/07/03 04:13:53  mast
     Added seed overlay mode, set up 3 mode radio button and morphing of
     window depending on modes, made gap finding keep track of position and
