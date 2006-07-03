@@ -2113,12 +2113,14 @@ public final class ApplicationManager extends BaseManager {
     try {
       if (super.exitProgram(axisID)) {
         save(axisID);
+        imodManager.stopRequestHandler();
         return true;
       }
       return false;
     }
     catch (Throwable e) {
       e.printStackTrace();
+      imodManager.stopRequestHandler();
       return true;
     }
   }
@@ -5679,6 +5681,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.241  2006/06/30 20:21:27  sueh
+ * <p> bug# 884 Adding timestamps for constructing dialog objects.
+ * <p>
  * <p> Revision 3.240  2006/06/30 19:58:27  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called from the button action functions and saveAction() in
