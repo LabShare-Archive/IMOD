@@ -24,9 +24,11 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
+#include <qradiobutton.h>
 #include <qtooltip.h>
 #include <qtoolbutton.h>
 #include <qhbox.h>
+#include <qvbuttongroup.h>
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qdir.h>
@@ -63,6 +65,8 @@ static  int imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
 static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
                          float imy, int but1, int but2, int but3);
 
+enum {SEED_MODE = 0, GAP_MODE, RES_MODE};
+
 BeadFixerModule::BeadFixerModule()
 {
   mInfo = imodPlugInfo;
@@ -75,6 +79,8 @@ BeadFixerModule::BeadFixerModule()
 
 #define MAXLINE 100
 #define MAX_DIAMETER 50
+#define MAX_OVERLAY 20
+#define NUM_SAVED_VALS 8
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -87,12 +93,17 @@ typedef struct
   int    autoCenter;
   int    lightBead;
   int    diameter;
+  int    overlayOn;
+  int    overlaySec;
+  int    showMode;
+  int    upDownOn;
   int    alignExitCode;    // Place for qalign thread to leave its exit code
   char   *filename;
 }PlugData;
 
 
-static PlugData thisPlug = { 0, 0, 0, 0, 0, 0, 10, 0, NULL };
+static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 1, 0, NULL };
+static PlugData *plug = &thisPlug;
 
 #define ERROR_NO_IMOD_DIR -64352
 
@@ -114,7 +125,6 @@ char *imodPlugInfo(int *type)
  */
 int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 {
-  PlugData *plug = &thisPlug;
   int keysym;
   int    keyhandled = 1;
   int    ctrl;
@@ -158,6 +168,15 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   case Qt::Key_U:
     plug->window->undoMove();
     break;
+  case Qt::Key_Slash:
+    if (plug->showMode != SEED_MODE) {
+      keyhandled = 0;
+      break;
+    }
+    plug->overlayOn = 1 - plug->overlayOn;
+    diaSetChecked(plug->window->overlayBox, plug->overlayOn != 0);
+    plug->window->overlayToggled(plug->overlayOn != 0);
+    break;
   default:
     keyhandled = 0;
     break;
@@ -168,7 +187,6 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
                          float imy, int but1, int but2, int but3)
 {
-  PlugData *plug = &thisPlug;
   int keysym;
   int handled = 0;
 
@@ -181,7 +199,8 @@ static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   if (event->type() == QEvent::MouseButtonPress && but2 != 0)
     handled = plug->window->insertPoint(imx, imy);
   else if (event->type() == QEvent::MouseButtonPress && but3 != 0 &&
-           (event->state() & Qt::ShiftButton) && plug->autoCenter)
+           (event->state() & Qt::ShiftButton) && plug->autoCenter && 
+           plug->showMode != RES_MODE)
     handled = plug->window->modifyPoint(imx, imy);
   return handled;
 }
@@ -194,12 +213,9 @@ static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
 
 void imodPlugExecute(ImodView *inImodView)
 {
-  PlugData *plug;
-  double savedValues[5];
+  double savedValues[NUM_SAVED_VALS];
   int nvals;
   static int firstTime = 1;
-
-  plug = &thisPlug;
 
   if (plug->window){
     /* 
@@ -216,11 +232,17 @@ void imodPlugExecute(ImodView *inImodView)
    */
   plug->filename = NULL;
   if (firstTime) {
-    nvals = ImodPrefs->getGenericSettings("BeadFixer", savedValues, 5);
+    nvals = ImodPrefs->getGenericSettings("BeadFixer", savedValues, 
+                                          NUM_SAVED_VALS);
     if (nvals > 2) {
       plug->autoCenter = (int)(savedValues[2] + 0.01);
       plug->diameter = (int)(savedValues[3] + 0.01);
       plug->lightBead = (int)(savedValues[4] + 0.01);
+    }
+    if (nvals > 7) {
+      plug->overlaySec = (int)(savedValues[5] + 0.01);
+      plug->upDownOn = (int)(savedValues[6] + 0.01);
+      plug->showMode = (int)(savedValues[6] + 0.01);
     }
   }
 
@@ -252,14 +274,14 @@ void imodPlugExecute(ImodView *inImodView)
 
 int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
 {
-  if (!thisPlug.window)
+  if (!plug->window)
     return 1;
-  return thisPlug.window->executeMessage(strings, arg);
+  return plug->window->executeMessage(strings, arg);
 }
 
 int BeadFixer::executeMessage(QStringList *strings, int *arg)
 {
-  PlugData *plug = &thisPlug;
+  int mode;
   int action = (*strings)[*arg].toInt();
   switch (action) {
   case MESSAGE_BEADFIX_OPENFILE:
@@ -285,6 +307,12 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     plug->diameter = (*strings)[++(*arg)].toInt();
     diaSetSpinBox(diameterSpin, plug->diameter);
     return 0;
+  case MESSAGE_BEADFIX_OPERATION:
+    mode = (*strings)[++(*arg)].toInt();
+    mode = B3DMIN(2, B3DMAX(0, mode));
+    diaSetGroup(modeGroup, mode);
+    modeSelected(mode);
+    return 0;
   }
   return 1;
 }
@@ -307,7 +335,6 @@ void BeadFixer::openFile()
  
 int BeadFixer::openFileByName(const char *filename)
 {
-  PlugData *plug = &thisPlug;
   if (plug->filename != NULL)
     free(plug->filename);
   plug->filename = strdup(filename);
@@ -328,8 +355,6 @@ int BeadFixer::openFileByName(const char *filename)
    and the window will close */
 int BeadFixer::reread()
 {
-  PlugData *plug = &thisPlug;
-
   char line[MAXLINE];
   char *arealine;
   int newstyle, oldstyle = 0;
@@ -491,7 +516,6 @@ void BeadFixer::nextRes()
   Ipoint tpt;
   float headLen = 2.5;
   ResidPt *rpt;
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
 
   // Copy and reset the bell flag
@@ -767,7 +791,6 @@ void BeadFixer::movePoint()
   Ipoint *pts;
   Icont *con;
   ResidPt *rpt;
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
@@ -816,7 +839,6 @@ void BeadFixer::undoMove()
   Icont *con;
   Ipoint *pts;
   float dx, dy, distsq;
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
   ivwControlActive(plug->view, 0);
      
@@ -880,12 +902,11 @@ void BeadFixer::moveAll()
     nextRes();
   }
   mMovingAll = false;
-  ivwRedraw(thisPlug.view);
+  ivwRedraw(plug->view);
 }
 
 int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
 {
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
 
   if(mLastob == obj && mLastco == cont && mLastpt == ipt
@@ -897,14 +918,55 @@ int BeadFixer::foundgap(int obj, int cont, int ipt, int before)
   mLastpt = ipt;
   mLastbefore = before;
   imodSetIndex(imod, obj, cont, ipt);
+  makeUpDownArrow(before);
   ivwRedraw(plug->view);
   return 0;
+}
+
+void BeadFixer::makeUpDownArrow(int before)
+{
+  int size = 12;
+  int idir = before ? -1 : 1;
+  Iobj *xobj = ivwGetExtraObject(plug->view);
+  Imod *imod = ivwGetModel(plug->view);
+  Ipoint pt;
+  Ipoint *curpt;
+  Icont * con;
+
+  ivwClearExtraObject(plug->view);
+  if (!plug->upDownOn)
+    return;
+
+  // Initialize extra object
+  imodObjectSetColor(xobj, 1., 1., 0.);
+  imodObjectSetValue(xobj, IobjFlagClosed, 0);
+  curpt = imodPointGet(imod);
+  if (!curpt)
+    return;
+  pt = *curpt;
+  pt.y += idir * size / 2;
+  con = imodContourNew();
+  if (con) {
+    imodPointAppend(con, &pt);
+    pt.y += idir * size;
+    imodPointAppend(con, &pt);
+    pt.x -= idir * size / 3;
+    pt.y -= idir * size / 3;
+    imodPointAppend(con, &pt);
+    pt.x += idir * size / 3;
+    pt.y += idir * size / 3;
+    imodPointAppend(con, &pt);
+    pt.x += idir * size / 3;
+    pt.y -= idir * size / 3;
+    imodPointAppend(con, &pt);
+    imodObjectAddContour(xobj, con);
+  }
 }
 
 /* Jump to next gap in the model, or place where it is not tracked to first
    or last section */
 
-void BeadFixer::nextGap()
+void BeadFixer::findGap(int idir)
 {
   int  obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, curob, curco, curpt, lookback;
@@ -916,7 +978,6 @@ void BeadFixer::nextGap()
   int xsize, ysize, zsize;
   static int beforeVerbose = 1;
 
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
   ivwGetImageSize(plug->view, &xsize, &ysize, &zsize);
 
@@ -927,12 +988,12 @@ void BeadFixer::nextGap()
   con = imodContourGet(imod);
   imodGetIndex(imod, &obsav, &cosav, &ptsav);
 
-  curob = obsav;
-  curco = cosav;
-  curpt = ptsav;
+  curob = mLastob;
+  curco = mLastco;
+  curpt = mLastpt;
   lookback = 0;
 
-  if(!con || mIfdidgap == 0) {
+  if(mIfdidgap == 0 || mLastob < 0 || mLastco < 0 || mLastpt < 0) {
     curob = curco = curpt = 0;
     mLastob = -1;
     mLastbefore = 0;
@@ -951,9 +1012,9 @@ void BeadFixer::nextGap()
   ob = imodObjectGet(imod);
   con = imodContourGet(imod);
 
-  for (obj=curob; obj < nobj ; obj++) {
+  for (obj=curob; obj < nobj && obj >= 0; obj += idir) {
     ncont = imodObjectGetMaxContour(ob);
-    for (cont = curco; cont < ncont; cont++)  {
+    for (cont = curco; cont < ncont && cont >= 0; cont += idir)  {
       npnt = imodContourGetMaxPoint(con);
       if(npnt > 0) {
         pts = imodContourGetPoints(con);
@@ -991,7 +1052,7 @@ void BeadFixer::nextGap()
 
         /* from current point forward, check for existence of a point at 
            next z value; if none, it's a gap */
-        for (ipt = curpt; ipt < npnt; ipt++) {
+        for (ipt = curpt; ipt < npnt && ipt >= 0; ipt += idir) {
           if (ipt != iptmax) {
             zcur = pts[ipt].z;
             iztst = (int)(zcur + 1.5);
@@ -1003,34 +1064,79 @@ void BeadFixer::nextGap()
               }
             }
             if (!foundnext)
-              if(foundgap(obj, cont, ipt, 0) == 0) return;
+              if(foundgap(obj, cont, ipt, 0) == 0) 
+                return;
           }
         }
 
         /* If get to end of contour, check zmax against z of file */
-        if(zmax + 1.1f < zsize) {
-          if(foundgap(obj, cont, iptmax, 0) == 0) return;
+        if (idir > 0) {
+          if (zmax + 1.1f < zsize)
+            if(foundgap(obj, cont, iptmax, 0) == 0) 
+              return;
+        } else if (zmin > 0.5) {
+          if (foundgap(obj,cont,iptmin, 1) == 0) {
+            wprint("\aContour %d is missing points before current point.\n",
+                     cont+1);
+            return;
+          }
         }
       }
-      con = imodContourGetNext(imod);
-      lookback = 1;
-      curpt = 0;
+      if (idir > 0) {
+        con = imodContourGetNext(imod);
+        lookback = 1;
+        curpt = 0;
+      } else if (curco) {
+        imodPrevContour(imod);
+        con = imodContourGet(imod);
+        curpt = imodContourGetMaxPoint(con) - 1;
+      }
     }
-    ob = imodObjectGetNext(imod);
-    curco = 0;
+
+    if (idir > 0) {
+      ob = imodObjectGetNext(imod);
+      con = imodContourGetFirst(imod);
+      curco = 0;
+    } else if (curob) {
+      imodPrevObject(imod);
+      ob = imodObjectGet(imod);
+      curco = imodObjectGetMaxContour(ob) - 1;
+      imodSetIndex(imod, curob - 1, curco, -1);
+      con = imodContourGet(imod);
+    }
   }
-  wprint("\aNo more gaps found!\n");
+  if (idir > 0)
+    wprint("\aNo more gaps found!\n");
+  else
+    wprint("\aNo gaps found back to beginning of model.\n");
+
   imodSetIndex(imod, obsav, cosav, ptsav);
   return;
 }
 
+void BeadFixer::resetStart()
+{
+  mIfdidgap = 0;
+}
+
+void BeadFixer::resetCurrent()
+{
+  int ob, co, pt;
+  Imod *imod = ivwGetModel(plug->view);
+    imodGetIndex(imod, &ob, &co, &pt);
+  if (pt < 0)
+    return;
+  mLastob = ob;
+  mLastco = co;
+  mLastpt = pt;
+}
+
 /* 
- * Insert a point: if autocentering, find neareast bead.  If in seed mode,
+ * Insert a point: if autocentering, find nearest bead.  If in seed mode,
  * make a new contour unless this is an apparent continuation point
  */
 int BeadFixer::insertPoint(float imx, float imy)
 {
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
   Icont *cont;
   Iobj *obj;
@@ -1039,7 +1145,9 @@ int BeadFixer::insertPoint(float imx, float imy)
   int  curx, cury, curz, index, ob, i,npnt;
   double zdiff, dist;
 
-  if (!plug->autoCenter && !mSeedMode)
+  // Skip if in residual mode: so in seed or gap mode, it will handle insertion
+  // and at least keep the contour in order
+  if (plug->showMode == RES_MODE)
     return 0;
   ivwGetLocation(plug->view, &curx, &cury, &curz);
 
@@ -1075,7 +1183,7 @@ int BeadFixer::insertPoint(float imx, float imy)
   // But in seed mode, see if need to start a new contour - i.e. if there is
   // a point at the same z or the point at nearest Z is farther away than
   // a criterion
-  if (mSeedMode) {
+  if (mSeedMode && plug->showMode == SEED_MODE) {
     zdiff = 1000000;
     for (i = 0; i < npnt; i++) {
       if (fabs((double)(curz - pts[i].z)) < zdiff) {
@@ -1096,6 +1204,9 @@ int BeadFixer::insertPoint(float imx, float imy)
   }
 
   ivwRegisterInsertPoint(plug->view, cont, &newPt, index);
+  if (plug->showMode == GAP_MODE && mLastbefore && curz)
+    makeUpDownArrow(mLastbefore);
+
   ivwRedraw(plug->view);
   return 1;
 }
@@ -1105,7 +1216,6 @@ int BeadFixer::insertPoint(float imx, float imy)
  */
 int BeadFixer::modifyPoint(float imx, float imy)
 {
-  PlugData *plug = &thisPlug;
   Imod *imod = ivwGetModel(plug->view);
   int  curx, cury, curz;
   Icont *cont;
@@ -1136,7 +1246,6 @@ int BeadFixer::modifyPoint(float imx, float imy)
  */
 int BeadFixer::findCenter(float &imx, float &imy, int curz)
 {
-  PlugData *plug = &thisPlug;
   ImodView *vw = plug->view;
   float edgeWidth = 1.5f;
   float buffer = 1.5f;
@@ -1255,19 +1364,90 @@ void BeadFixer::seedToggled(bool state)
 
 void BeadFixer::autoCenToggled(bool state)
 {
-  thisPlug.autoCenter = state ? 1 : 0;
+  plug->autoCenter = state ? 1 : 0;
 }
 
 void BeadFixer::lightToggled(bool state)
 {
-  thisPlug.lightBead = state ? 1 : 0;
+  plug->lightBead = state ? 1 : 0;
 }
 
 void BeadFixer::diameterChanged(int value)
 {
   setFocus();
-  thisPlug.diameter = value;
+  plug->diameter = value;
 }
+
+void BeadFixer::overlayToggled(bool state)
+{
+  overlaySpin->setEnabled(state);
+  plug->overlayOn = state ? 1: 0;
+  ivwSetOverlayMode(plug->view, state ? plug->overlaySec : 0);
+}
+
+void BeadFixer::overlayChanged(int value)
+{
+  setFocus();
+  plug->overlaySec = value;
+  if (plug->overlayOn)
+    ivwSetOverlayMode(plug->view, value);
+}
+
+void BeadFixer::upDownToggled(bool state)
+{
+  plug->upDownOn = state ? 1 : 0;
+  makeUpDownArrow(mLastbefore);
+  ivwRedraw(plug->view);
+}
+
+void BeadFixer::modeSelected(int value)
+{
+  // Manage seed mode items
+  showWidget(seedModeBox, value == SEED_MODE);
+  showWidget(overlayHbox, value == SEED_MODE);
+
+  // Manage gap filling items
+  showWidget(nextGapBut, value == GAP_MODE);
+  showWidget(prevGapBut, value == GAP_MODE);
+  showWidget(resetStartBut, value == GAP_MODE);
+  showWidget(resetCurrentBut, value == GAP_MODE);
+  showWidget(upDownArrowBox, value == GAP_MODE);
+
+  // Manage autocenter items
+  showWidget(cenLightHbox, value != RES_MODE);
+  showWidget(diameterHbox, value != RES_MODE);
+    
+  // Manage residual mode items
+  showWidget(openFileBut, value == RES_MODE);
+  showWidget(runAlignBut, value == RES_MODE);
+  showWidget(rereadBut, value == RES_MODE);
+  showWidget(nextLocalBut, value == RES_MODE);
+  showWidget(nextResBut, value == RES_MODE);
+  showWidget(movePointBut, value == RES_MODE);
+  showWidget(undoMoveBut, value == RES_MODE);
+  showWidget(moveAllBut, value == RES_MODE);
+  showWidget(backUpBut, value == RES_MODE);
+  showWidget(clearListBut, value == RES_MODE);
+  showWidget(examineBox, value == RES_MODE);
+
+  adjustSize();
+
+  // Turn overlay mode on or off if needed
+  if ((value == SEED_MODE || plug->showMode == SEED_MODE) && plug->overlayOn)
+    ivwSetOverlayMode(plug->view, value == SEED_MODE ? plug->overlaySec : 0);
+  plug->showMode = value;
+}
+
+void BeadFixer::showWidget(QWidget *widget, bool state)
+{
+  if (!widget)
+    return;
+  if (state)
+    widget->show();
+  else
+    widget->hide();
+}
+
  
 // THE WINDOW CLASS CONSTRUCTOR
  
@@ -1281,6 +1461,8 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   QPushButton *button;
   QCheckBox *box;
   QString qstr;
+  overlayHbox = NULL;
+  runAlignBut = NULL;
   mRunningAlign = false;
   mTopTimerID = 0;
   mStayOnTop = false;
@@ -1321,43 +1503,98 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   toolBut->setOn(false);
   QSize hint = toolBut->sizeHint();
   toolBut->setFixedWidth(hint.width());
+  toolBut->setFixedHeight(hint.height());
   connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
   QToolTip::add(toolBut, "Keep bead fixer window on top");
 
-  QLabel *label = new QLabel("Diameter", topBox);
-  diameterSpin = new QSpinBox(1, MAX_DIAMETER, 1, topBox);
-  diameterSpin->setFocusPolicy(QWidget::ClickFocus);
-  QObject::connect(diameterSpin, SIGNAL(valueChanged(int)), this,
-                   SLOT(diameterChanged(int)));
-  QToolTip::add(diameterSpin, "Diameter of beads in pixels");
-  diaSetSpinBox(diameterSpin, thisPlug.diameter);
+  modeGroup = new QVButtonGroup("Operation", topBox, "mode group");
+  connect(modeGroup, SIGNAL(clicked(int)), this, SLOT(modeSelected(int)));
+  modeGroup->setInsideSpacing(0);
+  modeGroup->setInsideMargin(5);
 
-  topBox = new QHBox(this);
-  mLayout->addWidget(topBox);
+  QRadioButton *radio = diaRadioButton("Make seed", modeGroup);
+  QToolTip::add(radio, "Show tools for making seed model");
+  radio = diaRadioButton("Fill gaps", modeGroup);
+  QToolTip::add(radio, "Show tools for finding and filling gaps");
+  radio = diaRadioButton("Fix big residuals", modeGroup);
+  QToolTip::add(radio, "Show tools for fixing big residuals");
+  diaSetGroup(modeGroup, plug->showMode);
+
+  cenLightHbox = new QHBox(this);
+  mLayout->addWidget(cenLightHbox);
   topBox->setSpacing(8);
     //box = diaCheckBox("Autocenter", this, mLayout);
-  autoCenBox = new QCheckBox("Autocenter", topBox);
+  autoCenBox = new QCheckBox("Autocenter", cenLightHbox);
   autoCenBox->setFocusPolicy(QWidget::NoFocus);
   connect(autoCenBox, SIGNAL(toggled(bool)), this, SLOT(autoCenToggled(bool)));
-  diaSetChecked(autoCenBox, thisPlug.autoCenter != 0);
+  diaSetChecked(autoCenBox, plug->autoCenter != 0);
   QToolTip::add(autoCenBox, 
                 "Automatically center inserted point on nearby bead");
 
   // box = diaCheckBox("Light beads", this, mLayout);
-  box = new QCheckBox("Light", topBox);
+  box = new QCheckBox("Light", cenLightHbox);
   box->setFocusPolicy(QWidget::NoFocus);
   connect(box, SIGNAL(toggled(bool)), this, SLOT(lightToggled(bool)));
-  diaSetChecked(box, thisPlug.lightBead != 0);
+  diaSetChecked(box, plug->lightBead != 0);
   QToolTip::add(box, "Beads are lighter not darker than background");
 
-  seedModeBox = diaCheckBox("Seed mode", this, mLayout);
+  diameterHbox = new QHBox(this);
+  mLayout->addWidget(diameterHbox);
+  QLabel *label = new QLabel("Diameter", diameterHbox);
+  diameterSpin = new QSpinBox(1, MAX_DIAMETER, 1, diameterHbox);
+  diameterSpin->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect(diameterSpin, SIGNAL(valueChanged(int)), this,
+                   SLOT(diameterChanged(int)));
+  QToolTip::add(diameterSpin, "Diameter of beads in pixels");
+  diaSetSpinBox(diameterSpin, plug->diameter);
+
+  seedModeBox = diaCheckBox("Automatic new contour", this, mLayout);
   connect(seedModeBox, SIGNAL(toggled(bool)), this, SLOT(seedToggled(bool)));
-  QToolTip::add(seedModeBox, "Make new contour for every point");
+  QToolTip::add(seedModeBox, "Make new contour for every point in a new "
+                "position");
 
-  button = diaPushButton("Go to Next Gap", this, mLayout);
-  connect(button, SIGNAL(clicked()), this, SLOT(nextGap()));
-  QToolTip::add(button, "Go to gap in model - Hot key: spacebar");
+  if (App->rgba && !App->cvi->rawImageStore) {
+    overlayHbox = new QHBox(this);
+    mLayout->addWidget(overlayHbox);
+    overlayBox = new QCheckBox("Overlay - view", overlayHbox);
+    overlayBox->setFocusPolicy(QWidget::NoFocus);
+    connect(overlayBox, SIGNAL(toggled(bool)), this, 
+            SLOT(overlayToggled(bool)));
+    QToolTip::add(overlayBox, "Show another section in color overlay -"
+                  " Hot key: /");
 
+    overlaySpin = new QSpinBox(-MAX_OVERLAY, MAX_OVERLAY, 1, overlayHbox);
+    overlaySpin->setFocusPolicy(QWidget::ClickFocus);
+    QObject::connect(overlaySpin, SIGNAL(valueChanged(int)), this,
+                     SLOT(overlayChanged(int)));
+    QToolTip::add(overlaySpin, "Interval to overlay section");
+    diaSetSpinBox(overlaySpin, plug->overlaySec);
+    overlaySpin->setEnabled(plug->overlayOn != 0);
+  }    
+
+  nextGapBut = diaPushButton("Go to Next Gap", this, mLayout);
+  connect(nextGapBut, SIGNAL(clicked()), this, SLOT(nextGap()));
+  QToolTip::add(nextGapBut, "Go back to previous gap in model");
+
+  prevGapBut = diaPushButton("Go to Previous Gap", this, mLayout);
+  connect(prevGapBut, SIGNAL(clicked()), this, SLOT(prevGap()));
+  QToolTip::add(prevGapBut, "Go to gap in model - Hot key: spacebar");
+
+  resetStartBut = diaPushButton("Start from Beginning", this, mLayout);
+  connect(resetStartBut, SIGNAL(clicked()), this, SLOT(resetStart()));
+  QToolTip::add(resetStartBut, "Look for gaps from beginning of model");
+
+  resetCurrentBut = diaPushButton("Start from Current Point", this, mLayout);
+  connect(resetCurrentBut, SIGNAL(clicked()), this, SLOT(resetCurrent()));
+  QToolTip::add(resetCurrentBut, "Look for gaps from current point");
+
+  upDownArrowBox = diaCheckBox("Show Direction Arrow", this, mLayout);
+  connect(upDownArrowBox, SIGNAL(toggled(bool)), this, 
+          SLOT(upDownToggled(bool)));
+  QToolTip::add(upDownArrowBox, "Show arrow pointing up or down for gap on "
+                "next or previous section");
+  diaSetChecked(upDownArrowBox, plug->upDownOn != 0);
+  
   openFileBut = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
   QToolTip::add(openFileBut, "Select an alignment log file to open");
@@ -1409,17 +1646,17 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   QToolTip::add(backUpBut, "Back up to last point examined - "
                 "Hot key: double quote");
 
-  box = diaCheckBox("Examine Points Once", this, mLayout);
-  connect(box, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
-  diaSetChecked(box, mLookonce != 0);
-  QToolTip::add(box, "Skip over points examined before");
+  examineBox = diaCheckBox("Examine Points Once", this, mLayout);
+  connect(examineBox, SIGNAL(toggled(bool)), this, SLOT(onceToggled(bool)));
+  diaSetChecked(examineBox, mLookonce != 0);
+  QToolTip::add(examineBox, "Skip over points examined before");
 
   clearListBut = diaPushButton("Clear Examined List", this, mLayout);
   connect(clearListBut, SIGNAL(clicked()), this, SLOT(clearList()));
   QToolTip::add(clearListBut, "Allow all points to be examined again");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
-
+  modeSelected(plug->showMode);
 }
 
 void BeadFixer::buttonPressed(int which)
@@ -1461,7 +1698,6 @@ void BeadFixer::keepOnTop(bool state)
 // Timer event to keep window on top in Linux, or watch for tiltalign done
 void BeadFixer::timerEvent(QTimerEvent *e)
 {
-  PlugData *plug = &thisPlug;
   if (mStayOnTop)
     raise();
 #ifdef FIXER_CAN_RUN_ALIGN
@@ -1494,7 +1730,6 @@ void BeadFixer::timerEvent(QTimerEvent *e)
 // system call, start a timer to watch results, and disable buttons
 void BeadFixer::runAlign()
 {
-  PlugData *plug = &thisPlug;
   if (mRunningAlign || !plug->filename)
     return;
 #ifdef FIXER_CAN_RUN_ALIGN
@@ -1518,8 +1753,7 @@ void BeadFixer::runAlign()
 // The window is closing, remove from manager
 void BeadFixer::closeEvent ( QCloseEvent * e )
 {
-  PlugData *plug = &thisPlug;
-  double posValues[5];
+  double posValues[NUM_SAVED_VALS];
 
   // reject if running thread
   if (mRunningAlign) {
@@ -1536,10 +1770,18 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[2] = plug->autoCenter;
   posValues[3] = plug->diameter;
   posValues[4] = plug->lightBead;
-  ImodPrefs->saveGenericSettings("BeadFixer", 5, posValues);
+  posValues[5] = plug->overlaySec;
+  posValues[6] = plug->upDownOn;
+  posValues[7] = plug->showMode;
+  
+  ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
   imodDialogManager.remove((QWidget *)plug->window);
   ivwClearExtraObject(plug->view);
+
+  if (plug->showMode == SEED_MODE && plug->overlayOn)
+    ivwSetOverlayMode(plug->view, 0);
+  plug->overlayOn = 0;
 
   if (mTopTimerID)
     killTimer(mTopTimerID);
@@ -1573,6 +1815,11 @@ void BeadFixer::setFontDependentWidths()
   if (width < width2)
     width = width2;
   topBox->setFixedWidth(width);
+  diameterHbox->setFixedWidth(width);
+  if (overlayHbox)
+    overlayHbox->setFixedWidth(width);
+  resetStartBut->setFixedWidth(width);
+  resetCurrentBut->setFixedWidth(width);
   openFileBut->setFixedWidth(width);
 #ifdef FIXER_CAN_RUN_ALIGN
   runAlignBut->setFixedWidth(width);
@@ -1583,6 +1830,7 @@ void BeadFixer::setFontDependentWidths()
   movePointBut->setFixedWidth(width);
   undoMoveBut->setFixedWidth(width);
   backUpBut->setFixedWidth(width);
+  moveAllBut->setFixedWidth(width);
   clearListBut->setFixedWidth(width);
 }
 
@@ -1611,7 +1859,6 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 // Thread to run tiltalign provided that IMOD_DIR is defined
 void AlignThread::run()
 {
-  PlugData *plug = &thisPlug;
   QString comStr, fileStr, vmsStr;
   int dotPos;
   char *imodDir = getenv("IMOD_DIR");
@@ -1642,6 +1889,9 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.30  2006/07/01 00:42:06  mast
+    Changed message to open a log file only if one not open yet
+
     Revision 1.29  2006/03/01 19:13:06  mast
     Moved window size/position routines from xzap to dia_qtutils
 
