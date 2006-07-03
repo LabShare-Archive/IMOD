@@ -50,11 +50,13 @@ class ImodClipboard : public QObject
 
  public:
   ImodClipboard(bool useStdin);
-  ~ImodClipboard();
+  ~ImodClipboard() {};
   bool handleMessage();
   bool executeMessage();
   void sendResponse(int succeeded);
   unsigned int ourWindowID();
+  void startDisconnect();
+  int waitForDisconnect();
 
   QTimer *mClipTimer;
   QTimer *mClipHackTimer;
@@ -91,6 +93,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.15  2006/07/03 04:11:21  mast
+New beadfixer mode message
+
 Revision 3.14  2006/06/20 17:28:23  mast
 include thread only if Windows
 
