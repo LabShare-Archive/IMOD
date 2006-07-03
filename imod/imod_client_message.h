@@ -38,6 +38,7 @@ Log at end of file
 #define MESSAGE_BEADFIX_SEEDMODE   3
 #define MESSAGE_BEADFIX_AUTOCENTER 4
 #define MESSAGE_BEADFIX_DIAMETER   5
+#define MESSAGE_BEADFIX_OPERATION   6
 
 #include <qobject.h>
 #include <qstring.h>
@@ -90,6 +91,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.14  2006/06/20 17:28:23  mast
+include thread only if Windows
+
 Revision 3.13  2006/06/19 05:30:38  mast
 Added thread and timer for using standard input
 
