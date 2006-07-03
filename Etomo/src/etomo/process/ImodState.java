@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.33  2006/06/22 21:02:19  sueh
+ * <p> $bug# 797 Catching io exception when sending messages to 3dmods.
+ * <p> $
  * <p> $Revision 1.32  2006/06/07 22:24:34  sueh
  * <p> $bug# 862 Added setAutoCenter member variable.  Auto center should not be
  * <p> $modified unless setAutoCenter() is called.
@@ -312,7 +315,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> $$ </p>
  */
 
-public class ImodState {
+public final class ImodState {
   public static final String rcsid = "$$Id$$";
 
   //public constants
@@ -383,7 +386,7 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess().
    */
-  public ImodState(BaseManager manager, AxisID axisID) {
+  ImodState(BaseManager manager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     process = new ImodProcess(manager, axisID);
@@ -394,7 +397,7 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess() and set either model view or imodv.
    */
-  public ImodState(BaseManager manager, int modelViewType, AxisID axisID) {
+  ImodState(BaseManager manager, int modelViewType, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     process = new ImodProcess(manager, axisID);
@@ -406,7 +409,7 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset).
    */
-  public ImodState(BaseManager manager, String datasetName, AxisID axisID) {
+  ImodState(BaseManager manager, String datasetName, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     this.datasetName = datasetName;
@@ -418,7 +421,7 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset) and set either model view or imodv.
    */
-  public ImodState(BaseManager manager, String datasetName, int modelViewType,
+  ImodState(BaseManager manager, String datasetName, int modelViewType,
       AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
@@ -432,7 +435,7 @@ public class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset, String model).
    */
-  public ImodState(BaseManager manager, String datasetName, String modelName,
+  ImodState(BaseManager manager, String datasetName, String modelName,
       AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
@@ -442,7 +445,7 @@ public class ImodState {
     reset();
   }
 
-  public ImodState(BaseManager manager, File file, AxisID axisID) {
+  ImodState(BaseManager manager, File file, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     process = new ImodProcess(manager, file.getAbsolutePath(), axisID);
@@ -461,7 +464,7 @@ public class ImodState {
    * ImodProcess("dataseta_fixed.st");
    * ImodProcess("datasetb_fixed.st");
    */
-  public ImodState(BaseManager manager, AxisID axisID, String datasetName,
+  ImodState(BaseManager manager, AxisID axisID, String datasetName,
       String datasetExt) {
     this.manager = manager;
     this.axisID = axisID;
@@ -500,7 +503,7 @@ public class ImodState {
    * ImodProcess("topa.rec mida.rec bota.rec", "tomopitcha.mod");
    * ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
    */
-  public ImodState(BaseManager manager, AxisID tempAxisID, String datasetName1,
+  ImodState(BaseManager manager, AxisID tempAxisID, String datasetName1,
       String datasetName2, String datasetName3, String datasetExt,
       String modelName, String modelExt) {
     this.manager = manager;
@@ -518,13 +521,17 @@ public class ImodState {
     process = new ImodProcess(manager, datasetNameArray, modelName);
     reset();
   }
+  
+  void processRequest() {
+    process.processRequest();
+  }
 
   /**
    * Opens a process, opens a model.
    * 
    * @throws SystemProcessException
    */
-  public void open(Run3dmodMenuOptions menuOptions)
+  void open(Run3dmodMenuOptions menuOptions)
       throws SystemProcessException, IOException {
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.getOptions();
@@ -608,7 +615,7 @@ public class ImodState {
    * @param modelName
    * @throws SystemProcessException
    */
-  public void open(String modelName, Run3dmodMenuOptions menuOptions)
+  void open(String modelName, Run3dmodMenuOptions menuOptions)
       throws SystemProcessException, IOException {
     setModelName(modelName);
     open(menuOptions);
@@ -690,7 +697,7 @@ public class ImodState {
   /**
    * @return datasetName
    */
-  public String getDatasetName() {
+  String getDatasetName() {
     return datasetName;
   }
 
