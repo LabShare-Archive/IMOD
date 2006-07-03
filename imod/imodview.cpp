@@ -88,6 +88,7 @@ void ivwInit(ImodView *vi)
   vi->obj_moveto = 1;
   vi->drawcursor = TRUE;
   vi->insertmode = 0;
+  vi->overlaySec = 0;
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
@@ -2243,6 +2244,17 @@ void ivwClearExtraObject(ImodView *inImodView)
   obj->cont = NULL;
 }
 
+int ivwOverlayOK(ImodView *inImodView)
+{
+  return (App->rgba == 1 && !App->cvi->rawImageStore);
+}
+
+void ivwSetOverlayMode(ImodView *inImodView, int sec)
+{
+  inImodView->overlaySec = sec;
+  ivwRedraw(inImodView);
+}
+
 // Get the current contour, the last contour if it is empty, or a new contour
 Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 {
@@ -2438,6 +2450,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.44  2006/04/20 23:06:30  mast
+Make wild check based on nearest integer to fix ghost displays
+
 Revision 4.43  2006/02/13 05:11:32  mast
 Added function to get movie/mouse mode
 

@@ -124,7 +124,7 @@ void b3dSetImageOffset(int winsize,     /* window size         */
 void b3dDrawGreyScalePixels
 (unsigned char **data, int xsize, int ysize, int xoffset, int yoffset,
 int wx, int wy, int width, int height, B3dCIImage *image, int base, 
-double xzoom, double yzoom, int slice);
+ double xzoom, double yzoom, int slice, int rgba);
 
 void b3dDrawGreyScalePixelsHQ
 (unsigned char **data, int xsize, int ysize, 
@@ -132,7 +132,7 @@ void b3dDrawGreyScalePixelsHQ
  int wx, int wy, 
  int width, int height, 
  B3dCIImage *image, int base, 
- double xzoom, double yzoom, int quality, int slice);
+ double xzoom, double yzoom, int quality, int slice, int rgba);
 
 
 void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
@@ -160,6 +160,9 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.9  2004/11/29 19:25:21  mast
+    Changes to do QImage instead of RGB snapshots
+
     Revision 3.8  2004/10/04 18:29:01  mast
     Changed snapshot functions to give error returnd
 

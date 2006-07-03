@@ -902,7 +902,7 @@ void XyzWindow::DrawImage()
     b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1,
                              width1, height1, win->xydata,
                              win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, cz);
+                             win->hq, cz, App->rgba);
   }
 
   // Send out a negative xslice or yslice if the data are being reloaded,
@@ -939,7 +939,7 @@ void XyzWindow::DrawImage()
                              nz, ny, xoffset2, yoffset1,
                              wx2, wy1, width2, height1, win->yzdata,
                              win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, xslice);
+                             win->hq, xslice, App->rgba);
   }
 
   if (width1 > 0 && height2 > 0) {
@@ -966,7 +966,7 @@ void XyzWindow::DrawImage()
                              nx, nz, xoffset1, yoffset2,
                              wx1, wy2, width1, height2, win->xzdata,
                              win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, yslice);
+                             win->hq, yslice, App->rgba);
   }
   win->lastCacheSum = cacheSum;
 
@@ -1722,6 +1722,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.27  2006/06/09 20:25:39  mast
+Added ability to display spheres on center section only
+
 Revision 4.26  2005/06/26 19:38:10  mast
 Added logic for fine-grained changes
 

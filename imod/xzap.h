@@ -72,6 +72,7 @@ typedef struct zapwin
   int section;
   int sectionStep; /* auto step image after new model point. */
   int time;
+  int overlay;     /* Flag for displaying overlay */
   int lock;
   int keepcentered;
   int mousemode;
@@ -124,6 +125,9 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 
 /*
 $Log$
+Revision 3.19  2006/04/01 23:43:14  mast
+Added size output to toolbar
+
 Revision 3.18  2006/03/01 19:13:06  mast
 Moved window size/position routines from xzap to dia_qtutils
 

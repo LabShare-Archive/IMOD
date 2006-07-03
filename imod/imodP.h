@@ -172,6 +172,7 @@ typedef struct ViewInfo
   int    fastdraw;    
   int    drawcursor;
   int    ifd;
+  int    overlaySec;  /* Section to show in overlay color */
 
      
   int      flippable;     /* Flag that images can be y-z flipped */
@@ -261,6 +262,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.32  2006/06/19 05:24:24  mast
+Made clipboard object a global so it can be deleted
+
 Revision 3.31  2005/10/14 22:02:19  mast
 Added reloadable variable
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2006/02/13 05:11:32  mast
+Added function to get movie/mouse mode
+
 Revision 1.6  2005/02/19 01:29:38  mast
 Added function to clear extra object
 
@@ -133,9 +136,20 @@ void DLL_EX_IM ivwClearExtraObject(ImodView *inImodView);
  */
 Icont DLL_EX_IM *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock);
 
-  /* 
-   * Return 1 if in model mode or 0 if in movie mode
-   */
-  int DLL_EX_IM ivwGetMovieModelMode(ImodView *vw);
+/* 
+ * Return 1 if in model mode or 0 if in movie mode
+ */
+int DLL_EX_IM ivwGetMovieModelMode(ImodView *vw);
+
+/*
+ * Return true if it is possible to display images in overlay mode 
+ */
+int DLL_EX_IM ivwOverlayOK(ImodView *inImodView);
+
+/*
+ * Set the overlay mode section difference to sec
+ */
+void DLL_EX_IM ivwSetOverlayMode(ImodView *inImodView, int sec);
 }
+
 #endif

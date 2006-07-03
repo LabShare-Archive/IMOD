@@ -32,6 +32,7 @@ Log at end of file
 #include "imod.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
+#include "xcramp.h"
 #include "xzap.h"
 #include "control.h"
 #include "imodplug.h"
@@ -82,6 +83,8 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
 static void markXformCenter(ZapStruct *zap, float ix, float iy);
 
 static void zapDrawGraphics(ZapStruct *zap);
+static void fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
+                           unsigned char *image);
 static void zapDrawModel(ZapStruct *zap);
 static void zapDrawContour(ZapStruct *zap, int co, int ob);
 static void zapDrawCurrentPoint(ZapStruct *zap);
@@ -596,6 +599,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->twod = (!(vi->dim&4));
   zap->sectionStep = 0;
   zap->time = 0;
+  zap->overlay = 0;
   zap->mousemode = 0;
   zap->rubberband = 0;
   zap->startingBand = 0;
@@ -3006,8 +3010,11 @@ static void zapDrawGraphics(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
   int x, y, z;
-  int time;
+  int time, rgba = App->rgba;
   unsigned char **imageData;
+  unsigned char *overImage;
+  int overlay = 0;
+  int otherSec = zap->section + vi->overlaySec;
 
   ivwGetLocation(vi, &x, &y, &z);
 
@@ -3048,6 +3055,29 @@ static void zapDrawGraphics(ZapStruct *zap)
   b3dDrawBoxout(zap->xborder, zap->yborder, 
 		zap->xborder + (int)(zap->xdrawsize * zap->zoom),
 		zap->yborder + (int)(zap->ydrawsize * zap->zoom));
+
+  // If overlay section is set and legal, get an image buffer and fill it
+  // with the color overlay
+  if (vi->overlaySec && App->rgba && !vi->rawImageStore && otherSec >= 0 &&
+      otherSec < vi->zsize) {
+    overImage = (unsigned char *)malloc(3 * vi->xsize * vi->ysize);
+    if (!overImage) {
+      wprint("\aFailed to get memory for overlay image.\n");
+    } else {
+      overlay = vi->overlaySec;
+      rgba = 3;
+      fillOverlayRGB(imageData, vi->xsize, vi->ysize, 0, overImage);
+      fillOverlayRGB(imageData, vi->xsize, vi->ysize, 2, overImage);
+      imageData = ivwGetZSectionTime(vi, otherSec, time);
+      fillOverlayRGB(imageData, vi->xsize, vi->ysize, 1, overImage);
+      imageData = ivwMakeLinePointers(vi, overImage, vi->xsize, vi->ysize, 
+                                      MRC_MODE_RGB);
+    }
+  }
+  if (overlay != zap->overlay)
+    b3dFlushImage(zap->image);
+  zap->overlay = overlay;
+
   b3dDrawGreyScalePixelsHQ(imageData,
 			   vi->xsize, vi->ysize,
 			   zap->xstart, zap->ystart,
@@ -3056,10 +3086,32 @@ static void zapDrawGraphics(ZapStruct *zap)
 			   zap->image,
 			   vi->rampbase, 
 			   zap->zoom, zap->zoom,
-			   zap->hqgfx, zap->section);
+			   zap->hqgfx, zap->section, rgba);
 
   /* DNM 9/15/03: Get the X zoom, which might be slightly different */
   zap->xzoom = b3dGetCurXZoom();
+  if (overlay)
+    free(overImage);
+}
+
+static void fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
+                           unsigned char *image)
+{
+  unsigned int *cindex = App->cvi->cramp->ramp;
+  unsigned char ramp[256];
+  int i, j;
+  
+  // Extract the second byte from the integers of the color table
+  for (i = 0; i < 256; i++)
+    ramp[i] = (unsigned char)(cindex[i] >> 8);
+
+  image += chan;
+  for (j = 0; j < ny; j++) {
+    for (i = 0; i < nx; i++) {
+      *image = ramp[*(lines[j] + i)];
+      image += 3;
+    }
+  }
 }
 
 static void zapDrawModel(ZapStruct *zap)
@@ -3732,6 +3784,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.80  2006/06/09 20:25:39  mast
+Added ability to display spheres on center section only
+
 Revision 4.79  2006/04/01 23:43:14  mast
 Added size output to toolbar
 

@@ -34,7 +34,7 @@ static void b3dDrawGreyScalePixels15
  int wx, int wy,           /* window start    */
  int width, int height,    /* sub-area size   */
  B3dCIImage *image,        /* tmp image data. */
- int base, int slice
+ int base, int slice, int rgba
  );
 
 static int          CurWidth;
@@ -539,7 +539,7 @@ void b3dDrawGreyScalePixelsSubArea
   b3dDrawGreyScalePixels(data, xsize, ysize, xstart, ystart,
                          llx + xborder, lly + yborder, 
                          xdrawsize, ydrawsize,
-                         image, base, zoom, zoom, slice);
+                         image, base, zoom, zoom, slice, App->rgba);
 
   return;
 }
@@ -697,7 +697,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
                             B3dCIImage *image,        /* tmp image data. */
                             int base,                 /* colorindex ramp */
                             double xzoom,
-                            double yzoom, int slice)  
+                            double yzoom, int slice, int rgba)  
 {
 
   double zoom = xzoom;
@@ -747,7 +747,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
                  
         switch(unpack){
         case 1:
-          if (App->rgba){
+          if (rgba){
             for (i = istart; i < ilim; i++, di++)
               bdata[di] = cindex[data[i]];
           }else
@@ -759,7 +759,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
             sdata[di] = data[i] + rbase;
           break;
         case 4:
-          switch (App->rgba) {
+          switch (rgba) {
           case 1:  /* Look up from byte data */
             for (i = istart; i < ilim; i++,di++)
               idata[di] = cindex[data[i]];
@@ -822,7 +822,7 @@ static void b3dDrawGreyScalePixels15
  int wx, int wy,           /* window start    */
  int width, int height,    /* sub-area size   */
  B3dCIImage *image,        /* tmp image data. */
- int base, int slice
+ int base, int slice, int rgba
  )
 {
   int i, j, istart, ilim, di;
@@ -947,7 +947,7 @@ static void b3dDrawGreyScalePixels15
         if (sidefill) 
           for (i = 0; i < wx; i++)
             idata[di++] = fillval;
-        switch (App->rgba) {
+        switch (rgba) {
         case 1:   /* Look up RGBA value from map with byte */
           for (i = istart; i < ilim; i++){
             idata[di++] = cindex[data[i]];
@@ -1046,7 +1046,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
                               int base,                 /* colorindex ramp */
                               double xzoom,
                               double yzoom,
-                              int quality, int slice)  
+                              int quality, int slice, int rgba)  
 {
   float zoom = xzoom;
   if (!image)
@@ -1095,7 +1095,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   /* special optimization. DNM: don't take if want quality*/
   if (!quality && (xzoom == 1.50) && (yzoom == 1.50)){
     b3dDrawGreyScalePixels15(dataPtrs, xsize, ysize, xoffset, yoffset,
-                             wx, wy, width, height, image, base, slice);
+                             wx, wy, width, height, image, base, slice, rgba);
     return;
   } 
 
@@ -1109,7 +1109,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       /* If relying on OpenGL zoom completely, just call this */
       b3dDrawGreyScalePixels(dataPtrs, xsize, ysize, xoffset, yoffset,
                              wx, wy, width, height, image, base,
-                             xzoom, yzoom, slice);
+                             xzoom, yzoom, slice, rgba);
       return;
     }else{
       if (xzoom >= 1.0 && (int)xzoom == xzoom){
@@ -1118,7 +1118,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
         b3dDrawGreyScalePixels(dataPtrs, xsize, ysize, 
                                xoffset, yoffset,
                                wx, wy, width, height, image, base,
-                               xzoom, yzoom, slice);
+                               xzoom, yzoom, slice, rgba);
         return;
       } else {
         /* DNM: encode fractional zooms as negative quality because
@@ -1171,7 +1171,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 
     bdata = (unsigned char *)sdata;
     idata = (unsigned int  *)sdata;
-    if (quality > 0 && App->rgba < 2){
+    if (quality > 0 && rgba < 2){
 
       /* For HQ, step to each display pixel and use quadratic 
 	 interpolation at each position.  Not for color data */
@@ -1308,7 +1308,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	    for (i = 0; i < wx; i++)
 	      idata[ibase++] = fillval;
 
-	  switch (App->rgba) {
+	  switch (rgba) {
 	  case 1:   /* lookup from bytes */
             if (izs) {
               for (i = 0; xi < xsize; xi += izs, i++)
@@ -1946,6 +1946,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.27  2005/10/21 23:58:41  mast
+Fixed for gcc 4.0 on Mac
+
 Revision 4.26  2005/03/26 00:39:50  mast
 Tested limits in HQ display to prevent crash
 
