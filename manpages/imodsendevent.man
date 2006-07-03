@@ -63,9 +63,11 @@ Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file if one is not open yet.  Follow with log 
         file name.
    2  Reread the current log file.
-   3  Set Seed Mode.  Follow with 1 to turn on, 0 to turn off
+   3  Set mode for automatic new contour when seeding.  Follow with 1 to turn
+        on, 0 to turn off
    4  Set Autocentering.  Follow with 1 to turn on, 0 to turn off.
    5  Set diameter.  Follow with integer diameter in pixels.
+   6  Set operation mode.  Follow with 0 for seed, 1 for gap, 2 for residuals.
 .P
 If 3dmod is run in standalone model-view mode (run as 3dmodv or 3dmod -view)
 it will accept the following commands:
@@ -77,3 +79,6 @@ David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
 3dmod(1)
 .SH BUGS
+Sending events between applications with the clipboard is finicky and brittle.
+Instead of using imodsendevent, send messages through standard input if 
+possible, by starting 3dmod with the -L option.
