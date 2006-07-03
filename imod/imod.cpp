@@ -808,6 +808,11 @@ int imodLoopStarted()
 /* Close everything as gracefully as possible */
 void imod_exit(int retcode)
 {
+
+  // For Windows, get the clip handler started on disconnecting, then do other
+  // stuff, then wait until it gets the disconnect
+  if (ClipHandler)
+    ClipHandler->startDisconnect();
   if (ImodPrefs)                     // Tell prefs to get zap sizes
     ImodPrefs->recordZapGeometry();
   imodv_close();                     // Imodv and associated dialogs
@@ -818,7 +823,7 @@ void imod_exit(int retcode)
   if (ImodHelp)
     delete ImodHelp;
   if (ClipHandler)
-    delete ClipHandler;
+    ClipHandler->waitForDisconnect();
   // It did NOT work to use qApp->closeAllWindows after this
   if (!loopStarted)
     exit(retcode);
@@ -1063,6 +1068,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.55  2006/06/20 17:27:26  mast
+Changed test for using -L - threads required on Windows only
+
 Revision 4.54  2006/06/19 05:29:14  mast
 Added -L option to use stdin for messages; delete clipboard object on exit
 
