@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/2/06: Bead fixer enhanced by setting up 3 operating modes that each display
+just the relevant controls; by adding a color overlay display to seed-making
+mode to provide a visual cue to whether a point is on the top or bottom
+surface; by making gap finding start from the last point examined even if the
+current point changes, and providing the ability to go back to a previous gap.
+
 6/30/06: IMOD_3-8-16 and IMOD_3-8-16_WKSHP
 6/30/06: Fixed a bug where exiting eTomo cause errors in the Combine dialog.
 
