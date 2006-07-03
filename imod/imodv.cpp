@@ -659,6 +659,8 @@ void imodvQuit()
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
 
+  if (a->standalone && ClipHandler)
+    ClipHandler->startDisconnect();
   stereoHWOff();
   imodvDialogManager.close();
 
@@ -670,7 +672,7 @@ void imodvQuit()
     if (ImodHelp)
       delete ImodHelp;
     if (ClipHandler)
-      delete ClipHandler;
+      ClipHandler->waitForDisconnect();
     QApplication::exit(0);
   }
   return;
@@ -678,6 +680,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.29  2006/06/19 05:29:14  mast
+Added -L option to use stdin for messages; delete clipboard object on exit
+
 Revision 4.28  2006/03/01 19:13:06  mast
 Moved window size/position routines from xzap to dia_qtutils
 
