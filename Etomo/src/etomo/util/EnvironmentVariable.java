@@ -49,16 +49,13 @@ public final class EnvironmentVariable {
     //  There is not a real good way to access the system environment variables
     //  since the primary method was deprecated
     SystemProgram readEnvVar;
-    String osName = System.getProperty("os.name");
-
-    if (osName.startsWith("Windows")) {
+    if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
       readEnvVar = new SystemProgram(propertyUserDir, new String[] { "cmd.exe",
           "/C", "echo", var }, axisID);
       try {
         readEnvVar.run();
-      }
-      catch (Exception excep) {
+      } catch (Exception excep) {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run cmd command to find " + varName
@@ -76,20 +73,19 @@ public final class EnvironmentVariable {
       // Return the first line from the command
       String[] stdout = readEnvVar.getStdOutput();
       if (stdout != null && stdout.length > 0) {
-        //if the variable isn't set, echo will return the string sent to it
+        // if the variable isn't set, echo will return the string sent to it
         if (!stdout[0].equals(var)) {
           value = stdout[0];
         }
       }
     }
-    //  Non windows environment
+    // Non windows environment
     else {
       readEnvVar = new SystemProgram(propertyUserDir, new String[] { "env" },
           axisID);
       try {
         readEnvVar.run();
-      }
-      catch (Exception excep) {
+      } catch (Exception excep) {
         excep.printStackTrace();
         System.err.println(excep.getMessage());
         System.err.println("Unable to run env command to find " + varName
@@ -117,7 +113,7 @@ public final class EnvironmentVariable {
         }
       }
     }
-    //prevent multiple reads and writes at the same time
+    // prevent multiple reads and writes at the same time
     synchronized (variableList) {
       variableList.put(varName, value);
     }
@@ -125,5 +121,12 @@ public final class EnvironmentVariable {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p>
+ * $Log$
+ * <p>
+ * Revision 1.1 2006/06/30 16:30:12 sueh
+ * <p>
+ * bug# 883 Added a class to get and store environment variables.
+ * <p>
+ * </p>
  */
