@@ -3,6 +3,7 @@ package etomo.process;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
@@ -27,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2006/06/28 23:28:51  sueh
+ * <p> Removed unnecessary print
+ * <p>
  * <p> Revision 3.34  2006/06/26 18:56:12  sueh
  * <p> bug# 797 Want the send and receive message attempts to exclude other send
  * <p> and receive attempts while they are working, without locking up the GUI.
@@ -294,6 +298,8 @@ public class ImodProcess {
   public static final String TRUE = "1";
   public static final String FALSE = "0";
   public static final int CIRCLE = 1;
+  public static final String REQUEST_TAG = "REQUEST:";
+  public static final String STOP_LISTENING_REQUEST = "stop listening";
 
   private static final int defaultBinning = 1;
 
@@ -318,6 +324,8 @@ public class ImodProcess {
   private Thread imodThread;
   private final BaseManager manager;
   private long beadfixerDiameter = ImodManager.DEFAULT_BEADFIXER_DIAMETER;
+  private LinkedList requestQueue = new LinkedList();
+  private LinkedList stderrQueue = new LinkedList();
 
   /**
    * Constructor for using imodv
@@ -530,7 +538,7 @@ public class ImodProcess {
     String line;
     while (imodThread.isAlive() && windowID.equals("")) {
 
-      while ((line = imod.readStderr()) != null) {
+      while ((line = getStderr()) != null) {
         if (line.indexOf("Window id = ") != -1) {
           String[] words = line.split("\\s+");
           if (words.length < 4) {
@@ -554,7 +562,7 @@ public class ImodProcess {
       String message = "3dmod returned: " + String.valueOf(imod.getExitValue())
           + "\n";
 
-      while ((line = imod.readStderr()) != null) {
+      while ((line = getStderr()) != null) {
         System.err.println(line);
         message = message + "stderr: " + line + "\n";
       }
@@ -881,6 +889,54 @@ public class ImodProcess {
     }
   }
 
+  void processRequest() {
+    if (isRequestReceived()) {
+      try {
+        disconnect();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private synchronized boolean isRequestReceived() {
+    if (imod == null) {
+      return false;
+    }
+    if (requestQueue.size() > 0) {
+      requestQueue.removeFirst();
+      return true;
+    }
+    String stderr = null;
+    while ((stderr = imod.readStderr()) != null) {
+      if (stderr.startsWith(REQUEST_TAG)
+          && stderr.indexOf(STOP_LISTENING_REQUEST) != -1) {
+        return true;
+      }
+      stderrQueue.addLast(stderr);
+    }
+    return false;
+  }
+
+  synchronized String getStderr() {
+    if (imod == null) {
+      return null;
+    }
+    if (stderrQueue.size() > 0 || imod == null) {
+      return (String) stderrQueue.removeFirst();
+    }
+    String stderr = null;
+    while ((stderr = imod.readStderr()) != null) {
+      if (!stderr.startsWith("REQUEST_TAG:")
+          || stderr.indexOf("stop STOP_LISTENING_REQUEST") == -1) {
+        return stderr;
+      }
+      requestQueue.addLast(stderr);
+    }
+    return null;
+  }
+
   /**
    * Returns the datasetName.
    * 
@@ -1003,7 +1059,7 @@ public class ImodProcess {
    * Class to send a message to 3dmod.  Can be run on a separate thread to
    * avoid locking up the GUI.
    */
-  private class MessageSender implements Runnable{
+  private class MessageSender implements Runnable {
     private final String[] args;
     private final Vector imodReturnValues;
 
@@ -1011,7 +1067,7 @@ public class ImodProcess {
       this.imodReturnValues = imodReturnValues;
       this.args = args;
     }
-    
+
     /**
      * Send the message and wait for a response.
      */
@@ -1067,7 +1123,7 @@ public class ImodProcess {
       //read the response from 3dmod
       readResponse();
     }
-    
+
     /**
      * Wait for a response to the message and pop up a message if there is
      * a problem.
@@ -1090,7 +1146,7 @@ public class ImodProcess {
         }
         //process response
         boolean failure = false;
-        while ((response = imod.readStderr()) != null) {
+        while ((response = getStderr()) != null) {
           responseReceived = true;
           if (EtomoDirector.getInstance().isDebug()) {
             System.err.println(response);
@@ -1148,7 +1204,7 @@ public class ImodProcess {
         }
       }
     }
-    
+
     /**
      * Parse messages that are directed at the user - mesages that contain
      * ERROR_TAG or WARNING_TAG.
