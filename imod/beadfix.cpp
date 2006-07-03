@@ -242,7 +242,7 @@ void imodPlugExecute(ImodView *inImodView)
     if (nvals > 7) {
       plug->overlaySec = (int)(savedValues[5] + 0.01);
       plug->upDownOn = (int)(savedValues[6] + 0.01);
-      plug->showMode = (int)(savedValues[6] + 0.01);
+      plug->showMode = (int)(savedValues[7] + 0.01);
     }
   }
 
@@ -1144,12 +1144,15 @@ int BeadFixer::insertPoint(float imx, float imy)
   Ipoint newPt;
   int  curx, cury, curz, index, ob, i,npnt;
   double zdiff, dist;
+  int xsize, ysize, zsize;
+
 
   // Skip if in residual mode: so in seed or gap mode, it will handle insertion
   // and at least keep the contour in order
   if (plug->showMode == RES_MODE)
     return 0;
   ivwGetLocation(plug->view, &curx, &cury, &curz);
+  ivwGetImageSize(plug->view, &xsize, &ysize, &zsize);
 
   // Autocenter the point if selected, error and say handled if fail
   if (plug->autoCenter && findCenter(imx, imy, curz)) {
@@ -1204,8 +1207,29 @@ int BeadFixer::insertPoint(float imx, float imy)
   }
 
   ivwRegisterInsertPoint(plug->view, cont, &newPt, index);
-  if (plug->showMode == GAP_MODE && mLastbefore && curz)
-    makeUpDownArrow(mLastbefore);
+
+  // See if the arrow should be moved
+  if (plug->showMode == GAP_MODE) {
+
+    // If looking before and still not at Z = 0
+    if (mLastbefore && curz)
+      makeUpDownArrow(mLastbefore);
+    else if (curz && curz <  zsize - 1) {
+
+      // Otherwise need to look through points and see if next one exists
+      pts = imodContourGetPoints(cont);
+      npnt = imodContourGetMaxPoint(cont);
+      index = 0;
+      for (i = 0; i < npnt; i++) {
+        if (curz + 1 == (int)(pts[i].z + 0.5)) {
+          index = 1;
+          break;
+        }
+      }
+      if (!index)
+        makeUpDownArrow(0);
+    }
+  }
 
   ivwRedraw(plug->view);
   return 1;
@@ -1889,6 +1913,11 @@ void AlignThread::run()
 
 /*
     $Log$
+    Revision 1.31  2006/07/03 04:13:53  mast
+    Added seed overlay mode, set up 3 mode radio button and morphing of
+    window depending on modes, made gap finding keep track of position and
+    be able to go backwards
+
     Revision 1.30  2006/07/01 00:42:06  mast
     Changed message to open a log file only if one not open yet
 
