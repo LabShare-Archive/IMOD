@@ -7,7 +7,130 @@
 #
 #  $Revision$
 #
+#  Log at end
+ 
+if ($#argv < 1) then
+cat <<EOF
+subm or submfg will execute a series of command files in sequence
+Usage:  submfg [options] command_file1 command_file2 ...
+        Command files must have extension .com
+        If the filename is comfile.com, you can enter 
+                 comfile    comfile.    or  comfile.com
+        submfg will execute the files in the foreground
+        To run jobs in the background, set up an alias:  
+               alias subm 'submfg \!* &'
+        Set the environment variable SUBM_MESSAGE to modify the message upon
+                completion
+    Options:
+        -t     Report the execution time
+        -c     Continue with the next command file if one fails
+        -n #   Run niced with # as nice increment (range 1 to 19)
+        -q     Quiet: suppress messages and PID output
+EOF
+exit 0
+endif
+
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
+endif
+
+nohup
+
+set message = " finished successfully"
+if ($?SUBM_MESSAGE) then
+    set message = $SUBM_MESSAGE
+endif
+set bell = ""
+
+set dotime = 0
+set comtmp = submtemp.$$
+set done = 0
+set continue = 0
+set nice = 0
+set quiet = 0
+
+while ($#argv > 1 && $done == 0)
+    switch ($argv[1])
+    case -t:
+        set dotime = 1
+        shift
+        onintr clean
+        breaksw
+
+    case -c:
+        set continue = 1
+        shift
+        breaksw
+
+    case -n:
+        set nice = $argv[2]
+        shift; shift
+        onintr clean
+        breaksw
+
+    case -q:
+        set quiet = 1
+        shift
+        breaksw
+
+    default:
+        set done = 1
+        breaksw
+    endsw
+end
+
+while ($#argv > 0)
+    set rootname = $argv[1]:r
+    if (! -e $rootname.com) then
+	echo ERROR: $rootname.com does not exist $bell
+        set exitstat = 1
+	goto clean
+    endif
+    if (! $quiet) echo -n "Running $rootname.com ...  "
+
+    if ($dotime == 0 && $nice == 0) then
+        if ($quiet) then
+            vmstocsh $rootname.log < $rootname.com | csh -ef >& /dev/null
+            set exitstat = $status
+        else
+            vmstocsh $rootname.log < $rootname.com | csh -ef
+            set exitstat = $status
+        endif
+    else
+
+        # For nice or time, set up the com script, put nice in it
+        echo -n >! $comtmp
+        if ($nice != 0) echo nice +$nice >> $comtmp
+        vmstocsh $rootname.log < $rootname.com >> $comtmp
+        set exitstat = $status
+        if ($exitstat == 0) then
+            if ($dotime != 0) then
+                time csh -ef < $comtmp
+                set exitstat = $status
+            else
+                csh -ef < $comtmp
+                set exitstat = $status
+            endif
+        endif
+    endif
+    if ($exitstat) then
+	if (! $quiet) echo Error executing $rootname.com $bell
+	if (-e $rootname.log) tail -n 1 $rootname.log
+	if ($continue == 0) goto clean
+    else
+	if (! $quiet) echo $rootname.com $message
+    endif
+    shift
+end
+
+clean:
+if ($dotime == 1 || $nice != 0) \rm -f $comtmp 
+exit $exitstat
+
 #  $Log$
+#  Revision 3.10  2005/11/19 04:29:07  mast
+#  Quote path setting to preserve spaces
+#
 #  Revision 3.9  2005/03/25 18:10:02  mast
 #  Added exitstat setting when com file does not exist
 #
@@ -35,109 +158,3 @@
 #  Revision 3.1  2003/04/18 22:52:21  mast
 #  Initial addition to package
 #
- 
-if ($#argv < 1) then
-cat <<EOF
-subm or submfg will execute a series of command files in sequence
-Usage:  submfg [options] command_file1 command_file2 ...
-        Command files must have extension .com
-        If the filename is comfile.com, you can enter 
-                 comfile    comfile.    or  comfile.com
-        submfg will execute the files in the foreground
-        To run jobs in the background, set up an alias:  
-               alias subm 'submfg \!* &'
-        Set the environment variable SUBM_MESSAGE to modify the message upon
-                completion
-    Options:
-        -t     report the execution time
-        -c     continue with the next command file if one fails
-        -n #   Run niced with # as nice increment (range 1 to 19)
-EOF
-exit 0
-endif
-
-if ($?IMOD_DIR) then
-    setenv PATH "$IMOD_DIR/bin:$PATH"
-endif
-
-nohup
-
-set message = " finished successfully"
-if ($?SUBM_MESSAGE) then
-    set message = $SUBM_MESSAGE
-endif
-set bell = ""
-
-set dotime = 0
-set comtmp = submtemp.$$
-set done = 0
-set continue = 0
-set nice = 0
-
-while ($#argv > 1 && $done == 0)
-    switch ($argv[1])
-    case -t:
-        set dotime = 1
-        shift
-        onintr clean
-        breaksw
-
-    case -c:
-        set continue = 1
-        shift
-        breaksw
-
-    case -n:
-        set nice = $argv[2]
-        shift; shift
-        onintr clean
-        breaksw
-
-    default:
-        set done = 1
-        breaksw
-    endsw
-end
-
-while ($#argv > 0)
-    set rootname = $argv[1]:r
-    if (! -e $rootname.com) then
-	echo ERROR: $rootname.com does not exist $bell
-        set exitstat = 1
-	goto clean
-    endif
-    echo -n "Running $rootname.com ...  "
-
-    if ($dotime == 0 && $nice == 0) then
-        vmstocsh $rootname.log < $rootname.com | csh -ef
-        set exitstat = $status
-    else
-
-        # For nice or time, set up the com script, put nice in it
-        echo -n >! $comtmp
-        if ($nice != 0) echo nice +$nice >> $comtmp
-        vmstocsh $rootname.log < $rootname.com >> $comtmp
-        set exitstat = $status
-        if ($exitstat == 0) then
-            if ($dotime != 0) then
-                time csh -ef < $comtmp
-                set exitstat = $status
-            else
-                csh -ef < $comtmp
-                set exitstat = $status
-            endif
-        endif
-    endif
-    if ($exitstat) then
-	echo Error executing $rootname.com $bell
-	if (-e $rootname.log) tail -n 1 $rootname.log
-	if ($continue == 0) goto clean
-    else
-	echo $rootname.com $message
-    endif
-    shift
-end
-
-clean:
-if ($dotime == 1 || $nice != 0) \rm -f $comtmp 
-exit $exitstat
