@@ -52,6 +52,7 @@ class QPushButton;
 class QCheckBox;
 class QSpinBox;
 class QHBox;
+class QVButtonGroup;
 
 // A structure to hold all of the residual data that is read in, plus what
 // local area it is in and whether it has been looked at in this run-through
@@ -94,10 +95,15 @@ class BeadFixer : public DialogFrame
   int modifyPoint(float imx, float imy);
   int findCenter(float &imx, float &imy, int curz);
   int executeMessage(QStringList *strings, int *arg);
+  void findGap(int idir);
 
   public slots:
   void buttonPressed(int which);
-  void nextGap();
+  void nextGap() {findGap(1);};
+  void prevGap() {findGap(-1);};
+  void resetStart();
+  void resetCurrent();
+  void upDownToggled(bool state);
   void openFile();
   void rereadFile() {reread();};
   void nextRes();
@@ -107,14 +113,18 @@ class BeadFixer : public DialogFrame
   void moveAll();
   void undoMove();
   void clearList();
+  void modeSelected(int value);
   void onceToggled(bool state);
   void seedToggled(bool state);
   void autoCenToggled(bool state);
   void lightToggled(bool state);
   void diameterChanged(int value);
+  void overlayToggled(bool state);
+  void overlayChanged(int value);
   void keepOnTop(bool state);
   void runAlign();
   void setFontDependentWidths();
+  QCheckBox *overlayBox;
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -126,6 +136,8 @@ class BeadFixer : public DialogFrame
  private:
   int foundgap(int obj, int cont, int ipt, int before);
   void setCurArea(int area);
+  void makeUpDownArrow(int before);
+  void showWidget(QWidget *widget, bool state);
 
   int    mIfdidgap;
   int    mLastob, mLastco, mLastpt, mLastbefore;
@@ -152,6 +164,9 @@ class BeadFixer : public DialogFrame
   bool   mSeedMode;                     /* Seeding mode for inserting points */
   bool   mMovingAll;                  /* Flag for moving all points in local */
   int    mNumAllMoved;                  /* Number moved in local area */
+  QVButtonGroup *modeGroup;
+  QPushButton *nextGapBut;
+  QPushButton *prevGapBut;
   QPushButton *rereadBut;
   QPushButton *nextLocalBut;
   QPushButton *nextResBut;
@@ -162,10 +177,18 @@ class BeadFixer : public DialogFrame
   QPushButton *clearListBut;
   QPushButton *runAlignBut;
   QPushButton *openFileBut;
+  QPushButton *resetStartBut;
+  QPushButton *resetCurrentBut;
+  QCheckBox *upDownArrowBox;
   QCheckBox *autoCenBox;
   QCheckBox *seedModeBox;
+  QCheckBox *examineBox;
   QSpinBox *diameterSpin;
+  QSpinBox *overlaySpin;
   QHBox *topBox;
+  QHBox *diameterHbox;
+  QHBox *cenLightHbox;
+  QHBox *overlayHbox;
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;
@@ -177,6 +200,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.14  2006/03/01 18:17:50  mast
+Added variables to keep track of moving all in local area
+
 Revision 1.13  2006/02/13 05:14:50  mast
 Added autocentering and seed mode
 
