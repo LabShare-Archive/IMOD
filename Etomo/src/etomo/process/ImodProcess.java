@@ -14,255 +14,448 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.UIHarness;
 
 /**
- * <p> Description: ImodProcess opens an instance of imod with the specfied stack
+ * <p>
+ * Description: ImodProcess opens an instance of imod with the specfied stack
  * projection stack(s) and possibly model files. Model files can also be loaded
- * and changed after the process has started. </p>
+ * and changed after the process has started.
+ * </p>
  * 
- * <p> Copyright: Copyright (c) 2002 </p>
+ * <p>
+ * Copyright: Copyright (c) 2002
+ * </p>
  * 
- * <p> Organization: Boulder Laboratory for 3D Fine Structure, 
- * University of Colorado </p>
+ * <p>
+ * Organization: Boulder Laboratory for 3D Fine Structure, University of
+ * Colorado
+ * </p>
  * 
  * @author $Author$
  * 
  * @version $Revision$
  * 
- * <p> $Log$
- * <p> Revision 3.35  2006/06/28 23:28:51  sueh
- * <p> Removed unnecessary print
  * <p>
- * <p> Revision 3.34  2006/06/26 18:56:12  sueh
- * <p> bug# 797 Want the send and receive message attempts to exclude other send
- * <p> and receive attempts while they are working, without locking up the GUI.
- * <p> Remove ResponseReader and add MessageSender.  GUI will be locked when a
- * <p> message requiring a reply is sent.
+ * $Log$
  * <p>
- * <p> Revision 3.33  2006/06/22 21:01:43  sueh
- * <p> bug# 797 Stop using imodSendEvent.  Added sendCommand(s() and
- * <p> sendRequest().
+ * Revision 3.36 2006/07/03 21:42:21 sueh
  * <p>
- * <p> Revision 3.32  2006/05/22 22:47:22  sueh
- * <p> bug# 577 Formatted
+ * bug# 895 Added processRequest() to disconnect if a request is received from
  * <p>
- * <p> Revision 3.31  2006/04/11 13:47:20  sueh
- * <p> bug# 809 Manage auto center and seed mode separately from
- * <p> openBeadFixer so that seed mode doesn't always have to be managed.
+ * 3dmod. Added requestQueue and stderrQueue to store output from
  * <p>
- * <p> Revision 3.30  2006/03/30 21:23:24  sueh
- * <p> bug# 809 Sending seed mode, auto center, and diameter messages to
- * <p> the bead fixer.
+ * imod.getStderr() until it is needed. isRequestReceived() adds lines to
  * <p>
- * <p> Revision 3.29  2005/11/02 21:57:48  sueh
- * <p> bug# 754 Getting error and warning tags from ProcessMessages.
+ * stderrQueue and returns true when it finds a request. GetStderr() adds lines
+ * to
  * <p>
- * <p> Revision 3.28  2005/08/15 18:21:26  sueh
- * <p> bug# 532 commenting print statements
+ * requestQueue and returns a line from stderr when it is not a request.
  * <p>
- * <p> Revision 3.27  2005/08/11 23:38:42  sueh
- * <p> bug# 711  Pass Run3dmodMenuOptions to ImodManager.open(),
- * <p> ImodState.open(), and ImodProcess.open().  It should not be saved,
- * <p> because it needs to be refreshed each time 3dmod is run.  In
- * <p> ImodState.open() add the menu options from the pulldown menu to the
- * <p> existing menu options.
  * <p>
- * <p> Revision 3.26  2005/08/09 19:58:15  sueh
- * <p> bug# 711 Added Run3dmodMenuOption processing to open().  Added
- * <p> calcCurrentBinning().
+ * Revision 3.35 2006/06/28 23:28:51 sueh
  * <p>
- * <p> Revision 3.25  2005/07/29 00:51:48  sueh
- * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
- * <p> because the current manager changes when the user changes the tab.
- * <p> Passing the manager where its needed.
+ * Removed unnecessary print
  * <p>
- * <p> Revision 3.24  2005/04/25 20:46:30  sueh
- * <p> bug# 615 Passing the axis where a command originates to the message
- * <p> functions so that the message will be popped up in the correct window.
- * <p> This requires adding AxisID to many objects.
  * <p>
- * <p> Revision 3.23  2005/03/04 00:14:40  sueh
- * <p> bug# 533 Added setPieceListFileName() to set the -p command line
- * <p> option in the 3dmod call.
+ * Revision 3.34 2006/06/26 18:56:12 sueh
  * <p>
- * <p> Revision 3.22  2005/03/02 23:14:19  sueh
- * <p> bug# 533 Adding -fr (frames) to ignore montaging information and
- * <p> display the stack frame by frame.
+ * bug# 797 Want the send and receive message attempts to exclude other send
  * <p>
- * <p> Revision 3.21  2004/12/14 01:35:09  sueh
- * <p> bug# 373 Getting a list of dataset names with datasetNameArray.  Do not
- * <p> add the model name to the command if the model name is "".
+ * and receive attempts while they are working, without locking up the GUI.
  * <p>
- * <p> Revision 3.20  2004/12/04 00:57:56  sueh
- * <p> bug# 569 Handling directory paths with spaces:  converting from a
- * <p> command line to a command array to prevent the command line from
- * <p> being split on white space.
+ * Remove ResponseReader and add MessageSender. GUI will be locked when a
  * <p>
- * <p> Revision 3.19  2004/11/24 18:10:36  sueh
- * <p> bug# 520 Added binning in XY.
+ * message requiring a reply is sent.
  * <p>
- * <p> Revision 3.18  2004/11/19 23:21:39  sueh
- * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
- * <p> Revision 3.17.4.3  2004/10/08 15:57:43  sueh
- * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
- * <p> member variables non-static.
+ * Revision 3.33 2006/06/22 21:01:43 sueh
  * <p>
- * <p> Revision 3.17.4.2  2004/09/22 22:07:25  sueh
- * <p> bug# 520 Added get slicer angles functionality.
+ * bug# 797 Stop using imodSendEvent. Added sendCommand(s() and
  * <p>
- * <p> Revision 3.17.4.1  2004/09/03 21:11:24  sueh
- * <p> bug# 520 calling from EtomoDirector.isDebug
+ * sendRequest().
  * <p>
- * <p> Revision 3.17  2004/06/22 22:54:50  sueh
- * <p> bug# 462 Removed fillCache.  bug# 455 added openWithModel
- * <p> functionality to handle opening a model while preserving contrast.
- * <p> Added open contours functions
  * <p>
- * <p> Revision 3.16  2004/06/17 01:29:52  sueh
- * <p> added 3dmod command to err log because it is useful to see
+ * Revision 3.32 2006/05/22 22:47:22 sueh
  * <p>
- * <p> Revision 3.15  2004/06/10 18:23:11  sueh
- * <p> bug# 463 add setOpenBeadFixerMessage() to add the open
- * <p> bead fixer message to the message list
+ * bug# 577 Formatted
  * <p>
- * <p> Revision 3.14  2004/06/07 18:42:06  sueh
- * <p> bug# 457 added functions to add messages to list.
- * <p> Added a function to send the messages to 3dmod using
- * <p> imodSendEvent.
  * <p>
- * <p> Revision 3.13  2004/06/07 16:58:44  rickg
- * <p> Bug #452 added debug output for imodsendevent since we have
- * <p> been having diffuculty with it.
+ * Revision 3.31 2006/04/11 13:47:20 sueh
  * <p>
- * <p> Revision 3.12  2004/05/13 20:11:21  sueh
- * <p> bug# 33 allowing imodSendAndReceive() to receive any type
- * <p> of result data
+ * bug# 809 Manage auto center and seed mode separately from
  * <p>
- * <p> Revision 3.11  2004/05/07 19:43:57  sueh
- * <p> bug# 33 adding getRubberbandCoordinates(),
- * <p> imodSendAndReceive(), parseError().
- * <p> Keeping InteractiveSystemProgram imod around for send
- * <p> and receive.
+ * openBeadFixer so that seed mode doesn't always have to be managed.
  * <p>
- * <p> Revision 3.10  2004/05/06 20:21:47  sueh
- * <p> bug# 33 added getRubberbandCoordinates(), passing back the
- * <p> InteractiveSystemProgram from imodSendEvent()
  * <p>
- * <p> Revision 3.9  2004/05/03 22:22:25  sueh
- * <p> bug# 416 added binning (-B)
+ * Revision 3.30 2006/03/30 21:23:24 sueh
  * <p>
- * <p> Revision 3.8  2004/04/30 21:11:52  sueh
- * <p> bug# 428 add open ZaP window message
+ * bug# 809 Sending seed mode, auto center, and diameter messages to
  * <p>
- * <p> Revision 3.7  2004/04/27 22:02:58  sueh
- * <p> bug# 320 removing test
+ * the bead fixer.
  * <p>
- * <p> Revision 3.6  2004/04/26 17:05:05  sueh
- * <p> bug# 320 Commented out code - no functional change.
- * <p> Experimenting with a fix for this bug.
  * <p>
- * <p> Revision 3.5  2004/04/22 23:26:11  rickg
- * <p> Switched getIMODBinPath method
+ * Revision 3.29 2005/11/02 21:57:48 sueh
  * <p>
- * <p> Revision 3.4  2004/02/07 03:04:59  sueh
- * <p> bug# 169 Added setWorkingDirectory().
+ * bug# 754 Getting error and warning tags from ProcessMessages.
  * <p>
- * <p> Revision 3.3  2003/11/21 23:54:49  sueh
- * <p> bug242 Added toString() function
  * <p>
- * <p> Revision 3.2  2003/11/12 17:14:36  sueh
- * <p> removing debug prints
+ * Revision 3.28 2005/08/15 18:21:26 sueh
  * <p>
- * <p> Revision 3.1  2003/11/11 00:23:59  sueh
- * <p> Bug349 add useModv "-view" default false, add
- * <p> outputWindowID  "-W" default true, open(): -W is a default
- * <p> option rather then a constant, multiple options allowed
+ * bug# 532 commenting print statements
  * <p>
- * <p> Revision 3.0  2003/11/07 23:19:00  rickg
- * <p> Version 1.0.0
  * <p>
- * <p> Revision 2.18  2003/11/05 20:28:42  rickg
- * <p> Bug #292 Added openPreserveContrast and openBeadfixer methods
+ * Revision 3.27 2005/08/11 23:38:42 sueh
  * <p>
- * <p> Revision 2.17  2003/11/04 20:56:11  rickg
- * <p> Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * bug# 711 Pass Run3dmodMenuOptions to ImodManager.open(),
  * <p>
- * <p> Revision 2.16  2003/11/04 17:45:21  rickg
- * <p> Bug #345 Explicitly set path to 3dmodusing IMOD_DIR
+ * ImodState.open(), and ImodProcess.open(). It should not be saved,
  * <p>
- * <p> Revision 2.15 2003/11/04 01:03:37 rickg
- * <p> Javadoc comment fix
+ * because it needs to be refreshed each time 3dmod is run. In
  * <p>
- * <p> Revision 2.14 2003/09/25 22:17:17 rickg
- * <p> Corrected a sendevent comment
+ * ImodState.open() add the menu options from the pulldown menu to the
  * <p>
- * <p> Revision 2.13 2003/08/25 22:18:39 rickg
- * <p> Removed errant model opening for the tomogram where a matching
- * <p> or patch region model had been previously opened
+ * existing menu options.
  * <p>
- * <p> Revision 2.12 2003/08/05 21:20:45 rickg
- * <p> Added movieMode
  * <p>
- * <p> Revision 2.11 2003/07/25 23:00:33 rickg
- * <p> openModel does not automatically switch 3dmod to model mode
- * <p> now
+ * Revision 3.26 2005/08/09 19:58:15 sueh
  * <p>
- * <p> Revision 2.10 2003/06/05 21:12:23 rickg
- * <p> Added model mode and raise messages
- * <p> fill cache flag is functional
+ * bug# 711 Added Run3dmodMenuOption processing to open(). Added
  * <p>
- * <p> Revision 2.9 2003/05/27 08:44:03 rickg
- * <p> Removed TODO
+ * calcCurrentBinning().
  * <p>
- * <p> Revision 2.8 2003/05/15 20:19:41 rickg
- * <p> Removed extraneous debug printing
  * <p>
- * <p> Revision 2.7 2003/05/12 23:26:29 rickg
- * <p> imod -D -> 3dmod
- * <p> commad line reporting (need to check debug state)
+ * Revision 3.25 2005/07/29 00:51:48 sueh
  * <p>
- * <p> Revision 2.6 2003/05/07 22:28:30 rickg
- * <p> Implemented fillCache mechanism, but not enabled
+ * bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p>
- * <p> Revision 2.5 2003/04/28 23:25:26 rickg
- * <p> Changed visible imod references to 3dmod
+ * because the current manager changes when the user changes the tab.
  * <p>
- * <p> Revision 2.4 2003/03/19 00:23:22 rickg
- * <p> Added model view option
+ * Passing the manager where its needed.
  * <p>
- * <p> Revision 2.3 2003/03/02 23:30:41 rickg
- * <p> Combine layout in progress
  * <p>
- * <p> Revision 2.2 2003/01/31 05:34:08 rickg
- * <p> Support for foreground imod/qtimod through -W
+ * Revision 3.24 2005/04/25 20:46:30 sueh
  * <p>
- * <p> Revision 2.1 2003/01/29 21:09:05 rickg
- * <p> Added sleep to wait for imod process to exit and then
- * <p> some when. For some reason the windowID/processID
- * <p> strings were not available
+ * bug# 615 Passing the axis where a command originates to the message
  * <p>
- * <p> Revision 2.0 2003/01/24 20:30:31 rickg
- * <p> Single window merge to main branch
+ * functions so that the message will be popped up in the correct window.
  * <p>
- * <p> Revision 1.6 2002/10/16 17:36:24 rickg
- * <p> reformat
+ * This requires adding AxisID to many objects.
  * <p>
- * <p> Revision 1.5 2002/09/20 17:06:38 rickg
- * <p> Added typed exceptions
- * <p> Added a quit method
- * <p> Check for ProcessID before running PS in isRunning
  * <p>
- * <p> Revision 1.4 2002/09/19 22:47:45 rickg
- * <p> More robust method to extract process and window ID from imod
+ * Revision 3.23 2005/03/04 00:14:40 sueh
  * <p>
- * <p> Revision 1.3 2002/09/18 23:39:26 rickg
- * <p> Moved opening to a separate method
- * <p> Opening checks to see if the imod process already exists
+ * bug# 533 Added setPieceListFileName() to set the -p command line
  * <p>
- * <p> Revision 1.2 2002/09/17 23:20:31 rickg
- * <p> Complete basic operation
+ * option in the 3dmod call.
  * <p>
- * <p> Revision 1.1 2002/09/13 21:28:44 rickg
- * <p> initial entry
+ * <p>
+ * Revision 3.22 2005/03/02 23:14:19 sueh
+ * <p>
+ * bug# 533 Adding -fr (frames) to ignore montaging information and
+ * <p>
+ * display the stack frame by frame.
+ * <p>
+ * <p>
+ * Revision 3.21 2004/12/14 01:35:09 sueh
+ * <p>
+ * bug# 373 Getting a list of dataset names with datasetNameArray. Do not
+ * <p>
+ * add the model name to the command if the model name is "".
+ * <p>
+ * <p>
+ * Revision 3.20 2004/12/04 00:57:56 sueh
+ * <p>
+ * bug# 569 Handling directory paths with spaces: converting from a
+ * <p>
+ * command line to a command array to prevent the command line from
+ * <p>
+ * being split on white space.
+ * <p>
+ * <p>
+ * Revision 3.19 2004/11/24 18:10:36 sueh
+ * <p>
+ * bug# 520 Added binning in XY.
+ * <p>
+ * <p>
+ * Revision 3.18 2004/11/19 23:21:39 sueh
+ * <p>
+ * bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
+ * <p>
+ * Revision 3.17.4.3 2004/10/08 15:57:43 sueh
+ * <p>
+ * bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p>
+ * member variables non-static.
+ * <p>
+ * <p>
+ * Revision 3.17.4.2 2004/09/22 22:07:25 sueh
+ * <p>
+ * bug# 520 Added get slicer angles functionality.
+ * <p>
+ * <p>
+ * Revision 3.17.4.1 2004/09/03 21:11:24 sueh
+ * <p>
+ * bug# 520 calling from EtomoDirector.isDebug
+ * <p>
+ * <p>
+ * Revision 3.17 2004/06/22 22:54:50 sueh
+ * <p>
+ * bug# 462 Removed fillCache. bug# 455 added openWithModel
+ * <p>
+ * functionality to handle opening a model while preserving contrast.
+ * <p>
+ * Added open contours functions
+ * <p>
+ * <p>
+ * Revision 3.16 2004/06/17 01:29:52 sueh
+ * <p>
+ * added 3dmod command to err log because it is useful to see
+ * <p>
+ * <p>
+ * Revision 3.15 2004/06/10 18:23:11 sueh
+ * <p>
+ * bug# 463 add setOpenBeadFixerMessage() to add the open
+ * <p>
+ * bead fixer message to the message list
+ * <p>
+ * <p>
+ * Revision 3.14 2004/06/07 18:42:06 sueh
+ * <p>
+ * bug# 457 added functions to add messages to list.
+ * <p>
+ * Added a function to send the messages to 3dmod using
+ * <p>
+ * imodSendEvent.
+ * <p>
+ * <p>
+ * Revision 3.13 2004/06/07 16:58:44 rickg
+ * <p>
+ * Bug #452 added debug output for imodsendevent since we have
+ * <p>
+ * been having diffuculty with it.
+ * <p>
+ * <p>
+ * Revision 3.12 2004/05/13 20:11:21 sueh
+ * <p>
+ * bug# 33 allowing imodSendAndReceive() to receive any type
+ * <p>
+ * of result data
+ * <p>
+ * <p>
+ * Revision 3.11 2004/05/07 19:43:57 sueh
+ * <p>
+ * bug# 33 adding getRubberbandCoordinates(),
+ * <p>
+ * imodSendAndReceive(), parseError().
+ * <p>
+ * Keeping InteractiveSystemProgram imod around for send
+ * <p>
+ * and receive.
+ * <p>
+ * <p>
+ * Revision 3.10 2004/05/06 20:21:47 sueh
+ * <p>
+ * bug# 33 added getRubberbandCoordinates(), passing back the
+ * <p>
+ * InteractiveSystemProgram from imodSendEvent()
+ * <p>
+ * <p>
+ * Revision 3.9 2004/05/03 22:22:25 sueh
+ * <p>
+ * bug# 416 added binning (-B)
+ * <p>
+ * <p>
+ * Revision 3.8 2004/04/30 21:11:52 sueh
+ * <p>
+ * bug# 428 add open ZaP window message
+ * <p>
+ * <p>
+ * Revision 3.7 2004/04/27 22:02:58 sueh
+ * <p>
+ * bug# 320 removing test
+ * <p>
+ * <p>
+ * Revision 3.6 2004/04/26 17:05:05 sueh
+ * <p>
+ * bug# 320 Commented out code - no functional change.
+ * <p>
+ * Experimenting with a fix for this bug.
+ * <p>
+ * <p>
+ * Revision 3.5 2004/04/22 23:26:11 rickg
+ * <p>
+ * Switched getIMODBinPath method
+ * <p>
+ * <p>
+ * Revision 3.4 2004/02/07 03:04:59 sueh
+ * <p>
+ * bug# 169 Added setWorkingDirectory().
+ * <p>
+ * <p>
+ * Revision 3.3 2003/11/21 23:54:49 sueh
+ * <p>
+ * bug242 Added toString() function
+ * <p>
+ * <p>
+ * Revision 3.2 2003/11/12 17:14:36 sueh
+ * <p>
+ * removing debug prints
+ * <p>
+ * <p>
+ * Revision 3.1 2003/11/11 00:23:59 sueh
+ * <p>
+ * Bug349 add useModv "-view" default false, add
+ * <p>
+ * outputWindowID "-W" default true, open(): -W is a default
+ * <p>
+ * option rather then a constant, multiple options allowed
+ * <p>
+ * <p>
+ * Revision 3.0 2003/11/07 23:19:00 rickg
+ * <p>
+ * Version 1.0.0
+ * <p>
+ * <p>
+ * Revision 2.18 2003/11/05 20:28:42 rickg
+ * <p>
+ * Bug #292 Added openPreserveContrast and openBeadfixer methods
+ * <p>
+ * <p>
+ * Revision 2.17 2003/11/04 20:56:11 rickg
+ * <p>
+ * Bug #345 IMOD Directory supplied by a static function from ApplicationManager
+ * <p>
+ * <p>
+ * Revision 2.16 2003/11/04 17:45:21 rickg
+ * <p>
+ * Bug #345 Explicitly set path to 3dmodusing IMOD_DIR
+ * <p>
+ * <p>
+ * Revision 2.15 2003/11/04 01:03:37 rickg
+ * <p>
+ * Javadoc comment fix
+ * <p>
+ * <p>
+ * Revision 2.14 2003/09/25 22:17:17 rickg
+ * <p>
+ * Corrected a sendevent comment
+ * <p>
+ * <p>
+ * Revision 2.13 2003/08/25 22:18:39 rickg
+ * <p>
+ * Removed errant model opening for the tomogram where a matching
+ * <p>
+ * or patch region model had been previously opened
+ * <p>
+ * <p>
+ * Revision 2.12 2003/08/05 21:20:45 rickg
+ * <p>
+ * Added movieMode
+ * <p>
+ * <p>
+ * Revision 2.11 2003/07/25 23:00:33 rickg
+ * <p>
+ * openModel does not automatically switch 3dmod to model mode
+ * <p>
+ * now
+ * <p>
+ * <p>
+ * Revision 2.10 2003/06/05 21:12:23 rickg
+ * <p>
+ * Added model mode and raise messages
+ * <p>
+ * fill cache flag is functional
+ * <p>
+ * <p>
+ * Revision 2.9 2003/05/27 08:44:03 rickg
+ * <p>
+ * Removed TODO
+ * <p>
+ * <p>
+ * Revision 2.8 2003/05/15 20:19:41 rickg
+ * <p>
+ * Removed extraneous debug printing
+ * <p>
+ * <p>
+ * Revision 2.7 2003/05/12 23:26:29 rickg
+ * <p>
+ * imod -D -> 3dmod
+ * <p>
+ * commad line reporting (need to check debug state)
+ * <p>
+ * <p>
+ * Revision 2.6 2003/05/07 22:28:30 rickg
+ * <p>
+ * Implemented fillCache mechanism, but not enabled
+ * <p>
+ * <p>
+ * Revision 2.5 2003/04/28 23:25:26 rickg
+ * <p>
+ * Changed visible imod references to 3dmod
+ * <p>
+ * <p>
+ * Revision 2.4 2003/03/19 00:23:22 rickg
+ * <p>
+ * Added model view option
+ * <p>
+ * <p>
+ * Revision 2.3 2003/03/02 23:30:41 rickg
+ * <p>
+ * Combine layout in progress
+ * <p>
+ * <p>
+ * Revision 2.2 2003/01/31 05:34:08 rickg
+ * <p>
+ * Support for foreground imod/qtimod through -W
+ * <p>
+ * <p>
+ * Revision 2.1 2003/01/29 21:09:05 rickg
+ * <p>
+ * Added sleep to wait for imod process to exit and then
+ * <p>
+ * some when. For some reason the windowID/processID
+ * <p>
+ * strings were not available
+ * <p>
+ * <p>
+ * Revision 2.0 2003/01/24 20:30:31 rickg
+ * <p>
+ * Single window merge to main branch
+ * <p>
+ * <p>
+ * Revision 1.6 2002/10/16 17:36:24 rickg
+ * <p>
+ * reformat
+ * <p>
+ * <p>
+ * Revision 1.5 2002/09/20 17:06:38 rickg
+ * <p>
+ * Added typed exceptions
+ * <p>
+ * Added a quit method
+ * <p>
+ * Check for ProcessID before running PS in isRunning
+ * <p>
+ * <p>
+ * Revision 1.4 2002/09/19 22:47:45 rickg
+ * <p>
+ * More robust method to extract process and window ID from imod
+ * <p>
+ * <p>
+ * Revision 1.3 2002/09/18 23:39:26 rickg
+ * <p>
+ * Moved opening to a separate method
+ * <p>
+ * Opening checks to see if the imod process already exists
+ * <p>
+ * <p>
+ * Revision 1.2 2002/09/17 23:20:31 rickg
+ * <p>
+ * Complete basic operation
+ * <p>
+ * <p>
+ * Revision 1.1 2002/09/13 21:28:44 rickg
+ * <p>
+ * initial entry
  * <p>
  * </p>
  */
@@ -270,61 +463,107 @@ public class ImodProcess {
   public static final String rcsid = "$Id$";
 
   public static final String MESSAGE_OPEN_MODEL = "1";
+
   public static final String MESSAGE_SAVE_MODEL = "2";
+
   public static final String MESSAGE_VIEW_MODEL = "3";
+
   public static final String MESSAGE_CLOSE = "4";
+
   public static final String MESSAGE_RAISE = "5";
+
   public static final String MESSAGE_MODEL_MODE = "6";
+
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
+
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
+
   public static final String MESSAGE_ONE_ZAP_OPEN = "9";
+
   public static final String MESSAGE_RUBBERBAND = "10";
+
   public static final String MESSAGE_OBJ_PROPERTIES = "11";
+
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
+
   public static final String MESSAGE_SLICER_ANGLES = "13";
+
   public static final String MESSAGE_PLUGIN_MESSAGE = "14";
+
   public static final String BEAD_FIXER_PLUGIN = "Bead Fixer";
+
   public static final String BF_MESSAGE_SEED_MODE = "3";
+
   public static final String BF_MESSAGE_AUTO_CENTER = "4";
+
   public static final String BF_MESSAGE_DIAMETER = "5";
+
   public static final String MESSAGE_ON = "1";
+
   public static final String MESSAGE_OFF = "0";
+
   public static final String MESSAGE_STOP_LISTENING = "\n";
 
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
+
   public static final String SLICER_ANGLES_RESULTS_STRING1 = "Slicer";
+
   public static final String SLICER_ANGLES_RESULTS_STRING2 = "angles:";
 
   public static final String TRUE = "1";
+
   public static final String FALSE = "0";
+
   public static final int CIRCLE = 1;
-  public static final String REQUEST_TAG = "REQUEST:";
-  public static final String STOP_LISTENING_REQUEST = "stop listening";
+
+  public static final String REQUEST_TAG = "REQUEST";
+
+  public static final String STOP_LISTENING_REQUEST = "STOP LISTENING";
 
   private static final int defaultBinning = 1;
 
   private String datasetName = "";
+
   private String modelName = "";
+
   private String windowID = "";
+
   private boolean swapYZ = false;
+
   private boolean modelView = false;
+
   private boolean useModv = false;
+
   private boolean outputWindowID = true;
+
   private boolean openWithModel = true;
+
   private File workingDirectory = null;
+
   private int binning = defaultBinning;
+
   private int binningXY = defaultBinning;
+
   InteractiveSystemProgram imod = null;
+
   private Vector sendArguments = new Vector();
+
   private String[] datasetNameArray = null;
+
   private boolean frames = false;
+
   private String pieceListFileName = null;
+
   private AxisID axisID;
 
   private Thread imodThread;
+
   private final BaseManager manager;
+
   private long beadfixerDiameter = ImodManager.DEFAULT_BEADFIXER_DIAMETER;
+
   private LinkedList requestQueue = new LinkedList();
+
   private LinkedList stderrQueue = new LinkedList();
 
   /**
@@ -339,7 +578,8 @@ public class ImodProcess {
   /**
    * Dataset only constructor
    * 
-   * @param A string specifying the path to the projection stack file
+   * @param A
+   *          string specifying the path to the projection stack file
    */
   public ImodProcess(BaseManager manager, String dataset, AxisID axisID) {
     this.manager = manager;
@@ -358,8 +598,10 @@ public class ImodProcess {
   /**
    * Dataset and model file constructor
    * 
-   * @param dataset A string specifying the path to the projection stack file
-   * @param model A string specifying the path to the IMOD model file
+   * @param dataset
+   *          A string specifying the path to the projection stack file
+   * @param model
+   *          A string specifying the path to the IMOD model file
    */
   public ImodProcess(BaseManager manager, String dataset, String model) {
     this.manager = manager;
@@ -370,8 +612,10 @@ public class ImodProcess {
   /**
    * Dataset and model file constructor
    * 
-   * @param datasetArray A string array specifying the path to the projection stack file
-   * @param model A string specifying the path to the IMOD model file
+   * @param datasetArray
+   *          A string array specifying the path to the projection stack file
+   * @param model
+   *          A string specifying the path to the IMOD model file
    */
   public ImodProcess(BaseManager manager, String[] datasetArray, String model) {
     this.manager = manager;
@@ -390,6 +634,7 @@ public class ImodProcess {
 
   /**
    * Sets the -f command line option
+   * 
    * @param frames
    */
   public void setFrames(boolean frames) {
@@ -415,10 +660,10 @@ public class ImodProcess {
 
   /**
    * When openWithModel is true 3dmod will open with a model, if a model is set.
-   * The default for openWithModel is true.
-   * Some open model options cannot be sent to 3dmod during open.  Turn off this
-   * option to prevent opening the model during open.
-   * Example: MESSAGE_OPEN_KEEP_BW
+   * The default for openWithModel is true. Some open model options cannot be
+   * sent to 3dmod during open. Turn off this option to prevent opening the
+   * model during open. Example: MESSAGE_OPEN_KEEP_BW
+   * 
    * @param openWithoutModel
    */
   public void setOpenWithModel(boolean openWithModel) {
@@ -430,8 +675,7 @@ public class ImodProcess {
     int currentBinning;
     if (binning == defaultBinning) {
       currentBinning = 0;
-    }
-    else {
+    } else {
       currentBinning = binning;
     }
     if (menuOptions.isBinBy2()) {
@@ -450,11 +694,11 @@ public class ImodProcess {
       return;
     }
 
-    //  Reset the window string
+    // Reset the window string
     windowID = "";
     ArrayList commandOptions = new ArrayList();
     commandOptions.add(ApplicationManager.getIMODBinPath() + "3dmod");
-    //  Collect the command line options
+    // Collect the command line options
 
     if (outputWindowID) {
       commandOptions.add("-W");
@@ -519,22 +763,22 @@ public class ImodProcess {
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
-      //System.out.print(commandArray[i] + " ");
+      // System.out.print(commandArray[i] + " ");
     }
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
-    //System.out.println();
+    // System.out.println();
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
 
-    //  Start the 3dmod program thread and wait for it to finish
+    // Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
     imodThread.start();
 
-    //  Check the stderr of the 3dmod process for the windowID and the
+    // Check the stderr of the 3dmod process for the windowID and the
     String line;
     while (imodThread.isAlive() && windowID.equals("")) {
 
@@ -549,15 +793,14 @@ public class ImodProcess {
         }
       }
 
-      //  Wait a litte while for 3dmod to generate some stderr output
+      // Wait a litte while for 3dmod to generate some stderr output
       try {
         Thread.sleep(500);
-      }
-      catch (InterruptedException e) {
+      } catch (InterruptedException e) {
       }
     }
 
-    //  If imod exited before getting the window report the problem to the user
+    // If imod exited before getting the window report the problem to the user
     if (windowID.equals("") && outputWindowID) {
       String message = "3dmod returned: " + String.valueOf(imod.getExitValue())
           + "\n";
@@ -591,7 +834,7 @@ public class ImodProcess {
     if (isRunning()) {
       String[] messages = new String[1];
       messages[0] = MESSAGE_STOP_LISTENING;
-      sendCommands(messages);
+      sendCommandsNoWait(messages);
     }
   }
 
@@ -607,6 +850,7 @@ public class ImodProcess {
 
   /**
    * Places arguments to open a model on the argument list.
+   * 
    * @param newModelName
    */
   public void setOpenModelMessage(String newModelName) {
@@ -629,6 +873,7 @@ public class ImodProcess {
   /**
    * Places arguments to open a model and preserve contrast on the argument
    * list.
+   * 
    * @param newModelName
    */
   public void setOpenModelPreserveContrastMessage(String newModelName) {
@@ -665,15 +910,10 @@ public class ImodProcess {
   }
 
   /**
-   * Adds a message which sets new contours to be open
-   * Message description:
-   * 12 0 1 1 7 0
-   * 12 says to do it to a new (empty) contour only (11 would be unconditional)
-   * 0 is for object 1
-   * 1 sets it to open
-   * 1 sets it to display circles
-   * 7 makes circle size be 7
-   * 0 keeps 3D size at 0
+   * Adds a message which sets new contours to be open Message description: 12 0
+   * 1 1 7 0 12 says to do it to a new (empty) contour only (11 would be
+   * unconditional) 0 is for object 1 1 sets it to open 1 sets it to display
+   * circles 7 makes circle size be 7 0 keeps 3D size at 0
    */
   public void setNewContoursMessage(boolean open) {
     setNewObjectMessage(0, open, CIRCLE, 7, 0);
@@ -798,8 +1038,9 @@ public class ImodProcess {
   }
 
   /**
-   * Sends message requesting rubberband coordinates.
-   * Should not be used with sendMessages().
+   * Sends message requesting rubberband coordinates. Should not be used with
+   * sendMessages().
+   * 
    * @return rubberband coordinates and error messages
    * @throws IOException
    */
@@ -829,62 +1070,74 @@ public class ImodProcess {
   /**
    * Sends all messages collected in the argument list via imodSendEvent().
    * Clears the argument list.
+   * 
    * @throws IOException
    */
   public void sendMessages() throws IOException {
     if (sendArguments.size() == 0) {
       return;
     }
-    /*for (int i = 0; i < sendArguments.size(); i++) {
-     System.out.print(sendArguments.get(i) + " ");
-     }
-     System.out.println();*/
+    /*
+     * for (int i = 0; i < sendArguments.size(); i++) {
+     * System.out.print(sendArguments.get(i) + " "); } System.out.println();
+     */
     sendCommands((String[]) sendArguments.toArray(new String[sendArguments
         .size()]));
     sendArguments.clear();
   }
 
   /**
-   * Sends a request to 3dmod's stdin and returns the results.
-   * Pops up error and warning messages from 3dmod that are directed at the user.
-   * @param args - commands.
+   * Sends a request to 3dmod's stdin and returns the results. Pops up error and
+   * warning messages from 3dmod that are directed at the user.
+   * 
+   * @param args -
+   *          commands.
    * @return - vector with values received from 3dmod.
    * @throws IOException
    */
   private Vector sendRequest(String[] args) throws IOException {
     Vector imodReturnValues = new Vector();
-    sendCommands(args, imodReturnValues);
+    sendCommands(args, imodReturnValues, true);
     return imodReturnValues;
   }
 
   /**
-   * Sends commands to 3dmod's stdin and process the results.
-   * Pops up error and warning messages from 3dmod that are directed at the user.
-   * @param args - commands.
+   * Sends commands to 3dmod's stdin and process the results. Pops up error and
+   * warning messages from 3dmod that are directed at the user.
+   * 
+   * @param args -
+   *          commands.
    * @throws IOException
-   * messages are received.
+   *           messages are received.
    */
   private void sendCommands(String[] args) throws IOException {
-    sendCommands(args, null);
+    sendCommands(args, null, true);
+  }
+
+  private void sendCommandsNoWait(String[] args) throws IOException {
+    sendCommands(args, null, false);
   }
 
   /**
-   * Sends commands to 3dmod's stdin and process the results.
-   * Pops up error and warning messages from 3dmod that are directed at the user.
-   * @param args - commands.
-   * @param imodReturnValues - optional return value vector to be used when
-   * expecting return values from 3dmod.
+   * Sends commands to 3dmod's stdin and process the results. Pops up error and
+   * warning messages from 3dmod that are directed at the user.
+   * 
+   * @param args -
+   *          commands.
+   * @param imodReturnValues -
+   *          optional return value vector to be used when expecting return
+   *          values from 3dmod.
    * @throws IOException
-   * messages are received and imodReturnValues is null.
+   *           messages are received and imodReturnValues is null.
    */
-  private synchronized void sendCommands(String[] args, Vector imodReturnValues)
-      throws IOException {
-    MessageSender messageSender = new MessageSender(args, imodReturnValues);
+  private synchronized void sendCommands(String[] args,
+      Vector imodReturnValues, boolean responseRequired) throws IOException {
+    MessageSender messageSender = new MessageSender(args, imodReturnValues,
+        responseRequired);
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
-    }
-    else {
-      //get return values
+    } else {
+      // get return values
       messageSender.run();
     }
   }
@@ -893,8 +1146,7 @@ public class ImodProcess {
     if (isRequestReceived()) {
       try {
         disconnect();
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         e.printStackTrace();
       }
     }
@@ -992,7 +1244,8 @@ public class ImodProcess {
   /**
    * Sets the modelView.
    * 
-   * @param modelView The modelView to set
+   * @param modelView
+   *          The modelView to set
    */
   public void setModelView(boolean modelView) {
     this.modelView = modelView;
@@ -1029,8 +1282,7 @@ public class ImodProcess {
   public void setBinning(int binning) {
     if (binning < defaultBinning) {
       this.binning = defaultBinning;
-    }
-    else {
+    } else {
       this.binning = binning;
     }
   }
@@ -1038,8 +1290,7 @@ public class ImodProcess {
   public void setBinningXY(int binningXY) {
     if (binningXY < defaultBinning) {
       this.binningXY = defaultBinning;
-    }
-    else {
+    } else {
       this.binningXY = binningXY;
     }
   }
@@ -1056,33 +1307,38 @@ public class ImodProcess {
   }
 
   /**
-   * Class to send a message to 3dmod.  Can be run on a separate thread to
-   * avoid locking up the GUI.
+   * Class to send a message to 3dmod. Can be run on a separate thread to avoid
+   * locking up the GUI.
    */
   private class MessageSender implements Runnable {
     private final String[] args;
+
     private final Vector imodReturnValues;
 
-    private MessageSender(String[] args, Vector imodReturnValues) {
+    private boolean responseRequired = true;
+
+    private MessageSender(String[] args, Vector imodReturnValues,
+        boolean responseRequired) {
       this.imodReturnValues = imodReturnValues;
       this.args = args;
+      this.responseRequired = responseRequired;
     }
 
     /**
      * Send the message and wait for a response.
      */
     public void run() {
-      //make sure that 3dmod is running
+      // make sure that 3dmod is running
       if (imod == null) {
         if (imodReturnValues != null) {
-          //unable to get return values
+          // unable to get return values
           UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
               "3dmod Warning", getAxisID());
         }
         return;
       }
-      //boolean responseReceived = false;
-      //build a string to send
+      // boolean responseReceived = false;
+      // build a string to send
       StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < args.length; i++) {
         buffer.append(args[i] + " ");
@@ -1092,59 +1348,57 @@ public class ImodProcess {
           if (EtomoDirector.getInstance().isDebug()) {
             System.err.println(buffer.toString());
           }
-          //send the string to 3dmod's stdin
+          // send the string to 3dmod's stdin
           if (!isRunning()) {
             if (imodReturnValues != null) {
-              //unable to get return values
+              // unable to get return values
               UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
                   "3dmod Warning", getAxisID());
             }
             return;
           }
           imod.setCurrentStdInput(buffer.toString());
-        }
-        catch (IOException exception) {
-          //make sure that 3dmod is running
+        } catch (IOException exception) {
+          // make sure that 3dmod is running
           if (exception.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
             if (imodReturnValues != null) {
-              //unable to get return values
+              // unable to get return values
               UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
                   "3dmod Warning", getAxisID());
             }
             return;
-          }
-          else {
+          } else {
             exception.printStackTrace();
             UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
                 "3dmod Exception", getAxisID());
           }
         }
       }
-      //read the response from 3dmod
-      readResponse();
+      if (responseRequired) {
+        // read the response from 3dmod
+        readResponse();
+      }
     }
 
     /**
-     * Wait for a response to the message and pop up a message if there is
-     * a problem.
+     * Wait for a response to the message and pop up a message if there is a
+     * problem.
      */
     public void readResponse() {
       boolean responseReceived = false;
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       StringBuffer exceptionMessage = new StringBuffer();
-      //wait for the response for at most 5 seconds
+      // wait for the response for at most 5 seconds
       for (int timeout = 0; timeout < 10; timeout++) {
         if (responseReceived) {
           break;
         }
         try {
           Thread.sleep(500);
+        } catch (InterruptedException e) {
         }
-        catch (InterruptedException e) {
-          System.out.println("InterruptedException");
-        }
-        //process response
+        // process response
         boolean failure = false;
         while ((response = getStderr()) != null) {
           responseReceived = true;
@@ -1153,12 +1407,12 @@ public class ImodProcess {
           }
           response = response.trim();
           if (response.equals("OK")) {
-            //OK is sent last, so this is done
+            // OK is sent last, so this is done
             break;
           }
-          //if the response is not OK or an error message meant for the user
-          //then either its a requested return string, or an exception must be
-          //thrown
+          // if the response is not OK or an error message meant for the user
+          // then either its a requested return string, or an exception must be
+          // thrown
           if (!parseUserMessages(response, userMessage)) {
             if (imodReturnValues != null && !failure
                 && !response.startsWith("imodExecuteMessage:")) {
@@ -1166,39 +1420,36 @@ public class ImodProcess {
               for (int i = 0; i < words.length; i++) {
                 imodReturnValues.add(words[i]);
               }
-            }
-            else {
+            } else {
               failure = true;
               exceptionMessage.append(response + "\n");
             }
           }
         }
       }
-      //pop up error and warning messages for the user
+      // pop up error and warning messages for the user
       if (userMessage.length() > 0) {
         UIHarness.INSTANCE.openMessageDialog(userMessage.toString(),
             "3dmod Message", getAxisID());
       }
-      //"throw" exceptions if error message found that are directed towards the
-      //user
+      // "throw" exceptions if error message found that are directed towards the
+      // user
       if (exceptionMessage.length() > 0) {
         SystemProcessException exception = new SystemProcessException(
             exceptionMessage.toString());
         exception.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
             "3dmod Exception", getAxisID());
-      }
-      else if (!responseReceived) {
+      } else if (!responseReceived) {
         if (isRunning()) {
-          //no response received and 3dmod is running - "throw" exception
+          // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
               "No response received from 3dmod.");
           exception.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(exception.getMessage(),
               "3dmod Exception", getAxisID());
-        }
-        else if (imodReturnValues != null) {
-          //unable to get return values
+        } else if (imodReturnValues != null) {
+          // unable to get return values
           UIHarness.INSTANCE.openMessageDialog("3dmod is not running.",
               "3dmod Warning", getAxisID());
         }
@@ -1208,13 +1459,15 @@ public class ImodProcess {
     /**
      * Parse messages that are directed at the user - mesages that contain
      * ERROR_TAG or WARNING_TAG.
+     * 
      * @param line
      * @param userMessages
      * @return true if an error or warning is found
      */
     private boolean parseUserMessages(String line, StringBuffer userMessages) {
-      //Currently assuming that each user error or warning messages will be only one
-      //line and contain ERROR_STRING or WARNING_STRING.
+      // Currently assuming that each user error or warning messages will be
+      // only one
+      // line and contain ERROR_STRING or WARNING_STRING.
       int index = line.indexOf(ProcessMessages.ERROR_TAG);
       if (index != -1) {
         userMessages.append(line + "\n");
