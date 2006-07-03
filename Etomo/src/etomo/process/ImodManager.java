@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2006/06/22 20:59:47  sueh
+ * <p> bug# 797 Catching io exception when sending messages to 3dmods.
+ * <p>
  * <p> Revision 3.39  2006/06/19 17:06:17  sueh
  * <p> bug# 851 Added quiteAll() to quit all 3dmods in a vector.
  * <p>
@@ -453,6 +456,7 @@ public class ImodManager {
   private boolean useMap = true;
   private final BaseManager manager;
   private long beadFixerDiameter = DEFAULT_BEADFIXER_DIAMETER;
+  private final ImodRequestHandler requestHandler;
 
   //constructors
 
@@ -461,6 +465,7 @@ public class ImodManager {
   public ImodManager(BaseManager manager) {
     this.manager = manager;
     imodMap = new HashMap();
+    requestHandler = ImodRequestHandler.getInstance(this);
   }
 
   //Interface
@@ -508,7 +513,7 @@ public class ImodManager {
     loadJoinMap();
   }
 
-  public int newImod(String key) throws AxisTypeException{
+  public int newImod(String key) throws AxisTypeException {
     return newImod(key, null, null);
   }
 
@@ -724,7 +729,7 @@ public class ImodManager {
   }
 
   public Vector getSlicerAngles(String key, int vectorIndex)
-      throws AxisTypeException,  IOException {
+      throws AxisTypeException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
@@ -733,8 +738,7 @@ public class ImodManager {
     return imodState.getSlicerAngles();
   }
 
-  public void quit(String key) throws AxisTypeException,
-      IOException {
+  public void quit(String key) throws AxisTypeException, IOException {
     quit(key, null);
   }
 
@@ -766,8 +770,7 @@ public class ImodManager {
     }
   }
 
-  public void quit() throws AxisTypeException, 
-      IOException {
+  public void quit() throws AxisTypeException, IOException {
     if (imodMap.size() == 0) {
       return;
     }
@@ -785,8 +788,25 @@ public class ImodManager {
     }
   }
 
-  public void disconnect() throws AxisTypeException, 
-      IOException {
+  void processRequest() throws AxisTypeException {
+    if (imodMap.size() == 0) {
+      return;
+    }
+    Set set = imodMap.keySet();
+    Iterator iterator = set.iterator();
+    while (iterator.hasNext()) {
+      Vector vector = getVector((String) iterator.next(), true);
+      int size = vector.size();
+      for (int i = 0; i < size; i++) {
+        ImodState imodState = (ImodState) vector.get(i);
+        if (imodState != null) {
+          imodState.processRequest();
+        }
+      }
+    }
+  }
+
+  public void disconnect() throws AxisTypeException, IOException {
     if (imodMap.size() == 0) {
       return;
     }
@@ -955,6 +975,13 @@ public class ImodManager {
     ImodState imodState = get(key, axisID, vectorIndex);
     if (imodState != null) {
       imodState.setWorkingDirectory(workingDirectory);
+    }
+  }
+
+  public void stopRequestHandler() {
+    //System.out.println("stopRequestHandler");
+    if (requestHandler != null) {
+      requestHandler.stop();
     }
   }
 
