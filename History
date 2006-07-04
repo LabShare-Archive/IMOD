@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/4/06: Fixed finishjoin problems with line endings on Windows (in 3.7).
+
 7/3/06: Fixed running of Tiltalign from Bead Fixer on WIndows (also broken bt
 new communication scheme) and switched to using Qt process instead of thread
 to run it (no more flashing DOS window).
