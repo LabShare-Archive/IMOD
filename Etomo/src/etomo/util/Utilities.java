@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.48  2006/06/30 16:30:54  sueh
+ * <p> $bug# 883 Replaced getEnvironmentVariable() with EnvironmentVariable, a class
+ * <p> $to get and store environment variables.
+ * <p> $
  * <p> $Revision 3.47  2006/06/14 00:47:26  sueh
  * <p> $bug# 852 Changed the int type to an inner Type claass.
  * <p> $
@@ -390,10 +394,12 @@ public class Utilities {
         }
         System.err.println("Unable to rename log file to: "
             + destination.getAbsolutePath());
-        String message = "Unable to rename " + source.getAbsolutePath()
-            + " to " + destination.getAbsolutePath();
-
-        throw (new IOException(message));
+        StringBuffer message = new StringBuffer("Unable to rename " + source.getAbsolutePath()
+            + " to " + destination.getAbsolutePath());
+        if (isWindowsOS()) {
+          message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
+        }
+        throw (new IOException(message.toString()));
       }
     }
   }
