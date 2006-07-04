@@ -668,6 +668,8 @@ c         print *,iptbmin,iptamin,distmin,devavg,devmax
           iorig(ndat)=iconta(iptamin)
         endif
       enddo
+c
+      print *,ndat, ' pairs of points are available for fitting'
       if(ifadded.ne.0 .or. nTransCoord .gt. 0)then
 c         
 c         rebuild lists of actual contour numbers
@@ -787,12 +789,20 @@ c
         hiMaxLimRatio = 3.
         if (devmax .lt. loMaxAvgRatio * devavg .and.
      &      devmax .lt. loMaxLimRatio * stoplim) then
-          write(*,111)loMaxAvgRatio, devavg, loMaxLimRatio
-111       format('Since the maximum residual is less than',f6.1,
-     &        ' times the mean residual (', f8.2,')',/,' and less than',
-     &        f6.1, ' times the specified residual limit,',/,
-     &        ' this is probably due to distortion between the volumes,',/,
-     &        ' and you should probably just raise the residual limit')
+          if (nTransCoord .gt. 0) then
+            write(*,1115)
+1115        format('Since corresponding points were picked using coordinates ',
+     &          'from transferfid,',/,'this is almost certainly due to ',
+     &          'distortion between the volumes,',/,
+     &          ' and you should just raise the residual limit')
+          else
+            write(*,111)loMaxAvgRatio, devavg, loMaxLimRatio
+111         format('Since the maximum residual is less than',f6.1,
+     &          ' times the mean residual (', f8.2,')',/,' and less than',
+     &          f6.1, ' times the specified residual limit,',/,
+     &          ' this is probably due to distortion between the volumes,',/,
+     &          'and you should probably just raise the residual limit')
+          endif
         elseif (nTransCoord .gt. 0) then
           write(*,112)iorig(ipntmax)
 112       format('Since corresponding points were picked using coordinates ',
@@ -981,6 +991,9 @@ c     &          fidModY(numFid)
 
 c
 c       $Log$
+c       Revision 3.13  2006/05/05 14:20:28  mast
+c       Fixed Pip declaration and while(1)
+c
 c       Revision 3.12  2006/05/04 23:06:21  mast
 c       Added ability to use coordinates from transferfid to determine the match,
 c       made error messages specify A/B correctly if informed about direction of
