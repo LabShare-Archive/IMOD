@@ -30,6 +30,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2006/07/04 05:18:49  mast
+ * <p> Fix typo transferid in popup menu
+ * <p>
  * <p> Revision 3.28  2006/06/30 20:01:47  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called by the button action functions and saveAction() in
@@ -327,9 +330,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
    * Set the advanced state for the dialog box
    */
   public void updateAdvanced(boolean state) {
-    pnlBeadtrack.setAdvanced(state);
+    pnlBeadtrack.updateAdvanced(state);
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid.setAdvanced(state);
+      pnlTransferfid.updateAdvanced(state);
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }

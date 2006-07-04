@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2006/06/30 20:01:07  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.
+ * <p>
  * <p> Revision 3.36  2006/06/21 15:50:42  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -438,8 +443,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   }
 
   void updateAdvanced() {
-    pnlCrossCorrelation.setAdvanced(isAdvanced);
-    pnlPrenewst.setAdvanced(isAdvanced);
+    pnlCrossCorrelation.updateAdvanced(isAdvanced);
+    pnlPrenewst.updateAdvanced(isAdvanced);
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
