@@ -111,7 +111,7 @@ if ($joinroot == "" || (! -e $joinroot.info)) then
     exit 1
 endif
 
-set info1 = `head -n 1 $joinroot.info`
+set info1 = `head -n 1 $joinroot.info | sed '/[[:cntrl:]]/s///g'`
 @ ntomo = $info1[1]
 set ifsquoze = $info1[2]
 
@@ -133,15 +133,15 @@ if ($newsize == "" && $version > 1) set newsize = "$info1[3],$info1[4]"
 
 # Early versions just had list of filenames then list of inversion flags
 if ($version < 3) then
-    set matlist = `head -n 2 $joinroot.info | tail -n 1`
-    set invertlist = `head -n 3 $joinroot.info | tail -n 1`
+    set matlist = `head -n 2 $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
+    set invertlist = `head -n 3 $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
     set scalelist = ""
 else
 
 # Later versions have lines of information for all tomos, then tomo file names
 # one per line to handle spaces
-    set invertlist = `head -n 2 $joinroot.info | tail -n 1`
-    set scalelist = `head -n 3 $joinroot.info | tail -n 1`
+    set invertlist = `head -n 2 $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
+    set scalelist = `head -n 3 $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
     if ($#scalelist < $ntomo) then
         echo "ERROR: $pn - $joinroot.info does not have enough scaling entries"
         exit 1
@@ -160,10 +160,12 @@ else
     @ ind = 0
     while ($ind < $ntomo)
         @ ind++
-        set matlist[$ind] = `head -n $linestart $joinroot.info | tail -n 1`
+        set matlist[$ind] = `head -n $linestart $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
         @ linestart++
     end
 endif
+
+echo $matlist
 
 if ($#argv != $ntomo) then
     echo "ERROR: $pn - You entered $#argv Z-ranges but $ntomo are required"
@@ -381,6 +383,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.15  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.14  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
