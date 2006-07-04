@@ -71,6 +71,12 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.91  2006/06/30 20:04:12  sueh
+ * bug# 877 Calling all the done dialog functions from the dialog done() functions,
+ * which is called by the button action functions and saveAction() in
+ * ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * false after the done dialog function is called.
+ *
  * Revision 3.90  2006/06/21 15:55:14  sueh
  * bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  *
@@ -821,8 +827,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     if (tomoGenTiltParallel == null) {
       cbParallelProcess.setSelected(validAutodoc
           && metaData.getDefaultParallel().is());
-    }
-    else {
+    } else {
       cbParallelProcess.setSelected(validAutodoc && tomoGenTiltParallel.is());
     }
     updateParallelProcess();
@@ -904,8 +909,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     // the default of 1 to keep from cluttering up the com script  
     if (binning > 1) {
       newstParam.setBinByFactor(binning);
-    }
-    else {
+    } else {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
   }
@@ -936,8 +940,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       if (ltfTomoWidth.getText().matches("\\S+")) {
         badParameter = ltfTomoWidth.getLabel();
         tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()));
-      }
-      else {
+      } else {
         tiltParam.resetWidth();
       }
 
@@ -945,8 +948,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       if (ltfZOffset.getText().matches("\\S+")) {
         badParameter = ltfZOffset.getLabel();
         tiltParam.setZOffset(Float.parseFloat(ltfZOffset.getText()));
-      }
-      else {
+      } else {
         tiltParam.resetZOffset();
       }
 
@@ -954,12 +956,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       if (ltfXOffset.getText().matches("\\S+")) {
         badParameter = ltfXOffset.getLabel();
         tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()));
-      }
-      else if (ltfZOffset.getText().matches("\\S+")) {
+      } else if (ltfZOffset.getText().matches("\\S+")) {
         tiltParam.setXOffset(0);
         ltfXOffset.setText(0.0);
-      }
-      else {
+      } else {
         tiltParam.resetXOffset();
       }
 
@@ -971,12 +971,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         badParameter = ltfSliceStop.getLabel();
         tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
         sliceRangeSpecified = true;
-      }
-      else if (ltfSliceStart.getText().matches("^\\s*$")
+      } else if (ltfSliceStart.getText().matches("^\\s*$")
           && ltfSliceStop.getText().matches("^\\s*$")) {
         tiltParam.resetIdxSlice();
-      }
-      else {
+      } else {
         throw (new InvalidParameterException(
             "You must supply both the first and last slices if you want to specify either."));
       }
@@ -984,29 +982,25 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         if (sliceRangeSpecified) {
           badParameter = ltfSliceIncr.getLabel();
           tiltParam.setIncrSlice(Integer.parseInt(ltfSliceIncr.getText()));
-        }
-        else {
+        } else {
           throw (new InvalidParameterException(
               "You must supply both the first and last slices to specify the slice step."));
         }
-      }
-      else {
+      } else {
         tiltParam.resetIncrSlice();
       }
 
       if (ltfTomoThickness.getText().matches("\\S+")) {
         badParameter = ltfTomoThickness.getLabel();
         tiltParam.setThickness(ltfTomoThickness.getText());
-      }
-      else {
+      } else {
         tiltParam.resetThickness();
       }
 
       if (ltfXAxisTilt.getText().matches("\\S+")) {
         badParameter = ltfXAxisTilt.getLabel();
         tiltParam.setXAxisTilt(ltfXAxisTilt.getText());
-      }
-      else {
+      } else {
         tiltParam.resetXAxisTilt();
       }
 
@@ -1014,8 +1008,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         badParameter = ltfTiltAngleOffset.getLabel();
         tiltParam.setTiltAngleOffset(Float.parseFloat(ltfTiltAngleOffset
             .getText()));
-      }
-      else {
+      } else {
         tiltParam.resetTiltAngleOffset();
       }
 
@@ -1026,8 +1019,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         badParameter = ltfRadialFallOff.getLabel();
         tiltParam
             .setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
-      }
-      else {
+      } else {
         tiltParam.resetRadialFilter();
       }
 
@@ -1037,16 +1029,14 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         tiltParam.setScaleCoeff(Float.parseFloat(ltfDensityScale.getText()));
         badParameter = ltfDensityOffset.getLabel();
         tiltParam.setScaleFLevel(Float.parseFloat(ltfDensityOffset.getText()));
-      }
-      else {
+      } else {
         tiltParam.resetScale();
       }
 
       if (ltfLogOffset.getText().matches("\\S+")) {
         badParameter = ltfLogOffset.getLabel();
         tiltParam.setLogShift(Float.parseFloat(ltfLogOffset.getText()));
-      }
-      else {
+      } else {
         tiltParam.setLogShift(Float.NaN);
       }
 
@@ -1055,8 +1045,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         tiltParam.setLocalAlignFile(applicationManager.getMetaData()
             .getDatasetName()
             + axisID.getExtension() + "local.xf");
-      }
-      else {
+      } else {
         tiltParam.setLocalAlignFile("");
       }
       metaData.setUseLocalAlignments(axisID, cbBoxUseLocalAlignment
@@ -1123,15 +1112,13 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     if (filterHeader != null) {
       if (filterHeader.equalsOpenClose(button)) {
         filterBodyPanel.setVisible(button.isExpanded());
-      }
-      else if (filterHeader.equalsAdvancedBasic(button)) {
+      } else if (filterHeader.equalsAdvancedBasic(button)) {
         updateAdvancedFilter(button.isExpanded());
       }
     }
     if (newstHeader != null && newstHeader.equalsOpenClose(button)) {
       newstBodyPanel.setVisible(button.isExpanded());
-    }
-    else if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
+    } else if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
       trialBodyPanel.setVisible(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -1213,8 +1200,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       newstHeader = PanelHeader.getInstance("Blendmont", this, dialogType);
-    }
-    else {
+    } else {
       newstHeader = PanelHeader.getInstance("Newstack", this, dialogType);
     }
     //initialization
@@ -1308,8 +1294,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess = new CheckBox(ParallelPanel.TITLE
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
-    }
-    else {
+    } else {
       cbParallelProcess = new CheckBox(ParallelPanel.TITLE);
     }
     //panels
@@ -1438,8 +1423,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
       if (cameraDir.exists()) {
         currentMtfDirectory = cameraDir.getAbsolutePath();
-      }
-      else {
+      } else {
         currentMtfDirectory = applicationManager.getPropertyUserDir();
       }
     }
@@ -1473,8 +1457,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       alignManpage = "blendmont";
       alignLogfileLabel = "Blend";
       alignLogfile = "blend";
-    }
-    else {
+    } else {
       alignManpageLabel = "Newstack";
       alignManpage = "newstack";
       alignLogfileLabel = "Newst";
@@ -1504,8 +1487,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
       //btnFilter.setSelected(false);
       btnUseFilter.setEnabled(true);
-    }
-    else {
+    } else {
       btnUseFilter.setEnabled(false);
     }
   }
@@ -1521,16 +1503,17 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   protected void updateFiducialess() {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
-  
-  public void done() {
-    btnNewst.removeActionListener(tomogramGenerationListener);
-    btnTilt.removeActionListener(tomogramGenerationListener);
-    btnDeleteStack.removeActionListener(tomogramGenerationListener);
-    btnUseFilter.removeActionListener(tomogramGenerationListener);
-    btnUseTrial.removeActionListener(tomogramGenerationListener);
-    btnFilter.removeActionListener(tomogramGenerationListener);
-    setDisplayed(false);
-    applicationManager.doneTomogramGenerationDialog(axisID);
+
+  protected void done() {
+    if (applicationManager.doneTomogramGenerationDialog(axisID)) {
+      btnNewst.removeActionListener(tomogramGenerationListener);
+      btnTilt.removeActionListener(tomogramGenerationListener);
+      btnDeleteStack.removeActionListener(tomogramGenerationListener);
+      btnUseFilter.removeActionListener(tomogramGenerationListener);
+      btnUseTrial.removeActionListener(tomogramGenerationListener);
+      btnFilter.removeActionListener(tomogramGenerationListener);
+      setDisplayed(false);
+    }
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -1545,14 +1528,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btn3dmodFull.getActionCommand())) {
       applicationManager.imodFineAlign(axisID, menuOptions);
-    }
-    else if (command.equals(btn3dmodTrial.getActionCommand())) {
+    } else if (command.equals(btn3dmodTrial.getActionCommand())) {
       applicationManager.imodTestVolume(axisID, menuOptions);
-    }
-    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
+    } else if (command.equals(btn3dmodTomogram.getActionCommand())) {
       applicationManager.imodFullVolume(axisID, menuOptions);
-    }
-    else if (command.equals(btnViewFilter.getActionCommand())) {
+    } else if (command.equals(btnViewFilter.getActionCommand())) {
       applicationManager.imodMTFFilter(axisID, menuOptions);
     }
   }
@@ -1562,14 +1542,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     String command = event.getActionCommand();
     if (command.equals(btnNewst.getActionCommand())) {
       applicationManager.newst(axisID, btnNewst);
-    }
-    else if (command.equals(btnFilter.getActionCommand())) {
+    } else if (command.equals(btnFilter.getActionCommand())) {
       applicationManager.mtffilter(axisID, btnFilter);
-    }
-    else if (command.equals(btnUseFilter.getActionCommand())) {
+    } else if (command.equals(btnUseFilter.getActionCommand())) {
       applicationManager.useMtfFilter(axisID, btnUseFilter);
-    }
-    else if (command.equals(btnTrial.getActionCommand())) {
+    } else if (command.equals(btnTrial.getActionCommand())) {
       String trialTomogramName = getTrialTomogramName();
       if (trialTomogramName == "") {
         String[] errorMessage = new String[2];
@@ -1586,32 +1563,24 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       }
       if (cbParallelProcess.isSelected()) {
         applicationManager.splittilt(axisID, true, btnTrial);
-      }
-      else {
+      } else {
         applicationManager.trialTilt(axisID, btnTrial);
       }
-    }
-    else if (command.equals(btnUseTrial.getActionCommand())) {
+    } else if (command.equals(btnUseTrial.getActionCommand())) {
       applicationManager.commitTestVolume(axisID, btnUseTrial);
-    }
-    else if (command.equals(btnTilt.getActionCommand())) {
+    } else if (command.equals(btnTilt.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
         applicationManager.splittilt(axisID, btnTilt);
-      }
-      else {
+      } else {
         applicationManager.tilt(axisID, btnTilt);
       }
-    }
-    else if (command.equals(btnDeleteStack.getActionCommand())) {
+    } else if (command.equals(btnDeleteStack.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID, btnDeleteStack);
-    }
-    else if (command.equals(cbFiducialess.getActionCommand())) {
+    } else if (command.equals(cbFiducialess.getActionCommand())) {
       updateFiducialess();
-    }
-    else if (command.equals(cbParallelProcess.getActionCommand())) {
+    } else if (command.equals(cbParallelProcess.getActionCommand())) {
       updateParallelProcess();
-    }
-    else {
+    } else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }

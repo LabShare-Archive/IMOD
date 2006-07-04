@@ -33,6 +33,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/06/30 20:00:19  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.
+ * <p>
  * <p> Revision 3.20  2006/02/06 21:20:27  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
@@ -257,7 +262,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   private Run3dmodButton btnViewResiduals = new Run3dmodButton(
       "<html><b>View Residual Vectors</b>", this);
-  
+
   private final AlignmentEstimationActionListner actionListener;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
@@ -308,8 +313,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
-    actionListener = new AlignmentEstimationActionListner(
-        this);
+    actionListener = new AlignmentEstimationActionListner(this);
 
     btnComputeAlignment.addActionListener(actionListener);
     btnView3DModel.addActionListener(actionListener);
@@ -388,11 +392,12 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel,
         logFile, applicationManager, alignCommandName, axisID);
   }
-  
+
   protected void done() {
-    btnComputeAlignment.removeActionListener(actionListener);
-    applicationManager.doneAlignmentEstimationDialog(axisID);
-    setDisplayed(false);
+    if (applicationManager.doneAlignmentEstimationDialog(axisID)) {
+      btnComputeAlignment.removeActionListener(actionListener);
+      setDisplayed(false);
+    }
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -414,8 +419,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, menuOptions, null);
-    }
-    else if (command.equals(btnViewResiduals.getActionCommand())) {
+    } else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, menuOptions);
     }
   }
@@ -425,11 +429,9 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     String command = event.getActionCommand();
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment);
-    }
-    else if (command.equals(btnView3DModel.getActionCommand())) {
+    } else if (command.equals(btnView3DModel.getActionCommand())) {
       applicationManager.imodView3DModel(axisID);
-    }
-    else {
+    } else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }

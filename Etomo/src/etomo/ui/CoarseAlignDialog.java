@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2006/07/04 18:47:02  sueh
+ * <p> bug# 893 Calling updateAdvanced(boolean) in panels to change the
+ * <p> headers when the advanced button is pressed.
+ * <p>
  * <p> Revision 3.37  2006/06/30 20:01:07  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called by the button action functions and saveAction() in
@@ -225,8 +229,8 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
-public final class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
-    FiducialessParams, Run3dmodButtonContainer {
+public final class CoarseAlignDialog extends ProcessDialog implements
+    ContextMenu, FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlCoarseAlign = new JPanel();
@@ -261,7 +265,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     fixRootPanel(rootSize);
-    pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID, dialogType);
+    pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID,
+        dialogType);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType);
     btnExecute.setText("Done");
 
@@ -317,13 +322,14 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     // Set the default advanced state for the window
     updateAdvanced();
   }
-  
+
   public static ProcessResultDisplay getCoarseAlignDisplay() {
     return PrenewstPanel.getCoarseAlignDisplay(DialogType.COARSE_ALIGNMENT);
   }
 
   public static ProcessResultDisplay getCrossCorrelateDisplay() {
-    return CrossCorrelationPanel.getCrossCorrelateDisplay(DialogType.COARSE_ALIGNMENT);
+    return CrossCorrelationPanel
+        .getCrossCorrelateDisplay(DialogType.COARSE_ALIGNMENT);
   }
 
   public static ProcessResultDisplay getDistortionCorrectedStackDisplay() {
@@ -335,10 +341,10 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     return MultiLineButton.getToggleButtonInstance("Fix Edges With Midas",
         DialogType.COARSE_ALIGNMENT);
   }
-  
+
   public static ProcessResultDisplay getMidasDisplay() {
-    return MultiLineButton
-    .getToggleButtonInstance("Fix Alignment With Midas", DialogType.COARSE_ALIGNMENT);
+    return MultiLineButton.getToggleButtonInstance("Fix Alignment With Midas",
+        DialogType.COARSE_ALIGNMENT);
   }
 
   /**
@@ -352,8 +358,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
             applicationManager.getPropertyUserDir(),
             applicationManager.getMetaData().getDatasetName(), axisID).exists()) {
       btnFixEdgesMidas.setEnabled(false);
-    }
-    else {
+    } else {
       btnFixEdgesMidas.setEnabled(true);
     }
   }
@@ -415,7 +420,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     btnDistortionCorrectedStack.setButtonState(screenState
         .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
   }
-  
+
   public void getParameters(BaseScreenState screenState) {
     pnlCrossCorrelation.getParameters(screenState);
     pnlPrenewst.getParameters(screenState);
@@ -461,8 +466,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
       alignManpage = "blendmont";
       alignLogfileLabel = "Preblend";
       alignLogfile = "preblend";
-    }
-    else {
+    } else {
       alignManpageLabel = "Newstack";
       alignManpage = "newstack";
       alignLogfileLabel = "Prenewst";
@@ -522,27 +526,25 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     String command = event.getActionCommand();
     if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID, btnMidas);
-    }
-    else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
+    } else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
       applicationManager.midasFixEdges(axisID, btnFixEdgesMidas);
-    }
-    else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
+    } else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
       applicationManager.makeDistortionCorrectedStack(axisID,
           btnDistortionCorrectedStack);
-    }
-    else {
+    } else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
-  
+
   protected void done() {
-    pnlCrossCorrelation.done();
-    pnlPrenewst.done();
-    btnDistortionCorrectedStack.removeActionListener(actionListener);
-    btnFixEdgesMidas.removeActionListener(actionListener);
-    btnMidas.removeActionListener(actionListener);
-    applicationManager.doneCoarseAlignDialog(axisID);
-    setDisplayed(false);
+    if (applicationManager.doneCoarseAlignDialog(axisID)) {
+      pnlCrossCorrelation.done();
+      pnlPrenewst.done();
+      btnDistortionCorrectedStack.removeActionListener(actionListener);
+      btnFixEdgesMidas.removeActionListener(actionListener);
+      btnMidas.removeActionListener(actionListener);
+      setDisplayed(false);
+    }
   }
 
   class CoarseAlignActionListener implements ActionListener {

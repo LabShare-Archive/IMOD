@@ -30,6 +30,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2006/07/04 18:47:37  sueh
+ * <p> bug# 893 Calling updateAdvanced(boolean) in panels to change the
+ * <p> headers when the advanced button is pressed.
+ * <p>
  * <p> Revision 3.29  2006/07/04 05:18:49  mast
  * <p> Fix typo transferid in popup menu
  * <p>
@@ -363,7 +367,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       throws FortranInputSyntaxException, InvalidEtomoNumberException {
     pnlBeadtrack.getParameters(beadtrackParams);
   }
-  
+
   public void getParameters(BaseScreenState screenState) {
     pnlBeadtrack.getParameters(screenState);
     if (pnlTransferfid != null) {
@@ -437,8 +441,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnSeed.getActionCommand())) {
       applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
-    }
-    else if (command.equals(btnFixModel.getActionCommand())) {
+    } else if (command.equals(btnFixModel.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel);
     }
   }
@@ -449,21 +452,21 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     if (btnTransferFiducials != null
         && command.equals(btnTransferFiducials.getActionCommand())) {
       applicationManager.transferfid(axisID, btnTransferFiducials);
-    }
-    else {
+    } else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
-  
+
   protected void done() {
-    if (btnTransferFiducials != null) {
-      btnTransferFiducials.removeActionListener(actionListener);
+    if (applicationManager.doneFiducialModelDialog(axisID)) {
+      if (btnTransferFiducials != null) {
+        btnTransferFiducials.removeActionListener(actionListener);
+      }
+      btnSeed.removeActionListener(actionListener);
+      btnFixModel.removeActionListener(actionListener);
+      pnlBeadtrack.done();
+      setDisplayed(false);
     }
-    btnSeed.removeActionListener(actionListener);
-    btnFixModel.removeActionListener(actionListener);
-    pnlBeadtrack.done();
-    applicationManager.doneFiducialModelDialog(axisID);
-    setDisplayed(false);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

@@ -27,6 +27,12 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/06/30 20:02:35  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.
+ * <p>
  * <p> Revision 3.9  2006/02/06 21:21:16  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
@@ -109,14 +115,13 @@ import etomo.comscript.CCDEraserParam;
  * <p> </p>
  */
 public class PreProcessingDialog extends ProcessDialog {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
-  private JLabel textDM2MRC =
-    new JLabel("No digital micrograph files detected:  ");
+  private JLabel textDM2MRC = new JLabel(
+      "No digital micrograph files detected:  ");
   private JPanel pnlDMConvert = new JPanel();
-  private CheckBox cbUniqueHeaders =
-    new CheckBox("Digital micrograph files have unique headers");
+  private CheckBox cbUniqueHeaders = new CheckBox(
+      "Digital micrograph files have unique headers");
 
   private JPanel pnlEraser = new JPanel();
   private CCDEraserPanel panelCCDEraser;
@@ -124,15 +129,15 @@ public class PreProcessingDialog extends ProcessDialog {
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
     panelCCDEraser = new CCDEraserPanel(appManager, axisID, dialogType);
-    
+
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     //  Build the digital micrograph panel
     pnlDMConvert.setLayout(new BoxLayout(pnlDMConvert, BoxLayout.Y_AXIS));
-    pnlDMConvert.setBorder(
-      new BeveledBorder("Digital Micrograph Conversion").getBorder());
+    pnlDMConvert.setBorder(new BeveledBorder("Digital Micrograph Conversion")
+        .getBorder());
     pnlDMConvert.add(textDM2MRC);
     pnlDMConvert.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlDMConvert.add(cbUniqueHeaders);
@@ -151,18 +156,18 @@ public class PreProcessingDialog extends ProcessDialog {
     rootPanel.add(pnlEraser);
     addExitButtons();
 
-   //  Set the default advanced state for the window, this also executes
+    //  Set the default advanced state for the window, this also executes
     updateAdvanced();
   }
-  
+
   public static ProcessResultDisplay getFindXRaysDisplay() {
     return CCDEraserPanel.getFindXRaysDisplay(DialogType.PRE_PROCESSING);
   }
-  
+
   public static ProcessResultDisplay getCreateFixedStackDisplay() {
     return CCDEraserPanel.getCreateFixedStackDisplay(DialogType.PRE_PROCESSING);
   }
-  
+
   public static ProcessResultDisplay getUseFixedStackDisplay() {
     return CCDEraserPanel.getUseFixedStackDisplay(DialogType.PRE_PROCESSING);
   }
@@ -173,7 +178,7 @@ public class PreProcessingDialog extends ProcessDialog {
   public void setCCDEraserParams(ConstCCDEraserParam ccdEraserParams) {
     panelCCDEraser.setParameters(ccdEraserParams);
   }
-  
+
   public final void setParameters(ReconScreenState screenState) {
     panelCCDEraser.setParameters(screenState);
   }
@@ -203,11 +208,11 @@ public class PreProcessingDialog extends ProcessDialog {
     cbUniqueHeaders.setSelected(false);
     pnlDMConvert.setVisible(false);
   }
-  
+
   protected void done() {
-    panelCCDEraser.done();
-    applicationManager.donePreProcDialog(axisID);
-    setDisplayed(false);
+    if (applicationManager.donePreProcDialog(axisID)) {
+      panelCCDEraser.done();
+      setDisplayed(false);
+    }
   }
 }
-

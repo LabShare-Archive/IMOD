@@ -240,10 +240,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   protected void done() {
+    if (applicationManager.donePostProcessing()) {
     btnSqueezeVolume.removeActionListener(actionListener);
     trimvolPanel.done();
-    applicationManager.donePostProcessing();
-    setDisplayed(false);
+    setDisplayed(false);}
   }
 
   class PostProcessingDialogActionListener implements ActionListener {
@@ -285,6 +285,12 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2006/06/30 20:02:18  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.
+ * <p>
  * <p> Revision 3.27  2006/06/21 15:54:19  sueh
  * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
  * <p> be run.

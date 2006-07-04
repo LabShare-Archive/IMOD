@@ -50,6 +50,12 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2006/06/30 20:03:54  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.
+ * <p>
  * <p> Revision 3.41  2006/06/21 15:55:04  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -689,8 +695,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     if (getExitState() != DialogExitState.CANCEL) {
       synchronize(tabbedPane.getTitleAt(idxLastTab), true);
     }
-    applicationManager.doneTomogramCombinationDialog();
-    setDisplayed(false);
+    if (applicationManager.doneTomogramCombinationDialog()) {
+      setDisplayed(false);
+    }
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
