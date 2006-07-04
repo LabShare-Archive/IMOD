@@ -36,6 +36,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2006/06/30 20:04:25  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.
+ * <p>
  * <p> Revision 3.45  2006/06/21 15:55:26  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -319,7 +325,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   private final CalcPanel cpTiltAngleOffset = new CalcPanel("Angle offset");
 
-  private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift: ");
+  private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift");
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");
 
   private final MultiLineButton btnAlign;
