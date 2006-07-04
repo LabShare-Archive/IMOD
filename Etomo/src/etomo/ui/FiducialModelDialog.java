@@ -30,6 +30,12 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2006/06/30 20:01:47  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.
+ * <p>
  * <p> Revision 3.27  2006/06/28 18:44:50  sueh
  * <p> bug# 889 done():  Calling beadtrack done.
  * <p>
@@ -396,7 +402,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     String[] manPagelabel = { "Transferfid", "Beadtrack", "3dmod" };
     String[] manPage = { "transferfid.html", "beadtrack.html", "3dmod.html" };
 
-    String[] logFileLabel = { "Track", "Transferid" };
+    String[] logFileLabel = { "Track", "Transferfid" };
     String[] logFile = new String[2];
     logFile[0] = "track" + axisID.getExtension() + ".log";
     logFile[1] = "transferfid.log";
