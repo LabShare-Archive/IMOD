@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2006/07/04 05:35:12  mast
+ * <p> Fixed double colon on Z shift display
+ * <p>
  * <p> Revision 3.46  2006/06/30 20:04:25  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
  * <p> which is called by the button action functions and saveAction() in
@@ -320,19 +323,13 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       "<html><b>Create Boundary Model</b>", this);
 
   private final MultiLineButton btnTomopitch;
-
   private JPanel pnlFinalAlign = new JPanel();
-
   private final CalcPanel cpTiltAngleOffset = new CalcPanel("Angle offset");
-
   private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift");
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");
-
   private final MultiLineButton btnAlign;
   private final TomogramPositioningExpert expert;
-
   static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
-
   private final LocalActionListener localActionListener;
 
   public TomogramPositioningDialog(ApplicationManager appMgr,
@@ -411,11 +408,9 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnCreateBoundary.addActionListener(localActionListener);
     btnTomopitch.addActionListener(localActionListener);
     btnAlign.addActionListener(localActionListener);
-
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
@@ -517,11 +512,11 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setSampleThickness(ConstEtomoNumber sampleThickness) {
     ltfSampleThickness.setText(sampleThickness.toString());
   }
-  
+
   boolean isTomopitchButtonSelected() {
     return btnTomopitch.isSelected();
   }
-  
+
   boolean isAlignButtonSelected() {
     return btnAlign.isSelected();
   }
@@ -581,12 +576,10 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     String[] manPagelabel = { "Tomopitch", "Newstack", "3dmod", "Tilt" };
     String[] manPage = { "tomopitch.html", "newstack.html", "3dmod.html",
         "tilt.html" };
-
     String[] logFileLabel = { "Tomopitch", "Sample" };
     String[] logFile = new String[2];
     logFile[0] = "tomopitch" + axisID.getExtension() + ".log";
     logFile[1] = "sample" + axisID.getExtension() + ".log";
-
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM POSITIONING", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
@@ -608,24 +601,18 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     if (command.equals(btnSample.getActionCommand())) {
       if (cbWholeTomogram.isSelected()) {
         expert.wholeTomogram(btnSample);
-      }
-      else {
+      } else {
         expert.createSample(btnSample);
       }
-    }
-    else if (command.equals(btnTomopitch.getActionCommand())) {
+    } else if (command.equals(btnTomopitch.getActionCommand())) {
       expert.tomopitch(btnTomopitch);
-    }
-    else if (command.equals(btnAlign.getActionCommand())) {
+    } else if (command.equals(btnAlign.getActionCommand())) {
       expert.finalAlign(btnAlign);
-    }
-    else if (command.equals(cbFiducialess.getActionCommand())) {
+    } else if (command.equals(cbFiducialess.getActionCommand())) {
       expert.updateFiducialessDisplay(cbFiducialess.isSelected());
-    }
-    else if (command.equals(cbWholeTomogram.getActionCommand())) {
+    } else if (command.equals(cbWholeTomogram.getActionCommand())) {
       expert.updateFiducialessDisplay(cbFiducialess.isSelected());
-    }
-    else {
+    } else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
@@ -633,8 +620,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   private void createBoundary(Run3dmodMenuOptions menuOptions) {
     if (cbWholeTomogram.isSelected()) {
       applicationManager.imodFullSample(axisID, menuOptions);
-    }
-    else {
+    } else {
       applicationManager.imodSample(axisID, menuOptions);
     }
   }
@@ -670,13 +656,14 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setSampleButtonToolTip(String formattedToolTip) {
     btnSample.setToolTipText(formattedToolTip);
   }
-  
+
   public void done() {
-    btnSample.removeActionListener(localActionListener);
-    btnTomopitch.removeActionListener(localActionListener);
-    btnAlign.removeActionListener(localActionListener);
-    expert.doneDialog();
-    setDisplayed(false);
+    if (expert.doneDialog()) {
+      btnSample.removeActionListener(localActionListener);
+      btnTomopitch.removeActionListener(localActionListener);
+      btnAlign.removeActionListener(localActionListener);
+      setDisplayed(false);
+    }
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -692,7 +679,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   //	Action listener adapters
   //
   class LocalActionListener implements ActionListener {
-
     TomogramPositioningDialog adaptee;
 
     LocalActionListener(TomogramPositioningDialog adaptee) {
@@ -715,19 +701,15 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     ltfSampleThickness.setToolTipText(tooltipFormatter.setText(text).format());
     text = SAMPLE_TOMOGRAMS_TOOLTIP;
     btnSample.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Open samples in 3dmod to make a model with lines along top and bottom "
         + "edges of the section in each sample.";
     btnCreateBoundary.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Run tomopitch.  You need to examine the log file to determine the"
         + "Z shift, additional angle offset, and X-axis tilt.";
     btnTomopitch.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Add the additional offset from tomopitch to the amount already "
         + "shown here to get the total offset.";
     cpTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-
     cpXAxisTilt
         .setToolTipText(tooltipFormatter
             .setText(
@@ -738,22 +720,17 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     text = "Add the additional shift from tomopitch to the amount shown here to get "
         + "the total shift.";
     cpTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Run tiltalign with these final offset parameters.";
     btnAlign.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Generate an entire tomogram instead of 3 samples and draw boundary "
         + "lines in this tomogram.";
     cbWholeTomogram.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Set the binning for the whole tomogram to be used for positioning."
         + "  With a binned tomogram, the tomopitch output and entries for "
         + "offset and thickness will still be in unbinned pixels.";
     spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Use cross-correlation alignment only.";
     cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
-
     text = "Rotation angle of tilt axis for generating aligned stack from "
         + "cross-correlation alignment only.";
     ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
@@ -762,7 +739,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   public static final class CalcPanel {
     public static final String ADDED_KEY = "Added";
     public static final int MAX_DIGITS = 6;
-
     private final SpacedPanel panel = new SpacedPanel();
     private final JLabel label;
     private final LabeledTextField ltfOriginal = new LabeledTextField(
@@ -770,7 +746,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     private final LabeledTextField ltfAdded = new LabeledTextField(
         ADDED_KEY + ':');
     private final LabeledTextField ltfTotal = new LabeledTextField("Total:");
-
     //utility field
     private final EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     private boolean more = true;
@@ -834,8 +809,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     private void set(ConstEtomoNumber number, LabeledTextField field) {
       if (number == null || number.isNull() || !number.isValid()) {
         field.setText("0.0");
-      }
-      else {
+      } else {
         field.setText(number.toString());
       }
     }
