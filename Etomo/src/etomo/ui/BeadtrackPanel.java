@@ -36,6 +36,11 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/06/16 15:24:59  sueh
+ * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
+ * <p> dialog.  Added open/close and adv/basic button.  Placed expert parameters in
+ * <p> a separate box with an open/close button.
+ * <p>
  * <p> Revision 3.12  2006/01/12 17:06:14  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
@@ -299,6 +304,13 @@ public final class BeadtrackPanel implements Expandable {
   public static ProcessResultDisplay getTrackFiducialsDisplay(DialogType dialogType) {
     return MultiLineButton.getToggleButtonInstance(TRACK_LABEL,
         dialogType);
+  }
+  
+  /**
+   * Update the header with the current advanced state
+   */
+  void updateAdvanced(boolean isAdvanced) {
+    header.setAdvanced(isAdvanced);
   }
 
   public void expand(ExpandButton button) {
