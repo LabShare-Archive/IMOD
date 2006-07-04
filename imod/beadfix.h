@@ -29,30 +29,13 @@ class BeadFixerModule : public SpecialModule
   BeadFixerModule();
 };
 
-#ifdef QT_THREAD_SUPPORT
-#define FIXER_CAN_RUN_ALIGN
-#endif
-
-#ifdef FIXER_CAN_RUN_ALIGN
-#include <qthread.h>
-
-class AlignThread : public QThread
-{
- public:
-  AlignThread() {};
-  ~AlignThread() {};
-
- protected:
-  void run();
-};
-#endif
-
 
 class QPushButton;
 class QCheckBox;
 class QSpinBox;
 class QHBox;
 class QVButtonGroup;
+class QProcess;
 
 // A structure to hold all of the residual data that is read in, plus what
 // local area it is in and whether it has been looked at in this run-through
@@ -96,6 +79,7 @@ class BeadFixer : public DialogFrame
   int findCenter(float &imx, float &imy, int curz);
   int executeMessage(QStringList *strings, int *arg);
   void findGap(int idir);
+  QCheckBox *overlayBox;
 
   public slots:
   void buttonPressed(int which);
@@ -123,8 +107,8 @@ class BeadFixer : public DialogFrame
   void overlayChanged(int value);
   void keepOnTop(bool state);
   void runAlign();
+  void alignExited();
   void setFontDependentWidths();
-  QCheckBox *overlayBox;
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -192,14 +176,15 @@ class BeadFixer : public DialogFrame
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;
-#ifdef FIXER_CAN_RUN_ALIGN
-  AlignThread *mTaThread;
-#endif
+  QProcess *mAlignProcess;
 };
 
 #endif
 /*
 $Log$
+Revision 1.15  2006/07/03 04:12:19  mast
+Overlay mode, operating mode, new gap fizing functions
+
 Revision 1.14  2006/03/01 18:17:50  mast
 Added variables to keep track of moving all in local area
 

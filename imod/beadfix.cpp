@@ -34,6 +34,7 @@
 #include <qdir.h>
 #include <qstringlist.h>
 #include <qfile.h>
+#include <qprocess.h>
 
 
 /*#include "../../imod/imod.h"
@@ -343,9 +344,7 @@ int BeadFixer::openFileByName(const char *filename)
     return 1;
 
   rereadBut->setEnabled(true);    
-#ifdef FIXER_CAN_RUN_ALIGN
   runAlignBut->setEnabled(true);
-#endif
   return 0;
 }
 
@@ -1623,12 +1622,10 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
   QToolTip::add(openFileBut, "Select an alignment log file to open");
 
-#ifdef FIXER_CAN_RUN_ALIGN
   runAlignBut = diaPushButton("Save && Run Tiltalign", this, mLayout);
   connect(runAlignBut, SIGNAL(clicked()), this, SLOT(runAlign()));
   runAlignBut->setEnabled(false);
   QToolTip::add(runAlignBut, "Save model and run Tiltalign");
-#endif
 
   rereadBut = diaPushButton("Reread Log File", this, mLayout);
   connect(rereadBut, SIGNAL(clicked()), this, SLOT(rereadFile()));
@@ -1697,13 +1694,14 @@ void BeadFixer::keepOnTop(bool state)
 #ifdef STAY_ON_TOP_HACK
   mStayOnTop = state;
 
-  // Only kill the timer if it is not needed for tiltalign thread
-  if (mTopTimerID && !(state || mRunningAlign)) {
+  // Start or kill the timer
+  if (state)
+    mTopTimerID = startTimer(200);
+  else if (mTopTimerID) {
     killTimer(mTopTimerID);
     mTopTimerID = 0;
   }
-  if (state)
-    mTopTimerID = startTimer(200);
+
 #else
   int flags = getWFlags();
   if (state)
@@ -1724,54 +1722,78 @@ void BeadFixer::timerEvent(QTimerEvent *e)
 {
   if (mStayOnTop)
     raise();
-#ifdef FIXER_CAN_RUN_ALIGN
-
-  // Check if tiltalign is done, clean up and reenable buttons
-  if (mRunningAlign) {
-    if (mTaThread->running())
-      return;
-    if (plug->alignExitCode == ERROR_NO_IMOD_DIR)
-      wprint("\aCannot run tiltalign; IMOD_DIR not defined.");
-    else if (plug->alignExitCode) 
-      wprint("\aError (return code %d) running tiltalign.", 
-             plug->alignExitCode);
-    delete mTaThread;
-    mRunningAlign = false;
-    if (!mStayOnTop && mTopTimerID) {
-      killTimer(mTopTimerID);
-      mTopTimerID = 0;
-    }
-    if (reread() <= 0) {
-      rereadBut->setEnabled(true);
-      runAlignBut->setEnabled(true);
-      openFileBut->setEnabled(true);
-    }
-  }
-#endif
 }
 
-// Routine to run tilalign: it needs to start the thread to make the
+// Routine to run tiltalign: it needs to start the thread to make the
 // system call, start a timer to watch results, and disable buttons
 void BeadFixer::runAlign()
 {
   if (mRunningAlign || !plug->filename)
     return;
-#ifdef FIXER_CAN_RUN_ALIGN
-  inputSaveModel(plug->view);
-  mTaThread = new AlignThread;
-  mTaThread->start();
-  plug->alignExitCode = 0;
 
-  // Kill timer if no longer needed
-  if (!mStayOnTop)
-    mTopTimerID = startTimer(200);
+  inputSaveModel(plug->view);
+
+  QString comStr, fileStr, vmsStr;
+  int dotPos;
+  char *imodDir = getenv("IMOD_DIR");
+  char *cshell = getenv("IMOD_CSHELL");
+  if (!imodDir) {
+    wprint("\aCannot run tiltalign; IMOD_DIR not defined.\n");
+    return;
+  }
+  if (!cshell)
+    cshell = "tcsh";
+  fileStr = plug->filename;
+  
+  // Remove the leading path and the extension
+  dotPos = fileStr.findRev('/');
+  if (dotPos >= 0)
+    fileStr = fileStr.right(fileStr.length() - dotPos - 1);
+  dotPos = fileStr.findRev('.');
+  if (dotPos > 0)
+    fileStr.truncate(dotPos);
+
+  // 7/3/06: The old way was to run vmstocsh and pipe to tcsh in a "system"
+  // command inside a thread - but in Windows it hung with -L listening to 
+  // stdin.  This way worked through "system" call but QProcess is cleaner
+  vmsStr = QString(imodDir) + "/bin/submfg -q";
+  comStr.sprintf("%s -f %s %s", cshell, 
+                 (QDir::convertSeparators(vmsStr)).latin1(), fileStr.latin1());
+
+  mAlignProcess = new QProcess(QStringList::split(" ", comStr));
+  connect(mAlignProcess, SIGNAL(processExited()), this, SLOT(alignExited()));
+  if (!mAlignProcess->start()) {
+    wprint("\aError trying to start tiltalign process.\n");
+    return;
+  }
+
   mRunningAlign = true;
   rereadBut->setEnabled(false);
   openFileBut->setEnabled(false);
   runAlignBut->setEnabled(false);
   nextResBut->setEnabled(false);
   nextLocalBut->setEnabled(false);
-#endif
+}
+
+// When align exits, check the status and reenable buttons
+void BeadFixer::alignExited()
+{
+  int err;
+
+  // Check if exit staus, clean up and reenable buttons
+  if (!mAlignProcess->normalExit())
+    wprint("\aAbnormal exit trying to run tiltalign.\n");
+  else if ((err = mAlignProcess->exitStatus()))
+    wprint("\aError (return code %d) running tiltalign.\n", err);
+
+  delete mAlignProcess;
+  mRunningAlign = false;
+
+  if (reread() <= 0) {
+    rereadBut->setEnabled(true);
+    runAlignBut->setEnabled(true);
+    openFileBut->setEnabled(true);
+  }
 }
 
 // The window is closing, remove from manager
@@ -1779,11 +1801,10 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
 {
   double posValues[NUM_SAVED_VALS];
 
-  // reject if running thread
-  if (mRunningAlign) {
-    e->ignore();
-    return;
-  }
+  // Delete the process object to disconnect
+  if (mRunningAlign)
+    delete mAlignProcess;
+  mRunningAlign = false;
 
   // Get geometry and save in settings and in structure for next time
   QRect pos = ivwRestorableGeometry(plug->window);
@@ -1845,9 +1866,7 @@ void BeadFixer::setFontDependentWidths()
   resetStartBut->setFixedWidth(width);
   resetCurrentBut->setFixedWidth(width);
   openFileBut->setFixedWidth(width);
-#ifdef FIXER_CAN_RUN_ALIGN
   runAlignBut->setFixedWidth(width);
-#endif
   rereadBut->setFixedWidth(width);
   nextLocalBut->setFixedWidth(width);
   nextResBut->setFixedWidth(width);
@@ -1879,42 +1898,11 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
-#ifdef FIXER_CAN_RUN_ALIGN
-// Thread to run tiltalign provided that IMOD_DIR is defined
-void AlignThread::run()
-{
-  QString comStr, fileStr, vmsStr;
-  int dotPos;
-  char *imodDir = getenv("IMOD_DIR");
-  char *cshell = getenv("IMOD_CSHELL");
-  if (!imodDir) {
-    plug->alignExitCode = ERROR_NO_IMOD_DIR;
-    return;
-  }
-  if (!cshell)
-    cshell = "tcsh";
-  fileStr = plug->filename;
-  
-  // Remove the leading path and the extension
-  dotPos = fileStr.findRev('/');
-  if (dotPos >= 0)
-    fileStr = fileStr.right(fileStr.length() - dotPos - 1);
-  dotPos = fileStr.findRev('.');
-  if (dotPos > 0)
-    fileStr.truncate(dotPos);
-
-  // 7/3/06: The old way was to run vmstocsh and pipe to tcsh in the command
-  // A wonder it ever worked in Windows, but it hung with -L listening to stdin
-  // So now run it through submfg and it is OK for now (try QProcess next)
-  vmsStr = QString(imodDir) + "/bin/submfg -q";
-  comStr.sprintf("%s -f %s %s", cshell, 
-                 (QDir::convertSeparators(vmsStr)).latin1(), fileStr.latin1());
-  plug->alignExitCode = system(comStr.latin1());
-}
-#endif
-
 /*
     $Log$
+    Revision 1.33  2006/07/03 23:28:11  mast
+    Converted system call to call tcsh submfg to fix windows hang with -L mode
+
     Revision 1.32  2006/07/03 21:16:49  mast
     Fixed saving of show mode and made it move arrow up as well as down
 
