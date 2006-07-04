@@ -200,9 +200,9 @@ public final class TomogramPositioningExpert implements UIExpert {
     dialog.saveAction();
   }
 
-  void doneDialog() {
+  boolean doneDialog() {
     if (dialog == null) {
-      return;
+      return true;
     }
     if (dialog.getExitState() == DialogExitState.EXECUTE) {
       if (dialog.isTomopitchButtonSelected() && !dialog.isAlignButtonSelected()) {
@@ -210,12 +210,13 @@ public final class TomogramPositioningExpert implements UIExpert {
             .openYesNoWarningDialog(
                 "Final alignment is not done or is out of date.\nReally leave Tomogram Positioning?",
                 axisID)) {
-          return;
+          return false;
         }
       }
     }
     saveDialog();
     dialog = null;
+    return true;
   }
 
   public void saveDialog(DialogExitState exitState) {
@@ -817,6 +818,9 @@ public final class TomogramPositioningExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/06/30 20:21:48  sueh
+ * <p> bug# 884 Adding timestamps for constructing dialog objects.
+ * <p>
  * <p> Revision 1.4  2006/06/30 20:04:44  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
  * <p> which is called by the button action functions and saveAction() in
