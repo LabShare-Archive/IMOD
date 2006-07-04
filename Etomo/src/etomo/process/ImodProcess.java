@@ -35,6 +35,10 @@ import etomo.ui.UIHarness;
  * 
  * <p>
  * $Log$
+ * Revision 3.37  2006/07/03 23:33:46  sueh
+ * bug# 895 Added responseRequired to MessageSender so that it doesn't have
+ * to wait for a response for disconnect.
+ *
  * <p>
  * Revision 3.36 2006/07/03 21:42:21 sueh
  * <p>
@@ -473,54 +477,34 @@ public class ImodProcess {
   public static final String MESSAGE_RAISE = "5";
 
   public static final String MESSAGE_MODEL_MODE = "6";
-
   public static final String MESSAGE_OPEN_KEEP_BW = "7";
-
   public static final String MESSAGE_OPEN_BEADFIXER = "8";
-
   public static final String MESSAGE_ONE_ZAP_OPEN = "9";
-
   public static final String MESSAGE_RUBBERBAND = "10";
-
   public static final String MESSAGE_OBJ_PROPERTIES = "11";
-
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
-
   public static final String MESSAGE_SLICER_ANGLES = "13";
-
   public static final String MESSAGE_PLUGIN_MESSAGE = "14";
-
   public static final String BEAD_FIXER_PLUGIN = "Bead Fixer";
-
-  public static final String BF_MESSAGE_SEED_MODE = "3";
-
+  public static final String BF_MESSAGE_NEW_CONTOURS = "3";
   public static final String BF_MESSAGE_AUTO_CENTER = "4";
-
   public static final String BF_MESSAGE_DIAMETER = "5";
-
+  public static final String BF_MESSAGE_MODE = "6";
   public static final String MESSAGE_ON = "1";
-
   public static final String MESSAGE_OFF = "0";
-
   public static final String MESSAGE_STOP_LISTENING = "\n";
-
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
-
   public static final String SLICER_ANGLES_RESULTS_STRING1 = "Slicer";
-
   public static final String SLICER_ANGLES_RESULTS_STRING2 = "angles:";
-
   public static final String TRUE = "1";
-
   public static final String FALSE = "0";
-
   public static final int CIRCLE = 1;
-
   public static final String REQUEST_TAG = "REQUEST";
-
   public static final String STOP_LISTENING_REQUEST = "STOP LISTENING";
-
   private static final int defaultBinning = 1;
+  public static final String SEED_MODE = "0";
+  public static final String GAP_MODE = "1";
+  public static final String RESIDUAL_MODE = "2";
 
   private String datasetName = "";
 
@@ -796,7 +780,8 @@ public class ImodProcess {
       // Wait a litte while for 3dmod to generate some stderr output
       try {
         Thread.sleep(500);
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e) {
       }
     }
 
@@ -1021,9 +1006,13 @@ public class ImodProcess {
         .valueOf(beadfixerDiameter));
   }
 
-  public void setSeedMode(boolean seedMode) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SEED_MODE,
-        seedMode ? MESSAGE_ON : MESSAGE_OFF);
+  public void setNewContours(boolean newContours) {
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_NEW_CONTOURS,
+        newContours ? MESSAGE_ON : MESSAGE_OFF);
+  }
+
+  public void setBeadfixerMode(String beadfixerMode) {
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode);
   }
 
   /**
@@ -1146,7 +1135,8 @@ public class ImodProcess {
     if (isRequestReceived()) {
       try {
         disconnect();
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         e.printStackTrace();
       }
     }
@@ -1358,7 +1348,8 @@ public class ImodProcess {
             return;
           }
           imod.setCurrentStdInput(buffer.toString());
-        } catch (IOException exception) {
+        }
+        catch (IOException exception) {
           // make sure that 3dmod is running
           if (exception.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
             if (imodReturnValues != null) {
@@ -1396,7 +1387,8 @@ public class ImodProcess {
         }
         try {
           Thread.sleep(500);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
         }
         // process response
         boolean failure = false;

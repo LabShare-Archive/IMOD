@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.34  2006/07/03 21:55:35  sueh
+ * <p> $bug# 895 Added processRequest().
+ * <p> $
  * <p> $Revision 1.33  2006/06/22 21:02:19  sueh
  * <p> $bug# 797 Catching io exception when sending messages to 3dmods.
  * <p> $
@@ -346,8 +349,9 @@ public final class ImodState {
   //sent with open bead fixer
   private boolean setAutoCenter = false;
   private boolean autoCenter = false;
-  private boolean seedMode = false;
-  private boolean manageSeedMode = false;
+  private boolean newContours = false;
+  private boolean manageNewContours = false;
+  private String beadfixerMode = null;
 
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
@@ -547,8 +551,11 @@ public final class ImodState {
         if (setAutoCenter) {
           process.setAutoCenter(autoCenter);
         }
-        if (manageSeedMode) {
-          process.setSeedMode(seedMode);
+        if (manageNewContours) {
+          process.setNewContours(newContours);
+        }
+        if (beadfixerMode != null) {
+          process.setBeadfixerMode(beadfixerMode);
         }
       }
       //model will be opened
@@ -575,8 +582,11 @@ public final class ImodState {
         if (setAutoCenter) {
           process.setAutoCenter(autoCenter);
         }
-        if (manageSeedMode) {
-          process.setSeedMode(seedMode);
+        if (manageNewContours) {
+          process.setNewContours(newContours);
+        }
+        if (beadfixerMode != null) {
+          process.setBeadfixerMode(beadfixerMode);
         }
       }
       //reopen model
@@ -679,6 +689,7 @@ public final class ImodState {
     process.setBinning(defaultBinning);
     process.setFrames(defaultFrames);
     process.setPieceListFileName(null);
+    manageNewContours = false;
   }
 
   protected String getModeString(int mode) {
@@ -849,18 +860,22 @@ public final class ImodState {
     this.openBeadFixer = openBeadFixer;
     setAutoCenter = false;
     autoCenter = false;
-    seedMode = false;
-    manageSeedMode = false;
+    newContours = false;
+    manageNewContours = false;
   }
 
   void setAutoCenter(boolean autoCenter) {
     setAutoCenter = true;
     this.autoCenter = autoCenter;
   }
+  
+  void setBeadfixerMode(String mode) {
+    beadfixerMode = mode;
+  }
 
-  void setSeedMode(boolean seedMode) {
-    this.seedMode = seedMode;
-    manageSeedMode = true;
+  void setNewContours(boolean newContours) {
+    this.newContours = newContours;
+    manageNewContours = true;
   }
 
   //initial state information

@@ -32,6 +32,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2006/07/03 21:38:58  sueh
+ * <p> bug# 895 Added ImodRequestHandler to handle requests from 3dmod in
+ * <p> Windows.  Added processRequest(), which is called by ImodRequestHandler.
+ * <p> Added stopRequestHandler().
+ * <p>
  * <p> Revision 3.40  2006/06/22 20:59:47  sueh
  * <p> bug# 797 Catching io exception when sending messages to 3dmods.
  * <p>
@@ -495,8 +500,7 @@ public class ImodManager {
         .getFiducialDiameterPerPixel();
     if (axisType == AxisType.SINGLE_AXIS) {
       loadSingleAxisMap();
-    }
-    else {
+    } else {
       loadDualAxisMap();
     }
   }
@@ -531,8 +535,7 @@ public class ImodManager {
       vector = newVector(key, axisID, datasetName);
       if (axisID == null) {
         imodMap.put(key, vector);
-      }
-      else {
+      } else {
         imodMap.put(key + axisID.getExtension(), vector);
       }
       return 0;
@@ -595,8 +598,7 @@ public class ImodManager {
     if (imodState != null) {
       if (model == null) {
         imodState.open(menuOptions);
-      }
-      else {
+      } else {
         imodState.open(model, menuOptions);
       }
     }
@@ -856,13 +858,22 @@ public class ImodManager {
     imodState.setAutoCenter(autoCenter);
   }
 
-  public void setSeedMode(String key, AxisID axisID, boolean seedMode)
+  public void setBeadfixerMode(String key, AxisID axisID, String mode)
       throws AxisTypeException {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
     }
-    imodState.setSeedMode(seedMode);
+    imodState.setBeadfixerMode(mode);
+  }
+
+  public void setNewContours(String key, AxisID axisID, boolean newContours)
+      throws AxisTypeException {
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setNewContours(newContours);
   }
 
   public void setBinning(String key, AxisID axisID, int binning)
@@ -1109,8 +1120,7 @@ public class ImodManager {
   protected void createPrivateKeys() {
     if (axisType == AxisType.SINGLE_AXIS) {
       combinedTomogramKey = FULL_VOLUME_KEY;
-    }
-    else {
+    } else {
       combinedTomogramKey = COMBINED_TOMOGRAM_KEY;
     }
   }
@@ -1118,8 +1128,7 @@ public class ImodManager {
   protected String getPrivateKey(String publicKey) {
     if (publicKey.equals(COMBINED_TOMOGRAM_KEY)) {
       return combinedTomogramKey;
-    }
-    else
+    } else
       return publicKey;
   }
 
@@ -1217,8 +1226,7 @@ public class ImodManager {
     ImodState imodState;
     if (axisType == AxisType.SINGLE_AXIS) {
       imodState = new ImodState(manager, datasetName + "_full.rec", axisID);
-    }
-    else {
+    } else {
       imodState = new ImodState(manager, axisID, datasetName, ".rec");
     }
     imodState.setAllowMenuBinningInZ(true);
@@ -1403,8 +1411,7 @@ public class ImodManager {
     }
     if (isPerAxis(key)) {
       vector = (Vector) imodMap.get(key + AxisID.ONLY.getExtension());
-    }
-    else {
+    } else {
       vector = (Vector) imodMap.get(key);
     }
     if (vector == null) {
@@ -1442,8 +1449,7 @@ public class ImodManager {
     }
     if (!isPerAxis(key)) {
       vector = (Vector) imodMap.get(key);
-    }
-    else {
+    } else {
       vector = (Vector) imodMap.get(key + axisID.getExtension());
     }
     if (vector == null) {
