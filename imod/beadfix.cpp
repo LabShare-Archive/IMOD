@@ -358,7 +358,9 @@ int BeadFixer::reread()
   char *arealine;
   int newstyle, oldstyle = 0;
   int found = 0;
-  int inpt;
+  int gotHeader = 0;
+  int inpt, i;
+  int numToSee = 0;
   FILE   *fp;
   Iobj *xobj = ivwGetExtraObject(plug->view);
   ResidPt *rpt;
@@ -393,6 +395,7 @@ int BeadFixer::reread()
         != NULL;
     if (newstyle || oldstyle) {
       mObjcont = newstyle;
+      gotHeader = 1;
 
       // Allocate area data now
       if (mNumAreas >= mAreaMax) {
@@ -457,6 +460,24 @@ int BeadFixer::reread()
         rpt->lookedAt = 0;
         mAreaList[mNumAreas - 1].numPts++;
         rpt->area = mNumAreas - 1;
+
+        // If examine once is on, see if point is on looked list or new list
+        if (mLookonce) {
+          found = 0;
+          for (i = 0; i < mNumLooked && !found; i++)
+            if (rpt->obj == mLookedList[i].obj && 
+                rpt->cont == mLookedList[i].cont &&
+                rpt->view == mLookedList[i].view)
+              found = 1;
+          for (i = 0; i < mNumResid - 1 && !found; i++)
+            if (rpt->obj == mResidList[i].obj && 
+                rpt->cont == mResidList[i].cont &&
+                rpt->view == mResidList[i].view)
+              found = 1;
+          if (!found)
+            numToSee++;
+        }
+
       }
 
       // Now look for another local area
@@ -484,10 +505,12 @@ int BeadFixer::reread()
   setCurArea(0);
   nextResBut->setEnabled(mNumResid);
   backUpBut->setEnabled(false);    
-  if (!mNumResid)
+  if (!gotHeader)
     wprint("\aResidual data not found\n");
-  else
+  else if (!mLookonce)
     wprint(" %d total residuals.\n", mNumResid);
+  else
+    wprint(" %d total residuals, %d to examine.\n", mNumResid, numToSee);
   return 0;
 }
 
@@ -1900,6 +1923,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.34  2006/07/04 03:50:56  mast
+    Switched running align from a thread to a QProcess
+
     Revision 1.33  2006/07/03 23:28:11  mast
     Converted system call to call tcsh submfg to fix windows hang with -L mode
 
