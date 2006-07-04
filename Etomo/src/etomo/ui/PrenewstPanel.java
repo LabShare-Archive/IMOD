@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2006/06/21 15:54:30  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 1.18  2006/03/30 16:48:27  sueh
  * <p> bug# 437 Added header and btnCoarseAlign
  * <p>
@@ -171,6 +174,13 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
        setAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+  
+  /**
+   * Update the header with the current advanced state
+   */
+  void updateAdvanced(boolean isAdvanced) {
+    header.setAdvanced(isAdvanced);
   }
   
   void setAdvanced(boolean state) {

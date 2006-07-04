@@ -70,6 +70,13 @@ public final class TransferfidPanel implements Expandable {
         dialogType);
     setup();
   }
+  
+  /**
+   * Update the header with the current advanced state
+   */
+  void updateAdvanced(boolean isAdvanced) {
+    header.setAdvanced(isAdvanced);
+  }
 
   public void expand(ExpandButton button) {
     if (header.equalsOpenClose(button)) {
@@ -274,6 +281,9 @@ public final class TransferfidPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.11  2006/06/16 15:27:07  sueh
+ * <p> bug# 734 Added open/close and adv/basic buttons.
+ * <p>
  * <p> Revision 3.10  2006/06/15 16:20:03  sueh
  * <p> bug# 873 Added tooltip for mirrorInX.
  * <p>
