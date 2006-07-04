@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/3/06: Fixed running of Tiltalign from Bead Fixer on WIndows (also broken bt
+new communication scheme) and switched to using Qt process instead of thread
+to run it (no more flashing DOS window).
+
 7/3/06: Fixed problem in Windows of 3dmod started from eTomo not really dying
 when killed by user, due to new communication scheme.
 
