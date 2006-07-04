@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/06/21 15:52:08  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.19  2006/03/30 16:48:02  sueh
  * <p> bug# 437 Passing the dialog type to getCrossCorrelateDIsplay().
  * <p>
@@ -251,6 +254,17 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   void done() {
     btnCrossCorrelate.removeActionListener(actionListener);
   }
+  
+  /**
+   * Update the header with the current advanced state
+   */
+  void updateAdvanced(boolean isAdvanced) {
+    header.setAdvanced(isAdvanced);
+  }
+  
+  void setAdvanced(boolean state) {
+    pnlAdvanced.setVisible(state);
+  }
 
   public void expand(ExpandButton button) {
     if (header.equalsOpenClose(button)) {
@@ -354,10 +368,6 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
 
   void setVisible(boolean state) {
     pnlCrossCorrelation.setVisible(state);
-  }
-
-  void setAdvanced(boolean state) {
-    pnlAdvanced.setVisible(state);
   }
 
   void setAlignmentX(float align) {
