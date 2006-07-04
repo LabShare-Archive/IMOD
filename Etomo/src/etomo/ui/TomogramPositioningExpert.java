@@ -202,7 +202,7 @@ public final class TomogramPositioningExpert implements UIExpert {
 
   boolean doneDialog() {
     if (dialog == null) {
-      return true;
+      return false;
     }
     if (dialog.getExitState() == DialogExitState.EXECUTE) {
       if (dialog.isTomopitchButtonSelected() && !dialog.isAlignButtonSelected()) {
@@ -214,7 +214,9 @@ public final class TomogramPositioningExpert implements UIExpert {
         }
       }
     }
-    saveDialog();
+    if (!saveDialog()) {
+      return false;
+    }
     dialog = null;
     return true;
   }
@@ -227,9 +229,9 @@ public final class TomogramPositioningExpert implements UIExpert {
     saveDialog();
   }
 
-  private void saveDialog() {
+  private boolean saveDialog() {
     if (dialog == null) {
-      return;
+      return false;
     }
     advanced = dialog.isAdvanced();
     DialogExitState exitState = dialog.getExitState();
@@ -239,21 +241,21 @@ public final class TomogramPositioningExpert implements UIExpert {
     else {
       //  Get all of the parameters from the panel
       if (updateAlignCom() == null) {
-        return;
+        return false;
       }
       if (!updateTomoPosTiltCom(false)) {
-        return;
+        return false;
       }
       if (!updateTomopitchCom()) {
-        return;
+        return false;
       }
       if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
           axisID)) {
-        return;
+        return false;
       }
       if (metaData.getViewType() != ViewType.MONTAGE
           && updateNewstCom() == null) {
-        return;
+        return false;
       }
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
@@ -269,7 +271,7 @@ public final class TomogramPositioningExpert implements UIExpert {
       }
       manager.saveIntermediateParamFile(axisID);
     }
-    return;
+    return true;
   }
 
   /**
@@ -818,6 +820,9 @@ public final class TomogramPositioningExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/07/04 18:04:49  sueh
+ * <p> bug# 896 doneDialog():  return false if the user decides not to exit the dialog.
+ * <p>
  * <p> Revision 1.5  2006/06/30 20:21:48  sueh
  * <p> bug# 884 Adding timestamps for constructing dialog objects.
  * <p>
