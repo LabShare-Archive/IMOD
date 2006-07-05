@@ -1942,7 +1942,7 @@ public final class ApplicationManager extends BaseManager {
    * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, String beadfixerMode) {
     sendMsgProcessStarting(processResultDisplay);
     // if fix fiducials has already run, don't change auto center
     boolean setAutoCenter = !state.isFixedFiducials(axisID);
@@ -1956,7 +1956,7 @@ public final class ApplicationManager extends BaseManager {
             .setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       }
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          ImodProcess.GAP_MODE);
+          beadfixerMode);
       imodManager.setNewContours(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
@@ -3819,8 +3819,12 @@ public final class ApplicationManager extends BaseManager {
         + axisID.getExtension() + ".ali");
     if (aligned.exists()) {
       if (!aligned.delete()) {
-        uiHarness.openMessageDialog("Unable to delete aligned stack: "
-            + aligned.getAbsolutePath(), "Can not delete file", axisID);
+        StringBuffer message = new StringBuffer("Unable to delete aligned stack: "
+            + aligned.getAbsolutePath());
+        if (Utilities.isWindowsOS()) {
+          message.append("\nIf this file is open in 3dmod, close 3dmod.");
+        }
+        uiHarness.openMessageDialog(message.toString(), "Can not delete file", axisID);
       }
     }
     mainPanel.stopProgressBar(axisID);
@@ -5727,6 +5731,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.243  2006/07/04 20:36:41  sueh
+ * <p> bug# 898 Return false from done and save functions if their dialog continues
+ * <p> to be displayed.
+ * <p>
  * <p> Revision 3.242  2006/07/03 21:27:56  sueh
  * <p> bug# 895 Stop 3dmod request handler worker string on exit.
  * <p>
