@@ -39,6 +39,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2006/06/09 17:06:31  sueh
+ * <p> bug# 869 Enabling/disabling the tabs doesn't using this class.
+ * <p> UseCorrespondingPoints is always visible, except when there is not
+ * <p> transferfid.coord file.
+ * <p>
  * <p> Revision 3.21  2006/05/16 21:37:50  sueh
  * <p> bug# 856 Added useCorrespondingPoints and useList.  Added isChanged(),
  * <p> which looks at useCorrespondingPoints.
@@ -556,6 +561,9 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
     }
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         SolvematchParam.SURFACE_OR_USE_MODELS);
+    
+    cbUseCorrespondingPoints.setToolTipText(tooltipFormatter.setText("Check to use the points in A and B in the transferfid log file.  "+"Leave unchecked to use transferfid.coord.").format());
+
     if (section != null) {
       rbBothSides.setToolTipText(tooltipFormatter.setText(
           EtomoAutodoc.getTooltip(section, SolvematchParam.BOTH_SIDES_OPTION))
@@ -588,6 +596,10 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
     ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc,
             SolvematchParam.FROM_CORRESPONDENCE_LIST)).format());
+    ltfUseList.setToolTipText(tooltipFormatter.setText(
+        EtomoAutodoc
+            .getTooltip(autodoc, SolvematchParam.USE_POINTS))
+        .format());
     ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, SolvematchParam.MAXIMUM_RESIDUAL))
         .format());

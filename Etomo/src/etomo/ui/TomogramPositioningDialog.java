@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2006/07/04 18:04:16  sueh
+ * <p> bug# 896 Fixed done() - don't remove action listeners if done returns false.
+ * <p>
  * <p> Revision 3.47  2006/07/04 05:35:12  mast
  * <p> Fixed double colon on Z shift display
  * <p>
@@ -710,13 +713,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     text = "Add the additional offset from tomopitch to the amount already "
         + "shown here to get the total offset.";
     cpTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    cpXAxisTilt
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Offset in degrees to apply to the tilt angles; a positive offset will "
-                    + "rotate the reconstructed slices counterclockwise.  Do not use this "
-                    + "option if you have fiducials and the tomogram is part of a dual-axis"
-                    + " series.").format());
+    cpXAxisTilt.setToolTipText(tooltipFormatter.setText(TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP).format());
     text = "Add the additional shift from tomopitch to the amount shown here to get "
         + "the total shift.";
     cpTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
@@ -734,6 +731,8 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     text = "Rotation angle of tilt axis for generating aligned stack from "
         + "cross-correlation alignment only.";
     ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfExtraThickness.setToolTipText(tooltipFormatter.setText("Extra thickness to be added to the top and bottom of the final tomogram.").format());
+    ltfThickness.setToolTipText(tooltipFormatter.setText("The thickness of the final tomogram.").format());
   }
 
   public static final class CalcPanel {
