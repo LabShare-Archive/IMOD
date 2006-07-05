@@ -163,17 +163,19 @@ typedef struct ViewInfo
   UndoRedo *undo;             /* Undo -redo class */
 
   /* Some Flags. */
-  int    dim;         /* bits 0..4, x, y, z, t */
-  int    obj_moveto;  /* default object to move contour to. */
+  int    dim;             /* bits 0..4, x, y, z, t */
+  int    obj_moveto;      /* default object to move contour to. */
   int    ghostmode;
-  int    ghostlast;   /* last value of mode, when toggled by g */
-  int    ghostdist;    /* Maximum distance for ghosts */
-  int    insertmode;  /* insert points before/after current point. */
+  int    ghostlast;       /* last value of mode, when toggled by g */
+  int    ghostdist;       /* Maximum distance for ghosts */
+  int    insertmode;      /* insert points before/after current point. */
   int    fastdraw;    
   int    drawcursor;
   int    ifd;
-  int    overlaySec;  /* Section to show in overlay color */
-
+  int    overlaySec;      /* Section to show in overlay color */
+  int    overlayRamp;     /* Color ramp when first started overlay mode */
+  int    whichGreen;      /* Whether main section (0) or other (1) is green */
+  int    reverseOverlay;  /* Toggle reverse contrast when going in or out */
      
   int      flippable;     /* Flag that images can be y-z flipped */
   short    fakeImage;     /* No real image data. */
@@ -262,6 +264,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.33  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 3.32  2006/06/19 05:24:24  mast
 Made clipboard object a global so it can be deleted
 
