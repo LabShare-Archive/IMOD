@@ -14,6 +14,7 @@ import javax.swing.JScrollPane;
 import etomo.ApplicationManager;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
+import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
@@ -33,6 +34,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/07/04 20:41:18  sueh
+ * <p> bug# 898 Don't remove action listeners unless the done dialog function
+ * <p> succeeds.
+ * <p>
  * <p> Revision 3.21  2006/06/30 20:00:19  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called by the button action functions and saveAction() in
@@ -418,7 +423,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, null);
+      applicationManager.imodFixFiducials(axisID, menuOptions, null, ImodProcess.RESIDUAL_MODE);
     } else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, menuOptions);
     }

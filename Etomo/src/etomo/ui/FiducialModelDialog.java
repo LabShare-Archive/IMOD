@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
+import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -30,6 +31,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2006/07/04 20:41:42  sueh
+ * <p> bug# 898 Don't remove action listeners unless the done dialog function
+ * <p> succeeds.
+ * <p>
  * <p> Revision 3.30  2006/07/04 18:47:37  sueh
  * <p> bug# 893 Calling updateAdvanced(boolean) in panels to change the
  * <p> headers when the advanced button is pressed.
@@ -442,7 +447,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     if (command.equals(btnSeed.getActionCommand())) {
       applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
     } else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel);
+      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel, ImodProcess.GAP_MODE);
     }
   }
 
