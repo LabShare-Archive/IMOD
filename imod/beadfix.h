@@ -87,6 +87,7 @@ class BeadFixer : public DialogFrame
   void prevGap() {findGap(-1);};
   void resetStart();
   void resetCurrent();
+  void reattach();
   void upDownToggled(bool state);
   void openFile();
   void rereadFile() {reread();};
@@ -105,6 +106,8 @@ class BeadFixer : public DialogFrame
   void diameterChanged(int value);
   void overlayToggled(bool state);
   void overlayChanged(int value);
+  void reverseToggled(bool state);
+  void setOverlay(int doIt, int state);
   void keepOnTop(bool state);
   void runAlign();
   void alignExited();
@@ -162,6 +165,7 @@ class BeadFixer : public DialogFrame
   QPushButton *runAlignBut;
   QPushButton *openFileBut;
   QPushButton *resetStartBut;
+  QPushButton *reattachBut;
   QPushButton *resetCurrentBut;
   QCheckBox *upDownArrowBox;
   QCheckBox *autoCenBox;
@@ -169,6 +173,7 @@ class BeadFixer : public DialogFrame
   QCheckBox *examineBox;
   QSpinBox *diameterSpin;
   QSpinBox *overlaySpin;
+  QCheckBox *reverseBox;
   QHBox *topBox;
   QHBox *diameterHbox;
   QHBox *cenLightHbox;
@@ -182,6 +187,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.16  2006/07/04 03:51:04  mast
+Switched running align from a thread to a QProcess
+
 Revision 1.15  2006/07/03 04:12:19  mast
 Overlay mode, operating mode, new gap fizing functions
 
