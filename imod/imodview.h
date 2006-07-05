@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 1.7  2006/02/13 05:11:32  mast
 Added function to get movie/mouse mode
 
@@ -147,9 +150,12 @@ int DLL_EX_IM ivwGetMovieModelMode(ImodView *vw);
 int DLL_EX_IM ivwOverlayOK(ImodView *inImodView);
 
 /*
- * Set the overlay mode section difference to sec
+ * Set the overlay mode section difference to sec, reverse contrast if 
+ * reverse is set, and display current or other section in green if whichGreen
+ * is 0 or 1.
  */
-void DLL_EX_IM ivwSetOverlayMode(ImodView *inImodView, int sec);
+void DLL_EX_IM ivwSetOverlayMode(ImodView *inImodView, int sec, int reverse, 
+                       int whichGreen);
 }
 
 #endif
