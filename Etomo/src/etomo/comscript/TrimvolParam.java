@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2006/06/28 23:28:30  sueh
+ * <p> bug# 881 Added scaleXMin, scaleXMax, scaleYMin, and scaleYMax.
+ * <p>
  * <p> Revision 3.16  2006/06/27 17:47:19  sueh
  * <p> bug# 879 Add rotateX.
  * <p>
@@ -637,33 +640,44 @@ public class TrimvolParam implements CommandDetails {
     this.yMin = yMin;
   }
   
-  
+  /**
+   * Sets the scaleXMin.
+   * Converts the X value from the rubberband to a coordinate
+   * @param scaleXMax
+   */
   public void setScaleXMax(String scaleXMax) {
     this.scaleXMax.set(scaleXMax);
+    this.scaleXMax.set(this.scaleXMax.getInt() - 1);
   }
 
   /**
    * Sets the scaleXMin.
+   * Converts the X value from the rubberband to a coordinate
    * @param scaleXMin The scaleXin to set
    */
   public void setScaleXMin(String scaleXMin) {
     this.scaleXMin.set(scaleXMin);
+    this.scaleXMin.set(this.scaleXMin.getInt() - 1);
   }
 
   /**
    * Sets the scaleYMax.
+   * Converts the Y value from the rubberband to a coordinate
    * @param scaleYMax The scaleYMax to set
    */
   public void setScaleYMax(String scaleYMax) {
     this.scaleYMax.set(scaleYMax);
+    this.scaleYMax.set(this.scaleYMax.getInt() - 1);
   }
 
   /**
    * Sets the scaleYMin.
+   * Converts the Y value from the rubberband to a coordinate
    * @param scaleYMin The scaleYMin to set
    */
   public void setScaleYMin(String scaleYMin) {
     this.scaleYMin.set(scaleYMin);
+    this.scaleYMin.set(this.scaleYMin.getInt() - 1);
   }
 
 
@@ -768,8 +782,11 @@ public class TrimvolParam implements CommandDetails {
   }
   
   public boolean getBooleanValue(etomo.comscript.Fields field) {
-    if (field == Fields.SWAPYZ) {
+    if (field == Fields.SWAP_YZ) {
       return swapYZ;
+    }
+    if (field == Fields.ROTATE_X) {
+      return rotateX;
     }
     throw new IllegalArgumentException("field=" + field);
   }
@@ -897,6 +914,7 @@ public class TrimvolParam implements CommandDetails {
     private Fields() {
     }
     
-    public static final Fields SWAPYZ = new Fields();
+    public static final Fields SWAP_YZ = new Fields();
+    public static final Fields ROTATE_X = new Fields();
   }
 }
