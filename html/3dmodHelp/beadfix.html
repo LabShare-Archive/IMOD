@@ -64,14 +64,23 @@ point and the point in the current contour on the nearest view.  If this
 distance is less than two bead diameters, it will add the point to the same
 contour; otherwise it will start a new contour.
 <LI> If you turn on <B>Overlay</B>, the current section will be
-displayed in magenta and a different view will be displayed in green.
-When beads are dark, this means that a bead will show up in green on
-the current view and in magenta on the other view.  You will then be
+displayed along with a different view in a color overlay mode, with
+one view shown in magenta and the other in green.  The colors are
+managed so that the beads on the current view are in magenta and those
+on the other view are green,
+regardless of whether the beads are light rather than dark.
+You will then be
 able to tell if a bead is on the top or the bottom surface by whether
 it appears to the right or the left in the other view.  Use the
 <B>view</B> spin box to adjust the interval between the views;
-negative numbers can be entered.  You can also use the slash hot key to toggle the
-overlay on and off.
+negative numbers can be entered.  You can also use the slash hot key
+to toggle the overlay on and off.
+<LI> Overlay mode has in independent contrast setting, so you can
+adjust the Black and White sliders to give the best definition of the
+beads in overlay and this will not affect the contrast setting in
+normal display.  Select <B>Reverse overlay contrast</B> to show
+the overlay in reverse constrast, which can make dark beads show up better
+in a color overlay.
 <LI> When you add a point to a contour, the program will automatically
 keep the points in order by Z.
 </UL>
@@ -89,6 +98,9 @@ point in the contour (which is AFTER the gap) will be
 displayed and a message will be printed.  
 <LI> Use the <B>Go to Previous Gap</B> button to go backwards to a
 previous gap.
+<LI> If you accidentally detach from the model point before the gap and lose
+track of it, you can reattach to it with the 
+<B>Reattach to Gap Point</B> button.
 <LI> The program starts at the
 beginning of the model and, after each gap, it 
 searches forward from where it left off, even if you change contours
