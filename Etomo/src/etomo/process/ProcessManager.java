@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.101  2006/06/09 16:55:39  sueh
+ * bug# 869 setupCombineScripts(): save the state in TomogramState.
+ *
  * Revision 3.100  2006/06/05 16:31:58  sueh
  * bug# 766 Added manager to the base class.  Passing the process name to the
  * processes.
@@ -1845,7 +1848,7 @@ public class ProcessManager extends BaseProcessManager {
       Command command = process.getCommand();
       if (commandName.equals(TrimvolParam.getName())) {
         appManager.getState().setTrimvolFlipped(
-            processDetails.getBooleanValue(TrimvolParam.Fields.SWAPYZ));
+            processDetails.getBooleanValue(TrimvolParam.Fields.SWAP_YZ)||processDetails.getBooleanValue(TrimvolParam.Fields.ROTATE_X));
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
         appManager.getState().setSqueezevolFlipped(
