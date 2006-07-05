@@ -3066,10 +3066,20 @@ static void zapDrawGraphics(ZapStruct *zap)
     } else {
       overlay = vi->overlaySec;
       rgba = 3;
-      fillOverlayRGB(imageData, vi->xsize, vi->ysize, 0, overImage);
-      fillOverlayRGB(imageData, vi->xsize, vi->ysize, 2, overImage);
+      if (vi->whichGreen) {
+        fillOverlayRGB(imageData, vi->xsize, vi->ysize, 0, overImage);
+        fillOverlayRGB(imageData, vi->xsize, vi->ysize, 2, overImage);
+      } else {
+        fillOverlayRGB(imageData, vi->xsize, vi->ysize, 1, overImage);
+      }
+        
       imageData = ivwGetZSectionTime(vi, otherSec, time);
-      fillOverlayRGB(imageData, vi->xsize, vi->ysize, 1, overImage);
+      if (vi->whichGreen) {
+        fillOverlayRGB(imageData, vi->xsize, vi->ysize, 1, overImage);
+      } else {
+        fillOverlayRGB(imageData, vi->xsize, vi->ysize, 0, overImage);
+        fillOverlayRGB(imageData, vi->xsize, vi->ysize, 2, overImage);
+      }
       imageData = ivwMakeLinePointers(vi, overImage, vi->xsize, vi->ysize, 
                                       MRC_MODE_RGB);
     }
@@ -3784,6 +3794,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.81  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 4.80  2006/06/09 20:25:39  mast
 Added ability to display spheres on center section only
 
