@@ -35,6 +35,7 @@ Log at end of file
 #include "imod_iscale.h"
 #include "iproc.h"
 #include "autox.h"
+#include "xcramp.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -89,6 +90,7 @@ void ivwInit(ImodView *vi)
   vi->drawcursor = TRUE;
   vi->insertmode = 0;
   vi->overlaySec = 0;
+  vi->overlayRamp = -1;
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
@@ -2249,10 +2251,43 @@ int ivwOverlayOK(ImodView *inImodView)
   return (App->rgba == 1 && !App->cvi->rawImageStore);
 }
 
-void ivwSetOverlayMode(ImodView *inImodView, int sec)
+void ivwSetOverlayMode(ImodView *vw, int sec, int reverse, 
+                       int whichGreen)
 {
-  inImodView->overlaySec = sec;
-  ivwRedraw(inImodView);
+
+  // If changing state, change color ramps
+  if (vw->overlaySec && !sec || !vw->overlaySec && sec) {
+    if (vw->overlayRamp < 0) {
+
+      // The first time, save the ramp index, and initialize the next ramp
+      // to the same black-white levels
+      vw->overlayRamp = vw->cramp->clevel;
+      xcrampSelectIndex(vw->cramp, 
+                        (vw->overlayRamp + 1) % vw->cramp->noflevels);
+      xcramp_setlevels(vw->cramp, vw->black, vw->white);
+    } else {
+      
+      // Otherwise, restore the other color ramp
+      xcrampSelectIndex(vw->cramp, 
+                        sec ? (vw->overlayRamp + 1) % vw->cramp->noflevels : 
+                        vw->overlayRamp);
+      xcramp_ramp(vw->cramp);
+      xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
+      imod_info_setbw(vw->black, vw->white);
+    }
+
+    // Reverse if flag set
+    if (reverse)
+      xcramp_reverse(vw->cramp, !(vw->cramp->reverse));
+
+    // If state is staying on but reverse is changing, then reverse
+  } else if (sec && reverse != vw->reverseOverlay)
+    xcramp_reverse(vw->cramp, !(vw->cramp->reverse));
+      
+  vw->reverseOverlay = reverse;
+  vw->overlaySec = sec;
+  vw->whichGreen = whichGreen;
+  imodDraw(vw, IMOD_DRAW_IMAGE);
 }
 
 // Get the current contour, the last contour if it is empty, or a new contour
@@ -2450,6 +2485,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.45  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 4.44  2006/04/20 23:06:30  mast
 Make wild check based on nearest integer to fix ghost displays
 
