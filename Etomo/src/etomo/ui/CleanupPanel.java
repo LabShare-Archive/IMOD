@@ -16,6 +16,7 @@ import etomo.ApplicationManager;
 import etomo.storage.BackupFileFilter;
 import etomo.storage.IntermediateFileFilter;
 import etomo.type.AxisID;
+import etomo.util.Utilities;
 
 /**
  * <p>
@@ -37,6 +38,9 @@ import etomo.type.AxisID;
  * 
  * <p>
  * $Log$
+ * Revision 3.12  2005/11/14 21:40:04  sueh
+ * bug# 762 Made buttonAction() protected.
+ *
  * Revision 3.11  2005/08/10 20:41:37  sueh
  * bug# 711 Moved button sizing to MultiLineButton.  Made clean up buttons
  * the standard size.
@@ -216,17 +220,18 @@ public class CleanupPanel {
     File[] deleteList = fileChooser.getSelectedFiles();
     for (int i = 0; i < deleteList.length; i++) {
       if (!deleteList[i].delete()) {
-        String message[] = new String[2];
-        message[0] = "Unable to delete " + deleteList[i].getName();
-        message[1] = "Check file permissions";
-        UIHarness.INSTANCE.openMessageDialog(message,
-            "Unable to delete intermediate file", AxisID.ONLY);
         deletedAll = false;
       }
     }
+    //if (deletedAll) {
     fileChooser.rescanCurrentDirectory();
-    if (deletedAll) {
-      fileChooser.setSelectedFile(new File(""));
+    fileChooser.setSelectedFile(new File(""));
+    if (!deletedAll) {
+      StringBuffer message = new StringBuffer("Unable to delete file(s).  "+"Check file permissions.");
+      if (Utilities.isWindowsOS()) {
+        message.append("\nIf the files are open in 3dmod, close 3dmod.");
+      }
+      UIHarness.INSTANCE.openMessageDialog(message.toString(), "Unable to delete intermediate file", AxisID.ONLY);
     }
   }
 
