@@ -81,7 +81,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 8
+#define NUM_SAVED_VALS 9
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -98,7 +98,7 @@ typedef struct
   int    overlaySec;
   int    showMode;
   int    upDownOn;
-  int    alignExitCode;    // Place for qalign thread to leave its exit code
+  int    reverseOverlay;
   char   *filename;
 }PlugData;
 
@@ -245,6 +245,8 @@ void imodPlugExecute(ImodView *inImodView)
       plug->upDownOn = (int)(savedValues[6] + 0.01);
       plug->showMode = (int)(savedValues[7] + 0.01);
     }
+    if (nvals > 8)
+      plug->reverseOverlay = (int)(savedValues[8] + 0.01);
   }
 
   /*
@@ -1145,12 +1147,21 @@ void BeadFixer::resetCurrent()
 {
   int ob, co, pt;
   Imod *imod = ivwGetModel(plug->view);
-    imodGetIndex(imod, &ob, &co, &pt);
+  imodGetIndex(imod, &ob, &co, &pt);
   if (pt < 0)
     return;
   mLastob = ob;
   mLastco = co;
   mLastpt = pt;
+}
+
+void BeadFixer::reattach()
+{
+  Imod *imod = ivwGetModel(plug->view);
+  if (mLastob < 0 || mLastco < 0 || mLastpt < 0)
+    return;
+  imodSetIndex(imod, mLastob, mLastco, mLastpt);
+  ivwRedraw(plug->view);
 }
 
 /* 
@@ -1179,6 +1190,13 @@ int BeadFixer::insertPoint(float imx, float imy)
   // Autocenter the point if selected, error and say handled if fail
   if (plug->autoCenter && findCenter(imx, imy, curz)) {
     wprint("\aAutocentering failed to find a point\n");
+    return 1;
+  }
+
+  // Do not start new contours in gap mode
+  if (plug->showMode == GAP_MODE && !imodContourGet(imod)) {
+    wprint("\aNo automatic new contours in gap filling mode.\nUse \"Reattach"
+           " to Point at Gap\" first to fill the current gap.\n");
     return 1;
   }
 
@@ -1416,6 +1434,7 @@ void BeadFixer::autoCenToggled(bool state)
 void BeadFixer::lightToggled(bool state)
 {
   plug->lightBead = state ? 1 : 0;
+  setOverlay(plug->overlayOn, plug->overlayOn);
 }
 
 void BeadFixer::diameterChanged(int value)
@@ -1428,15 +1447,29 @@ void BeadFixer::overlayToggled(bool state)
 {
   overlaySpin->setEnabled(state);
   plug->overlayOn = state ? 1: 0;
-  ivwSetOverlayMode(plug->view, state ? plug->overlaySec : 0);
+  setOverlay(1, plug->overlayOn);
 }
 
 void BeadFixer::overlayChanged(int value)
 {
   setFocus();
   plug->overlaySec = value;
-  if (plug->overlayOn)
-    ivwSetOverlayMode(plug->view, value);
+  setOverlay(plug->overlayOn, plug->overlayOn);
+}
+
+void BeadFixer::reverseToggled(bool state)
+{
+  plug->reverseOverlay = state ? 1 : 0;
+  setOverlay(plug->overlayOn, plug->overlayOn);
+}
+
+// set the overlay mode to given state if the doIt flag is set
+void BeadFixer::setOverlay(int doIt, int state)
+{
+  if (doIt)
+    ivwSetOverlayMode(plug->view, state ? plug->overlaySec : 0, 
+                      plug->reverseOverlay,
+                      (plug->lightBead + plug->reverseOverlay) % 2);
 }
 
 void BeadFixer::upDownToggled(bool state)
@@ -1451,10 +1484,12 @@ void BeadFixer::modeSelected(int value)
   // Manage seed mode items
   showWidget(seedModeBox, value == SEED_MODE);
   showWidget(overlayHbox, value == SEED_MODE);
+  showWidget(reverseBox, value == SEED_MODE);
 
   // Manage gap filling items
   showWidget(nextGapBut, value == GAP_MODE);
   showWidget(prevGapBut, value == GAP_MODE);
+  showWidget(reattachBut, value == GAP_MODE);
   showWidget(resetStartBut, value == GAP_MODE);
   showWidget(resetCurrentBut, value == GAP_MODE);
   showWidget(upDownArrowBox, value == GAP_MODE);
@@ -1480,7 +1515,7 @@ void BeadFixer::modeSelected(int value)
 
   // Turn overlay mode on or off if needed
   if ((value == SEED_MODE || plug->showMode == SEED_MODE) && plug->overlayOn)
-    ivwSetOverlayMode(plug->view, value == SEED_MODE ? plug->overlaySec : 0);
+    setOverlay(1, value == SEED_MODE ? 1 : 0);
   plug->showMode = value;
 }
 
@@ -1508,7 +1543,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   QCheckBox *box;
   QString qstr;
   overlayHbox = NULL;
-  runAlignBut = NULL;
+  reverseBox = NULL;
   mRunningAlign = false;
   mTopTimerID = 0;
   mStayOnTop = false;
@@ -1616,15 +1651,26 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
     QToolTip::add(overlaySpin, "Interval to overlay section");
     diaSetSpinBox(overlaySpin, plug->overlaySec);
     overlaySpin->setEnabled(plug->overlayOn != 0);
+
+    reverseBox = diaCheckBox("Reverse overlay contrast", this, mLayout);
+    connect(reverseBox, SIGNAL(toggled(bool)), this, 
+            SLOT(reverseToggled(bool)));
+    QToolTip::add(reverseBox, "Show color overlay in reverse contrast");
+    diaSetChecked(reverseBox, plug->reverseOverlay != 0);
   }    
 
   nextGapBut = diaPushButton("Go to Next Gap", this, mLayout);
   connect(nextGapBut, SIGNAL(clicked()), this, SLOT(nextGap()));
-  QToolTip::add(nextGapBut, "Go back to previous gap in model");
+  QToolTip::add(nextGapBut, "Go to gap in model - Hot key: spacebar");
 
   prevGapBut = diaPushButton("Go to Previous Gap", this, mLayout);
   connect(prevGapBut, SIGNAL(clicked()), this, SLOT(prevGap()));
-  QToolTip::add(prevGapBut, "Go to gap in model - Hot key: spacebar");
+  QToolTip::add(prevGapBut, "Go back to previous gap in model");
+
+  reattachBut = diaPushButton("Reattach to Gap Point", this, mLayout);
+  connect(reattachBut, SIGNAL(clicked()), this, SLOT(reattach()));
+  QToolTip::add(reattachBut, "Make point at current gap be the current point"
+                " again");
 
   resetStartBut = diaPushButton("Start from Beginning", this, mLayout);
   connect(resetStartBut, SIGNAL(clicked()), this, SLOT(resetStart()));
@@ -1841,14 +1887,14 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[5] = plug->overlaySec;
   posValues[6] = plug->upDownOn;
   posValues[7] = plug->showMode;
+  posValues[8] = plug->reverseOverlay;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
   imodDialogManager.remove((QWidget *)plug->window);
   ivwClearExtraObject(plug->view);
 
-  if (plug->showMode == SEED_MODE && plug->overlayOn)
-    ivwSetOverlayMode(plug->view, 0);
+  setOverlay((plug->showMode == SEED_MODE && plug->overlayOn) ? 1 : 0, 0);
   plug->overlayOn = 0;
 
   if (mTopTimerID)
@@ -1898,6 +1944,7 @@ void BeadFixer::setFontDependentWidths()
   backUpBut->setFixedWidth(width);
   moveAllBut->setFixedWidth(width);
   clearListBut->setFixedWidth(width);
+  reattachBut->setFixedWidth(width);
 }
 
 void BeadFixer::fontChange( const QFont & oldFont )
@@ -1923,6 +1970,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.35  2006/07/04 17:24:19  mast
+    Added output of number of residuals to examine
+
     Revision 1.34  2006/07/04 03:50:56  mast
     Switched running align from a thread to a QProcess
 
