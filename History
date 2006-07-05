@@ -1,12 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/4/06: IMOD_3-8-17 and IMOD_3-8-17_WKSHP
-7/4/06: Fixed problem with buttons not working on tomogram position panel
+7/5/06: IMOD_3-8-18 and IMOD_3-8-18_WKSHP
+7/5/06: Fixed problem with buttons not working on tomogram position panel
 after pressing done without doing final alignment.
 
+7/4/06: IMOD_3-8-17 and IMOD_3-8-17_WKSHP
 7/4/06: Fixed finishjoin problems with line endings on Windows (in 3.7).
 
-7/3/06: Fixed running of Tiltalign from Bead Fixer on WIndows (also broken bt
+7/3/06: Fixed running of Tiltalign from Bead Fixer on Windows (also broken by
 new communication scheme) and switched to using Qt process instead of thread
 to run it (no more flashing DOS window).
 
