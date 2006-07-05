@@ -71,6 +71,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.92  2006/07/04 20:42:29  sueh
+ * bug# 898 Don't remove action listeners unless the done dialog function
+ * succeeds.
+ *
  * Revision 3.91  2006/06/30 20:04:12  sueh
  * bug# 877 Calling all the done dialog functions from the dialog done() functions,
  * which is called by the button action functions and saveAction() in
@@ -572,6 +576,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
+  public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
+    + "that a section that appears to be tilted around the X axis can be "
+    + "made flat to fit into a smaller volume.";
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
@@ -1715,15 +1722,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         + " if you have fiducials and the tomogram is part of a dual-axis "
         + "series.";
     ltfZOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "This line allows one to rotate the reconstruction around the X axis, so "
-        + "that a section that appears to be tilted around the X axis can be "
-        + "made flat to fit into a smaller volume.  The ANGLE should be the "
-        + "tilt of the section relative to the X-Y plane in an unrotated "
-        + "reconstruction.  For example, if the reconstruction extends 500 "
-        + "slices, and the section is 5 pixels below the middle in the first "
-        + "slice and 5 pixels above the middle in the last slice, ANGLE should"
-        + " be 1.1 (the arc sine of 10/500).";
-    ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(X_AXIS_TILT_TOOLTIP).format());
     text = "Offset in degrees to apply to the tilt angles; a positive offset will "
         + "rotate the reconstructed slices counterclockwise.  Do not use this "
         + "option if you have fiducials and the tomogram is part of a dual-axis"
