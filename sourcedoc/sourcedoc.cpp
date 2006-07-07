@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2005/05/27 23:20:39  mast
+Fixed if there is white space between function name and (
+
 Revision 1.5  2005/03/21 19:21:39  mast
 Removed calls to libimod functions - it needs to run from build environment
 
@@ -43,6 +46,8 @@ Addition to package
 
 #define CAPTURE_NONBS "([^\\\\])"
 
+static void convertSpecialCodes(QString &str, char *progname, int debug);
+
 void usage(char *progname) 
 {
   printf("Usage: %s [options] input_doc output_doc\n",
@@ -60,8 +65,12 @@ int main(int argc, char *argv[])
 {
   char *listString = "LIST FUNCTIONS FROM ";
   char *descString = "DESCRIBE FUNCTIONS FROM ";
+  char *listCode = "LIST CODE FROM ";
+  char *descCode = "DESCRIBE CODE FROM ";
   char *secString = "DOC_SECTION";
   char *endSecString = "END_SECTION";
+  char *codeString = "DOC_CODE";
+  char *endCodeString = "END_CODE";
   char *noFunc = "0";
   QString str, str2, fname, href, funcName, secName, path;
   QStringList descList;
@@ -72,17 +81,20 @@ int main(int argc, char *argv[])
   unsigned int ui;
   char *progname = "sourcedoc";
   bool fort77 = false;
+  bool doCode;
+  bool codeOut;
   QString docStart = "/\\*!";
   QString docEnd = "\\*/";
   QString docContinue = "\\*";
   QString nonDocComment = "^[ \t]*/[/\\*]";
+  QString codeComment = "^[ \t]*/\\*";
   int debug = 0;
   bool inComment, inSection;
 
   if (argc < 3) {
     // It needs to run without libraries
-   /* imodVersion(progname);
-      imodCopyright(); */
+    /* imodVersion(progname);
+       imodCopyright(); */
     usage(progname);
   }
 
@@ -149,12 +161,19 @@ int main(int argc, char *argv[])
     
     // Read lines and look for list or describe strings
     str = inStream.readLine();
+    doCode = false;
     ind1 = str.find(listString);
     ind2 = str.find(descString);
+    if (ind1 < 0 && ind2 < 0) {
+      ind1 = str.find(listCode);
+      ind2 = str.find(descCode);
+      doCode = ind1 >= 0 || ind2 >= 0;
+    }
     if (ind1 >= 0) {
 
       // get file name and section name and open the file
-      fname = str.right(str.length() - ind1 - strlen(listString));
+      fname = str.right(str.length() - ind1 - 
+                        (doCode ? strlen(listCode) : strlen(listString)));
       fname = fname.stripWhiteSpace();
       if (fname.startsWith("\"")) {
         tmpList = QStringList::split('\"', fname);
@@ -207,7 +226,7 @@ int main(int argc, char *argv[])
         if(!secName.isEmpty() && !inSection || secName.isEmpty() && inSection) 
           continue;
 
-        if (str.contains(QRegExp(docStart))) {
+        if (!doCode && str.contains(QRegExp(docStart))) {
 
           // Found start sequence.  Start a string list for doc, strip the
           // start sequence, and add string to list if anything remains
@@ -347,67 +366,85 @@ int main(int argc, char *argv[])
             str = docList[ui].stripWhiteSpace();
             while (!str.find(QRegExp(docContinue)))
               str = (str.right(str.length() - 1)).stripWhiteSpace();
-
-            // Convert all the special codes
-            str.replace(QRegExp(CAPTURE_NONBS"\\["), "\\1<B>");
-            str.replace(QRegExp("^\\["), "<B>");
-            
-            str.replace(QRegExp(CAPTURE_NONBS"\\]"), "\\1</B>");
-            str.replace(QRegExp(CAPTURE_NONBS"\\{"), "\\1<I>");
-            str.replace(QRegExp("^\\{"), "<I>");
-            str.replace(QRegExp(CAPTURE_NONBS"\\}"), "\\1</I>");
-            str.replace(QRegExp(CAPTURE_NONBS"\\^"), "\\1<BR>");
-            str.replace(QRegExp("^\\^"), "<BR>");
-            str.replace("&", "&amp;");
-
-            // Replace multiple spaces with ;nbsp
-            if (str.find("  ") >= 0) {
-              str.replace(QRegExp("([^ ]) ([^ ])"), "\\1%_%\\2");
-              str.replace(QRegExp("([^ ]) ([^ ])"), "\\1%_%\\2");
-              str.replace(" ", "&nbsp;");
-              str.replace("%_%", " ");
-            }
-
-            if (str.isEmpty())
-              str = "<P>";
-            if (debug)
-              puts(str);
-
-            // Insert a link at an @
-            while (str.contains(QRegExp("[^\\\\]@")) || str.startsWith("@")) {
-
-              if (str.startsWith("@"))
-                ind1 = 1;
-              else
-                ind1 = str.find(QRegExp("[^\\\\]@")) + 2;
-              while (ind1 < (int)str.length() && str.at(ind1) == ' ')
-                ind1++;
-              ind2 = str.find(QRegExp("[ ,]"), ind1);
-              if (ind2 < ind1)
-                ind2 = str.length();
-              funcName = str.mid(ind1, ind2 - ind1);
-              if (funcName.contains('#')) {
-                href = funcName;
-                ind = funcName.find('#');
-                funcName = funcName.right(funcName.length() - ind - 1);
-              } else {
-                href = QString("#") + funcName;
-              }
-              str2 = "";
-              if (ind1 > 0)
-                str2 = str.left(ind1 - 1);
-              str2 += "<A HREF=\"" + href + "\">" + funcName + "</A>";
-              if (ind2 < (int)str.length())
-                str2 += str.right(str.length() - ind2);
-              str = str2;
-            }
-
-            // For any escaped characters, remove the backslash
-            str.replace(QRegExp("\\\\([\\[\\]\\{\\}^@])"), "\\1");
-            if (debug)
-              puts(str);
+            convertSpecialCodes(str, progname, debug);
             descList << str;
-          }  // End of loop on description lines
+          }
+
+        } else if (doCode && str.contains(codeString)) {
+
+          // Found a CODE start, next get the name as the remainder of line
+          ind = str.find(codeString);
+          funcName = str.right(str.length() - ind - strlen(codeString));
+          ind = funcName.find(QRegExp(docEnd));
+          if (ind >= 0)
+            funcName.truncate(ind);
+          funcName = funcName.stripWhiteSpace();
+          if (debug)
+            puts(funcName.latin1());
+
+          // Output the list entry and add to description list
+          str2 = "<BR><A HREF=\"#" + funcName + "\">" + funcName + "</A>\n";
+          outStream << str2;
+          str2 = "<A NAME=\"" + funcName + "\"><H3>" + funcName + "</H3></A>";
+          descList << str2;
+
+          // Loop on the lines until the end code
+          inComment = false;
+          codeOut = false;
+          while (1) {
+            str = srcStream.readLine();
+            if (debug)
+              puts(str.latin1());
+            if (str.isNull()) {
+              fprintf(stderr, "ERROR: %s - end of file %s in middle of "
+                      "code\n", progname, fname.latin1());
+              exit(1);
+            }
+            
+            if (str.contains(endCodeString))
+              break;
+
+            // Test for comment first time in 
+            if (!codeOut && !inComment && str.contains(QRegExp(codeComment)))
+              inComment = true;
+            if (inComment) {
+
+
+              // If in comment, first test
+              // if comment end is present, remove it and clear comment flag
+              ind = str.find(QRegExp(docEnd));
+              if (ind >= 0) {
+                inComment = false;
+                str.truncate(ind);
+              }
+
+              // remove up to the starting *
+              ind = str.find('*');
+              if (ind >= 0)
+                str = str.right(str.length() - ind - 1);
+
+              // Strip the string, interpret codes, and put it out if not empty
+              str = str.stripWhiteSpace();
+              if (!str.isEmpty()) {
+                convertSpecialCodes(str, progname, debug);
+                descList << str;
+              }
+
+              // For non-comment, just put out string
+            } else
+              descList << str;
+              
+            // Now if not in comment and code not out yet, put it out
+            if (!codeOut && !inComment) {
+              descList << "<BR><PRE>";
+              codeOut = true;
+            }
+          }
+
+          // Put out terminating CODE if start was put out
+          if (codeOut)
+            descList << "</PRE>";
+              
         }    // End of loop on one function
       }   // End of source file loop
 
@@ -420,7 +457,8 @@ int main(int argc, char *argv[])
     } else if (ind2 >= 0) {
 
       // Descriptions requested: get filename and look up on list; write lines
-      fname = str.right(str.length() - ind2 - strlen(descString));
+      fname = str.right(str.length() - ind2 - 
+                        (doCode ? strlen(descCode) : strlen(descString)));
       fname = fname.stripWhiteSpace();
       tmpList = QStringList::split(' ', fname);
       fname = tmpList[0];
@@ -451,4 +489,89 @@ int main(int argc, char *argv[])
   inFile.close();
   outFile.close();
   return 0;
+}
+
+// Convert all the special codes
+static void convertSpecialCodes(QString &str, char *progname, int debug) 
+{
+  QString str2, funcName, href;
+  int ind1, ind2, ind, ind0, ind3;
+
+  str.replace(QRegExp(CAPTURE_NONBS"\\["), "\\1<B>");
+  str.replace(QRegExp("^\\["), "<B>");
+            
+  str.replace(QRegExp(CAPTURE_NONBS"\\]"), "\\1</B>");
+  str.replace(QRegExp(CAPTURE_NONBS"\\{"), "\\1<I>");
+  str.replace(QRegExp("^\\{"), "<I>");
+  str.replace(QRegExp(CAPTURE_NONBS"\\}"), "\\1</I>");
+  str.replace(QRegExp(CAPTURE_NONBS"\\^"), "\\1<BR>");
+  str.replace(QRegExp("^\\^"), "<BR>");
+  str.replace("&", "&amp;");
+
+  // Replace multiple spaces with ;nbsp
+  if (str.find("  ") >= 0) {
+    str.replace(QRegExp("([^ ]) ([^ ])"), "\\1%_%\\2");
+    str.replace(QRegExp("([^ ]) ([^ ])"), "\\1%_%\\2");
+    str.replace(" ", "&nbsp;");
+    str.replace("%_%", " ");
+  }
+
+  if (str.isEmpty())
+    str = "<P>";
+  if (debug)
+    puts(str);
+
+  // Insert a link at an @
+  while (str.contains(QRegExp("[^\\\\]@")) || str.startsWith("@")) {
+
+    if (str.startsWith("@"))
+      ind0 = 1;
+    else
+      ind0 = str.find(QRegExp("[^\\\\]@")) + 2;
+    ind1 = ind0;
+
+    // If there is a double @, then end is another @
+    if (str.at(ind1) == '@') {
+      ind1++;
+      while (ind1 < (int)str.length() && str.at(ind1) == ' ')
+        ind1++;
+      ind2 = str.find('@', ind1 + 1);
+      if (ind2 < 0) {
+        fprintf(stderr, "ERROR: %s - Empty or unterminated @@ link "
+                "in\n%s\n", progname, str.latin1());
+        exit(1);
+      }
+      ind3 = ind2 + 1;
+
+    } else {
+      while (ind1 < (int)str.length() && str.at(ind1) == ' ')
+        ind1++;
+      ind2 = str.find(QRegExp("[ ,]"), ind1);
+      if (ind2 < ind1)
+        ind2 = str.length();
+      ind3 = ind2;
+    }
+    funcName = str.mid(ind1, ind2 - ind1);
+    if (funcName.contains('#')) {
+      href = funcName;
+      ind = funcName.find('#');
+      funcName = funcName.right(funcName.length() - ind - 1);
+    } else {
+      href = QString("#") + funcName;
+    }
+    str2 = "";
+
+    // Take string up to the initial @ only
+    if (ind0 > 0)
+      str2 = str.left(ind0 - 1);
+    str2 += "<A HREF=\"" + href + "\">" + funcName + "</A>";
+    if (ind3 < (int)str.length())
+      str2 += str.right(str.length() - ind3);
+    str = str2;
+  }
+
+  // For any escaped characters, remove the backslash
+  str.replace(QRegExp("\\\\([\\[\\]\\{\\}^@])"), "\\1");
+  if (debug)
+    puts(str);
 }
