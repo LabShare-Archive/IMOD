@@ -22,7 +22,7 @@ c
       integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
       integer lmFields, lmAllGrid
       parameter (maxdim=72000000,lmfil=1000,lmsec=50000,maxchunks=20)
-      parameter (maxextra=1500000, maxtemp=1000000)
+      parameter (maxextra=4000000, maxtemp=1000000)
       parameter (lmGrid = 200, lmFields = 1000, lmAllGrid = 1000000)
       integer*4 nx,ny,nz
       COMMON //NX,NY,NZ
@@ -1789,6 +1789,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.40  2006/06/20 00:32:02  mast
+c       Eliminated rescaling and truncation for input mode 2
+c
 c       Revision 3.39  2006/05/14 01:45:05  mast
 c       Added option to set fill value
 c
