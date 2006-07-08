@@ -17,7 +17,7 @@ c	  Output file for piece coordinates
 c	  
 c	  David Mastronarde, 1/2/00
 c
-	parameter (maxextra = 1000000, maxpiece=50000)
+	parameter (maxextra = 4000000, maxpiece=100000)
 	DIMENSION NXYZ(3),MXYZ(3)
 	real*4 array(maxextra/4)
 	integer*4 ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece)
@@ -32,8 +32,12 @@ c
 	CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C
 	call irtnbsym(1,nbsym)
-	if(nbsym.gt.maxextra)
-     &	    stop '- ARRAYS NOT LARGE ENOUGH FOR EXTRA HEADER DATA'
+	if(nbsym.gt.maxextra) then
+          print *
+          print *,'ERROR: EXTRACTPIECES - ARRAYS NOT LARGE ENOUGH FOR '//
+     &        'EXTRA HEADER DATA'
+          call exit(1)
+        endif
 	call irtsym(1,nbsym,array)
 	call irtsymtyp(1,nbyte,iflags)
 	call get_extra_header_pieces (array,nbsym,nbyte,iflags,nz,
