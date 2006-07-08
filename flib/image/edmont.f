@@ -112,19 +112,21 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2005/12/09 04:45:32  mast
+c	  gfortran: .xor., continuation, or byte fixes
+c	
 c	  Revision 3.1  2005/07/27 03:31:00  mast
 c	  Redimensioned maxextra to handle mistakenly large extra header
 c	
 *   
-	parameter (idim=2100,lmfil=100,lmsec=1024,limpcl=50000)
-	parameter (maxextra=1500000)
+	parameter (idim=4200,lmfil=1000,lmsec=2048,limpcl=100000)
+	parameter (maxextra=4000000)
 	COMMON //NX,NY,NZ
 C   
-	DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),
-     &      ARRAY(idim*idim),TITLE(20),
-     &      NXYZ2(3),MXYZ2(3),CELL2(6),cell(6)
+	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
+        real*4 ARRAY(idim*idim),TITLE(20), CELL2(6),cell(6)
 C   
-	CHARACTER*80 FILIN(lmfil),FILOUT(lmfil),filistin,filistout,
+	CHARACTER*120 FILIN(lmfil),FILOUT(lmfil),filistin,filistout,
      &	    pifilin(lmfil),pifilout(lmfil)
 C   
 	EQUIVALENCE (NX,NXYZ)
@@ -145,6 +147,7 @@ C
 	character*3 instat
 	character dat*9,tim*8
 	integer*2 temp
+        common /bigarr/ array
 c
 c 7/7/00 CER: remove the encode's; titlech is the temp space
 c
