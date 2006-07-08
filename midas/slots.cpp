@@ -520,7 +520,7 @@ void MidasSlots::control_help()
      "\tThe Auto Contrast button will adjust the contrast based on the mean "
      "and standard deviation of the currently displayed section (or the "
      "current section, if the display shows an overlay).  The contrast "
-     "setting is tha same as the default for auto contrast setting in "
+     "setting is the same as the default for auto contrast setting in "
      "3dmod.\n\n"
 
      "Display Controls:\n",
@@ -569,7 +569,24 @@ void MidasSlots::control_help()
      "center of rotation, which is marked by the yellow star.  You can "
      "use "CTRL_STRING"-Middle-Mouse-Button to move this center to a point "
      "that you want to keep fixed during further changes of the "
-     "transformation.\n"
+     "transformation.  You can also set up a second fixed point using "
+     CTRL_STRING"-Right-Mouse-Button, after which stretching with the mouse "
+     "will keep both the center and this fixed point at constant positions.\n"
+     "\tCorrecting image stretch can be nonintuitive when done just with a "
+     "regular stretch.  Here is a procedure to "
+     "follow using stretching with a second fixed point:\n"
+     "\t1) Translate to align the images at some location.\n"
+     "\t2) Move the center point to that location.\n"
+     "\t3) Rotate and stretch to align the images at a second, distant "
+     "location.\n"
+     "\t4) Set a second fixed point at that location.\n"
+     "\t5) Stretch with the right mouse button to align the images in other "
+     "places.\n"
+     "\t6) If the images are still not aligned well enough, pick a new center "
+     "point and second fixed point at two well-separated places where they "
+     "now seem best aligned, and stretch again.\n"
+
+
      "\nFile Menu Items:\n",
      "\tLoad Transforms: will load transforms from a file.  If the set "
      "of transforms currently in the program have not been saved since "
@@ -720,7 +737,11 @@ void MidasSlots::mouse_help()
      "or toward the center of rotation (yellow star).  The current "
      "section will "
      "stretch or compress by a corresponding amount along the radial "
-     "axis, relative to the reference section.\n\n"
+     "axis, relative to the reference section.  Stretch behaves differently "
+     "with a second fixed point (red star).  In this case, position the mouse "
+     "far from the line between the center of rotation and the fixed point, "
+     "and move it in any direction.  The image will stretch and skew by a "
+     "corresponding amount.\n\n"
      "Shift - Right Button: Magnification of current section.\n"
      "\tPosition the mouse near the edge of the image, press and hold "
      "the Shift key, press and hold the mouse button, and move the "
@@ -734,8 +755,12 @@ void MidasSlots::mouse_help()
      CTRL_STRING" - Middle Button: Move the center of rotation and stretch.\n"
      "\tPosition the mouse at the desired center of rotation, press and "
      "hold the "CTRL_STRING" key, and click the mouse button to specify "
-     "the new position."
-     "\n\n",
+     "the new position.\n\n"
+     CTRL_STRING" - Right Button: Toggle second fixed point for stretch.\n"
+     "\tPosition the mouse at the desired fixed point, press and "
+     "hold the "CTRL_STRING" key, and click the mouse button to specify "
+     "the fixed point.  The fixed point is turned off by clicking again.\n\n"
+     "\n",
      NULL);
 }
 
@@ -1866,33 +1891,105 @@ void MidasSlots::mouse_stretch(unsigned int state)
 {
   float thresh = 0.001;
   float delx, dely, endang, radst, radnd, delrad;
-  float xcen, ycen;
+  float xcen, ycen, xfix, yfix, distsq, tmin, disx, disy, p2lsq;
   float zoom = VW->truezoom;
+  float a[3][3], b[9], tmat[9];
+  struct Midas_transform *tr;
+  int i, ist, ind;
 
   if (VW->lastmx == VW->mx && VW->lastmy == VW->my)
     return;
-    
+  
   xcen = zoom * VW->xcenter + VW->xoffset;
   ycen = zoom * VW->ycenter + VW->yoffset;
-  delx = VW->lastmx - xcen;
-  dely = VW->lastmy - ycen;
-  if(delx > -20. && delx < 20. && dely > -20. && dely < 20.)
-    return;
-  radst = sqrt((double)(delx*delx + dely*dely));
-  delx = VW->mx - xcen;
-  dely = VW->my - ycen;
-  if(delx > -20. && delx < 20. && dely > -20. && dely < 20.)
-    return;
-  endang = atan2((double)dely, (double)delx) / RADIANS_PER_DEGREE;
-  radnd = sqrt((double)(delx*delx + dely*dely));
-  delrad = (radnd - radst)/radst;
-  delrad = thresh * floor((double)delrad / thresh + 0.5);
-  if(delrad != 0.) {
-    delrad += 1.;
-    if (state & Qt::ShiftButton)
-      scale(delrad);
-    else
-      stretch(delrad, endang);
+  if (!VW->useFixed || (state & Qt::ShiftButton)) {
+    delx = VW->lastmx - xcen;
+    dely = VW->lastmy - ycen;
+    if(delx > -20. && delx < 20. && dely > -20. && dely < 20.)
+      return;
+    radst = sqrt((double)(delx*delx + dely*dely));
+    delx = VW->mx - xcen;
+    dely = VW->my - ycen;
+    if(delx > -20. && delx < 20. && dely > -20. && dely < 20.)
+      return;
+    endang = atan2((double)dely, (double)delx) / RADIANS_PER_DEGREE;
+    radnd = sqrt((double)(delx*delx + dely*dely));
+    delrad = (radnd - radst)/radst;
+    delrad = thresh * floor((double)delrad / thresh + 0.5);
+    if(delrad != 0.) {
+      delrad += 1.;
+      if (state & Qt::ShiftButton)
+        scale(delrad);
+      else
+        stretch(delrad, endang);
+      VW->lastmx = VW->mx;
+      VW->lastmy = VW->my;
+    }
+  } else {
+    
+    // Stretch with two fixed points
+    // First check mouse coordinates for distance from the line between points
+    xfix = zoom * VW->xfixed + VW->xoffset;
+    yfix = zoom * VW->yfixed + VW->yoffset;
+    delx = xfix - xcen;
+    dely = yfix - ycen;
+    distsq =  delx*delx+dely*dely;
+    if (distsq < 2500.)
+      return;
+    
+    // Compute point to line distance for both points
+    tmin = ((VW->mx - xcen) * delx + (VW->my - ycen) * dely) / distsq;
+    disx = xcen + tmin * delx - VW->mx;
+    disy = ycen + tmin * dely - VW->my;
+    p2lsq = disx * disx + disy * disy;
+    if (p2lsq < 2500.)
+      return;
+
+    tmin = ((VW->lastmx - xcen) * delx + (VW->lastmy - ycen) * dely) / distsq;
+    xfix = xcen + tmin * delx - VW->lastmx;
+    yfix = ycen + tmin * dely - VW->lastmy;
+    p2lsq= xfix * xfix + yfix * yfix;
+    if (p2lsq < 2500.)
+      return;
+    
+    // If both points are on same side of line, do the change, otherwise
+    // just reset the mouse coordinates to avoid big jumps
+    if (xfix * disx + yfix * disy > 0.) {
+ 
+      // Now get centered image coordinates for previous and current mouse pos
+      // and load the data matrix.  By chance the ordering of the b matrix is
+      // the same as that of a transformation matrix
+      tramat_idmat(b);
+      a[0][0] = (VW->lastmx - VW->xoffset) / VW->truezoom - 0.5 * VW->xsize;
+      a[0][1] = (VW->lastmy - VW->yoffset) / VW->truezoom - 0.5 * VW->ysize;
+      a[0][2] = 1.;
+      b[0] = (VW->mx - VW->xoffset) / VW->truezoom - 0.5 * VW->xsize;
+      b[1] = (VW->my - VW->yoffset) / VW->truezoom - 0.5 * VW->ysize;
+      a[1][0] = VW->xcenter - 0.5 * VW->xsize;
+      a[1][1] = VW->ycenter - 0.5 * VW->ysize;
+      a[1][2] = 1.;
+      b[3] = a[1][0];
+      b[4] = a[1][1];
+      a[2][0] = VW->xfixed - 0.5 * VW->xsize;
+      a[2][1] = VW->yfixed - 0.5 * VW->ysize;
+      a[2][2] = 1.;
+      b[6] = a[2][0];
+      b[7] = a[2][1];
+      if (gaussj(&a[0][0], 3, 3, b, 2, 3))
+        return;
+
+      getChangeLimits(&ist, &ind);
+
+      for (i = ist; i <= ind; i++) {
+        tr = &(VW->tr[i]);
+        tramat_multiply(tr->mat, b, tmat);
+        tramat_copy(tmat, tr->mat);
+      }
+      synchronizeChunk(VW->cz);
+      update_parameters();
+      retransform_slice();
+      VW->changed = 1;
+    }
     VW->lastmx = VW->mx;
     VW->lastmy = VW->my;
   }
@@ -1924,7 +2021,8 @@ float MidasSlots::getIncrement(int index, int type)
   return increments[index][type];
 }
 
-void MidasSlots::sprintf_decimals(char *string, int decimals, int digits, float val)
+void MidasSlots::sprintf_decimals(char *string, int decimals, int digits, 
+                                  float val)
 {
   char format[10];
   sprintf(format, "%c%d.%df", '%', digits, decimals);
@@ -1986,6 +2084,9 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
 
 /*
 $Log$
+Revision 3.14  2006/06/26 15:48:19  mast
+Added autocontrast function
+
 Revision 3.13  2006/05/20 16:07:56  mast
 Changes to allow mirroring around X axis
 

@@ -162,6 +162,9 @@ struct Midas_view
   int refz;  /* reference section */
   float xcenter;  /* center coordinates for rotation, stretch, mag */
   float ycenter;
+  float xfixed;   /* Coordinates of a second fixed point */
+  float yfixed;
+  int useFixed;  /* Flag to use the fixed point for stretching */
   int curChunk;  /* Current chunk */
 
   /* input option values */
@@ -368,10 +371,15 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
 		       float *curerrx, float *curerry, int localonly);
 void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 		       float *phi);
+
+int gaussj(float *a, int n, int np, float *b, int m, int mp);
 #endif  // MIDAS_H
 
 /*
 $Log$
+Revision 3.12  2006/05/20 16:07:56  mast
+Changes to allow mirroring around X axis
+
 Revision 3.11  2006/05/13 22:52:52  mast
 Changes to allow overlay colors to be specified
 

@@ -30,8 +30,6 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
                              int *ivarpc, int *indvar, int nvar, int limvar,
                              int leavind);
 
-int gaussj(float *a, int n, int np, float *b, int m, int mp);
-
 int new_view(struct Midas_view *vw)
 {
   int i;
@@ -51,6 +49,7 @@ int new_view(struct Midas_view *vw)
   vw->truezoom = 1.;
   vw->zoomind = 5;
   vw->mousemoving = 0;
+  vw->useFixed = 0;
      
   vw->xtrans = 0;
   vw->ytrans = 0;
@@ -1673,6 +1672,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.15  2006/05/13 22:52:52  mast
+Changes to allow overlay colors to be specified
+
 Revision 3.14  2005/11/08 02:36:36  mast
 Fixed bug in getting local errors when pieces were missing
 

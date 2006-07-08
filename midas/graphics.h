@@ -20,6 +20,7 @@ class MidasGL : public QGLWidget
   int fill_viewdata( struct Midas_view *vw);
   int update_slice_view(void);
   void manageMouseLabel(char *string);
+  void drawStar(float xcen, float ycen, float censize);
 
 protected:
   void initializeGL();
