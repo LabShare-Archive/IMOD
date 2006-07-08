@@ -11,6 +11,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2006/07/08 15:32:13  mast
+Changes to implement second fixed point for stretching
+
 Revision 3.7  2006/05/13 22:52:52  mast
 Changes to allow overlay colors to be specified
 
@@ -558,7 +561,7 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
       if (state & Qt::ShiftButton)
         manageMouseLabel("CHANGING MAG");
       else
-        manageMouseLabel(VW->useFixed ? "2 PT STRETCHING": "STRETCHING");
+        manageMouseLabel(VW->useFixed ? "2 PT STRETCHING" : "STRETCHING");
     }
   }
 }
@@ -619,7 +622,7 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
   VW->mousemoving = 0;
 }
 
-void MidasGL::manageMouseLabel(char *string)
+void MidasGL::manageMouseLabel(const char *string)
 {
   if (mMousePressed) {
     VW->mouseLabel->setPaletteForegroundColor(QColor("red"));
