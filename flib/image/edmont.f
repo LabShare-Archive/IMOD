@@ -112,6 +112,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2006/07/08 13:47:48  mast
+c	  Raised maxextra again and some other limits, put big array in common
+c	
 c	  Revision 3.2  2005/12/09 04:45:32  mast
 c	  gfortran: .xor., continuation, or byte fixes
 c	
@@ -154,7 +157,8 @@ c
         character*80 titlech
 C   
 C   Read in list of input files
-C   
+C         
+        call setExitPrefix('ERROR: EDMONT - ')
 	inunit=5
 	write(*,'(1x,a,$)')'# of input files (or -1 to read list'//
      &	    ' of input files from file): '
@@ -333,10 +337,8 @@ c   find the minimum of the ratio (dmean-dmin)/(dmax-dmin)
 	    CALL IMOPEN(1,FILIN(ifil),'RO')
 	    CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 C	      
-	    IF ((NX*NY.GT.idim*idim)) THEN
-	      PRINT *,' INPUT ARRAY TOO LARGE.'
-	      STOP
-	    ENDIF
+	    IF ((NX*NY.GT.idim*idim)) call exitError(
+     &          'INPUT IMAGE TOO LARGE FOR ARRAY')
 	    call read_pl_or_header(pifilin(ifil),filin(ifil),extrain,
      &		maxextra, ixpclist,iypclist,izpclist,npclist,limpcl)
 	    do ilis=1,nlist(ifil)
@@ -429,10 +431,8 @@ c
 	    endif
 	  endif
 C   
-	  IF ((NX*NY.GT.idim*idim)) THEN
-	    PRINT *,' INPUT ARRAY TOO LARGE.'
-	    STOP
-	  ENDIF
+          IF ((NX*NY.GT.idim*idim)) call exitError(
+     &        'INPUT IMAGE TOO LARGE FOR ARRAY')
 c	    get each section in input file
 	  nx3=nx
 	  ny3=ny
@@ -501,9 +501,8 @@ c
      &			(optin-bottomin)+bottomout
 		  elseif(rescale)then
 c		      :if outside proper range, tell user to start over
-		    print *,'Input data outside expected range.  '
-     &			,'Start over, specifying float to range'
-		    stop
+                    call exitError('Input data outside expected range. '//
+     &			'Start over, specifying float to range')
 		  endif
 		elseif(iffloat.ne.0)then
 c		    If floating: scale to a dmin2 that will knock out fraczero
@@ -687,10 +686,8 @@ C
 	  if(ifrewrite.eq.0)call imclose(1)
 	enddo
 C   
-	STOP
-99	WRITE(6,450)
-450	FORMAT(' END OF IMAGE WHILE READING')
-	STOP
+        call exit(0)
+99	call exitError('END OF IMAGE WHILE READING')
 	END
 
 
