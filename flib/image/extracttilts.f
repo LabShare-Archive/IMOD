@@ -15,6 +15,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2006/02/24 22:11:15  mast
+c       Exit with ERROR if no items found in header
+c
 c       Revision 3.4  2004/04/02 00:50:25  mast
 c       Had to initialize iftilt
 c	
@@ -30,7 +33,7 @@ c
 c       
       implicit none
       integer maxextra, maxtilts, maxpiece
-      parameter (maxextra = 1000000, maxtilts = 2000, maxpiece=50000)
+      parameter (maxextra = 4000000, maxtilts = 4000, maxpiece=100000)
       integer*4 NXYZ(3),MXYZ(3)
       real*4 tilt(maxtilts), val2(maxtilts)
       real*4 array(maxextra/4)
@@ -75,7 +78,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 
       if (PipGetInOutFile('InputFile', 1, 'Image input file', filin)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
       ierr = PipGetInOutFile('OutputFile', 2,
      &    'Name of output file, or return to print out values', filout)
 c       
@@ -85,7 +88,7 @@ c
         ierr = PipGetBoolean('StagePositions', ifstage)
         ierr = PipGetBoolean('Intensities', ifC2)
         if (iftilt + ifmag + ifstage + ifC2 .eq. 0) iftilt = 1
-        if (iftilt + ifmag + ifstage + ifC2 .ne. 1) call errorexit(
+        if (iftilt + ifmag + ifstage + ifC2 .ne. 1) call exitError(
      &      'YOU MUST ENTER ONLY ONE OPTION FOR DATA TO EXTRACT')
         if (iftilt .ne. 0) itype = 1
         if (ifstage .ne. 0) itype = 3
@@ -102,7 +105,7 @@ c
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
       call irtnbsym(1,nbsym)
-      if(nbsym.gt.maxextra) call errorexit(
+      if(nbsym.gt.maxextra) call exitError(
      &    'ARRAYS NOT LARGE ENOUGH FOR EXTRA HEADER DATA')
 
       call irtsym(1,nbsym,array)
@@ -169,10 +172,3 @@ c
 c       
       call exit(0)
       END
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: EXTRACTTILTS - ',message
-      call exit(1)
-      end
