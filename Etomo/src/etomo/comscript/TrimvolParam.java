@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2006/07/05 23:23:54  sueh
+ * <p> Convert rubberband points to coordinates for scaling X and Y.
+ * <p>
  * <p> Revision 3.17  2006/06/28 23:28:30  sueh
  * <p> bug# 881 Added scaleXMin, scaleXMax, scaleYMin, and scaleYMax.
  * <p>
@@ -140,7 +143,6 @@ import etomo.type.EtomoNumber;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
-
 public class TrimvolParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
@@ -161,10 +163,10 @@ public class TrimvolParam implements CommandDetails {
   private static final String ROTATE_X_KEY = "RotateX";
   public static final String INPUT_FILE = "InputFile";
   public static final String OUTPUT_FILE = "OutputFile";
-  
+
   private static final int commandSize = 3;
   private static final String commandName = "trimvol";
-  
+
   private int xMin = Integer.MIN_VALUE;
   private int xMax = Integer.MIN_VALUE;
   private int yMin = Integer.MIN_VALUE;
@@ -188,31 +190,32 @@ public class TrimvolParam implements CommandDetails {
   private String[] commandArray;
   private AxisID axisID;
   private final BaseManager manager;
-  
+
   public TrimvolParam(BaseManager manager) {
     this.manager = manager;
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
-  
+
   /**
    *  Insert the objects attributes into the properties object.
    */
   public void store(Properties props) {
     store(props, "");
   }
+
   public void store(Properties props, String prepend) {
     String group;
     prepend += PARAM_ID;
     group = prepend + ".";
-   /* if (prepend == "") {
-      group = PARAM_ID + ".";
-    }
-    else {
-      group = prepend + PARAM_ID + ".";
-    }*/
+    /* if (prepend == "") {
+     group = PARAM_ID + ".";
+     }
+     else {
+     group = prepend + PARAM_ID + ".";
+     }*/
     props.setProperty(group + XMIN, String.valueOf(xMin));
     props.setProperty(group + XMAX, String.valueOf(xMax));
     props.setProperty(group + YMIN, String.valueOf(yMin));
@@ -221,15 +224,13 @@ public class TrimvolParam implements CommandDetails {
     props.setProperty(group + ZMAX, String.valueOf(zMax));
     props.setProperty(group + CONVERT_TO_BYTES, String.valueOf(convertToBytes));
     props.setProperty(group + FIXED_SCALING, String.valueOf(fixedScaling));
-    props.setProperty(
-      group + SECTION_SCALE_MIN,
-      String.valueOf(sectionScaleMin));
-    props.setProperty(
-      group + SECTION_SCALE_MAX,
-      String.valueOf(sectionScaleMax));
+    props.setProperty(group + SECTION_SCALE_MIN, String
+        .valueOf(sectionScaleMin));
+    props.setProperty(group + SECTION_SCALE_MAX, String
+        .valueOf(sectionScaleMax));
     props.setProperty(group + FIXED_SCALE_MIN, String.valueOf(fixedScaleMin));
     props.setProperty(group + FIXED_SCALE_MAX, String.valueOf(fixedScaleMax));
-    props.setProperty(group + swapYZString, String.valueOf(swapYZ)  );
+    props.setProperty(group + swapYZString, String.valueOf(swapYZ));
     props.setProperty(group + ROTATE_X_KEY, String.valueOf(rotateX));
     props.setProperty(group + INPUT_FILE, inputFile);
     props.setProperty(group + OUTPUT_FILE, outputFile);
@@ -245,111 +246,75 @@ public class TrimvolParam implements CommandDetails {
   public void load(Properties props) {
     load(props, "");
   }
+
   public void load(Properties props, String prepend) {
     String group;
     prepend += PARAM_ID;
     group = prepend + ".";
-   /* if (prepend == "") {
-      group = PARAM_ID + ".";
-    }
-    else {
-      group = prepend + PARAM_ID + ".";
-    }*/
+    /* if (prepend == "") {
+     group = PARAM_ID + ".";
+     }
+     else {
+     group = prepend + PARAM_ID + ".";
+     }*/
 
     // Load the trimvol values if they are present, don't change the
     // current value if the property is not present
-    xMin =
-      Integer
-        .valueOf(props.getProperty(group + XMIN, Integer.toString(xMin)))
-        .intValue();
-        
-    xMax =
-      Integer
-        .valueOf(props.getProperty(group + XMAX, Integer.toString(xMax)))
-        .intValue();
-        
-    yMin =
-      Integer
-        .valueOf(props.getProperty(group + YMIN, Integer.toString(yMin)))
-        .intValue();
+    xMin = Integer.valueOf(
+        props.getProperty(group + XMIN, Integer.toString(xMin))).intValue();
 
-    yMax =
-      Integer
-        .valueOf(props.getProperty(group + YMAX, Integer.toString(yMax)))
-        .intValue();
-        
-    zMin =
-      Integer
-        .valueOf(props.getProperty(group + ZMIN, Integer.toString(zMin)))
-        .intValue();
+    xMax = Integer.valueOf(
+        props.getProperty(group + XMAX, Integer.toString(xMax))).intValue();
 
-    zMax =
-      Integer
-        .valueOf(props.getProperty(group + ZMAX, Integer.toString(zMax)))
-        .intValue();
+    yMin = Integer.valueOf(
+        props.getProperty(group + YMIN, Integer.toString(yMin))).intValue();
 
-    convertToBytes =
-      Boolean
+    yMax = Integer.valueOf(
+        props.getProperty(group + YMAX, Integer.toString(yMax))).intValue();
+
+    zMin = Integer.valueOf(
+        props.getProperty(group + ZMIN, Integer.toString(zMin))).intValue();
+
+    zMax = Integer.valueOf(
+        props.getProperty(group + ZMAX, Integer.toString(zMax))).intValue();
+
+    convertToBytes = Boolean.valueOf(
+        props.getProperty(group + CONVERT_TO_BYTES, Boolean
+            .toString(convertToBytes))).booleanValue();
+
+    fixedScaling = Boolean
         .valueOf(
-          props.getProperty(
-            group + CONVERT_TO_BYTES,
-            Boolean.toString(convertToBytes)))
+            props.getProperty(group + FIXED_SCALING, Boolean
+                .toString(fixedScaling))).booleanValue();
+
+    sectionScaleMin = Integer.valueOf(
+        props.getProperty(group + SECTION_SCALE_MIN, Integer
+            .toString(sectionScaleMin))).intValue();
+
+    sectionScaleMax = Integer.valueOf(
+        props.getProperty(group + SECTION_SCALE_MAX, Integer
+            .toString(sectionScaleMax))).intValue();
+
+    fixedScaleMin = Integer.valueOf(
+        props.getProperty(group + FIXED_SCALE_MIN, Integer
+            .toString(fixedScaleMin))).intValue();
+
+    fixedScaleMax = Integer.valueOf(
+        props.getProperty(group + FIXED_SCALE_MAX, Integer
+            .toString(fixedScaleMax))).intValue();
+
+    swapYZ = Boolean.valueOf(
+        props.getProperty(group + swapYZString, Boolean.toString(swapYZ)))
         .booleanValue();
 
-    fixedScaling =
-      Boolean
-        .valueOf(
-          props.getProperty(
-            group + FIXED_SCALING,
-            Boolean.toString(fixedScaling)))
+    rotateX = Boolean.valueOf(
+        props.getProperty(group + ROTATE_X_KEY, Boolean.toString(rotateX)))
         .booleanValue();
 
-    sectionScaleMin =
-      Integer
-        .valueOf(
-          props.getProperty(
-            group + SECTION_SCALE_MIN,
-            Integer.toString(sectionScaleMin)))
-        .intValue();
-
-    sectionScaleMax =
-      Integer
-        .valueOf(
-          props.getProperty(
-            group + SECTION_SCALE_MAX,
-            Integer.toString(sectionScaleMax)))
-        .intValue();
-
-    fixedScaleMin =
-      Integer
-        .valueOf(
-          props.getProperty(
-            group + FIXED_SCALE_MIN,
-            Integer.toString(fixedScaleMin)))
-        .intValue();
-
-    fixedScaleMax =
-      Integer
-        .valueOf(
-          props.getProperty(
-            group + FIXED_SCALE_MAX,
-            Integer.toString(fixedScaleMax)))
-        .intValue();
-        
-    swapYZ =
-      Boolean
-        .valueOf(props.getProperty(group + swapYZString, Boolean.toString(swapYZ)))
-        .booleanValue();
-    
-    rotateX =
-      Boolean
-        .valueOf(props.getProperty(group + ROTATE_X_KEY, Boolean.toString(rotateX)))
-        .booleanValue();
-        
     inputFile = props.getProperty(group + INPUT_FILE, inputFile);
-      
+
     outputFile = props.getProperty(group + OUTPUT_FILE, outputFile);
-    
+
     scaleXMin.load(props, prepend);
     scaleXMax.load(props, prepend);
     scaleYMin.load(props, prepend);
@@ -369,7 +334,7 @@ public class TrimvolParam implements CommandDetails {
   public void setConvertToBytes(boolean convertToBytes) {
     this.convertToBytes = convertToBytes;
   }
-  
+
   private void createCommand() {
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
@@ -378,7 +343,7 @@ public class TrimvolParam implements CommandDetails {
     // com scripts which require the -e flag.  RJG: 2003-11-06  
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -408,12 +373,14 @@ public class TrimvolParam implements CommandDetails {
     if (convertToBytes) {
       if (fixedScaling) {
         options.add("-c");
-        options.add(String.valueOf(fixedScaleMin) + "," + String.valueOf(fixedScaleMax));
+        options.add(String.valueOf(fixedScaleMin) + ","
+            + String.valueOf(fixedScaleMax));
 
       }
       else {
         options.add("-s");
-        options.add(String.valueOf(sectionScaleMin) + "," + String.valueOf(sectionScaleMax));
+        options.add(String.valueOf(sectionScaleMin) + ","
+            + String.valueOf(sectionScaleMax));
         if (!scaleXMin.isNull() && !scaleXMax.isNull()) {
           options.add("-sx");
           options.add(scaleXMin.toString() + "," + scaleXMax.toString());
@@ -428,7 +395,7 @@ public class TrimvolParam implements CommandDetails {
     if (swapYZ) {
       options.add("-yz");
     }
-    
+
     if (rotateX) {
       options.add("-rx");
     }
@@ -480,7 +447,7 @@ public class TrimvolParam implements CommandDetails {
   public boolean isSwapYZ() {
     return swapYZ;
   }
-  
+
   public boolean isRotateX() {
     return rotateX;
   }
@@ -513,7 +480,6 @@ public class TrimvolParam implements CommandDetails {
     return yMin;
   }
 
-  
   /**
    * @return int
    */
@@ -603,7 +569,7 @@ public class TrimvolParam implements CommandDetails {
   public void setSwapYZ(boolean swapYZ) {
     this.swapYZ = swapYZ;
   }
-  
+
   public void setRotateX(boolean rotateX) {
     this.rotateX = rotateX;
   }
@@ -639,7 +605,7 @@ public class TrimvolParam implements CommandDetails {
   public void setYMin(int yMin) {
     this.yMin = yMin;
   }
-  
+
   /**
    * Sets the scaleXMin.
    * Converts the X value from the rubberband to a coordinate
@@ -647,7 +613,9 @@ public class TrimvolParam implements CommandDetails {
    */
   public void setScaleXMax(String scaleXMax) {
     this.scaleXMax.set(scaleXMax);
-    this.scaleXMax.set(this.scaleXMax.getInt() - 1);
+    if (!this.scaleXMax.isNull()) {
+      this.scaleXMax.set(this.scaleXMax.getInt() - 1);
+    }
   }
 
   /**
@@ -657,7 +625,9 @@ public class TrimvolParam implements CommandDetails {
    */
   public void setScaleXMin(String scaleXMin) {
     this.scaleXMin.set(scaleXMin);
-    this.scaleXMin.set(this.scaleXMin.getInt() - 1);
+    if (!this.scaleXMin.isNull()) {
+      this.scaleXMin.set(this.scaleXMin.getInt() - 1);
+    }
   }
 
   /**
@@ -667,7 +637,9 @@ public class TrimvolParam implements CommandDetails {
    */
   public void setScaleYMax(String scaleYMax) {
     this.scaleYMax.set(scaleYMax);
-    this.scaleYMax.set(this.scaleYMax.getInt() - 1);
+    if (!this.scaleYMax.isNull()) {
+      this.scaleYMax.set(this.scaleYMax.getInt() - 1);
+    }
   }
 
   /**
@@ -677,9 +649,10 @@ public class TrimvolParam implements CommandDetails {
    */
   public void setScaleYMin(String scaleYMin) {
     this.scaleYMin.set(scaleYMin);
-    this.scaleYMin.set(this.scaleYMin.getInt() - 1);
+    if (!this.scaleYMin.isNull()) {
+      this.scaleYMin.set(this.scaleYMin.getInt() - 1);
+    }
   }
-
 
   /**
    * Sets the zMax.
@@ -704,7 +677,7 @@ public class TrimvolParam implements CommandDetails {
   public void setDefaultRange() throws InvalidParameterException, IOException {
     setDefaultRange(inputFile);
   }
-  
+
   public void setDefaultRange(String fileName)
       throws InvalidParameterException, IOException {
     //Don't override existing values
@@ -712,7 +685,8 @@ public class TrimvolParam implements CommandDetails {
       return;
     }
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        fileName, AxisID.ONLY);
     mrcHeader.read();
 
     xMin = 1;
@@ -741,6 +715,7 @@ public class TrimvolParam implements CommandDetails {
   public String getInputFileName() {
     return inputFile;
   }
+
   /**
    * 
    * @param axisType
@@ -753,6 +728,7 @@ public class TrimvolParam implements CommandDetails {
     }
     return "sum.rec";
   }
+
   /**
    * 
    * @param axisType
@@ -769,10 +745,11 @@ public class TrimvolParam implements CommandDetails {
   public String getOutputFileName() {
     return outputFile;
   }
-  
+
   public static String getOutputFileName(String datasetName) {
     return datasetName + ".rec";
   }
+
   /**
    * 
    * @param datasetName
@@ -780,7 +757,7 @@ public class TrimvolParam implements CommandDetails {
   public void setOutputFileName(String datasetName) {
     outputFile = datasetName + ".rec";
   }
-  
+
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     if (field == Fields.SWAP_YZ) {
       return swapYZ;
@@ -790,20 +767,20 @@ public class TrimvolParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getCommandArray() {
     createCommand();
     return commandArray;
   }
-  
+
   public String getCommandLine() {
     if (commandArray == null) {
       return "";
@@ -814,31 +791,31 @@ public class TrimvolParam implements CommandDetails {
     }
     return buffer.toString();
   }
-  
+
   public String getCommandName() {
     return commandName;
   }
-  
+
   public String getCommand() {
     return commandName;
   }
-  
+
   public int getIntValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public int getCommandMode() {
     return 0;
   }
-  
+
   public File getCommandOutputFile() {
     return new File(outputFile);
   }
-  
+
   public static String getName() {
     return commandName;
   }
-  
+
   /**
    * 
    * @param trim
@@ -888,13 +865,14 @@ public class TrimvolParam implements CommandDetails {
       return false;
     }
     if (!inputFile.equals(trim.getInputFileName())
-      && (inputFile.equals("\\S+") || trim.getInputFileName().equals("\\S+"))) {
+        && (inputFile.equals("\\S+") || trim.getInputFileName().equals("\\S+"))) {
       return false;
     }
     if (!outputFile.equals(trim.getCommandOutputFile())
-      && (outputFile.equals("\\S+") || trim.getCommandOutputFile().equals("\\S+"))) {
+        && (outputFile.equals("\\S+") || trim.getCommandOutputFile().equals(
+            "\\S+"))) {
       return false;
-    }  
+    }
     if (!scaleXMin.equals(trim.getScaleXMin())) {
       return false;
     }
@@ -909,11 +887,11 @@ public class TrimvolParam implements CommandDetails {
     }
     return true;
   }
-  
+
   public static final class Fields implements etomo.comscript.Fields {
     private Fields() {
     }
-    
+
     public static final Fields SWAP_YZ = new Fields();
     public static final Fields ROTATE_X = new Fields();
   }
