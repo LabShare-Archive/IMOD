@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2006/06/29 22:02:28  sueh
+ * <p> bug# 880 Removed orderCut from data because it doesn't need to be stored.
+ * <p>
  * <p> Revision 1.18  2006/06/29 20:10:23  sueh
  * <p> bug# 880 Adding orderCut.  Displaying orderCut instead of rowNumber.
  * <p> RowNumber is still used as the key in the .ejf file.
@@ -214,7 +217,7 @@ public final class SectionTableRow {
   private final MultiLineButton highlighterButton;
 
   private SectionTableRowData data;
-  private final HeaderCell orderCut = new HeaderCell(FixedDim.rowNumberWidth);
+  private final HeaderCell rowNumber = new HeaderCell(FixedDim.rowNumberWidth);
 
   private int imodIndex = -1;
   private int imodRotIndex = -1;
@@ -231,7 +234,7 @@ public final class SectionTableRow {
     this(manager, table, sectionExpanded);
     data = new SectionTableRowData(manager, rowNumber);
     data.setSetupSection(tomogram);
-    displayData();
+    displayData(rowNumber);
     setToolTipText();
   }
 
@@ -240,7 +243,7 @@ public final class SectionTableRow {
     this(manager, table, sectionExpanded);
     this.data = new SectionTableRowData(manager, data);
     this.sectionExpanded = sectionExpanded;
-    displayData();
+    displayData(data.getRowNumber().getInt());
     setToolTipText();
   }
 
@@ -305,7 +308,7 @@ public final class SectionTableRow {
   }
 
   void remove() {
-    orderCut.remove();
+    rowNumber.remove();
     table.removeCell(highlighterButton.getComponent());
     setupSection.remove();
     sampleBottomStart.remove();
@@ -448,7 +451,7 @@ public final class SectionTableRow {
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    orderCut.add(panel, layout, constraints);
+    rowNumber.add(panel, layout, constraints);
     table.addCell(highlighterButton.getComponent());
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
@@ -471,7 +474,7 @@ public final class SectionTableRow {
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    orderCut.add(panel, layout, constraints);
+    rowNumber.add(panel, layout, constraints);
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
     constraints.gridwidth = 1;
@@ -488,7 +491,7 @@ public final class SectionTableRow {
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    orderCut.add(panel, layout, constraints);
+    rowNumber.add(panel, layout, constraints);
     table.addCell(highlighterButton.getComponent());
     constraints.gridwidth = 2;
     joinSection.add(panel, layout, constraints);
@@ -496,6 +499,11 @@ public final class SectionTableRow {
     joinFinalStart.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     joinFinalEnd.add(panel, layout, constraints);
+  }
+  
+  private void displayData(int rowNumber) {
+    this.rowNumber.setText(String.valueOf(rowNumber));
+    displayData();
   }
 
   /**
@@ -528,7 +536,7 @@ public final class SectionTableRow {
    */
   private boolean retrieveData(boolean displayErrorMessage) {
     valid = true;
-    String errorTitle = "Invalid number in section " + orderCut.getText();
+    String errorTitle = "Invalid number in section " + rowNumber.getText();
     if (!data.setSampleBottomStart(sampleBottomStart.getValue()).isValid(
         displayErrorMessage && valid, errorTitle, AxisID.ONLY)) {
       valid = false;
@@ -578,7 +586,7 @@ public final class SectionTableRow {
 
   boolean validateMakejoincom() {
     retrieveData(false);
-    String errorTitle = "Invalid numbers in section " + orderCut.getText();
+    String errorTitle = "Invalid numbers in section " + rowNumber.getText();
     validate(data.getSampleBottomStart(), data.getSampleBottomEnd(),
         errorTitle, true);
     validate(data.getSampleTopStart(), data.getSampleTopEnd(), errorTitle, true);
@@ -587,7 +595,7 @@ public final class SectionTableRow {
 
   boolean validateFinishjoin() {
     retrieveData(false);
-    String errorTitle = "Invalid numbers in section " + orderCut.getText();
+    String errorTitle = "Invalid numbers in section " + rowNumber.getText();
     validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), errorTitle,
         false);
     return valid;
@@ -664,10 +672,7 @@ public final class SectionTableRow {
 
   void setRowNumber(int rowNumber) {
     data.setRowNumber(rowNumber);
-  }
-
-  void setOrderCut(int orderCut) {
-    this.orderCut.setText(Integer.toString(orderCut));
+    this.rowNumber.setText(String.valueOf(rowNumber));
   }
 
   void setImodIndex(int imodIndex) {
@@ -862,8 +867,6 @@ public final class SectionTableRow {
 
   private void setToolTipText() {
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    orderCut.setToolTipText(tooltipFormatter.setText(
-        SectionTablePanel.ORDER_CUT_TOOLTIP).format());
     highlighterButton.setToolTipText(tooltipFormatter.setText(
         "Press to select the section.").format());
     currentChunk.setToolTipText(tooltipFormatter.setText(
