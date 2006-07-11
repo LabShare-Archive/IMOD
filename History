@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/06: Changed binvol to write in chunks so it will work with any size data.
+
 7/11/06: IMOD_3-8-20
 7/10/06: Changed "cut order" to "Z order" in join table; stacking sections in
 reverse of cut order does not always preserve handedness.
