@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/06: IMOD_3-8-20
+7/10/06: Changed "cut order" to "Z order" in join table; stacking sections in
+reverse of cut order does not always preserve handedness.
+
+7/10/06: Fixed problem in post-processing panel with blank entries in X/Y 
+region to use for scaling.
+
 7/8/06: IMOD_3-8-19
 7/8/06: Increased array limits for extra header in Edmont, Newstack,
 Extractpieces, Extracttilts.
