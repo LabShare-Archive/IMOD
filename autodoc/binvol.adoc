@@ -49,6 +49,14 @@ usage = Factor to bin by in Z (default same as overall factor)
 tooltip = 
 manpage = 
 
+[Field = TestLimit]
+short = test
+type = I
+usage = Total size of working array
+tooltip = 
+manpage = To test the code for reading in and binning in chunks, enter
+a limit for the total size of the working array.
+
 [Field = usage]
 short = help
 long = usage
