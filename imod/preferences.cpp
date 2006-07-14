@@ -137,7 +137,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->namedColorDflt[5] = qRgb(255, 255, 128);
   prefs->namedColorDflt[6] = qRgb( 64,  64,  96);
   prefs->namedColorDflt[7] = qRgb( 16,  16,  16);  
+#ifdef Q_OS_IRIX
   prefs->snapFormatDflt = "RGB";
+#else
+  prefs->snapFormatDflt = "JPEG";
+#endif
   prefs->snapQualityDflt = 80;
 
   prefs->hotSliderKey = settings->readNumEntry(IMOD_NAME"hotSliderKey", 
@@ -192,7 +196,10 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
                                         prefs->snapQualityDflt,
                                         &prefs->snapQualityChgd);
 
-  // Make sure an output format is on the list; if not drop back to RGB
+  // Make sure an output format is on the list; if not drop to PNG then RGB
+  strList = (snapFormatList()).grep(prefs->snapFormat);
+  if (strList.isEmpty())
+    prefs->snapFormat = "PNG";
   strList = (snapFormatList()).grep(prefs->snapFormat);
   if (strList.isEmpty())
     prefs->snapFormat = "RGB";
@@ -975,6 +982,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.20  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 1.19  2004/11/29 19:25:21  mast
 Changes to do QImage instead of RGB snapshots
 
