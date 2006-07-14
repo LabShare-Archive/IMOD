@@ -118,6 +118,7 @@ c
       indB = 2
       transTol = 3.
       nTransCoord = 0
+      matchAtoB = .false.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -991,6 +992,9 @@ c     &          fidModY(numFid)
 
 c
 c       $Log$
+c       Revision 3.14  2006/07/04 22:48:20  mast
+c       Improved messages for transferfid coordinate case
+c
 c       Revision 3.13  2006/05/05 14:20:28  mast
 c       Fixed Pip declaration and while(1)
 c
