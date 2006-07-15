@@ -1054,6 +1054,8 @@ c
               graphs(ibin,jsd)=0.
               areas(ibin,jmean)=areas(ibin,jj)
               areas(ibin,jsd)=areas(ibin,jj)
+              powergrf(jmean) = powergrf(jj)
+              powergrf(jsd) = powergrf(jj)
             else
               sumbin=graphs(ibin,jmean)*(ntotcontrol-1)
               sumsqbin=graphs(ibin,jsd)*sqrt(ntotcontrol-2.)
@@ -1275,6 +1277,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.11  2006/05/13 15:10:16  mast
+c       Increased some dimensions including # of points
+c
 c       Revision 3.10  2006/05/12 14:39:22  mast
 c       Change to accommodate surface in window being negative object number
 c
