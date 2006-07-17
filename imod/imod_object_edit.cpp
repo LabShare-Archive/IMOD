@@ -217,6 +217,7 @@ int imod_object_edit()
   Ioew_dialog->setCaption(imodCaption("3dmod Object Edit"));
   imodDialogManager.add((QWidget *)Ioew_dialog, IMOD_DIALOG);
 
+  Ioew_dialog->adjustSize();
   Ioew_dialog->show();
 
   imod_object_edit_draw();
@@ -431,6 +432,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.15  2006/06/09 22:27:10  mast
+Converted help
+
 Revision 4.14  2006/06/09 20:25:39  mast
 Added ability to display spheres on center section only
 
