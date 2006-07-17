@@ -1918,6 +1918,10 @@ public final class ApplicationManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+    }
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
     if (seedFile.exists()) {
       state.setSeedFileLastModified(axisID, seedFile.lastModified());
@@ -2353,6 +2357,10 @@ public final class ApplicationManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+    }
   }
 
   private void closeImod(String key, String description) {
@@ -2376,6 +2384,10 @@ public final class ApplicationManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+    }
   }
 
   public void closeImod(String key, AxisID axisID, String description) {
@@ -2398,6 +2410,10 @@ public final class ApplicationManager extends BaseManager {
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
     }
   }
 
@@ -4794,6 +4810,10 @@ public final class ApplicationManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+    }
   }
 
   /**
@@ -5731,6 +5751,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.244  2006/07/05 23:23:14  sueh
+ * <p> Added extra message for Windows when delete file fails.  Get fine alignment
+ * <p> fix fiducials to set the right mode.
+ * <p>
  * <p> Revision 3.243  2006/07/04 20:36:41  sueh
  * <p> bug# 898 Return false from done and save functions if their dialog continues
  * <p> to be displayed.

@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2006/07/04 20:39:03  sueh
+ * <p> bug# 894 Changed seedMode to newContours.  Added setBeadfixerMode().
+ * <p>
  * <p> Revision 3.41  2006/07/03 21:38:58  sueh
  * <p> bug# 895 Added ImodRequestHandler to handle requests from 3dmod in
  * <p> Windows.  Added processRequest(), which is called by ImodRequestHandler.
@@ -500,7 +503,8 @@ public class ImodManager {
         .getFiducialDiameterPerPixel();
     if (axisType == AxisType.SINGLE_AXIS) {
       loadSingleAxisMap();
-    } else {
+    }
+    else {
       loadDualAxisMap();
     }
   }
@@ -535,7 +539,8 @@ public class ImodManager {
       vector = newVector(key, axisID, datasetName);
       if (axisID == null) {
         imodMap.put(key, vector);
-      } else {
+      }
+      else {
         imodMap.put(key + axisID.getExtension(), vector);
       }
       return 0;
@@ -598,7 +603,8 @@ public class ImodManager {
     if (imodState != null) {
       if (model == null) {
         imodState.open(menuOptions);
-      } else {
+      }
+      else {
         imodState.open(model, menuOptions);
       }
     }
@@ -667,7 +673,7 @@ public class ImodManager {
   }
 
   public void delete(String key, int vectorIndex) throws AxisTypeException,
-      IOException {
+      IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -721,7 +727,7 @@ public class ImodManager {
   }
 
   public Vector getRubberbandCoordinates(String key) throws AxisTypeException,
-      IOException {
+      IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -731,7 +737,7 @@ public class ImodManager {
   }
 
   public Vector getSlicerAngles(String key, int vectorIndex)
-      throws AxisTypeException, IOException {
+      throws AxisTypeException, IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
@@ -740,12 +746,13 @@ public class ImodManager {
     return imodState.getSlicerAngles();
   }
 
-  public void quit(String key) throws AxisTypeException, IOException {
+  public void quit(String key) throws AxisTypeException, IOException,
+      SystemProcessException {
     quit(key, null);
   }
 
   public void quit(String key, AxisID axisID) throws AxisTypeException,
-      IOException {
+      IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState != null) {
@@ -754,7 +761,7 @@ public class ImodManager {
   }
 
   public void quitAll(String key, AxisID axisID) throws AxisTypeException,
-      IOException {
+      IOException, SystemProcessException {
     Vector imodStateVector = getVector(getPrivateKey(key), axisID);
     if (imodStateVector == null || imodStateVector.size() == 0) {
       return;
@@ -772,7 +779,8 @@ public class ImodManager {
     }
   }
 
-  public void quit() throws AxisTypeException, IOException {
+  public void quit() throws AxisTypeException, IOException,
+      SystemProcessException {
     if (imodMap.size() == 0) {
       return;
     }
@@ -1120,7 +1128,8 @@ public class ImodManager {
   protected void createPrivateKeys() {
     if (axisType == AxisType.SINGLE_AXIS) {
       combinedTomogramKey = FULL_VOLUME_KEY;
-    } else {
+    }
+    else {
       combinedTomogramKey = COMBINED_TOMOGRAM_KEY;
     }
   }
@@ -1128,7 +1137,8 @@ public class ImodManager {
   protected String getPrivateKey(String publicKey) {
     if (publicKey.equals(COMBINED_TOMOGRAM_KEY)) {
       return combinedTomogramKey;
-    } else
+    }
+    else
       return publicKey;
   }
 
@@ -1226,7 +1236,8 @@ public class ImodManager {
     ImodState imodState;
     if (axisType == AxisType.SINGLE_AXIS) {
       imodState = new ImodState(manager, datasetName + "_full.rec", axisID);
-    } else {
+    }
+    else {
       imodState = new ImodState(manager, axisID, datasetName, ".rec");
     }
     imodState.setAllowMenuBinningInZ(true);
@@ -1411,7 +1422,8 @@ public class ImodManager {
     }
     if (isPerAxis(key)) {
       vector = (Vector) imodMap.get(key + AxisID.ONLY.getExtension());
-    } else {
+    }
+    else {
       vector = (Vector) imodMap.get(key);
     }
     if (vector == null) {
@@ -1449,7 +1461,8 @@ public class ImodManager {
     }
     if (!isPerAxis(key)) {
       vector = (Vector) imodMap.get(key);
-    } else {
+    }
+    else {
       vector = (Vector) imodMap.get(key + axisID.getExtension());
     }
     if (vector == null) {

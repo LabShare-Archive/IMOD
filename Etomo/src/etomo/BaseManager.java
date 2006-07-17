@@ -431,6 +431,10 @@ public abstract class BaseManager {
       uiHarness.openMessageDialog(e.getMessage(),
           "IO Exception", axisID);
     }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+    }
     return results;
   }
 
@@ -989,6 +993,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.61  2006/06/30 19:58:59  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called from the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removing doneProcessDialog().
+ * <p>
  * <p> Revision 1.60  2006/06/22 20:58:26  sueh
  * <p> bug# 797 imodGetRubberbandCoordinates() checking for errors before getting to
  * <p> this function

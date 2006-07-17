@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.35  2006/07/04 20:40:06  sueh
+ * <p> $bug# 894 Changed seedMode to newContours.  Added setBeadfixerMode().
+ * <p> $
  * <p> $Revision 1.34  2006/07/03 21:55:35  sueh
  * <p> $bug# 895 Added processRequest().
  * <p> $
@@ -525,7 +528,7 @@ public final class ImodState {
     process = new ImodProcess(manager, datasetNameArray, modelName);
     reset();
   }
-  
+
   void processRequest() {
     process.processRequest();
   }
@@ -535,8 +538,8 @@ public final class ImodState {
    * 
    * @throws SystemProcessException
    */
-  void open(Run3dmodMenuOptions menuOptions)
-      throws SystemProcessException, IOException {
+  void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
+      IOException {
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.getOptions();
     menuOptions.setAllowBinningInZ(allowMenuBinningInZ);
@@ -639,18 +642,19 @@ public final class ImodState {
     open(menuOptions);
   }
 
-  public Vector getRubberbandCoordinates() throws IOException {
+  public Vector getRubberbandCoordinates() throws IOException,
+      SystemProcessException {
     return process.getRubberbandCoordinates();
   }
 
-  public Vector getSlicerAngles() throws IOException {
+  public Vector getSlicerAngles() throws IOException, SystemProcessException {
     return process.getSlicerAngles();
   }
 
   /**
    * Tells process to quit.
    */
-  public void quit() throws IOException {
+  public void quit() throws IOException, SystemProcessException {
     process.quit();
   }
 
@@ -868,7 +872,7 @@ public final class ImodState {
     setAutoCenter = true;
     this.autoCenter = autoCenter;
   }
-  
+
   void setBeadfixerMode(String mode) {
     beadfixerMode = mode;
   }

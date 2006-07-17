@@ -53,6 +53,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2006/06/22 20:58:46  sueh
+ * <p> bug# 797 Catching io exception when opening 3dmods.
+ * <p>
  * <p> Revision 1.40  2006/06/05 16:01:17  sueh
  * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
  * <p>
@@ -551,6 +554,10 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(e.getMessage(),
           "IO Exception", AxisID.ONLY);
     }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+    }
   }
 
   public SlicerAngles imodGetSlicerAngles(String imodKey, int imodIndex) {
@@ -571,6 +578,10 @@ public final class JoinManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(),
           "IO Exception", AxisID.ONLY);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
     }
     Vector messageArray = new Vector();
     SlicerAngles slicerAngles = null;
