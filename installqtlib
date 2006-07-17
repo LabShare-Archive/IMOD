@@ -55,6 +55,20 @@ else
     exit 1
 endif
 
+# Copy Qt plugins to imodplug since it is present everywhere
+#
+@ plugnum = 1
+while ($plugnum < 100)
+    set plugdir = `sed -n "/QTPLUG_SRCDIR$plugnum/s/^.*= *//p" configure`
+    if ("$plugdir" == "") break
+    set pluglist = `sed -n "/QTPLUGS_TOCOPY$plugnum/s/^.*= *//p" configure`
+    mkdir -p $instdir/lib/imodplug/$plugdir
+    foreach i ($pluglist)
+        \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
+    end
+    @ plugnum++
+end
+
 # Get a DLL destination dir
 #
 set dlldestdir = `sed -n '/DLLDESTDIR/s/^.*= *//p' configure`
@@ -170,6 +184,10 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.26  2006/06/21 21:26:38  mast
+#  Generalized the dll copy logic to work for Mac, and to take names without
+#  extensions, and to take destination directory
+#
 #  Revision 3.25  2005/02/24 04:03:32  mast
 #  Needed to make directory for assistant if not there yet
 #
