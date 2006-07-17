@@ -95,6 +95,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   int i, left, top, width, height;
   bool readin;
   QString str;
+  char *plugdir;
   QStringList strList;
   ImodPrefStruct *prefs = &mCurrentPrefs;
   QSettings *settings = getSettingsObject();
@@ -102,6 +103,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mCurrentTab = 0;
   mRecordedZapGeom = QRect(0, 0, 0, 0);
   mGenericList = ilistNew(sizeof(GenericSettings), 4);
+
+  // Put plugin dir on the library path so image plugins can be found
+  plugdir = getenv("IMOD_PLUGIN_DIR");
+  if (plugdir)
+    QApplication::addLibraryPath(QString(plugdir));
 
   // Set the default values
   prefs->hotSliderKeyDflt = 0;
@@ -982,6 +988,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.21  2006/07/14 04:14:23  mast
+Made default nontiff snapshot be jpeg except on Irix, fallback to png
+
 Revision 1.20  2006/03/01 19:13:06  mast
 Moved window size/position routines from xzap to dia_qtutils
 
