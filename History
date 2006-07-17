@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/17/06: Made reading and writing JPEG's in 3dmod available on the Mac.
+
+7/14/06: Fixed mtk to transfer the power of a graph to the mean and SD graphs
+from random shifting.
+
+7/13/06: Made the default image format for non-TIFF snapshots be jpeg, except
+on SGI.
+
+7/13/06: Fixed bug in Solvematch that made it unable to use the transferfid
+coordinates sometimes on a Mac.
+
 7/11/06: Changed binvol to write in chunks so it will work with any size data.
 
 7/11/06: IMOD_3-8-20
