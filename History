@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/17/06: Stopped Bead fixer from recentering added or moved points in Zap
+window, made up and down arrows in gap mode non-optional, made sure hot keys
+only worked in the appropriate mode.
+
 7/17/06: Labeled local area mean residual output from Tiltalign and provided
 mean and range for all local areas.
 
