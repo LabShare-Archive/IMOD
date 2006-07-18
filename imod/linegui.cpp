@@ -206,7 +206,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     plug->docopy = plug->copytol;
         
   case Qt::Key_Space:
-    if(ctrl)
+    if(ctrl || shift)
       plug->closecont = 1;
     plug->window->track(0);
     keyhandled = 1;
@@ -697,8 +697,8 @@ void LineTrack::buttonPressed(int which)
        "that are shaped like the contour.\n\n",
        "Hot Keys: Space bar to add points between the last and the "
        "current point\n",
-       "          Ctrl-Space to track from the current point "
-       "and close the contour\n",
+       "          "CTRL_STRING"-Space or Shift-Space to track from the "
+       "current point and close the contour\n",
        "          Apostrophe to copy contour to current section\n",
        "          u or Semicolon to undo last modeling action\n",
        "\nParameters:\n\n",
@@ -793,6 +793,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 1.13  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 1.12  2005/06/29 05:38:40  mast
 Changes to manipulate fine grain properties and do undos correctly
 
