@@ -88,7 +88,6 @@ class BeadFixer : public DialogFrame
   void resetStart();
   void resetCurrent();
   void reattach();
-  void upDownToggled(bool state);
   void openFile();
   void rereadFile() {reread();};
   void nextRes();
@@ -167,7 +166,6 @@ class BeadFixer : public DialogFrame
   QPushButton *resetStartBut;
   QPushButton *reattachBut;
   QPushButton *resetCurrentBut;
-  QCheckBox *upDownArrowBox;
   QCheckBox *autoCenBox;
   QCheckBox *seedModeBox;
   QCheckBox *examineBox;
@@ -187,6 +185,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.17  2006/07/05 04:17:54  mast
+Enhanced overlay mode
+
 Revision 1.16  2006/07/04 03:51:04  mast
 Switched running align from a thread to a QProcess
 
