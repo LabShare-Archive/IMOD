@@ -3946,6 +3946,10 @@ public final class ApplicationManager extends BaseManager {
         tomogramCombinationDialog.synchronize(
             TomogramCombinationDialog.lblSetup, true/* false */);
       }
+      else {
+        tomogramCombinationDialog.setZMin("");
+        tomogramCombinationDialog.setZMax("");
+      }
     }
     tomogramCombinationDialog.show();
     tomogramCombinationDialog.setParameters(metaData);
@@ -5751,6 +5755,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.245  2006/07/17 21:15:29  sueh
+ * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
+ * <p> SystemProcessException.
+ * <p>
  * <p> Revision 3.244  2006/07/05 23:23:14  sueh
  * <p> Added extra message for Windows when delete file fails.  Get fine alignment
  * <p> fix fiducials to set the right mode.
