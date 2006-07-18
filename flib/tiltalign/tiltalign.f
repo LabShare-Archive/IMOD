@@ -77,9 +77,10 @@ c
 	real*4 dmat(9),xtmat(9),ytmat(6),prmat(4),rmat(4),costmp,sintmp
 	real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet
 	real*4 sinbet, cosdel, sindel,denom, unkrat2
-	real*4 a11, a12, a21, a22, xzOther, yzOther
+	real*4 a11, a12, a21, a22, xzOther, yzOther, errsumLocal, errLocalMin
+        real*4 errLocalMax
 	real*8 pmat(9)
-	integer*4 imageBinned, nunknowtot2
+	integer*4 imageBinned, nunknowtot2, ifDoLocal
 	real*4 atand,sind,cosd
 	integer*4 nearest_view,lnblnk
 	character*80 concat
@@ -162,6 +163,7 @@ c
 	dyavg = 0.
 	ifZfac = 0
 	imageBinned = 1
+        ifDoLocal = 0
 c	  
 c	  set this to 1 to get inputs for X-axis tilting from sequential input
 c	  
@@ -209,6 +211,7 @@ c
 	  ierr = PipGetFloat('AxisXShift', xtiltnew)
 	  ierr = PipGetInteger('ImagesAreBinned', imageBinned)
 	  imageBinned = max(1, imageBinned)
+	  ierr = PipGetBoolean('LocalAlignments', ifDoLocal)
 
 	else
 	  write(*,'(1x,a,/,a,$)') 'Criterion # of sd above mean residual'
@@ -901,8 +904,17 @@ c	  print out points with high residuals
 c
 	errmean=errsum/nprojpt
 	errsd=sqrt((errsqsm-errsum**2/nprojpt)/(nprojpt-1))
-	write(*,'(/,a,2f8.3)')' Residual error mean and sd:'
-     &	    ,errmean,errsd
+        if (ifDoLocal .eq. 0) then
+          write(*,118)errmean,errsd
+118       format(/,' Residual error mean and sd:',2f8.3,4x,a,2i4,a)
+        else if (iflocal .eq. 0) then
+          write(*,118)errmean,errsd,'(Global)'
+        else
+          write(*,118)errmean,errsd, '(Local area', ipatchx, ipatchy, ')'
+          errsumLocal = errsumLocal + errmean
+          errLocalMin = min(errLocalMin, errmean)
+          errLocalMax = max(errLocalMax, errmean)
+        endif
 	if(ifresout.gt.0)then
 	  write(*,112)
 c	    
@@ -1041,8 +1053,7 @@ c
 c	  Ask about local alignments
 c
 	if (pipinput) then
-	  iflocal = 0
-	  ierr = PipGetBoolean('LocalAlignments', iflocal)
+	  iflocal = ifDoLocal
 	else
 	  write(*,'(1x,a,$)')
      &	      '1 to do series of local alignments, 0 to exit: '
@@ -1053,6 +1064,9 @@ c
 	if(iwhichout.lt.0)call errorexit(
      &	    'SOLUTION TRANSFORMS MUST BE OUTPUT TO DO LOCAL ALIGNMENTS',
      &	    0)
+        errsumLocal = 0.
+        errLocalMin = 1.e10
+        errLocalMax = -10.
 	ifvarout=0
 	ifresout=0
 	ifxyzout=0
@@ -1182,7 +1196,11 @@ c
 	  if(ipatchy.gt.npatchy)then
 	    close(iunlocal)
 	    if (ifresout .gt. 0) print *
-	    go to 209
+            write(*,119)errsumLocal / (npatchx * npatchy),
+     &          errLocalMin,errLocalMax
+119	    format(/,' Residual error local mean:',f9.3,'    range', f8.3,
+     &          ' to',f8.3)
+            go to 209
 	  endif
 	endif
 	ixpatch=ixspatch+(ipatchx-1)*idxpatch
@@ -1341,17 +1359,19 @@ c
 	implicit none
 	integer*4 iflocal
 	character*(*) message
-	print *
 	if (iflocal.ne.0) then
-	  print *,'WARNING: ', message
+	  write(*,'(/,a,a)')'WARNING: ', message
 	  return
 	endif
-	print *,'ERROR: TILTALIGN - ', message
+	write(*,'(/,a,a)')'ERROR: TILTALIGN - ', message
 	call exit(1)
 	end
 
 c
 c	  $Log$
+c	  Revision 3.29  2005/10/11 21:38:47  mast
+c	  Updated PIP fallback options
+c	
 c	  Revision 3.28  2005/07/01 19:45:27  mast
 c	  Chnaged formats to allow bigger variable/measurement totals
 c	
