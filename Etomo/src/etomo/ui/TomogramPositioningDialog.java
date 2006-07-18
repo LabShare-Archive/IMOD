@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2006/07/05 23:26:51  sueh
+ * <p> Added tooltips.
+ * <p>
  * <p> Revision 3.48  2006/07/04 18:04:16  sueh
  * <p> bug# 896 Fixed done() - don't remove action listeners if done returns false.
  * <p>
@@ -522,6 +525,10 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   boolean isAlignButtonSelected() {
     return btnAlign.isSelected();
+  }
+  
+  boolean isAlignButtonEnabled() {
+    return btnAlign.isEnabled();
   }
 
   public void setButtonState(ReconScreenState screenState) {
