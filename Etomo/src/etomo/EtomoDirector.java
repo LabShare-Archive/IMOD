@@ -386,7 +386,6 @@ public class EtomoDirector {
     else {
       manager = new ApplicationManager(etomoDataFileName, axisID);
     }
-    printProperties("acceleratorFont");
     return setManager(manager, makeCurrent);
   }
 
@@ -1054,6 +1053,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2006/07/18 17:44:26  sueh
+ * <p> bug# 905 Setting the user configuration before opening the first manager.
+ * <p>
  * <p> Revision 1.46  2006/06/30 17:01:48  sueh
  * <p> Added warning about IMOD_CALIB_DIR.
  * <p>
