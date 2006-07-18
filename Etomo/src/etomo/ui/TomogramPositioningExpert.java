@@ -133,9 +133,11 @@ public final class TomogramPositioningExpert implements UIExpert {
       return;
     }
     // Create a new dialog panel and map it the generic reference
-    Utilities.timestamp("new", "TomogramPositioningDialog", Utilities.STARTED_STATUS);
+    Utilities.timestamp("new", "TomogramPositioningDialog",
+        Utilities.STARTED_STATUS);
     dialog = new TomogramPositioningDialog(manager, this, axisID);
-    Utilities.timestamp("new", "TomogramPositioningDialog", Utilities.FINISHED_STATUS);
+    Utilities.timestamp("new", "TomogramPositioningDialog",
+        Utilities.FINISHED_STATUS);
     // Read in the meta data parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
@@ -192,7 +194,7 @@ public final class TomogramPositioningExpert implements UIExpert {
     dialog.setExitState(exitState);
     doneDialog();
   }
-  
+
   public void saveAction() {
     if (dialog == null) {
       return;
@@ -205,7 +207,9 @@ public final class TomogramPositioningExpert implements UIExpert {
       return false;
     }
     if (dialog.getExitState() == DialogExitState.EXECUTE) {
-      if (dialog.isTomopitchButtonSelected() && !dialog.isAlignButtonSelected()) {
+      if (dialog.isTomopitchButtonSelected()
+          && dialog.isAlignButtonEnabled()
+          && !dialog.isAlignButtonSelected()) {
         if (!UIHarness.INSTANCE
             .openYesNoWarningDialog(
                 "Final alignment is not done or is out of date.\nReally leave Tomogram Positioning?",
@@ -266,7 +270,8 @@ public final class TomogramPositioningExpert implements UIExpert {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
         mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        manager.closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction");
+        manager.closeImod(ImodManager.SAMPLE_KEY, axisID,
+            "sample reconstruction");
         manager.openTomogramGenerationDialog(axisID);
       }
       manager.saveIntermediateParamFile(axisID);
@@ -820,6 +825,10 @@ public final class TomogramPositioningExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/07/04 20:42:51  sueh
+ * <p> bug# 898 Return false from done and save functions if their dialog continues
+ * <p> to be displayed.
+ * <p>
  * <p> Revision 1.6  2006/07/04 18:04:49  sueh
  * <p> bug# 896 doneDialog():  return false if the user decides not to exit the dialog.
  * <p>
