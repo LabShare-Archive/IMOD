@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/17/06: Labeled local area mean residual output from Tiltalign and provided
+mean and range for all local areas.
+
 7/17/06: Made reading and writing JPEG's in 3dmod available on the Mac.
 
 7/14/06: Fixed mtk to transfer the power of a graph to the mean and SD graphs
