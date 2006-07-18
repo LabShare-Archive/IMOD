@@ -50,6 +50,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2006/07/04 20:42:14  sueh
+ * <p> bug# 898 Don't remove action listeners unless the done dialog function
+ * <p> succeeds.
+ * <p>
  * <p> Revision 3.42  2006/06/30 20:03:54  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
  * <p> which is called by the button action functions and saveAction() in
@@ -444,6 +448,14 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    */
   public void setCombineParams(ConstCombineParams combineParams) {
     pnlSetup.setParameters(combineParams);
+  }
+  
+  public void setZMin(String zMin) {
+    pnlSetup.setZMin(zMin);
+  }
+  
+  public void setZMax(String zMax) {
+    pnlSetup.setZMax(zMax);
   }
 
   /**
