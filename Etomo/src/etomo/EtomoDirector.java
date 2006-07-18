@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Properties;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -21,6 +23,7 @@ import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.UserConfiguration;
+import etomo.ui.ButtonHelper;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
 import etomo.util.EnvironmentVariable;
@@ -139,7 +142,9 @@ public class EtomoDirector {
           AxisID.ONLY);
       System.exit(1);
     }
+    //  Set the user preferences
     createUserConfiguration();
+    setUserPreferences();
     ArrayList paramFileNameList = parseCommandLine(args);
     if (help) {
       printHelpMessage();
@@ -245,24 +250,24 @@ public class EtomoDirector {
       }
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
-    //  Create a File object specifying the user configuration file
-    File userConfigFile = getUserConfigFile();
-    // Load in the user configuration
-    ParameterStore userParams = new ParameterStore(userConfigFile);
-    Storable storable[] = new Storable[1];
-    storable[0] = userConfig;
-    try {
-      userParams.load(storable);
-    }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(),
-          "IO Exception: Can't load user configuration"
-              + userConfigFile.getAbsolutePath(), AxisID.ONLY);
-    }
-    //  Set the user preferences
-    setUserPreferences();
     memoryThread = new MemoryThread();
     new Thread(memoryThread).start();
+  }
+  
+  private void printProperties(String type) {
+    System.err.println("\nprintProperties:type="+type);
+    if (type == null) {
+      return;
+    }
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      String lowerCaseKey = key.toString().toLowerCase();
+      if (lowerCaseKey.indexOf(type.toLowerCase()) != -1) {
+        System.err.println(key + "=" + UIManager.get(key));
+      }
+    }
+    System.err.println();
   }
 
   private final void initIMODDirectory() {
@@ -381,6 +386,7 @@ public class EtomoDirector {
     else {
       manager = new ApplicationManager(etomoDataFileName, axisID);
     }
+    printProperties("acceleratorFont");
     return setManager(manager, makeCurrent);
   }
 
@@ -672,6 +678,20 @@ public class EtomoDirector {
 
   private void createUserConfiguration() {
     userConfig = new UserConfiguration();
+    //  Create a File object specifying the user configuration file
+    File userConfigFile = getUserConfigFile();
+    // Load in the user configuration
+    ParameterStore userParams = new ParameterStore(userConfigFile);
+    Storable storable[] = new Storable[1];
+    storable[0] = userConfig;
+    try {
+      userParams.load(storable);
+    }
+    catch (IOException except) {
+      uiHarness.openMessageDialog(except.getMessage(),
+          "IO Exception: Can't load user configuration"
+              + userConfigFile.getAbsolutePath(), AxisID.ONLY);
+    }
   }
 
   private final void printHelpMessage() {
@@ -699,7 +719,6 @@ public class EtomoDirector {
         + "               processes are run.\n"
         + "Standard out is usually redirected to etomo_out.log.\n"
         + "Standard error is usually redirected to etomo_err.log.\n";
-    System.out.println(helpMessage);
   }
 
   /**
@@ -1035,6 +1054,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2006/06/30 17:01:48  sueh
+ * <p> Added warning about IMOD_CALIB_DIR.
+ * <p>
  * <p> Revision 1.45  2006/06/30 16:29:37  sueh
  * <p> bug# 883 Added EnvironmentVariable, a class to get and store environment
  * <p> variables.
