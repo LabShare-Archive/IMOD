@@ -97,13 +97,12 @@ typedef struct
   int    overlayOn;
   int    overlaySec;
   int    showMode;
-  int    upDownOn;
   int    reverseOverlay;
   char   *filename;
 }PlugData;
 
 
-static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 1, 0, NULL };
+static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, NULL };
 static PlugData *plug = &thisPlug;
 
 #define ERROR_NO_IMOD_DIR -64352
@@ -127,7 +126,7 @@ char *imodPlugInfo(int *type)
 int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 {
   int keysym;
-  int    keyhandled = 1;
+  int    keyhandled = 0;
   int    ctrl;
   int    shift;
 
@@ -152,34 +151,50 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     
   switch(keysym){
   case Qt::Key_Apostrophe: 
+    if (plug->showMode != RES_MODE)
+      break;
+    keyhandled = 1;
     plug->window->nextRes();
     break;
   case Qt::Key_QuoteDbl: 
+    if (plug->showMode != RES_MODE)
+      break;
+    keyhandled = 1;
     plug->window->backUp();
     break;
   case Qt::Key_Space:
+    if (plug->showMode != GAP_MODE)
+      break;
+    keyhandled = 1;
     plug->window->nextGap();
     break;
   case Qt::Key_Semicolon:
+    if (plug->showMode != RES_MODE)
+      break;
+    keyhandled = 1;
     plug->window->movePoint();
     break;
   case Qt::Key_Colon:
+    if (plug->showMode != RES_MODE)
+      break;
+    keyhandled = 1;
     plug->window->moveAll();
     break;
   case Qt::Key_U:
+    if (plug->showMode != RES_MODE)
+      break;
+    keyhandled = 1;
     plug->window->undoMove();
     break;
   case Qt::Key_Slash:
-    if (plug->showMode != SEED_MODE) {
-      keyhandled = 0;
+    if (plug->showMode != SEED_MODE)
       break;
-    }
+    keyhandled = 1;
     plug->overlayOn = 1 - plug->overlayOn;
     diaSetChecked(plug->window->overlayBox, plug->overlayOn != 0);
     plug->window->overlayToggled(plug->overlayOn != 0);
     break;
   default:
-    keyhandled = 0;
     break;
   }
   return keyhandled;
@@ -242,7 +257,6 @@ void imodPlugExecute(ImodView *inImodView)
     }
     if (nvals > 7) {
       plug->overlaySec = (int)(savedValues[5] + 0.01);
-      plug->upDownOn = (int)(savedValues[6] + 0.01);
       plug->showMode = (int)(savedValues[7] + 0.01);
     }
     if (nvals > 8)
@@ -533,7 +547,7 @@ void BeadFixer::nextRes()
   int inobj, incont, inpt, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, i;
   int found = 0;
-  float  xr, yr, resval;
+  float  xr, yr, resval, dx, dy;
   Iobj *ob;
   Icont *con;
   Ipoint *pts;
@@ -673,7 +687,17 @@ void BeadFixer::nextRes()
   }
   pts = imodContourGetPoints(con);
   for (ipt = 0; ipt < npnt; ipt++) {
-    if(floor((double)(pts++->z + 1.5f)) == inview) {
+    if(floor((double)(pts[ipt].z + 1.5f)) == inview) {
+
+      // Insist that point is close to where it should be
+      dx = pts[ipt].x - rpt->xcen;
+      dy = pts[ipt].y - rpt->ycen;
+      if (dx * dx + dy * dy > 225.) {
+        wprint("\aPoint is > 15 pixels from position in log file\n");
+        imodSetIndex(imod, obsav, cosav, ptsav);
+        return;
+      }
+
       imodSetIndex(imod, obj, cont, ipt);
       resval = sqrt((double)(xr*xr + yr*yr));
       if (bell > 0)
@@ -697,7 +721,7 @@ void BeadFixer::nextRes()
         ob = ivwGetExtraObject(plug->view);
         tpt.x = rpt->xcen;
         tpt.y = rpt->ycen;
-        tpt.z = (--pts)->z;
+        tpt.z = pts[ipt].z;
         imodPointAppend(con, &tpt);
         tpt.x += xr;
         tpt.y += yr;
@@ -958,8 +982,6 @@ void BeadFixer::makeUpDownArrow(int before)
   Icont * con;
 
   ivwClearExtraObject(plug->view);
-  if (!plug->upDownOn)
-    return;
 
   // Initialize extra object
   imodObjectSetColor(xobj, 1., 1., 0.);
@@ -1270,8 +1292,8 @@ int BeadFixer::insertPoint(float imx, float imy)
         makeUpDownArrow(0);
     }
   }
-
-  ivwRedraw(plug->view);
+  
+  ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
   return 1;
 }
 
@@ -1300,7 +1322,7 @@ int BeadFixer::modifyPoint(float imx, float imy)
   pts[pt].x = imx;
   pts[pt].y = imy;
   plug->view->undo->finishUnit();
-  ivwRedraw(plug->view);
+  ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
   return 1;
 }
 
@@ -1472,13 +1494,6 @@ void BeadFixer::setOverlay(int doIt, int state)
                       (plug->lightBead + plug->reverseOverlay) % 2);
 }
 
-void BeadFixer::upDownToggled(bool state)
-{
-  plug->upDownOn = state ? 1 : 0;
-  makeUpDownArrow(mLastbefore);
-  ivwRedraw(plug->view);
-}
-
 void BeadFixer::modeSelected(int value)
 {
   // Manage seed mode items
@@ -1492,7 +1507,6 @@ void BeadFixer::modeSelected(int value)
   showWidget(reattachBut, value == GAP_MODE);
   showWidget(resetStartBut, value == GAP_MODE);
   showWidget(resetCurrentBut, value == GAP_MODE);
-  showWidget(upDownArrowBox, value == GAP_MODE);
 
   // Manage autocenter items
   showWidget(cenLightHbox, value != RES_MODE);
@@ -1680,13 +1694,6 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(resetCurrentBut, SIGNAL(clicked()), this, SLOT(resetCurrent()));
   QToolTip::add(resetCurrentBut, "Look for gaps from current point");
 
-  upDownArrowBox = diaCheckBox("Show Direction Arrow", this, mLayout);
-  connect(upDownArrowBox, SIGNAL(toggled(bool)), this, 
-          SLOT(upDownToggled(bool)));
-  QToolTip::add(upDownArrowBox, "Show arrow pointing up or down for gap on "
-                "next or previous section");
-  diaSetChecked(upDownArrowBox, plug->upDownOn != 0);
-  
   openFileBut = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
   QToolTip::add(openFileBut, "Select an alignment log file to open");
@@ -1885,7 +1892,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[3] = plug->diameter;
   posValues[4] = plug->lightBead;
   posValues[5] = plug->overlaySec;
-  posValues[6] = plug->upDownOn;
+  posValues[6] = 0;    // Was up down arrow flag
   posValues[7] = plug->showMode;
   posValues[8] = plug->reverseOverlay;
   
@@ -1970,6 +1977,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.36  2006/07/05 04:18:26  mast
+    Added reverse contrast in overlay and reattach in gap mode
+
     Revision 1.35  2006/07/04 17:24:19  mast
     Added output of number of residuals to examine
 
