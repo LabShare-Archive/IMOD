@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/18/06: IMOD_3-8-21
+7/18/06: Fixed initial display of fonts and styles on setup screen in eTomo
+and when it is opened with an edf file from the command line.
+
+7/18/06: Made eTomo go back to clipboard communication with 3dmod on Windows
+due to problems with core duo processors.
+
 7/17/06: Stopped Bead fixer from recentering added or moved points in Zap
 window, made up and down arrows in gap mode non-optional, made sure hot keys
 only worked in the appropriate mode.
