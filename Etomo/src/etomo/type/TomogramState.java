@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2006/06/09 16:57:59  sueh
+ * <p> bug# 869 Added combineMatchMode and combineScrptsCreated.
+ * <p>
  * <p> Revision 1.21  2006/06/07 22:25:16  sueh
  * <p> bug# 862 Added fixedFiducials, which is set to true that first time fix fiducials is
  * <p> used.
@@ -187,6 +190,12 @@ public class TomogramState implements BaseState {
       + "." + FIXED_FIDUCIALS_KEY);
   private MatchMode combineMatchMode = null;
   private EtomoBoolean2 combineScriptsCreated = null;
+  private EtomoBoolean2 seedingDoneA = new EtomoBoolean2(AxisID.FIRST
+      .getExtension()
+      + '.' + "SeedingDone");
+  private EtomoBoolean2 seedingDoneB = new EtomoBoolean2(AxisID.SECOND
+      .getExtension()
+      + '.' + "SeedingDone");
 
   private final BaseManager manager;
 
@@ -272,6 +281,8 @@ public class TomogramState implements BaseState {
     seedFileLastModifiedB.store(props, prepend);
     fixedFiducialsA.store(props, prepend);
     fixedFiducialsB.store(props, prepend);
+    seedingDoneA.store(props, prepend);
+    seedingDoneB.store(props, prepend);
     if (combineMatchMode == null) {
       props.remove(prepend + "." + COMBINE_MATCH_MODE_KEY);
     }
@@ -403,6 +414,8 @@ public class TomogramState implements BaseState {
     seedFileLastModifiedB.load(props, prepend);
     fixedFiducialsA.load(props, prepend);
     fixedFiducialsB.load(props, prepend);
+    seedingDoneA.load(props, prepend);
+    seedingDoneB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     combineScriptsCreated = EtomoBoolean2.getInstance(combineScriptsCreated,
@@ -555,6 +568,13 @@ public class TomogramState implements BaseState {
     }
     return fixedFiducialsA.is();
   }
+  
+  public boolean isSeedingDone(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return seedingDoneB.is();
+    }
+    return seedingDoneA.is();
+  }
 
   public ConstEtomoNumber getAlignAngleOffset(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
@@ -592,6 +612,15 @@ public class TomogramState implements BaseState {
     }
     else {
       sampleXAxisTiltA.set(xAxisTilt);
+    }
+  }
+  
+  public void setSeedingDone(AxisID axisID, boolean seedingDone) {
+    if (axisID == AxisID.SECOND) {
+      seedingDoneB.set(seedingDone);
+    }
+    else {
+      seedingDoneA.set(seedingDone);
     }
   }
 
