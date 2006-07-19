@@ -26,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2006/06/15 16:16:09  sueh
+ * <p> bug# 871 Added isNohup().
+ * <p>
  * <p> Revision 3.28  2006/06/05 16:18:12  sueh
  * <p> bug# 766 Added ProcessData.
  * <p>
@@ -341,6 +344,10 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
 
   public final AxisID getAxisID() {
     return axisID;
+  }
+  
+  public ProcessName getProcessName() {
+    return processData.getProcessName();
   }
 
   final ProcessResultDisplay getProcessResultDisplay() {
