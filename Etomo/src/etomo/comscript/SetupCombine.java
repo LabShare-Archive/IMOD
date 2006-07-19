@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2006/06/07 17:46:31  sueh
+ * bug# 766 Don't use uselist unless it has data
+ *
  * Revision 3.13  2006/05/16 21:27:58  sueh
  * bug# 856 Added transfer and useList.
  *
@@ -181,9 +184,11 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
+import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
@@ -202,7 +207,7 @@ public class SetupCombine {
   private MatchMode matchMode = null;
   private boolean transfer = false;
 
-  public SetupCombine(ApplicationManager manager) {
+  public SetupCombine(ApplicationManager manager) throws SystemProcessException{
     this.manager = manager;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.getInstance().isDebug();
@@ -235,7 +240,7 @@ public class SetupCombine {
     return transfer;
   }
 
-  private void genOptions() {
+  private void genOptions() throws SystemProcessException{
     CombineParams combineParams = metaData.getCombineParams();
     matchMode = combineParams.getMatchMode();
     String matchListTo;
@@ -300,8 +305,16 @@ public class SetupCombine {
       command.add("-ylimits");
       command.add(String.valueOf(min) + "," + String.valueOf(max));
     }
-    min = combineParams.getPatchZMin();
-    max = combineParams.getPatchZMax();
+    ConstEtomoNumber number = combineParams.getPatchZMin();
+    if (number.isNull()) {
+      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MIN_LABEL +" is required.");
+    }
+    min = combineParams.getPatchZMin().getInt();
+    number = combineParams.getPatchZMax();
+    if (number.isNull()) {
+      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MAX_LABEL +" is required.");
+    }
+    max = combineParams.getPatchZMax().getInt();
     if (min != 0 || max != 0) {
       command.add("-zlimits");
       command.add(String.valueOf(min) + "," + String.valueOf(max));
