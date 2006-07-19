@@ -36,6 +36,10 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/07/04 18:46:29  sueh
+ * <p> bug# 893 Added updateAdvanced(boolean) to change headers when the
+ * <p> advanced button is pressed.
+ * <p>
  * <p> Revision 3.13  2006/06/16 15:24:59  sueh
  * <p> bug# 734 Moved track and use buttons from fiducial model dialog to beadtracker
  * <p> dialog.  Added open/close and adv/basic button.  Placed expert parameters in
@@ -578,7 +582,6 @@ public final class BeadtrackPanel implements Expandable {
     ltfMinBeadsInArea.setVisible(state);
     ltfMinOverlapBeads.setVisible(state);
     ltfRoundsOfTracking.setVisible(state);
-    btnUseModel.setVisible(state);
   }
   
   public void done() {
