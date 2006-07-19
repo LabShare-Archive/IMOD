@@ -51,6 +51,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.39  2006/06/21 15:54:41  sueh
+ * bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ *
  * Revision 3.38  2006/06/09 17:04:07  sueh
  * bug# 869 Getting script creation mode from TomogramState.  Removed
  * scriptMatchMode.  Added updateDisplay().  Removed setCombineState().
@@ -381,8 +384,10 @@ public final class SetupCombinePanel implements ContextMenu,
   private LabeledTextField ltfXMax = new LabeledTextField("X axis max: ");
   private LabeledTextField ltfYMin = new LabeledTextField("Y axis min: ");
   private LabeledTextField ltfYMax = new LabeledTextField("Y axis max: ");
-  private LabeledTextField ltfZMin = new LabeledTextField("Z axis min: ");
-  private LabeledTextField ltfZMax = new LabeledTextField("Z axis max: ");
+  private LabeledTextField ltfZMin = new LabeledTextField(
+      ConstCombineParams.PATCH_Z_MIN_LABEL + ": ");
+  private LabeledTextField ltfZMax = new LabeledTextField(
+      ConstCombineParams.PATCH_Z_MAX_LABEL + ": ");
   private int maxZMax = 0;
 
   private JPanel pnlTempDirectory = new JPanel();
@@ -789,9 +794,9 @@ public final class SetupCombinePanel implements ContextMenu,
       badParameter = ltfYMax.getLabel();
       combineParams.setPatchYMax(Integer.parseInt(ltfYMax.getText()));
       badParameter = ltfZMin.getLabel();
-      combineParams.setPatchZMin(Integer.parseInt(ltfZMin.getText()));
+      combineParams.setPatchZMin(ltfZMin.getText());
       badParameter = ltfZMax.getLabel();
-      combineParams.setPatchZMax(Integer.parseInt(ltfZMax.getText()));
+      combineParams.setPatchZMax(ltfZMax.getText());
       combineParams.setMaxPatchZMax(maxZMax);
       badParameter = "unknown";
 
@@ -955,7 +960,7 @@ public final class SetupCombinePanel implements ContextMenu,
       run3dmod(command, new Run3dmodMenuOptions());
     }
     //  Check the combine scripts state and set the start button accordingly
-   //updateStartCombine();
+    //updateStartCombine();
   }
 
   /**
@@ -1018,9 +1023,9 @@ public final class SetupCombinePanel implements ContextMenu,
   /**
    * Enable/disable the start combine button w.r.t. the existence of the scripts
    
-  private void updateStartCombine() {
-    btnCombine.setEnabled(applicationManager.combineScriptsExist());
-  }*/
+   private void updateStartCombine() {
+   btnCombine.setEnabled(applicationManager.combineScriptsExist());
+   }*/
 
   /**
    * Right mouse btn context menu
