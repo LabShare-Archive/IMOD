@@ -140,11 +140,11 @@ public final class ProcessData implements Storable {
     return pid;
   }
   
-  public String getProcessName() {
+  public ProcessName getProcessName() {
     if (processName == null) {
       return null;
     }
-    return processName.toString();
+    return processName;
   }
 
   private String getPrepend(String prepend) {
@@ -214,6 +214,9 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/06 17:19:16  sueh
+ * <p> bug# 766 change threadData to processData.
+ * <p>
  * <p> Revision 1.1  2006/06/05 16:31:34  sueh
  * <p> bug# 766 A class that can get process data from the ps command and store and
  * <p> load it.
