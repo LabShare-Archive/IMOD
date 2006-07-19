@@ -38,6 +38,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2006/06/05 16:21:59  sueh
+ * <p> bug# 766 Added saved ProcessData member variables, which are loaded
+ * <p> from the data file.  Changed isAxisBusy() to check the saved ProcessData and
+ * <p> checking the thread variable.  The axis is busy if the data stored in the saved
+ * <p> ProcessData matches a running process.
+ * <p>
  * <p> Revision 1.42  2006/05/22 22:45:52  sueh
  * <p> bug# 577 Placed commands in a String[] rather then a String.
  * <p>
@@ -1183,13 +1189,13 @@ public abstract class BaseProcessManager {
     //  Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
-      manager.processDone(process.getName(), exitValue, null, process
+      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
           .getAxisID(), process.isForceNextProcess(), process
           .getProcessEndState(), exitValue != 0 || errorFound, process
           .getProcessResultDisplay());
     }
     else {
-      manager.processDone(process.getName(), exitValue, null, process
+      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
           .getAxisID(), process.isForceNextProcess(), process
           .getProcessEndState(), process.getStatusString(), exitValue != 0
           || errorFound, process.getProcessResultDisplay());
