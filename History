@@ -1,11 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/19/06: In eTomo Fiducial Model, changing the "Seed Fiducial Model" button
+label to "View Fiducial Model" when transferfid is used.
+
+7/19/06: In eTomo Fiducial Model, moved the "Use Fiducial Model as Seed"
+button to the Basic screen.
+
+7/19/06: In eTomo Tomogram Combination no longer adding default Z min and max
+values.
+
 7/18/06: IMOD_3-8-21
+7/18/06: Fixed bug where eTomo did not use the user specified display settings
+in the Setup Tomogram screen or in the first data file opened.
+
+7/18/06: Fixed bug in Tomogram Positioning where eTomo complained about align
+not being run when the "Fiducialless alignment" checkbox was checked.
+
 7/18/06: Fixed initial display of fonts and styles on setup screen in eTomo
 and when it is opened with an edf file from the command line.
 
 7/18/06: Made eTomo go back to clipboard communication with 3dmod on Windows
 due to problems with core duo processors.
+
+7/17/06: Windows only:  using ImodSendEvent to communicate with 3dmod. 
 
 7/17/06: Stopped Bead fixer from recentering added or moved points in Zap
 window, made up and down arrows in gap mode non-optional, made sure hot keys
