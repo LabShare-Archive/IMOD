@@ -143,6 +143,7 @@ public abstract class BaseManager {
   public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
+  protected abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
   protected abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay);
@@ -616,6 +617,7 @@ public abstract class BaseManager {
       }
       else {
         sendMsgProcessSucceeded(processResultDisplay);
+        processSucceeded(axisID, processName);
       }
       resetNextProcess(axisID);
     }
@@ -993,6 +995,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.62  2006/07/17 21:15:57  sueh
+ * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
+ * <p> SystemProcessException.
+ * <p>
  * <p> Revision 1.61  2006/06/30 19:58:59  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called from the button action functions and saveAction() in
