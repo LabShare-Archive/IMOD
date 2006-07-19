@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.102  2006/07/05 23:24:35  sueh
+ * set trimvolFlipped to true if rotate X is done.
+ *
  * Revision 3.101  2006/06/09 16:55:39  sueh
  * bug# 869 setupCombineScripts(): save the state in TomogramState.
  *
@@ -1466,7 +1469,15 @@ public class ProcessManager extends BaseProcessManager {
    */
   public boolean setupCombineScripts(ConstMetaData metaData,
       ProcessResultDisplay processResultDisplay) throws IOException {
-    SetupCombine setupCombine = new SetupCombine(appManager);
+    SetupCombine setupCombine;
+    try {
+      setupCombine = new SetupCombine(appManager);
+    }
+    catch (SystemProcessException e) {
+      uiHarness.openMessageDialog(e.getMessage(), "Setup Combine Error",
+          AxisID.ONLY);
+      return false;
+    }
     appManager.saveIntermediateParamFile(AxisID.ONLY);
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
@@ -1847,8 +1858,11 @@ public class ProcessManager extends BaseProcessManager {
       ProcessDetails processDetails = process.getProcessDetails();
       Command command = process.getCommand();
       if (commandName.equals(TrimvolParam.getName())) {
-        appManager.getState().setTrimvolFlipped(
-            processDetails.getBooleanValue(TrimvolParam.Fields.SWAP_YZ)||processDetails.getBooleanValue(TrimvolParam.Fields.ROTATE_X));
+        appManager.getState()
+            .setTrimvolFlipped(
+                processDetails.getBooleanValue(TrimvolParam.Fields.SWAP_YZ)
+                    || processDetails
+                        .getBooleanValue(TrimvolParam.Fields.ROTATE_X));
       }
       else if (commandName.equals(SqueezevolParam.getName())) {
         appManager.getState().setSqueezevolFlipped(
