@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.Properties;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -23,7 +21,6 @@ import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.UserConfiguration;
-import etomo.ui.ButtonHelper;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
 import etomo.util.EnvironmentVariable;
@@ -1053,6 +1050,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2006/07/18 19:07:01  sueh
+ * <p> bug# 905 Removing unnecessary properties printing
+ * <p>
  * <p> Revision 1.47  2006/07/18 17:44:26  sueh
  * <p> bug# 905 Setting the user configuration before opening the first manager.
  * <p>
