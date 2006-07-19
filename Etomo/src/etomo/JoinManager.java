@@ -53,6 +53,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2006/07/17 21:16:28  sueh
+ * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
+ * <p> SystemProcessException.
+ * <p>
  * <p> Revision 1.41  2006/06/22 20:58:46  sueh
  * <p> bug# 797 Catching io exception when opening 3dmods.
  * <p>
@@ -396,6 +400,9 @@ public final class JoinManager extends BaseManager {
   }
 
   protected void createProcessTrack() {
+  }
+  
+  protected void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
   /**

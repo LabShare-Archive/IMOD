@@ -75,6 +75,9 @@ public final class ParallelManager extends BaseManager {
 
   protected void createComScriptManager() {
   }
+  
+  protected void processSucceeded(AxisID axisID, ProcessName processName) {
+  }
 
   protected void createMainPanel() {
     mainPanel = new MainParallelPanel(this);
@@ -252,6 +255,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/05 16:01:30  sueh
+ * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
+ * <p>
  * <p> Revision 1.1  2006/03/20 17:50:19  sueh
  * <p> bug# 835 Manager (at the same level as ApplicationManager and
  * <p> JoinManager) to manage generic parallel processes.
