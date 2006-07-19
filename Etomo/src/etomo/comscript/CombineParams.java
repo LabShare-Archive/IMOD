@@ -25,6 +25,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2006/05/16 21:20:23  sueh
+ * <p> bug# 856 Added transfer and useList.  Removed dialogMatchMode from
+ * <p> CombineParam.  Letting the screen save the script state, since it already is.
+ * <p> Going to revision 1.2.
+ * <p>
  * <p> Revision 3.8  2006/03/16 01:48:26  sueh
  * <p> bug# 828 Changed matchBtoA to dialogMatchMode.  Added matchMode.
  * <p> DialogMatchMode reflects the state of the dialog.  MatchMode reflects the
@@ -253,16 +258,16 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchZMax.
    * @param patchZMax The patchZMax to set
    */
-  public void setPatchZMax(int patchZMax) {
-    this.patchZMax = patchZMax;
+  public void setPatchZMax(String patchZMax) {
+    this.patchZMax.set(patchZMax);
   }
 
   /**
    * Sets the patchZMin.
    * @param patchZMin The patchZMin to set
    */
-  public void setPatchZMin(int patchZMin) {
-    this.patchZMin = patchZMin;
+  public void setPatchZMin(String patchZMin) {
+    this.patchZMin.set(patchZMin);
   }
 
   public void setMaxPatchZMax(String fileName)
@@ -320,11 +325,12 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void store(Properties props, String prepend) {
     String group;
     if (prepend == "") {
-      group = "Combine.";
+      prepend = "Combine";
     }
     else {
-      group = prepend + "Combine.";
+      prepend = prepend + "Combine";
     }
+    group = prepend + ".";
     props.setProperty(group + "RevisionNumber", revisionNumber);
 
     //Start backwards compatibility with RevisionNumber = 1.0
@@ -357,8 +363,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "PatchBoundaryXMax", String.valueOf(patchXMax));
     props.setProperty(group + "PatchBoundaryYMin", String.valueOf(patchYMin));
     props.setProperty(group + "PatchBoundaryYMax", String.valueOf(patchYMax));
-    props.setProperty(group + "PatchBoundaryZMin", String.valueOf(patchZMin));
-    props.setProperty(group + "PatchBoundaryZMax", String.valueOf(patchZMax));
+    patchZMin.store(props, prepend);
+    patchZMax.store(props, prepend);
     props.setProperty(group + "PatchRegionModel", patchRegionModel);
     props.setProperty(group + "TempDirectory", tempDirectory);
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
@@ -378,11 +384,12 @@ public class CombineParams extends ConstCombineParams implements Storable {
   public void load(Properties props, String prepend) {
     String group;
     if (prepend == "") {
-      group = "Combine.";
+      prepend = "Combine";
     }
     else {
-      group = prepend + "Combine.";
+      prepend = prepend + "Combine";
     }
+    group = prepend + ".";
 
     // Load the combine values if they are present, don't change the
     // current value if the property is not present
@@ -460,11 +467,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
         String.valueOf(patchYMax)));
 
-    patchZMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryZMin",
-        String.valueOf(patchZMin)));
-
-    patchZMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryZMax",
-        String.valueOf(patchZMax)));
+    patchZMin.load(props, prepend);
+    patchZMax.load(props, prepend);
 
     tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
 
@@ -518,8 +522,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchXMax = mrcHeader.getNColumns() - xyborder;
     patchYMin = xyborder;
     patchYMax = mrcHeader.getNSections() - xyborder;
-    patchZMin = 1;
-    patchZMax = mrcHeader.getNRows();
-    maxPatchZMax = patchZMax;
+    patchZMin.set(1);
+    patchZMax.set(mrcHeader.getNRows());
+    maxPatchZMax = patchZMax.getInt();
   }
 }

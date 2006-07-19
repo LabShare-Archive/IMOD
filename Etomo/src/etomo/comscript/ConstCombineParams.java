@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
 import etomo.util.DatasetFiles;
@@ -25,6 +27,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2006/05/16 21:23:42  sueh
+ * <p> bug# 856 Added transfer and useList.  Removed dialogMatchMode from
+ * <p> CombineParam.  Letting the screen save the script state, since it already is.
+ * <p> Going to revision 1.2.
+ * <p>
  * <p> Revision 3.5  2006/03/16 01:48:38  sueh
  * <p> bug# 828 Changed matchBtoA to dialogMatchMode.  Added matchMode.
  * <p> DialogMatchMode reflects the state of the dialog.  MatchMode reflects the
@@ -89,6 +96,9 @@ import etomo.util.MRCHeader;
 public class ConstCombineParams {
   public static final String rcsid = "$Id$";
 
+  public static final String PATCH_Z_MIN_LABEL = "Z axis min";
+  public static final String PATCH_Z_MAX_LABEL = "Z axis max";
+  
   protected String revisionNumber = "1.2";
 
   //protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
@@ -102,8 +112,8 @@ public class ConstCombineParams {
   protected int patchXMax = 0;
   protected int patchYMin = 0;
   protected int patchYMax = 0;
-  protected int patchZMin = 0;
-  protected int patchZMax = 0;
+  protected EtomoNumber patchZMin = new EtomoNumber("PatchBoundaryZMin");
+  protected EtomoNumber patchZMax = new EtomoNumber("PatchBoundaryZMax");
   protected int maxPatchZMax = 0;
 
   protected String patchRegionModel = "";
@@ -118,10 +128,14 @@ public class ConstCombineParams {
 
   public ConstCombineParams(BaseManager manager) {
     this.manager = manager;
+    patchZMin.set(0);
+    patchZMax.set(0);
   }
 
   public ConstCombineParams(ConstCombineParams src) {
     manager = src.manager;
+    patchZMin.set(0);
+    patchZMax.set(0);
   }
 
   public boolean equals(ConstCombineParams cmp) {
@@ -161,10 +175,10 @@ public class ConstCombineParams {
     if (!(patchYMax == cmp.getPatchYMax())) {
       return false;
     }
-    if (!(patchZMin == cmp.getPatchZMin())) {
+    if (!patchZMin.equals(cmp.getPatchZMin())) {
       return false;
     }
-    if (!(patchZMax == cmp.getPatchZMax())) {
+    if (!patchZMax.equals(cmp.getPatchZMax())) {
       return false;
     }
     if (!(patchRegionModel.equals(cmp.getPatchRegionModel()))) {
@@ -187,7 +201,7 @@ public class ConstCombineParams {
    */
   public boolean isPatchBoundarySet() {
     if (patchXMin == 0 && patchXMax == 0 && patchYMin == 0 && patchYMax == 0
-        && patchZMin == 0 && patchZMax == 0) {
+        && patchZMin.equals(0) && patchZMax.equals(0)) {
       return false;
     }
     return true;
@@ -228,21 +242,21 @@ public class ConstCombineParams {
       invalidReasons.add("Y min value is greater than the Y max value");
     }
 
-    if (patchZMin < 1) {
+    if (patchZMin.getInt() < 1) {
       valid = false;
       invalidReasons.add("Z min value is less than 1");
     }
-    if (patchZMax < 1) {
+    if (patchZMax.getInt() < 1) {
       valid = false;
       invalidReasons.add("ZX max value is less than 1");
     }
-    if (maxPatchZMax > 0 && patchZMax > maxPatchZMax) {
+    if (maxPatchZMax > 0 && patchZMax.gt(maxPatchZMax)) {
       valid = false;
       invalidReasons
           .add("Z max value is greater than the maximum Z max value ("
               + maxPatchZMax + ")");
     }
-    if (patchZMin > patchZMax) {
+    if (patchZMin.gt(patchZMax)) {
       valid = false;
       invalidReasons.add("Z min value is greater than the Z max value");
     }
@@ -292,7 +306,7 @@ public class ConstCombineParams {
       invalidReasons.add("Y values cannot be greater then " + y);
     }
 
-    if (z < patchZMin || z < patchZMax) {
+    if (patchZMin.gt(z) || patchZMax.gt(z)) {
       valid = false;
       invalidReasons.add("Z values cannot be greater then " + z);
     }
@@ -390,7 +404,7 @@ public class ConstCombineParams {
    * Returns the patchZMax.
    * @return int
    */
-  public int getPatchZMax() {
+  public ConstEtomoNumber getPatchZMax() {
     return patchZMax;
   }
 
@@ -398,7 +412,7 @@ public class ConstCombineParams {
    * Returns the patchZMin.
    * @return int
    */
-  public int getPatchZMin() {
+  public ConstEtomoNumber getPatchZMin() {
     return patchZMin;
   }
 
