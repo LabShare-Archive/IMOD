@@ -31,6 +31,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2006/07/05 23:26:02  sueh
+ * <p> Get fine alignment fix fiducials to set the right mode.
+ * <p>
  * <p> Revision 3.31  2006/07/04 20:41:42  sueh
  * <p> bug# 898 Don't remove action listeners unless the done dialog function
  * <p> succeeds.
@@ -236,6 +239,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
+  private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
+  private static final String SEEDING_DONE_LABEL = "View Fiducial Model";
+  
   private JPanel pnlFiducialModel = new JPanel();
 
   private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
@@ -314,6 +320,16 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     //  Set the advanced state to the default
     updateAdvanced(isAdvanced);
     updateEnabled();
+    updateDisplay();
+  }
+  
+  public void updateDisplay() {
+    if (applicationManager.getState().isSeedingDone(axisID)) {
+      btnSeed.setText(SEEDING_DONE_LABEL);
+    }
+    else {
+      btnSeed.setText(SEEDING_NOT_DONE_LABEL);
+    }
   }
 
   public static ProcessResultDisplay getTransferFiducialsDisplay() {
@@ -322,7 +338,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public static ProcessResultDisplay getSeedFiducialModelDisplay() {
-    return Run3dmodButton.getToggle3dmodButtonInstance("Seed Fiducial Model",
+    return Run3dmodButton.getToggle3dmodButtonInstance(SEEDING_NOT_DONE_LABEL,
         DialogType.FIDUCIAL_MODEL);
   }
 
