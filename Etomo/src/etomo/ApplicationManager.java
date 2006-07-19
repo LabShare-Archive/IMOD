@@ -1930,11 +1930,18 @@ public final class ApplicationManager extends BaseManager {
       state.resetSeedFileLastModified(axisID);
     }
     mainPanel.stopProgressBar(axisID);
+    state.setSeedingDone(axisID, true);
     if (axisID == AxisID.SECOND) {
       updateDialog(fiducialModelDialogA, AxisID.FIRST);
+      if (fiducialModelDialogB != null) {
+        fiducialModelDialogB.updateDisplay();
+      }
     }
     else {
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
+      if (fiducialModelDialogA != null) {
+        fiducialModelDialogA.updateDisplay();
+      }
     }
   }
 
@@ -2563,6 +2570,22 @@ public final class ApplicationManager extends BaseManager {
 
   public boolean coordFileExists() {
     return DatasetFiles.getTransferFidCoordFile(this).exists();
+  }
+  
+  protected void processSucceeded(AxisID axisID, ProcessName processName) {
+    if (processName == ProcessName.TRANSFERFID) {
+      FiducialModelDialog fiducialModelDialog;
+      if (axisID == AxisID.SECOND) {
+        fiducialModelDialog = fiducialModelDialogB;
+      }
+      else {
+        fiducialModelDialog = fiducialModelDialogA;
+      }
+      if (fiducialModelDialog == null) {
+        return;
+      }
+      fiducialModelDialog.updateDisplay();
+    }
   }
 
   /**
@@ -5755,6 +5778,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.247  2006/07/19 15:11:54  sueh
+ * <p> bug# 903  UpdateCombineParams:  don't validate until after the scripts are
+ * <p> created so that the Z limits can be blank.
+ * <p>
  * <p> Revision 3.246  2006/07/18 20:54:28  sueh
  * <p> bug# 904 OpenTomogramCombinationDialog:  clear the Z min and max values if
  * <p> the scripts have not been created.
