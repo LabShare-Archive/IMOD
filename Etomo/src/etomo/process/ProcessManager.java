@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.103  2006/07/19 15:22:20  sueh
+ * format
+ *
  * Revision 3.102  2006/07/05 23:24:35  sueh
  * set trimvolFlipped to true if rotate X is done.
  *
@@ -1849,6 +1852,7 @@ public class ProcessManager extends BaseProcessManager {
     super.postProcess(process);
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process, process.getAxisID());
+      appManager.getState().setSeedingDone(process.getAxisID(), true);
     }
     else {
       String commandName = process.getCommandName();
