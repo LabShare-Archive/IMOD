@@ -4298,7 +4298,7 @@ public final class ApplicationManager extends BaseManager {
         tomogramCombinationDialog = null;
         return;
       }
-      if (!combineParams.isValid(true)) {
+      if (state.isCombineScriptsCreated() && !combineParams.isValid(true)) {
         uiHarness.openMessageDialog(combineParams.getInvalidReasons(),
             "Invalid combine parameters", AxisID.ONLY);
         return;
@@ -5755,6 +5755,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.246  2006/07/18 20:54:28  sueh
+ * <p> bug# 904 OpenTomogramCombinationDialog:  clear the Z min and max values if
+ * <p> the scripts have not been created.
+ * <p>
  * <p> Revision 3.245  2006/07/17 21:15:29  sueh
  * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
  * <p> SystemProcessException.
