@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2006/06/27 18:30:45  sueh
+ * <p> bug# 692 Removed todo comment
+ * <p>
  * <p> Revision 1.37  2006/06/22 21:13:58  sueh
  * <p> *** empty log message ***
  * <p>
@@ -944,6 +947,17 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     return equals(getValue(), that.getValue());
+  }
+  
+  public boolean gt(int value) {
+    return gt(getValue(), newNumber(value));
+  }
+  
+  public boolean gt(ConstEtomoNumber etomoNumber) {
+    if (etomoNumber == null) {
+      return false;
+    }
+    return gt(getValue(), etomoNumber.getValue());
   }
 
   public boolean equals(int value) {
