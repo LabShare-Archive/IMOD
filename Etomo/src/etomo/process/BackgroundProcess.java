@@ -26,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2006/07/19 20:06:01  sueh
+ * <p> bug# 902 Added getProcessName().
+ * <p>
  * <p> Revision 3.29  2006/06/15 16:16:09  sueh
  * <p> bug# 871 Added isNohup().
  * <p>
@@ -608,6 +611,9 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   }
 
   private final ProcessMessages getProcessMessages() {
+    if (program == null) {
+      return null;
+    }
     return program.getProcessMessages();
   }
 
