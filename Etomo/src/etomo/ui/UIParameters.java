@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2005/12/23 02:24:31  sueh
+ * <p> bug# 675 Split the test option functionality into headless and test.
+ * <p>
  * <p> Revision 3.5  2005/08/10 20:50:25  sueh
  * <p> bug# 711 Made UIParameters constructor private.  Can't force it no be
  * <p> called since this is all static functions.  Recalc() requires a UI element,
@@ -46,66 +49,73 @@ import javax.swing.JCheckBox;
 
 import etomo.EtomoDirector;
 
-public class UIParameters {
-	public static final String rcsid = "$Id$";
-	
-	private static Dimension dimButton = new Dimension();
-	private static Dimension dimNarrowButton = new Dimension();
-  private static Dimension dimSpinner = new Dimension();
-  private static Dimension dimFileField = new Dimension();
-  private static boolean recalcRun = false;
+public final class UIParameters {
+  public static final String rcsid = "$Id$";
+
+  public static final UIParameters INSTANCE = new UIParameters();
+  private static final float DEFAULT_FONT_SIZE = 12;
   
+  private Dimension dimButton = new Dimension();
+  private Dimension dimNarrowButton = new Dimension();
+  private Dimension dimSpinner = new Dimension();
+  private Dimension dimFileField = new Dimension();
+  private float fontSize = DEFAULT_FONT_SIZE;
+  private float fontSizeAdjustment = 1;
+
   private UIParameters() {
+    calcSizes();
   }
   
-	/**
-	 * Return the size of a standard button
-	 * @return
-	 */
-  static Dimension getButtonDimension() {
-    if (!recalcRun) {
-      recalc();
-    }
-	  //  Return a safe copy of the Dimension
-	  return new Dimension(dimButton);
-	}
-  static Dimension getNarrowButtonDimension() {
-    if (!recalcRun) {
-      recalc();
-    }
-	  //  Return a safe copy of the Dimension
-	  return new Dimension(dimNarrowButton);
-	}
-  static Dimension getSpinnerDimension() {
-    if (!recalcRun) {
-      recalc();
-    }
-    return new Dimension(dimSpinner);
-  }
-  
-  static Dimension getFileFieldDimension() {
-    if (!recalcRun) {
-      recalc();
-    }
-    return new Dimension(dimFileField);
+  public void setFontSize(int fontSize) {
+    this.fontSize = fontSize;
+    calcSizes();
   }
 
-	
-	/**
-	 * Recalculate the size of objects given the current UI state.
-	 *
-	 */
-	public static void recalc() {
-    recalcRun = true;
+  /**
+   * Return the size of a standard button
+   * @return
+   */
+  Dimension getButtonDimension() {
+    //  Return a safe copy of the Dimension
+    return new Dimension(dimButton);
+  }
+
+  Dimension getNarrowButtonDimension() {
+    //  Return a safe copy of the Dimension
+    return new Dimension(dimNarrowButton);
+  }
+
+  Dimension getSpinnerDimension() {
+    return new Dimension(dimSpinner);
+  }
+
+  Dimension getFileFieldDimension() {
+    return new Dimension(dimFileField);
+  }
+  
+  /**
+   * Get the amount to adjust a fields based on the current font size
+   * @return
+   */
+  float getFontSizeAdjustment() {
+    return fontSizeAdjustment;
+  }
+
+  /**
+   * Sets size of objects given the current UI state.
+   *
+   */
+  private void calcSizes() {
     if (EtomoDirector.getInstance().isHeadless()) {
       return;
     }
-	  //  Create a temporary check box and get its height
-	  JCheckBox temp = new JCheckBox();
-		double height = temp.getPreferredSize().getHeight();
-	  dimButton.setSize(7 * height, 2 * height);
-	  dimNarrowButton.setSize(4 * height, 2 * height);
-    dimSpinner.setSize(2 * height, 1.05 * height);
-    dimFileField.setSize(20 * height, 2 * height);
-	}
+    //  Create a temporary check box and get its height
+    JCheckBox temp = new JCheckBox();
+    double height = temp.getPreferredSize().getHeight();
+    fontSizeAdjustment = fontSize / DEFAULT_FONT_SIZE;
+    dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
+    dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
+    dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height * fontSizeAdjustment);
+    dimFileField.setSize(20 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
+  }
 }
