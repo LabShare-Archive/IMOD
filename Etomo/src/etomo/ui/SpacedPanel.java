@@ -32,6 +32,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2006/03/27 21:07:33  sueh
+* <p> bug# 836 Added addMouseListener().
+* <p>
 * <p> Revision 1.11  2006/01/03 23:54:45  sueh
 * <p> bug# 675 Converted JCheckBox's to CheckBox.  Converted JRadioButton's
 * <p> toRadioButton.
@@ -93,7 +96,7 @@ import javax.swing.border.Border;
 final class SpacedPanel {
   public static  final String  rcsid =  "$Id$";
   
-  private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getButtonDimension();
+  private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE.getButtonDimension();
   
   private JPanel panel;
   private JPanel innerPanel = null;

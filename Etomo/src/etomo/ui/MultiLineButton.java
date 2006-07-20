@@ -41,6 +41,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/05/01 21:18:45  sueh
+ * <p> bug# 854
+ * <p>
  * <p> Revision 3.21  2006/04/28 21:02:15  sueh
  * <p> bug# 787 Added getButton and getToggleButtonInstance.
  * <p>
@@ -375,7 +378,7 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   final void setSize(boolean setMinimum) {
-    Dimension size = UIParameters.getButtonDimension();
+    Dimension size = UIParameters.INSTANCE.getButtonDimension();
     button.setPreferredSize(size);
     button.setMaximumSize(size);
     if (setMinimum) {

@@ -51,6 +51,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.40  2006/07/19 15:24:41  sueh
+ * bug# 903 Getting ZMin and Max labels from ConstCombineParams.
+ *
  * Revision 3.39  2006/06/21 15:54:41  sueh
  * bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  *
@@ -551,7 +554,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCombine.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
 
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));

@@ -142,7 +142,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     pnlXRayButtons.add(Box.createHorizontalGlue());
     pnlXRayButtons.add(btnViewXRayModel.getComponent());
     pnlXRayButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlXRayButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlXRayButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlXRayReplacement, pnlXRayButtons);
@@ -162,7 +162,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     pnlManualButtons.add(Box.createHorizontalGlue());
     pnlManualButtons.add(btnCreateModel.getComponent());
     pnlManualButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlManualButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlManualButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlManualReplacement, pnlManualButtons);
@@ -185,7 +185,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     pnlEraseButtons.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(btnReplaceRawStack.getComponent());
     pnlEraseButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlEraseButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
@@ -540,6 +540,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2006/06/21 15:50:08  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.18  2006/02/06 21:20:38  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>

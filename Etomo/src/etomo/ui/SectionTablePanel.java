@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2006/07/10 21:28:19  sueh
+ * <p> Removed order cut added Z order.
+ * <p>
  * <p> Revision 1.29  2006/06/29 22:02:12  sueh
  * <p> bug# 880 Making sure that the order cut label appears correctly on each tab.
  * <p> Setting order cut after loading from metadata.
@@ -317,7 +320,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private static final Dimension buttonDimension = UIParameters
+  private static final Dimension buttonDimension = UIParameters.INSTANCE
       .getButtonDimension();
   private static final String flipWarning[] = {
       "Tomograms have to be flipped after generation",

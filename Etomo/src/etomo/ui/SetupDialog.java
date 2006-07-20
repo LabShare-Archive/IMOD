@@ -167,7 +167,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     rootPanel.addMouseListener(mouseAdapter);
 
     // Resize the standard panel buttons
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
     // Calcute the necessary window size
@@ -254,7 +254,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfFiducialDiameter.setColumns(5);
     ltfImageRotation.setColumns(5);
     btnScanHeader.setSize();
-    spnBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    spnBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
 
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
     btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
@@ -1061,6 +1061,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.48  2006/06/30 20:03:25  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.  Set displayed to
+ * <p> false after the done dialog function is called.
+ * <p>
  * <p> Revision 3.47  2006/06/21 15:54:53  sueh
  * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
  * <p> be run.

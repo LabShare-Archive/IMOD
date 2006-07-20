@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2006/07/05 23:26:19  sueh
+ * <p> Added tooltips.
+ * <p>
  * <p> Revision 3.22  2006/06/09 17:06:31  sueh
  * <p> bug# 869 Enabling/disabling the tabs doesn't using this class.
  * <p> UseCorrespondingPoints is always visible, except when there is not
@@ -201,7 +204,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
         BoxLayout.Y_AXIS));
     pnlImodMatchModels.add(cbBinBy2);
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
-    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters
+    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.INSTANCE
         .getButtonDimension());
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect,

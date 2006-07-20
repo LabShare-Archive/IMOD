@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2006/07/04 20:41:30  sueh
+ * <p> bug# 898 Don't remove action listeners unless the done dialog function
+ * <p> succeeds.
+ * <p>
  * <p> Revision 3.38  2006/07/04 18:47:02  sueh
  * <p> bug# 893 Calling updateAdvanced(boolean) in panels to change the
  * <p> headers when the advanced button is pressed.
@@ -301,7 +305,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters
+    UIUtilities.setButtonSizeAll(pnlCoarseAlign, UIParameters.INSTANCE
         .getButtonDimension());
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));

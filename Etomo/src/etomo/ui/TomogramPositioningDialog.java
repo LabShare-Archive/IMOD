@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2006/07/18 18:01:45  sueh
+ * <p> bug# 906 Added isAlignButtonEnabled().
+ * <p>
  * <p> Revision 3.49  2006/07/05 23:26:51  sueh
  * <p> Added tooltips.
  * <p>
@@ -353,7 +356,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("   Binning ", integerModel);
-    spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
 
     //  Create the primary panels
     pnlWholeTomogram
@@ -400,7 +403,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
         FixedDim.x0_y10);
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
     UIUtilities
-        .setButtonSizeAll(pnlPosition, UIParameters.getButtonDimension());
+        .setButtonSizeAll(pnlPosition, UIParameters.INSTANCE.getButtonDimension());
 
     //  Create dialog content pane
     rootPanel.add(pnlPosition);

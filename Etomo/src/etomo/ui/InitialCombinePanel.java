@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2006/06/21 15:53:32  sueh
+ * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ * <p>
  * <p> Revision 3.28  2006/06/09 16:59:54  sueh
  * <p> bug# 869 Using "Use corresponding points" checkbox in the initial panel.
  * <p>
@@ -234,7 +237,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnMatchvolRestart.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
 
     pnlRoot.add(pnlSolvematch.getContainer());
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));

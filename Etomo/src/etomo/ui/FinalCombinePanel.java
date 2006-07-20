@@ -55,6 +55,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.47  2006/06/21 15:53:02  sueh
+ * bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
+ *
  * Revision 3.46  2006/05/12 17:20:47  sueh
  * bug# 861 removed unused code
  *
@@ -455,7 +458,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchsizeButtons.add(btnPatchsizeIncrease.getComponent());
     pnlPatchsizeButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlPatchsizeButtons.add(btnPatchsizeDecrease.getComponent());
-    UIUtilities.setButtonSizeAll(pnlPatchsizeButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlPatchsizeButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
     pnlPatchsizeEdit
@@ -526,7 +529,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     pnlMatchorwarpButtons.add(btnMatchorwarpTrial.getComponent());
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlMatchorwarpButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlMatchorwarpButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
     pnlMatchorwarpBody.add(pnlMatchorwarpButtons);
@@ -550,7 +553,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombineBody.add(btnVolcombineRestart.getComponent());
     cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnVolcombineRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlVolcombineBody, UIParameters
+    UIUtilities.setButtonSizeAll(pnlVolcombineBody, UIParameters.INSTANCE
         .getButtonDimension());
     UIUtilities.alignComponentsX(pnlVolcombineBody, Component.CENTER_ALIGNMENT);
 
@@ -572,7 +575,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
 
     //  Root panel layout
     pnlRoot.add(pnlPatchRegionModel);

@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2006/06/30 20:53:28  sueh
+ * <p> Fixed timestamp label for saveAction.
+ * <p>
  * <p> Revision 3.23  2006/06/30 20:03:10  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
  * <p> which is called by the button action functions and saveAction() in
@@ -217,7 +220,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     pnlExitButtons.add(btnAdvanced.getComponent());
     pnlExitButtons.add(Box.createHorizontalGlue());
 
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters
+    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
         .getNarrowButtonDimension());
 
     //  Exit action listeners

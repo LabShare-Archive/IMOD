@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/07/04 18:47:52  sueh
+ * <p> bug# 893 Added updateAdvanced(boolean) to change the header when the
+ * <p> advanced button is pressed.
+ * <p>
  * <p> Revision 1.19  2006/06/21 15:54:30  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -134,7 +138,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
         integerModel);
-    spinBinning.setTextMaxmimumSize(UIParameters.getSpinnerDimension());
+    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
     //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  spinBinning.setEnabled(false);
     //}

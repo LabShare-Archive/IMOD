@@ -47,6 +47,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.33  2006/06/29 20:08:35  sueh
+ * <p> bug# 880 Made working dir and root name editable/not editable instead of using
+ * <p> setEnabled() so that they would be readable.
+ * <p>
  * <p> Revision 1.32  2006/06/21 15:53:44  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -355,7 +359,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private static ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private static Dimension dimSpinner = UIParameters.getSpinnerDimension();
+  private static Dimension dimSpinner = UIParameters.INSTANCE.getSpinnerDimension();
 
   private JPanel rootPanel;
   private JTabbedPane tabPane;

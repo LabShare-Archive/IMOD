@@ -12,6 +12,9 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.5  2005/07/06 23:31:48  sueh
+* <p> bug# 619 added setstandardsize
+* <p>
 * <p> Revision 3.4  2005/05/18 22:36:28  sueh
 * <p> bug# 662 In format(), handling a null text parameter.
 * <p>
@@ -56,7 +59,7 @@ import javax.swing.UIManager;
 public class ButtonHelper {
   public static final String rcsid = "$$Id$$";
   
-  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getButtonDimension();
+  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE.getButtonDimension();
 
   public static String format(String text) {
     if (text == null) {
