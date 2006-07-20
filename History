@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/20/06: In eTomo fixed the font size functionality.  Font sizes 10 and up work
+correctly after exiting and rerunning eTomo.
+
 7/19/06: In eTomo Fiducial Model, changing the "Seed Fiducial Model" button
 label to "View Fiducial Model" when transferfid is used.
 
