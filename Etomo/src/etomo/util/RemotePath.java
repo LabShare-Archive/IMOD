@@ -269,7 +269,7 @@ public final class RemotePath {
    * @return remote path or null
    */
   public final String getRemotePath(BaseManager manager, String localPath,
-      AxisID axisID) {
+      AxisID axisID) throws InvalidMountRuleException {
     loadMountRules(manager, axisID);
     return getRemotePath(getRule(localPath), localPath);
   }
@@ -306,7 +306,8 @@ public final class RemotePath {
    * @param localPath
    * @return remote path or null
    */
-  private final String getRemotePath(int ruleIndex, String localPath) {
+  private final String getRemotePath(int ruleIndex, String localPath)
+      throws InvalidMountRuleException {
     if (ruleIndex == -1) {
       return null;
     }
@@ -315,8 +316,13 @@ public final class RemotePath {
     int mountNameIndex = remoteMountRule.indexOf(MOUNT_NAME_TAG);
     if (mountNameIndex != -1) {
       if (mountName == null) {
-        throw new IllegalStateException(
-            "mountName is null and remoteMountRule=" + remoteMountRule);
+        throw new InvalidMountRuleException(
+            "Unable to use remote mount rule, \""
+                + remoteMountRule
+                + "\" because %mountname has no value.  "
+                + "Check $IMOD_CALID_DIR/cpu.adoc.  "
+                + "The mount name is defined by the section associated with your local computer.  "
+                + "It will be set to the section name or, optionally, to the value of a mountname attribute in the section.");
       }
       //substitute mount name
       StringBuffer buffer = new StringBuffer();
@@ -343,7 +349,8 @@ public final class RemotePath {
    * @param manager
    * @param axisID
    */
-  private synchronized final void loadMountRules(BaseManager manager, AxisID axisID) {
+  private synchronized final void loadMountRules(BaseManager manager,
+      AxisID axisID) {
     //only try to load mount rules once
     if (mountRulesLoaded) {
       return;
@@ -437,7 +444,7 @@ public final class RemotePath {
     while (numberAttribute != null) {
       Attribute localRule = numberAttribute.getAttribute(LOCAL);
       Attribute remoteRule = numberAttribute.getAttribute(REMOTE);
-      //check for rule validity
+      //run valid rule check
       if (isValidRule(localRule, remoteRule, attributeNumber, sectionName)) {
         //add rule
         localMountRules.add(localRule.getValue());
@@ -461,9 +468,9 @@ public final class RemotePath {
     //create the start of the error message
     StringBuffer errorTitle = new StringBuffer("Warning:  Problem");
     if (hostName != null) {
-      errorTitle.append(" on " + hostName);
+      errorTitle.append(" using " + hostName);
     }
-    errorTitle.append(" in " + DatasetFiles.getAutodocName(AUTODOC));
+    errorTitle.append(" with " + DatasetFiles.getAutodocName(AUTODOC));
     String sectionType = AutodocTokenizer.OPEN_CHAR
         + ProcessorTable.SECTION_TYPE + ' '
         + AutodocTokenizer.DEFAULT_DELIMITER + ' ';
@@ -496,7 +503,8 @@ public final class RemotePath {
               + " because there is no mountname.\nEither there is no mountname entry under the "
               + sectionType + LOCAL_HOST + AutodocTokenizer.CLOSE_CHAR
               + " section or there is no section for this computer.\n");
-      return false;
+      //pass this problem so that it can be shown to the user
+      return true;
     }
     return true;
   }
@@ -556,7 +564,7 @@ public final class RemotePath {
    */
   private final String getHostName(BaseManager manager, AxisID axisID) {
     SystemProgram hostname = new SystemProgram(manager.getPropertyUserDir(),
-        new String[] {"hostname"}, axisID);
+        new String[] { "hostname" }, axisID);
     hostname.run();
     String[] stdout = hostname.getStdOutput();
     if (stdout == null || stdout.length < 1) {
@@ -646,9 +654,18 @@ public final class RemotePath {
     }
     return remoteMountRules.size();
   }
+
+  public static final class InvalidMountRuleException extends Exception {
+    InvalidMountRuleException(String message) {
+      super(message);
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/05/22 22:52:40  sueh
+ * <p> bug# 577 Placed commands in a String[] rather then a String.
+ * <p>
  * <p> Revision 1.6  2006/04/25 19:41:31  sueh
  * <p> bug# 787 Moved the autodoc variable tag (%) to EtomoAutodoc.
  * <p>
