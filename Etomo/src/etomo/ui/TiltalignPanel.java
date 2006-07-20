@@ -884,8 +884,10 @@ public class TiltalignPanel {
    */
   private void createRadioBox(JPanel panel, ButtonGroup group,
       RadioButton[] items, ActionListener listener, int width) {
-    int radioButtonHeight = 18;
-    Dimension radioButtonItemSize = new Dimension(width, radioButtonHeight);
+    int radioButtonHeight = (int) (18 * UIParameters.INSTANCE
+        .getFontSizeAdjustment());
+    Dimension radioButtonItemSize = new Dimension((int)(width * UIParameters.INSTANCE
+        .getFontSizeAdjustment()), radioButtonHeight);
 
     // Add the items to the group and to the panel
     for (int i = 0; i < items.length; i++) {
@@ -958,7 +960,7 @@ public class TiltalignPanel {
     FiducialRadioListener fiducialRadioListener = new FiducialRadioListener(
         this);
     createRadioBox(pnlRBFiducual, bgFiducialSurfaces, items,
-        fiducialRadioListener, 300);
+        fiducialRadioListener, 305);
 
     pnlFiducialSurfaces.add(pnlRBFiducual);
     pnlFiducialSurfaces.add(Box.createHorizontalGlue());
@@ -1635,6 +1637,9 @@ public class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.33  2006/05/19 19:48:08  sueh
+ * <p> bug# 866 Formatted.
+ * <p>
  * <p> Revision 3.32  2006/04/25 19:23:53  sueh
  * <p> bug# 787 Changing the type of tabPane to TabbedPane.
  * <p>
