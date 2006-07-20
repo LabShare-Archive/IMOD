@@ -23,6 +23,7 @@ import etomo.type.ParallelMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
+import etomo.ui.UIParameters;
 import etomo.util.EnvironmentVariable;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
@@ -798,7 +799,6 @@ public class EtomoDirector {
    * Set the user preferences
    */
   private void setUserPreferences() {
-    //FIXME this function may not have to be visible
     ToolTipManager.sharedInstance().setInitialDelay(
         userConfig.getToolTipsInitialDelay());
     ToolTipManager.sharedInstance().setDismissDelay(
@@ -806,6 +806,7 @@ public class EtomoDirector {
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
+    UIParameters.INSTANCE.setFontSize(userConfig.getFontSize());
   }
 
   /**
@@ -1050,6 +1051,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2006/07/19 15:12:22  sueh
+ * <p> Removed unnecessary imports.
+ * <p>
  * <p> Revision 1.48  2006/07/18 19:07:01  sueh
  * <p> bug# 905 Removing unnecessary properties printing
  * <p>
