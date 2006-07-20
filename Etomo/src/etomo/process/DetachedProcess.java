@@ -54,6 +54,10 @@ final class DetachedProcess extends BackgroundProcess {
           + getCommandName());
       return false;
     }
+    if (!((DetachedCommand) getCommand()).isValid()) {
+      processDone(1);
+      return false;
+    }
     SystemProgram program = new BackgroundSystemProgram(manager
         .getPropertyUserDir(), runCommand, monitor, axisID);
     program.setAcceptInputWhileRunning(true);
@@ -169,6 +173,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/06/15 16:16:53  sueh
+ * <p> bug# 871 Added isNohup().
+ * <p>
  * <p> Revision 1.6  2006/06/06 17:16:54  sueh
  * <p> bug# change threadData to processData.
  * <p>
