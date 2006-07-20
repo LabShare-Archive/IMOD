@@ -9,8 +9,10 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.RemotePath;
+import etomo.util.RemotePath.InvalidMountRuleException;
 
 /**
  * <p>Description: Command line for processchunks.  Assumes that it will be run
@@ -48,6 +50,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private String[] commandArray = null;
   private String rootName = null;
   private StringBuffer machineList = null;
+  private boolean valid = true;
 
   public ProcesschunksParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
@@ -60,20 +63,21 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   public String getCommand() {
     return ProcessName.PROCESSCHUNKS.toString();
   }
-  
+
   public int getCommandMode() {
     return 0;
   }
-  
+
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
 
   private void buildCommand() {
+    valid = true;
     ArrayList command = new ArrayList();
     command.add("tcsh");
     command.add(COMMAND_FILE_OPTION);
@@ -85,8 +89,17 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add("-g");
     command.add("-n");
     command.add(nice.toString());
-    String remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
-        .getPropertyUserDir(), axisID);
+    String remoteUserDir = null;
+    try {
+      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
+          .getPropertyUserDir(), axisID);
+    }
+    catch (InvalidMountRuleException e) {
+      UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
+          + "Unabled to run " + ProcessName.PROCESSCHUNKS + ".\n\n"
+          + e.getMessage(), "Processchunks Error", axisID);
+      valid = false;
+    }
     if (remoteUserDir != null) {
       command.add(WORKING_DIR_OPTION);
       command.add(remoteUserDir);
@@ -221,6 +234,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     return commandArray;
   }
+  
+  public boolean isValid() {
+    return valid;
+  }
 
   /**
    * Gets a string version of the command array which can be used safely, even
@@ -295,6 +312,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/05/22 22:40:17  sueh
+ * <p> bug# 577 Moved the call to buildCommand to getCommandArray().  Made
+ * <p> getCommand() conform to the Command interface.
+ * <p>
  * <p> Revision 1.16  2006/05/11 19:47:34  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
