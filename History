@@ -1,11 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/21/06: In eTomo Setup Tomogram, placed distortion correction and mag gradient
+correction into advanced when a distortion directory is not in place.
+
+7/21/06: In eTomo fixed the font size functionality.  Font sizes 10 and up work
+correctly after exiting and rerunning eTomo.
+
 7/20/06: Fixed a bug in eTomo where processchunks never completed or gave an
 error message when the local computer was missing from the cpu.adoc and
 %mountname was used in the remote mount rule.
-
-7/20/06: In eTomo fixed the font size functionality.  Font sizes 10 and up work
-correctly after exiting and rerunning eTomo.
 
 7/19/06: In eTomo Fiducial Model, changing the "Seed Fiducial Model" button
 label to "View Fiducial Model" when transferfid is used.
