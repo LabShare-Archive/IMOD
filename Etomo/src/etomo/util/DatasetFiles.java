@@ -248,7 +248,7 @@ public final class DatasetFiles {
       return null;
     }
     if (distortionDir == null) {
-      distortionDir = new File(calibrationDir, "istortion");
+      distortionDir = new File(calibrationDir, "Distortion");
     }
     return distortionDir;
   }
@@ -279,6 +279,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/07/21 22:24:19  sueh
+ * <p> bug# 901 Added getCalibrationDir and getDistortionDir
+ * <p>
  * <p> Revision 1.18  2006/05/23 23:08:28  sueh
  * <p> bug# 617 Change getFiducialModelFile() to return a file with a parent specified.
  * <p>
