@@ -121,9 +121,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
-    ltfChunksFinished.setTextPreferredWidth(FixedDim.fourDigitWidth);
+    ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     ltfChunksFinished.setEditable(false);
-    ltfCPUsSelected.setTextPreferredWidth(FixedDim.fourDigitWidth);
+    ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     ltfCPUsSelected.setEditable(false);
     processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(false);
@@ -464,6 +464,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2006/04/28 21:02:42  sueh
+ * <p> bug# 787 PanelHeader:  Removed the member variable title, which was
+ * <p> not used.
+ * <p>
  * <p> Revision 1.35  2006/03/27 21:05:56  sueh
  * <p> bug# 836 Added DialogType to PanelHeader get instances functions so
  * <p> that the buttons in PanelHeader could save themselves.

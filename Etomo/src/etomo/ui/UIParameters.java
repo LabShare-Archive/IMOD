@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2006/07/20 17:23:46  sueh
+ * <p> bug# 848 Made UIParameters a singleton.  Adjusting dimensions by
+ * <p> UIParameters.fontSizeAdjustment.
+ * <p>
  * <p> Revision 3.6  2005/12/23 02:24:31  sueh
  * <p> bug# 675 Split the test option functionality into headless and test.
  * <p>
@@ -55,12 +59,18 @@ public final class UIParameters {
   public static final UIParameters INSTANCE = new UIParameters();
   private static final float DEFAULT_FONT_SIZE = 12;
   
-  private Dimension dimButton = new Dimension();
-  private Dimension dimNarrowButton = new Dimension();
-  private Dimension dimSpinner = new Dimension();
-  private Dimension dimFileField = new Dimension();
+  private final Dimension dimButton = new Dimension();
+  private final Dimension dimNarrowButton = new Dimension();
+  private final Dimension dimSpinner = new Dimension();
+  private final Dimension dimFileField = new Dimension();
+  private final Dimension dimFileChooser = new Dimension();
+  
   private float fontSize = DEFAULT_FONT_SIZE;
   private float fontSizeAdjustment = 1;
+  private int numericWidth;
+  private int sectionsWidth;
+  private int integerTripletWidth;
+  private int fourDigitWidth = 40;
 
   private UIParameters() {
     calcSizes();
@@ -76,7 +86,6 @@ public final class UIParameters {
    * @return
    */
   Dimension getButtonDimension() {
-    //  Return a safe copy of the Dimension
     return new Dimension(dimButton);
   }
 
@@ -91,6 +100,26 @@ public final class UIParameters {
 
   Dimension getFileFieldDimension() {
     return new Dimension(dimFileField);
+  }
+  
+  Dimension getFileChooserDimension() {
+    return new Dimension(dimFileChooser);
+  }
+  
+  int getNumericWidth() {
+    return numericWidth;
+  }
+  
+  int getSectionsWidth() {
+    return sectionsWidth;
+  }
+  
+  int getIntegerTripletWidth() {
+    return integerTripletWidth;
+  }
+  
+  int getFourDigitWidth() {
+    return fourDigitWidth;
   }
   
   /**
@@ -117,5 +146,10 @@ public final class UIParameters {
     dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
     dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height * fontSizeAdjustment);
     dimFileField.setSize(20 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
+    dimFileChooser.setSize(400 * fontSizeAdjustment, 400 * fontSizeAdjustment);
+    numericWidth = (int) (50 * fontSizeAdjustment);
+    sectionsWidth = (int) (75 * fontSizeAdjustment);
+    integerTripletWidth = (int)(90 * fontSizeAdjustment);
+    fourDigitWidth = (int)(40 * fontSizeAdjustment);
   }
 }

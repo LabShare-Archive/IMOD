@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/07/10 21:28:56  sueh
+ * <p> Removed order cut added Z order.
+ * <p>
  * <p> Revision 1.19  2006/06/29 22:02:28  sueh
  * <p> bug# 880 Removed orderCut from data because it doesn't need to be stored.
  * <p>
@@ -217,7 +220,7 @@ public final class SectionTableRow {
   private final MultiLineButton highlighterButton;
 
   private SectionTableRowData data;
-  private final HeaderCell rowNumber = new HeaderCell(FixedDim.rowNumberWidth);
+  private final HeaderCell rowNumber = new HeaderCell((int)(30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
 
   private int imodIndex = -1;
   private int imodRotIndex = -1;
@@ -252,8 +255,8 @@ public final class SectionTableRow {
     this.manager = manager;
     this.table = table;
     this.sectionExpanded = sectionExpanded;
-    highlighterButton = table.createToggleButton("=>",
-        FixedDim.highlighterWidth);
+    highlighterButton = table.createToggleButton("=>",(int)(
+        40 * UIParameters.INSTANCE.getFontSizeAdjustment()));
     //configure
     highlighterButton.addActionListener(actionListener);
     setupSection.setEnabled(false);

@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2006/07/20 17:21:17  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 1.30  2006/07/10 21:28:19  sueh
  * <p> Removed order cut added Z order.
  * <p>
@@ -347,10 +350,10 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   //first header row
   private final HeaderCell header1ZOrder = new HeaderCell("Z Order");
   private final HeaderCell header1SetupSections = new HeaderCell(
-      HEADER1_SECTIONS_LABEL, FixedDim.sectionsWidth);
+      HEADER1_SECTIONS_LABEL, UIParameters.INSTANCE.getSectionsWidth());
   private ExpandButton button1ExpandSections = null;
   private final HeaderCell header1JoinSections = new HeaderCell(
-      HEADER1_SECTIONS_LABEL, FixedDim.sectionsWidth);
+      HEADER1_SECTIONS_LABEL, UIParameters.INSTANCE.getSectionsWidth());
   private final HeaderCell header1Sample = new HeaderCell("Sample Slices");
   private final HeaderCell header1SlicesInSample = new HeaderCell("Slices in");
   private final HeaderCell header1CurrentChunk = new HeaderCell("Current");
@@ -377,27 +380,27 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header3SetupSections = new HeaderCell();
   private final HeaderCell header3JoinSections = new HeaderCell();
   private final HeaderCell header3SampleBottomStart = new HeaderCell("Start",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3SampleBottomEnd = new HeaderCell("End",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3SampleTopStart = new HeaderCell("Start",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3SampleTopEnd = new HeaderCell("End",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3SetupFinalStart = new HeaderCell("Start",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3SetupFinalEnd = new HeaderCell("End",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3JoinFinalStart = new HeaderCell("Start",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3JoinFinalEnd = new HeaderCell("End",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3RotationX = new HeaderCell("X",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3RotationY = new HeaderCell("Y",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3RotationZ = new HeaderCell("Z",
-      FixedDim.numericWidth);
+      UIParameters.INSTANCE.getNumericWidth());
   private final ArrayList rows = new ArrayList();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();

@@ -34,6 +34,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2006/06/28 23:29:59  sueh
+ * <p> bug# 881 Added pnlScaleRubberband.
+ * <p>
  * <p> Revision 3.15  2006/06/27 23:47:59  sueh
  * <p> bug# 879 Placed swapYZ and rotateX into a labeled panel.
  * <p>
@@ -223,8 +226,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
 
     pnlScaleSection.setLayout(new BoxLayout(pnlScaleSection, BoxLayout.X_AXIS));
     pnlScaleSection.add(rbScaleSection);
-    ltfSectionScaleMin.setTextPreferredWidth(FixedDim.fourDigitWidth);
-    ltfSectionScaleMax.setTextPreferredWidth(FixedDim.fourDigitWidth);
+    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     pnlScaleSection.add(ltfSectionScaleMin.getContainer());
     pnlScaleSection.add(ltfSectionScaleMax.getContainer());
 

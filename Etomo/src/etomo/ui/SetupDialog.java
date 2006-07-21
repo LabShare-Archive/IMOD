@@ -50,7 +50,7 @@ import etomo.util.Utilities;
 public class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
-  
+
   static final String DATASET_NAME_LABEL = "Dataset name: ";
   static final String FIDUCIAL_DIAMETER_LABEL = "Fiducial diameter (nm): ";
 
@@ -109,8 +109,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private JPanel pnlMagGradientInfo = new JPanel();
   private LabeledTextField ltfMagGradientFile = new LabeledTextField(
       "Mag gradients correction: ");
-  private final CheckBox cbParallelProcess = new CheckBox(
-      "Parallel Processing");
+  private final CheckBox cbParallelProcess = new CheckBox("Parallel Processing");
   private JButton btnMagGradientFile = new JButton(iconFolder);
 
   //  Tilt angle GUI objects
@@ -184,7 +183,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     btnBackupDirectory.setMaximumSize(FixedDim.folderButton);
     btnDistortionFile.setPreferredSize(FixedDim.folderButton);
     btnDistortionFile.setMaximumSize(FixedDim.folderButton);
-    //ltfDistortionFile.setMaximumSize(UIParameters.getFileFieldDimension());
     btnMagGradientFile.setPreferredSize(FixedDim.folderButton);
     btnMagGradientFile.setMaximumSize(FixedDim.folderButton);
 
@@ -224,7 +222,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private void createDataTypePanel() {
 
     //  Datatype subpnls: DataSource AxisType Viewtype
-    Dimension dimDataTypePref = new Dimension(150, 80);
+    Dimension dimDataTypePref = new Dimension(
+        (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
+        (int) (80 * UIParameters.INSTANCE.getFontSizeAdjustment()));
 
     bgAxisType.add(rbSingleAxis);
     bgAxisType.add(rbDualAxis);
@@ -836,7 +836,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   protected void btnViewRawStackBAction(Run3dmodMenuOptions menuOptions) {
     applicationManager.imodPreview(AxisID.SECOND, menuOptions);
   }
-  
+
   public void done() {
     applicationManager.doneSetupDialog();
     setDisplayed(false);
@@ -1061,6 +1061,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.49  2006/07/20 17:21:47  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.48  2006/06/30 20:03:25  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog done() functions,
  * <p> which is called by the button action functions and saveAction() in

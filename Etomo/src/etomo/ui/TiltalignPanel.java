@@ -991,7 +991,7 @@ public class TiltalignPanel {
     pnlGeneral.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //local alignment
-    ltfMinLocalFiducials.setTextPreferredWidth(FixedDim.integerPairWidth);
+    ltfMinLocalFiducials.setTextPreferredWidth(60*UIParameters.INSTANCE.getFontSizeAdjustment());
     createVariablePanel(pnlLocalParameters, cbLocalAlignments,
         ltfNLocalPatches, ltfMinLocalPatchSize, ltfMinLocalFiducials,
         cbFixXYZCoordinates, "Local Alignment Parameters");
@@ -1074,7 +1074,7 @@ public class TiltalignPanel {
     createRadioBox(pnlRBDistortion, bgDistortionSolution, items,
         distortionRadioListener);
     ltfXstretchNonDefaultGroups
-        .setTextPreferredWidth(FixedDim.integerTripletWidth);
+        .setTextPreferredWidth(UIParameters.INSTANCE.getIntegerTripletWidth());
     createVariablePanel(pnlDistortionSolution, pnlRBDistortion,
         ltfXstretchGroupSize, ltfXstretchNonDefaultGroups, ltfSkewGroupSize,
         ltfSkewNonDefaultGroups, null, "Distortion Solution Type");
@@ -1172,7 +1172,7 @@ public class TiltalignPanel {
     createRadioBox(pnlRBLocalDistortion, bgLocalDistortionSolution, items,
         localDistortionRadioListener);
     ltfLocalXstretchNonDefaultGroups
-        .setTextPreferredWidth(FixedDim.integerTripletWidth);
+        .setTextPreferredWidth(UIParameters.INSTANCE.getIntegerTripletWidth());
 
     createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
         ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,
@@ -1637,6 +1637,10 @@ public class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.34  2006/07/20 17:23:08  sueh
+ * <p> bug# 848 Made UIParameters a singleton.  Adjusting radio box widths by
+ * <p> UIParameters.fontSizeAdjustment.
+ * <p>
  * <p> Revision 3.33  2006/05/19 19:48:08  sueh
  * <p> bug# 866 Formatted.
  * <p>
