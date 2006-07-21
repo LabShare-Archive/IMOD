@@ -131,11 +131,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   private JPanel pnlAdjustedFocusB = new JPanel();
   private CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
+  private final boolean calibrationAvailable;
 
   //  Construct the setup dialog
-  public SetupDialog(ApplicationManager appMgr) {
+  public SetupDialog(ApplicationManager appMgr, boolean calibrationAvailable) {
     super(appMgr, AxisID.ONLY, DialogType.SETUP_RECON);
-
+    this.calibrationAvailable = calibrationAvailable;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     createDatasetPanel();
@@ -148,9 +149,11 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     btnPostpone.setText("Use Existing Coms");
     btnExecute.setText("Create Com Scripts");
 
-    // There are no advanced settings for this dialog, remove the advanced
-    // button
-    pnlExitButtons.remove(btnAdvanced.getComponent());
+    if (calibrationAvailable) {
+      // There are no advanced settings for this dialog, remove the advanced
+      // button
+      pnlExitButtons.remove(btnAdvanced.getComponent());
+    }
 
     //  Add the panes to the dialog box
     rootPanel.add(pnlDataParameters);
@@ -168,7 +171,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     // Resize the standard panel buttons
     UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
         .getButtonDimension());
-
+    if (!calibrationAvailable) {
+      setAdvanced(isAdvanced);
+    }
     // Calcute the necessary window size
     uiHarness.pack(axisID, applicationManager);
   }
@@ -557,6 +562,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
           + File.separator + datasetText);
     }
     return dataset.getParentFile();
+  }
+
+  void setAdvanced(boolean advanced) {
+    super.setAdvanced(advanced);
+    if (calibrationAvailable || pnlDistortionInfo == null) {
+      return;
+    }
+    ltfDistortionFile.setVisible(advanced);
+    btnDistortionFile.setVisible(advanced);
+    pnlMagGradientInfo.setVisible(advanced);
+    uiHarness.pack(AxisID.ONLY, applicationManager);
   }
 
   //  Axis type radio button
@@ -1061,6 +1077,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.50  2006/07/21 19:17:31  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 3.49  2006/07/20 17:21:47  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
