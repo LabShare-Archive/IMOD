@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/20/06: Fixed a bug in eTomo where processchunks never completed or gave an
+error message when the local computer was missing from the cpu.adoc and
+%mountname was used in the remote mount rule.
+
 7/20/06: In eTomo fixed the font size functionality.  Font sizes 10 and up work
 correctly after exiting and rerunning eTomo.
 
