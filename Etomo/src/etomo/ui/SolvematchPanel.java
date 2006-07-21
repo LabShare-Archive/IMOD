@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2006/07/20 17:21:58  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.23  2006/07/05 23:26:19  sueh
  * <p> Added tooltips.
  * <p>
@@ -132,7 +135,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Solvematch mid change
  * <p> </p>
  */
-public final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
+public final class SolvematchPanel implements Run3dmodButtonContainer,
+    Expandable {
 
   //private static final String POINT_LIST_A = "Corresponding fiducial list A: ";
 
@@ -162,7 +166,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
   private LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
       "Corresponding fiducial list B: ");
   private LabeledTextField ltfUseList = new LabeledTextField(
-  "Starting points to use from A: ");
+      "Starting points to use from A: ");
 
   private LabeledTextField ltfResidulThreshold = new LabeledTextField(
       "Limit on maximum residual: ");
@@ -232,14 +236,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
     pnlRoot.add(header.getContainer());
     pnlRoot.add(pnlBody);
     setToolTipText();
-
-    if (!appMgr.coordFileExists()) {
-      cbUseCorrespondingPoints.setSelected(true);
-      cbUseCorrespondingPoints.setVisible(false);
-      ltfUseList.setVisible(false);
-      updateUseCorrespondingPoints();
-    }
-
+    show();
     //  Bind the ui elements to their listeners
     SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
         this);
@@ -252,6 +249,20 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
     rbOneSideInverted.addActionListener(rbFiducialListener);
     rbUseModel.addActionListener(rbFiducialListener);
     rbUseModelOnly.addActionListener(rbFiducialListener);
+  }
+  
+  void show() {
+    if (applicationManager.coordFileExists()) {
+      cbUseCorrespondingPoints.setSelected(false);
+      cbUseCorrespondingPoints.setVisible(true);
+      ltfUseList.setVisible(true);
+    }
+    else {
+      cbUseCorrespondingPoints.setSelected(true);
+      cbUseCorrespondingPoints.setVisible(false);
+      ltfUseList.setVisible(false);
+    }
+    updateUseCorrespondingPoints();
   }
 
   public Container getContainer() {
@@ -368,7 +379,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
       solvematchParam.setToCorrespondenceList(ltfFiducialMatchListB.getText());
     }
     solvematchParam.setMaximumResidual(ltfResidulThreshold.getText());
-    solvematchParam.setTransferCoordinateFile(cbUseCorrespondingPoints.isSelected());
+    solvematchParam.setTransferCoordinateFile(cbUseCorrespondingPoints
+        .isSelected());
     solvematchParam.setUsePoints(ltfUseList.getText());
   }
 
@@ -421,15 +433,15 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
   public void setBinBy2(boolean state) {
     cbBinBy2.setSelected(state);
   }
-  
+
   void setUseList(String useList) {
-   ltfUseList.setText(useList);
+    ltfUseList.setText(useList);
   }
 
   public void setFiducialMatchListA(String fiducialMatchListA) {
     ltfFiducialMatchListA.setText(fiducialMatchListA);
   }
-  
+
   String getUseList() {
     return ltfUseList.getText();
   }
@@ -564,8 +576,10 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
     }
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         SolvematchParam.SURFACE_OR_USE_MODELS);
-    
-    cbUseCorrespondingPoints.setToolTipText(tooltipFormatter.setText("Check to use the points in A and B in the transferfid log file.  "+"Leave unchecked to use transferfid.coord.").format());
+
+    cbUseCorrespondingPoints.setToolTipText(tooltipFormatter.setText(
+        "Check to use the points in A and B in the transferfid log file.  "
+            + "Leave unchecked to use transferfid.coord.").format());
 
     if (section != null) {
       rbBothSides.setToolTipText(tooltipFormatter.setText(
@@ -600,9 +614,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer, Expandabl
         EtomoAutodoc.getTooltip(autodoc,
             SolvematchParam.FROM_CORRESPONDENCE_LIST)).format());
     ltfUseList.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc
-            .getTooltip(autodoc, SolvematchParam.USE_POINTS))
-        .format());
+        EtomoAutodoc.getTooltip(autodoc, SolvematchParam.USE_POINTS)).format());
     ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(
         EtomoAutodoc.getTooltip(autodoc, SolvematchParam.MAXIMUM_RESIDUAL))
         .format());

@@ -51,6 +51,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.41  2006/07/20 17:21:33  sueh
+ * bug# 848 Made UIParameters a singleton.
+ *
  * Revision 3.40  2006/07/19 15:24:41  sueh
  * bug# 903 Getting ZMin and Max labels from ConstCombineParams.
  *
@@ -589,6 +592,10 @@ public final class SetupCombinePanel implements ContextMenu,
 
   public Container getContainer() {
     return pnlRoot;
+  }
+  
+  void show() {
+    pnlSolvematch.show();
   }
 
   ProcessResultDisplay getCombineResultDisplay() {
