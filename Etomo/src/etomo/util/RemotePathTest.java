@@ -711,13 +711,25 @@ public class RemotePathTest extends TestCase {
   /**
    * Asserts that paths which contain %mountname cannot be found.
    */
-  private final void assertMountNameFailed() throws InvalidMountRuleException {
-    assertNull(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE0] + PATH, AxisID.ONLY));
-    assertNull(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE1] + PATH, AxisID.ONLY));
-    assertNull(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH, AxisID.ONLY));
+  private final void assertMountNameFailed() {
+    try {
+      RemotePath.INSTANCE.getRemotePath(MANAGER,
+          LOCAL_MOUNT_RULES[MOUNT_NAME_RULE0] + PATH, AxisID.ONLY);
+    }
+    catch (InvalidMountRuleException e) {
+    }
+    try {
+      RemotePath.INSTANCE.getRemotePath(MANAGER,
+          LOCAL_MOUNT_RULES[MOUNT_NAME_RULE1] + PATH, AxisID.ONLY);
+    }
+    catch (InvalidMountRuleException e) {
+    }
+    try {
+      RemotePath.INSTANCE.getRemotePath(MANAGER,
+          LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH, AxisID.ONLY);
+    }
+    catch (InvalidMountRuleException e) {
+    }
   }
 
   /**
@@ -986,6 +998,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2006/07/20 23:15:56  sueh
+ * <p> bug# 885 Handling InvalidMountRuleException.
+ * <p>
  * <p> Revision 1.29  2006/06/14 00:46:44  sueh
  * <p> bug# 852 Calling createInstance_test so that the EtomoDirector instance gets
  * <p> created.
