@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2006/07/18 20:57:16  sueh
+ * <p> bug# 904 Added setZMax() and setZMin().
+ * <p>
  * <p> Revision 3.43  2006/07/04 20:42:14  sueh
  * <p> bug# 898 Don't remove action listeners unless the done dialog function
  * <p> succeeds.
@@ -518,6 +521,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   }
   
   public void show() {
+    pnlSetup.show();
     setDisplayed(true);
   }
 
