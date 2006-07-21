@@ -21,6 +21,7 @@ import etomo.type.AxisID;
 public final class EnvironmentVariable {
   public static final String rcsid = "$Id$";
 
+  public static final String CALIB_DIR = "IMOD_CALIB_DIR";
   public static final EnvironmentVariable INSTANCE = new EnvironmentVariable();
 
   private final HashMap variableList = new HashMap();
@@ -123,6 +124,9 @@ public final class EnvironmentVariable {
 /**
  * <p>
  * $Log$
+ * Revision 1.2  2006/07/03 23:35:36  sueh
+ * Using the Utilities.isWindows() function instead of testing for windows here.
+ *
  * <p>
  * Revision 1.1 2006/06/30 16:30:12 sueh
  * <p>
