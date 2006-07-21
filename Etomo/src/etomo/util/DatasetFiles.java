@@ -30,6 +30,8 @@ public final class DatasetFiles {
 
   private static final String TOMO_EXT = ".rec";
   private static final String STACK_EXT = ".st";
+  private static File calibrationDir = null;
+  private static File distortionDir = null;
 
   //Stacks
 
@@ -225,6 +227,32 @@ public final class DatasetFiles {
         + COMSCRIPT_EXT);
   }
 
+  //directories
+
+  public static File getCalibrationDir(String propertyUserDir, AxisID axisID) {
+    if (calibrationDir == null) {
+      String calibDirVar = EnvironmentVariable.INSTANCE.getValue(
+          propertyUserDir, EnvironmentVariable.CALIB_DIR, axisID);
+      if (!calibDirVar.equals("")) {
+        calibrationDir = new File(calibDirVar);
+      }
+    }
+    return calibrationDir;
+  }
+
+  public static File getDistortionDir(String propertyUserDir, AxisID axisID) {
+    if (calibrationDir == null) {
+      getCalibrationDir(propertyUserDir, axisID);
+    }
+    if (calibrationDir == null) {
+      return null;
+    }
+    if (distortionDir == null) {
+      distortionDir = new File(calibrationDir, "istortion");
+    }
+    return distortionDir;
+  }
+
   //private
 
   private static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
@@ -251,6 +279,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/05/23 23:08:28  sueh
+ * <p> bug# 617 Change getFiducialModelFile() to return a file with a parent specified.
+ * <p>
  * <p> Revision 1.17  2006/05/23 21:02:06  sueh
  * <p> bug# 617 Changed getFiducialModel() to getFiducialModelName(). Added
  * <p> getFiducialModelFile() and getSeedFile().  Removed unused function
