@@ -684,7 +684,7 @@ abstract class EtomoFrame extends JFrame {
     chooser.setFileFilter(fileFilter);
     chooser.setDialogTitle("Save " + fileFilter.getDescription());
     chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-    chooser.setPreferredSize(FixedDim.fileChooser);
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(fileFilter);
     if (edfFiles.length == 0) {
@@ -764,7 +764,7 @@ abstract class EtomoFrame extends JFrame {
     chooser.setFileFilter(fileFilter);
 
     chooser.setDialogTitle("Open " + fileFilter.getDescription());
-    chooser.setPreferredSize(FixedDim.fileChooser);
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -819,6 +819,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2006/06/21 15:52:31  sueh
+ * <p> bug# 581 Using Imodqtassist instead of HTMLPageWindow() to pop up help.
+ * <p>
  * <p> Revision 1.25  2006/04/25 19:15:04  sueh
  * <p> bug# 787 Implemented the OptionPane function showOptionDialog() so
  * <p> that the popups could be named and found by JfcUnit.

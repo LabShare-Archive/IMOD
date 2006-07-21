@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.34  2006/07/20 17:20:27  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 1.33  2006/06/29 20:08:35  sueh
  * <p> bug# 880 Made working dir and root name editable/not editable instead of using
  * <p> setEnabled() so that they would be readable.
@@ -1364,7 +1367,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //  Open up the file chooser in the current working directory
     JFileChooser chooser = new JFileChooser(new File(joinManager
         .getPropertyUserDir()));
-    chooser.setPreferredSize(FixedDim.fileChooser);
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {

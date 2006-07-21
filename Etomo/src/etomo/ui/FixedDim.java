@@ -15,6 +15,10 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/08/10 20:43:29  sueh
+ * <p> bug# 711 Moved button sizing to MultiLineButton.  SetSize() sets the
+ * <p> standard button size.
+ * <p>
  * <p> Revision 3.5  2005/07/01 21:16:59  sueh
  * <p> bug# 619 Added x70_y0.
  * <p>
@@ -62,13 +66,5 @@ public class FixedDim {
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y20 = new Dimension(0, 20);
   public final static Dimension x0_y40 = new Dimension(0, 40);
-  public final static Dimension fileChooser = new Dimension(400, 400);
   public final static Dimension folderButton = new Dimension(32, 32);
-  public final static int numericWidth = 50;
-  public final static int sectionsWidth = 75;
-  public final static int highlighterWidth = 40;
-  public final static int rowNumberWidth = 30;
-  public final static int integerPairWidth = 60;
-  public final static int integerTripletWidth = 90;
-  public final static int fourDigitWidth = 40;
 }
