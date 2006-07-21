@@ -4,6 +4,7 @@ import etomo.storage.AutodocFilter;
 import etomo.type.AxisID;
 import etomo.ui.Token;
 import etomo.util.DatasetFiles;
+import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
 
 import java.awt.geom.IllegalPathStateException;
@@ -598,7 +599,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private void initialize(String name, AxisID axisID)
       throws FileNotFoundException, IOException {
     if (name.equals(CPU)) {
-      initialize(name, axisID, "IMOD_CALIB_DIR");
+      initialize(name, axisID, EnvironmentVariable.CALIB_DIR);
     }
     else if (name.equals(UITEST)) {
       initialize(name, axisID, "IMOD_UITEST_SOURCE");
@@ -652,6 +653,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.5  2006/06/14 21:19:54  sueh
+ *<p> $bug# 852 Added isAttribute().
+ *<p> $
  *<p> $Revision 1.4  2006/06/14 00:15:20  sueh
  *<p> $bug# 852 Added densmatch because it is small and good for basic debugging of
  *<p> $the parcer.  Added getInstance(String fileName...) so that it is easy to open a

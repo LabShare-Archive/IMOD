@@ -27,6 +27,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.util.EnvironmentVariable;
 import etomo.util.HashedArray;
 
 /**
@@ -253,7 +254,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     if (autodoc == null) {
       System.err
-          .println("Unable to display the rows of the processor table./nMissing $IMOD_CALIB_DIR/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
+          .println("Unable to display the rows of the processor table./nMissing $"+EnvironmentVariable.CALIB_DIR+"/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
     }
     return autodoc;
   }
@@ -464,6 +465,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2006/07/21 19:12:29  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 1.36  2006/04/28 21:02:42  sueh
  * <p> bug# 787 PanelHeader:  Removed the member variable title, which was
  * <p> not used.

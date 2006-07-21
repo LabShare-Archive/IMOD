@@ -279,7 +279,9 @@ public final class ApplicationManager extends BaseManager {
     setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialog == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
-      setupDialog = new SetupDialog(this);
+      File calibrationDir = DatasetFiles.getCalibrationDir(propertyUserDir, AxisID.ONLY);
+      setupDialog = new SetupDialog(this, calibrationDir.exists()
+          && DatasetFiles.getDistortionDir(calibrationDir).exists());
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
       setupDialog.initializeFields((ConstMetaData) metaData);
     }
@@ -1868,14 +1870,14 @@ public final class ApplicationManager extends BaseManager {
     if (!okToMakeFiducialModelSeedModel(axisID)) {
       return;
     }/*
-       * if (seedModel.exists() && seedModel.lastModified() >
-       * fiducialModel.lastModified()) { String[] message = new String[3];
-       * message[0] = "WARNING: The seed model file is more recent the fiducial
-       * model file"; message[1] = "To avoid losing your changes to the seed
-       * model file,"; message[2] = "track fiducials before pressing Use
-       * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use
-       * Fiducial Model as Seed Failed", axisID); return; }
-       */
+     * if (seedModel.exists() && seedModel.lastModified() >
+     * fiducialModel.lastModified()) { String[] message = new String[3];
+     * message[0] = "WARNING: The seed model file is more recent the fiducial
+     * model file"; message[1] = "To avoid losing your changes to the seed
+     * model file,"; message[2] = "track fiducials before pressing Use
+     * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use
+     * Fiducial Model as Seed Failed", axisID); return; }
+     */
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1920,7 +1922,8 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          axisID);
     }
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
     if (seedFile.exists()) {
@@ -2366,7 +2369,8 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          axisID);
     }
   }
 
@@ -2393,7 +2397,8 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          AxisID.ONLY);
     }
   }
 
@@ -2420,7 +2425,8 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          axisID);
     }
   }
 
@@ -2571,7 +2577,7 @@ public final class ApplicationManager extends BaseManager {
   public boolean coordFileExists() {
     return DatasetFiles.getTransferFidCoordFile(this).exists();
   }
-  
+
   protected void processSucceeded(AxisID axisID, ProcessName processName) {
     if (processName == ProcessName.TRANSFERFID) {
       FiducialModelDialog fiducialModelDialog;
@@ -3858,12 +3864,13 @@ public final class ApplicationManager extends BaseManager {
         + axisID.getExtension() + ".ali");
     if (aligned.exists()) {
       if (!aligned.delete()) {
-        StringBuffer message = new StringBuffer("Unable to delete aligned stack: "
-            + aligned.getAbsolutePath());
+        StringBuffer message = new StringBuffer(
+            "Unable to delete aligned stack: " + aligned.getAbsolutePath());
         if (Utilities.isWindowsOS()) {
           message.append("\nIf this file is open in 3dmod, close 3dmod.");
         }
-        uiHarness.openMessageDialog(message.toString(), "Can not delete file", axisID);
+        uiHarness.openMessageDialog(message.toString(), "Can not delete file",
+            axisID);
       }
     }
     mainPanel.stopProgressBar(axisID);
@@ -4839,7 +4846,8 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          axisID);
     }
   }
 
@@ -5778,6 +5786,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.248  2006/07/19 20:04:30  sueh
+ * <p> bug# 902 MakeFiducialModelSeedModel:  Set seeding done and update the
+ * <p> fiducial model display.  Added processSucceeded.
+ * <p>
  * <p> Revision 3.247  2006/07/19 15:11:54  sueh
  * <p> bug# 903  UpdateCombineParams:  don't validate until after the scripts are
  * <p> created so that the Z limits can be blank.
@@ -5964,7 +5976,7 @@ public final class ApplicationManager extends BaseManager {
  * <p>
  * <p> Revision for 20:20:21  sueh
  * <p> bug# 776 Added canSnapshot.
-'t found. Changed
+ 't found. Changed
  * <p>
  * <p> Revision 3.200  2005/11/29 22:17:29  sueh
  * <p> Deleted aligned image stack:  The process bar said "stacks", which was

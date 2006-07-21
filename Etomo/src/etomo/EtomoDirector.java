@@ -225,18 +225,18 @@ public class EtomoDirector {
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    String imodCalibDirectoryName = System.getProperty("IMOD_CALIB_DIR");
+    String imodCalibDirectoryName = System.getProperty(EnvironmentVariable.CALIB_DIR);
     if (imodCalibDirectoryName == null) {
       imodCalibDirectoryName = EnvironmentVariable.INSTANCE.getValue(null,
-          "IMOD_CALIB_DIR", AxisID.ONLY);
+          EnvironmentVariable.CALIB_DIR, AxisID.ONLY);
       if (!imodCalibDirectoryName.equals("")) {
         if (debug) {
-          System.err.println("IMOD_CALIB_DIR (env): " + imodCalibDirectoryName);
+          System.err.println(EnvironmentVariable.CALIB_DIR+" (env): " + imodCalibDirectoryName);
         }
       }
       else {
         System.err
-            .println("WARNING:\nThe environment variable IMOD_CALIB_DIR is not set.\n"
+            .println("WARNING:\nThe environment variable "+EnvironmentVariable.CALIB_DIR+ "is not set.\n"
                 + "Several eTomo functions will not be available:\n"
                 + "Image distortion field files, "
                 + "Mag gradient correction, " + "and parallel processing.\n");
@@ -244,7 +244,7 @@ public class EtomoDirector {
     }
     else {
       if (debug) {
-        System.err.println("IMOD_CALIB_DIR (-D): " + imodCalibDirectoryName);
+        System.err.println(EnvironmentVariable.CALIB_DIR+" (-D): " + imodCalibDirectoryName);
       }
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
@@ -1051,6 +1051,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.50  2006/07/20 17:18:58  sueh
+ * <p> bug# 848 SetUserPreferences():  Set the font size in UIParameters.
+ * <p>
  * <p> Revision 1.49  2006/07/19 15:12:22  sueh
  * <p> Removed unnecessary imports.
  * <p>

@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
+import etomo.util.EnvironmentVariable;
 
 /**
  * <p>Description: </p>
@@ -46,7 +47,7 @@ public class CpuAdoc {
         e.printStackTrace();
       }
       if (autodoc == null) {
-        System.err.println("Missing $IMOD_CALIB_DIR/cpu.adoc file.\n"
+        System.err.println("Missing $"+EnvironmentVariable.CALIB_DIR+"/cpu.adoc file.\n"
             + "Parallel processing cannot be used.\n"
             + "See $IMOD_DIR/autodoc/cpu.adoc.");
       }
@@ -75,6 +76,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/06/30 17:02:15  sueh
+ * <p> Improved warning about missing cpu.adoc.
+ * <p>
  * <p> Revision 1.1  2006/06/14 00:33:47  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.
