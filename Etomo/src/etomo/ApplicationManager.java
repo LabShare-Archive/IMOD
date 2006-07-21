@@ -279,9 +279,11 @@ public final class ApplicationManager extends BaseManager {
     setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
     if (setupDialog == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
-      File calibrationDir = DatasetFiles.getCalibrationDir(propertyUserDir, AxisID.ONLY);
-      setupDialog = new SetupDialog(this, calibrationDir.exists()
-          && DatasetFiles.getDistortionDir(calibrationDir).exists());
+      //check for distortion directory
+      File distortionDir = DatasetFiles.getDistortionDir(propertyUserDir,
+          AxisID.ONLY);
+      setupDialog = new SetupDialog(this, distortionDir != null
+          && distortionDir.exists());
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
       setupDialog.initializeFields((ConstMetaData) metaData);
     }
@@ -5786,6 +5788,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.249  2006/07/21 22:10:57  sueh
+ * <p> bug# 901 Getting the calibration directory environment variable name from
+ * <p> EnvironmentVariable.
+ * <p>
  * <p> Revision 3.248  2006/07/19 20:04:30  sueh
  * <p> bug# 902 MakeFiducialModelSeedModel:  Set seeding done and update the
  * <p> fiducial model display.  Added processSucceeded.
