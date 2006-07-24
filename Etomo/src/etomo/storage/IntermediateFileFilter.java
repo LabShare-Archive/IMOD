@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2005/12/13 00:29:49  sueh
+ * <p> bug# 618 Made the file selection for files with dashes more selective.
+ * <p>
  * <p> Revision 3.4  2005/12/07 17:43:07  sueh
  * <p> bug# 618 Was not handling dashes.  Made the code that recognizes
  * <p> parallel processing file more specific.
@@ -78,7 +81,8 @@ public class IntermediateFileFilter extends FileFilter {
         "topa.rec",
         "topb.rec",
         "volcombine.log",
-        ".bl"};
+        ".bl",
+        ".dcst"};
     String[] pretrimmedTomograms = {"sum.rec","full.rec"};
     if (f.isFile()) {
       String path = f.getAbsolutePath();
