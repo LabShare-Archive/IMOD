@@ -25,6 +25,8 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.DialogExitState;
+import etomo.type.ProcessResult;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
 import etomo.type.TomogramState;
@@ -45,22 +47,15 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public final class TomogramPositioningExpert implements UIExpert {
+public final class TomogramPositioningExpert extends ReconUIExpert {
   public static final String rcsid = "$Id$";
-
-  private final AxisID axisID;
-  private final ApplicationManager manager;
+  
   private final ComScriptManager comScriptMgr;
-  private final MetaData metaData;
   private final TomogramState state;
-  private final MainTomogramPanel mainPanel;
-  private final ProcessTrack processTrack;
 
   private TomogramPositioningDialog dialog = null;
 
   private boolean advanced = false;
-  private String nextProcessA = "";
-  private String nextProcessB = "";
 
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -68,68 +63,28 @@ public final class TomogramPositioningExpert implements UIExpert {
 
   public TomogramPositioningExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
-    this.manager = manager;
-    this.axisID = axisID;
+    super(manager, mainPanel, processTrack, axisID, DialogType.TOMOGRAM_POSITIONING);
     comScriptMgr = manager.getComScriptManager();
-    metaData = manager.getMetaData();
     state = manager.getState();
-    this.mainPanel = mainPanel;
-    this.processTrack = processTrack;
-  }
-
-  private void setNextProcess(AxisID axisID, String nextProcess) {
-    if (axisID == AxisID.SECOND) {
-      nextProcessB = nextProcess;
-
-    }
-    else {
-      nextProcessA = nextProcess;
-    }
-    manager.setNextProcessDialogType(axisID, DialogType.TOMOGRAM_POSITIONING);
   }
 
   /**
    * Start the next process specified by the nextProcess string
    */
   public void startNextProcess(ProcessResultDisplay processResultDisplay) {
-    String nextProcess = getNextProcess(axisID);
-    resetNextProcess(axisID);
-    if (nextProcess.equals("tilt")) {
+    ProcessName nextProcess = getNextProcess();
+    resetNextProcess();
+    if (nextProcess == ProcessName.TILT) {
       sampleTilt(processResultDisplay);
     }
   }
 
-  private void resetNextProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      nextProcessB = "";
-    }
-    else {
-      nextProcessA = "";
-    }
-    manager.resetNextProcessDialogType(axisID);
-  }
-
-  private String getNextProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return nextProcessB;
-    }
-    return nextProcessA;
-  }
-
   /**
-   * Open the tomogram positioning dialog for the specified axis
+   * Open the tomogram positioning dialog
    * @param axisID
    */
   public void openDialog() {
-    //  Check to see if the com files are present otherwise pop up a dialog
-    //  box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
-      return;
-    }
-    manager.setCurrentDialogType(DialogType.TOMOGRAM_POSITIONING, axisID);
-    mainPanel.selectButton(axisID, "Tomogram Positioning");
-    if (dialog != null) {
-      mainPanel.showProcess(dialog.getContainer(), axisID);
+    if (!showDialog(dialog) || dialog != null) {
       return;
     }
     // Create a new dialog panel and map it the generic reference
@@ -182,33 +137,16 @@ public final class TomogramPositioningExpert implements UIExpert {
     setFiducialess();
     dialog.setImageRotation(metaData.getImageRotation(axisID));
     dialog.setButtonState(manager.getScreenState(axisID));
-    // Open the dialog panel
-    mainPanel.showProcess(dialog.getContainer(), axisID);
-    mainPanel.setParallelDialog(axisID, dialog.isParallel());
-  }
-
-  public void doneDialog(DialogExitState exitState) {
-    if (dialog == null) {
-      return;
-    }
-    dialog.setExitState(exitState);
-    doneDialog();
-  }
-
-  public void saveAction() {
-    if (dialog == null) {
-      return;
-    }
-    dialog.saveAction();
+    openDialog(dialog);
   }
 
   boolean doneDialog() {
     if (dialog == null) {
       return false;
     }
-    if (dialog.getExitState() == DialogExitState.EXECUTE) {
-      if (dialog.isTomopitchButtonSelected()
-          && dialog.isAlignButtonEnabled()
+    DialogExitState exitState = dialog.getExitState();
+    if (exitState == DialogExitState.EXECUTE) {
+      if (dialog.isTomopitchButtonSelected() && dialog.isAlignButtonEnabled()
           && !dialog.isAlignButtonSelected()) {
         if (!UIHarness.INSTANCE
             .openYesNoWarningDialog(
@@ -217,65 +155,39 @@ public final class TomogramPositioningExpert implements UIExpert {
           return false;
         }
       }
+      manager
+          .closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction");
     }
-    if (!saveDialog()) {
-      return false;
+    if (exitState != DialogExitState.CANCEL) {
+      if (!saveDialog()) {
+        return false;
+      }
     }
+    leaveDialog(exitState);
     dialog = null;
     return true;
   }
 
-  public void saveDialog(DialogExitState exitState) {
-    if (dialog == null) {
-      return;
-    }
-    dialog.setExitState(exitState);
-    saveDialog();
-  }
-
-  private boolean saveDialog() {
-    if (dialog == null) {
+  protected boolean saveDialog() {
+    advanced = dialog.isAdvanced();
+    //  Get all of the parameters from the panel
+    if (updateAlignCom() == null) {
       return false;
     }
-    advanced = dialog.isAdvanced();
-    DialogExitState exitState = dialog.getExitState();
-    if (exitState == DialogExitState.CANCEL) {
-      manager.getMainPanel().showBlankProcess(axisID);
+    if (!updateTomoPosTiltCom(false)) {
+      return false;
     }
-    else {
-      //  Get all of the parameters from the panel
-      if (updateAlignCom() == null) {
-        return false;
-      }
-      if (!updateTomoPosTiltCom(false)) {
-        return false;
-      }
-      if (!updateTomopitchCom()) {
-        return false;
-      }
-      if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-          axisID)) {
-        return false;
-      }
-      if (metaData.getViewType() != ViewType.MONTAGE
-          && updateNewstCom() == null) {
-        return false;
-      }
-      if (exitState == DialogExitState.POSTPONE) {
-        processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
-            axisID);
-        mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-        mainPanel.showBlankProcess(axisID);
-      }
-      else if (exitState != DialogExitState.SAVE) {
-        processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        manager.closeImod(ImodManager.SAMPLE_KEY, axisID,
-            "sample reconstruction");
-        manager.openTomogramGenerationDialog(axisID);
-      }
-      manager.saveIntermediateParamFile(axisID);
+    if (!updateTomopitchCom()) {
+      return false;
     }
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
+        axisID)) {
+      return false;
+    }
+    if (metaData.getViewType() != ViewType.MONTAGE && updateNewstCom() == null) {
+      return false;
+    }
+    manager.saveIntermediateParamFile(axisID);
     return true;
   }
 
@@ -289,26 +201,23 @@ public final class TomogramPositioningExpert implements UIExpert {
       UIHarness.INSTANCE.openMessageDialog(
           "Can not update sample.com without an active positioning dialog",
           "Program logic error", axisID);
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     //  Get the user input data from the dialog box
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
         axisID)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     if (!updateTomoPosTiltCom(true)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    if (manager.createSample(axisID, processResultDisplay, tiltParam)) {
-      mainPanel.startProgressBar("Creating sample tomogram", axisID);
-    }
+    setDialogState(ProcessState.INPROGRESS);
+    sendMsg(manager.createSample(axisID, processResultDisplay, tiltParam), processResultDisplay);
   }
 
   /**
@@ -323,13 +232,13 @@ public final class TomogramPositioningExpert implements UIExpert {
       UIHarness.INSTANCE.openMessageDialog(
           "Can not save comscripts without an active positioning dialog",
           "Program logic error", axisID);
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
         axisID)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     ConstNewstParam newstParam = null;
@@ -337,34 +246,34 @@ public final class TomogramPositioningExpert implements UIExpert {
     if (metaData.getViewType() != ViewType.MONTAGE) {
       newstParam = updateNewstCom();
       if (newstParam == null) {
-        sendMsgProcessFailedToStart(processResultDisplay);
+        sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
       }
     }
     else {
       blendmontParam = updateBlendCom();
       if (blendmontParam == null) {
-        sendMsgProcessFailedToStart(processResultDisplay);
+        sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
       }
     }
     if (!updateTomoPosTiltCom(true)) {
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    setDialogState(ProcessState.INPROGRESS);
+    ProcessResult processResult;
     if (metaData.getViewType() != ViewType.MONTAGE) {
-      if (!manager.wholeTomogram(axisID, processResultDisplay, newstParam)) {
-        return;
-      }
+      processResult = manager.wholeTomogram(axisID, processResultDisplay, newstParam);
     }
     else {
-      if (!manager.wholeTomogram(axisID, processResultDisplay, blendmontParam)) {
-        return;
-      }
+      processResult = manager.wholeTomogram(axisID, processResultDisplay, blendmontParam);
     }
-    setNextProcess(axisID, "tilt");
+    if (processResult != null) {
+      sendMsg(processResult,processResultDisplay);
+      return;
+    }
+    setNextProcess(ProcessName.TILT);
   }
 
   public void tomopitch(ProcessResultDisplay processResultDisplay) {
@@ -373,19 +282,15 @@ public final class TomogramPositioningExpert implements UIExpert {
       UIHarness.INSTANCE.openMessageDialog(
           "Can not save comscript without an active positioning dialog",
           "Program logic error", axisID);
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     if (!updateTomopitchCom()) {
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    if (!manager.tomopitch(axisID, processResultDisplay)) {
-      return;
-    }
-    mainPanel.startProgressBar("Finding sample position", axisID);
+    setDialogState(ProcessState.INPROGRESS);
+    sendMsg(manager.tomopitch(axisID, processResultDisplay), processResultDisplay);
   }
 
   /**
@@ -393,7 +298,7 @@ public final class TomogramPositioningExpert implements UIExpert {
    * 
    * @param axisID
    */
-  private void openTomopitchLog(AxisID axisID) {
+  private void openTomopitchLog() {
     String logFileName = DatasetFiles.getTomopitchLogFileName(manager, axisID);
     TextPageWindow logFileWindow = new TextPageWindow();
     logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
@@ -406,13 +311,13 @@ public final class TomogramPositioningExpert implements UIExpert {
    * fast.  The values will have to be save somewhere else if this is a problem.
    * @param axisID
    */
-  public void setTomopitchOutput(AxisID axisID) {
+  public void setTomopitchOutput() {
     if (dialog == null) {
       return;
     }
     TomopitchLog log = new TomopitchLog(manager, axisID);
     if (!setParameters(log)) {
-      openTomopitchLog(axisID);
+      openTomopitchLog();
     }
   }
 
@@ -422,26 +327,22 @@ public final class TomogramPositioningExpert implements UIExpert {
       UIHarness.INSTANCE.openMessageDialog(
           "Can not save comscript without an active positioning dialog",
           "Program logic error", axisID);
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START,processResultDisplay);
       return;
     }
     ConstTiltalignParam tiltalignParam = updateAlignCom();
     if (tiltalignParam == null) {
-      sendMsgProcessFailedToStart(processResultDisplay);
+      sendMsg(ProcessResult.FAILED_TO_START,processResultDisplay);
       return;
     }
-    processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    if (!manager.finalAlign(axisID, processResultDisplay, tiltalignParam)) {
-      return;
-    }
-    mainPanel.startProgressBar("Calculating final alignment", axisID);
+    setDialogState(ProcessState.INPROGRESS);
+    sendMsg(manager.finalAlign(axisID, processResultDisplay, tiltalignParam),processResultDisplay);
   }
 
   private void sampleTilt(ProcessResultDisplay processResultDisplay) {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    manager.sampleTilt(axisID, processResultDisplay, tiltParam);
+    sendMsg(manager.sampleTilt(axisID, processResultDisplay, tiltParam),processResultDisplay);
   }
 
   private ConstTiltalignParam updateAlignCom() {
@@ -663,7 +564,6 @@ public final class TomogramPositioningExpert implements UIExpert {
   private void getTomopitchParam(TomopitchParam tomopitchParam) {
     tomopitchParam.setScaleFactor(getBinning());
     tomopitchParam.setExtraThickness(dialog.getExtraThickness());
-    TomogramState state = manager.getState();
     if (dialog.isFiducialessAlignment()) {
       tomopitchParam.resetAngleOffsetOld();
       tomopitchParam.resetZShiftOld();
@@ -808,23 +708,15 @@ public final class TomogramPositioningExpert implements UIExpert {
     }
   }
 
-  private void sendMsgProcessStarting(ProcessResultDisplay processResultDisplay) {
-    if (processResultDisplay == null) {
-      return;
-    }
-    processResultDisplay.msgProcessStarting();
-  }
-
-  private void sendMsgProcessFailedToStart(
-      ProcessResultDisplay processResultDisplay) {
-    if (processResultDisplay == null) {
-      return;
-    }
-    processResultDisplay.msgProcessFailedToStart();
+  protected ProcessDialog getDialog() {
+    return dialog;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/07/18 18:02:22  sueh
+ * <p> bug# 906 Don't complain about alignment not being done if the button is disabled.
+ * <p>
  * <p> Revision 1.7  2006/07/04 20:42:51  sueh
  * <p> bug# 898 Return false from done and save functions if their dialog continues
  * <p> to be displayed.
