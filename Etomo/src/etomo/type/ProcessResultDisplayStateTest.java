@@ -259,6 +259,18 @@ public final class ProcessResultDisplayStateTest extends TestCase {
       state.msgProcessStarting();
     }
     
+    public void msg(ProcessResult processResult) {
+      if (processResult == ProcessResult.SUCCEEDED) {
+        state.msgProcessSucceeded();
+      }
+      else if (processResult == ProcessResult.FAILED) {
+        state.msgProcessFailed();
+      }
+      else if (processResult == ProcessResult.FAILED_TO_START) {
+        state.msgProcessFailedToStart();
+      }
+    }
+    
     public void msgProcessSucceeded() {
       state.msgProcessSucceeded();
     }
@@ -333,6 +345,10 @@ public final class ProcessResultDisplayStateTest extends TestCase {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/02/06 21:19:13  sueh
+* <p> bug# 521 ProcessResultDisplayState:  changed following display to
+* <p> dependent display.  Added dependecy index and initialized.
+* <p>
 * <p> Revision 1.2  2006/01/31 20:48:57  sueh
 * <p> bug# 521 Testing the following display
 * <p>
