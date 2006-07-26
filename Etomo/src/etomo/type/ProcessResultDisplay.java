@@ -48,9 +48,11 @@ public interface ProcessResultDisplay {
   public void setProcessDone(boolean done);
   
   public void setScreenState(BaseScreenState screenState);
+  
+  public void msg(ProcessResult displayState);
 
   /**
-   * Call one of these functionsthis function when the first process starts.
+   * Call one of these functions this function when the first process starts.
    *
    */
   public void msgProcessStarting();
@@ -118,6 +120,10 @@ public interface ProcessResultDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/02/06 21:16:17  sueh
+ * <p> bug# 521 Changed following display to dependent display.  Added
+ * <p> dependecy index and initialized.
+ * <p>
  * <p> Revision 1.3  2006/01/31 20:50:37  sueh
  * <p> bug# 521 Added failureDisplayList, successDisplayList, and
  * <p> followingDisplayList to change the state of other displays when the

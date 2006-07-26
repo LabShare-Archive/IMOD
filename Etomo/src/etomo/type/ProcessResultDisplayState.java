@@ -31,19 +31,19 @@ public final class ProcessResultDisplayState {
   private boolean secondaryProcess = false;
   //will ignore most messages when the process is not running
   private boolean processRunning = false;
-  
+
   public ProcessResultDisplayState(ProcessResultDisplay display) {
     this.display = display;
   }
-  
+
   public final void setOriginalState(boolean originalState) {
     this.originalState = originalState;
   }
-  
+
   public final boolean isInitialized() {
     return initialized;
   }
-  
+
   public final void setInitialized(boolean initialized) {
     this.initialized = initialized;
   }
@@ -61,6 +61,18 @@ public final class ProcessResultDisplayState {
       secondaryProcess = false;
     }
     processRunning = true;
+  }
+
+  public final void msg(ProcessResult processResult) {
+    if (processResult == ProcessResult.SUCCEEDED) {
+      msgProcessSucceeded();
+    }
+    else if (processResult == ProcessResult.FAILED) {
+      msgProcessFailed();
+    }
+    else if (processResult == ProcessResult.FAILED_TO_START) {
+      msgProcessFailedToStart();
+    }
   }
 
   /**
@@ -175,17 +187,21 @@ public final class ProcessResultDisplayState {
   protected final boolean isSecondaryProcess() {
     return secondaryProcess;
   }
-  
+
   public void setDependencyIndex(int dependencyIndex) {
     this.dependencyIndex = dependencyIndex;
   }
-  
+
   public int getDependencyIndex() {
     return dependencyIndex;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/02/06 21:18:45  sueh
+ * <p> bug# 521 Changed following display to dependent display.  Added
+ * <p> dependecy index and initialized.
+ * <p>
  * <p> Revision 1.2  2006/01/31 20:48:32  sueh
  * <p> bug# 521 Added failureDisplayList, successDisplayList, and
  * <p> followingDisplayList to change the state of other displays when the

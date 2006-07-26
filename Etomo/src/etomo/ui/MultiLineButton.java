@@ -10,6 +10,7 @@ import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
+import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
 import etomo.type.UITestField;
@@ -41,6 +42,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2006/07/20 17:20:36  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.22  2006/05/01 21:18:45  sueh
  * <p> bug# 854
  * <p>
@@ -464,6 +468,10 @@ class MultiLineButton implements ProcessResultDisplay {
 
   public void msgProcessStarting() {
     processResultDisplayState.msgProcessStarting();
+  }
+  
+  public void msg(ProcessResult processResult) {
+    processResultDisplayState.msg(processResult);
   }
 
   public void msgProcessSucceeded() {
