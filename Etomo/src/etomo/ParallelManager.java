@@ -2,6 +2,7 @@ package etomo;
 
 import java.io.File;
 
+import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ParallelProcessManager;
@@ -13,12 +14,14 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ParallelMetaData;
+import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.MainPanel;
 import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelDialog;
+import etomo.ui.ParallelPanel;
 import etomo.ui.UIHarness;
 
 /**
@@ -228,7 +231,22 @@ public final class ParallelManager extends BaseManager {
       }
       parallelDialog.updateDisplay(false);
     }
-    super.processchunks(axisID, dialog, processResultDisplay);
+    sendMsgProcessStarting(processResultDisplay);
+    if (dialog == null) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    ProcesschunksParam param = new ProcesschunksParam(this, axisID);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
+    dialog.getParameters(param);
+    if (!parallelPanel.getParameters(param)) {
+      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    //param should never be set to resume
+    parallelPanel.resetResults();
+    processchunks(axisID, param, processResultDisplay);
   }
 
   private boolean setParamFile() {
@@ -255,6 +273,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/07/19 20:05:39  sueh
+ * <p> bug# 902 Added processSucceeded().
+ * <p>
  * <p> Revision 1.2  2006/06/05 16:01:30  sueh
  * <p> bug# 766 getParamFileStorableArray():  Add the option have elements in the storable array that aer set by the base manager.
  * <p>
