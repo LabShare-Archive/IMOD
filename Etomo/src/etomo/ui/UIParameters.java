@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2006/07/21 19:19:44  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 3.7  2006/07/20 17:23:46  sueh
  * <p> bug# 848 Made UIParameters a singleton.  Adjusting dimensions by
  * <p> UIParameters.fontSizeAdjustment.
@@ -58,13 +62,14 @@ public final class UIParameters {
 
   public static final UIParameters INSTANCE = new UIParameters();
   private static final float DEFAULT_FONT_SIZE = 12;
-  
+  private static final double DEFAULT_HEIGHT = 21;
+
   private final Dimension dimButton = new Dimension();
   private final Dimension dimNarrowButton = new Dimension();
   private final Dimension dimSpinner = new Dimension();
   private final Dimension dimFileField = new Dimension();
   private final Dimension dimFileChooser = new Dimension();
-  
+
   private float fontSize = DEFAULT_FONT_SIZE;
   private float fontSizeAdjustment = 1;
   private int numericWidth;
@@ -75,7 +80,7 @@ public final class UIParameters {
   private UIParameters() {
     calcSizes();
   }
-  
+
   public void setFontSize(int fontSize) {
     this.fontSize = fontSize;
     calcSizes();
@@ -101,27 +106,27 @@ public final class UIParameters {
   Dimension getFileFieldDimension() {
     return new Dimension(dimFileField);
   }
-  
+
   Dimension getFileChooserDimension() {
     return new Dimension(dimFileChooser);
   }
-  
+
   int getNumericWidth() {
     return numericWidth;
   }
-  
+
   int getSectionsWidth() {
     return sectionsWidth;
   }
-  
+
   int getIntegerTripletWidth() {
     return integerTripletWidth;
   }
-  
+
   int getFourDigitWidth() {
     return fourDigitWidth;
   }
-  
+
   /**
    * Get the amount to adjust a fields based on the current font size
    * @return
@@ -135,21 +140,28 @@ public final class UIParameters {
    *
    */
   private void calcSizes() {
-    if (EtomoDirector.getInstance().isHeadless()) {
-      return;
-    }
+    double height;
     //  Create a temporary check box and get its height
-    JCheckBox temp = new JCheckBox();
-    double height = temp.getPreferredSize().getHeight();
+    if (!EtomoDirector.getInstance().isHeadless()) {
+      JCheckBox temp = new JCheckBox();
+      height = temp.getPreferredSize().getHeight();
+    }
+    else {
+      height = DEFAULT_HEIGHT;
+    }
     fontSizeAdjustment = fontSize / DEFAULT_FONT_SIZE;
-    dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
-    dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
-    dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height * fontSizeAdjustment);
-    dimFileField.setSize(20 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
+    dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height
+        * fontSizeAdjustment);
+    dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 2 * height
+        * fontSizeAdjustment);
+    dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height
+        * fontSizeAdjustment);
+    dimFileField.setSize(20 * height * fontSizeAdjustment, 2 * height
+        * fontSizeAdjustment);
     dimFileChooser.setSize(400 * fontSizeAdjustment, 400 * fontSizeAdjustment);
     numericWidth = (int) (50 * fontSizeAdjustment);
     sectionsWidth = (int) (75 * fontSizeAdjustment);
-    integerTripletWidth = (int)(90 * fontSizeAdjustment);
-    fourDigitWidth = (int)(40 * fontSizeAdjustment);
+    integerTripletWidth = (int) (90 * fontSizeAdjustment);
+    fourDigitWidth = (int) (40 * fontSizeAdjustment);
   }
 }
