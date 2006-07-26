@@ -14,7 +14,6 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodqtassistProcess;
-import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
@@ -93,8 +92,10 @@ public abstract class BaseManager {
   private boolean initialized = false;
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
   private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
-  private DialogType nextProcessDialogTypeA = null;
-  private DialogType nextProcessDialogTypeB = null;
+  private DialogType processDialogTypeA = null;
+  private DialogType processDialogTypeB = null;
+  private DialogType currentDialogTypeA = null;
+  private DialogType currentDialogTypeB = null;
 
   protected abstract void createComScriptManager();
 
@@ -143,7 +144,9 @@ public abstract class BaseManager {
   public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
-  protected abstract void processSucceeded(AxisID axisID, ProcessName processName);
+
+  protected abstract void processSucceeded(AxisID axisID,
+      ProcessName processName);
 
   protected abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay);
@@ -429,12 +432,12 @@ public abstract class BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", axisID);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          AxisID.ONLY);
     }
     return results;
   }
@@ -624,6 +627,33 @@ public abstract class BaseManager {
   }
 
   /**
+   * Run processchunks.
+   * @param axisID
+   */
+  public void processchunks(AxisID axisID, ProcesschunksParam param,
+      ProcessResultDisplay processResultDisplay) {
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
+    String threadName;
+    try {
+      threadName = getProcessManager().processchunks(axisID, param,
+          parallelPanel, processResultDisplay);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
+      message[1] = e.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(message,
+          "Unable to execute command", axisID);
+      processResultDisplay.msgProcessFailedToStart();
+      return;
+    }
+    //set param in parallel panel so it can do a resume
+    parallelPanel.setProcessInfo(param, processResultDisplay);
+    setThreadName(threadName, axisID);
+  }
+
+  /**
    * This is a process done function for processes which are completed while the
    * original manager function waits and do not use the process manager.
    * It is necessary to call this function if this type of processes is the last
@@ -691,6 +721,34 @@ public abstract class BaseManager {
   }
 
   /**
+   * Set the current dialog type. This function is called from open functions
+   * and from showBlankPRocess(). It allows Etomo to call the done function when
+   * the user switches to another dialog.
+   * @param dialogType
+   * @param axisID
+   */
+  public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      currentDialogTypeB = dialogType;
+    }
+    else {
+      currentDialogTypeA = dialogType;
+    }
+  }
+
+  /**
+   * Gets the current dialog type.
+   * @param axisID
+   * @return
+   */
+  protected DialogType getCurrentDialogType(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return currentDialogTypeB;
+    }
+    return currentDialogTypeA;
+  }
+
+  /**
    * Keep final.
    * @param axisID
    */
@@ -745,14 +803,14 @@ public abstract class BaseManager {
 
   private final boolean isNextProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      if (!nextProcessB.equals("") || nextProcessDialogTypeB != null) {
+      if (!nextProcessB.equals("") || processDialogTypeB != null) {
         if (debug) {
           System.err.println("nextProcessB=" + nextProcessB);
         }
         return true;
       }
     }
-    else if (!nextProcessA.equals("") || nextProcessDialogTypeA != null) {
+    else if (!nextProcessA.equals("") || processDialogTypeA != null) {
       if (debug) {
         System.err.println("nextProcessA=" + nextProcessA);
       }
@@ -761,29 +819,29 @@ public abstract class BaseManager {
     return false;
   }
 
-  public void setNextProcessDialogType(AxisID axisID, DialogType dialogType) {
+  public void setProcessDialogType(AxisID axisID, DialogType dialogType) {
     if (axisID == AxisID.SECOND) {
-      nextProcessDialogTypeB = dialogType;
+      processDialogTypeB = dialogType;
     }
     else {
-      nextProcessDialogTypeA = dialogType;
+      processDialogTypeA = dialogType;
     }
   }
 
-  public void resetNextProcessDialogType(AxisID axisID) {
+  public void resetProcessDialogType(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      nextProcessDialogTypeB = null;
+      processDialogTypeB = null;
     }
     else {
-      nextProcessDialogTypeA = null;
+      processDialogTypeA = null;
     }
   }
 
-  public DialogType getNextProcessDialogType(AxisID axisID) {
+  public DialogType getProcessDialogType(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return nextProcessDialogTypeB;
+      return processDialogTypeB;
     }
-    return nextProcessDialogTypeA;
+    return processDialogTypeA;
   }
 
   /**
@@ -912,50 +970,6 @@ public abstract class BaseManager {
   }
 
   /**
-   * Run processchunks.
-   * @param axisID
-   */
-  protected void processchunks(AxisID axisID, AbstractParallelDialog dialog,
-      ProcessResultDisplay processResultDisplay) {
-    if (dialog == null) {
-      processResultDisplay.msgProcessFailedToStart();
-      return;
-    }
-    ProcesschunksParam param = new ProcesschunksParam(this, axisID);
-    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
-    dialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
-      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
-      processResultDisplay.msgProcessFailedToStart();
-      return;
-    }
-    BaseProcessTrack processTrack = getProcessTrack();
-    if (processTrack != null) {
-      getProcessTrack().setState(ProcessState.INPROGRESS, axisID, dialog);
-    }
-    getMainPanel().setState(ProcessState.INPROGRESS, axisID, dialog);
-    //param should never be set to resume
-    parallelPanel.resetResults();
-    String threadName;
-    try {
-      threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel, processResultDisplay);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      processResultDisplay.msgProcessFailedToStart();
-      return;
-    }
-    //set param in parallel panel so it can do a resume
-    parallelPanel.setProcessInfo(param, processResultDisplay);
-    setThreadName(threadName, axisID);
-  }
-
-  /**
    * 
    * @param axisID
    * @param dialog
@@ -995,6 +1009,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.63  2006/07/19 20:05:10  sueh
+ * <p> bug# 902 ProcessDone:  calling processSucceeded.
+ * <p>
  * <p> Revision 1.62  2006/07/17 21:15:57  sueh
  * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
  * <p> SystemProcessException.
