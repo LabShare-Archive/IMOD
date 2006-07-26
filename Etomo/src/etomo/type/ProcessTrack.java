@@ -18,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2006/06/27 17:48:44  sueh
+ * <p> bug# 879 Fixed problem:  wrong post processing string being written.
+ * <p>
  * <p> Revision 3.6  2006/04/25 18:57:30  sueh
  * <p> bug# 787 Changed DialogType.SETUP to SETUP_RECON.
  * <p>
@@ -317,7 +320,7 @@ public class ProcessTrack implements BaseProcessTrack {
     setState(processState, axisID, parallelDialog.getDialogType());
   }
 
-  private final void setState(ProcessState processState, AxisID axisID,
+  public final void setState(ProcessState processState, AxisID axisID,
       DialogType dialogType) {
     if (dialogType == DialogType.CLEAN_UP) {
       setCleanUpState(processState);

@@ -27,6 +27,9 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.18  2006/03/20 18:04:38  sueh
+* <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+* <p>
 * <p> Revision 1.17  2005/10/29 00:06:03  sueh
 * <p> bug# 532 Turning off parallel panel when displaying a blank dialog.
 * <p>
@@ -238,7 +241,7 @@ public class MainTomogramPanel extends MainPanel {
     setState(processState, axisID, parallelDialog.getDialogType());
   }
 
-  private final void setState(ProcessState processState, AxisID axisID,
+  public final void setState(ProcessState processState, AxisID axisID,
       DialogType dialogType) {
     if (dialogType == DialogType.CLEAN_UP) {
       setCleanUpState(processState);
