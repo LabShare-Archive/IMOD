@@ -131,11 +131,11 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 
       if (PipGetInOutFile('InputFile', 1, 'Image input file', filin)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
 
-      if (nz.gt.limview) call errorexit('TOO MANY VIEWS FOR ARRAYS')
+      if (nz.gt.limview) call exitError('TOO MANY VIEWS FOR ARRAYS')
 C       
       if (pipinput) then
         ifpip = 1
@@ -171,7 +171,7 @@ c
      &    ,nxpieces,nxoverlap)
       call checklist(iypclist,npclist,1,ny,minypiece
      &    ,nypieces,nyoverlap)
-      if(nxpieces*nypieces.gt.1)call errorexit(
+      if(nxpieces*nypieces.gt.1)call exitError(
      &    'Program will not work with montages; '//
      &    'blend images into single frames first')
 
@@ -183,7 +183,7 @@ c
       endif
 c       
       if (PipGetInOutFile('OutputFile', 2,
-     &    'Output file for transforms', filin) .ne. 0) call errorexit(
+     &    'Output file for transforms', filin) .ne. 0) call exitError(
      &    'NO OUTPUT FILE SPECIFIED FOR TRANSFORMS')
       call dopen(1,filin,'new','f')
 c       
@@ -256,12 +256,12 @@ c
 
       if(ixst.lt.0.or.iyst.lt.0.or.ixnd.ge.nx.or.iynd.ge.ny.or.
      &    ixnd - ixst .lt. 24 .or. iynd - iyst .lt. 24)
-     &    call errorexit(
+     &    call exitError(
      &    'Impossible amount to trim by or incorrect coordinates')
 
       nxuse = ixnd + 1 - ixst
       nyuse = iynd + 1 - iyst
-      if (nxuse * nyuse .gt. idim) call errorexit( 'IMAGE AREA TOO'//
+      if (nxuse * nyuse .gt. idim) call exitError( 'IMAGE AREA TOO'//
      &    ' LARGE FOR ARRAYS; INCREASE THE BORDER TO TRIM OFF')
 c       
 c       determine padding
@@ -285,7 +285,7 @@ c
 
       nxpad=niceframe((nxuse+2*nxbord)/nbin,2,19)
       nypad=niceframe((nyuse+2*nybord)/nbin,2,19)
-      if((nxpad+2)*nypad.gt.idim2) call errorexit(
+      if((nxpad+2)*nypad.gt.idim2) call exitError(
      &    'Padded image too big, try less padding')
 
       write(*,'(/,a,i5,a,i5)')' Padded, binned size is',nxpad,' by',
@@ -426,7 +426,8 @@ c
           enddo
 c           
 c           get the stretch - if its less than 1., invert everything
-c           
+c           unless doing cumulative, where it has to do in order
+c
           idir=1
           stretch = 1.
           if (ifNoStretch .eq. 0 .and. abs(cosview) .gt. 0.01) then
@@ -434,7 +435,7 @@ c
             if (ifcumulate .ne. 0 .and. ifAbsStretch .ne. 0)
      &          stretch=cosd(tilt(minTilt))/cosview
           endif
-          if(stretch.lt.1.)then
+          if(stretch.lt.1. .and. ifcumulate .eq. 0)then
             idir=-1
             iztmp=izcur
             izcur=izlast
@@ -444,6 +445,7 @@ c
             ivCur = ivRef
             ivRef = iztmp
           endif
+c          print *,'idir, stretch, ivRef, ivCur', idir, stretch, ivRef, ivCur
           call rotmagstr_to_amat(0.,1.,stretch,rotangle,fs)
           fs(1,3)=0.
           fs(2,3)=0.
@@ -501,6 +503,7 @@ c
               usdx = xpeak
               usdy = ypeak
             endif
+c            print *,'cumulating usdx,usdy,xpeak,ypeak', usdx,usdy,xpeak,ypeak
             call iclden(array,nxusebin,nyusebin,1,nxusebin,1,nyusebin,
      &          usemin, usemax, usemean)
             call cubinterp(array,crray,nxusebin,nyusebin,nxusebin,nyusebin,
@@ -574,6 +577,7 @@ c
             usdx=xpeak
             usdy=ypeak
           endif
+c          print *,'peak usdx,usdy,xpeak,ypeak', usdx,usdy,xpeak,ypeak
 c           
 c           compensate for the box offsets of reference and current view,
 c           where the reference is the starting view if accumulating
@@ -711,17 +715,9 @@ C
       WRITE(6,500)
 500   FORMAT(' PROGRAM EXECUTED TO END.')
       call exit(0)
-99    call errorexit('END OF IMAGE WHILE READING')
-96    call errorexit('ERROR WRITING TRANSFORMS TO FILE')
+99    call exitError('END OF IMAGE WHILE READING')
+96    call exitError('ERROR WRITING TRANSFORMS TO FILE')
       END
-
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: TILTXCORR - ',message
-      call exit(1)
-      end
 
 
 c       PEAKFIND finds the coordinates of the the absolute peak, XPEAK, YPEAK
@@ -836,6 +832,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.22  2006/04/08 23:33:51  mast
+c       Disabled shifting of tilt axis to center with no cosine stretching
+c
 c       Revision 3.21  2005/10/11 21:39:44  mast
 c       Updated PIP fallbacks
 c	
