@@ -19,13 +19,19 @@ import etomo.type.ProcessResultDisplay;
 public interface UIExpert {
   public static final String rcsid = "$Id$";
 
-  public void startNextProcess(ProcessResultDisplay processResultDisplay);
   public void openDialog();
+
+  public void startNextProcess(ProcessResultDisplay processResultDisplay);
+
   public void saveAction();
+
   public void saveDialog(DialogExitState exitState);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/06/30 20:04:58  sueh
+ * <p> bug# 877 Added saveAction().
+ * <p>
  * <p> Revision 1.2  2006/06/09 19:53:02  sueh
  * <p> bug# 870 Added ways for ApplicationManager to force an exit state.  Added a
  * <p> DialogExitState parameter to doneDialogand saveDialog.
