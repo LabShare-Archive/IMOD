@@ -10,6 +10,7 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ViewType;
+import etomo.ui.TomogramGenerationExpert;
 import etomo.ui.TomogramPositioningExpert;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -292,13 +293,15 @@ public class DataFlowTests {
   }
 
   private static void tomogramGeneration(AxisID axisID) {
-    applicationManager.openTomogramGenerationDialog(axisID);
+    TomogramGenerationExpert expert = (TomogramGenerationExpert) applicationManager
+    .getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID);
+    expert.openDialog();
     uiHarness.pack(applicationManager);
-    applicationManager.newst(axisID, null);
+    expert.newst(null);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
     //waitForThread(axisID);
-    applicationManager.tilt(axisID, null);
+    expert.tilt(null);
     waitForThread(axisID);
     applicationManager.deleteAlignedStacks(axisID, null);
   }
@@ -351,6 +354,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2006/06/09 19:50:22  sueh
+ * <p> bug# 870 Changed UIExpert.doneDialog() to doneDialog(DIalogExitState).
+ * <p>
  * <p> Revision 3.18  2006/05/19 19:27:05  sueh
  * <p> bug# 866 Calling tomo pos function in TomogramPositioningExpert instead of
  * <p> ApplicationManager.
