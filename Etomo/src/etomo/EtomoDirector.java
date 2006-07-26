@@ -1,6 +1,7 @@
 package etomo;
 
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
@@ -129,6 +130,7 @@ public class EtomoDirector {
   }
 
   private void initialize(String[] args) {
+    headless = GraphicsEnvironment.isHeadless();
     // Get the HOME directory environment variable to find the program
     // configuration file
     homeDirectory = System.getProperty("user.home");
@@ -1051,6 +1053,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2006/07/21 22:11:10  sueh
+ * <p> bug# 901 Getting the calibration directory environment variable name from
+ * <p> EnvironmentVariable.
+ * <p>
  * <p> Revision 1.50  2006/07/20 17:18:58  sueh
  * <p> bug# 848 SetUserPreferences():  Set the font size in UIParameters.
  * <p>
