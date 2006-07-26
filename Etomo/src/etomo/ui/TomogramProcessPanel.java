@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2006/05/19 19:52:42  sueh
+ * <p> bug# 866 Opening tomo pos using a UIExpert class.
+ * <p>
  * <p> Revision 1.21  2006/04/25 19:27:04  sueh
  * <p>  bug# 787 Made the both axis label public.
  * <p>
@@ -219,7 +222,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       return;
     }
     if (command.equals(procCtlTomogramGeneration.getCommand())) {
-      applicationManager.openTomogramGenerationDialog(axisID);
+      ((TomogramGenerationExpert) applicationManager.getUIExpert(
+          DialogType.TOMOGRAM_GENERATION, axisID)).openDialog();
       return;
 
     }
