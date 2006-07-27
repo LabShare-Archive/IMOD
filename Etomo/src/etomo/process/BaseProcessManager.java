@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2006/07/19 20:08:43  sueh
+ * <p> bug# 902 MsgProcessDone(BackgroundProcess...):  Passing process name to
+ * <p> manager.processDone().
+ * <p>
  * <p> Revision 1.43  2006/06/05 16:21:59  sueh
  * <p> bug# 766 Added saved ProcessData member variables, which are loaded
  * <p> from the data file.  Changed isAxisBusy() to check the saved ProcessData and
@@ -966,7 +970,6 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = script.getProcessMessages();/*Warning*/
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + script.getComScriptName());
-        messages.addWarning("<html><U>Warnings:</U>");
         uiHarness.openWarningMessageDialog(messages, script.getComScriptName()
             + " warnings", script.getAxisID());
       }
