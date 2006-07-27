@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39  2006/06/15 16:16:30  sueh
+ * bug# 871 Added isNohup().
+ *
  * Revision 3.38  2006/06/05 16:22:29  sueh
  * bug# 766 Added ProcessData.
  *
@@ -408,7 +411,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, String comScript,
@@ -424,7 +428,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     this.processDetails = processDetails;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, String comScript,
@@ -437,7 +442,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
@@ -453,7 +459,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     command = commandDetails;
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
@@ -470,7 +477,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, Command command,
@@ -485,7 +493,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.command = command;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
   }
 
   /**
@@ -562,15 +571,15 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         execCsh(commands);
       }
       catch (SystemProcessException except) {
-        try {
-          parse();
-        }
-        catch (FileNotFoundException except2) {
-          processMessages.addError(except2.getMessage());
-        }
       }
       catch (IOException except) {
         processMessages.addError(except.getMessage());
+      }
+      try {
+        parse();
+      }
+      catch (FileNotFoundException except2) {
+        processMessages.addError(except2.getMessage());
       }
     }
 
@@ -821,7 +830,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public boolean isError() {
     return error;
   }
-  
+
   /**
    * Always returns true because all comscripts a piped to tcsh and do not
    * disconnect when etomo exits.
