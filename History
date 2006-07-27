@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/26/05: Fixed cumulative correlation in Tiltxcorr, which failed on Windows
+with two equal lowest tilt angles (e.g., +1 and -1).
+
 7/21/06: In eTomo Setup Tomogram, placed distortion correction and mag gradient
 correction into advanced when a distortion directory is not in place.
 
