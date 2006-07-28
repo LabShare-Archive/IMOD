@@ -2,15 +2,19 @@ package etomo.ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ComScriptManager;
+import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.ParallelParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.process.ImodManager;
@@ -58,6 +62,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   private boolean advanced = false;
   private boolean enableFiltering = false;
   private boolean getBinningFromNewst = true;
+  private Vector trialTomogramList = null;
 
   public TomogramGenerationExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
@@ -78,6 +83,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.STARTED_STATUS);
     dialog = new TomogramGenerationDialog(manager, this, axisID);
+    trialTomogramList = new Vector();
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
@@ -105,7 +111,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       UIExpertUtilities.INSTANCE.upgradeOldTiltCom(manager, axisID, tiltParam);
     }
     setTiltParams(tiltParam);
-    dialog.setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
+    setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
     //updateDialog()
     updateFilter(Utilities.fileExists(manager, ".ali", axisID));
 
@@ -185,6 +191,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     // Clean up the existing dialog
     leaveDialog(exitState);
     dialog = null;
+    trialTomogramList = null;
     return true;
   }
 
@@ -361,7 +368,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     try {
       MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      dialog.getMTFFilterParam(mtfFilterParam);
+      getMTFFilterParam(mtfFilterParam);
       String inputFileName;
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -493,14 +500,14 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * 
    * @param axisID
    */
-  public void imodTestVolume(Run3dmodMenuOptions menuOptions) {
+  void imodTestVolume(Run3dmodMenuOptions menuOptions) {
     if (dialog == null) {
       return;
     }
     manager.imodTestVolume(axisID, menuOptions, dialog.getTrialTomogramName());
   }
 
-  public void commitTestVolume(ProcessResultDisplay processResultDisplay) {
+  void commitTestVolume(ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
       return;
     }
@@ -509,7 +516,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         .getTrialTomogramName()), processResultDisplay);
   }
 
-  public void splittilt(ProcessResultDisplay processResultDisplay) {
+  void splittilt(ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
       return;
     }
@@ -517,8 +524,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     splittilt(false, processResultDisplay);
   }
 
-  public void splittilt(boolean trialMode,
-      ProcessResultDisplay processResultDisplay) {
+  void splittilt(boolean trialMode, ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
       return;
     }
@@ -559,7 +565,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * 
    * @param axisID
    */
-  public void useMtfFilter(ProcessResultDisplay processResultDisplay) {
+  void useMtfFilter(ProcessResultDisplay processResultDisplay) {
     if (dialog == null) {
       return;
     }
@@ -627,7 +633,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.setViewFilterButtonEnabled(enableFiltering);
     enableUseFilter();
   }
-  
+
   protected void enableUseFilter() {
     if (dialog == null) {
       return;
@@ -645,7 +651,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       dialog.setUseFilterEnabled(false);
     }
   }
-  
+
   private void setNewstParams(ConstNewstParam newstParam) {
     if (dialog == null) {
       return;
@@ -655,7 +661,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       dialog.setBinning(newstParam.getBinByFactor());
     }
   }
-  
+
   private void setParameters(ConstMetaData metaData) {
     if (dialog == null) {
       return;
@@ -678,12 +684,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     updateParallelProcess();
   }
-  
+
   void updateParallelProcess() {
     System.out.println("updateParallelProcess");
     manager.setParallelDialog(axisID, dialog);
   }
-  
+
   private final void setParameters(ReconScreenState screenState) {
     if (dialog == null) {
       return;
@@ -700,7 +706,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.setUseTrialButtonState(screenState);
     dialog.setFilterButtonState(screenState);
   }
-  
+
   private void getParameters(ReconScreenState screenState) {
     if (dialog == null) {
       return;
@@ -710,7 +716,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.getTiltHeaderState(screenState.getTomoGenTiltHeaderState());
     dialog.getTrialHeaderState(screenState.getTomoGenTrialTiltHeaderState());
   }
-  
+
   private void getParameters(MetaData metaData) {
     if (dialog == null) {
       return;
@@ -718,12 +724,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     metaData.setTomoGenBinning(axisID, dialog.getBinning());
     metaData.setTomoGenTiltParallel(axisID, dialog.isParallelProcess());
   }
-  
+
   private void setBlendParams(BlendmontParam blendmontParam) {
-    dialog.setUseLinearInterpolation(blendmontParam
-        .isLinearInterpolation());
+    dialog.setUseLinearInterpolation(blendmontParam.isLinearInterpolation());
   }
-  
+
   /**
    * Set the UI parameters with the specified tiltParam values
    * WARNING: be sure the setNewstParam is called first so the binning value for
@@ -776,7 +781,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.setUseZFactors(metaData.getUseZFactors(axisID).is());
     dialog.setExtraExcludeList(tiltParam.getExcludeList2());
   }
-  
+
   //  Copy the newstack parameters from the GUI to the NewstParam object
   private void getNewstParams(NewstParam newstParam) {
     if (dialog == null) {
@@ -793,16 +798,15 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
   }
-  
+
   private void getBlendParams(BlendmontParam blendmontParam) {
     if (dialog == null) {
       return;
     }
     blendmontParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
-    blendmontParam
-        .setBinByFactor(dialog.getBinning());
+    blendmontParam.setBinByFactor(dialog.getBinning());
   }
-  
+
   /**
    * Get the tilt parameters from the requested axis panel
    */
@@ -846,16 +850,14 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       }
 
       boolean sliceRangeSpecified = false;
-      if (dialog.isSliceStartSet()
-          && dialog.isSliceStopSet()) {
+      if (dialog.isSliceStartSet() && dialog.isSliceStopSet()) {
         badParameter = dialog.getSliceStartLabel();
         tiltParam.setIdxSliceStart(dialog.getSliceStart());
         badParameter = dialog.getSliceStopLabel();
         tiltParam.setIdxSliceStop(dialog.getSliceStop());
         sliceRangeSpecified = true;
       }
-      else if (dialog.isSliceStartNull()
-          && dialog.isSliceStopNull()) {
+      else if (dialog.isSliceStartNull() && dialog.isSliceStopNull()) {
         tiltParam.resetIdxSlice();
       }
       else {
@@ -894,15 +896,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 
       if (dialog.isTiltAngleOffsetSet()) {
         badParameter = dialog.getTiltAngleOffsetLabel();
-        tiltParam.setTiltAngleOffset(dialog.getTiltAngleOffset
-            ());
+        tiltParam.setTiltAngleOffset(dialog.getTiltAngleOffset());
       }
       else {
         tiltParam.resetTiltAngleOffset();
       }
 
-      if (dialog.isRadialMaxSet()
-          || dialog.isRadialFallOffSet()) {
+      if (dialog.isRadialMaxSet() || dialog.isRadialFallOffSet()) {
         badParameter = dialog.getRadialMaxLabel();
         tiltParam.setRadialBandwidth(dialog.getRadialMax());
         badParameter = dialog.getRadialFallOffLabel();
@@ -912,8 +912,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         tiltParam.resetRadialFilter();
       }
 
-      if (dialog.isDensityOffsetSet()
-          || dialog.isDensityScaleSet()) {
+      if (dialog.isDensityOffsetSet() || dialog.isDensityScaleSet()) {
         badParameter = dialog.getDensityScaleLabel();
         tiltParam.setScaleCoeff(dialog.getDensityScale());
         badParameter = dialog.getDensityOffsetLabel();
@@ -931,10 +930,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         tiltParam.setLogShift(Float.NaN);
       }
 
-      if (dialog.isUseLocalAlignment()
-          && dialog.isUseLocalAlignmentEnabled()) {
-        tiltParam.setLocalAlignFile(metaData
-            .getDatasetName()
+      if (dialog.isUseLocalAlignment() && dialog.isUseLocalAlignmentEnabled()) {
+        tiltParam.setLocalAlignFile(metaData.getDatasetName()
             + axisID.getExtension() + "local.xf");
       }
       else {
@@ -953,9 +950,80 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
   }
 
+  private void getMTFFilterParam(MTFFilterParam mtfFilterParam)
+      throws FortranInputSyntaxException {
+    if (dialog == null) {
+      return;
+    }
+    mtfFilterParam.setLowPassRadiusSigma(dialog.getLowPassRadiusSigma());
+    mtfFilterParam.setStartingAndEndingZ(dialog.getStartingAndEndingZ());
+    mtfFilterParam.setMtfFile(dialog.getMtfFile());
+    mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse());
+    mtfFilterParam.setInverseRolloffRadiusSigma(dialog
+        .getInverseRolloffRadiusSigma());
+  }
+
+  private void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setMtfFile(mtfFilterParam.getMtfFile());
+    dialog.setMaximumInverse(mtfFilterParam.getMaximumInverseString());
+    dialog.setLowPassRadiusSigma(mtfFilterParam.getLowPassRadiusSigmaString());
+    dialog.setStartingAndEndingZ(mtfFilterParam.getStartingAndEndingZString());
+    dialog.setInverseRolloffRadiusSigma(mtfFilterParam
+        .getInverseRolloffRadiusSigmaString());
+    enableUseFilter();
+  }
+  
+  void getParameters(ParallelParam param) {
+    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
+    processchunksParam.setRootName(TiltParam.COMMAND_NAME);
+  }
+  
+  void trialAction(ProcessResultDisplay trial) {
+    if (dialog == null) {
+      return;
+    }
+    String trialTomogramName = dialog.getTrialTomogramName();
+    if (trialTomogramName == "") {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Missing trial tomogram filename:";
+      errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
+          + " tomogram filename edit box.";
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Tilt Parameter Syntax Error", axisID);
+      return;
+    }
+    if (!trialTomogramList.contains(trialTomogramName)) {
+      trialTomogramList.add(trialTomogramName);
+      dialog.addToTrialTomogramName(trialTomogramName);
+    }
+    if (dialog.isParallelProcess()) {
+      splittilt(true, trial);
+    }
+    else {
+      trialTilt(trial);
+    }
+  }
+  
+  void tiltAction(ProcessResultDisplay tilt) {
+    if (dialog == null) {
+      return;
+    }
+    if (dialog.isParallelProcess()) {
+      splittilt(tilt);
+    }
+    else {
+      tilt(tilt);
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/07/28 20:14:12  sueh
+ * <p> bug# 868 Adding sets and gets to dialog, moving functionality to expert
+ * <p>
  * <p> Revision 1.1  2006/07/26 16:41:52  sueh
  * <p> bug# 868 Moved functions associated with TomogramGenerationDialog from
  * <p> ApplicationManager to TomogramGenerationExpert.
