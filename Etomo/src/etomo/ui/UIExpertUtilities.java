@@ -115,7 +115,7 @@ public final class UIExpertUtilities {
       return false;
     }
     manager.getMetaData().setFiducialessAlignment(axisID,
-        dialog.isFiducialessAlignment());
+        dialog.isFiducialess());
     manager.getMetaData().setImageRotation(tiltAxisAngle, axisID);
     updateRotationXF(manager.getPropertyUserDir(), tiltAxisAngle, axisID);
     return true;
@@ -358,5 +358,8 @@ public final class UIExpertUtilities {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/05/19 19:53:50  sueh
+ * <p> bug# 866 Class to contain functionality details shared between dialogs.
+ * <p> </p>
  */

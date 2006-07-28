@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2006/07/20 17:23:17  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.50  2006/07/18 18:01:45  sueh
  * <p> bug# 906 Added isAlignButtonEnabled().
  * <p>
@@ -446,7 +449,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     expert.updateFiducialessDisplay(fiducialess);
   }
 
-  public boolean isFiducialessAlignment() {
+  public boolean isFiducialess() {
     return cbFiducialess.isSelected();
   }
 
@@ -522,11 +525,11 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     ltfSampleThickness.setText(sampleThickness.toString());
   }
 
-  boolean isTomopitchButtonSelected() {
+  boolean isTomopitchButton() {
     return btnTomopitch.isSelected();
   }
 
-  boolean isAlignButtonSelected() {
+  boolean isAlignButton() {
     return btnAlign.isSelected();
   }
   
@@ -534,11 +537,17 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     return btnAlign.isEnabled();
   }
 
-  public void setButtonState(ReconScreenState screenState) {
+  void setSampleButtonState(ReconScreenState screenState) {
     btnSample.setButtonState(screenState.getButtonState(btnSample
         .getButtonStateKey()));
+  }
+  
+  void setTomopitchButtonState(ReconScreenState screenState) {
     btnTomopitch.setButtonState(screenState.getButtonState(btnTomopitch
         .getButtonStateKey()));
+  }
+  
+  void setAlignButtonState(ReconScreenState screenState) {
     btnAlign.setButtonState(screenState.getButtonState(btnAlign
         .getButtonStateKey()));
   }
@@ -604,7 +613,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCreateBoundary.getActionCommand())) {
-      createBoundary(menuOptions);
+      expert.createBoundary(menuOptions);
     }
   }
 
@@ -612,11 +621,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnSample.getActionCommand())) {
-      if (cbWholeTomogram.isSelected()) {
-        expert.wholeTomogram(btnSample);
-      } else {
-        expert.createSample(btnSample);
-      }
+      expert.sampleAction(btnSample);
     } else if (command.equals(btnTomopitch.getActionCommand())) {
       expert.tomopitch(btnTomopitch);
     } else if (command.equals(btnAlign.getActionCommand())) {
@@ -627,14 +632,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       expert.updateFiducialessDisplay(cbFiducialess.isSelected());
     } else {
       run3dmod(command, new Run3dmodMenuOptions());
-    }
-  }
-
-  private void createBoundary(Run3dmodMenuOptions menuOptions) {
-    if (cbWholeTomogram.isSelected()) {
-      applicationManager.imodFullSample(axisID, menuOptions);
-    } else {
-      applicationManager.imodSample(axisID, menuOptions);
     }
   }
 
