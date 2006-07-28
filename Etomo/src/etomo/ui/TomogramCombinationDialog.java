@@ -28,7 +28,6 @@ import etomo.type.AxisID;
 import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
-import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
@@ -50,6 +49,11 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2006/07/28 19:59:16  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing because isParallel is too similar to a standard get
+ * <p> function.
+ * <p>
  * <p> Revision 3.45  2006/07/21 23:50:56  sueh
  * <p> bug# 892 Calling show() in setup combination
  * <p>
@@ -710,10 +714,14 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlFinal.getMatchorwarpParams(matchorwarpParams);
   }
   
+  public void synchronizeFromCurrentTab() {
+    synchronize(tabbedPane.getTitleAt(idxLastTab), true);
+  }
+  
   public void done() {
-    if (getExitState() != DialogExitState.CANCEL) {
-      synchronize(tabbedPane.getTitleAt(idxLastTab), true);
-    }
+    //if (getExitState() != DialogExitState.CANCEL) {
+    //  synchronize(tabbedPane.getTitleAt(idxLastTab), true);
+    //}
     if (applicationManager.doneTomogramCombinationDialog()) {
       setDisplayed(false);
     }
