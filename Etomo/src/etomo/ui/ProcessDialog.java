@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2006/07/20 17:21:06  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.24  2006/06/30 20:53:28  sueh
  * <p> Fixed timestamp label for saveAction.
  * <p>
@@ -241,7 +244,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   public void getParameters(ParallelParam param) {
   }
 
-  public boolean isParallel() {
+  public boolean usingParallelProcessing() {
     return false;
   }
 

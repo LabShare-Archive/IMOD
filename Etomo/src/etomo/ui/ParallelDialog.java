@@ -127,7 +127,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
     btnChunkComscript.setEnabled(setupMode);
   }
 
-  public final boolean isParallel() {
+  public final boolean usingParallelProcessing() {
     return true;
   }
 
@@ -188,6 +188,10 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/04/06 20:52:26  sueh
+ * <p> bug# 840 When getting the name of the parallel process, don't strip any
+ * <p> dash but the last one off.
+ * <p>
  * <p> Revision 1.10  2006/03/28 00:55:47  sueh
  * <p> bug# 437 Change getButtonStateKey(DialogType) to
  * <p> createButtonStateKey(DialogType).

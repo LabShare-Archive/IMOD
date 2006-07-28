@@ -50,6 +50,12 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.43  2006/07/28 17:43:40  sueh
+ * bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
+ * it will show when it has not been set.  Deleting old versions of combine scripts
+ * create and match mode in the .edf.  Getting data from the old versions of
+ * combine scripts create and match mode with the new ones aren't available.
+ *
  * Revision 3.42  2006/07/21 23:50:10  sueh
  * bug# 892 Added show().
  *
@@ -641,6 +647,10 @@ public final class SetupCombinePanel implements ContextMenu,
 
   public void setParallelEnabled(boolean parallelEnabled) {
     cbParallelProcess.setEnabled(parallelEnabled);
+  }
+  
+  public boolean usingParallelProcessing() {
+    return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
   }
 
   public boolean isParallel() {

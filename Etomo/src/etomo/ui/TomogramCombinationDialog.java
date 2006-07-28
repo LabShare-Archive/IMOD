@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2006/07/21 23:50:56  sueh
+ * <p> bug# 892 Calling show() in setup combination
+ * <p>
  * <p> Revision 3.44  2006/07/18 20:57:16  sueh
  * <p> bug# 904 Added setZMax() and setZMin().
  * <p>
@@ -535,9 +538,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     applicationManager.setParallelDialog(axisID, this);
   }
 
-  public boolean isParallel() {
+  public boolean usingParallelProcessing() {
     synchronize(lblFinal, false);
-    return pnlSetup.isParallel();
+    return pnlSetup.usingParallelProcessing();
   }
 
   /**

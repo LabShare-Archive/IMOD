@@ -73,7 +73,7 @@ public abstract class ReconUIExpert implements UIExpert {
 
   protected void openDialog(ProcessDialog dialog) {
     mainPanel.showProcess(dialog.getContainer(), axisID);
-    mainPanel.setParallelDialog(axisID, dialog.isParallel());
+    mainPanel.setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
   protected void setNextProcess(ProcessName nextProcess) {
@@ -193,5 +193,8 @@ public abstract class ReconUIExpert implements UIExpert {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/07/26 16:41:20  sueh
+ * <p> bug# 868 A base class for Expert used for tomogram reconstruction
+ * <p> </p>
  */
