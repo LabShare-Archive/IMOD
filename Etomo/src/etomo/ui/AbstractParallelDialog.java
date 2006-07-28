@@ -21,10 +21,13 @@ public interface AbstractParallelDialog {
   
   public void getParameters(ParallelParam param);
   public DialogType getDialogType();
-  public boolean isParallel();
+  public boolean usingParallelProcessing();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2006/03/20 18:00:57  sueh
+* <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+* <p>
 * <p> Revision 1.8  2005/10/15 00:34:37  sueh
 * <p> bug# 532 Added isParallel().  Should return true if any parallel processing
 * <p> checkbox in the dialog is selected.
