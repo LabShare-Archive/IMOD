@@ -3620,6 +3620,7 @@ public final class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
+      tomogramCombinationDialog.synchronizeFromCurrentTab();
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
@@ -5229,6 +5230,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.253  2006/07/28 19:43:16  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing.
+ * <p>
  * <p> Revision 3.252  2006/07/28 17:41:04  sueh
  * <p> bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
  * <p> it will show when it has not been set.
