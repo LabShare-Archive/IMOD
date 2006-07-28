@@ -11,7 +11,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -26,12 +25,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.comscript.ConstMTFFilterParam;
-import etomo.comscript.MTFFilterParam;
 import etomo.comscript.ParallelParam;
-import etomo.comscript.ProcesschunksParam;
-import etomo.comscript.TiltParam;
-import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.MtfFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
@@ -65,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.95  2006/07/28 20:13:51  sueh
+ * bug# 868 Adding sets and gets to dialog, moving functionality to expert
+ *
  * Revision 3.94  2006/07/26 16:41:40  sueh
  * bug# 868 Moved functions associated with TomogramGenerationDialog from
  * ApplicationManager to TomogramGenerationExpert.
@@ -625,7 +622,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   private JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
   private JComboBox cmboTrialTomogramName = new JComboBox();
-  private Vector trialTomogramList = new Vector();
   private MultiLineButton btnTrial = new MultiLineButton(
       "Generate Trial Tomogram");
   private Run3dmodButton btn3dmodTrial = new Run3dmodButton(
@@ -759,6 +755,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return MultiLineButton.getToggleButtonInstance("Generate Tomogram",
         DialogType.TOMOGRAM_GENERATION);
   }
+  
+  void addToTrialTomogramName(String trialTomogramName) {
+    cmboTrialTomogramName.addItem(trialTomogramName);
+  }
 
   public static ProcessResultDisplay getDeleteAlignedStackDisplay() {
     return MultiLineButton.getToggleButtonInstance(
@@ -812,12 +812,20 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return cbFiducialess.isSelected();
   }
   
-  public boolean isLogOffsetSet() {
+  boolean isLogOffsetSet() {
     return ltfLogOffset.getText().matches("\\S+");
   }
 
   public void setImageRotation(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
+  }
+  
+  void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma) {
+    ltfInverseRolloffRadiusSigma.setText(inverseRolloffRadiusSigma);
+  }
+  
+  void setLowPassRadiusSigma(String lowPassRadiusSigma) {
+    ltfLowPassRadiusSigma.setText(lowPassRadiusSigma);
   }
 
   void setNewstHeaderState(PanelHeaderState state) {
@@ -832,12 +840,29 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return Float.parseFloat(ltfRotation.getText());
   }
   
+  String getInverseRolloffRadiusSigma() {
+    return ltfInverseRolloffRadiusSigma
+    .getText();
+  }
+  
   float getLogOffset() {
     return Float.parseFloat(ltfLogOffset.getText());
   }
   
   String getLogOffsetLabel() {
     return ltfLogOffset.getLabel();
+  }
+  
+  String getMaximumInverse() {
+    return ltfMaximumInverse.getText();
+  }
+  
+  String getLowPassRadiusSigma() {
+    return ltfLowPassRadiusSigma.getText();
+  }
+  
+  String getMtfFile() {
+    return ltfMtfFile.getText();
   }
 
   String getStartingAndEndingZ() {
@@ -914,28 +939,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     trialHeader.getState(state);
   }
 
-  public void getMTFFilterParam(MTFFilterParam mtfFilterParam)
-      throws FortranInputSyntaxException {
-    mtfFilterParam.setLowPassRadiusSigma(ltfLowPassRadiusSigma.getText());
-    mtfFilterParam.setStartingAndEndingZ(ltfStartingAndEndingZ.getText());
-    mtfFilterParam.setMtfFile(ltfMtfFile.getText());
-    mtfFilterParam.setMaximumInverse(ltfMaximumInverse.getText());
-    mtfFilterParam.setInverseRolloffRadiusSigma(ltfInverseRolloffRadiusSigma
-        .getText());
-  }
-
   void getNewstHeaderState(PanelHeaderState state) {
     newstHeader.getState(state);
   }
-
-  public void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
-    ltfMtfFile.setText(mtfFilterParam.getMtfFile());
-    ltfMaximumInverse.setText(mtfFilterParam.getMaximumInverseString());
-    ltfLowPassRadiusSigma.setText(mtfFilterParam.getLowPassRadiusSigmaString());
-    ltfStartingAndEndingZ.setText(mtfFilterParam.getStartingAndEndingZString());
-    ltfInverseRolloffRadiusSigma.setText(mtfFilterParam
-        .getInverseRolloffRadiusSigmaString());
-    expert.enableUseFilter();
+  
+  public final void getParameters(ParallelParam param) {
+    expert.getParameters(param);
   }
 
   void setNewstButtonState(ReconScreenState screenState) {
@@ -953,6 +962,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   void setSliceStop(int sliceStop) {
     ltfSliceStop.setText(sliceStop);
+  }
+  
+  void setStartingAndEndingZ(String startingAndEndingZ) {
+    ltfStartingAndEndingZ.setText(startingAndEndingZ);
   }
 
   void setSliceIncr(int sliceIncr) {
@@ -985,6 +998,14 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   
   void setExtraExcludeList(String extraExcludeList) {
     ltfExtraExcludeList.setText(extraExcludeList);
+  }
+  
+  void setMaximumInverse(String maximumInverse) {
+    ltfMaximumInverse.setText(maximumInverse);
+  }
+  
+  void setMtfFile(String mtfFile) {
+    ltfMtfFile.setText(mtfFile);
   }
   
   void setLogOffset(float logOffset) {
@@ -1047,11 +1068,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   
   String getZOffsetLabel() {
     return ltfZOffset.getLabel();
-  }
-
-  public final void getParameters(ParallelParam param) {
-    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setRootName(TiltParam.COMMAND_NAME);
   }
   
   float getRadialFallOff() {
@@ -1636,37 +1652,13 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       expert.useMtfFilter(btnUseFilter);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
-      String trialTomogramName = getTrialTomogramName();
-      if (trialTomogramName == "") {
-        String[] errorMessage = new String[2];
-        errorMessage[0] = "Missing trial tomogram filename:";
-        errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
-            + " tomogram filename edit box.";
-        UIHarness.INSTANCE.openMessageDialog(errorMessage,
-            "Tilt Parameter Syntax Error", axisID);
-        return;
-      }
-      if (!trialTomogramList.contains(trialTomogramName)) {
-        trialTomogramList.add(trialTomogramName);
-        cmboTrialTomogramName.addItem(trialTomogramName);
-      }
-      if (cbParallelProcess.isSelected()) {
-        expert.splittilt(true, btnTrial);
-      }
-      else {
-        expert.trialTilt(btnTrial);
-      }
+      expert.trialAction(btnTrial);
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
       expert.commitTestVolume(btnUseTrial);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
-      if (cbParallelProcess.isSelected()) {
-        expert.splittilt(btnTilt);
-      }
-      else {
-        expert.tilt(btnTilt);
-      }
+      expert.tiltAction(btnTilt);
     }
     else if (command.equals(btnDeleteStack.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID, btnDeleteStack);
