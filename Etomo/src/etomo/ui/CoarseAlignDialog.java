@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2006/07/20 17:19:48  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.39  2006/07/04 20:41:30  sueh
  * <p> bug# 898 Don't remove action listeners unless the done dialog function
  * <p> succeeds.
@@ -434,7 +437,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     cbFiducialess.setSelected(state);
   }
 
-  public boolean isFiducialessAlignment() {
+  public boolean isFiducialess() {
     return cbFiducialess.isSelected();
   }
 
