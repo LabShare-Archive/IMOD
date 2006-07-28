@@ -22,7 +22,6 @@ import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.EtomoBoolean2;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
@@ -51,6 +50,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.42  2006/07/21 23:50:10  sueh
+ * bug# 892 Added show().
+ *
  * Revision 3.41  2006/07/20 17:21:33  sueh
  * bug# 848 Made UIParameters a singleton.
  *
@@ -984,8 +986,7 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   boolean isChanged(TomogramState state) {
-    EtomoBoolean2 scriptsCreated = state.getCombineScriptsCreated();
-    if (scriptsCreated == null || !scriptsCreated.is()) {
+    if (!state.getCombineScriptsCreated().is()) {
       return true;
     }
     MatchMode scriptMatchMode = state.getCombineMatchMode();

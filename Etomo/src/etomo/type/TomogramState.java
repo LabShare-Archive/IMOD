@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2006/07/19 20:11:15  sueh
+ * <p> bug# 902 Added seedingDoneA and B.
+ * <p>
  * <p> Revision 1.22  2006/06/09 16:57:59  sueh
  * <p> bug# 869 Added combineMatchMode and combineScrptsCreated.
  * <p>
@@ -122,9 +125,8 @@ public class TomogramState implements BaseState {
   private static final String COMBINE_MATCH_MODE_KEY = DialogType.TOMOGRAM_COMBINATION
       .getStorableName()
       + "." + "MatchMode";
-  private static final String COMBINE_SCRIPTS_CREATED_KEY = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName()
-      + "." + "ScriptsCreated";
+  private static final String COMBINE_MATCH_MODE_BACK_KEY = "Setup.Combine.MatchBtoA";
+  private static final String COMBINE_SCRIPTS_CREATED_BACK_KEY = "Setup.ComScriptsCreated";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
@@ -189,7 +191,9 @@ public class TomogramState implements BaseState {
       .getExtension()
       + "." + FIXED_FIDUCIALS_KEY);
   private MatchMode combineMatchMode = null;
-  private EtomoBoolean2 combineScriptsCreated = null;
+  private final EtomoState combineScriptsCreated = new EtomoState(
+      DialogType.TOMOGRAM_COMBINATION.getStorableName() + "."
+          + "ScriptsCreated");
   private EtomoBoolean2 seedingDoneA = new EtomoBoolean2(AxisID.FIRST
       .getExtension()
       + '.' + "SeedingDone");
@@ -232,7 +236,7 @@ public class TomogramState implements BaseState {
     fixedFiducialsA.reset();
     fixedFiducialsB.reset();
     combineMatchMode = null;
-    combineScriptsCreated = null;
+    combineScriptsCreated.reset();
   }
 
   public void initialize() {
@@ -246,6 +250,7 @@ public class TomogramState implements BaseState {
     usedLocalAlignmentsB.set(EtomoState.NO_RESULT_VALUE);
     invalidEdgeFunctionsA.set(EtomoState.NO_RESULT_VALUE);
     invalidEdgeFunctionsB.set(EtomoState.NO_RESULT_VALUE);
+    combineScriptsCreated.set(EtomoState.NO_RESULT_VALUE);
   }
 
   public void store(Properties props) {
@@ -283,6 +288,8 @@ public class TomogramState implements BaseState {
     fixedFiducialsB.store(props, prepend);
     seedingDoneA.store(props, prepend);
     seedingDoneB.store(props, prepend);
+    //backwards compatibility
+    props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
       props.remove(prepend + "." + COMBINE_MATCH_MODE_KEY);
     }
@@ -290,8 +297,9 @@ public class TomogramState implements BaseState {
       props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY,
           combineMatchMode.toString());
     }
-    EtomoBoolean2.store(combineScriptsCreated, props, prepend,
-        COMBINE_SCRIPTS_CREATED_KEY);
+    //backwards compatibility
+    props.remove(COMBINE_SCRIPTS_CREATED_BACK_KEY);
+    combineScriptsCreated.store(props, prepend);
   }
 
   public boolean equals(TomogramState that) {
@@ -364,9 +372,6 @@ public class TomogramState implements BaseState {
     if (combineMatchMode != that.combineMatchMode) {
       return false;
     }
-    if (combineScriptsCreated == null && that.combineScriptsCreated != null) {
-      return false;
-    }
     if (!combineScriptsCreated.equals(that.combineScriptsCreated)) {
       return false;
     }
@@ -418,22 +423,36 @@ public class TomogramState implements BaseState {
     seedingDoneB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
-    combineScriptsCreated = EtomoBoolean2.getInstance(combineScriptsCreated,
-        COMBINE_SCRIPTS_CREATED_KEY, props, prepend);
+    //backwards compatibility
+    if (combineMatchMode == null) {
+      String backCombineMatchMode = props
+          .getProperty(COMBINE_MATCH_MODE_BACK_KEY);
+      if (backCombineMatchMode != null) {
+        combineMatchMode = MatchMode.getInstance(Boolean
+            .valueOf(backCombineMatchMode).booleanValue());
+      }
+    }
+    combineScriptsCreated.load(props, prepend);
+    if (combineScriptsCreated.isNull()) {
+      //backwards compatibility
+      String backCombineScriptsCreated = props
+      .getProperty(COMBINE_SCRIPTS_CREATED_BACK_KEY);
+      if (backCombineScriptsCreated != null) {
+        combineScriptsCreated.set(backCombineScriptsCreated);
+      }
+    }
   }
 
   public void setCombineScriptsCreated(boolean combineScriptsCreated) {
-    this.combineScriptsCreated = EtomoBoolean2.getInstance(
-        this.combineScriptsCreated, COMBINE_SCRIPTS_CREATED_KEY,
-        combineScriptsCreated);
+    this.combineScriptsCreated.set(combineScriptsCreated);
   }
 
-  public EtomoBoolean2 getCombineScriptsCreated() {
+  public EtomoState getCombineScriptsCreated() {
     return combineScriptsCreated;
   }
 
   public boolean isCombineScriptsCreated() {
-    if (combineScriptsCreated == null) {
+    if (!combineScriptsCreated.isResultSet()) {
       return false;
     }
     return combineScriptsCreated.is();
@@ -568,7 +587,7 @@ public class TomogramState implements BaseState {
     }
     return fixedFiducialsA.is();
   }
-  
+
   public boolean isSeedingDone(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return seedingDoneB.is();
@@ -614,7 +633,7 @@ public class TomogramState implements BaseState {
       sampleXAxisTiltA.set(xAxisTilt);
     }
   }
-  
+
   public void setSeedingDone(AxisID axisID, boolean seedingDone) {
     if (axisID == AxisID.SECOND) {
       seedingDoneB.set(seedingDone);
