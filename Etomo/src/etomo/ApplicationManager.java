@@ -67,6 +67,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
+import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MatchMode;
@@ -3667,7 +3668,8 @@ public final class ApplicationManager extends BaseManager {
    * @return true if the combine scripts exist
    */
   public void backwardsCompatibilityCombineScriptsExist() {
-    if (state.getCombineScriptsCreated() != null) {
+    int combineScriptsCreatedValue = state.getCombineScriptsCreated().getInt();
+    if (combineScriptsCreatedValue == EtomoState.FALSE_VALUE || combineScriptsCreatedValue == EtomoState.TRUE_VALUE) {
       return;
     }
     File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
@@ -5227,6 +5229,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.251  2006/07/26 16:28:46  sueh
+ * <p> bug# 868 Moved functions associated with TomogramGenerationDialog to
+ * <p> TomogramGenerationExpert.
+ * <p>
  * <p> Revision 3.250  2006/07/21 22:23:42  sueh
  * <p> bug# 901 Just check for the distortion directory to set calibrationAvailable.
  * <p>
