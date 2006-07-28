@@ -976,7 +976,7 @@ public abstract class BaseManager {
    */
   public final void setParallelDialog(AxisID axisID,
       AbstractParallelDialog dialog) {
-    getMainPanel().setParallelDialog(axisID, dialog.isParallel());
+    getMainPanel().setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
   public final void packPanel(AxisID axisID) {
@@ -1009,6 +1009,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.64  2006/07/26 16:31:46  sueh
+ * <p> bug# 868 Added processchunks to ReconUIExpert.  Changed
+ * <p> nextProcessDialogType to processDialogType.  Moved currentDialogType from
+ * <p> ApplicationManager to BaseManager.
+ * <p>
  * <p> Revision 1.63  2006/07/19 20:05:10  sueh
  * <p> bug# 902 ProcessDone:  calling processSucceeded.
  * <p>

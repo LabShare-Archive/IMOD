@@ -4035,7 +4035,7 @@ public final class ApplicationManager extends BaseManager {
     // processing is not used and either the the "stop before running
     // volcombine"
     // checkbox is off or "Restart at volcombine" was pressed.
-    if (!tomogramCombinationDialog.isParallel()
+    if (!tomogramCombinationDialog.usingParallelProcessing()
         && (startCommand == CombineProcessType.VOLCOMBINE || tomogramCombinationDialog
             .isRunVolcombine())) {
       combineComscriptState.setEndCommand(CombineProcessType.VOLCOMBINE
@@ -4128,7 +4128,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
+    if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4198,7 +4198,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
+    if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4249,7 +4249,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
+    if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -4334,7 +4334,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.isParallel()
+    if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
       setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
     }
@@ -5229,6 +5229,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.252  2006/07/28 17:41:04  sueh
+ * <p> bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
+ * <p> it will show when it has not been set.
+ * <p>
  * <p> Revision 3.251  2006/07/26 16:28:46  sueh
  * <p> bug# 868 Moved functions associated with TomogramGenerationDialog to
  * <p> TomogramGenerationExpert.

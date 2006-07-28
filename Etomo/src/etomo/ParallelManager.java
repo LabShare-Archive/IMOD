@@ -200,7 +200,7 @@ public final class ParallelManager extends BaseManager {
     if (parallelDialog == null) {
       parallelDialog = new ParallelDialog(this, AXIS_ID);
     }
-    mainPanel.setParallelDialog(AXIS_ID, parallelDialog.isParallel());
+    mainPanel.setParallelDialog(AXIS_ID, parallelDialog.usingParallelProcessing());
     parallelDialog.setParameters(screenState);
     if (paramFile != null && metaData.isValid()) {
       parallelDialog.setParameters(metaData);
@@ -273,6 +273,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/07/26 16:33:55  sueh
+ * <p> bug# 868 Temporarily moving part of processchunks to the specific manager.
+ * <p> Eventually the process side of processchunks will be in UIExpert.
+ * <p>
  * <p> Revision 1.3  2006/07/19 20:05:39  sueh
  * <p> bug# 902 Added processSucceeded().
  * <p>
