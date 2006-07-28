@@ -7,6 +7,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.ConstNewstParam;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.NewstParam;
@@ -17,8 +18,11 @@ import etomo.process.ProcessState;
 import etomo.storage.autodoc.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.MetaData;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -52,10 +56,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 
   private TomogramGenerationDialog dialog = null;
   private boolean advanced = false;
+  private boolean enableFiltering = false;
+  private boolean getBinningFromNewst = true;
 
   public TomogramGenerationExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
-    super(manager, mainPanel, processTrack, axisID, DialogType.TOMOGRAM_GENERATION);
+    super(manager, mainPanel, processTrack, axisID,
+        DialogType.TOMOGRAM_GENERATION);
     comScriptMgr = manager.getComScriptManager();
     state = manager.getState();
     screenState = manager.getScreenState(axisID);
@@ -80,14 +87,14 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     // correctly scale the dimensions
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadBlend(axisID);
-      dialog.setBlendParams(comScriptMgr.getBlendParam(axisID));
+      setBlendParams(comScriptMgr.getBlendParam(axisID));
     }
     else {
       comScriptMgr.loadNewst(axisID);
-      dialog.setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+      setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
     }
-    dialog.setParameters(metaData);
-    dialog.setParameters(screenState);
+    setParameters(metaData);
+    setParameters(screenState);
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
@@ -97,10 +104,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       // upgrade and save param to comscript
       UIExpertUtilities.INSTANCE.upgradeOldTiltCom(manager, axisID, tiltParam);
     }
-    dialog.setTiltParams(tiltParam);
+    setTiltParams(tiltParam);
     dialog.setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
     //updateDialog()
-    dialog.updateFilter(Utilities.fileExists(manager, ".ali", axisID));
+    updateFilter(Utilities.fileExists(manager, ".ali", axisID));
 
     // Set the fidcialess state and tilt axis angle
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
@@ -108,9 +115,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     setEnabledTiltParameters();
     openDialog(dialog);
   }
-  
+
   public void updateDialog() {
-  dialog.updateFilter(Utilities.fileExists(manager, ".ali", axisID));}
+    updateFilter(Utilities.fileExists(manager, ".ali", axisID));
+  }
 
   /**
    * Start the next process specified by the nextProcess string
@@ -143,7 +151,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
           .is();
     }
     else {
-      newstFiducialessAlignment = dialog.isFiducialessAlignment();
+      newstFiducialessAlignment = dialog.isFiducialess();
     }
     // usedLocalAlignments
     if (!state.getUsedLocalAlignments(axisID).isNull()) {
@@ -154,8 +162,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
           .getBackwardCompatibleUsedLocalAlignments(axisID);
     }
     // enable parameters
-    dialog.enableUseZFactors(madeZFactors && !newstFiducialessAlignment);
-    dialog.enableUseLocalAlignment(usedLocalAlignments
+    dialog.setUseZFactorsEnabled(madeZFactors && !newstFiducialessAlignment);
+    dialog.setUseLocalAlignmentEnabled(usedLocalAlignments
         && !newstFiducialessAlignment);
   }
 
@@ -181,10 +189,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   }
 
   protected boolean saveDialog() {
+    if (dialog == null) {
+      return false;
+    }
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
-    dialog.getParameters(metaData);
-    dialog.getParameters(screenState);
+    getParameters(metaData);
+    getParameters(screenState);
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
         axisID)) {
       return false;
@@ -213,8 +224,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * @return
    */
   private BlendmontParam updateBlendCom() {
+    if (dialog == null) {
+      return null;
+    }
     BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
-    dialog.getBlendParams(blendParam);
+    getBlendParams(blendParam);
     blendParam.setMode(BlendmontParam.BLEND_MODE);
     blendParam.setBlendmontState();
     comScriptMgr.saveBlend(blendParam, axisID);
@@ -245,7 +259,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       newstParam.setCommandMode(NewstParam.FULL_ALIGNED_STACK_MODE);
       newstParam.setFiducialessAlignment(metaData
           .isFiducialessAlignment(axisID));
-      dialog.getNewstParams(newstParam);
+      getNewstParams(newstParam);
       comScriptMgr.saveNewst(newstParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -284,7 +298,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
-      dialog.getTiltParams(tiltParam);
+      getTiltParams(tiltParam);
       if (useDefaultRec) {
         String outputFileName;
         if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -395,6 +409,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * 
    */
   public void newst(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
@@ -422,6 +439,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    */
   void mtffilter(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     if (!updateMTFFilterCom()) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -438,6 +458,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * @param axisID
    */
   void trialTilt(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     if (!updateTiltCom(false)) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -452,6 +475,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * Run the tilt command script for the specified axis
    */
   public void tilt(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     if (!updateTiltCom(true)) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -468,22 +494,34 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * @param axisID
    */
   public void imodTestVolume(Run3dmodMenuOptions menuOptions) {
+    if (dialog == null) {
+      return;
+    }
     manager.imodTestVolume(axisID, menuOptions, dialog.getTrialTomogramName());
   }
 
   public void commitTestVolume(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     sendMsg(manager.commitTestVolume(axisID, processResultDisplay, dialog
         .getTrialTomogramName()), processResultDisplay);
   }
-  
+
   public void splittilt(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     splittilt(false, processResultDisplay);
   }
 
   public void splittilt(boolean trialMode,
       ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     if (!updateTiltCom(!trialMode)) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -514,7 +552,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(axisID));
     return param;
   }
-  
+
   /**
    * Replace the full aligned stack with the filtered full aligned stack created
    * from mtffilter
@@ -522,6 +560,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * @param axisID
    */
   public void useMtfFilter(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
     sendMsgProcessStarting(processResultDisplay);
     if (manager.isAxisBusy(axisID, processResultDisplay)) {
       return;
@@ -529,11 +570,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     setProgressBar("Using filtered full aligned stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed
     // stack
-    String fullAlignedStackFilename = manager.getPropertyUserDir() + File.separator
-        + metaData.getDatasetName() + axisID.getExtension() + ".ali";
+    String fullAlignedStackFilename = manager.getPropertyUserDir()
+        + File.separator + metaData.getDatasetName() + axisID.getExtension()
+        + ".ali";
     File fullAlignedStack = new File(fullAlignedStackFilename);
-    String filteredFullAlignedStackFilename = manager.getPropertyUserDir() + File.separator
-        + metaData.getDatasetName() + axisID.getExtension() + "_filt.ali";
+    String filteredFullAlignedStackFilename = manager.getPropertyUserDir()
+        + File.separator + metaData.getDatasetName() + axisID.getExtension()
+        + "_filt.ali";
     File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
     if (!filteredFullAlignedStack.exists()) {
       UIHarness.INSTANCE
@@ -564,8 +607,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
     }
     catch (IOException except) {
-      UIHarness.INSTANCE.openMessageDialog(except.getMessage(), "File Rename Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
+          "File Rename Error", axisID);
       sendMsg(ProcessResult.FAILED, processResultDisplay);
       return;
     }
@@ -574,7 +617,347 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     stopProgressBar(axisID);
     sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
   }
+
+  private void updateFilter(boolean enable) {
+    if (dialog == null) {
+      return;
+    }
+    enableFiltering = enable;
+    dialog.setFilterButtonEnabled(enableFiltering);
+    dialog.setViewFilterButtonEnabled(enableFiltering);
+    enableUseFilter();
+  }
+  
+  protected void enableUseFilter() {
+    if (dialog == null) {
+      return;
+    }
+    if (!enableFiltering) {
+      dialog.setUseFilterEnabled(false);
+      return;
+    }
+    String startingAndEndingZ = dialog.getStartingAndEndingZ();
+    if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
+      //btnFilter.setSelected(false);
+      dialog.setUseFilterEnabled(true);
+    }
+    else {
+      dialog.setUseFilterEnabled(false);
+    }
+  }
+  
+  private void setNewstParams(ConstNewstParam newstParam) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setUseLinearInterpolation(newstParam.isLinearInterpolation());
+    if (getBinningFromNewst) {
+      dialog.setBinning(newstParam.getBinByFactor());
+    }
+  }
+  
+  private void setParameters(ConstMetaData metaData) {
+    if (dialog == null) {
+      return;
+    }
+    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
+    if (!binning.isNull()) {
+      getBinningFromNewst = false;
+      dialog.setBinning(binning);
+    }
+    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    ConstEtomoNumber tomoGenTiltParallel = metaData
+        .getTomoGenTiltParallel(axisID);
+    dialog.setParallelProcessEnabled(validAutodoc);
+    if (tomoGenTiltParallel == null) {
+      dialog.setParallelProcess(validAutodoc
+          && metaData.getDefaultParallel().is());
+    }
+    else {
+      dialog.setParallelProcess(validAutodoc && tomoGenTiltParallel.is());
+    }
+    updateParallelProcess();
+  }
+  
+  void updateParallelProcess() {
+    System.out.println("updateParallelProcess");
+    manager.setParallelDialog(axisID, dialog);
+  }
+  
+  private final void setParameters(ReconScreenState screenState) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setNewstHeaderState(screenState.getTomoGenNewstHeaderState());
+    dialog.setFilterHeaderState(screenState.getTomoGenMtffilterHeaderState());
+    dialog.setTiltHeaderState(screenState.getTomoGenTiltHeaderState());
+    dialog.setTrialHeaderState(screenState.getTomoGenTrialTiltHeaderState());
+    dialog.setAdvanced();
+    dialog.setNewstButtonState(screenState);
+    dialog.setTiltButtonState(screenState);
+    dialog.setDeleteStackButtonState(screenState);
+    dialog.setUseFilterButtonState(screenState);
+    dialog.setUseTrialButtonState(screenState);
+    dialog.setFilterButtonState(screenState);
+  }
+  
+  private void getParameters(ReconScreenState screenState) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.getNewstHeaderState(screenState.getTomoGenNewstHeaderState());
+    dialog.getFilterHeaderState(screenState.getTomoGenMtffilterHeaderState());
+    dialog.getTiltHeaderState(screenState.getTomoGenTiltHeaderState());
+    dialog.getTrialHeaderState(screenState.getTomoGenTrialTiltHeaderState());
+  }
+  
+  private void getParameters(MetaData metaData) {
+    if (dialog == null) {
+      return;
+    }
+    metaData.setTomoGenBinning(axisID, dialog.getBinning());
+    metaData.setTomoGenTiltParallel(axisID, dialog.isParallelProcess());
+  }
+  
+  private void setBlendParams(BlendmontParam blendmontParam) {
+    dialog.setUseLinearInterpolation(blendmontParam
+        .isLinearInterpolation());
+  }
+  
+  /**
+   * Set the UI parameters with the specified tiltParam values
+   * WARNING: be sure the setNewstParam is called first so the binning value for
+   * the stack is known.  The thickness, first and last slice, width and x,y,z
+   * offsets are scaled so that they are represented to the user in unbinned
+   * dimensions.
+   * @param tiltParam
+   */
+  private void setTiltParams(ConstTiltParam tiltParam) {
+    if (dialog == null) {
+      return;
+    }
+    if (tiltParam.hasWidth()) {
+      dialog.setTomoWidth(tiltParam.getWidth());
+    }
+    if (tiltParam.hasThickness()) {
+      dialog.setTomoThickness(tiltParam.getThickness());
+    }
+    if (tiltParam.hasXOffset()) {
+      dialog.setXOffset(tiltParam.getXOffset());
+    }
+    if (tiltParam.hasZOffset()) {
+      dialog.setZOffset(tiltParam.getZOffset());
+    }
+    if (tiltParam.hasSlice()) {
+      dialog.setSliceStart(tiltParam.getIdxSliceStart());
+      dialog.setSliceStop(tiltParam.getIdxSliceStop());
+    }
+    if (tiltParam.hasSliceIncr()) {
+      dialog.setSliceIncr(tiltParam.getIncrSlice());
+    }
+    if (tiltParam.hasXAxisTilt()) {
+      dialog.setXAxisTilt(tiltParam.getXAxisTilt());
+    }
+    if (tiltParam.hasTiltAngleOffset()) {
+      dialog.setTiltAngleOffset(tiltParam.getTiltAngleOffset());
+    }
+    if (tiltParam.hasRadialWeightingFunction()) {
+      dialog.setRadialMax(tiltParam.getRadialBandwidth());
+      dialog.setRadialFallOff(tiltParam.getRadialFalloff());
+    }
+    if (tiltParam.hasScale()) {
+      dialog.setDensityOffset(tiltParam.getScaleFLevel());
+      dialog.setDensityScale(tiltParam.getScaleCoeff());
+    }
+    if (tiltParam.hasLogOffset()) {
+      dialog.setLogOffset(tiltParam.getLogShift());
+    }
+    dialog.setUseLocalAlignment(metaData.getUseLocalAlignments(axisID));
+    dialog.setUseZFactors(metaData.getUseZFactors(axisID).is());
+    dialog.setExtraExcludeList(tiltParam.getExcludeList2());
+  }
+  
+  //  Copy the newstack parameters from the GUI to the NewstParam object
+  private void getNewstParams(NewstParam newstParam) {
+    if (dialog == null) {
+      return;
+    }
+    newstParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
+    int binning = dialog.getBinning();
+    // Only explcitly write out the binning if its value is something other than
+    // the default of 1 to keep from cluttering up the com script  
+    if (binning > 1) {
+      newstParam.setBinByFactor(binning);
+    }
+    else {
+      newstParam.setBinByFactor(Integer.MIN_VALUE);
+    }
+  }
+  
+  private void getBlendParams(BlendmontParam blendmontParam) {
+    if (dialog == null) {
+      return;
+    }
+    blendmontParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
+    blendmontParam
+        .setBinByFactor(dialog.getBinning());
+  }
+  
+  /**
+   * Get the tilt parameters from the requested axis panel
+   */
+  private void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
+      InvalidParameterException {
+    if (dialog == null) {
+      return;
+    }
+    String badParameter = "";
+    try {
+      badParameter = "IMAGEBINNED";
+      tiltParam.setImageBinned();
+      //Do not manage full image size.  It is coming from copytomocoms.      
+      if (dialog.isTomoWidthSet()) {
+        badParameter = dialog.getTomoWidthLabel();
+        tiltParam.setWidth(dialog.getTomoWidth());
+      }
+      else {
+        tiltParam.resetWidth();
+      }
+      //set Z offset
+      if (dialog.isZOffsetSet()) {
+        badParameter = dialog.getZOffsetLabel();
+        tiltParam.setZOffset(dialog.getZOffset());
+      }
+      else {
+        tiltParam.resetZOffset();
+      }
+
+      //set X offset
+      if (dialog.isXOffsetSet()) {
+        badParameter = dialog.getXOffsetLabel();
+        tiltParam.setXOffset(dialog.getXOffset());
+      }
+      else if (dialog.isZOffsetSet()) {
+        tiltParam.setXOffset(0);
+        dialog.setXOffset(0);
+      }
+      else {
+        tiltParam.resetXOffset();
+      }
+
+      boolean sliceRangeSpecified = false;
+      if (dialog.isSliceStartSet()
+          && dialog.isSliceStopSet()) {
+        badParameter = dialog.getSliceStartLabel();
+        tiltParam.setIdxSliceStart(dialog.getSliceStart());
+        badParameter = dialog.getSliceStopLabel();
+        tiltParam.setIdxSliceStop(dialog.getSliceStop());
+        sliceRangeSpecified = true;
+      }
+      else if (dialog.isSliceStartNull()
+          && dialog.isSliceStopNull()) {
+        tiltParam.resetIdxSlice();
+      }
+      else {
+        throw (new InvalidParameterException(
+            "You must supply both the first and last slices if you want to specify either."));
+      }
+      if (dialog.isSliceIncrSet()) {
+        if (sliceRangeSpecified) {
+          badParameter = dialog.getSliceIncrLabel();
+          tiltParam.setIncrSlice(dialog.getSliceIncr());
+        }
+        else {
+          throw (new InvalidParameterException(
+              "You must supply both the first and last slices to specify the slice step."));
+        }
+      }
+      else {
+        tiltParam.resetIncrSlice();
+      }
+
+      if (dialog.isTomoThicknessSet()) {
+        badParameter = dialog.getTomoThicknessLabel();
+        tiltParam.setThickness(dialog.getTomoThickness());
+      }
+      else {
+        tiltParam.resetThickness();
+      }
+
+      if (dialog.isXAxisTiltSet()) {
+        badParameter = dialog.getXAxisTiltLabel();
+        tiltParam.setXAxisTilt(dialog.getXAxisTilt());
+      }
+      else {
+        tiltParam.resetXAxisTilt();
+      }
+
+      if (dialog.isTiltAngleOffsetSet()) {
+        badParameter = dialog.getTiltAngleOffsetLabel();
+        tiltParam.setTiltAngleOffset(dialog.getTiltAngleOffset
+            ());
+      }
+      else {
+        tiltParam.resetTiltAngleOffset();
+      }
+
+      if (dialog.isRadialMaxSet()
+          || dialog.isRadialFallOffSet()) {
+        badParameter = dialog.getRadialMaxLabel();
+        tiltParam.setRadialBandwidth(dialog.getRadialMax());
+        badParameter = dialog.getRadialFallOffLabel();
+        tiltParam.setRadialFalloff(dialog.getRadialFallOff());
+      }
+      else {
+        tiltParam.resetRadialFilter();
+      }
+
+      if (dialog.isDensityOffsetSet()
+          || dialog.isDensityScaleSet()) {
+        badParameter = dialog.getDensityScaleLabel();
+        tiltParam.setScaleCoeff(dialog.getDensityScale());
+        badParameter = dialog.getDensityOffsetLabel();
+        tiltParam.setScaleFLevel(dialog.getDensityOffset());
+      }
+      else {
+        tiltParam.resetScale();
+      }
+
+      if (dialog.isLogOffsetSet()) {
+        badParameter = dialog.getLogOffsetLabel();
+        tiltParam.setLogShift(dialog.getLogOffset());
+      }
+      else {
+        tiltParam.setLogShift(Float.NaN);
+      }
+
+      if (dialog.isUseLocalAlignment()
+          && dialog.isUseLocalAlignmentEnabled()) {
+        tiltParam.setLocalAlignFile(metaData
+            .getDatasetName()
+            + axisID.getExtension() + "local.xf");
+      }
+      else {
+        tiltParam.setLocalAlignFile("");
+      }
+      metaData.setUseLocalAlignments(axisID, dialog.isUseLocalAlignment());
+      tiltParam.setFiducialess(dialog.isFiducialess());
+      tiltParam.setUseZFactors(dialog.isUseZFactors()
+          && dialog.isUseZFactorsEnabled());
+      metaData.setUseZFactors(axisID, dialog.isUseZFactors());
+      tiltParam.setExcludeList2(dialog.getExtraExcludeList());
+    }
+    catch (NumberFormatException except) {
+      String message = badParameter + " " + except.getMessage();
+      throw new NumberFormatException(message);
+    }
+  }
+
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/07/26 16:41:52  sueh
+ * <p> bug# 868 Moved functions associated with TomogramGenerationDialog from
+ * <p> ApplicationManager to TomogramGenerationExpert.
+ * <p> </p>
  */

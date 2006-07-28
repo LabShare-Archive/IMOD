@@ -26,31 +26,25 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstMTFFilterParam;
-import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TiltParam;
-import etomo.comscript.ConstNewstParam;
-import etomo.comscript.NewstParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.MtfFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
-import etomo.type.MetaData;
+import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
-import etomo.util.InvalidParameterException;
 
 /**
  * <p>
@@ -71,6 +65,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.94  2006/07/26 16:41:40  sueh
+ * bug# 868 Moved functions associated with TomogramGenerationDialog from
+ * ApplicationManager to TomogramGenerationExpert.
+ *
  * Revision 3.93  2006/07/05 23:26:38  sueh
  * Added tooltips to Tomo Pos.
  *
@@ -590,7 +588,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       "Tilt axis rotation: ");
 
   // Newst/Newstack objects
-  private CheckBox cbBoxUseLinearInterpolation = new CheckBox(
+  private CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
   private LabeledSpinner spinBinning;
 
@@ -621,7 +619,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private SpacedTextField ltfDensityScale = new SpacedTextField(
       "Output density scaling factor: ");
   private SpacedTextField ltfLogOffset = new SpacedTextField("Log offset: ");
-  private CheckBox cbBoxUseLocalAlignment = new CheckBox("Use local alignments");
+  private CheckBox cbUseLocalAlignment = new CheckBox("Use local alignments");
 
   //  Trial tomogram objects
 
@@ -651,7 +649,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private final MultiLineButton btnUseFilter;
   private SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
-  boolean enableFiltering = false;
 
   //  Tomogram generation buttons
   private final MultiLineButton btnTilt;
@@ -677,7 +674,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
-  private boolean getBinningFromNewst = true;
   private boolean trialTilt = false;
   private final ReconScreenState screenState;
   private final ButtonListener tomogramGenerationListener;
@@ -769,327 +765,153 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         "Delete Aligned Image Stack", DialogType.TOMOGRAM_GENERATION);
   }
 
-  public void updateFilter(boolean enable) {
-    enableFiltering = enable;
-    btnFilter.setEnabled(enableFiltering);
-    btnViewFilter.setEnabled(enableFiltering);
-    enableUseFilter();
+  void setFilterButtonEnabled(boolean enable) {
+    btnFilter.setEnabled(enable);
+  }
+
+  void setFilterButtonState(ReconScreenState screenState) {
+    btnFilter.setButtonState(screenState.getButtonState(btnFilter
+        .getButtonStateKey()));
+  }
+
+  void setViewFilterButtonEnabled(boolean enable) {
+    btnViewFilter.setEnabled(enable);
+  }
+
+  void setXOffset(float xOffset) {
+    ltfXOffset.setText(xOffset);
+  }
+
+  void setZOffset(float zOffset) {
+    ltfZOffset.setText(zOffset);
+  }
+
+  void setUseFilterEnabled(boolean enable) {
+    btnUseFilter.setEnabled(enable);
+  }
+
+  void setUseTrialButtonState(ReconScreenState screenState) {
+    btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
+        .getButtonStateKey()));
   }
 
   public void setFiducialessAlignment(boolean state) {
     cbFiducialess.setSelected(state);
     updateFiducialess();
   }
+  
+  public boolean isDensityOffsetSet() {
+    return ltfDensityOffset.getText().matches("\\S+");
+  }
+  
+  public boolean isDensityScaleSet() {
+    return ltfDensityScale.getText().matches("\\S+");
+  }
 
-  public boolean isFiducialessAlignment() {
+  public boolean isFiducialess() {
     return cbFiducialess.isSelected();
+  }
+  
+  public boolean isLogOffsetSet() {
+    return ltfLogOffset.getText().matches("\\S+");
   }
 
   public void setImageRotation(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
+  void setNewstHeaderState(PanelHeaderState state) {
+    newstHeader.setState(state);
+  }
+
+  void setFilterHeaderState(PanelHeaderState state) {
+    filterHeader.setState(state);
+  }
+
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
-
-  public void setNewstParams(ConstNewstParam newstParam) {
-    cbBoxUseLinearInterpolation.setSelected(newstParam.isLinearInterpolation());
-    if (getBinningFromNewst) {
-      spinBinning.setValue(newstParam.getBinByFactor());
-    }
+  
+  float getLogOffset() {
+    return Float.parseFloat(ltfLogOffset.getText());
+  }
+  
+  String getLogOffsetLabel() {
+    return ltfLogOffset.getLabel();
   }
 
-  public final void setParameters(ReconScreenState screenState) {
-    newstHeader.setState(screenState.getTomoGenNewstHeaderState());
-    filterHeader.setState(screenState.getTomoGenMtffilterHeaderState());
-    tiltHeader.setState(screenState.getTomoGenTiltHeaderState());
-    trialHeader.setState(screenState.getTomoGenTrialTiltHeaderState());
-    setAdvanced();
-    btnNewst.setButtonState(screenState.getButtonState(btnNewst
-        .getButtonStateKey()));
-    btnTilt.setButtonState(screenState.getButtonState(btnTilt
-        .getButtonStateKey()));
-    btnDeleteStack.setButtonState(screenState.getButtonState(btnDeleteStack
-        .getButtonStateKey()));
+  String getStartingAndEndingZ() {
+    return ltfStartingAndEndingZ.getText();
+  }
+  
+  float getTiltAngleOffset() {
+    return Float.parseFloat(ltfTiltAngleOffset
+        .getText());
+  }
+  
+  String getTiltAngleOffsetLabel() {
+    return ltfTiltAngleOffset.getLabel();
+  }
+
+  void getTiltHeaderState(PanelHeaderState state) {
+    tiltHeader.getState(state);
+  }
+  
+  String getTomoThickness() {
+    return ltfTomoThickness.getText();
+  }
+  
+  String getTomoThicknessLabel() {
+    return ltfTomoThickness.getLabel();
+  }
+  
+  int getTomoWidth() {
+    return Integer.parseInt(ltfTomoWidth.getText());
+  }
+  
+  String getTomoWidthLabel() {
+    return ltfTomoWidth.getLabel();
+  }
+
+  void setTrialHeaderState(PanelHeaderState state) {
+    trialHeader.setState(state);
+  }
+
+  void setUseFilterButtonState(ReconScreenState screenState) {
     btnUseFilter.setButtonState(screenState.getButtonState(btnUseFilter
         .getButtonStateKey()));
-    btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
-        .getButtonStateKey()));
-    btnFilter.setButtonState(screenState.getButtonState(btnFilter
-        .getButtonStateKey()));
   }
 
-  public final void getParameters(ReconScreenState screenState) {
-    newstHeader.getState(screenState.getTomoGenNewstHeaderState());
-    filterHeader.getState(screenState.getTomoGenMtffilterHeaderState());
-    tiltHeader.getState(screenState.getTomoGenTiltHeaderState());
-    trialHeader.getState(screenState.getTomoGenTrialTiltHeaderState());
-  }
-
-  public void setParameters(ConstMetaData metaData) {
-    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
-    if (!binning.isNull()) {
-      getBinningFromNewst = false;
-      spinBinning.setValue(binning);
-    }
-    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
-    ConstEtomoNumber tomoGenTiltParallel = metaData
-        .getTomoGenTiltParallel(axisID);
-    cbParallelProcess.setEnabled(validAutodoc);
-    if (tomoGenTiltParallel == null) {
-      cbParallelProcess.setSelected(validAutodoc
-          && metaData.getDefaultParallel().is());
-    }
-    else {
-      cbParallelProcess.setSelected(validAutodoc && tomoGenTiltParallel.is());
-    }
-    updateParallelProcess();
-  }
-
-  public void getParameters(MetaData metaData) {
-    metaData.setTomoGenBinning(axisID, ((Integer) spinBinning.getValue())
-        .intValue());
-    metaData.setTomoGenTiltParallel(axisID, cbParallelProcess.isSelected());
-  }
-
-  public void setBlendParams(BlendmontParam blendmontParam) {
-    cbBoxUseLinearInterpolation.setSelected(blendmontParam
-        .isLinearInterpolation());
-  }
-
-  /**
-   * Set the UI parameters with the specified tiltParam values
-   * WARNING: be sure the setNewstParam is called first so the binning value for
-   * the stack is known.  The thickness, first and last slice, width and x,y,z
-   * offsets are scaled so that they are represented to the user in unbinned
-   * dimensions.
-   * @param tiltParam
-   */
-  public void setTiltParams(ConstTiltParam tiltParam) {
-    ConstMetaData metaData = applicationManager.getMetaData();
-    int binning = ((Integer) spinBinning.getValue()).intValue();
-    if (tiltParam.hasWidth()) {
-      ltfTomoWidth.setText(tiltParam.getWidth());
-    }
-    if (tiltParam.hasThickness()) {
-      ltfTomoThickness.setText(tiltParam.getThickness());
-    }
-    if (tiltParam.hasXOffset()) {
-      ltfXOffset.setText(tiltParam.getXOffset());
-    }
-    if (tiltParam.hasZOffset()) {
-      ltfZOffset.setText(tiltParam.getZOffset());
-    }
-    if (tiltParam.hasSlice()) {
-      ltfSliceStart.setText(tiltParam.getIdxSliceStart());
-      ltfSliceStop.setText(tiltParam.getIdxSliceStop());
-    }
-    if (tiltParam.hasSliceIncr()) {
-      ltfSliceIncr.setText(tiltParam.getIncrSlice());
-    }
-    if (tiltParam.hasXAxisTilt()) {
-      ltfXAxisTilt.setText(tiltParam.getXAxisTilt());
-    }
-    if (tiltParam.hasTiltAngleOffset()) {
-      ltfTiltAngleOffset.setText(tiltParam.getTiltAngleOffset());
-    }
-    if (tiltParam.hasRadialWeightingFunction()) {
-      ltfRadialMax.setText(tiltParam.getRadialBandwidth());
-      ltfRadialFallOff.setText(tiltParam.getRadialFalloff());
-    }
-    if (tiltParam.hasScale()) {
-      ltfDensityOffset.setText(tiltParam.getScaleFLevel());
-      ltfDensityScale.setText(tiltParam.getScaleCoeff());
-    }
-    if (tiltParam.hasLogOffset()) {
-      ltfLogOffset.setText(tiltParam.getLogShift());
-    }
-    cbBoxUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
-    cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
-    ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
-  }
-
-  public int getBinning() {
+  int getBinning() {
     return ((Integer) spinBinning.getValue()).intValue();
   }
-
-  //  Copy the newstack parameters from the GUI to the NewstParam object
-  public void getNewstParams(NewstParam newstParam) {
-    newstParam.setLinearInterpolation(cbBoxUseLinearInterpolation.isSelected());
-    int binning = ((Integer) spinBinning.getValue()).intValue();
-
-    // Only explcitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
-    if (binning > 1) {
-      newstParam.setBinByFactor(binning);
-    }
-    else {
-      newstParam.setBinByFactor(Integer.MIN_VALUE);
-    }
+  
+  float getDensityOffset() {
+    return Float.parseFloat(ltfDensityOffset.getText());
+  }
+  
+  String getDensityOffsetLabel() {
+    return ltfDensityOffset.getLabel();
+  }
+  
+  float getDensityScale() {
+    return Float.parseFloat(ltfDensityScale.getText());
+  }
+  
+  String getExtraExcludeList() {
+    return ltfExtraExcludeList.getText();
+  }
+  
+  String getDensityScaleLabel() {
+    return ltfDensityScale.getLabel();
   }
 
-  public void getBlendParams(BlendmontParam blendmontParam) {
-    blendmontParam.setLinearInterpolation(cbBoxUseLinearInterpolation
-        .isSelected());
-    blendmontParam
-        .setBinByFactor(((Integer) spinBinning.getValue()).intValue());
+  void getFilterHeaderState(PanelHeaderState state) {
+    filterHeader.getState(state);
   }
 
-  /**
-   * Get the tilt parameters from the requested axis panel
-   */
-  public void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException {
-    String badParameter = "";
-    MetaData metaData = applicationManager.getMetaData();
-    try {
-      badParameter = "IMAGEBINNED";
-      tiltParam.setImageBinned();
-      //Do not manage full image size.  It is coming from copytomocoms.
-      // Set the appropriate FULLIMAGE line
-      //badParameter = "FULLIMAGE";
-      //tiltParam.setFullImageX(fullImageSize.width);
-      //tiltParam.setFullImageY(fullImageSize.height);
-
-      if (ltfTomoWidth.getText().matches("\\S+")) {
-        badParameter = ltfTomoWidth.getLabel();
-        tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()));
-      }
-      else {
-        tiltParam.resetWidth();
-      }
-
-      //set Z offset
-      if (ltfZOffset.getText().matches("\\S+")) {
-        badParameter = ltfZOffset.getLabel();
-        tiltParam.setZOffset(Float.parseFloat(ltfZOffset.getText()));
-      }
-      else {
-        tiltParam.resetZOffset();
-      }
-
-      //set X offset
-      if (ltfXOffset.getText().matches("\\S+")) {
-        badParameter = ltfXOffset.getLabel();
-        tiltParam.setXOffset(Float.parseFloat(ltfXOffset.getText()));
-      }
-      else if (ltfZOffset.getText().matches("\\S+")) {
-        tiltParam.setXOffset(0);
-        ltfXOffset.setText(0.0);
-      }
-      else {
-        tiltParam.resetXOffset();
-      }
-
-      boolean sliceRangeSpecified = false;
-      if (ltfSliceStart.getText().matches("\\S+")
-          && ltfSliceStop.getText().matches("\\S+")) {
-        badParameter = ltfSliceStart.getLabel();
-        tiltParam.setIdxSliceStart(Integer.parseInt(ltfSliceStart.getText()));
-        badParameter = ltfSliceStop.getLabel();
-        tiltParam.setIdxSliceStop(Integer.parseInt(ltfSliceStop.getText()));
-        sliceRangeSpecified = true;
-      }
-      else if (ltfSliceStart.getText().matches("^\\s*$")
-          && ltfSliceStop.getText().matches("^\\s*$")) {
-        tiltParam.resetIdxSlice();
-      }
-      else {
-        throw (new InvalidParameterException(
-            "You must supply both the first and last slices if you want to specify either."));
-      }
-      if (ltfSliceIncr.getText().matches("\\S+")) {
-        if (sliceRangeSpecified) {
-          badParameter = ltfSliceIncr.getLabel();
-          tiltParam.setIncrSlice(Integer.parseInt(ltfSliceIncr.getText()));
-        }
-        else {
-          throw (new InvalidParameterException(
-              "You must supply both the first and last slices to specify the slice step."));
-        }
-      }
-      else {
-        tiltParam.resetIncrSlice();
-      }
-
-      if (ltfTomoThickness.getText().matches("\\S+")) {
-        badParameter = ltfTomoThickness.getLabel();
-        tiltParam.setThickness(ltfTomoThickness.getText());
-      }
-      else {
-        tiltParam.resetThickness();
-      }
-
-      if (ltfXAxisTilt.getText().matches("\\S+")) {
-        badParameter = ltfXAxisTilt.getLabel();
-        tiltParam.setXAxisTilt(ltfXAxisTilt.getText());
-      }
-      else {
-        tiltParam.resetXAxisTilt();
-      }
-
-      if (ltfTiltAngleOffset.getText().matches("\\S+")) {
-        badParameter = ltfTiltAngleOffset.getLabel();
-        tiltParam.setTiltAngleOffset(Float.parseFloat(ltfTiltAngleOffset
-            .getText()));
-      }
-      else {
-        tiltParam.resetTiltAngleOffset();
-      }
-
-      if (ltfRadialMax.getText().matches("\\S+")
-          || ltfRadialFallOff.getText().matches("\\S+")) {
-        badParameter = ltfRadialMax.getLabel();
-        tiltParam.setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
-        badParameter = ltfRadialFallOff.getLabel();
-        tiltParam
-            .setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
-      }
-      else {
-        tiltParam.resetRadialFilter();
-      }
-
-      if (ltfDensityOffset.getText().matches("\\S+")
-          || ltfDensityScale.getText().matches("\\S+")) {
-        badParameter = ltfDensityScale.getLabel();
-        tiltParam.setScaleCoeff(Float.parseFloat(ltfDensityScale.getText()));
-        badParameter = ltfDensityOffset.getLabel();
-        tiltParam.setScaleFLevel(Float.parseFloat(ltfDensityOffset.getText()));
-      }
-      else {
-        tiltParam.resetScale();
-      }
-
-      if (ltfLogOffset.getText().matches("\\S+")) {
-        badParameter = ltfLogOffset.getLabel();
-        tiltParam.setLogShift(Float.parseFloat(ltfLogOffset.getText()));
-      }
-      else {
-        tiltParam.setLogShift(Float.NaN);
-      }
-
-      if (cbBoxUseLocalAlignment.isSelected()
-          && cbBoxUseLocalAlignment.isEnabled()) {
-        tiltParam.setLocalAlignFile(applicationManager.getMetaData()
-            .getDatasetName()
-            + axisID.getExtension() + "local.xf");
-      }
-      else {
-        tiltParam.setLocalAlignFile("");
-      }
-      metaData.setUseLocalAlignments(axisID, cbBoxUseLocalAlignment
-          .isSelected());
-      tiltParam.setFiducialess(cbFiducialess.isSelected());
-      tiltParam.setUseZFactors(cbUseZFactors.isSelected()
-          && cbUseZFactors.isEnabled());
-      metaData.setUseZFactors(axisID, cbUseZFactors.isSelected());
-      tiltParam.setExcludeList2(ltfExtraExcludeList.getText());
-    }
-    catch (NumberFormatException except) {
-      String message = badParameter + " " + except.getMessage();
-      throw new NumberFormatException(message);
-    }
+  void getTrialHeaderState(PanelHeaderState state) {
+    trialHeader.getState(state);
   }
 
   public void getMTFFilterParam(MTFFilterParam mtfFilterParam)
@@ -1102,6 +924,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         .getText());
   }
 
+  void getNewstHeaderState(PanelHeaderState state) {
+    newstHeader.getState(state);
+  }
+
   public void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
     ltfMtfFile.setText(mtfFilterParam.getMtfFile());
     ltfMaximumInverse.setText(mtfFilterParam.getMaximumInverseString());
@@ -1109,7 +935,81 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfStartingAndEndingZ.setText(mtfFilterParam.getStartingAndEndingZString());
     ltfInverseRolloffRadiusSigma.setText(mtfFilterParam
         .getInverseRolloffRadiusSigmaString());
-    enableUseFilter();
+    expert.enableUseFilter();
+  }
+
+  void setNewstButtonState(ReconScreenState screenState) {
+    btnNewst.setButtonState(screenState.getButtonState(btnNewst
+        .getButtonStateKey()));
+  }
+
+  void setParallelProcessEnabled(boolean enable) {
+    cbParallelProcess.setEnabled(enable);
+  }
+
+  void setSliceStart(int sliceStart) {
+    ltfSliceStart.setText(sliceStart);
+  }
+
+  void setSliceStop(int sliceStop) {
+    ltfSliceStop.setText(sliceStop);
+  }
+
+  void setSliceIncr(int sliceIncr) {
+    ltfSliceIncr.setText(sliceIncr);
+  }
+
+  void setXAxisTilt(double xAxisTilt) {
+    ltfXAxisTilt.setText(xAxisTilt);
+  }
+
+  void setTiltAngleOffset(float tiltAngleOffset) {
+    ltfTiltAngleOffset.setText(tiltAngleOffset);
+  }
+
+  void setRadialMax(float radialMax) {
+    ltfRadialMax.setText(radialMax);
+  }
+
+  void setRadialFallOff(float radialFallOff) {
+    ltfRadialFallOff.setText(radialFallOff);
+  }
+
+  void setDensityOffset(float densityOffset) {
+    ltfDensityOffset.setText(densityOffset);
+  }
+  
+  void setDensityScale(float densityScale) {
+    ltfDensityScale.setText(densityScale);
+  }
+  
+  void setExtraExcludeList(String extraExcludeList) {
+    ltfExtraExcludeList.setText(extraExcludeList);
+  }
+  
+  void setLogOffset(float logOffset) {
+    ltfLogOffset.setText(logOffset);
+  }
+  
+  void setParallelProcess(boolean select) {
+    cbParallelProcess.setSelected(select);
+  }
+
+  void setTiltButtonState(ReconScreenState screenState) {
+    btnTilt.setButtonState(screenState.getButtonState(btnTilt
+        .getButtonStateKey()));
+  }
+
+  void setTiltHeaderState(PanelHeaderState state) {
+    tiltHeader.setState(state);
+  }
+
+  void setTomoThickness(int tomoThickness) {
+    ltfTomoThickness.setText(tomoThickness);
+  }
+
+  void setTomoWidth(int tomoWidth) {
+    ltfTomoWidth.setText(tomoWidth);
   }
 
   /**
@@ -1124,10 +1024,74 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
     return trialTomogramName;
   }
+  
+  String getXAxisTilt() {
+    return ltfXAxisTilt.getText();
+  }
+  
+  String getXAxisTiltLabel() {
+    return ltfXAxisTilt.getLabel();
+  }
+  
+  float getXOffset() {
+    return Float.parseFloat(ltfXOffset.getText());
+  }
+  
+  String getXOffsetLabel() {
+    return ltfXOffset.getLabel();
+  }
+  
+  float getZOffset() {
+    return Float.parseFloat(ltfZOffset.getText());
+  }
+  
+  String getZOffsetLabel() {
+    return ltfZOffset.getLabel();
+  }
 
   public final void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(TiltParam.COMMAND_NAME);
+  }
+  
+  float getRadialFallOff() {
+    return Float.parseFloat(ltfRadialFallOff.getText());
+  }
+  
+  String getRadialFallOffLabel() {
+    return ltfRadialFallOff.getLabel();
+  }
+  
+  float getRadialMax() {
+    return Float.parseFloat(ltfRadialMax.getText());
+  }
+  
+  String getRadialMaxLabel() {
+    return ltfRadialMax.getLabel();
+  }
+  
+  int getSliceIncr() {
+    return Integer.parseInt(ltfSliceIncr.getText());
+  }
+  
+  String getSliceIncrLabel() {
+    return ltfSliceIncr.getLabel();
+  }
+  
+  int getSliceStart() {
+    return Integer.parseInt(ltfSliceStart.getText());
+  }
+  
+  String getSliceStartLabel() {
+    return ltfSliceStart.getLabel();
+  }
+  
+  int getSliceStop() {
+    return Integer.parseInt(ltfSliceStop.getText());
+  }
+  
+  String getSliceStopLabel() {
+    return ltfSliceStop.getLabel();
   }
 
   public void expand(ExpandButton button) {
@@ -1182,7 +1146,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //ltfRadialMax
     //ltfRadialFallOff
     ltfExtraExcludeList.setVisible(advanced);
-    //cbBoxUseLocalAlignment
+    //cbUseLocalAlignment
     //cbUseZFactors
     //cbParallelProcess
     trialPanel.setVisible(advanced);
@@ -1191,12 +1155,29 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //btnDeleteStacks
   }
 
-  private final void setAdvanced() {
+  void setAdvanced() {
     boolean headerAdvanced = filterHeader.isAdvancedBasicExpanded();
     if (headerAdvanced != isAdvanced
         && headerAdvanced == tiltHeader.isAdvancedBasicExpanded()) {
       super.setAdvanced(headerAdvanced);
     }
+  }
+
+  void setBinning(int binning) {
+    spinBinning.setValue(binning);
+  }
+
+  void setBinning(ConstEtomoNumber binning) {
+    spinBinning.setValue(binning);
+  }
+
+  void setUseLinearInterpolation(boolean select) {
+    cbUseLinearInterpolation.setSelected(select);
+  }
+
+  void setDeleteStackButtonState(ReconScreenState screenState) {
+    btnDeleteStack.setButtonState(screenState.getButtonState(btnDeleteStack
+        .getButtonStateKey()));
   }
 
   /**
@@ -1208,13 +1189,85 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-
-  private void updateParallelProcess() {
-    applicationManager.setParallelDialog(axisID, this);
+  
+  public boolean usingParallelProcessing() {
+    return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
   }
 
-  public boolean isParallel() {
+  boolean isParallelProcess() {
     return cbParallelProcess.isSelected();
+  }
+  
+  boolean isRadialFallOffSet() {
+    return ltfRadialFallOff.getText().matches("\\S+");
+  }
+  
+  boolean isRadialMaxSet() {
+    return ltfRadialMax.getText().matches("\\S+");
+  }
+  
+  boolean isSliceIncrSet() {
+    return ltfSliceIncr.getText().matches("\\S+");
+  }
+  
+  boolean isSliceStartSet() {
+    return ltfSliceStart.getText().matches("\\S+");
+  }
+  
+  boolean isSliceStartNull() {
+    return ltfSliceStart.getText().matches("^\\s*$");
+  }
+  
+  boolean isSliceStopNull() {
+    return ltfSliceStop.getText().matches("^\\s*$");
+  }
+  
+  boolean isSliceStopSet() {
+    return ltfSliceStop.getText().matches("\\S+");
+  }
+  
+  boolean isTiltAngleOffsetSet() {
+    return ltfTiltAngleOffset.getText().matches("\\S+");
+  }
+  
+  boolean isTomoThicknessSet() {
+    return ltfTomoThickness.getText().matches("\\S+");
+  }
+  
+  boolean isTomoWidthSet() {
+    return ltfTomoWidth.getText().matches("\\S+");
+  }
+  
+  boolean isUseLinearInterpolation() {
+    return cbUseLinearInterpolation.isSelected();
+  }
+  
+  boolean isUseLocalAlignment() {
+    return cbUseLocalAlignment.isSelected();
+  }
+  
+  boolean isUseLocalAlignmentEnabled() {
+    return cbUseLocalAlignment.isEnabled();
+  }
+  
+  boolean isUseZFactors() {
+    return cbUseZFactors.isSelected();
+  }
+  
+  boolean isUseZFactorsEnabled() {
+    return cbUseZFactors.isEnabled();
+  }
+  
+  boolean isXAxisTiltSet() {
+    return ltfXAxisTilt.getText().matches("\\S+");
+  }
+  
+  boolean isXOffsetSet() {
+    return ltfXOffset.getText().matches("\\S+");
+  }
+  
+  boolean isZOffsetSet() {
+    return ltfZOffset.getText().matches("\\S+");
   }
 
   /**
@@ -1247,7 +1300,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     buttonPanel.add(btn3dmodFull.getComponent());
     buttonPanel.add(Box.createHorizontalStrut(50));
     //newstBodyPanel
-    newstBodyPanel.add(cbBoxUseLinearInterpolation);
+    newstBodyPanel.add(cbUseLinearInterpolation);
     newstBodyPanel.add(spinBinning);
     newstBodyPanel.add(cbFiducialess);
     newstBodyPanel.add(ltfRotation);
@@ -1362,7 +1415,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     trialPanel.add(layoutTrialPanel());
     trialPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
     //checkBoxPanel
-    checkBoxPanel.add(cbBoxUseLocalAlignment);
+    checkBoxPanel.add(cbUseLocalAlignment);
     checkBoxPanel.add(cbUseZFactors);
     UIUtilities.alignComponentsX(checkBoxPanel, Component.LEFT_ALIGNMENT);
     //radialPanel
@@ -1511,30 +1564,23 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
-    enableUseFilter();
+    expert.enableUseFilter();
+  }
+  
+  public void setUseZFactors(boolean select) {
+    cbUseZFactors.setSelected(select);
   }
 
-  protected void enableUseFilter() {
-    if (!enableFiltering) {
-      btnUseFilter.setEnabled(false);
-      return;
-    }
-    String startingAndEndingZ = ltfStartingAndEndingZ.getText();
-    if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
-      //btnFilter.setSelected(false);
-      btnUseFilter.setEnabled(true);
-    }
-    else {
-      btnUseFilter.setEnabled(false);
-    }
-  }
-
-  public void enableUseZFactors(boolean enable) {
+  public void setUseZFactorsEnabled(boolean enable) {
     cbUseZFactors.setEnabled(enable);
   }
+  
+  public void setUseLocalAlignment(boolean select) {
+    cbUseLocalAlignment.setSelected(select);
+  }
 
-  public void enableUseLocalAlignment(boolean enable) {
-    cbBoxUseLocalAlignment.setEnabled(enable);
+  public void setUseLocalAlignmentEnabled(boolean enable) {
+    cbUseLocalAlignment.setEnabled(enable);
   }
 
   protected void updateFiducialess() {
@@ -1629,7 +1675,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       updateFiducialess();
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
-      updateParallelProcess();
+      expert.updateParallelProcess();
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
@@ -1701,7 +1747,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         .format());
     text = "Make aligned stack with linear instead of cubic interpolation to "
         + "reduce noise.";
-    cbBoxUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
+    cbUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
         .format());
     text = "Generate the complete aligned stack for input into the tilt process."
         + "  This runs the newst.com script.";
@@ -1795,7 +1841,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfLogOffset.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Select this checkbox to use local alignments.  You must have "
         + "created the local alignments in the Fine Alignment step";
-    cbBoxUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text)
+    cbUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text)
         .format());
     text = "Compute the tomogram from the full aligned stack.  This runs "
         + "the tilt.com script.";
