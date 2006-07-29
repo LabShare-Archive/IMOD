@@ -571,6 +571,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     }
     ltfDistortionFile.setVisible(advanced);
     btnDistortionFile.setVisible(advanced);
+    spnBinning.setVisible(advanced);
     pnlMagGradientInfo.setVisible(advanced);
     uiHarness.pack(AxisID.ONLY, applicationManager);
   }
@@ -1077,6 +1078,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.51  2006/07/21 22:12:48  sueh
+ * <p> bug# 901 Putting the distortion and mag gradient fields into advanced when the
+ * <p> distortion directory isn't available.
+ * <p>
  * <p> Revision 3.50  2006/07/21 19:17:31  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
