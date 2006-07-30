@@ -2287,7 +2287,7 @@ void ivwSetOverlayMode(ImodView *vw, int sec, int reverse,
   vw->reverseOverlay = reverse;
   vw->overlaySec = sec;
   vw->whichGreen = whichGreen;
-  imodDraw(vw, IMOD_DRAW_IMAGE);
+  imodDraw(vw, IMOD_DRAW_IMAGE | IMOD_DRAW_NOSYNC);
 }
 
 // Get the current contour, the last contour if it is empty, or a new contour
@@ -2485,6 +2485,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.46  2006/07/05 04:17:37  mast
+Added independent color ramp and reverse contrast for overlay mode
+
 Revision 4.45  2006/07/03 04:14:21  mast
 Changes for beadfixer overlay mode
 
