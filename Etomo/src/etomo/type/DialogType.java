@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2006/04/28 20:56:23  sueh
+ * <p> bug# 787 Added equals(String)
+ * <p>
  * <p> Revision 1.6  2006/04/25 18:56:17  sueh
  * <p> bug# 787 Added getInstance(String).
  * <p>
@@ -93,6 +96,10 @@ public final class DialogType {
   public String getStorableName() {
     return getStorableName(tabType, index);
   }
+  
+  public String getCompactLabel() {
+    return getCompactLabel(tabType, index);
+  }
 
   public int toIndex() {
     return index;
@@ -149,6 +156,47 @@ public final class DialogType {
       switch (index) {
       case parallelIndex:
         return "Parallel";
+      }
+    }
+    return "";
+  }
+  
+  /**
+   * Return a name without spaces.  All storable names must be unique to
+   * DialogType.
+   * @param tabType
+   * @param index
+   * @return
+   */
+  private String getCompactLabel(TabType tabType, int index) {
+    if (tabType == TabType.RECON) {
+      switch (index) {
+      case setupIndex:
+        return "Setup";
+      case preProcessingIndex:
+        return "Pre";
+      case coarseAlignmentIndex:
+        return "Coarse";
+      case fiducialModelIndex:
+        return "Fid";
+      case fineAlignmentIndex:
+        return "Fine";
+      case tomogramPositioningIndex:
+        return "Pos";
+      case tomogramGenerationIndex:
+        return "Gen";
+      case tomogramCombinationIndex:
+        return "Comb";
+      case postProcessingIndex:
+        return "Post";
+      case cleanUpIndex:
+        return "Clean";
+      }
+    }
+    else if (tabType == TabType.PARALLEL) {
+      switch (index) {
+      case parallelIndex:
+        return PARALLEL_NAME;
       }
     }
     return "";
