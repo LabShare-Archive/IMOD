@@ -16,6 +16,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2003/11/10 07:40:06  rickg
+ * <p> Now throws exceptions for invalid parameters
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -37,7 +40,7 @@ public class ColoredStateText {
   public static final String rcsid =
     "$Id$";
 
-  private String[] labels;
+  private String[] labels = null;
   private Color[] colors;
   private int nItems = 0;
   private int currentSelected = -1;
@@ -51,7 +54,12 @@ public class ColoredStateText {
     this.labels = labels;
     this.colors = colors;
   }
-
+  
+  public ColoredStateText(Color[] colors) {
+  nItems = colors.length;
+  this.colors = colors;
+}
+  
   public void setSelected(int index) throws InvalidParameterException {
     if (index < 0 & index >= nItems) {
       throw new InvalidParameterException(
@@ -68,6 +76,9 @@ public class ColoredStateText {
   }
 
   public String getSelectedText() {
+    if (labels == null) {
+      return null;
+    }
     return labels[currentSelected];
   }
 
