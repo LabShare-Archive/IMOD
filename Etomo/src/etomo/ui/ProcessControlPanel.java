@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.DialogType;
 import etomo.util.InvalidParameterException;
@@ -21,6 +22,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2006/04/25 19:18:59  sueh
+ * <p> bug# 787 Changed the "name" member variable to "command".
+ * <p>
  * <p> Revision 3.3  2005/04/16 02:01:56  sueh
  * <p> Changed the completed color in the process buttons to a color which is
  * <p> easier to see when the button is toggled.
@@ -57,8 +61,7 @@ import etomo.util.InvalidParameterException;
  * <p> </p>
  */
 public class ProcessControlPanel {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   static Dimension dimPanelProcess = new Dimension(80, 130);
   static String[] textStates = { "Not Started", "In Progress", "Complete" };
@@ -66,8 +69,7 @@ public class ProcessControlPanel {
   static Color colorInProgress = new Color(0.75f, 0.0f, 0.75f);
   //static Color colorComplete = new Color(0.0f, 0.75f, 0.0f);
   static Color colorComplete = new Color(0, 153, 0);
-  static Color[] colorState =
-    { colorNotStarted, colorInProgress, colorComplete };
+  static Color[] colorState = { colorNotStarted, colorInProgress, colorComplete };
 
   private String command;
   private JPanel panelRoot = new JPanel();
@@ -78,12 +80,24 @@ public class ProcessControlPanel {
   private DialogType dialogType;
 
   ProcessControlPanel(DialogType dialogType) {
-    command = dialogType.toString();
+    boolean compactDisplay = EtomoDirector.getInstance().getUserConfiguration()
+        .getCompactDisplay();
+    if (compactDisplay) {
+      command = dialogType.getCompactLabel();
+    }
+    else {
+      command = dialogType.toString();
+    }
     this.dialogType = dialogType;
     panelRoot.setLayout(new BoxLayout(panelRoot, BoxLayout.Y_AXIS));
 
     try {
-      highlightState = new ColoredStateText(textStates, colorState);
+      if (compactDisplay) {
+        highlightState = new ColoredStateText(colorState);
+      }
+      else {
+        highlightState = new ColoredStateText(textStates, colorState);
+      }
       highlightState.setSelected(0);
     }
     catch (InvalidParameterException e) {
@@ -94,14 +108,14 @@ public class ProcessControlPanel {
 
     updateLabel();
     panelRoot.add(buttonRun);
-    buttonRun.setActionCommand(command);
+    buttonRun.setActionCommand(dialogType.toString());
     buttonRun.setName(dialogType.getStorableName());
   }
 
   String getCommand() {
-    return command;
+    return dialogType.toString();
   }
-  
+
   DialogType getDialogType() {
     return dialogType;
   }
@@ -145,12 +159,12 @@ public class ProcessControlPanel {
   }
 
   private void updateLabel() {
-    buttonRun.setText(
-      "<HTML><CENTER>"
-        + command
-        + "<br>"
-        + highlightState.getSelectedText()
-        + "</CENTER>");
+    String highlightText = highlightState.getSelectedText();
+    StringBuffer text = new StringBuffer("<HTML><CENTER>" + command);
+    if (highlightText != null) {
+      text.append("<br>" + highlightText);
+    }
+    buttonRun.setText(text.toString() + "</CENTER>");
     buttonRun.setForeground(highlightState.getSelectedColor());
   }
 
