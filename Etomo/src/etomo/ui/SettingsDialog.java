@@ -40,6 +40,7 @@ public class SettingsDialog extends JDialog {
   CheckBox cbNativeLAF = new CheckBox("Native look & feel");
   CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
   CheckBox cbAutoFit = new CheckBox("Auto-fit");
+  CheckBox cbCompactDisplay = new CheckBox("Compact Display");
 
   JPanel panelButtons = new JPanel();
   JButton buttonCancel = new JButton("Cancel");
@@ -74,6 +75,7 @@ public class SettingsDialog extends JDialog {
     //TEMP
     panelSettings.add(cbNativeLAF);
     panelSettings.add(cbAdvancedDialogs);
+    panelSettings.add(cbCompactDisplay);
     panelSettings.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the buttons and lay them out
@@ -100,6 +102,7 @@ public class SettingsDialog extends JDialog {
     cbAutoFit.setSelected(userConfig.isAutoFit());
     cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
+    cbCompactDisplay.setSelected(userConfig.getCompactDisplay());
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -137,6 +140,7 @@ public class SettingsDialog extends JDialog {
     userConfig.setAutoFit(cbAutoFit.isSelected());
     userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());
     userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
+    userConfig.setCompactDisplay(cbCompactDisplay.isSelected());
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
     userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
   }
