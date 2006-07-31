@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Rectangle2D;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -12,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2006/07/26 16:43:50  sueh
+ * <p> bug# 868 Moved functions associated with TomogramGenerationDialog from
+ * <p> ApplicationManager to TomogramGenerationExpert.
+ * <p>
  * <p> Revision 1.22  2006/05/19 19:52:42  sueh
  * <p> bug# 866 Opening tomo pos using a UIExpert class.
  * <p>
@@ -157,6 +161,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private String axisBTooltip = null;
   private UIHarness uiHarness = UIHarness.INSTANCE;
   private final ApplicationManager applicationManager;
+  //private int buttonWidth = 0;
+  //private int buttonHeight = 0;
 
   /**
    * @param appManager
@@ -379,10 +385,20 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private void setButton(JButton button, String label, String tooltip) {
     button.setText(label);
     button.setName(Utilities.convertLabelToName(label));
-    Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
+    /*Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
         .getStringBounds(AXIS_A_LABEL.toCharArray(), 0, label.length(),
             button.getGraphics());
-    button.setSize((int) buttonSize.getWidth(), (int) buttonSize.getHeight());
+    System.out.println("buttonSize="+buttonSize);
+    if (buttonWidth < buttonSize.getWidth()) {
+      buttonWidth = (int) buttonSize.getWidth();
+    }
+    if (buttonHeight <buttonSize.getHeight()) {
+      buttonHeight = (int) buttonSize.getHeight();
+    }
+    System.out.println("buttonWidth="+buttonWidth+",buttonHeight="+buttonHeight);
+    button.setSize(buttonWidth, buttonHeight);*/
+    button.setPreferredSize(UIParameters.INSTANCE.getAxisButtonDimension());
+    button.setMaximumSize(UIParameters.INSTANCE.getAxisButtonDimension());
     button.setToolTipText(tooltip);
   }
 
@@ -396,7 +412,12 @@ public class TomogramProcessPanel extends AxisProcessPanel {
         this);
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
-    axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel, BoxLayout.X_AXIS));
+    int layoutAxis = BoxLayout.X_AXIS;
+    boolean compactDisplay = EtomoDirector.getInstance().getUserConfiguration().getCompactDisplay();
+    if (compactDisplay) {
+      layoutAxis = BoxLayout.Y_AXIS;
+    }
+    axisButtonPanel.setLayout(new BoxLayout(axisButtonPanel, layoutAxis));
     if (axisID == AxisID.ONLY) {
       showAxisOnly();
     }
@@ -404,14 +425,16 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       axisButton1.addActionListener(axisButtonListener);
       axisButton2.addActionListener(axisButtonListener);
       axisButtonPanel.add(axisButton1);
+      axisButtonPanel.add(Box.createRigidArea(FixedDim.x0_y5));
       axisButtonPanel.add(Box.createRigidArea(FixedDim.x40_y0));
       axisButtonPanel.add(axisButton2);
+      axisButtonPanel.setAlignmentX(Container.CENTER_ALIGNMENT);
       panelProcessSelect.add(axisButtonPanel);
       if (axisID == AxisID.FIRST) {
         showAxisA();
       }
     }
-    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlPreProc.setButtonActionListener(buttonListener);
     procCtlPreProc.addMouseListener(mouseAdapter);
     procCtlPreProc.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
