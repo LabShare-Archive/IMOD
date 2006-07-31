@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2005/05/13 18:49:08  sueh
+ * <p> bug# 615 Temporarily setting autofit on all the time.
+ * <p>
  * <p> Revision 3.2  2004/11/19 23:40:52  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -52,10 +55,13 @@ import java.util.*;
 public class UserConfiguration implements Storable {
   public static final String rcsid =
     "$Id$";
+  
+  private static final String COMPACT_DISPLAY_KEY = "CompactDisplay";
 
   private String revisionNumber = "1.2";
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
+  private boolean compactDisplay = false;
   private int toolTipsInitialDelay = 2000;
   private int toolTipsDismissDelay = 20000;
   private int nMRUFiles = 4;
@@ -112,6 +118,9 @@ public class UserConfiguration implements Storable {
       group + "AdvancedDialogs",
       String.valueOf(advancedDialogs));
     props.setProperty(
+        group + COMPACT_DISPLAY_KEY,
+        String.valueOf(compactDisplay));
+    props.setProperty(
       group + "ToolTipsInitialDelay",
       String.valueOf(toolTipsInitialDelay));
     props.setProperty(
@@ -166,6 +175,10 @@ public class UserConfiguration implements Storable {
       Boolean
         .valueOf(props.getProperty(group + "AdvancedDialogs", "false"))
         .booleanValue();
+    compactDisplay =
+      Boolean
+        .valueOf(props.getProperty(group + COMPACT_DISPLAY_KEY, "false"))
+        .booleanValue();
     toolTipsInitialDelay =
       Integer.parseInt(
         props.getProperty(group + "ToolTipsInitialDelay", "1000"));
@@ -217,12 +230,20 @@ public class UserConfiguration implements Storable {
   public boolean getAdvancedDialogs() {
     return advancedDialogs;
   }
+  
+  public boolean getCompactDisplay() {
+    return compactDisplay;
+  }
 
   /**
    * Set the advanced dialog state
    */
   public void setAdvancedDialogs(boolean state) {
     advancedDialogs = state;
+  }
+  
+  public void setCompactDisplay(boolean state) {
+    compactDisplay = state;
   }
 
   /**
