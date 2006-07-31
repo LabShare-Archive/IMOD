@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2006/07/26 21:51:25  sueh
+ * <p> bug# 907 Added a default height.
+ * <p>
  * <p> Revision 3.8  2006/07/21 19:19:44  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
@@ -69,6 +72,7 @@ public final class UIParameters {
   private final Dimension dimSpinner = new Dimension();
   private final Dimension dimFileField = new Dimension();
   private final Dimension dimFileChooser = new Dimension();
+  private final Dimension dimAxisButton = new Dimension();
 
   private float fontSize = DEFAULT_FONT_SIZE;
   private float fontSizeAdjustment = 1;
@@ -109,6 +113,10 @@ public final class UIParameters {
 
   Dimension getFileChooserDimension() {
     return new Dimension(dimFileChooser);
+  }
+
+  Dimension getAxisButtonDimension() {
+    return new Dimension(dimAxisButton);
   }
 
   int getNumericWidth() {
@@ -153,6 +161,8 @@ public final class UIParameters {
     dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height
         * fontSizeAdjustment);
     dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 2 * height
+        * fontSizeAdjustment);
+    dimAxisButton.setSize(3.5 * height * fontSizeAdjustment, 1.25 * height
         * fontSizeAdjustment);
     dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height
         * fontSizeAdjustment);
