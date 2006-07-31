@@ -31,6 +31,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2006/07/19 20:12:47  sueh
+ * <p> bug# 902 Added updateDisplay() to change the label of btnSeed when seeding is
+ * <p> done.
+ * <p>
  * <p> Revision 3.32  2006/07/05 23:26:02  sueh
  * <p> Get fine alignment fix fiducials to set the right mode.
  * <p>
@@ -240,7 +244,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   public static final String rcsid = "$Id$";
 
   private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
-  private static final String SEEDING_DONE_LABEL = "View Fiducial Model";
+  private static final String SEEDING_DONE_LABEL = "View Seed Model";
   
   private JPanel pnlFiducialModel = new JPanel();
 
