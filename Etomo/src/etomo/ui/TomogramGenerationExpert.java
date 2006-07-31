@@ -686,7 +686,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   }
 
   void updateParallelProcess() {
-    System.out.println("updateParallelProcess");
     manager.setParallelDialog(axisID, dialog);
   }
 
@@ -1021,6 +1020,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/07/28 21:27:42  sueh
+ * <p> bug# 868 Moved complex button actions from dialog to expert
+ * <p>
  * <p> Revision 1.2  2006/07/28 20:14:12  sueh
  * <p> bug# 868 Adding sets and gets to dialog, moving functionality to expert
  * <p>
