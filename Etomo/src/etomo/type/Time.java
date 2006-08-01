@@ -119,7 +119,7 @@ public final class Time{
    * @return
    */
   public boolean almostEquals(Time anotherTime) {
-    return Math.abs(getTime() - anotherTime.getTime()) <= 1;
+    return Math.abs(getTime() - anotherTime.getTime()) <= 60;
   }
   
   /**
@@ -132,6 +132,9 @@ public final class Time{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/06/07 21:05:26  sueh
+ * <p> bug# 766 Fixed parseHoursMinutesAMPM
+ * <p>
  * <p> Revision 1.2  2006/06/07 20:38:36  sueh
  * <p> bug# 766 Added HH:MMAM time format.  Fix almostEquals to add up all the
  * <p> seconds before comparing.
