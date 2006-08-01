@@ -2669,6 +2669,7 @@ public final class ApplicationManager extends BaseManager {
 
   public UIExpert getUIExpert(DialogType dialogType, AxisID axisID) {
     if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      axisID = correctAxisID(axisID);
       if (axisID == AxisID.SECOND) {
         if (tomogramPositioningExpertB == null) {
           tomogramPositioningExpertB = new TomogramPositioningExpert(this,
@@ -2697,6 +2698,16 @@ public final class ApplicationManager extends BaseManager {
       return tomogramGenerationExpertA;
     }
     return null;
+  }
+  
+  private AxisID correctAxisID(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return axisID;
+    }
+    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+      return AxisID.FIRST;
+    }
+    return AxisID.ONLY;
   }
 
   /**
@@ -5230,6 +5241,11 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.254  2006/07/28 22:22:09  sueh
+ * <p> bug# 910 SaveTomogramCombinationDialog():  added call to
+ * <p> TomogramCombinationDialog.synchronizeFromCurrentTab(), so that anything the
+ * <p> user changes on the current tab will be remembered on exit.
+ * <p>
  * <p> Revision 3.253  2006/07/28 19:43:16  sueh
  * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
  * <p> usingParallelProcessing.
