@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.104  2006/07/19 20:10:39  sueh
+ * bug# 902 PostProcess(BackgroundProcess):  Setting seeding done when
+ * process is transfer fid.
+ *
  * Revision 3.103  2006/07/19 15:22:20  sueh
  * format
  *
@@ -847,6 +851,14 @@ public class ProcessManager extends BaseProcessManager {
     super(appMgr);
     appManager = appMgr;
   }
+  
+  public ProcessName getRunningProcessName(AxisID axisID) {
+    ProcessData processData = getSavedProcessData(axisID);
+    if (processData == null || !processData.isRunning()) {
+      return null;
+    }
+    return processData.getProcessName();
+  }
 
   /**
    * Run the copytomocoms script.  Don't need to save meta data because
@@ -1360,6 +1372,14 @@ public class ProcessManager extends BaseProcessManager {
         mtffilterProcessMonitor, axisID, processResultDisplay);
     return comScriptProcess.getName();
   }
+  
+  public void reconnectTilt(AxisID axisID) {
+    ReconnectProcess process = new ReconnectProcess(appManager, this, TiltProcessMonitor.getReconnectInstance(appManager,
+        axisID), getSavedProcessData(axisID), axisID);
+    Thread thread = new Thread(process);
+    thread.start();
+    mapAxisThread(process, axisID);
+  }
 
   /**
    * Run the appropriate tilt com file for the given axis ID
@@ -1759,6 +1779,9 @@ public class ProcessManager extends BaseProcessManager {
       throw new SystemProcessException(message);
     }
   }
+  
+  protected void postProcess(ReconnectProcess script) {
+  }
 
   protected void postProcess(ComScriptProcess script) {
     // Script specific post processing
@@ -1826,6 +1849,9 @@ public class ProcessManager extends BaseProcessManager {
         state.resetFidFileLastModified(axisID);
       }
     }
+  }
+  
+  protected void errorProcess(ReconnectProcess script) {
   }
 
   protected void errorProcess(ComScriptProcess script) {
