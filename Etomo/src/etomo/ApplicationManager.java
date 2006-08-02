@@ -489,6 +489,25 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.showProcessingPanel(metaData.getAxisType());
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
+    
+    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
+      reconnect(AxisID.FIRST);
+      reconnect(AxisID.SECOND);
+    }
+    else {
+      reconnect(AxisID.ONLY);
+    }
+  }
+
+  private void reconnect(AxisID axisID) {
+    ProcessName processName = processMgr.getRunningProcessName(axisID);
+    if (processName == null) {
+      return;
+    }
+    if (processName == ProcessName.TILT) {
+      processMgr.reconnectTilt(axisID);
+      setThreadName(processName.toString(), axisID);
+    }
   }
 
   /**
@@ -2669,7 +2688,6 @@ public final class ApplicationManager extends BaseManager {
 
   public UIExpert getUIExpert(DialogType dialogType, AxisID axisID) {
     if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
-      axisID = correctAxisID(axisID);
       if (axisID == AxisID.SECOND) {
         if (tomogramPositioningExpertB == null) {
           tomogramPositioningExpertB = new TomogramPositioningExpert(this,
@@ -2698,16 +2716,6 @@ public final class ApplicationManager extends BaseManager {
       return tomogramGenerationExpertA;
     }
     return null;
-  }
-  
-  private AxisID correctAxisID(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return axisID;
-    }
-    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      return AxisID.FIRST;
-    }
-    return AxisID.ONLY;
   }
 
   /**
@@ -2925,7 +2933,7 @@ public final class ApplicationManager extends BaseManager {
     ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
         axisID)).setTomopitchOutput();
   }
-  
+
   public void setEnabledTiltParameters(AxisID axisID) {
     ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
         axisID)).setEnabledTiltParameters();
@@ -3115,7 +3123,7 @@ public final class ApplicationManager extends BaseManager {
     setThreadName(threadName, axisID);
     return null;
   }
-  
+
   public boolean isAxisBusy(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     return processMgr.inUse(axisID, processResultDisplay);
@@ -3681,7 +3689,8 @@ public final class ApplicationManager extends BaseManager {
    */
   public void backwardsCompatibilityCombineScriptsExist() {
     int combineScriptsCreatedValue = state.getCombineScriptsCreated().getInt();
-    if (combineScriptsCreatedValue == EtomoState.FALSE_VALUE || combineScriptsCreatedValue == EtomoState.TRUE_VALUE) {
+    if (combineScriptsCreatedValue == EtomoState.FALSE_VALUE
+        || combineScriptsCreatedValue == EtomoState.TRUE_VALUE) {
       return;
     }
     File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
@@ -5241,6 +5250,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.255  2006/08/01 20:05:47  sueh
+ * <p> bug# 769 Making sure that the axis for a single axis dialog is ONLY.
+ * <p>
  * <p> Revision 3.254  2006/07/28 22:22:09  sueh
  * <p> bug# 910 SaveTomogramCombinationDialog():  added call to
  * <p> TomogramCombinationDialog.synchronizeFromCurrentTab(), so that anything the
