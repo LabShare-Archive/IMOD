@@ -119,6 +119,14 @@ public final class DatasetFiles {
 
   //Other dataset files
 
+  public static File getLogFile(BaseManager manager, AxisID axisID,
+      ProcessName processName) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return new File(manager.getPropertyUserDir(), processName.toString()
+        + axisID.getExtension() + ".log");
+  }
+
   public static File getDatasetFile(BaseManager manager, AxisID axisID,
       String filename) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -279,6 +287,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2006/07/21 22:27:57  sueh
+ * <p> bug# 901 Removed test
+ * <p>
  * <p> Revision 1.19  2006/07/21 22:24:19  sueh
  * <p> bug# 901 Added getCalibrationDir and getDistortionDir
  * <p>
