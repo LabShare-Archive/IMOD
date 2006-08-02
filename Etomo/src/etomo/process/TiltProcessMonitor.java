@@ -25,6 +25,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2005/10/21 16:53:18  sueh
+ * <p> bug# 690 Fixed calcFileSize():  X should come from columns and y
+ * <p> should come from rows.  Getting image binned.  Dividing tiltPara.width
+ * <p> and/or slice range by image binned.  Dividing Z by image binned.
+ * <p>
  * <p> Revision 3.10  2005/07/29 00:53:02  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -96,6 +101,12 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
   public TiltProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
   }
+  
+  public static TiltProcessMonitor getReconnectInstance(ApplicationManager appMgr, AxisID id) {
+    TiltProcessMonitor instance = new TiltProcessMonitor(appMgr, id);
+    instance.setReconnect(true);
+    return instance;
+  }
 
   /* (non-Javadoc)
    * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
@@ -112,7 +123,6 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
       applicationManager.getComScriptManager();
     comScriptManager.loadTilt(axisID);
     TiltParam tiltParam = comScriptManager.getTiltParam(axisID);
-
     // Get the header from the aligned stack to use as default nX and
     // nY parameters
     String alignedFilename =
