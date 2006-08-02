@@ -42,9 +42,18 @@ public final class ParallelProcessManager extends BaseProcessManager {
   
   protected void postProcess(InteractiveSystemProgram program) {
   }
+  
+  protected void errorProcess(ReconnectProcess script) {
+  }
+
+  protected void postProcess(ReconnectProcess script) {
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/06/05 16:27:25  sueh
+* <p> bug# 766 Added manager to the base class.
+* <p>
 * <p> Revision 1.1  2006/03/20 17:52:03  sueh
 * <p> bug# 835 A process manager for ParallelManager.
 * <p> </p>

@@ -30,6 +30,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.19  2006/06/05 16:26:15  sueh
+ * <p> bug# 766 Added manager to the base class.  Passing the process name to the
+ * <p> processes.
+ * <p>
  * <p> Revision 1.18  2006/05/11 19:54:31  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -383,5 +387,11 @@ public class JoinProcessManager extends BaseProcessManager {
 
   protected BaseManager getManager() {
     return joinManager;
+  }
+
+  protected void errorProcess(ReconnectProcess script) {
+  }
+
+  protected void postProcess(ReconnectProcess script) {
   }
 }
