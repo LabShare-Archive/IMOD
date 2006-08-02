@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2006/03/27 19:37:17  sueh
+ * <p> bug# 836 Removed print statements
+ * <p>
  * <p> Revision 3.18  2006/03/23 18:17:56  sueh
  * <p> bug# 836 Added temporary diagnostics
  * <p>
@@ -131,6 +134,9 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   File watchedFile;
   FileChannel watchedChannel;
   private ProcessEndState endState = null;
+  private boolean reconnect = false;
+  private boolean stop = false;
+  private boolean running = false;
 
   int nKBytes;
 
@@ -150,11 +156,12 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   abstract void calcFileSize() throws InvalidParameterException, IOException;
 
   public void run() {
+    running = true;
     try {
       // Reset the progressBar 
       applicationManager.getMainPanel().setProgressBar(" ", 1, axisID);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
-          axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0,
+          reconnect ? "Reconnecting..." : "Starting...", axisID);
 
       //  Calculate the expected file size in bytes, initialize the progress bar
       //  and set the File object.
@@ -183,6 +190,19 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     setProcessEndState(ProcessEndState.DONE);
     // Periodically update the process bar by checking the size of the file
     updateProgressBar();
+    running = false;
+  }
+  
+  void stop() {
+    stop = true;
+  }
+  
+  boolean isRunning() {
+    return running;
+  }
+
+  protected void setReconnect(boolean reconnect) {
+    this.reconnect = reconnect;
   }
 
   /**
@@ -249,7 +269,7 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   void updateProgressBar() {
     boolean fileWriting = true;
 
-    while (fileWriting) {
+    while (fileWriting && !stop) {
       int currentLength = 0;
       long size = 0;
       try {
