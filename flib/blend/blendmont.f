@@ -90,7 +90,7 @@ c
       real*4 gl(2,3,limsect),h(2,3,limnpc),fastf(2,3),hit(2,3),fstmp(2,3)
 c       the former rotrans structures
       real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),rnet(6)
-      integer*4 modepow(0:15)/8,15,8,0,0,0,0,0,0,9,10,11,12,13,14,15/
+      integer*4 modepow(0:15)/8,15,8,0,0,0,15,0,0,9,10,11,12,13,14,15/
       integer*4  minxwant, maxxwant
       integer*4  minywant, maxywant
 c       
@@ -260,7 +260,7 @@ c
         read(5,*)modeout
       endif
       if(modeout.lt.0.or.modeout.gt.15.or.
-     &    (modeout.ge.3.and.modeout.le.8))call errorexit(
+     &    (modeout.ge.3.and.modeout.le.8.and.modeout.ne.6))call errorexit(
      &    'bad mode value')
       call ialmod(2,modeout)
 c       
@@ -2563,6 +2563,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.27  2006/02/27 19:48:04  mast
+c       Fixed fill mean and output mean computation for very large areas
+c
 c       Revision 3.26  2006/02/27 15:20:20  mast
 c       g77 wanted find_best_shift called with an equivalenced real*8 array
 c
