@@ -68,7 +68,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       catch (InterruptedException e) {
       }
     }
-    messages = ProcessMessages.getInstance();
+    messages = ProcessMessages.getInstance("Reconstruction of", "slices complete.");
     ProcessName processName = processData.getProcessName();
     try {
       messages.addProcessOutput(DatasetFiles.getLogFile(manager, axisID,
@@ -78,7 +78,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       e.printStackTrace();
     }
     int exitValue = 0;
-    if (messages.isError()) {
+    if (messages.isError() || !messages.isSuccess()) {
       exitValue = 1;
     }
     processManager.msgReconnectDone(this, exitValue);
@@ -195,5 +195,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/08/02 22:26:44  sueh
+ * <p> bug# 769 Attaches to an existing process on entering etomo.  Controls the
+ * <p> monitor and checks processData.isRunning().
+ * <p> </p>
  */
