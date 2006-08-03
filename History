@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/3/06: Fixed Blendmontt to take mode 6 files.
+
 7/31/06: Created a compact version of Etomo.
 
 7/26/05: Fixed cumulative correlation in Tiltxcorr, which failed on Windows
