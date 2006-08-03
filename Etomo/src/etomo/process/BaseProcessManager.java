@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2006/08/02 22:15:39  sueh
+ * <p> bug# 769 Added msgReconnectDone()
+ * <p>
  * <p> Revision 1.45  2006/07/27 19:37:41  sueh
  * <p> bug# 908 MsgComScriptDone():  removing unnecessary print
  * <p>
@@ -318,9 +321,9 @@ public abstract class BaseProcessManager {
   protected abstract void postProcess(InteractiveSystemProgram program);
 
   protected abstract void errorProcess(ComScriptProcess process);
-  
+
   protected abstract void errorProcess(ReconnectProcess script);
-  
+
   protected abstract void postProcess(ReconnectProcess script);
 
   public BaseProcessManager(BaseManager manager) {
@@ -1004,25 +1007,22 @@ public abstract class BaseProcessManager {
         script.getAxisID(), script.getProcessEndState(), exitValue != 0, script
             .getProcessResultDisplay());
   }
-  
+
   public void msgReconnectDone(ReconnectProcess script, int exitValue) {
     String name = script.getProcessData().getProcessName().toString();
-    System.err
-        .println("msgReconnectDone:processName=" + name);
+    System.err.println("msgReconnectDone:processName=" + name);
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       ProcessMessages combinedMessages = ProcessMessages.getInstance();
       //    Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: "
-            + name);
+        combinedMessages.addError("<html>Terminated: " + name);
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/*Error*/
         int j = 0;
-        combinedMessages.addError("<html>Com script failed: "
-            + name);
+        combinedMessages.addError("<html>Com script failed: " + name);
         combinedMessages.addError("\n<html><U>Log file errors:</U>");
         combinedMessages.addError(messages);
         combinedMessages.addError("\n<html><U>Standard error output:</U>");
@@ -1030,8 +1030,8 @@ public abstract class BaseProcessManager {
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
-        uiHarness.openErrorMessageDialog(combinedMessages, name
-            + " terminated", script.getAxisID());
+        uiHarness.openErrorMessageDialog(combinedMessages,
+            name + " terminated", script.getAxisID());
         //make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
@@ -1042,8 +1042,8 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = script.getProcessMessages();/*Warning*/
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + name);
-        uiHarness.openWarningMessageDialog(messages, name
-            + " warnings", script.getAxisID());
+        uiHarness.openWarningMessageDialog(messages, name + " warnings", script
+            .getAxisID());
       }
     }
     manager.saveIntermediateParamFile(script.getAxisID());
@@ -1063,13 +1063,12 @@ public abstract class BaseProcessManager {
       }
       threadAxisB = null;
     }
-
     //  Inform the app manager that this process is complete
-    manager.processDone(name, exitValue, script.getProcessData().getProcessName(),
-        script.getAxisID(), script.getProcessEndState(), exitValue != 0, script
-            .getProcessResultDisplay());
+    manager.processDone(name, exitValue, script.getProcessData()
+        .getProcessName(), script.getAxisID(), script.getProcessEndState(),
+        script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0,
+        script.getProcessResultDisplay());
   }
-
 
   /**
    * Start a managed background process
@@ -1265,16 +1264,16 @@ public abstract class BaseProcessManager {
     //  Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
-      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
-          .getAxisID(), process.isForceNextProcess(), process
-          .getProcessEndState(), exitValue != 0 || errorFound, process
-          .getProcessResultDisplay());
+      manager.processDone(process.getName(), exitValue, process
+          .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
+          process.getProcessEndState(), exitValue != 0 || errorFound, process
+              .getProcessResultDisplay());
     }
     else {
-      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
-          .getAxisID(), process.isForceNextProcess(), process
-          .getProcessEndState(), process.getStatusString(), exitValue != 0
-          || errorFound, process.getProcessResultDisplay());
+      manager.processDone(process.getName(), exitValue, process
+          .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
+          process.getProcessEndState(), process.getStatusString(),
+          exitValue != 0 || errorFound, process.getProcessResultDisplay());
     }
   }
 
