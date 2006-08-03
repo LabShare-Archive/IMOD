@@ -136,6 +136,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       processchunks(manager, dialog, processResultDisplay);
     }
   }
+  
+  public void reconnectTilt(ProcessName processName) {
+    ProcessResultDisplay display = manager.getProcessResultDisplayFactory(axisID).getGenerateTomogram();
+    sendMsgProcessStarting(display);
+    manager.reconnectTilt(axisID, processName, display);
+  }
 
   public void setEnabledTiltParameters() {
     if (dialog == null) {
@@ -974,12 +980,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         .getInverseRolloffRadiusSigmaString());
     enableUseFilter();
   }
-  
+
   void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(TiltParam.COMMAND_NAME);
   }
-  
+
   void trialAction(ProcessResultDisplay trial) {
     if (dialog == null) {
       return;
@@ -1005,7 +1011,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       trialTilt(trial);
     }
   }
-  
+
   void tiltAction(ProcessResultDisplay tilt) {
     if (dialog == null) {
       return;
@@ -1020,6 +1026,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/07/31 21:46:10  sueh
+ * <p> Removed unnecessary print
+ * <p>
  * <p> Revision 1.3  2006/07/28 21:27:42  sueh
  * <p> bug# 868 Moved complex button actions from dialog to expert
  * <p>
