@@ -566,17 +566,17 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState,
-      boolean error, ProcessResultDisplay processResultDisplay) {
+      boolean failed, ProcessResultDisplay processResultDisplay) {
     processDone(threadName, exitValue, processName, axisID, false, endState,
-        null, error, processResultDisplay);
+        null, failed, processResultDisplay);
   }
 
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
-      ProcessEndState endState, boolean error,
+      ProcessEndState endState, boolean failed,
       ProcessResultDisplay processResultDisplay) {
     processDone(threadName, exitValue, processName, axisID, forceNextProcess,
-        endState, null, error, processResultDisplay);
+        endState, null, failed, processResultDisplay);
   }
 
   /**
@@ -587,7 +587,7 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
-      ProcessEndState endState, String statusString, boolean error,
+      ProcessEndState endState, String statusString, boolean failed,
       ProcessResultDisplay processResultDisplay) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
@@ -615,7 +615,7 @@ public abstract class BaseManager {
       startNextProcess(axisID, processResultDisplay);
     }
     else {
-      if (error) {
+      if (failed) {
         sendMsgProcessFailed(processResultDisplay);
       }
       else {
@@ -1009,6 +1009,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.65  2006/07/28 19:43:31  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing.
+ * <p>
  * <p> Revision 1.64  2006/07/26 16:31:46  sueh
  * <p> bug# 868 Added processchunks to ReconUIExpert.  Changed
  * <p> nextProcessDialogType to processDialogType.  Moved currentDialogType from
