@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.105  2006/08/02 22:25:06  sueh
+ * bug# 769 Added empty functions errorProcess and postProcess.  Added
+ * getRunningProcessName() and reconnect().
+ *
  * Revision 3.104  2006/07/19 20:10:39  sueh
  * bug# 902 PostProcess(BackgroundProcess):  Setting seeding done when
  * process is transfer fid.
@@ -1373,9 +1377,10 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
   
-  public void reconnectTilt(AxisID axisID) {
+  public void reconnectTilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
     ReconnectProcess process = new ReconnectProcess(appManager, this, TiltProcessMonitor.getReconnectInstance(appManager,
         axisID), getSavedProcessData(axisID), axisID);
+    process.setProcessResultDisplay(processResultDisplay);
     Thread thread = new Thread(process);
     thread.start();
     mapAxisThread(process, axisID);
