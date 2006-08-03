@@ -46,22 +46,32 @@ public final class ProcessMessages {
   private Vector warningList = null;
   private Vector errorList = null;
   private Vector chunkErrorList = null;
+  private String successTag1 = null;
+  private String successTag2 = null;
+  private boolean success = false;
 
   static ProcessMessages getInstance() {
-    return new ProcessMessages(false, false);
+    return new ProcessMessages(false, false, null, null);
+  }
+
+  static ProcessMessages getInstance(String successTag1, String successTag2) {
+    return new ProcessMessages(false, false, successTag1, successTag2);
   }
 
   final static ProcessMessages getMultiLineInstance() {
-    return new ProcessMessages(true, false);
+    return new ProcessMessages(true, false, null, null);
   }
 
   final static ProcessMessages getInstanceForParallelProcessing() {
-    return new ProcessMessages(false, true);
+    return new ProcessMessages(false, true, null, null);
   }
 
-  private ProcessMessages(boolean multiLineMessages, boolean chunks) {
+  private ProcessMessages(boolean multiLineMessages, boolean chunks,
+      String successTag1, String successTag2) {
     this.multiLineMessages = multiLineMessages;
     this.chunks = chunks;
+    this.successTag1 = successTag1;
+    this.successTag2 = successTag2;
   }
 
   /**
@@ -91,7 +101,7 @@ public final class ProcessMessages {
       parse();
     }
   }
-  
+
   /**
    * Set processOutput to bufferedReader and parse it.
    * Function must be synchronized because it relies on member variables to
@@ -135,8 +145,7 @@ public final class ProcessMessages {
         && processMessages.warningList.size() > 0) {
       getWarningList().addAll(processMessages.warningList);
     }
-    if (processMessages.infoList != null
-        && processMessages.infoList.size() > 0) {
+    if (processMessages.infoList != null && processMessages.infoList.size() > 0) {
       getInfoList().addAll(processMessages.infoList);
     }
     if (processMessages.chunkErrorList != null
@@ -148,7 +157,7 @@ public final class ProcessMessages {
   synchronized final void addError(String error) {
     getErrorList().add(error);
   }
-  
+
   synchronized final void addError() {
     getErrorList().add("");
   }
@@ -232,6 +241,10 @@ public final class ProcessMessages {
   boolean isError() {
     return errorList != null && errorList.size() > 0;
   }
+  
+  boolean isSuccess() {
+    return success;
+  }
 
   public void printError() {
     if (errorList == null) {
@@ -260,22 +273,89 @@ public final class ProcessMessages {
     }
   }
 
+  /**
+   * Look for a message or a success tag.  Return when something is found or
+   * when there is nothing left to look for.
+   */
   private void parse() {
-    parsePipWarning();
+    if (parsePipWarning()) {
+      return;
+    }
     if (chunks) {
       if (multiLineMessages) {
-        parseMultiLineChunkError();
+        if (parseMultiLineChunkError()) {
+          return;
+        }
       }
       else {
-        parseSingleLineChunkError();
+        if (parseSingleLineChunkError()) {
+          return;
+        }
       }
     }
     if (multiLineMessages) {
-      parseMultiLineMessage();
+      if (parseMultiLineMessage()) {
+        return;
+      }
     }
     else {
-      parseSingleLineMessage();
+      if (parseSingleLineMessage()) {
+        return;
+      }
     }
+    //No message has been found on this line, so check it for success tags
+    if (parseSuccessLine()) {
+      return;
+    }
+    //parse functions go to the next line only when they find something
+    //if all parse functions failed, call nextLine()
+    nextLine();
+  }
+
+  /**
+   * This function should be used to check every line that doesn't contain a
+   * message.
+   * Looks for success tags in the line.  Sets success = true if all set tags
+   * are found.  Tags are checked in order.  Tag 1 must come first and the tags
+   * must not overlap.
+   * @return true if success found
+   */
+  private boolean parseSuccessLine() {
+    if (line == null || (successTag1 == null && successTag2 == null)) {
+      return false;
+    }
+    int tag1Index = 0;
+    int tag1Size = 0;
+    boolean tag1 = false;
+    //try to match tag 1
+    if (successTag1 != null) {
+      tag1Index = line.indexOf(successTag1);
+      if (tag1Index == -1) {
+        return false;
+      }
+      //tag 1 found, set variables
+      tag1Size = successTag1.length();
+      tag1 = true;
+    }
+    //check for tag 2
+    if (successTag2 == null) {
+      //tag 2 wasn't set
+      if (tag1) {
+        //tag 1 was found - success
+        nextLine();
+        success = true;
+        return true;
+      }
+      return false;
+    }
+    //match tag 2
+    int tag2Index = line.substring(tag1Index + tag1Size).indexOf(successTag2);
+    if (tag2Index == -1) {
+      return false;
+    }
+    nextLine();
+    success = true;
+    return true;
   }
 
   /**
@@ -283,16 +363,17 @@ public final class ProcessMessages {
    * Pip warnings are multi-line and have a start and end tag.  They may start
    * and end in the middle of a line.
    * Should be run before parseMultiLineMessage or parseSingleListMessage.
-   * When it is done, line will be pointing to an unparsed string.
+   * If a pip warning is found, line will be set to a new line.
+   * @return true if pip warning is found
    */
-  private void parsePipWarning() {
+  private boolean parsePipWarning() {
     if (line == null) {
-      return;
+      return false;
     }
     //look for a pip warning
     int pipWarningIndex = -1;
     if ((pipWarningIndex = line.indexOf(PIP_WARNING_TAG)) == -1) {
-      return;
+      return false;
     }
     //create message starting at pip warning tag.
     StringBuffer pipWarning = null;
@@ -312,7 +393,7 @@ public final class ProcessMessages {
         //remove the message from the line so the line can continue to be parsed
         line = line.substring(pipWarningEndIndex);
       }
-      return;
+      return true;
     }
     boolean moreLines = nextLine();
     while (moreLines) {
@@ -337,34 +418,35 @@ public final class ProcessMessages {
           nextLine();
         }
         getInfoList().add(pipWarning.toString());
-        return;
+        return true;
       }
     }
     //no more lines - add pip warning to infoList
     getInfoList().add(pipWarning.toString());
+    return true;
   }
 
   /**
    * Looks for single line errors, warnings, and info messages.
    * Messages have start tags and may start in the middle of the line.
-   * When it is done, line will be pointing to an unparsed string.
+   * If a message is found, line will be set to a new line.
+   * @return true if a message is found
    */
-  private final void parseSingleLineMessage() {
+  private boolean parseSingleLineMessage() {
     if (line == null) {
-      return;
+      return false;
     }
     //look for a message
     int errorIndex = line.indexOf(ERROR_TAG);
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
     int infoIndex = line.indexOf(INFO_TAG);
-    boolean error = errorIndex != -1 && (!chunks || chunkErrorIndex == -1);
+    //error is true if ERROR: found, but not CHUNK ERROR:
+    boolean error = errorIndex != -1 && !(chunks && chunkErrorIndex != -1);
     boolean warning = warningIndex != -1;
     boolean info = infoIndex != -1;
     if (!error && !warning && !info) {
-      //no message - go to next line
-      nextLine();
-      return;
+      return false;
     }
     //message found - add to list
     if (error) {
@@ -377,55 +459,55 @@ public final class ProcessMessages {
       addElement(getInfoList(), line, infoIndex);
     }
     nextLine();
-    return;
+    return true;
   }
-  
+
   /**
    * Looks for single line chunk errors.
    * Messages have start tags and may start in the middle of the line.
-   * When it is done, line will be pointing to an unparsed string.
+   * If a chunk error is found, line will be set to a new line.
+   * @return true if a chunk error is found
    */
-  private final void parseSingleLineChunkError() {
+  private boolean parseSingleLineChunkError() {
     if (line == null) {
-      return;
+      return false;
     }
     //look for a message
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     boolean chunkError = chunkErrorIndex != -1;
     if (!chunkError) {
-      //no message - go to next line
-      nextLine();
-      return;
+      return false;
     }
     //message found - add to list
     if (chunkError) {
       addElement(getChunkErrorList(), line, chunkErrorIndex);
     }
     nextLine();
-    return;
+    return true;
   }
 
   /**
    * Looks for multi-line errors, warnings, and info messages.
    * Messages have start tags and may start in the middle of the line.
    * Messages end with an empty line.
-   * When it is done, line will be pointing to an unparsed string.
+   * If a message is found, line will be set to a new line.
+   * @return true if a message is found
    */
-  private final void parseMultiLineMessage() {
+  private boolean parseMultiLineMessage() {
     if (line == null) {
-      return;
+      return false;
     }
     //look for a message
     int errorIndex = line.indexOf(ERROR_TAG);
+    int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
     int infoIndex = line.indexOf(INFO_TAG);
-    boolean error = errorIndex != -1;
+    //error is true if ERROR: found, but not CHUNK ERROR:
+    boolean error = errorIndex != -1 && !(chunks && chunkErrorIndex != -1);
     boolean warning = warningIndex != -1;
     boolean info = infoIndex != -1;
     if (!error && !warning && !info) {
-      //no message - go to next line
-      nextLine();
-      return;
+      return false;
     }
     //set the index of the message tag
     int messageIndex = -1;
@@ -461,7 +543,7 @@ public final class ProcessMessages {
           getInfoList().add(message);
         }
         nextLine();
-        return;
+        return true;
       }
       else {//add current line to the message
         messageBuffer.append(" " + line);
@@ -479,25 +561,25 @@ public final class ProcessMessages {
     else if (info) {
       getInfoList().add(message);
     }
+    return true;
   }
-  
+
   /**
    * Looks for multi-line errors.
    * Messages have start tags and may start in the middle of the line.
    * Messages end with an empty line.
-   * When it is done, line will be pointing to an unparsed string.
+   * If a chunk error is found, line will be set to a new line.
+   * @return true if a chunk error is found
    */
-  private final void parseMultiLineChunkError() {
+  private boolean parseMultiLineChunkError() {
     if (line == null) {
-      return;
+      return false;
     }
     //look for a message
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     boolean chunkError = chunkErrorIndex != -1;
     if (!chunkError) {
-      //no message - go to next line
-      nextLine();
-      return;
+      return false;
     }
     //set the index of the message tag
     int messageIndex = -1;
@@ -521,7 +603,7 @@ public final class ProcessMessages {
           getChunkErrorList().add(message);
         }
         nextLine();
-        return;
+        return true;
       }
       else {//add current line to the message
         messageBuffer.append(" " + line);
@@ -533,8 +615,8 @@ public final class ProcessMessages {
     if (chunkError) {
       getChunkErrorList().add(message);
     }
+    return true;
   }
-
 
   /**
    * Figure out which type of process output is being read and call the
@@ -577,7 +659,7 @@ public final class ProcessMessages {
     line = outputBufferManager.get(index).trim();
     return true;
   }
-  
+
   /**
    * Increment index and place the entry at index in processOutputStringArray into line.
    * Trim line.
@@ -679,27 +761,27 @@ public final class ProcessMessages {
     }
     return chunkErrorList;
   }
-  
+
   public String toString() {
     StringBuffer buffer = new StringBuffer();
     if (infoList != null) {
-      for (int i = 0;i <infoList.size();i++) {
-        buffer.append(infoList.get(i)+"\n");
+      for (int i = 0; i < infoList.size(); i++) {
+        buffer.append(infoList.get(i) + "\n");
       }
     }
     if (warningList != null) {
-      for (int i = 0;i <warningList.size();i++) {
-        buffer.append(warningList.get(i)+"\n");
+      for (int i = 0; i < warningList.size(); i++) {
+        buffer.append(warningList.get(i) + "\n");
       }
     }
     if (errorList != null) {
-      for (int i = 0;i <errorList.size();i++) {
-        buffer.append(errorList.get(i)+"\n");
+      for (int i = 0; i < errorList.size(); i++) {
+        buffer.append(errorList.get(i) + "\n");
       }
     }
     if (chunkErrorList != null) {
-      for (int i = 0;i <chunkErrorList.size();i++) {
-        buffer.append(chunkErrorList.get(i)+"\n");
+      for (int i = 0; i < chunkErrorList.size(); i++) {
+        buffer.append(chunkErrorList.get(i) + "\n");
       }
     }
     return buffer.toString();
@@ -707,6 +789,9 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/06/14 00:09:03  sueh
+ * <p> bug# 785 Not saving to error list when saving to chunk error list
+ * <p>
  * <p> Revision 1.5  2006/05/22 22:50:34  sueh
  * <p> bug# 577 Added toString().
  * <p>
