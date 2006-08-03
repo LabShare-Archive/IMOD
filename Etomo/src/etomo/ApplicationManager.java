@@ -489,7 +489,7 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.showProcessingPanel(metaData.getAxisType());
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
-    
+
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       reconnect(AxisID.FIRST);
       reconnect(AxisID.SECOND);
@@ -505,9 +505,14 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     if (processName == ProcessName.TILT) {
-      processMgr.reconnectTilt(axisID);
-      setThreadName(processName.toString(), axisID);
+      ((TomogramGenerationExpert) getUIExpert(
+          DialogType.TOMOGRAM_GENERATION, axisID)).reconnectTilt(processName);
     }
+  }
+  
+  public void reconnectTilt(AxisID axisID, ProcessName processName, ProcessResultDisplay display) {
+    processMgr.reconnectTilt(axisID, display);
+    setThreadName(processName.toString(), axisID);
   }
 
   /**
@@ -5250,6 +5255,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.256  2006/08/02 22:01:11  sueh
+ * <p> bug# 769 Added reconnect()
+ * <p>
  * <p> Revision 3.255  2006/08/01 20:05:47  sueh
  * <p> bug# 769 Making sure that the axis for a single axis dialog is ONLY.
  * <p>
