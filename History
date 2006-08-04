@@ -1,8 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/4/06: Made clip stat a bit more efficient for mode 1 files and output
+location of minimum.
+
 8/3/06: Etomo can now reconnect to a currently running tilt upon entry.
 
-8/3/06: Fixed Blendmontt to take mode 6 files.
+8/3/06: Fixed Blendmont to take mode 6 files.
 
 7/31/06: Created a compact version of Etomo.
 
