@@ -51,6 +51,8 @@
 #define MRC_SCALE_LOG     3
 #define MRC_SCALE_BKG     4
 
+/* DOC_CODE MRC data modes */
+/* The modes defined for MRC files in IMOD */
 #define MRC_MODE_BYTE          0
 #define MRC_MODE_SHORT         1
 #define MRC_MODE_FLOAT         2
@@ -58,7 +60,7 @@
 #define MRC_MODE_COMPLEX_FLOAT 4
 #define MRC_MODE_USHORT        6
 #define MRC_MODE_RGB           16
-#define MRC_MODE_COMPRESS_RGB  17
+/* END_CODE */
 
 #define MRC_WINDOW_DATASIZE 1
 #define MRC_WINDOW_FULL     2
@@ -90,8 +92,8 @@ typedef struct  /*complex short number*/
 
 } ComplexShort;
 
-
-
+/* DOC_CODE MrcHeader structure */
+/* The header structure for MRC files */
 typedef struct MRCheader
 {
   b3dInt32   nx;         /*  # of Columns                  */
@@ -197,13 +199,17 @@ typedef struct MRCheader
   char *filedesc;
   char *userData;
 } MrcHeader;
+/* END_CODE */
 
 
 /* to get from index to model coords -> scale -> subtract org -> rotate */
 /* rotate by current tilt angles ? */
 
-/* Used for loading a subsection of a 3-D data file. */
-struct LoadInfo
+/* DOC_CODE IloadInfo structure */
+/*
+ * Used to control loading a subsection of a 3-D data file. 
+ */
+typedef struct LoadInfo
 {
 
   /* Sub area to load. */
@@ -214,34 +220,29 @@ struct LoadInfo
   int zmin;
   int zmax;
   
-  int zinc;      /* read only every 'zinc' section, future */
-     
   int ramp;      /* Contrast ramp type. */
   int scale;
   int black;     /* Change contrast values. */
   int white;
   
-  int imaginary; /* For complex data. if true view i data, 
-                    else real data.  */
-  
   int axis;      /* 1=x, 2=y, 3=z , 0 = default */
   
-  float slope;
+  float slope;         /* Scale input by value * slope + offset */
   float offset;
-  float smin,smax; /* Scale to min and max values of input */
-  int contig;      /* Load idata in contigous memory */
+  float smin,smax;     /* Scale range smin-smax in input to 0-255 */
+  int contig;          /* Load idata in contigous memory if possible */
   
-  int outmin, outmax; /* clamp values to outmin and outmax after scaling. */
-  int mirrorFFT;   /* Return mirrored FFT when scaling to bytes */
+  int outmin, outmax;  /* clamp values to outmin and outmax after scaling. */
+  int mirrorFFT;       /* Return mirrored FFT when scaling to bytes */
   
   int   plist;         /* Size of piece list.         */
   float opx, opy, opz; /* origin of pieces.           */
   float px, py, pz;    /* size of final pieced image. */
-  int   pdz; 
-  /* number of zsections that have data. */
-  int *pcoords;      /* The piece list.             */
+  int   pdz;           /* number of zsections that have data. */
+  int *pcoords;        /* The piece list.             */
 
-};
+} IloadInfo;
+/* END_CODE */
 
 
 struct TiltInfo
@@ -361,6 +362,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 /*
     $Log$
+    Revision 3.14  2005/11/11 22:15:37  mast
+    Changes for unsigned file mode
+
     Revision 3.13  2005/05/09 15:15:38  mast
     Removed mrc_read_image
 
