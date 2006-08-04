@@ -1281,15 +1281,16 @@ int clip_get_stat3d(Istack *v,
 
 int grap_stat(MrcHeader *hin, ClipOptions *opt)
 {
-  int i, j, k;
-  int xmax, ymax;
+  int i, j, k, iz;
+  int xmax, ymax, xmin, ymin, zmin, zmax;
   Istack *v;
   Islice *slice;
   float min, max, m, ptnum;
-  double mean, std, sumsq, vmean;
+  double mean, std, sumsq, vmean, vsumsq;
   float x,y;
   float vmin, vmax;
   FILE *fout;
+  b3dInt16 *sdata;
 
   /*     if (opt->dim == 3){
          v = grap_volume_read(hin, opt);
@@ -1301,17 +1302,18 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
 
   /* printf("headersize %d\n", hin->headerSize); */
 
-  printf("slice  |   min   |    max  |(      x,      y)|   mean    |   std dev.\n");
-  printf("-------|---------|---------------------------|-----------|------------\n");
+  printf("slice|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  std dev.\n");
+  printf("-----|---------|-----------|---------|-----------------|-----------|----------\n");
      
   set_input_options(opt, hin);
 
-  for(k = 0; k < opt->nofsecs; k++){
-    if ((opt->secs[k] < 0) || (opt->secs[k] >= hin->nz)){
+  for (k = 0; k < opt->nofsecs; k++) {
+    iz = opt->secs[k];
+    if ((iz < 0) || (iz >= hin->nz)) {
       show_error("stat: slice out of range.");
       return(-1);
     }
-    slice = sliceReadSubm(hin, opt->secs[k], 'z', opt->ix, opt->iy,
+    slice = sliceReadSubm(hin, iz, 'z', opt->ix, opt->iy,
                           (int)opt->cx, (int)opt->cy);
     if (!slice){
       show_error("stat: error reading slice.");
@@ -1325,20 +1327,51 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
     mean = 0;
     xmax = 0;
     ymax = 0;
+    xmin = 0;
+    ymin = 0;
     ptnum = (float)(slice->xsize * slice->ysize);
-    for(j = 0; j < slice->ysize; j++)
-      for(i = 0; i < slice->xsize; i++){
-        m = mrc_slice_getmagnitude(slice, i, j);
-        if (m > max){
-          max = m;
-          xmax = i;
-          ymax = j;
+    for (j = 0; j < slice->ysize; j++) {
+      switch (slice->mode) {
+
+        /* It only helps 25% so just do it for common data types */
+      case SLICE_MODE_SHORT:
+        sdata = &slice->data.s[slice->xsize * j];
+        for (i = 0; i < slice->xsize; i++) {
+          m = *sdata++;
+          if (m > max){
+            max = m;
+            xmax = i;
+            ymax = j;
+          }
+          if (m < min) {
+            min = m;
+            xmin = i;
+            ymin = j;
+          }
+          mean += m;
+          sumsq += m * m;
         }
-        if (m < min)
-          min = m;
-        mean += m;
-        sumsq += m * m;
+        break;
+        
+      default:
+        for (i = 0; i < slice->xsize; i++) {
+          m = mrc_slice_getmagnitude(slice, i, j);
+          if (m > max){
+            max = m;
+            xmax = i;
+            ymax = j;
+          }
+          if (m < min) {
+            min = m;
+            xmin = i;
+            ymin = j;
+          }
+          mean += m;
+          sumsq += m * m;
+        }
+        break;
       }
+    }
     mean = mean / ptnum;
 
     /* DNM 5/23/05: switched to computing from differences to using sum of
@@ -1361,39 +1394,38 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
       y -= (float)slice->ysize/2;
     }
 
-    if (k == 0){
+    if (k == 0) {
       vmin  = min;
       vmax  = max;
       vmean = 0.;
-    }else{
-      if (min < vmin) vmin = min;
-      if (max > vmax) vmax = max;
+      zmin = iz;
+      zmax = 0;
+      vsumsq = 0.;
+    } else {
+      if (min < vmin) {
+        vmin = min;
+        zmin = iz;
+      }
+      if (max > vmax) {
+        vmax = max;
+        zmax = iz;
+      }
     }
     vmean += mean;
+    vsumsq += sumsq;
 
-    printf("%3d     %9.4f %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", 
-           opt->secs[k], min, max, x, y, mean, std);
+    printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", 
+           iz, min, xmin, ymin, max, x, y, mean, std);
     mrc_slice_free(slice);
   }
   vmean /= (float)opt->nofsecs;
-  printf("all     %9.4f %9.4f ( ---.--, ---.--) %9.4f    --.----\n", 
-         vmin, vmax, vmean);
-     
-  /* DNM: This was inappropriate and apparently never worked because the 
-     file was opened as append instead of write */
-  /*
-    fout = fopen(hin->pathname, "a");
-    if (fout != NULL){
-    hin->amin  = vmin;
-    hin->amax  = vmax;
-    hin->amean = vmean;
-    mrc_head_write(fout, hin);
-    if (ferror(fout))
-    perror("update min, max and mean");
-    fclose(fout);
-    }
-  */
+  ptnum *= opt->nofsecs;
+  std = (vsumsq - ptnum * vmean * vmean) / B3DMAX(1.,(ptnum - 1.));
+  std = sqrt(B3DMAX(0., std));
 
+  printf(" all  %9.4f (@ z=%5d) %9.4f (@ z=%5d      ) %9.4f  %9.4f\n",
+         vmin, zmin, vmax, zmax, vmean, std);
+     
   return(0);
 }
 
@@ -1464,6 +1496,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.16  2006/06/23 17:13:19  mast
+Added rotx option and adjusted header as in rotatevol
+
 Revision 3.15  2005/11/15 19:55:28  mast
 Fixed initialization of grand sum for stat
 
