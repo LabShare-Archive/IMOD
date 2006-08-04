@@ -24,44 +24,78 @@ Log at end of file */
 #include "b3dutil.h"
 #include "mrcfiles.h"
 
-static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
+static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
                              unsigned char *buf, int cz, int readY, int byte);
 
 /*
  * Routines for accessing particular kinds of data as bytes or raw, Y or Z
  * axis
  */
-int mrcReadZByte(struct MRCheader *hdata, struct LoadInfo *li,
-              unsigned char *buf, int z)
-{
-  return (mrcReadSectionAny(hdata, li, buf, z, 0, 1));
-}
-int mrcReadYByte(struct MRCheader *hdata, struct LoadInfo *li,
-              unsigned char *buf, int z)
-{
-  return (mrcReadSectionAny(hdata, li, buf, z, 1, 1));
-}
 
-int mrcReadZ(struct MRCheader *hdata, struct LoadInfo *li,
-              unsigned char *buf, int z)
+/*!
+ * Reads one Z slice of raw data at Z value [z] into the buffer [buf] from the 
+ * MRC file whose header is in [hdata].  The @@IloadInfo structure@ [li] 
+ * controls the subarea loaded through its members {xmin}, {xmax}, {ymin},
+ * and {ymax}.
+ * Returns 1 for an illegal request, 2 for a memory error, or 3 for an error 
+ * reading the file.
+ */
+int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   return (mrcReadSectionAny(hdata, li, buf, z, 0, 0));
 }
-int mrcReadY(struct MRCheader *hdata, struct LoadInfo *li,
-              unsigned char *buf, int z)
+
+/*!
+ * Reads one Z slice of data, like @mrcReadZ, and scales it to bytes.
+ * Scaling is controlled by [li] members {slope} and {offset}.
+ */
+int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, buf, z, 0, 1));
+}
+
+/*!
+ * Reads one Y slice of raw data at Y value [z] into the buffer [buf] from the 
+ * MRC file whose header is in [hdata].  The IloadInfo structure [li] controls
+ * the subarea loaded through its members {xmin}, {xmax}, {zmin}, and {zmax}.
+ * Returns 1 for an illegal request, 2 for a memory error, or 3 for an error 
+ * reading the file.
+ */
+int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   return (mrcReadSectionAny(hdata, li, buf, z, 1, 0));
 }
 
-int mrcReadSection(struct MRCheader *hdata, struct LoadInfo *li,
-                    unsigned char *buf, int z)
+/*!
+ * Reads one Y slice of data, like @mrcReadY, and scales it to bytes.
+ * Scaling is controlled by [li] members {slope} and {offset}.
+ */
+int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, buf, z, 1, 1));
+}
+
+/*!
+ * Reads one slice of raw data into the buffer [buf] from the 
+ * MRC file whose header is in [hdata].  A Y slice at Y = [z] is loaded if the
+ * {axis} member of [li] is 2; otherwise a Z slice at Z = [z] is loaded.
+ * The subarea loaded is determined by [li] members {xmin}, {xmax}, and {ymin}
+ * and {ymax} (for a Z slice) or {zmin} and {zmax} (for a Y slice).
+ * Returns 1 for an illegal request, 2 for a memory error, or 3 for an error 
+ * reading the file.
+ */
+int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
   return (mrcReadSectionAny(hdata, li, buf, z, readY, 0));
 }
 
-int mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
-                    unsigned char *buf, int z)
+/*!
+ * Reads one slice of data, like @mrcReadSection, and scales it to bytes.
+ * Scaling is controlled by [li] members {slope} and {offset}.
+ */
+int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, 
+                       int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
   return (mrcReadSectionAny(hdata, li, buf, z, readY, 1));
@@ -70,7 +104,7 @@ int mrcReadSectionByte(struct MRCheader *hdata, struct LoadInfo *li,
 /*
  * Generic routine for reading the data line-by-line and scaling it properly
  */
-static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
+static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
                               unsigned char *buf, int cz, int readY, int byte)
 {
   FILE *fin = hdata->fp;
@@ -433,6 +467,9 @@ static int mrcReadSectionAny(struct MRCheader *hdata, struct LoadInfo *li,
 
 /*
 $Log$
+Revision 3.10  2005/11/11 22:15:23  mast
+Changes for unsigned file mode
+
 Revision 3.9  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
