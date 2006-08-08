@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2006/07/31 21:47:11  sueh
+ * <p> bug# 438 Added dimAxisButton
+ * <p>
  * <p> Revision 3.9  2006/07/26 21:51:25  sueh
  * <p> bug# 907 Added a default height.
  * <p>
@@ -160,9 +163,9 @@ public final class UIParameters {
     fontSizeAdjustment = fontSize / DEFAULT_FONT_SIZE;
     dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height
         * fontSizeAdjustment);
-    dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 2 * height
+    dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 1.25 * height
         * fontSizeAdjustment);
-    dimAxisButton.setSize(3.5 * height * fontSizeAdjustment, 1.25 * height
+    dimAxisButton.setSize(3.6 * height * fontSizeAdjustment, 1.25 * height
         * fontSizeAdjustment);
     dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height
         * fontSizeAdjustment);
