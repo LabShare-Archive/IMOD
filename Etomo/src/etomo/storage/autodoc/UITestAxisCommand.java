@@ -86,12 +86,20 @@ public final class UITestAxisCommand implements AdocCommand {
     return known;
   }
 
-  public boolean isSecondaryAutodoc() {
+  public boolean isFunctionLocation() {
+    return false;
+  }
+  
+  public boolean isFunction() {
     return false;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/06/14 00:34:12  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.
+ * <p>
  * <p> Revision 1.1  2006/04/28 21:08:34  sueh
  * <p> bug# 787 Parses the uitest axis autodoc global attributes.
  * <p> </p>
