@@ -124,7 +124,11 @@ public final class UITestTestCommand implements AdocCommand {
     return known;
   }
 
-  public boolean isSecondaryAutodoc() {
+  public boolean isFunctionLocation() {
+    return false;
+  }
+  
+  public boolean isFunction() {
     return false;
   }
 
@@ -155,6 +159,10 @@ public final class UITestTestCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2006/06/14 00:34:53  sueh
+ * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
+ * <p> attributes specific to a type of autdoc.
+ * <p>
  * <p> Revision 1.2  2006/05/01 21:21:37  sueh
  * <p> bug# 787 Removed fiducial diameter, added set.
  * <p>
