@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2006/06/27 22:35:54  sueh
+ * <p> bug# 852 Implementing callFunction().
+ * <p>
  * <p> Revision 1.4  2006/06/14 00:42:29  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.  Renamed the section level command
@@ -137,7 +140,7 @@ final class UITestAxis implements AdocCommandFactory {
     reader = new AdocCommandReader(autodoc,
         UITestAxisDialogCommand.SECTION_TYPE);
     reader.setAxisID(axisID);
-    reader.setSecondaryAutodocSourceDir(testCase.getAutodocSourceDir());
+    reader.setFunctionLocationSourceDir(testCase.getAutodocSourceDir());
   }
 
   boolean isDone() {
@@ -312,9 +315,6 @@ final class UITestAxis implements AdocCommandFactory {
     //handle waitfors
     else if (action == UITestAction.WAIT_FOR) {
       getCommand = testWaitFor(command);
-    }
-    else if (action == UITestAction.FUNCTION) {
-      callFunction(command);
     }
     else {
       UITestField field = command.getType();
@@ -793,7 +793,7 @@ private void testAssert(UITestAxisDialogCommand command) {
     return button;
   }
   
-  private void callFunction(UITestAxisDialogCommand command) {
+  private void callback(UITestAxisDialogCommand command) {
     command.getCallbackClassEnum().getCallbackClass().callback(command);
   }
 
@@ -970,6 +970,9 @@ private void testAssert(UITestAxisDialogCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/06/27 22:35:54  sueh
+ * <p> bug# 852 Implementing callFunction().
+ * <p>
  * <p> Revision 1.4  2006/06/14 00:42:29  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.  Renamed the section level command
