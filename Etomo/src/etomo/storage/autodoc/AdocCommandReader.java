@@ -24,7 +24,7 @@ public final class AdocCommandReader {
   public static final String rcsid = "$Id$";
 
   private final Autodoc autodoc;
-  private final LinkedList autodocStatusStack = new LinkedList();
+  private final LinkedList locationStack = new LinkedList();
   private final String autodocName;
   private final String sectionType;
 
@@ -36,10 +36,11 @@ public final class AdocCommandReader {
   private boolean verbose = false;
   private boolean done = false;
   private String name = null;
-  private String secondaryAutodocName = null;
-  private File secondaryAutodocSourceDir = null;
+  private Autodoc functionAutodoc = null;
+  private File functionLocationSourceDir = null;
   private AxisID axisID = null;
   private String info = null;
+  private boolean function = false;
 
   public AdocCommandReader(Autodoc autodoc, String sectionType) {
     this.autodoc = autodoc;
@@ -48,12 +49,12 @@ public final class AdocCommandReader {
     list = autodoc;
     name = autodoc.getName();
     autodocName = name;
-    secondaryAutodocName = name;
+    functionAutodoc = autodoc;
     setInfo();
   }
 
-  public void setSecondaryAutodocSourceDir(File secondaryAutodocSourceDir) {
-    this.secondaryAutodocSourceDir = secondaryAutodocSourceDir;
+  public void setFunctionLocationSourceDir(File functionLocationSourceDir) {
+    this.functionLocationSourceDir = functionLocationSourceDir;
   }
 
   public void setAxisID(AxisID axisID) {
@@ -93,8 +94,13 @@ public final class AdocCommandReader {
     if (name != null) {
       buffer.append(name.toString() + ":");
     }
-    if (secondaryAutodocName != null) {
-      buffer.append(secondaryAutodocName.toString() + ":");
+    if (function) {
+      if (functionAutodoc != null) {
+        buffer.append(functionAutodoc.getName() + ":");
+      }
+      if (list != null) {
+        buffer.append(list.getName() + ":");
+      }
     }
     if (buffer.length() == 0) {
       info = AdocCommandReader.class.getName();
@@ -139,10 +145,10 @@ public final class AdocCommandReader {
     //get the pair
     NameValuePair pair = list.nextNameValuePair(pairLoc);
     if (pair == null) {
-      //if this is the end of a secondary autodoc, pop it and read the next
-      //command in the preceding autodoc
-      if (sectionLoc == null) {
-        popAutodoc();
+      //if this is the end of a function section, end the function and read the
+      //next command from the calling autodoc
+      if (function) {
+        endFunction();
         return nextCommand(command, factory);
       }
       return command;
@@ -152,10 +158,16 @@ public final class AdocCommandReader {
     }
     //place the pair in command
     command.set(pair);
-    //if the adoc command is found, get the secondary autodoc and get the command
-    //from it
-    if (command.isSecondaryAutodoc()) {
-      pushAutodoc(command);
+    if (command.isFunctionLocation()) {
+      //if the function location command (adoc) is found, change the function
+      //autodoc and get the next command
+      setFunctionAutodoc(command);
+      return nextCommand(command, factory);
+    }
+    if (command.isFunction()) {
+      //if the function command is found, get the function section and get the
+      //first command from it
+      callFunction(command);
       return nextCommand(command, factory);
     }
     return command;
@@ -200,76 +212,80 @@ public final class AdocCommandReader {
   }
 
   /**
-   * Pushes the current autodoc status onto the stack and gets a new autodoc based
-   * on the command.
+   * Pushes the current location onto the stack and gets a new location based
+   * on the function call.
    * @param command
    */
-  private void pushAutodoc(AdocCommand command) {
-    if (secondaryAutodocSourceDir == null) {
+  private void callFunction(AdocCommand command) {
+    if (functionLocationSourceDir == null) {
       throw new IllegalStateException(
           "A secondary autodo source directory must be set when secondary autodocs are in use.");
     }
-    if (!command.isSecondaryAutodoc()) {
+    if (!command.isFunction()) {
       throw new IllegalStateException("command=" + command);
     }
-    //try to get the new autodoc
-    Autodoc secondaryAutodoc;
-    try {
-      secondaryAutodoc = Autodoc.getUITestAxisInstance_test(
-          secondaryAutodocSourceDir, command.getValue(), AxisID.ONLY);
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-      return;
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return;
-    }
-    //push autodoc status
-    AutodocStatus autodocStatus = new AutodocStatus(list, sectionLoc, pairLoc);
-    autodocStatusStack.addLast(autodocStatus);
-    //set values from the new autodoc
-    list = secondaryAutodoc;
+    //push old location
+    Location location = new Location(list, sectionLoc, pairLoc, function);
+    locationStack.addLast(location);
+    //set values from the current autodoc
+    list = functionAutodoc.getSection(command.getAction().toString(), command
+        .getValue());
     sectionLoc = null;
     pairLoc = null;
-    secondaryAutodocName = list.getName();
-    getInfo();
+    function = true;
+    setInfo();
+  }
+
+  private void setFunctionAutodoc(AdocCommand command) {
+    String functionLocation = command.getValue();
+    if (functionLocation == null) {
+      functionAutodoc = autodoc;
+    }
+    else {
+      try {
+        functionAutodoc = Autodoc.getUITestAxisInstance_test(
+            functionLocationSourceDir, command.getValue(), AxisID.ONLY);
+      }
+      catch (FileNotFoundException e) {
+        e.printStackTrace();
+        return;
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+    }
   }
 
   /**
    * the the top autodoc status off of the stack and makes it the current
    * autodoc
    */
-  private void popAutodoc() {
-    AutodocStatus autodocStatus = (AutodocStatus) autodocStatusStack
-        .removeLast();
-    if (autodocStatus == null) {
+  private void endFunction() {
+    Location location = (Location) locationStack.removeLast();
+    if (location == null) {
       list = null;
       return;
     }
-    list = autodocStatus.getList();
-    sectionLoc = autodocStatus.getSectionLoc();
-    pairLoc = autodocStatus.getPairLoc();
-    if (sectionLoc == null) {
-      secondaryAutodocName = list.getName();
-    }
-    else {
-      secondaryAutodocName = autodocName;
-    }
-    getInfo();
+    list = location.getList();
+    sectionLoc = location.getSectionLoc();
+    pairLoc = location.getPairLoc();
+    function = location.isFunction();
+    setInfo();
   }
 
-  private static final class AutodocStatus {
+  private static final class Location {
     private final ReadOnlyNameValuePairList list;
     private final SectionLocation sectionLoc;
     private final NameValuePairLocation pairLoc;
+    private final boolean function;
 
-    AutodocStatus(ReadOnlyNameValuePairList list, SectionLocation sectionLoc,
-        NameValuePairLocation pairLoc) {
+    Location(ReadOnlyNameValuePairList list, SectionLocation sectionLoc,
+        NameValuePairLocation pairLoc, boolean function) {
       this.list = list;
       this.sectionLoc = sectionLoc;
       this.pairLoc = pairLoc;
+      this.function = function;
     }
 
     ReadOnlyNameValuePairList getList() {
@@ -284,6 +300,10 @@ public final class AdocCommandReader {
       return pairLoc;
     }
 
+    boolean isFunction() {
+      return function;
+    }
+
     public String toString() {
       return "list=" + list.getName() + ",\nsectionLoc=" + sectionLoc
           + ",\npairLoc=" + pairLoc;
@@ -292,6 +312,9 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/05/18 20:52:19  sueh
+ * <p> made compatible with java 1.4 (class getSimpleName doesn't exist in 1.4)
+ * <p>
  * <p> Revision 1.1  2006/04/28 20:55:16  sueh
  * <p> bug# 787 Was UITestSection.  Reads name/value pairs sequentially in
  * <p> Autodoc files.  Can global or section name/value pairs.  Can jump to a
