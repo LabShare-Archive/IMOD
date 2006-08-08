@@ -22,7 +22,7 @@ import etomo.type.UITestField;
  * 
  * @version $Revision$
  */
-public final class UITestAxisDialogCommand implements AdocCommand {
+public class UITestAxisDialogCommand implements AdocCommand {
   public static final String rcsid = "$Id$";
 
   private static final String ENABLED_STRING = "enabled";
@@ -42,21 +42,18 @@ public final class UITestAxisDialogCommand implements AdocCommand {
   private boolean enabled = false;
   private boolean empty = true;
   private boolean known = false;
-  private boolean secondaryAutodoc = false;
+  private boolean functionLocation = false;
+  private boolean function = false;
   private CallbackClassEnum callbackClassEnum = null;
 
   public UITestAxisDialogCommand(ArrayList variables) {
     this.variables = variables;
   }
 
-  public void set(NameValuePair pair) {
+  public final void set(NameValuePair pair) {
     reset();
     if (pair == null) {
       return;
-    }
-    if (pair.isSection()) {
-      action = UITestAction.FUNCTION;
-      callbackClassEnum = CallbackClassEnum.getInstance(pair.getName(0));
     }
     else {
       empty = false;
@@ -68,10 +65,13 @@ public final class UITestAxisDialogCommand implements AdocCommand {
       //set the action
       action = UITestAction.getInstance(pair.getName(0));
       if (action == UITestAction.ADOC) {
-        secondaryAutodoc = true;
+        functionLocation = true;
+      }
+      else if (action == UITestAction.FUNCTION) {
+        function = true;
       }
       //set the field
-      if (action != UITestAction.ADOC && action != UITestAction.SLEEP
+      else if (action != UITestAction.SLEEP
           && action != UITestAction.STOP && action != UITestAction.COPY) {
         if (action == UITestAction.WAIT_FOR) {
           index++;
@@ -168,7 +168,7 @@ public final class UITestAxisDialogCommand implements AdocCommand {
     }
   }
 
-  public void reset() {
+  public final void reset() {
     empty = true;
     known = false;
     action = null;
@@ -181,45 +181,46 @@ public final class UITestAxisDialogCommand implements AdocCommand {
     dialogType = null;
     processEndState = null;
     enabled = false;
-    secondaryAutodoc = false;
+    functionLocation = false;
+    function = false;
   }
 
-  public UITestAction getAction() {
+  public final UITestAction getAction() {
     return action;
   }
 
-  public UITestField getType() {
+  public final UITestField getType() {
     return field;
   }
 
-  public String getName() {
+  public final String getName() {
     return fieldName;
   }
 
-  public int getIndex() {
+  public final int getIndex() {
     return fieldIndex;
   }
 
-  public String getValue() {
+  public final String getValue() {
     if (formattedValue != null) {
       return formattedValue;
     }
     return value;
   }
 
-  public String toString() {
+  public final String toString() {
     return string;
   }
 
-  public DialogType getDialogType() {
+  public final DialogType getDialogType() {
     return dialogType;
   }
 
-  public CallbackClassEnum getCallbackClassEnum() {
+  public final CallbackClassEnum getCallbackClassEnum() {
     return callbackClassEnum;
   }
 
-  public ProcessEndState getProcessEndState() {
+  public final ProcessEndState getProcessEndState() {
     return processEndState;
   }
 
@@ -235,12 +236,20 @@ public final class UITestAxisDialogCommand implements AdocCommand {
     return known;
   }
 
-  public boolean isSecondaryAutodoc() {
-    return secondaryAutodoc;
+  public boolean isFunctionLocation() {
+    return functionLocation;
+  }
+  
+  public boolean isFunction() {
+    return function;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/06/30 23:09:09  sueh
+ * <p> bug# 852 Using the {}s in variables in the Dialog sections all the time to simplify
+ * <p> parsing them.
+ * <p>
  * <p> Revision 1.2  2006/06/27 22:33:00  sueh
  * <p> bug# 582 Treating all subsections as CallbackClassEnum's.
  * <p>
