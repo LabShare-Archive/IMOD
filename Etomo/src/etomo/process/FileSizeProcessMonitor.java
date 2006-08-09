@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2006/08/02 22:23:30  sueh
+ * <p> bug# 769 Added booleans reconnect, stop, and running to allow a file size
+ * <p> monitor to alter its display for reconnecting and be controlled by its stop boolean.
+ * <p>
  * <p> Revision 3.19  2006/03/27 19:37:17  sueh
  * <p> bug# 836 Removed print statements
  * <p>
@@ -127,8 +131,8 @@ import etomo.util.Utilities;
 
 public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
-  ApplicationManager applicationManager;
-  AxisID axisID;
+  protected final ApplicationManager applicationManager;
+  protected final AxisID axisID;
   long processStartTime;
   long scriptStartTime;
   File watchedFile;
@@ -137,9 +141,8 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   private boolean reconnect = false;
   private boolean stop = false;
   private boolean running = false;
-
+  private boolean usingLog = false;
   int nKBytes;
-
   int updatePeriod = 250;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
@@ -192,11 +195,11 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     updateProgressBar();
     running = false;
   }
-  
+
   void stop() {
     stop = true;
   }
-  
+
   boolean isRunning() {
     return running;
   }
@@ -270,32 +273,33 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
     boolean fileWriting = true;
 
     while (fileWriting && !stop) {
-      int currentLength = 0;
-      long size = 0;
-      try {
-        currentLength = (int) (watchedChannel.size() / 1024);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-      double fractionDone = (double) currentLength / nKBytes;
-      int percentage = (int) Math.round(fractionDone * 100);
+      if (!usingLog()) {
+        int currentLength = 0;
+        long size = 0;
+        try {
+          currentLength = (int) (watchedChannel.size() / 1024);
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+        double fractionDone = (double) currentLength / nKBytes;
+        int percentage = (int) Math.round(fractionDone * 100);
 
-      //  Catch any wierd values before they get displayed
-      if (percentage < 0) {
-        percentage = 0;
-      }
-      if (percentage > 99) {
-        percentage = 99;
-      }
+        //  Catch any wierd values before they get displayed
+        if (percentage < 0) {
+          percentage = 0;
+        }
+        if (percentage > 99) {
+          percentage = 99;
+        }
 
-      long elapsedTime = System.currentTimeMillis() - processStartTime;
-      double remainingTime = elapsedTime / fractionDone - elapsedTime;
-      String message = String.valueOf(percentage) + "%   ETC: "
-          + Utilities.millisToMinAndSecs(remainingTime);
-      applicationManager.getMainPanel().setProgressBarValue(currentLength,
-          message, axisID);
-
+        long elapsedTime = System.currentTimeMillis() - processStartTime;
+        double remainingTime = elapsedTime / fractionDone - elapsedTime;
+        String message = String.valueOf(percentage) + "%   ETC: "
+            + Utilities.millisToMinAndSecs(remainingTime);
+        applicationManager.getMainPanel().setProgressBarValue(currentLength,
+            message, axisID);
+      }
       try {
         Thread.sleep(updatePeriod);
       }
@@ -304,6 +308,10 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
         closeChannel();
       }
     }
+  }
+  
+  protected boolean usingLog() {
+    return false;
   }
 
   /**
