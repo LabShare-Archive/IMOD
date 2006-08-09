@@ -18,6 +18,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/11/19 23:26:21  sueh
+ * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p> $
  * <p> $Revision 1.2.4.1  2004/09/29 19:12:10  sueh
  * <p> $bug# 520 Removing pass-through function calls.
  * <p> $
@@ -37,14 +40,15 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
 
   public static final String rcsid = "$$Id$$";
 
+  private boolean reassembling = false;
+  private boolean filltomo = false;
+
   /**
    * Default constructor
-  * @param appMgr
+   * @param appMgr
    * @param id
    */
-  public VolcombineProcessMonitor(
-    ApplicationManager appMgr,
-    AxisID id) {
+  public VolcombineProcessMonitor(ApplicationManager appMgr, AxisID id) {
 
     super(appMgr, id);
     logFileBasename = "volcombine";
@@ -55,27 +59,39 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
+          1, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
+          axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("Combine: volcombine", nSections, axisID);
+    applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
+        nSections, axisID);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection()
-    throws NumberFormatException, IOException {
+  protected void getCurrentSection() throws NumberFormatException, IOException {
     String line;
     while ((line = logFileReader.readLine()) != null) {
-      if (line.startsWith("STATUS: EXTRACTING AND COMBINING")) {
-        String[] fields = line.split("\\s+");
-        currentSection = parseFields(fields, 5, currentSection);
+      if (line.startsWith("STATUS:")) {
+        if (line.indexOf("EXTRACTING AND COMBINING") != -1) {
+          String[] fields = line.split("\\s+");
+          currentSection = parseFields(fields, 5, currentSection);
+        }
+        else if (line.indexOf("REASSEMBLING PIECES") != -1) {
+          reassembling = true;
+          filltomo = false;
+        }
+        else if (line.indexOf("RUNNING FILLTOMO ON FINAL VOLUME") != -1) {
+          filltomo = true;
+          reassembling = false;
+        }
       }
     }
   }
-  
+
   /**
    * Search the log file for the header section and extract the number of
    * sections
@@ -96,8 +112,10 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
           nSections = parseFields(fields, 7, nSections);
           if (nSections != Integer.MIN_VALUE) {
             foundNSections = true;
-          } else {
-            throw new NumberFormatException("Unable to read first STATUS: EXTRACTING AND COMBINING line");
+          }
+          else {
+            throw new NumberFormatException(
+                "Unable to read first STATUS: EXTRACTING AND COMBINING line");
           }
           currentSection = parseFields(fields, 5, currentSection);
         }
@@ -110,5 +128,19 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
       return Integer.parseInt(fields[location]);
     }
     return oldValue;
+  }
+
+  protected void updateProgressBar() {
+    if (filltomo && waitingForExit <= 0) {
+      applicationManager.getMainPanel().setProgressBarValue(0,
+          "filltomo", axisID);
+    }
+    else if (reassembling && waitingForExit <= 0) {
+      applicationManager.getMainPanel().setProgressBarValue(0, "Reassembling",
+          axisID);
+    }
+    else {
+      super.updateProgressBar();
+    }
   }
 }
