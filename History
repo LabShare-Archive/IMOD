@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/9/06: Adding more status information to the newst monitor and the regular
+volcombine monitor.
+
 8/4/06: Made clip stat a bit more efficient for mode 1 files and output
 location of minimum.
 
