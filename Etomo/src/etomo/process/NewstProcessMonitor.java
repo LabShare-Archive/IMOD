@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2005/07/29 00:52:12  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.9  2005/06/20 16:47:14  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in calcFileSize().
@@ -63,20 +68,86 @@
  */
 package etomo.process;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
+import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 public class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
+  private BufferedReader logReader = null;
+  private boolean logAvailable = true;
+  private boolean usingLog = false;
+
   public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
+  }
+
+  /**
+   * Set usingLog to true and return true if mrctaper is being run
+   * If there is a problem accessing the log, set logAvailable to false and stop
+   * checking.
+   */
+  protected boolean usingLog() {
+    //log already in use, return true
+    if (usingLog) {
+      return true;
+    }
+    //log could not be opened, return false
+    if (!logAvailable) {
+      return false;
+    }
+    //create logReader
+    if (logReader == null) {
+      try {
+        logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
+            applicationManager, axisID, ProcessName.NEWST)));
+      }
+      //set logAvailable to false if there is a problem with the log
+      catch (IOException e) {
+        logAvailable = false;
+        return false;
+      }
+      if (logReader == null) {
+        logAvailable = false;
+        return false;
+      }
+    }
+    //read the lines available in the log and look for a line shows that
+    //mrctaper started
+    String line;
+    try {
+      while ((line = logReader.readLine()) != null) {
+        if (line.startsWith("Doing section")) {
+          //mrctaper started
+          applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper",
+              axisID);
+          usingLog = true;
+          try {
+            logReader.close();
+          }
+          catch (IOException e) {
+          }
+          return true;
+        }
+      }
+    }
+    //set logAvailable to false if there is a problem with the log
+    catch (IOException e) {
+      logAvailable = false;
+      return false;
+    }
+    //did not find a line shows that mrctaper started
+    return false;
   }
 
   /* (non-Javadoc)
@@ -91,13 +162,13 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the depth, mode, any mods to the X and Y size from the tilt 
     // command script and the input and output filenames. 
     ComScriptManager comScriptManager = applicationManager
-      .getComScriptManager();
+        .getComScriptManager();
     comScriptManager.loadNewst(axisID);
     NewstParam newstParam = comScriptManager.getNewstComNewstParam(axisID);
 
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
-      + newstParam.getInputFile();
+        + newstParam.getInputFile();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), rawStackFilename, axisID);
     rawStack.read();
@@ -105,26 +176,26 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     nY = rawStack.getNColumns();
     nZ = rawStack.getNSections();
     switch (rawStack.getMode()) {
-      case 0 :
-        modeBytes = 1;
-        break;
-      case 1 :
-        modeBytes = 2;
-        break;
-      case 2 :
-        modeBytes = 4;
-        break;
-      case 3 :
-        modeBytes = 4;
-        break;
-      case 4 :
-        modeBytes = 8;
-        break;
-      case 16 :
-        modeBytes = 3;
-        break;
-      default :
-        throw new InvalidParameterException("Unknown mode parameter");
+    case 0:
+      modeBytes = 1;
+      break;
+    case 1:
+      modeBytes = 2;
+      break;
+    case 2:
+      modeBytes = 4;
+      break;
+    case 3:
+      modeBytes = 4;
+      break;
+    case 4:
+      modeBytes = 8;
+      break;
+    case 16:
+      modeBytes = 3;
+      break;
+    default:
+      throw new InvalidParameterException("Unknown mode parameter");
     }
 
     // Get the binByFactor from newst.com script
@@ -139,11 +210,11 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel()
-      .setProgressBar("Creating aligned stack", nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
+        nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     watchedFile = new File(applicationManager.getPropertyUserDir(), newstParam
-      .getOutputFile());
+        .getOutputFile());
   }
 }
