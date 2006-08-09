@@ -25,6 +25,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2005/11/19 02:32:56  sueh
+ * <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
+ * <p> ProcessMonitor because they are potentially valid things to do for any
+ * <p> monitor, not just monitors of detached processes.
+ * <p>
  * <p> Revision 3.21  2005/08/30 18:44:51  sueh
  * <p> bug# 532 Removed functions that only belong to BackgroundProcessMonitor:
  * <p> getErrorMessage, getStatusString, pause, and setProcess.
@@ -339,7 +344,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @param percentage
    * @param remainingTime
    */
-  private void updateProgressBar() {
+  protected void updateProgressBar() {
     if (waitingForExit > 0) {
       applicationManager.getMainPanel().setProgressBarValue(0, "Ending...", axisID);
       return;
