@@ -59,7 +59,7 @@ One entry per file.
 .B Version = 1.2
 Required.  The latest version of the autodoc language.
 
-.SS Dialog Section and Attributes
+.SS Sections
 
 .TP
 .B [Dialog = \fIDialog_name\fB]\fR
@@ -73,11 +73,20 @@ The Setup Tomogram dialog.  This Dialog section is only valid in an A axis uites
 The dataset name in the Setup Tomogram dialog will be filled in automatically.
 
 .TP
-.B adoc = \fIsecondary_uitest-axis.adoc
-A secondary \fBuitest-axis.adoc\fR may not contain any sections.
-It may use any of the \fBDialog Section Attributes\fR.
-It may not use any of the \fBGlobal Attributes\fR, except \fBVersion\fR.
-This attribute allows a set of attributes to be kept in a separate file and reused.
+.B [function = \fIfunction_name\fB]
+A section which is treated as a function.
+When the function section is called (see the attribute \fBfunction\fR),
+all the name/value pairs in the function section are executed.
+
+.SS Attributes
+Unless otherwise stated, attributes may be used in either of the section types
+described above.
+
+.TP
+.B adoc = \fR[\fIfunction_location\fB.adoc\fR]
+Sets the autodoc which will be used by the \fBfunction\fR attribute.
+If the value is omitted, the \fBfunction\fR attribute will use the \fBuitestaxis\fR autodoc.
+The default is the \fBuitestaxis\fR autodoc.
 
 .TP
 .B assert.\fR(\fBbn\fR|\fBcb\fR|\fBmb\fR|\fBrb\fR)\fB.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
@@ -128,13 +137,18 @@ the source directory last set in the current section of \fBuitest.adoc\fR.
 \fIFile_name\fR may contain two variables:  \fB%dataset\fR and \fB%axis\fR.
 
 .TP
+.B function = \fIfunction_name
+Executes all the name/value pairs in a \fBfunction\fR section called \fIfunction_name\fR.
+The \fBfunction\fR section must be located in the autodoc set by the most recent \fBadoc\fR attribute.
+
+.TP
 .B mb.\fIname\fR[\fB.\fIindex\fR]\fB = \fR[\fB0\fR|\fB1\fR]
 Used to click a mini-button - a small square button that
 is used to change the amount of information a panel or column header displays.
 The mini-button name will be derived from the panel or column
 header title and the type of the mini-button ("open", "advanced", or "more").
 An "open" mini-button uses the symbols "+" and "-".
-An "advanced" mini-button uses the symbols "A" and "B".
+An "advancehttp://www.soundfeelings.com/free/colon_cleansing.htmd" mini-button uses the symbols "A" and "B".
 A "more" mini-button uses the symbols ">" and "<".
 The value (\fB1\fR) can be used to force the panel or column header controlled
 by the mini-button to be expanded (open, advanced, or more).
@@ -200,12 +214,12 @@ process never completes, the test program will wait until it exceeds
 the duration set in \fBuitest.adoc\fR and fails.
 
 .TP
-.B%{\fIvariable_name\fB}
+.B\`%{\fIvariable_name\fB}
 A variable which can be part of the value of a section-level attribute.
 Variables are defined using the \fBset\fR attribute of the ui test autodoc sections.
 There are two variables that are set differently.
-The value of \fB%{axis}\fR is set by the ui test \fBadoc\fR attribute.
-The value of \fB%{dataset}\fR is set by the ui test \fBdataset\fR attribute.
+The value of %{axis} is set by the ui test \fBadoc\fR attribute.
+The value of %{dataset} is set by the ui test \fBdataset\fR attribute.
 See \fBman uitestadoc\fR.
 
 .TP
