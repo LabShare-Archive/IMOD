@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/04/25 19:19:34  sueh
+ * <p> bug# 787 Named the progress bar.
+ * <p>
  * <p> Revision 3.9  2005/11/14 22:18:11  sueh
  * <p> bug# 762 The internal class is now accessing protected functions instead
  * <p> of private variables.
@@ -85,6 +88,8 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
 
@@ -92,12 +97,15 @@ public class ProgressPanel {
   public static final String rcsid = "$Id$";
 
   public static final String NAME = "progress-bar";
-  
+  public static final int MAX_PACK = 5;
+
   private JPanel panel = new JPanel();
   private JPanel progressPanel = new JPanel();
   private JLabel taskLabel = new JLabel();
   private JProgressBar progressBar = new JProgressBar();
   private Timer timer;
+  final BaseManager manager;
+  final AxisID axisID;
 
   // Keep these around so that SwingUtilities.invokeLater can update the
   // the UI status 
@@ -111,8 +119,11 @@ public class ProgressPanel {
   //stopped: IMPORTANT: The stop action should turn this boolean on, all other
   //actions, except increment should turn this off.
   private boolean stopped = true;
+  private int nPacked = 0;
 
-  public ProgressPanel(String newLabel) {
+  public ProgressPanel(String newLabel, BaseManager manager, AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
     taskLabel.setText(newLabel);
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(taskLabel);
@@ -122,7 +133,19 @@ public class ProgressPanel {
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     timer = new Timer(1000, new ProgressTimerActionListener(this));
   }
-  
+
+  /**
+   * Pack the dialog the first few times it is changed, so that that scroll
+   * aren't displayed the first time a process runs.
+   */
+  void pack() {
+    if (nPacked >= MAX_PACK) {
+      return;
+    }
+    nPacked++;
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+
   public void setBackground(Color bg) {
     panel.setBackground(bg);
   }
@@ -135,10 +158,10 @@ public class ProgressPanel {
 
   private class SetLabelLater implements Runnable {
     public void run() {
-      //System.out.println("SetLabelLater.run()");
       setTaskLabel();
       revalidate();
       repaint();
+      pack();
     }
   }
 
@@ -152,12 +175,12 @@ public class ProgressPanel {
 
   private class StartLater implements Runnable {
     public void run() {
-      //System.out.println("StartLater.run()");
       JProgressBar progressBar = getProgressBar();
       progressBar.setIndeterminate(true);
       progressBar.setString("");
       progressBar.setStringPainted(true);
       startTimer();
+      pack();
     }
   }
 
@@ -173,14 +196,13 @@ public class ProgressPanel {
   private class StopLater implements Runnable {
     private final ProcessEndState state;
     private final String statusString;
-    
+
     public StopLater(ProcessEndState state, String statusString) {
       this.state = state;
       this.statusString = statusString;
     }
-    
+
     public void run() {
-      //System.out.println("StopLater.run()");
       stopTimer();
       JProgressBar progressBar = getProgressBar();
       setProgressBarCounter();
@@ -191,6 +213,7 @@ public class ProgressPanel {
       }
       progressBar.setString(message.toString());
       progressBar.setStringPainted(true);
+      pack();
     }
   }
 
@@ -200,11 +223,12 @@ public class ProgressPanel {
 
   private class IncrementLater implements Runnable {
     private boolean stopped = false;
+
     public IncrementLater(boolean stopped) {
       this.stopped = stopped;
     }
+
     public void run() {
-      //System.out.println("IncrementLater.run()");
       //Fixing a bug during kill process where the timer doesn't stop:  the 
       //progress bar goes to determinate mode and increments based on the timer.
       //
@@ -217,14 +241,16 @@ public class ProgressPanel {
         return;
       }
       setProgressBarValue();
-       //  Put the elapsed time into the progress bar string
-      getProgressBar().setString("Elapsed time: "
-          + Utilities
-            .millisToMinAndSecs(System.currentTimeMillis() - getStartTime()));
+      //  Put the elapsed time into the progress bar string
+      getProgressBar().setString(
+          "Elapsed time: "
+              + Utilities.millisToMinAndSecs(System.currentTimeMillis()
+                  - getStartTime()));
       validate();
       repaint();
       incrementCounter();
       restartTimer();
+      pack();
     }
   }
 
@@ -239,10 +265,10 @@ public class ProgressPanel {
 
   private class SetMaximumLater implements Runnable {
     public void run() {
-      //System.out.println("SetMaximumLater.run()");
       setProgressBarMaximum();
       getProgressBar().setIndeterminate(false);
       getProgressBar().setStringPainted(true);
+      pack();
     }
   }
 
@@ -254,7 +280,6 @@ public class ProgressPanel {
 
   private class SetMinimumLater implements Runnable {
     public void run() {
-      //System.out.println("SetMinimumLater.run()");
       setProgressBarMinimum();
     }
   }
@@ -267,7 +292,6 @@ public class ProgressPanel {
 
   private class SetValueLater implements Runnable {
     public void run() {
-      //System.out.println("SetValueLater.run()");
       setProgressBarValue();
     }
   }
@@ -286,7 +310,6 @@ public class ProgressPanel {
 
   private class SetValueAndStringLater implements Runnable {
     public void run() {
-      //System.out.println("SetValueAndStringLater.run()");
       setProgressBarValue();
       setProgressBarString();
     }
@@ -316,63 +339,63 @@ public class ProgressPanel {
   public int getValue() {
     return progressBar.getValue();
   }
-  
+
   protected final void setTaskLabel() {
     taskLabel.setText(label);
   }
-  
+
   protected final void revalidate() {
     panel.revalidate();
   }
-  
+
   protected final void repaint() {
     panel.repaint();
   }
-  
+
   protected final void validate() {
     panel.validate();
   }
-  
+
   protected final JProgressBar getProgressBar() {
     return progressBar;
   }
-  
+
   protected final void restartTimer() {
     timer.restart();
   }
-  
+
   protected final void startTimer() {
     timer.start();
   }
-  
+
   protected final void stopTimer() {
     timer.stop();
   }
-  
+
   protected final void setProgressBarCounter() {
     progressBar.setValue(counter);
   }
-  
+
   protected final void setProgressBarValue() {
     progressBar.setValue(value);
   }
-  
+
   protected final void incrementCounter() {
     counter++;
   }
-  
+
   protected final void setProgressBarMaximum() {
     progressBar.setMaximum(maximum);
   }
-  
+
   protected final void setProgressBarMinimum() {
     progressBar.setMinimum(minimum);
   }
-  
+
   protected final void setProgressBarString() {
     progressBar.setString(barString);
   }
-  
+
   protected final long getStartTime() {
     return startTime;
   }
@@ -385,7 +408,6 @@ public class ProgressPanel {
     }
 
     public void actionPerformed(ActionEvent event) {
-      //System.out.println("actionPerformed:event=" + event);
       panel.increment();
     }
   }
