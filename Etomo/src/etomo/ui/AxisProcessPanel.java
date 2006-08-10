@@ -27,6 +27,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2006/06/21 15:49:49  sueh
+ * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
+ * <p> be run.
+ * <p>
  * <p> Revision 3.24  2006/04/25 19:00:18  sueh
  * <p> bug# 787 Giving the "Kill Process" button a name and making the name
  * <p> public.
@@ -226,7 +230,7 @@ abstract class AxisProcessPanel implements ContextMenu {
   private boolean parallelInUse = false;
 
   //  Progress panel
-  ProgressPanel progressPanel = new ProgressPanel("No process");
+  final ProgressPanel progressPanel;
   JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
   ParallelPanel parallelPanel = null;
 
@@ -242,6 +246,7 @@ abstract class AxisProcessPanel implements ContextMenu {
    * @param axis
    */
   AxisProcessPanel(AxisID axis, BaseManager manager) {
+    progressPanel = new ProgressPanel("No process", manager, axis);
     axisID = axis;
     this.manager = manager;
     buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL));
