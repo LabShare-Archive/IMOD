@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2006/08/09 20:10:01  sueh
+ * <p> bug# 631 UpdateProgressBar():  check usingLog() before doing the percentage
+ * <p> calculation.
+ * <p>
  * <p> Revision 3.20  2006/08/02 22:23:30  sueh
  * <p> bug# 769 Added booleans reconnect, stop, and running to allow a file size
  * <p> monitor to alter its display for reconnecting and be controlled by its stop boolean.
@@ -129,14 +133,14 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 
-public abstract class FileSizeProcessMonitor implements ProcessMonitor {
+abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
   protected final ApplicationManager applicationManager;
   protected final AxisID axisID;
   long processStartTime;
   long scriptStartTime;
   File watchedFile;
-  FileChannel watchedChannel;
+  private FileChannel watchedChannel;
   private ProcessEndState endState = null;
   private boolean reconnect = false;
   private boolean stop = false;
@@ -144,6 +148,7 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   private boolean usingLog = false;
   int nKBytes;
   int updatePeriod = 250;
+  long lastSize = 0;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
     applicationManager = appMgr;
@@ -157,7 +162,8 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   //   value should be the expected size of the file in k bytes
   // - set the watchedFile reference to the output file being monitored.
   abstract void calcFileSize() throws InvalidParameterException, IOException;
-
+  protected abstract void reloadWatchedFile();
+  
   public void run() {
     running = true;
     try {
@@ -218,7 +224,7 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
   }
-
+  
   /**
    * Wait for the new output file to be created.  Make sure it is current by
    * comparing the modification time of the file to the start time of this
@@ -228,10 +234,10 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
   void waitForFile() throws InterruptedException {
     long currentSize = 0;
     boolean newOutputFile = false;
-    boolean needChannel = true;
     while (!newOutputFile) {
-      if (watchedFile.exists() && watchedFile.lastModified() > scriptStartTime) {
-        if (needChannel) {
+      //keep reloading the watched file to avoid the ~ file.
+      reloadWatchedFile();
+      if (watchedFile.exists()) {
           FileInputStream stream = null;
           try {
             stream = new FileInputStream(watchedFile);
@@ -242,19 +248,20 @@ public abstract class FileSizeProcessMonitor implements ProcessMonitor {
                 .println("Shouldn't be in here, we already checked for existence");
           }
           watchedChannel = stream.getChannel();
-          needChannel = false;
           processStartTime = System.currentTimeMillis();
-        }
 
         try {
           currentSize = watchedChannel.size();
-
-          // Hang out in this loop until the current size is something greater
-          // than zero, otherwise the progress bar update with have a divide
-          // by zero
-          if (currentSize > 0) {
+          //Hang out in this loop until the file size is growing, otherwise the
+          //progress bar update with have a divide by zero
+          //The ~ file won't change, so the correct file should be loaded when
+          //the loop ends, however, the first comparison will probably be
+          //between the initial lastSize value of 0 and the ~ size, so ignore
+          //the first comparison
+          if (lastSize > 0 && currentSize > lastSize) {
             newOutputFile = true;
           }
+          lastSize = currentSize;
         }
         catch (IOException except) {
           except.printStackTrace();
