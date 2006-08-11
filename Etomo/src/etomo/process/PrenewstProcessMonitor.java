@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2005/07/29 00:52:18  sueh
+ * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ * <p> because the current manager changes when the user changes the tab.
+ * <p> Passing the manager where its needed.
+ * <p>
  * <p> Revision 3.6  2005/06/20 16:47:22  sueh
  * <p> bug# 522 Made MRCHeader an n'ton.  Getting instance instead of
  * <p> constructing in calcFileSize().
@@ -67,9 +72,10 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
-
   public static final String rcsid = "$Id$";
 
+  private String dataSetPath = null;
+  
   public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
   }
@@ -85,10 +91,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     int nZ;
     int modeBytes = 1;
 
-    // Get the header from the raw stack to calculate the aligned stack stize
-    String dataSetPath = applicationManager.getPropertyUserDir() + "/"
-      + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
-
+    // Get the header from the raw stack to calculate the aligned stack size
+    loadDataSetPath();
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), dataSetPath + ".st", axisID);
     rawStack.read();
@@ -110,10 +114,20 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     }
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-
     applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID);
-
+  }
+  
+  protected void reloadWatchedFile() {
+    loadDataSetPath();
     // Create a file object describing the file to be monitored
     watchedFile = new File(dataSetPath + ".preali");
+  }
+  
+  private void loadDataSetPath() {
+    if (dataSetPath != null) {
+      return;
+    }
+    dataSetPath = applicationManager.getPropertyUserDir() + "/"
+    + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
   }
 }
