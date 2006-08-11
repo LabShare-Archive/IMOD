@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.39  2006/07/17 21:17:29  sueh
+ * bug# 900 Added imodSendEvent functionality back for Windows.
+ *
  * Revision 3.38  2006/07/04 20:39:57  sueh
  * bug# 894 Changed seedMode to newContours.  Added setBeadfixerMode().
  *
@@ -490,6 +493,8 @@ public class ImodProcess {
   public static final String MESSAGE_SLICER_ANGLES = "13";
   public static final String MESSAGE_PLUGIN_MESSAGE = "14";
   public static final String BEAD_FIXER_PLUGIN = "Bead Fixer";
+  public static final String BF_MESSAGE_OPEN_LOG = "1";
+  public static final String BF_MESSAGE_REREAD_LOG = "2";
   public static final String BF_MESSAGE_NEW_CONTOURS = "3";
   public static final String BF_MESSAGE_AUTO_CENTER = "4";
   public static final String BF_MESSAGE_DIAMETER = "5";
@@ -1025,6 +1030,10 @@ public class ImodProcess {
 
   public void setBeadfixerMode(String beadfixerMode) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode);
+  }
+  
+  public void setOpenLog(String logName) {
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_OPEN_LOG, logName);
   }
 
   /**
