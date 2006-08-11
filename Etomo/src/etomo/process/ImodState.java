@@ -175,6 +175,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.36  2006/07/17 21:17:52  sueh
+ * <p> $bug# 900 Added imodSendEvent functionality back.  Uses the
+ * <p> $SystemProcessException.
+ * <p> $
  * <p> $Revision 1.35  2006/07/04 20:40:06  sueh
  * <p> $bug# 894 Changed seedMode to newContours.  Added setBeadfixerMode().
  * <p> $
@@ -385,6 +389,8 @@ public final class ImodState {
   boolean initialSwapYZSet = false;
   private final BaseManager manager;
 
+  private String logName = null;
+
   //constructors
   //they can set final state variables
   //they can also set initialModelName
@@ -560,6 +566,9 @@ public final class ImodState {
         if (beadfixerMode != null) {
           process.setBeadfixerMode(beadfixerMode);
         }
+        if (logName != null) {
+          process.setOpenLog(logName);
+        }
       }
       //model will be opened
       if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
@@ -590,6 +599,9 @@ public final class ImodState {
         }
         if (beadfixerMode != null) {
           process.setBeadfixerMode(beadfixerMode);
+        }
+        if (logName != null) {
+          process.setOpenLog(logName);
         }
       }
       //reopen model
@@ -875,6 +887,20 @@ public final class ImodState {
 
   void setBeadfixerMode(String mode) {
     beadfixerMode = mode;
+  }
+
+  void setOpenLogOff() {
+    logName = null;
+    
+  }
+  
+  void setOpenLog(boolean openLog, String logName) {
+    if (openLog) {
+    this.logName = logName;
+    }
+    else {
+      this.logName = null;
+    }
   }
 
   void setNewContours(boolean newContours) {

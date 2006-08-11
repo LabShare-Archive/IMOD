@@ -32,6 +32,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2006/07/17 21:17:08  sueh
+ * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
+ * <p> SystemProcessException.
+ * <p>
  * <p> Revision 3.42  2006/07/04 20:39:03  sueh
  * <p> bug# 894 Changed seedMode to newContours.  Added setBeadfixerMode().
  * <p>
@@ -873,6 +877,23 @@ public class ImodManager {
       return;
     }
     imodState.setBeadfixerMode(mode);
+  }
+
+  public void setOpenLog(String key, AxisID axisID, boolean openLog,
+      String logName) throws AxisTypeException {
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setOpenLog(openLog, logName);
+  }
+
+  public void setOpenLogOff(String key, AxisID axisID) throws AxisTypeException {
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setOpenLogOff();
   }
 
   public void setNewContours(String key, AxisID axisID, boolean newContours)
