@@ -1951,6 +1951,24 @@ public final class ApplicationManager extends BaseManager {
     return (long) (metaData.getFiducialDiameter() / metaData.getPixelSize());
   }
 
+  public void msgAlignPostProcess(AxisID axisID) {
+    try {
+      imodManager.reopenLog(ImodManager.COARSE_ALIGNED_KEY, axisID);
+    }
+    catch (AxisTypeException e) {
+      uiHarness.openMessageDialog("Unable to reopen log file.\n"
+          + e.getMessage(), "3dmod Error");
+    }
+    catch (IOException e) {
+      uiHarness.openMessageDialog("Unable to reopen log file.\n"
+          + e.getMessage(), "3dmod Error");
+    }
+    catch (SystemProcessException e) {
+      uiHarness.openMessageDialog("Unable to reopen log file.\n"
+          + e.getMessage(), "3dmod Error");
+    }
+  }
+
   /**
    * Open 3dmod with the new fidcuial model
    */
@@ -1972,7 +1990,8 @@ public final class ApplicationManager extends BaseManager {
           beadfixerMode);
       imodManager.setNewContours(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       imodManager.setOpenLog(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(this, axisID, ProcessName.ALIGN));
+          beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(
+              this, axisID, ProcessName.ALIGN));
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -5261,6 +5280,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.258  2006/08/11 21:43:54  sueh
+ * <p> bug# 816 Setting open log when opening the coarse aligned stack.
+ * <p>
  * <p> Revision 3.257  2006/08/03 21:17:51  sueh
  * <p> bug# 769 Added reconnectTilt()
  * <p>
