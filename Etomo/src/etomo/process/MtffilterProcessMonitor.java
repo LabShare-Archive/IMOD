@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2006/03/27 19:55:05  sueh
+* <p> bug# 836 Removed print statements
+* <p>
 * <p> Revision 1.8  2006/03/24 21:01:19  sueh
 * <p> bug# 836 In calcFileSize(), making file size a double to avoid overflow.
 * <p>
@@ -57,8 +60,11 @@ import etomo.util.MRCHeader;
 * <p> bug# 83 File size process monitor for mtffilter.
 * <p> </p>
 */
-public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
+final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
   public static  final String  rcsid =  "$Id$";
+  
+  private MTFFilterParam mtfFilterParam = null;
+  private ComScriptManager comScriptManager = null;
   
   public MtffilterProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
@@ -75,7 +81,7 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the depth, mode, any mods to the X and Y size from the tilt 
     // command script and the input and output filenames. 
-    ComScriptManager comScriptManager = applicationManager.getComScriptManager();
+    loadComScriptManager();
     String outputFilename;
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       comScriptManager.loadBlend(axisID);
@@ -121,9 +127,8 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
       default :
         throw new InvalidParameterException("Unknown mode parameter");
     }
+    loadMtfFilterParam();
     //take starting and ending Z into account
-    comScriptManager.loadMTFFilter(axisID);
-    MTFFilterParam mtfFilterParam = comScriptManager.getMTFFilterParam(axisID);
     if (mtfFilterParam.isStartingZSet()) {
       if (mtfFilterParam.isEndingZSet()) {
         nZ = (double) mtfFilterParam.getEndingZ() - (double) mtfFilterParam.getStartingZ() + 1.0d;
@@ -142,11 +147,27 @@ public class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Running MTF filter",
         nKBytes, axisID);
-
-    // Create a file object describing the file to be monitored
+  }
+  
+  protected void reloadWatchedFile() {
+    loadMtfFilterParam();
+    watchedFile = new File(applicationManager.getPropertyUserDir(), mtfFilterParam
+        .getOutputFile());
+  }
+  
+  private void loadComScriptManager() {
+    if (comScriptManager != null) {
+      return;
+    }
+    comScriptManager = applicationManager.getComScriptManager();
+  }
+  
+  private void loadMtfFilterParam() {
+    if (mtfFilterParam != null) {
+      return;
+    }
+    loadComScriptManager();
     comScriptManager.loadMTFFilter(axisID);
-    MTFFilterParam mtffilterParam = comScriptManager.getMTFFilterParam(axisID);
-    watchedFile = new File(applicationManager.getPropertyUserDir(), mtffilterParam
-      .getOutputFile());
+    mtfFilterParam = comScriptManager.getMTFFilterParam(axisID);
   }
 }
