@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2006/08/11 21:45:52  sueh
+ * <p> bug# 816 Added setOpenLog() and setOpenLogOff()
+ * <p>
  * <p> Revision 3.43  2006/07/17 21:17:08  sueh
  * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
  * <p> SystemProcessException.
@@ -886,6 +889,14 @@ public class ImodManager {
       return;
     }
     imodState.setOpenLog(openLog, logName);
+  }
+  
+  public void reopenLog(String key, AxisID axisID) throws AxisTypeException,SystemProcessException, IOException {
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.reopenLog();
   }
 
   public void setOpenLogOff(String key, AxisID axisID) throws AxisTypeException {

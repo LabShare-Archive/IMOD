@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.37  2006/08/11 21:46:59  sueh
+ * <p> $bug# 816 Added setOpenLog() and setOpenLogOff()
+ * <p> $
  * <p> $Revision 1.36  2006/07/17 21:17:52  sueh
  * <p> $bug# 900 Added imodSendEvent functionality back.  Uses the
  * <p> $SystemProcessException.
@@ -979,6 +982,10 @@ public final class ImodState {
 
   final void setNoMenuOptions(boolean noMenuOptions) {
     this.noMenuOptions = noMenuOptions;
+  }
+  
+  public void reopenLog() throws SystemProcessException, IOException{
+    process.reopenLog();
   }
 
   /**

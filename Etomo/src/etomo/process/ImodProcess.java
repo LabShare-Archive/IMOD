@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.40  2006/08/11 21:46:10  sueh
+ * bug# 816 Added setOpenLog()
+ *
  * Revision 3.39  2006/07/17 21:17:29  sueh
  * bug# 900 Added imodSendEvent functionality back for Windows.
  *
@@ -1032,6 +1035,10 @@ public class ImodProcess {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode);
   }
   
+  public void reopenLog() throws IOException, SystemProcessException {
+    sendPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_REREAD_LOG);
+  }
+  
   public void setOpenLog(String logName) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_OPEN_LOG, logName);
   }
@@ -1065,6 +1072,10 @@ public class ImodProcess {
     String[] args = new String[1];
     args[0] = MESSAGE_SLICER_ANGLES;
     return request(args);
+  }
+  
+  private void sendPluginMessage(String plugin, String message) throws IOException, SystemProcessException{
+    send(new String[] {MESSAGE_PLUGIN_MESSAGE,plugin, message});
   }
 
   private void addPluginMessage(String plugin, String message, String value) {
