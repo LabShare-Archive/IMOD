@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2006/08/09 20:14:34  sueh
+ * <p> bug# 631 Adding usingLog().
+ * <p>
  * <p> Revision 3.10  2005/07/29 00:52:12  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -81,12 +84,13 @@ import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
-public class NewstProcessMonitor extends FileSizeProcessMonitor {
+final class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
   private BufferedReader logReader = null;
   private boolean logAvailable = true;
   private boolean usingLog = false;
+  private NewstParam newstParam = null;
 
   public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
@@ -161,11 +165,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the depth, mode, any mods to the X and Y size from the tilt 
     // command script and the input and output filenames. 
-    ComScriptManager comScriptManager = applicationManager
-        .getComScriptManager();
-    comScriptManager.loadNewst(axisID);
-    NewstParam newstParam = comScriptManager.getNewstComNewstParam(axisID);
-
+    loadNewstParam();
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
@@ -212,7 +212,20 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
         nKBytes, axisID);
+  }
 
+  private void loadNewstParam() {
+    if (newstParam != null) {
+      return;
+    }
+      ComScriptManager comScriptManager = applicationManager
+          .getComScriptManager();
+      comScriptManager.loadNewst(axisID);
+      newstParam = comScriptManager.getNewstComNewstParam(axisID);
+  }
+
+  protected void reloadWatchedFile() {
+    loadNewstParam();
     // Create a file object describing the file to be monitored
     watchedFile = new File(applicationManager.getPropertyUserDir(), newstParam
         .getOutputFile());
