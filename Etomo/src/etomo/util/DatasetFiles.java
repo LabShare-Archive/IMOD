@@ -119,12 +119,19 @@ public final class DatasetFiles {
 
   //Other dataset files
 
+  public static String getLogName(BaseManager manager, AxisID axisID,
+      ProcessName processName) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return processName.toString() + axisID.getExtension() + ".log";
+  }
+
   public static File getLogFile(BaseManager manager, AxisID axisID,
       ProcessName processName) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), processName.toString()
-        + axisID.getExtension() + ".log");
+    return new File(manager.getPropertyUserDir(), getLogName(manager, axisID,
+        processName));
   }
 
   public static File getDatasetFile(BaseManager manager, AxisID axisID,
@@ -287,6 +294,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/08/02 22:28:15  sueh
+ * <p> bug# 769 Added getLogFile()
+ * <p>
  * <p> Revision 1.20  2006/07/21 22:27:57  sueh
  * <p> bug# 901 Removed test
  * <p>
