@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/05/19 19:54:37  sueh
+ * <p> bug# 866 Added getInstance(BaseManager, AxisID).
+ * <p>
  * <p> Revision 3.19  2005/11/10 18:19:00  sueh
  * <p> bug# 733 Changed propertyUserDir to fileLocation since it doesn't have to
  * <p> be the working directory.
@@ -276,7 +279,7 @@ public class MRCHeader {
         }
         Utilities
             .timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-        throw new InvalidParameterException(message);
+        throw new InvalidParameterException(filename+":"+message);
       }
     }
     // Throw an exception if the file can not be read
@@ -287,7 +290,7 @@ public class MRCHeader {
         message = message + stdError[i] + "\n";
       }
       Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-      throw new InvalidParameterException(message);
+      throw new InvalidParameterException(filename+":"+message);
     }
 
     // Parse the output
