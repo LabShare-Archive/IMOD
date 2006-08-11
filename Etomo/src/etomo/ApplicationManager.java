@@ -505,12 +505,13 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     if (processName == ProcessName.TILT) {
-      ((TomogramGenerationExpert) getUIExpert(
-          DialogType.TOMOGRAM_GENERATION, axisID)).reconnectTilt(processName);
+      ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
+          axisID)).reconnectTilt(processName);
     }
   }
-  
-  public void reconnectTilt(AxisID axisID, ProcessName processName, ProcessResultDisplay display) {
+
+  public void reconnectTilt(AxisID axisID, ProcessName processName,
+      ProcessResultDisplay display) {
     processMgr.reconnectTilt(axisID, display);
     setThreadName(processName.toString(), axisID);
   }
@@ -1448,6 +1449,7 @@ public final class ApplicationManager extends BaseManager {
    */
   public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
+      imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
@@ -1735,6 +1737,7 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           ImodProcess.SEED_MODE);
+      imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true,
           menuOptions);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1968,6 +1971,8 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode);
       imodManager.setNewContours(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
+      imodManager.setOpenLog(ImodManager.COARSE_ALIGNED_KEY, axisID,
+          beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(this, axisID, ProcessName.ALIGN));
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -2458,6 +2463,7 @@ public final class ApplicationManager extends BaseManager {
           true);
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           ImodProcess.RESIDUAL_MODE);
+      imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           menuOptions);
     }
@@ -5255,6 +5261,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.257  2006/08/03 21:17:51  sueh
+ * <p> bug# 769 Added reconnectTilt()
+ * <p>
  * <p> Revision 3.256  2006/08/02 22:01:11  sueh
  * <p> bug# 769 Added reconnect()
  * <p>
