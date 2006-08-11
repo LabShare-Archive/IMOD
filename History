@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/10/06: Etomo:  sped up the process monitors for mtffilter, prenews, tilt, and
+newst.
+
 8/9/06: Adding more status information to the newst monitor and the regular
 volcombine monitor.
 
