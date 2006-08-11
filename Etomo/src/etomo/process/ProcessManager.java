@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.106  2006/08/03 21:29:06  sueh
+ * bug# 769 Passing ProcessResultDisplay to reconnectTilt.
+ *
  * Revision 3.105  2006/08/02 22:25:06  sueh
  * bug# 769 Added empty functions errorProcess and postProcess.  Added
  * getRunningProcessName() and reconnect().
@@ -1807,6 +1810,7 @@ public class ProcessManager extends BaseProcessManager {
           .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
       state.setAlignAngleOffset(axisID, processDetails
           .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
+      appManager.msgAlignPostProcess(axisID);
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.setTomopitchOutput(axisID);
