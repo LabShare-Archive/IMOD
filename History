@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/11/06: Etomo:  opening and re-reading the align log in 3dmod automatically.
+
 8/10/06: Etomo:  sped up the process monitors for mtffilter, prenews, tilt, and
 newst.
 
