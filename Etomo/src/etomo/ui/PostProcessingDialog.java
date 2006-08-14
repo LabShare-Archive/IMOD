@@ -53,7 +53,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
         axisID).getSqueezeVolume();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
-    trimvolPanel = new TrimvolPanel(applicationManager, dialogType);
+    trimvolPanel = new TrimvolPanel(applicationManager, dialogType, axisID);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
     addExitButtons();
@@ -193,8 +193,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
    * Get the trimvol parameter values from the panel 
    * @param trimvolParam
    */
-  public void getTrimvolParams(TrimvolParam trimvolParam) {
-    trimvolPanel.getParameters(trimvolParam);
+  public boolean getTrimvolParams(TrimvolParam trimvolParam) {
+    return trimvolPanel.getParameters(trimvolParam);
   }
 
   /**
@@ -285,6 +285,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.29  2006/07/04 20:41:51  sueh
+ * <p> bug# 898 Don't remove action listeners unless the done dialog function
+ * <p> succeeds.
+ * <p>
  * <p> Revision 3.28  2006/06/30 20:02:18  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called by the button action functions and saveAction() in
