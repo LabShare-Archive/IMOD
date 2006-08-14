@@ -4571,7 +4571,9 @@ public final class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
-      updateTrimvolParam();
+      if (updateTrimvolParam() == null) {
+        return false;
+      }
       updateSqueezevolParam();
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
@@ -4669,7 +4671,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions) {
     TrimvolParam trimvolParam = new TrimvolParam(this);
-    postProcessingDialog.getTrimvolParams(trimvolParam);
+    if (!postProcessingDialog.getTrimvolParams(trimvolParam)) {
+      return;
+    }
     try {
       imodManager.setSwapYZ(ImodManager.TRIMMED_VOLUME_KEY, !trimvolParam
           .isSwapYZ()
@@ -4736,6 +4740,9 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     TrimvolParam trimvolParam = updateTrimvolParam();
+    if (trimvolParam == null) {
+      return;
+    }
     // Start the trimvol process
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
     mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
@@ -4799,7 +4806,9 @@ public final class ApplicationManager extends BaseManager {
   protected TrimvolParam updateTrimvolParam() {
     // Get trimvol param data from dialog.
     TrimvolParam dialogTrimvolParam = new TrimvolParam(this);
-    postProcessingDialog.getTrimvolParams(dialogTrimvolParam);
+    if (!postProcessingDialog.getTrimvolParams(dialogTrimvolParam)) {
+      return null;
+    }
     // Get the metadata trimvol param.
     TrimvolParam trimvolParam = metaData.getTrimvolParam();
     postProcessingDialog.getTrimvolParams(trimvolParam);
@@ -5280,6 +5289,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.259  2006/08/11 23:47:08  sueh
+ * <p> bug# 816 Added msgAlignPostProcess().
+ * <p>
  * <p> Revision 3.258  2006/08/11 21:43:54  sueh
  * <p> bug# 816 Setting open log when opening the coarse aligned stack.
  * <p>
