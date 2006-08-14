@@ -3719,10 +3719,11 @@ public final class ApplicationManager extends BaseManager {
    */
   public void backwardsCompatibilityCombineScriptsExist() {
     int combineScriptsCreatedValue = state.getCombineScriptsCreated().getInt();
-    if (combineScriptsCreatedValue == EtomoState.FALSE_VALUE
-        || combineScriptsCreatedValue == EtomoState.TRUE_VALUE) {
+    if (combineScriptsCreatedValue == EtomoState.FALSE_VALUE) {
       return;
     }
+    //Check if combineScriptsCreated was not set.  Also check if it is true, to
+    //make sure that it is still true.
     File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
     File solvematchmod = new File(propertyUserDir, "solvematchmod.com");
     File solvematch = new File(propertyUserDir, "solvematch.com");
@@ -3738,6 +3739,9 @@ public final class ApplicationManager extends BaseManager {
         && patchcorr.exists()
         && volcombine.exists() && warpvol.exists()) {
       state.setCombineScriptsCreated(true);
+    }
+    else {
+      state.resetCombineScriptsCreated();
     }
   }
 
@@ -5289,6 +5293,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.260  2006/08/14 18:32:08  sueh
+ * <p> bug# 890 Returning a success/failure boolean from getTrimvolParams.
+ * <p>
  * <p> Revision 3.259  2006/08/11 23:47:08  sueh
  * <p> bug# 816 Added msgAlignPostProcess().
  * <p>
