@@ -18,6 +18,7 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.InvalidEtomoNumberException;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -34,6 +35,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2006/07/21 19:19:32  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 3.16  2006/06/28 23:29:59  sueh
  * <p> bug# 881 Added pnlScaleRubberband.
  * <p>
@@ -144,6 +149,12 @@ import etomo.type.Run3dmodMenuOptions;
 public final class TrimvolPanel implements Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
+  private static final String SCALING_ERROR_TITLE = "Scaling Panel Error";
+  private static final String FIXED_SCALE_MIN_LABEL = "black: ";
+  private static final String FIXED_SCALE_MAX_LABEL = " white: ";
+  private static final String SECTION_SCALE_MIN_LABEL = "Z min: ";
+  private static final String SECTION_SCALE_MAX_LABEL = " Z max: ";
+
   private ApplicationManager applicationManager;
 
   private JPanel pnlTrimvol = new JPanel();
@@ -161,14 +172,16 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
   private RadioButton rbScaleFixed = new RadioButton(
       "Scale to match contrast  ");
-  private LabeledTextField ltfFixedScaleMin = new LabeledTextField("black: ");
-  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(" white: ");
+  private LabeledTextField ltfFixedScaleMin = new LabeledTextField(
+      FIXED_SCALE_MIN_LABEL);
+  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(
+      FIXED_SCALE_MAX_LABEL);
 
   private RadioButton rbScaleSection = new RadioButton(
       "Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
-  private LabeledTextField ltfSectionScaleMin = new LabeledTextField("Z min: ");
-  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(" Z max: ");
+  private LabeledTextField ltfSectionScaleMin = new LabeledTextField(SECTION_SCALE_MIN_LABEL);
+  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(SECTION_SCALE_MAX_LABEL);
 
   private final JPanel pnlReorientation = new JPanel();
   private final ButtonGroup bgSwap = new ButtonGroup();
@@ -189,11 +202,14 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private final DialogType dialogType;
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
+  private final AxisID axisID;
 
   /**
    * Default constructor
    */
-  public TrimvolPanel(ApplicationManager appMgr, DialogType dialogType) {
+  public TrimvolPanel(ApplicationManager appMgr, DialogType dialogType,
+      AxisID axisID) {
+    this.axisID = axisID;
     applicationManager = appMgr;
     this.dialogType = dialogType;
     pnlScaleRubberband = new RubberbandPanel(appMgr);
@@ -226,8 +242,10 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
 
     pnlScaleSection.setLayout(new BoxLayout(pnlScaleSection, BoxLayout.X_AXIS));
     pnlScaleSection.add(rbScaleSection);
-    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
-    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE
+        .getFourDigitWidth());
+    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE
+        .getFourDigitWidth());
     pnlScaleSection.add(ltfSectionScaleMin.getContainer());
     pnlScaleSection.add(ltfSectionScaleMax.getContainer());
 
@@ -346,7 +364,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
    * Get the parameter values from the panel 
    * @param trimvolParam
    */
-  public void getParameters(TrimvolParam trimvolParam) {
+  public boolean getParameters(TrimvolParam trimvolParam) {
     trimvolParam.setXMin(Integer.parseInt(ltfXMin.getText()));
     trimvolParam.setXMax(Integer.parseInt(ltfXMax.getText()));
     //  Y and Z  are swapped to present the user with Z as the depth domain
@@ -360,19 +378,32 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
     if (rbScaleFixed.isSelected()) {
       trimvolParam.setFixedScaling(true);
-      trimvolParam.setFixedScaleMin(Integer
-          .parseInt(ltfFixedScaleMin.getText()));
-      trimvolParam.setFixedScaleMax(Integer
-          .parseInt(ltfFixedScaleMax.getText()));
+      try {
+        trimvolParam.setFixedScaleMin(ltfFixedScaleMin.getText()).validate(
+            SCALING_ERROR_TITLE, FIXED_SCALE_MIN_LABEL, axisID);
+        trimvolParam.setFixedScaleMax(ltfFixedScaleMax.getText()).validate(
+            SCALING_ERROR_TITLE, FIXED_SCALE_MAX_LABEL, axisID);
+      }
+      catch (InvalidEtomoNumberException e) {
+        return false;
+      }
     }
     else {
       trimvolParam.setFixedScaling(false);
-      trimvolParam.setSectionScaleMin(Integer.parseInt(ltfSectionScaleMin
-          .getText()));
-      trimvolParam.setSectionScaleMax(Integer.parseInt(ltfSectionScaleMax
-          .getText()));
+      try {
+      trimvolParam.setSectionScaleMin(ltfSectionScaleMin
+          .getText()).validate(
+              SCALING_ERROR_TITLE, SECTION_SCALE_MIN_LABEL, axisID);
+      trimvolParam.setSectionScaleMax(ltfSectionScaleMax
+          .getText()).validate(
+              SCALING_ERROR_TITLE, SECTION_SCALE_MAX_LABEL, axisID);
+      }
+      catch (InvalidEtomoNumberException e) {
+        return false;
+      }
     }
     pnlScaleRubberband.getParameters(trimvolParam);
+    return true;
   }
 
   public void setParameters(ReconScreenState screenState) {
@@ -559,7 +590,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
         "If the output volume is not reoriented, "
             + "the file will need to be flipped when loaded into 3dmod.")
         .format());
-    
+
     rbNone.setToolTipText(tooltipFormatter.setText(
         "Do not change the orientation of the output volume.  "
             + "The file will need to be flipped when loaded into 3dmod.")
