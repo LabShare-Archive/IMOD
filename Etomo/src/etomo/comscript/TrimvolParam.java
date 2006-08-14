@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2006/07/10 20:04:20  sueh
+ * <p> bug# 881 Don't subtract 1 from scale X/Y min/max if it is null
+ * <p>
  * <p> Revision 3.18  2006/07/05 23:23:54  sueh
  * <p> Convert rubberband points to coordinates for scaling X and Y.
  * <p>
@@ -155,10 +158,6 @@ public class TrimvolParam implements CommandDetails {
   public static final String ZMAX = "ZMax";
   public static final String CONVERT_TO_BYTES = "ConvertToBytes";
   public static final String FIXED_SCALING = "FixedScaling";
-  public static final String SECTION_SCALE_MIN = "SectionScaleMin";
-  public static final String SECTION_SCALE_MAX = "SectionScaleMax";
-  public static final String FIXED_SCALE_MIN = "FixedScaleMin";
-  public static final String FIXED_SCALE_MAX = "FixedScaleMax";
   private static final String swapYZString = "SwapYZ";
   private static final String ROTATE_X_KEY = "RotateX";
   public static final String INPUT_FILE = "InputFile";
@@ -179,10 +178,10 @@ public class TrimvolParam implements CommandDetails {
   private final EtomoNumber scaleYMax = new EtomoNumber("ScaleYMax");
   private boolean convertToBytes = true;
   private boolean fixedScaling = false;
-  private int sectionScaleMin = Integer.MIN_VALUE;
-  private int sectionScaleMax = Integer.MIN_VALUE;
-  private int fixedScaleMin = Integer.MIN_VALUE;
-  private int fixedScaleMax = Integer.MIN_VALUE;
+  private final EtomoNumber sectionScaleMin = new EtomoNumber("SectionScaleMin");
+  private final EtomoNumber sectionScaleMax = new EtomoNumber("SectionScaleMax");
+  private final EtomoNumber fixedScaleMin = new EtomoNumber("FixedScaleMin");
+  private final EtomoNumber fixedScaleMax = new EtomoNumber("FixedScaleMax");
   private boolean swapYZ = true;
   private boolean rotateX = false;
   private String inputFile = "";
@@ -224,12 +223,11 @@ public class TrimvolParam implements CommandDetails {
     props.setProperty(group + ZMAX, String.valueOf(zMax));
     props.setProperty(group + CONVERT_TO_BYTES, String.valueOf(convertToBytes));
     props.setProperty(group + FIXED_SCALING, String.valueOf(fixedScaling));
-    props.setProperty(group + SECTION_SCALE_MIN, String
-        .valueOf(sectionScaleMin));
-    props.setProperty(group + SECTION_SCALE_MAX, String
-        .valueOf(sectionScaleMax));
-    props.setProperty(group + FIXED_SCALE_MIN, String.valueOf(fixedScaleMin));
-    props.setProperty(group + FIXED_SCALE_MAX, String.valueOf(fixedScaleMax));
+    sectionScaleMin.store(props, prepend);
+    sectionScaleMax.store(props, prepend);
+    fixedScaleMax.store(props, prepend);
+    fixedScaleMin.store(props, prepend);
+    fixedScaleMax.store(props, prepend);
     props.setProperty(group + swapYZString, String.valueOf(swapYZ));
     props.setProperty(group + ROTATE_X_KEY, String.valueOf(rotateX));
     props.setProperty(group + INPUT_FILE, inputFile);
@@ -286,22 +284,10 @@ public class TrimvolParam implements CommandDetails {
         .valueOf(
             props.getProperty(group + FIXED_SCALING, Boolean
                 .toString(fixedScaling))).booleanValue();
-
-    sectionScaleMin = Integer.valueOf(
-        props.getProperty(group + SECTION_SCALE_MIN, Integer
-            .toString(sectionScaleMin))).intValue();
-
-    sectionScaleMax = Integer.valueOf(
-        props.getProperty(group + SECTION_SCALE_MAX, Integer
-            .toString(sectionScaleMax))).intValue();
-
-    fixedScaleMin = Integer.valueOf(
-        props.getProperty(group + FIXED_SCALE_MIN, Integer
-            .toString(fixedScaleMin))).intValue();
-
-    fixedScaleMax = Integer.valueOf(
-        props.getProperty(group + FIXED_SCALE_MAX, Integer
-            .toString(fixedScaleMax))).intValue();
+    sectionScaleMin.load(props, prepend);
+    sectionScaleMax.load(props, prepend);
+    fixedScaleMin.load(props, prepend);
+    fixedScaleMax.load(props, prepend);
 
     swapYZ = Boolean.valueOf(
         props.getProperty(group + swapYZString, Boolean.toString(swapYZ)))
@@ -373,8 +359,7 @@ public class TrimvolParam implements CommandDetails {
     if (convertToBytes) {
       if (fixedScaling) {
         options.add("-c");
-        options.add(String.valueOf(fixedScaleMin) + ","
-            + String.valueOf(fixedScaleMax));
+        options.add(fixedScaleMin.toString() + "," + fixedScaleMax.toString());
 
       }
       else {
@@ -409,14 +394,14 @@ public class TrimvolParam implements CommandDetails {
   /**
    * @return int
    */
-  public int getFixedScaleMax() {
+  public ConstEtomoNumber getFixedScaleMax() {
     return fixedScaleMax;
   }
 
   /**
    * @return int
    */
-  public int getFixedScaleMin() {
+  public ConstEtomoNumber getFixedScaleMin() {
     return fixedScaleMin;
   }
 
@@ -430,14 +415,14 @@ public class TrimvolParam implements CommandDetails {
   /**
    * @return int
    */
-  public int getSectionScaleMax() {
+  public ConstEtomoNumber getSectionScaleMax() {
     return sectionScaleMax;
   }
 
   /**
    * @return int
    */
-  public int getSectionScaleMin() {
+  public ConstEtomoNumber getSectionScaleMin() {
     return sectionScaleMin;
   }
 
@@ -526,16 +511,16 @@ public class TrimvolParam implements CommandDetails {
    * Sets the fixedScaleMax.
    * @param fixedScaleMax The fixedScaleMax to set
    */
-  public void setFixedScaleMax(int fixedScaleMax) {
-    this.fixedScaleMax = fixedScaleMax;
+  public ConstEtomoNumber setFixedScaleMax(String fixedScaleMax) {
+    return this.fixedScaleMax.set(fixedScaleMax);
   }
 
   /**
    * Sets the fixedScaleMin.
    * @param fixedScaleMin The fixedScaleMin to set
    */
-  public void setFixedScaleMin(int fixedScaleMin) {
-    this.fixedScaleMin = fixedScaleMin;
+  public ConstEtomoNumber setFixedScaleMin(String fixedScaleMin) {
+    return this.fixedScaleMin.set(fixedScaleMin);
   }
 
   /**
@@ -543,6 +528,10 @@ public class TrimvolParam implements CommandDetails {
    * @param fixedScaling The fixedScaling to set
    */
   public void setFixedScaling(boolean fixedScaling) {
+    fixedScaleMin.setNullIsValid(!fixedScaling);
+    fixedScaleMax.setNullIsValid(!fixedScaling);
+    sectionScaleMin.setNullIsValid(fixedScaling);
+    sectionScaleMax.setNullIsValid(fixedScaling);
     this.fixedScaling = fixedScaling;
   }
 
@@ -550,16 +539,16 @@ public class TrimvolParam implements CommandDetails {
    * Sets the scaleSectionMax.
    * @param scaleSectionMax The scaleSectionMax to set
    */
-  public void setSectionScaleMax(int scaleSectionMax) {
-    this.sectionScaleMax = scaleSectionMax;
+  public ConstEtomoNumber setSectionScaleMax(String scaleSectionMax) {
+    return this.sectionScaleMax.set(scaleSectionMax);
   }
 
   /**
    * Sets the scaleSectionMin.
    * @param scaleSectionMin The scaleSectionMin to set
    */
-  public void setSectionScaleMin(int scaleSectionMin) {
-    this.sectionScaleMin = scaleSectionMin;
+  public ConstEtomoNumber setSectionScaleMin(String scaleSectionMin) {
+    return this.sectionScaleMin.set(scaleSectionMin);
   }
 
   /**
@@ -699,12 +688,12 @@ public class TrimvolParam implements CommandDetails {
     // Check the swapped YZ state or rotateX state to decide which dimension to use for the 
     // section range
     if (swapYZ || rotateX) {
-      sectionScaleMin = yMax / 3;
-      sectionScaleMax = yMax * 2 / 3;
+      sectionScaleMin.set(yMax / 3);
+      sectionScaleMax.set(yMax * 2 / 3);
     }
     else {
-      sectionScaleMin = zMax / 3;
-      sectionScaleMax = zMax * 2 / 3;
+      sectionScaleMin.set(zMax / 3);
+      sectionScaleMax.set(zMax * 2 / 3);
     }
   }
 
@@ -846,16 +835,16 @@ public class TrimvolParam implements CommandDetails {
     if (fixedScaling != trim.isFixedScaling()) {
       return false;
     }
-    if (sectionScaleMin != trim.getSectionScaleMin()) {
+    if (!sectionScaleMin.equals(trim.sectionScaleMin)) {
       return false;
     }
-    if (sectionScaleMax != trim.getSectionScaleMax()) {
+    if (!sectionScaleMax.equals(trim.sectionScaleMax)) {
       return false;
     }
-    if (fixedScaleMin != trim.getFixedScaleMin()) {
+    if (!fixedScaleMin.equals(trim.fixedScaleMin)) {
       return false;
     }
-    if (fixedScaleMax != trim.getFixedScaleMax()) {
+    if (!fixedScaleMax.equals(trim.fixedScaleMax)) {
       return false;
     }
     if (swapYZ != trim.isSwapYZ()) {
