@@ -26,6 +26,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2006/07/28 17:42:50  sueh
+ * <p> bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
+ * <p> it will show when it has not been set.  Deleting old versions of combine scripts
+ * <p> create and match mode in the .edf.  Getting data from the old versions of
+ * <p> combine scripts create and match mode with the new ones aren't available.
+ * <p>
  * <p> Revision 1.23  2006/07/19 20:11:15  sueh
  * <p> bug# 902 Added seedingDoneA and B.
  * <p>
@@ -445,6 +451,10 @@ public class TomogramState implements BaseState {
 
   public void setCombineScriptsCreated(boolean combineScriptsCreated) {
     this.combineScriptsCreated.set(combineScriptsCreated);
+  }
+  
+  public void resetCombineScriptsCreated() {
+    this.combineScriptsCreated.reset();
   }
 
   public EtomoState getCombineScriptsCreated() {
