@@ -1,9 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/06: Changed trimvol to treat -sx and -sy arguments as 3dmod coordinates.
+
 8/11/06: Etomo:  opening and re-reading the align log in 3dmod automatically.
 
-8/10/06: Etomo:  sped up the process monitors for mtffilter, prenews, tilt, and
-newst.
+8/10/06: Etomo:  sped up the process monitors for mtffilter, prenewst, tilt,
+and newst.
 
 8/9/06: Adding more status information to the newst monitor and the regular
 volcombine monitor.
@@ -31,12 +33,12 @@ error message when the local computer was missing from the cpu.adoc and
 %mountname was used in the remote mount rule.
 
 7/19/06: In eTomo Fiducial Model, changing the "Seed Fiducial Model" button
-label to "View Fiducial Model" when transferfid is used.
+label to "View Seed Model" when transferfid is used.
 
 7/19/06: In eTomo Fiducial Model, moved the "Use Fiducial Model as Seed"
 button to the Basic screen.
 
-7/19/06: In eTomo Tomogram Combination no longer adding default Z min and max
+7/19/06: In eTomo Tomogram Combination, no longer adding default Z min and max
 values.
 
 7/18/06: IMOD_3-8-21
