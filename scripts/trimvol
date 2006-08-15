@@ -6,30 +6,7 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.12  2006/06/06 23:04:49  mast
-#  Moved control stripping before /p
-#
-#  Revision 3.11  2006/03/08 05:16:28  mast
-#  Add arguments to set X/Y and switch to new findcontrast input
-#
-#  Revision 3.10  2006/02/16 06:47:09  mast
-#  Stripped control chars from output of sed/header etc for Windows
-#
-#  Revision 3.9  2005/11/19 04:31:26  mast
-#  Quote path setting to preserve spaces
-#
-#  Revision 3.8  2004/06/29 03:50:39  mast
-#  Added nohup
-#
-#  Revision 3.7  2003/12/25 00:49:30  mast
-#  Change newst to newstack
-#
-#  Revision 3.6  2003/10/24 02:14:00  mast
-#  source settmpdir to get tmpdir, better for Windows
-#
-#  Revision 3.5  2003/06/20 20:14:44  mast
-#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#  Log at end
 #
 
 nohup
@@ -122,11 +99,11 @@ while ($#argv > 2)
       shift; shift
       breaksw
     case -sx:
-      set sxarg = "-xminmax $argv[2]"
+      set sx = $argv[2]
       shift; shift
       breaksw
     case -sy:
-      set syarg = "-yminmax $argv[2]"
+      set sy = $argv[2]
       shift; shift
       breaksw
     case -sz:
@@ -334,6 +311,36 @@ if ($?iz) then
     set secout = "-sec $zst-$znd"
 endif
 
+if ($?sx) then
+    set xentry = `echo $sx | sed 's/,/ /g'`
+    if ($#xentry < 2) then
+	echo "ERROR: $pn - incorrect argument -sx $sx"
+	exit 1
+    endif
+    @ xst = $xentry[1]
+    @ xnd = $xentry[2]
+    if ($index == "0") then
+	@ xst--
+	@ xnd--
+    endif
+    set sxarg = "-xminmax $xst,$xnd"
+endif
+
+if ($?sy) then
+    set yentry = `echo $sy | sed 's/,/ /g'`
+    if ($#yentry < 2) then
+	echo "ERROR: $pn - incorrect argument -sy $sy"
+	exit 1
+    endif
+    @ yst = $yentry[1]
+    @ ynd = $yentry[2]
+    if ($index == "0") then
+	@ yst--
+	@ ynd--
+    endif
+    set syarg = "-yminmax $yst,$ynd"
+endif
+
 set contout = ""
 if ($?contrast) then
     set contout = "-mo 0 -co $contrast"
@@ -402,3 +409,31 @@ exit 0
 clean:
 \rm -f $tmpfil
 exit 1
+
+#  $Log$
+#  Revision 3.13  2006/06/23 17:07:17  mast
+#  Added option for rotation around X
+#
+#  Revision 3.12  2006/06/06 23:04:49  mast
+#  Moved control stripping before /p
+#
+#  Revision 3.11  2006/03/08 05:16:28  mast
+#  Add arguments to set X/Y and switch to new findcontrast input
+#
+#  Revision 3.10  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
+#  Revision 3.9  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
+#  Revision 3.8  2004/06/29 03:50:39  mast
+#  Added nohup
+#
+#  Revision 3.7  2003/12/25 00:49:30  mast
+#  Change newst to newstack
+#
+#  Revision 3.6  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
+#  Revision 3.5  2003/06/20 20:14:44  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
