@@ -17,7 +17,7 @@ If you use the
 .B -sz
 or 
 .B -s 
-option,  then findcontrast(1) will be run on the specified sections.  By
+option, then findcontrast(1) will be run on the specified sections.  By
 default, regions
 within 10% of the lateral borders of each section are omitted, but a different
 region can be set with
@@ -85,7 +85,9 @@ Scale to bytes, determining the optimal scaling to bytes by analyzing
 intensities from sections S0 to S1, inclusive.  Coordinates are treated as
 coming from a flipped volume only if the
 .B -f
-option is given.  Slices are numbered from 1.
+option is given.  Slices are numbered from 1 regardless of whether the
+.B -i
+option is used.
 .TP
 .B -s <S0,S1>
 Scale to bytes, determining the optimal scaling to bytes by analyzing
@@ -96,7 +98,7 @@ behavior).
 .TP
 .B -sy <Y0,Y1>
 Analyze the region from X0 to X1 in X, or from Y0 to Y1 in Y, inclusive, in
-determining the scaling.  These coordinates are numbered from 0.
+determining the scaling.
 .TP
 .B -c <black,white>
 Scale to bytes, with relative intensities between "black" and "white" (on a
@@ -120,8 +122,10 @@ of flipping will preserve the handedness of structures.
 Interpret 
 .B -x,
 .B -y,
+.B -z,
+.B -sx,
 and
-.B -z
+.B -sy
 entries as index coordinates numbered from 0, rather than as 3dmod coordinates
 numbered from 1.
 .TP
