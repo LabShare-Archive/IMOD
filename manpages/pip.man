@@ -527,7 +527,7 @@ integer*4 \fIval1, val2\fB             [Returned arguments]
 
 int PipGetTwoFloats(char *\fIoption\fB, float *\fIval1\fB, float *\fIval2\fB);
 
-integer*4 function PipGetInteger(\fIoption\fB, \fIval1\fB, \fIval2\fB)
+integer*4 function PipGetTwoFloats(\fIoption\fB, \fIval1\fB, \fIval2\fB)
 character*N \fIoption\fB
 real*4 \fIval1, val2\fB             [Returned arguments]
 
@@ -551,7 +551,7 @@ integer*4 \fIval1, val2, val3\fB             [Returned arguments]
 int PipGetThreeFloats(char *\fIoption\fB, float *\fIval1\fB, float*\fIval2\fB,
                       float*\fIval3\fB);
 
-integer*4 function PipGetInteger(\fIoption\fB, \fIval1\fB, \fIval2\fB, \fIval3\fB)
+integer*4 function PipGetThreeFloats(\fIoption\fB, \fIval1\fB, \fIval2\fB, \fIval3\fB)
 character*N \fIoption\fB
 real*4 \fIval1, val2, val3\fB             [Returned arguments]
 
