@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/16/06: Revamped Corrsearch3d so it uses displacements of neighboring patches
+to adjust the center of the patch from B being correlated.  Also converted to
+PIP input, made it do FFT correlations internally, added kernel smoothing,
+made it handle volumes well in either orientation, allowed for a model on B
+and for an initial displacement between the volumes.
+
 8/15/06: Changed trimvol to treat -sx and -sy arguments as 3dmod coordinates.
 
 8/11/06: Etomo:  opening and re-reading the align log in 3dmod automatically.
