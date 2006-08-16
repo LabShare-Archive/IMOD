@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2006/06/29 05:10:14  mast
+#  Changes for new model libraries
+#
 #  Revision 3.6  2006/06/22 01:09:45  mast
 #  Replaced LDFLAGS with LDFFLAGS for Intel Mac
 #
@@ -126,14 +129,15 @@ refinematch$(E): refinematch.$(O) solve_wo_outliers.$(O)
 findwarp$(E): findwarp.$(O) solve_wo_outliers.$(O)
 	$(FC) -o findwarp findwarp.$(O) $(LDFLG) solve_wo_outliers.$(O) $(WLIBS)
 
+corrsearch3d$(E): corrsearch3d.$(O) get_region_contours.$(O)
+	$(FC) -o corrsearch3d corrsearch3d.$(O) $(LDFLG) \
+	get_region_contours.$(O) $(SMALLLIBS)
+
 tomopitch$(E): tomopitch.$(O)
 	$(FC) -o tomopitch tomopitch.$(O) $(LDFLG) $(SMALLLIBS)
 
 fiberpitch$(E): fiberpitch.$(O)
 	$(FC) -o fiberpitch fiberpitch.$(O) $(LDFLG) $(WLIBS)
-
-corrsearch3d$(E): corrsearch3d.$(O)
-	$(FC) -o corrsearch3d corrsearch3d.$(O) $(LDFLG) $(WLIBS)
 
 repackseed$(E): repackseed.$(O)
 	$(FC) -o repackseed repackseed.$(O) $(LDFLG) $(WLIBS)
