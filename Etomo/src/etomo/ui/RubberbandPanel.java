@@ -11,8 +11,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
-import etomo.comscript.TrimvolParam;
-import etomo.process.ImodManager;
+import etomo.comscript.XYParam;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 
@@ -32,37 +31,49 @@ import etomo.type.AxisID;
 public final class RubberbandPanel {
   public static final String rcsid = "$Id$";
 
-  private static final String RUBBERBAND_BUTTON_LABEL = "Get XY Sub-Area From 3dmod";
-
   private final BaseManager manager;
 
   private final JPanel pnlRubberband = new JPanel();
   private final JPanel pnlRange = new JPanel();
-  private final LabeledTextField ltfXMin = new LabeledTextField("X Min: ");
-  private final LabeledTextField ltfXMax = new LabeledTextField(" X Max: ");
-  private final LabeledTextField ltfYMin = new LabeledTextField("Y Min: ");
-  private final LabeledTextField ltfYMax = new LabeledTextField(" Y Max: ");
-  private final MultiLineButton btnRubberband = new MultiLineButton(
-      RUBBERBAND_BUTTON_LABEL);
+  private final LabeledTextField ltfXMin;
+  private final LabeledTextField ltfXMax;
+  private final LabeledTextField ltfYMin;
+  private final LabeledTextField ltfYMax;
+  private final MultiLineButton btnRubberband;
+  private final Strings strings;
 
-  RubberbandPanel(BaseManager manager) {
+  RubberbandPanel(BaseManager manager, Strings panelStrings) {
+    strings = panelStrings;
     this.manager = manager;
+    btnRubberband = new MultiLineButton(strings.buttonLabel);
+    ltfXMin = new LabeledTextField(strings.xMinLabel);
+    ltfXMax = new LabeledTextField(strings.xMaxLabel);
+    ltfYMin = new LabeledTextField(strings.yMinLabel);
+    ltfYMax = new LabeledTextField(strings.yMaxLabel);
+    String borderLabel = panelStrings.getBorderLabel();
+    if (borderLabel != null) {
+      pnlRubberband.setBorder(new EtchedBorder(borderLabel).getBorder());
+    }
     pnlRubberband.setLayout(new BoxLayout(pnlRubberband, BoxLayout.Y_AXIS));
-    pnlRubberband.setBorder(new EtchedBorder("Scaling from sub-area:")
-        .getBorder());
     pnlRange.setLayout(new GridLayout(2, 2));
     pnlRange.add(ltfXMin.getContainer());
     pnlRange.add(ltfXMax.getContainer());
     pnlRange.add(ltfYMin.getContainer());
     pnlRange.add(ltfYMax.getContainer());
     pnlRubberband.add(pnlRange);
-    pnlRubberband.add(Box.createRigidArea(FixedDim.x0_y5));
-    btnRubberband.setSize();
-    btnRubberband.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlRubberband.add(btnRubberband.getComponent());
+    if (borderLabel != null) {
+      pnlRubberband.add(Box.createRigidArea(FixedDim.x0_y5));
+      btnRubberband.setSize();
+      btnRubberband.setAlignmentX(Component.CENTER_ALIGNMENT);
+      pnlRubberband.add(btnRubberband.getComponent());
+    }
     setToolTipText();
     RubberbandActionListener actionListener = new RubberbandActionListener(this);
     btnRubberband.addActionListener(actionListener);
+  }
+
+  MultiLineButton getButton() {
+    return btnRubberband;
   }
 
   Component getComponent() {
@@ -72,8 +83,8 @@ public final class RubberbandPanel {
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnRubberband.getActionCommand()) {
-      setXYMinAndMax(manager.imodGetRubberbandCoordinates(
-          ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
+      setXYMinAndMax(manager.imodGetRubberbandCoordinates(strings.imodKey,
+          AxisID.ONLY));
     }
   }
 
@@ -115,37 +126,33 @@ public final class RubberbandPanel {
     btnRubberband.setEnabled(enable);
   }
 
-  public void getParameters(TrimvolParam trimvolParam) {
-    trimvolParam.setScaleXMin(ltfXMin.getText());
-    trimvolParam.setScaleXMax(ltfXMax.getText());
-    trimvolParam.setScaleYMin(ltfYMin.getText());
-    trimvolParam.setScaleYMax(ltfYMax.getText());
+  public void getParameters(XYParam xyParam) {
+    xyParam.setXMin(ltfXMin.getText());
+    xyParam.setXMax(ltfXMax.getText());
+    xyParam.setYMin(ltfYMin.getText());
+    xyParam.setYMax(ltfYMax.getText());
   }
 
-  public void setParameters(TrimvolParam trimvolParam) {
-    ltfXMin.setText(trimvolParam.getScaleXMin());
-    ltfXMax.setText(trimvolParam.getScaleXMax());
-    ltfYMin.setText(trimvolParam.getScaleYMin());
-    ltfYMax.setText(trimvolParam.getScaleYMax());
+  public void setParameters(XYParam xyParam) {
+    ltfXMin.setText(xyParam.getXMin());
+    ltfXMax.setText(xyParam.getXMax());
+    ltfYMin.setText(xyParam.getYMin());
+    ltfYMax.setText(xyParam.getYMax());
   }
 
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    ltfXMin.setToolTipText(tooltipFormatter.setText(
-        "Minimum X coordinate on the left side to analyze for contrast range.")
+    ltfXMin.setToolTipText(tooltipFormatter.setText(strings.xMinTooltip)
         .format());
-    ltfXMax
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Maximum X coordinate on the right side to analyze for contrast range.")
-            .format());
-    ltfYMin.setToolTipText(tooltipFormatter.setText(
-        "The lower Y coordinate to analyze for contrast range.").format());
-    ltfYMax.setToolTipText(tooltipFormatter.setText(
-        "The upper Y coordinate to analyze for contrast range.").format());
+    ltfXMax.setToolTipText(tooltipFormatter.setText(strings.xMaxTooltip)
+        .format());
+    ltfYMin.setToolTipText(tooltipFormatter.setText(strings.yMinTooltip)
+        .format());
+    ltfYMax.setToolTipText(tooltipFormatter.setText(strings.yMaxTooltip)
+        .format());
     btnRubberband.setToolTipText(tooltipFormatter.setText(
-        "After pressing the " + RUBBERBAND_BUTTON_LABEL + " button, "
+        "After pressing the " + strings.buttonLabel + " button, "
             + "press shift-B in the ZaP window.  "
             + "Create a rubberband around the contrast range.  "
             + "Then press this button to retrieve X and Y coordinates.")
@@ -163,7 +170,49 @@ public final class RubberbandPanel {
       adaptee.buttonAction(event);
     }
   }
+
+  static class Strings {
+    final String imodKey;
+    final String buttonLabel;
+    final String xMinLabel;
+    final String xMaxLabel;
+    final String yMinLabel;
+    final String yMaxLabel;
+    final String xMinTooltip;
+    final String xMaxTooltip;
+    final String yMinTooltip;
+    final String yMaxTooltip;
+
+    private String borderLabel = null;
+
+    Strings(String imodKey, String buttonLabel, String xMinLabel,
+        String xMaxLabel, String yMinLabel, String yMaxLabel,
+        String xMinTooltip, String xMaxTooltip, String yMinTooltip,
+        String yMaxTooltip) {
+      this.imodKey = imodKey;
+      this.buttonLabel = buttonLabel;
+      this.xMinLabel = xMinLabel;
+      this.xMaxLabel = xMaxLabel;
+      this.yMinLabel = yMinLabel;
+      this.yMaxLabel = yMaxLabel;
+      this.xMinTooltip = xMinTooltip;
+      this.xMaxTooltip = xMaxTooltip;
+      this.yMinTooltip = yMinTooltip;
+      this.yMaxTooltip = yMaxTooltip;
+    }
+
+    void setBorderLabel(String borderLabel) {
+      this.borderLabel = borderLabel;
+    }
+
+    String getBorderLabel() {
+      return borderLabel;
+    }
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/06/28 23:29:36  sueh
+ * <p> bug# 881 Panel to get X and Y scaling range using a 3dmod rubberband.
+ * <p> </p>
  */
