@@ -25,6 +25,7 @@ Log at the end of file
 #include <qfiledialog.h>
 #include <qapplication.h>
 #include <qdir.h>
+#include <qdatetime.h>
 #include <qimage.h>
 #include <qpixmap.h>
 #include "xxyz.h"
@@ -731,6 +732,8 @@ int main( int argc, char *argv[])
 
   /* Finish setting up and loading images */
   errno = 0;
+  QTime loadTime;
+  loadTime.start();
   if (ivwLoadImage(&vi)){
     qname = b3dGetError();
     qname += "3dmod: Fatal Error -- while reading image data.\n";
@@ -739,6 +742,8 @@ int main( int argc, char *argv[])
     imodError(NULL, qname.latin1());
     exit(3);
   }
+  if (Imod_debug)
+    imodPrintStderr("Loading time %.3f\n", loadTime.elapsed() / 1000.);
 
   /* 11/13/06: remove setting of time flag in new model */
 
@@ -1068,6 +1073,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.56  2006/07/03 19:51:51  mast
+Request a disconnect of the message handler on exit
+
 Revision 4.55  2006/06/20 17:27:26  mast
 Changed test for using -L - threads required on Windows only
 
