@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2006/08/16 18:52:26  sueh
+ * <p> bug# 912 Making the rubberband panel generic.
+ * <p>
  * <p> Revision 3.18  2006/08/14 18:34:35  sueh
  * <p> bug#  890 Validating section scale min and max, and fixed scale min and max.
  * <p>
@@ -219,6 +222,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     this.dialogType = dialogType;
     RubberbandPanel.Strings scaleStrings = new RubberbandPanel.Strings(
         ImodManager.COMBINED_TOMOGRAM_KEY,
+        "Scaling from sub-area:",
         "Get XY Sub-Area From 3dmod",
         "X Min: ",
         " X Max: ",
@@ -228,7 +232,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
         "Maximum X coordinate on the right side to analyze for contrast range.",
         "The lower Y coordinate to analyze for contrast range.",
         "The upper Y coordinate to analyze for contrast range.");
-    scaleStrings.setBorderLabel("Scaling from sub-area:");
     pnlScaleRubberband = new RubberbandPanel(appMgr, scaleStrings);
     btnTrimvol = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getTrimVolume();
