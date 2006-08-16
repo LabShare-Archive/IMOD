@@ -1,0 +1,215 @@
+Version = 1.0
+Pip = 1
+
+[Field = ReferenceFile]
+short = ref
+type = FN
+usage = Reference image file that is being aligned to
+tooltip = 
+manpage = 
+
+[Field = FileToAlign]
+short = align
+type = FN
+usage = Image file that will be transformed into alignment
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for patch displacements
+tooltip = 
+manpage = 
+
+[Field = RegionModel]
+short = region
+type = FN
+usage = Model file with contours enclosing regions to take patches from
+tooltip = 
+manpage = 
+
+[Field = PatchSizeXYZ]
+short = size
+type = IT
+usage = Size of patches in X, Y, and Z
+tooltip = 
+manpage = 
+
+[Field = NumberOfPatchesXYZ]
+short = number
+type = IT
+usage = Number of patches in the X, Y and Z directions
+tooltip = 
+manpage = 
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending X coordinates of region to take patches from
+tooltip = 
+manpage = Starting and ending X coordinates of region to take patches from.
+X, Y, and Z coordinates are numbered from 1.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y coordinates of region to take patches from
+tooltip = 
+manpage = 
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending Z coordinates of region to take patches from
+tooltip = 
+manpage = 
+
+[Field = TapersInXYZ]
+short = taper
+type = IT
+usage = Number of pixels over which to taper the patches in X, Y and Z
+tooltip = 
+manpage = Number of pixels over which to taper the patches in X, Y and Z.  The
+default is 10% of the patch dimensions.
+
+[Field = PadsInXYZ]
+short = pad
+type = IT
+usage = Number of pixels to pad Fourier correlations in X, Y and Z
+tooltip = 
+manpage = Number of pixels to pad each side of the patch in X, Y, and Z for
+Fourier correlations .  The default is 20% of the patch dimensions.
+
+[Field = MaximumShift]
+short = maxshift
+type = I
+usage = Maximum displacement to determine by searching (default 10)
+tooltip = 
+manpage = Maximum displacement to determine by searching.  This is in addition
+to the local offset determined from adjacent patches.  The default is 10.
+
+[Field = InitialShiftXYZ]
+short = initial
+type = FT
+usage = Initial displacement of volume B relative to A in X, Y, and Z
+tooltip = 
+manpage = Initial displacement of the volume being aligned relative to the
+reference volume in X, Y, and Z;
+namely, the amount to add to a pixel coordinate in the reference volume to
+obtain the coordinate of the corresponding pixel in thefile being aligned.
+
+[Field = BSourceOrSizeXYZ]
+short = bsource
+type = CH
+usage = File name or X, Y and Z size of source of file being aligned
+tooltip = 
+manpage = File name or X, Y and Z size of source of file being aligned.  This
+size must be entered if a 3-D transformation is supplied; otherwise the size
+of the file being aligned is used.
+
+[Field = BSourceTransform]
+short = bxform
+type = FN
+usage = 3-D transformation file used to generate file being aligned
+tooltip = 
+manpage = File with 3-D transformation that was used to generate the file being
+aligned from its source file.
+
+[Field = BSourceBorderXLoHi]
+short = bxborder
+type = IP
+usage = Lower and upper border in X in source for file being aligned
+tooltip = 
+manpage = Size of borders to be excluded on the lower and upper sides in X
+in the original source volume for the file being aligned
+
+[Field = BSourceBorderYZLoHi]
+short = byzborder
+type = IP
+usage = Lower and upper border in Y or Z in source for file being aligned
+tooltip = 
+manpage = Size of borders to be excluded on the lower and upper sides in Y or
+Z (whichever is the longer dimension) in the original source volume for the
+file being aligned.
+
+[Field = BRegionModel]
+short = bregion
+type = FN
+usage = Model file with contours enclosing good areas in B source file
+tooltip = 
+manpage = Model file with contours enclosing areas in the original source
+volume for the file being aligned that are suitable for correlation.
+
+[Field = KernelSigma]
+short = kernel
+type = F
+usage = Sigma in pixels for real-space smoothing with 3D Gaussian kernel
+tooltip = 
+manpage = Sigma for real-space smoothing with 3D Gaussian kernel (in pixels).
+The smoothing is with a 3x3x3 kernel whose coefficients are proportional to 
+to a Gaussian with the given sigma centered on the central pixel.  Each patch
+from the first volume is smoothed before being used for either the correlation
+search or a Fourier correlation.
+
+[Field = KernelSize]
+short = ksize
+type = F
+usage = Size of 3D Gaussian kernel for real-space smoothing (3 or 5)
+tooltip = 
+manpage = Size in pixels of the 3D Gaussian kernel used for real-space 
+smoothing.  The size can be either 3 or 5.  The default is 3 for a kernel sigma
+below 1.5 and 5 for larger sigmas since the filtering reaches a point of
+diminishing returns at about this sigma with a size of 3.
+
+[Field = LowPassRadiusSigma]
+short = lowpass
+type = FP
+usage = Radius and sigma for low pass filtering in Fourier correlations
+tooltip = 
+manpage = Cutoff radius and sigma for a low pass filter that imposes a
+high-frequency Gaussian roll-off in the Fourier cross-correlations.
+The default is no high-frequency filtering.
+
+[Field = HighPassSigma]
+short = sigma1
+type = F
+usage = Sigma for low frequency inverted Gaussian in Fourier correlations
+tooltip = 
+manpage = Sigma value to filter low frequencies in the Fourier correlations
+with a curve that is an inverted Gaussian.  This filter is 0 at 0 frequency
+and decays up to 1 with the given sigma value.
+
+[Field = FlipYZMessages]
+short = messages
+type = B
+usage = Exchange Y and Z in error messages if Y is short dimension
+tooltip = 
+manpage = 
+
+[Field = DebugMode]
+short = debug
+type = I
+usage = 1 for debug output, 2 for dummy patches, 3 to compare correlations
+tooltip = 
+manpage = Set to 1 for debugging output, 2 to obtain a dummy patch output file 
+to assess the positions of the patches, and 3 to do Fourier correlations at
+all positions, plus direct correlation searches wherever possible.  In the 
+latter case each line of the patch output file will have the results from the
+Fourier correlation, followed by the results from direct correlation, ending
+with a 3D distance between the two results.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
