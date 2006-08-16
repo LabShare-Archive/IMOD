@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2006/08/14 18:33:15  sueh
+ * <p> bug#  890 Converted section scale min and max, and fixed scale min and max
+ * <p> to EtomoNumber to provide error checking
+ * <p>
  * <p> Revision 3.19  2006/07/10 20:04:20  sueh
  * <p> bug# 881 Don't subtract 1 from scale X/Y min/max if it is null
  * <p>
@@ -141,6 +145,7 @@ import java.util.Properties;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.util.MRCHeader;
@@ -148,6 +153,9 @@ import etomo.util.InvalidParameterException;
 
 public class TrimvolParam implements CommandDetails {
   public static final String rcsid = "$Id$";
+
+  private static final String VERSION = "1.1";
+  private static final String VERSION_KEY = "Version";
 
   public static final String PARAM_ID = "Trimvol";
   public static final String XMIN = "XMin";
@@ -172,10 +180,7 @@ public class TrimvolParam implements CommandDetails {
   private int yMax = Integer.MIN_VALUE;
   private int zMin = Integer.MIN_VALUE;
   private int zMax = Integer.MIN_VALUE;
-  private final EtomoNumber scaleXMin = new EtomoNumber("ScaleXMin");
-  private final EtomoNumber scaleXMax = new EtomoNumber("ScaleXMax");
-  private final EtomoNumber scaleYMin = new EtomoNumber("ScaleYMin");
-  private final EtomoNumber scaleYMax = new EtomoNumber("ScaleYMax");
+  private final XYParam scaleXYParam = new XYParam("Scale");
   private boolean convertToBytes = true;
   private boolean fixedScaling = false;
   private final EtomoNumber sectionScaleMin = new EtomoNumber("SectionScaleMin");
@@ -189,6 +194,8 @@ public class TrimvolParam implements CommandDetails {
   private String[] commandArray;
   private AxisID axisID;
   private final BaseManager manager;
+
+  private boolean oldVersion = false;
 
   public TrimvolParam(BaseManager manager) {
     this.manager = manager;
@@ -209,12 +216,7 @@ public class TrimvolParam implements CommandDetails {
     String group;
     prepend += PARAM_ID;
     group = prepend + ".";
-    /* if (prepend == "") {
-     group = PARAM_ID + ".";
-     }
-     else {
-     group = prepend + PARAM_ID + ".";
-     }*/
+    props.setProperty(prepend + "." + VERSION_KEY, VERSION);
     props.setProperty(group + XMIN, String.valueOf(xMin));
     props.setProperty(group + XMAX, String.valueOf(xMax));
     props.setProperty(group + YMIN, String.valueOf(yMin));
@@ -232,10 +234,7 @@ public class TrimvolParam implements CommandDetails {
     props.setProperty(group + ROTATE_X_KEY, String.valueOf(rotateX));
     props.setProperty(group + INPUT_FILE, inputFile);
     props.setProperty(group + OUTPUT_FILE, outputFile);
-    scaleXMin.store(props, prepend);
-    scaleXMax.store(props, prepend);
-    scaleYMin.store(props, prepend);
-    scaleYMax.store(props, prepend);
+    scaleXYParam.store(props, prepend);
   }
 
   /**
@@ -255,7 +254,7 @@ public class TrimvolParam implements CommandDetails {
      else {
      group = prepend + PARAM_ID + ".";
      }*/
-
+    oldVersion = props.getProperty(group + VERSION_KEY) == null;
     // Load the trimvol values if they are present, don't change the
     // current value if the property is not present
     xMin = Integer.valueOf(
@@ -300,11 +299,57 @@ public class TrimvolParam implements CommandDetails {
     inputFile = props.getProperty(group + INPUT_FILE, inputFile);
 
     outputFile = props.getProperty(group + OUTPUT_FILE, outputFile);
+    scaleXYParam.load(props, prepend);
+    convertOldVersions();
+  }
 
-    scaleXMin.load(props, prepend);
-    scaleXMax.load(props, prepend);
-    scaleYMin.load(props, prepend);
-    scaleYMax.load(props, prepend);
+  private void convertOldVersions() {
+    if (!oldVersion) {
+      return;
+    }
+    //In the old version, scale x and y min and max had been converted to index
+    //coords.  In the current version, they should be imod coords.
+    //shift X
+    int min;
+    int max;
+    int shift;
+    if (!scaleXYParam.getXMin().isNull()) {
+      min = scaleXYParam.getXMin().getInt();
+      max = scaleXYParam.getXMax().getInt();
+      shift = getScaleShift(min, max);
+      scaleXYParam.setXMin(min + shift);
+      scaleXYParam.setXMax(max + shift);
+    }
+    //shift Y
+    if (!scaleXYParam.getYMin().isNull()) {
+      min = scaleXYParam.getYMin().getInt();
+      max = scaleXYParam.getYMax().getInt();
+      shift = getScaleShift( min, max);
+      scaleXYParam.setYMin(min + shift);
+      scaleXYParam.setYMax(max + shift);
+    }
+  }
+
+  /**
+   * attempt to convert scale min and max from index coords to imod coords
+   * and correct bug# 915
+   * @param defaultMax
+   * @param min
+   * @param max
+   * @return
+   */
+  private int getScaleShift(int min, int max) {
+    //Possibilities:
+    //min and max may be reduced by 1 or more
+    //min and max may not be reduced at all
+    //Assume min and max are reduced by 1, since that is the most likely 
+    //situation.
+    int shift = 1;
+    if (min < 0) {
+      //min and max where reduce by more then 1 
+      shift = 0 - min + 1;
+    }
+    return shift;
   }
 
   /**
@@ -366,13 +411,17 @@ public class TrimvolParam implements CommandDetails {
         options.add("-s");
         options.add(String.valueOf(sectionScaleMin) + ","
             + String.valueOf(sectionScaleMax));
-        if (!scaleXMin.isNull() && !scaleXMax.isNull()) {
+        if (!scaleXYParam.getXMin().isNull()
+            && !scaleXYParam.getXMax().isNull()) {
           options.add("-sx");
-          options.add(scaleXMin.toString() + "," + scaleXMax.toString());
+          options.add(scaleXYParam.getXMin().toString() + ","
+              + scaleXYParam.getXMax().toString());
         }
-        if (!scaleYMin.isNull() && !scaleYMax.isNull()) {
+        if (!scaleXYParam.getYMin().isNull()
+            && !scaleXYParam.getYMax().isNull()) {
           options.add("-sy");
-          options.add(scaleYMin.toString() + "," + scaleYMax.toString());
+          options.add(scaleXYParam.getYMin().toString() + ","
+              + scaleXYParam.getYMax().toString());
         }
       }
     }
@@ -466,31 +515,10 @@ public class TrimvolParam implements CommandDetails {
   }
 
   /**
-   * @return int
+   * @return XYParam
    */
-  public ConstEtomoNumber getScaleXMax() {
-    return scaleXMax;
-  }
-
-  /**
-   * @return int
-   */
-  public ConstEtomoNumber getScaleXMin() {
-    return scaleXMin;
-  }
-
-  /**
-   * @return int
-   */
-  public ConstEtomoNumber getScaleYMax() {
-    return scaleYMax;
-  }
-
-  /**
-   * @return int
-   */
-  public ConstEtomoNumber getScaleYMin() {
-    return scaleYMin;
+  public XYParam getScaleXYParam() {
+    return scaleXYParam;
   }
 
   /**
@@ -596,54 +624,6 @@ public class TrimvolParam implements CommandDetails {
   }
 
   /**
-   * Sets the scaleXMin.
-   * Converts the X value from the rubberband to a coordinate
-   * @param scaleXMax
-   */
-  public void setScaleXMax(String scaleXMax) {
-    this.scaleXMax.set(scaleXMax);
-    if (!this.scaleXMax.isNull()) {
-      this.scaleXMax.set(this.scaleXMax.getInt() - 1);
-    }
-  }
-
-  /**
-   * Sets the scaleXMin.
-   * Converts the X value from the rubberband to a coordinate
-   * @param scaleXMin The scaleXin to set
-   */
-  public void setScaleXMin(String scaleXMin) {
-    this.scaleXMin.set(scaleXMin);
-    if (!this.scaleXMin.isNull()) {
-      this.scaleXMin.set(this.scaleXMin.getInt() - 1);
-    }
-  }
-
-  /**
-   * Sets the scaleYMax.
-   * Converts the Y value from the rubberband to a coordinate
-   * @param scaleYMax The scaleYMax to set
-   */
-  public void setScaleYMax(String scaleYMax) {
-    this.scaleYMax.set(scaleYMax);
-    if (!this.scaleYMax.isNull()) {
-      this.scaleYMax.set(this.scaleYMax.getInt() - 1);
-    }
-  }
-
-  /**
-   * Sets the scaleYMin.
-   * Converts the Y value from the rubberband to a coordinate
-   * @param scaleYMin The scaleYMin to set
-   */
-  public void setScaleYMin(String scaleYMin) {
-    this.scaleYMin.set(scaleYMin);
-    if (!this.scaleYMin.isNull()) {
-      this.scaleYMin.set(this.scaleYMin.getInt() - 1);
-    }
-  }
-
-  /**
    * Sets the zMax.
    * @param zMax The zMax to set
    */
@@ -659,25 +639,17 @@ public class TrimvolParam implements CommandDetails {
     this.zMin = zMin;
   }
 
-  /**
-   * Sets the range to match the full volume
-   * @param fileName The MRC iamge stack file name used to set the range
-   */
-  public void setDefaultRange() throws InvalidParameterException, IOException {
-    setDefaultRange(inputFile);
-  }
-
-  public void setDefaultRange(String fileName)
-      throws InvalidParameterException, IOException {
+  public void setDefaultRange(String fileName) throws InvalidParameterException,IOException{
     //Don't override existing values
     if (xMin != Integer.MIN_VALUE) {
       return;
     }
     // Get the data size limits from the image stack
+    BaseMetaData metaData = manager.getBaseMetaData();
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY);
-    mrcHeader.read();
-
+        TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
+            .getName()), AxisID.ONLY);
+      mrcHeader.read();
     xMin = 1;
     xMax = mrcHeader.getNColumns();
     yMin = 1;
@@ -862,16 +834,7 @@ public class TrimvolParam implements CommandDetails {
             "\\S+"))) {
       return false;
     }
-    if (!scaleXMin.equals(trim.getScaleXMin())) {
-      return false;
-    }
-    if (!scaleXMax.equals(trim.getScaleXMax())) {
-      return false;
-    }
-    if (!scaleYMin.equals(trim.getScaleYMin())) {
-      return false;
-    }
-    if (!scaleYMax.equals(trim.getScaleYMax())) {
+    if (!scaleXYParam.equals(trim.scaleXYParam)) {
       return false;
     }
     return true;
