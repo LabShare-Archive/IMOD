@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2006/08/14 18:34:35  sueh
+ * <p> bug#  890 Validating section scale min and max, and fixed scale min and max.
+ * <p>
  * <p> Revision 3.17  2006/07/21 19:19:32  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
@@ -180,8 +183,10 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private RadioButton rbScaleSection = new RadioButton(
       "Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
-  private LabeledTextField ltfSectionScaleMin = new LabeledTextField(SECTION_SCALE_MIN_LABEL);
-  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(SECTION_SCALE_MAX_LABEL);
+  private LabeledTextField ltfSectionScaleMin = new LabeledTextField(
+      SECTION_SCALE_MIN_LABEL);
+  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(
+      SECTION_SCALE_MAX_LABEL);
 
   private final JPanel pnlReorientation = new JPanel();
   private final ButtonGroup bgSwap = new ButtonGroup();
@@ -212,7 +217,19 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     this.axisID = axisID;
     applicationManager = appMgr;
     this.dialogType = dialogType;
-    pnlScaleRubberband = new RubberbandPanel(appMgr);
+    RubberbandPanel.Strings scaleStrings = new RubberbandPanel.Strings(
+        ImodManager.COMBINED_TOMOGRAM_KEY,
+        "Get XY Sub-Area From 3dmod",
+        "X Min: ",
+        " X Max: ",
+        "Y Min: ",
+        " Y Max: ",
+        "Minimum X coordinate on the left side to analyze for contrast range.",
+        "Maximum X coordinate on the right side to analyze for contrast range.",
+        "The lower Y coordinate to analyze for contrast range.",
+        "The upper Y coordinate to analyze for contrast range.");
+    scaleStrings.setBorderLabel("Scaling from sub-area:");
+    pnlScaleRubberband = new RubberbandPanel(appMgr, scaleStrings);
     btnTrimvol = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getTrimVolume();
 
@@ -357,7 +374,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
       rbScaleSection.setSelected(true);
     }
     setScaleState();
-    pnlScaleRubberband.setParameters(trimvolParam);
+    pnlScaleRubberband.setParameters(trimvolParam.getScaleXYParam());
   }
 
   /**
@@ -391,18 +408,17 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     else {
       trimvolParam.setFixedScaling(false);
       try {
-      trimvolParam.setSectionScaleMin(ltfSectionScaleMin
-          .getText()).validate(
-              SCALING_ERROR_TITLE, SECTION_SCALE_MIN_LABEL, axisID);
-      trimvolParam.setSectionScaleMax(ltfSectionScaleMax
-          .getText()).validate(
-              SCALING_ERROR_TITLE, SECTION_SCALE_MAX_LABEL, axisID);
+        trimvolParam.setSectionScaleMin(ltfSectionScaleMin.getText()).validate(
+            SCALING_ERROR_TITLE, SECTION_SCALE_MIN_LABEL, axisID);
+        trimvolParam.setSectionScaleMax(ltfSectionScaleMax.getText()).validate(
+            SCALING_ERROR_TITLE, SECTION_SCALE_MAX_LABEL, axisID);
       }
       catch (InvalidEtomoNumberException e) {
         return false;
       }
     }
-    pnlScaleRubberband.getParameters(trimvolParam);
+    //get the xyParam and set the values in it
+    pnlScaleRubberband.getParameters(trimvolParam.getScaleXYParam());
     return true;
   }
 
