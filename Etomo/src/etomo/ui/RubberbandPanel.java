@@ -45,15 +45,12 @@ public final class RubberbandPanel {
   RubberbandPanel(BaseManager manager, Strings panelStrings) {
     strings = panelStrings;
     this.manager = manager;
+    pnlRubberband.setBorder(new EtchedBorder(strings.borderLabel).getBorder());
     btnRubberband = new MultiLineButton(strings.buttonLabel);
     ltfXMin = new LabeledTextField(strings.xMinLabel);
     ltfXMax = new LabeledTextField(strings.xMaxLabel);
     ltfYMin = new LabeledTextField(strings.yMinLabel);
     ltfYMax = new LabeledTextField(strings.yMaxLabel);
-    String borderLabel = panelStrings.getBorderLabel();
-    if (borderLabel != null) {
-      pnlRubberband.setBorder(new EtchedBorder(borderLabel).getBorder());
-    }
     pnlRubberband.setLayout(new BoxLayout(pnlRubberband, BoxLayout.Y_AXIS));
     pnlRange.setLayout(new GridLayout(2, 2));
     pnlRange.add(ltfXMin.getContainer());
@@ -61,19 +58,13 @@ public final class RubberbandPanel {
     pnlRange.add(ltfYMin.getContainer());
     pnlRange.add(ltfYMax.getContainer());
     pnlRubberband.add(pnlRange);
-    if (borderLabel != null) {
-      pnlRubberband.add(Box.createRigidArea(FixedDim.x0_y5));
-      btnRubberband.setSize();
-      btnRubberband.setAlignmentX(Component.CENTER_ALIGNMENT);
-      pnlRubberband.add(btnRubberband.getComponent());
-    }
+    btnRubberband.setSize();
+    pnlRubberband.add(Box.createRigidArea(FixedDim.x0_y5));
+    btnRubberband.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlRubberband.add(btnRubberband.getComponent());
     setToolTipText();
     RubberbandActionListener actionListener = new RubberbandActionListener(this);
     btnRubberband.addActionListener(actionListener);
-  }
-
-  MultiLineButton getButton() {
-    return btnRubberband;
   }
 
   Component getComponent() {
@@ -126,6 +117,10 @@ public final class RubberbandPanel {
     btnRubberband.setEnabled(enable);
   }
 
+  void setVisible(boolean visible) {
+    pnlRubberband.setVisible(visible);
+  }
+
   public void getParameters(XYParam xyParam) {
     xyParam.setXMin(ltfXMin.getText());
     xyParam.setXMax(ltfXMax.getText());
@@ -173,6 +168,7 @@ public final class RubberbandPanel {
 
   static class Strings {
     final String imodKey;
+    final String borderLabel;
     final String buttonLabel;
     final String xMinLabel;
     final String xMaxLabel;
@@ -183,13 +179,12 @@ public final class RubberbandPanel {
     final String yMinTooltip;
     final String yMaxTooltip;
 
-    private String borderLabel = null;
-
-    Strings(String imodKey, String buttonLabel, String xMinLabel,
-        String xMaxLabel, String yMinLabel, String yMaxLabel,
+    Strings(String imodKey, String borderLabel, String buttonLabel,
+        String xMinLabel, String xMaxLabel, String yMinLabel, String yMaxLabel,
         String xMinTooltip, String xMaxTooltip, String yMinTooltip,
         String yMaxTooltip) {
       this.imodKey = imodKey;
+      this.borderLabel = borderLabel;
       this.buttonLabel = buttonLabel;
       this.xMinLabel = xMinLabel;
       this.xMaxLabel = xMaxLabel;
@@ -200,18 +195,14 @@ public final class RubberbandPanel {
       this.yMinTooltip = yMinTooltip;
       this.yMaxTooltip = yMaxTooltip;
     }
-
-    void setBorderLabel(String borderLabel) {
-      this.borderLabel = borderLabel;
-    }
-
-    String getBorderLabel() {
-      return borderLabel;
-    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/08/16 18:51:56  sueh
+ * <p> bug# 912 Making panel generic so it can be used for all places where a
+ * <p> rubberband is used.
+ * <p>
  * <p> Revision 1.1  2006/06/28 23:29:36  sueh
  * <p> bug# 881 Panel to get X and Y scaling range using a 3dmod rubberband.
  * <p> </p>
