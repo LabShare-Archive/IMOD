@@ -75,9 +75,7 @@ c
       real*4 dxsum,dysum,dzsum,err,perpos,dxadj,dyadj,dzadj,zmod, ymod,distAdj
       real*4 dxsNear,dysNear,dzsNear, dxNear, dyNear, dzNear,distsq,distNear
       real*4 ccRatio,wcc, sizeSwitch
-      integer*4 niceframe
-
-      indpat(ix,iy,iz)=ix + (iy-1)*numxpat + (iz-1)*numxpat*numypat
+      integer*4 niceframe, indpat
 
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -90,6 +88,9 @@ c
       integer numOptions
       parameter (numOptions = 26)
       character*(40 * numOptions) options(1)
+
+      indpat(ix,iy,iz)=ix + (iy-1)*numxpat + (iz-1)*numxpat*numypat
+
       options(1) =
      &    'ref:ReferenceFile:FN:@align:FileToAlign:FN:@'//
      &    'output:OutputFile:FN:@region:RegionModel:FN:@'//
@@ -1796,6 +1797,13 @@ c
 
 
 c       $Log$
+c       Revision 3.11  2006/08/16 23:44:54  mast
+c       Converted to PIP, incorporated FFT correlations internally, added
+c       filtering, made it extract the B patches based on the local shift
+c       instead of using the same coordinates in both volumes, added model
+c       file for B and initial displacement, handled volumes in both
+c       orientations.
+c
 c       Revision 3.10  2005/10/19 16:43:17  mast
 c       Doubled image array size, put in common, and made patch limit 40000
 c       
