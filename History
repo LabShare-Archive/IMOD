@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/17/06: Added LC_LOCALE C setting to scripts doing arithmetic with awk to
+prevent comma instead of period in floating point output.
+
 8/16/06: Revamped Corrsearch3d so it uses displacements of neighboring patches
 to adjust the center of the patch from B being correlated.  Also converted to
 PIP input, made it do FFT correlations internally, added kernel smoothing,
