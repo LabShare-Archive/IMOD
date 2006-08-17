@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/17/06: Fixed a bug in eTomo Post Processing (trimvol) where the scaling from
+sub-area values decrease by 1 each time the eTomo is ended and restarted.
+
 8/17/06: Added LC_LOCALE C setting to scripts doing arithmetic with awk to
 prevent comma instead of period in floating point output.
 
