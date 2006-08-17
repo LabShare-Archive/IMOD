@@ -21,6 +21,8 @@ set bilinear = 1
 # make it abandon the other direction
 @ DIRECTION_WIN_THRESH = 4
 
+setenv LC_NUMERIC C
+
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
@@ -494,6 +496,10 @@ EOF
 exit 1
 
 #  $Log$
+#  Revision 1.12  2006/06/08 18:48:48  mast
+#  Changed to specify binning rather than reductions to xfsimplex and to
+#  use the total pixel count instead of minimum size
+#
 #  Revision 1.11  2006/05/14 03:13:47  mast
 #  Changed scaling to accomodate xfsimplex change
 #

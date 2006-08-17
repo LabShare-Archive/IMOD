@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2006/03/24 23:10:04  mast
+#  *** empty log message ***
+#
 
 if ($#argv < 4) then
     cat <<EOF
@@ -19,6 +22,8 @@ Usage: collectmmm tag rootname #_of_logs image_file
 EOF
     exit 1
 endif
+
+setenv LC_NUMERIC C
 
 set tag = $argv[1]
 set root = $argv[2]

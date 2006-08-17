@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.15  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.14  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
@@ -55,6 +58,8 @@
 nohup
 set SIZELIMIT = 1600
 set MAXERROR = 3.0
+
+setenv LC_NUMERIC C
 
 if ($#argv == 0)then
   echo 'Usage: matchshifts root_name1 root_name2 NX NY NZ [solve_xf_in] [solve_xf_out]'

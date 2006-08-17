@@ -40,6 +40,8 @@ EOF
 	exit 1
 endif
 
+setenv LC_NUMERIC C
+
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
@@ -626,6 +628,9 @@ unset noglob
 exit $exitstat
 
 #  $Log$
+#  Revision 3.18  2006/06/08 18:47:57  mast
+#  Changed to specify binning rather than reductions by 2 to xfsimplex
+#
 #  Revision 3.17  2006/05/14 03:02:54  mast
 #  Added option to output the difference measure
 #

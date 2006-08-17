@@ -15,6 +15,8 @@ EOCAT
 exit 1
 endif
 
+setenv LC_NUMERIC C
+
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"

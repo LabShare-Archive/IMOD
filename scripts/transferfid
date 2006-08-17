@@ -27,6 +27,8 @@ set radius2 = 0.25
 @ BEADTRACK_RESHOOT_LINE = 7
 @ BEADTRACK_RADIUS_LINE = 13
 
+setenv LC_NUMERIC C
+
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
@@ -829,6 +831,10 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.29  2006/06/08 18:48:57  mast
+#  Changed to specify binning rather than reductions to xfsimplex and to
+#  use the total pixel count instead of minimum size
+#
 #  Revision 3.28  2006/06/03 00:00:06  mast
 #  Added option to mirror around X
 #

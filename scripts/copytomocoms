@@ -17,6 +17,8 @@ set single_srcname = "g5a"
 set seedname = "empty.seed"
 set pn = "copytomocoms"
 
+setenv LC_NUMERIC C
+
 #  $Author$
 #
 #  $Date$
@@ -1370,6 +1372,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.51  2006/06/23 03:21:27  mast
+#  Set com directory name as cygwin not windows path
+#
 #  Revision 3.50  2006/06/06 23:04:49  mast
 #  Moved control stripping before /p
 #

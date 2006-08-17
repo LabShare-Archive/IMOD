@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.8  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
@@ -54,6 +57,8 @@ if ($#argv == 0)then
   echo "    -P         :  Output process ID"
   exit 0
 endif
+
+setenv LC_NUMERIC C
 
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
