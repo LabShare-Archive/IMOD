@@ -272,6 +272,15 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
   
+  public void testIsValid() {
+    EtomoNumber test = new EtomoNumber();
+    assertTrue(test.isValid());
+    test.setNullIsValid(false);
+    assertFalse(test.isValid());
+    test.set(1);
+    assertTrue(test.isValid());
+  }
+  
   //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
@@ -1137,6 +1146,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2006/06/27 18:31:10  sueh
+ * <p> bug# 692 Added testApplyFloorValue_Number
+ * <p>
  * <p> Revision 1.28  2006/06/22 21:14:41  sueh
  * <p> bug# 692 Adding to test applyCeilingValue(Number).
  * <p>
