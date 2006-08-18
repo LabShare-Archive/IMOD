@@ -52,6 +52,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2006/08/08 18:20:15  sueh
+ * <p> bug# 852 Changing the Dialog adoc command to mean the function
+ * <p> location.  Added the function command, to run a function section.
+ * <p>
  * <p> Revision 1.5  2006/06/27 22:35:54  sueh
  * <p> bug# 852 Implementing callFunction().
  * <p>
@@ -429,8 +433,6 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   private void clickCheckBox(UITestAxisDialogCommand command) {
-    testCase.assertNull(reader.getInfo(), "Unknown name/value pair format: "
-        + command, command.getValue());
     JCheckBox checkBox = (JCheckBox) getComponent(command, JCheckBox.class);
     String value = command.getValue();
     if (value == null) {
@@ -970,6 +972,10 @@ private void testAssert(UITestAxisDialogCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/08/08 18:20:15  sueh
+ * <p> bug# 852 Changing the Dialog adoc command to mean the function
+ * <p> location.  Added the function command, to run a function section.
+ * <p>
  * <p> Revision 1.5  2006/06/27 22:35:54  sueh
  * <p> bug# 852 Implementing callFunction().
  * <p>
