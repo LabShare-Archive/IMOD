@@ -281,6 +281,94 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.isValid());
   }
   
+
+  public final void testValidate_String_String_AxisID()
+      throws InvalidEtomoNumberException {
+    String errorTitle = "testValidate_String_String_AxisID";
+    EtomoNumber test = new EtomoNumber();
+    //test valid
+    test.validate(errorTitle, "test valid failed", AxisID.FIRST);
+    //test invalid
+    test.setNullIsValid(false);
+    test.setInvalidReason();
+    try {
+      test.validate(errorTitle, "test invalid succeeded", AxisID.FIRST);
+      fail("invalid ConstEomoNumber failed to cause exception to be thrown");
+    }
+    catch (InvalidEtomoNumberException e) {
+    }
+    test.internalTest();
+  }
+  
+  public final void testIsValid_boolean_String_String_AxisID() {
+    String errorTitle = "testIsValid_boolean_String_String_AxisID";
+    EtomoNumber test = new EtomoNumber();
+    //test valid with print
+    assertTrue(test
+        .isValid(true, errorTitle, "test valid failed", AxisID.FIRST));
+    //test valid without print
+    assertTrue(test.isValid(false, errorTitle, "test valid failed",
+        AxisID.FIRST));
+    //test invalid
+    test.setNullIsValid(false);
+    test.setInvalidReason();
+    ///with print
+    assertFalse(test.isValid(true, errorTitle, "test valid succeeded",
+        AxisID.FIRST));
+    //without print
+    assertFalse(test.isValid(false, errorTitle, "test valid succeeded",
+        AxisID.FIRST));
+    test.internalTest();
+  }
+  
+  public final void testSetCeiling_int() {
+    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    //test: validateFloorAndCeiling() was called
+    test.setFloor(bigInteger);
+    try {
+      test.setCeiling(smallInteger);
+      fail("validateFloorAndCeiling() was not called");
+    }
+    catch (IllegalStateException e) {
+    }
+    //test: setCeiling can modify current value
+    test = new EtomoNumber();
+    test.set(bigInteger);
+    test.setCeiling(smallInteger);
+    assertEquals(test.getInt(), smallInteger);
+    test.internalTest();
+  }
+  
+  public final void testSetFloor_int() {
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    //test: validateFloorAndCeiling() was called
+    test.setCeiling(smallInteger);
+    try {
+      test.setFloor(bigInteger);
+      fail("validateFloorAndCeiling() was not called");
+    }
+    catch (IllegalStateException e) {
+    }
+    //test: setFloor does not change a larger currentValue
+    test = new EtomoNumber();
+    test.set(3);
+    test.setFloor(-50);
+    assertEquals(test.getInt(), 3);
+    //test: setFloor does change a smaller currentValue
+    test = new EtomoNumber();
+    test.set(3);
+    test.setFloor(50);
+    assertEquals(test.getInt(), 50);
+    test.internalTest();
+  }
+  
+  public void testSetDisplayValue_int() {
+    int testValue = 1;
+    EtomoNumber test = new EtomoNumber();
+    test.setDisplayValue(testValue);
+    assertEquals(testValue, test.getInt());
+  }
+  
   //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
@@ -339,45 +427,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testValidate_String_String_AxisID()
-      throws InvalidEtomoNumberException {
-    String errorTitle = "testValidate_String_String_AxisID";
-    EtomoNumber test = new EtomoNumber();
-    //test valid
-    test.validate(errorTitle, "test valid failed", AxisID.FIRST);
-    //test invalid
-    test.setNullIsValid(false);
-    test.setInvalidReason();
-    try {
-      test.validate(errorTitle, "test invalid succeeded", AxisID.FIRST);
-      fail("invalid ConstEomoNumber failed to cause exception to be thrown");
-    }
-    catch (InvalidEtomoNumberException e) {
-    }
-    test.internalTest();
-  }
-
-  public final void testIsValid_boolean_String_String_AxisID() {
-    String errorTitle = "testIsValid_boolean_String_String_AxisID";
-    EtomoNumber test = new EtomoNumber();
-    //test valid with print
-    assertTrue(test
-        .isValid(true, errorTitle, "test valid failed", AxisID.FIRST));
-    //test valid without print
-    assertTrue(test.isValid(false, errorTitle, "test valid failed",
-        AxisID.FIRST));
-    //test invalid
-    test.setNullIsValid(false);
-    test.setInvalidReason();
-    ///with print
-    assertFalse(test.isValid(true, errorTitle, "test valid succeeded",
-        AxisID.FIRST));
-    //without print
-    assertFalse(test.isValid(false, errorTitle, "test valid succeeded",
-        AxisID.FIRST));
-    test.internalTest();
-  }
-
   public final void testValidateFloorAndCeiling() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
     //test: floor > ceiling throws IllegalStateException
@@ -395,52 +444,11 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testSetCeiling() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    //test: validateFloorAndCeiling() was called
-    test.setFloor(bigInteger);
-    try {
-      test.setCeiling(smallInteger);
-      fail("validateFloorAndCeiling() was not called");
-    }
-    catch (IllegalStateException e) {
-    }
-    //test: setCeiling can modify current value
-    test = new EtomoNumber();
-    test.set(bigInteger);
-    test.setCeiling(smallInteger);
-    assertEquals(test.getInt(), smallInteger);
-    test.internalTest();
-  }
-
   public final void testSetNullIsValid_boolean() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: setNullIsValid sets invalidReason
     test.setNullIsValid(false);
     assertFalse(test.isValid());
-    test.internalTest();
-  }
-
-  public final void testSetFloor() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    //test: validateFloorAndCeiling() was called
-    test.setCeiling(smallInteger);
-    try {
-      test.setFloor(bigInteger);
-      fail("validateFloorAndCeiling() was not called");
-    }
-    catch (IllegalStateException e) {
-    }
-    //test: setFloor does not change a larger currentValue
-    test = new EtomoNumber();
-    test.set(3);
-    test.setFloor(-50);
-    assertEquals(test.getInt(), 3);
-    //test: setFloor does change a smaller currentValue
-    test = new EtomoNumber();
-    test.set(3);
-    test.setFloor(50);
-    assertEquals(test.getInt(), 50);
     test.internalTest();
   }
 
@@ -1146,6 +1154,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2006/08/17 20:04:13  sueh
+ * <p> bug 692 testing isValid
+ * <p>
  * <p> Revision 1.29  2006/06/27 18:31:10  sueh
  * <p> bug# 692 Added testApplyFloorValue_Number
  * <p>
