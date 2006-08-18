@@ -75,7 +75,7 @@ c
       real*4 dxsum,dysum,dzsum,err,perpos,dxadj,dyadj,dzadj,zmod, ymod,distAdj
       real*4 dxsNear,dysNear,dzsNear, dxNear, dyNear, dzNear,distsq,distNear
       real*4 ccRatio,wcc, sizeSwitch
-      integer*4 niceframe, indpat
+      integer*4 niceframe
 
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -1797,6 +1797,9 @@ c
 
 
 c       $Log$
+c       Revision 3.12  2006/08/17 16:17:20  mast
+c       SGI insists statement function be after all declarations
+c
 c       Revision 3.11  2006/08/16 23:44:54  mast
 c       Converted to PIP, incorporated FFT correlations internally, added
 c       filtering, made it extract the B patches based on the local shift
