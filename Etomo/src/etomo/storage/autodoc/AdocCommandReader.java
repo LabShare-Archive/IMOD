@@ -230,6 +230,10 @@ public final class AdocCommandReader {
     //set values from the current autodoc
     list = functionAutodoc.getSection(command.getAction().toString(), command
         .getValue());
+    if (list == null) {
+      throw new IllegalStateException(functionAutodoc.getName()
+          + ":missing section:" + command.toString());
+    }
     sectionLoc = null;
     pairLoc = null;
     function = true;
@@ -312,6 +316,11 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/08/08 17:45:57  sueh
+ * <p> bug# 852 Removed the secondary autodoc functionality.  Added functionality to
+ * <p> call a function section.  Added functionality to set the location of a function
+ * <p> section.
+ * <p>
  * <p> Revision 1.2  2006/05/18 20:52:19  sueh
  * <p> made compatible with java 1.4 (class getSimpleName doesn't exist in 1.4)
  * <p>
