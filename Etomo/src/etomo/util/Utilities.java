@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.49  2006/07/04 18:15:28  sueh
+ * <p> $bug# 897 renameFile():  Tell user to close 3dmod in Windows.
+ * <p> $
  * <p> $Revision 3.48  2006/06/30 16:30:54  sueh
  * <p> $bug# 883 Replaced getEnvironmentVariable() with EnvironmentVariable, a class
  * <p> $to get and store environment variables.
@@ -1006,6 +1009,7 @@ public class Utilities {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
+    boolean firstToken = true;
     try {
       tokenizer.initialize();
       token = tokenizer.next();
@@ -1041,8 +1045,8 @@ public class Utilities {
       else if (!ignoreParen && !ignoreBracket) {
         //Convert a dash to a space so that any mix of dashes and whitespace
         //in the original label gets converted to a single dash in the next
-        //loop.
-        if (token.equals(Token.Type.SYMBOL, '-')) {
+        //loop.  If the '-' is the first token, keep it
+        if (token.equals(Token.Type.SYMBOL, '-') && !firstToken) {
           buffer.append(' ');
         }
         //Remove "." because it is recognized by autodoc.  Assuming that the "."
@@ -1053,6 +1057,7 @@ public class Utilities {
       }
       try {
         token = tokenizer.next();
+        firstToken = false;
       }
       catch (IOException e) {
         e.printStackTrace();
