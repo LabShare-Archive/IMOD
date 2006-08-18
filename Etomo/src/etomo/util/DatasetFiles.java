@@ -134,6 +134,13 @@ public final class DatasetFiles {
         processName));
   }
 
+  public static File getAxisOnlyComFile(BaseManager manager,
+      ProcessName processName) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    return new File(manager.getPropertyUserDir(), processName.toString()
+        + COMSCRIPT_EXT);
+  }
+
   public static File getDatasetFile(BaseManager manager, AxisID axisID,
       String filename) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -294,6 +301,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2006/08/11 21:47:52  sueh
+ * <p> bug# 816 Added getLogName
+ * <p>
  * <p> Revision 1.21  2006/08/02 22:28:15  sueh
  * <p> bug# 769 Added getLogFile()
  * <p>
