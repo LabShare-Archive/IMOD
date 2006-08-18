@@ -3473,8 +3473,13 @@ public final class ApplicationManager extends BaseManager {
             TomogramCombinationDialog.lblSetup, true/* false */);
       }
       else {
-        tomogramCombinationDialog.setZMin("");
-        tomogramCombinationDialog.setZMax("");
+        //force the user to set Z values on a new combine
+        //make sure not destroying user entries by checking for patchcorr.com
+        if (!DatasetFiles.getAxisOnlyComFile(this, ProcessName.PATCHCORR)
+            .exists()) {
+          tomogramCombinationDialog.setZMin("");
+          tomogramCombinationDialog.setZMax("");
+        }
       }
     }
     tomogramCombinationDialog.show();
@@ -5293,6 +5298,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.261  2006/08/14 22:21:43  sueh
+ * <p> bug# 891 backwardCompatibilityCombineScriptsExist():  double checking true
+ * <p> values.
+ * <p>
  * <p> Revision 3.260  2006/08/14 18:32:08  sueh
  * <p> bug# 890 Returning a success/failure boolean from getTrimvolParams.
  * <p>
