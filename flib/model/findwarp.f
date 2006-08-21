@@ -213,6 +213,7 @@ c
 c       get patch region model
 c       
       if (pipinput) then
+        filename = ' '
         ierr = PipGetString('RegionModel', filename)
       else
         write(*,'(1x,a,/,a,$)')
@@ -916,6 +917,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.11  2006/08/21 16:41:17  mast
+c       Converted to PIP, made it handle either orientation of volume, made
+c       automatic fitting more flexible in the thin dimension, changed outlier
+c       output to a summary, added option for patch and residual output,
+c       allowed 100000 patches
+c
 c       Revision 3.10  2006/06/22 01:08:19  mast
 c       Put big arrays in common for stack size problem on Intel Mac
 c
