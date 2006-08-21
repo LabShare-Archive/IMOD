@@ -18,6 +18,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.1  2006/08/16 23:46:47  mast
+c       Split out from corrsearch3d to use in findwarp
+c
 c
       subroutine get_region_contours(modelfile, progname, xvert, yvert, nvert,
      &    indvert, zcont,  ncont, ifflip, limcont, limvert)
@@ -97,5 +100,43 @@ c
       enddo
       print *,ncont,
      &    ' contours available for deciding which patches to analyze'
+      return
+      end
+
+
+c       summarizeDrops outputs a summary of residuals dropped as outliers,
+c       breaking them into 10 bins from the minimum to either the maximum or
+c       5 SDs above the mean, whichever is less.  DROPSUM has the residuals,
+c       NLISTD is the number of values, and meanText is text to indicate if
+c       they are mean residuals or not.
+c
+      subroutine summarizeDrops(dropsum, nlistd, meanText)
+      implicit none
+      character*(*) meanText
+      real*4 dropsum(*)
+      integer*4 nlistd,i,j,inbin
+      real*4 dropMin, dropMax, dropAvg, dropsd, dropsem, binlo, binhi, dropBin
+c    
+      dropMin = 1.e10
+      dropMax = 0.
+      do i = 1, nlistd
+        dropMin = min(dropMin, dropsum(i))
+        dropMax = max(dropMax, dropsum(i))
+      enddo
+      call avgsd(dropsum, nlistd, dropavg, dropsd, dropsem)
+      dropBin = (min(dropMax, dropAvg + 5 * dropsd) - dropMin) / 10.
+c       
+      do j = 1, 10
+        binlo = dropMin + (j - 1) * dropBin
+        binhi = binLo + dropBin
+        if (j .eq. 10) binhi = dropMax + 0.001
+        inbin = 0
+        do i = 1, nlistd
+          if (dropsum(i) .ge. binlo .and. dropsum(i) .lt. binhi)
+     &        inbin = inbin + 1
+        enddo
+        if (inbin .gt. 0) write(*,109)inbin, meanText, binlo, binhi
+109     format(i8,' with ',a,'residuals in',f10.2,' -',f10.2)
+      enddo
       return
       end
