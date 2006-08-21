@@ -25,11 +25,14 @@ c
       implicit none
       integer idim,limvert,limcont,limpat,limwork
       parameter (idim=100000000)
-      parameter (limvert=100000,limcont=1000,limpat=40000,limwork=400*400)
+      parameter (limvert=100000,limcont=1000,limpat=100000,limwork=400*400)
       integer*4 nx,ny,nz,nx2,ny2,nz2
-      real*4 dxInitial, dyInitial, dzInitial, dxyInit(3)
-      COMMON //NX,NY,NZ,nx2,ny2,nz2,dxInitial, dyInitial, dzInitial
-      EQUIVALENCE (NX,NXYZ),(nx2,nxyz2),(dxyInit, dxInitial)
+      real*4 dxInitial, dyInitial, dzInitial, dxyzInit(3)
+      real*4 dxVolume, dyVolume, dzVolume, dxyzVol(3)
+      COMMON //NX,NY,NZ,nx2,ny2,nz2,dxInitial, dyInitial, dzInitial, dxVolume,
+     &    dyVolume, dzVolume
+      EQUIVALENCE (NX,NXYZ),(nx2,nxyz2),(dxyzInit, dxInitial)
+      equivalence (dxyzVol, dxVolume)
 C       
       integer*4 NXYZ(3),MXYZ(3),nxyzbsrc(3),nxyz2(3)
       real*4 buf(idim),work(limwork),ctf(8193)
@@ -86,7 +89,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  corrsearch3d
 c       
       integer numOptions
-      parameter (numOptions = 26)
+      parameter (numOptions = 27)
       character*(40 * numOptions) options(1)
 
       indpat(ix,iy,iz)=ix + (iy-1)*numxpat + (iz-1)*numxpat*numypat
@@ -97,9 +100,9 @@ c
      &    'size:PatchSizeXYZ:IT:@number:NumberOfPatchesXYZ:IT:@'//
      &    'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
      &    'zminmax:ZMinAndMax:IP:@taper:TapersInXYZ:IT:@pad:PadsInXYZ:IT:@'//
-     &    'maxshift:MaximumShift:I:@initial:InitialShiftXYZ:FT:@'//
-     &    'bsource:BSourceOrSizeXYZ:CH:@bxform:BSourceTransform:FN:@'//
-     &    'bxborder:BSourceBorderXLoHi:IP:@'//
+     &    'maxshift:MaximumShift:I:@volume:VolumeShiftXYZ:FT:@'//
+     &    'initial:InitialShiftXYZ:FT:@bsource:BSourceOrSizeXYZ:CH:@'//
+     &    'bxform:BSourceTransform:FN:@bxborder:BSourceBorderXLoHi:IP:@'//
      &    'byzborder:BSourceBorderYZLoHi:IP:@bregion:BRegionModel:FN:@'//
      &    'kernel:KernelSigma:F:@ksize:KernelSize:F:@'//
      &    'lowpass:LowPassRadiusSigma:FP:@sigma1:HighPassSigma:F:@'//
@@ -118,9 +121,10 @@ c
       nbsrczlo = 36
       nbsrczhi = 36
       maxshift = 10
-      dxInitial = 0.
-      dyInitial = 0.
-      dzInitial = 0.
+      do i = 1, 3
+        dxyzVol(i) = 0.
+        dxyzInit(i) = 0.
+      enddo
       modelfile = ' '
       xffile = ' '
       bmodel = ' '
@@ -196,7 +200,9 @@ C
         ierr = PipGetTwoIntegers('BSourceBorderXLoHi', nbsrcxlo,nbsrcxhi)
         ierr = PipGetTwoIntegers('BSourceBorderYZLoHi', nbsrczlo,nbsrczhi)
         ierr = PipGetString('BSourceTransform', xffile)
-        ifShiftIn = 1 - PipGetThreeFloats('InitialShiftXYZ', dxInitial,
+        ifShiftIn = 1 - PipGetThreeFloats('VolumeShiftXYZ', dxVolume,
+     &      dyVolume, dzVolume)
+        ierr = PipGetThreeFloats('InitialShiftXYZ', dxInitial,
      &      dyInitial, dzInitial)
         ierr = PipGetTwoFloats('LowPassRadiusSigma', radius2, sigma2)
         ierr = PipGetFloat('HighPassSigma', sigma1)
@@ -234,6 +240,15 @@ c
         read(5,*)nbsrcxlo,nbsrcxhi,nbsrczlo,nbsrczhi
       endif
 c       
+c       If there is no initial shift entered, enforce centered transform
+c       by setting initial shift to half the difference in size
+c       
+      if (ifShiftIn .eq. 0) then
+        dxVolume = (nxyz2(1) - nxyz(1)) / 2.
+        dyVolume = (nxyz2(2) - nxyz(2)) / 2.
+        dzVolume = (nxyz2(3) - nxyz(3)) / 2.
+      endif
+c       
 c       get padding for cross correlations
 c
       nxXCbord = (nxpatch + 4) / 5
@@ -255,7 +270,7 @@ c
         do j = 1,3
           asrc(i,j) = 0.
         enddo
-        dxyzsrc(i) = -dxyInit(i)
+        dxyzsrc(i) = -dxyzVol(i)
         asrc(i,i) = 1.
       enddo
       if (nxyzbsrc(1) .eq. 0) then 
@@ -270,7 +285,7 @@ c
         call dopen(1, xffile, 'ro', 'f')
         do i = 1, 3
           read(1,*,err=95, end =95) (asrc(i,j),j=1,3), dxyzSrc(i)
-          dxyzSrc(i) = dxyzSrc(i) - dxyInit(i)
+          dxyzSrc(i) = dxyzSrc(i) - dxyzVol(i)
         enddo
         close(1)
       endif        
@@ -622,9 +637,9 @@ c
      &        .and. abs(dyNear - dyadj) .lt. maxshift
      &        .and. abs(dzNear - dzadj) .lt. maxshift) then
 
-            call setBload(ix0, ix1, nx2, dxadj, dxInitial, ixb0, ixb1)
-            call setBload(iy0, iy1, ny2, dyadj, dyInitial, iyb0, iyb1)
-            call setBload(iz0, iz1, nz2, dzadj, dzInitial, izb0, izb1)
+            call setBload(ix0, ix1, nx2, dxadj, dxVolume, ixb0, ixb1)
+            call setBload(iy0, iy1, ny2, dyadj, dyVolume, iyb0, iyb1)
+            call setBload(iz0, iz1, nz2, dzadj, dzVolume, izb0, izb1)
             if (ix1 .gt. ix0 .and. iy1 .gt. iy0 .and. iz1 .gt. iz0 .and.
      &          (ix1+1-ix0)*(iy1+1-iy0)*(iz1+1-iz0) .ge. npixpatch / 2) then
 c               
@@ -695,9 +710,14 @@ c           do a full cross corr
 c           
           if(ifdone(indp).eq.0.or.ifdebug.eq.3)then
 
-            call setBload(ix0, ix1, nx2, dxNear, dxInitial, ixb0, ixb1)
-            call setBload(iy0, iy1, ny2, dyNear, dyInitial, iyb0, iyb1)
-            call setBload(iz0, iz1, nz2, dzNear, dzInitial, izb0, izb1)
+            if (loadx1 .lt. 0 .and. loadxb1 .lt. 0)then
+              dxNear = dxInitial
+              dyNear = dyInitial
+              dzNear = dzInitial
+            endif
+            call setBload(ix0, ix1, nx2, dxNear, dxVolume, ixb0, ixb1)
+            call setBload(iy0, iy1, ny2, dyNear, dyVolume, iyb0, iyb1)
+            call setBload(iz0, iz1, nz2, dzNear, dzVolume, izb0, izb1)
             if (ix1 .gt. ix0 .and. iy1 .gt. iy0 .and. iz1 .gt. iz0 .and.
      &          (ix1+1-ix0)*(iy1+1-iy0)*(iz1+1-iz0) .ge. npixpatch / 2) then
 c               
@@ -1381,16 +1401,16 @@ c       DXADJ and DXINITIAL, and computes the limits for data that need
 c       to be loaded from B in IXB0, IXB1.  It adjusts IX0 and IX1 as
 c       necessary to keep everything within limits
 c
-      subroutine setBload(ix0, ix1, nx2, dxadj, dxInitial, ixb0, ixb1)
+      subroutine setBload(ix0, ix1, nx2, dxadj, dxVolume, ixb0, ixb1)
       implicit none
-      integer*4 ix0, ix1, nx2, ixb0, ixb1, idxadj, idxInitial
-      real*4 dxadj, dxInitial
+      integer*4 ix0, ix1, nx2, ixb0, ixb1, idxadj, idxVolume
+      real*4 dxadj, dxVolume
       idxadj = nint(dxadj)
-      idxInitial = nint(dxInitial)
-      ixb0 = max(0, ix0 + idxadj + idxInitial)
-      ix0 = ixb0 - idxadj - idxInitial
-      ixb1 = min(nx2 - 1, ix1 + idxadj + idxInitial)
-      ix1 = ixb1 - idxadj - idxInitial
+      idxVolume = nint(dxVolume)
+      ixb0 = max(0, ix0 + idxadj + idxVolume)
+      ix0 = ixb0 - idxadj - idxVolume
+      ixb1 = min(nx2 - 1, ix1 + idxadj + idxVolume)
+      ix1 = ixb1 - idxadj - idxVolume
       return
       end
 
@@ -1797,6 +1817,9 @@ c
 
 
 c       $Log$
+c       Revision 3.13  2006/08/18 14:34:53  mast
+c       Eliminated double declaration of indpat
+c
 c       Revision 3.12  2006/08/17 16:17:20  mast
 c       SGI insists statement function be after all declarations
 c
