@@ -89,15 +89,33 @@ tooltip =
 manpage = Maximum displacement to determine by searching.  This is in addition
 to the local offset determined from adjacent patches.  The default is 10.
 
+[Field = VolumeShiftXYZ]
+short = volume
+type = FT
+usage = Overall displacement of volume B relative to A in X, Y, and Z
+tooltip = 
+manpage = Overall displacement of the volume being aligned relative to the
+reference volume in X, Y, and Z;
+namely, the amount to add to a pixel coordinate in the reference volume to
+obtain the coordinate of the corresponding pixel in the file being aligned.
+This shift is excluded from the shifts reported in the output file.  If no
+volume shift is entered, it is set equal to half the difference in size
+between the two volumes, if any.
+
 [Field = InitialShiftXYZ]
 short = initial
 type = FT
-usage = Initial displacement of volume B relative to A in X, Y, and Z
+usage = Initial displacement between volume centers in X, Y, and Z
 tooltip = 
-manpage = Initial displacement of the volume being aligned relative to the
-reference volume in X, Y, and Z;
-namely, the amount to add to a pixel coordinate in the reference volume to
-obtain the coordinate of the corresponding pixel in thefile being aligned.
+manpage = Initial displacement between the center of the volume being aligned 
+and the center of the 
+reference volume in X, Y, and Z.  This is 
+the amount to add to the coordinate of a feature near the center of the 
+reference volume to 
+obtain the coordinate of the same feature in the file being aligned, after
+accounting for any overall volume displacement entered with -volume.
+This shift will be used to start the search and will be included in 
+the shifts reported in the output file.
 
 [Field = BSourceOrSizeXYZ]
 short = bsource

@@ -1,0 +1,162 @@
+Version = 1.0
+Pip = 1
+
+[Field = PatchFile]
+short = patch
+type = FN
+usage = Name of input file with positions and displacements
+tooltip = 
+manpage = Name of input file with positions and displacements.  If this option
+is not entered, the first non-option argument will be used for the input file
+name.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for warping transformations (optional)
+tooltip = 
+manpage = Optional output file for warping transformations.  If this option is
+not entered, the second non-option argument (if any) will be used for the
+output file name.
+
+[Field = RegionModel]
+short = region
+type = FN
+usage = Model file with contours enclosing patches to be included in fits
+tooltip = 
+manpage = Model file with contours enclosing the patches to be included in the
+fits.
+
+[Field = VolumeOrSizeXYZ]
+short = volume
+type = FN
+usage = Filename or X, Y, Z size of volume being matched to
+tooltip = 
+manpage = Either the name of the file or the X, Y, and Z dimensions of the
+volume being matched to.
+
+[Field = InitialTransformFile]
+short = initial
+type = FN
+usage = File with initial 3D transform for second volume
+tooltip = 
+manpage = File with initial 3D transform used to make the second volume for
+the patch correlations.  This transform will be incorporated into the warping
+transformations written to the output file
+
+[Field = ResidualPatchOutput]
+short = residual
+type = FN
+usage = Output file for patch vectors including mean residual values
+tooltip = 
+manpage = Output file for positions, displacements, and mean residual values,
+averaged over all the fits that include a position.  This value will be zero
+for patches excluded from all fits.  If the patch input file
+has correlation coefficients, they will be replaced by the residuals.  
+
+[Field = TargetMeanResidual]
+short = target
+type = FA
+usage = Target mean residuals to achieve in automatic fitting
+tooltip = 
+manpage = One or more mean residual values to try to reach in the automatic
+search for the best warping.  Multiple values should be entered in increasing
+order.  The program will try to find a warping with the largest number of
+included patches that gives a mean residual below the first value; then it
+tries again with the second value, etc.
+
+[Field = MeasuredRatioMinAndMax]
+short = measured
+type = FP
+usage = Min and max ratio of measurements to unknowns for automatic fits
+tooltip = 
+manpage = The minimum and maximum ratio of measurements to unknowns to be
+allowed in the automatic fits.  The defaults are 4 and 20.
+
+[Field = XSkipLeftAndRight]
+short = xskip
+type = IP
+usage = Number of columns of patches to exclude on the left and right
+tooltip = 
+manpage = 
+
+[Field = YSkipLowerAndUpper]
+short = yskip
+type = IP
+usage = Number of patches to exclude on the lower and upper sides in Y
+tooltip = 
+manpage = Number of patches to exclude on the lower and upper sides in Y.
+This entry specifies either rows or slabs of patches to exclude, depending on
+whether the volume is oriented so that it is thin in the Z or Y dimension.
+
+[Field = ZSkipLowerAndUpper]
+short = zskip
+type = IP
+usage = Number of patches to exclude on the lower and upper sides in Z
+tooltip = 
+manpage = Number of patches to exclude on the lower and upper sides in Z.
+This entry specifies either slabs or rows of patches to exclude, depending on
+whether the volume is oriented so that it is thin in the Z or Y dimension.
+
+[Field = LocalRowsAndColumns]
+short = rowcol
+type = IP
+usage = Number of rows and columns of patches to include in each local fit
+tooltip = 
+manpage = Number of rows and columns of patches to include in each local fit.
+The second value will apply to the longer of the Y and the Z dimension.  If
+this option is not entered, the program will automatically search for the best
+warping.
+
+[Field = LocalSlabs]
+short = slabs
+type = I
+usage = (Minimum) number of slabs of patches to include in each local fit
+tooltip = 
+manpage = By default, fits include all slabs of patches in the shorter of the
+Y and Z dimensions.  This entry allow fits to be done to subsets of patches in
+that dimension.  If the -rowcol option is used, then this entry specifies the
+number of slabs of patches to include in each fit.  Otherwise, the entry
+sets the minimum number of slabs of patches that will be tried in the automatic
+search for the best warping.
+
+[Field = MaxFractionToDrop]
+short = maxfrac
+type = F
+usage = Maximum fraction of patches to eliminate from each fit (default 0.1)
+tooltip = 
+manpage = Maximum fraction of patches to drop from each fit by outlier 
+elimination.  Enter 0 to for no outlier elimination.  The default is 0.1.
+
+[Field = MinResidualToDrop]
+short = minresid
+type = F
+usage = Minimum residual for outlier elimination (default 0.5)
+tooltip = 
+manpage = The minimum residual for outlier elimination; patches with residuals
+smaller than this value will be retained no matter how extreme they are
+relative to the other patches.  The default is 0.5.
+
+[Field = CriterionProbabilities]
+short = prob
+type = FP
+usage = Probabilities controlling outlier elimination
+tooltip = 
+manpage = Two probabilities controlling outlier elimination: a criterion
+probability for a patch to be evaluated as an outlier (default 0.01), and
+a criterion probability for a patch to be eliminated regardless of the
+distribution of extreme values (default 0.002).
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

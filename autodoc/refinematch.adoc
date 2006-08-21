@@ -1,0 +1,94 @@
+Version = 1.0
+Pip = 1
+
+[Field = PatchFile]
+short = patch
+type = FN
+usage = Name of input file with positions and displacements
+tooltip = 
+manpage = Name of input file with positions and displacements.  If this option
+is not entered, the first non-option argument will be used for the input file
+name.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for warping transformations (optional)
+tooltip = 
+manpage = Optional output file for warping transformations.  If this option is
+not entered, the second non-option argument (if any) will be used for the
+output file name.
+
+[Field = RegionModel]
+short = region
+type = FN
+usage = Model file with contours enclosing patches to be included in fit
+tooltip = 
+manpage = Model file with contours enclosing the patches to be included in the
+fit
+
+[Field = VolumeOrSizeXYZ]
+short = volume
+type = FN
+usage = Filename or X, Y, Z size of volume being matched to
+tooltip = 
+manpage = Either the name of the file or the X, Y, and Z dimensions of the
+volume being matched to.
+
+[Field = ResidualPatchOutput]
+short = residual
+type = FN
+usage = Output file for patch vectors including residual values
+tooltip = 
+manpage = Output file for positions, displacements, and residual values. If
+the patch input file has correlation coefficients, they will be replaced by
+the residuals.  
+
+[Field = MeanResidualLimit]
+short = limit
+type = F
+usage = Limiting value for the mean residual
+tooltip = 
+manpage = Limiting value for the mean residual; above this value, the program
+will exit with an error.
+
+[Field = MaxFractionToDrop]
+short = maxfrac
+type = F
+usage = Maximum fraction of patches to eliminate from the fit (default 0.1)
+tooltip = 
+manpage = Maximum fraction of patches to drop from the fit by outlier 
+elimination.  Enter 0 to for no outlier elimination.  The default is 0.1.
+
+[Field = MinResidualToDrop]
+short = minresid
+type = F
+usage = Minimum residual for outlier elimination (default 0.5)
+tooltip = 
+manpage = The minimum residual for outlier elimination; patches with residuals
+smaller than this value will be retained no matter how extreme they are
+relative to the other patches.  The default is 0.5.
+
+[Field = CriterionProbabilities]
+short = prob
+type = FP
+usage = Probabilities controlling outlier elimination
+tooltip = 
+manpage = Two probabilities controlling outlier elimination: a criterion
+probability for a patch to be evaluated as an outlier (default 0.01), and
+a criterion probability for a patch to be eliminated regardless of the
+distribution of extreme values (default 0.002).
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
