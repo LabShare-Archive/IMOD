@@ -22,9 +22,9 @@ and for an initial displacement between the volumes.
 
 8/15/06: Changed trimvol to treat -sx and -sy arguments as 3dmod coordinates.
 
-8/11/06: Etomo:  opening and re-reading the align log in 3dmod automatically.
+8/11/06: Etomo: opening and re-reading the align log in 3dmod automatically.
 
-8/10/06: Etomo:  sped up the process monitors for mtffilter, prenewst, tilt,
+8/10/06: Etomo: sped up the process monitors for mtffilter, prenewst, tilt,
 and newst.
 
 8/9/06: Adding more status information to the newst monitor and the regular
