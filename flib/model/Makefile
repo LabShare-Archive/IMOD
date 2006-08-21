@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2006/08/16 23:49:59  mast
+#  changed corrsearch3d link
+#
 #  Revision 3.7  2006/06/29 05:10:14  mast
 #  Changes for new model libraries
 #
@@ -123,11 +126,13 @@ ccderaser$(E): ccderaser.$(O)
 edgeeraser$(E): edgeeraser.$(O)
 	$(FC) -o edgeeraser edgeeraser.$(O) $(LDFLG) $(WLIBS)
 
-refinematch$(E): refinematch.$(O) solve_wo_outliers.$(O)
-	$(FC) -o refinematch refinematch.$(O) $(LDFLG) solve_wo_outliers.$(O) $(WLIBS)
+refinematch$(E): refinematch.$(O) solve_wo_outliers.$(O) get_region_contours.$(O)
+	$(FC) -o refinematch refinematch.$(O) $(LDFLG) solve_wo_outliers.$(O) \
+	get_region_contours.$(O) $(SMALLLIBS)
 
-findwarp$(E): findwarp.$(O) solve_wo_outliers.$(O)
-	$(FC) -o findwarp findwarp.$(O) $(LDFLG) solve_wo_outliers.$(O) $(WLIBS)
+findwarp$(E): findwarp.$(O) solve_wo_outliers.$(O) get_region_contours.$(O)
+	$(FC) -o findwarp findwarp.$(O) $(LDFLG) solve_wo_outliers.$(O) \
+	get_region_contours.$(O) $(SMALLLIBS)
 
 corrsearch3d$(E): corrsearch3d.$(O) get_region_contours.$(O)
 	$(FC) -o corrsearch3d corrsearch3d.$(O) $(LDFLG) \
