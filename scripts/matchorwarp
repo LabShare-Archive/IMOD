@@ -8,24 +8,7 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.5  2005/11/19 04:31:26  mast
-#  Quote path setting to preserve spaces
-#
-#  Revision 3.4  2004/06/29 03:48:15  mast
-#  Added nohup, fixed path setting
-#
-#  Revision 3.3  2003/10/11 00:03:38  mast
-#  Switched to new input method for matchvol/warpvol, added linear
-#  interpolation option
-#
-#  Revision 3.2  2003/03/21 22:45:56  mast
-#  Make sure all error exits has an ERROR: statement and pass on exit status
-#  from running matchvol or warpvol
-#
-#  Revision 3.1  2002/07/21 04:54:48  mast
-#  Added options for specifying rows and columns to exclude for findwarp,
-#  and for running in a trial mode
+#  Log at end
 #
 
 nohup
@@ -37,13 +20,19 @@ set inversefile = "inverse.xf"
 set refinelimit = "0.3"
 set warplimit = "0.2,0.27,0.35"
 set modelfile = ""
+set residualfile = ""
 set sizein = ""
 set tempdir = ""
 set linear = ""
 set xlower = "0"
+set ylower = "0"
 set zlower = "0"
 set xupper = "0"
+set yupper = "0"
 set zupper = "0"
+set xskip = ""
+set yskip = ""
+set zskip = ""
 set trial = ""
 set pn = "matchorwarp"
 if ($?IMOD_DIR) then
@@ -67,11 +56,14 @@ Usage: ${pn} [options] input.file output.file
  -refinefile refine_file   Refining transform file (default $refinefile)
  -inversefile inverse_file Inverse transform file (default $inversefile)
  -warpfile warp_file       Warp transform file (default $warpfile)
+ -residualfile new_patch   Output file for patch displacements with residuals
  -tempdir temp_directory   Directory for temporary files
  -xlowerexclude #          Columns to exclude on the left side
  -xupperexclude #          Columns to exclude on the right side
- -zlowerexclude #          Rows to exclude at high Z
- -zupperexclude #          Rows to exclude at low Z
+ -ylowerexclude #          Rows or slabs to exclude at high Y
+ -yupperexclude #          Rows or slabs to exclude at low Y
+ -zlowerexclude #          Slabs or rows to exclude at high Z
+ -zupperexclude #          Slabs or rows to exclude at low Z
  -linear                   Use linear interpolation in Matchvol/Warpvol
  -trial                    Run Refinewarp/Findwarp but not Matchvol/Warpvol
 EOF
@@ -88,8 +80,8 @@ while ($#argv > 2)
       shift; shift
       breaksw
     case -mo*:
-      set modelfile = $argv[2]
-      if (! -e $modelfile)then
+      set modelfile = "RegionModel $argv[2]"
+      if (! -e $argv[2])then
 	echo "ERROR: ${pn} - model file does not exist"
 	exit 1
       endif
@@ -109,6 +101,11 @@ while ($#argv > 2)
       breaksw
     case -in*:
       set inversefile = $argv[2]
+      shift; shift
+      breaksw
+    case -res*:
+      set residualfile = "ResidualPatchOutput $argv[2]"
+      echo $residualfile
       shift; shift
       breaksw
     case -refinel*:
@@ -135,6 +132,14 @@ while ($#argv > 2)
       set xupper = $argv[2]
       shift; shift
       breaksw
+    case -yl*:
+      set ylower = $argv[2]
+      shift; shift
+      breaksw
+    case -yu*:
+      set yupper = $argv[2]
+      shift; shift
+      breaksw
     case -zl*:
       set zlower = $argv[2]
       shift; shift
@@ -149,7 +154,7 @@ while ($#argv > 2)
       breaksw
 
     default:
-      echo "ERROR: matchorwarp - bad argument $argv[1]"
+      echo "ERROR: ${pn} - bad argument $argv[1]"
       exit 1
   endsw
 end
@@ -170,11 +175,8 @@ endif
 
 # set up size variable; use mat file if none entered
 if ($sizein == "") then
-    set sizein = $matfile
-    if (! -e $sizein) then
-	echo "ERROR: ${pn} - cannot deduce size; $matfile does not exist"
-	exit 1
-    endif
+    echo "ERROR: ${pn} - -size must be entered with nx,ny,nz or file being matched to"
+    exit 1
 endif
 
 # If it is not an existing file, use as is and hope it is numbers
@@ -183,18 +185,32 @@ if (! -e $sizein) then
     set size = $sizein
 else
     set size = `header -si $sizein | sed '/[[:cntrl:]]/s///g'`
+    if ($status) then
+        echo "ERROR: ${pn} - Running header on size entry $sizein"
+        exit 1
+    endif
 endif
 
-# Run refinematch
+# Set up skip entries
+#
+if ("$xlower" != "0" || "$xupper" != "0") \
+    set xskip = "XSkipLeftAndRight $xlower,$xupper"
+if ("$ylower" != "0" || "$yupper" != "0") \
+    set yskip = "YSkipLowerAndUpper $ylower,$yupper"
+if ("$zlower" != "0" || "$zupper" != "0") \
+    set zskip = "ZSkipLowerAndUpper $zlower,$zupper"
 
+# Run refinematch
+echo $residualfile
 echo "MATCHORWARP: RUNNING REFINEMATCH TO TRY TO FIND SINGLE TRANSFORMATION"
 
-refinematch <<EOF
-$patchfile
-$size
+refinematch -StandardInput <<EOF
+PatchFile $patchfile
+VolumeOrSizeXYZ $sizein
 $modelfile
-$refinelimit
-$refinefile
+MeanResidualLimit $refinelimit
+OutputFile $refinefile
+$residualfile
 EOF
 
 set savestat = $status
@@ -233,49 +249,39 @@ endif
 if ($warplimit == "0" || $warplimit == "0." || $warplimit == ".0" \
 	|| $warplimit == "0.0") then
     echo " "
-    echo "ERROR: MATCHORWARP - REFINEMATCH GAVE A MEAN RESIDUAL ERROR ABOVE $refinelimit"
-    echo "  AND WARPING IS DISABLED"
+    echo "ERROR: MATCHORWARP - REFINEMATCH GAVE A MEAN RESIDUAL ERROR ABOVE $refinelimit AND WARPING IS DISABLED"
     exit 1
 endif
 
-set warplist = `echo $warplimit | sed 's/,/ /g'`
-
-set lastwarp = $warplist[$#warplist]
-
-# Try one limit after another
-
-while ($#warplist)
-    echo " "
-    echo "MATCHORWARP: RUNNING FINDWARP TO FIND A WARPING WITH A RESIDUAL LIMIT OF $warplist[1]"
-    findwarp <<EOF
-$patchfile
-$size
+echo " "
+echo "MATCHORWARP: RUNNING FINDWARP TO FIND A WARPING WITH GIVEN RESIDUAL LIMITS"
+findwarp -StandardInput <<EOF
+PatchFile $patchfile
+VolumeOrSizeXYZ $sizein
 $modelfile
-1
-$warplist[1]
-/
-1
-$xlower,$xupper
-0,0
-$zlower,$zupper
-$solvefile
-$warpfile
+TargetMeanResidual $warplimit
+$xskip
+$yskip
+$zskip
+InitialTransformFile $solvefile
+OutputFile $warpfile
+$residualfile
 EOF
-    set savestat = $status
+set savestat = $status
 
-    if ($savestat == 1) exit 1
+if ($savestat == 1) exit 1
 
-    # If succeed, run warpvol
-    if (! $savestat) then
-	echo " "
-	if ($trial == "1") then
-	    echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING"
-	    exit 0
-	endif
+# If succeed, run warpvol
+if (! $savestat) then
+    echo " "
+    if ($trial == "1") then
+        echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING"
+        exit 0
+    endif
 
-	echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING: NEXT RUNNING WARPVOL"
-	echo " "
-	warpvol -StandardInput <<EOF
+    echo "MATCHORWARP: FINDWARP FOUND A GOOD WARPING: NEXT RUNNING WARPVOL"
+    echo " "
+    warpvol -StandardInput <<EOF
 InputFile $recfile
 OutputFile $matfile
 $tempdir
@@ -284,14 +290,32 @@ TransformFile $warpfile
 $linear
 EOF
 
-        exit $status
-    endif
-    shift warplist
-end
+    exit $status
+endif
 
-# IF get out of loop, it's all over
+# Now it's all over
 echo " "
-echo "ERROR: MATCHORWARP - FINDWARP COULD NOT FIND WARPING WITH RESIDUAL UNDER $lastwarp"
-echo "YOU NEED TO GET BETTER PATCHES, EDIT PATCHES, ELIMINATE ROWS OR COLUMNS,"
-echo "  OR RUN FINDWARP INTERACTIVELY"
+echo "ERROR: MATCHORWARP - YOU NEED TO GET BETTER PATCHES, EDIT PATCHES, OR ELIMINATE ROWS OR COLUMNS"
 exit 1
+
+#  $Log$
+#  Revision 3.6  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
+#  Revision 3.5  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
+#  Revision 3.4  2004/06/29 03:48:15  mast
+#  Added nohup, fixed path setting
+#
+#  Revision 3.3  2003/10/11 00:03:38  mast
+#  Switched to new input method for matchvol/warpvol, added linear
+#  interpolation option
+#
+#  Revision 3.2  2003/03/21 22:45:56  mast
+#  Make sure all error exits has an ERROR: statement and pass on exit status
+#  from running matchvol or warpvol
+#
+#  Revision 3.1  2002/07/21 04:54:48  mast
+#  Added options for specifying rows and columns to exclude for findwarp,
+#  and for running in a trial mode
