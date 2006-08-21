@@ -83,6 +83,7 @@ C
       call get_nxyz(pipinput, 'VolumeOrSizeXYZ', 'REFINEMATCH', 1,nxyz)
 
       if (pipinput) then
+        filename = ' '
         ierr = PipGetString('RegionModel', filename)
         ierr = PipGetFloat('MaxFractionToDrop', fracdrop)
         ierr = PipGetFloat('MinResidualToDrop', elimmin)
@@ -246,6 +247,11 @@ c
       end
 
 c       $Log$
+c       Revision 3.7  2006/08/21 16:39:09  mast
+c       Converted to PIP, made it handle both orientations of volume better,
+c       changed outlier output to be a summary, added option for getting
+c       residual output, allowed 100000 patches
+c
 c       Revision 3.6  2005/10/19 16:43:31  mast
 c       Increased patch limit to 40000
 c	
