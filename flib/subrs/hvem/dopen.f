@@ -23,6 +23,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2006/02/08 00:40:47  mast
+c       Added filename to rename warning
+c
 c       Revision 3.3  2005/12/09 04:39:44  mast
 c       gfortran: .xor., continuation, byte, or open fixes
 c	
@@ -47,8 +50,8 @@ c       DNM 10/20/03: changed to call subroutine, and clean up old stuff
 c       
       if(itype.eq.'NEW'.or.itype.eq.'new')then
         ierr = imodBackupFile(fname)
-        if(ierr.ne.0)write(6,*)
-     &      ' WARNING: dopen - Error attempting to rename existing file',
+        if(ierr.ne.0)write(6,'(/,a,a)')
+     &      'WARNING: DOPEN - Error attempting to rename existing file',
      &      fname(1:lnblnk(fname))
       endif
 c       
@@ -58,8 +61,7 @@ c
      &    itype.eq.'RO'.or.itype.eq.'ro')then
         inquire(file=fname,exist=exist)
         if(.not.exist)then
-          print *
-          print *,'ERROR: DOPEN - FILE ',fname(1:lnblnk(fname)),
+          write(*, '(/,a,a,a)') 'ERROR: DOPEN - FILE ',fname(1:lnblnk(fname)),
      &        ' DOES NOT EXIST'
           call exit(1)
         endif
@@ -93,11 +95,10 @@ C
 C       NOW WRITE OUT FILE INFO
 C       
 20    INQUIRE (FILE=FNAME,NAME=FULLNAM)
-      WRITE(6,1000) FORMAT,ITYPE,IUNIT,FULLNAM(1:lnblnk(fullnam))
-1000  FORMAT(/,5x,A,3X,A,'  file opened on unit # ',I2,
-     .    /'  Name= ',A,/)
+      WRITE(6,1000) FORMAT(1:lnblnk(format)),ITYPE,FULLNAM(1:lnblnk(fullnam))
+1000  FORMAT(/,1x,A,2X,A,'  file opened: ',A)
       RETURN
-30    print *
-      print *,'ERROR: DOPEN - CANNOT OPEN FILE ',fname(1:lnblnk(fname))
+30    write(*, '(/,a,a)')'ERROR: DOPEN - CANNOT OPEN FILE ',
+     &    fname(1:lnblnk(fname))
       call exit(1)
       END
