@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/06: Converted Findwarp and Refinematch to PIP input, made them handle
+either orientation of volume, changed outlier output to a summary, added
+option for patch and residual output.  Made automatic fitting in Findwarp more
+flexible in the thin dimension and made it try to meet a series of criteria
+without being run repeatedly.  Modified Matchorwarp appropriately; all of this
+makes the matchorwarp log file much more readable.
+
 8/17/06: IMOD_3-8-22
 8/17/06: Fixed a bug in eTomo Post Processing (trimvol) where the scaling from
 sub-area values decreased by 1 each time eTomo was ended and restarted.
