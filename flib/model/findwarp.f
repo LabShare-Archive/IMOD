@@ -4,264 +4,120 @@ c       FINDWARP will solve for a series of general 3-dimensional linear
 c       transformations that can then be used by WARPVOL to align two
 c       volumes to each other.  It performs a series of multiple linear
 c       regression on subsets of the displacements between the volumes
-c       determined at a matrix of positions (patches).  The displacements
-c       must be contained in a file with the following form: 
+c       determined at a matrix of positions (patches).  
 c       
-c       Number of displacements
-c       One line for each displacement consisting of the X, Y, and Z
-c       .  coordinates in the first volume, then the displacements in X, Y
-c       .  and Z involved in moving from the first to the second volume
-c       
-c       If the program is run interactively, it loops on the specification
-c       of the subsets of displacements to use until the user decides to
-c       write out a particular subset.  However, it can also be told to find
-c       the best warping automatically, in which case it does so then exits.
-c       
-c       The program will automatically eliminate "outliers", patch
-c       displacements that are likely to be incorrect because they are so
-c       extreme, when compared to the rest of the displacements.  This
-c       elimination is conservative, but if for some reason it operates
-c       incorrectly, you can control the parameters of elimination or stop
-c       the elimination from occurring.  By default, the program will
-c       eliminate up to 10% of the patches from each local fit.
-c       
-c       The program also has two options for fitting to only a subset of the 
-c       data.  One option is to eliminate whole rows or columns of patches.
-c       The other is to use a model file to  specify which patches to
-c       include in the fit.  This model can be quite simple, consisting of
-c       just a single contour enclosing the region  where patches are
-c       generally good.  This contour can be drawn in any Z plane of the
-c       flipped tomogram.  However, if the good region changes through the
-c       depth of the tomogram, you can draw contours at several Z levels.
-c       If you have two layers of patches, draw two contours, one near the
-c       top and one near the bottom of the tomogram; if you have three
-c       layers, add another contour in the middle, etc.  For a given patch,
-c       the program will find the contour at the nearest Z level and use
-c       that one to determine whether to include the patch.
-c       
-c       In addition, the program will work with a patch file from which
-c       bad patches have been removed by hand.  This may become necessary
-c       if bad patches are too frequent in some location to be eliminated
-c       as outliers.  To use this feature, use Patch2imod to convert the
-c       patch file to a model file where displacements are represented
-c       by vectors, examine the file in Imod, eliminate aberrant contours,
-c       and convert the model file to a new patch file with Imod2patch.
-c       
-c       If there is only one layer of patches in the Y dimension, there is
-c       insufficient information to solve for the full transformation, so
-c       the program will solve for only two of the three columns of each
-c       local transformation matrix, and set the second column of each
-c       matrix to 0, 1, 0.  The same procedure is used if a particular
-c       local area does not have sufficient data on more than one layer in Y.
-c       
-c       Inputs to the program:
-c       
-c       Name of file with positions and displacements
-c       
-c       (At this point the program will report the number of patches in X, Y,
-c       .  and Z in this file, or complain if the data do not have the
-c       .  proper form.)
-c       
-c       Either the file name of one of the volumes, or the X, Y, and
-c       .  Z dimensions of the volumes.
-c       
-c       Name of an Imod model file with contours enclosing the patches to
-c       .  be included in the fit, or Return to use all patches.
-c       
-c       0 to proceed interactively, or 1 to find best warping automatically
-c       
-c       IF you enter 1, next enter:
-c       
-c       .  The target mean residual to achieve.
-c       
-c       .  The minimum and maximum ratio of measurements to unknowns to be
-c       .    allowed in the local fits, or / to use the default values.
-c       
-c       0 to use all of the data, or 1 to specify a subset of patches to use
-c       
-c       IF you enter 1, next enter three lines:
-c       
-c       .  Number of columns of patches to eliminate from the left and right
-c       .    sides of the data, 0,0 to use all patches in X, or / to use
-c       .    previous values.
-c       
-c       .  Number of slabs of patches to eliminate from the bottom and top
-c       .    of the section, 0,0 to use all patches in Y, or / to use
-c       .    previous values.
-c       
-c       .  Number of rows of patches to eliminate from the bottom and top
-c       .    (when viewing the flipped tomogram), 0,0 to use all patches in
-c       .    Z, or / to use previous values.
-c       
-c       IF you selected automatic warping, the program now proceeds by
-c       .  fitting to the largest possible area in X and Z that does not
-c       .  exceed the maximum ratio of measurements to unknowns, and it
-c       .  tries progressively smaller areas until the desired mean residual
-c       .  is achieved.  It does this using the parameters (e.g., row or
-c       .  column elimination) that were set on any previous interactive
-c       .  rounds of fitting.  If the target residual is reached, it
-c       .  requests the names of the initial transformation file and the
-c       .  output file, as described below, and exits.  If the residual is
-c       .  not reached, it exits with an error.
-c       
-c       IF you are proceeding interactively, continue with the following:
-c       
-c       IF there are more than 2 patches in Y, the program next asks whether
-c       .  you always want to do the local fits to all patches in Y.  Just
-c       .  enter 0 for the typical situation.
-c       
-c       0 to use default parameters for outlier elimination, or 1 to adjust
-c       .  any of these parameters.  Just enter 0 unless you know better.
-c       
-c       IF you enter 1, then make four entries, or / to take the default:
-c       
-c       .  Maximum fraction of patches to eliminate from each fit.  Set this
-c       .    to 0 to stop the outlier elimination from occurring.
-c       
-c       .  The minimum residual for elimination; patches with residuals
-c       .    smaller than this value will be retained no matter how extreme
-c       .    they are relative to the other patches.
-c       
-c       .  Criterion probability for patches to be considered candidates for
-c       .    for elimination.  A smaller value will eliminate fewer patches.
-c       
-c       .  Criterion probability for patches to be eliminated regardless of
-c       .    the pattern of outliers.  A higher value may force the
-c       .    elimination of more patches.
-c       
-c       Number of local patches in X and Z (or X, Y, and Z) to include in
-c       .  each fit. These values must be at least 2 and no larger than the
-c       .  total number of patches in the respective direction.
-c       
-c       The program will loop on the last entry until the same numbers are
-c       entered twice in a row (e.g. with a /).  If you enter 0 for the
-c       number of patches in X, it will loop back to the query about whether
-c       you want to find warping automatically.  When you do enter a /, 
-c       it will request:
-c       
-c       Name of file with initial 3D transformation that was applied to one
-c       .  of the volumes before the patch correlation, or Return if there
-c       .  was no such file.  
-c       
-c       Name of output file in which to place the transformations.  These
-c       .  will be inverse transformations, ready for use by WARPVOL.
-c       
-c       An exception to the above occurs if you specify that all available
-c       patches are to be used in a single fit.  You would do this if you
-c       just needed to eliminate a row or column of patches from the fit.
-c       In this case, when you enter a /, the program will simply ask for
-c       the name of a file in which to place the single refining
-c       transformation, just as with REFINEMATCH.
-c       
-c       For a given arrangement of patches, the program finds a mean and
-c       maximum residual for each of the fits.  It first reports which points
-c       have been eliminated as outliers, and in how many fits they appeared
-c       to be outliers.  On one line, it next reports the average and the
-c       maximum of the mean residuals.  On the next line, it reports the
-c       average and maximum of the maximum residuals.  The goal is to find
-c       an arrangement that contains as many patches as possible in each
-c       direction yet has residuals comparable to those found with a volume
-c       that does not need warping (typically 0.1 to 0.2).
-c       
+c       See man page for details
+c
 c       $Author$
 c       
 c       $Date$
 c       
 c       $Revision$
-c       
-c       $Log$
-c       Revision 3.9  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.8  2005/10/19 16:43:52  mast
-c       Increased patch limit to 40000
-c       
-c       Revision 3.7  2003/12/24 19:04:02  mast
-c       Changed to fit new form of get_nxyz
-c       
-c       Revision 3.6  2003/10/24 03:47:17  mast
-c       fix bug of using maxdrop before setting it
-c       
-c       Revision 3.5  2002/10/23 15:41:44  mast
-c       Added ability to get solutions with only one layer of patches in Y,
-c       and to drop back to a solution that is fixed in Y when there are
-c       too few points on multiple levels in Y.
-c       
-c       Revision 3.4  2002/09/09 21:36:00  mast
-c       Eliminate stat_source: and nimp_source: from all includes
-c       
-c       Revision 3.3  2002/09/06 00:40:18  mast
-c       Had it exit with error if no patch arrangements will fit the minimum
-c       required measurement to unknown ratio in automatic mode
-c       
-c       Revision 3.2  2002/09/06 00:38:33  mast
-c       Wrong message!
-c       
-c       Revision 3.1  2002/07/21 00:05:00  mast
-c       Rearranged input order so that it was easier to run from Matchorwarp
-c       with columns or rows excluded.  Standardized error output and made
-c       declarations for implicit none.
-c       
-c       
-c       David Mastronarde, January 30, 1997
-c       12/24/98: added outlier elimination, integrated complex options.
-c       6/6/99: added ability to output single refining transformation.
-c       1/1/00: added model exclusion and automatic finding of best warp
-c       6/7/01: rewrote data input to handle data with missing patches
+c       Log at end
 c       
       implicit none
       include 'statsize.inc'
-      include 'model.inc'
-      integer idim,limpatch,limvert,limaxis
-      parameter (idim=40000,limpatch=40000,limvert=100000)
-      parameter (limaxis=1000)
+      integer idim,limpatch,limvert,limaxis,limtarg
+      parameter (idim=40000,limpatch=100000,limvert=100000)
+      parameter (limaxis=1000, limtarg=100)
       real*4 xr(msiz,idim)
       real*4 cx(limpatch,3),dx(limpatch,3)
       real*4 firstm(3,3),firstd(3),a(3,3),dxyz(3),devxyz(3)
       real*4 devxyzmax(3),cenloc(3),atmp(3,3),dtmp(3)
       real*4 asave(3,3,limpatch),censave(3,limpatch)
-      real*4 dxyzsave(3,limpatch),xyzsum(3)
+      real*4 dxyzsave(3,limpatch),xyzsum(3),resSum(limpatch)
       logical solved(limpatch),exists(limpatch)
-      integer*4 nxyz(3),idrop(idim)
-c       integer*4 ixdrop(idim),iydrop(idim),izdrop(idim),ntimes(idim)
+      integer*4 nxyz(3),idrop(idim), numRes(limpatch)
       integer*4 inddrop(idim),ntimes(idim)
       real*4 dropsum(idim)
-      logical inside,exist,readw_or_imod
-      integer getimodhead,getimodscales
+      logical inside
       real*4 xvert(limvert),yvert(limvert),zcont(idim)
       integer*4 indvert(idim),nvert(idim)
-      integer*4 nfxauto(limpatch),nfzauto(limpatch)
+      integer*4 nfxauto(limpatch),nfyauto(limpatch),nfzauto(limpatch)
       integer*4 inrowx(limaxis),inrowy(limaxis),inrowz(limaxis)
-      character*80 filename
+      character*160 filename, resfile
+      real*4 cxyzin(3),dxyzin(3),targetres(limtarg),devavAuto(limpatch)
       integer*4 npatxyz(3),listpos(limaxis,3),indxyz(3)
-      real*4 cxyzin(3),dxyzin(3)
-      equivalence (npatx,npatxyz(1)),(npaty,npatxyz(2)),
-     &    (npatz,npatxyz(3))
-      integer*4 ndat,npatx,npaty,npatz,i,j,ipos,inlist,k,itmp,ind
-      integer*4 ncont,ierr,indy,indz,iobj,ip,indcur,ipt
-      integer*4 nxtot,nytot,nztot,nofsx,nofsy,nofsz,ifsubset,ifdoy
+      integer*4 nfitx,nfity,nfitz,nfitxyz(3),nxtot,nytot,nztot,ntotxyz(3)
+      integer*4 nfitxin,nfityin,nfitzin,nfitxyzin(3)
+      equivalence (npatx,npatxyz(1)),(npaty,npatxyz(2)), (npatz,npatxyz(3))
+      equivalence (nfitx,nfitxyz(1)),(nfity,nfitxyz(2)), (nfitz,nfitxyz(3))
+      equivalence (nxtot,ntotxyz(1)),(nytot,ntotxyz(2)), (nztot,ntotxyz(3))
+      equivalence (nfitxin,nfitxyzin(1)),(nfityin,nfitxyzin(2)),
+     &    (nfitzin,nfitxyzin(3))
+      integer*4 ndat,nFileDat,npatx,npaty,npatz,i,j,ipos,inlist,k,itmp,ind
+      integer*4 ncont,ierr,indy,indz,iobj,ip,indcur,ipt,numTarget,indTarget
+      integer*4 nofsx,nofsy,nofsz,ifsubset,ifdoSlab
       real*4 xofs,yofs,zofs,ximscale,yimscale,zimscale
-      real*4 ratmin,ratmax,fracdrop,crit,critabs,elimmin,targetres
-      integer*4 ifauto,nauto,niny,ix,iy,iz,iauto,nfitx,nfity,nfitz
+      real*4 ratmin,ratmax,fracdrop,crit,critabs,elimmin
+      integer*4 ifauto,nauto,niny,ix,iy,iz,iauto
       integer*4 nlocdone,nexclxhi,nexclyhi,nexclzhi
-      integer*4 ifdiddle,nfitxin,nfityin,nfitzin,nlocx,nlocy,nlocz
+      integer*4 ifdiddle,nlocx,nlocy,nlocz
       integer*4 induse,nlistd,ndroptot,locx,locy,locz,lx,ly,lz,ifuse
       real*4 ratio,devavmin,dist,distmin,devavsum,devmaxsum,devmaxmax
       real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal
       real*4 devavavg,devmaxavg,devavmax
-      integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop,ixd,iyd,izd
-      integer*4 left,ifon,ndrop,ifflip,indpat,indloc,icolfix
+      integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop
+      integer*4 ifon,ndrop,ifflip,indpat,indloc,icolfix
+      character*5 rowslab(2) /'rows ', 'slabs'/
+      character*5 rowslabcap(2) /'ROWS ', 'SLABS'/
+      character*1 yztext(2) /'Y', 'Z'/
       common /bigarr/xr,cx,dx,asave,censave,dxyzsave,xvert,yvert
+c       
+      logical pipinput
+      integer*4 numOptArg, numNonOptArg
+      integer*4 PipGetInteger,PipGetTwoIntegers,PipGetThreeIntegers
+      integer*4 PipGetString,PipGetFloat,PipGetFloatArray,PipgetTwoFloats
+      integer*4 PipGetInOutFile,PipGetLogical
+c      
+c       fallbacks from ../../manpages/autodoc2man -2 2  findwarp
+c       
+      integer numOptions
+      parameter (numOptions = 18)
+      character*(40 * numOptions) options(1)
+
       indpat(ix,iy,iz)=ix + (iy-1)*npatx + (iz-1)*npatx*npaty
       indloc(ix,iy,iz)=ix + (iy-1)*nlocx + (iz-1)*nlocx*nlocy
-c       
-      write(*,'(1x,a,$)')
-     &    'Name of file with correlation positions and results: '
-      read(*,'(a)')filename
+
+      options(1) =
+     &    'patch:PatchFile:FN:@region:RegionModel:FN:@'//
+     &    'volume:VolumeOrSizeXYZ:FN:@initial:InitialTransformFile:FN:@'//
+     &    'output:OutputFile:FN:@residual:ResidualPatchOutput:FN:@'//
+     &    'target:TargetMeanResidual:FA:@'//
+     &    'measured:MeasuredRatioMinAndMax:FP:@xskip:XSkipLeftAndRight:IP:@'//
+     &    'yskip:YSkipLowerAndUpper:IP:@zskip:ZSkipLowerAndUpper:IP:@'//
+     &    'rowcol:LocalRowsAndColumns:IP:@slabs:LocalSlabs:I:@'//
+     &    'maxfrac:MaxFractionToDrop:F:@minresid:MinResidualToDrop:F:@'//
+     &    'prob:CriterionProbabilities:FP:@param:ParameterFile:PF:@'//
+     &    'help:usage:B:'
+c
+      nofsx=0
+      nofsy=0
+      nofsz=0
+      ifsubset=0
+      ratmin=4.0
+      ratmax=20.0
+      fracdrop=0.1
+      crit=0.01
+      critabs=0.002
+      elimmin=0.5
+      ifdoSlab=0
+      resfile = ' '
+c
+      call PipReadOrParseOptions(options, numOptions, 'findwarp',
+     &    'ERROR: FINDWARP - ', .true., 3, 1, 1, numOptArg,
+     &    numNonOptArg)
+      pipinput = numOptArg + numNonOptArg .gt. 0
+C       
+C       Open patch file and figure out sampled positions
+C       
+      if (PipGetInOutFile('PatchFile', 1,
+     &    'Name of file with correlation positions and results', filename)
+     &    .ne. 0) call exiterror('NO INPUT PATCH FILE SPECIFIED')
+
       call dopen(1,filename,'old','f')
       read(1,*)ndat
-      if(ndat.gt.limpatch)call errorexit
-     &    ('TOO MANY PATCHES FOR ARRAYS')
+      if(ndat.gt.limpatch)call exitError('TOO MANY PATCHES FOR ARRAYS')
       npatx=0
       npaty=0
       npatz=0
@@ -301,13 +157,17 @@ c
         enddo
       enddo
 c       
+      nxtot=npatx
+      nytot=npaty
+      nztot=npatz
+      nfityin=nytot
       print *,'Number of patches in X, Y and Z is:',npatx,npaty,npatz
       rewind(1)
       read(1,*)ndat
 c       
-      print *,'Enter NX, NY, NZ of tomogram',
-     &    ', or name of either tomogram file'
-      call get_nxyz(.false., ' ', 'FINDWARP', 1,nxyz)
+      if (.not. pipinput) print *,'Enter NX, NY, NZ or name of file ',
+     &    'for tomogram being matched to'
+      call get_nxyz(pipinput, 'VolumeOrSizeXYZ', 'FINDWARP', 1,nxyz)
 c       
 c       mark positions as nonexistent and fill cx from list positions
 c       
@@ -347,135 +207,127 @@ c
         enddo
       enddo
 c       
+      nFileDat = ndat
       close(1)
 c       
-      write(*,'(1x,a,/,a,$)')
-     &    'Enter name of model file with contour enclosing area to '
-     &    //'use,',' or Return to use all patches: '
-      read(*,'(a)')filename
-      ncont=0
-      if(filename.ne.' ')then
-        exist=readw_or_imod(filename)
-        if(.not.exist)call errorexit('ERROR READING MODEL')
-        ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
-        ierr=getimodscales(ximscale,yimscale,zimscale)
-c         print *,'Offsets:',xofs,yofs,zofs
-        do i=1,n_point
-          p_coord(1,i)=(p_coord(1,i)-xofs)/ximscale
-          p_coord(2,i)=(p_coord(2,i)-yofs)/yimscale
-          p_coord(3,i)=(p_coord(3,i)-zofs)/zimscale
-        enddo
-        indy=2
-        indz=3
-        if (ifflip.ne.0)then
-          indy=3
-          indz=2
-        endif
-        indcur=0
-        do iobj=1,max_mod_obj
-          if(npt_in_obj(iobj).ge.3)then
-            ncont=ncont+1
-            if(ncont.gt.idim)call errorexit(
-     &          'TOO MANY CONTOURS IN MODEL')
-            nvert(ncont)=npt_in_obj(iobj)
-            if(indcur+nvert(ncont).gt.limvert)call errorexit(
-     &          'TOO MANY POINTS IN CONTOURS')
-            do ip=1,nvert(ncont)
-              ipt=abs(object(ibase_obj(iobj)+ip))
-              xvert(ip+indcur)=p_coord(1,ipt)
-              yvert(ip+indcur)=p_coord(indy,ipt)
-            enddo
-            zcont(ncont)=p_coord(indz,ipt)
-            indvert(ncont)=indcur+1
-            indcur=indcur+nvert(ncont)
-          endif
-        enddo
-        print *,ncont,
-     &      ' contours available for deciding which patches to use'
-      endif
+c       get patch region model
 c       
-      nxtot=npatx
-      nytot=npaty
-      nztot=npatz
-      nofsx=0
-      nofsy=0
-      nofsz=0
-      ifsubset=0
-      ifdoy=0
-      nfityin=nytot
-      ratmin=4.0
-      ratmax=20.0
-      fracdrop=0.1
-      crit=0.01
-      critabs=0.002
-      elimmin=0.5
+      if (pipinput) then
+        ierr = PipGetString('RegionModel', filename)
+      else
+        write(*,'(1x,a,/,a,$)')
+     &      'Enter name of model file with contour enclosing area to '
+     &      //'use,',' or Return to use all patches: '
+        read(*,'(a)')filename
+      endif
+      ncont=0
+      if(filename.ne.' ') then
+        call get_region_contours(filename, 'FINDWARP', xvert, yvert, nvert,
+     &      indvert, zcont, ncont, ifflip, idim, limvert)
+      else
+        ifflip = 0
+        if (npaty .lt. npatz) ifflip = 1
+      endif
+      indy = 2
+      if (ifflip .ne. 0) indy = 3
+      indz = 5 - indy
+c       
 c       aspectmax=3.
 c       
-8     write(*,'(1x,a,$)')'1 to find best warping automatically, 0 '//
-     &    'to proceed interactively: '
-      read(5,*)ifauto
-      nauto=0
+8     if (pipinput) then
+        ifauto = PipGetTwoIntegers('LocalRowsAndColumns', nfitxin,
+     &      nfitxyzin(indy))
+      else
+        write(*,'(1x,a,$)')'1 to find best warping automatically, 0 '//
+     &      'to proceed interactively: '
+        read(5,*)ifauto
+      endif
+c
       if(ifauto.ne.0)then
-        write(*,'(1x,a,$)')'Mean residual to achieve: '
-        read(5,*)targetres
-        write(*,'(1x,a,/,a,2f5.1,a,$)') 'Minimum and maximum ratio of '//
-     &      'measurements to unknowns to test','  (/ for'
-     &      ,ratmin,ratmax,'): '
-        read(5,*)ratmin,ratmax
+c         
+c         initialize auto 1: get target and ratio parameters
+c
+        if (pipinput) then
+          numTarget = 0
+          if (PipGetFloatArray('TargetMeanResidual', targetres, numTarget,
+     &        limtarg) .gt. 0) call exitError(
+     &        'TARGET MEAN RESIDUAL MUST BE ENTERED FOR AUTOMATIC FITS')
+          ierr = PipGetTwoFloats('MeasuredRatioMinAndMax', ratmin, ratmax)
+        else
+          write(*,'(1x,a,$)')'One or more mean residuals to achieve: '
+          read(5,'(a)')filename
+          call frefor(filename, targetRes, numTarget)
+          write(*,'(1x,a,/,a,2f5.1,a,$)') 'Minimum and maximum ratio of '//
+     &        'measurements to unknowns to test','  (/ for'
+     &        ,ratmin,ratmax,'): '
+          read(5,*)ratmin,ratmax
+        endif
 c         write(*,'(1x,a,f5.0,a,$)')
 c         &           'Maximum aspect ratio to allow in an area to be fit (/ for'
 c         &           ,aspectmax,'): '
 c         read(5,*)aspectmax
-c         
-c         set up parameters for automatic finding: make list of possible
-c         nxfit and nzfit values
-c         
       endif
 c       
-      write(*,'(1x,a,$)')'0 to include all positions, or 1 to '//
-     &    'exclude rows or columns of patches: '
-      read(5,*)ifsubset
+c       Get rows, columns, slabs to exclude and check entries
+c       
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('XSkipLeftAndRight', nofsx,nexclxhi) +
+     &      PipGetTwoIntegers('YSkipLowerAndUpper', nofsy,nexclyhi) +
+     &      PipGetTwoIntegers('ZSkipLowerAndUpper', nofsz,nexclzhi)
+        ifsubset = 3 - ierr
+        ierr = PipGetFloat('MaxFractionToDrop', fracdrop)
+        ierr = PipGetFloat('MinResidualToDrop', elimmin)
+        ierr = PipGetTwoFloats('CriterionProbabilities', crit, critabs)
+        ierr = PipGetString('ResidualPatchOutput', resFile)
+      else
+        write(*,'(1x,a,$)')'0 to include all positions, or 1 to '//
+     &      'exclude rows or columns of patches: '
+        read(5,*)ifsubset
+      endif
 c       
       if(ifsubset.ne.0)then
-10      nexclxhi = npatx-nofsx-nxtot
-        write(*,'(1x,a,2i3,a,$)')'# of columns to exclude'
-     &      //' on the left and right in X (/ for',nofsx,
-     &      nexclxhi,'): '
-        read(5,*)nofsx,nexclxhi
+10      if (.not. pipinput) then
+          nexclxhi = npatx-nofsx-nxtot
+          write(*,'(1x,a,2i3,a,$)')'# of columns to exclude'
+     &        //' on the left and right in X (/ for',nofsx, nexclxhi,'): '
+          read(5,*)nofsx,nexclxhi
+        endif
         nxtot=npatx-nofsx-nexclxhi
         if(nxtot+nofsx.gt.npatx.or.nxtot.lt.2)then
-          if (ifauto .ne. 0) call errorexit(
+          if (ifauto .ne. 0) call exitError(
      &        'ILLEGAL ENTRY FOR NUMBER OF COLUMNS TO EXCLUDE IN X')
           print *,'Illegal entry'
           nofsx=0
           nxtot=npatx
           go to 10
         endif
-
-12      nexclyhi = npaty-nofsy-nytot
-        write(*,'(1x,a,2i3,a,$)')'# of slabs to exclude'
-     &      //' on the bottom and top of section in Y (/ for',nofsy,
-     &      nexclyhi,'): '
-        read(5,*)nofsy,nexclyhi
+        
+12      if (.not. pipinput) then
+          nexclyhi = npaty-nofsy-nytot
+          write(*,'(1x,a,a,a,2i3,a,$)')'# of ',rowslab(1+ifflip),' to exclude'
+     &        //' on the bottom and top in Y (/ for',nofsy, nexclyhi,'): '
+          read(5,*)nofsy,nexclyhi
+        endif
         nytot=npaty-nofsy-nexclyhi
         if(nytot+nofsy.gt.npaty.or.nytot.lt.1 )then
-          if (ifauto .ne. 0) call errorexit(
-     &        'ILLEGAL ENTRY FOR NUMBER OF SLABS TO EXCLUDE IN Y')
+          if (ifauto .ne. 0) call exitError('ILLEGAL ENTRY FOR NUMBER OF '//
+     &        rowslabcap(1+ifflip)//' TO EXCLUDE IN Y')
           print *,'Illegal entry'
           nofsy=0
           nytot=npaty
           go to 12
         endif
 
-14      nexclzhi = npatz-nofsz-nztot
-        write(*,'(1x,a,2i3,a,$)')'# of rows to exclude'
-     &      //' on the bottom and top in Z (/ for',nofsz,
-     &      nexclzhi,'): '
-        read(5,*)nofsz,nexclzhi
+14      if (.not. pipinput) then
+          nexclzhi = npatz-nofsz-nztot
+          write(*,'(1x,a,a,a,2i3,a,$)')'# of ',rowslab(2-ifflip),' to exclude'
+     &        //' on the bottom and top in Z (/ for',nofsz, nexclzhi,'): '
+          read(5,*)nofsz,nexclzhi
+        endif
         nztot=npatz-nofsz-nexclzhi
         if(nztot+nofsz.gt.npatz.or.nztot.lt.2)then
-          if (ifauto .ne. 0) call errorexit(
-     &        'ILLEGAL ENTRY FOR NUMBER OF ROWS TO EXCLUDE IN Z')
+          if (ifauto .ne. 0) call exitError( 'ILLEGAL ENTRY FOR NUMBER OF '//
+     &        rowslabcap(2-ifflip)//' TO EXCLUDE IN Z')
           print *,'Illegal entry'
           nofsz=0
           nztot=npatz
@@ -492,131 +344,167 @@ c
         nofsz=0
       endif
 c       
-      if(ifauto.ne.0)then
-        niny=nytot
-        if(ifdoy.ne.0)niny=nfity
-        do ix=nxtot,2,-1
-          do iz=nztot,2,-1
-            ratio=ix*iz*niny/4.0
-c             aspect = float(ix)/iz
-c             if(aspect.lt.1.)aspect=1./aspect
-            if((ix.ne.nxtot.or.iz.ne.nztot).and.ratio.ge.ratmin.and.
-     &          ratio.le.ratmax)then
-c               &                 aspect.le.aspectmax)then
-              nauto=nauto+1
-              nfxauto(nauto)=ix
-              nfzauto(nauto)=iz
+c       Figure out if doing subsets of slabs but not for interactive when
+c       auto was already selected
+c
+      if (pipinput .or. ifauto .eq. 0) then
+        if (ntotxyz(indz).gt.2) then
+          if (pipinput) then
+            ifdoSlab = 1 -PipGetInteger('LocalSlabs', nfitxyz(indz))
+            if (ifdoSlab .gt. 0) then
+              if (nfitxyz(indz) .lt. 2 .or. nfitxyz(indz) .gt. npatxyz(indz))
+     &            call exitError('NUMBER OF LOCAL SLABS OUT OF ALLOWED RANGE')
+              nfitxyzin(indz) = nfitxyz(indz)
             endif
-          enddo
-        enddo
-        if(nauto.eq.0)then
-          print *
-          print *,'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE THE',
-     &        ' REQUIRED RATIO OF',' MEASUREMENTS TO UNKNOWNS - ',
-     &        'THERE ARE PROBABLY TOO FEW PATCHES'
-          call exit(1)
+          else if (ifauto .eq. 0) then
+            write(*,'(1x,a,a,a,a,a,$)')'0 to fit to all patches in ',
+     &          yztext(2-ifflip), ', or 1 to fit to subsets in ',
+     &          yztext(2-ifflip),': '
+            read(5,*)ifdoSlab
+          endif
         endif
+      endif
+
+      if(ifauto.ne.0)then
+c         
+c         set up parameters for automatic finding: make list of possible
+c         nxfit, nyfit, nzfit values
+c         
+        if (ifflip .ne. 0) then
+          nfity = min(nfity, nytot)
+          call setAutoFits(nxtot, nztot, nytot, ifdoSlab, nfity, ratmin,
+     &        ratmax, nfxauto, nfzauto, nfyauto, nauto)
+        else
+          nfitz = min(nfitz, nztot)
+          call setAutoFits(nxtot, nytot, nztot, ifdoSlab, nfitz, ratmin,
+     &        ratmax, nfxauto, nfyauto, nfzauto, nauto)
+        endif
+        if(nauto.eq.0)call exitError(
+     &      'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE THE'//
+     &      ' REQUIRED RATIO OF',' MEASUREMENTS TO UNKNOWNS - '//
+     &      'THERE ARE PROBABLY TOO FEW PATCHES')
 c         
 c         sort the list by size of area in inverted order
 c         
         do i=1,nauto-1
           do j=i+1,nauto
-            if(nfxauto(i)*nfzauto(i).lt.nfxauto(j)*nfzauto(j))then
+            if(nfxauto(i)*nfyauto(i)*nfzauto(i) .lt.
+     &          nfxauto(j)*nfyauto(j)*nfzauto(j))then
               itmp=nfxauto(i)
               nfxauto(i)=nfxauto(j)
               nfxauto(j)=itmp
+              itmp=nfyauto(i)
+              nfyauto(i)=nfyauto(j)
+              nfyauto(j)=itmp
               itmp=nfzauto(i)
               nfzauto(i)=nfzauto(j)
               nfzauto(j)=itmp
             endif
           enddo
         enddo
-c         write(*,'(3i5)')(i,nfxauto(i),nfzauto(i),i=1,nauto)
+c         write(*,'(3i5)')(i,nfxauto(i),nfyauto(i),nfzauto(i),i=1,nauto)
+c         
+c         set up for first round and skip to set up this round's patches
+c
         iauto = 1
         nfitx=-100
         nfity=-100
         nfitz=-100
         nlocdone=0
         devavmin=10000.
+        indTarget = 1
+        write(*,112)targetres(1)
+112     format(/,'Seeking a warping with mean residual below',f9.3)
         go to 20
       endif
-
-      ifdoy=1
-      if(nytot.le.2)ifdoy=0
-      if(ifdoy.gt.0)then
-        write(*,'(1x,a,$)')'0 to fit to all patches in Y, or 1 to '
-     &      //'fit to subsets in Y: '
-        read(5,*)ifdoy
+c       
+c       Get parameter to control outlier elimination
+c
+      if (.not.pipinput) then
+        write(*,'(1x,a,$)')'1 to enter parameters to control outlier '
+     &      //'elimination, 0 not to: '
+        read(5,*)ifdiddle
+        if(ifdiddle.ne.0)then
+          write(*,'(1x,a,f5.2,a,$)')'Maximum fraction of patches to '//
+     &        'eliminate (/ for',fracdrop,'): '
+          read(5,*)fracdrop
+          write(*,'(1x,a,f5.2,a,$)')'Minimum residual needed to do any'
+     &        //' elimination (/ for',elimmin,'): '
+          read(5,*)elimmin
+          write(*,'(1x,a,f6.3,a,$)')'Criterion probability for ' //
+     &        'candidates for elimination (/ for',crit,'): '
+          read(5,*)crit
+          write(*,'(1x,a,f6.3,a,$)')'Criterion probability for enforced'
+     &        //' elimination (/ for',critabs,'): '
+          read(5,*)critabs
+        endif
       endif
 c       
-      write(*,'(1x,a,$)')'1 to enter parameters to control outlier '
-     &    //'elimination, 0 not to: '
-      read(5,*)ifdiddle
-      if(ifdiddle.ne.0)then
-        write(*,'(1x,a,f5.2,a,$)')'Maximum fraction of patches to '//
-     &      'eliminate (/ for',fracdrop,'): '
-        read(5,*)fracdrop
-        write(*,'(1x,a,f5.2,a,$)')'Minimum residual needed to do any'
-     &      //' elimination (/ for',elimmin,'): '
-        read(5,*)elimmin
-        write(*,'(1x,a,f6.3,a,$)')'Criterion probability for ' //
-     &      'candidates for elimination (/ for',crit,'): '
-        read(5,*)crit
-        write(*,'(1x,a,f6.3,a,$)')'Criterion probability for enforced'
-     &      //' elimination (/ for',critabs,'): '
-        read(5,*)critabs
-      endif
-c       
+c       Initialize for first time in or back after parameter setting
+c
       nfitx=-100
       nfity=-100
       nfitz=-100
       nlocdone=0
-      write(*,111)
+      if (.not.pipinput) write(*,111)
 111   format(/,' Enter 0 for the number of patches in X to loop',
      &    ' back and find best fit ',/,
      &    '  automatically, include a different subset of patches ',
      &    /,'  or specify new outlier elimination parameters',/)
-20    if(ifdoy.ne.0.and.ifauto.eq.0)then
-        if(nlocdone.eq.0)then
-          write(*,'(1x,a,$)')
-     &        'Number of local patches for fit in X, Y and Z: '
-        else
-          write(*,'(1x,a,/,a,$)')
-     &        'Number of local patches for fit in X, Y and Z,',
-     &        '    or / to redo and save last result: '
+c       
+c       Get the input number of local patches unless doing auto
+c
+20    if (ifauto.eq.0 .and. ifdoSlab.ne.0) then
+        if (.not.pipinput) then
+          if(nlocdone.eq.0)then
+            write(*,'(1x,a,$)')
+     &          'Number of local patches for fit in X, Y and Z: '
+          else
+            write(*,'(1x,a,/,a,$)')
+     &          'Number of local patches for fit in X, Y and Z,',
+     &          '    or / to redo and save last result: '
+          endif
+          read(5,*)nfitxin,nfityin,nfitzin
         endif
-        read(5,*)nfitxin,nfityin,nfitzin
-      elseif(ifauto.eq.0)then
-        if(nlocdone.eq.0)then
-          write(*,'(1x,a,$)')
-     &        'Number of local patches for fit in X and Z: '
-        else
-          write(*,'(1x,a,/,a,$)')
-     &        'Number of local patches for fit in X and Z,',
-     &        '    or / to redo and save last result: '
+      elseif (ifauto.eq.0) then
+        if (.not.pipinput) then
+          if(nlocdone.eq.0)then
+            write(*,'(1x,a,a,a,$)')
+     &          'Number of local patches for fit in X and ',yztext(1+ifflip),': '
+          else
+            write(*,'(1x,a,a,a,/,a,$)')
+     &          'Number of local patches for fit in X and ',yztext(1+ifflip),',',
+     &          '    or / to redo and save last result: '
+          endif
+          read(5,*)nfitxin,nfitxyzin(indy)
         endif
-        read(5,*)nfitxin,nfitzin
-        nfityin=nytot
+        nfitxyzin(indz) = ntotxyz(indz)
       else
         nfitxin=nfxauto(iauto)
+        nfityin=nfyauto(iauto)
         nfitzin=nfzauto(iauto)
       endif
 c       
-      if(nfitxin.eq.0)go to 8
+c       Loop back to earlier parameter entries on a zero entry
+c
+      if(nfitxin.eq.0) go to 8
       if(nfitxin.ne.nfitx.or.nfityin.ne.nfity.or.nfitzin.ne.nfitz
      &    .or.nlocdone.eq.0)then
+c         
+c         Set up number of locations to fit and check entries
+c
         nlocx=nxtot+1-nfitxin
         nlocy=nytot+1-nfityin
         nlocz=nztot+1-nfitzin
-        if(nfitxin.lt.2.or.nfitzin.lt.2.or.nlocx.lt.1.or.nlocz.lt.1
-     &      .or.nfityin.lt.1.or.nlocy.lt.1)then
-          if (ifauto .ne. 0) call errorexit(
+        if(nfitxin.lt.2.or.nfitxyzin(indy).lt.2.or.nlocx.lt.1.or.nlocz.lt.1
+     &      .or.nfitxyzin(indz).lt.1.or.nlocy.lt.1)then
+          if (ifauto .ne. 0) call exitError(
      &        'IMPROPER NUMBER TO INCLUDE IN FIT')
           print *,'Illegal entry, try again'
           go to 20
         endif
         if(nfitxin*nfityin*nfitzin.gt.idim)then
-          if (ifauto .ne. 0) call errorexit(
+          if (ifauto .ne. 0) call exitError(
      &        'TOO MANY PATCHES FOR ARRAY SIZES')
           print *,'Too many patches for array sizes, try again'
           go to 20
@@ -625,12 +513,19 @@ c
         nfity=nfityin
         nfitz=nfitzin
       else
+c         
+c         Or save data and terminate on a duplicate entry
+c
         if(nlocx.gt.1.or.nlocy.gt.1.or.nlocz.gt.1)then
           if(ifauto.ne.0)write(*,*)
-          print *,'Enter name of file with initial '//
-     &        'transformation, typically solve.xf',
-     &        '   (Return if none)'
-          read(*,'(a)')filename
+          if (pipinput) then
+            ierr = PipGetString('InitialTransformFile', filename)
+          else
+            print *,'Enter name of file with initial '//
+     &          'transformation, typically solve.xf',
+     &          '   (Return if none)'
+            read(*,'(a)')filename
+          endif
           if(filename.ne.' ')then
             call dopen(1,filename,'old','f')
             read(1,*)((firstm(i,j),j=1,3),firstd(i),i=1,3)
@@ -645,9 +540,9 @@ c
             enddo
           endif
 c           
-          print *,'Enter name of file to place warping ',
-     &        'transformations in'
-          read(5,'(a)')filename
+          if (PipGetInOutFile('OutputFile', 2,
+     &        'Name of file to place warping transformations in', filename).ne.
+     &        0) call exiterror('NO OUTPUT FILE FOR DISPLACEMENTS SPECIFIED')
           call dopen(1,filename,'new','f')
           if(nlocy.eq.1)then
             write(1,'(2i4)')nlocx,nlocz
@@ -689,6 +584,9 @@ c                   &                   (censave(j,ind),censave(j,induse),j=1,3)
             enddo
           enddo
         else
+c           
+c           Save a single transform if fit to whole area; won't happen if auto
+c
           print *,'Enter name of file in which to place single ',
      &        'refining transformation'
           read(5,'(a)')filename
@@ -696,8 +594,15 @@ c                   &                   (censave(j,ind),censave(j,induse),j=1,3)
           write(1,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
         endif
         close(1)
+
+        call outputPatchRes(resFile, nFileDat, npatx * npaty * npatz,
+     &      exists, resSum, numRes, cx, dx, limpatch)
+
         call exit(0)
       endif
+c       
+c       Do the fits for real now
+c
       devavsum=0.
       devmaxsum=0.
       devmaxmax=0.
@@ -705,7 +610,11 @@ c                   &                   (censave(j,ind),censave(j,induse),j=1,3)
       nlistd=0
       ndroptot=0
       nlocdone=0
-      if (max(nfitx,nfity,nfitz).gt.limaxis) call errorexit(
+      do ind = 1, npatx * npaty * npatz
+        numRes(ind) = 0
+        resSum(ind) = 0
+      enddo
+      if (max(nfitx,nfity,nfitz).gt.limaxis) call exitError(
      &    'TOO MANY POINTS IN FIT IN ONE DIMENSION FOR ARRAYS')
 
       do locz=1,nlocz
@@ -739,7 +648,7 @@ c                     find nearest contour in Z and see if patch is inside it
 c                     
                     dzmin=100000.
                     do icont=1,ncont
-                      dz=abs(cx(ind,2)-zcont(icont))
+                      dz=abs(cx(ind,indz)-zcont(icont))
                       if(dz.lt.dzmin)then
                         dzmin=dz
                         icmin=icont
@@ -747,7 +656,7 @@ c
                     enddo
                     indv=indvert(icmin)
                     if(inside(xvert(indv),yvert(indv),nvert(icmin),
-     &                  cx(ind,1),cx(ind,3))) ifuse=1
+     &                  cx(ind,1),cx(ind,indy))) ifuse=1
                   endif
 c                   
                   if(ifuse.gt.0)then
@@ -755,10 +664,11 @@ c
                     do j=1,3
 c                       
 c                       the regression requires coordinates of second volume as
-c                       independent variables (columns 1-3), those in first volume
-c                       as dependent variables (stored in 5-7), to obtain transformation
-c                       to get from second to first volume
-c                       cx+dx in second volume matches cx in first volume
+c                       independent variables (columns 1-3), those in first
+c                       volume as dependent variables (stored in 5-7), to
+c                       obtain transformation to get from second to first
+c                       volume cx+dx in second volume matches cx in first
+c                       volume
 c                       
                       xr(j+4,ndat)=cx(ind,j)-0.5*nxyz(j)
                       xr(j,ndat)=xr(j+4,ndat)+dx(ind,j)
@@ -787,17 +697,23 @@ c             solve for this location if there are at least half of the
 c             normal number of patches present and if there are guaranteed
 c             to be at least 3 patches in a different row from the dominant
 c             one, even if the max are dropped from other rows
-c             But treat Y differently: if there are not enough data
-c             on another layer in Y, or if there is only one layer being fit,
-c             then set the second column as fixed in the fits
+c             But treat thickness differently: if there are not enough data
+c             on another layer, or if there is only one layer being fit,
+c             then set the appropriate column as fixed in the fits
 c             
             solved(indlc)=ndat.ge.nfitx*nfity*nfitz/2
             maxdrop=nint(fracdrop*ndat)
             icolfix = 0
             do i=1,max(nfitx,nfity,nfitz)
-              if(inrowx(i).gt.ndat-3-maxdrop.or.
-     &            inrowz(i).gt.ndat-3-maxdrop)solved(indlc)=.false.
-              if (inrowy(i).gt.ndat-3-maxdrop .or. nfity.eq.1)icolfix=2
+              if (ifflip .eq. 1) then
+                if(inrowx(i).gt.ndat-3-maxdrop.or.
+     &              inrowz(i).gt.ndat-3-maxdrop)solved(indlc)=.false.
+                if (inrowy(i).gt.ndat-3-maxdrop .or. nfity.eq.1) icolfix=2
+              else
+                if(inrowx(i).gt.ndat-3-maxdrop.or.
+     &              inrowy(i).gt.ndat-3-maxdrop)solved(indlc)=.false.
+                if (inrowz(i).gt.ndat-3-maxdrop .or. nfitz.eq.1) icolfix=3
+              endif
             enddo
             if(solved(indlc))then
               call solve_wo_outliers(xr,ndat,3,icolfix,maxdrop,crit,
@@ -811,19 +727,13 @@ c$$$            enddo
 c$$$            print *,(cenloc(i),i=1,3)
 c$$$            write(*,'(9f8.3)')((a(i,j),i=1,3),j=1,3)
 c$$$            endif
+c               
+c               Accumulate information about dropped points
+c
               do i=1,ndrop
-                izd=(idrop(i)-1)/(nfitx*nfity)
-                left=idrop(i)-1-izd*nfitx*nfity
-                iyd=left/nfitx
-                ixd=left-iyd*nfitx
-                ixd=ixd+locx+nofsx
-                iyd=iyd+locy+nofsy
-                izd=izd+locz+nofsz
                 ifon=0
                 do j=1,nlistd
                   if(nint(xr(15,idrop(i))).eq.inddrop(j))then
-c                     if(ixd.eq.ixdrop(j).and.iyd.eq.iydrop(j).and.
-c                     &                 izd.eq.izdrop(j))then
                     ifon=1
                     ntimes(j)=ntimes(j)+1
                     dropsum(j)=dropsum(j)+xr(4,ndat+i-ndrop)
@@ -831,15 +741,22 @@ c                     &                 izd.eq.izdrop(j))then
                 enddo
                 if(ifon.eq.0.and.ifon.lt.idim)then
                   nlistd=nlistd+1
-c                   ixdrop(nlistd)=ixd
-c                   iydrop(nlistd)=iyd
-c                   izdrop(nlistd)=izd
                   inddrop(nlistd)=nint(xr(15,idrop(i)))
                   ntimes(nlistd)=1
                   dropsum(nlistd)=xr(4,ndat+i-ndrop)
                 endif
               enddo
               ndroptot=ndroptot+ndrop
+c               
+c               if residual output asked for, accumulate info about all resids
+c               
+              if (resFile .ne. ' ') then
+                do i = 1, ndat
+                  ind = nint(xr(15,i))
+                  numRes(ind) = numRes(ind) + 1
+                  resSum(ind) = resSum(ind) + xr(4,nint(xr(5,i)))
+                enddo
+              endif
 c               
               devavsum=devavsum+devavg
               devmaxsum=devmaxsum+devmax
@@ -867,7 +784,8 @@ c
         devavavg=10000.
         if(nlocdone.gt.0)devavavg=devavsum/nlocdone
         devavmin=min(devavmin,devavavg)
-        if(devavavg.le.targetres)then
+        devavAuto(iauto) = devavavg
+        if(devavavg.le.targetres(indTarget))then
 c           
 c           done: set nauto to zero to allow printing of results
 c           
@@ -879,9 +797,29 @@ c
           iauto=iauto+1
 c           print *,iauto,' Did fit to',nfitx,nfity,nfitz
           if(iauto.gt.nauto)then
+c             
+c             See if any other criteria have been met and loop back if so
+c
+            do j = indTarget + 1, numTarget
+              write(*,112)targetres(j)
+              do i = 1, nauto
+                if (devavAuto(i) .le. targetres(j)) then
+                  indTarget = j
+                  iauto = i
+                  nfitx=-100
+                  nlocdone=0
+                  go to 20
+                endif
+              enddo
+            enddo
+c             
+c             write patch file if desired on last fit before error message
+c
+            call outputPatchRes(resFile, nFileDat, npatx * npaty * npatz,
+     &          exists, resSum, numRes, cx, dx, limpatch)
             write(*,108)devavmin
-108         format(//,'FINDWARP: Failed to find a warping with a ',
-     &          'mean residual less than',f9.3,/)
+108         format(/,'ERROR: FINDWARP - FAILED TO FIND A WARPING WITH A ',
+     &          'MEAN RESIDUAL BELOW',f9.3)
             call exit(2)
           endif
         endif
@@ -889,17 +827,21 @@ c           print *,iauto,' Did fit to',nfitx,nfity,nfitz
 
       if(nlistd.gt.0.and.nauto.eq.0)then
         write(*,105)nlistd,ndroptot
-105     format(i4,' separate patches eliminated as outliers a total'
-     &      ,' of',i5,' times',/,
-     &      ' patch position   # of times   mean residual')
-        do i=1,nlistd
-c           ixd=ixdrop(i)
-c           iyd=iydrop(i)
-c           izd=izdrop(i)
-          write(*,106)(cx(inddrop(i),j),j=1,3),ntimes(i),
-     &        dropsum(i)/ntimes(i)
-106       format(3f6.0,i8,f12.2)
-        enddo
+105     format(i5,' separate patches eliminated as outliers a total'
+     &      ,' of',i6,' times:')
+        if (nlistd .le. 10) then
+          print *,'    patch position   # of times   mean residual'
+          do i=1,nlistd
+            write(*,106)(cx(inddrop(i),j),j=1,3),ntimes(i),
+     &          dropsum(i)/ntimes(i)
+106         format(3f7.0,i8,f12.2)
+          enddo
+        else
+          do i = 1, nlistd
+            dropsum(i) = dropsum(i) / ntimes(i)
+          enddo
+          call summarizeDrops(dropsum, nlistd, 'mean ')
+         endif
         write(*,*)
       endif
 c       
@@ -918,9 +860,100 @@ c
       end
 
 
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: FINDWARP - ',message
-      call exit(1)
+      subroutine setAutoFits(nxtot, nztot, nytot, ifdoy, nfity, ratmin, ratmax,
+     &    nfxauto, nfzauto, nfyauto, nauto)
+      implicit none
+      integer*4 nxtot, nztot, nytot, ifdoy, nfity, nfxauto(*), nfzauto(*)
+      integer*4 nfyauto(*), nauto, niny,ix,iz,iy
+      real*4 ratmin, ratmax, ratio
+      nauto = 0
+      niny = nytot
+      if (ifdoy.ne.0) niny = nfity
+      do ix = nxtot, 2, -1
+        do iz = nztot , 2, -1
+          do iy = nytot, niny, -1
+            ratio = ix * iz * iy / 4.0
+c           aspect = float(ix)/iz
+c           if(aspect.lt.1.)aspect=1./aspect
+            if((ix.ne.nxtot.or.iz.ne.nztot) .and. ratio.ge.ratmin .and.
+     &          ratio.le.ratmax)then
+c               &                 aspect.le.aspectmax)then
+              nauto = nauto + 1
+              nfxauto(nauto) = ix
+              nfzauto(nauto) = iz
+              nfyauto(nauto) = iy
+            endif
+          enddo
+        enddo
+      enddo
+      return
       end
+
+c         
+c         Output new patch file with mean residuals if requested
+c
+      subroutine outputPatchRes(resFile, nFileDat, npatTot, exists, resSum,
+     &    numRes, cx, dx, limpatch)
+      implicit none
+      character*(*)resFile
+      integer*4 nFileDat, npatTot,limpatch,numRes(*), ind, i
+      real*4 cx(limpatch,3), dx(limpatch,3), resSum(*), dist
+      logical exists(*)
+      if (resFile .eq. ' ') return
+      call dopen(1,resFile,'new','f')
+      write(1,'(i7,a)')nFiledat,' positions'
+      do ind = 1, npatTot
+        if (exists(ind)) then
+          dist = resSum(ind) / max(1, numRes(ind))
+          write(1, 110) (nint(cx(ind, i)), i = 1, 3), (dx(ind, i), i = 1,3)
+     &        , dist
+110       format(3i6,3f9.2,f10.2)
+        endif
+      enddo
+      close(1)
+      return
+      end
+
+c       
+c       $Log$
+c       Revision 3.10  2006/06/22 01:08:19  mast
+c       Put big arrays in common for stack size problem on Intel Mac
+c
+c       Revision 3.9  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
+c       Revision 3.8  2005/10/19 16:43:52  mast
+c       Increased patch limit to 40000
+c       
+c       Revision 3.7  2003/12/24 19:04:02  mast
+c       Changed to fit new form of get_nxyz
+c       
+c       Revision 3.6  2003/10/24 03:47:17  mast
+c       fix bug of using maxdrop before setting it
+c       
+c       Revision 3.5  2002/10/23 15:41:44  mast
+c       Added ability to get solutions with only one layer of patches in Y,
+c       and to drop back to a solution that is fixed in Y when there are
+c       too few points on multiple levels in Y.
+c       
+c       Revision 3.4  2002/09/09 21:36:00  mast
+c       Eliminate stat_source: and nimp_source: from all includes
+c       
+c       Revision 3.3  2002/09/06 00:40:18  mast
+c       Had it exit with error if no patch arrangements will fit the minimum
+c       required measurement to unknown ratio in automatic mode
+c       
+c       Revision 3.2  2002/09/06 00:38:33  mast
+c       Wrong message!
+c       
+c       Revision 3.1  2002/07/21 00:05:00  mast
+c       Rearranged input order so that it was easier to run from Matchorwarp
+c       with columns or rows excluded.  Standardized error output and made
+c       declarations for implicit none.
+c       
+c       
+c       David Mastronarde, January 30, 1997
+c       12/24/98: added outlier elimination, integrated complex options.
+c       6/6/99: added ability to output single refining transformation.
+c       1/1/00: added model exclusion and automatic finding of best warp
+c       6/7/01: rewrote data input to handle data with missing patches
