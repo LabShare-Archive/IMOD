@@ -28,6 +28,7 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String rcsid =
     "$Id$";
 
+  public static final int SINGLE_OPTION = -1;
   public static final int FIXED_OPTION = 0;
   public static final int NONE_OPTION = FIXED_OPTION;
   public static final int ALL_OPTION = 1;
@@ -105,6 +106,7 @@ public class ConstTiltalignParam implements CommandDetails {
   private static final int[] distortionOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localTiltOptionValidValues = { FIXED_OPTION, TILT_AUTOMAPPED_OPTION };
+  private static final int[] rotOptionValidValues = { FIXED_OPTION, ALL_OPTION, AUTOMAPPED_OPTION, SINGLE_OPTION };
   private static final int[] surfacesToAnalyzeValidValues = { 0, 1, 2 };
   private static final String commandFileName = "align";
   private static final String commandFileExtension = ".com";
@@ -188,7 +190,7 @@ public class ConstTiltalignParam implements CommandDetails {
     angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, ANGLE_OFFSET_KEY);
     projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
     rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_OPTION_KEY);
-    rotOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
+    rotOption.setValidValues(rotOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     rotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_DEFAULT_GROUPING_KEY);
     rotDefaultGrouping.setDisplayValue(3);
     rotationFixedView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
@@ -810,6 +812,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2006/05/22 22:36:19  sueh
+ * <p> bug# 577 Added getCommand().
+ * <p>
  * <p> Revision 3.25  2006/05/11 19:41:43  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get

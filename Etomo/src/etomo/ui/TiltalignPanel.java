@@ -232,6 +232,7 @@ public class TiltalignPanel {
   private RadioButton rbRotationNone = new RadioButton("No rotation");
   private RadioButton rbRotationAll = new RadioButton("Solve for all rotations");
   private RadioButton rbRotationAutomap = new RadioButton("Group rotations");
+  private RadioButton rbRotationOne = new RadioButton("One rotation");
   private ButtonGroup bgRotationSolution = new ButtonGroup();
   private JPanel pnlRotationSolution = new JPanel();
   private LabeledTextField ltfRotationGroupSize = new LabeledTextField(
@@ -343,6 +344,9 @@ public class TiltalignPanel {
     }
     if (solutionType == TiltalignParam.AUTOMAPPED_OPTION) {
       rbRotationAutomap.setSelected(true);
+    }
+    if (solutionType == TiltalignParam.SINGLE_OPTION) {
+      rbRotationOne.setSelected(true);
     }
     ltfRotationGroupSize.setText(params.getRotDefaultGrouping().toString());
     ltfRotationNonDefaultGroups.setText(params.getRotNondefaultGroup());
@@ -556,6 +560,9 @@ public class TiltalignPanel {
         type = 1;
       if (rbRotationAutomap.isSelected())
         type = TiltalignParam.AUTOMAPPED_OPTION;
+      if (rbRotationOne.isSelected()) {
+        type = TiltalignParam.SINGLE_OPTION;
+      }
       params.setRotOption(type);
       badParameter = ltfRotationGroupSize.getLabel();
       params.setRotDefaultGrouping(ltfRotationGroupSize.getText());
@@ -1015,10 +1022,11 @@ public class TiltalignPanel {
     //  Layout the global rotation variable parameters
     JPanel pnlRBRotation = new JPanel();
     pnlRBRotation.setLayout(new BoxLayout(pnlRBRotation, BoxLayout.Y_AXIS));
-    RadioButton[] items = new RadioButton[3];
+    RadioButton[] items = new RadioButton[4];
     items[0] = rbRotationNone;
     items[1] = rbRotationAll;
     items[2] = rbRotationAutomap;
+    items[3] = rbRotationOne;
     RotationRadioListener rotationRadioListener = new RotationRadioListener(
         this);
     createRadioBox(pnlRBRotation, bgRotationSolution, items,
@@ -1542,6 +1550,9 @@ public class TiltalignPanel {
       rbRotationAutomap.setToolTipText(tooltipFormatter.setText(
           EtomoAutodoc.getTooltip(section, TiltalignParam.AUTOMAPPED_OPTION))
           .format());
+      rbRotationOne.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(section, TiltalignParam.SINGLE_OPTION))
+          .format());
     }
 
     ltfRotationGroupSize.setToolTipText(tooltipFormatter.setText(
@@ -1637,6 +1648,10 @@ public class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.35  2006/07/21 19:18:12  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 3.34  2006/07/20 17:23:08  sueh
  * <p> bug# 848 Made UIParameters a singleton.  Adjusting radio box widths by
  * <p> UIParameters.fontSizeAdjustment.
