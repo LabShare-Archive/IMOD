@@ -36,7 +36,6 @@ series 2 is known with confidence.  Ranges may be entered
 (e.g. 1-5,7,6,12).  The default is that all points correspond between the two
 series.
 
-
 [Field = BCorrespondenceList]
 short = blist
 type = LI
@@ -97,8 +96,28 @@ usage = X axis tilt used in generating the first and second tomograms
 tooltip =
 manpage = The values of X axis tilt that were used in generating the first and
 second tomograms.  These angles are needed to make the fiducial
-coordinates from TILTALIGN correspond to the actual positions of
+coordinates from Tiltalign correspond to the actual positions of
 the particles in the tomograms.  The default values are 0.
+
+[Field = AngleOffsetsToTilt]
+short = angles
+type = FP
+usage = Tilt angle offsets used in generating the first and second tomograms
+tooltip =
+manpage = The values of tilt angle offsets that were used when running Tilt to
+generate the first and second tomograms.  These are different from the angle
+offsets used when running Tiltalign, which need not be supplied to Solvematch.
+The default values are 0. 
+
+[Field = ZShiftsToTilt]
+short = zshifts
+type = FP
+usage = Z shifts used in generating the first and second tomograms
+tooltip =
+manpage = The values of Z shift that were used when running Tilt to
+generate the first and second tomograms.  These are different from the Z shifts
+used when running Tiltalign, which need not be supplied to Solvematch.
+The default values are 0. 
 
 [Field = SurfacesOrUseModels]
 short = surfaces
@@ -135,11 +154,32 @@ enum.2.tooltip = Select this option when there are fiducials distributed in Z.
 short = maxresid
 type = F
 usage = Largest maximum residual that will allow normal completion of program
-tooltip = "Maximum residual allowed when fitting a 3D transformation to the
+tooltip = Maximum residual allowed when fitting a 3D transformation to the
 corresponding points.
 manpage = The limiting value for the maximum residual, so that the program will
 exit with an error if this value is exceeded.
 
+[Field = LocalFitting]
+short = local
+type = I
+usage =  Minimum # of points for local fitting (default is 0 for no local fits)
+tooltip =
+manpage = Minimum number of points required in each local area if local fitting
+is desired.  The default is 0, which disables local fits.  Non-zero values
+must be at least 6.
+
+[Field = CenterShiftLimit]
+short = center
+type = F
+usage =  Maximum shift between central local fit and global fit (default 10)
+tooltip =
+manpage = Maximum shift between central local fit and global fit.  This shift 
+is computed and tested against this limit only when local fitting occurs,
+namely when the -local option is selected and the global maximum residual is
+greater than the -maxresid entry.  If the shift is greater than the limit,
+the program will exit with an
+error, but if the solution is adequate there is no need to rerun the program.
+The default value is 10.  A value of 0 disables the test.
 
 [Field = AMatchingModel]
 short = amatch

@@ -94,6 +94,33 @@ Using Old, Relative Fiducial Coordinates
   distribute the points in depth (rather than all on one surface) and use
   5-6 points so as to provide information on this scaling.
   
+Local Fitting
+  Sometimes the fit to the fiducial points gives a high maximum residual
+  error because there is a big nonlinear distortion between the two
+  volumes.  In these cases, fitting to local sets of points can be used to
+  determine that the fiducials have been properly identified and that the
+  global fit is as good as it is ever going to be.  If the LocalFitting
+  option is selected, the program will try local fits when the maximum
+  residual is above the specified limit.  It determines the size of the area
+  that, on average, would contain the specified minimum number of points.
+  It then sets up local areas of this size, overlapping by 50%, and expands
+  an area if necessary to contain the minimum number of points.  It performs
+  fits to the points in each area and reports the results of the fits.  If
+  the overall maximum residual is less than 1.5 times the specified limit,
+  and no more than 5% of the areas have maximum residuals above this limit,
+  the fit is considered adequate.
+
+  If local fitting is being done, then the program will also compute a local
+  fit to points at the center of the volume so as to determine how far the
+  global 3D transformation will shift data at the center of the volume out
+  of alignment.  If this shift is large enough, then corrsearch3d(1) may
+  have trouble starting to find the alignment of the data.  Thus, if the
+  program finds that this shift is bigger than a specified limit, it 
+  recommends initial shifts to be used when running corrsearch3d(1) and may
+  also recommend that the initial matching volume be made the same size as
+  the volume being transformed.  It will exit with an error so that you can
+  adjust these parameters before proceeding.
+
 Program Operation
   The program will automatically remove "outliers", pairs of points
   that are likely to be incorrect because their residual errors are

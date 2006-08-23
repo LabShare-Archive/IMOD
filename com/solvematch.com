@@ -1,6 +1,6 @@
 # THIS COMMAND FILE RUNS SOLVEMATCH
 #
-####CreatedVersion#### 3.8.7
+####CreatedVersion#### 3.8.23
 #
 # It contains all of the entries needed for the three different modes of
 # operation: fiducials only, fiducials and matching models (obsolete), and
@@ -24,6 +24,8 @@ BCorrespondenceList	/
 #TransferCoordinateFile	
 UsePoints	/
 XAxisTilts	0,0
+AngleOffsetsToTilt	0,0
+ZShiftsToTilt	0,0
 SurfacesOrUseModels	2
 AMatchingModel	g5a.matmod
 BMatchingModel	g5b.matmod
@@ -34,6 +36,8 @@ ATomogramOrSizeXYZ	g5a.rec
 BTomogramOrSizeXYZ	g5b.rec
 OutputFile	solvezero.xf
 MaximumResidual	8.
+LocalFitting	10
+CenterShiftLimit	10.
 #
 $echo "STATUS: SOLVEMATCH RAN SUCCESSFULLY, NEXT RUNNING MATCHSHIFTS"
 #

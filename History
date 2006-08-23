@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/23/06: In Solvematch, added local fitting and an assessment of the shift of
+the center so Corrsearch3d can be started off with a correct shift if
+necessary.  Added options to specify the Z shift and tilt angle offset used 
+when running Tilt, so using these options in tomogram generation will no
+longer screw up Solvematch.  Fixed output of list of points used in B.
+
 8/21/06: Converted Findwarp and Refinematch to PIP input, made them handle
 either orientation of volume, changed outlier output to a summary, added
 option for patch and residual output.  Made automatic fitting in Findwarp more
