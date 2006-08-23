@@ -45,6 +45,8 @@ set volcombine = volcombine.com
 # Log at end of file
 #
 
+setenv LC_NUMERIC C
+
 if ($?IMOD_DIR) then
 
     # Set the com directory.  If on cygwin, convert to cygwin path otherwise
@@ -74,6 +76,7 @@ set sedtranskey = "gibberish"
 set fromlet = "b"
 set tolet = "a"
 set transfile = ""
+set delregion = "RegionModel"
 
 if ($#argv > 0) then
 
@@ -145,6 +148,7 @@ if ($#argv > 0) then
           breaksw
         case -re*:
           set regionmod = $argv[2]
+          set delregion = "gibberish"
           shift; shift
           breaksw
         case -te*:
@@ -209,17 +213,36 @@ if ((-e tilta.com) && (-e tiltb.com)) then
     # This ugliness is for Cygwin Windows, with nobinmode not set
     set xaxisa = `grep -i xaxistilt $tilta | sed '/[[:cntrl:]]/s///g'`
     set xaxisb = `grep -i xaxistilt $tiltb | sed '/[[:cntrl:]]/s///g'`
-    if ("$xaxisa" == "") set xaxisa = "xaxistilt 0."
-    if ("$xaxisb" == "") set xaxisb = "xaxistilt 0."
+    if ($#xaxisa < 2) set xaxisa = (xaxistilt 0.)
+    if ($#xaxisb < 2) set xaxisb = (xaxistilt 0.)
+    set angoffa = `grep -i '^offset' $tilta | sed '/[[:cntrl:]]/s///g'`
+    set angoffb = `grep -i '^offset' $tiltb | sed '/[[:cntrl:]]/s///g'`
+    if ($#angoffa < 2) set angoffa = (offset 0.)
+    if ($#angoffb < 2) set angoffb = (offset 0.)
+    set zshifta = `grep -i '^shift' $tilta | sed '/[[:cntrl:]]/s///g'`
+    set zshiftb = `grep -i '^shift' $tiltb | sed '/[[:cntrl:]]/s///g'`
+    if ($#zshifta < 3) set zshifta = (shift 0. 0.)
+    if ($#zshiftb < 3) set zshiftb = (shift 0. 0.)
+    set binning = `grep -i imagebinned $tilta | sed '/[[:cntrl:]]/s///g'`
+    if ($#binning > 1) then
+        set temp = `echo $binning[2] $zshifta[3] | awk '{print $2 / $1}'`
+        set zshifta[3] = $temp
+    endif
+    set binning = `grep -i imagebinned $tiltb | sed '/[[:cntrl:]]/s///g'`
+    if ($#binning > 1) then
+        set temp = `echo $binning[2] $zshiftb[3] | awk '{print $2 / $1}'`
+        set zshiftb[3] = $temp
+    endif
 else
     echo " "
     echo2 "WARNING: CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY"
-    set xaxisa = "xaxistilt 0."
-    set xaxisb = "xaxistilt 0."
+    set xaxisa = (xaxistilt 0.)
+    set xaxisb = (xaxistilt 0.)
+    set angoffa = (offset 0.)
+    set angoffb = (offset 0.)
+    set zshifta = (shift 0. 0.)
+    set zshiftb = (shift 0. 0.)
 endif
-
-set xaxisa = ($xaxisa)
-set xaxisb = ($xaxisb)
 
 set recfile = $toname.rec
 set matfile = $fromname.mat
@@ -491,6 +514,7 @@ endif
 
 if ($regionmod != "") then
     set modeltext = "matchorwarp -size"
+    set delregion = "gibberish"
     if (! -e $regionmod) then
 	echo " "
 	echo2 "WARNING: file $regionmod does not yet exist."
@@ -620,6 +644,8 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/^ACorrespondenceList/s/[ 	].*/	$corrlist1/"\
     -e "/^BCorrespondenceList/s/[ 	].*/	$corrlist2/"\
     -e "/^XAxisTilts/s/[ 	].*/	$xaxisa[2],$xaxisb[2]/"\
+    -e "/^AngleOffsets/s/[ 	].*/	$angoffa[2],$angoffb[2]/"\
+    -e "/^ZShifts/s/[ 	].*/	$zshifta[3],$zshiftb[3]/"\
     -e "/^SurfacesOrUseModel/s/[ 	].*/	$modsurf/"\
     -e "/$sedtranskey/s/.*/TransferCoordinateFile	$transfile/"\
     -e "/^UsePoints/s/[ 	].*/	$uselist/"\
@@ -655,12 +681,17 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/OutputSizeXYZ/s/\//$size/g"\
 	<$srcdir/$warpvol | cat >$warpvol
 
-sed -e "/patchcrawl3d *[0-9]/s/3d[ 0-9]*/3d  $patchnx $patchnz $patchny   $npatchx $npatchz $npatchy   $patchxl $patchxu   $patchzl $patchzu   $patchyl $patchyu /g"\
-    -e s/$from_srcname/$fromname/g\
+sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e s/$matfile/$sedmatfile/g\
-    -e s/36,36,36,36/$xyborder,$xyborder,$xyborder,$xyborder/g\
-    -e "/boundary_model/s//$regionmod/"\
+    -e "/^PatchSizeXYZ/s/[ 	].*/	$patchnx,$patchnz,$patchny/"\
+    -e "/^NumberOfPatchesXYZ/s/[ 	].*/	$npatchx,$npatchz,$npatchy/"\
+    -e "/^XMinAndMax/s/[ 	].*/	$patchxl,$patchxu/"\
+    -e "/^YMinAndMax/s/[ 	].*/	$patchzl,$patchzu/"\
+    -e "/^ZMinAndMax/s/[ 	].*/	$patchyl,$patchyu/"\
+    -e "/^BSourceBorder/s/[ 	].*/	$xyborder,$xyborder/"\
+    -e "/^RegionModel/s/[ 	].*/	$regionmod/"\
+    -e "/^$delregion/d"\
 	<$srcdir/$patchcorr | cat >$patchcorr
 
 sed -e s/$from_srcname/$fromname/g\
@@ -852,6 +883,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.35  2006/06/23 03:22:23  mast
+#  Convert com directory path from windows to cygwin format
+#
 #  Revision 3.34  2006/05/11 23:39:08  mast
 #  Changed list arguments and usage output to remove a-b confusion
 #
