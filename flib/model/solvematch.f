@@ -20,7 +20,7 @@ c
       parameter (idim=1000)
       real*4 xr(msiz,idim)
       real*4 pnta(3,idim),pntb(3,idim),a(3,4),dxyz(3),devxyz(3)
-      real*4 devxyzmax(3),orig(3,2),ptrot(3),cenloc(3)
+      real*4 devxyzmax(3),orig(3,2),ptrot(3),cenloc(3),aloc(3,4),dxyzloc(3)
       integer*4 idrop(idim),iorig(idim),mapped(idim)
       integer*4 listcorra(idim),listcorrb(idim),icont2ptb(idim)
       integer*4 mapab(idim),nxyz(3,2),jxyz(3)/1,3,2/
@@ -41,19 +41,23 @@ c
       integer*4 ia,nsurf,model,iftransp,nmodpt,ipt,ip,iobj,i,ndata
       integer*4 mod,j,ifadded,ipntmax,ipta,iptb,iptamin,iptbmin
       integer*4 maxdrop,ndrop,idum,iofs,ixyz, ierrFactor
-      real*4 addratio,cosa,cosb,tmpy,addcrit,distmin,devavg,devsd
+      real*4 addratio,addcrit,distmin,devavg,devsd
       real*4 devmax,dx,dist,crit,elimmin,critabs,stoplim,xtilta,xtiltb
-      real*4 sina,sinb,dy,dz,aScale, bScale, absFidCrit
+      real*4 dy,dz,aScale, bScale, absFidCrit
       integer*4 ierr,ifflip,ncolfit,maxconta,maxcontb,icolfix,k
       real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
       real*4 loMaxAvgRatio, hiMaxAvgRatio, loMaxLimRatio, hiMaxLimRatio
       real*4 aDelta, bDelta, aPixelSize, bPixelSize, xcen, ycen, transTol
+      real*4 angleOffsetA, angleOffsetB, zShiftA, zShiftB
       integer*4 nxFidA, nyFidA, nxFidB, nyFidB, iTransA, iTransB, ifTransBtoA
-      integer*4 nTransCoord, izind, indA, indB, nListUse
+      integer*4 nTransCoord, izind, indA, indB, nListUse, localNum
+      integer*4 numLocalX, numLocalY, numBig, ixl, iyl, iorigmax, limRaised
+      real*4 xmin,xmax,ymin,ymax,size, sizeLast,targetSize, dxLocal, dyLocal
+      real*4 sumMean, sumMax, shiftLimit, csdx, csdy, csdz, devavgLoc
+      real*4 devmaxLoc, devallMax,globLocAvgRatio
       logical*4 relativeFids, matchAtoB
 
       logical readw_or_imod, b3dxor
-      real*4 sind,cosd
       integer*4 getimodhead,getimodscales
 c       
       logical pipinput
@@ -69,18 +73,19 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  solvematch
 c       
       integer numOptions
-      parameter (numOptions = 20)
+      parameter (numOptions = 24)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'output:OutputFile:FN:@afiducials:AFiducialFile:FN:@'//
      &    'bfiducials:BFiducialFile:FN:@alist:ACorrespondenceList:LI:@'//
      &    'blist:BCorrespondenceList:LI:@'//
      &    'transfer:TransferCoordinateFile:FN:@amodel:AFiducialModel:FN:@'//
-     &    'bmodel:BFiducialModel:FN:@use:UsePoints:LI:@'//
-     &    'atob:MatchingAtoB:B:@xtilts:XAxisTilts:FP:@'//
-     &    'surfaces:SurfacesOrUseModels:I:@maxresid:MaximumResidual:F:@'//
-     &    'amatch:AMatchingModel:FN:@bmatch:BMatchingModel:FN:@'//
-     &    'atomogram:ATomogramOrSizeXYZ:CH:@'//
+     &    'bmodel:BFiducialModel:FN:@use:UsePoints:LI:@atob:MatchingAtoB:B:@'//
+     &    'xtilts:XAxisTilts:FP:@angles:AngleOffsetsToTilt:FP:@'//
+     &    'zshifts:ZShiftsToTilt:FP:@surfaces:SurfacesOrUseModels:I:@'//
+     &    'maxresid:MaximumResidual:F:@local:LocalFitting:I:@'//
+     &    'center:CenterShiftLimit:F:@amatch:AMatchingModel:FN:@'//
+     &    'bmatch:BMatchingModel:FN:@atomogram:ATomogramOrSizeXYZ:CH:@'//
      &    'btomogram:BTomogramOrSizeXYZ:CH:@scales:ScaleFactors:FP:@'//
      &    'param:ParameterFile:PF:@help:usage:B:'
 c       
@@ -106,6 +111,12 @@ c
       filename = ' '
       xtilta = 0.
       xtiltb = 0.
+      angleOffsetA = 0.
+      angleOffsetB = 0.
+      localNum = 0
+      shiftLimit = 10.
+      zShiftA = 0.
+      zShiftB = 0.
       stoplim = 8.
       aScale = 1.
       bScale = 1.
@@ -366,7 +377,7 @@ c
         print *
         print *,'ERROR: SOLVEMATCH - YOU MUST HAVE THE SAME NUMBER '
      &      //' OF ENTRIES IN EACH LIST','YOU MADE',nlista,' AND',
-     &      nlistb, 'ENTRIES FOR LISTS '//abtext(indA)//' AND '//abtext(indB)
+     &      nlistb,' ENTRIES FOR LISTS '//abtext(indA)//' AND '//abtext(indB)
         call exit(1)
       endif
 c       
@@ -414,6 +425,11 @@ c       and compute scaling factors, overriden by an entry
 c       
       if (pipinput) then
         ierr = PipGetTwoFloats('XAxisTilts', xtilta, xtiltb)
+        ierr = PipGetTwoFloats('ZShiftsToTilt', zShiftA, zShiftB)
+        ierr = PipGetTwoFloats('AngleOffsetsToTilt', angleOffsetA,
+     &      angleOffsetB)
+        ierr = PipGetInteger('LocalFitting', localNum)
+        ierr = PipGetFloat('CenterShiftLimit', shiftLimit)
         call getDelta('ATomogramOrSizeXYZ', aDelta, nxyz(1,1)) 
         call getDelta('BTomogramOrSizeXYZ', bDelta, nxyz(1,2))
         if (aDelta * aPixelSize .gt. 0.) aScale = aPixelSize / aDelta
@@ -464,26 +480,11 @@ c
         read(5,*)xtilta,xtiltb
       endif
 c       
-c       use the negative of the angle to account for the inversion of the
-c       tomogram; rotate the 3-d points about the X axis
-c       This is a good place to impose the scaling too
-c       
-      cosa=cosd(-xtilta) * aScale
-      sina=sind(-xtilta) * aScale
-      do i=1,npnta
-        tmpy=cosa*pnta(2,i)-sina*pnta(3,i)
-        pnta(3,i)=sina*pnta(2,i)+cosa*pnta(3,i)
-        pnta(2,i)=tmpy
-        pnta(1,i) = pnta(1,i) *aScale
-      enddo
-      cosb=cosd(-xtiltb) * bScale
-      sinb=sind(-xtiltb) * bScale
-      do i=1,npntb
-        tmpy=cosb*pntb(2,i)-sinb*pntb(3,i)
-        pntb(3,i)=sinb*pntb(2,i)+cosb*pntb(3,i)
-        pntb(2,i)=tmpy
-        pntb(1,i) = pntb(1,i) *bScale
-      enddo
+c       Adjust the positions of the points for x axis tilt, scaling, angle
+c       offset and z shift when building the tomogram
+c
+      call rotateFids(pnta, npnta, xtilta, aScale, angleOffsetA, zShiftA)
+      call rotateFids(pntb, npntb, xtiltb, bScale, angleOffsetB, zShiftB)
 c       
 40    if (pipinput) then
         ierr = PipGetFloat('MaximumResidual', stoplim)
@@ -675,30 +676,24 @@ c
 c         
 c         rebuild lists of actual contour numbers
 c         
-        print *,'In the final list of correspondences used for',
-     &      ' fits, points from '//abtext(indA)//' are:'
         nlista=0
         do i=1,npnta
           if (mapab(i) .ne. 0)then
             nlista=nlista+1
             listcorra(nlista) = iconta(i)
+            listcorrb(nlista) = icontb(mapab(i))
           endif
         enddo
+        print *,'In the final list of correspondences used for',
+     &      ' fits, points from '//abtext(indA)//' are:'
         call wrlist(listcorra,nlista)
         print *,'Points from '//abtext(indB)//' are:'
-        nlistb=0
-        do i=1,npntb
-          if (mapped(i) .ne. 0)then
-            nlistb=nlistb+1
-            listcorrb(nlistb) = icontb(i)
-          endif
-        enddo
-        call wrlist(listcorrb,nlistb)
+        call wrlist(listcorrb,nlista)
       endif
 
 c       write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=1+iofs,3+iofs),j=1,ndat)
 105   format(7f9.2)
-      maxdrop=nint(0.1*ndat)
+      maxdrop=nint(0.1*(ndat-1))
       crit=0.01
       elimmin=3.
       critabs=0.002
@@ -711,18 +706,19 @@ c
         write(*,115)(xr(ncolfit+1,i),i=ndat+1-ndrop,ndat)
 104     format(/,i3,' points dropped by outlier elimination; ',
      &      'residual mean =',f7.2,', SD =',f7.2,/,
-     &      ' point # in ',a1,':',(11i6))
-115     format(' deviations  :',(11f6.1))
+     &      ' point # in ',a1,':',(9i7))
+115     format(' deviations  :',(9f7.1))
       endif
 c       
-      if (iorig(ipntmax) .le. maxconta .and. modObj(1,1) .gt. 0) then
-        ipta = icont2pta(iorig(ipntmax))
-        write(*,1011)devavg,devmax,iorig(ipntmax),modObj(ipta, 1),
+      iorigmax = iorig(ipntmax)
+      if (iorigmax .le. maxconta .and. modObj(1,1) .gt. 0) then
+        ipta = icont2pta(iorigmax)
+        write(*,1011)devavg,devmax,iorigmax,modObj(ipta, 1),
      &      modCont(ipta, 1),abtext(indA)
 1011    format(//,' Mean residual',f8.3,',  maximum',f9.3,
      &      ' at point #',i4,' (Obj',i3,' cont',i4,' in ',a1,')')
       else
-        write(*,1012)devavg,devmax,iorig(ipntmax),abtext(indA)
+        write(*,1012)devavg,devmax,iorigmax,abtext(indA)
 1012    format(//,' Mean residual',f8.3,',  maximum',f9.3,
      &      ' at point #',i4,' (in ',a1,')')
       endif
@@ -757,6 +753,7 @@ c
      &      abs(dxyz(3)) .lt. 0.001) dxyz(1) = 0.0013
       endif
 c       
+      print *
       print *,'Transformation matrix for matchvol:'
       write(*,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
 102   format(3f10.6,f10.3)
@@ -776,41 +773,182 @@ c
         close(1)
       endif
 c       
+      ierr = 0
+      limRaised = devmax + 1.2
+      devAllMax = 0.
+      if (devmax.gt.stoplim .and. nmodpt.eq.0 .and. localNum .gt. 0) then
+        if (localNum .lt. 6 .or. ndat .le. localNum) then
+          if (localNum .lt. 6) write(*,'(/,a)')'ERROR: SOLVEMATCH - LOCAL'//
+     &        ' FITS MUST HAVE A MINIMUM OF 6 POINTS'
+          if (ndat .le. localNum) write(*,'(/,a,/,a)')'Local fitting is not'//
+     &        ' available because the number of matched points',
+     &        ' is no bigger than the minimum for local fitting'
+        else
+c           
+c           For local fits, get extent of the data
+c           
+          xmin = 1.e10
+          xmax = -xmin
+          ymin = 1.e10
+          ymax = -ymin
+          do ia = 1, npnta
+            if (mapab(ia) .gt. 0) then
+              xmin = min(xmin,pnta(1,ia))
+              ymin = min(ymin,pnta(2,ia))
+              xmax = max(xmax,pnta(1,ia))
+              ymax = max(ymax,pnta(2,ia))
+            endif            
+          enddo
+c          print *,'minmax',xmin,xmax,ymin,ymax
+c           
+c           Set up number and interval between local areas
+c
+          targetSize = sqrt(localNum * (xmax-xmin)*(ymax-ymin) / ndat)
+          numLocalX = max(1., 2. * (xmax - xmin) / targetSize + 0.1)
+          numLocalY = max(1., 2. * (ymax - ymin) / targetSize + 0.1)
+          dxLocal = 0
+          dyLocal = 0
+          if (numLocalX .gt. 1)
+     &        dxLocal = (xmax - xmin - targetSize) / (numLocalX - 1)
+          if (numLocalY .gt. 1)
+     &        dyLocal = (ymax - ymin - targetSize) / (numLocalY - 1)
+c           
+c           Loop on local areas, getting mean residual and number with max 
+c           above limit
+c           
+          sumMean = 0.
+          sumMax = 0.
+          numBig = 0
+          do ixl = 1, numLocalX
+            xcen = xmin + targetSize / 2. + (ixl - 1) * dxLocal
+            do iyl = 1, numLocalY
+              ycen = ymin + targetSize / 2. + (iyl - 1) * dyLocal
+              size = targetSize
+              call fillLocalData(xcen, ycen, size, localNum, pnta, pntb,
+     &            npnta, mapab, jxyz, xr, msiz, ndat)
+c               do j = 1,ndat
+c               write(*,'(6f8.1)')(xr(i,j),i=1,3), (xr(i,j),i=5,7)
+c               enddo
+              maxdrop=nint(0.1*ndat)
+              if (ndat .le. 6) maxdrop = 0
+              call solve_wo_outliers(xr,ndat,ncolfit,icolfix,maxdrop,crit,
+     &            critabs, elimmin, idrop,ndrop, aloc,dxyzloc,cenloc,
+     &            devavgLoc, devsd,devmaxLoc, ipntmax, devxyzmax)
+c               print *,xcen,ycen,size,ndat,devavgloc,devmaxloc
+              sumMean = sumMean + devavgLoc
+              sumMax = sumMax + devmaxLoc
+              devAllMax = max(devAllMax, devmaxLoc)
+              if (devmaxLoc .gt. stoplim) numBig = numBig + 1
+            enddo
+          enddo
+          write(*,1015)localNum, sumMean/(numLocalX * numLocalY),
+     &        sumMax/(numLocalX * numLocalY), devAllMax, numBig,
+     &        numLocalX * numLocalY, stoplim
+1015      format(/,'Local fits to a minimum of',i4,' points give:',/,
+     &        '   Average mean residual',f8.2,/,'   Average max residual',f8.2,
+     &        /,'   Biggest max residual',f9.2,/,i5,' of',i5,
+     &        ' local fits with max residual above',f8.1)
+
+          if (devAllMax .lt. 1.5 * stoplim .and.
+     &        numBig .le. 0.05 * numLocalX * numLocalY) then
+            write(*,'(/,a,/)') 'The local fits indicate that THIS '//
+     &          'SOLUTION IS GOOD ENOUGH'
+            devmax = stoplim - 1
+          endif
+          limRaised = devAllMax + 1.2
+
+          if (shiftLimit .gt. 0.) then
+c           
+c             Redo the fit for the central area
+c             
+            xcen = 0.
+            ycen = 0.
+            size = targetSize
+            call fillLocalData(xcen, ycen, size, localNum, pnta, pntb, npnta,
+     &          mapab, jxyz, xr, msiz, ndat)
+            maxdrop=nint(0.1*ndat)
+            if (ndat .le. 6) maxdrop = 0
+            call solve_wo_outliers(xr,ndat,ncolfit,icolfix,maxdrop,crit,
+     &          critabs, elimmin, idrop,ndrop, aloc,dxyzloc,cenloc, devavgLoc,
+     &          devsd,devmaxLoc, ipntmax, devxyzmax)
+c            print *,'central area',size,ndat,devavgLoc,devmaxLoc
+            csdx = dxyz(1) - dxyzloc(1)
+            csdy = dxyz(2) - dxyzloc(2)
+            csdz = dxyz(3) - dxyzloc(3)
+            dist = sqrt(csdx**2 + csdy**2 + csdz**2)
+c             print *,'distance',dist, csdx,csdy,csdz
+            if (dist .ge. shiftLimit) then
+              write(*, 1016)dist, nint(csdx),nint(csdy),nint(csdz),
+     &            nint(csdx),nint(csdz),nint(csdy)
+1016          format(/,'Center shift indicated by local fit is',f6.0,
+     &            ', bigger than the specified limit',/,
+     &            '   Set the InitialShiftXYZ for corrsearch3d to',3i5,/,
+     &            '   In eTomo, set patchcorr X, Y, Z initial shifts to',3i5)
+              if (nxyz(jxyz(3),2) .gt. nxyz(jxyz(3),1))
+     &            write(*,1017) nxyz(2,jxyz(3))
+1017          format('   You should also set thickness of initial ',
+     &            'matching file to at least', i5)
+              if (devmax .lt. stoplim) then
+                write(*,'(/,a)')'ERROR: SOLVEMATCH - INITIAL SHIFT NEEDS TO'//
+     &              ' BE SET FOR PATCH CORRELATION (BUT SOLUTION IS OK)'
+              else
+                write(*,'(/,a)')'ERROR: SOLVEMATCH - INITIAL SHIFT NEEDS TO'//
+     &              ' BE SET FOR PATCH CORRELATION'
+              endif
+              ierr = 1
+            endif
+          endif
+        endif
+      endif
+
+
       if (devmax.gt.stoplim) then
 c         
 c         Give some guidance based upon the ratios between max and mean
 c         deviation and max deviation and stopping limit
 c         
-        print *
         write(*,106)devmax
 106     format(/, 'The maximum residual is',f8.2,', too high to proceed')
         loMaxAvgRatio = 4.
         hiMaxAvgRatio = 12.
         loMaxLimRatio = 2.
         hiMaxLimRatio = 3.
-        if (devmax .lt. loMaxAvgRatio * devavg .and.
-     &      devmax .lt. loMaxLimRatio * stoplim) then
+        globLocAvgRatio = 3.
+        if ((devmax .lt. loMaxAvgRatio * devavg .and.
+     &      devmax .lt. loMaxLimRatio * stoplim) .or. (devAllMAx .gt. 0 .and.
+     &      devavgLoc * globLocAvgRatio .lt. devavg .and.
+     &      devAllMax .lt. loMaxLimRatio * stoplim)) then
           if (nTransCoord .gt. 0) then
-            write(*,1115)
+            write(*,1115)limRaised
 1115        format('Since corresponding points were picked using coordinates ',
      &          'from transferfid,',/,'this is almost certainly due to ',
      &          'distortion between the volumes,',/,
-     &          ' and you should just raise the residual limit')
+     &          ' and you should just raise the residual limit to',i4)
           else
-            write(*,111)loMaxAvgRatio, devavg, loMaxLimRatio
+            if (devAllMax .le. 0.)then
+              write(*,111)loMaxAvgRatio, devavg, loMaxLimRatio,limRaised
+            else
+              write(*,1116)globLocAvgRatio, devAllMax,loMaxLimRatio,limRaised
+            endif
 111         format('Since the maximum residual is less than',f6.1,
      &          ' times the mean residual (', f8.2,')',/,' and less than',
      &          f6.1, ' times the specified residual limit,',/,
      &          ' this is probably due to distortion between the volumes,',/,
-     &          'and you should probably just raise the residual limit')
+     &          'and you should probably just raise the residual limit to',i4)
+1116        format('Since the local fits improved the mean residual by more',
+     &          ' than a factor of',f6.1,/,' and the local maximum residual (',
+     &          f8.2,') is less than', f6.1, ' times the',/,
+     &          ' specified residual limit, this is probably due to ',
+     &          'distortion between the',/, ' volumes, and you should ',
+     &          'probably just raise the residual limit to',i4)
           endif
         elseif (nTransCoord .gt. 0) then
-          write(*,112)iorig(ipntmax)
+          write(*,112)limRaised,iorigmax
 112       format('Since corresponding points were picked using coordinates ',
      &        'from transferfid,',/,'this is probably due to distortion ',
-     &        'between the volumes.',/, 'You could raise the residual limit ',
-     &        'or start with a subset of points.',/,'Bad correspondence is ',
-     &        'unlikely but you could check points (especially',i4,').')
+     &        'between the volumes.',/,'You could raise the residual limit to',
+     &        i4,' or start with a subset of points.',/,'Bad correspondence ',
+     &        'is unlikely but you could check points (especially',i4,').')
         elseif (devmax .gt. hiMaxAvgRatio * devavg .or.
      &        devmax .gt. hiMaxLimRatio * stoplim) then
           if (devmax .gt. hiMaxAvgRatio * devavg)
@@ -822,17 +960,17 @@ c
 109       format('The maximum residual is more than', f6.1,
      &        ' times the specified residual limit')
           print *,'This is probably due to a bad correspondence list.'
-          write (*,110)iorig(ipntmax)
+          write (*,110)iorigmax
 110       format('Check the points (especially',i4,
      &        ') or start with a subset of the list')
         else
           print *,'The situation is ambiguous but could be due to a',
      &        ' bad correspondence list.'
-          write (*,110)iorig(ipntmax)
+          write (*,110)iorigmax
         endif
         call exiterror('MAXIMUM RESIDUAL IS TOO HIGH TO PROCEED')
       endif
-      call exit(0)
+      call exit(ierr)
       end
 
 
@@ -990,8 +1128,82 @@ c     &          fidModY(numFid)
       return
       end
 
+
+c       ROTATEFIDS rotates, scales and shifts the NPNTA fiducials in PNTA
+c       XTILT is the x axis tilt, aScale is the scaling, angleOffset
+c
+      subroutine rotateFids(pnt, npnt, xtilt, scale, angleOffset, zShift)
+      implicit none
+      real*4 pnt(3,*), xtilt, scale, angleOffset, zShift
+      real*4 cosa, cosb, sina, sinb, tmpy
+      integer*4 npnt, i
+      real*4 sind, cosd
+c
+c       use the negative of the angle to account for the inversion of the
+c       tomogram; rotate the 3-d points about the Y axis first, then the Z
+c       axis; add Z shift
+c       
+      cosa=cosd(-xtilt) * scale
+      sina=sind(-xtilt) * scale
+      sinb = sind(-angleOffset)
+      cosb = cosd(-angleOffset)
+      do i=1,npnt
+        tmpy = cosb * pnt(1,i) - sinb * pnt(3,i)
+        pnt(3,i) = sinb * pnt(1,i) + cosb * pnt(3,i)
+        pnt(1,i) = tmpy
+        tmpy=cosa*pnt(2,i)-sina*pnt(3,i)
+        pnt(3,i)=sina*pnt(2,i)+cosa*pnt(3,i) + zShift
+        pnt(2,i)=tmpy
+        pnt(1,i) = pnt(1,i) *scale
+      enddo
+      return
+      end
+
+
+c       fillLocalData fills the data array XR with at least MINDAT points
+c       from an area centered at XCEN, YCEN.  SIZE is called with an initial
+c       trial size, and returned with the final size needed to include the
+c       required points.  PNTA and PNTB have the points, NPNTA is the total
+c       number in PNTA, MAPAB is the mapping to indices in PNTB, JXYZ is the
+c       dimension mapping.  NDAT is returned with number of points.
+c
+      subroutine fillLocalData(xcen, ycen, size, mindat, pnta, pntb, npnta,
+     &    mapab, jxyz, xr, msiz, ndat)
+      implicit none
+      integer*4 npnta, mapab(*), jxyz(3), msiz, ndat, ia, j, mindat
+      real*4 xcen, ycen, size, pnta(3,*), pntb(3,*), xr(msiz,*)
+      real*4 xmin, ymin, xmax, ymax, sizein
+c
+      sizein = size
+      ndat = 0
+      do while (ndat .lt. mindat)
+        ndat = 0
+        xmin = xcen - size / 2.
+        xmax = xcen + size / 2.
+        ymin = ycen - size / 2.
+        ymax = ycen + size / 2.
+        do ia = 1, npnta
+          if (mapab(ia) .gt. 0 .and. pnta(1, ia) .ge. xmin .and.
+     &        pnta(1, ia) .le. xmax .and. pnta(2, ia) .ge. ymin
+     &        .and. pnta(2, ia) .le. ymax) then
+            ndat = ndat + 1
+            do j = 1, 3
+              xr(j,ndat)=pntb(jxyz(j),mapab(ia))
+              xr(j+4,ndat)=pnta(jxyz(j),ia)
+            enddo
+          endif
+        enddo
+        if (ndat .lt. mindat) size = size + 0.02 * sizein
+      enddo
+      return 
+      end
+
+
 c
 c       $Log$
+c       Revision 3.15  2006/07/14 00:29:15  mast
+c       Needed to initialize matchAtOB
+c
 c       Revision 3.14  2006/07/04 22:48:20  mast
 c       Improved messages for transferfid coordinate case
 c
@@ -999,9 +1211,10 @@ c       Revision 3.13  2006/05/05 14:20:28  mast
 c       Fixed Pip declaration and while(1)
 c
 c       Revision 3.12  2006/05/04 23:06:21  mast
-c       Added ability to use coordinates from transferfid to determine the match,
-c       made error messages specify A/B correctly if informed about direction of
-c       match, switched to new error exit function to avoid split lines
+c       Added ability to use coordinates from transferfid to determine the 
+c       match, made error messages specify A/B correctly if informed about
+c       direction of match, switched to new error exit function to avoid split
+c       lines
 c
 c       Revision 3.11  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
