@@ -34,6 +34,7 @@ Log at end of file
 #include "b3dgfx.h"
 #include "xcramp.h"
 #include "xzap.h"
+#include "xgraph.h"
 #include "control.h"
 #include "imodplug.h"
 #include "imod_info.h"
@@ -409,6 +410,7 @@ static void zapDraw(ZapStruct *zap)
 void zapPaint(ZapStruct *zap)
 {
   int ob;
+  QObjectList objList;
   if (imodDebug('z'))
     imodPrintStderr("Paint:");
 
@@ -447,6 +449,15 @@ void zapPaint(ZapStruct *zap)
                      zap->rbMouseY1 - zap->rbMouseY0);
   } 
   zapDrawTools(zap);
+
+  // Update graph windows if rubber band changed (this should be done by 
+  // control but that is not possible, it doesn't know types)
+  if (zap->bandChanged) {
+    imodDialogManager.windowList(&objList, -1, GRAPH_WINDOW_TYPE);
+    for (ob = 0; ob < objList.count(); ob++)
+      ((GraphWindow *)objList.at(ob))->xgraphDraw();
+    zap->bandChanged = 0;
+  }
 
   if (imodDebug('z'))
     imodPrintStderr("\n");
@@ -604,7 +615,9 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->rubberband = 0;
   zap->startingBand = 0;
   zap->shiftingCont = 0;
+  zap->bandChanged = 0;
   zap->shiftRegistered = 0;
+  zap->centerMarked = 0;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
   zap->dragAddCount = 0;
@@ -1522,6 +1535,7 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
     dragging[1] = 1;
     dragging[2] = 0;
     dragging[3] = 1;
+    zap->bandChanged = 1;
     zapSetCursor(zap, zap->mousemode);
     zapDraw(zap);
     return;  
@@ -1879,7 +1893,7 @@ void zapB1Drag(ZapStruct *zap, int x, int y)
       if (zap->rbImageY1 <= zap->rbImageY0)
         zap->rbImageY1 = zap->rbImageY0 + 1;
     }
-
+    zap->bandChanged = 1;
 
   } else {
     /* Move the image */
@@ -2050,6 +2064,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
     zap->hqgfx = 0;
     zapDraw(zap);
     zap->hqgfx = zap->hqgfxsave;
+    zap->bandChanged = 1;
     return;
   }
 
@@ -2812,6 +2827,7 @@ void zapToggleRubberband(ZapStruct *zap)
   if (zap->rubberband || zap->startingBand) {
     zap->rubberband = 0;
     zap->startingBand = 0;
+    zap->bandChanged = 1;
     setControlAndLimits(zap);
     zap->gfx->setMouseTracking(insertDown != 0);
   } else {
@@ -3794,6 +3810,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.82  2006/07/05 04:16:04  mast
+Use flag to determine which color to give which image in overlay
+
 Revision 4.81  2006/07/03 04:14:21  mast
 Changes for beadfixer overlay mode
 
