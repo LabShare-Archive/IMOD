@@ -1,0 +1,67 @@
+<head>
+<title>Graph Window</title>
+</head>
+<H2>Graph Window</H2>
+The Graph Window will display a graph of image values along a line in the X,
+Y, or Z direction, or along a contour.  These values can be based on either
+the bytes being displayed in 3dmod, or on the actual values in 
+the image file.  Values along the line or contour can be averaged across a
+swath or selected width.  The window can also display a histogram of
+displayed pixel values.  The Zap rubber band can be used to select subareas
+for display.
+<P>
+<H3>The Toolbar</H3>
+<UL>
+<LI> The <B>Up</B> and <B>Down Arrows</B> will change the zoom of the X axis of
+the display.  The Y axis always scaled so that the data fill the window.
+<LI> The <B>checkerboard</B> button toggles between taking data from the image
+display (low resolution) and taking data from the file (high resolution).
+This works for all of the line drawing modes but not for histogram
+mode, where data always
+come from the image display.
+<LI> The <B>lock</B> button will prevent the graph from being redraw
+even if the image point or other settings change.  Thus, one can open
+several graph windows and display different positions in them.
+<LI> The <B>selector box</B> lets you pick which axis to display, or whether
+to graph along a contour or show a histogram of values.  The graph
+along a contour is based on pixel values measured at 1-pixel intervals along
+the contour.
+<LI> The <B>Width</B> spin box allows you to set a width to average
+over along the line being graphed.  In the simplest case, the width
+represents the number of parallel lines being averaged.  Only pixels
+in the X/Y plane will be averaged, so the function is not available
+when graphing in Z.
+Also, when graphing along a contour, pixels in the X/Y plane
+perpendicular to the contour are selected for averaging.
+<LI> The number after the width box shows the <B>Mean</B> of the
+values being displayed.  The one exception to this is histogram mode,
+where byte values from the image display are still used for the
+histogram when 
+high resolution display is selected.
+In this case, the mean value will
+be scaled so that it represents the corresponding value from the image
+file.  This value will be close to correct as long as intensities were
+not truncated when the data were read in.
+</UL>
+<H3>Other Features</H3>
+The <A HREF="zap.html">Zap Window<A>rubber band can be used to select a
+subset of a line or contour to graph or a subarea from which to
+generate a histogram.  If there is more than one Zap window open, the
+area is controlled by the
+rubber band (if any) from the current or last active Zap window.  When
+graphing on an axis, the current image point will be moved to fit
+within the bounds of the rubber band.  When graphing along a contour,
+the intensities will be shown for the first section of the contour
+inside the rubber band.
+<P>
+The center of the X axis in the graph, shown by the red vertical line,
+is maintained at the current image point (when graphing along an
+axis), at the current model point (when graphing along a contour), or
+at the intensity of the current image point (for a histogram).  This
+is not quite the case when
+using the rubber band with a graph along a contour where the current
+point is outside the rubber band.  Here the center
+point of the display is kept near the edge of the rubber band but the
+current model point is not changed to match.
+<P>
+<A HREF="index.html">Help Index<A>
