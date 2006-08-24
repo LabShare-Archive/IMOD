@@ -247,7 +247,7 @@ void ImageScaleWindow::applyLimits()
   iiSetMM(vi->image, vi->li->smin, vi->li->smax);
 
   /* For multi-file sections, apply to all the files */
-  if (vi->multiFileZ)
+  if (vi->multiFileZ > 0)
     for (k = 0; k < vi->zsize; k++)
       iiSetMM(&vi->imageList[k + vi->li->zmin], vi->li->smin, vi->li->smax);
 
@@ -330,6 +330,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.14  2005/12/08 05:56:04  mast
+Flush the cache only for the current time, not all files.
+
 Revision 4.13  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
