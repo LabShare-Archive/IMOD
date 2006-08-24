@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/24/06: Stopped bead fixer from generating error when told to reopen a log
+file before one is opened.
+
 8/23/06: In Solvematch, added local fitting and an assessment of the shift of
 the center so Corrsearch3d can be started off with a correct shift if
 necessary.  Added options to specify the Z shift and tilt angle offset used 

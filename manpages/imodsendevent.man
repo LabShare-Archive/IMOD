@@ -62,7 +62,7 @@ Currently, 3dmod will accept the following commands:
 Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file if one is not open yet.  Follow with log 
         file name.
-   2  Reread the current log file.
+   2  Reread the current log file if one has been opened.
    3  Set mode for automatic new contour when seeding.  Follow with 1 to turn
         on, 0 to turn off
    4  Set Autocentering.  Follow with 1 to turn on, 0 to turn off.
