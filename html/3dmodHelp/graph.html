@@ -6,7 +6,7 @@ The Graph Window will display a graph of image values along a line in the X,
 Y, or Z direction, or along a contour.  These values can be based on either
 the bytes being displayed in 3dmod, or on the actual values in 
 the image file.  Values along the line or contour can be averaged across a
-swath or selected width.  The window can also display a histogram of
+swath of selected width.  The window can also display a histogram of
 displayed pixel values.  The Zap rubber band can be used to select subareas
 for display.
 <P>
@@ -44,7 +44,7 @@ file.  This value will be close to correct as long as intensities were
 not truncated when the data were read in.
 </UL>
 <H3>Other Features</H3>
-The <A HREF="zap.html">Zap Window<A>rubber band can be used to select a
+The <A HREF="zap.html">Zap Window<A> rubber band can be used to select a
 subset of a line or contour to graph or a subarea from which to
 generate a histogram.  If there is more than one Zap window open, the
 area is controlled by the
@@ -60,8 +60,14 @@ axis), at the current model point (when graphing along a contour), or
 at the intensity of the current image point (for a histogram).  This
 is not quite the case when
 using the rubber band with a graph along a contour where the current
-point is outside the rubber band.  Here the center
-point of the display is kept near the edge of the rubber band but the
+point is outside the rubber band.  Here, the center
+point of the display is kept near the edge of the rubber band, but the
 current model point is not changed to match.
+<P>
+When data are read in from a byte file, scaling the values may result in a
+histogram with many empty bins
+interspersed with bins full of counts.  To avoid this effect, read the data in
+without scaling, i.e., with minimum and maximum scaling values set to 0 and
+255 (-s 0,255).
 <P>
 <A HREF="index.html">Help Index<A>
