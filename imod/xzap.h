@@ -51,6 +51,7 @@ typedef struct zapwin
   int    rbMouseY1;
   int    startingBand;
   int    shiftingCont; /* Flag for shifting contour */
+  int    bandChanged;  /* Flag that band changed, draw graph windows */
   Ipoint xformCenter;  /* Center defined by mouse */
   int    centerDefined;  /* Flag that center was defined with mouse */
   int    centerMarked;   /* Flag that center was displayed in extra object */
@@ -125,6 +126,9 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 
 /*
 $Log$
+Revision 3.20  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 3.19  2006/04/01 23:43:14  mast
 Added size output to toolbar
 
