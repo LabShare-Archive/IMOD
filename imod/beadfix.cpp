@@ -311,6 +311,8 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     }
     return plug->window->openFileByName((*strings)[++(*arg)].latin1());
   case MESSAGE_BEADFIX_REREAD:
+    if (!plug->filename)
+      return 0;
     return plug->window->reread();
   case MESSAGE_BEADFIX_SEEDMODE:
     mSeedMode = (*strings)[++(*arg)].toInt() != 0;
@@ -1977,6 +1979,11 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.37  2006/07/18 04:17:30  mast
+    Removed show up down checkbox, made it not sync image position on mouse
+    actions, enabled keys only in correct mode, required points to be
+    within 15 pixels of position in log file
+
     Revision 1.36  2006/07/05 04:18:26  mast
     Added reverse contrast in overlay and reattach in gap mode
 
