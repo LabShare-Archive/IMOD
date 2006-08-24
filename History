@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/24/06: Enhanced 3dmod graph window to average multiple lines of pixels,
+show mean value, graph subsets of data selected by the Zap rubber band, and
+to have a help page.
+
 8/24/06: Stopped bead fixer from generating error when told to reopen a log
 file before one is opened.
 
