@@ -1,7 +1,5 @@
 package etomo.comscript;
 
-import java.util.Vector;
-
 /**
  * <p>Description: </p>
  * 
@@ -15,6 +13,9 @@ import java.util.Vector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/04/12 16:50:22  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.3  2004/03/11 18:14:32  sueh
  * <p> bug# 386 changing updateComScriptCommand()
  * <p>
@@ -54,172 +55,148 @@ import java.util.Vector;
  * To change this generated comment go to 
  * Window>Preferences>Java>Code Generation>Code Template
  */
-public class Patchcrawl3DParam
-  extends ConstPatchcrawl3DParam
-  implements CommandParam {
+public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
+    CommandParam {
+  public static final String rcsid = "$Id:";
+
+  public static final String COMMAND = "corrsearch3d";
+  private boolean convertToPIP = false;
 
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws
-      BadComScriptException,
-      FortranInputSyntaxException,
+      throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
-
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
-    reset();
-
-    if (cmdLineArgs.length < 16 || cmdLineArgs.length > 20) {
-      String message =
-        "Incorrect number of arguments, expected 16 - 20 found: "
-          + String.valueOf(cmdLineArgs.length);
-      throw (new BadComScriptException(message));
+    if (!scriptCommand.isKeywordValuePairs()) {
+      convertToPIP = true;
+      Patchcrawl3DPrePIPParam prePIPparam = new Patchcrawl3DPrePIPParam();
+      prePIPparam.parseComScriptCommand(scriptCommand);
+      load(prePIPparam);
+      return;
     }
-
-    int i = 0;
-    String parameterID = "";
+    convertToPIP = false;
+    reset();
     try {
-      parameterID = "xsize";
-      xPatchSize = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "ysize";
-      yPatchSize = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "zsize";
-      zPatchSize = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "nx";
-      nX = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "ny";
-      nY = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "nz";
-      nZ = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "xlo";
-      xLow = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "xhi";
-      xHigh = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "ylo";
-      yLow = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "yhi";
-      yHigh = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "zlo";
-      zLow = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "zhi";
-      zHigh = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "matchshift";
-      maxShift = Integer.parseInt(cmdLineArgs[i++]);
-      parameterID = "filea";
-      fileA = cmdLineArgs[i++];
-      parameterID = "fileb";
-      fileB = cmdLineArgs[i++];
-      parameterID = "output_file";
-      outputFile = cmdLineArgs[i++];
-      int requiredLength = i;
-      if (cmdLineArgs.length == requiredLength + 1) {
-        parameterID = "boundary_model";
-        boundaryModel = cmdLineArgs[i++];
-      }
-      else if (cmdLineArgs.length == requiredLength + 3) {
-        parameterID = "transform_file";
-        transformFile = cmdLineArgs[i++];
-        parameterID = "original_fileb";
-        originalFileB = cmdLineArgs[i++];
-        parameterID = "borders";
-        borders.validateAndSet(cmdLineArgs[i++]);
-      }
-      else if (cmdLineArgs.length == requiredLength + 4) {
-        parameterID = "transform_file";
-        transformFile = cmdLineArgs[i++];
-        parameterID = "original_fileb";
-        originalFileB = cmdLineArgs[i++];
-        parameterID = "borders";
-        borders.validateAndSet(cmdLineArgs[i++]);
-        parameterID = "boundary_model";
-        boundaryModel = cmdLineArgs[i++];
+      patchSizeXYZ.validateAndSet(scriptCommand);
+      numberOfPatchesXYZ.validateAndSet(scriptCommand);
+      xMinAndMax.validateAndSet(scriptCommand);
+      yMinAndMax.validateAndSet(scriptCommand);
+      if (scriptCommand.hasKeyword(REGION_MODEL_KEY)) {
+        regionModel = scriptCommand.getValue(REGION_MODEL_KEY);
       }
     }
     catch (NumberFormatException except) {
-      String message =
-        "NumberFormatException Argument #: "
-          + String.valueOf(i)
-          + " value :"
-          + cmdLineArgs[i]
-          + " for parameter: "
-          + parameterID;
-      throw new BadComScriptException(message);
+      throw new BadComScriptException(except.getMessage());
     }
 
+  }
+
+  public void load(Patchcrawl3DPrePIPParam param)
+      throws FortranInputSyntaxException {
+    if (!convertToPIP) {
+      throw new IllegalStateException("!convertToPIP in load()");
+    }
+    reset();
+    //xPatchSize, yPatchSize, zPatchSize
+    patchSizeXYZ.set(0, param.getXPatchSize());
+    patchSizeXYZ.set(1, param.getYPatchSize());
+    patchSizeXYZ.set(2, param.getZPatchSize());
+    //nX, nY, nZ
+    numberOfPatchesXYZ.set(0, param.getNX());
+    numberOfPatchesXYZ.set(1, param.getNY());
+    numberOfPatchesXYZ.set(2, param.getNZ());
+    //xLow, xHigh
+    xMinAndMax.set(0, param.getXLow());
+    xMinAndMax.set(1, param.getXHigh());
+    //yLow, yHigh
+    yMinAndMax.set(0, param.getYLow());
+    yMinAndMax.set(1, param.getYHigh());
+    //zLow, zHigh
+    zMinAndMax.set(0, param.getZLow());
+    zMinAndMax.set(1, param.getZHigh());
+    //drop maxShift
+    //fileA
+    referenceFile = param.getFileA();
+    //fileB
+    fileToAlign = param.getFileB();
+    //outputFile
+    outputFile = param.getOutputFile();
+    //transformFile
+    bSourceTransform = param.getTransformFile();
+    //originalFileB
+    bSourceOrSizeXYZ = param.getOriginalFileB();
+    //borders
+    FortranInputString borders = param.getBordersFortranInputString();
+    bSourceBorderXLoHi.set(0, borders.getInt(0));
+    bSourceBorderXLoHi.set(1, borders.getInt(1));
+    bSourceBorderYZLoHi.set(0, borders.getInt(2));
+    bSourceBorderYZLoHi.set(1, borders.getInt(3));
+    //boundaryModel
+    regionModel = param.getBoundaryModel();
+  }
+
+  /**
+   * Get the standand input arguments from the ComScriptCommand validating the
+   * name of the command and the appropriate number of input arguments.
+   * @param scriptCommand the ComScriptCommand containing the beadtrack command
+   */
+  private ComScriptInputArg[] getInputArguments(ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    String command = scriptCommand.getCommand();
+    //  Check to be sure that it is the right command
+    if (!command.equals(COMMAND)
+        && !(command.equals("patchcrawl3d") && convertToPIP)) {
+      throw (new BadComScriptException("Not a " + COMMAND + " command"));
+    }
+
+    //  Get the input arguments parameters to preserve the comments
+    ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
+    return inputArgs;
   }
 
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
-  public void updateComScriptCommand(ComScriptCommand scriptCommand) {
-    Vector cmdLineArgs = new Vector(scriptCommand.getCommandLineLength());
-    String badParameter = "";
-    badParameter = "xsize";
-    cmdLineArgs.add(String.valueOf(xPatchSize));
-    badParameter = "ysize";
-    cmdLineArgs.add(String.valueOf(yPatchSize));
-    badParameter = "zsize";
-    cmdLineArgs.add(String.valueOf(zPatchSize));
-    badParameter = "nx";
-    cmdLineArgs.add(String.valueOf(nX));
-    badParameter = "ny";
-    cmdLineArgs.add(String.valueOf(nY));
-    badParameter = "nz";
-    cmdLineArgs.add(String.valueOf(nZ));
-    badParameter = "xlo";
-    cmdLineArgs.add(String.valueOf(xLow));
-    badParameter = "xhi";
-    cmdLineArgs.add(String.valueOf(xHigh));
-    badParameter = "ylo";
-    cmdLineArgs.add(String.valueOf(yLow));
-    badParameter = "yhi";
-    cmdLineArgs.add(String.valueOf(yHigh));
-    badParameter = "Zlo";
-    cmdLineArgs.add(String.valueOf(zLow));
-    badParameter = "Zhi";
-    cmdLineArgs.add(String.valueOf(zHigh));
-    badParameter = "max_shift";
-    cmdLineArgs.add(String.valueOf(maxShift));
-    badParameter = "filea";
-    cmdLineArgs.add(fileA);
-    badParameter = "fileb";
-    cmdLineArgs.add(fileB);
-    badParameter = "output_file";
-    cmdLineArgs.add(outputFile);
-    if (!transformFile.equals("")) {
-      badParameter = "transform_file";
-      cmdLineArgs.add(transformFile);
-      badParameter = "original_fileb";
-      cmdLineArgs.add(originalFileB);
-      badParameter = "borders";
-      cmdLineArgs.add(borders.toString());
+  public void updateComScriptCommand(ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    //  get the input arguments from the command
+    ComScriptInputArg[] inputArgs;
+    try {
+      inputArgs = getInputArguments(scriptCommand);
     }
-    if (!boundaryModel.equals("")) {
-      badParameter = "boundary_model";
-      cmdLineArgs.add(boundaryModel);
+    catch (BadComScriptException except) {
+      throw (except);
     }
-    scriptCommand.setCommandLineArgs(
-      (String[]) cmdLineArgs.toArray(new String[cmdLineArgs.size()]));
+
+    //  Switch to keyword/value pairs
+    scriptCommand.useKeywordValue();
+    patchSizeXYZ.updateScriptParameter(scriptCommand);
+    numberOfPatchesXYZ.updateScriptParameter(scriptCommand);
+    xMinAndMax.updateScriptParameter(scriptCommand);
+    yMinAndMax.updateScriptParameter(scriptCommand);
+    zMinAndMax.updateScriptParameter(scriptCommand);
+    ParamUtilities.updateScriptParameter(scriptCommand, REGION_MODEL_KEY,
+        regionModel);
+    if (convertToPIP) {
+      scriptCommand.setCommand(COMMAND);
+      ParamUtilities.updateScriptParameter(scriptCommand, REFERENCE_FILE_KEY,
+          referenceFile);
+      ParamUtilities.updateScriptParameter(scriptCommand, FILE_TO_ALIGN_KEY,
+          fileToAlign);
+      ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_FILE_KEY,
+          outputFile);
+      ParamUtilities.updateScriptParameter(scriptCommand,
+          B_SOURCE_TRANSFORM_KEY, bSourceTransform);
+      ParamUtilities.updateScriptParameter(scriptCommand,
+          B_SOURCE_OR_SIZE_XYZ_KEY, bSourceOrSizeXYZ);
+      bSourceBorderXLoHi.updateScriptParameter(scriptCommand);
+      bSourceBorderYZLoHi.updateScriptParameter(scriptCommand);
+    }
   }
-  
+
   public void initializeDefaults() {
-  }
-
-  /**
-   * Sets the fileA.
-   * @param fileA The fileA to set
-   */
-  public void setFileA(String fileA) {
-    this.fileA = fileA;
-  }
-
-  /**
-   * Sets the fileB.
-   * @param fileB The fileB to set
-   */
-  public void setFileB(String fileB) {
-    this.fileB = fileB;
   }
 
   /**
@@ -227,7 +204,7 @@ public class Patchcrawl3DParam
    * @param nX The nX to set
    */
   public void setNX(int nX) {
-    this.nX = nX;
+    numberOfPatchesXYZ.set(0, nX);
   }
 
   /**
@@ -235,7 +212,7 @@ public class Patchcrawl3DParam
    * @param nY The nY to set
    */
   public void setNY(int nY) {
-    this.nY = nY;
+    numberOfPatchesXYZ.set(1, nY);
   }
 
   /**
@@ -243,27 +220,7 @@ public class Patchcrawl3DParam
    * @param nZ The nZ to set
    */
   public void setNZ(int nZ) {
-    this.nZ = nZ;
-  }
-
-  /**
-   * Sets the originalFileB.
-   * @param originalFileB The originalFileB to set
-   */
-  public void setOriginalFileB(String originalFileB) {
-    this.originalFileB = originalFileB;
-  }
-
-  /**
-   * Sets the transformFile.
-   * @param transformFile The transformFile to set
-   */
-  public void setTransformFile(String transformFile) {
-    this.transformFile = transformFile;
-  }
-  
-  public void setBorders(String borders) throws FortranInputSyntaxException {
-    this.borders.validateAndSet(borders);
+    numberOfPatchesXYZ.set(2, nZ);
   }
 
   /**
@@ -271,7 +228,7 @@ public class Patchcrawl3DParam
    * @param xHigh The xHigh to set
    */
   public void setXHigh(int xHigh) {
-    this.xHigh = xHigh;
+    xMinAndMax.set(1, xHigh);
   }
 
   /**
@@ -279,7 +236,7 @@ public class Patchcrawl3DParam
    * @param xLow The xLow to set
    */
   public void setXLow(int xLow) {
-    this.xLow = xLow;
+    xMinAndMax.set(0, xLow);
   }
 
   /**
@@ -287,7 +244,7 @@ public class Patchcrawl3DParam
    * @param xPatchSize The xPatchSize to set
    */
   public void setXPatchSize(int xPatchSize) {
-    this.xPatchSize = xPatchSize;
+    patchSizeXYZ.set(0, xPatchSize);
   }
 
   /**
@@ -295,7 +252,7 @@ public class Patchcrawl3DParam
    * @param yHigh The yHigh to set
    */
   public void setYHigh(int yHigh) {
-    this.yHigh = yHigh;
+    yMinAndMax.set(1, yHigh);
   }
 
   /**
@@ -303,7 +260,7 @@ public class Patchcrawl3DParam
    * @param yLow The yLow to set
    */
   public void setYLow(int yLow) {
-    this.yLow = yLow;
+    yMinAndMax.set(0, yLow);
   }
 
   /**
@@ -311,7 +268,7 @@ public class Patchcrawl3DParam
    * @param yPatchSize The yPatchSize to set
    */
   public void setYPatchSize(int yPatchSize) {
-    this.yPatchSize = yPatchSize;
+    patchSizeXYZ.set(1, yPatchSize);
   }
 
   /**
@@ -319,7 +276,7 @@ public class Patchcrawl3DParam
    * @param zHigh The zHigh to set
    */
   public void setZHigh(int zHigh) {
-    this.zHigh = zHigh;
+    zMinAndMax.set(1, zHigh);
   }
 
   /**
@@ -327,7 +284,7 @@ public class Patchcrawl3DParam
    * @param zLow The zLow to set
    */
   public void setZLow(int zLow) {
-    this.zLow = zLow;
+    zMinAndMax.set(0, zLow);
   }
 
   /**
@@ -335,40 +292,19 @@ public class Patchcrawl3DParam
    * @param zPatchSize The zPatchSize to set
    */
   public void setZPatchSize(int zPatchSize) {
-    this.zPatchSize = zPatchSize;
+    patchSizeXYZ.set(2, zPatchSize);
   }
 
-  /**
-   * Sets the maxShift.
-   * @param maxShift The maxShift to set
-   */
-  public void setMaxShift(int maxShift) {
-    this.maxShift = maxShift;
-  }
-
-  /**
-   * Sets the boundaryModel.
-   * @param boundaryModel The boundaryModel to set
-   */
-  public void setBoundaryModel(String boundaryModel) {
-    this.boundaryModel = boundaryModel;
-  }
-  
   public void setUseBoundaryModel(boolean useBoundaryModel) {
     if (useBoundaryModel) {
-      boundaryModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+      regionModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
     }
     else {
-      boundaryModel = "";
+      regionModel = "";
     }
   }
 
-  /**
-   * Sets the outputFile.
-   * @param outputFile The outputFile to set
-   */
-  public void setOutputFile(String outputFile) {
-    this.outputFile = outputFile;
+  public static String getTitle() {
+    return COMMAND.substring(0, 1).toUpperCase() + COMMAND.substring(1);
   }
-
 }
