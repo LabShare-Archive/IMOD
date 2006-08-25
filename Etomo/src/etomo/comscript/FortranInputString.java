@@ -23,6 +23,11 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/05/09 22:55:50  sueh
+ * <p> bug# 658 Added FortranInputString(double[]).  Added
+ * <p> double[] getDouble().  Added new set functions.  Added
+ * <p> isEmpty(int index) and isIntegerType(int index).
+ * <p>
  * <p> Revision 3.11  2004/12/30 17:54:14  sueh
  * <p> bug# 567 Using Double.NaN as the null value everywhere.
  * <p>
@@ -74,24 +79,25 @@ import etomo.type.ConstEtomoNumber;
  */
 
 public class FortranInputString {
-  public static final String rcsid = 
-  "$Id$";
+  public static final String rcsid = "$Id$";
 
   int nParams;
-
   boolean[] isInteger;
-
   double[] minimum;
-
   double[] maximum;
-
   Double[] value;
+  private String key = null;
 
   /**
    * Create a FortranInputString with nParams parameters.
    * @param nParams the number of parameters
    */
   public FortranInputString(int nParams) {
+    initialize(nParams);
+  }
+
+  public FortranInputString(String key, int nParams) {
+    this.key = key;
     initialize(nParams);
   }
 
@@ -111,7 +117,7 @@ public class FortranInputString {
       isInteger[i] = src.isInteger[i];
     }
   }
-  
+
   public FortranInputString(double[] values) {
     if (values == null) {
       initialize(0);
@@ -122,7 +128,7 @@ public class FortranInputString {
       set(i, values[i]);
     }
   }
-  
+
   /**
    * 
    * @param props
@@ -135,7 +141,7 @@ public class FortranInputString {
     String list = props.getProperty(group);
     return getInstance(list);
   }
-  
+
   public static FortranInputString getInstance(String list)
       throws FortranInputSyntaxException {
     if (list == null || list.length() == 0) {
@@ -146,7 +152,7 @@ public class FortranInputString {
     instance.validateAndSet(list);
     return instance;
   }
-  
+
   public static FortranInputString getInstance(double[] list) {
     if (list == null) {
       return new FortranInputString(0);
@@ -157,18 +163,18 @@ public class FortranInputString {
     }
     return instance;
   }
-  
+
   public void store(Properties props, String group) {
     props.setProperty(group, toString());
   }
-  
+
   void reset() {
     value = new Double[nParams];
     for (int i = 0; i < nParams; i++) {
       value[i] = new Double(Double.NEGATIVE_INFINITY);
     }
   }
-  
+
   private void initialize(int nParams) {
     this.nParams = nParams;
     minimum = new double[nParams];
@@ -196,9 +202,23 @@ public class FortranInputString {
       maximum[i] = max;
     }
   }
-  
+
   public int size() {
     return nParams;
+  }
+
+  public void updateScriptParameter(ComScriptCommand scriptCommand) {
+    ParamUtilities.updateScriptParameter(scriptCommand, key, this);
+  }
+
+  public void validateAndSet(ComScriptCommand scriptCommand)
+      throws FortranInputSyntaxException, InvalidParameterException {
+    if (key == null) {
+      throw new IllegalStateException("key == null");
+    }
+    if (scriptCommand.hasKeyword(key)) {
+      validateAndSet(scriptCommand.getValue(key));
+    }
   }
 
   /**
@@ -206,8 +226,7 @@ public class FortranInputString {
    * specified rules.
    */
   public void validateAndSet(String newValues)
-  throws FortranInputSyntaxException {
-
+      throws FortranInputSyntaxException {
     //  Handle a simple default string
     if (newValues.equals("/")) {
       for (int i = 0; i < value.length; i++) {
@@ -221,12 +240,13 @@ public class FortranInputString {
     for (int i = 0; i < value.length; i++) {
       tempValue[i] = new Double(Double.NaN);
     }
-    int idxValue = 0;
-    int idxStart = 0;
+    int idxValue = 0;//current index of tempValue
+    int idxStart = 0;//current index of newValues
     while (idxStart < newValues.length()) {
       int idxDelim = newValues.indexOf(',', idxStart);
       if (idxDelim != -1) {
         String currentToken = newValues.substring(idxStart, idxDelim);
+
         // A default value
         if (currentToken.length() == 0) {
           tempValue[idxValue] = new Double(Double.NaN);
@@ -235,15 +255,15 @@ public class FortranInputString {
           tempValue[idxValue] = new Double(currentToken);
           rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
         }
-        idxStart = idxDelim + 1;
         idxValue++;
+        idxStart = idxDelim + 1;
       }
       //  This should be the last value
       else {
         String currentToken = newValues.substring(idxStart);
         if (currentToken.endsWith("/")) {
-          tempValue[idxValue] = new Double(currentToken.substring(0, 
-          currentToken.length() - 1));
+          tempValue[idxValue] = new Double(currentToken.substring(0,
+              currentToken.length() - 1));
           rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
           idxValue++;
           while (idxValue < nParams) {
@@ -267,7 +287,7 @@ public class FortranInputString {
   public double getDouble(int index) {
     return value[index].doubleValue();
   }
-  
+
   /**
    * @return get input string as doubles
    */
@@ -278,7 +298,7 @@ public class FortranInputString {
     }
     return array;
   }
-  
+
   /**
    * Get a specific value as an integer
    */
@@ -292,27 +312,27 @@ public class FortranInputString {
   public void set(int index, double newValue) {
     value[index] = new Double(newValue);
   }
-  
+
   public void set(int index, ConstEtomoNumber newValue) {
     value[index] = new Double(newValue.getDouble());
   }
-  
+
   public void set(int index, FortranInputString newValue) {
     value[index] = new Double(newValue.getDouble(index));
   }
-  
+
   public void set(FortranInputString newValue) {
-    for(int i=0; i <nParams; i++) {
+    for (int i = 0; i < nParams; i++) {
       value[i] = new Double(newValue.getDouble(i));
     }
   }
-  
+
   public void setDefault() {
-    for(int i=0; i <nParams; i++) {
+    for (int i = 0; i < nParams; i++) {
       value[i] = new Double(Double.NaN);
     }
   }
-  
+
   public void setDefault(int index) {
     value[index] = new Double(Double.NaN);
   }
@@ -363,9 +383,9 @@ public class FortranInputString {
     if (string.equals("/")) {
       return "";
     }
-    return string;    
+    return string;
   }
-  
+
   public String toString(int index) {
     if (!valueSet(index)) {
       return "Uninitialized!";
@@ -378,6 +398,16 @@ public class FortranInputString {
     }
     else {
       return String.valueOf(value[index]);
+    }
+  }
+
+  /**
+   * Sets all the elements to either integer or not integer
+   * @param isInteger
+   */
+  public void setIntegerType(boolean isInteger) {
+    for (int i = 0; i < this.isInteger.length; i++) {
+      this.isInteger[i] = isInteger;
     }
   }
 
@@ -403,32 +433,32 @@ public class FortranInputString {
    * Are any of the values unset
    * @return
    */
-  public boolean valuesSet(){
-    for(int i=0; i <nParams; i++) {
-      if(value[i].isInfinite()){
+  public boolean valuesSet() {
+    for (int i = 0; i < nParams; i++) {
+      if (value[i].isInfinite()) {
         return false;
       }
     }
     return true;
   }
-  
+
   public boolean valueSet(int index) {
     return value[index] != null && !value[index].isInfinite();
   }
-  
+
   /**
    * Are all of the values set to their defaults
    * @return
    */
   public boolean isDefault() {
-    for(int i=0; i <nParams; i++) {
-      if(! value[i].isNaN()){
+    for (int i = 0; i < nParams; i++) {
+      if (!value[i].isNaN()) {
         return false;
       }
     }
     return true;
   }
-  
+
   /**
    * 
    * @param index
@@ -440,7 +470,7 @@ public class FortranInputString {
     }
     return value[index].isNaN();
   }
-  
+
   /**
    * 
    * @param index
@@ -452,7 +482,7 @@ public class FortranInputString {
     }
     return value[index].isInfinite();
   }
-  
+
   /**
    * 
    * @param index
@@ -464,7 +494,7 @@ public class FortranInputString {
     }
     return isInteger[index];
   }
-  
+
   /**
    * Compare given value range specified for index.
    * @param value
@@ -473,28 +503,21 @@ public class FortranInputString {
    * @throws FortranInputSyntaxException
    */
   private void rangeCheck(double value, int index, String newValues)
-  throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     if (value < minimum[index]) {
-      String message = 
-      "Value below minimum.  Acceptable range: ["
-      + String.valueOf(minimum[index])
-      + ","
-      + String.valueOf(maximum[index])
-      + "] got "
-      + String.valueOf(value);
+      String message = key == null ? "" : key + ": "
+          + "Value below minimum.  Acceptable range: ["
+          + String.valueOf(minimum[index]) + ","
+          + String.valueOf(maximum[index]) + "] got " + String.valueOf(value);
       throw (new FortranInputSyntaxException(message, newValues));
     }
     if (value > maximum[index]) {
-      String message = 
-      "Value above maximum.  Acceptable range: ["
-      + String.valueOf(minimum[index])
-      + ","
-      + String.valueOf(maximum[index])
-      + "] got "
-      + String.valueOf(value);
+      String message = key == null ? "" : key + ": "
+          + "Value above maximum.  Acceptable range: ["
+          + String.valueOf(minimum[index]) + ","
+          + String.valueOf(maximum[index]) + "] got " + String.valueOf(value);
       throw (new FortranInputSyntaxException(message, newValues));
     }
   }
-  
- 
+
 }
