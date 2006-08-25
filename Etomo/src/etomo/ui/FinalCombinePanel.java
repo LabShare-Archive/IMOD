@@ -55,6 +55,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.48  2006/07/20 17:20:05  sueh
+ * bug# 848 Made UIParameters a singleton.
+ *
  * Revision 3.47  2006/06/21 15:53:02  sueh
  * bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  *
@@ -1039,8 +1042,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Patchcrawl3d", "Matchorwarp" };
-    String[] manPage = { "patchcrawl3d.html", "matchorwarp.html" };
+    String[] manPagelabel = { Patchcrawl3DParam.getTitle(), "Matchorwarp" };
+    String[] manPage = { Patchcrawl3DParam.COMMAND+".html", "matchorwarp.html" };
     String[] logFileLabel = { "Patchcorr", "Matchorwarp", "Volcombine" };
     String[] logFile = { "patchcorr.log", "matchorwarp.log", "volcombine.log" };
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
