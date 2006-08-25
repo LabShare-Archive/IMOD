@@ -63,7 +63,7 @@ static void graphDraw_cb(ImodView *vi, void *client, int drawflag);
 static void graphKey_cb(ImodView *vi, void *client, int released,
 			QKeyEvent *e);
 static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
-                              int ix1, int iy2, Ipoint *newpt);
+                              int iy1, int iy2, Ipoint *newpt);
 
 static unsigned char *bitList[MAX_GRAPH_TOGGLES][2] =
   { {lowres_bits, highres_bits},
@@ -462,14 +462,14 @@ int GraphWindow::allocDataArray(int dsize)
 // Fill the data structure for drawing
 void GraphWindow::xgraphFillData(GraphStruct *xg)
 {
-  int dsize, xsize;
+  int dsize;
   unsigned char **image = NULL;
   int cx, cy, cz, i, j, jy, nlines;
   int ixStart, iyStart, nxUse, nyUse, ixEnd, iyEnd;
-  int co, cc, cp;
+  int cp;
   Icont *cont;
   Ipoint *pt1, *pt2, *pts;
-  int   pmax, pt;
+  int   pt;
   int curpt, vecpt, istr, iend, skipStart, skipEnd;
   float frac, totlen, curint, dx, dy, smin, smax;
   Ipoint scale, startPt, endPt;
@@ -594,8 +594,6 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 
     /* Contour : DNM got this working properly, and in 3D */
   case GRAPH_CONTOUR:
-    co = xg->co = vi->imod->cindex.object;
-    cc = xg->cc = vi->imod->cindex.contour;
     cp = xg->cp = vi->imod->cindex.point;
     cont = imodContourGet(vi->imod);
     if (!cont)
@@ -1008,6 +1006,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.7  2006/08/24 21:33:19  mast
+    Added averaging over multiple lines, mean output, rubberband control
+
     Revision 4.6  2005/11/11 23:04:29  mast
     Changes for unsigned integers
 
