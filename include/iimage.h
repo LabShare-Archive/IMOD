@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.6  2004/12/02 21:49:44  mast
 Add declarations for mrc functions needed elsewhere
 
@@ -44,6 +47,7 @@ extern "C" {
 #define IIFORMAT_RGB       1
 #define IIFORMAT_RGBA      2
 #define IIFORMAT_COMPLEX   3
+#define IIFORMAT_COLORMAP  4
 
 #define IITYPE_UBYTE   0
 #define IITYPE_BYTE  1
@@ -98,6 +102,7 @@ extern "C" {
     int   headerSize;
     char *header;
     char *userData;
+    unsigned char *colormap;
 
     /* Callback functions used by different file formats. */
     int (*readSection)(ImodImageFile *inFile, char *buf, int inSection);

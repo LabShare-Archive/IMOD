@@ -20,7 +20,7 @@ IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
              imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
 	     ilist.$(O) ilabel.$(O) b3dutil.$(O) parselist.$(O) istore.$(O)\
-             amoeba.$(O) samplemeansd.$(O)
+             amoeba.$(O) samplemeansd.$(O) colormap.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O)
 
@@ -68,8 +68,12 @@ imodel_files.$(O) : $(INCDIR)/b3dutil.h $(INCDIR)/istore.h
 imodel_from.$(O) : $(INCDIR)/b3dutil.h
 $(PIPOBJS) : $(INCDIR)/parse_params.h
 pip_fwrap.$(O) : $(INCDIR)/b3dutil.h
+colormap.$(O) : $(INCDIR)/b3dutil.h
 
 #  $Log$
+#  Revision 3.12  2006/06/26 15:45:02  mast
+#  Added samplemeansd
+#
 #  Revision 3.11  2006/06/05 16:29:22  mast
 #  Added translation of amoeba
 #
