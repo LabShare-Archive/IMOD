@@ -145,7 +145,6 @@ EXPORTS
 	allocate2D_float
 	mrc_write_slice
 	sliceGradient
-	fgetline
 	sliceFloat
 	iiMRCCheck
 	mrc_corr

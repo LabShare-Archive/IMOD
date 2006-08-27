@@ -14,6 +14,7 @@ EXPORTS
 	imodDeleteObject
 	imodMeshNearestRes
 	imodReadAscii
+	cmapReadConvert
 	parselist
 	imodObjectCleanSurf
 	imodUnits
@@ -186,6 +187,7 @@ EXPORTS
 	b3dSetStoreError
 	imodIMNXWrite
 	PipDone
+	cmapConvertRamp
 	PUTOBJCOLOR
 	imodPutFloats
 	istoreCopyContSurfItems
@@ -247,6 +249,7 @@ EXPORTS
 	PipNumberOfArgs
 	PUTSYMTYPE
 	imodLabelItemAdd
+	cmapInvertedRamp
 	istoreCountObjectItems
 	imodPlaneSetFromClips
 	istoreClearRange
@@ -349,6 +352,7 @@ EXPORTS
 	imodFileRead
 	PIPSETMANPAGEOUTPUT
 	PipGetString
+	cmapStandardRamp
 	imodPutByte
 	imodObjviewToObject
 	istoreEndChange
@@ -403,6 +407,7 @@ EXPORTS
 	imodel_contour_double
 	imodContourGetLabel
 	istoreGenerateItems
+	fgetline
 	GETIMODOBJRANGE
 	imodContourSetTimeIndex
 	PUTSYMSIZE

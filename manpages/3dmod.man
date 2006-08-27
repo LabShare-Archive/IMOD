@@ -37,9 +37,10 @@ function, which include JPEG, PNG, PPM, and BMP; or in a raw format where
 data are packed sequentially as in MRC files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
-16-bit integer, or color; they may be organized in strips or in tiles.
-TIFF files with various kinds of compression can
-be read, depending on the
+16-bit integer, or color, where the color can be either 24-bit (RGB) or 8-bit
+using an embedded color map.
+TIFF files may be organized in strips or in tiles, and files
+with various kinds of compression can be read, depending on the
 capabilities of the libraries on the system.  
 Raw files can be read if their dimensions, data type, and header size are
 defined.  This information can be provided with the options
@@ -327,6 +328,16 @@ enough memory to show the redundant data.
 Display images in color index mode using a color table, rather than in
 24-bit color mode.  Color index mode only has 8 bits and works rather
 poorly under Qt. 
+.TP
+.B -cm <file>
+Read a specification for the false color map used in 3dmod from a file.
+This file can have one of two forms.  One form starts with a line
+with 256, then has 256 lines with red, green, and blue values from 0-255.
+The other form starts with the number of lines to follow; then each following
+line has a red, green, and blue value (0-255) plus an arbitrary integer 
+indicating the relative location of that value along the 256-color range.
+These location values must be in order.  If the colors being specified are to
+be equally spaced, the location values can simply be sequential values.
 .TP
 .B -G
 Display an RGB-mode MRC file in gray-scale rather than in color.  If the 
