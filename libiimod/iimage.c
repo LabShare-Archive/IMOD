@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2005/05/19 23:51:05  mast
+Made iiOpen not go on checking if file is closed
+
 Revision 3.7  2004/12/02 21:50:33  mast
 Moved declaration for MRC check funxtion to iimage.h
 
@@ -96,6 +99,7 @@ ImodImageFile *iiNew()
   ofile->reopen          = NULL;
   ofile->close           = NULL;
   ofile->writeSection    = NULL;
+  ofile->colormap        = NULL;
 
   /* DNM 2/26/03: set upper right to -1 for later replacement */
   ofile->llx =  0;
@@ -263,6 +267,8 @@ void iiDelete(ImodImageFile *inFile)
     (*inFile->cleanUp)(inFile);
   if (inFile->description)
     free(inFile->description);
+  if (inFile->colormap)
+    free(inFile->colormap);
   free(inFile);
 }
 
