@@ -41,6 +41,9 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
     $Revision$
 
     $Log$
+    Revision 3.6  2005/05/19 23:51:40  mast
+    Made open routine reopen the file if it fails as a tiff
+
     Revision 3.5  2005/02/11 01:42:33  mast
     Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -350,7 +353,9 @@ int iiTIFFCheck(ImodImageFile *inFile)
   int dirnum = 1;
   uint32 val;
   uint16 bits, samples, photometric, sampleformat;
-  int defined;
+  int defined, i, j;
+  double minmax;
+  b3dUInt16 *redp, *greenp, *bluep;
 
   if (!inFile) 
     return -1;
@@ -385,12 +390,16 @@ int iiTIFFCheck(ImodImageFile *inFile)
   defined = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samples);
   if (!defined)
     samples = 1;
-    
-  while(TIFFReadDirectory(tif)) dirnum++;
+
+  while (TIFFReadDirectory(tif)) 
+    dirnum++;
   TIFFSetDirectory(tif, 0);
 
-  if (!((samples == 1 && (bits == 8 || bits ==16)) ||
-        (samples == 3 && photometric == 2 && bits == 8))) {
+  /* Don't know how to get the multiple bit entries from libtiff, so can't test
+     if they are all 8 */
+  if (!((samples == 1 && (bits == 8 || bits ==16) && photometric < 2) ||
+        (samples == 3 && photometric == 2 && bits == 8) || 
+        (photometric == 3 && bits == 8))) {
     TIFFClose(tif);
     inFile->fp = fopen(inFile->filename, inFile->fmode);
     return(6);
@@ -403,15 +412,38 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   if (bits == 8) {
     inFile->type   = IITYPE_UBYTE;
+    inFile->amin  = 0;
     inFile->amean  = 128;
     inFile->amax   = 255;
-    inFile->smax   = 255;
     inFile->mode   = MRC_MODE_BYTE;
     if (samples == 3) {
       inFile->format = IIFORMAT_RGB;
       inFile->mode   = MRC_MODE_RGB;
       inFile->readSection = tiffReadSection;
       inFile->readSectionByte = NULL;
+    } else if (photometric == 3) {
+
+      /* For palette images, define as colormap, better send byte reading
+         to routine that will ignore any scaling, get the colormap and 
+         convert it to bytes */
+      inFile->format = IIFORMAT_COLORMAP;
+      inFile->readSectionByte = tiffReadSection;
+      inFile->colormap = (unsigned char *)malloc(3 * 256 * dirnum);
+      if (!inFile->colormap) {
+        TIFFClose(tif);
+        inFile->fp = fopen(inFile->filename, inFile->fmode);
+        return(-1);
+      }
+      for (j = 0; j < dirnum; j++) {
+        TIFFSetDirectory(tif, j);
+        TIFFGetField(tif, TIFFTAG_COLORMAP, &redp, &greenp, &bluep);
+        for (i = 0; i < 256; i++) {
+          inFile->colormap[j*768 + i] = (unsigned char)(redp[i] >> 8);
+          inFile->colormap[j*768 + i + 256] = (unsigned char)(greenp[i] >> 8);
+          inFile->colormap[j*768 + i + 512] = (unsigned char)(bluep[i] >> 8);
+        }
+      }
+      TIFFSetDirectory(tif, 0);
     }
   } else {
     /* If there is a field specifying signed numbers, set up for signed;
@@ -421,20 +453,24 @@ int iiTIFFCheck(ImodImageFile *inFile)
       inFile->type   = IITYPE_SHORT;
       inFile->amean  = 0;
       inFile->amin   = -32767;
-      inFile->smin   = -32767;
       inFile->amax   = 32767;
-      inFile->smax   = 32767;
     } else {
       inFile->type   = IITYPE_USHORT;
       inFile->amean  = 32767;
       inFile->amin   = 0;
-      inFile->smin   = 0;
       inFile->amax   = 65535;
-      inFile->smax   = 65535;
     }
     inFile->mode   = MRC_MODE_SHORT;
   }
+  
+  /* Use min and max from file if defined */
+  if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
+    inFile->smin = minmax;
+  if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
+    inFile->smax = minmax;
 
+  inFile->smin   = inFile->amin;
+  inFile->smax   = inFile->amax;
   inFile->headerSize = 8;
   inFile->header = (char *)tif;
   inFile->fp = (FILE *)tif;    
