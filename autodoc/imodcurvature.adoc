@@ -102,11 +102,21 @@ assigned to a different color.
 
 [Field = UsePalette]
 short = pa
-type = B
-usage = Use 256-color false color palette for colors and subdivide
+type = FN
+usage = Use false color palette (follow with s, i, or filename)
 tooltip = 
-manpage = Use the 256-color false color palette from 3dmod for the colors.
+manpage = Use a 256-color false color palette for the colors.  Enter a filename
+to read a color table from a file, or "s", "standard", or any abbreviation 
+thereof for the standard palette from 3dmod, or "i", "inverted", or any
+abbreviation thereof for an inverted palette from 3dmod.
 This option will automatically subdivide the radius range into 256 levels.
+A color table file can have one of two forms.  One form starts with a line
+with 256, then has 256 lines with red, green, and blue values from 0-255.
+The other form starts with the number of lines to follow; then each following
+line has a red, green, and blue value (0-255) plus an arbitrary integer 
+indicating the relative location of that value along the 256-color range.
+These location values must be in order.  If the colors being specified are to
+be equally spaced, the location values can simply be sequential values.
 
 [Field = SampleSpacing]
 short = sa
