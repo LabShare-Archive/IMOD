@@ -348,7 +348,6 @@ unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
 int getfilename(char *name, char *prompt);
 void mrc_default_status(char *string);
 int mrc_getdcsize(int mode, int *dsize, int *csize);
-int fgetline(FILE *fp, char s[],int limit);
 void mrc_swap_shorts(short int *data, int amt);
 void mrc_swap_longs(int *data, int amt);
 void mrc_swap_floats(float *data, int amt);
@@ -362,6 +361,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 /*
     $Log$
+    Revision 3.15  2006/08/04 21:03:38  mast
+    Add documentation tags
+
     Revision 3.14  2005/11/11 22:15:37  mast
     Changes for unsigned file mode
 

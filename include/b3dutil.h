@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2006/06/26 14:49:09  mast
+Moved miscellaneous functions to b3dutil
+
 Revision 1.7  2005/02/11 01:41:04  mast
 Swicthed to b3dIMin/Max
 
@@ -64,6 +67,7 @@ extern "C" {
   size_t b3dFwrite(void *buf, size_t size, size_t count, FILE *fp);
   void b3dRewind(FILE *fp);
   int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag);
+  int fgetline(FILE *fp, char s[],int limit);
 
   void b3dHeaderItemBytes(int *nflags, int *nbytes);
 
@@ -85,6 +89,12 @@ extern "C" {
   int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
                    float sample, int nxMatt, int myMatt, int nxUse, int nyUse,
                    float *mean, float *sd);
+
+  /* colormap.c */
+  int *cmapStandardRamp();
+  int *cmapInvertedRamp();
+  int cmapConvertRamp(int *rampData, unsigned char table[3][256]);
+  int cmapReadConvert(char *filename, unsigned char table[3][256]);
 
 #ifdef __cplusplus
 }
