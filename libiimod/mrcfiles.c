@@ -1933,34 +1933,6 @@ int getfilename(char *name, char *prompt)
 }
 
 
-
-
-
-
-
-
-/*****************************************************************************/
-/* Function fgetline : get a line length < limit                             */
-/* from a file pointer fp   and put it in a null terminated string s         */
-/* Returns the length of the line of a non positive value if                 */
-/* EOF is reached                                                            */
-/*****************************************************************************/
-
-int fgetline(FILE *fp, char s[],int limit)
-{
-  int c, i, length;
-     
-  for (i=0; (((c = getc(fp)) != EOF) &&(i < (limit-1)) && (c != '\n')); i++)
-    s[i]=c;
-
-  s[i]='\0';
-  length = i;
-  if (c == EOF) 
-    return (-length);
-  else 
-    return length;
-}
-
 /*!
  * For the given MRC file mode in [mode], returns the number of bytes of the
  * basic data element in [dsize] and the number of data channels in [csize].
@@ -2139,6 +2111,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.27  2006/08/04 21:04:03  mast
+Add documentation
+
 Revision 3.26  2005/11/11 22:15:23  mast
 Changes for unsigned file mode
 
