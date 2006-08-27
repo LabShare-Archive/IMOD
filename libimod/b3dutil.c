@@ -322,6 +322,50 @@ int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
   return 0;
 }
 
+/*!
+ * Reads a line of characters from the file pointed to by [fp] and places it 
+ * into array [s] of size [limit].  Replaces newline with a null or 
+ * terminates the string with null if reading stops because the array limit is
+ * reached.  Returns the length of the string, or the negative of the length 
+ * of the string on error or end of file.
+ */
+int fgetline(FILE *fp, char s[], int limit)
+{
+  int c, i, length;
+
+  if (fp == NULL){
+    b3dError(stderr, "fgetline: file pointer not valid\n");
+    return(0);
+  }
+
+  if (limit < 3){
+    b3dError(stderr, "fgetline: limit (%d) must be > 2\n", limit);
+    return(0);
+  }
+     
+  for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
+    s[i]=c;
+     
+  if (i == 1){
+    if (c == EOF){
+      return(0);
+    }
+    if (c == '\n'){
+      s[++i] = '\0';
+      return(1);
+    }
+  }
+               
+
+  s[i]='\0';
+  length = i;
+
+  if (c == EOF)
+    return (-1 * length);
+  else
+    return (length);
+}
+
 /*! Returns the number of possible extra header items encoded as short integers
  * by SerialEM in [nflags], and the number of bytes that each occupies in 
  * [nbytes], an array that should be dimensioned to 32. */
@@ -385,6 +429,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.10  2006/06/08 03:13:15  mast
+Add va_end to the error function
+
 Revision 1.9  2006/01/23 06:40:23  mast
 Documented
 
