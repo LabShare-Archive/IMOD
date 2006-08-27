@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2006/06/26 14:48:48  mast
+Added b3dutil include for parselist
+
 Revision 3.3  2006/06/18 19:37:11  mast
 Changed for new amoeba function type
 
@@ -50,9 +53,9 @@ static void sphereErr(float *y, float *error);
 static int encodeCurvature(Imod *mod, Iobj *obj, float rCritLo, float rCritHi,
                            float window, float sample, float fitCrit,
                            int pointSize, float symZoom, int numCol,
-                           int *red, int *green, int *blue, float zrange,
+                           unsigned char *red, unsigned char *green, 
+                           unsigned char *blue, float zrange,
                            float zscale, int verbose, int testCo, int TestPt);
-static int load_cmap(int *red, int *green, int *blue);
 
 /* Structures for keeping track of connected contours and the near contours
    to be used for a spherical fit */
@@ -81,16 +84,15 @@ int main( int argc, char *argv[])
   Ipoint point;
   float xx[10000], yy[10000];
   float xcen, ycen, rad, rmsErr, dum;
-  int co, ob, i, newnum, ierr, numColUse, colorInd, numObj;
+  int co, ob, i, newnum, ierr, numColUse, colorInd, numObj = 0;
   int testcurve = 0;
   int testCo = -1;
   int testPt = -1;
   int divColors = 0;
   int numColors = 0;
   int pointSize = 0;
-  int *red = &co;
-  int *green = &co;
-  int *blue = &co;
+  int red, green, blue;
+  unsigned char cmap[3][256];
   float fitCrit = 0.;
   float sample = 2.;
   int verbose = 0;
@@ -99,6 +101,7 @@ int main( int argc, char *argv[])
   float rCritLo, rCritHi, window;
   float symZoom = 0.;
   int *objList;
+  int *rampData;
   char *listString;
   char *progname = imodProgName(argv[0]);
   char *filename;
@@ -111,7 +114,7 @@ int main( int argc, char *argv[])
     "in:InputFile:FN:", ":OutputFile:FN:", "wl:WindowLength:FP:",
     "zr:ZRangeToFit:F:", "rc:RadiusCriterion:FP:", "fc:FitCriterion:F:",
     "ob:ObjectsToDo:LI:", "ps:PointSize:B:", "sy:SymbolZoom:F:",
-    "co:Color:ITM:", "di:DivideRange:B:", "pa:UsePalette:B:",
+    "co:Color:ITM:", "di:DivideRange:B:", "pa:UsePalette:FN:",
     "sa:SampleSpacing:F:", "ve:Verbose:B:", "tc:TestCircleFits:B:",
     "ts:TestSphereFits:IP:"};
 
@@ -147,8 +150,10 @@ int main( int argc, char *argv[])
     
     /* Color options */
     PipGetBoolean("DivideRange", &divColors);
-    PipGetBoolean("UsePalette", &palette);
+    palette = 1 - PipGetString("UsePalette", &listString);
     PipNumberOfEntries("Color", &numColors);
+    if (numColors > 256) 
+      exitError("You cannot enter more than 256 colors");
     if (palette) {
       if (numColors)
         exitError("You cannot enter both -co (colors) and -pa "
@@ -158,14 +163,25 @@ int main( int argc, char *argv[])
     }
 
     if (numColors) {
-      red = (int *)malloc(numColors * sizeof(int));
-      green = (int *)malloc(numColors * sizeof(int));
-      blue = (int *)malloc(numColors * sizeof(int));
-      if (palette)
-        load_cmap(red, green, blue);
-      else
-        for (i = 0; i < numColors; i++)
-          PipGetThreeIntegers("co", &red[i], &green[i], &blue[i]);
+      if (palette) {
+        if (strstr("inverted", listString)) {
+          rampData = cmapInvertedRamp();
+          cmapConvertRamp(rampData, cmap);
+        } else if (strstr("standard", listString)) {
+          rampData = cmapStandardRamp();
+          cmapConvertRamp(rampData, cmap);
+        } else {
+          if (cmapReadConvert(listString, cmap))
+            exitError("Reading color map table");
+          free(listString);
+        }
+      } else
+        for (i = 0; i < numColors; i++) {
+          PipGetThreeIntegers("co", &red, &green, &blue);
+          cmap[0][i] = red;
+          cmap[1][i] = green;
+          cmap[2][i] = blue;
+        }
     }
     
     /* Point size and object list */
@@ -222,7 +238,8 @@ int main( int argc, char *argv[])
       printf("Doing object %d...\n", ob + 1);
       if (encodeCurvature(model, obj, rCritLo, rCritHi, window, sample,
                           fitCrit, pointSize, symZoom, numColUse, 
-                          &red[colorInd], &green[colorInd], &blue[colorInd],
+                          &cmap[0][colorInd], &cmap[1][colorInd], 
+                          &cmap[2][colorInd],
                           zrange, model->zscale, verbose, testCo, testPt))
         exitError("Error allocating memory in curvature routine");
 
@@ -281,10 +298,11 @@ int main( int argc, char *argv[])
  * Compute the curvature for all points in all contours of an object
  * with the multitude of parameters
  */
-int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi, 
-                    float window,
-                    float sample, float fitCrit, int pointSize, float symZoom,
-                    int numCol, int *red, int *green, int *blue, float zrange,
+int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
+                    float window, float sample, float fitCrit,
+                    int pointSize, float symZoom, int numCol,
+                    unsigned char *red, unsigned char *green, 
+                    unsigned char *blue, float zrange,
                     float zscale, int verbose, int testCo, int testPt)
 {
   Icont *cont;
@@ -985,60 +1003,4 @@ static void sphereErr(float *y, float *error)
   }
 
   *error = (float)(err / numpt);
-}
-
-
-/* Create a 256-color false color map - simplified from imodv_ogl.cpp */
-static int load_cmap(int *red, int *green, int *blue)
-{
-  int rampData[] =
-    { 
-      15,
-      255,    0,   90,    0,
-      255,   45,   55,   20,
-      255,  105,    0,   83,
-      255,  175,    0,  162,
-      255,  255,    0,  229,
-      239,  255,    0,  240,
-      191,  255,    0,  259,
-      90,  255,   60,  305,
-      0,  207,   78,  361,
-      0,  191,  143,  383,
-    0,  175,  177,  400,
-      60,   96,  255,  469,
-    120,   40,  255,  528,
-      179,    0,  255,  569,
-      255,    0,  255,  616,
-    };
-
-  int nline;
-  int *inramp;
-  int i,l;
-  float tabscl,terpfc,tabpos;
-  int indtab;
-  nline = *rampData;
-  inramp = rampData + 1;
-
-  tabscl = (inramp[(nline * 4) - 1] - inramp[3])/255.0;
-  indtab = 0;
-  for(i = 0; i < 256; i++){
-    tabpos = i * tabscl + inramp[3];
-    if (tabpos > inramp[((indtab+1) * 4) + 3]){
-      indtab++;
-      if (indtab > nline - 2)
-        indtab--;
-    }
-
-    terpfc = (tabpos - inramp[(indtab * 4) + 3])/
-      (inramp[((indtab+1) * 4) + 3] - inramp[(indtab * 4) + 3]);
-
-    red[i] = (unsigned char)((1 - terpfc) * inramp[(indtab * 4)] +
-      terpfc * inramp [((indtab+1) * 4)]);
-    green[i] = (unsigned char)((1 - terpfc) * inramp[(indtab * 4) + 1] +
-      terpfc * inramp [((indtab+1) * 4) + 1]);
-    blue[i] = (unsigned char)((1 - terpfc) * inramp[(indtab * 4) + 2] +
-      terpfc * inramp [((indtab+1) * 4) + 2]);
-
-  }
-  return(0);
 }
