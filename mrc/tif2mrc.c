@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.13  2006/01/13 05:00:50  mast
+    Added option to suppress reading of multiple pages.
+
     Revision 3.12  2005/11/11 21:55:28  mast
     Outputs unsigned file mode
 
@@ -47,7 +50,8 @@ int read_cheeze_tiff(FILE *tif_fp, unsigned char *pixels);
 static float minmaxmean(unsigned char *tifdata, int mode, int unsign, 
                         int divide, int xsize, int ysize, int *min, int *max);
 static void convertrgb(unsigned char *tifdata, int xsize, int ysize);
-
+static void expandIndexToRGB(unsigned char **datap, ImodImageFile *iifile, 
+                              int section);
 int main( int argc, char *argv[])
 {
 
@@ -244,7 +248,7 @@ int main( int argc, char *argv[])
                           tiff.iifile->type == IITYPE_USHORT)))
         mode = MRC_MODE_USHORT;
 
-      if (tiff.PhotometricInterpretation == 2 && !makegray){
+      if (tiff.PhotometricInterpretation / 2 == 1 && !makegray){
         mode = MRC_MODE_RGB;
         pixSize = 3;
       }
@@ -263,8 +267,11 @@ int main( int argc, char *argv[])
           continue;
         }
 
+        if (tiff.PhotometricInterpretation == 3)
+          expandIndexToRGB(&tifdata, tiff.iifile, section);
+
         /* convert RGB to gray scale */
-        if (tiff.PhotometricInterpretation == 2 && makegray)
+        if (tiff.PhotometricInterpretation / 2 == 1 && makegray)
           convertrgb(tifdata, xsize, ysize);
 
          
@@ -332,7 +339,7 @@ int main( int argc, char *argv[])
       exit(3);
     }
     bgBits = tiff.BitsPerSample;
-    if ((bgBits != 8 && bgBits !=16) || tiff.PhotometricInterpretation == 
+    if ((bgBits != 8 && bgBits !=16) || tiff.PhotometricInterpretation >= 
         2) {
       fprintf(stderr, "tif2mrc: Background file must be 8 or 16-bit "
               "grayscale\n");
@@ -427,7 +434,7 @@ int main( int argc, char *argv[])
                           tiff.iifile->type == IITYPE_USHORT)))
         mode = MRC_MODE_USHORT;
       
-      if (tiff.PhotometricInterpretation == 2 && !makegray){
+      if (tiff.PhotometricInterpretation / 2 == 1 && !makegray){
         mode = MRC_MODE_RGB;
         pixSize = 3;
       }
@@ -435,16 +442,18 @@ int main( int argc, char *argv[])
 
     if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && mode != 
          MRC_MODE_USHORT) ||
-        (tiff.PhotometricInterpretation == 2 && !makegray 
+        (tiff.PhotometricInterpretation / 2 == 1 && !makegray 
         && mode != MRC_MODE_RGB)) {
       fprintf(stderr, "tif2mrc Error: All files must have the same"
               " data type.\n");
       exit(3);
     }
 
+    if (tiff.PhotometricInterpretation == 3)
+      expandIndexToRGB(&tifdata, tiff.iifile, 0);
 
     /* convert RGB to gray scale */
-    if (tiff.PhotometricInterpretation == 2 && makegray)
+    if (tiff.PhotometricInterpretation / 2 == 1 && makegray)
       convertrgb(tifdata, xsize, ysize);
        
     /* Correct for bg */
@@ -567,6 +576,34 @@ static void convertrgb(unsigned char *tifdata, int xsize, int ysize)
     *out++ = pixel / 3;
   }
 }
+
+static void expandIndexToRGB(unsigned char **datap, ImodImageFile *iifile, 
+                              int section)
+{
+  unsigned char *indata = *datap;
+  unsigned char *outdata, *map;
+  int xysize, i, ind;
+  if (!iifile || !iifile->colormap) {
+    fprintf(stderr, "tif2mrc Error: Colormap data not read in properly.\n");
+    exit(3);
+  }
+  xysize = iifile->nx * iifile->ny;
+  outdata = (unsigned char *)malloc(3 * xysize);
+  if (!outdata) {
+    fprintf(stderr, "tif2mrc Error: Insufficient memory.\n");
+    exit(3);
+  }
+  *datap = outdata;
+
+  map = &iifile->colormap[768 * section];
+  for (i = 0; i < xysize; i++) {
+    ind = indata[i];
+    *outdata++ = map[ind];
+    *outdata++ = map[256 + ind];
+    *outdata++ = map[512 + ind];
+  }
+}
+
 
 static float minmaxmean(unsigned char *tifdata, int mode, int unsign, 
                         int divide, int xsize, int ysize, int *min, int *max)
