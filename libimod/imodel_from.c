@@ -52,7 +52,7 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
      for(i = 0; i < MAXOBJ; i++)
 	  objlookup[i] = 0;
 
-     while ( ((len = imodel_from_fgetline(fin,line, MAXLINE)) > 0)){
+     while ( ((len = fgetline(fin,line, MAXLINE)) > 0)){
 	  tline = NULL;
 	  for(i = 0; line[i]; i++){
 	       if (line[i] == 'O'){
@@ -65,9 +65,9 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
 	  if (!substr(tline, cont_string))
 	       continue;
 	  
-	  imodel_from_fgetline(fin,line,MAXLINE);
+	  fgetline(fin,line,MAXLINE);
 	  sscanf(line, "%*s %*s %*s %d", &points);
-	  imodel_from_fgetline(fin,line,MAXLINE);
+	  fgetline(fin,line,MAXLINE);
 	  sscanf(line, "%*s %*s %d", &display_switch);
 	  if (display_switch > 0){
 	       objlookup[display_switch] = 1;
@@ -117,7 +117,7 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
 */   
      rewind(fin);
 
-     while ( ((len = imodel_from_fgetline(fin,line, MAXLINE)) > 0)){
+     while ( ((len = fgetline(fin,line, MAXLINE)) > 0)){
 	  /* Search for the given type of contour. */
 	  
 	  tline = NULL;
@@ -132,12 +132,12 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
 	  if (!substr(tline, cont_string))
 	       continue;
 
-	  imodel_from_fgetline(fin,line,MAXLINE);
+	  fgetline(fin,line,MAXLINE);
 	  sscanf(line, "%*s %*s %*s %d", &points);
-	  imodel_from_fgetline(fin,line,MAXLINE);
+	  fgetline(fin,line,MAXLINE);
 	  sscanf(line, "%*s %*s %d", &display_switch);
 	  
-	  imodel_from_fgetline(fin,line,MAXLINE);
+	  fgetline(fin,line,MAXLINE);
 	  
 
 
@@ -156,7 +156,7 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
 
 	  /* Go through and collect points. */
 	  for (i = 0; i < points; i++){
-	       imodel_from_fgetline(fin,line,MAXLINE);
+	       fgetline(fin,line,MAXLINE);
 	       sscanf(line,"%*d %f %f %f", &(point.x), &(point.y), &(point.z));
 	       imodPointAdd( &(obj->cont[mod->cindex.contour]), 
 				&point, i);
@@ -213,42 +213,4 @@ int substr(char bs[], char ls[])
      }
      return(1);
      
-}
-
-
-int imodel_from_fgetline(FILE *fp, char s[],int limit)
-{
-     int c, i, length;
-
-     if (fp == NULL){
-	  b3dError(stderr, "fgetline: file pointer not valid\n");
-	  return(0);
-     }
-
-     if (limit < 3){
-	  b3dError(stderr, "fgetline: limit (%d) > 2,\n", limit);
-	  return(0);
-     }
-     
-     for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
-	  s[i]=c;
-     
-     if (i == 1){
-	  if (c == EOF){
-	       return(0);
-	  }
-	  if (c == '\n'){
-	       s[++i] = '\0';
-	       return(1);
-	  }
-     }
-	       
-
-     s[i]='\0';
-     length = i;
-
-     if (c == EOF)
-	  return (-1 * length);
-     else
-	  return (length);
 }
