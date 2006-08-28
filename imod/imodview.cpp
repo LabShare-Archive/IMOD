@@ -104,6 +104,7 @@ void ivwInit(ImodView *vi)
   vi->flippable = 1;
   vi->grayRGBs = 0;
   vi->reloadable = 0;
+  vi->colormapImage = 0;
   vi->undo = new UndoRedo(vi);
 }
 
@@ -1934,7 +1935,7 @@ static int ivwProcessImageList(ImodView *vi)
   ImodImageFile *image;
   Ilist *ilist = (Ilist *)vi->imageList;
   int xsize, ysize, zsize, i;
-  int rgbs = 0;
+  int rgbs = 0, cmaps = 0;
 
   if (!ilist->size)
     return -1;
@@ -1961,31 +1962,43 @@ static int ivwProcessImageList(ImodView *vi)
     if (!i || image->nz < zsize)
       zsize = image->nz;
 
-    /* Add to count if RGB or not, to see if all the same type */
+    /* Add to count if RGB or not, to see if all the same type.  Similarly
+       for colormap images */
     if (image->format == IIFORMAT_RGB && 
         !((image->file == IIFILE_MRC  || image->file == IIFILE_RAW) && 
           vi->grayRGBs))
       rgbs++;
+
+    if (image->format == IIFORMAT_COLORMAP)
+      cmaps++;
   }     
 
-  /* Deal with RGB files */
-  if (rgbs) {
-    if (rgbs < ilist->size) {
+  /* Deal with color files */
+  if (rgbs || cmaps) {
+    if ((rgbs && rgbs < ilist->size) || (cmaps && cmaps < ilist->size)) {
       imodError(NULL, "3DMOD Error: Only %d files out of %d are "
-              "RGB type and all files must be.\n", rgbs, ilist->size);
+                "%s type and all files must be.\n", rgbs ? rgbs : cmaps, 
+                ilist->size, rgbs ? "RGB" : "colormap");
       exit(3);
     }
                
     if (!App->rgba) {
       imodError(NULL, "3DMOD Error: You must not start 3dmod with "
-              "the -ci option to display RGB files.\n");
+                "the -ci option to display %s files.\n", 
+                rgbs ? "RGB" : "colormap");
       exit(3);
     }
         
-    /* Set the flag for storing raw images with the mode, and set rgba to 
-       indicate the number of bytes being stored */
-    App->rgba = 3;
-    vi->rawImageStore = MRC_MODE_RGB;
+    /* For RGB, set the flag for storing raw images with the mode, and set 
+       rgba to indicate the number of bytes being stored */
+    if (rgbs) {
+      App->rgba = 3;
+      vi->rawImageStore = MRC_MODE_RGB;
+    } else {
+      vi->colormapImage = 1;
+      vi->cramp->falsecolor = 2;
+      vi->li->axis = 3;
+    }
   }
 
   if (!vi->li->plist) {
@@ -2040,6 +2053,10 @@ static int ivwProcessImageList(ImodView *vi)
     iiReopen(vi->image);
     vi->ct = vi->nt = 0;
     vi->imageList = NULL;
+    if (cmaps) {
+      xcramp_copyfalsemap(&vi->image->colormap[768 * vi->li->zmin]);
+      xcramp_ramp(vi->cramp);
+    }
 
   } else {
 
@@ -2485,6 +2502,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.47  2006/07/30 20:22:13  mast
+Do not sync on redraw after changing overlay mode
+
 Revision 4.46  2006/07/05 04:17:37  mast
 Added independent color ramp and reverse contrast for overlay mode
 
