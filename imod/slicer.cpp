@@ -1246,7 +1246,7 @@ static void fillImageArray(SlicerStruct *ss)
     noDataVal = (unsigned char)minval;
   }
 
-  ksize = ss->nslice;
+  ksize = ss->vi->colormapImage ? 1 : ss->nslice;
   zoffset = (float)(ksize - 1) * 0.5;
 
   /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
@@ -1641,12 +1641,12 @@ static void fillImageArray(SlicerStruct *ss)
     /* DNM 1/9/03: deleted quadratic interpolation code, turned cubic code
        into a routine that can be used by tumbler */
     slicerCubicFillin(cidata, ss->winx, ss->winy, izoom, ilimshort, jlimshort,
-		      minval * ss->nslice, maxval * ss->nslice);
+		      minval * ksize, maxval * ksize);
   }
 
   // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
   cindex = ss->image->width * ss->image->height;
-  k = ss->nslice;
+  k = ksize;
 
   // Take FFT if flag is set
   if (ss->fftMode) {
@@ -2219,6 +2219,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.29  2006/06/24 16:03:52  mast
+Added arguments to call of FFT routine
+
 Revision 4.28  2005/03/08 15:49:36  mast
 Added FFT mode
 
