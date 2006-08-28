@@ -407,7 +407,7 @@ etomosrc :
 	mkdir -p $(ARCDIR)_src/Etomo/
 	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
 	Etomo/*MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
-	Etomo/scripts Etomo/doc $(ARCDIR)_src/Etomo
+	Etomo/scripts Etomo/doc Etomo/tests $(ARCDIR)_src/Etomo
 
 #
 # Tests
@@ -426,6 +426,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.58  2006/06/24 00:06:46  mast
+#  Added adp stuff to make src
+#
 #  Revision 3.57  2006/03/01 02:17:01  mast
 #  Add an ALWAYS
 #
