@@ -1,31 +1,13 @@
-/*  IMOD VERSION 2.50
- *
+/*  
  *  imod_display.c -- Open the display and setup visual and colormaps.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -276,6 +258,7 @@ static int rethink(ImodView *vw)
 int imodDraw(ImodView *vw, int flag)
 {
   int time, cx, cy, cz;
+  static int lastz = -1, lastTime = -1;
 
   /* 
    * IMOD_DRAW_IMAGE: image data or color map has changed; draw all images, 
@@ -293,9 +276,20 @@ int imodDraw(ImodView *vw, int flag)
     return 0;
   }
 
-  /* Check for black/white change on float */
+  /* Check for need to load colormap for colormapped images */
   ivwGetLocation(vw, &cx, &cy, &cz);
   ivwGetTime(vw, &time);
+  if (vw->colormapImage && (cz != lastz || time != lastTime)) {
+    if (vw->multiFileZ)
+      xcramp_copyfalsemap(vw->imageList[cz + vw->li->zmin].colormap);
+    else
+      xcramp_copyfalsemap(&vw->image->colormap[768 * (cz + vw->li->zmin)]);
+    xcramp_ramp(vw->cramp);
+    lastz = cz;
+    lastTime = time;
+  }
+
+  /* Check for black/white change on float */
   if (imod_info_bwfloat(vw, cz, time) && App->rgba)
     flag |= IMOD_DRAW_IMAGE;            // DO WE NEED NOSYNC?
 
@@ -538,6 +532,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.16  2004/11/02 20:14:46  mast
+Switch to get named colors from preferences for mapping
+
 Revision 4.15  2004/07/11 18:22:39  mast
 Do not set time when switching to contours with no time
 
