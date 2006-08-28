@@ -11,6 +11,13 @@ into an MRC stack.  The x and y dimensions of the stack
 are the x and y size of the first image.  
 tif2mrc can also convert a single multi-page tiff file to an MRC stack.
 .P
+Only grayscale and color image files are supported.
+Grayscale images must be 8 or 16 bit grayscale.
+Color images must be either 24 bit with pixels stored as 
+red-green-blue triplets, or 8-bit with an embedded colormap.  Colormapped 8-bit
+images will be converted to 24 bit RGB images, since this is the kind of 
+color MRC file that IMOD defines.
+.P
 Images need not all be the same size if they are 8-bit grayscale.
 Images that are larger will be clipped, and images that
 are smaller will be placed in one corner of the larger area with a gray border.
@@ -90,12 +97,7 @@ Jim Kremer and David Mastronarde
 .SH SEE ALSO
 tomrc(1), raw2mrc(1)
 .SH BUGS
-Only grayscale and color image files are supported; images with color palettes
-may not be read correctly.
-Grayscale images must be 8 or 16 bit grayscale.
-Color images must be 24 bit with pixels stored as 
-red-green-blue triplets.
 If a standard tiff library is not installed, images must be uncompressed and
-must consist of strips rather than tiles.
+must consist of strips rather than tiles, and colormap files cannot be read.
 
 Email bug reports to mast@colorado.edu.
