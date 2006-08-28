@@ -1,31 +1,14 @@
-/*  IMOD VERSION 2.50
- *
+/*
  *  imodv_image.c -- View image slice in model view control dialog.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
 
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 /*  $Author$
 
 $Date$
@@ -37,6 +20,7 @@ Log at end of file
 #include <qcheckbox.h>
 #include <qlayout.h>
 #include <qgl.h>
+#include <qslider.h>
 #include <qtooltip.h>
 #include "preferences.h"
 #include "multislider.h"
@@ -74,6 +58,8 @@ static int WhiteLevel = 255;
 static int Falsecolor = 0;
 static int ImageTrans = 0;
 static int cmapInit = 0;
+static int cmapZ = 0;
+static int cmapTime = 0;
 static int numSlices = 1;
 static int xDrawSize = -1;
 static int yDrawSize = -1;
@@ -176,8 +162,9 @@ static void mkcmap(void)
   int rampsize, cmapReverse = 0;
   float slope, point;
   int r,g,b,i;
-  int white = WhiteLevel;
-  int black = BlackLevel;
+  ImodvApp *a = Imodv;
+  int white = a->vi->colormapImage ? 255 : WhiteLevel;
+  int black = a->vi->colormapImage ? 0 : BlackLevel;
 
   /* DNM 10/26/03: kept it from reversing the actual levels by copying to
      separate variables; simplified reversal */
@@ -201,11 +188,11 @@ static void mkcmap(void)
     Cmap[0][i] = (unsigned char)point;
   }
      
-  if (cmapReverse){
+  if (cmapReverse && !a->vi->colormapImage){
     for(i = 0; i < 256; i++)
       Cmap[0][i] = 255 - Cmap[0][i];
   }
-  if (Falsecolor){
+  if (Falsecolor || a->vi->colormapImage){
     for(i = 0; i < 256; i++){
       xcramp_mapfalsecolor(Cmap[0][i], &r, &g, &b);
       Cmap[0][i] = (unsigned char)r;
@@ -335,7 +322,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   int i, mi, j, mj;
   int u, v;
   int ix, iy, iz, idir;
-  int imdataxsize, cacheSum;
+  int imdataxsize, cacheSum, curtime;
   unsigned char **imdata;
   bool flipped, invertX, invertY, invertZ;
   Imat *mat;
@@ -350,8 +337,14 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   if (!imodvImageData.flags) 
     return;
 
-  if (!cmapInit)
+  ivwGetLocation(a->vi, &cix, &ciy, &ciz);
+  ivwGetTime(a->vi, &curtime);
+  if (!cmapInit || (a->vi->colormapImage && 
+                    (ciz != cmapZ || curtime != cmapTime))) {
     mkcmap();
+    cmapTime = curtime;
+    cmapZ = ciz;
+  }
 
   if (xDrawSize < 0) {
     xDrawSize = mix;
@@ -359,7 +352,6 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     zDrawSize = miz;
   }
 
-  ivwGetLocation(a->vi, &cix, &ciy, &ciz);
 
   // Get data pointers if doing X or Y planes
   if (imodvImageData.flags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) {
@@ -371,6 +363,12 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
   // If doing multiple slices, need to find direction in which to do them
   invertX = invertY = invertZ = false;
+  if (a->vi->colormapImage && numSlices > 1) {
+    numSlices = 1;
+    if (imodvImageData.dia)
+      imodvImageData.dia->mSliders->setValue(IIS_SLICES, numSlices);
+  }
+
   if (numSlices > 1) {
     mat = imodMatNew(3);
     imodMatRot(mat, (double)a->imod->view->rot.z, b3dZ);
@@ -682,6 +680,13 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   connect(mFalseBox, SIGNAL(toggled(bool)), this, SLOT(falseToggled(bool)));
   QToolTip::add(mFalseBox, "Display image in false color");
 
+  if (Imodv->vi->colormapImage) {
+    mFalseBox->setEnabled(false);
+    mSliders->getSlider(IIS_SLICES)->setEnabled(false);
+    mSliders->getSlider(IIS_BLACK)->setEnabled(false);
+    mSliders->getSlider(IIS_WHITE)->setEnabled(false);
+  }
+
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 }
 
@@ -880,6 +885,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.14  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.13  2004/06/15 01:14:55  mast
 Added functions to allow transparency and number of slices to be varied
 during movie-making
