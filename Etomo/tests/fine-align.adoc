@@ -1,0 +1,17 @@
+Version = 1.2
+
+[function = run]
+bn.compute-alignment =
+waitfor.process = done
+tp.general.1 = 
+rb.full-solution =
+bn.compute-alignment =
+waitfor.process = done
+tp.general.0 =
+cb.enable-local-alignments =
+bn.compute-alignment =
+waitfor.process = done
+rb.neighboring-views =
+bn.compute-alignment =
+waitfor.process = done
+bn.done =

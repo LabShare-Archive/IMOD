@@ -1,0 +1,101 @@
+Version = 1.2
+
+[function = run]
+function = ui
+mb.tiltxcorr-open = 1
+bn.calculate-cross-correlation = 
+waitfor.process = done
+mb.tiltxcorr-advanced = 0
+mb.newstack-open = 1
+bn.generate-coarse-aligned-stack =
+waitfor.process = done
+mb.newstack-advanced = 0
+function = ui-changed
+bn.done =
+
+
+[function = ui]
+function = ui-tiltxcorr
+function = ui-newstack
+#misc ui
+assert.bn.view-aligned-stack-in-3dmod.enabled = 1
+assert.cb.fiducialless-alignment.enabled = 1
+assert.tf.tilt-axis-rotation = -12.5
+assert.tf.tilt-axis-rotation.enabled = 1
+assert.bn.fix-alignment-with-midas.enabled = 1
+adoc = tests.adoc
+function = buttons
+adoc = coarse-align.adoc
+
+
+[function = ui-changed]
+assert.bn.calculate-cross-correlation = 1
+assert.bn.generate-coarse-aligned-stack = 1
+
+
+[function = ui-tiltxcorr]
+mb.tiltxcorr-open = 1
+mb.tiltxcorr-advanced = 1
+assert.tf.low-frequency-rolloff-sigma = 0.03
+assert.tf.low-frequency-rolloff-sigma.enabled = 1
+assert.tf.high-frequency-cutoff-radius = 0.25
+assert.tf.high-frequency-cutoff-radius.enabled = 1
+assert.tf.high-frequency-rolloff-sigma = 0.05
+assert.tf.high-frequency-rolloff-sigma.enabled = 1
+assert.tf.pixels-to-trim = 
+assert.tf.pixels-to-trim.enabled = 1
+assert.tf.x-axis-min =
+assert.tf.x-axis-min.enabled = 1
+assert.tf.max =
+assert.tf.max.enabled = 1
+assert.tf.y-axis-min =
+assert.tf.y-axis-min.enabled = 1
+assert.tf.max.1 =
+assert.tf.max.1.enabled = 1
+assert.tf.pixels-to-pad = 
+assert.tf.pixels-to-pad.enabled = 1
+assert.tf.pixels-to-taper =
+assert.tf.pixels-to-taper.enabled = 1
+assert.cb.cumulative-correlation =
+assert.cb.cumulative-correlation.enabled = 1
+assert.cb.absolute-cosine-stretch =
+assert.cb.absolute-cosine-stretch.enabled = 0
+assert.cb.no-cosine-stretch = 
+assert.cb.no-cosine-stretch.enabled = 1
+assert.cb.exclude-central-peak-due-to-fixed-pattern-noise =
+assert.cb.exclude-central-peak-due-to-fixed-pattern-noise.enabled = 1
+assert.tf.test-output = 
+assert.tf.test-output.enabled = 1
+assert.tf.view-range =
+assert.tf.view-range.enabled = 1
+assert.bn.calculate-cross-correlation.enabled = 1
+#enabled/disable
+#enabling/disabling Absolute cosine stretch
+cb.cumulative-correlation = 1
+assert.cb.absolute-cosine-stretch.enabled = 1
+cb.no-cosine-stretch = 1
+assert.cb.absolute-cosine-stretch.enabled = 0
+#unchecking Absolute cosine stretch when it is disabled
+cb.no-cosine-stretch = 0
+cb.absolute-cosine-stretch = 1
+assert.cb.absolute-cosine-stretch = 1
+cb.no-cosine-stretch = 1
+assert.cb.absolute-cosine-stretch = 0
+cb.cumulative-correlation = 0
+cb.no-cosine-stretch = 0
+#basic
+mb.tiltxcorr-advanced = 0
+assert.bn.calculate-cross-correlation.enabled = 1
+
+[function = ui-newstack]
+mb.newstack-open = 1
+mb.newstack-advanced = 1
+assert.sp.coarse-aligned-image-stack-binning = 1
+assert.sp.coarse-aligned-image-stack-binning.enabled = 1
+assert.cb.convert-to-bytes = 1
+assert.cb.convert-to-bytes.enabled = 1
+assert.cb.float-intensities-to-mean = 1
+assert.cb.float-intensities-to-mean.enabled = 1
+assert.bn.generate-coarse-aligned-stack.enabled = 1
+mb.newstack-advanced = 0
+assert.bn.generate-coarse-aligned-stack.enabled = 1

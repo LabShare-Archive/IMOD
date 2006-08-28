@@ -1,0 +1,30 @@
+Version = 1.2
+filedir = /home4/sueh/current data/uitest_source
+
+[Test = dual]
+#datafile = BB.edf
+#datasetdir.keep = dual
+dataset = BB
+adoc.a = testa.adoc
+adoc.b = testb.adoc
+filedir = BB
+copy = BBa.st
+copy = BBb.st
+set.pixel-size = 2.02
+set.fiducial-diameter = 10
+set.image-rotation = -12.5
+set.sample-tomogram-thickness = 200
+set.z-axis-min = 5
+set.z-axis-max = 70
+
+[Test = single]
+#datafile = BBa.edf
+#datasetdir.keep = single
+dataset = BBa
+adoc = test.adoc
+filedir = BB
+copy = BBa.st
+set.pixel-size = 2.02
+set.fiducial-diameter = 10
+set.image-rotation = -12.5
+set.sample-tomogram-thickness = 200

@@ -1,0 +1,46 @@
+Version = 1.2
+
+[function = run-dual]
+function = ui
+function = run
+
+[function = run]
+mb.beadtracker-open = 1
+bn.track-fiducial-seed-model =
+waitfor.process = done
+bn.use-fiducial-model-as-seed = 
+bn.track-fiducial-seed-model =
+waitfor.process = done
+bn.use-fiducial-model-as-seed = 
+bn.track-fiducial-seed-model =
+waitfor.process = done
+bn.done =
+
+
+[function = ui]
+function = ui-transfer-fiducials
+
+[function = ui-transfer-fiducials]
+mb.transfer-fiducials-open = 1
+mb.transfer-fiducials-advanced = 1
+assert.cb.run-midas.enabled = 0
+assert.tf.center-view-a = 
+assert.tf.center-view-a.enabled = 0
+assert.tf.center-view-b = 
+assert.tf.center-view-b.enabled = 0
+assert.tf.number-of-views-in-the-search = 5
+assert.tf.number-of-views-in-the-search.enabled =
+assert.rb.both-directions = 1
+assert.rb.both-directions.enabled = 0
+assert.rb.+90-only = 0
+assert.rb.+90-only.enabled = 0
+assert.rb.-90-only = 0
+assert.rb.-90-only.enabled = 0
+assert.cb.mirror-one-image-around-the-x-axis = 0
+assert.cb.mirror-one-image-around-the-x-axis.enabled = 0
+assert.bn.transfer-fiducials-from-other-axis = 0
+assert.bn.transfer-fiducials-from-other-axis.enabled = 0
+mb.transfer-fiducials-advanced = 0
+assert.cb.run-midas.enabled = 0
+assert.bn.transfer-fiducials-from-other-axis = 0
+assert.bn.transfer-fiducials-from-other-axis.enabled = 0

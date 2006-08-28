@@ -1,0 +1,16 @@
+Version = 1.2
+
+[function = run]
+mb.newstack-open = 1
+bn.create-full-aligned-stack =
+waitfor.process = done
+mb.newstack-open = 0
+mb.2d-filtering-open = 1
+bn.filter =
+waitfor.process = done
+bn.use-filtered-stack =
+mb.2d-filtering-open = 0
+mb.parallel-processing-open = 1
+mb.parallel-processing-more = 1
+bn.generate-tomogram =
+waitfor.process = done

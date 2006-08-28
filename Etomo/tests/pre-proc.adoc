@@ -1,0 +1,110 @@
+Version = 1.2
+
+[function = run]
+function = ui
+bn.find-x-rays =
+waitfor.process = done
+function = fail
+bn.create-fixed-stack =
+waitfor.process = done
+bn.use-fixed-stack = 
+function = ui-changed
+bn.done =
+
+
+[function = fail]
+bn.use-fixed-stack =
+waitfor.popup.missing-erased-stack =
+
+
+[function = ui]
+function = ui-ccd-eraser
+function = ui-manual-pixel-region-replacement
+adoc = tests.adoc
+function = buttons
+adoc = pre-proc.adoc
+
+
+[function = ui-changed]
+assert.bn.find-x-rays = 1
+assert.bn.create-fixed-stack = 1
+assert.bn.use-fixed-stack = 1
+
+
+[function = ui-ccd-eraser]
+bn.advanced =
+assert.tf.peak-criterion = 10.
+assert.tf.peak-criterion.enabled = 1
+assert.tf.difference-criterion = 8.
+assert.tf.difference-criterion.enabled = 1
+assert.cb.automatic-x-ray-replacement = 1
+assert.cb.automatic-x-ray-replacement.enabled = 1
+assert.tf.grow-criterion = 4.
+assert.tf.grow-criterion.enabled = 1
+assert.tf.edge-exclusion = 4
+assert.tf.edge-exclusion.enabled = 1
+assert.tf.maximum-radius = 2.1
+assert.tf.maximum-radius.enabled = 1
+assert.tf.annulus-width = 2.0
+assert.tf.annulus-width.enabled = 1
+assert.tf.xy-scan-size = 100
+assert.tf.xy-scan-size.enabled = 1
+assert.tf.scan-criterion = 3.
+assert.tf.scan-criterion.enabled = 1
+assert.bn.find-x-rays = 0
+assert.bn.find-x-rays.enabled = 1
+assert.bn.view-x-ray-model = 0
+assert.bn.view-x-ray-model.enabled = 1
+assert.tf.input-file = %{dataset}%{axis}.st
+assert.tf.input-file.enabled = 1
+assert.tf.output-file = %{dataset}%{axis}_fixed.st
+assert.tf.output-file.enabled = 1
+assert.tf.border-pixels = 2
+assert.tf.border-pixels.enabled = 1
+assert.tf.polynomial-order = 2
+assert.tf.polynomial-order.enabled = 1
+assert.cb.include-adjacent-points = 1
+assert.cb.include-adjacent-points.enabled = 1
+assert.bn.create-fixed-stack = 0
+assert.bn.create-fixed-stack.enabled = 1
+assert.bn.view-fixed-stack = 0
+assert.bn.view-fixed-stack.enabled = 1
+assert.bn.use-fixed-stack = 0
+assert.bn.use-fixed-stack.enabled = 1
+#enable/disable
+cb.automatic-x-ray-replacement = 0
+assert.tf.peak-criterion.enabled = 0
+assert.tf.difference-criterion.enabled = 0
+assert.tf.grow-criterion.enabled = 0
+assert.tf.edge-exclusion.enabled = 0
+assert.tf.maximum-radius.enabled = 0
+assert.tf.annulus-width.enabled = 0
+assert.tf.xy-scan-size.enabled = 0
+assert.tf.scan-criterion.enabled = 0
+assert.bn.find-x-rays.enabled = 0
+assert.bn.view-x-ray-model.enabled = 0
+cb.automatic-x-ray-replacement = 1
+bn.basic =
+assert.tf.peak-criterion.enabled = 1
+assert.tf.difference-criterion.enabled = 1
+assert.tf.maximum-radius.enabled = 1
+assert.bn.create-fixed-stack.enabled = 1
+assert.bn.view-fixed-stack.enabled = 1
+assert.bn.use-fixed-stack.enabled = 1
+
+[function = ui-manual-pixel-region-replacement]
+bn.advanced =
+assert.cb.manual-replacement =
+assert.cb.manual-replacement.enabled = 1
+assert.tf.all-section-replacement-list =
+assert.tf.all-section-replacement-list.enabled =
+assert.tf.line-replacement-list = 
+assert.tf.line-replacement-list.enabled = 
+assert.bn.create-manual-replacement-model.enabled =
+#enable/disable
+cb.manual-replacement = 1
+assert.tf.all-section-replacement-list.enabled = 1
+assert.tf.line-replacement-list.enabled = 1
+assert.bn.create-manual-replacement-model.enabled = 1
+cb.manual-replacement = 0
+bn.basic =

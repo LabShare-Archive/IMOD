@@ -1,0 +1,12 @@
+Version = 1.2
+
+[function = run]
+mb.parallel-processing-open = 0
+tf.z-axis-min = %{z-axis-min}
+tf.z-axis-max = %{z-axis-max}
+bn.create-combine-scripts =
+waitfor.process = done
+bn.start-combine =
+waitfor.process = done
+sleep = 
+bn.done =

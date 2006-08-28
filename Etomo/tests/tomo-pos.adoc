@@ -1,0 +1,13 @@
+Version = 1.2
+
+[function = run]
+copy = %{dataset}%{axis}.fid
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+bn.create-sample-tomograms =
+waitfor.process = done
+copy = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process = done
+bn.create-final-alignment =
+waitfor.process = done
+bn.done =

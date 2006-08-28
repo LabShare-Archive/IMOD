@@ -1,0 +1,7 @@
+Version = 1.2
+
+[function = buttons]
+assert.bn.cancel.enabled = 1
+assert.bn.postpone.enabled = 1
+assert.bn.done.enabled = 1
+assert.bn.advanced.enabled = 1
