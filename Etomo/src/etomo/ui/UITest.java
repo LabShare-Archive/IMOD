@@ -59,8 +59,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   private UITestAxis axisAUITest = null;
   private UITestAxis axisBUITest = null;
   private long duration = 15 * 60;
-  private File currentSourceDir = null;
-  private File autodocSourceDir = null;
+  private File baseFileDir = TEST_REPOSITORY;
+  private File currentFileDir = baseFileDir;
   private AxisID axisIDA = null;
   private AxisID axisIDB = null;
   private String dataFileName = null;
@@ -122,18 +122,15 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         if (action == UITestAction.SLEEP) {
           setSleep(command);
         }
-        else if (action == UITestAction.SOURCE) {
-          autodocSourceDir = getRelativeDir(command, TEST_REPOSITORY, false);
+        else if (action == UITestAction.FILE_DIR) {
+          baseFileDir = getAbsoluteDir(command, false);
+          currentFileDir = baseFileDir;
         }
         else if (action == UITestAction.TEST_DIR) {
           testDir = getRelativeDir(command, JfcUnitTests.TEST_ROOT_DIR, true);
         }
       }
       command = (UITestCommand) reader.nextCommand(command, factory);
-    }
-    //set default directories
-    if (autodocSourceDir == null) {
-      autodocSourceDir = TEST_REPOSITORY;
     }
     if (testDir == null) {
       JfcUnitTests.TEST_ROOT_DIR.mkdirs();
@@ -264,9 +261,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         else if (action == UITestAction.DURATION) {
           setDuration(command);
         }
-        else if (action == UITestAction.SOURCE) {
-          //Get a source directory relative to the test repository
-          currentSourceDir = getRelativeDir(command, TEST_REPOSITORY, false);
+        else if (action == UITestAction.FILE_DIR) {
+          //Get a file directory relative to the base file dir
+          currentFileDir = getRelativeDir(command, baseFileDir, false);
         }
         else if (action == UITestAction.SET) {
           setVariable(command);
@@ -281,16 +278,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
   }
 
-  File getCurrentSourceDir() {
-    return currentSourceDir;
-  }
-
   long getDuration() {
     return duration;
-  }
-
-  File getAutodocSourceDir() {
-    return autodocSourceDir;
   }
 
   /**
@@ -390,7 +379,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     String fileName = command.getValue();
     assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
         + command, fileName);
-    File file = new File(currentSourceDir, fileName);
+    File file = new File(currentFileDir, fileName);
     if (!file.exists() || file.isDirectory()) {
       throw new IllegalStateException("bad dataset file: "
           + file.getAbsolutePath());
@@ -426,7 +415,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         return;
       }
       axisIDB = axisID;
-      autodocB = Autodoc.getUITestAxisInstance_test(autodocSourceDir, value,
+      autodocB = Autodoc.getUITestAxisInstance_test(TEST_REPOSITORY, value,
           AxisID.ONLY);
       return;
     }
@@ -434,7 +423,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       return;
     }
     axisIDA = axisID;
-    autodocA = Autodoc.getUITestAxisInstance_test(autodocSourceDir, value,
+    autodocA = Autodoc.getUITestAxisInstance_test(TEST_REPOSITORY, value,
         AxisID.ONLY);
   }
 
@@ -477,6 +466,21 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     String dirName = command.getValue();
     boolean keep = command.isKeep();
     setDatasetDir(dirName, keep);
+  }
+  
+  private File getAbsoluteDir(AdocCommand command,
+      boolean makeDirs) {
+    //Get the directory name
+    String dirName = command.getValue();
+    assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
+        + command, dirName);
+    //make the directories
+    File dir = new File(dirName);
+    assertTrue(reader.getInfo(), dir.isAbsolute());
+    if (makeDirs && !dir.exists()) {
+      dir.mkdirs();
+    }
+    return dir;
   }
 
   /**
@@ -609,6 +613,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/06/30 16:29:54  sueh
+ * <p> bug# 883 Added EnvironmentVariable, a class to get and store environment
+ * <p> variables.
+ * <p>
  * <p> Revision 1.16  2006/06/14 00:41:33  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.

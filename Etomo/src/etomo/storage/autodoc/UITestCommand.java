@@ -38,7 +38,7 @@ public final class UITestCommand implements AdocCommand {
     //get the value
     value = pair.getValue();
     //ignore unknown commands
-    if (action == UITestAction.SLEEP || action == UITestAction.SOURCE
+    if (action == UITestAction.SLEEP || action == UITestAction.FILE_DIR
         || action == UITestAction.TEST_DIR) {
       known = true;
     }
@@ -85,6 +85,10 @@ public final class UITestCommand implements AdocCommand {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/08/08 18:17:20  sueh
+* <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
+* <p> isSecondaryAutodoc().
+* <p>
 * <p> Revision 1.1  2006/06/14 00:34:42  sueh
 * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
 * <p> attributes specific to a type of autdoc.
