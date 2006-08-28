@@ -184,6 +184,7 @@ typedef struct ViewInfo
                            * 0  = unsigned bytes.
                            * 16 = color rgb unsigned byte triplets.
                            */
+  int     colormapImage;  /* Flag that byte images with colormaps are loaded */
   int     grayRGBs;       /* Flag to load MRC RGBs as gray scale */
   int     multiFileZ;     /* Flag that multiple single-image files are sections
                              in Z (if > 0) or to be treated as times (< 0) */
@@ -264,6 +265,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.34  2006/07/05 04:16:32  mast
+More members for overlay mode
+
 Revision 3.33  2006/07/03 04:14:21  mast
 Changes for beadfixer overlay mode
 
