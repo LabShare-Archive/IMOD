@@ -1281,7 +1281,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     }
     break;
   case Qt::Key_F12:
-    xcramp_falsecolor(vw->cramp, !(vw->cramp->falsecolor));
+    if (vw->cramp->falsecolor < 2)
+      xcramp_falsecolor(vw->cramp, 1 - vw->cramp->falsecolor);
     if (App->rgba){
       imodDraw(App->cvi, IMOD_DRAW_IMAGE);
     }
@@ -1342,6 +1343,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.25  2006/02/27 19:47:11  mast
+Moved go to surface function here from imod_cont_edit.cpp
+
 Revision 4.24  2005/03/20 19:55:36  mast
 Eliminating duplicate functions
 
