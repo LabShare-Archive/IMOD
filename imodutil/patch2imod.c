@@ -13,28 +13,7 @@ $Date$
 
 $Revision$
 
-$Log$
-Revision 3.7  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.6  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2004/04/28 05:29:31  mast
-Set flag to draw current contour thicker
-
-Revision 3.4  2003/10/24 03:05:24  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.3  2002/12/23 21:32:55  mast
-Fixed exit status and made residual model have end-markers set
-
-Revision 3.2  2002/07/27 23:50:47  mast
-Eliminated line for test output
-
-Revision 3.1  2002/07/27 06:00:43  mast
-Added ability to convert a residual listing from Tiltalign
-
+Log at end
 */
 
 #include <stdio.h>
@@ -43,7 +22,6 @@ Added ability to convert a residual listing from Tiltalign
 #include "imodel.h"
 
 
-static int fgetline(FILE *fp, char s[],int limit);
 struct Mod_Model *imod_from_patches(FILE *fin, float scale);
 
 int main( int argc, char *argv[])
@@ -223,40 +201,30 @@ struct Mod_Model *imod_from_patches(FILE *fin, float scale)
      
 }
 
-static int fgetline(FILE *fp, char s[],int limit)
-{
-  int c, i, length;
+/*
+$Log$
+Revision 3.8  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
 
-  if (fp == NULL){
-    fprintf(stderr, "fgetline: file pointer not valid\n");
-    return(0);
-  }
+Revision 3.7  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
 
-  if (limit < 3){
-    fprintf(stderr, "fgetline: limit (%d) > 2,\n", limit);
-    return(0);
-  }
-     
-  for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
-    s[i]=c;
-     
-  if (i == 1){
-    if (c == EOF){
-      return(0);
-    }
-    if (c == '\n'){
-      s[++i] = '\0';
-      return(1);
-    }
-  }
-               
+Revision 3.6  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
 
-  s[i]='\0';
-  length = i;
+Revision 3.5  2004/04/28 05:29:31  mast
+Set flag to draw current contour thicker
 
-  if (c == EOF)
-    return (-1 * length);
-  else
-    return (length);
-}
+Revision 3.4  2003/10/24 03:05:24  mast
+open as binary, strip program name and/or use routine for backup file
 
+Revision 3.3  2002/12/23 21:32:55  mast
+Fixed exit status and made residual model have end-markers set
+
+Revision 3.2  2002/07/27 23:50:47  mast
+Eliminated line for test output
+
+Revision 3.1  2002/07/27 06:00:43  mast
+Added ability to convert a residual listing from Tiltalign
+
+*/
