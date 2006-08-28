@@ -18,8 +18,6 @@ float Xscale = 1.0;
 float Yscale = 1.0;
 float Zscale = 1.0;
 
-static int fgetline(FILE *fp, char s[],int limit);
-
 int main( int argc, char *argv[])
 {
 
@@ -270,41 +268,4 @@ struct Mod_Model *imod_from_wmod(FILE *fin)
 
   return(mod);
      
-}
-
-static int fgetline(FILE *fp, char s[],int limit)
-{
-  int c, i, length;
-
-  if (fp == NULL){
-    fprintf(stderr, "fgetline: file pointer not valid\n");
-    return(0);
-  }
-
-  if (limit < 3){
-    fprintf(stderr, "fgetline: limit (%d) > 2,\n", limit);
-    return(0);
-  }
-     
-  for (i=0; ( ((c = getc(fp)) != EOF) && (i < (limit-1)) && (c != '\n') ); i++)
-    s[i]=c;
-     
-  if (i == 1){
-    if (c == EOF){
-      return(0);
-    }
-    if (c == '\n'){
-      s[++i] = '\0';
-      return(1);
-    }
-  }
-           
-
-  s[i]='\0';
-  length = i;
-
-  if (c == EOF)
-    return (-1 * length);
-  else
-    return (length);
 }
