@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2006/08/18 23:25:44  sueh
+ * <p> bug# 852 clickCheckBox:  remove assert that prevents cb. from having a value
+ * <p>
  * <p> Revision 1.6  2006/08/08 18:20:15  sueh
  * <p> bug# 852 Changing the Dialog adoc command to mean the function
  * <p> location.  Added the function command, to run a function section.
@@ -144,7 +147,7 @@ final class UITestAxis implements AdocCommandFactory {
     reader = new AdocCommandReader(autodoc,
         UITestAxisDialogCommand.SECTION_TYPE);
     reader.setAxisID(axisID);
-    reader.setFunctionLocationSourceDir(testCase.getAutodocSourceDir());
+    reader.setFunctionLocationSourceDir(UITest.TEST_REPOSITORY);
   }
 
   boolean isDone() {
@@ -972,6 +975,9 @@ private void testAssert(UITestAxisDialogCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/08/18 23:25:44  sueh
+ * <p> bug# 852 clickCheckBox:  remove assert that prevents cb. from having a value
+ * <p>
  * <p> Revision 1.6  2006/08/08 18:20:15  sueh
  * <p> bug# 852 Changing the Dialog adoc command to mean the function
  * <p> location.  Added the function command, to run a function section.

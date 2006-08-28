@@ -77,7 +77,7 @@ public final class UITestTestCommand implements AdocCommand {
         || action == UITestAction.DATA_FILE || action == UITestAction.DATASET
         || action == UITestAction.DATASET_DIR
         || action == UITestAction.DURATION || action == UITestAction.SET
-        || action == UITestAction.SOURCE) {
+        || action == UITestAction.FILE_DIR) {
       known = true;
     }
     else {
@@ -159,6 +159,10 @@ public final class UITestTestCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/08/08 18:17:38  sueh
+ * <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
+ * <p> isSecondaryAutodoc().
+ * <p>
  * <p> Revision 1.1  2006/06/14 00:34:53  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.

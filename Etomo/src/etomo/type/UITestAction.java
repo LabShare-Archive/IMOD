@@ -23,10 +23,10 @@ public final class UITestAction {
   private static final String DATASET_STRING = "dataset";
   private static final String DATASET_DIR_STRING = "datasetdir";
   private static final String DURATION_STRING = "duration";
+  private static final String FILE_DIR_STRING = "filedir";
   private static final String FUNCTION_STRING = "function";
   private static final String SET_STRING = "set";
   private static final String SLEEP_STRING = "sleep";
-  private static final String SOURCE_STRING = "source";
   private static final String STOP_STRING = "stop";
   private static final String TEST_DIR_STRING = "testdir";
   private static final String TEST_FROM_STRING = "testfrom";
@@ -40,10 +40,10 @@ public final class UITestAction {
   public static final UITestAction DATASET = new UITestAction(DATASET_STRING);
   public static final UITestAction DATASET_DIR = new UITestAction(DATASET_DIR_STRING);
   public static final UITestAction DURATION = new UITestAction(DURATION_STRING);
+  public static final UITestAction FILE_DIR = new UITestAction(FILE_DIR_STRING);
   public static final UITestAction FUNCTION = new UITestAction(FUNCTION_STRING);
   public static final UITestAction SET = new UITestAction(SET_STRING);
   public static final UITestAction SLEEP = new UITestAction(SLEEP_STRING);
-  public static final UITestAction SOURCE = new UITestAction(SOURCE_STRING);
   public static final UITestAction STOP = new UITestAction(STOP_STRING);
   public static final UITestAction TEST_DIR = new UITestAction(TEST_DIR_STRING);
   public static final UITestAction TEST_FROM = new UITestAction(TEST_FROM_STRING);
@@ -82,6 +82,9 @@ public final class UITestAction {
     if (action.equals(DURATION_STRING)) {
       return DURATION;
     }
+    if (action.equals(FILE_DIR_STRING)) {
+      return FILE_DIR;
+    }
     if (action.equals(FUNCTION_STRING)) {
       return FUNCTION;
     }
@@ -90,9 +93,6 @@ public final class UITestAction {
     }
     if (action.equals(SLEEP_STRING)) {
       return SLEEP;
-    }
-    if (action.equals(SOURCE_STRING)) {
-      return SOURCE;
     }
     if (action.equals(STOP_STRING)) {
       return STOP;
@@ -114,6 +114,9 @@ public final class UITestAction {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2006/06/27 22:35:16  sueh
+* <p> bug# 852 Added FUNCTION.
+* <p>
 * <p> Revision 1.4  2006/06/14 00:35:32  sueh
 * <p> bug# 852 Removed PROCESS, it is not an action.
 * <p>
