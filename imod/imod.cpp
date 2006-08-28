@@ -119,6 +119,7 @@ void imod_usage(char *name)
   qstr += "         -G    Display RGB-mode MRC file in gray-scale.\n";
   qstr += "         -M    Do not mirror FFT data around Y axis.\n";
   qstr += "         -ci   Display images in color index mode with colormap.\n";
+  qstr += "         -cm <file name>  Load custom false color table.\n";
   qstr += "         -E <keys>  Open windows specified by key letters.\n";
   qstr += "         -h    Print this help message.\n";
   imodPrintInfo(qstr.latin1());
@@ -327,6 +328,12 @@ int main( int argc, char *argv[])
           if (argv[i][2] == 'i')
             break;
           /* 1/5/04: eliminated colormap selection option */
+          if (argv[i][2] == 'm') {
+            if (xcramp_readfalsemap(argv[++i])) {
+              qname = b3dGetError();
+              imodError(NULL, qname.latin1());
+            }
+          }
           break;
         
         case 'C':
@@ -1073,6 +1080,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.57  2006/08/16 23:48:15  mast
+Added loading time debug output
+
 Revision 4.56  2006/07/03 19:51:51  mast
 Request a disconnect of the message handler on exit
 
