@@ -1,33 +1,13 @@
-/*****************************************************************************
- *                                                                           *
- *   FILE: xcramp.cpp                                                        *
- *                                                                           *
- *   PURPOSE: color map control for Qt, rgb and color index  mode            *
- *                                                                           *
- *   HISTORY:                                                                *
- *       Version 1.0  James Kremer                                           *
- *       Version 1.1  David Mastronarde  mast@colorado.edu                   *
- *                                                                           *
- *****************************************************************************
- *   Copyright (C) 1994-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
+/*
+ *  xcramp.c -- color map control for Qt, rgb and color index  mode
+ *
+ *  Original author: James Kremer
+ *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ */
 /*  $Author$
 
     $Date$
@@ -35,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2004/09/10 02:31:03  mast
+    replaced long with int
+
     Revision 4.1  2003/02/10 20:29:02  mast
     autox.cpp
 
@@ -54,7 +37,7 @@
 #include <stdio.h>
 #include <qglcolormap.h>
 #include "xcramp.h"
-
+#include "b3dutil.h"
 
 Cramp *xcramp_allinit(int depth, QGLColormap *qCmapPtr,  int low,  int high)
 {
@@ -186,6 +169,7 @@ void xcramp_setlevels(Cramp *xcramp, int black, int white)
   return;
 }
 
+/* Make the color ramp for current parameters */
 int xcramp_ramp(Cramp *cr)
 {
   int  i, ival, val;
@@ -198,43 +182,54 @@ int xcramp_ramp(Cramp *cr)
   QRgb rgbtab[256];
   unsigned short cmap[256];
 
-  if (!cr) return -1;
-  /* Keep input variables in bounds. */
-  if (cr->blacklevel > cr->whitelevel)
-    cr->blacklevel = cr->whitelevel;
-  if (cr->whitelevel < cr->blacklevel)
-    cr->whitelevel = cr->blacklevel;
-  if (cr->blacklevel < minlevel)
-    cr->blacklevel = minlevel;
-  if (cr->whitelevel > maxlevel)
-    cr->whitelevel = maxlevel;
-     
-  /* write out saturated values to cmap. */
-  for (i = 0; i < cr->blacklevel; i++)
-    cmap[i] = 0;
-  for (i = cr->whitelevel; i < 256; i++)
-    cmap[i] = 255;
+  if (!cr) 
+    return -1;
 
-  /* calculate rampsize and slope */
-  rampsize = cr->whitelevel - cr->blacklevel;
-  if (rampsize < 1)
-    rampsize = 1;
-  slope = 256.0 / (float)rampsize;
+  if (cr->falsecolor < 2) {
 
-  /* Make the ramp. */
-  for (i = cr->blacklevel; i < cr->whitelevel; i++){
-    point = (float)(i - cr->blacklevel) * slope;
-    cmap[i] = point;
-  }
+    /* Keep input variables in bounds. */
+    if (cr->blacklevel > cr->whitelevel)
+      cr->blacklevel = cr->whitelevel;
+    if (cr->whitelevel < cr->blacklevel)
+      cr->whitelevel = cr->blacklevel;
+    if (cr->blacklevel < minlevel)
+      cr->blacklevel = minlevel;
+    if (cr->whitelevel > maxlevel)
+      cr->whitelevel = maxlevel;
      
-  /* reverse the color ramp (DNM simplified) */
-  if (cr->reverse)
+    /* write out saturated values to cmap. */
+    for (i = 0; i < cr->blacklevel; i++)
+      cmap[i] = 0;
+    for (i = cr->whitelevel; i < 256; i++)
+      cmap[i] = 255;
+
+    /* calculate rampsize and slope */
+    rampsize = cr->whitelevel - cr->blacklevel;
+    if (rampsize < 1)
+      rampsize = 1;
+    slope = 256.0 / (float)rampsize;
+
+    /* Make the ramp. */
+    for (i = cr->blacklevel; i < cr->whitelevel; i++){
+      point = (float)(i - cr->blacklevel) * slope;
+      cmap[i] = point;
+    }
+     
+    /* reverse the color ramp (DNM simplified) */
+    if (cr->reverse)
+      for(i = 0; i < 256; i++)
+        cmap[i] = 255 - cmap[i];
+     
+    /* Write to color map */
+    if (cr->scale <= 0.0)
+      return(-1);
+
+  } else {
+
+    /* Simple ramp for colormap mode, ignoring all other parameters */
     for(i = 0; i < 256; i++)
-      cmap[i] = 255 - cmap[i];
-     
-  /* Write to color map */
-  if (cr->scale <= 0.0)
-    return(-1);
+      cmap[i] = i;
+  }
 
   /* DNM: for TrueColor, look up the appropriate pixel values and stick in
      the ramp array, conditional on machine type */
@@ -255,6 +250,7 @@ int xcramp_ramp(Cramp *cr)
       break;
           
     case 1:  /* color ramp */
+    case 2:  /* colormap ramp */
       for (ival = 0; ival < 256; ival++) {
         xcramp_mapfalsecolor( cmap[ival], &red, &green, &blue);
         ramppt = (unsigned char *)&(cr->ramp[ival]);
@@ -299,82 +295,44 @@ int xcramp_ramp(Cramp *cr)
   return(0);
 }
 
-static int ImodvRampData[] =
-  { 
-    15,
-    255,    0,  255,  -616,
-    179,    0,  255,  -569,
-    120,   40,  255,  -528,
-    60,   96,  255,  -469,
-    0,  175,  177,  -400,
-    0,  191,  143,  -383,
-    0,  207,   78,  -361,
-    90,  255,   60,  -305,
-    191,  255,    0,  -259,
-    239,  255,    0,  -240,
-    255,  255,    0,  -229,
-    255,  175,    0,  -162,
-    255,  105,    0,   -83,
-    255,   45,   55,   -20,
-    255,    0,   90,    0,
-  };
+// The false color map is now a file-level static so that it can be switched
+// with external calls.
 
-static int load_cmap(unsigned char table[3][256], int *rampData)
-{
-
-  FILE *fin;
-  char line[256];
-  int nline;
-  int *inramp;
-  int i,l;
-  float tabscl,terpfc,tabpos;
-  int indtab;
-  nline = *rampData;
-  rampData++;
-  inramp = (int *)malloc(sizeof(int) * nline * 4);
-
-  for(i = 0, l = 0; i < nline; i++, l+=4){
-    inramp[l] = *rampData; rampData++;
-    inramp[l+1] = *rampData; rampData++;
-    inramp[l+2] = *rampData; rampData++;
-    inramp[l+3] = *rampData; rampData++;
-  }
-
-  tabscl = (inramp[(nline * 4) - 1] - inramp[3])/255.0;
-  indtab = 0;
-  for(i = 0; i < 256; i++){
-    tabpos = i * tabscl + inramp[3];
-    if (tabpos > inramp[((indtab+1) * 4) + 3]){
-      indtab++;
-      if (indtab > nline - 2)
-        indtab--;
-    }
-
-    terpfc = (tabpos - inramp[(indtab * 4) + 3])/
-      (inramp[((indtab+1) * 4) + 3] - inramp[(indtab * 4) + 3]);
-
-    table[0][i] = (1 - terpfc) * inramp[(indtab * 4)] +
-      terpfc * inramp [((indtab+1) * 4)];
-    table[1][i] = (1 - terpfc) * inramp[(indtab * 4) + 1] +
-      terpfc * inramp [((indtab+1) * 4) + 1];
-    table[2][i] = (1 - terpfc) * inramp[(indtab * 4) + 2] +
-      terpfc * inramp [((indtab+1) * 4) + 2];
-
-  }
-  return(0);
-}
+static unsigned char cmap[3][256];
+static int cmapMade = 0;
 
 void xcramp_mapfalsecolor(int gray, int *red, int *green, int *blue)
 {
-  static unsigned char cmap[3][256];
-  static int first = 1;
+  int *rampData;
 
-  if (first){
-    load_cmap(cmap, ImodvRampData);
-    first = 0;
+  if (!cmapMade){
+    rampData = cmapStandardRamp();
+    cmapConvertRamp(rampData, cmap);
+    cmapMade = 1;
   }
 
   *red = cmap[0][gray];
   *green = cmap[1][gray];
   *blue = cmap[2][gray];
+}
+
+int xcramp_readfalsemap(char *filename)
+{
+  int err;
+  err = cmapReadConvert(filename, cmap);
+  if (!err)
+    cmapMade = 1;
+  return err;
+}
+
+void xcramp_copyfalsemap(unsigned char *inmap)
+{
+  memcpy(cmap, inmap, 3 * 256);
+  cmapMade = 1;
+}
+
+void xcramp_restorefalsemap()
+{
+  int *rampData = cmapStandardRamp();
+  cmapConvertRamp(rampData, cmap);
 }
