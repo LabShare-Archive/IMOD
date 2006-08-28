@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2006/06/19 19:29:16  mast
+    Added ability to write unsigned ints from mode 6
+
     Revision 3.4  2005/02/11 01:42:34  mast
     Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -317,6 +320,8 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
         (tiff->iifile->mode == MRC_MODE_SHORT) ? 16 : 8;
       tiff->PhotometricInterpretation = 
         (tiff->iifile->mode == MRC_MODE_RGB) ? 2 : 1;
+      if (tiff->iifile->format == IIFORMAT_COLORMAP) 
+        tiff->PhotometricInterpretation = 3;
 
       tiff->directory[WIDTHINDEX].value = tiff->iifile->nx;
       tiff->directory[LENGTHINDEX].value = tiff->iifile->ny;
@@ -616,6 +621,12 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
        * 4  (Transparency Mask)
        */
       tiff->PhotometricInterpretation = value;
+      if (value == 3) {
+        fprintf(stderr, "Sorry, color index data "
+                "not supported without tifflib.so.\n");
+        return(0);
+      }
+        
       break;
                
 
