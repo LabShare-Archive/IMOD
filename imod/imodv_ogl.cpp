@@ -2032,76 +2032,15 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
  * SCALAR MESH DRAWING ROUTINES
  */
 
-static int ImodvRampData[] =
-  { 
-    15,
-    255,    0,   90,    0,
-    255,   45,   55,   20,
-    255,  105,    0,   83,
-    255,  175,    0,  162,
-    255,  255,    0,  229,
-    239,  255,    0,  240,
-    191,  255,    0,  259,
-    90,  255,   60,  305,
-    0,  207,   78,  361,
-    0,  191,  143,  383,
-    0,  175,  177,  400,
-    60,   96,  255,  469,
-    120,   40,  255,  528,
-    179,    0,  255,  569,
-    255,    0,  255,  616,
-  };
-
-static int load_cmap(unsigned char table[3][256], int *rampData)
-{
-
-  int nline;
-  int *inramp;
-  int i,l;
-  float tabscl,terpfc,tabpos;
-  int indtab;
-  nline = *rampData;
-  rampData++;
-  inramp = (int *)malloc(sizeof(int) * nline * 4);
-
-  for(i = 0, l = 0; i < nline; i++, l+=4){
-    inramp[l] = *rampData; rampData++;
-    inramp[l+1] = *rampData; rampData++;
-    inramp[l+2] = *rampData; rampData++;
-    inramp[l+3] = *rampData; rampData++;
-  }
-
-  tabscl = (inramp[(nline * 4) - 1] - inramp[3])/255.0;
-  indtab = 0;
-  for(i = 0; i < 256; i++){
-    tabpos = i * tabscl + inramp[3];
-    if (tabpos > inramp[((indtab+1) * 4) + 3]){
-      indtab++;
-      if (indtab > nline - 2)
-        indtab--;
-    }
-
-    terpfc = (tabpos - inramp[(indtab * 4) + 3])/
-      (inramp[((indtab+1) * 4) + 3] - inramp[(indtab * 4) + 3]);
-
-    table[0][i] = (unsigned char)((1 - terpfc) * inramp[(indtab * 4)] +
-      terpfc * inramp [((indtab+1) * 4)]);
-    table[1][i] = (unsigned char)((1 - terpfc) * inramp[(indtab * 4) + 1] +
-      terpfc * inramp [((indtab+1) * 4) + 1]);
-    table[2][i] = (unsigned char)((1 - terpfc) * inramp[(indtab * 4) + 2] +
-      terpfc * inramp [((indtab+1) * 4) + 2]);
-
-  }
-  return(0);
-}
-
 static void mapfalsecolor(int gray, int *red, int *green, int *blue)
 {
   static unsigned char cmap[3][256];
   static int first = 1;
+  int *rampData;
 
   if (first){
-    load_cmap(cmap, ImodvRampData);
+    rampData = cmapInvertedRamp();
+    cmapConvertRamp(rampData, cmap);
     first = 0;
   }
 
@@ -2398,6 +2337,9 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
 /*
 $Log$
+Revision 4.28  2006/06/09 20:25:01  mast
+Added glEnd/glBegin pairs to fix some gaps in mesh with color changes
+
 Revision 4.27  2005/12/11 18:26:29  mast
 Fixed perspective so the slider really does set the angular field of view
 regardless of clipping plane setting, and changed kicking out of extreme
