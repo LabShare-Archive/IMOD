@@ -336,17 +336,21 @@ void InfoWindow::manageMenus()
   mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, App->cvi->rawImageStore == 0);
   mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, App->cvi->rawImageStore == 0);
   if (!imageOK) {
-    ImodInfoWidget->setFloat(-1);
-    mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_GRAPH, false);
+  }
+  if (!imageOK || App->cvi->colormapImage) {
+    mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);
+    ImodInfoWidget->setFloat(-1);
   }
 
   // These are run-time items.  If more instances appear this should be
   // split into initial and runtime calls
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy());
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK);
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy() && 
+                              !App->cvi->colormapImage);
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK &&
+                              !App->cvi->colormapImage);
   mFileMenu->setItemEnabled(FILE_MENU_RELOAD, App->cvi->reloadable != 0);
 }
 
@@ -530,6 +534,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.33  2005/10/14 22:04:39  mast
+    Changes for Model reload capability
+
     Revision 4.32  2005/09/15 14:20:22  mast
     Added image movie window
 
