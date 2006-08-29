@@ -373,6 +373,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(testValue==test.getLong());
     assertEquals(testValue, test.getNumber().intValue());
     assertEquals(testValue, test.getValue().intValue());
+    test.internalTest();
   }
   
   //TODO
@@ -527,6 +528,27 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.store(props, prepend);
     assertTrue(props.containsKey(prepend + "." + name));
     assertTrue(props.containsValue(value));
+    test.set("");
+    test.store(props, prepend);
+    assertFalse(props.containsKey(prepend + "." + name));
+    assertFalse(props.containsValue(value));
+    test.internalTest();
+  }
+  
+  public final void testStore_EtomoNumber_String_Properties_String() {
+    String name = "test";
+    String prepend = "prepend";
+    String value = "42";
+    Properties props = new Properties();
+    String key = prepend + '.'+name;
+    props.setProperty(key, value);
+    assertTrue(props.getProperty(key).equals(value));
+    EtomoNumber.store(null,name, props, prepend);
+    assertNull(props.getProperty(key));
+    EtomoNumber test = new EtomoNumber(name);
+    test.set(value);
+    EtomoNumber.store(test,name, props, prepend);
+    assertTrue(props.getProperty(key).equals(value));
     test.internalTest();
   }
 
@@ -1160,6 +1182,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2006/08/29 20:05:36  sueh
+ * <p> bug# 924 Expanded testSetDisplayValue_int
+ * <p>
  * <p> Revision 1.31  2006/08/18 00:16:51  sueh
  * <p> bug# 692
  * <p>
