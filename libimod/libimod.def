@@ -89,7 +89,6 @@ EXPORTS
 	imodel_contour_swapxy
 	imeshSurfaceArea
 	b3dHeaderItemBytes
-	imodel_from_fgetline
 	imodContoursNew
 	imodPointLineDistance
 	FROMVMSFLOATS
