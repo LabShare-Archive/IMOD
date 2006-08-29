@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/11/29 22:40:49  sueh
+ * <p> bug# 757 Added getDouble(booleahn defaultIfNull).
+ * <p>
  * <p> Revision 1.7  2005/06/16 20:08:23  sueh
  * <p> bug# 692 Make integer the default type.
  * <p>
@@ -70,6 +73,8 @@ public class ScriptParameter extends EtomoNumber {
 
   protected Number defaultValue;
   protected String shortName = null;
+  //An inactive value is not placed in the comscript
+  private EtomoBoolean2 active = null;
 
   /**
    * Construct a ScriptParameter with type = INTEGER_TYPE
@@ -168,7 +173,7 @@ public class ScriptParameter extends EtomoNumber {
   }
 
   public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
-    if (isUseInScript()) {
+    if (isActive() && isUseInScript()) {
       scriptCommand.setValue(name, toString(getValue()));
     }
     else {
@@ -190,6 +195,10 @@ public class ScriptParameter extends EtomoNumber {
     return false;
   }
 
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand) throws InvalidParameterException{
+    return parse(scriptCommand, false);
+  }
+
   /**
    * Parse scriptCommand for name and shortName.  If keyword is not found, call reset().
    * If name or shortName is found, call set with the string value found in scriptCommand.
@@ -197,15 +206,26 @@ public class ScriptParameter extends EtomoNumber {
    * @return
    * @throws InvalidParameterException
    */
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
-      throws InvalidParameterException {
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand,
+      boolean setActive) throws InvalidParameterException {
+    boolean found = false;
     if (!scriptCommand.hasKeyword(name)) {
       if (shortName == null || !scriptCommand.hasKeyword(shortName)) {
-        return reset();
+        reset();
       }
-      return set(scriptCommand.getValue(shortName));
+      else {
+        found = true;
+        set(scriptCommand.getValue(shortName));
+      }
     }
-    return set(scriptCommand.getValue(name));
+    else {
+      found = true;
+      set(scriptCommand.getValue(name));
+    }
+    if (setActive) {
+      setActive(found);
+    }
+    return this;
   }
 
   public final double getDouble(boolean defaultIfNull) {
@@ -213,5 +233,16 @@ public class ScriptParameter extends EtomoNumber {
       return defaultValue.doubleValue();
     }
     return getDouble();
+  }
+
+  public void setActive(boolean active) {
+    if (this.active == null) {
+      this.active = new EtomoBoolean2();
+    }
+    this.active.set(active);
+  }
+
+  public boolean isActive() {
+    return active == null || active.is();
   }
 }
