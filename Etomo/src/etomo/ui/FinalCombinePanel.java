@@ -24,6 +24,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessName;
@@ -55,6 +56,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.49  2006/08/25 22:52:55  sueh
+ * bug# 918 Changed the right click menu for the new version of patchcorr
+ *
  * Revision 3.48  2006/07/20 17:20:05  sueh
  * bug# 848 Made UIParameters a singleton.
  *
@@ -341,6 +345,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "Number of Z patches :");
   private LabeledTextField ltfZNPatches = new LabeledTextField(
       "Number of Y patches :");
+  private CheckBox cbKernelSigma = new CheckBox("Kernel Filtering");
+  private LabeledTextField ltfKernelSigma = new LabeledTextField(
+      "Kernel sigma:");
 
   private JPanel pnlBoundary = new JPanel();
   private LabeledTextField ltfXLow = new LabeledTextField("X Low :");
@@ -399,6 +406,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final PanelHeader patchcorrHeader;
   private final PanelHeader matchorwarpHeader;
   private final PanelHeader volcombineHeader;
+  private final SpacedPanel pnlKernelSigma = new SpacedPanel();
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
@@ -491,6 +499,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlBoundary.add(ltfYLow.getContainer());
     pnlBoundary.add(ltfYHigh.getContainer());
     pnlPatchcorrBody.add(pnlBoundary);
+
+    pnlKernelSigma.setBoxLayout(BoxLayout.X_AXIS);
+    pnlKernelSigma.add(cbKernelSigma);
+    pnlKernelSigma.add(ltfKernelSigma.getContainer());
+    ltfKernelSigma.setEnabled(false);
+    pnlPatchcorrBody.add(pnlKernelSigma);
+
     btnPatchcorrRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlPatchcorrBody.add(btnPatchcorrRestart);
 
@@ -578,7 +593,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE
+        .getButtonDimension());
 
     //  Root panel layout
     pnlRoot.add(pnlPatchRegionModel);
@@ -604,6 +620,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     btnImodMatchedTo.addActionListener(actionListener);
     btnImodCombined.addActionListener(actionListener);
     cbParallelProcess.addActionListener(actionListener);
+    cbKernelSigma.addActionListener(actionListener);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -646,6 +663,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   final void setAdvancedPatchcorr(boolean state) {
     pnlBoundary.setVisible(state);
+    pnlKernelSigma.setVisible(state);
   }
 
   final void setAdvancedMatchorwarp(boolean state) {
@@ -770,6 +788,14 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         .getButtonState(btnMatchorwarpRestart.getButtonStateKey()));
     btnVolcombineRestart.setButtonState(screenState
         .getButtonState(btnVolcombineRestart.getButtonStateKey()));
+    //if the kernal sigma value isn't coming from the comscript, get it from the
+    //.edf, if it exists
+    if (!cbKernelSigma.isSelected()) {
+      ConstEtomoNumber kernelSigma = screenState.getPatchcorrKernelSigma();
+      if (kernelSigma != null) {
+        ltfKernelSigma.setText(kernelSigma);
+      }
+    }
   }
 
   final void getParameters(ReconScreenState screenState) {
@@ -780,6 +806,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         .getCombineFinalPatchcorrHeaderState());
     volcombineHeader.getState(screenState
         .getCombineFinalVolcombineHeaderState());
+    screenState.setPatchcorrKernelSigma(ltfKernelSigma.getText());
   }
 
   final void setVisible(boolean visible) {
@@ -838,6 +865,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ltfYHigh.setText(patchrawlParam.getYHigh());
     ltfZLow.setText(patchrawlParam.getZLow());
     ltfZHigh.setText(patchrawlParam.getZHigh());
+    cbKernelSigma.setSelected(patchrawlParam.isKernelSigmaActive());
+    ltfKernelSigma.setText(patchrawlParam.getKernelSigma());
+    updateKernelSigma();
   }
 
   void setVolcombineParams(ConstSetParam setParam) {
@@ -914,7 +944,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       patchcrawl3DParam.setZLow(Integer.parseInt(ltfZLow.getText()));
       badParameter = ltfZHigh.getLabel();
       patchcrawl3DParam.setZHigh(Integer.parseInt(ltfZHigh.getText()));
-
+      patchcrawl3DParam.setKernelSigma(cbKernelSigma.isSelected(),
+          ltfKernelSigma.getText());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -1028,22 +1059,24 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   /**
    * Get the combine parameters from the UI
    * @param combineParams
-   *//*
-  public void getCombineParameters(CombineParams combineParams) {
-    if (cbUsePatchRegionModel.isSelected()) {
-      combineParams.setDefaultPatchRegionModel();
-    }
-    else {
-      combineParams.setPatchRegionModel("");
-    }
-  }*/
+   */
+  /*
+   public void getCombineParameters(CombineParams combineParams) {
+   if (cbUsePatchRegionModel.isSelected()) {
+   combineParams.setDefaultPatchRegionModel();
+   }
+   else {
+   combineParams.setPatchRegionModel("");
+   }
+   }*/
 
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { Patchcrawl3DParam.getTitle(), "Matchorwarp" };
-    String[] manPage = { Patchcrawl3DParam.COMMAND+".html", "matchorwarp.html" };
+    String[] manPage = { Patchcrawl3DParam.COMMAND + ".html",
+        "matchorwarp.html" };
     String[] logFileLabel = { "Patchcorr", "Matchorwarp", "Volcombine" };
     String[] logFile = { "patchcorr.log", "matchorwarp.log", "volcombine.log" };
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
@@ -1126,9 +1159,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       tomogramCombinationDialog.updateParallelProcess();
     }
+    else if (command.equals(cbKernelSigma.getActionCommand())) {
+      updateKernelSigma();
+    }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
+  }
+  
+  private void updateKernelSigma() {
+    ltfKernelSigma.setEnabled(cbKernelSigma.isSelected());
   }
 
   class ButtonActionListener implements ActionListener {
@@ -1268,6 +1308,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     text = "View the final combined volume.";
     btnImodCombined.setToolTipText(tooltipFormatter.setText(text).format());
+    
+    text = "Filter by convolving in real space with a Gaussian kernel.  The amount of "+
+"filtering is controlled by the sigma of the Gaussian, in pixels.  Higher "+
+"sigma filters more.  Kernel filtering increases execution time ~30% for "+
+"sigma under 1.5 and ~2-fold for sigma 1.5 or higher.";
+    cbKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
 
     cbParallelProcess.setToolTipText(tooltipFormatter.setText(
         VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
