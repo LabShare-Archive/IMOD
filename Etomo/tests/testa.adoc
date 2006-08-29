@@ -3,7 +3,7 @@ verbose =
 
 [Dialog = SetupRecon]
 adoc = setup-recon.adoc
-function = run
+function = test
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc

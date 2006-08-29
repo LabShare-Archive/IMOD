@@ -3,7 +3,7 @@ verbose =
 
 [Dialog = SetupRecon]
 adoc = setup-recon.adoc
-function = test-single
+function = build
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc
@@ -16,7 +16,7 @@ function = run
 [Dialog = FidModel]
 copy = %{dataset}%{axis}.seed
 adoc = fid-model.adoc
-function = run
+function = run-dual
 
 [Dialog = FineAlign]
 adoc = fine-align.adoc
@@ -29,7 +29,12 @@ function = run
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
 function = run
+waitfor = TomoGen
 bn.done =
+
+[Dialog = Combine]
+adoc = combine.adoc
+function = run
 
 [Dialog = PostProc]
 sleep =
@@ -38,5 +43,4 @@ function = run
 
 [Dialog = CleanUp]
 adoc = clean-up.adoc
-function = run-single
-
+function = run
