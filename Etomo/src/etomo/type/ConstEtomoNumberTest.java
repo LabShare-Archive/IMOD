@@ -366,7 +366,13 @@ public final class ConstEtomoNumberTest extends TestCase {
     int testValue = 1;
     EtomoNumber test = new EtomoNumber();
     test.setDisplayValue(testValue);
+    assertEquals(testValue, test.getDisplayInteger());
     assertEquals(testValue, test.getInt());
+    assertTrue(String.valueOf(testValue).equals(test.toString()));
+    assertTrue(testValue==test.getDouble());
+    assertTrue(testValue==test.getLong());
+    assertEquals(testValue, test.getNumber().intValue());
+    assertEquals(testValue, test.getValue().intValue());
   }
   
   //TODO
@@ -1154,6 +1160,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2006/08/18 00:16:51  sueh
+ * <p> bug# 692
+ * <p>
  * <p> Revision 1.30  2006/08/17 20:04:13  sueh
  * <p> bug 692 testing isValid
  * <p>
