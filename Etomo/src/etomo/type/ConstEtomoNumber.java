@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2006/07/19 15:22:44  sueh
+ * <p> bug# 903 Added get(int) and get(ConstEtomoNumber).
+ * <p>
  * <p> Revision 1.38  2006/06/27 18:30:45  sueh
  * <p> bug# 692 Removed todo comment
  * <p>
@@ -891,6 +894,15 @@ public abstract class ConstEtomoNumber implements Storable {
     props.setProperty(prepend + "." + name, toString(currentValue));
   }
 
+  public static void store(EtomoNumber etomoNumber, String name,
+      Properties props, String prepend) {
+    if (etomoNumber == null) {
+      props.remove(prepend + '.' + name);
+      return;
+    }
+    etomoNumber.store(props, prepend);
+  }
+
   public void remove(Properties props) {
     props.remove(name);
   }
@@ -948,11 +960,11 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return equals(getValue(), that.getValue());
   }
-  
+
   public boolean gt(int value) {
     return gt(getValue(), newNumber(value));
   }
-  
+
   public boolean gt(ConstEtomoNumber etomoNumber) {
     if (etomoNumber == null) {
       return false;
