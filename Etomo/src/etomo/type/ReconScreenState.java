@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.comscript.Patchcrawl3DParam;
+
 /**
  * <p>Description: </p>
  * 
@@ -39,6 +41,9 @@ public final class ReconScreenState extends BaseScreenState {
   private static final String SOLVEMATCH_GROUP = "Solvematch";
   private static final String PATCHCORR_GROUP = "Patchcorr";
   private static final String VOLCOMBINE_GROUP = "Volcombine";
+  private static final String PATCHCORR_KERNEL_SIGMA_KEY = DialogType.TOMOGRAM_COMBINATION
+      .getStorableName()
+      + '.' + ProcessName.PATCHCORR + '.' + Patchcrawl3DParam.KERNEL_SIGMA_KEY;
 
   public static final String COMBINE_SETUP_TO_SELECTOR_HEADER_GROUP = SETUP_GROUP
       + "ToSelector." + HEADER_GROUP;
@@ -99,6 +104,7 @@ public final class ReconScreenState extends BaseScreenState {
       COMBINE_FINAL_MATCHORWARP_HEADER_GROUP);
   private final PanelHeaderState combineFinalVolcombineHeaderState = new PanelHeaderState(
       COMBINE_FINAL_VOLCOMBINE_HEADER_GROUP);
+  private EtomoNumber patchcorrKernelSigma = null;
 
   public ReconScreenState(AxisID axisID, AxisType axisType) {
     super(axisID, axisType);
@@ -128,6 +134,8 @@ public final class ReconScreenState extends BaseScreenState {
       combineFinalPatchcorrHeaderState.store(props, prepend);
       combineFinalMatchorwarpHeaderState.store(props, prepend);
       combineFinalVolcombineHeaderState.store(props, prepend);
+      EtomoNumber.store(patchcorrKernelSigma, PATCHCORR_KERNEL_SIGMA_KEY,
+          props, prepend);
     }
   }
 
@@ -155,6 +163,8 @@ public final class ReconScreenState extends BaseScreenState {
       combineFinalPatchcorrHeaderState.load(props, prepend);
       combineFinalMatchorwarpHeaderState.load(props, prepend);
       combineFinalVolcombineHeaderState.load(props, prepend);
+      patchcorrKernelSigma = EtomoNumber.load(patchcorrKernelSigma,
+          EtomoNumber.FLOAT_TYPE, PATCHCORR_KERNEL_SIGMA_KEY, props, prepend);
     }
   }
 
@@ -220,9 +230,24 @@ public final class ReconScreenState extends BaseScreenState {
   public PanelHeaderState getCombineSetupVolcombineHeaderState() {
     return combineSetupVolcombineHeaderState;
   }
+
+  public ConstEtomoNumber getPatchcorrKernelSigma() {
+    return patchcorrKernelSigma;
+  }
+
+  public void setPatchcorrKernelSigma(String patchcorrKernelSigma) {
+    if (this.patchcorrKernelSigma == null) {
+      this.patchcorrKernelSigma = new EtomoNumber(EtomoNumber.FLOAT_TYPE,
+          PATCHCORR_KERNEL_SIGMA_KEY);
+    }
+    this.patchcorrKernelSigma.set(patchcorrKernelSigma);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/05/11 19:58:23  sueh
+ * <p> Making class final.
+ * <p>
  * <p> Revision 1.4  2006/01/20 21:08:38  sueh
  * <p> updated copyright year
  * <p>

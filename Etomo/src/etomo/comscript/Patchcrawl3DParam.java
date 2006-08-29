@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2006/08/25 22:51:18  sueh
+ * <p> bug# 918 Convert to PIP
+ * <p>
  * <p> Revision 3.4  2004/04/12 16:50:22  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -86,6 +89,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
       if (scriptCommand.hasKeyword(REGION_MODEL_KEY)) {
         regionModel = scriptCommand.getValue(REGION_MODEL_KEY);
       }
+      kernelSigma.parse(scriptCommand, true);
     }
     catch (NumberFormatException except) {
       throw new BadComScriptException(except.getMessage());
@@ -179,6 +183,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
     zMinAndMax.updateScriptParameter(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, REGION_MODEL_KEY,
         regionModel);
+    kernelSigma.updateComScript(scriptCommand);
     if (convertToPIP) {
       scriptCommand.setCommand(COMMAND);
       ParamUtilities.updateScriptParameter(scriptCommand, REFERENCE_FILE_KEY,
@@ -302,6 +307,11 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
     else {
       regionModel = "";
     }
+  }
+
+  public void setKernelSigma(boolean kernelSigmaActive, String kernelSigma) {
+    this.kernelSigma.setActive(kernelSigmaActive);
+    this.kernelSigma.set(kernelSigma);
   }
 
   public static String getTitle() {
