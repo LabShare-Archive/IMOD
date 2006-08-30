@@ -376,6 +376,21 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
   
+  public void testSetDisplayValue_boolean() {
+    boolean testValue = true;
+    int intTestValue = 1;
+    EtomoNumber test = new EtomoNumber();
+    test.setDisplayValue(testValue);
+    assertEquals(intTestValue, test.getDisplayInteger());
+    assertEquals(intTestValue, test.getInt());
+    assertTrue(String.valueOf(intTestValue).equals(test.toString()));
+    assertTrue(intTestValue==test.getDouble());
+    assertTrue(intTestValue==test.getLong());
+    assertEquals(intTestValue, test.getNumber().intValue());
+    assertEquals(intTestValue, test.getValue().intValue());
+    test.internalTest();
+  }
+  
   //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
@@ -1182,6 +1197,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2006/08/29 22:04:32  sueh
+ * <p> bug# 692 test store(EtomoNumber, String, Properties, String)
+ * <p>
  * <p> Revision 1.32  2006/08/29 20:05:36  sueh
  * <p> bug# 924 Expanded testSetDisplayValue_int
  * <p>
