@@ -4937,12 +4937,8 @@ public final class ApplicationManager extends BaseManager {
       updateDialog(fiducialModelDialogA, AxisID.FIRST);
     }
     if (processName == ProcessName.NEWST) {
-      if (axisID == AxisID.SECOND) {
-        tomogramGenerationExpertB.updateDialog();
-      }
-      else {
-        tomogramGenerationExpertA.updateDialog();
-      }
+      ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
+          axisID)).updateDialog();
     }
   }
 
@@ -5298,6 +5294,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.262  2006/08/18 00:12:58  sueh
+ * <p> bug# 914 open combine dialog:  make sure patchcorr.com doesn't exist before
+ * <p> removing Zs
+ * <p>
  * <p> Revision 3.261  2006/08/14 22:21:43  sueh
  * <p> bug# 891 backwardCompatibilityCombineScriptsExist():  double checking true
  * <p> values.
