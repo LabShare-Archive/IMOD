@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/30/06: Etomo - Tomogram Positioning:  fixed a problem with whole tomogram
+generation where the _full.rec file wasn't created.
+
 8/29/06: Added a field for KernalSigma to Etomo - Combine - Patchcorr.
 
 8/27/06: 3dmod can now display 8-bit color tiff files with embedded color
