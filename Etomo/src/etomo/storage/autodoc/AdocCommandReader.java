@@ -238,6 +238,9 @@ public final class AdocCommandReader {
     pairLoc = null;
     function = true;
     setInfo();
+    if (verbose) {
+      System.err.println(axisID.toString() + ":start:" + list.getString());
+    }
   }
 
   private void setFunctionAutodoc(AdocCommand command) {
@@ -270,6 +273,9 @@ public final class AdocCommandReader {
     if (location == null) {
       list = null;
       return;
+    }
+    if (verbose) {
+      System.err.println(axisID.toString() + ":end:" + list.getString());
     }
     list = location.getList();
     sectionLoc = location.getSectionLoc();
@@ -316,6 +322,9 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/08/18 23:14:01  sueh
+ * <p> bug# 852 callFunction:  throw an exception when the function isn't found
+ * <p>
  * <p> Revision 1.3  2006/08/08 17:45:57  sueh
  * <p> bug# 852 Removed the secondary autodoc functionality.  Added functionality to
  * <p> call a function section.  Added functionality to set the location of a function
