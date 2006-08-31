@@ -21,8 +21,8 @@ Log at end
 #include "ilist.h"
 #include "imodel.h"
 
+/* DOC_SECTION DEFINES */
 /* DOC_CODE Istore definitions */
-
 /* Bits 0-1 of flags have one of these values to indicate type of index, and
    bits 2-3 have one of these values to indicate type of value */
 #define GEN_STORE_INT   0
@@ -60,9 +60,12 @@ Log at end
 #define CHANGED_SYMTYPE   (1l << 7)    /* Symbol type */
 #define CHANGED_SYMSIZE   (1l << 8)    /* Symbol size */
 #define CHANGED_VALUE1    (1l << 9)    /* Arbitrary value */
-                          
+
+/* A very handy macro */                          
 #define istoreItem(list, index) ((Istore *)ilistItem(list, index))
+
 /* END_CODE */
+/* END_SECTION */
 
 /* DOC_CODE StoreUnion union */
 /* Union of types for the general storage structure Istore */
@@ -111,7 +114,6 @@ extern "C" {
   int imodWriteStore(Ilist *list, int id, FILE *fout);
   Ilist *imodReadStore(FILE *fin, int *error);
   void istoreSort(Ilist *list);
-  void istoreSort(Ilist *list);
   int istoreInsert(Ilist **listp, Istore *store);
   int istoreLookup(Ilist *list, int index, int *after);
   void istoreDump(Ilist *list);
@@ -153,6 +155,9 @@ extern "C" {
   int istoreRetainPoint(Ilist *list, int index);
   int istoreGenerateItems(Ilist **listp, DrawProps *props, int flags, 
                           int index, int genFlags);
+  int istoreGenPointItems(Ilist *clist, DrawProps *contProps, int contState, 
+                          int ptInd, Ilist **mlistp, int meshInd, 
+                          int genFlags);
   int istorePointIsGap(Ilist *list, int index);
   int istoreConnectNumber(Ilist *list, int index);
   int istoreSkipToIndex(Ilist *list, int index);
@@ -167,6 +172,9 @@ extern "C" {
 
 /*    
 $Log$
+Revision 3.9  2006/08/31 21:10:36  mast
+Added value and minmax
+
 Revision 3.8  2006/05/08 16:38:24  mast
 Added function to look up connection #
 
