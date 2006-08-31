@@ -223,7 +223,6 @@ void light_adjust(Iobj *obj, float r, float g, float b, int trans)
   GLfloat params[4];
   GLfloat spec, amb, diffuse, shine;
   GLenum face = GL_FRONT_AND_BACK;
-  /*    if (!(obj->flags & IMOD_OBJFLAG_LIGHT)) return;*/
 
   spec    = obj->specular / 255.0f;
   amb     = obj->ambient  / 255.0f;
@@ -267,10 +266,9 @@ void light_on(struct Mod_Object *obj)
   GLenum face = GL_FRONT_AND_BACK;
 
   if (obj->flags & IMOD_OBJFLAG_FCOLOR){
-    ub = ( unsigned char * )&(obj->mat1);
-    red   = (float)ub[0] / 255.0f;
-    green = (float)ub[1] / 255.0f;
-    blue  = (float)ub[2] / 255.0f;
+    red   = (float)obj->fillred / 255.0f;
+    green = (float)obj->fillgreen / 255.0f;
+    blue  = (float)obj->fillblue / 255.0f;
   }
 
   spec    = obj->specular / 255.0f;
@@ -400,6 +398,9 @@ int imod_light_normal( struct Mod_Point *n,
 #endif /* IMODV_LIGHT_TEST_NORMAL */
 /*
 $Log$
+Revision 4.6  2005/06/26 19:39:53  mast
+Changed light adjust routine to take trans value
+
 Revision 4.5  2005/06/20 22:20:28  mast
 Pass transparency to light_adjust
 
