@@ -1,30 +1,12 @@
-/*  IMOD VERSION 2.7.9
- *
+/*  
  *  imodv_window.cpp -- Mainwindow and GLwidget classes for imodv window
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
 /*  $Author$
 
@@ -67,7 +49,6 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mFileMenu->setItemEnabled(VFILE_MENU_SAVE, standAlone);
 
   mFileMenu->insertItem("Save Model &As...", VFILE_MENU_SAVEAS);
-  mFileMenu->setAccel(CTRL + Key_A, VFILE_MENU_SAVEAS);
   mFileMenu->setItemEnabled(VFILE_MENU_SAVEAS, standAlone);
   mFileMenu->insertSeparator();
 
@@ -316,6 +297,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.10  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.9  2003/11/26 18:15:29  mast
 Disable image menu entry unless byte images exist
 
