@@ -154,8 +154,8 @@ typedef struct Mod_Planes
   b3dUByte flags;        /* Which clip planes are on.         */
   b3dUByte trans;        /* Transparency for clipped area     */
   b3dUByte plane;        /* Current clip plane.               */
-  Ipoint normal[IMOD_CLIPSIZE];
-  Ipoint point[IMOD_CLIPSIZE];
+  Ipoint normal[IMOD_CLIPSIZE];   /* Normal vector to plane */
+  Ipoint point[IMOD_CLIPSIZE];    /* Negative of point in clip plane */
 } IclipPlanes;
 
 
@@ -175,6 +175,7 @@ typedef struct Mod_Planes
 #define WORLD_QUALITY_BITS   (7l << WORLD_QUALITY_SHIFT)
 
 #define WORLD_KICKOUT_CLIPS (1l << 11)
+#define WORLD_MOVE_ALL_CLIP (1l << 12)
 
 /* Properties of an object that are stored in a view */
 typedef struct Mod_Object_View
@@ -197,14 +198,14 @@ typedef struct Mod_Object_View
   b3dUByte diffuse;   /* Diffuse multiplier to color */
   b3dUByte specular;  /* Specular property, added to color */
   b3dUByte shininess; /* shininess exponent */
-  b3dUByte mat1;      /* Fill color red */
-  b3dUByte mat1b1;    /* Fill color green */
-  b3dUByte mat1b2;    /* Fill color blue */
-  b3dUByte mat1b3;    /* Sphere quality */
-  b3dUInt32  mat2;    /* set to 0, use as flags.  Unused */
-  b3dUByte mat3;      /* Black level for showing normal magnitudes in mesh */
-  b3dUByte mat3b1;    /* Black level for showing normal magnitudes in mesh */
-  b3dUByte mat3b2;    /* Unused */
+  b3dUByte fillred;   /* Fill color red */
+  b3dUByte fillgreen; /* Fill color green */
+  b3dUByte fillblue;  /* Fill color blue */
+  b3dUByte quality;   /* Sphere quality */
+  b3dUInt32 mat2;     /* set to 0, use as flags.  Unused */
+  b3dUByte valblack;  /* Black level for showing values */
+  b3dUByte valwhite;  /* White level for showing values */
+  b3dUByte mat3b2;    /* First two bits: skip low and high end in value draw */
   b3dUByte mat3b3;    /* Unused */
 }Iobjview;
 
@@ -342,14 +343,14 @@ typedef struct Mod_Object
   b3dUByte diffuse;   /* Diffuse multiplier to color */
   b3dUByte specular;  /* Specular property, added to color */
   b3dUByte shininess; /* shininess exponent */
-  b3dUByte mat1;      /* Fill color red */
-  b3dUByte mat1b1;    /* Fill color green */
-  b3dUByte mat1b2;    /* Fill color blue */
-  b3dUByte mat1b3;    /* Sphere quality */
-  b3dUInt32  mat2;      /* set to 0, use as flags.  Unused */
-  b3dUByte mat3;      /* Black level for showing normal magnitudes in mesh */
-  b3dUByte mat3b1;    /* Black level for showing normal magnitudes in mesh */
-  b3dUByte mat3b2;    /* Unused */
+  b3dUByte fillred;   /* Fill color red */
+  b3dUByte fillgreen; /* Fill color green */
+  b3dUByte fillblue;  /* Fill color blue */
+  b3dUByte quality;   /* Sphere quality */
+  b3dUInt32 mat2;     /* set to 0, use as flags.  Unused */
+  b3dUByte valblack;  /* Black level for showing values */
+  b3dUByte valwhite;  /* White level for showing values */
+  b3dUByte mat3b2;    /* First two bits: skip low and high end in value draw */
   b3dUByte mat3b3;    /* Unused */
 
   Ilabel *label;      /* Labels for surfaces */
@@ -622,6 +623,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.32  2006/06/26 14:49:09  mast
+    Moved miscellaneous functions to b3dutil
+
     Revision 3.31  2006/06/18 19:35:14  mast
     Changed function type in amoeba
 
