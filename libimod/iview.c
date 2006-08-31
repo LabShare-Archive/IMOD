@@ -179,9 +179,9 @@ int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
       imodPutScaledPoints(fout, &clips->normal[0], 1, &normScale);
       imodPutScaledPoints(fout, &clips->point[0], 1, scale);
       imodPutBytes(fout, &ov->ambient, 4);
-      imodPutBytes(fout, (unsigned char *)&ov->mat1, 4);
-      imodPutInts(fout, (int *)&ov->mat2, 1);
-      imodPutBytes(fout, (unsigned char *)&ov->mat3, 4);
+      imodPutBytes(fout, &ov->fillred, 4);
+      imodPutInts(fout, &ov->mat2, 1);
+      imodPutBytes(fout, &ov->valblack, 4);
       imodPutScaledPoints(fout,  &clips->normal[1], IMOD_CLIPSIZE - 1,
         &normScale);
       imodPutScaledPoints(fout, &clips->point[1], IMOD_CLIPSIZE - 1,
@@ -303,11 +303,11 @@ int imodViewModelRead(Imod *imod)
         /* DNM 9/4/03: read mat1 and mat3 as bytes, or as ints 
            for old model */
         if (imod->flags & IMODF_MAT1_IS_BYTES) {
-          imodGetBytes(fin, (unsigned char *)&ov->mat1, 4);     
-          imodGetInts(fin, (int *)&ov->mat2, 1);     
-          imodGetBytes(fin, (unsigned char *)&ov->mat3, 4);     
+          imodGetBytes(fin, &ov->fillred, 4);     
+          imodGetInts(fin, &ov->mat2, 1);     
+          imodGetBytes(fin, &ov->valblack, 4);     
         } else
-          imodGetInts(fin, (int *)&ov->mat1, 3);     
+          imodGetInts(fin, (int *)&ov->fillred, 3);     
 
         bytesRead += 67;
             
@@ -388,7 +388,7 @@ void imodObjviewToObject(Iobjview *objview, Iobj *obj)
   obj->trans = objview->trans;
   obj->clips = objview->clips;
   memcpy (&obj->ambient, &objview->ambient, 4);
-  memcpy (&obj->mat1, &objview->mat1, 12);
+  memcpy (&obj->fillred, &objview->fillred, 12);
 }
 
 
@@ -405,7 +405,7 @@ void imodObjviewFromObject(Iobj *obj, Iobjview *objview)
   objview->trans = obj->trans;
   objview->clips = obj->clips;
   memcpy (&objview->ambient, &obj->ambient, 4);
-  memcpy (&objview->mat1, &obj->mat1, 12);
+  memcpy (&objview->fillred, &obj->fillred, 12);
 }
 
 void imodViewUse(Imod *imod)
@@ -576,6 +576,9 @@ int imodIMNXWrite(Imod *imod)
 
 /*
 $Log$
+Revision 3.12  2005/10/14 21:44:29  mast
+Fixed casting calls to imodPutScaledPoints
+
 Revision 3.11  2005/10/13 20:04:45  mast
 Set scaling from a bin scaling together with z-scale
 

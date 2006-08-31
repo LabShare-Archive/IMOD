@@ -1490,8 +1490,8 @@ int imodChecksum(Imod *imod)
       osum += clips->point[i].x + clips->point[i].y + 
         clips->point[i].z;
     }
-    osum += obj->mat1 + obj->mat1b1 + obj->mat1b2 + obj->mat1b3;
-    osum += obj->mat3 + obj->mat3b1 + obj->mat3b2 + obj->mat3b3;
+    osum += obj->fillred + obj->fillgreen + obj->fillblue + obj->quality;
+    osum += obj->valblack + obj->valwhite + obj->mat3b2 + obj->mat3b3;
     osum += istoreChecksum(obj->store);
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
@@ -1542,8 +1542,8 @@ int imodChecksum(Imod *imod)
           osum += clips->point[i].x + clips->point[i].y + 
             clips->point[i].z;
         }
-        osum += obv->mat1 + obv->mat1b1 + obv->mat1b2 + obv->mat1b3;
-        osum += obv->mat3 + obv->mat3b1 + obv->mat3b2 + obv->mat3b3;
+        osum += obv->fillred + obv->fillgreen + obv->fillblue + obv->quality;
+        osum += obv->valblack + obv->valwhite + obv->mat3b2 + obv->mat3b3;
         sum += osum;
       }
     }
@@ -1805,6 +1805,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.23  2005/10/16 20:26:04  mast
+Split transformation function into two
+
 Revision 3.22  2005/10/14 22:45:52  mast
 Moved clip transformation to iplane.c
 

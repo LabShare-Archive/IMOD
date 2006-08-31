@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2005/10/06 19:52:10  mast
+Maintained surfsize in contour insert function
+
 Revision 3.11  2005/09/11 19:15:26  mast
 Managed contour store info when sorting contours
 
@@ -127,13 +130,13 @@ void imodObjectDefault(Iobj *obj)
   obj->diffuse   = 255;
   obj->specular  = 127;
   obj->shininess = 4;
-  obj->mat1 = 0;
-  obj->mat1b1 = 0;
-  obj->mat1b2 = 0;
-  obj->mat1b3 = 0;
+  obj->fillred = 0;
+  obj->fillgreen = 0;
+  obj->fillblue = 0;
+  obj->quality = 0;
   obj->mat2 = 0;
-  obj->mat3 = 0;
-  obj->mat3b1 = 0;
+  obj->valblack = 0;
+  obj->valwhite = 255;
   obj->mat3b2 = 0;
   obj->mat3b3 = 0;
   obj->label = NULL;
@@ -689,7 +692,8 @@ char *imodObjectGetName(Iobj *inObject)
 }
 
 /*!
- * Sets name of object [obj] to [inName].
+ * Sets name of object [obj] to [inName].  Returns 1 if the string is 
+ * truncated to IOBJ_STRSIZE - 1 (63).
  */
 int imodObjectSetName(Iobj *obj, char *inName)
 {

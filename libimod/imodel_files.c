@@ -372,9 +372,9 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
     imodPutBytes(fout, &obj->ambient, 4);
 
     /* DNM 9/4/02: write mat1 and mat3 as bytes */
-    imodPutBytes(fout, (unsigned char *)&obj->mat1, 4);
-    imodPutInts(fout, (int *)&obj->mat2, 1);
-    imodPutBytes(fout, (unsigned char *)&obj->mat3, 4);
+    imodPutBytes(fout, &obj->fillred, 4);
+    imodPutInts(fout, &obj->mat2, 1);
+    imodPutBytes(fout, &obj->valblack, 4);
   }
   if ((id = imodWriteStore(obj->store, ID_OBST, fout)))
     return(id);
@@ -995,11 +995,11 @@ static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags)
 
   /* DNM 9/4/03: read mat1 and mat3 as bytes, or as ints for old model */
   if (flags & IMODF_MAT1_IS_BYTES) {
-    imodGetBytes(fin, (unsigned char *)&obj->mat1, 4);     
-    imodGetInts(fin, (int *)&obj->mat2, 1);     
-    imodGetBytes(fin, (unsigned char *)&obj->mat3, 4);
+    imodGetBytes(fin, &obj->fillred, 4);     
+    imodGetInts(fin, &obj->mat2, 1);     
+    imodGetBytes(fin, &obj->valblack, 4);
   } else
-    imodGetInts(fin, (int *)&obj->mat1, 3);     
+    imodGetInts(fin, (int *)&obj->fillred, 3);     
   return 0;
 }
 
@@ -1591,6 +1591,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.22  2005/10/14 21:45:22  mast
+  Fixed casting in calls to imodPutScaledPoints
+
   Revision 3.21  2005/10/13 20:05:43  mast
   Handle clip plane writing properly from binned data
 
