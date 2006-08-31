@@ -60,7 +60,7 @@ static Iobj *objedObject(void) { return(Imodv->obj); }
 static Imod *objedModel(void) { return(Imodv->imod); }
 
 static void objset(ImodvApp *a);
-static void setObjFlag(long flag, int state);
+static void setObjFlag(int flag, int state);
 static void setOnoffButtons(void);
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout);     
 static void setLineColor_cb(void);
@@ -85,6 +85,10 @@ static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
 static bool changeModelObject(int m, int ob, bool multipleOK = true);
+static void setMat3Flag(int flag, int index, int state);
+static bool drawOnSliderChange(bool dragging);
+static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
+                            QVBoxLayout *layout1, char *tooltip);
 
 /* resident instance of the IModvObjed class, and pointers to the dialog
    box classes when they are created */
@@ -102,7 +106,7 @@ static int ctrlPressed = false;
 #define styleFill   2
 #define styleFillOutline 3
 #define FIELD_MARGIN 3          // margin and spacing for layouts inside 
-#define FIELD_SPACING 6         // the edit fields
+#define FIELD_SPACING 5         // the edit fields
 
 
 /* Defines and variables for the On-off buttons in this dislaog and in the
@@ -128,7 +132,7 @@ ObjectEditField objectEditFieldData[]    = {
   {"Material",   mkMaterial_cb,  setMaterial_cb,  NULL,       NULL},
   {"Points",     mkPoints_cb,    setPoints_cb,    NULL,       NULL},
   {"Lines",      mkLines_cb,     setLines_cb,     NULL,       NULL},
-  {"Mesh View",  mkScalar_cb,    setScalar_cb,    NULL,       NULL},
+  {"Values",     mkScalar_cb,    setScalar_cb,    NULL,       NULL},
   {"Clip",       mkClip_cb,      setClip_cb,      NULL,       NULL},
   {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
   {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
@@ -624,8 +628,7 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
   sliding = dragging;
 
   obj = Imodv->obj;
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
+  if (drawOnSliderChange(dragging)) {
     objset(Imodv);
     imodvDraw(Imodv);
     imodvDrawImodImages();
@@ -716,7 +719,7 @@ void ImodvObjed::fillColorSlot(int color, int value, bool dragging)
   static bool sliding = false;
 
   if (!obj) return;
-  colors = (unsigned char *)&(obj->mat1);
+  colors = (unsigned char *)&(obj->fillred);
   colors[color] = value;
 
   // Register an object change the first time, set flag after that
@@ -726,8 +729,7 @@ void ImodvObjed::fillColorSlot(int color, int value, bool dragging)
   }
   sliding = dragging;
 
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
+  if (drawOnSliderChange(dragging)) {
     objset(Imodv);
     imodvDraw(Imodv);
   }
@@ -737,7 +739,7 @@ static void setFillColor_cb(void)
 {
   Iobj *obj = objedObject();
   if (!obj) return;
-  unsigned char *colors = (unsigned char *)&(obj->mat1);
+  unsigned char *colors = (unsigned char *)&(obj->fillred);
 
   diaSetChecked(wFillToggle, obj->flags & IMOD_OBJFLAG_FCOLOR);
   diaSetChecked(wFillPntToggle, obj->flags & IMOD_OBJFLAG_FCOLOR_PNT);
@@ -800,10 +802,10 @@ static void setMaterial(Iobj *obj, int which, int value)
     obj->shininess = (unsigned char)value;
     break;
   case 4:
-    obj->mat3 = (unsigned char)value;
+    obj->valblack = (unsigned char)value;
     break;
   case 5:
-    obj->mat3b1 = (unsigned char)value;
+    obj->valwhite = (unsigned char)value;
     break;
   }
 }
@@ -829,8 +831,7 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
      
   sliding = dragging;
   imodvFinishChgUnit();
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
+  if (drawOnSliderChange(dragging))
     imodvDraw(Imodv);
 }
 
@@ -928,7 +929,7 @@ void ImodvObjed::pointQualitySlot(int value)
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
       if (changeModelObject(m, ob)) {
         imodvRegisterObjectChg(ob);
-        Imodv->mod[m]->obj[ob].mat1b3 = value;
+        Imodv->mod[m]->obj[ob].quality = value;
       }
   }
   imodvFinishChgUnit();
@@ -961,7 +962,7 @@ static void setPoints_cb(void)
     return;
 
   diaSetSpinBox(wPointSizeBox, obj->pdrawsize);
-  diaSetSpinBox(wPointQualityBox, obj->mat1b3 + 1);
+  diaSetSpinBox(wPointQualityBox, obj->quality + 1);
   diaSetSpinBox(wGlobalQualityBox, 
                 ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
                 WORLD_QUALITY_SHIFT) + 1);
@@ -1039,8 +1040,7 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 
   sliding = dragging;
   imodvFinishChgUnit();
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
+  if (drawOnSliderChange(dragging)) {
     imodvDraw(Imodv);
     if (!which)
       imodvDrawImodImages();
@@ -1110,18 +1110,25 @@ static void mkLines_cb(int index)
 /*****************************************************************************
  * The scalar edit field
  *****************************************************************************/
-static QCheckBox *wMeshNormal;
+static QCheckBox *wMeshSkipLo;
+static QCheckBox *wMeshSkipHi;
 static QCheckBox *wMeshFalse;
 static MultiSlider *meshSliders;
+static QButtonGroup *wMeshGroup;
+static int meshMin, meshMax;
 
 static char *bwLabels[] = {"Black Level", "White Level"};
 
-void ImodvObjed::meshNormalSlot(bool state)
+void ImodvObjed::meshShowSlot(int value)
 {
-  setObjFlag(IMOD_OBJFLAG_SCALAR, state ? 1 : 0);
+  setObjFlag(IMOD_OBJFLAG_SCALAR, value == 2 ? 1 : 0);
+  setObjFlag(IMOD_OBJFLAG_USE_VALUE, value == 1 ? 1 : 0);
+  wMeshSkipLo->setEnabled(value == 1);
+  wMeshSkipHi->setEnabled(value == 1);
   objset(Imodv);
   imodvFinishChgUnit();
   imodvDraw(Imodv);
+  imodvDrawImodImages();
 }
 
 void ImodvObjed::meshFalseSlot(bool state)
@@ -1130,54 +1137,128 @@ void ImodvObjed::meshFalseSlot(bool state)
   objset(Imodv);
   imodvFinishChgUnit();
   imodvDraw(Imodv);
+  imodvDrawImodImages();
 }
 
 void ImodvObjed::meshLevelSlot(int which, int value, bool dragging)
 {
-  materialSlot(which + 4, value, dragging);
+  int sclval = (int)floor((255. * (value - meshMin)) / (meshMax - meshMin) + 
+                          0.5);
+  materialSlot(which + 4, sclval, dragging);
+  if (drawOnSliderChange(dragging))
+    imodvDrawImodImages();
+}
+
+void ImodvObjed::meshSkipLoSlot(bool state)
+{
+  setMat3Flag(1, 0, state ? 1 : 0);
+  objset(Imodv);
+  imodvFinishChgUnit();
+  imodvDraw(Imodv);
+  imodvDrawImodImages();
+}
+
+void ImodvObjed::meshSkipHiSlot(bool state)
+{
+  setMat3Flag(2, 0, state ? 1 : 0);
+  objset(Imodv);
+  imodvFinishChgUnit();
+  imodvDraw(Imodv);
+  imodvDrawImodImages();
 }
 
 static void setScalar_cb(void)
 {
   unsigned char *ub;
+  int which, i, decimals = 0;
+  float min, max;
   Iobj *obj = objedObject();
-  if (!obj) return;
-  ub = (unsigned char *)&(obj->mat3);
-  if (!ub[1])
-    ub[1] = 255;
+  if (!obj) 
+    return;
+  ub = (unsigned char *)&(obj->valblack);
 
-  diaSetChecked(wMeshNormal, IMOD_OBJFLAG_SCALAR & obj->flags);
+  which = (IMOD_OBJFLAG_SCALAR & obj->flags) ? 2 : 0;
+  min = 0.;
+  max = 255.;
+  if (IMOD_OBJFLAG_USE_VALUE & obj->flags) {
+    which = 1;
+    istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min, &max);
+  }
+
+  diaSetGroup(wMeshGroup, which);
+
   diaSetChecked(wMeshFalse, IMOD_OBJFLAG_MCOLOR & obj->flags);
+  diaSetChecked(wMeshSkipLo, (obj->mat3b2 & 1) != 0);
+  diaSetChecked(wMeshSkipHi, (obj->mat3b2 & 2) != 0);
+  wMeshSkipLo->setEnabled(which == 1);
+  wMeshSkipHi->setEnabled(which == 1);
      
-  meshSliders->setValue(0, (int)ub[0]);
-  meshSliders->setValue(1, (int)ub[1]);
+  // Set up scaling of slider values
+  if (max > min)
+    decimals = (int)(-log10((max - min) / 1500.));
+  decimals = B3DMIN(6, B3DMAX(0, decimals));
+  meshMin = (int)floor(min * pow(10., (double)decimals) + 0.5);
+  meshMax = (int)floor(max * pow(10., (double)decimals) + 0.5);
+  if (meshMin >= meshMax)
+    meshMax = meshMin + 1;
+
+  for (i = 0; i < 2; i++) {
+    meshSliders->setDecimals(i, decimals);
+    meshSliders->setRange(i, meshMin, meshMax);
+    meshSliders->setValue(i, (int)floor(ub[i] * (meshMax - meshMin) / 255. + 
+                                        meshMin + 0.5));
+  }
 }
 
 static void mkScalar_cb(int index)
 {
+  QRadioButton *radio;
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "mesh layout");
-  wMeshNormal = diaCheckBox("Show normal magnitudes", oef->control, layout1);
-  QObject::connect(wMeshNormal, SIGNAL(toggled(bool)), &imodvObjed, 
-          SLOT(meshNormalSlot(bool)));
-  QToolTip::add(wMeshNormal, "Make surface intensity proportional to "
-                "magnitude of normal vectors");
 
-  wMeshFalse = diaCheckBox("False color", oef->control, layout1);
-  QObject::connect(wMeshFalse, SIGNAL(toggled(bool)), &imodvObjed, 
-          SLOT(meshFalseSlot(bool)));
-  QToolTip::add(wMeshFalse, "Show magnitudes in false color");
+  wMeshGroup = new QButtonGroup(1, Qt::Vertical, oef->control);
+  wMeshGroup->hide();
+  QObject::connect(wMeshGroup, SIGNAL(clicked(int)), &imodvObjed,
+                   SLOT(meshShowSlot(int)));
+
+  QVBoxLayout *vLayout = new QVBoxLayout(layout1, 0);
+  makeRadioButton("No value drawing", oef->control, wMeshGroup, vLayout, NULL);
+  makeRadioButton("Show stored values", oef->control, wMeshGroup, vLayout,
+                  "Use stored values to modify display color");
+  makeRadioButton("Show normal magnitudes", oef->control, wMeshGroup, vLayout,
+                  "Make surface intensity proportional to magnitude of normal"
+                  " vectors");
 
   meshSliders = new MultiSlider(oef->control, 2, bwLabels);
   layout1->addLayout(meshSliders->getLayout());
   QObject::connect(meshSliders, SIGNAL(sliderChanged(int, int, bool)),
                    &imodvObjed, SLOT(meshLevelSlot(int, int, bool)));
   QToolTip::add((QWidget *)meshSliders->getSlider(0), "Set low end of "
-                "contrast ramp for displaying normal magnitudes");
+                "contrast ramp for displaying values");
   QToolTip::add((QWidget *)meshSliders->getSlider(1), "Set high end of "
-                "contrast ramp for displaying normal magnitudes");
+                "contrast ramp for displaying values");
+
+  wMeshFalse = diaCheckBox("False color", oef->control, layout1);
+  QObject::connect(wMeshFalse, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(meshFalseSlot(bool)));
+  QToolTip::add(wMeshFalse, "Show values in false color");
+
+  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
+  QLabel *label = new QLabel("Turn off:", oef->control);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+  wMeshSkipLo = diaCheckBox("Low", oef->control, hLayout);
+  QObject::connect(wMeshSkipLo, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(meshSkipLoSlot(bool)));
+  wMeshSkipHi = diaCheckBox("High", oef->control, hLayout);
+  QObject::connect(wMeshSkipHi, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(meshSkipHiSlot(bool)));
+  QToolTip::add(wMeshSkipLo, "Do not draw items with values below low "
+                "limit of black/white sliders");
+  QToolTip::add(wMeshSkipHi, "Do not draw items with values above high "
+                "limit of black/white sliders");
 
   finalSpacer(oef->control, layout1);
 }
@@ -1190,6 +1271,7 @@ static QCheckBox *wClipToggle;
 static QCheckBox *wClipSkipGlobal;
 static QButtonGroup *wClipGlobalGroup;
 static QSpinBox *wClipPlaneSpin;
+static QCheckBox *wClipMoveAll;
 
 void ImodvObjed::clipGlobalSlot(int value)
 {
@@ -1257,15 +1339,27 @@ void ImodvObjed::clipInvertSlot()
   Iobj *obj = objedObject();     
   IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
     &Imodv->imod->view->clips : &obj->clips;
-  int ip = clips->plane;
+  int ip, ipst, ipnd;
 
   if (Imodv->imod->editGlobalClip)
     imodvRegisterModelChg();
   else
     imodvRegisterObjectChg(Imodv->ob);
-  clips->normal[ip].x = -clips->normal[ip].x;
-  clips->normal[ip].y = -clips->normal[ip].y;
-  clips->normal[ip].z = -clips->normal[ip].z;
+  ipst = ipnd = clips->plane;
+  if (Imodv->imod->view->world & WORLD_MOVE_ALL_CLIP) {
+    ipst = 0;
+    ipnd = clips->count - 1;
+  }
+
+  // This did not require it to be on when it was just one, so keep that
+  // behavior when there is just one.
+  for (ip = ipst; ip <= ipnd; ip++) {
+    if (clips->flags & (1 << ip) || ipst == ipnd) {
+      clips->normal[ip].x = -clips->normal[ip].x;
+      clips->normal[ip].y = -clips->normal[ip].y;
+      clips->normal[ip].z = -clips->normal[ip].z;
+    }
+  }
   imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
@@ -1273,7 +1367,7 @@ void ImodvObjed::clipInvertSlot()
 void ImodvObjed::clipToggleSlot(bool state)
 {
   Iobj *obj = objedObject();     
-  int ip;
+  int ip, ipst, ipnd;
   if (!obj)
     return;
   IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
@@ -1284,33 +1378,57 @@ void ImodvObjed::clipToggleSlot(bool state)
   else
     imodvRegisterObjectChg(Imodv->ob);
      
-  if (!state)
-    clips->flags &= ~(1 << ip);
-  else {
-    clips->flags |= (1 << ip);
+  ipst = ipnd = clips->plane;
+  if (Imodv->imod->view->world & WORLD_MOVE_ALL_CLIP) {
+    ipst = 0;
+    ipnd = B3DMAX(clips->count - 1, ipnd);
+  }
 
+  for (ip = ipst; ip <= ipnd; ip++) {
+    if (!state)
+      clips->flags &= ~(1 << ip);
+    else {
+      clips->flags |= (1 << ip);
+      
     // When a plane is turned on, increment clip count to include it
-    if (ip == clips->count) {
-      clips->count++;
-      setClip_cb();
-    }
-    /* imodPrintStderr("plane %d  flags %d  count %d\n", ip, clips->flags,
-       clips->count); */
-    /* DNM: if this is the first time it's been turned on, set to
-       middle of object */
-    /* imodPrintStderr("%f %f %f %f %f %f\n", clips->point[ip].x,
-                    clips->point[ip].y, clips->point[ip].z, clips->normal[ip].x,
-                    clips->normal[ip].y, clips->normal[ip].z); */
-    if (clips->point[ip].x == 0.0 && clips->point[ip].y == 0.0 &&
-        clips->point[ip].z == 0.0 && clips->normal[ip].x == 0.0 &&
-        clips->normal[ip].y == 0.0 && clips->normal[ip].z == -1.0) {
-      clipResetSlot();
-      return;
+      if (ip == clips->count) {
+        clips->count++;
+        setClip_cb();
+      }
+      /* imodPrintStderr("plane %d  flags %d  count %d\n", ip, clips->flags,
+         clips->count); */
+      /* DNM: if this is the first time it's been turned on, set to
+         middle of object */
+      /* imodPrintStderr("%f %f %f %f %f %f\n", clips->point[ip].x,
+         clips->point[ip].y, clips->point[ip].z, clips->normal[ip].x,
+         clips->normal[ip].y, clips->normal[ip].z); */
+      if (clips->point[ip].x == 0.0 && clips->point[ip].y == 0.0 &&
+          clips->point[ip].z == 0.0 && clips->normal[ip].x == 0.0 &&
+          clips->normal[ip].y == 0.0 && clips->normal[ip].z == -1.0) {
+        clipResetSlot();
+        return;
+      }
     }
   }
   objset(Imodv);
   imodvFinishChgUnit();
   imodvDraw(Imodv);
+}
+
+void ImodvObjed::clipMoveAllSlot(bool state)
+{
+  int m, mst, mnd;
+
+  imodvRegisterModelChg();
+  setStartEndModel(mst, mnd);
+
+  for (m = mst; m <= mnd; m++) {
+    if (state)
+      Imodv->mod[m]->view->world |= WORLD_MOVE_ALL_CLIP;
+    else
+      Imodv->mod[m]->view->world &= ~WORLD_MOVE_ALL_CLIP;
+  }
+  imodvFinishChgUnit();
 }
 
 static void setClip_cb(void)
@@ -1332,6 +1450,8 @@ static void setClip_cb(void)
   diaSetSpinMMVal(wClipPlaneSpin, 1, max, clips->plane + 1);
 
   diaSetChecked(wClipToggle, (clips->flags & (1 << clips->plane)) != 0);
+  diaSetChecked(wClipMoveAll, (Imodv->imod->view->world & WORLD_MOVE_ALL_CLIP)
+                != 0);
 }
 
 static void mkClip_cb(int index)
@@ -1348,10 +1468,12 @@ static void mkClip_cb(int index)
   wClipGlobalGroup->setInsideMargin(4);
   QRadioButton *radio = diaRadioButton("Object", wClipGlobalGroup);
   wClipGlobalGroup->insert(radio);
-  QToolTip::add(radio, "Adjust object clip planes");
+  QToolTip::add(radio, "Adjust object clip planes (use "CTRL_STRING
+                " Key to adjust)");
   radio = diaRadioButton("Global", wClipGlobalGroup);
   wClipGlobalGroup->insert(radio);
-  QToolTip::add(radio, "Adjust global clip planes, applied to whole model");
+  QToolTip::add(radio, "Adjust global clip planes, applied to whole model"
+                " (use "CTRL_STRING" Key to adjust)");
   QObject::connect(wClipGlobalGroup, SIGNAL(clicked(int)), &imodvObjed, 
                    SLOT(clipGlobalSlot(int)));
 
@@ -1372,7 +1494,8 @@ static void mkClip_cb(int index)
   wClipPlaneSpin->setFocusPolicy(QWidget::ClickFocus);
   QObject::connect(wClipPlaneSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(clipPlaneSlot(int)));
-  QToolTip::add(wClipPlaneSpin, "Select plane to adjust");
+  QToolTip::add(wClipPlaneSpin, "Select plane to adjust (use "CTRL_STRING
+                " Key to adjust)");
   QHBox *spacer = new QHBox(oef->control);
   hLayout->addWidget(spacer);
   hLayout->setStretchFactor(spacer, 100);
@@ -1390,8 +1513,8 @@ static void mkClip_cb(int index)
   button->setFocusPolicy(QWidget::NoFocus);
   QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
                    SLOT(clipResetSlot()));
-  QToolTip::add(button, "Reset clipping plane back to X/Y plane through center "
-                "of object or model");
+  QToolTip::add(button, "Reset clipping plane back to X/Y plane through center"
+                " of object or model");
 
   button = new QPushButton("Invert", oef->control);
   hLayout->addWidget(button);
@@ -1401,7 +1524,13 @@ static void mkClip_cb(int index)
   QToolTip::add(button, 
                 "Make clipped part visible, clip visible part of object");
 
-  diaLabel("Press "CTRL_STRING" Key to adjust", oef->control, layout1);
+  wClipMoveAll = diaCheckBox("Adjust all ON planes", oef->control, layout1);
+  QObject::connect(wClipMoveAll, SIGNAL(toggled(bool)), &imodvObjed,
+                   SLOT(clipMoveAllSlot(bool)));
+  QToolTip::add(wClipMoveAll, "Move/rotate all planes that are ON in object "
+                "together (use "CTRL_STRING" Key to adjust)");
+
+  //diaLabel("Press "CTRL_STRING" Key to adjust", oef->control, layout1);
   //diaLabel("adjust with mouse or keys", oef->control, layout1);
   //diaLabel("plane with mouse or", oef->control, layout1);
   //diaLabel("keypad & arrow keys", oef->control, layout1); */
@@ -1553,12 +1682,8 @@ static void mkSubsets_cb(int index)
   QObject::connect(group, SIGNAL(clicked(int)), &imodvObjed, 
 		   SLOT(subsetSlot(int)));
 
-  for (int i = 0; i < 6; i++) {
-    subsetButton = new QRadioButton(subsetLabels[i], oef->control);
-    group->insert(subsetButton);
-    layout1->addWidget(subsetButton);
-    subsetButton->setFocusPolicy(QWidget::NoFocus);
-  }
+  for (int i = 0; i < 6; i++)
+    makeRadioButton(subsetLabels[i], oef->control, group, layout1, NULL);
 
   diaSetGroup(group, Imodv->current_subset);
 
@@ -1719,7 +1844,7 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /************************* internal utility functions. ***********************/
 /*****************************************************************************/
 
-static void setObjFlag(long flag, int state)
+static void setObjFlag(int flag, int state)
 {
   int m, mst, mnd, ob;
 
@@ -1739,6 +1864,31 @@ static void setObjFlag(long flag, int state)
       }
   }
 }
+
+// Sets a flag in byte 2 or 3 (depending on index) of mat3, 
+static void setMat3Flag(int flag, int index, int state)
+{
+  unsigned char *ub;
+  int m, mst, mnd, ob;
+
+  if (!Imodv->imod || !objedObject())
+    return;
+
+  setStartEndModel(mst, mnd);
+    
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      if (changeModelObject(m, ob)) {
+        imodvRegisterObjectChg(ob);
+        ub = (unsigned char *)&(Imodv->mod[m]->obj[ob].mat3b2);
+        if (state)
+          ub[index] |= (unsigned char)flag;
+        else
+          ub[index] &= (unsigned char)(~flag);
+      }
+  }
+}
+
 
 /* Maintain Imodv->ob and set the starting and ending model to change based 
    on global flags and possible flag for individual entity*/
@@ -1762,6 +1912,12 @@ static bool changeModelObject(int m, int ob, bool multipleOK)
        !(Imodv->mod[m]->obj[ob].flags & IMOD_OBJFLAG_OFF)))));
 }
 
+/* Central test for whether to draw after a slider change */
+static bool drawOnSliderChange(bool dragging)
+{
+  return(!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+         (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed));
+}
 
 /* Utility for adding final spacer  */
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
@@ -1771,8 +1927,22 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
   layout->setStretchFactor(spacer, 100);
 }
 
+static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
+                            QVBoxLayout *layout1, char *tooltip)
+{
+  QRadioButton *radio = new QRadioButton(QString(label), parent);
+  group->insert(radio);
+  layout1->addWidget(radio);
+  radio->setFocusPolicy(QWidget::NoFocus);
+  if (tooltip)
+    QToolTip::add(radio, QString(tooltip));
+}
+
 /*
 $Log$
+Revision 4.23  2005/06/24 17:33:16  mast
+Malloced object list button pointers, increased limit to 5000
+
 Revision 4.22  2005/06/06 17:24:36  mast
 Added fill color for spheres, and 2D line width
 

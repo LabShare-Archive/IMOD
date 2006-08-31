@@ -40,6 +40,7 @@ void imodDrawModel(ImodView *vi, Imod *imod)
 
     imodSetObjectColor(ob);
     glLineWidth((GLfloat)obj->linewidth2);
+    ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1);
 
     hasSpheres = iobjScat(obj->flags) || obj->pdrawsize;
     for (co = 0; co < obj->contsize && !hasSpheres; co++)
@@ -118,6 +119,9 @@ static void imodDrawContourLines(Iobj *obj, int co, GLenum mode)
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
      
+  if (ifgGetValueSetupState())
+    handleFlags |= HANDLE_VALUE1;
+
   point = cont->pts;
   lpt = cont->psize;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
@@ -154,6 +158,9 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
   DrawProps contProps, ptProps;
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
+
+  if (ifgGetValueSetupState())
+    handleFlags |= HANDLE_VALUE1;
 
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
@@ -244,6 +251,9 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
     gluSphere(qobj, drawsize , stepRes * 2, stepRes);
     glEndList();
   }
+
+  if (ifgGetValueSetupState())
+    handleFlags |= HANDLE_VALUE1;
 
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
@@ -367,6 +377,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.11  2005/06/26 19:38:10  mast
+Added logic for fine-grained changes
+
 Revision 4.10  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 

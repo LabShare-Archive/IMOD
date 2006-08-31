@@ -305,6 +305,7 @@ int imodSelectionListQuery(ImodView *vi, int ob, int co)
   return -2;
 }
 
+// Remove the given obj, cont from the selection list if it is on it
 void imodSelectionListRemove(ImodView *vi, int ob, int co)
 {
   Iindex *index;
@@ -321,8 +322,45 @@ void imodSelectionListRemove(ImodView *vi, int ob, int co)
   }
 }
 
+
+// Manage the selection list when there is a new current point selected
+void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave, 
+                              int controlDown)
+{
+  Iindex *indp;
+
+  // If ctrl-select, then manage selection list
+  if (controlDown) {
+    
+    // First add previous point if list is empty
+    if (!ilistSize(vi->selectionList) && indSave.contour >= 0)
+      imodSelectionListAdd(vi, indSave);
+    
+    // If point not on list, add it.  If point is on list, then remove
+    // it and pop current point back to last item on list
+    if (imodSelectionListQuery(vi, imod->cindex.object, 
+                               imod->cindex.contour) < -1)
+          imodSelectionListAdd(vi, imod->cindex);
+    else {
+      imodSelectionListRemove(vi, imod->cindex.object, 
+                              imod->cindex.contour);
+      if (ilistSize(vi->selectionList)) {
+        indp = (Iindex *)ilistItem(vi->selectionList,
+                                   ilistSize(vi->selectionList) - 1); 
+        imod->cindex = *indp;
+      }
+    }
+  } else
+
+    // But if Ctrl not down, clear out the list
+    imodSelectionListClear(vi);
+}
+
 /*
 $Log$
+Revision 4.7  2005/06/29 05:38:40  mast
+Changes to manipulate fine grain properties and do undos correctly
+
 Revision 4.6  2005/02/24 22:34:39  mast
 Switched to allowing multiple-object selections
 

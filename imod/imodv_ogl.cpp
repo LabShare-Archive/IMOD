@@ -24,6 +24,7 @@ Log at end of file
 #include "imodv_image.h"
 #include "imod.h"
 #include "imodv.h"
+#include "imod_edit.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
 #include "imodv_light.h"
@@ -78,14 +79,15 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod);
 static void setStereoProjection(ImodvApp *a);
 static void imodvDraw_filled_contours(Iobj *obj, int drawTrans);
 static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans);
-static int check_mesh_draw(Imesh *mesh, int checkTime, int resol);
+static int checkMeshDraw(Imesh *mesh, int checkTime, int resol);
+static int checkContourDraw(Icont *cont, int co, int checkTime);
 static void imodvSetObject(Iobj *obj, int style, int drawTrans);
 static void set_curcontsurf(int ob, Imod* imod);
 static void imodvUnsetObject(Iobj *obj);
 static int load_cmap(unsigned char table[3][256], int *rampData);
-static void mapfalsecolor(int gray, int *red, int *green, int *blue);
 static int clip_obj(Imod *imod, Iobj *obj, int flag);
 static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj);
+static bool checkThickerContour(int co);
 
 static int CTime = -1;
 static float depthShift;
@@ -428,6 +430,13 @@ static void set_curcontsurf(int ob, Imod* imod)
     thickCont = imod->cindex.contour;
 }
 
+static bool checkThickerContour(int co)
+{
+  return (co == thickCont || 
+          (!Imodv->standalone && thickCont >= 0 && imodSelectionListQuery
+           (Imodv->vi, Imodv->imod->cindex.object, co) > -2));
+}
+
 /*
  *  Draw this model.
  */
@@ -591,16 +600,14 @@ static void imodvSetObject(Iobj *obj, int style, int drawTrans)
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 
     if (obj->flags & IMOD_OBJFLAG_FCOLOR){
-      ub = ( unsigned char * )&(obj->mat1);
-      red   = (float)ub[0] / 255.0f;
-      green = (float)ub[1] / 255.0f;
-      blue  = (float)ub[2] / 255.0f;
+      red   = (float)obj->fillred / 255.0f;
+      green = (float)obj->fillgreen / 255.0f;
+      blue  = (float)obj->fillblue / 255.0f;
       glColor4f(red, green, blue, trans);
     }else{
       glColor4f(obj->red, obj->green, obj->blue, trans);
     }
 
-    /*if (obj->flags & IMOD_OBJFLAG_LIGHT){*/
     if ((Imodv->lighting) && (!Imodv->wireframe)){
       light_on(obj);
     }else{
@@ -635,7 +642,7 @@ static void imodvSetObject(Iobj *obj, int style, int drawTrans)
 
 /* A simple function to check whether the current mesh should be drawn, based
    on time, surface number, and resolution */
-static int check_mesh_draw(Imesh *mesh, int checkTime, int resol)
+static int checkMeshDraw(Imesh *mesh, int checkTime, int resol)
 {
   if ((checkTime) && (mesh->type) && (mesh->type != CTime))
     return 0;
@@ -645,6 +652,24 @@ static int check_mesh_draw(Imesh *mesh, int checkTime, int resol)
   if (imeshResol(mesh->flag) == resol)
     return 1;
   return 0;
+}
+
+/* And to check whether a contour should be drawn */
+static int checkContourDraw(Icont *cont, int co, int checkTime)
+{
+    if (!cont->psize) 
+      return 0;
+    if ((checkTime) && (cont->type) && (cont->type != CTime))
+      return 0;
+    if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
+        cont->surf != cursurf)
+      return 0;
+
+    if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont &&
+        (Imodv->standalone || 
+         imodSelectionListQuery(Imodv->vi, Imodv->imod->cindex.object, co)))
+      return 0;
+    return 1;
 }
 
 static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
@@ -680,7 +705,6 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
     }
   }
 
-  
   /* DNM: Made sure there was an "imodvSetObject(obj, 0)" before each
      return from this, and before any repeated call to imodvSetObject.
      The IMOD_OBJFLAG_LINE has an inverted sense (off
@@ -750,7 +774,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
       imodvSetObject(obj, DRAW_FILL, drawTrans);
       for (co = 0; co < obj->meshsize; co++){
         mesh = &(obj->mesh[co]);
-        if (check_mesh_draw(mesh, checkTime, resol)) {
+        if (checkMeshDraw(mesh, checkTime, resol)) {
           if (obj->flags & IMOD_OBJFLAG_SCALAR)
             imodvDrawScalarMesh (mesh, zscale, obj, drawTrans);
           else
@@ -765,7 +789,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
         imodvSetObject(obj, DRAW_LINES, drawTrans);
         for(co = 0; co < obj->meshsize; co++) {
           mesh = &(obj->mesh[co]);
-          if (check_mesh_draw(mesh, checkTime, resol))
+          if (checkMeshDraw(mesh, checkTime, resol))
             imodvDraw_mesh(mesh, DRAW_LINES, obj, drawTrans);
         }
         /*  imodvSetObject(obj, 0); */
@@ -776,7 +800,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
         imodvSetObject(obj, DRAW_LINES, drawTrans);
         for(co = 0; co < obj->meshsize; co++){
           mesh = &(obj->mesh[co]);
-          if (check_mesh_draw(mesh, checkTime, resol)) {
+          if (checkMeshDraw(mesh, checkTime, resol)) {
             if (obj->flags & IMOD_OBJFLAG_SCALAR){
               imodvDrawScalarMesh(mesh, zscale, obj, drawTrans);
             }else{
@@ -789,7 +813,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
         imodvSetObject(obj, DRAW_POINTS, drawTrans);
         for(co = 0; co < obj->meshsize; co++) {
           mesh = &(obj->mesh[co]);
-          if (check_mesh_draw(mesh, checkTime, resol)) {
+          if (checkMeshDraw(mesh, checkTime, resol)) {
             if (obj->flags & IMOD_OBJFLAG_SCALAR){
               imodvDrawScalarMesh(mesh, zscale, obj, drawTrans);
             }else{
@@ -863,6 +887,9 @@ static void imodvPick_Contours(Iobj *obj, int drawTrans)
   if (!CTime)
     checkTime = 0;
 
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
+
   // Skip drawing if trans state does not match draw state
   if ((obj->trans ? 1 : 0) != drawTrans) {
     obj->flags |= IMOD_OBJFLAG_TEMPUSE;
@@ -876,16 +903,9 @@ static void imodvPick_Contours(Iobj *obj, int drawTrans)
   glPushName(NO_NAME);
   for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
-    if (!cont->psize) 
-      continue;
-    if ((checkTime) && (cont->type) && (cont->type != CTime))
-      continue;
-    if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
-        cont->surf != cursurf)
+    if (!checkContourDraw(cont, co, checkTime))
       continue;
 
-    if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
-      continue;
     nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
                                      &stateFlags, handleFlags, 0);
     if (contProps.gap)
@@ -916,16 +936,7 @@ static void imodvPick_Contours(Iobj *obj, int drawTrans)
   glPushName(NO_NAME);
   for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
-    if (!cont->psize) 
-      continue;
-    if ((checkTime) && (cont->type) && (cont->type != CTime))
-      continue;
-          
-    if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
-        cont->surf != cursurf)
-      continue;
-
-    if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
+    if (!checkContourDraw(cont, co, checkTime))
       continue;
 
     nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
@@ -977,6 +988,9 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
   if (!CTime)
     checkTime = 0;
 
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
+
   // First time in, if object has transparency, then check whether any 
   // contour or point stores set transparency to 0 and if not, skip
   if (!drawTrans && obj->trans) {
@@ -996,16 +1010,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
 
   for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
-    if (!cont->psize) 
-      continue;
-    if ((checkTime) && (cont->type) && (cont->type != CTime))
-      continue;
-
-    if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
-        cont->surf != cursurf)
-      continue;
-
-    if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
+    if (!checkContourDraw(cont, co, checkTime))
       continue;
 
     nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
@@ -1014,7 +1019,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
       continue;
 
     // Set thicker line if this is the current contour
-    thickAdd = (co == thickCont) ? 2 : 0;
+    thickAdd = checkThickerContour(co) ? 2 : 0;
     
     pt = 0;
     if ((ptProps.trans ? 1 : 0) != drawTrans) {
@@ -1202,6 +1207,9 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
   if (!obj->contsize)
     return;
 
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
+
   // Skip drawing first time in if object is trans and no contours become
   // solid
   if (!drawTrans && obj->trans && !istoreTransStateMatches(obj->store, 0)) {
@@ -1228,7 +1236,9 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
   for(co = 0; co < obj->contsize ; co++){
     glLoadName(co);
     cont = &(obj->cont[co]);
-    if ((checkTime) && (cont->type) && (cont->type != CTime))
+
+    // 8/29/06: it was only checking time before (not even size)
+    if (!checkContourDraw(cont, co, checkTime))
       continue;
 
     ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
@@ -1358,6 +1368,9 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     qobj = gluNewQuadric();
 #endif
 
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
+
   /* first time, build lookup tables for sphere resolution versus size and
      quality */
   if (firstSphere) {
@@ -1401,8 +1414,8 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
   /* Take maximum of quality from world flag setting and from object */
   quality = ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
     WORLD_QUALITY_SHIFT) + 1;
-  if (quality <= obj->mat1b3)
-    quality = obj->mat1b3 + 1;
+  if (quality <= obj->quality)
+    quality = obj->quality + 1;
 
   if (Imodv->lowres)
     quality = 0;
@@ -1452,16 +1465,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
   for(co = 0; co < obj->contsize; co++){
     cont = &(obj->cont[co]);
     glLoadName(co);
-    if (!cont->psize)
-      continue;
-    if ((checkTime) && (cont->type) && (cont->type != CTime))
-      continue;
-
-    if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
-        cont->surf != cursurf)
-      continue;
-
-    if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont)
+    if (!checkContourDraw(cont, co, checkTime))
       continue;
 
     // Skip contour if not scattered and no sizes
@@ -1483,7 +1487,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
    }
 
     // Set thicker line if this is the current contour, restore at end
-    if (co == thickCont)
+    if (checkThickerContour(co))
       glLineWidth(obj->linewidth + 2);
 
     glPushName(NO_NAME);
@@ -1530,7 +1534,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
       glPopMatrix();
     }
     glPopName();
-    if (co == thickCont)
+    if (checkThickerContour(co))
       glLineWidth(obj->linewidth);
   }
   glDeleteLists(listIndex, 1);
@@ -1559,6 +1563,9 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   float *firstPt;
   float firstRed, firstGreen, firstBlue;
   int firstTrans, defTrans;
+
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
 
   switch(style){
   case DRAW_POINTS:
@@ -1796,6 +1803,9 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   if (!mesh->lsize)
     return;
 
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
+
   /* Check to see if normals have magnitudes. */
   if (mesh->flag & IMESH_FLAG_NMAG)
     glDisable( GL_NORMALIZE );
@@ -2032,48 +2042,23 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
  * SCALAR MESH DRAWING ROUTINES
  */
 
-static void mapfalsecolor(int gray, int *red, int *green, int *blue)
-{
-  static unsigned char cmap[3][256];
-  static int first = 1;
-  int *rampData;
-
-  if (first){
-    rampData = cmapInvertedRamp();
-    cmapConvertRamp(rampData, cmap);
-    first = 0;
-  }
-
-  *red = cmap[0][gray];
-  *green = cmap[1][gray];
-  *blue = cmap[2][gray];
-}
-        
 
 static void imodvDrawScalarMesh(Imesh *mesh, double zscale, 
                          Iobj *obj, int drawTrans)
 {
   int i, j;
   float z = zscale;
+  float mag;
   GLUtesselator *tobj;
   GLdouble v[3];
   Ipoint *n;
-  float  mag;
-  float red, green, blue;
   unsigned char luv;
-  unsigned char *ub = (unsigned char *)&(obj->mat3);
   int trans = (int)(2.55f * (100.0 - (float)obj->trans));
 
-  int blacklevel = 0, whitelevel = 255;
-  int rampsize, cmapReverse = 0;
-  float slope, point;
   int listInc, vertBase, normAdd;
   static unsigned char cmap[3][256];
-  int falsecolor = 0;
-  int r,g,b;
 
   int useLight = Imodv->lighting;
-  /*int useLight = (obj->flags & IMOD_OBJFLAG_LIGHT);*/
 
   GLenum polyStyle, normStyle;
 
@@ -2100,80 +2085,8 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
     normStyle = GL_POINTS;
     zscale = 1.0;
   }
-         
-  /*
-   * calculate the color ramp to use.
-   */
-  if (obj->flags & IMOD_OBJFLAG_MCOLOR)
-    falsecolor = 1;
 
-  /* DNM 9/3/02: This was an endian problem after all */
-  /* DNM: this initialization was needed on the PC.  There are models
-     running around with 0 in this spot, which made PC display regular mesh */
-  /* if (!ub[1])
-     ub[1] = 255; */
-  blacklevel = ub[0];
-  whitelevel = ub[1];
-
-  if (blacklevel > whitelevel){
-    cmapReverse = blacklevel;
-    blacklevel = whitelevel;
-    whitelevel = cmapReverse;
-    cmapReverse = 1;
-  }
-  rampsize = whitelevel - blacklevel;
-  if (rampsize < 1) rampsize = 1;
-
-  for (i = 0; i < blacklevel; i++)
-    cmap[0][i] = 0;
-  for (i = whitelevel; i < 256; i++)
-    cmap[0][i] = 255;
-  slope = 256.0 / (float)rampsize;
-  for (i = blacklevel; i < whitelevel; i++){
-    point = (float)(i - blacklevel) * slope;
-    cmap[0][i] = (unsigned char)point;
-  }
-
-  if (cmapReverse){
-    for(i = 0; i < 256; i++){
-      if (!cmap[0][i])
-        cmap[0][i] = 255;
-      else
-        if (cmap[0][i] > 127){
-          cmap[0][i] -= 128;
-          cmap[0][i] *= -1;
-          cmap[0][i] += 128;
-        }
-        else{
-          cmap[0][i] -= 128;
-          cmap[0][i] *= -1;
-          cmap[0][i] += 128;
-        }
-    }
-  }
-     
-  if (falsecolor){
-    for(i = 0; i < 256; i++){
-      mapfalsecolor(cmap[0][i], &r, &g, &b);
-      cmap[0][i] = (unsigned char)r;
-      cmap[1][i] = (unsigned char)g;
-      cmap[2][i] = (unsigned char)b;
-    }
-  }else{
-    red   = obj->red; green = obj->green; blue = obj->blue;
-    if (obj->flags & IMOD_OBJFLAG_FCOLOR){
-      ub    = (unsigned char *)&(obj->mat1);
-      red   = (float)ub[0] / 255.0f;
-      green = (float)ub[1] / 255.0f;
-      blue  = (float)ub[2] / 255.0f;
-    }
-    for(i = 0; i < 256; i++){
-      mag = (float)cmap[0][i];
-      cmap[0][i] = (unsigned char)(red   * mag);
-      cmap[1][i] = (unsigned char)(green * mag);
-      cmap[2][i] = (unsigned char)(blue  * mag);
-    }
-  }
+  ifgMakeValueMap(obj, cmap);
 
   /*
    * Loop through mesh data and draw it.
@@ -2284,7 +2197,7 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
   Icont *cont;
 
   // Test if surface subset on, it's also OK if the mesh surface is greater
-  // than zero because a match was already tested for in check_mesh_draw
+  // than zero because a match was already tested for in checkMeshDraw
   if (!(Imodv->current_subset / 2 == 1 && cursurf >= 0) || mesh->pad > 0)
     return 0;
 
@@ -2335,8 +2248,86 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
   return 1;
 }
 
+void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
+{
+  Imod *imod = a->imod;
+  int ob = imod->cindex.object;
+  int co, pt, checkTime;
+  Iobj *obj;
+  Icont *cont;
+  int nextChange, stateFlags, handleFlags = 0;
+  DrawProps contProps, ptProps;
+  Iindex cindex;
+  int numSel = 0;
+  int nPlanes;
+  GLint maxPlanes;
+  Iplane plane[2 * IMOD_CLIPSIZE];
+
+  if (ob < 0)
+    return;
+  obj = &imod->obj[ob];
+  checkTime = (int)iobjTime(obj->flags);
+
+  CTime = imod->ctime;
+  if (!CTime)
+    checkTime = 0;
+  if (iobjOff(obj->flags) || !iobjLine(obj->flags))
+    return;
+
+  glGetIntegerv(GL_MAX_CLIP_PLANES, &maxPlanes);
+  nPlanes = 0;
+  imodPlaneSetFromClips(&obj->clips, &imod->view->clips, plane, maxPlanes, 
+                        &nPlanes);
+
+  imodSelectionListClear(a->vi);
+
+  set_curcontsurf(ob, imod);
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+    handleFlags |= HANDLE_VALUE1;
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &(obj->cont[co]);
+    //imodPrintStderr("contour %d planes %d\n", co, nPlanes);
+    if (!checkContourDraw(cont, co, checkTime))
+      continue;
+    //imodPuts("passed draw check");
+    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
+                                     &stateFlags, handleFlags, 0);
+    if (contProps.gap)
+      continue;
+    //imodPuts("passed gap");
+
+    // Check the clipping planes; if any point is visible, break and accept
+    if (nPlanes > 0) {
+      for (pt = 0; pt < cont->psize; pt++)
+        if (imodPlanesClip(plane, nPlanes, &cont->pts[pt]))
+          break;
+      if (pt >= cont->psize)
+        continue;
+    }
+    //imodPuts("passed clip");
+
+    // The first time, just set the model index
+    // The second time, add previous index to selection list
+    // After the first time, add every index to the selection list
+    if (numSel == 1)
+      imodSelectionListAdd(a->vi, imod->cindex);
+    cindex.contour = co;
+    cindex.object = ob;
+    cindex.point = -1;
+    imod->cindex = cindex;
+    if (numSel)
+      imodSelectionListAdd(a->vi, cindex);
+    numSel++;
+    pickedCo = co;
+    pickedOb = ob;
+  }
+}
+
 /*
 $Log$
+Revision 4.29  2006/08/28 05:23:15  mast
+Switched to using false color routines for getting false color map
+
 Revision 4.28  2006/06/09 20:25:01  mast
 Added glEnd/glBegin pairs to fix some gaps in mesh with color changes
 

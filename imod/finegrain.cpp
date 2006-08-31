@@ -13,33 +13,9 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 1.8  2006/04/21 01:08:26  mast
-    Fixed problem with "d" output when no current contour defined
-
-    Revision 1.7  2006/02/28 15:20:28  mast
-    Back out test changes that went in by mistake
-
-    Revision 1.6  2006/02/27 19:44:20  mast
-    Added go to next change functionality
-
-    Revision 1.5  2005/09/13 14:34:04  mast
-    removed null from line
-
-    Revision 1.4  2005/09/12 14:23:17  mast
-    Added rubberband selection and fixed problem with mesh trans matching
-
-    Revision 1.3  2005/09/11 19:54:05  mast
-    New functions and changes for trans matching
-
-    Revision 1.2  2005/06/29 05:39:26  mast
-    Fixes for surface vs. contour states
-
-    Revision 1.1  2005/06/26 19:36:13  mast
-    Addition to program
-
+    Log at end
 */
+
 
 #include <qgl.h>
 #include "form_finegrain.h"
@@ -78,9 +54,14 @@ static void insertAndUpdate(int type);
 static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
                              DrawProps *ptProps, int *stateFlags, 
                              int handleFlags, int selected);
-static void ifgHandleStateChange(Iobj *obj, DrawProps *ptProps,
-                                 int *changeFlags, int handleFlags,
+static void ifgHandleStateChange(Iobj *obj, DrawProps *defProps, 
+                                 DrawProps *ptProps, int *stateFlags, 
+                                 int *changeFlags, int handleFlags, 
                                  int selected);
+static void ifgMapFalseColor(int gray, int *red, int *green, int *blue);
+static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps, 
+                            int *stateFlags, int *changeFlags);
+
 /*
  * Open or raise the window
  */
@@ -670,6 +651,11 @@ static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
   istoreDefaultDrawProps(obj, &defProps);
   *stateFlags = istoreContSurfDrawProps(obj->store, &defProps, contProps, co, 
                          surf, &contState, &surfState);
+
+  // Analyze the value for color and gap changes
+  if ((handleFlags & HANDLE_VALUE1) && (*stateFlags & CHANGED_VALUE1))
+    ifgHandleValue1(&defProps, contProps, stateFlags, stateFlags);
+
   *ptProps = *contProps;
   ptProps->gap = 0;
 
@@ -715,7 +701,8 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
 {
   int nextChange = istoreNextChange(list, defProps, ptProps, stateFlags,
                                     changeFlags);
-  ifgHandleStateChange(obj, ptProps, changeFlags, handleFlags, selected);
+  ifgHandleStateChange(obj, defProps, ptProps, stateFlags, changeFlags, 
+                       handleFlags, selected);
   return  nextChange;
 }
 
@@ -725,10 +712,14 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
  * handleFlags specifies which to handle and selected is 1 for the current 
  * contour.
  */
-static void ifgHandleStateChange(Iobj *obj, DrawProps *ptProps,
-                                 int *changeFlags, int handleFlags,
+static void ifgHandleStateChange(Iobj *obj, DrawProps *defProps, 
+                                 DrawProps *ptProps, int *stateFlags, 
+                                 int *changeFlags, int handleFlags, 
                                  int selected)
 {
+  if ((handleFlags & HANDLE_VALUE1) && (*changeFlags & CHANGED_VALUE1))
+    ifgHandleValue1(defProps, ptProps, stateFlags, changeFlags);
+
   if ((handleFlags & HANDLE_LINE_COLOR) && (*changeFlags & CHANGED_COLOR)) {
     if (App->rgba)
       glColor3f(ptProps->red, ptProps->green, ptProps->blue);
@@ -773,7 +764,7 @@ void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans)
  * the default.  The return value is the index at which the next change in
  * properties must be made (which can include a return to default).  curIndex
  * is the current mesh index, handleFlags indicates which properties to handle,
- * and changeFlags is returned with falgs for ones changed on this call.
+ * and changeFlags is returned with flags for ones changed on this call.
  */
 int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *curProps, int *nextItemIndex, int curIndex, 
@@ -792,6 +783,12 @@ int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps,
     *curProps = *defProps;
     *nextItemIndex = istoreNextChange(list, defProps, curProps, stateFlags,
                                   changeFlags);
+
+    // If handling value, get it interpreted and copy flags to state
+    if ((handleFlags & HANDLE_VALUE1) && (*changeFlags & CHANGED_VALUE1)) {
+      ifgHandleValue1(defProps, curProps, stateFlags, changeFlags);
+      *stateFlags = *changeFlags;
+    }
 
     // Change items are the original items or'd with the new items
     *changeFlags |= needChange;
@@ -885,7 +882,8 @@ int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
       }
 
       // Now set display properties based on current state
-      ifgHandleStateChange(obj, ptProps, allChanges, handleFlags, 0);
+      ifgHandleStateChange(obj, contProps, ptProps, stateFlags, allChanges, 
+                           handleFlags, 0);
       return nextChange;
     }
   }
@@ -999,3 +997,195 @@ int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd)
   }
   return -1;
 }
+
+/*
+ * Routines to manage the color maps for value-type drawing
+ */
+static void ifgMapFalseColor(int gray, int *red, int *green, int *blue)
+{
+  static unsigned char cmap[3][256];
+  static int first = 1;
+  int *rampData;
+
+  if (first){
+    rampData = cmapInvertedRamp();
+    cmapConvertRamp(rampData, cmap);
+    first = 0;
+  }
+
+  *red = cmap[0][gray];
+  *green = cmap[1][gray];
+  *blue = cmap[2][gray];
+}
+
+void ifgMakeValueMap(Iobj *obj, unsigned char cmap[3][256])
+{
+  float red, green, blue, mag;
+  int blacklevel = 0, whitelevel = 255;
+  int i, rampsize, cmapReverse = 0;
+  float slope, point;
+  int falsecolor = 0;
+  int r,g,b;
+  /*
+   * calculate the color ramp to use.
+   */
+  if (obj->flags & IMOD_OBJFLAG_MCOLOR)
+    falsecolor = 1;
+
+  /* DNM 9/3/02 (8/31/06): Initialization of valwhite was needed because of 
+     an endian problem, but is not correct */
+  blacklevel = obj->valblack;
+  whitelevel = obj->valwhite;
+
+  if (blacklevel > whitelevel){
+    cmapReverse = blacklevel;
+    blacklevel = whitelevel;
+    whitelevel = cmapReverse;
+    cmapReverse = 1;
+  }
+  rampsize = whitelevel - blacklevel;
+  if (rampsize < 1) rampsize = 1;
+
+  for (i = 0; i < blacklevel; i++)
+    cmap[0][i] = 0;
+  for (i = whitelevel; i < 256; i++)
+    cmap[0][i] = 255;
+  slope = 256.0 / (float)rampsize;
+  for (i = blacklevel; i < whitelevel; i++){
+    point = (float)(i - blacklevel) * slope;
+    cmap[0][i] = (unsigned char)point;
+  }
+
+  if (cmapReverse)
+    for(i = 0; i < 256; i++)
+      cmap[0][i] = 255 - cmap[0][i];
+     
+  if (falsecolor) {
+    for(i = 0; i < 256; i++){
+      ifgMapFalseColor(cmap[0][i], &r, &g, &b);
+      cmap[0][i] = (unsigned char)r;
+      cmap[1][i] = (unsigned char)g;
+      cmap[2][i] = (unsigned char)b;
+    }
+  } else {
+    red   = obj->red; green = obj->green; blue = obj->blue;
+    if (obj->flags & IMOD_OBJFLAG_FCOLOR){
+      red   = (float)obj->fillred / 255.0f;
+      green = (float)obj->fillgreen / 255.0f;
+      blue  = (float)obj->fillblue / 255.0f;
+    }
+    for(i = 0; i < 256; i++){
+      mag = (float)cmap[0][i];
+      cmap[0][i] = (unsigned char)(red   * mag);
+      cmap[1][i] = (unsigned char)(green * mag);
+      cmap[2][i] = (unsigned char)(blue  * mag);
+    }
+  }
+}
+
+/*
+ * Static variables for controlling value drawing
+ */
+static float valMin, valSlope;
+static int skipLow, skipHigh;
+static unsigned char valueCmap[3][256];
+static int valSetup = 0;
+
+/*
+ * Test whether value drawing is possible and set up variables
+ */
+int ifgSetupValueDrawing(Iobj *obj, int type)
+{
+  float max;
+  valSetup = 0;
+  if (!(obj->flags & IMOD_OBJFLAG_USE_VALUE))
+    return 0;
+  if (!istoreGetMinMax(obj->store, obj->contsize, type, &valMin, &max))
+    return 0;
+  if (max <= valMin)
+    return 0;
+  valSlope = 255.9 / (max - valMin);
+  ifgMakeValueMap(obj, valueCmap);
+
+  // Interpret the flags for skipping low and high values as skipping low and
+  // high indices, taking inversion of colormap into account
+  skipLow = 0;
+  skipHigh = 255;
+  if (obj->mat3b2 & 1)
+    skipLow = B3DMIN(obj->valblack, obj->valwhite);
+  if (obj->mat3b2 & 2)
+    skipHigh = B3DMAX(obj->valblack, obj->valwhite);
+  valSetup = 1;
+  if (imodDebug('g'))
+    imodPrintStderr("Setup min %f max %f slope %f bl %d wh %d skips %d %d\n", 
+                    valMin, max, valSlope, obj->valblack, obj->valwhite,
+                    skipLow, skipHigh);
+  return 1;
+}
+
+// Routines to query and reset drawing state, used for contour-drawing routine
+int ifgGetValueSetupState()
+{
+  return valSetup;
+}
+
+void ifgResetValueSetup()
+{
+  valSetup = 0;
+}
+
+static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps, 
+                            int *stateFlags, int *changeFlags)
+{
+  int index;
+  if (*stateFlags & CHANGED_VALUE1) {
+    index = valSlope * (contProps->value1 - valMin);
+    if (index < 0)
+      index = 0;
+    if (index > 255)
+      index = 255;
+    
+    if (index < skipLow || index > skipHigh)
+      contProps->gap = 1;
+
+    contProps->red = valueCmap[0][index] / 255.;
+    contProps->green = valueCmap[1][index] / 255.;
+    contProps->blue = valueCmap[2][index] / 255.;
+  } else {
+    contProps->red = defProps->red;
+    contProps->green = defProps->green;
+    contProps->blue = defProps->blue;
+  }
+  *changeFlags |= CHANGED_COLOR;
+}
+
+/*
+  $Log$
+  Revision 1.9  2006/05/08 16:37:29  mast
+  Added connection numbers for contours
+
+  Revision 1.8  2006/04/21 01:08:26  mast
+  Fixed problem with "d" output when no current contour defined
+
+  Revision 1.7  2006/02/28 15:20:28  mast
+  Back out test changes that went in by mistake
+
+  Revision 1.6  2006/02/27 19:44:20  mast
+  Added go to next change functionality
+
+  Revision 1.5  2005/09/13 14:34:04  mast
+  removed null from line
+
+  Revision 1.4  2005/09/12 14:23:17  mast
+  Added rubberband selection and fixed problem with mesh trans matching
+
+  Revision 1.3  2005/09/11 19:54:05  mast
+  New functions and changes for trans matching
+
+  Revision 1.2  2005/06/29 05:39:26  mast
+  Fixes for surface vs. contour states
+
+  Revision 1.1  2005/06/26 19:36:13  mast
+  Addition to program
+
+*/

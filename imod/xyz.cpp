@@ -1087,6 +1087,9 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   if (ivwTimeMismatch(vi, 0, obj, cont))
     return;
 
+  if (ifgGetValueSetupState())
+    handleFlags |= HANDLE_VALUE1;
+
   zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
                                    handleFlags, 0);
@@ -1356,11 +1359,12 @@ void XyzWindow::DrawModel()
   if (xx->vi->ghostmode)
     DrawGhost();
      
-  for(ob = 0; ob < imod->objsize; ob++) {
+  for (ob = 0; ob < imod->objsize; ob++) {
     imodSetObjectColor(ob);
     obj = &(imod->obj[ob]);
     b3dLineWidth(obj->linewidth2);
-    for(co = 0; co < imod->obj[ob].contsize; co++)
+    ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1);
+    for (co = 0; co < imod->obj[ob].contsize; co++)
       DrawContour(obj, ob, co);
   }
 
@@ -1722,6 +1726,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.28  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 4.27  2006/06/09 20:25:39  mast
 Added ability to display spheres on center section only
 

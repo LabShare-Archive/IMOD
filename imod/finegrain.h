@@ -8,6 +8,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2006/02/28 15:20:28  mast
+Back out test changes that went in by mistake
+
 Revision 1.3  2006/02/27 19:45:24  mast
 Added next change button
 
@@ -30,7 +33,7 @@ typedef struct ViewInfo ImodView;
 #define HANDLE_TRANS       (1l << 3)
 #define HANDLE_2DWIDTH     (1l << 4)
 #define HANDLE_3DWIDTH     (1l << 5)
-
+#define HANDLE_VALUE1      (1l << 6)
 
 void ifgPtContSurfSelected(int which);
 void ifgGotoNextChange();
@@ -71,4 +74,8 @@ int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd);
 int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
                       DrawProps *contProps, DrawProps *ptProps,
                       int *stateFlags, int *allChanges, int handleFlags);
+void ifgMakeValueMap(Iobj *obj, unsigned char cmap[3][256]);
+int ifgSetupValueDrawing(Iobj *obj, int type);
+int ifgGetValueSetupState();
+void ifgResetValueSetup();
 #endif

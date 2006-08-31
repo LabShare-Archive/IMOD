@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.6  2005/06/06 17:24:59  mast
+Added sphere fill color slot
+
 Revision 4.5  2004/09/21 20:20:14  mast
 Declarations for multiple clipping plane slots, new object list in
 scroll view, and editing multiple colore
@@ -113,8 +116,10 @@ class ImodvObjed : public QObject
   void lineWidthSlot(int which, int value, bool dragging);
   void lineAliasSlot(bool state);
   void lineThickenSlot(bool state);
-  void meshNormalSlot(bool state);
+  void meshShowSlot(int value);
   void meshFalseSlot(bool state);
+  void meshSkipLoSlot(bool state);
+  void meshSkipHiSlot(bool state);
   void meshLevelSlot(int which, int value, bool dragging);
   void clipGlobalSlot(int value);
   void clipSkipSlot(bool state);
@@ -122,6 +127,7 @@ class ImodvObjed : public QObject
   void clipResetSlot();
   void clipInvertSlot();
   void clipToggleSlot(bool state);
+  void clipMoveAllSlot(bool state);
   void moveCenterSlot();
   void moveAxisSlot(int which);
   void subsetSlot(int which);

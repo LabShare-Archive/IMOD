@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2004/11/21 05:50:34  mast
+Switch from int to float for nearest point distance measurement
+
 Revision 4.3  2004/11/01 23:21:15  mast
 Added selection list functions
 
@@ -45,4 +48,6 @@ void imodSelectionListAdd(ImodView *vi, Iindex newIndex);
 int imodSelectionListClear(ImodView *vi);
 int imodSelectionListQuery(ImodView *vi, int ob, int co);
 void imodSelectionListRemove(ImodView *vi, int ob, int co);
+void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave, 
+                              int controlDown);
 #endif

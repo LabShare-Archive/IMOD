@@ -35,6 +35,7 @@
 #include "imod_input.h"
 #include "control.h"
 #include "imodv_menu.h"
+#include "imodv_ogl.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_control.h"
@@ -390,14 +391,24 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_A:
-    if (ctrl && a->standalone)
-      imodvSaveModelAs();
+
+    // 8/29/06: Take accelerator for save as away so this will work
+    if (ctrl && !a->standalone) {
+      imodvSelectVisibleConts(a, pickedObject, pickedContour);
+      imodvDraw(a);
+      imod_setxyzmouse();
+      imodPrintStderr("current %d %d  picked %d %d\n",
+                      a->imod->cindex.object, 
+                      a->imod->cindex.contour, pickedObject,
+                      pickedContour);
+    }
     break;
 
   case Qt::Key_D:
     if (shifted && !a->standalone && pickedContour >= 0 &&
-        a->imod->cindex.object == pickedObject && 
-        a->imod->cindex.contour == pickedContour) {
+        ((a->imod->cindex.object == pickedObject && 
+          a->imod->cindex.contour == pickedContour) || 
+         imodSelectionListQuery(a->vi, pickedObject, pickedContour) > -2)) {
       inputDeleteContour(a->vi);
       pickedContour = -1;
     }
@@ -587,7 +598,7 @@ static void registerClipPlaneChg(ImodvApp *a)
 
 static void imodv_translated(ImodvApp *a, int x, int y, int z)
 {
-  int mx, my, ip;
+  int mx, my, ip, ipst, ipnd;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
   IclipPlanes *clips;
     
@@ -637,12 +648,17 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
         registerClipPlaneChg(a);
         clips = a->imod->editGlobalClip ? 
           &a->imod->view->clips : &a->obj->clips;
-        ip = clips->plane;
-        if (clips->flags & (1 << ip)){
-          clips->point[ip].x += opt.x;
-          clips->point[ip].y += opt.y;
-          clips->point[ip].z += opt.z;
+        ipst = ipnd = clips->plane;
+        if (imod->view->world & WORLD_MOVE_ALL_CLIP) {
+          ipst = 0;
+          ipnd = clips->count - 1;
         }
+        for (ip = ipst; ip <= ipnd; ip++) 
+          if (clips->flags & (1 << ip)) {
+            clips->point[ip].x += opt.x;
+            clips->point[ip].y += opt.y;
+            clips->point[ip].z += opt.z;
+          }
       }
     }else{ 
       imod->view->trans.x -= opt.x;
@@ -677,7 +693,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 {
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
-  int m, mstrt, mend, ip;
+  int m, mstrt, mend, ip, ipst, ipnd;
   Imat *mat = a->mat;
   Imat *mato, *matp;
   double alpha, beta, gamma, gamrad;
@@ -686,7 +702,6 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   Imod *imod = a->imod;
   IclipPlanes *clips = imod->editGlobalClip ? 
     &imod->view->clips : &a->obj->clips;
-  ip = clips->plane;
 
   /* IF movieing, start the movie if necessary */
   if (a->movie && !a->wpid) {
@@ -738,44 +753,53 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
       imod->view->rot.z = gamma;
     }
           
-  } else if (clips->flags & (1 << ip)) {
+  } else {
+    ipst = ipnd = clips->plane;
+    if (imod->view->world & WORLD_MOVE_ALL_CLIP) {
+      ipst = 0;
+      ipnd = clips->count - 1;
+    }
+    for (ip = ipst; ip <= ipnd; ip++) {
+      if (clips->flags & (1 << ip)) {
+        
+        /* Clipping plane rotation: apply to current model only */
 
-    /* Clipping plane rotation: apply to current model only */
+        registerClipPlaneChg(a);
 
-    registerClipPlaneChg(a);
+        /* Find the normal in scaled model coordinates by scaling
+           each of the components appropriately */
+        scalePoint.x = clips->normal[ip].x / imod->view->scale.x;
+        scalePoint.y = clips->normal[ip].y / imod->view->scale.y;
+        scalePoint.z = clips->normal[ip].z / 
+          (imod->view->scale.z * imod->zscale);
 
-    /* Find the normal in scaled model coordinates by scaling
-       each of the components appropriately */
-    scalePoint.x = clips->normal[ip].x / imod->view->scale.x;
-    scalePoint.y = clips->normal[ip].y / imod->view->scale.y;
-    scalePoint.z = clips->normal[ip].z / 
-      (imod->view->scale.z * imod->zscale);
+        /* get current rotation transform into viewing space */
+        imodMatId(mato);
+        imodMatRot(mato, (double)imod->view->rot.z, b3dZ);
+        imodMatRot(mato, (double)imod->view->rot.y, b3dY);
+        imodMatRot(mato, (double)imod->view->rot.x, b3dX);
 
-    /* get current rotation transform into viewing space */
-    imodMatId(mato);
-    imodMatRot(mato, (double)imod->view->rot.z, b3dZ);
-    imodMatRot(mato, (double)imod->view->rot.y, b3dY);
-    imodMatRot(mato, (double)imod->view->rot.x, b3dX);
+        /* Get product of that with screen-oriented rotation */
+        imodMatMult(mato, mat, matp);
+        imodMatTransform(matp, &scalePoint, &normal);
 
-    /* Get product of that with screen-oriented rotation */
-    imodMatMult(mato, mat, matp);
-    imodMatTransform(matp, &scalePoint, &normal);
+        /* Back-transform normal by inverse of current transform */
 
-    /* Back-transform normal by inverse of current transform */
+        imodMatId(mato);
+        imodMatRot(mato, -(double)imod->view->rot.x, b3dX);
+        imodMatRot(mato, -(double)imod->view->rot.y, b3dY);
+        imodMatRot(mato, -(double)imod->view->rot.z, b3dZ);
+        imodMatTransform(mato, &normal, &scalePoint);
 
-    imodMatId(mato);
-    imodMatRot(mato, -(double)imod->view->rot.x, b3dX);
-    imodMatRot(mato, -(double)imod->view->rot.y, b3dY);
-    imodMatRot(mato, -(double)imod->view->rot.z, b3dZ);
-    imodMatTransform(mato, &normal, &scalePoint);
+        /* Rescale components to get back to unscaled model normal */
+        clips->normal[ip].x = scalePoint.x * imod->view->scale.x;
+        clips->normal[ip].y = scalePoint.y * imod->view->scale.y;
+        clips->normal[ip].z = scalePoint.z * 
+          (imod->view->scale.z * imod->zscale);
+        imodPointNormalize(&(clips->normal[ip]));
 
-    /* Rescale components to get back to unscaled model normal */
-    clips->normal[ip].x = scalePoint.x * imod->view->scale.x;
-    clips->normal[ip].y = scalePoint.y * imod->view->scale.y;
-    clips->normal[ip].z = scalePoint.z * 
-      (imod->view->scale.z * imod->zscale);
-    imodPointNormalize(&(clips->normal[ip]));
-
+      }
+    }
   }
 
   imodMatDelete(mato);
@@ -870,6 +894,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
   unsigned int z1, z2, zav, zmin;
   int tmo, tob, tco, tpt;
   int mo, ob, co, pt;
+  Iindex indSave;
 
   if (!hits) return;
   /* If it overflowed, process what's there */
@@ -939,14 +964,19 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
 
   }
 
-  if (pt == -1) return;
+  if (pt == -1)
+    return;
   a->cm = mo;
   a->imod = a->mod[mo];
+  indSave = a->imod->cindex;
   imodSetIndex(a->imod, ob, co, pt);     
   if (!a->standalone){
+    imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
     imod_setxyzmouse();
-    pickedContour = co;
-    pickedObject = ob;
+    pickedContour = a->imod->cindex.contour;
+    pickedObject = a->imod->cindex.object;
+    imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, pickedObject,
+                    pickedContour);
   }
 }
 
@@ -1076,6 +1106,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.18  2005/10/21 23:58:41  mast
+    Fixed for gcc 4.0 on Mac
+
     Revision 4.17  2004/11/21 06:07:49  mast
     Changes for undo/redo
 

@@ -420,9 +420,11 @@ void zapPaint(ZapStruct *zap)
 
   // If the current only flag is set, swap the displayed buffer into the
   // drawing buffer and just draw the current contour
+  // Reset value drawing since it has not been set up for this object
   if (zap->drawCurrentOnly > 0) {
     if (App->doublebuffer)
       zap->gfx->swapBuffers();
+    ifgResetValueSetup();
     ob = zap->vi->imod->cindex.object;
     imodSetObjectColor(ob); 
     b3dLineWidth(zap->vi->imod->obj[ob].linewidth2); 
@@ -1576,34 +1578,10 @@ void zapButton1(ZapStruct *zap, int x, int y, int controlDown)
       }
     }
 
-    if (distance >= 0.) {
-
-      // If ctrl-select, then manage selection list
-      if (controlDown) {
-
-        // First add previous point if list is empty
-        if (!ilistSize(vi->selectionList) && indSave.contour >= 0)
-          imodSelectionListAdd(vi, indSave);
-
-        // If point not on list, add it.  If point is on list, then remove
-        // it and pop current point back to last item on list
-        if (imodSelectionListQuery(vi, imod->cindex.object, 
-                                   imod->cindex.contour) < -1)
-          imodSelectionListAdd(vi, imod->cindex);
-        else {
-          imodSelectionListRemove(vi, imod->cindex.object, 
-                                  imod->cindex.contour);
-          if (ilistSize(vi->selectionList)) {
-            indp = (Iindex *)ilistItem(vi->selectionList,
-                                       ilistSize(vi->selectionList) - 1); 
-            imod->cindex = *indp;
-          }
-        }
-      } else
-
-        // But if Ctrl not down, clear out the list
-        imodSelectionListClear(vi);
-    }
+    // If point found, manage selection list and even toggle this contour off 
+    // if appropriate
+    if (distance >= 0.)
+      imodSelectionNewCurPoint(vi, imod, indSave, controlDown);
 
     /* DNM: add the DRAW_XYZ flag to make it update info and Slicer */
     imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
@@ -3160,6 +3138,7 @@ static void zapDrawModel(ZapStruct *zap)
       continue;
     imodSetObjectColor(ob); 
     b3dLineWidth(vi->imod->obj[ob].linewidth2); 
+    ifgSetupValueDrawing(&vi->imod->obj[ob], GEN_STORE_MINMAX1);
 
     for (co = 0; co < vi->imod->obj[ob].contsize; co++){
       if (ob == vi->imod->cindex.object){
@@ -3192,6 +3171,8 @@ static void zapDrawExtraObject(ZapStruct *zap)
 
   if (vi->imod->drawmode <= 0 || !xobj->contsize)
     return;
+
+  ifgResetValueSetup();
 
   // If there are contours in the extra object, set color or red, and draw
   if (App->rgba)
@@ -3266,6 +3247,8 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if ((!cont) || (!cont->psize))
     return;
 
+  if (ifgGetValueSetupState())
+    handleFlags |= HANDLE_VALUE1;
 
   zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
 
@@ -3552,7 +3535,7 @@ static void zapDrawGhost(ZapStruct *zap)
   int nextz, prevz, iz;
   int pt, npt, lastX, lastY, thisX, thisY;
   int nextChange, stateFlags, changeFlags;
-  int handleFlags = HANDLE_2DWIDTH;
+  int handleFlags;
 
   if (!mod)
     return;
@@ -3568,6 +3551,10 @@ static void zapDrawGhost(ZapStruct *zap)
     /* DNM: don't do scattered points - point size works for that */
     if(iobjScat(obj->flags))
       continue;
+
+    handleFlags = HANDLE_2DWIDTH;
+    if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
+      handleFlags |= HANDLE_VALUE1;
 
     /* DNM 6/16/01: need to be based on zap->section, not zmouse */
     nextz = zap->section + zap->vi->ghostdist;
@@ -3810,6 +3797,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.83  2006/08/24 21:28:25  mast
+Refresh graph windows when rubber band changes, fixed an initialization bug
+
 Revision 4.82  2006/07/05 04:16:04  mast
 Use flag to determine which color to give which image in overlay
 
