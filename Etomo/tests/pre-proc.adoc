@@ -1,37 +1,39 @@
 Version = 1.2
 
-[function = run]
-function = ui
-bn.find-x-rays =
-waitfor.process = done
-function = fail
+[function = build]
+function = create
+function = use
+function = done
+
+[function = test]
+function = test1
+function = create
+function = 3dmod
+function = use
+function = test2
+function = done
+function = popup
+
+[function = create]
 bn.create-fixed-stack =
 waitfor.process = done
+
+[function = use]
 bn.use-fixed-stack = 
-function = ui-changed
+
+[function = done]
 bn.done =
 
+[function = 3dmod]
+bn.view-fixed-stack =
 
-[function = fail]
-bn.use-fixed-stack =
-waitfor.popup.missing-erased-stack =
+[function = popup]
+waitfor.popup.etomo-question = Yes
 
-
-[function = ui]
-function = ui-ccd-eraser
-function = ui-manual-pixel-region-replacement
-adoc = tests.adoc
-function = buttons
-adoc = pre-proc.adoc
-
-
-[function = ui-changed]
-assert.bn.find-x-rays = 1
-assert.bn.create-fixed-stack = 1
-assert.bn.use-fixed-stack = 1
-
-
-[function = ui-ccd-eraser]
+[function = test1]
+#
+# ccd eraser
+#
 bn.advanced =
 assert.tf.peak-criterion = 10.
 assert.tf.peak-criterion.enabled = 1
@@ -91,8 +93,9 @@ assert.tf.maximum-radius.enabled = 1
 assert.bn.create-fixed-stack.enabled = 1
 assert.bn.view-fixed-stack.enabled = 1
 assert.bn.use-fixed-stack.enabled = 1
-
-[function = ui-manual-pixel-region-replacement]
+#
+# manual pixel region replacement
+#
 bn.advanced =
 assert.cb.manual-replacement =
 assert.cb.manual-replacement.enabled = 1
@@ -108,3 +111,36 @@ assert.tf.line-replacement-list.enabled = 1
 assert.bn.create-manual-replacement-model.enabled = 1
 cb.manual-replacement = 0
 bn.basic =
+#
+# done buttons
+#
+adoc = tests.adoc
+function = buttons
+adoc = pre-proc.adoc
+#
+# test find x-rays
+#
+bn.find-x-rays =
+waitfor.process = done
+bn.view-x-ray-model =
+#
+# manual replacement
+#
+bn.advanced =
+cb.manual-replacement = 1
+bn.create-manual-replacement-model =
+cb.manual-replacement = 0
+bn.basic =
+#
+# test missing data
+#
+bn.use-fixed-stack =
+waitfor.popup.missing-erased-stack =
+
+[function = test2]
+#
+# button states
+#
+assert.bn.find-x-rays = 1
+assert.bn.create-fixed-stack = 1
+assert.bn.use-fixed-stack = 1

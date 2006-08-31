@@ -14,41 +14,30 @@ function = fid
 function = done
 
 [function = test]
-function = test-ui
-function = test-missing-data-scan
-function = test-missing-data-view-0
-function = test-missing-data-view-1
+function = test1
+function = test-missing-data-dual
 function = test-missing-data-done
 function = dataset
 function = scan
 function = test-missing-data-done
 function = fid
-function = test-angles-0
-function = test-angles-1
-function = test-3dmod-0
-function = test-3dmod-1
-function = test-dataset
-function = test-changes
+function = test-angles-dual
+function = 3dmod-dual
+function = test2
 function = done
 function = popup
 function = popup
 
 [function = test_single]
-function = test-ui
-function = test-missing-data-scan
-function = test-missing-data-view-0
+function = test1
 function = test-missing-data-done
 function = dataset
 function = single
 function = scan
 function = test-missing-data-done
 function = fid
-function = test-angles-0
-function = test-3dmod-0
-function = test-dataset
-function = test-changes
-function = test-single
-function = test-single-disabled
+function = test2
+function = test2-single
 function = done
 function = popup
 
@@ -70,7 +59,10 @@ bn.create-com-scripts =
 [function = popup]
 waitfor.popup.etomo-question = Yes
 
-[function = test-ui]
+[function = test1]
+#
+# ui
+#
 assert.tf.dataset-name =
 assert.tf.dataset-name.enabled = 1
 assert.tf.backup-directory =
@@ -136,16 +128,18 @@ assert.cb.focus-was-adjusted-between-montage-frames.1.enabled = 0
 assert.bn.cancel.enabled = 1
 assert.bn.use-existing-coms.enabled = 1
 assert.bn.create-com-scripts.enabled = 1
-
-[function = test-missing-data-scan]
+#
+# test missing data:  scan
+#
 bn.scan-header =
 waitfor.popup.missing-dataset-name =
-
-[function = test-missing-data-view-0]
+#
+# test missing data:  view 0
+#
 bn.view-raw-image-stack =
 waitfor.popup.raw-image-stack =
 
-[function = test-missing-data-view-1]
+[function = test-missing-data-dual]
 bn.view-raw-image-stack.1 =
 waitfor.popup.raw-image-stack =
 
@@ -155,20 +149,7 @@ waitfor.popup.setup-dialog-error =
 bn.use-existing-coms =
 waitfor.popup.setup-dialog-error =
 
-[function = test-3dmod-0]
-bn.view-raw-image-stack =
-bn.view-raw-image-stack =
-
-[function = test-angles-0]
-rb.specify-the-starting-angle-and-step =
-assert.tf.starting-angle.enabled = 1
-assert.tf.increment.enabled = 1
-rb.tilt-angles-in-existing-rawtlt-file =
-assert.tf.starting-angle.enabled = 0
-assert.tf.increment.enabled = 0
-rb.extract-tilt-angles-from-data =
-
-[function = test-angles-1]
+[function = test-angles-dual]
 rb.specify-the-starting-angle-and-step.1 =
 assert.tf.starting-angle.1.enabled = 1
 assert.tf.increment.1.enabled = 1
@@ -177,22 +158,41 @@ assert.tf.starting-angle.1.enabled = 0
 assert.tf.increment.1.enabled = 0
 rb.extract-tilt-angles-from-data.1 =
 
-[function = test-3dmod-1]
+[function = 3dmod-dual]
 bn.view-raw-image-stack.1 =
 bn.view-raw-image-stack.1 =
 
-[function = test-dataset]
+[function = test2]
+#
+# 3dmod
+#
+bn.view-raw-image-stack =
+bn.view-raw-image-stack =
+#
+# angles
+#
+rb.specify-the-starting-angle-and-step =
+assert.tf.starting-angle.enabled = 1
+assert.tf.increment.enabled = 1
+rb.tilt-angles-in-existing-rawtlt-file =
+assert.tf.starting-angle.enabled = 0
+assert.tf.increment.enabled = 0
+rb.extract-tilt-angles-from-data =
+#
+# values
+#
 assert.tf.dataset-name = %{dataset}
-
-[function = test-changes]
 assert.tf.pixel-size = %{pixel-size}
 assert.tf.fiducial-diameter = %{fiducial-diameter}
 assert.tf.image-rotation = %{image-rotation}
 
-[function = test-single]
+[function = test2-single]
+#
+# single
+#
 assert.rb.single-axis = 1
-
-[function = test-single-disabled]
+#
+# second angle 1 disabled
 assert.rb.extract-tilt-angles-from-data.1.enabled = 0
 assert.rb.specify-the-starting-angle-and-step.1.enabled = 0
 assert.rb.tilt-angles-in-existing-rawtlt-file.1.enabled = 0

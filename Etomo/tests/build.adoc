@@ -1,5 +1,4 @@
 Version = 1.2
-verbose =
 
 [Dialog = SetupRecon]
 adoc = setup-recon.adoc
@@ -7,7 +6,7 @@ function = build_single
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc
-function = run
+function = build
 
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc

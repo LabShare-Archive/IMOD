@@ -1,20 +1,19 @@
 Version = 1.2
-verbose =
-
-[Dialog = SetupRecon]
-adoc = setup-recon.adoc
-function = test_single
+waitfor = SetupRecon
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc
-function = test
+function = build
 
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc
 function = run
+waitfor =  FineAlign
 
 [Dialog = FidModel]
-copy = %{dataset}%{axis}.seed
+mb.transfer-fiducials-open = 1
+bn.transfer-fiducials-from-other-axis =
+waitfor.process = done
 adoc = fid-model.adoc
 function = run
 
@@ -30,13 +29,3 @@ function = run
 adoc = tomo-gen.adoc
 function = run
 bn.done =
-
-[Dialog = PostProc]
-sleep =
-adoc = post-proc.adoc
-function = run
-
-[Dialog = CleanUp]
-adoc = clean-up.adoc
-function = run-single
-

@@ -5,7 +5,7 @@ verbose =
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc
-function = run
+function = test
 
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc
