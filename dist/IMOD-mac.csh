@@ -1,4 +1,4 @@
-# IMOD 3.8.13
+# IMOD 3.8.23
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
@@ -56,7 +56,3 @@ alias mtoverlap 'runimodqtapp mtoverlap'
 alias nda 'runimodqtapp nda'
 alias sda 'runimodqtapp sda'
 alias mtk 'runimodqtapp mtk'
-
-# Remove stacksize limitations, may be needed running Intel-compiled programs
-#
-unlimit stacksize
