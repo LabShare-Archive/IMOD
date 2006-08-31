@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2006/08/27 23:49:26  mast
+Switched palette argument to allow a file, fixed initialization bug
+
 Revision 3.4  2006/06/26 14:48:48  mast
 Added b3dutil include for parselist
 
@@ -50,11 +53,11 @@ static int fitSphere(float *xpt, float *ypt, float *zpt, int numPts,
                      float *rmsErr);
 static void circleErr(float *y, float *error);
 static void sphereErr(float *y, float *error);
-static int encodeCurvature(Imod *mod, Iobj *obj, float rCritLo, float rCritHi,
+static int encodeCurvature(Imod *mod, int obnum, float rCritLo, float rCritHi,
                            float window, float sample, float fitCrit,
                            int pointSize, float symZoom, int numCol,
                            unsigned char *red, unsigned char *green, 
-                           unsigned char *blue, float zrange,
+                           unsigned char *blue, int storeVals, float zrange,
                            float zscale, int verbose, int testCo, int TestPt);
 
 /* Structures for keeping track of connected contours and the near contours
@@ -91,6 +94,7 @@ int main( int argc, char *argv[])
   int divColors = 0;
   int numColors = 0;
   int pointSize = 0;
+  int storeVals = 0;
   int red, green, blue;
   unsigned char cmap[3][256];
   float fitCrit = 0.;
@@ -116,7 +120,7 @@ int main( int argc, char *argv[])
     "ob:ObjectsToDo:LI:", "ps:PointSize:B:", "sy:SymbolZoom:F:",
     "co:Color:ITM:", "di:DivideRange:B:", "pa:UsePalette:FN:",
     "sa:SampleSpacing:F:", "ve:Verbose:B:", "tc:TestCircleFits:B:",
-    "ts:TestSphereFits:IP:"};
+    "ts:TestSphereFits:IP:", "st:StoreValues:B:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -187,9 +191,10 @@ int main( int argc, char *argv[])
     /* Point size and object list */
     PipGetBoolean("PointSize", &pointSize);
     PipGetFloat("SymbolZoom", &symZoom);
-    if (!pointSize && !numColors && !symZoom)
-      exitError("You must enter either -ps, -sy, or -co options for point "
-                "or color encoding");
+    PipGetBoolean("StoreValues", &storeVals);
+    if (!pointSize && !numColors && !symZoom && !storeVals)
+      exitError("You must enter either -ps, -sy, -st or color options for "
+                "point or color encoding");
     
     if (!PipGetString("ObjectsToDo", &listString)) {
       objList = parselist(listString, &numObj);
@@ -211,6 +216,7 @@ int main( int argc, char *argv[])
     }
     
     /* Loop on the objects */
+    imodObjviewComplete(model);
     colorInd = 0;
     for (ob = 0; ob < model->objsize; ob++) {
       obj = &model->obj[ob];
@@ -236,10 +242,10 @@ int main( int argc, char *argv[])
       }
 
       printf("Doing object %d...\n", ob + 1);
-      if (encodeCurvature(model, obj, rCritLo, rCritHi, window, sample,
+      if (encodeCurvature(model, ob, rCritLo, rCritHi, window, sample,
                           fitCrit, pointSize, symZoom, numColUse, 
                           &cmap[0][colorInd], &cmap[1][colorInd], 
-                          &cmap[2][colorInd],
+                          &cmap[2][colorInd], storeVals, 
                           zrange, model->zscale, verbose, testCo, testPt))
         exitError("Error allocating memory in curvature routine");
 
@@ -298,23 +304,24 @@ int main( int argc, char *argv[])
  * Compute the curvature for all points in all contours of an object
  * with the multitude of parameters
  */
-int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
+int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                     float window, float sample, float fitCrit,
                     int pointSize, float symZoom, int numCol,
                     unsigned char *red, unsigned char *green, 
-                    unsigned char *blue, float zrange,
+                    unsigned char *blue, int storeVals, float zrange,
                     float zscale, int verbose, int testCo, int testPt)
 {
+  Iobj *obj = &model->obj[obnum];
   Icont *cont;
   Icont *cont2;
   Icont *minCont;
   int co, pt, indCol, maxSamp, activeSym;
   float *xx, *yy, *zz = NULL;
   float xcen, ycen, zcen, rad, rmsErr;
-  float minDist, dist, cumz, subWind;
+  float minDist, dist, cumz, subWind, valMin = 1.e30, valMax = -1.e30;
   int cenPt, meetsCrit, activeCol, numPts, minPt, zhalf, pt2, zdir, icheck;
   int numMidSlice, delz, j, newnum, maxZ, iud, minDiff, diffUp, diffDown;
-  int diff;
+  int diff, activeVal;
   Istore store;
   Ilist *list;
   Ipoint scale, *cenPoint, point;
@@ -323,6 +330,7 @@ int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
   NearCont *nearOnes;
   NearCont *nearPt;
   int numUpDown[2];
+  Iobjview *obv;
 
   /* Make the arrays generously large */
   maxSamp = (int)(window / sample + 10.);
@@ -365,6 +373,8 @@ int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
       istoreClearRange(cont->store, GEN_STORE_SYMSIZE, 0, cont->psize - 1);
       istoreClearRange(cont->store, GEN_STORE_SYMTYPE, 0, cont->psize - 1);
     }
+    if (storeVals)
+      istoreClearRange(cont->store, GEN_STORE_VALUE1, 0, cont->psize - 1);
 
     /* If doing spheres, get a list of connected contours in the z range */
     if (zrange) {
@@ -402,6 +412,7 @@ int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
     /* Loop on points */
     activeCol = 0;
     activeSym = 0;
+    activeVal = 0;
     for (cenPt = 0; cenPt < cont->psize; cenPt++) {
 
       if (testPt >= 0 && cenPt != testPt)
@@ -599,6 +610,18 @@ int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
         activeCol = 1;
       }
 
+      /* For values, simply store them and keep track of min/max*/
+      if (meetsCrit && storeVals) {
+        store.value.f = rad;
+        store.flags = GEN_STORE_FLOAT << 2;
+        store.type = GEN_STORE_VALUE1;
+        store.index.i = cenPt;
+        istoreInsertChange(&cont->store, &store);
+        valMin = B3DMIN(valMin, rad);
+        valMax = B3DMAX(valMax, rad);
+        activeVal = 1;
+      }
+
       /* Otherwise end the change */
       if (!meetsCrit && activeCol) {
         istoreEndChange(cont->store, GEN_STORE_COLOR, cenPt);
@@ -608,6 +631,10 @@ int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
         istoreEndChange(cont->store, GEN_STORE_SYMSIZE, cenPt);
         istoreEndChange(cont->store, GEN_STORE_SYMTYPE, cenPt);
         activeSym = 0;
+      }
+      if (!meetsCrit && activeVal) {
+        istoreEndChange(cont->store, GEN_STORE_VALUE1, cenPt);
+        activeVal = 0;
       }
 
     }
@@ -619,6 +646,22 @@ int encodeCurvature(Imod *model, Iobj *obj, float rCritLo, float rCritHi,
   if (zrange) {
     free(nearOnes);
     free(zz);
+  }
+
+  /* Store the min/max and set flags in the real object views */
+  if (storeVals && valMin <= valMax) {
+    if (verbose)
+      printf("Storing value min %f  max %f\n", valMin, valMax);
+    istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, valMin, valMax);
+    obj->flags |= IMOD_OBJFLAG_MCOLOR | IMOD_OBJFLAG_USE_VALUE;
+    if (!obj->valblack && !obj->valwhite)
+      obj->valwhite = 255;
+    for (j = 1 ; j < model->viewsize; j++) {
+      obv = &model->view[j].objview[obnum];
+      obv->flags |= IMOD_OBJFLAG_MCOLOR | IMOD_OBJFLAG_USE_VALUE;
+      if (!obv->valblack && !obv->valwhite)
+        obv->valwhite = 255;
+    }
   }
 
   free(xx);
