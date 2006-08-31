@@ -92,6 +92,7 @@ Length Type  Name       Description
 4      int   contsize   Number of Contours in object.
 4      uint  flags      bit flags for object (IMOD_OBJFLAG...).
                         Bit 1 on : Off - turns off display
+                        Bit 2 on : Draw using depth cue
                         Bit 3 on : Open - contours are not closed
                         Bit 4 on : Wild - contours not constrained in Z
                         Bit 5 on : Inside-out  - light inside surface
@@ -101,12 +102,14 @@ Length Type  Name       Description
                         Bit 9 on : Scattered - contours have scattered points
                         Bit 10 on : Mesh - draw mesh data in 3D
                         Bit 11 on : Lines - do not draw contours in 3D
+                        Bit 12 on : Use stored values to modify drawing
                         Bit 14 on : Fill color - use instead of regular color
                         Bit 15 on : Anti-aliasing on
                         Bit 16 on : Normals have magnitudes
-                        Bit 17 on : Draw normal maginitudes with false color
+                        Bit 17 on : Draw stored values with false color
                         Bit 18 on : Time - contours have time indexes
                         Bit 19 on : Light both sides of surface
+                        Bit 20 on : Draw current contour thicker in model view
                         Bit 31 reserved for temporary use
   
                         In 3dmodv, Draw Data Type - Contour = Mesh flag off,
@@ -349,17 +352,19 @@ Length Type         Description
 1  uchar shininess  Shininess exponent in specular term.  Range 0-255, scaled
                        to 6.1 to 1.1 to set the GL_SHININESS property.
   
-1  uchar mat1       Fill color red.
-1  uchar mat1b1     Fill color green.
-1  uchar mat1b2     Fill color blue.
-1  uchar mat1b3     Sphere quality.
+1  uchar fillred    Fill color red.
+1  uchar fillgreen  Fill color green.
+1  uchar fillblue   Fill color blue.
+1  uchar quality    Sphere quality.
 4  uint  mat2       Set to 0, use as flags.  Unused.
-1  uchar mat3       Black level for showing normal magnitudes in mesh.
-1  uchar mat3b1     White level for showing normal magnitudes in mesh.
-1  uchar mat3b2     Unused.
+1  uchar valblack   Black level for showing stored values.
+1  uchar valwhite   White level for showing stored values.
+1  uchar mat3b2     Flags: bit 0 on: skip low end data in value draw 
+                           bit 1 on: skip high end data in value draw
 1  uchar mat3b3     Unused.
 
-Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
+Prior to IMOD 2.7.1, the 4 bytes of mat1 (fillred to quality) and the 4 bytes 
+of mat3 (valblack to mat3b3) were stored
 as a UINT (big-endian, thus reversed from the current definition).  If bit 13
 of model flags is off, mat1 and mat3 are assumed to be UINTs.
 </pre>
@@ -398,6 +403,8 @@ Length Type     Name    Description
                         Bit 3 on : Wireframe - draw wireframes, not surfaces
                         Bit 7 on : Draw lower resolution meshes
                         Bits 8,9,10 : Global point quality
+                        Bit 11 on : Set Z clipping planes farther out
+                        Bit 12 on : Adjust all clipping planes together
 32    char      label   Name for the view
 -------------------------------------------------------------------
 4     float     dcstart Fog starting distance
@@ -430,21 +437,23 @@ Currently there are 187 bytes per object view, as follows:
 1     uchar 	diffuse      Diffuse property.  (see above)
 1     uchar 	specular     Specular property.  (see above)
 1     uchar 	shininess    Shininess exponent in specular term.  (see above)
-1     uchar 	mat1         Fill color red.
-1     uchar 	mat1b1       Fill color green.
-1     uchar 	mat1b2       Fill color blue.
-1     uchar 	mat1b3       Sphere quality.
-4     uint  	mat2         Set to 0, use as flags.  Unused.
-1     uchar 	mat3         Black level for showing normal magnitudes in mesh.
-1     uchar 	mat3b1       White level for showing normal magnitudes in mesh.
-1     uchar 	mat3b2       Unused.
-1     uchar 	mat3b3       Unused.
+1     uchar     fillred      Fill color red.
+1     uchar     fillgreen    Fill color green.
+1     uchar     fillblue     Fill color blue.
+1     uchar     quality      Sphere quality.
+4     uint      mat2         Set to 0, use as flags.  Unused.
+1     uchar     valblack     Black level for showing stored values.
+1     uchar     valwhite     White level for showing stored values.
+1     uchar     mat3b2       Flags: bit 0 on: skip low end data in value draw
+                                    bit 1 on: skip high end data in value draw
+1     uchar     mat3b3       Unused.
 60    float * 3 clips.normal Normals for clipping planes 2-6
 60    float * 3 clips.point  Point values for clipping planes 2-6
 
-Prior to IMOD 2.7.1, the 4 bytes of mat1 and the 4 bytes of mat3 were stored
-as a UINT.  If bit 13 of model flags is off, mat1 and mat3 are assumed to be
-UINTs.
+Prior to IMOD 2.7.1, the 4 bytes of mat1 (fillred to quality) and the 4 bytes 
+of mat3 (valblack to mat3b3) were stored
+as a UINT (big-endian, thus reversed from the current definition).  If bit 13
+of model flags is off, mat1 and mat3 are assumed to be UINTs.
 </pre>
 <HR>
 MOST  General storage information for model.   (Variable size)
@@ -470,6 +479,8 @@ Length Type     Name    Description
                           7  2D line width change
                           8  Symbol type
                           9  Symbol size
+                          10 General floating point value
+                          11 Min and max of general values
 2      short    flags   16 bits of flags.  Currently defined flags are:
                           Bits 0 and 1 indicate type of "index" and 2 and 3
                             indicate type of "value", with 0 for int, 1 for
@@ -480,11 +491,13 @@ Length Type     Name    Description
                           Bit 7 on : The change applies to only one point
 4      union    index   Can contain one int or float, 2 shorts, or 4 bytes,
                           generally has index of point or contour, or surface #
+                          has minimum for the min/max type
 4      union    value   Can contain one int or float, 2 shorts, or 4 bytes
                           For colors, 3 bytes hold red, green, and blue
                           Transparency is stored as an int from 0 to 255
                           Symbol type is 0, 2, 3 for open circles, squares, or
                             triangles, -1, -3, -4 for closed circles, squares,
                             or triangles
+                          For min/max type, this holds the max
 </pre>
 </body></html>

@@ -118,6 +118,17 @@ indicating the relative location of that value along the 256-color range.
 These location values must be in order.  If the colors being specified are to
 be equally spaced, the location values can simply be sequential values.
 
+[Field = StoreValues]
+short = st
+type = B
+usage = Store curvature values in the model
+tooltip = 
+manpage = Store the curvature values directly in the model.  They can then be
+visualized as intensity variations or in false color by activating the option
+to "Show stored values" in the Values panel of the model view Object Edit
+window of 3dmod.  This option allows dynamic adjustment of the displayed 
+colors.
+
 [Field = SampleSpacing]
 short = sa
 type = F

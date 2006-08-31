@@ -49,7 +49,11 @@ can be specified with the
 .B -co
 option, or a full false-color palette can be used with the 
 .B -pa
-option.  The model would need to be remeshed to see the colors in the model
+option.  In addition, the curvature values can be stored directly in the
+model, in which case 3dmod(1) will display the values in false color by
+default.  This method allows dynamic control over the display.
+With either method for color display, the model needs to be remeshed to see 
+the colors in the model
 view of 3dmod(1).  The 3D points are useful for seeing the exact values of the
 radius by opening the Surface/Contour/Point dialog in 3dmod(1).  They 
 could also be useful for visualizing the fit in the
