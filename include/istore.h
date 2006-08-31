@@ -12,32 +12,16 @@
 $Date$
 
 $Revision$
-    
-$Log$
-Revision 3.7  2005/10/13 20:02:13  mast
-Added checksum function
-
-Revision 3.6  2005/09/12 14:17:04  mast
-Fixed return value, added function to clear range
-
-Revision 3.5  2005/09/11 19:19:27  mast
-Added various functions
-
-Revision 3.4  2005/06/29 05:34:33  mast
-More fiddling
-
-Revision 3.3  2005/06/26 19:34:16  mast
-Added some functions
-
-Revision 3.2  2005/06/20 22:23:30  mast
-Preliminary checkin
-
+Log at end
 */
+
 #ifndef ISTORE_H
 #define ISTORE_H
 
 #include "ilist.h"
 #include "imodel.h"
+
+/* DOC_CODE Istore definitions */
 
 /* Bits 0-1 of flags have one of these values to indicate type of index, and
    bits 2-3 have one of these values to indicate type of value */
@@ -62,6 +46,8 @@ Preliminary checkin
 #define GEN_STORE_2DWIDTH 7    /* 2D line width change */
 #define GEN_STORE_SYMTYPE 8    /* Symbol type (including open/closed) */
 #define GEN_STORE_SYMSIZE 9    /* Symbol size */
+#define GEN_STORE_VALUE1  10   /* Arbitrary value */
+#define GEN_STORE_MINMAX1 11   /* Min and max of value1 */
 
 /* Defined flags for indicating changes */
 #define CHANGED_COLOR     (1l << 0)    /* Color change */
@@ -73,9 +59,12 @@ Preliminary checkin
 #define CHANGED_2DWIDTH   (1l << 6)    /* 2D line width change */
 #define CHANGED_SYMTYPE   (1l << 7)    /* Symbol type */
 #define CHANGED_SYMSIZE   (1l << 8)    /* Symbol size */
+#define CHANGED_VALUE1    (1l << 9)    /* Arbitrary value */
                           
 #define istoreItem(list, index) ((Istore *)ilistItem(list, index))
+/* END_CODE */
 
+/* DOC_CODE StoreUnion union */
 /* Union of types for the general storage structure Istore */
 typedef union store_type {
   b3dInt32 i;
@@ -84,7 +73,9 @@ typedef union store_type {
   b3dInt16 s[2];
   b3dUByte b[4];
 } StoreUnion;
+/* END_CODE */
 
+/* DOC_CODE Istore structure */
 /* The storage structure */
 typedef struct Mod_Store 
 {
@@ -93,7 +84,9 @@ typedef struct Mod_Store
   StoreUnion index;         /* Item index in simplest usage */
   StoreUnion value;         /* Item value in simplest usage */
 } Istore;
+/* END_CODE */
 
+/* DOC_CODE DrawProps structure */
 /* The drawing property structure */
 typedef struct draw_properties
 {
@@ -107,7 +100,9 @@ typedef struct draw_properties
   int symtype;
   int symflags;
   int symsize;
+  float value1;
 } DrawProps;
+/* END_CODE */
 
 #ifdef __cplusplus
 extern "C" {
@@ -161,9 +156,36 @@ extern "C" {
   int istorePointIsGap(Ilist *list, int index);
   int istoreConnectNumber(Ilist *list, int index);
   int istoreSkipToIndex(Ilist *list, int index);
+  int istoreAddMinMax(Ilist **list, int type, float min, float max);
+  int istoreGetMinMax(Ilist *list, int size, int type, float *min, float *max);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
+/*    
+$Log$
+Revision 3.8  2006/05/08 16:38:24  mast
+Added function to look up connection #
+
+Revision 3.7  2005/10/13 20:02:13  mast
+Added checksum function
+
+Revision 3.6  2005/09/12 14:17:04  mast
+Fixed return value, added function to clear range
+
+Revision 3.5  2005/09/11 19:19:27  mast
+Added various functions
+
+Revision 3.4  2005/06/29 05:34:33  mast
+More fiddling
+
+Revision 3.3  2005/06/26 19:34:16  mast
+Added some functions
+
+Revision 3.2  2005/06/20 22:23:30  mast
+Preliminary checkin
+
+*/
