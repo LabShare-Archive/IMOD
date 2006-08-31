@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2005/09/11 19:22:11  mast
+Changes for new style of mesh
+
 Revision 3.4  2005/02/03 17:25:09  mast
 Prevented incorrect output for empty polygons
 
@@ -204,14 +207,13 @@ static void printMaterial(Iobj *obj, int *lastuse, int usefill, FILE *fout)
   float red = obj->red;
   float green = obj->green;
   float blue = obj->blue;
-  unsigned char *colors = (unsigned char *)&(obj->mat1);
   if (*lastuse == usefill)
     return;
 
   if (usefill) {
-    red = (int)colors[0] / 255.;
-    green = (int)colors[1] / 255.;
-    blue = (int)colors[2] / 255.;
+    red = (float)obj->fillred / 255.;
+    green = (float)obj->fillgreen / 255.;
+    blue = (float)obj->fillblue / 255.;
   }
   *lastuse = usefill;
 
