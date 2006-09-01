@@ -21,6 +21,9 @@ set refinelimit = "0.3"
 set warplimit = "0.2,0.27,0.35"
 set modelfile = ""
 set residualfile = ""
+set residualin = ""
+set vectormodel = ""
+set clipsize = ""
 set sizein = ""
 set tempdir = ""
 set linear = ""
@@ -57,6 +60,8 @@ Usage: ${pn} [options] input.file output.file
  -inversefile inverse_file Inverse transform file (default $inversefile)
  -warpfile warp_file       Warp transform file (default $warpfile)
  -residualfile new_patch   Output file for patch displacements with residuals
+ -vectormodel new_model    Output file for model of patches with residuals
+ -clipsize  size           Size of clipping plane box in patch model   
  -tempdir temp_directory   Directory for temporary files
  -xlowerexclude #          Columns to exclude on the left side
  -xupperexclude #          Columns to exclude on the right side
@@ -103,9 +108,17 @@ while ($#argv > 2)
       set inversefile = $argv[2]
       shift; shift
       breaksw
-    case -res*:
-      set residualfile = "ResidualPatchOutput $argv[2]"
-      echo $residualfile
+    case -resi*:
+      set residualin = "ResidualPatchOutput $argv[2]"
+      set residualfile = "$argv[2]"
+      shift; shift
+      breaksw
+    case -ve*:
+      set vectormodel = $argv[2]
+      shift; shift
+      breaksw
+    case -cl*:
+      set clipsize = "-c $argv[2]"
       shift; shift
       breaksw
     case -refinel*:
@@ -200,9 +213,22 @@ if ("$ylower" != "0" || "$yupper" != "0") \
 if ("$zlower" != "0" || "$zupper" != "0") \
     set zskip = "ZSkipLowerAndUpper $zlower,$zupper"
 
+if ("$vectormodel" != "" && "$residualfile" == "") then
+    echo "ERROR: ${pn} - A residual file must be specified to make a vector model"
+    exit 1
+endif
+
+# Set up name for object in output model and figure out if skipping warp
+#
+set objname = "Values are residuals"
+if ("$clipsize" != "") set objname = "Values are residuals; clip planes exist"
 # Run refinematch
 echo $residualfile
 echo "MATCHORWARP: RUNNING REFINEMATCH TO TRY TO FIND SINGLE TRANSFORMATION"
+
+set skipwarp = 0
+if ($warplimit == "0" || $warplimit == "0." || $warplimit == ".0" \
+	|| $warplimit == "0.0") set skipwarp = 1
 
 refinematch -StandardInput <<EOF
 PatchFile $patchfile
@@ -210,14 +236,22 @@ VolumeOrSizeXYZ $sizein
 $modelfile
 MeanResidualLimit $refinelimit
 OutputFile $refinefile
-$residualfile
+$residualin
 EOF
 
 set savestat = $status
 if ($savestat == 1) exit 1
 
-if (! $savestat) then
+# If exiting either because of success or because warp is being skipped,
+# write the vector model now
+#
+if ((! $savestat || $skipwarp) && ("$vectormodel" != "")) then
+    echo " "
+    patch2imod $clipsize -n "$objname" $residualfile $vectormodel
+    if (! $status) echo "MATCHORWARP: CREATED $vectormodel"
+endif
 
+if (! $savestat) then
     echo " "
     if ($trial == "1") then
 	echo "MATCHORWARP: REFINEMATCH FOUND A GOOD TRANSFORMATION"
@@ -246,8 +280,8 @@ EOF
 endif
 
 # If there is an error exit, run findwarp as long as warplimit not 0
-if ($warplimit == "0" || $warplimit == "0." || $warplimit == ".0" \
-	|| $warplimit == "0.0") then
+#
+if ($skipwarp) then
     echo " "
     echo "ERROR: MATCHORWARP - REFINEMATCH GAVE A MEAN RESIDUAL ERROR ABOVE $refinelimit AND WARPING IS DISABLED"
     exit 1
@@ -265,11 +299,17 @@ $yskip
 $zskip
 InitialTransformFile $solvefile
 OutputFile $warpfile
-$residualfile
+$residualin
 EOF
 set savestat = $status
 
 if ($savestat == 1) exit 1
+
+if ("$vectormodel" != "") then
+    echo " "
+    patch2imod $clipsize -n "$objname" $residualfile $vectormodel
+    if (! $status) echo "MATCHORWARP: CREATED $vectormodel"
+endif
 
 # If succeed, run warpvol
 if (! $savestat) then
@@ -299,6 +339,11 @@ echo "ERROR: MATCHORWARP - YOU NEED TO GET BETTER PATCHES, EDIT PATCHES, OR ELIM
 exit 1
 
 #  $Log$
+#  Revision 3.7  2006/08/21 17:01:09  mast
+#  Changed to use pip input to refinematch and findwarp, to provide new options
+#  for residual output and Y patch exclusion, and to handle size properly if
+#  the match volume is oversize
+#
 #  Revision 3.6  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
