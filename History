@@ -1,5 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/1/06: Added 3dmod menu option to flatten all contours in an object, i.e.
+make their points have a single integer Z value.
+
+9/1/06: The model view window now allows visualization of multiple selected
+contours, the selection of multiple contours with Ctrl-third button, the
+selection of all visible contours with Ctrl-A, and deletion of multiple
+selected contours with D.
+
+9/1/06: Patch2imod will store correlation coefficients or residuals as values
+in the model so that they can be viewed in false color in the patch vector
+model.  It also sets up clipping planes to allow a subset of vectors to be
+viewed easily.  Imod2patch will write stored values to a new patch file.
+
+9/1/06: Models can now contain general stored values that 3dmod can display
+as a modulation of intensity or in false color.  The mesh view panel in the
+model view object edit window was changed to control of this display and to
+allow items above or below the contrast threshold to be turned off.
+
 8/30/06: Etomo - Tomogram Positioning:  fixed a problem with whole tomogram
 generation where the _full.rec file wasn't created.
 
