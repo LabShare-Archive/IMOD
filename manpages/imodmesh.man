@@ -111,7 +111,8 @@ outside contour.
 
 .SS Fine-grained display information
 Imodmesh will encoded some fine-grained display information into the mesh,
-specifically, color, transparency, and 3D width changes.  Contour-specific and
+specifically, color, transparency, 3D width changes, and stored values.
+Contour-specific and
 point-specific properties will always be encoded into the mesh.  This means
 that you cannot see changes in these properties without remeshing the model.
 The treatment of surface-specific properties depends on whether the 

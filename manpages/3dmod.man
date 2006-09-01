@@ -51,8 +51,10 @@ or through a dialog box that is brought up when a
 file is encountered that cannot be read by other means.
 
 When multiple files are read
-in, they do not need to be the same mode or even the same format (except that
-if any file is an RGB file, all files must be.)
+in, they usually do not need to be the same mode or even the same format.
+The exceptions are that
+if any file is an RGB file, all files must be; if any file has a colormap, all
+files must; and all raw files must have the same specifications.
 Images are loaded
 into an image cache under certain circumstances: whenever more than one
 file is specified, when montaged data are loaded, or when you enter the
@@ -588,6 +590,10 @@ Object
    Break by Z Break every contour in the object at every change in
                  Z, creating as many contours as necessary so that 
                  each lies in a single Z plane.  The program will
+                 ask you to confirm the operation.
+   Flatten    Flatten every contour in the object by replacing its
+                 Z values with the mean Z of the contour, rounded
+                 to the nearest integer.  The program will
                  ask you to confirm the operation.
 
 Surface
