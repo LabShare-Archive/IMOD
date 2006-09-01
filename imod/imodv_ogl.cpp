@@ -92,7 +92,7 @@ static bool checkThickerContour(int co);
 static int CTime = -1;
 static float depthShift;
 static int cursurf, curcont;
-static int thickCont;
+static int thickCont, thickObj, objBeingDrawn;
 static int curTessObj;
 
 static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
@@ -417,24 +417,31 @@ static void set_curcontsurf(int ob, Imod* imod)
 {
   curcont = -1;
   cursurf = -1;
+  objBeingDrawn = ob;
   if (Imodv->current_subset && imod->cindex.object == ob) {
     curcont = imod->cindex.contour;
     if (curcont >= 0)
       cursurf = imod->obj[imod->cindex.object].cont[curcont].surf;
   }
   
-  // Set contour to thicken if flag set and in current object
+  // Set contour to thicken if flag set and either we are in the current object
+  // or there is a non-empty selection list
   thickCont = -1;
-  if ((imod->obj[ob].flags & IMOD_OBJFLAG_THICK_CONT) &&
-      imod->cindex.object == ob)
-    thickCont = imod->cindex.contour;
+  thickObj = -1;
+  if (imod->obj[ob].flags & IMOD_OBJFLAG_THICK_CONT) {
+    if (imod->cindex.object == ob || 
+        (!Imodv->standalone && ilistSize(Imodv->vi->selectionList)))
+      thickCont = imod->cindex.contour;
+    if (imod->cindex.object == ob) 
+      thickObj = ob;
+  }
 }
 
 static bool checkThickerContour(int co)
 {
-  return (co == thickCont || 
+  return ((co == thickCont && objBeingDrawn == thickObj )|| 
           (!Imodv->standalone && thickCont >= 0 && imodSelectionListQuery
-           (Imodv->vi, Imodv->imod->cindex.object, co) > -2));
+           (Imodv->vi, objBeingDrawn, co) > -2));
 }
 
 /*
@@ -2325,6 +2332,9 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
 
 /*
 $Log$
+Revision 4.30  2006/08/31 23:27:45  mast
+Changes for stored value display
+
 Revision 4.29  2006/08/28 05:23:15  mast
 Switched to using false color routines for getting false color map
 
