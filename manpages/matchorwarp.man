@@ -59,6 +59,14 @@ transformations (default warp.xf).
 Name of the file into which Refinematch(1) and/or Warpvol(1) will place a new
 list of the patches, their displacements, and the residual from the fits.
 .TP
+.B -vectormodel <model file>
+Name of patch vector model file to create from the residual file with 
+Patch2imod(1).
+.TP
+.B -clipsize <value>
+If writing a patch vector model, set up four clipping planes enclosing a
+square central area of the given size.
+.TP
 .B -tempdir <temporary directory>
 Path name of directory into which matchvol or warpvol can place temporary
 files.
@@ -102,4 +110,5 @@ patch.out and solve.xf.
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
-patchcrawl3d(1), refinematch(1), matchvol(1), findwarp(1), warpvol(1)
+patchcrawl3d(1), refinematch(1), matchvol(1), findwarp(1), warpvol(1),
+patch2imod(1)

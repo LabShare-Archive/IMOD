@@ -16,6 +16,9 @@ in the model so that they can be viewed in false color in the patch vector
 model.  It also sets up clipping planes to allow a subset of vectors to be
 viewed easily.  Imod2patch will write stored values to a new patch file.
 
+9/1/06: Imodcurvature can store curvature values directly; Imodmesh can encode
+stored values in the mesh for dynamic color display of curvature.
+
 9/1/06: Added ability to control multiple clipping planes together.
 
 9/1/06: Models can now contain general stored values that 3dmod can display
