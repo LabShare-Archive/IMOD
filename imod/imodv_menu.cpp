@@ -166,7 +166,8 @@ void imodvHelpMenu(int item)
        " 1/2  \tDecrease/Increase time for 4D models\n",
        "  8   \tToggle displaying all models or one model\n",
        " 9/0  \tPrevious/Next model\n",
-       " D    \tDelete current contour if it was picked with mouse\n",
+       CTRL_STRING"-A\tSelect all visible contours in current object\n",
+       " D    \tDelete selected contour(s) if picked in model view\n",
        "----------------------------------------------------------\n",
        NULL);
     break;
@@ -196,7 +197,12 @@ void imodvHelpMenu(int item)
        "\tWhen running Model View from 3dmod, clicking on a point in the "
        "model with the right mouse button will select the nearest, "
        "frontmost point in the model as the current model point within "
-       "3dmod.\n",
+       "3dmod.  As in 3dmod, multiple contours can be selected by holding the "
+       CTRL_STRING" key down; click on a contour to add it to the set of "
+       "selected contours or to remove it from the set if it is already "
+       "selected.  Note that "CTRL_STRING"-A can also be used to select all "
+       "contours that are being drawn in the current object (excluding ones "
+       "that are completely clipped).\n",
        NULL);
     break;
 
@@ -616,6 +622,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.18  2004/12/03 00:07:50  mast
+Fixed ambiguity in ? : statement
+
 Revision 4.17  2004/11/29 19:25:21  mast
 Changes to do QImage instead of RGB snapshots
 
