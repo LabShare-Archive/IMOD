@@ -975,8 +975,8 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
     imod_setxyzmouse();
     pickedContour = a->imod->cindex.contour;
     pickedObject = a->imod->cindex.object;
-    imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, pickedObject,
-                    pickedContour);
+    /*imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
+      pickedObject, pickedContour); */
   }
 }
 
@@ -1106,6 +1106,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.19  2006/08/31 23:27:44  mast
+    Changes for stored value display
+
     Revision 4.18  2005/10/21 23:58:41  mast
     Fixed for gcc 4.0 on Mac
 
