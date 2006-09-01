@@ -1737,7 +1737,7 @@ int imodContourStrip(Icont *cont)
 }
 
 /*!
- * Rounds off point coordinates of contour [cont] to the nearest integer.
+ * Rounds off X/Y point coordinates of contour [cont] to the nearest integer.
  */
 void imodel_contour_whole(Icont *cont)
 {
@@ -1749,6 +1749,19 @@ void imodel_contour_whole(Icont *cont)
     y = floor((double)(cont->pts[i].y + 0.5));
     cont->pts[i].x = x;
     cont->pts[i].y = y;
+  }
+}
+
+/*!
+ * Sets the Z values of all points in the contour to the mean Z value rounded
+ * to the nearest integer
+ */
+void imodContourFlatten(Icont *cont)
+{
+  int i, cz;
+  cz = imodContourZValue(cont);
+  for (i = 0; i < cont->psize; i++){
+    cont->pts[i].z = cz;
   }
 }
 
@@ -3166,6 +3179,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.18  2005/10/14 21:43:46  mast
+  When two open-type contours are joined, it converts on opening to a gap
+
   Revision 3.17  2005/09/11 19:18:18  mast
   Retained points with general store info when reducing and shaving
 

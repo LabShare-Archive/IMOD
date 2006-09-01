@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.7  2005/06/26 19:41:31  mast
+Changed break routine call
+
 Revision 3.6  2005/04/23 23:36:23  mast
 Moved some functions into imodel.c
 
@@ -188,6 +191,7 @@ int    imodel_contour_sort  (Icont *cont);
 int    imodel_contour_invert  (Icont *cont);
 void   imodel_contour_check_wild(Icont *cont);
 void   imodel_contour_whole (Icont *cont);
+void   imodContourFlatten(Icont *cont);
 Icont *imodel_contour_scan  (Icont *ocont);
 Icont *imodel_contour_double(Icont *cont);
 double imodel_contour_length(struct Mod_Contour *cont);
