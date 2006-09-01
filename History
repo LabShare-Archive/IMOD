@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/1/06: Added options to Matchorwarp to make a patch vector model with 
+stored residual values and clipping planes.
+
 9/1/06: Added 3dmod menu option to flatten all contours in an object, i.e.
 make their points have a single integer Z value.
 
@@ -12,6 +15,8 @@ selected contours with D.
 in the model so that they can be viewed in false color in the patch vector
 model.  It also sets up clipping planes to allow a subset of vectors to be
 viewed easily.  Imod2patch will write stored values to a new patch file.
+
+9/1/06: Added ability to control multiple clipping planes together.
 
 9/1/06: Models can now contain general stored values that 3dmod can display
 as a modulation of intensity or in false color.  The mesh view panel in the
