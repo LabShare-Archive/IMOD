@@ -63,8 +63,9 @@ Log at end of file
 
 
 static int obj_moveto = 0;
-/* Temporary function - may include in libimod */
-static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co);
+
+/* function unsuitable libimod because of undo stuff */
+static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co);
 
 /*
  * THE FILE MENU
@@ -346,7 +347,7 @@ void InfoWindow::editObjectSlot(int item)
 {
   Iobj *obj;
   Icont *cont;
-  int ob,co,pt, coind, obOld, obNew;
+  int ob,co,pt, coind, obOld, obNew, ndone;
   float vol;
   int cosave, ptsave;
   QString qstr;
@@ -526,6 +527,7 @@ void InfoWindow::editObjectSlot(int item)
     break;
 
   case EOBJECT_MENU_FIXZ: /* break all contours at z transitions */
+  case EOBJECT_MENU_FLATTEN: /* Flatten to nearest integer */
     imodGetIndex(imod, &ob, &co, &pt);
     if (iobjClose(obj->flags)) 
       objtype = "closed contour";
@@ -533,18 +535,28 @@ void InfoWindow::editObjectSlot(int item)
       objtype = "scattered point";
     else
       objtype = "open contour";
-    qstr.sprintf("Are you sure you want to break all contours to lie in only"
-                 " one Z plane in object %d, a %s object?", ob + 1, objtype);
+    qstr.sprintf("Are you sure you want to %s in object %d, a %s object?", 
+                 (item == EOBJECT_MENU_FIXZ) ? 
+                 "break all contours into different Z planes" : 
+                 "flatten all contours to lie in only one Z plane", 
+                 ob + 1, objtype);
     if (!dia_ask((char *)(qstr.latin1())))
       break;
+    ndone = 0;
     for (coind = obj->contsize - 1; coind >= 0; coind--) {
       cont = &obj->cont[coind];
-      if (cont->psize) 
-        imodContourBreakByZ(vi, obj, ob, coind);
+      if (cont->psize && item == EOBJECT_MENU_FIXZ) 
+        ndone += imodContourBreakByZ(vi, obj, ob, coind);
+      else if (cont->psize) {
+        vi->undo->contourDataChg(ob, coind);
+        imodContourFlatten(cont);
+        ndone++;
+      }
     }
     if (co >= 0)
       imodSetIndex(imod, ob, co, pt);
-    vi->undo->finishUnit();
+    if (ndone)
+      vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
@@ -781,11 +793,12 @@ void InfoWindow::editContourSlot(int item)
       break;
     }
     imodGetIndex(imod, &ob, &co, &pt);
-    imodContourBreakByZ(vi, obj, ob, co);
+    ptb = imodContourBreakByZ(vi, obj, ob, co);
 
     // This takes care of point position
     imodSetIndex(imod, ob, co, pt);
-    vi->undo->finishUnit();
+    if (ptb)
+      vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
@@ -1138,9 +1151,9 @@ void InfoWindow::helpSlot(int item)
 }
 
 /* imodContourBreakByZ will break contour number co of object obj into 
-   contours that are all coplanar in Z.  It returns a 
-   pointer to the remnant of the original contour */
-static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
+   contours that are all coplanar in Z.  It returns 1 if the contour was broken
+   and 0 if not */
+static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 {
   int ni, oi, zcur, zprev, ptb, first;
   Icont *cont2, *cont;
@@ -1165,7 +1178,7 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
       if (!cont2) {
         wprint("\aMemory or other error breaking contour.\n");
         vi->undo->flushUnit();
-        return cont;
+        return 0;
       }
       imodel_contour_check_wild(cont2);
       imodObjectAddContour(obj, cont2);
@@ -1181,13 +1194,14 @@ static Icont *imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
     }
   }
   imodel_contour_check_wild(cont);
-  if (!first)
-    vi->undo->finishUnit();
-  return cont;
+  return(1-first);
 }
 
 /*
   $Log$
+  Revision 4.27  2005/11/26 16:49:00  mast
+  Fixed bug in memory snapshot
+
   Revision 4.26  2005/10/14 22:04:39  mast
   Changes for Model reload capability
 

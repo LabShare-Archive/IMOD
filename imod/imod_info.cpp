@@ -115,6 +115,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
   mEObjectMenu->insertItem("C&lean", EOBJECT_MENU_CLEAN);
   mEObjectMenu->insertItem("&Break by Z", EOBJECT_MENU_FIXZ);
+  mEObjectMenu->insertItem("&Flatten", EOBJECT_MENU_FLATTEN);
   mEObjectMenu->insertItem("&Renumber...", EOBJECT_MENU_RENUMBER);
 
   // Edit Surface submenu
@@ -534,6 +535,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.34  2006/08/28 05:17:56  mast
+    Manipulate menus more for colormapped images loaded
+
     Revision 4.33  2005/10/14 22:04:39  mast
     Changes for Model reload capability
 
