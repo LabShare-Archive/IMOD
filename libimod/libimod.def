@@ -4,6 +4,7 @@ LIBRARY      "libimod"
 
 EXPORTS
 	imodPointIsEqual
+	istoreAddMinMax
 	imodContourGetName
 	imodTransform
 	OPENIMODDATA
@@ -296,6 +297,7 @@ EXPORTS
 	imodObjectGetColor
 	PipGetTwoFloats
 	ilabelMatchReg
+	istoreGetMinMax
 	imodel_unused_surface
 	PipParseEntries
 	imodMeshGetMaxVert
@@ -467,5 +469,5 @@ EXPORTS
 	PUTIMODMESH
 	PipGetNonOptionArg
 	imodel_contour_on
-	imodContourZValue
 	imodContourGet
+	imodContourZValue
