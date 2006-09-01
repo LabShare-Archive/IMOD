@@ -38,6 +38,7 @@ if ($compiler == intel) then
     #
     icl >&! icl.tmp
     set iclnum = `sed -n -e '/Version/s/.*Version \([0-9]*\).*/\1/p' -e '/[[:cntrl:]]/s///g' icl.tmp`
+    set iclbuild = `sed -n -e '/Build/s/.*Build \([0-9]*\).*/\1/p' -e '/[[:cntrl:]]/s///g' icl.tmp`
     \rm -f icl.tmp
     @ iclversion = 7
     if ("$iclnum" != "") @ iclversion = $iclnum
@@ -45,10 +46,15 @@ if ($compiler == intel) then
     # version 8 and above: remove /C90, set record length to 4 bytes
     # also need to specify that \ is an escape character
     # Also stack size needs to be set high for a few programs (findwarp and ?)
+    # but this Intel bug was fixed in ifort 9.1.29
     # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
         set fortcomp = ifort
         set fcmpldFlags = "/4Yportlib /F66000000"
+        if ("$iclbuild" != "") then
+            @ build = $iclbuild
+            if ($build >= 20060816) set fcmpldFlags = "/4Yportlib"
+        endif
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132"
     endif
