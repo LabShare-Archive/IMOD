@@ -605,7 +605,7 @@ static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   float *up, *down, *cost;
   char *path;
   Ipoint minp, maxp;
-  float dista, distb;
+  float dista, distb, valmin, valmax;
   DrawProps objProps, bcProps, tcProps, ptProps;
   DrawProps *props3;
   Ilist *store3;
@@ -630,6 +630,9 @@ static Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   if (!mesh) 
     return(NULL);
   maxsize = 0;
+  if (istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &valmin, 
+                   &valmax))
+    stateTest |= CHANGED_VALUE1;
 
   bothOpen = ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) ? 1 : 0;
   tsize = tc->psize;
@@ -1124,7 +1127,9 @@ static void dump_lists(char *message, int *blist, int nb, int *tlist, int nt,
   printf("\n");
 }
 
-/* connect open contours like a surface. */
+/*
+ * connect open contours like a surface.
+ */
 static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz, 
                          unsigned int flags, int skipPasses,
                          int zmin, int zmax, int *contz, int *zlist, 
@@ -1287,7 +1292,9 @@ static float segment_separation(float l1, float u1, float l2, float u2)
   return (minlen);
 }
 
-/* Mesh an open object as tubes */
+/*
+ * Mesh an open object as tubes 
+ */
 static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags)
 {
   Imesh *nmesh;
@@ -4499,6 +4506,10 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 /*
 $Log$
+Revision 3.19  2006/05/08 16:53:35  mast
+Fixed forcing option to connect nearest pairs of contours, and added
+ability to use connection numbers to force or prevent contour connections
+
 Revision 3.18  2006/01/11 05:53:50  mast
 Fixed test for gap at end of contour
 
