@@ -25,8 +25,9 @@ Log at end of file
 #include <fcntl.h>
 #endif
 #include <qdir.h>
-#include "imod_cachefill.h"
 #include "imod.h"
+#include "imod_cachefill.h"
+#include "iirawimage.h"
 #include "imod_display.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
@@ -1727,7 +1728,10 @@ int ivwLoadIMODifd(ImodView *vi)
         image->filename = strdup
                    ((QDir::convertSeparators(QString(filename))).latin1());
       }
+
       /* DNM: set up scaling for this image, leave last file in hdr/image */
+      if (image->file == IIFILE_RAW && !image->amin && !image->amax)
+        iiRawScan(image);
       iiSetMM(image, vi->li->smin, vi->li->smax);
       vi->hdr = vi->image = image;
       iiClose(image);
@@ -1794,7 +1798,9 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
       exit(3);
     }
 
-    /* set up scaling for this image */
+    /* set up scaling for this image, scanning if needed */
+    if (image->file == IIFILE_RAW && !image->amin && !image->amax)
+      iiRawScan(image);
     iiSetMM(image, vi->li->smin, vi->li->smax);
 
     /* Setting the fp keeps it from closing the file, so there is no need to
@@ -2502,6 +2508,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.48  2006/08/28 05:24:59  mast
+Changes to handle colormapped images
+
 Revision 4.47  2006/07/30 20:22:13  mast
 Do not sync on redraw after changing overlay mode
 
