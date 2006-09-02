@@ -12,34 +12,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.8  2005/05/19 23:51:05  mast
-Made iiOpen not go on checking if file is closed
-
-Revision 3.7  2004/12/02 21:50:33  mast
-Moved declaration for MRC check funxtion to iimage.h
-
-Revision 3.6  2004/11/30 03:46:44  mast
-Added ability to a caller to put an arbitrary file check and open function
-onto a list, after TIFF and MRC are checked
-
-Revision 3.5  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.4  2004/01/08 06:41:07  mast
-Fixed complex scaling
-
-Revision 3.3  2004/01/05 17:53:54  mast
-Changed imin/imax to smin/smax and initialized axis to 3
-
-Revision 3.2  2003/11/01 16:42:15  mast
-changed to use new error processing routine
-
-Revision 3.1  2003/02/27 17:05:37  mast
-define coordinate upper limits as -1 initially to avoid confusion with a true
-upper limit of 0
-
+Log at end
 */
 
 #include <stdio.h>
@@ -64,6 +37,8 @@ static int initCheckList()
   if (!checkList)
     return 1;
   func = iiTIFFCheck;
+  ilistAppend(checkList, &func);
+  func = iiLikeMRCCheck;
   ilistAppend(checkList, &func);
   func = iiMRCCheck;
   ilistAppend(checkList, &func);
@@ -310,3 +285,36 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
     return (0);
   return(iiMRCLoadPCoord(inFile, li, nx, ny, nz));
 }
+
+/*
+$Log$
+Revision 3.9  2006/08/27 23:46:10  mast
+Added colormap entry
+
+Revision 3.8  2005/05/19 23:51:05  mast
+Made iiOpen not go on checking if file is closed
+
+Revision 3.7  2004/12/02 21:50:33  mast
+Moved declaration for MRC check funxtion to iimage.h
+
+Revision 3.6  2004/11/30 03:46:44  mast
+Added ability to a caller to put an arbitrary file check and open function
+onto a list, after TIFF and MRC are checked
+
+Revision 3.5  2004/11/04 17:10:27  mast
+libiimod.def
+
+Revision 3.4  2004/01/08 06:41:07  mast
+Fixed complex scaling
+
+Revision 3.3  2004/01/05 17:53:54  mast
+Changed imin/imax to smin/smax and initialized axis to 3
+
+Revision 3.2  2003/11/01 16:42:15  mast
+changed to use new error processing routine
+
+Revision 3.1  2003/02/27 17:05:37  mast
+define coordinate upper limits as -1 initially to avoid confusion with a true
+upper limit of 0
+
+*/
