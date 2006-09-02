@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/1/06: IMOD_3-8-23
 9/1/06: Added options to Matchorwarp to make a patch vector model with 
 stored residual values and clipping planes.
 
