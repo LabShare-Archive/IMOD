@@ -53,9 +53,8 @@ file is encountered that cannot be read by other means.
 When multiple files are read
 in, they usually do not need to be the same mode or even the same format.
 The exceptions are that
-if any file is an RGB file, all files must be; if any file has a colormap, all
-files must; and all raw files must have the same specifications.
-Images are loaded
+if any file is an RGB file, all files must be, and if any file has a colormap,
+all files must.  Images are loaded
 into an image cache under certain circumstances: whenever more than one
 file is specified, when montaged data are loaded, or when you enter the
 .B -C
