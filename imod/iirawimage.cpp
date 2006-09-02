@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 4.2  2005/11/11 23:04:29  mast
+    Changes for unsigned integers
+
     Revision 4.1  2004/12/02 21:40:08  mast
     Addition to program
 
@@ -21,13 +24,14 @@
 
 #include <qlabel.h>
 #include <qapplication.h>
+#include <qdatetime.h>
 #include "imod.h"
 #include "b3dutil.h"
 #include "iirawimage.h"
 #include "form_rawimage.h"
 
 // Resident info structure
-static RawImageInfo info = {0, 64, 64, 1, false, 0, true, 0., 255., false};
+static RawImageInfo info = {0, 64, 64, 1, 0, 0, 1, 0., 255., 0};
 
 /*
  * Routines to modify the structure from command line
@@ -37,29 +41,29 @@ void iiRawSetSize(int nx, int ny, int nz)
   info.nx = B3DMAX(1, nx);
   info.ny = B3DMAX(1, ny);
   info.nz = B3DMAX(1, nz);
-  info.allMatch = true;
+  info.allMatch = 1;
 }
 
 int iiRawSetMode(int mode)
 {
   switch (mode) {
   case MRC_MODE_BYTE:
-    info.type = 0;
+    info.type = RAW_MODE_BYTE;
     break;
   case MRC_MODE_SHORT:
-    info.type = 1;
+    info.type = RAW_MODE_SHORT;
     break;
   case MRC_MODE_USHORT:
-    info.type = 2;
+    info.type = RAW_MODE_USHORT;
     break;
   case MRC_MODE_FLOAT:
-    info.type = 3;
+    info.type = RAW_MODE_FLOAT;
     break;
   case MRC_MODE_COMPLEX_FLOAT:
-    info.type = 4;
+    info.type = RAW_MODE_COMPLEX_FLOAT;
     break;
   case MRC_MODE_RGB:
-    info.type = 5;
+    info.type = RAW_MODE_RGB;
     break;
   default:
     return 1;
@@ -74,14 +78,14 @@ void iiRawSetHeaderSize(int size)
 
 void iiRawSetSwap()
 {
-  info.swapBytes = true;
+  info.swapBytes = 1;
 }
 
 void iiRawSetScale(float smin, float smax)
 {
   info.amin = smin;
   info.amax = smax;
-  info.scanMinMax = false;
+  info.scanMinMax = 0;
 }
 
 /*
@@ -89,12 +93,9 @@ void iiRawSetScale(float smin, float smax)
  */
 int iiRawCheck(ImodImageFile *inFile)
 {
-  Islice *slice;
-  int z, ind, csize, dsize;
-  float amin, amax;
   struct MRCheader *hdr;
+  int ind;
   QString str;
-  QLabel *splash = NULL;
 
   if (!inFile)
     return -1;
@@ -119,54 +120,46 @@ int iiRawCheck(ImodImageFile *inFile)
     delete form;
   }
 
-  // Get an MRC header; set sizes into that header and the iifile header
-  hdr = (struct MRCheader *)malloc(sizeof(struct MRCheader));
-  if (!hdr)
+  if (iiSetupRawHeaders(inFile, info))
     return 2;
-  inFile->nx   = hdr->nx = info.nx;
-  inFile->ny   = hdr->ny = info.ny;
-  inFile->nz   = hdr->nz = info.nz;
-  inFile->file = IIFILE_RAW;
-  hdr->swapped = info.swapBytes ? 1 : 0;
-  hdr->headerSize = info.headerSize;
-  hdr->fp = inFile->fp;
+  return (iiRawScan(inFile));
+}
 
-  // Set flags for type of data
-  switch(info.type) {
-  case 0:
-    hdr->mode = MRC_MODE_BYTE;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_UBYTE;
-    break;
-  case 1:
-    hdr->mode = MRC_MODE_SHORT;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_SHORT;
-    break;
-  case 2:
-    hdr->mode = MRC_MODE_USHORT;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_USHORT;
-    break;
-  case 3:
-    hdr->mode = MRC_MODE_FLOAT;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_FLOAT;
-    break;
-  case 4:
-    hdr->mode = MRC_MODE_COMPLEX_FLOAT;
-    inFile->format = IIFORMAT_COMPLEX;
-    inFile->type   = IITYPE_FLOAT;
-    break;
-  case 5:
-    hdr->mode = MRC_MODE_RGB;
-    inFile->format = IIFORMAT_RGB;
-    inFile->type   = IITYPE_UBYTE;
-    break;
-  }
+/*
+ * To scan the file for min and max if necessary
+ */
+int iiRawScan(ImodImageFile *inFile)
+{
+  Islice *slice;
+  int z, ind, csize, dsize;
+  MrcHeader *hdr = (MrcHeader *)inFile->header;
+  QString str;
+  QLabel *splash = NULL;
+  float amin, amax, fval;
+  short int sval;
+  unsigned short usval;
+
+  if (!inFile)
+    return -1;
+  if (!inFile->fp)
+    return 1;
+
+  str = inFile->filename;
+  ind = str.findRev('/');
+  if (ind < 0)
+    ind = str.findRev('\\');
+  if (ind >= 0)
+    str = str.right(str.length() - 1 - ind);
 
   amin = info.amin;
   amax = info.amax;
+
+  // Don't bother to scan bytes, 1:1 scaling is fine
+  if (hdr->mode == MRC_MODE_BYTE && info.scanMinMax) {
+    amin = 0;
+    amax = 255;
+    info.scanMinMax = 0;
+  }
 
   // Scan through file to find min and max if flag set and not RGB
   if (hdr->mode != MRC_MODE_RGB && info.scanMinMax) {
@@ -182,18 +175,54 @@ int iiRawCheck(ImodImageFile *inFile)
       qApp->processEvents();
     }
 
-    // Loop on slices
+    // Loop on slices.  Believe it or not, it's not that much faster to
+    // do the min/max here than in sliceMMM
+    amin = 1.e37;
+    amax = -amin;
     for (z = 0; z < hdr->nz; z++) {
       slice = sliceReadMRC(hdr, z, 'z');
       if (!slice)
         return 1;
-      sliceMMM(slice);
-      if (z) {
-        amin = B3DMIN(amin, slice->min);
-        amax = B3DMAX(amax, slice->max);
-      } else {
-        amin = slice->min;
-        amax = slice->max;
+      switch (hdr->mode) {
+      case MRC_MODE_SHORT:
+        for (ind = 0; ind < hdr->nx * hdr->ny; ind++) {
+          sval = slice->data.s[ind];
+          if (amin > sval)
+            amin = sval;
+          if (amax < sval)
+            amax = sval;
+        }
+        break;
+
+      case MRC_MODE_USHORT:
+        for (ind = 0; ind < hdr->nx * hdr->ny; ind++) {
+          usval = slice->data.us[ind];
+          if (amin > usval)
+            amin = usval;
+          if (amax < usval)
+            amax = usval;
+        }
+        break;
+
+      case MRC_MODE_FLOAT:
+        for (ind = 0; ind < hdr->nx * hdr->ny; ind++) {
+          fval = slice->data.f[ind];
+          if (amin > fval)
+            amin = fval;
+          if (amax < fval)
+            amax = fval;
+        }
+        break;
+
+      default:
+        sliceMMM(slice);
+        if (z) {
+          amin = B3DMIN(amin, slice->min);
+          amax = B3DMAX(amax, slice->max);
+        } else {
+          amin = slice->min;
+          amax = slice->max;
+        }
       }
       sliceFree(slice);
     }
@@ -205,16 +234,5 @@ int iiRawCheck(ImodImageFile *inFile)
   inFile->smax = inFile->amax = hdr->amax = amax;
   inFile->amean = hdr->amean = (amax + amin) / 2.;
 
-  // Set the header and the access routines; just use the MRC routines
-  inFile->header = (char *)hdr;
-  inFile->readSection = iiMRCreadSection;
-  inFile->readSectionByte = iiMRCreadSectionByte;
-  inFile->cleanUp = iiRawDelete;
   return 0;
-}
-
-void iiRawDelete(ImodImageFile *inFile)
-{
-  if (inFile->header)
-    free(inFile->header);
 }
