@@ -1,32 +1,13 @@
+/* iimage.h - definitions and declarations for IMOD image files
+ */
 /*  $Author$
 
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.7  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.6  2004/12/02 21:49:44  mast
-Add declarations for mrc functions needed elsewhere
-
-Revision 3.5  2004/11/30 03:47:10  mast
-Declared new function to add check functions
-
-Revision 3.4  2004/11/05 18:52:53  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/11/04 17:08:29  mast
-Added element for mirroring FFTs
-
-Revision 3.2  2004/01/05 17:24:00  mast
-Renamed imin/imax to smin/smax and changed iiSetMM arguments to float
-
-Revision 3.1  2002/12/01 15:39:50  mast
-Declare extern C if c++
-
+Log at end
 */
+
 #ifndef IIMAGE_H
 #define IIMAGE_H
 
@@ -114,6 +95,30 @@ extern "C" {
 
   };
 
+  /* Yet another set of mode values, which define the order for radio buttons
+     in a raw type selector dialog */
+#define RAW_MODE_BYTE          0
+#define RAW_MODE_SHORT         1
+#define RAW_MODE_USHORT        2
+#define RAW_MODE_FLOAT         3
+#define RAW_MODE_COMPLEX_FLOAT 4
+#define RAW_MODE_RGB           5
+
+  /* A structure for passing bare-bones information about an MRC-like (raw)
+     file to a routine that makes an MRC header */
+  typedef struct raw_image_info {
+    int type;
+    int nx;
+    int ny;
+    int nz;
+    int swapBytes;
+    int headerSize;
+    int scanMinMax;
+    float amin;
+    float amax;
+    int allMatch;
+  } RawImageInfo;
+
   void iiAddCheckFunction(IIFileCheckFunction func);
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(char *filename, char *mode);
@@ -142,9 +147,40 @@ extern "C" {
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
+  int iiLikeMRCCheck(ImodImageFile *inFile);
+  void iiLikeMRCDelete(ImodImageFile *inFile);
+  int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo info);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
+/*
+$Log$
+Revision 3.8  2006/08/27 23:47:12  mast
+Added colormap
+
+Revision 3.7  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.6  2004/12/02 21:49:44  mast
+Add declarations for mrc functions needed elsewhere
+
+Revision 3.5  2004/11/30 03:47:10  mast
+Declared new function to add check functions
+
+Revision 3.4  2004/11/05 18:52:53  mast
+Include local files with quotes, not brackets
+
+Revision 3.3  2004/11/04 17:08:29  mast
+Added element for mirroring FFTs
+
+Revision 3.2  2004/01/05 17:24:00  mast
+Renamed imin/imax to smin/smax and changed iiSetMM arguments to float
+
+Revision 3.1  2002/12/01 15:39:50  mast
+Declare extern C if c++
+
+*/
