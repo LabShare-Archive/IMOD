@@ -19,6 +19,7 @@ EXPORTS
 	parselist
 	imodObjectCleanSurf
 	imodUnits
+	imodContourFlatten
 	imod_to_RIB
 	ilistPop
 	imodel_contour_newsurf
@@ -469,5 +470,5 @@ EXPORTS
 	PUTIMODMESH
 	PipGetNonOptionArg
 	imodel_contour_on
-	imodContourGet
 	imodContourZValue
+	imodContourGet
