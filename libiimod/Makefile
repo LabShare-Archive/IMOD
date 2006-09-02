@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.14  2005/12/09 21:21:22  mast
+#  Take extension off dummytiff, it needs to come in complete
+#
 #  Revision 3.13  2005/08/30 06:17:03  mast
 #  Added extension to the dummy tiff lib
 #
@@ -44,7 +47,7 @@ CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
  mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O) sliceproc.$(O) \
- diffusion.$(O)
+ diffusion.$(O) iilikemrc.$(O)
 
 INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h $(INCDIR)/mrcproc.h \
  $(INCDIR)/mrcspectral.h $(INCDIR)/mrcc.h $(INCDIR)/b3dutil.h
@@ -94,6 +97,7 @@ work : clean
 $(OBJS) : $(INCS)
 iimage.$(O) : $(INCDIR)/iimage.h
 iimrc.$(O) : $(INCDIR)/iimage.h
+iilikemrc.$(O) : $(INCDIR)/iimage.h
 iitif.$(O) : $(INCDIR)/iimage.h
 sliceproc.$(O) : $(INCDIR)/sliceproc.h
 
