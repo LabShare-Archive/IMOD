@@ -418,7 +418,7 @@
     </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in implementation">iirawimage.h</include>
+    <include location="local" impldecl="in implementation">iimage.h</include>
     <include location="global" impldecl="in implementation">qregexp.h</include>
     <include location="local" impldecl="in implementation">form_rawimage.ui.h</include>
 </includes>
