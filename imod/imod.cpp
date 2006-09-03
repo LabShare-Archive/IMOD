@@ -233,10 +233,6 @@ int main( int argc, char *argv[])
       exit(0);
 #endif
 
-  /* Add check function for QImage formats */
-  iiAddCheckFunction(iiQImageCheck);
-  iiAddCheckFunction(iiRawCheck);
-
   /* Open the Qt application */
   
   QApplication qapp(argc, argv);
@@ -524,6 +520,11 @@ int main( int argc, char *argv[])
 
   /* Load in all the imod plugins that we can use.*/
   imodPlugInit();
+
+  /* Add check function for raw and QImage formats after plugins so plugins
+     can add them first */
+  iiAddCheckFunction(iiQImageCheck);
+  iiAddCheckFunction(iiRawCheck);
 
   QDir *curdir = new QDir();
   Model = NULL;
@@ -1080,6 +1081,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.58  2006/08/28 05:17:25  mast
+Added option to read in custom color map
+
 Revision 4.57  2006/08/16 23:48:15  mast
 Added loading time debug output
 
