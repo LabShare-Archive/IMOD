@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 4.3  2006/09/02 23:53:26  mast
+    Reorganized, moved header creation to MRC-like routine in library
+
     Revision 4.2  2005/11/11 23:04:29  mast
     Changes for unsigned integers
 
@@ -120,7 +123,7 @@ int iiRawCheck(ImodImageFile *inFile)
     delete form;
   }
 
-  if (iiSetupRawHeaders(inFile, info))
+  if (iiSetupRawHeaders(inFile, &info))
     return 2;
   return (iiRawScan(inFile));
 }
@@ -158,11 +161,11 @@ int iiRawScan(ImodImageFile *inFile)
   if (hdr->mode == MRC_MODE_BYTE && info.scanMinMax) {
     amin = 0;
     amax = 255;
-    info.scanMinMax = 0;
   }
 
   // Scan through file to find min and max if flag set and not RGB
-  if (hdr->mode != MRC_MODE_RGB && info.scanMinMax) {
+  if (hdr->mode != MRC_MODE_RGB  && hdr->mode != MRC_MODE_BYTE &&
+      info.scanMinMax) {
 
     // Show splash label if > 1 MB
     mrc_getdcsize(hdr->mode, &dsize, &csize);
