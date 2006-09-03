@@ -3,7 +3,7 @@
  *
  *    Authors:  James Kremer and David Mastronarde
  *
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
  */
@@ -12,49 +12,114 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.12  2005/11/11 22:15:23  mast
-Changes for unsigned file mode
-
-Revision 3.11  2005/10/13 20:06:26  mast
-Fixed scale setting when mx/my/mz are zero
-
-Revision 3.10  2004/11/05 18:53:04  mast
-Include local files with quotes, not brackets
-
-Revision 3.9  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.8  2004/03/18 17:56:43  mast
-Changed to calling central routine with extra header byte counts
-
-Revision 3.7  2004/03/17 05:38:19  mast
-Corrected byte count for 5th extra header entry (now one short)
-
-Revision 3.6  2004/01/05 17:40:14  mast
-Renamed imin/imax to outmin/outmax, and returned errors from mrcRead... calls
-
-Revision 3.5  2003/11/01 16:42:16  mast
-changed to use new error processing routine
-
-Revision 3.4  2003/02/27 17:06:50  mast
-Changed tests on upper coordinates to respect a value of 0
-
-Revision 3.3  2002/09/14 00:59:38  mast
-Fixed computation of scales to use mx indtead of nx
-
-Revision 3.2  2002/02/26 22:56:32  mast
-Improved protection against erroneous identification as montage
-
-Revision 3.1  2001/12/17 18:54:45  mast
-Added protections against non-Boulder files being recognized as montages
-
+Log at end
 */
+
 #include <stdlib.h>
 #include "mrcc.h"
 #include "iimage.h"
 #include "b3dutil.h"
+
+static void iiMRCdelete(ImodImageFile *inFile);
+
+int iiMRCCheck(ImodImageFile *iif)
+{
+  FILE *fp;
+  MrcHeader *hdr;
+  int err;
+
+  if (!iif) 
+    return IIERR_BAD_CALL;
+  fp = iif->fp;
+  if (!fp) 
+    return IIERR_BAD_CALL;
+
+  hdr = (MrcHeader *)malloc(sizeof(MrcHeader));
+  if (!hdr) {
+    b3dError(stderr, "ERROR: iiMRCCheck - getting memory for header\n");
+    return IIERR_MEMORY_ERR;
+  }
+
+  if ((err = mrc_head_read(fp, hdr))){
+    free(hdr);
+    if (err < 0)
+      return IIERR_IO_ERROR;
+    return IIERR_NOT_FORMAT;
+  }
+
+  iif->nx   = hdr->nx;
+  iif->ny   = hdr->ny;
+  iif->nz   = hdr->nz;
+  iif->file = IIFILE_MRC;
+
+  switch(hdr->mode){
+  case MRC_MODE_BYTE:
+    iif->format = IIFORMAT_LUMINANCE;
+    iif->type   = IITYPE_UBYTE;
+    break;
+  case MRC_MODE_SHORT:
+    iif->format = IIFORMAT_LUMINANCE;
+    iif->type   = IITYPE_SHORT;
+    break;
+  case MRC_MODE_USHORT:
+    iif->format = IIFORMAT_LUMINANCE;
+    iif->type   = IITYPE_USHORT;
+    break;
+  case MRC_MODE_FLOAT:
+    iif->format = IIFORMAT_LUMINANCE;
+    iif->type   = IITYPE_FLOAT;
+    break;
+  case MRC_MODE_COMPLEX_SHORT:
+    iif->format = IIFORMAT_COMPLEX;
+    iif->type   = IITYPE_SHORT;
+    break;
+  case MRC_MODE_COMPLEX_FLOAT:
+    iif->format = IIFORMAT_COMPLEX;
+    iif->type   = IITYPE_FLOAT;
+    break;
+  case MRC_MODE_RGB:
+    iif->format = IIFORMAT_RGB;
+    iif->type   = IITYPE_UBYTE;
+    break;
+  }
+  iif->mode  = hdr->mode;
+  iif->amin  = hdr->amin;
+  iif->amax  = hdr->amax;
+  iif->smin  = iif->amin;
+  iif->smax  = iif->amax;
+  iif->amean = hdr->amean;
+  iif->xscale = iif->yscale = iif->zscale = 1.;
+
+  /* DNM 11/5/98: inverted these expressions to give proper usage */
+  /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
+  if (hdr->xlen && hdr->mx)
+    iif->xscale = hdr->xlen/(float)hdr->mx;
+  if (hdr->ylen && hdr->my)
+    iif->yscale = hdr->ylen/(float)hdr->my;
+  if (hdr->xlen && hdr->mz)
+    iif->zscale = hdr->zlen/(float)hdr->mz;
+  iif->xtrans = hdr->xorg;
+  iif->ytrans = hdr->yorg;
+  iif->ztrans = hdr->zorg;
+  iif->xrot = hdr->tiltangles[3];
+  iif->yrot = hdr->tiltangles[4];
+  iif->zrot = hdr->tiltangles[5];
+
+  iif->headerSize = 1024;
+  iif->header = (char *)hdr;
+
+  iif->readSection = iiMRCreadSection;
+  iif->readSectionByte = iiMRCreadSectionByte;
+  iif->cleanUp = iiMRCdelete;
+
+  return(0);
+}
+
+void iiMRCdelete(ImodImageFile *inFile)
+{
+  if (inFile->header)
+    free(inFile->header);
+} 
 
 int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
@@ -120,93 +185,7 @@ int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
   return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
 }
 
-void iiMRCdelete(ImodImageFile *inFile)
-{
-  if (inFile->header)
-    free(inFile->header);
-} 
 
-int iiMRCCheck(ImodImageFile *i)
-{
-  FILE *fp;
-  MrcHeader *hdr;
-  if (!i) return -1;
-  fp = i->fp;
-  if (!fp) return 1;
-
-  hdr = (MrcHeader *)malloc(sizeof(MrcHeader));
-  if (mrc_head_read(fp, hdr)){
-    free(hdr);
-    return(1);
-  }
-
-  i->nx   = hdr->nx;
-  i->ny   = hdr->ny;
-  i->nz   = hdr->nz;
-  i->file = IIFILE_MRC;
-
-  switch(hdr->mode){
-  case MRC_MODE_BYTE:
-    i->format = IIFORMAT_LUMINANCE;
-    i->type   = IITYPE_UBYTE;
-    break;
-  case MRC_MODE_SHORT:
-    i->format = IIFORMAT_LUMINANCE;
-    i->type   = IITYPE_SHORT;
-    break;
-  case MRC_MODE_USHORT:
-    i->format = IIFORMAT_LUMINANCE;
-    i->type   = IITYPE_USHORT;
-    break;
-  case MRC_MODE_FLOAT:
-    i->format = IIFORMAT_LUMINANCE;
-    i->type   = IITYPE_FLOAT;
-    break;
-  case MRC_MODE_COMPLEX_SHORT:
-    i->format = IIFORMAT_COMPLEX;
-    i->type   = IITYPE_SHORT;
-    break;
-  case MRC_MODE_COMPLEX_FLOAT:
-    i->format = IIFORMAT_COMPLEX;
-    i->type   = IITYPE_FLOAT;
-    break;
-  case MRC_MODE_RGB:
-    i->format = IIFORMAT_RGB;
-    i->type   = IITYPE_UBYTE;
-    break;
-  }
-  i->mode  = hdr->mode;
-  i->amin  = hdr->amin;
-  i->amax  = hdr->amax;
-  i->smin  = i->amin;
-  i->smax  = i->amax;
-  i->amean = hdr->amean;
-  i->xscale = i->yscale = i->zscale = 1.;
-
-  /* DNM 11/5/98: inverted these expressions to give proper usage */
-  /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
-  if (hdr->xlen && hdr->mx)
-    i->xscale = hdr->xlen/(float)hdr->mx;
-  if (hdr->ylen && hdr->my)
-    i->yscale = hdr->ylen/(float)hdr->my;
-  if (hdr->xlen && hdr->mz)
-    i->zscale = hdr->zlen/(float)hdr->mz;
-  i->xtrans = hdr->xorg;
-  i->ytrans = hdr->yorg;
-  i->ztrans = hdr->zorg;
-  i->xrot = hdr->tiltangles[3];
-  i->yrot = hdr->tiltangles[4];
-  i->zrot = hdr->tiltangles[5];
-
-  i->headerSize = 1024;
-  i->header = (char *)hdr;
-
-  i->readSection = iiMRCreadSection;
-  i->readSectionByte = iiMRCreadSectionByte;
-  i->cleanUp = iiMRCdelete;
-
-  return(0);
-}
 
 #define TILT_FLAG    1
 #define MONTAGE_FLAG 2
@@ -284,3 +263,46 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
   li->plist = nread;
   return(mrc_plist_proc(li, nx, ny, nz));
 }
+
+/*
+$Log$
+Revision 3.13  2005/12/20 01:39:36  mast
+Changed piece coordinates to unsigned shorts
+
+Revision 3.12  2005/11/11 22:15:23  mast
+Changes for unsigned file mode
+
+Revision 3.11  2005/10/13 20:06:26  mast
+Fixed scale setting when mx/my/mz are zero
+
+Revision 3.10  2004/11/05 18:53:04  mast
+Include local files with quotes, not brackets
+
+Revision 3.9  2004/11/04 17:10:27  mast
+libiimod.def
+
+Revision 3.8  2004/03/18 17:56:43  mast
+Changed to calling central routine with extra header byte counts
+
+Revision 3.7  2004/03/17 05:38:19  mast
+Corrected byte count for 5th extra header entry (now one short)
+
+Revision 3.6  2004/01/05 17:40:14  mast
+Renamed imin/imax to outmin/outmax, and returned errors from mrcRead... calls
+
+Revision 3.5  2003/11/01 16:42:16  mast
+changed to use new error processing routine
+
+Revision 3.4  2003/02/27 17:06:50  mast
+Changed tests on upper coordinates to respect a value of 0
+
+Revision 3.3  2002/09/14 00:59:38  mast
+Fixed computation of scales to use mx indtead of nx
+
+Revision 3.2  2002/02/26 22:56:32  mast
+Improved protection against erroneous identification as montage
+
+Revision 3.1  2001/12/17 18:54:45  mast
+Added protections against non-Boulder files being recognized as montages
+
+*/

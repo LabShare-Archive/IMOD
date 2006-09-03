@@ -3,7 +3,7 @@
  *
  *    Authors:  James Kremer and David Mastronarde
  *
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
  */
@@ -34,32 +34,13 @@ OF THIS SOFTWARE.
 
 Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 ****************************************************************************/
-/*  $Author$
+/*
+  $Author$
 
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.6  2005/05/19 23:51:40  mast
-    Made open routine reopen the file if it fails as a tiff
-
-    Revision 3.5  2005/02/11 01:42:33  mast
-    Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-    Revision 3.4  2004/11/05 18:53:04  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.3  2004/01/21 00:56:50  mast
-    Stopped freeing map from byte_map
-
-    Revision 3.2  2004/01/05 17:51:16  mast
-    renamed imin/imax to smin/smax or outmin/outmax as appropriate, changed
-    unsigned short to b3dUInt16
-
-    Revision 3.1  2003/02/27 17:08:23  mast
-    Set default upper coordinates to -1 rather than 0.
-
+  $Date$
+  
+  $Revision$
+  Log at end
 */
 
 
@@ -73,6 +54,184 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 #endif
 
 #include "iimage.h"
+
+int tiffReopen(ImodImageFile *inFile);
+void tiffClose(ImodImageFile *inFile);
+void tiffDelete(ImodImageFile *inFile);
+static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
+                       int byte);
+
+int iiTIFFCheck(ImodImageFile *inFile)
+{
+  TIFF* tif;
+  FILE *fp;
+  b3dUInt16 buf;
+  int dirnum = 1;
+  uint32 val;
+  uint16 bits, samples, photometric, sampleformat;
+  int defined, i, j, err = 0;
+  double minmax;
+  b3dUInt16 *redp, *greenp, *bluep;
+
+  if (!inFile) 
+    return IIERR_BAD_CALL;
+  fp = inFile->fp;
+  if (!fp)
+    return IIERR_BAD_CALL;
+
+  rewind(fp);
+  if (fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
+    err = IIERR_IO_ERROR;
+  if (!err && (buf != 0x4949) && (buf != 0x4d4d))
+    err = IIERR_NOT_FORMAT;
+  if (!err && fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
+    err = IIERR_IO_ERROR;
+  if (!err && (buf != 0x002a) && (buf != 0x2a00))
+    err = IIERR_NOT_FORMAT;
+  if (err) {
+    if (err == IIERR_IO_ERROR)
+      b3dError(stderr, "ERROR: iiTIFFCheck - Reading file %s\n", 
+               inFile->filename);
+    return err;
+  }
+
+  /* Close file now, but reopen it if there is a TIFF failure */
+  fclose(fp);
+  tif = TIFFOpen(inFile->filename, inFile->fmode);
+  if (!tif){
+    inFile->fp = fopen(inFile->filename, inFile->fmode);
+    b3dError(stderr, "ERROR: iiTIFFCheck - Calling TIFFOpen on file %s\n",
+             inFile->filename);
+    return(IIERR_IO_ERROR);
+  }
+    
+  TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &inFile->nx);
+  TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &inFile->ny);
+  TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits);
+  TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
+
+  /* DNM 11/18/01: field need not be defined, set a default */
+  defined = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samples);
+  if (!defined)
+    samples = 1;
+
+  while (TIFFReadDirectory(tif)) 
+    dirnum++;
+  TIFFSetDirectory(tif, 0);
+
+  /* Don't know how to get the multiple bit entries from libtiff, so can't test
+     if they are all 8 */
+  if (!((samples == 1 && (bits == 8 || bits ==16) && photometric < 2) ||
+        (samples == 3 && photometric == 2 && bits == 8) || 
+        (photometric == 3 && bits == 8))) {
+    TIFFClose(tif);
+    inFile->fp = fopen(inFile->filename, inFile->fmode);
+    b3dError(stderr, "ERROR: iiTIFFCheck - Unsupported type of TIFF file\n");
+    return(IIERR_NO_SUPPORT);
+  }
+
+  inFile->nz     = dirnum;
+  inFile->file   = IIFILE_TIFF;
+  inFile->format = IIFORMAT_LUMINANCE;
+  inFile->readSectionByte = tiffReadSectionByte;
+
+  if (bits == 8) {
+    inFile->type   = IITYPE_UBYTE;
+    inFile->amin  = 0;
+    inFile->amean  = 128;
+    inFile->amax   = 255;
+    inFile->mode   = MRC_MODE_BYTE;
+    if (samples == 3) {
+      inFile->format = IIFORMAT_RGB;
+      inFile->mode   = MRC_MODE_RGB;
+      inFile->readSection = tiffReadSection;
+      inFile->readSectionByte = NULL;
+    } else if (photometric == 3) {
+
+      /* For palette images, define as colormap, better send byte reading
+         to routine that will ignore any scaling, get the colormap and 
+         convert it to bytes */
+      inFile->format = IIFORMAT_COLORMAP;
+      inFile->readSectionByte = tiffReadSection;
+      inFile->colormap = (unsigned char *)malloc(3 * 256 * dirnum);
+      if (!inFile->colormap) {
+        TIFFClose(tif);
+        inFile->fp = fopen(inFile->filename, inFile->fmode);
+        b3dError(stderr, "ERROR: iiTIFFCheck - Getting memory for colormap\n");
+        return(IIERR_MEMORY_ERR);
+      }
+      for (j = 0; j < dirnum; j++) {
+        TIFFSetDirectory(tif, j);
+        TIFFGetField(tif, TIFFTAG_COLORMAP, &redp, &greenp, &bluep);
+        for (i = 0; i < 256; i++) {
+          inFile->colormap[j*768 + i] = (unsigned char)(redp[i] >> 8);
+          inFile->colormap[j*768 + i + 256] = (unsigned char)(greenp[i] >> 8);
+          inFile->colormap[j*768 + i + 512] = (unsigned char)(bluep[i] >> 8);
+        }
+      }
+      TIFFSetDirectory(tif, 0);
+    }
+  } else {
+    /* If there is a field specifying signed numbers, set up for signed;
+       otherwise set up for unsigned */
+    defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
+    if (defined && sampleformat == SAMPLEFORMAT_INT) {
+      inFile->type   = IITYPE_SHORT;
+      inFile->amean  = 0;
+      inFile->amin   = -32767;
+      inFile->amax   = 32767;
+    } else {
+      inFile->type   = IITYPE_USHORT;
+      inFile->amean  = 32767;
+      inFile->amin   = 0;
+      inFile->amax   = 65535;
+    }
+    inFile->mode   = MRC_MODE_SHORT;
+  }
+  
+  /* Use min and max from file if defined */
+  if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
+    inFile->smin = minmax;
+  if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
+    inFile->smax = minmax;
+
+  inFile->smin   = inFile->amin;
+  inFile->smax   = inFile->amax;
+  inFile->headerSize = 8;
+  inFile->header = (char *)tif;
+  inFile->fp = (FILE *)tif;    
+  inFile->cleanUp = tiffDelete;
+  inFile->reopen = tiffReopen;
+  inFile->close = tiffClose;
+  return(0);
+}
+
+int tiffReopen(ImodImageFile *inFile)
+{
+  TIFF* tif;
+  tif = TIFFOpen(inFile->filename, inFile->fmode);
+  if (!tif)
+    return 1;
+  inFile->headerSize = 8;
+  inFile->header = (char *)tif;    
+  inFile->fp = (FILE *)tif;    
+  return 0;
+}
+
+void tiffClose(ImodImageFile *inFile)
+{
+  TIFF* tif = (TIFF *)inFile->header;
+  if (tif)
+    TIFFClose(tif);
+  inFile->header = NULL;
+  inFile->fp = NULL;
+}
+
+void tiffDelete(ImodImageFile *inFile)
+{
+  tiffClose(inFile);
+}
+
 
 /* DNM 12/24/00: Got this working for bytes, shorts, and RGBs, for whole
    images or subsets, and using maps for scaling */
@@ -318,164 +477,29 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
   return(ReadSection(inFile, buf, inSection, 0));
 }
 
-int tiffReopen(ImodImageFile *inFile)
-{
-  TIFF* tif;
-  tif = TIFFOpen(inFile->filename, inFile->fmode);
-  if (!tif)
-    return 1;
-  inFile->headerSize = 8;
-  inFile->header = (char *)tif;    
-  inFile->fp = (FILE *)tif;    
-  return 0;
-}
 
-void tiffClose(ImodImageFile *inFile)
-{
-  TIFF* tif = (TIFF *)inFile->header;
-  if (tif)
-    TIFFClose(tif);
-  inFile->header = NULL;
-  inFile->fp = NULL;
-}
-
-void tiffDelete(ImodImageFile *inFile)
-{
-  tiffClose(inFile);
-}
-
-
-int iiTIFFCheck(ImodImageFile *inFile)
-{
-  TIFF* tif;
-  FILE *fp;
-  b3dUInt16 buf;
-  int dirnum = 1;
-  uint32 val;
-  uint16 bits, samples, photometric, sampleformat;
-  int defined, i, j;
-  double minmax;
-  b3dUInt16 *redp, *greenp, *bluep;
-
-  if (!inFile) 
-    return -1;
-  fp = inFile->fp;
-  if (!fp)
-    return 1;
-
-  rewind(fp);
-  if (fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
-    return(2);
-  if ( (buf != 0x4949) && (buf != 0x4d4d))
-    return(3);
-  if (fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
-    return(4);
-  if ((buf != 0x002a) && (buf != 0x2a00))
-    return(5);
-
-  /* Close file now, but reopen it if there is a TIFF failure */
-  fclose(fp);
-  tif = TIFFOpen(inFile->filename, inFile->fmode);
-  if (!tif){
-    inFile->fp = fopen(inFile->filename, inFile->fmode);
-    return(-1);
-  }
-    
-  TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &inFile->nx);
-  TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &inFile->ny);
-  TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits);
-  TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric);
-
-  /* DNM 11/18/01: field need not be defined, set a default */
-  defined = TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samples);
-  if (!defined)
-    samples = 1;
-
-  while (TIFFReadDirectory(tif)) 
-    dirnum++;
-  TIFFSetDirectory(tif, 0);
-
-  /* Don't know how to get the multiple bit entries from libtiff, so can't test
-     if they are all 8 */
-  if (!((samples == 1 && (bits == 8 || bits ==16) && photometric < 2) ||
-        (samples == 3 && photometric == 2 && bits == 8) || 
-        (photometric == 3 && bits == 8))) {
-    TIFFClose(tif);
-    inFile->fp = fopen(inFile->filename, inFile->fmode);
-    return(6);
-  }
-
-  inFile->nz     = dirnum;
-  inFile->file   = IIFILE_TIFF;
-  inFile->format = IIFORMAT_LUMINANCE;
-  inFile->readSectionByte = tiffReadSectionByte;
-
-  if (bits == 8) {
-    inFile->type   = IITYPE_UBYTE;
-    inFile->amin  = 0;
-    inFile->amean  = 128;
-    inFile->amax   = 255;
-    inFile->mode   = MRC_MODE_BYTE;
-    if (samples == 3) {
-      inFile->format = IIFORMAT_RGB;
-      inFile->mode   = MRC_MODE_RGB;
-      inFile->readSection = tiffReadSection;
-      inFile->readSectionByte = NULL;
-    } else if (photometric == 3) {
-
-      /* For palette images, define as colormap, better send byte reading
-         to routine that will ignore any scaling, get the colormap and 
-         convert it to bytes */
-      inFile->format = IIFORMAT_COLORMAP;
-      inFile->readSectionByte = tiffReadSection;
-      inFile->colormap = (unsigned char *)malloc(3 * 256 * dirnum);
-      if (!inFile->colormap) {
-        TIFFClose(tif);
-        inFile->fp = fopen(inFile->filename, inFile->fmode);
-        return(-1);
-      }
-      for (j = 0; j < dirnum; j++) {
-        TIFFSetDirectory(tif, j);
-        TIFFGetField(tif, TIFFTAG_COLORMAP, &redp, &greenp, &bluep);
-        for (i = 0; i < 256; i++) {
-          inFile->colormap[j*768 + i] = (unsigned char)(redp[i] >> 8);
-          inFile->colormap[j*768 + i + 256] = (unsigned char)(greenp[i] >> 8);
-          inFile->colormap[j*768 + i + 512] = (unsigned char)(bluep[i] >> 8);
-        }
-      }
-      TIFFSetDirectory(tif, 0);
-    }
-  } else {
-    /* If there is a field specifying signed numbers, set up for signed;
-       otherwise set up for unsigned */
-    defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
-    if (defined && sampleformat == SAMPLEFORMAT_INT) {
-      inFile->type   = IITYPE_SHORT;
-      inFile->amean  = 0;
-      inFile->amin   = -32767;
-      inFile->amax   = 32767;
-    } else {
-      inFile->type   = IITYPE_USHORT;
-      inFile->amean  = 32767;
-      inFile->amin   = 0;
-      inFile->amax   = 65535;
-    }
-    inFile->mode   = MRC_MODE_SHORT;
-  }
+/*
+  $Log$
+  Revision 3.7  2006/08/27 23:46:28  mast
+  Added color map support
   
-  /* Use min and max from file if defined */
-  if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
-    inFile->smin = minmax;
-  if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
-    inFile->smax = minmax;
-
-  inFile->smin   = inFile->amin;
-  inFile->smax   = inFile->amax;
-  inFile->headerSize = 8;
-  inFile->header = (char *)tif;
-  inFile->fp = (FILE *)tif;    
-  inFile->cleanUp = tiffDelete;
-  inFile->reopen = tiffReopen;
-  inFile->close = tiffClose;
-  return(0);
-}
+  Revision 3.6  2005/05/19 23:51:40  mast
+  Made open routine reopen the file if it fails as a tiff
+  
+  Revision 3.5  2005/02/11 01:42:33  mast
+  Warning cleanup: implicit declarations, main return type, parentheses, etc.
+  
+  Revision 3.4  2004/11/05 18:53:04  mast
+  Include local files with quotes, not brackets
+  
+  Revision 3.3  2004/01/21 00:56:50  mast
+  Stopped freeing map from byte_map
+  
+  Revision 3.2  2004/01/05 17:51:16  mast
+  renamed imin/imax to smin/smax or outmin/outmax as appropriate, changed
+  unsigned short to b3dUInt16
+  
+  Revision 3.1  2003/02/27 17:08:23  mast
+  Set default upper coordinates to -1 rather than 0.
+  
+*/
