@@ -18,18 +18,22 @@ Log at end
 extern "C" {
 #endif
 
+  /* DOC_CODE ImodImageFile definitions */
+  /* Values for the file member of ImodImageFile, describing kind of file */
 #define IIFILE_UNKNOWN 0
 #define IIFILE_TIFF    1
 #define IIFILE_MRC     2
 #define IIFILE_QIMAGE  3
 #define IIFILE_RAW     4
 
+  /* Values for the format member of ImodImageFile, describing kind data */
 #define IIFORMAT_LUMINANCE 0
 #define IIFORMAT_RGB       1
 #define IIFORMAT_RGBA      2
 #define IIFORMAT_COMPLEX   3
 #define IIFORMAT_COLORMAP  4
 
+  /* Values for the type member of ImodImageFile, describing numeric type */
 #define IITYPE_UBYTE   0
 #define IITYPE_BYTE  1
 #define IITYPE_SHORT  2
@@ -38,19 +42,39 @@ extern "C" {
 #define IITYPE_UINT   5
 #define IITYPE_FLOAT  6
 
-#define IIAXIS_X 1
-#define IIAXIS_Y 2
-#define IIAXIS_Z 3
-
+  /* Values for the state member of ImodImageFile, describing file state */
 #define IISTATE_NOTINIT 0
 #define IISTATE_PARK    1
 #define IISTATE_READY   2
 #define IISTATE_BUSY    4
 
-  struct  ImodImageFileStruct;
-  typedef struct ImodImageFileStruct ImodImageFile; 
-  typedef int (*IIFileCheckFunction)(ImodImageFile *);
+  /* Error codes, used by check routines */
+#define IIERR_BAD_CALL  -1
+#define IIERR_NOT_FORMAT 1
+#define IIERR_IO_ERROR   2
+#define IIERR_MEMORY_ERR 3
+#define IIERR_NO_SUPPORT 4
+/* END_CODE */
 
+  /* DOC_CODE Raw mode codes */
+  /* Yet another set of mode values, which define the order for radio buttons
+     in a raw type selector dialog */
+#define RAW_MODE_BYTE          0
+#define RAW_MODE_SHORT         1
+#define RAW_MODE_USHORT        2
+#define RAW_MODE_FLOAT         3
+#define RAW_MODE_COMPLEX_FLOAT 4
+#define RAW_MODE_RGB           5
+/* END_CODE */
+
+#define IIAXIS_X 1
+#define IIAXIS_Y 2
+#define IIAXIS_Z 3
+
+  struct  ImodImageFileStruct;
+
+  /* DOC_CODE ImodImageFile structure */
+  typedef struct  ImodImageFileStruct ImodImageFile;
   struct  ImodImageFileStruct
   {
     char *filename;
@@ -94,32 +118,27 @@ extern "C" {
     int (*reopen)(ImodImageFile *inFile);
 
   };
+/* END_CODE */
 
-  /* Yet another set of mode values, which define the order for radio buttons
-     in a raw type selector dialog */
-#define RAW_MODE_BYTE          0
-#define RAW_MODE_SHORT         1
-#define RAW_MODE_USHORT        2
-#define RAW_MODE_FLOAT         3
-#define RAW_MODE_COMPLEX_FLOAT 4
-#define RAW_MODE_RGB           5
-
+  /* DOC_CODE RawImageInfo structure */
   /* A structure for passing bare-bones information about an MRC-like (raw)
      file to a routine that makes an MRC header */
   typedef struct raw_image_info {
-    int type;
-    int nx;
-    int ny;
-    int nz;
-    int swapBytes;
-    int headerSize;
-    int scanMinMax;
-    float amin;
-    float amax;
-    int allMatch;
+    int type;           /* Data type, one of the RAW_MODE_* values */
+    int nx, ny, nz;     /* Size of file in X, Y, Z */
+    int swapBytes;      /* Whether bytes are swapped */
+    int headerSize;     /* Offset to data */
+    float amin, amax;   /* Data min and max, set to 0 if unknown */
+    int scanMinMax;     /* Flag that scan is needed, used internally */
+    int allMatch;       /* Flag that all files match, used internally */
   } RawImageInfo;
+/* END_CODE */
+
+  typedef int (*IIFileCheckFunction)(ImodImageFile *);
+  typedef int (*IIRawCheckFunction)(FILE *, char *, RawImageInfo *);
 
   void iiAddCheckFunction(IIFileCheckFunction func);
+  void iiAddRawCheckFunction(IIRawCheckFunction func, char *name);
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(char *filename, char *mode);
   int  iiReopen(ImodImageFile *inFile);
@@ -149,7 +168,8 @@ extern "C" {
   void tiffClose(ImodImageFile *inFile);
   int iiLikeMRCCheck(ImodImageFile *inFile);
   void iiLikeMRCDelete(ImodImageFile *inFile);
-  int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo info);
+  int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info);
+  int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype);
 
 #ifdef __cplusplus
 }
@@ -159,6 +179,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.9  2006/09/02 23:50:33  mast
+Added mrc-like structure and functions
+
 Revision 3.8  2006/08/27 23:47:12  mast
 Added colormap
 
