@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1  2004/12/02 21:39:51  mast
+Addition to program
+
 */
 
 #ifndef IIRAWIMAGE_H
@@ -19,24 +22,11 @@ $Log$
 
 typedef struct ImodImageFileStruct ImodImageFile;
 
-typedef struct raw_image_info {
-  int type;
-  int nx;
-  int ny;
-  int nz;
-  bool swapBytes;
-  int headerSize;
-  bool scanMinMax;
-  float amin;
-  float amax;
-  bool allMatch;
-} RawImageInfo;
-
 extern "C" {
   int iiRawCheck(ImodImageFile *inFile);
-  void iiRawDelete(ImodImageFile *inFile);
 }
 
+int iiRawScan(ImodImageFile *inFile);
 void iiRawSetSize(int nx, int ny, int nz);
 int iiRawSetMode(int mode);
 void iiRawSetSwap();
