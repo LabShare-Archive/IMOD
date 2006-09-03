@@ -1787,14 +1787,16 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
   int pathlen, i;
   char *convarg;
   QDir *curdir = new QDir();
+  QString str;
 
   for (i = firstfile; i <= lastimage; i++) {
     convarg = strdup((curdir->cleanDirPath(QString(argv[i]))).latin1());
     image = iiOpen((char *)
       (QDir::convertSeparators(QString(convarg))).latin1(), "rb");
     if (!image){
-      imodError(NULL, "3DMOD Error: " 
-              "couldn't open image file %s.\n", argv[i]);
+      str.sprintf("3DMOD Error: couldn't open image file %s.\n", argv[i]);
+      str = QString(b3dGetError()) + str;
+      imodError(NULL, str.latin1());
       exit(3);
     }
 
@@ -2508,6 +2510,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.49  2006/09/02 23:54:06  mast
+Added calls to scan intensities for raw type files
+
 Revision 4.48  2006/08/28 05:24:59  mast
 Changes to handle colormapped images
 
