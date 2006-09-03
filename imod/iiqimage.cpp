@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1  2004/11/30 03:38:55  mast
+Added to program
+
 */
 #include <qimage.h>
 #include <qstring.h>
@@ -39,16 +42,18 @@ int iiQImageCheck(ImodImageFile *inFile)
 {
   QImage *image;
   if (!inFile) 
-    return -1;
+    return IIERR_BAD_CALL;
   image = new QImage(QString(inFile->filename));
   if (image->isNull()) {
     delete image;
-    return 2;
+    return IIERR_NOT_FORMAT;
   }
 
   if (image->depth() < 8) {
     delete image;
-    return 3;
+    b3dError(NULL, "%s is a recognized file type but data type is not "
+             "supported\n", inFile->filename);
+    return IIERR_NO_SUPPORT;
   }
 
   if(inFile->fp)

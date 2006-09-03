@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 4.4  2006/09/03 21:31:15  mast
+    Fixed logic with not scanning bytes, changed call to iiSetupRawHeaders
+
     Revision 4.3  2006/09/02 23:53:26  mast
     Reorganized, moved header creation to MRC-like routine in library
 
@@ -97,13 +100,13 @@ void iiRawSetScale(float smin, float smax)
 int iiRawCheck(ImodImageFile *inFile)
 {
   struct MRCheader *hdr;
-  int ind;
+  int ind, err;
   QString str;
 
   if (!inFile)
-    return -1;
+    return IIERR_BAD_CALL;
   if (!inFile->fp)
-    return 1;
+    return IIERR_BAD_CALL;
 
   str = inFile->filename;
   ind = str.findRev('/');
@@ -118,13 +121,13 @@ int iiRawCheck(ImodImageFile *inFile)
     form->setIcon(*(App->iconPixmap));
     form->load(str, &info);
     if (form->exec() == QDialog::Rejected)
-      return 1;
+      return IIERR_NOT_FORMAT;
     form->unload(&info);
     delete form;
   }
 
-  if (iiSetupRawHeaders(inFile, &info))
-    return 2;
+  if ((err = iiSetupRawHeaders(inFile, &info)))
+    return err;
   return (iiRawScan(inFile));
 }
 
@@ -185,7 +188,7 @@ int iiRawScan(ImodImageFile *inFile)
     for (z = 0; z < hdr->nz; z++) {
       slice = sliceReadMRC(hdr, z, 'z');
       if (!slice)
-        return 1;
+        return IIERR_IO_ERROR;
       switch (hdr->mode) {
       case MRC_MODE_SHORT:
         for (ind = 0; ind < hdr->nx * hdr->ny; ind++) {
