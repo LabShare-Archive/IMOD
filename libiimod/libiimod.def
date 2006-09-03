@@ -18,6 +18,7 @@ EXPORTS
 	iiPlistLoadF
 	mrc_slice_putvol
 	sliceGetPixelMagnitude
+	iiLikeMRCDelete
 	read_mrc_byte
 	mrc_plist_proc
 	tiffDelete
@@ -26,11 +27,11 @@ EXPORTS
 	mrc_slice_lie_img
 	mrc_getdsize
 	mrc_read_point
-	iiMRCdelete
 	sliceMMM
 	iiReopen
 	slicePutVal
 	mrc_set_cmap_stamp
+	analyzeDM3
 	mrc_slice_create
 	iiMRCreadSectionByte
 	iiClose
@@ -51,6 +52,7 @@ EXPORTS
 	mrc_init_li
 	mrc_get_scale
 	mrc_pow2pad
+	iiSetupRawHeaders
 	mrcFreeDataMemory
 	mrc_zoom_center
 	mrc_slice_zooms
@@ -131,6 +133,7 @@ EXPORTS
 	mrc_data_new
 	mrc_slice_getval
 	mrc_bilinear
+	iiLikeMRCCheck
 	mrc_slice_translate
 	mrc_slice_rotate
 	mrc_swap_shorts
@@ -147,6 +150,7 @@ EXPORTS
 	sliceGradient
 	sliceFloat
 	iiMRCCheck
+	iiAddRawCheckFunction
 	mrc_corr
 	iiMRCreadSection
 	get_loadinfo
