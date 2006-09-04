@@ -877,7 +877,7 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
          but this lost surface numbers with point reduction */
       /* For empty contour, clear out existing data */
       if (!npt[object] && cont->psize) {
-        imodel_contour_clear(cont);
+        imodContourClear(cont);
       } else if (npt[object] != cont->psize) {
 
         /* Otherwise for contour not the right size, adjust memory */
@@ -1598,6 +1598,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.28  2006/06/29 04:42:57  mast
+Added function to allow different size models
+
 Revision 3.27  2006/05/01 20:44:59  mast
 Distinguished vectors from normals and shifted mesh back on output
 
