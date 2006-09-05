@@ -5,12 +5,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
-import javax.swing.Box;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.MatchvolParam;
 import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -32,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2006/07/20 17:20:16  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.29  2006/06/21 15:53:32  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -193,7 +197,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
@@ -203,11 +207,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   private SolvematchPanel pnlSolvematch;
 
-  private JPanel pnlButton = new JPanel();
-  private Run3dmodButton btnMatchcheck = new Run3dmodButton(
-      "<html><b>View Match Check Volume</b>", this);
-  private final MultiLineButton btnRestart;
+  //private Run3dmodButton btnMatchcheck = new Run3dmodButton(
+  //   "<html><b>View Match Check Volume</b>", this);
   private final MultiLineButton btnMatchvolRestart;
+  private final JPanel pnlMatchvol1 = new JPanel();
+  private final SpacedPanel pnlMatchvol1Body = new SpacedPanel(true);
+  private final PanelHeader matchvol1Header;
+  private final LabeledTextField ltfOutputSizeY = new LabeledTextField(
+      "Output Size in Z: ");
 
   /**
    * Default constructor
@@ -217,8 +224,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
       ApplicationManager appMgr, DialogType dialogType) {
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
-    btnRestart = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
-        AxisID.ONLY).getRestartCombine();
+    matchvol1Header = PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
+        DialogType.TOMOGRAM_COMBINATION);
     btnMatchvolRestart = (MultiLineButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchvol1();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -227,28 +234,24 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
         ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP);
-
-    //  Layout the button panel
-    pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
-    pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnMatchcheck.getComponent());
-    pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnRestart.getComponent());
-    pnlButton.add(Box.createHorizontalGlue());
-    pnlButton.add(btnMatchvolRestart.getComponent());
-    pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
-
     pnlRoot.add(pnlSolvematch.getContainer());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlButton);
-    pnlRoot.add(Box.createVerticalGlue());
+    //pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    //pnlRoot.add(Box.createVerticalGlue());
+
+    pnlMatchvol1.setBorder(BorderFactory.createEtchedBorder());
+    pnlMatchvol1.setLayout(new BoxLayout(pnlMatchvol1, BoxLayout.Y_AXIS));
+    pnlMatchvol1Body.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlMatchvol1Body.add(ltfOutputSizeY);
+    btnMatchvolRestart.setSize();
+    pnlMatchvol1Body.add(btnMatchvolRestart);
+    pnlMatchvol1.add(matchvol1Header.getContainer());
+    pnlMatchvol1.add(pnlMatchvol1Body.getContainer());
+    pnlRoot.add(pnlMatchvol1);
 
     //  Bind the UI objects to their ActionListeners
     ButtonActionListener buttonAction = new ButtonActionListener(this);
-    btnRestart.addActionListener(buttonAction);
     btnMatchvolRestart.addActionListener(buttonAction);
-    btnMatchcheck.addActionListener(buttonAction);
+    //btnMatchcheck.addActionListener(buttonAction);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -259,15 +262,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public boolean isUseCorrespondingPoints() {
     return pnlSolvematch.isUseCorrespondingPoints();
   }
-  
+
   public void setUseCorrespondingPoints(boolean use) {
     pnlSolvematch.setUseCorrespondingPoints(use);
   }
-  
-  public static ProcessResultDisplay getRestartCombineDisplay(
-      DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Restart Combine",
-        dialogType);
+
+  public static ProcessResultDisplay getRestartCombineDisplay(DialogType dialogType) {
+    return SolvematchPanel
+        .getRestartCombineDisplay(dialogType);
   }
 
   public static ProcessResultDisplay getRestartMatchvol1Display(
@@ -280,15 +282,36 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     return pnlRoot;
   }
 
-  public void setAdvanced(boolean state) {
+  void setAdvanced(boolean state) {
+    matchvol1Header.setAdvanced(state);
   }
 
   final void setVisible(boolean visible) {
     pnlSolvematch.setVisible(visible);
   }
-  
+
   public boolean isEnabled() {
-    return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblInitial);
+    return tomogramCombinationDialog
+        .isTabEnabled(TomogramCombinationDialog.lblInitial);
+  }
+
+  public void getParameters(MatchvolParam param) {
+    param.setOutputSizeY(ltfOutputSizeY.getText());
+  }
+
+  public void setParameters(MatchvolParam param) {
+    ltfOutputSizeY.setText(param.getOutputSizeY());
+  }
+
+  public void expand(ExpandButton button) {
+    if (matchvol1Header != null && matchvol1Header.equalsOpenClose(button)) {
+      pnlMatchvol1Body.setVisible(button.isExpanded());
+    }
+    else if (matchvol1Header != null
+        && matchvol1Header.equalsAdvancedBasic(button)) {
+      ltfOutputSizeY.setVisible(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
   /**
@@ -308,12 +331,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   final void setParameters(ReconScreenState screenState) {
-    btnRestart.setButtonState(screenState.getButtonState(btnRestart
-        .createButtonStateKey(tomogramCombinationDialog.getDialogType())));
+    pnlSolvematch.setParameters(screenState);
     btnMatchvolRestart.setButtonState(screenState
         .getButtonState(btnMatchvolRestart.getButtonStateKey()));
-    btnRestart.setButtonState(screenState.getButtonState(btnRestart
-        .getButtonStateKey()));
   }
 
   // InitialCombineFields interface pass-thru
@@ -332,7 +352,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setBinBy2(boolean state) {
     pnlSolvematch.setBinBy2(state);
   }
-  
+
   public void setUseList(String useList) {
     pnlSolvematch.setUseList(useList);
   }
@@ -340,7 +360,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setFiducialMatchListA(String fiducialMatchListA) {
     pnlSolvematch.setFiducialMatchListA(fiducialMatchListA);
   }
-  
+
   public String getUseList() {
     return pnlSolvematch.getUseList();
   }
@@ -372,14 +392,15 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+    //run3dmod(button.getActionCommand(), menuOptions);
   }
 
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnMatchcheck.getActionCommand())) {
-      applicationManager.imodMatchCheck(menuOptions);
-    }
-  }
+  /*
+   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+   if (command.equals(btnMatchcheck.getActionCommand())) {
+   applicationManager.imodMatchCheck(menuOptions);
+   }
+   }*/
 
   /**
    * Respond to button actions
@@ -389,17 +410,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
         true);
-
     String command = event.getActionCommand();
-
-    if (command.equals(btnRestart.getActionCommand())) {
-      applicationManager.combine(btnRestart);
-    }
-    else if (command.equals(btnMatchvolRestart.getActionCommand())) {
+    if (command.equals(btnMatchvolRestart.getActionCommand())) {
       applicationManager.matchvol1Combine(btnMatchvolRestart);
-    }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
@@ -425,14 +438,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
-    text = "View the two volumes that are used for assessing whether Matchshifts "
-        + "found the correct shifts between the volumes.";
-    btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Restart the combine operation from the beginning with the parameters "
-        + "specified here.";
-    btnRestart.setToolTipText(tooltipFormatter.setText(text).format());
-
+    //text = "View the two volumes that are used for assessing whether Matchshifts "
+    //    + "found the correct shifts between the volumes.";
+    //btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
+    
     text = "Resume and make first matching volume, despite a small displacement "
         + "between the match check volumes";
     btnMatchvolRestart.setToolTipText(tooltipFormatter.setText(text).format());
