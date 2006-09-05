@@ -21,8 +21,11 @@ import etomo.comscript.SolvematchParam;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -39,6 +42,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2006/07/21 23:50:28  sueh
+ * <p> bug# 892 Added show().
+ * <p>
  * <p> Revision 3.24  2006/07/20 17:21:58  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -178,6 +184,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
   private boolean binningWarning = false;
   private final PanelHeader header;
   private final String headerGroup;
+  private final MultiLineButton btnRestart;
 
   public SolvematchPanel(TomogramCombinationDialog parent, String title,
       ApplicationManager appMgr, String headerGroup) {
@@ -188,7 +195,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     //  Create the fiducial relationship panel
     pnlFiducialRadio
         .setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-
+    btnRestart = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartCombine();
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -229,6 +237,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListA.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListB.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
+    btnRestart.setSize();
+    UIUtilities.addWithYSpace(pnlBody, btnRestart.getComponent());
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     header = PanelHeader.getInstance("Solvematch Parameters", this, parent
@@ -240,6 +250,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     //  Bind the ui elements to their listeners
     SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
         this);
+    btnRestart.addActionListener(actionListener);
     btnImodMatchModels.addActionListener(actionListener);
     cbBinBy2.addActionListener(actionListener);
     cbUseCorrespondingPoints.addActionListener(actionListener);
@@ -249,6 +260,12 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     rbOneSideInverted.addActionListener(rbFiducialListener);
     rbUseModel.addActionListener(rbFiducialListener);
     rbUseModelOnly.addActionListener(rbFiducialListener);
+  }
+  
+  public static ProcessResultDisplay getRestartCombineDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance("Restart Combine",
+        dialogType);
   }
   
   void show() {
@@ -294,6 +311,13 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
       cbUseCorrespondingPoints.setSelected(!combineParams.isTransfer());
       updateUseCorrespondingPoints();
     }
+  }
+  
+  final void setParameters(ReconScreenState screenState) {
+    btnRestart.setButtonState(screenState.getButtonState(btnRestart
+        .createButtonStateKey(tomogramCombinationDialog.getDialogType())));
+    btnRestart.setButtonState(screenState.getButtonState(btnRestart
+        .getButtonStateKey()));
   }
 
   public void expand(ExpandButton button) {
@@ -482,6 +506,9 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
         binningWarning = true;
       }
     }
+    if (command.equals(btnRestart.getActionCommand())) {
+      applicationManager.combine(btnRestart);
+    }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
@@ -597,6 +624,10 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
       rbUseModelOnly.setToolTipText(tooltipFormatter.setText(
           EtomoAutodoc.getTooltip(section,
               SolvematchParam.USE_MODEL_ONLY_OPTION)).format());
+
+      text = "Restart the combine operation from the beginning with the parameters "
+          + "specified here.";
+      btnRestart.setToolTipText(tooltipFormatter.setText(text).format());
     }
 
     text = "Use binning by 2 when opening matching models to allow the two 3dmods "
