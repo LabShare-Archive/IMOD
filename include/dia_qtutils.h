@@ -10,8 +10,73 @@
 $Date$
 
 $Revision$
+Log at end
+*/
 
+#ifndef DIA_QTUTILS_H
+#define DIA_QTUTILS_H
+
+#include "dllexport.h"
+
+class QCheckBox;
+class QLabel;
+class QPushButton;
+class QRadioButton;
+class QBoxLayout;
+class QWidget;
+class QSlider;
+class QSpinBox;
+class FloatSpinBox;
+class QButtonGroup;
+class QString;
+class QLineEdit;
+
+extern DLL_IM_EX char *Dia_title;
+
+void DLL_IM_EX diaSetSpinBox(QSpinBox *box, int value);
+void DLL_IM_EX diaSetSpinMMVal(QSpinBox *box, int min, int max, int value);
+void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
+void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
+void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
+void DLL_IM_EX diaSetEditText(QLineEdit *edit, const QString &text);
+QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QBoxLayout *layout);
+QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
+QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 
+			   QBoxLayout *layout);
+QCheckBox DLL_IM_EX *diaCheckBox(char *text, QWidget *parent, 
+                                 QBoxLayout *layout);
+QSpinBox DLL_IM_EX *diaLabeledSpin(int nDecimal, int minValue, int maxValue,
+                                   int step, char *text, QWidget *parent,
+                                   QBoxLayout *layout);
+int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
+                      const QString &text);
+int DLL_IM_EX diaSetButtonWidth(QPushButton *button, bool rounded,
+                                float factor, const QString &text);
+void DLL_IM_EX diaMaximumWindowSize(int &width, int &height);
+void DLL_IM_EX diaLimitWindowSize(int &width, int &height);
+void DLL_IM_EX diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
+void DLL_IM_EX diaSetTitle(char *title);
+
+// Get a single existing file name with a set of filters
+QString DLL_IM_EX diaOpenFileName(QWidget *parent, char *caption, 
+                                  int numFilters, char *filters[]);
+
+int DLL_IM_EX dia_err(char *message);
+int DLL_IM_EX dia_puts(char *message);
+int DLL_IM_EX dia_ask(char *question);
+int DLL_IM_EX dia_choice(char *question, char *lab1, char *lab2, char *lab3);
+int DLL_IM_EX diaQInput(int *value, int low, int high, int decimal, 
+                        char *prompt);
+void DLL_IM_EX dia_vasmsg(char *msg, ...);
+void DLL_IM_EX dia_smsg(char **msg);
+
+#endif
+
+/*
 $Log$
+Revision 3.6  2006/03/01 19:13:18  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 3.5  2004/11/21 05:53:11  mast
 Added routine to set text with blocked signals
 
@@ -46,58 +111,3 @@ Revision 1.1.2.1  2002/12/30 06:32:59  mast
 Initial creation
 
 */
-
-#ifndef DIA_QTUTILS_H
-#define DIA_QTUTILS_H
-
-#include "dllexport.h"
-
-class QCheckBox;
-class QLabel;
-class QPushButton;
-class QRadioButton;
-class QBoxLayout;
-class QWidget;
-class QSlider;
-class QSpinBox;
-class QButtonGroup;
-class QString;
-class QLineEdit;
-
-extern DLL_IM_EX char *Dia_title;
-
-void DLL_IM_EX diaSetSpinBox(QSpinBox *box, int value);
-void DLL_IM_EX diaSetSpinMMVal(QSpinBox *box, int min, int max, int value);
-void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
-void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
-void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
-void DLL_IM_EX diaSetEditText(QLineEdit *edit, const QString &text);
-QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QBoxLayout *layout);
-QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
-QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 
-			   QBoxLayout *layout);
-QCheckBox DLL_IM_EX *diaCheckBox(char *text, QWidget *parent, 
-                                 QBoxLayout *layout);
-int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
-                      const QString &text);
-int DLL_IM_EX diaSetButtonWidth(QPushButton *button, bool rounded,
-                                float factor, const QString &text);
-void DLL_IM_EX diaMaximumWindowSize(int &width, int &height);
-void DLL_IM_EX diaLimitWindowSize(int &width, int &height);
-void DLL_IM_EX diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy);
-void DLL_IM_EX diaSetTitle(char *title);
-
-// Get a single existing file name with a set of filters
-QString DLL_IM_EX diaOpenFileName(QWidget *parent, char *caption, 
-                                  int numFilters, char *filters[]);
-
-int DLL_IM_EX dia_err(char *message);
-int DLL_IM_EX dia_puts(char *message);
-int DLL_IM_EX dia_ask(char *question);
-int DLL_IM_EX dia_choice(char *question, char *lab1, char *lab2, char *lab3);
-int DLL_IM_EX diaQInput(int *value, int low, int high, int decimal, 
-                        char *prompt);
-void DLL_IM_EX dia_vasmsg(char *msg, ...);
-void DLL_IM_EX dia_smsg(char **msg);
-
-#endif

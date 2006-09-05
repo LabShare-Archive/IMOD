@@ -13,37 +13,7 @@
 $Date$
 
 $Revision$
-$Log$
-Revision 1.7  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 1.6  2004/11/21 05:53:03  mast
-Added routine to set text with blocked signals
-
-Revision 1.5  2004/11/20 05:07:23  mast
-Add spin box min/max/val function, allow H or V layouts in dia functions
-
-Revision 1.4  2004/11/04 23:32:44  mast
-Changes for rounded button style
-
-Revision 1.3  2003/11/01 18:14:29  mast
-Allow repeated setting of title without leaking
-
-Revision 1.2  2003/02/10 20:51:22  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:35:36  mast
-adding as library file
-
-Revision 1.1.2.9  2003/01/18 01:11:46  mast
-add call to make radio button
-
-Revision 1.1.2.8  2003/01/13 01:08:43  mast
-Implemented dia_ask, dia_choice, and a replacement for dia_int
-
-Revision 1.1.2.7  2003/01/06 19:01:47  mast
-adding log line
-
+Log at end
 */
 
 #include <stdarg.h>
@@ -66,6 +36,7 @@ adding log line
 #include <qtextedit.h>
 #include <qbuttongroup.h>
 
+#include "floatspinbox.h"
 #include "dia_qtutils.h"
 
 char *Dia_title = NULL;
@@ -103,6 +74,25 @@ QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
   QLabel *label = new QLabel(text, parent);
   layout->addWidget(label);
   return label;
+}
+
+// Make a labeled spin box and add it to a layout box; can make a 
+// float spin box if nDecimal is non-zero
+QSpinBox *diaLabeledSpin(int nDecimal, int minValue, int maxValue, int step,
+                         char *text, QWidget *parent, QBoxLayout *layout)
+{
+  QSpinBox *spin;
+  FloatSpinBox *fspin;
+  QLabel *label = diaLabel(text, parent, layout);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  if (nDecimal) {
+    fspin = new FloatSpinBox(nDecimal, minValue, maxValue, step, parent);
+    spin = (QSpinBox *)fspin;
+  } else
+    spin = new QSpinBox(minValue, maxValue, step, parent);
+  layout->addWidget(spin);
+  spin->setFocusPolicy(QWidget::ClickFocus);
+  return spin;
 }
 
 // Set a checkbox and block the signals
@@ -499,3 +489,40 @@ void dia_smsg( char **msg)
   dlg->setCaption(test);
   dlg->show();
 }
+
+/*
+$Log$
+Revision 1.8  2006/03/01 19:13:23  mast
+Moved window size/position routines from xzap to dia_qtutils
+
+Revision 1.7  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 1.6  2004/11/21 05:53:03  mast
+Added routine to set text with blocked signals
+
+Revision 1.5  2004/11/20 05:07:23  mast
+Add spin box min/max/val function, allow H or V layouts in dia functions
+
+Revision 1.4  2004/11/04 23:32:44  mast
+Changes for rounded button style
+
+Revision 1.3  2003/11/01 18:14:29  mast
+Allow repeated setting of title without leaking
+
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/26 20:35:36  mast
+adding as library file
+
+Revision 1.1.2.9  2003/01/18 01:11:46  mast
+add call to make radio button
+
+Revision 1.1.2.8  2003/01/13 01:08:43  mast
+Implemented dia_ask, dia_choice, and a replacement for dia_int
+
+Revision 1.1.2.7  2003/01/06 19:01:47  mast
+adding log line
+
+*/
