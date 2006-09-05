@@ -18,6 +18,7 @@ import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.MatchvolParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
@@ -49,6 +50,12 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2006/07/28 22:24:44  sueh
+ * <p> bug# 910 Done():  moved call to synchronize() to synchronizeFromCurrentTab(),
+ * <p> where it can be call from ApplicationManager.saveTomogramCombinationDialog.
+ * <p> This allows the dialog to be synchronized on exit as well as when changing
+ * <p> dialogs.
+ * <p>
  * <p> Revision 3.46  2006/07/28 19:59:16  sueh
  * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
  * <p> usingParallelProcessing because isParallel is too similar to a standard get
@@ -339,7 +346,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   private JTabbedPane tabbedPane = new JTabbedPane();
   final String parallelProcessCheckBoxText;
   private boolean constructed = false;
-  
+
   /**
    * This is the index of the last tab to keep track of what to sync from when
    * switching tabs
@@ -353,8 +360,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   protected String paramString() {
     return "pnlSetup=" + pnlSetup + ",\npnlInitial=" + pnlInitial
         + ",\npnlFinal=" + pnlFinal + ",\ncombinePanelEnabled="
-        + combinePanelEnabled + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
-        + ",\nidxLastTab=" + idxLastTab;
+        + combinePanelEnabled + ",\nparallelProcessCheckBoxText="
+        + parallelProcessCheckBoxText + ",\nidxLastTab=" + idxLastTab;
   }
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
@@ -459,11 +466,11 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void setCombineParams(ConstCombineParams combineParams) {
     pnlSetup.setParameters(combineParams);
   }
-  
+
   public void setZMin(String zMin) {
     pnlSetup.setZMin(zMin);
   }
-  
+
   public void setZMax(String zMax) {
     pnlSetup.setZMax(zMax);
   }
@@ -487,6 +494,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    */
   public void setSolvematchParams(ConstSolvematchParam solvematchParams) {
     pnlInitial.setSolvematchParams(solvematchParams);
+  }
+
+  public void setParameters(MatchvolParam param) {
+    pnlInitial.setParameters(param);
   }
 
   public void getParameters(ParallelParam param) {
@@ -526,7 +537,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     synchronize(lblSetup, false);
     pnlSetup.getParameters(metaData);
   }
-  
+
   public void show() {
     pnlSetup.show();
     setDisplayed(true);
@@ -556,6 +567,11 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void getSolvematchParams(SolvematchParam solvematchParams)
       throws NumberFormatException {
     pnlInitial.getSolvematchParams(solvematchParams);
+  }
+
+  public void getParameters(MatchvolParam param)
+      throws NumberFormatException {
+    pnlInitial.getParameters(param);
   }
 
   /**
@@ -676,7 +692,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setParallelEnabled(fromPanel.isParallelEnabled());
     toPanel.setNoVolcombine(fromPanel.isNoVolcombine());
   }
-  
+
   public boolean isChanged(TomogramState state) {
     return pnlSetup.isChanged(state);
   }
@@ -713,11 +729,11 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       throws NumberFormatException {
     pnlFinal.getMatchorwarpParams(matchorwarpParams);
   }
-  
+
   public void synchronizeFromCurrentTab() {
     synchronize(tabbedPane.getTitleAt(idxLastTab), true);
   }
-  
+
   public void done() {
     //if (getExitState() != DialogExitState.CANCEL) {
     //  synchronize(tabbedPane.getTitleAt(idxLastTab), true);
