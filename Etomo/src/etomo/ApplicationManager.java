@@ -28,6 +28,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
+import etomo.comscript.MatchvolParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.ProcesschunksParam;
@@ -3465,6 +3466,7 @@ public final class ApplicationManager extends BaseManager {
           }
           loadSolvematch(modelBased);
         }
+        loadMatchvol1();
         loadPatchcorr();
         loadMatchorwarp();
         loadVolcombine();
@@ -3685,6 +3687,9 @@ public final class ApplicationManager extends BaseManager {
         if (!updateSolvematchCom()) {
           return false;
         }
+        if (!updateMatchvol1Com()) {
+          return false;
+        }
         if (!updatePatchcorrCom()) {
           return false;
         }
@@ -3781,6 +3786,7 @@ public final class ApplicationManager extends BaseManager {
 
     // Reload all of the parameters into the ComScriptManager
     loadSolvematch();
+    loadMatchvol1();
     loadPatchcorr();
     loadMatchorwarp();
     loadVolcombine();
@@ -3918,6 +3924,35 @@ public final class ApplicationManager extends BaseManager {
     }
     return true;
   }
+  
+  /**
+   * Update the matchvol1 com file from the tomogramCombinationDialog
+   * @return true if successful, false if not
+   */
+  public boolean updateMatchvol1Com() {
+    if (tomogramCombinationDialog == null) {
+      uiHarness
+          .openMessageDialog(
+              "Can not update matchvol1.com without an active tomogram generation dialog",
+              "Program logic error", AxisID.ONLY);
+      return false;
+    }
+    try {
+      comScriptMgr.loadMatchvol1();
+      MatchvolParam param = comScriptMgr.getMatchvolParam();
+      tomogramCombinationDialog.getParameters(param);
+      comScriptMgr.saveMatchvol(param);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Matchvol1 Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage,
+          "Matchvol1 Parameter Syntax Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
 
   private void createNewSolvematch(SolvematchParam solvematchParam) {
     try {
@@ -3937,6 +3972,16 @@ public final class ApplicationManager extends BaseManager {
     comScriptMgr.loadSolvematch();
     comScriptMgr.saveSolvematch(solvematchParam);
     tomogramCombinationDialog.setSolvematchParams(solvematchParam);
+  }
+  
+  /**
+   * load the matchvol1 com script into the tomogram combination dialog
+   *
+   */
+  private void loadMatchvol1() {
+    comScriptMgr.loadMatchvol1();
+    tomogramCombinationDialog.setParameters(comScriptMgr
+        .getMatchvolParam());
   }
 
   /**
@@ -4157,6 +4202,10 @@ public final class ApplicationManager extends BaseManager {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    if (!updateMatchvol1Com()) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
     if (!updatePatchcorrCom()) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4210,6 +4259,10 @@ public final class ApplicationManager extends BaseManager {
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
     updateCombineParams();
+    if (!updateMatchvol1Com()) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
     if (!updatePatchcorrCom()) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -5294,6 +5347,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.263  2006/08/30 16:48:52  sueh
+ * <p> bug# 922 Fix null pointer error in updateDialog()
+ * <p>
  * <p> Revision 3.262  2006/08/18 00:12:58  sueh
  * <p> bug# 914 open combine dialog:  make sure patchcorr.com doesn't exist before
  * <p> removing Zs
