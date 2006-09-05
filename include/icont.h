@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.8  2006/09/01 20:50:18  mast
+Added flatten function
+
 Revision 3.7  2005/06/26 19:41:31  mast
 Changed break routine call
 
@@ -100,6 +103,7 @@ void   imodContourDefault(Icont *cont);
 int    imodContourDelete(Icont *cont);
 int    imodContoursDelete(Icont *cont, int size);
 int imodContoursDeleteToEnd(Iobj *obj, int keep);
+int    imodContourClear(Icont *cont);
 
 /*
  * Contour data moving functions.
@@ -181,7 +185,6 @@ int    imodContourUnique(Icont *cont);
 /* in testing, old, or internal functions */
 Icont *imodContourTracer(Icont *ic); /* broken */
 void   imodel_contour_swapxy(Icont *cont);
-int    imodel_contour_clear(Icont *cont);
 int    imodel_contour_on(struct Mod_Contour *cont, int x, int y);
 int    imodel_contour_unique(Icont *cont);
 int    imodel_contour_sortx (Icont *cont, int bgnpt, int endpt);
