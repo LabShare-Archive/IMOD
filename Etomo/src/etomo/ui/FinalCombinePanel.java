@@ -13,6 +13,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstMatchorwarpParam;
@@ -56,6 +57,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.50  2006/08/29 20:09:01  sueh
+ * bug# 924 Added kernelSigma checkbox and field.
+ *
  * Revision 3.49  2006/08/25 22:52:55  sueh
  * bug# 918 Changed the right click menu for the new version of patchcorr
  *
@@ -345,9 +349,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "Number of Z patches :");
   private LabeledTextField ltfZNPatches = new LabeledTextField(
       "Number of Y patches :");
-  private CheckBox cbKernelSigma = new CheckBox("Kernel Filtering");
-  private LabeledTextField ltfKernelSigma = new LabeledTextField(
-      "Kernel sigma:");
+  private CheckBox cbKernelSigma = new CheckBox("Kernel filtering with sigma: ");
+  private JTextField tfKernelSigma = new JTextField();
 
   private JPanel pnlBoundary = new JPanel();
   private LabeledTextField ltfXLow = new LabeledTextField("X Low :");
@@ -502,8 +505,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     pnlKernelSigma.setBoxLayout(BoxLayout.X_AXIS);
     pnlKernelSigma.add(cbKernelSigma);
-    pnlKernelSigma.add(ltfKernelSigma.getContainer());
-    ltfKernelSigma.setEnabled(false);
+    pnlKernelSigma.add(tfKernelSigma);
+    tfKernelSigma.setEnabled(false);
     pnlPatchcorrBody.add(pnlKernelSigma);
 
     btnPatchcorrRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -793,7 +796,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     if (!cbKernelSigma.isSelected()) {
       ConstEtomoNumber kernelSigma = screenState.getPatchcorrKernelSigma();
       if (kernelSigma != null) {
-        ltfKernelSigma.setText(kernelSigma);
+        tfKernelSigma.setText(kernelSigma.toString());
       }
     }
   }
@@ -806,7 +809,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         .getCombineFinalPatchcorrHeaderState());
     volcombineHeader.getState(screenState
         .getCombineFinalVolcombineHeaderState());
-    screenState.setPatchcorrKernelSigma(ltfKernelSigma.getText());
+    screenState.setPatchcorrKernelSigma(tfKernelSigma.getText());
   }
 
   final void setVisible(boolean visible) {
@@ -866,7 +869,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ltfZLow.setText(patchrawlParam.getZLow());
     ltfZHigh.setText(patchrawlParam.getZHigh());
     cbKernelSigma.setSelected(patchrawlParam.isKernelSigmaActive());
-    ltfKernelSigma.setText(patchrawlParam.getKernelSigma());
+    tfKernelSigma.setText(patchrawlParam.getKernelSigma().toString());
     updateKernelSigma();
   }
 
@@ -945,7 +948,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       badParameter = ltfZHigh.getLabel();
       patchcrawl3DParam.setZHigh(Integer.parseInt(ltfZHigh.getText()));
       patchcrawl3DParam.setKernelSigma(cbKernelSigma.isSelected(),
-          ltfKernelSigma.getText());
+          tfKernelSigma.getText());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -1168,7 +1171,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
   
   private void updateKernelSigma() {
-    ltfKernelSigma.setEnabled(cbKernelSigma.isSelected());
+    tfKernelSigma.setEnabled(cbKernelSigma.isSelected());
   }
 
   class ButtonActionListener implements ActionListener {
@@ -1314,7 +1317,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 "sigma filters more.  Kernel filtering increases execution time ~30% for "+
 "sigma under 1.5 and ~2-fold for sigma 1.5 or higher.";
     cbKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
-    ltfKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
+    tfKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
 
     cbParallelProcess.setToolTipText(tooltipFormatter.setText(
         VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
