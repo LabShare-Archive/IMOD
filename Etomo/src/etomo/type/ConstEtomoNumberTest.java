@@ -164,7 +164,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.setFloor(floor);
     test.setNullIsValid(false);
     test.setValidFloor(validFloor);
-    test.setValidValues(new int[] { displayValue,validValue});
+    test.setValidValues(new int[] { displayValue, validValue });
     copy = new EtomoNumber(test);
     //test copy
     assertTrue(test.equals(copy));
@@ -201,10 +201,10 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
     copy.internalTest();
   }
-  
+
   public void testGetDisplayInteger() {
   }
-  
+
   public void testSetInvalidReason() {
     EtomoNumber test = new EtomoNumber();
     //Pass when there are no validation settings
@@ -229,13 +229,14 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInvalidReason().length(), 0);
     test.set(0);
     assertFalse(test.isValid());
-    assertTrue(test.getInvalidReason().indexOf("Valid values are greater or equal to") != -1);
+    assertTrue(test.getInvalidReason().indexOf(
+        "Valid values are greater or equal to") != -1);
     test.set(2);
     assertTrue(test.isValid());
     assertEquals(test.getInvalidReason().length(), 0);
     test.internalTest();
   }
-  
+
   public void testApplyCeilingValue_Number() {
     int lowValue = 2;
     int ceilingValue = 3;
@@ -271,7 +272,7 @@ public final class ConstEtomoNumberTest extends TestCase {
         floorValue);
     test.internalTest();
   }
-  
+
   public void testIsValid() {
     EtomoNumber test = new EtomoNumber();
     assertTrue(test.isValid());
@@ -280,7 +281,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.set(1);
     assertTrue(test.isValid());
   }
-  
 
   public final void testValidate_String_String_AxisID()
       throws InvalidEtomoNumberException {
@@ -299,7 +299,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     test.internalTest();
   }
-  
+
   public final void testIsValid_boolean_String_String_AxisID() {
     String errorTitle = "testIsValid_boolean_String_String_AxisID";
     EtomoNumber test = new EtomoNumber();
@@ -320,7 +320,7 @@ public final class ConstEtomoNumberTest extends TestCase {
         AxisID.FIRST));
     test.internalTest();
   }
-  
+
   public final void testSetCeiling_int() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -338,7 +338,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInt(), smallInteger);
     test.internalTest();
   }
-  
+
   public final void testSetFloor_int() {
     EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
     //test: validateFloorAndCeiling() was called
@@ -361,7 +361,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInt(), 50);
     test.internalTest();
   }
-  
+
   public void testSetDisplayValue_int() {
     int testValue = 1;
     EtomoNumber test = new EtomoNumber();
@@ -369,13 +369,13 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(testValue, test.getDisplayInteger());
     assertEquals(testValue, test.getInt());
     assertTrue(String.valueOf(testValue).equals(test.toString()));
-    assertTrue(testValue==test.getDouble());
-    assertTrue(testValue==test.getLong());
+    assertTrue(testValue == test.getDouble());
+    assertTrue(testValue == test.getLong());
     assertEquals(testValue, test.getNumber().intValue());
     assertEquals(testValue, test.getValue().intValue());
     test.internalTest();
   }
-  
+
   public void testSetDisplayValue_boolean() {
     boolean testValue = true;
     int intTestValue = 1;
@@ -384,13 +384,27 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(intTestValue, test.getDisplayInteger());
     assertEquals(intTestValue, test.getInt());
     assertTrue(String.valueOf(intTestValue).equals(test.toString()));
-    assertTrue(intTestValue==test.getDouble());
-    assertTrue(intTestValue==test.getLong());
+    assertTrue(intTestValue == test.getDouble());
+    assertTrue(intTestValue == test.getLong());
     assertEquals(intTestValue, test.getNumber().intValue());
     assertEquals(intTestValue, test.getValue().intValue());
     test.internalTest();
   }
-  
+
+  public void setDisplayValue_Number() {
+    Number testValue = new Integer(1);
+    EtomoNumber test = new EtomoNumber();
+    test.setDisplayValue(testValue);
+    assertEquals(testValue.intValue(), test.getDisplayInteger());
+    assertEquals(testValue.intValue(), test.getInt());
+    assertTrue(String.valueOf(testValue).equals(test.toString()));
+    assertTrue(testValue.intValue() == test.getDouble());
+    assertTrue(testValue.intValue() == test.getLong());
+    assertEquals(testValue.intValue(), test.getNumber().intValue());
+    assertEquals(testValue.intValue(), test.getValue().intValue());
+    test.internalTest();
+  }
+
   //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
@@ -549,20 +563,20 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(props.containsValue(value));
     test.internalTest();
   }
-  
+
   public final void testStore_EtomoNumber_String_Properties_String() {
     String name = "test";
     String prepend = "prepend";
     String value = "42";
     Properties props = new Properties();
-    String key = prepend + '.'+name;
+    String key = prepend + '.' + name;
     props.setProperty(key, value);
     assertTrue(props.getProperty(key).equals(value));
-    EtomoNumber.store(null,name, props, prepend);
+    EtomoNumber.store(null, name, props, prepend);
     assertNull(props.getProperty(key));
     EtomoNumber test = new EtomoNumber(name);
     test.set(value);
-    EtomoNumber.store(test,name, props, prepend);
+    EtomoNumber.store(test, name, props, prepend);
     assertTrue(props.getProperty(key).equals(value));
     test.internalTest();
   }
@@ -1197,6 +1211,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2006/08/30 19:07:25  sueh
+ * <p> bug# 692 Add testSetDisplayValue_boolean
+ * <p>
  * <p> Revision 1.33  2006/08/29 22:04:32  sueh
  * <p> bug# 692 test store(EtomoNumber, String, Properties, String)
  * <p>
