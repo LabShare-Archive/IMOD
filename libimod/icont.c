@@ -138,10 +138,36 @@ int imodContourDelete(Icont *cont)
   char *lbl;
   if (cont == NULL)
     return(-1);
-  imodel_contour_clear(cont);
+  imodContourClear(cont);
   /*     imodLabelDelete(cont->label); DNM: it's already done*/
 
   free(cont);
+  return(0);
+}
+
+/*!
+ * Frees all data in contour [cont] and sets its pointers to NULL.  Returns
+ * -1 if error
+ */
+int imodContourClear(Icont *cont)
+{
+  if (!cont)
+    return(-1);
+
+  if ((cont->pts) && (cont->psize))
+    free (cont->pts);
+  cont->pts = NULL;
+  if (cont->sizes)
+    free(cont->sizes);
+  cont->sizes = NULL;
+  cont->psize = 0;
+  cont->flags = 0;
+  cont->type = 0;
+  imodLabelDelete(cont->label);
+  /* DNM: set label to NULL */
+  cont->label = NULL;
+  ilistDelete(cont->store);
+  cont->store = NULL;
   return(0);
 }
 
@@ -157,7 +183,7 @@ int imodContoursDelete(Icont *cont, int size)
     return(-1);
 
   for(co = 0; co < size; co++)
-    imodel_contour_clear(&(cont[co]));
+    imodContourClear(&(cont[co]));
   free(cont);
   return(0);
 }
@@ -181,7 +207,7 @@ int imodContoursDeleteToEnd(Iobj *obj, int keep)
     return(0);
 
   for(co = keep; co < obj->contsize; co++)
-    imodel_contour_clear(&(obj->cont[co]));
+    imodContourClear(&(obj->cont[co]));
 
   obj->contsize = keep;
   /* Change contour array to new size */
@@ -195,33 +221,6 @@ int imodContoursDeleteToEnd(Iobj *obj, int keep)
     free(obj->cont);
     obj->cont = NULL;
   }
-  return(0);
-}
-
-
-/*!
- * Frees all data in contour [cont] and sets its pointers to NULL.  Returns
- * -1 if error
- */
-int imodel_contour_clear(Icont *cont)
-{
-  if (!cont)
-    return(-1);
-
-  if ((cont->pts) && (cont->psize))
-    free (cont->pts);
-  cont->pts = NULL;
-  if (cont->sizes)
-    free(cont->sizes);
-  cont->sizes = NULL;
-  cont->psize = 0;
-  cont->flags = 0;
-  cont->type = 0;
-  imodLabelDelete(cont->label);
-  /* DNM: set label to NULL */
-  cont->label = NULL;
-  ilistDelete(cont->store);
-  cont->store = NULL;
   return(0);
 }
 
@@ -1551,8 +1550,13 @@ void imodContourReduce(Icont *cont, float tol)
   npts = cont->psize;
   minseg = (int *)malloc(npts * sizeof(int) + 1);
   nextpt = (int *)malloc(npts * sizeof(int) + 1);
-  if (!minseg || !nextpt)
+  if (!minseg || !nextpt) {
+    if (minseg)
+      free(minseg);
+    if (nextpt)
+      free(nextpt);
     return;
+  }
   minseg[npts - 1] = 0;
   minseg[npts - 2] = 1;
   nextpt[npts - 1] = npts;
@@ -1621,26 +1625,27 @@ void imodContourReduce(Icont *cont, float tol)
       
   /*      when we get to the left edge, the minimal path is available by 
           following the chain of NEXTPT values */
-  if (minseg[0] + 1 == npts)
-    return;
+  if (minseg[0] + 1 != npts) {
 
-  /* npo is number of points already retained and index of points to delete
-     ipo is the index of a retained point in original contour */
-  npo = 1;
-  ipo = 0;
-  while (nextpt[ipo] < npts) {
-
-    /* Delete any points between current and next point */
-    for (its = ipo + 1; its < nextpt[ipo]; its++)
-      imodPointDelete(cont, npo);
-    ipo = nextpt[ipo];
-    npo++;
+    /* npo is number of points already retained and index of points to delete
+       ipo is the index of a retained point in original contour */
+    npo = 1;
+    ipo = 0;
+    while (nextpt[ipo] < npts) {
+      
+      /* Delete any points between current and next point */
+      for (its = ipo + 1; its < nextpt[ipo]; its++)
+        imodPointDelete(cont, npo);
+      ipo = nextpt[ipo];
+      npo++;
+    }
+    /* if (minseg[0] + 1 != npo)
+       printf("OOPS minseg + 1 = %d, npo = %d\n",minseg[0] + 1, npo); */
+    /*     printf ("%d to %d\n", npts, npo); */
   }
-  /* if (minseg[0] + 1 != npo)
-     printf("OOPS minseg + 1 = %d, npo = %d\n",minseg[0] + 1, npo); */
-  /*     printf ("%d to %d\n", npts, npo); */
+  free(minseg);
+  free(nextpt);
 }
-
 
 /*!
  * Removes points from contour [cont] whose distance from both
@@ -3179,6 +3184,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.19  2006/09/01 20:50:06  mast
+  Added flatten function
+
   Revision 3.18  2005/10/14 21:43:46  mast
   When two open-type contours are joined, it converts on opening to a gap
 
