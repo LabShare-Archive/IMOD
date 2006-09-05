@@ -33,6 +33,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2006/08/25 22:42:30  sueh
+ * <p> bug# 918 Changed updateComScript functions to modifyCommand and addModifyCommand to reduce the number of boolean parameters.  Added
+ * <p> deleteCommand and modifyOptionalCommand.  Deleting the old patchcrawl
+ * <p> script and added the new one.
+ * <p>
  * <p> Revision 3.43  2006/08/14 22:22:14  sueh
  * <p> Improved the pop up error messages.
  * <p>
@@ -319,6 +324,7 @@ public class ComScriptManager {
   private ComScript scriptBlendB;
   private ComScript scriptUndistortA;
   private ComScript scriptUndistortB;
+  private ComScript scriptMatchvol1;
   // The solvematch com script replaces the functionality of the
   // solvematchshift and solvematchmod com scripts
   private ComScript scriptSolvematch;
@@ -1244,6 +1250,35 @@ public class ComScriptManager {
       addModifyCommand(scriptPatchcorr, patchcrawl3DParam,
           Patchcrawl3DParam.COMMAND, AxisID.ONLY, -1, false);
     }
+  }
+  
+  /**
+   * Load the matchvol1 com script
+   */
+  public void loadMatchvol1() {
+    scriptMatchvol1 = loadComScript(MatchvolParam.COMMAND + '1', AxisID.ONLY, true);
+  }
+
+  /**
+   * Parse the matchvol command from the matchvol1 script
+   * @return MatchvolParam
+   */
+  public MatchvolParam getMatchvolParam() {
+
+    // Initialize a MatchvolParam object from the com script command object
+    MatchvolParam param = new MatchvolParam();
+    initialize(param, scriptMatchvol1, MatchvolParam.COMMAND, AxisID.ONLY);
+    return param;
+  }
+
+  /**
+   * Save the matchvol1 com script updating the matchvol parameters
+   * @param matchvolParam
+   */
+  public void saveMatchvol(MatchvolParam matchvolParam) {
+
+    modifyCommand(scriptMatchvol1, matchvolParam, MatchvolParam.COMMAND,
+        AxisID.ONLY);
   }
 
   /**
