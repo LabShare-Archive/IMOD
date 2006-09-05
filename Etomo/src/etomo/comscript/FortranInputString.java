@@ -23,6 +23,11 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/08/25 22:51:07  sueh
+ * <p> bug# 918 Added convenience functions
+ * <p> updateScriptParameter(ComScriptCommand) and
+ * <p> validateAndSet(ComScriptCommand).
+ * <p>
  * <p> Revision 3.12  2005/05/09 22:55:50  sueh
  * <p> bug# 658 Added FortranInputString(double[]).  Added
  * <p> double[] getDouble().  Added new set functions.  Added
@@ -81,12 +86,15 @@ import etomo.type.ConstEtomoNumber;
 public class FortranInputString {
   public static final String rcsid = "$Id$";
 
+  private static final char DEFAULT_DIVIDER = ',';
+  
   int nParams;
   boolean[] isInteger;
   double[] minimum;
   double[] maximum;
   Double[] value;
   private String key = null;
+  private char divider = DEFAULT_DIVIDER;
 
   /**
    * Create a FortranInputString with nParams parameters.
@@ -210,6 +218,14 @@ public class FortranInputString {
   public void updateScriptParameter(ComScriptCommand scriptCommand) {
     ParamUtilities.updateScriptParameter(scriptCommand, key, this);
   }
+  
+  void setDivider(char divider) {
+    this.divider = divider;
+  }
+  
+  void resetDivider() {
+    divider = DEFAULT_DIVIDER;
+  }
 
   public void validateAndSet(ComScriptCommand scriptCommand)
       throws FortranInputSyntaxException, InvalidParameterException {
@@ -243,7 +259,7 @@ public class FortranInputString {
     int idxValue = 0;//current index of tempValue
     int idxStart = 0;//current index of newValues
     while (idxStart < newValues.length()) {
-      int idxDelim = newValues.indexOf(',', idxStart);
+      int idxDelim = newValues.indexOf(divider, idxStart);
       if (idxDelim != -1) {
         String currentToken = newValues.substring(idxStart, idxDelim);
 
@@ -312,6 +328,10 @@ public class FortranInputString {
   public void set(int index, double newValue) {
     value[index] = new Double(newValue);
   }
+  
+  public void set(int index, String newValue) {
+    value[index] = new Double(String.valueOf(newValue));
+  }
 
   public void set(int index, ConstEtomoNumber newValue) {
     value[index] = new Double(newValue.getDouble());
@@ -368,7 +388,7 @@ public class FortranInputString {
         }
       }
       if (idxValue != 0) {
-        buffer.insert(0, ',');
+        buffer.insert(0, divider);
       }
       idxValue--;
     }
