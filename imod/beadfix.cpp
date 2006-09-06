@@ -291,8 +291,6 @@ void imodPlugExecute(ImodView *inImodView)
 
 int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
 {
-  if (!plug->window)
-    return 1;
   return plug->window->executeMessage(strings, arg);
 }
 
@@ -300,6 +298,13 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
 {
   int mode;
   int action = (*strings)[*arg].toInt();
+
+  // If window not open or no filename, need to just ignore this message
+  if (action == MESSAGE_BEADFIX_REREAD && (!plug->window || !plug->filename))
+    return 0;
+  if (!plug->window)
+    return 1;
+
   switch (action) {
   case MESSAGE_BEADFIX_OPENFILE:
 
@@ -1979,6 +1984,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.38  2006/08/24 16:53:34  mast
+    Reopen message should not generate error if align log not open yet
+
     Revision 1.37  2006/07/18 04:17:30  mast
     Removed show up down checkbox, made it not sync image position on mouse
     actions, enabled keys only in correct mode, required points to be
