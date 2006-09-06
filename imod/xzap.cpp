@@ -842,11 +842,12 @@ static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
 void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 {
   struct ViewInfo *vi = zap->vi;
+  Imod *imod = vi->imod;
   int keysym = event->key();
   static int trans = 5;
   int *limits;
   int limarr[4];
-  int rx, ix, iy, i;
+  int rx, ix, iy, i, obst, obnd, ob;
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
   int handled = 0;
@@ -884,8 +885,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   case Qt::Key_Right: 
   case Qt::Key_Left: 
     // Translate with keypad in movie mode or regular arrows in model mode
-    if (!keypad && vi->imod->mousemode != IMOD_MMOVIE ||
-        keypad && vi->imod->mousemode == IMOD_MMOVIE) {
+    if (!keypad && imod->mousemode != IMOD_MMOVIE ||
+        keypad && imod->mousemode == IMOD_MMOVIE) {
       if (keysym == Qt::Key_Left)
         zapTranslate(zap, -trans, 0);
       if (keysym == Qt::Key_Right)
@@ -897,7 +898,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       handled = 1;
 
       // Move point with keypad in model mode
-    } else if (keypad && vi->imod->mousemode != IMOD_MMOVIE) {
+    } else if (keypad && imod->mousemode != IMOD_MMOVIE) {
       if (keysym == Qt::Key_Left)
         inputPointMove(vi, -1, 0, 0);
       if (keysym == Qt::Key_Right)
@@ -916,12 +917,12 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     // With keypad, translate in movie mode or move point in model mode
     if (keypad) {
       if (keysym == Qt::Key_Next) {
-        if (vi->imod->mousemode == IMOD_MMOVIE)
+        if (imod->mousemode == IMOD_MMOVIE)
           zapTranslate(zap, trans, -trans);
         else
           inputPointMove(vi, 0, 0, -1);
       } else {
-        if (vi->imod->mousemode == IMOD_MMOVIE)
+        if (imod->mousemode == IMOD_MMOVIE)
           zapTranslate(zap, trans, trans);
         else
           inputPointMove(vi, 0, 0, 1);
@@ -951,14 +952,14 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_Home:
-    if (keypad && vi->imod->mousemode == IMOD_MMOVIE) {
+    if (keypad && imod->mousemode == IMOD_MMOVIE) {
       zapTranslate(zap, -trans, trans);
       handled = 1;
     }
     break;
 
   case Qt::Key_End:
-    if (keypad && vi->imod->mousemode == IMOD_MMOVIE) {
+    if (keypad && imod->mousemode == IMOD_MMOVIE) {
       zapTranslate(zap, -trans, -trans);
       handled = 1;
     }
@@ -980,7 +981,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   case Qt::Key_Insert:
 
     /* But skip out if in movie mode or already active */
-    if (!keypad || vi->imod->mousemode == IMOD_MMOVIE || insertDown)
+    if (!keypad || imod->mousemode == IMOD_MMOVIE || insertDown)
       break;
 
     // It wouldn't work going to a QPoint and accessing it, so do it in shot!
@@ -1021,7 +1022,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       } else {
         selmin.x = -vi->xsize;;
         selmax.x = 2 * vi->xsize;
-        selmin.y = vi->ysize;;
+        selmin.y = -vi->ysize;;
         selmax.y = 2 * vi->ysize;
       }
       selmin.z = zap->section - 0.5;
@@ -1030,8 +1031,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       // Look through selection list, remove any that do not fit constraints
       for (i = ilistSize(vi->selectionList) - 1; i >= 0; i--) {
         indp = (Iindex *)ilistItem(vi->selectionList, i);
-        if (indp->object < vi->imod->objsize) {
-          obj = &vi->imod->obj[indp->object];
+        if (indp->object < imod->objsize) {
+          obj = &imod->obj[indp->object];
           if (indp->contour < obj->contsize) {
             if (contInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
                                  selmax))
@@ -1041,19 +1042,24 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         ilistRemove(vi->selectionList, i);
       }
 
-      obj = imodObjectGet(vi->imod);
-      if (!obj)
+      obst = shifted ? 0 : imod->cindex.object;
+      obnd = shifted ? imod->objsize - 1 : imod->cindex.object;
+      
+      if (obnd < 0)
         break;
 
       // Set up an index to add, look for contours inside
       // the bounding box, add them, make last one be current
-      indadd.object = vi->imod->cindex.object;
-      indadd.point = -1;
-      for (i = 0; i < obj->contsize; i++) {
-        indadd.contour = i;
-        if (contInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
-          imodSelectionListAdd(vi, indadd);
-          vi->imod->cindex = indadd;
+      for (ob = obst; ob <= obnd; ob++) {
+        obj = &imod->obj[ob];
+        indadd.object = ob;
+        indadd.point = -1;
+        for (i = 0; i < obj->contsize; i++) {
+          indadd.contour = i;
+          if (contInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
+            imodSelectionListAdd(vi, indadd);
+            imod->cindex = indadd;
+          }
         }
       }
       imod_setxyzmouse();
@@ -3797,6 +3803,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.84  2006/08/31 23:27:45  mast
+Changes for stored value display
+
 Revision 4.83  2006/08/24 21:28:25  mast
 Refresh graph windows when rubber band changes, fixed an initialization bug
 
