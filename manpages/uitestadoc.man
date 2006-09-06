@@ -28,12 +28,11 @@ The default is 1000 milliseconds.  One entry per file.
 See Note 2 in the \fBuitestaxisadoc\fR man page.
 
 .TP
-.B source = \fIrelative_directory_path
-The path of a directory which may contain the axis-level autodocs, secondary
-axis-level autodocs,
+.B filedir = \fIabsolute_directory_path
+The path of a directory which may contain the
 dataset files to be copied, and/or
 files for comparison.  The absolute directory path will be
-$IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR.  One entry per file.
+One entry per file.
 This setting is inherited by all axis-level tests.
 .nf
 Default absolute path:  $IMOD_UITEST_SOURCE.
@@ -134,21 +133,20 @@ If \fIvalue\fR is not used, the variable will be replaced with an empty string.
 Axis-level variables can be set by using \fBa\fR or \fBb\fR.
 Variables persist until the test is over.
 They can be used as values in uitest axis autodoc section-level attributes.
-Variables are refered to with the syntax \fB%{\fIvariable_name\fB}.
+Variables are refered to with the syntax \fB%{\fIvariable_name\fB}\fR.
 Do not use the variables names "dataset" or "axis"
 because they are set automatically.  Do not use the variable names "a" or "b".
 Variable names may not contain ".", "/", "\", or the delimiter (default - "=").
 
 
 .TP
-.B source = \fIrelative_directory_path\fR
-The path of a directory which may contain the axis-level autodocs and/or
-dataset files to be copied (see \fBcopy\fR).  The absolute directory path will be
-$IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR.
-The section-level \fBsource\fR
-overrides the global \fBsource\fR.  It becomes the current source directory for all attributes
-following it, until another \fBsource\fR attribute is found, or the section ends.  It does not affect
-axis-level tests.
+.B filedir = \fIrelative_directory_path\fR
+The path of a directory which may containdataset files to be copied, and/or
+files for comparison (see \fBcopy\fR).  The absolute directory path will be
+$IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR unless the global \fBfiledir\fR
+attribute has been used.  In that case the section-level \fBfiledir\fR defines a
+subdirectory of the the global \fBfiledir\fR.
+The section-level setting is used in the axis-level tests.
 
 .SH AUTHOR
 Written by Sue Held.
