@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2006/09/03 23:47:44  mast
+Moved analysis routine to library
+
 Revision 3.4  2005/02/11 01:42:34  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -31,6 +34,7 @@ Initial version
 
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include "iimage.h"
 
 int main(int argc, char **argv)
