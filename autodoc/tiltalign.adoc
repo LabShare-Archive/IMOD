@@ -243,6 +243,7 @@ manpage = Type of rotation solution:
 enum.0.tooltip = Do not solve for rotations.
 enum.1.tooltip = Solve for each rotation independently.
 enum.3.tooltip = Group views to solve for fewer rotation variables.
+enum.-1.tooltip = Solve for a single rotation variable.
 
 [Field = RotDefaultGrouping]
 short = 
