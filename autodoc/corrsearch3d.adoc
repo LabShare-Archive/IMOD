@@ -106,12 +106,12 @@ between the two volumes, if any.
 short = initial
 type = FT
 usage = Initial displacement between volume centers in X, Y, and Z
-tooltip = 
+tooltip = Initial displacement between the center of the volume being aligned 
+and the center of the volume being matched to.  This shift will be used to
+start the search.
 manpage = Initial displacement between the center of the volume being aligned 
-and the center of the 
-reference volume in X, Y, and Z.  This is 
-the amount to add to the coordinate of a feature near the center of the 
-reference volume to 
+and the center of the reference volume in X, Y, and Z.  This is the amount to
+add to the coordinate of a feature near the center of the reference volume to 
 obtain the coordinate of the same feature in the file being aligned, after
 accounting for any overall volume displacement entered with -volume.
 This shift will be used to start the search and will be included in 
