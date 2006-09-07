@@ -33,6 +33,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
   private UITestAction action = null;
   private UITestField field = null;
   private String fieldName = null;
+  private String formattedFieldName = null;
   private int fieldIndex = 0;
   private String value = null;
   private String formattedValue = null;
@@ -71,8 +72,8 @@ public class UITestAxisDialogCommand implements AdocCommand {
         function = true;
       }
       //set the field
-      else if (action != UITestAction.SLEEP
-          && action != UITestAction.STOP && action != UITestAction.COPY) {
+      else if (action != UITestAction.SLEEP && action != UITestAction.STOP
+          && action != UITestAction.COPY) {
         if (action == UITestAction.WAIT_FOR) {
           index++;
         }
@@ -83,7 +84,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
       }
       //get the value
       value = pair.getValue();
-      replaceVariables();
+      formattedValue = replaceVariables(value, formattedValue);
       if (action == UITestAction.WAIT_FOR) {
         //handle waitfor = 
         if (field == null) {
@@ -117,6 +118,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
       return;
     }
     fieldName = pair.getName(index++);
+    formattedFieldName = replaceVariables(fieldName, formattedFieldName);
     if (index >= levels) {
       return;
     }
@@ -140,32 +142,49 @@ public class UITestAxisDialogCommand implements AdocCommand {
     }
   }
 
-  private void replaceVariable(String variable, String assignment) {
-    if (value == null) {
-      return;
+  /**
+   * Replaces %{variable} with variableValue in formattedString.
+   * @param formattedString
+   * @param variable
+   * @param variableValue
+   * @return formattedString
+   */
+  private String replaceVariable(String formattedString, String variable,
+      String variableValue) {
+    if (formattedString == null) {
+      return formattedString;
     }
-    if (formattedValue == null) {
-      formattedValue = value;
-    }
-    formattedValue = formattedValue.replaceAll(EtomoAutodoc.VAR_TAG + "\\"
-        + "{" + variable + "}", assignment);
+    formattedString = formattedString.replaceAll(EtomoAutodoc.VAR_TAG + "\\"
+        + "{" + variable + "}", variableValue);
+    return formattedString;
   }
 
-  private void replaceVariables() {
-    if (variables == null || value == null
-        || value.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
-      return;
+  /**
+   * Builds formattedString out of string.  Replaces the variables found string
+   * with variable values until there is nothing left to replace.
+   * @param string
+   * @param formattedString
+   * @return formattedString.
+   */
+  private String replaceVariables(String string, String formattedString) {
+    formattedString = string;
+    if (variables == null || formattedString == null
+        || formattedString.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
+      //no replacement needed
+      return formattedString;
     }
     for (int i = 0; i < variables.size(); i++) {
       //If there are no more variable tags in the string ("%"), the replace is done
-      if (formattedValue != null
-          && formattedValue.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
-        return;
+      if (formattedString != null
+          && formattedString.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
+        return formattedString;
       }
       UITestTestCommand.Variable variable = (UITestTestCommand.Variable) variables
           .get(i);
-      replaceVariable(variable.getName(), variable.getValue());
+      formattedString = replaceVariable(formattedString, variable.getName(),
+          variable.getValue());
     }
+    return formattedString;
   }
 
   public final void reset() {
@@ -174,6 +193,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
     action = null;
     field = null;
     fieldName = null;
+    formattedFieldName = null;
     fieldIndex = 0;
     value = null;
     formattedValue = null;
@@ -194,6 +214,9 @@ public class UITestAxisDialogCommand implements AdocCommand {
   }
 
   public final String getName() {
+    if (formattedFieldName != null) {
+      return formattedFieldName;
+    }
     return fieldName;
   }
 
@@ -239,13 +262,18 @@ public class UITestAxisDialogCommand implements AdocCommand {
   public boolean isFunctionLocation() {
     return functionLocation;
   }
-  
+
   public boolean isFunction() {
     return function;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/08/08 18:12:55  sueh
+ * <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
+ * <p> isSecondaryAutodoc().  Changing the adoc command to mean the function
+ * <p> location.  Added the function command, to run a function section.
+ * <p>
  * <p> Revision 1.3  2006/06/30 23:09:09  sueh
  * <p> bug# 852 Using the {}s in variables in the Dialog sections all the time to simplify
  * <p> parsing them.
