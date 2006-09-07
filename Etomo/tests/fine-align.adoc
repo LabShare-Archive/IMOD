@@ -1,6 +1,6 @@
 Version = 1.2
 
-[function = run]
+[function = build]
 bn.compute-alignment =
 waitfor.process = done
 tp.general.1 = 
@@ -15,3 +15,20 @@ rb.neighboring-views =
 bn.compute-alignment =
 waitfor.process = done
 bn.done =
+
+[function = test]
+bn.compute-alignment =
+waitfor.process = done
+tp.general.1 = 
+rb.full-solution =
+bn.compute-alignment =
+waitfor.process = done
+tp.general.0 =
+cb.enable-local-alignments =
+bn.compute-alignment =
+waitfor.process = done
+rb.neighboring-views =
+bn.compute-alignment =
+waitfor.process = done
+bn.done =
+waitfor.popup.etomo-question = Yes
