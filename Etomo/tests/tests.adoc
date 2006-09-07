@@ -1,6 +1,12 @@
 Version = 1.2
 
 [function = buttons]
+# values
+assert.bn.cancel = 
+assert.bn.postpone = 
+assert.bn.done = 
+assert.bn.advanced = 
+# enabled
 assert.bn.cancel.enabled = 1
 assert.bn.postpone.enabled = 1
 assert.bn.done.enabled = 1
