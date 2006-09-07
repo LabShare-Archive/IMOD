@@ -7,7 +7,7 @@ function = build
 
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc
-function = run
+function = build
 waitfor =  FineAlign
 
 [Dialog = FidModel]
@@ -19,7 +19,7 @@ function = run
 
 [Dialog = FineAlign]
 adoc = fine-align.adoc
-function = run
+function = build
 
 [Dialog = TomoPos]
 adoc = tomo-pos.adoc

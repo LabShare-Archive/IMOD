@@ -10,7 +10,7 @@ function = build
 
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc
-function = run
+function = build
 
 [Dialog = FidModel]
 copy = %{dataset}%{axis}.seed
@@ -19,7 +19,7 @@ function = run-dual
 
 [Dialog = FineAlign]
 adoc = fine-align.adoc
-function = run
+function = build
 
 [Dialog = TomoPos]
 adoc = tomo-pos.adoc

@@ -9,7 +9,7 @@ function = test
 
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc
-function = run
+function = test
 waitfor =  FineAlign
 
 [Dialog = FidModel]
@@ -17,7 +17,7 @@ mb.transfer-fiducials-open = 1
 bn.transfer-fiducials-from-other-axis =
 waitfor.process = done
 adoc = fid-model.adoc
-function = run
+function = test
 
 [Dialog = FineAlign]
 adoc = fine-align.adoc
