@@ -10,6 +10,7 @@ function = test1
 function = create
 function = 3dmod
 function = use
+function = popup
 function = test2
 function = done
 function = popup
@@ -35,43 +36,45 @@ waitfor.popup.etomo-question = Yes
 # ccd eraser
 #
 bn.advanced =
+# values
 assert.tf.peak-criterion = 10.
-assert.tf.peak-criterion.enabled = 1
 assert.tf.difference-criterion = 8.
-assert.tf.difference-criterion.enabled = 1
 assert.cb.automatic-x-ray-replacement = 1
-assert.cb.automatic-x-ray-replacement.enabled = 1
 assert.tf.grow-criterion = 4.
-assert.tf.grow-criterion.enabled = 1
 assert.tf.edge-exclusion = 4
-assert.tf.edge-exclusion.enabled = 1
 assert.tf.maximum-radius = 2.1
-assert.tf.maximum-radius.enabled = 1
 assert.tf.annulus-width = 2.0
-assert.tf.annulus-width.enabled = 1
 assert.tf.xy-scan-size = 100
-assert.tf.xy-scan-size.enabled = 1
 assert.tf.scan-criterion = 3.
-assert.tf.scan-criterion.enabled = 1
 assert.bn.find-x-rays = 0
-assert.bn.find-x-rays.enabled = 1
 assert.bn.view-x-ray-model = 0
-assert.bn.view-x-ray-model.enabled = 1
 assert.tf.input-file = %{dataset}%{axis}.st
-assert.tf.input-file.enabled = 1
 assert.tf.output-file = %{dataset}%{axis}_fixed.st
-assert.tf.output-file.enabled = 1
 assert.tf.border-pixels = 2
-assert.tf.border-pixels.enabled = 1
 assert.tf.polynomial-order = 2
-assert.tf.polynomial-order.enabled = 1
 assert.cb.include-adjacent-points = 1
-assert.cb.include-adjacent-points.enabled = 1
 assert.bn.create-fixed-stack = 0
-assert.bn.create-fixed-stack.enabled = 1
 assert.bn.view-fixed-stack = 0
-assert.bn.view-fixed-stack.enabled = 1
 assert.bn.use-fixed-stack = 0
+# enabled
+assert.tf.peak-criterion.enabled = 1
+assert.tf.difference-criterion.enabled = 1
+assert.cb.automatic-x-ray-replacement.enabled = 1
+assert.tf.grow-criterion.enabled = 1
+assert.tf.edge-exclusion.enabled = 1
+assert.tf.maximum-radius.enabled = 1
+assert.tf.annulus-width.enabled = 1
+assert.tf.xy-scan-size.enabled = 1
+assert.tf.scan-criterion.enabled = 1
+assert.bn.find-x-rays.enabled = 1
+assert.bn.view-x-ray-model.enabled = 1
+assert.tf.input-file.enabled = 1
+assert.tf.output-file.enabled = 1
+assert.tf.border-pixels.enabled = 1
+assert.tf.polynomial-order.enabled = 1
+assert.cb.include-adjacent-points.enabled = 1
+assert.bn.create-fixed-stack.enabled = 1
+assert.bn.view-fixed-stack.enabled = 1
 assert.bn.use-fixed-stack.enabled = 1
 #enable/disable
 cb.automatic-x-ray-replacement = 0
@@ -97,11 +100,14 @@ assert.bn.use-fixed-stack.enabled = 1
 # manual pixel region replacement
 #
 bn.advanced =
+# values
 assert.cb.manual-replacement =
-assert.cb.manual-replacement.enabled = 1
 assert.tf.all-section-replacement-list =
-assert.tf.all-section-replacement-list.enabled =
 assert.tf.line-replacement-list = 
+assert.bn.create-manual-replacement-model =
+# enabled
+assert.cb.manual-replacement.enabled = 1
+assert.tf.all-section-replacement-list.enabled =
 assert.tf.line-replacement-list.enabled = 
 assert.bn.create-manual-replacement-model.enabled =
 #enable/disable
