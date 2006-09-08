@@ -29,7 +29,6 @@ filenames, or with the
 option, then a startup dialog will open to allow options to
 be set.
 
-
 The model must be in the IMOD model format.  Images can be in the MRC
 image format; in the TIFF format, if the appropriate TIFF library is
 available; in any of the formats supported by the Qt image-reading
