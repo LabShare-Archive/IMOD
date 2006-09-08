@@ -1,7 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 9/3/06: 3dmod can now read files in EM format, DigitalMicrograph 3 format,
-and Hanspeter Winkler's format.
+and Hanspeter Winkler's FFF format.
 
 9/1/06: IMOD_3-8-23
 9/1/06: Added options to Matchorwarp to make a patch vector model with 
