@@ -157,7 +157,7 @@ Length    Type         Name      Description.
 4         uint         flags   Bit 3 on : open, do not connect endpoints
                                Bit 4 on : wild, not in one Z plane
                                Bit 15 on : type variable contains time index
-4         int          type    The time index used by this contour.
+4         int          time    The time index used by this contour.
 4         int          surf    The surface index used by this contour.
 12*psize  float * 3    pt      Array of point triplets.
 </pre>
@@ -175,10 +175,8 @@ Length    Type         Name    Description
 4         uint         flag    Bit 16 on  : normals have magnitudes.
                 	       Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
-2         short        type    Contains a time index or 0
-2         short        pad     Contains a surface number or 0
-                                type and pad are stored as ints in the
-                                internal data structure but shorts in the file
+2         short        time    Contains a time index or 0
+2         short        surf    Contains a surface number or 0
 12*vsize  float * 3    vert    Array of points.
 4*lsize   int          index   Array of ints.
 </pre>
