@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2006/08/21 16:50:00  mast
+#  Changed findwarp and refinematch links
+#
 #  Revision 3.8  2006/08/16 23:49:59  mast
 #  changed corrsearch3d link
 #
@@ -42,7 +45,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  checkmtmod$(E) joinmodel$(E) mtsmooth$(E) reducemtmod$(E) xfinterstack$(E) \
  clipmodel$(E) mtmodel$(E) remapmodel$(E) mtlengths$(E) contourmod$(E)\
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
- refinematch$(E) findwarp$(E) sumdensity$(E) \
+ refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E)
 
 WLIBS = $(LWMOD) $(IMLIBS) $(FORTCLIBS)
@@ -107,6 +110,9 @@ remapmodel$(E): remapmodel.$(O)
 
 mtlengths$(E): mtlengths.$(O)
 	$(FC) -o mtlengths mtlengths.$(O) $(LDFLG) $(WLIBS)
+
+mtrotlong$(E): mtrotlong.$(O)
+	$(FC) -o mtrotlong mtrotlong.$(O) $(LDFLG) $(WLIBS)
 
 contourmod$(E): contourmod.$(O)
 	$(FC) -o contourmod contourmod.$(O) $(LDFLG) $(WLIBS)
