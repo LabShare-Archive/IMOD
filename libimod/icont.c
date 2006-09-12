@@ -71,7 +71,7 @@ void imodContourDefault(Icont *cont)
   cont->pts    = NULL;
   cont->psize  = 0;
   cont->flags  = 0;
-  cont->type   = 0;
+  cont->time   = 0;
   cont->surf   = 0;
   cont->label  = NULL;
   cont->sizes  = NULL;
@@ -162,7 +162,7 @@ int imodContourClear(Icont *cont)
   cont->sizes = NULL;
   cont->psize = 0;
   cont->flags = 0;
-  cont->type = 0;
+  cont->time = 0;
   imodLabelDelete(cont->label);
   /* DNM: set label to NULL */
   cont->label = NULL;
@@ -787,7 +787,7 @@ double imodContourPrincipalAxis(Icont *cont)
   /*     imodContourFill(fcont); */
   /*     fcont = imodel_contour_scan(cont);  */
   fcont = imodContourFill(cont);
-  fcont->type = 0;
+  fcont->time = 0;
   for(pt = 0; pt < fcont->psize; pt++){
     if (fcont->pts[pt].y >= center.y)
       imodPointAppend(lcont, &fcont->pts[pt]);
@@ -815,6 +815,68 @@ double imodContourPrincipalAxis(Icont *cont)
   imodContourDelete(lcont);
 
   return(imodPoint2DAngle(&center));
+}
+
+/*!
+ * Computes a mean normal to the contour [cont] by averaging over sets of three
+ * points equally spaced around the contour, where spacing is simply based on
+ * point index.  Averages up to [maxNorms] sets of points, including only ones
+ * where the magnitude of the cross-product of the two vectors connecting the
+ * three points is >= [minDist].  Points are scaled by [scale].  The mean 
+ * normal is returned in [norm].  Returns 1 if there are too few points in the
+ * contour or if all the cross-products are < [minDist].
+ */
+int imodContourMeanNormal(Icont *cont, int maxNorms, float minDist, 
+                          Ipoint *scale, Ipoint *norm)
+{
+  int ipdel, numdo, ipst, i, nsum;
+  Ipoint *p1, *p2, *p3, n, v1, v2;
+  double sdist;
+  float dist;
+
+  norm->x = norm->y = norm->z = 0.;
+  nsum = 0;
+  ipdel = cont->psize / 3;
+  if (!ipdel)
+    return 1;
+  numdo = B3DMIN(maxNorms, ipdel);
+  ipst = 0;
+  /* printf("psize %d ipdel %d numdo %d\n", cont->psize, ipdel, numdo);*/
+  for (i = 0; i < numdo; i++) {
+    p1 = &cont->pts[ipst];
+    p2 = &cont->pts[ipst + ipdel];
+    p3 = &cont->pts[ipst + 2 * ipdel];
+    v1.x = (p3->x - p2->x) * scale->x;
+    v1.y = (p3->y - p2->y) * scale->y;
+    v1.z = (p3->z - p2->z) * scale->z;
+    v2.x = (p1->x - p2->x) * scale->x;
+    v2.y = (p1->y - p2->y) * scale->y;
+    v2.z = (p1->z - p2->z) * scale->z;
+    n.x = (v1.y * v2.z) - (v1.z * v2.y);
+    n.y = (v1.z * v2.x) - (v1.x * v2.z);
+    n.z = (v1.x * v2.y) - (v1.y * v2.x);
+    sdist = (n.x * n.x) + (n.y * n.y) + (n.z * n.z);
+    if (sdist > 0) {
+      dist = (float)sqrt(sdist);
+      /*printf("dist %.2f norm %.2f %.2f %.2f\n", dist, n.x / dist, n.y / dist,
+         n.z / dist); */
+      if (dist >= minDist) {
+        norm->x += n.x / dist;
+        norm->y += n.y / dist;
+        norm->z += n.z / dist;
+        nsum++;
+      }
+    }
+    ipst += ipdel / numdo;
+  }
+
+  if (!nsum)
+    return 1;
+  norm->x /= nsum;
+  norm->y /= nsum;
+  norm->z /= nsum;
+  /*printf("nsum %d norm %.2f %.2f %.2f\n", nsum, norm->x, norm->y, norm->z);*/
+  return 0;
 }
 
 /*!
@@ -1258,7 +1320,7 @@ Icont *imodContourBreak(Icont *cont, int p1, int p2)
   if (!nc) 
     return(NULL);
   nc->flags = cont->flags;
-  nc->type = cont->type;
+  nc->time = cont->time;
   nc->surf = cont->surf;
   nc->pts = (Ipoint *)malloc((p2 + 1 - p1) * sizeof(Ipoint));
   if (!nc->pts) {
@@ -2708,9 +2770,9 @@ void imodContourSwap(Icont *c1, Icont *c2)
   tc.flags  = c1->flags;
   c1->flags = c2->flags;
   c2->flags = tc.flags;
-  tc.type   = c1->type;
-  c1->type  = c2->type;
-  c2->type  = tc.type;
+  tc.time   = c1->time;
+  c1->time  = c2->time;
+  c2->time  = tc.time;
   tc.surf   = c1->surf;
   c1->surf  = c2->surf;
   c2->surf  = tc.surf;
@@ -3141,18 +3203,18 @@ Ipoint *imodContourGetPoint(Icont *inContour, int inIndex)
   return(&inContour->pts[inIndex]);
 }
 
-/*! Returns the time (type) value of [inContour], or 0 if no contour */
+/*! Returns the time value of [inContour], or 0 if no contour */
 int     imodContourGetTimeIndex(Icont *inContour)
 {
   if (!inContour) return(0);
-  return(inContour->type);
+  return(inContour->time);
 }
 
-/*! Sets the time (type) value of inContour] to [inTime] */
+/*! Sets the time value of inContour] to [inTime] */
 void    imodContourSetTimeIndex(Icont *inContour, int inTime)
 {
   if (!inContour) return;
-  inContour->type = inTime;
+  inContour->time = inTime;
 }
 
 /*! Returns the surface number of [inContour], or 0 if no contour */
@@ -3184,6 +3246,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.20  2006/09/05 14:23:19  mast
+  Renamed imodel_contour_clear due to its usefulness
+
   Revision 3.19  2006/09/01 20:50:06  mast
   Added flatten function
 
