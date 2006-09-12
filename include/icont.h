@@ -14,29 +14,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.8  2006/09/01 20:50:18  mast
-Added flatten function
-
-Revision 3.7  2005/06/26 19:41:31  mast
-Changed break routine call
-
-Revision 3.6  2005/04/23 23:36:23  mast
-Moved some functions into imodel.c
-
-Revision 3.5  2005/03/30 02:23:30  mast
-Eliminates dummy imodel_contour_move
-
-Revision 3.4  2005/03/20 19:55:48  mast
-Eliminating duplicate functions
-
-Revision 3.3  2005/01/30 17:45:02  mast
-changes arguments to imodel_overlap_fractions
-
-Revision 3.2  2005/01/29 20:27:31  mast
-Added nested contour routines
-
+Log at end
 */
 
 #ifndef ICONT_H
@@ -47,22 +25,14 @@ Added nested contour routines
 /*****************************************************************************/
 /* contour flags                                                             */
 
-#define ICONT_ISHOLE     (1l << 5 ) /* Data is a hole.                       */
-#define ICONT_NOCONNECT  (1l << 9 ) /* Don't connect contour points.         */
 #define ICONT_OPEN       (1l << 3 ) /* Don't close end points.               */
 #define ICONT_WILD       (1l << 4 ) /* No sane constrains on data.           */
-#define ICONT_VIRT       (1l << 12) /* Use virtual contours.                 */
-#define ICONT_TYPEISTIME (1l << 15) /* Contour is point list with type=time  */
-#define ICONT_PNTLABEL   (1l << 16)
+#define ICONT_NOCONNECT  (1l << 9 ) /* Don't connect contour points.         */
 #define ICONT_SCANLINE   (1l << 17) /* Points are in pairs for scanline.     */
 #define ICONT_CONNECT_TOP    (1l << 18) /* Contour connected above in mkmesh.*/
 #define ICONT_CONNECT_BOTTOM (1l << 19) /* Contour connected below in mkmesh.*/
+#define ICONT_TEMPUSE      (1l << 31)   /* Temporary marker flag */
 
-/* DNM 6/19/01: obsolete; type is now used only for time; SCANLINE flag 
-   is enough */
-/* #define ICONT_TYPE_POINTLIST  0
-#define ICONT_TYPE_EDGETABLE  1
-#define ICONT_TYPE_LINESEG    2 */
 
 #define IMOD_CONTOUR_CLOCKWISE -1
 #define IMOD_CONTOUR_COUNTER_CLOCKWISE 1
@@ -154,6 +124,8 @@ double imodContourLongAxis(Icont *cont, float precision, float *aspect,
 double imodContourPrincipalAxis(Icont *cont);
 double imodContourCircularity(Icont *cont);
 int imodContourZValue(Icont *cont);
+int imodContourMeanNormal(Icont *cont, int maxNorms, float minDist, 
+                          Ipoint *scale, Ipoint *norm);
 
 /* calculates the center of mass values for cont and puts them in rpt. */
 int    imodContourCenterOfMass(Icont *cont, Ipoint *rpt);
@@ -228,3 +200,31 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 }
 #endif
 #endif /* icont.h */
+
+/*
+$Log$
+Revision 3.9  2006/09/05 14:23:53  mast
+Renamed imodel_contour_clear
+
+Revision 3.8  2006/09/01 20:50:18  mast
+Added flatten function
+
+Revision 3.7  2005/06/26 19:41:31  mast
+Changed break routine call
+
+Revision 3.6  2005/04/23 23:36:23  mast
+Moved some functions into imodel.c
+
+Revision 3.5  2005/03/30 02:23:30  mast
+Eliminates dummy imodel_contour_move
+
+Revision 3.4  2005/03/20 19:55:48  mast
+Eliminating duplicate functions
+
+Revision 3.3  2005/01/30 17:45:02  mast
+changes arguments to imodel_overlap_fractions
+
+Revision 3.2  2005/01/29 20:27:31  mast
+Added nested contour routines
+
+*/
