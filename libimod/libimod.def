@@ -147,6 +147,7 @@ EXPORTS
 	imodMeshGetMaxIndex
 	istoreFirstChangeIndex
 	imodContourGetTimeIndex
+	imeshParamsDefault
 	imodPrevPoint
 	ilistSwap
 	imodGetZScale
@@ -197,12 +198,14 @@ EXPORTS
 	imodProgName
 	imodFileWrite
 	istoreFindBreak
+	imeshParamsDelete
 	PipReadOptionFile
 	imodMatFindVector
 	imodGetInt
 	GETIMODSCAT
 	setExitPrefix
 	imodPutShort
+	imodContourMeanNormal
 	imodel_contour_centroid
 	PipNumberOfEntries
 	IMODPARTIALMODE
@@ -231,6 +234,7 @@ EXPORTS
 	imodMoveObject
 	istoreConnectNumber
 	imodPointDelete
+	imeshParamsDup
 	imodMeshesDelete
 	imodMeshGetVerts
 	imodMeshAddNormal
@@ -238,6 +242,7 @@ EXPORTS
 	istoreBreakContour
 	istoreInvert
 	PIPSETERROR
+	imeshCopySkipList
 	imodObjectGet
 	exitError
 	c2fString
@@ -420,6 +425,7 @@ EXPORTS
 	imodContourGetPoints
 	NEWIMOD
 	ilistQuantum
+	imeshParamsNew
 	imodObjectSetValue
 	imodContourNearest
 	imodContourSwap
