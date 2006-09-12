@@ -89,6 +89,10 @@ SOURCE=.\diffusion.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\iilikemrc.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\iimage.c
 # End Source File
 # Begin Source File

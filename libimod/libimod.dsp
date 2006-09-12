@@ -85,7 +85,15 @@ LIB32=xilink6.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\amoeba.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\b3dutil.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\colormap.c
 # End Source File
 # Begin Source File
 
@@ -153,7 +161,15 @@ SOURCE=.\parse_params.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\parselist.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\pip_fwrap.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\samplemeansd.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
