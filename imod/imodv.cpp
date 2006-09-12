@@ -373,8 +373,8 @@ static int load_models(int n, char **fname, ImodvApp *a)
     mod->tmax = 0;
     for (ob = 0; ob < mod->objsize; ob++)
       for (co = 0; co < mod->obj[ob].contsize; co++)
-        if (mod->tmax < mod->obj[ob].cont[co].type)
-          mod->tmax = mod->obj[ob].cont[co].type;
+        if (mod->tmax < mod->obj[ob].cont[co].time)
+          mod->tmax = mod->obj[ob].cont[co].time;
     mod->ctime = mod->tmax ? 1 : 0;
 
     /* DNM: changes for storage of object properties in view and 
@@ -680,6 +680,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.30  2006/07/03 19:52:05  mast
+Request disconnect of message handler on exit
+
 Revision 4.29  2006/06/19 05:29:14  mast
 Added -L option to use stdin for messages; delete clipboard object on exit
 

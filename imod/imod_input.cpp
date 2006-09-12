@@ -353,9 +353,9 @@ void inputKeepContourAtSameTime(ImodView *vw)
   if (cont) {
     imodGetIndex(vw->imod, &objIndex, &contIndex, &pointIndex);
 
-    if (cont->type != currentTime){
+    if (cont->time != currentTime){
       for(co = 0; co < obj->contsize; co++){
-	if (obj->cont[co].type ==  currentTime){
+	if (obj->cont[co].time ==  currentTime){
 	  imodSetIndex (vw->imod, objIndex, co, pointIndex);
 	  break;
         }
@@ -591,7 +591,7 @@ void inputSetModelTime(ImodView *vw, int time)
   if (!point){
     imodGetIndex(vw->imod,&ob,&nco,&npt);
     for(co = 0; co < obj->contsize; co++){
-      if (obj->cont[co].type == time)
+      if (obj->cont[co].time == time)
         nco = co;
     }
     imodSetIndex(vw->imod,ob,nco,npt);
@@ -599,7 +599,7 @@ void inputSetModelTime(ImodView *vw, int time)
 
     imodGetIndex(vw->imod,&ob,&nco,&npt);
     for(co = 0; co < obj->contsize; co++){
-      if (obj->cont[co].type == time)
+      if (obj->cont[co].time == time)
         nco = co;
     }
     imodSetIndex(vw->imod,ob,nco,npt);
@@ -1343,6 +1343,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.26  2006/08/28 05:24:04  mast
+Do not toggle false color mode with colormapped images
+
 Revision 4.25  2006/02/27 19:47:11  mast
 Moved go to surface function here from imod_cont_edit.cpp
 

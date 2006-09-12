@@ -1032,7 +1032,7 @@ static int imodvStepTime(ImodvApp *a, int tstep)
       obj = &a->imod->obj[ob];
       if (!iobjTime(obj->flags)) continue;
       for(co = 0; co < obj->contsize; co++){
-        if (obj->cont[co].type == a->imod->ctime)
+        if (obj->cont[co].time == a->imod->ctime)
           return(a->imod->ctime);
       }
     }
@@ -1106,6 +1106,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.20  2006/09/01 20:49:03  mast
+    Left a debugging statement in
+
     Revision 4.19  2006/08/31 23:27:44  mast
     Changes for stored value display
 

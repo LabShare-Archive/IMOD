@@ -1178,8 +1178,7 @@ int  ivwGetMaxTime(ImodView *inImodView)
 void ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont)
 {
   if (vw->nt && obj && cont && iobjTime(obj->flags)) {
-    cont->type = vw->ct;
-    cont->flags |= ICONT_TYPEISTIME;
+    cont->time = vw->ct;
   }
 }
 
@@ -2345,7 +2344,7 @@ Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
   // reassign it to the current or requested time
   if (ivwTimeMismatch(vw, timeLock, obj, cont) && !cont->psize) {
     vw->undo->contourPropChg();
-    cont->type = curTime;
+    cont->time = curTime;
   }
 
   // If current point index is not set, set it to end of contour
@@ -2361,8 +2360,8 @@ Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 {
   int time = timelock ? timelock : vi->ct;
-  return (vi->nt > 0 && iobjFlagTime(obj) && (cont->flags & ICONT_TYPEISTIME)
-	  && cont->type && (time != cont->type));
+  return (vi->nt > 0 && iobjFlagTime(obj) && cont->time && 
+          (time != cont->time));
 }
 
 /* Inserts a point in the current contour after checking whether it makes it
@@ -2510,6 +2509,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.50  2006/09/03 21:30:11  mast
+Handled file opening error string properly
+
 Revision 4.49  2006/09/02 23:54:06  mast
 Added calls to scan intensities for raw type files
 

@@ -251,8 +251,8 @@ int imodvLoadModel()
   tmod->tmax = 0;
   for (ob = 0; ob < tmod->objsize; ob++)
     for (co = 0; co < tmod->obj[ob].contsize; co++)
-      if (tmod->tmax < tmod->obj[ob].cont[co].type)
-        tmod->tmax = tmod->obj[ob].cont[co].type;
+      if (tmod->tmax < tmod->obj[ob].cont[co].time)
+        tmod->tmax = tmod->obj[ob].cont[co].time;
   tmod->ctime = tmod->tmax ? 1 : 0;
 
   tmoda = (Imod **)malloc(sizeof(Imod *) * (a->nm + 1));
@@ -622,6 +622,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.19  2006/09/01 20:48:46  mast
+Added mouse help for selection
+
 Revision 4.18  2004/12/03 00:07:50  mast
 Fixed ambiguity in ? : statement
 
