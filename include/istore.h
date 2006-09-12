@@ -136,6 +136,7 @@ extern "C" {
   int istoreEndChange(Ilist *list, int type, int index);
   int istoreClearChange(Ilist *list, int type, int index);
   void istoreClearRange(Ilist *list, int type, int start, int end);
+  void istoreCleanEnds(Ilist *list);
   int istoreAddOneIndexItem(Ilist **listp, Istore *store);
   int istoreClearOneIndexItem(Ilist *list, int type, int index, int surfFlag);
 
@@ -143,6 +144,8 @@ extern "C" {
   int istoreContSurfDrawProps(Ilist *list, DrawProps *defProps, 
                               DrawProps *contProps, int co, int surf, 
                               int *contState, int *surfState);
+  int istoreListPointProps(Ilist *list, DrawProps *contProps,
+                           DrawProps *ptProps, int pt);
   int istoreFirstChangeIndex(Ilist *list);
   int istoreNextChange(Ilist *list, DrawProps *defProps,
                        DrawProps *ptProps, int *stateFlags, int *changeFlags);
@@ -172,6 +175,9 @@ extern "C" {
 
 /*    
 $Log$
+Revision 3.10  2006/08/31 22:50:56  mast
+value and minmax stuff, and documentation
+
 Revision 3.9  2006/08/31 21:10:36  mast
 Added value and minmax
 
