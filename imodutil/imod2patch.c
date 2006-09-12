@@ -21,6 +21,7 @@ Log at end
 
 #include "imodel.h"
 #include "istore.h"
+#include "parse_params.h"
 
 static int istoreFindValue(Ilist *list, int index, int type, float *value,
                            int *listInd);
@@ -141,6 +142,9 @@ static int istoreFindValue(Ilist *list, int index, int type, float *value,
 
 /*
 $Log$
+Revision 3.7  2006/08/31 20:58:26  mast
+Extract values from model and put back in patch file
+
 Revision 3.6  2005/02/11 00:41:40  mast
 Removed unneeded declaration
 
