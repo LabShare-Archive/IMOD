@@ -651,10 +651,10 @@ static void imodvSetObject(Iobj *obj, int style, int drawTrans)
    on time, surface number, and resolution */
 static int checkMeshDraw(Imesh *mesh, int checkTime, int resol)
 {
-  if ((checkTime) && (mesh->type) && (mesh->type != CTime))
+  if ((checkTime) && (mesh->time) && (mesh->time != CTime))
     return 0;
-  if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && mesh->pad > 0 && 
-      mesh->pad != cursurf)
+  if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && mesh->surf > 0 && 
+      mesh->surf != cursurf)
     return 0;
   if (imeshResol(mesh->flag) == resol)
     return 1;
@@ -666,7 +666,7 @@ static int checkContourDraw(Icont *cont, int co, int checkTime)
 {
     if (!cont->psize) 
       return 0;
-    if ((checkTime) && (cont->type) && (cont->type != CTime))
+    if ((checkTime) && (cont->time) && (cont->time != CTime))
       return 0;
     if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
         cont->surf != cursurf)
@@ -1594,7 +1594,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   if (!mesh->lsize)
     return;
 
-  ifgHandleSurfChange(obj, mesh->pad, &defProps, &curProps, &stateFlags,
+  ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags,
                       handleFlags);
   defTrans = defProps.trans ? 1 : 0;
 
@@ -1822,7 +1822,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   vert = mesh->vert;
   list = mesh->list;
 
-  ifgHandleSurfChange(obj, mesh->pad, &defProps, &curProps, &stateFlags,
+  ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags,
                       handleFlags);
   defTrans = defProps.trans ? 1 : 0;
 
@@ -2205,7 +2205,7 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
   // Test if surface subset on, it's also OK if the mesh surface is greater
   // than zero because a match was already tested for in checkMeshDraw
-  if (!(Imodv->current_subset / 2 == 1 && cursurf >= 0) || mesh->pad > 0)
+  if (!(Imodv->current_subset / 2 == 1 && cursurf >= 0) || mesh->surf > 0)
     return 0;
 
   // Set up indexes, offset and interval to check, ending code
@@ -2332,6 +2332,9 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
 
 /*
 $Log$
+Revision 4.31  2006/09/01 20:47:51  mast
+Fixed drawing of selected contours so it works with multiple objects
+
 Revision 4.30  2006/08/31 23:27:45  mast
 Changes for stored value display
 
