@@ -1666,7 +1666,7 @@ void imodContEditSurfShow(void)
   if (iobjTime(obj->flags)){
     val = -1;
     if (cont)
-      val = cont->type;
+      val = cont->time;
   }
   surf.dia->setTimeIndex(val, max);
 
@@ -1749,8 +1749,7 @@ void iceTimeChanged(int value)
     cont = imodContourGet(surf.vw->imod);
     if (cont){
       surf.vw->undo->contourPropChg();
-      cont->type = value;
-      cont->flags |= ICONT_TYPEISTIME;
+      cont->time = value;
       surf.vw->undo->finishUnit();
     }
   }    
@@ -1967,6 +1966,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.27  2006/02/27 19:46:16  mast
+Moved go to surface functionality to imod_input, needed from finegrain too
+
 Revision 4.26  2005/10/06 19:51:43  mast
 Fixed undo/redo for moving surface to new object
 

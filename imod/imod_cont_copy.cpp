@@ -94,7 +94,7 @@ static int contCompare(Icont *c1, Icont *c2)
   int pt;
 
   if ((!c1) || (!c2)) return -1;
-  if (c1->type != c2->type) dif++;
+  if (c1->time != c2->time) dif++;
   if (c1->surf != c2->surf) dif++;
   if (c1->flags != c2->flags) dif++;
   if (c1->psize != c2->psize) dif++;
@@ -183,7 +183,7 @@ static int copyContour(Icont *cont, int coNum)
   case COPY_TO_TIME:
   case COPY_TO_NEXT_TIME:
     toObj   = &vw->imod->obj[ThisDialog.currentObject];
-    cont->type = ThisDialog.timeIndex;
+    cont->time = ThisDialog.timeIndex;
     vw->undo->contourAddition(obnum, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
@@ -446,7 +446,7 @@ void ContourCopy::apply()
     break;
 
   case COPY_TO_TIME:
-    ThisDialog.currentTime = cont->type;
+    ThisDialog.currentTime = cont->time;
     if ((ThisDialog.timeIndex > ThisDialog.vw->nt) ||
         ( ThisDialog.timeIndex < 1) || 
         (ThisDialog.timeIndex ==  ThisDialog.vw->ct)) {
@@ -509,7 +509,7 @@ void ContourCopy::apply()
         
         /* If copying to time, check for being at source time */
         if ((ThisDialog.copyOperation == COPY_TO_TIME) &&
-            (cont->type != ThisDialog.currentTime))
+            (cont->time != ThisDialog.currentTime))
           continue;
 
         /* If copying surface, make sure surface matches */
@@ -614,6 +614,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.13  2005/06/29 05:38:40  mast
+Changes to manipulate fine grain properties and do undos correctly
+
 Revision 4.12  2005/05/27 23:00:45  mast
 Remove debugging statement
 

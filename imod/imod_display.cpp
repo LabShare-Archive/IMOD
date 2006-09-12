@@ -243,8 +243,8 @@ static int rethink(ImodView *vw)
   }
 
   obj = imodObjectGet(vw->imod);
-  if (iobjFlagTime(obj) && cont->type && (cont->flags & ICONT_TYPEISTIME))
-    ivwSetTime(vw, cont->type);
+  if (iobjFlagTime(obj) && cont->time)
+    ivwSetTime(vw, cont->time);
 
   point = &(cont->pts[index]);
   vw->xmouse = point->x;
@@ -532,6 +532,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.17  2006/08/28 05:22:01  mast
+Added colormap loading to redraw routine
+
 Revision 4.16  2004/11/02 20:14:46  mast
 Switch to get named colors from preferences for mapping
 

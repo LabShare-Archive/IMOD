@@ -65,7 +65,7 @@ int imod_redraw(ImodView *vw)
 
   obj = imodObjectGet(imod);
   if (iobjFlagTime(obj))
-    ivwSetTime(vw, cont->type);
+    ivwSetTime(vw, cont->time);
 
   ivwSetLocationPoint(vw, &(cont->pts[index]));
 
@@ -107,8 +107,8 @@ float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
   for (i = 0; i < obj->contsize; i++){
         
     cont = &(obj->cont[i]);
-    if ((ctime) && (obj->flags & IMOD_OBJFLAG_TIME) && (cont->type) &&
-        (cont->type != ctime))
+    if ((ctime) && (obj->flags & IMOD_OBJFLAG_TIME) && (cont->time) &&
+        (cont->time != ctime))
       continue;
     if (!cont->psize)
       continue;
@@ -358,6 +358,9 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
 
 /*
 $Log$
+Revision 4.8  2006/08/31 23:27:44  mast
+Changes for stored value display
+
 Revision 4.7  2005/06/29 05:38:40  mast
 Changes to manipulate fine grain properties and do undos correctly
 
