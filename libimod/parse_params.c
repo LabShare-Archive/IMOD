@@ -19,6 +19,7 @@ Log at end of file
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "b3dutil.h"
 
 #define NON_OPTION_STRING "NonOptionArgument"
 #define STANDARD_INPUT_STRING "StandardInput"
@@ -1702,6 +1703,10 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.18  2006/06/08 03:11:31  mast
+Added higher level C functions and provided fallback option string
+output for C.
+
 Revision 3.17  2006/02/27 05:56:24  mast
 Modified to put out Fortran fixed format line to column 79
 
