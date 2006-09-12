@@ -54,6 +54,7 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 #endif
 
 #include "iimage.h"
+#include "b3dutil.h"
 
 int tiffReopen(ImodImageFile *inFile);
 void tiffClose(ImodImageFile *inFile);
@@ -480,6 +481,9 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*
   $Log$
+  Revision 3.8  2006/09/03 22:17:59  mast
+  Reorganized and switched to IIERR codes
+
   Revision 3.7  2006/08/27 23:46:28  mast
   Added color map support
   
