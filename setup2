@@ -82,6 +82,7 @@ set liimod          = -liimod
 set ltiff           = -ltiff
 set ldnmncar        = -ldnmncar
 set lifft           = -lifft
+set limesh          = -limesh
 set ldfflags        = '$(LDFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
@@ -553,6 +554,7 @@ echo "BINEXT =    $binext" >> $configure
 echo "LIMOD  =    $limod" >> $configure
 echo "LIIMOD =    $liimod" >> $configure
 echo "LIFFT =     $lifft" >> $configure
+echo "LIMESH =    $limesh" >> $configure
 echo "BLOCKIO =   $blockio"  >> $configure
 echo "IMSUBSOBJ = $imsubsobj"  >> $configure
 echo "TILTALILIB = $tiltalilib"  >> $configure
@@ -841,6 +843,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.18  2006/06/29 20:07:26  mast
+#  Fixed for Cygwin's new identification of windows-64
+#
 #  Revision 1.17  2006/06/29 05:10:21  mast
 #  Changes for new model libraries
 #
