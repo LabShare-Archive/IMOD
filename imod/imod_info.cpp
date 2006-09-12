@@ -34,6 +34,7 @@
 #include "imod_info.h"
 #include "imod.h"
 #include "imod_info_cb.h"
+#include "imodv_objed.h"
 #include "imodplug.h"
 #include "iproc.h"
 #include "preferences.h"
@@ -353,6 +354,8 @@ void InfoWindow::manageMenus()
   mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK &&
                               !App->cvi->colormapImage);
   mFileMenu->setItemEnabled(FILE_MENU_RELOAD, App->cvi->reloadable != 0);
+  mEObjectMenu->setItemEnabled(EOBJECT_MENU_DELETE, !meshingBusy());
+  mEObjectMenu->setItemEnabled(EOBJECT_MENU_RENUMBER, !meshingBusy());
 }
 
 
@@ -535,6 +538,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.35  2006/09/01 20:49:29  mast
+    Added menu item to flatten contours in object
+
     Revision 4.34  2006/08/28 05:17:56  mast
     Manipulate menus more for colormapped images loaded
 
