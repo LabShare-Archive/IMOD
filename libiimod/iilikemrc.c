@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2006/09/03 22:20:14  mast
+Reorganized, provided generic check function list and added DM3 support
+
 Revision 3.1  2006/09/03 00:00:56  mast
 Initial creation
 
@@ -267,7 +270,7 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info)
   /* Set these to signal that the range is unknown */
   info->amin = 0.;
   info->amax = 0.;
-  
+  return 0;  
 }
 
 /*
@@ -315,6 +318,7 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
   
   info->amin = 0.;
   info->amax = 0.;
+  return 0;
 }
 
 
@@ -506,4 +510,5 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
   info->headerSize = 512;
   info->amin = 0.;
   info->amax = 0.;
+  return 0;
 }
