@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2006/02/25 22:09:04  mast
+Documented
+
 Revision 3.2  2005/09/11 19:16:03  mast
 Added routine to test for mesh start code and return appropriate factors
 
@@ -28,6 +31,7 @@ Added duplicate function
 #include <math.h>
 #include <string.h>
 #include "imodel.h"
+#include "mkmesh.h"
 
 
 /*#define SKIN_DEBUG     */
@@ -63,8 +67,8 @@ Imesh *imodMeshesNew(int size)
     mesh[sh].vsize = 0;
     mesh[sh].lsize = 0;
     mesh[sh].flag  = 0;
-    mesh[sh].type  = 0;
-    mesh[sh].pad   = 0;
+    mesh[sh].time  = 0;
+    mesh[sh].surf  = 0;
     mesh[sh].store = NULL;
   }
   return(mesh);
@@ -370,8 +374,8 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
   nmray[*size].vsize = nmesh->vsize;
   nmray[*size].lsize = nmesh->lsize;
   nmray[*size].flag  = nmesh->flag;
-  nmray[*size].type  = nmesh->type;
-  nmray[*size].pad   = nmesh->pad;
+  nmray[*size].time  = nmesh->time;
+  nmray[*size].surf  = nmesh->surf;
   nmray[*size].store = nmesh->store;
   (*size)++;
   return(nmray);
@@ -466,4 +470,109 @@ float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
   return(tsa);
 }
 
+/*******************
+ * Meshing parameter functions 
+ ******************/
+
+/*!
+ * Allocates and returns a new MeshParams structure after setting it to
+ * default values.  Returns NULL for error.
+ */
+MeshParams *imeshParamsNew()
+{
+  MeshParams *params = (MeshParams *)malloc(sizeof(MeshParams));
+  if (!params)
+    return NULL;
+  imeshParamsDefault(params);
+  return params;
+}
+
+/*!
+ * Sets [params] to default values.
+ */
+void imeshParamsDefault(MeshParams *params)
+{
+  params->flags = IMESH_MK_NORM;
+  params->cap = IMESH_CAP_OFF;
+  params->passes = 1;
+  params->capSkipNz = 0;
+  params->inczLowRes = 4;
+  params->inczHighRes = 1;
+  params->minz = DEFAULT_VALUE;
+  params->maxz = DEFAULT_VALUE;
+  params->xmin = -DEFAULT_FLOAT;
+  params->xmax = DEFAULT_FLOAT;
+  params->ymin = -DEFAULT_FLOAT;
+  params->ymax = DEFAULT_FLOAT;
+  params->overlap = 0.;
+  params->tubeDiameter = 10.;
+  params->tolLowRes = 2.0;
+  params->tolHighRes = 0.25;
+  params->flatCrit = 1.;
+  params->spareInt = 0.;
+  params->spareFloat = 0.;
+  params->capSkipZlist = NULL;
+}
+
+/*!
+ * Returns a duplicate of the meshing parameters in [params], including a cap
+ * skip list, if any.  Returns NULL for error or if [params] is NULL.
+ */
+MeshParams *imeshParamsDup(MeshParams *params)
+{
+  if (!params)
+    return NULL;
+  MeshParams *newpar = imeshParamsNew();
+  if (!newpar)
+    return NULL;
+  *newpar = *params;
+  newpar->capSkipZlist = NULL;
+  newpar->capSkipNz = 0;
+  if (imeshCopySkipList(params->capSkipZlist, params->capSkipNz, 
+                        &newpar->capSkipZlist, &newpar->capSkipNz)) {
+    free(newpar);
+    return NULL;
+  }
+  return newpar;
+}
+
+/*!
+ * Frees the [params] structure and the {capSkipZlist} array if it is nonnull
+ * and {capSkipNz} is nonzero.
+ */
+void imeshParamsDelete(MeshParams *params)
+{
+  if (!params)
+    return;
+  if (params->capSkipZlist && params->capSkipNz)
+    free(params->capSkipZlist);
+  free(params);
+}
+
+/*!
+ * Copies the integer list in [lfrom] of size [nfrom] to a new list pointed
+ * to by [lto], returning the size in [nto].  Frees an existing list in [lto]
+ * first if [lto] and [nto] are non-NULL, then allocates a new list with space
+ * for three more values than [nfrom].  If [lfrom] is NULL, no new list is
+ * allocated.  Returns 1 for memory error.
+ */
+int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
+{
+  int i;
+  *nto = 0;
+  if (*lto && *nto) {
+    free(*lto);
+  }
+  if (lfrom) {
+    *lto = (b3dInt32 *)malloc((nfrom + 3) * sizeof(b3dInt16));
+    if (!*lto) {
+      b3dError(stderr, "Error getting memory to copy cap exclusion list");
+      return 1;
+    }
+    for (i = 0; i < nfrom; i++)
+      (*lto)[i] = lfrom[i];
+    *nto = nfrom;
+  }
+  return 0;
+}
 
