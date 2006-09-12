@@ -7,45 +7,7 @@
 #
 #  $Revision$
 #
-#  $Log$
-#  Revision 3.13  2005/11/23 16:24:37  mast
-#  Use strip variable
-#
-#  Revision 3.12  2005/10/19 14:42:52  mast
-#  Switched imodtrans to using libiimod
-#
-#  Revision 3.11  2005/10/13 20:18:24  mast
-#  Switched imodjoin to using libiimod
-#
-#  Revision 3.10  2005/08/18 04:16:35  mast
-#  Added imodwincpu via a flag
-#
-#  Revision 3.9  2005/07/06 20:54:20  mast
-#  Removed fallback for imodtrans; regular n32 build now works
-#
-#  Revision 3.8  2004/09/28 22:18:46  mast
-#  Removed parselist entries since it is libimod now
-#
-#  Revision 3.7  2004/09/28 15:15:37  mast
-#  Add parselist for imodinfo
-#
-#  Revision 3.6  2003/11/01 14:36:23  mast
-#  Put libiimod befor libimod because of new error calls
-#
-#  Revision 3.5  2003/10/24 02:30:40  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.4  2003/02/28 18:09:32  mast
-#  Changes for cygwin/windows
-#
-#  Revision 3.3  2003/02/27 16:43:46  mast
-#  Remove imodsendevent
-#
-#  Revision 3.2  2002/09/13 22:08:17  mast
-#  Added imodsendevent
-#
-#  Revision 3.1  2001/12/17 18:53:27  mast
-#  Added imodfillin
+#  Log at end
 #
 include ../configure
 
@@ -66,9 +28,9 @@ imodinfo$(E) : imodinfo.$(O)
 	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(LIMOD) \
 	$(CLIBS)
 
-imodmesh$(E) : imodmesh.$(O) mkmesh.$(O)
-	$(CC) -o imodmesh mkmesh.$(O) imodmesh.$(O) \
-	$(LDFLAGS) $(LIMOD) $(CLIBS)
+imodmesh$(E) : imodmesh.$(O) 
+	$(CC) -o imodmesh imodmesh.$(O) \
+	$(LDFLAGS) $(LIMESH) $(LIMOD) $(CLIBS)
 
 imodtrans$(E) : imodtrans.$(O)
 	$(CC) -o imodtrans imodtrans.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
@@ -166,6 +128,48 @@ imodmkhv : imodmkhv.$(O)
 	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
 
 
+#  $Log$
+#  Revision 3.14  2006/06/14 04:28:17  mast
+#  Added imodcurvature
+#
+#  Revision 3.13  2005/11/23 16:24:37  mast
+#  Use strip variable
+#
+#  Revision 3.12  2005/10/19 14:42:52  mast
+#  Switched imodtrans to using libiimod
+#
+#  Revision 3.11  2005/10/13 20:18:24  mast
+#  Switched imodjoin to using libiimod
+#
+#  Revision 3.10  2005/08/18 04:16:35  mast
+#  Added imodwincpu via a flag
+#
+#  Revision 3.9  2005/07/06 20:54:20  mast
+#  Removed fallback for imodtrans; regular n32 build now works
+#
+#  Revision 3.8  2004/09/28 22:18:46  mast
+#  Removed parselist entries since it is libimod now
+#
+#  Revision 3.7  2004/09/28 15:15:37  mast
+#  Add parselist for imodinfo
+#
+#  Revision 3.6  2003/11/01 14:36:23  mast
+#  Put libiimod befor libimod because of new error calls
+#
+#  Revision 3.5  2003/10/24 02:30:40  mast
+#  Changes for windows/Intel compiler
+#
+#  Revision 3.4  2003/02/28 18:09:32  mast
+#  Changes for cygwin/windows
+#
+#  Revision 3.3  2003/02/27 16:43:46  mast
+#  Remove imodsendevent
+#
+#  Revision 3.2  2002/09/13 22:08:17  mast
+#  Added imodsendevent
+#
+#  Revision 3.1  2001/12/17 18:53:27  mast
+#  Added imodfillin
 
 
 
