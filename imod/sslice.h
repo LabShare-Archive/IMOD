@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 3.7  2005/03/08 15:48:49  mast
+    Added enum for toolbar toggles
+
     Revision 3.6  2004/08/12 17:05:17  mast
     Added message to get slicer angles
 
@@ -142,6 +145,7 @@ void slicerClosing(SlicerStruct *sslice);
 void slicerKeyInput(SlicerStruct *sslice, QKeyEvent *event);
 void slicerKeyRelease(SlicerStruct *sslice, QKeyEvent *event);
 void slicerMousePress(SlicerStruct *sslice, QMouseEvent *event);
+void slicerMouseMove(SlicerStruct *sslice, QMouseEvent *event);
 void slicerPaint(SlicerStruct *win);
 void slicerCubePaint(SlicerStruct *ss);
 

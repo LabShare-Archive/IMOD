@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.5  2005/03/08 15:49:00  mast
+Added enum for toolbar toggles
+
 Revision 4.4  2004/08/12 17:14:11  mast
 Made mSlicer public so angle reporting routine can access it
 
@@ -131,6 +134,7 @@ protected:
   void initializeGL() {};
   void paintGL();
   void resizeGL( int wdth, int hght );
+  void mouseMoveEvent(QMouseEvent * e );
   void mousePressEvent(QMouseEvent * e );
   void mouseReleaseEvent ( QMouseEvent * e );
   void timerEvent(QTimerEvent *e);
