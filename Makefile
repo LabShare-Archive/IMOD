@@ -180,6 +180,7 @@ configure : setup .version
 install : configure man sourcedoc
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
+	cd libmesh   ; $(MAKE) $@
 	cd libdiaqt  ; $(MAKE) $@
 	cd libcfft   ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
@@ -217,6 +218,7 @@ sourcedoc : configure ALWAYS
 installclibs : configure
 	cd libimod   ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
+	cd libmesh   ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
 	cd libcfft   ; $(MAKE) install
 
@@ -229,6 +231,7 @@ installlibs : installclibs
 clean : configure
 	cd libimod   ; $(MAKE) $@
 	cd libiimod  ; $(MAKE) $@
+	cd libmesh   ; $(MAKE) $@
 	cd libdiaqt  ; $(MAKE) $@
 	cd libcfft   ; $(MAKE) $@
 	cd imod      ; $(MAKE) $@
@@ -258,6 +261,7 @@ clean : configure
 cleanclibs : configure
 	cd libimod   ; $(MAKE) clean
 	cd libiimod  ; $(MAKE) clean
+	cd libmesh   ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
 	cd libcfft   ; $(MAKE) clean
 
@@ -291,6 +295,7 @@ cleanexe : configure
 clibs : configure
 	cd libimod   ; $(MAKE) all
 	cd libiimod  ; $(MAKE) all
+	cd libmesh   ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
 	cd libcfft   ; $(MAKE) all
 
@@ -362,7 +367,7 @@ csrc : ALWAYS
 	installqtlib packMacApps setup2 $(ARCDIR)_src/
 	tar cBf - \
 	machines \
-	lib*/*.[ch] lib*/*.cpp lib[ic]*/Makefile libdiaqt/Makefile.dummy \
+	lib*/*.[ch] lib*/*.cpp lib[icm]*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
 	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
@@ -426,6 +431,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.59  2006/08/28 21:44:26  mast
+#  Added Etomo/tests to make src
+#
 #  Revision 3.58  2006/06/24 00:06:46  mast
 #  Added adp stuff to make src
 #
