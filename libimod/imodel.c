@@ -730,7 +730,7 @@ int imodNewContour(Imod *mod)
   cont->pts = NULL;
   cont->psize = 0;
   cont->flags = 0;
-  cont->type = 0;
+  cont->time = 0;
   cont->surf = 0;
   cont->label = NULL;
   cont->sizes = NULL;
@@ -1430,8 +1430,8 @@ int imodGetMaxTime(Imod *imod)
   for(ob = 0; ob < imod->objsize; ob++){
     obj= &imod->obj[ob];
     for(co = 0; co < obj->contsize; co++){
-      if (obj->cont[co].type > maxtime)
-        maxtime = obj->cont[co].type;
+      if (obj->cont[co].time > maxtime)
+        maxtime = obj->cont[co].time;
     }
   }
   return maxtime;
@@ -1805,6 +1805,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.24  2006/08/31 21:11:29  mast
+Changed mat1 and mt3 to real names
+
 Revision 3.23  2005/10/16 20:26:04  mast
 Split transformation function into two
 
