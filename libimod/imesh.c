@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2006/09/12 15:25:13  mast
+Added mesh parameter functions and handled member renames
+
 Revision 3.3  2006/02/25 22:09:04  mast
 Documented
 
@@ -520,9 +523,10 @@ void imeshParamsDefault(MeshParams *params)
  */
 MeshParams *imeshParamsDup(MeshParams *params)
 {
+  MeshParams *newpar;
   if (!params)
     return NULL;
-  MeshParams *newpar = imeshParamsNew();
+  newpar = imeshParamsNew();
   if (!newpar)
     return NULL;
   *newpar = *params;
