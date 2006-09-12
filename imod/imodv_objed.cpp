@@ -12,7 +12,7 @@
 
 /*  $Author$
 
-$Date$
+5B$Date$
 
 $Revision$
 Log at end of file
@@ -38,14 +38,19 @@ Log at end of file
 #include "formv_objed.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
+#include "floatspinbox.h"
+#include "mkmesh.h"
 
 #include "imodv.h"
 #include "imod.h"
+#include "imod_info.h"
 #include "imod_object_edit.h"
 #include "imodv_gfx.h"
 #include "imodv_light.h"
 #include "imodv_objed.h"
 #include "imodv_input.h"
+#include "imodv_menu.h"
+#include "imodv_window.h"
 #include "preferences.h"
 #include "control.h"
 
@@ -81,6 +86,11 @@ static void mkClip_cb(int index);
 static void mkMove_cb(int index);
 static void fixMove_cb(void);
 static void mkSubsets_cb(int index);
+static void mkMakeMesh_cb(int index);
+static void setMakeMesh_cb(void);
+static MeshParams *makeGetObjectParams(void);
+static void meshObject();
+static void finishMesh();
 static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
@@ -136,8 +146,9 @@ ObjectEditField objectEditFieldData[]    = {
   {"Clip",       mkClip_cb,      setClip_cb,      NULL,       NULL},
   {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
   {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
+  {"Remesh",     mkMakeMesh_cb,  setMakeMesh_cb,  NULL,       NULL},
 
-  NULL,
+  {NULL, NULL, NULL, NULL, NULL},
 };
 
 /* Constructor for resident class */
@@ -1212,7 +1223,6 @@ static void setScalar_cb(void)
 
 static void mkScalar_cb(int index)
 {
-  QRadioButton *radio;
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
@@ -1486,12 +1496,8 @@ static void mkClip_cb(int index)
 
   // Set up the spin button
   QHBoxLayout *hLayout = new QHBoxLayout(layout1);
-  QLabel *label = new QLabel("Plane #", oef->control);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  hLayout->addWidget(label);
-  wClipPlaneSpin = new QSpinBox(1, 1, 1, oef->control, "clip plane spin");
-  hLayout->addWidget(wClipPlaneSpin);
-  wClipPlaneSpin->setFocusPolicy(QWidget::ClickFocus);
+  wClipPlaneSpin = diaLabeledSpin(0, 1, 1, 1, "Plane #",oef->control, hLayout);
+
   QObject::connect(wClipPlaneSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(clipPlaneSlot(int)));
   QToolTip::add(wClipPlaneSpin, "Select plane to adjust (use "CTRL_STRING
@@ -1669,7 +1675,6 @@ void ImodvObjed::subsetSlot(int which)
 
 static void mkSubsets_cb(int index)
 {
-  QRadioButton *subsetButton;
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
@@ -1689,6 +1694,427 @@ static void mkSubsets_cb(int index)
 
   finalSpacer(oef->control, layout1);
 }
+
+
+/*****************************************************************************
+ * The make mesh edit field
+ *****************************************************************************/
+
+enum MakeCheckInds {MAKE_MESH_SKIP = 0, MAKE_MESH_TUBE, MAKE_MESH_LOW, 
+                      MAKE_MESH_SURF, MAKE_MESH_CAP};
+static QCheckBox *wMakeChecks[5];
+static QSpinBox *wMakePassSpin;
+static FloatSpinBox *wMakeDiamSpin;
+static FloatSpinBox *wMakeTolSpin;
+static QSpinBox *wMakeZincSpin;
+static QSpinBox *wMakeFlatSpin;
+static QPushButton *wMakeDoButton;
+static int makeLowRes = 0;
+static MeshParams *makeParams;
+static MeshParams makeDefParams;
+
+void ImodvObjed::makePassSlot(int value)
+{
+  MeshParams *param = makeGetObjectParams();
+  param->passes = value;
+  imodvFinishChgUnit();
+}
+
+void ImodvObjed::makeDiamSlot(int value)
+{
+  MeshParams *param = makeGetObjectParams();
+  param->tubeDiameter = 0.1 * value;
+  imodvFinishChgUnit();
+}
+
+void ImodvObjed::makeTolSlot(int value)
+{
+  MeshParams *param = makeGetObjectParams();
+  if (makeLowRes)
+    param->tolLowRes = 0.01 * value;
+  else
+    param->tolHighRes = 0.01 * value;
+  imodvFinishChgUnit();
+}
+
+void ImodvObjed::makeZincSlot(int value)
+{
+  MeshParams *param = makeGetObjectParams();
+  if (makeLowRes)
+    param->inczLowRes = value;
+  else
+    param->inczHighRes = value;
+  imodvFinishChgUnit();
+}
+
+void ImodvObjed::makeFlatSlot(int value)
+{
+  MeshParams *param = makeGetObjectParams();
+  param->flatCrit = 0.1 * value;
+  imodvFinishChgUnit();
+}
+
+void ImodvObjed::makeStateSlot(int which)
+{
+  bool state = wMakeChecks[which]->isOn();
+  Iobj *obj = objedObject();
+  MeshParams *param;
+  if (which != MAKE_MESH_LOW)
+    param = makeGetObjectParams();
+  switch (which) {
+  case MAKE_MESH_LOW:
+    makeLowRes = state ? 1 : 0;
+    break;
+  case MAKE_MESH_SKIP:
+    if (state)
+      param->flags |= IMESH_MK_SKIP;
+    else
+      param->flags &= ~IMESH_MK_SKIP;
+    break;
+  case MAKE_MESH_SURF:
+    if (state)
+      param->flags |= IMESH_MK_SURF;
+    else
+      param->flags &= ~IMESH_MK_SURF;
+    break;
+  case MAKE_MESH_TUBE:
+    if (state)
+      param->flags |= IMESH_MK_TUBE;
+    else
+      param->flags &= ~IMESH_MK_TUBE;
+    break;
+  case MAKE_MESH_CAP:
+    if ((param->flags & IMESH_MK_TUBE) && iobjOpen(obj->flags)) {
+      if (state)
+        param->flags |= IMESH_MK_CAP_TUBE;
+      else
+        param->flags &= ~IMESH_MK_CAP_TUBE;
+    } else
+      param->cap = state ? IMESH_CAP_ALL : IMESH_CAP_OFF;
+    break;
+  }
+  if (which != MAKE_MESH_LOW)
+    imodvFinishChgUnit();
+  setMakeMesh_cb();
+}
+
+// Get meshing parameters from the object, make them if they don't exist, and
+// return the default params if necessary
+static MeshParams *makeGetObjectParams(void)
+{
+  Iobj *obj = objedObject();
+  objed_dialog->setFocus();
+  if (!obj)
+    return &makeDefParams;
+  imodvRegisterObjectChg(Imodv->ob);
+  if (!obj->meshParam)
+    obj->meshParam = imeshParamsNew();
+  if (obj->meshParam) 
+    return obj->meshParam;
+  wprint("\aError getting memory for mesh parameters\n");
+  return &makeDefParams;
+}
+
+// Update the mesh making panel
+static void setMakeMesh_cb(void)
+{
+  bool cap, scat, tube;
+  Iobj *obj = objedObject();
+  if (!obj) 
+    return;
+  if (obj->meshParam)
+    makeParams = obj->meshParam;
+  else
+    makeParams = &makeDefParams;
+  scat = iobjScat(obj->flags);
+  tube = (makeParams->flags & IMESH_MK_TUBE) && iobjOpen(obj->flags);
+  diaSetSpinBox(wMakeTolSpin, (int)(100. * (makeLowRes ? 
+                                            makeParams->tolLowRes :
+                                            makeParams->tolHighRes) + 0.5));
+  diaSetSpinBox(wMakeZincSpin, makeLowRes ? 
+                makeParams->inczLowRes : makeParams->inczHighRes);
+  diaSetSpinBox(wMakePassSpin, makeParams->passes);
+  diaSetSpinBox(wMakeDiamSpin, (int)(10. * makeParams->tubeDiameter + 0.5));
+  diaSetSpinBox(wMakeFlatSpin, (int)(10. * makeParams->flatCrit + 0.5));
+  diaSetChecked(wMakeChecks[MAKE_MESH_SKIP], 
+                (makeParams->flags & IMESH_MK_SKIP) != 0);
+  diaSetChecked(wMakeChecks[MAKE_MESH_SURF], 
+                (makeParams->flags & IMESH_MK_SURF) != 0);
+  diaSetChecked(wMakeChecks[MAKE_MESH_TUBE], 
+                (makeParams->flags & IMESH_MK_TUBE) != 0);
+  if (tube)
+    cap = (makeParams->flags & IMESH_MK_CAP_TUBE) != 0;
+  else
+    cap = makeParams->cap != IMESH_CAP_OFF;
+  diaSetChecked(wMakeChecks[MAKE_MESH_CAP], cap); 
+  wMakeDoButton->setEnabled(!scat);
+  wMakeChecks[MAKE_MESH_SKIP]->setEnabled(!tube && !scat);
+  wMakeChecks[MAKE_MESH_TUBE]->setEnabled(iobjOpen(obj->flags) && !scat);
+  wMakeChecks[MAKE_MESH_LOW]->setEnabled(!scat);
+  wMakeChecks[MAKE_MESH_SURF]->setEnabled(!tube && !scat);
+  wMakeChecks[MAKE_MESH_CAP]->setEnabled(!scat);
+  wMakePassSpin->setEnabled(!tube && !scat);
+  wMakeDiamSpin->setEnabled(tube && !scat);
+  wMakeTolSpin->setEnabled(!tube && !scat);
+  wMakeZincSpin->setEnabled(!tube && !scat);
+  wMakeFlatSpin->setEnabled(!tube && !scat);
+}
+
+char *makeCheckTips[] = {"Connect contours across sections with no contours",
+                         "Render open contours as tubes",
+                         "Make this a low-resolution mesh; keep regular mesh",
+                         "Use surface numbers for connections", 
+                         "Cap all unconnected ends of object"};
+static void mkMakeMesh_cb(int index)
+{
+  ObjectEditField *oef = &objectEditFieldData[index];
+
+  QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
+                                         FIELD_SPACING, "mesh layout");
+  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
+
+  imeshParamsDefault(&makeDefParams);
+
+  wMakeChecks[MAKE_MESH_SKIP] = diaCheckBox("Skip", oef->control, hLayout);
+
+  wMakePassSpin = diaLabeledSpin(0, 1, 10, 1, "Passes", oef->control, hLayout);
+  QObject::connect(wMakePassSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
+                   SLOT(makePassSlot(int)));
+  QToolTip::add(wMakePassSpin, "Set number of passes at increasing distances");
+
+  hLayout = new QHBoxLayout(layout1);
+  wMakeChecks[MAKE_MESH_TUBE] = diaCheckBox("Tube", oef->control, hLayout);
+  wMakeDiamSpin = (FloatSpinBox *)diaLabeledSpin(1, 0, 500, 5, "Diam", 
+                                                 oef->control, hLayout);
+  QObject::connect(wMakeDiamSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
+                   SLOT(makeDiamSlot(int)));
+  QToolTip::add(wMakeDiamSpin, "Set diameter for tube contours");
+
+  hLayout = new QHBoxLayout(layout1);
+  wMakeChecks[MAKE_MESH_LOW] = diaCheckBox("Low res", oef->control, hLayout);
+  wMakeTolSpin = (FloatSpinBox *)diaLabeledSpin(2,0, 500, 5, "Tol", 
+                                                oef->control, hLayout);
+  QObject::connect(wMakeTolSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
+                   SLOT(makeTolSlot(int)));
+  QToolTip::add(wMakeTolSpin, "Set tolerance for point reduction");
+
+  hLayout = new QHBoxLayout(layout1);
+  wMakeChecks[MAKE_MESH_SURF] = diaCheckBox("Surface", oef->control, hLayout);
+  wMakeZincSpin = diaLabeledSpin(0, 1, 10, 1, "Z inc", oef->control, hLayout);
+  QObject::connect(wMakeZincSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
+                   SLOT(makeZincSlot(int)));
+  QToolTip::add(wMakeZincSpin, "Set Z increment for coarser meshing");
+
+  hLayout = new QHBoxLayout(layout1);
+  wMakeChecks[MAKE_MESH_CAP] = diaCheckBox("Cap", oef->control, hLayout);
+  wMakeFlatSpin = (FloatSpinBox *)diaLabeledSpin(1, 0, 100, 5, "Flat crit", 
+                                                 oef->control, hLayout);
+  QObject::connect(wMakeFlatSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
+                   SLOT(makeFlatSlot(int)));
+  QToolTip::add(wMakeFlatSpin, "Set criterion Z difference for analyzing for "
+                "tilted contours");
+
+  QSignalMapper *mapper = new QSignalMapper(oef->control);
+  QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
+                   SLOT(makeStateSlot(int)));
+
+  for (int i = 0; i < 5; i++) {
+    QToolTip::add(wMakeChecks[i], makeCheckTips[i]);
+    mapper->setMapping(wMakeChecks[i], i);
+    QObject::connect(wMakeChecks[i], SIGNAL(toggled(bool)), mapper,
+                     SLOT(map()));
+  }
+
+  diaSetChecked(wMakeChecks[MAKE_MESH_LOW], makeLowRes != 0);
+
+  wMakeDoButton = diaPushButton("Make Mesh", oef->control, layout1);
+  QObject::connect(wMakeDoButton, SIGNAL(clicked()), &imodvObjed, 
+                   SLOT(makeDoitSlot()));
+  if (!Imodv->standalone && (Imodv->vi->xybin * Imodv->vi->zbin > 1)) {
+    wMakeDoButton->setEnabled(false);    
+    QToolTip::add(wMakeDoButton, "Mesh the object (not available when data "
+                  "are loaded binned");
+  } else
+    QToolTip::add(wMakeDoButton, "Mesh the object with these parameters");
+
+  finalSpacer(oef->control, layout1);
+  setMakeMesh_cb();
+}
+
+/* Variables for running the thread */
+static int meshedObjNum;
+static int meshedModNum;
+static Iobj *meshDupObj;
+static bool makeMeshBusy = false;
+static bool meshThreadErr;
+
+void ImodvObjed::makeDoitSlot()
+{
+  Iobj *obj = objedObject();
+  if (!obj) 
+    return;
+  if (!obj->contsize)
+    return;
+
+  // Copy all the contours, save the object and model number
+  meshDupObj = imeshDupMarkedConts(obj, 0);
+  if (meshDupObj) {
+    if (obj->meshParam)
+      meshDupObj->meshParam = imeshParamsDup(obj->meshParam);
+    else
+      meshDupObj->meshParam = imeshParamsDup(&makeDefParams);
+  }
+  if (!meshDupObj || !meshDupObj->meshParam) {
+    dia_err("Failed to copy the contours or data needed for meshing.");
+    if (meshDupObj)
+      imodObjectDelete(meshDupObj);
+    meshDupObj = NULL;
+    return;
+  }
+  meshedObjNum = Imodv->ob;
+  meshedModNum = Imodv->cm;
+
+#ifdef QT_THREAD_SUPPORT
+
+  // If running in a thread, set flag, disable make button
+  // start timer and start thread
+  makeMeshBusy = true;
+  wMakeDoButton->setEnabled(false);
+  if (!Imodv->standalone)
+    ImodInfoWin->manageMenus();
+  mTimerID = startTimer(50);
+  mMeshThread = new MeshThread;
+
+  // Priorities not available in Qt 3.1
+#if QT_VERSION >= 0x030200
+  mMeshThread->start(QThread::LowPriority);
+#else
+  mMeshThread->start();
+#endif
+
+#else
+
+  // Otherwise just start the process directly and do finishing tasks
+  meshObject();
+  finishMesh();
+#endif
+}
+
+void ImodvObjed::timerEvent(QTimerEvent *e)
+{
+#ifdef QT_THREAD_SUPPORT
+  if (mMeshThread->running())
+    return;
+  killTimer(mTimerID);
+  wMakeDoButton->setEnabled(true);
+  delete mMeshThread;
+  makeMeshBusy = false;
+  finishMesh();
+  if (!Imodv->standalone)
+    ImodInfoWin->manageMenus();
+#endif
+}
+
+// Meshing routine that can be run from thread or directly
+static void meshObject()
+{
+  Imod *imod = Imodv->imod;
+  Ipoint scale;
+
+  meshDupObj->flags |= IMESH_MK_IS_COPY | IMESH_MK_NO_WARN;
+
+  scale.x = imod->xscale;
+  scale.y = imod->yscale;
+  scale.z = imod->zscale;
+
+  if (analyzePrepSkinObj(meshDupObj, makeLowRes, &scale, NULL)) {
+    meshThreadErr = 1;
+    return;
+  }
+
+  // Set the resolution flag
+  for (int m = 0; m < meshDupObj->meshsize; m++)
+    meshDupObj->mesh[m].flag |= (makeLowRes << IMESH_FLAG_RES_SHIFT);
+
+  meshThreadErr = 0;
+}
+
+static void finishMesh()
+{
+  Iobj *obj;
+  QString str;
+  int resol = makeLowRes ? 1 : 0;
+
+  // If error, just clean up dup object
+  if (meshThreadErr) {
+    str = QString("An error occurred meshing the object:\n") + 
+      QString(b3dGetError());
+    dia_err((char *)str.latin1());
+  } else if (meshedModNum >= Imodv->nm || 
+      meshedObjNum >= Imodv->mod[meshedModNum]->objsize) {
+    dia_err("The model changed in a way that prevents the mesh from being "
+            "used - try again.");
+      
+  } else {
+
+    // Clear out this resolution in the existing mesh and transfer new one
+    obj = &Imodv->mod[meshedModNum]->obj[meshedObjNum];
+    if (obj->meshsize)
+      imodMeshesDeleteRes(&obj->mesh, &obj->meshsize, resol);
+    for (int m = 0; m < meshDupObj->meshsize; m++) {
+      obj->mesh = imodel_mesh_add(&meshDupObj->mesh[m], obj->mesh, 
+                                &obj->meshsize);
+      
+      // In case of error abandon both meshes, i.e. let it leak
+      if (!obj->mesh) {
+        dia_err("An error occurred transferring new mesh to object.");
+        obj->meshsize = 0;
+        break;
+      }
+    }
+
+    // Switch between low and high res mode if it is still current model
+    meshDupObj->meshsize = 0;
+    meshDupObj->mesh = NULL;
+    if (meshedModNum == Imodv->cm && Imodv->lowres != resol)
+      imodvViewMenu(VVIEW_MENU_LOWRES);
+ 
+    // Turn on mesh view same way as it is done from draw data selection
+    onTestFlags = 0;
+    offTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |
+      IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_OFF;
+    passSetFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |
+      IMOD_OBJFLAG_FILL;
+    passClearFlags = 0;
+    failSetFlags = IMOD_OBJFLAG_MESH;
+    failClearFlags = IMOD_OBJFLAG_OFF;
+    optionSetFlags(&obj->flags);
+    if (meshedModNum == Imodv->cm && meshedObjNum == Imodv->ob)
+      objset(Imodv);
+
+    imodvDraw(Imodv);
+  }
+
+  // Clean up the duplicated object
+  imodObjectDelete(meshDupObj);
+}
+
+
+bool meshingBusy(void)
+{
+#ifdef QT_THREAD_SUPPORT
+  return makeMeshBusy;
+#else
+  return false;
+#endif
+}
+
+#ifdef QT_THREAD_SUPPORT
+void MeshThread::run()
+{
+  meshObject();
+}
+#endif
 
 
 /*****************************************************************************
@@ -1940,6 +2366,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.24  2006/08/31 23:27:44  mast
+Changes for stored value display
+
 Revision 4.23  2005/06/24 17:33:16  mast
 Malloced object list button pointers, increased limit to 5000
 

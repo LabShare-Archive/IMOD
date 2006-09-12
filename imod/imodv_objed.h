@@ -10,39 +10,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.6  2005/06/06 17:24:59  mast
-Added sphere fill color slot
-
-Revision 4.5  2004/09/21 20:20:14  mast
-Declarations for multiple clipping plane slots, new object list in
-scroll view, and editing multiple colore
-
-Revision 4.4  2004/04/28 05:28:52  mast
-Changes for drawing current contour thicker
-
-Revision 4.3  2003/06/27 19:28:46  mast
-Changes for manipulating point quality
-
-Revision 4.2  2003/03/26 17:15:31  mast
-Adjust sizes for font changes
-
-Revision 4.1  2003/02/10 20:41:55  mast
-Merge Qt source
-
-Revision 1.1.2.4  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.3  2003/01/01 05:43:44  mast
-rationalizing toplevel versus dialog style
-
-Revision 1.1.2.2  2002/12/27 01:21:16  mast
-Qt version
-
-Revision 1.1.2.1  2002/12/18 04:10:30  mast
-initial creation
-
+Log at end
 */
 
 #ifndef IMODV_OBJED_H
@@ -85,6 +53,7 @@ void imodvObjedFramePicked(int item);
 void imodvObjedStyleData(int option);
 void imodvObjedEditData(int option);
 void imodvObjedSelect(int which);
+bool meshingBusy(void);
 void imodvObjedHelp();
 void imodvObjedDone();
 void imodvObjedClosing();
@@ -93,6 +62,19 @@ void imodvObjedName(const char *name);
 void imodvObjedSelect(int which);
 void imodvObjedMakeOnOffs(QFrame *frame);
 
+#ifdef QT_THREAD_SUPPORT
+#include <qthread.h>
+
+class MeshThread : public QThread
+{
+ public:
+  MeshThread() {};
+  ~MeshThread() {};
+
+ protected:
+  void run();
+};
+#endif
 
 class ImodvObjed : public QObject
 {
@@ -131,8 +113,24 @@ class ImodvObjed : public QObject
   void moveCenterSlot();
   void moveAxisSlot(int which);
   void subsetSlot(int which);
+  void makePassSlot(int value);
+  void makeDiamSlot(int value);
+  void makeTolSlot(int value);
+  void makeZincSlot(int value);
+  void makeFlatSlot(int value);
+  void makeStateSlot(int which);
+  void makeDoitSlot();
   void toggleObjSlot(int ob);
   void toggleListSlot(int ob);
+
+ protected:
+  void timerEvent(QTimerEvent *e);
+
+ private:
+  int mTimerID;
+#ifdef QT_THREAD_SUPPORT
+  QThread *mMeshThread;
+#endif
 
 };
 
@@ -161,3 +159,41 @@ class ImodvOlist : public QWidget
 };
 
 #endif
+
+/*
+$Log$
+Revision 4.7  2006/08/31 23:27:45  mast
+Changes for stored value display
+
+Revision 4.6  2005/06/06 17:24:59  mast
+Added sphere fill color slot
+
+Revision 4.5  2004/09/21 20:20:14  mast
+Declarations for multiple clipping plane slots, new object list in
+scroll view, and editing multiple colore
+
+Revision 4.4  2004/04/28 05:28:52  mast
+Changes for drawing current contour thicker
+
+Revision 4.3  2003/06/27 19:28:46  mast
+Changes for manipulating point quality
+
+Revision 4.2  2003/03/26 17:15:31  mast
+Adjust sizes for font changes
+
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
+Revision 1.1.2.4  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.3  2003/01/01 05:43:44  mast
+rationalizing toplevel versus dialog style
+
+Revision 1.1.2.2  2002/12/27 01:21:16  mast
+Qt version
+
+Revision 1.1.2.1  2002/12/18 04:10:30  mast
+initial creation
+
+*/
