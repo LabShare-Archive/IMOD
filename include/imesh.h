@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2006/02/25 22:08:49  mast
+Cleaned up duplicate functions
+
 */
 
 #ifndef IMESH_H
@@ -61,6 +64,9 @@ $Log$
 
 #define imeshResol(flag) (((flag)&IMESH_FLAG_RES_BITS) >> IMESH_FLAG_RES_SHIFT)
 
+#define DEFAULT_VALUE 0x7fffffff
+#define DEFAULT_FLOAT 1.e30
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -98,6 +104,11 @@ extern "C" {
 
   Imesh *imodel_mesh_add(Imesh *nmesh, Imesh *mray, int *size);
 
+  MeshParams *imeshParamsNew();
+  void imeshParamsDefault(MeshParams *params);
+  MeshParams *imeshParamsDup(MeshParams *params);
+  void imeshParamsDelete(MeshParams *params);
+  int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto); 
 
   /* get info from meshes. */
   float imeshSurfaceArea(Imesh *mesh, Ipoint *mscale);
