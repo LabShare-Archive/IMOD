@@ -119,6 +119,7 @@ void ioew_open(int value)
   }
   App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodvObjedNewView();
 }
 
 void ioew_surface(int value)
@@ -432,6 +433,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.16  2006/07/17 15:03:32  mast
+Added adjustSize after creating window
+
 Revision 4.15  2006/06/09 22:27:10  mast
 Converted help
 
