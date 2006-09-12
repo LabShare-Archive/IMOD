@@ -70,6 +70,8 @@ static int imodel_read_mesh(Imesh *mesh, FILE *fin);
 static int imodel_read_clip(Iobj *obj, FILE *fin, b3dUInt32 flags);
 static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags);
 static int imodel_read_ptsizes(Icont *cont, FILE *fin);
+static int imodel_read_meshparm(Iobj *obj, FILE *fin);
+static int imodel_read_meshskip(Iobj *obj, FILE *fin);
 
 #ifdef IMOD_DATA_SWAP
 static void byteswap(void *ptr, unsigned size);
@@ -335,7 +337,6 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
       return(-1);
 
   /* due to a bug, version 2 readers can't read extra data. 
-   * wait for later version to come out before adding data. 
    * Note version 2 readers were in IMOD 1.2
    */
   if (IMODEL_FILES_VERSION > 2){
@@ -364,7 +365,7 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
                           scale);
     }
 	  
-    /* Matierial data. */
+    /* Material data. */
     id = ID_IMAT;
     imodPutInt(fout, &id);
     id =  SIZE_IMAT;
@@ -375,6 +376,25 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
     imodPutBytes(fout, &obj->fillred, 4);
     imodPutInts(fout, &obj->mat2, 1);
     imodPutBytes(fout, &obj->valblack, 4);
+
+    /* Meshing parameters */
+    if (obj->meshParam) {
+      id = ID_MEPA;
+      imodPutInt(fout, &id);
+      id =  SIZE_MEPA;
+      imodPutInt(fout, &id);
+      imodPutInts(fout, &obj->meshParam->flags, 9);
+      imodPutFloats(fout, &obj->meshParam->overlap, 10);
+      
+      if (obj->meshParam->capSkipNz) {
+        id = ID_SKLI;
+        imodPutInt(fout, &id);
+        id =  4 * obj->meshParam->capSkipNz;
+        imodPutInt(fout, &id);
+        imodPutInts(fout, obj->meshParam->capSkipZlist, 
+                    obj->meshParam->capSkipNz);
+      }
+    } 
   }
   if ((id = imodWriteStore(obj->store, ID_OBST, fout)))
     return(id);
@@ -417,7 +437,6 @@ static int imodel_write_contour(Icont *cont, FILE *fout, Ipoint *scale)
 static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale)
 {
   int id = ID_MESH;
-  short temp = mesh->type;
   int i;
 
   if (!mesh) return(0);
@@ -425,9 +444,9 @@ static int imodel_write_mesh(Imesh *mesh, FILE *fout, Ipoint *scale)
   imodPutInts(fout, &mesh->vsize, 3);
 
   /* DNM 6/20/01: changed to put out type and pad as two shorts */
-  imodPutShort(fout, &temp);
-  temp = mesh->pad;
-  imodPutShort(fout, &temp);
+  /* 9/8/06: made these 16-bit in the structure and renamed */
+  imodPutShort(fout, &mesh->time);
+  imodPutShort(fout, &mesh->surf);
   if (scale->x == 1.0 && scale->y == 1.0 && scale->z == 1.0) {
     imodPutFloats(fout, (float *)mesh->vert, mesh->vsize * 3);
   } else {
@@ -684,6 +703,16 @@ static int imodel_read(Imod *imod, int version)
         return(error);
       break;
 
+    case ID_MEPA:
+      if ((error = imodel_read_meshparm(obj, fin)))
+        return(error);
+      break;
+
+    case ID_SKLI:
+      if ((error = imodel_read_meshskip(obj, fin)))
+        return(error);
+      break;
+
     default:
 #ifdef IMODEL_FILES_DEBUG
       *badp = id;
@@ -868,7 +897,7 @@ static int imodel_read_contour(Icont *cont, FILE *fin)
 
   cont->psize = imodGetInt(fin);
   cont->flags = imodGetInt(fin);
-  cont->type  = imodGetInt(fin);
+  cont->time  = imodGetInt(fin);
   cont->surf  = imodGetInt(fin);
 
   if (ferror(fin)){
@@ -932,8 +961,8 @@ static int imodel_read_mesh(Imesh *mesh, FILE *fin)
   /* DNM 6/20/01: start reading pad also, but read both type and pad as
      shorts.  This is OK because both type and pad have been zero before
      now, so there is no need to read old models with non-zero types */
-  mesh->type  = imodGetShort(fin);
-  mesh->pad   = imodGetShort(fin);
+  mesh->time  = imodGetShort(fin);
+  mesh->surf   = imodGetShort(fin);
      
   if ((error = ferror(fin))) {
     mesh->vsize = 0;
@@ -1003,6 +1032,36 @@ static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags)
   return 0;
 }
 
+static int imodel_read_meshparm(Iobj *obj, FILE *fin)
+{
+  int size, error;
+  size = imodGetInt(fin);
+  obj->meshParam = imeshParamsNew();
+  if (!obj->meshParam)
+    return IMOD_ERROR_MEMORY;
+  imodGetInts(fin, &obj->meshParam->flags, 9);
+  imodGetFloats(fin, &obj->meshParam->overlap, 10);
+  if ((error = ferror(fin)))
+    return(error);
+  return 0;
+}
+
+static int imodel_read_meshskip(Iobj *obj, FILE *fin)
+{
+  int size, error;
+  size = imodGetInt(fin) / 4;
+  if (!obj->meshParam || size != obj->meshParam->capSkipNz)
+    return(IMOD_ERROR_FORMAT);
+  obj->meshParam->capSkipZlist = (b3dInt32 *)malloc(size * sizeof(b3dInt32));
+  if (!obj->meshParam->capSkipZlist)
+    return IMOD_ERROR_MEMORY;
+  imodGetInts(fin, &obj->meshParam->capSkipZlist, size);
+  if ((error = ferror(fin)))
+    return(error);
+  return 0;
+}  
+  
+
 /***************************************************************************/
 /*!
  * Reads an ascii model from file point in imod->file.  This is called
@@ -1049,7 +1108,7 @@ int imodReadAscii(Imod *imod)
       if (pts)
         cont->pts = (Ipoint *)malloc(pts * sizeof(Ipoint));
       cont->flags = 0;
-      cont->type  = 0;
+      cont->time  = 0;
       for(pt = 0; pt < pts; pt++){
         imodFgetline(imod->file, line, MAXLINE);
         sscanf(line, "%g %g %g", 
@@ -1064,7 +1123,7 @@ int imodReadAscii(Imod *imod)
     if (substr(line, "mesh")){
       sscanf(line, "mesh %d %d %d", &mh, &vsize, &lsize);
       mesh = &(obj->mesh[mh]);
-      mesh->flag = mesh->type = mesh->pad = 0;
+      mesh->flag = mesh->time = mesh->surf = 0;
       mesh->vert = (Ipoint *)malloc(vsize * sizeof(Ipoint));
       mesh->list = (int *)malloc(lsize * sizeof(int));
       mesh->vsize = vsize;
@@ -1591,6 +1650,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.23  2006/08/31 21:11:29  mast
+  Changed mat1 and mt3 to real names
+
   Revision 3.22  2005/10/14 21:45:22  mast
   Fixed casting in calls to imodPutScaledPoints
 
