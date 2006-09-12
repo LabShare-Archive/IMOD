@@ -27,12 +27,13 @@ void imodDrawModel(ImodView *vi, Imod *imod)
   Icont *cont;
   Ipoint *pnt;
   int imPtSize, modPtSize, backupSize, curSize;
-  int ob, co;
+  int ob, co, curob, curco, curpt;
   bool hasSpheres;
 
   if (imod->drawmode <= 0)
     return;
 
+  imodGetIndex(imod, &curob, &curco, &curpt);
   for(ob = 0; ob < imod->objsize; ob++){
     obj = &imod->obj[ob];
     if (iobjOff(imod->obj[ob].flags))
@@ -64,11 +65,8 @@ void imodDrawModel(ImodView *vi, Imod *imod)
 	/* todo: ghost contour ? */
 	/* check ghostmode and surface ghostmode. */
 	
-	if (iobjOpen(obj->flags)){
-	  imodDrawContourLines(obj, co, GL_LINE_STRIP);
-	  continue;
-	}
-	if (cont->flags & ICONT_OPEN)
+	if (iobjOpen(obj->flags) || (cont->flags & ICONT_OPEN) ||
+            (ob == curob && co == curco))
 	  imodDrawContourLines(obj, co, GL_LINE_STRIP);
 	else
 	  imodDrawContourLines(obj, co, GL_LINE_LOOP);
@@ -377,6 +375,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.12  2006/08/31 23:27:44  mast
+Changes for stored value display
+
 Revision 4.11  2005/06/26 19:38:10  mast
 Added logic for fine-grained changes
 
