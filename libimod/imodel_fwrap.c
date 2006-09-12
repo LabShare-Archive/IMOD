@@ -692,7 +692,7 @@ int getimodtimes(int *times)
   for (ob = 0; ob < Fimod->objsize; ob++) {
     obj = &(Fimod->obj[ob]);
     for (co = 0; co < obj->contsize; co++, coi++)
-      times[coi] = obj->cont[co].type;
+      times[coi] = obj->cont[co].time;
   }
 
   return FWRAP_NOERROR;
@@ -1598,6 +1598,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.29  2006/09/04 19:32:26  mast
+Rename contour clearing function
+
 Revision 3.28  2006/06/29 04:42:57  mast
 Added function to allow different size models
 
