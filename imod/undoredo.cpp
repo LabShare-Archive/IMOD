@@ -15,6 +15,10 @@
     $Revision$
 
     $Log$
+    Revision 4.7  2006/03/01 18:19:04  mast
+    Made backup unit list quantum be 32, and pruned 1/10 of list at a time
+    when the limit is reached to reduce overhead
+
     Revision 4.6  2005/10/24 18:35:53  mast
     Added some info on store size to debug output
 
@@ -307,6 +311,8 @@ void UndoRedo::objectChange(int type, int object, int object2)
     item.p.obj->mesh = NULL;
     item.p.obj->label = imodLabelDup(obj->label);
     item.p.obj->store = ilistDup(obj->store);
+    item.p.obj->meshParam = imeshParamsDup(obj->meshParam);
+    
     item.ID = change.ID = mID++;
     break;
 
@@ -961,6 +967,7 @@ int UndoRedo::restoreObject(UndoChange *change, BackupItem *item)
   item->p.obj->cont = NULL;
   item->p.obj->label= NULL;
   item->p.obj->store = NULL;
+  item->p.obj->meshParam = NULL;
   freePoolItem(item);
   change->ID = -1;
   change->bytes = 0;
@@ -987,6 +994,7 @@ int UndoRedo::removeObject(UndoChange *change)
   obj->cont = NULL;
   obj->label= NULL;
   obj->store = NULL;
+  obj->meshParam = NULL;
   imodDeleteObject(mVi->imod, change->object);
   change->bytes = objectBytes(item.p.obj);
   imod_cmap(mVi->imod);
