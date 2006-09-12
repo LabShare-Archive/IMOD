@@ -95,6 +95,9 @@ Log at end of file
 #define ID_OBST MakeID('O', 'B', 'S', 'T')  /* Object storage items */
 #define ID_COST MakeID('C', 'O', 'S', 'T')  /* Contour storage items */
 #define ID_MEST MakeID('M', 'E', 'S', 'T')  /* Mesh storage items */
+#define ID_MEPA MakeID('M', 'E', 'P', 'A')  /* Meshing parameters */
+#define SIZE_MEPA 76
+#define ID_SKLI MakeID('S', 'K', 'L', 'I')  /* Capping skip list for meshing */
 #define SIZE_STOR 12
 
 /* future data defines. */
@@ -131,9 +134,9 @@ typedef struct Mod_Mesh
   b3dInt32        *list;    /* index into vert array + instructions */
   b3dInt32        vsize;    /* size of arrays */
   b3dInt32        lsize;
-  b3dUInt32       flag;     /* Tells how to draw mesh */
-  b3dInt32        type;     /* Set to 0. time data.   */
-  b3dInt32        pad;      /* Set to 0. surf data.   */
+  b3dUInt32       flag;     /* Flags */
+  b3dInt16        time;     /* Time value */
+  b3dInt16        surf;     /* Surface  */
   Ilist          *store;
 }Imesh;
 
@@ -271,6 +274,31 @@ typedef struct
 }Ilabel;
 
 /*
+ * Parameters for meshing an object 
+ */
+typedef struct Meshing_Param
+{
+  b3dUInt32 flags;         /* IMESH_MK_* flags */
+  b3dInt32 cap;            /* Capping parameter */
+  b3dInt32 passes;         /* Number of passes for skipped sections */
+  b3dInt32 capSkipNz;      /* Number of Z values not to cap to */
+  b3dInt32 inczLowRes;     /* Z increment for low res mesh */
+  b3dInt32 inczHighRes;    /* Z increment for high res mesh */
+  b3dInt32 minz, maxz;     /* Starting and ending Z to mesh */
+  b3dInt32 spareInt;
+  b3dFloat overlap;        /* Fractional overlap required if nonzero */
+  b3dFloat tubeDiameter;   /* Diameter when meshing tubes */
+  b3dFloat xmin, xmax;     /* X and Y limits for triangle output */
+  b3dFloat ymin, ymax;
+  b3dFloat tolLowRes;      /* Point reduction tolerance for low and high res */
+  b3dFloat tolHighRes;
+  b3dFloat flatCrit;       /* Criterion Z difference for rotating contours */
+  b3dFloat spareFloat;
+  b3dInt32 *capSkipZlist;  /* List of Z values not to cap to */
+} MeshParams;
+
+
+/*
  * Contours are an array of points describing an open or closed contour.
  * The points can also be unconnected or the points can be in pairs
  * describing scan lines.
@@ -284,7 +312,7 @@ typedef struct Mod_Contour
   /* data below is written to file */
   b3dInt32     psize;  /* Number of points.                 */
   b3dUInt32    flags;  /* Default 0 means use object flags. */
-  b3dInt32     type;   /* Time index.                       */
+  b3dInt32     time;   /* Time index.                       */
   b3dInt32     surf;   /* Surface number.                   */
   Ilabel      *label;
 
@@ -354,6 +382,7 @@ typedef struct Mod_Object
   b3dUByte mat3b3;    /* Unused */
 
   Ilabel *label;      /* Labels for surfaces */
+  MeshParams *meshParam; /* Meshing parameters */
   Ilist  *store;
 }Iobj;
 
@@ -623,6 +652,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.33  2006/08/31 21:04:00  mast
+    New flags and redefinition of mat1 and mat3 variables
+
     Revision 3.32  2006/06/26 14:49:09  mast
     Moved miscellaneous functions to b3dutil
 
