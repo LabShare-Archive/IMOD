@@ -231,6 +231,7 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
           destobj->contsize = 0;
           destobj->meshsize = 0;
           destobj->store = NULL;
+          destobj->meshParam = NULL;
           printf("Adding new contours to new object %d\n", 
                  imod->objsize);
           newobj = 0;
@@ -248,8 +249,8 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
           }
           imodContourDelete(cont);
           cont = &destobj->cont[coadd];
-          cont->surf = obj->mesh[me].pad;
-          cont->type = obj->mesh[me].type;
+          cont->surf = obj->mesh[me].surf;
+          cont->time = obj->mesh[me].time;
                          
           /* loop on triangles */
           for (itri = 0; itri < ntriang; itri++) {
@@ -325,6 +326,9 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
      
 /*
 $Log$
+Revision 3.11  2006/06/26 14:48:49  mast
+Added b3dutil include for parselist
+
 Revision 3.10  2005/09/11 19:22:11  mast
 Changes for new style of mesh
 
