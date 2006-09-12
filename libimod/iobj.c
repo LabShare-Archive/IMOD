@@ -13,45 +13,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.12  2005/10/06 19:52:10  mast
-Maintained surfsize in contour insert function
-
-Revision 3.11  2005/09/11 19:15:26  mast
-Managed contour store info when sorting contours
-
-Revision 3.10  2005/06/29 05:35:32  mast
-Changed a store function call
-
-Revision 3.9  2005/06/26 19:32:22  mast
-Manage storage lists when inserting or removing contours
-
-Revision 3.8  2005/05/27 04:53:33  mast
-Make surface cleaning always compute surfsize.
-
-Revision 3.7  2005/04/23 23:36:54  mast
-Moved some functions to imodel.c
-
-Revision 3.6  2005/03/20 19:56:43  mast
-Documenting and eliminating duplicate functions
-
-Revision 3.5  2004/11/20 04:42:10  mast
-Added duplicate and insert contours, functions, removed virtual stuff
-
-Revision 3.4  2004/11/05 18:53:00  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/09/21 20:12:48  mast
-Added function to maintain surface labels and max surface number
-
-Revision 3.2  2003/06/27 20:16:26  mast
-Added functions to get specific contour in object and to set object color,
-fixed problem with setting closed property, made sure mat bytes are all zeroed
-
-Revision 3.1  2003/02/21 22:22:02  mast
-Use new b3d types
-
+Log at end
 */
 
 #include <stdio.h>
@@ -140,6 +102,7 @@ void imodObjectDefault(Iobj *obj)
   obj->mat3b2 = 0;
   obj->mat3b3 = 0;
   obj->label = NULL;
+  obj->meshParam = NULL;
   obj->store = NULL;
   return;
 }
@@ -174,6 +137,7 @@ int imodObjectsDelete(Iobj *obj, int size)
       imodMeshesDelete(obj[ob].mesh, obj[ob].meshsize);
     imodLabelDelete(obj[ob].label);
     ilistDelete(obj[ob].store);
+    imeshParamsDelete(obj[ob].meshParam);
   }
   free(obj);
   return(0);
@@ -213,6 +177,9 @@ Iobj *imodObjectDup(Iobj *obj)
   imodObjectCopy(obj, newObj);
   newObj->contsize = 0;
   newObj->meshsize = 0;
+  newObj->label = NULL;
+  newObj->store = NULL;
+  newObj->meshParam = NULL;
 
   /* Duplicate contours one at a time and copy into the array */
   if (obj->contsize) {
@@ -252,9 +219,10 @@ Iobj *imodObjectDup(Iobj *obj)
     }
   }
    
-  /* Duplicate labels and extra list items */
+  /* Duplicate labels and extra list items and mesh parameters */
   newObj->label = imodLabelDup(obj->label);
   newObj->store = ilistDup(obj->store);
+  newObj->meshParam = imeshParamsDup(obj->meshParam);
   return newObj;
 }
 
@@ -345,14 +313,14 @@ int imodObjectSort(Iobj *obj)
       sz = cont[i].pts[0].z;
     else
       sz = INT_MAX;
-    st = cont[i].type;
+    st = cont[i].time;
 
     for (j = i + 1; j < obj->contsize; j++){
       if (cont[j].psize)
         z = cont[j].pts[0].z;
       else
         z = INT_MAX;
-      t = cont[j].type;
+      t = cont[j].time;
 
       if (iobjFlagTime(obj)){
         if (st == t){
@@ -813,3 +781,46 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
   }
 }
 
+/*
+$Log$
+Revision 3.13  2006/08/31 21:11:29  mast
+Changed mat1 and mt3 to real names
+
+Revision 3.12  2005/10/06 19:52:10  mast
+Maintained surfsize in contour insert function
+
+Revision 3.11  2005/09/11 19:15:26  mast
+Managed contour store info when sorting contours
+
+Revision 3.10  2005/06/29 05:35:32  mast
+Changed a store function call
+
+Revision 3.9  2005/06/26 19:32:22  mast
+Manage storage lists when inserting or removing contours
+
+Revision 3.8  2005/05/27 04:53:33  mast
+Make surface cleaning always compute surfsize.
+
+Revision 3.7  2005/04/23 23:36:54  mast
+Moved some functions to imodel.c
+
+Revision 3.6  2005/03/20 19:56:43  mast
+Documenting and eliminating duplicate functions
+
+Revision 3.5  2004/11/20 04:42:10  mast
+Added duplicate and insert contours, functions, removed virtual stuff
+
+Revision 3.4  2004/11/05 18:53:00  mast
+Include local files with quotes, not brackets
+
+Revision 3.3  2004/09/21 20:12:48  mast
+Added function to maintain surface labels and max surface number
+
+Revision 3.2  2003/06/27 20:16:26  mast
+Added functions to get specific contour in object and to set object color,
+fixed problem with setting closed property, made sure mat bytes are all zeroed
+
+Revision 3.1  2003/02/21 22:22:02  mast
+Use new b3d types
+
+*/
