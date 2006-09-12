@@ -37,6 +37,7 @@ Log at end of file
 #include "xcramp.h"
 #include "xcorr.h"
 #include "imod_edit.h"
+#include "imod_model_edit.h"
 #include "imod_moviecon.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
@@ -46,7 +47,7 @@ Log at end of file
 /* internal functions. */
 static void sslice_cube_draw(SlicerStruct *ss);
 static void sslice_draw(SlicerStruct *ss);
-static void sslice_setxyz(SlicerStruct *ss, int x, int y);
+static int sslice_setxyz(SlicerStruct *ss, int x, int y);
 static float getZScaleBefore(SlicerStruct *ss);
 static void slice_trans_step(SlicerStruct *ss);
 static void slicer_attach_point(SlicerStruct *ss, int x, int y);
@@ -57,6 +58,7 @@ static void drawThickControls(SlicerStruct *ss);
 static void sslice_draw_model(SlicerStruct *ss);
 static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                               Ipoint *p1, Ipoint *p2, int axis);
+static int setAnglesFromContour(SlicerStruct *ss);
 static void slicerKey_cb(ImodView *vi, void *client, int released, 
 			 QKeyEvent *e);
 static double fixangle(double angle);
@@ -69,6 +71,8 @@ static void checkMovieLimits(SlicerStruct *ss);
 static void setMovieLimits(SlicerStruct *ss, int axis);
 static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
                           int *zmovie, int dir, int *axis);
+static void setForwardMatrix(SlicerStruct *ss);
+static void setInverseMatrix(SlicerStruct *ss);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -243,6 +247,7 @@ void slicerClosing(SlicerStruct *ss)
 int sslice_open(struct ViewInfo *vi)
 {
   SlicerStruct *ss;
+  int newZoom;
 
   ss = (SlicerStruct *)malloc(sizeof(SlicerStruct));
   if (!ss)
@@ -329,7 +334,21 @@ int sslice_open(struct ViewInfo *vi)
   QSize toolSize2 = ss->qtWindow->mToolBar2->sizeHint();
   int newWidth = toolSize1.width() > toolSize2.width() ?
     toolSize1.width() : toolSize2.width();
-  ss->qtWindow->resize( newWidth, newWidth);
+  int newHeight = newWidth + toolSize1.height() + toolSize2.height();
+  ss->qtWindow->resize( newWidth, newHeight);
+
+  // Adjust zoom to biggest one that fits image
+  if (vi->xsize < newWidth && vi->ysize < newWidth) {
+    ss->zoom = (2. * newWidth) / vi->xsize;
+    while ((ss->zoom * vi->xsize > 1.06 * newWidth || 
+           ss->zoom * vi->ysize > 1.06 * newWidth)) {
+      newZoom = b3dStepPixelZoom(ss->zoom, -1);
+      if (fabs(newZoom - ss->zoom) < 0.0001)
+        break;
+      ss->zoom = (float)newZoom;
+    }
+    ss->qtWindow->setZoomText(ss->zoom);
+  }
 
   ss->qtWindow->show();
 
@@ -402,6 +421,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   Ipoint *p1, *p2;
   int ob, co, pt, axis;
   Icont *cont;
+  Ipoint norm, vec = {0., 0., 0.};
 
   if (inputTestMetaKey(event))
     return;
@@ -501,6 +521,14 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     }
     break;
 
+  case Qt::Key_W:
+    if (shift) {
+      if (!setAnglesFromContour(ss))
+        docheck = 1;
+      dodraw = 0;
+    } else
+      handled = 0;
+
     /* DNM: add these to adjust last angle, now that input is properly
        passed to the window */
   case Qt::Key_Up:
@@ -520,20 +548,32 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     }
 
     // Non-keypad keys, only if locked, move without changing global point
+    // and move in tilted coordinates so that modeling will be one pixel apart
     if (!keypad) {
-      if (keysym == Qt::Key_Down && ss->cy >= 0.) 
-        ss->cy -= 1.;
-      if (keysym == Qt::Key_Left && ss->cx >= 0.)
-        ss->cx -= 1.;
-      if (keysym == Qt::Key_Right && ss->cx < ss->vi->xsize - 1)
-        ss->cx += 1.;
-      if (keysym == Qt::Key_Up && ss->cy < ss->vi->ysize - 1)
-        ss->cy += 1.;
-      if (keysym == Qt::Key_Prior && ss->cz < ss->vi->zsize - 1)
-        ss->cz += 1.;
-      if (keysym == Qt::Key_Next && ss->cz > 0.)
-        ss->cz -= 1.;
-      dodraw = 1;
+      if (keysym == Qt::Key_Down) 
+        vec.y = -1.;
+      if (keysym == Qt::Key_Left)
+        vec.x = -1.;
+      if (keysym == Qt::Key_Right)
+        vec.x = +1.;
+      if (keysym == Qt::Key_Up)
+        vec.y = +1.;
+      if (keysym == Qt::Key_Prior)
+        vec.z = +1.;
+      if (keysym == Qt::Key_Next)
+        vec.z = -1.;
+      setInverseMatrix(ss);
+      imodMatTransform3D(ss->mat, &vec, &norm);
+      if (ss->cx + norm.x >= 0 && ss->cx + norm.x <= ss->vi->xsize && 
+          ss->cy + norm.y >= 0 && ss->cy + norm.y <= ss->vi->ysize && 
+          ss->cz + norm.z >= 0 && ss->cz + norm.z <= ss->vi->zsize) {
+        ss->cx += norm.x;
+        ss->cy += norm.y;
+        ss->cz += norm.z;
+        /* printf("%.2f %.2f %.2f %.2f %.2f %.2f\n", ss->cx, ss->cy, ss->cz,
+           norm.x, norm.y, norm.z); */
+        dodraw = 1;
+      }
       break;
     }
 
@@ -610,6 +650,30 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
     slicer_modify_point(ss, event->x(), event->y());
 }
 
+void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
+{
+  int zmouse;
+  Ipoint cpt;
+  Icont *cont;
+  Imod *imod = ss->vi->imod;
+
+  if ((event->state() & ImodPrefs->actualButton(2)) && ss->locked &&
+      imod->mousemode == IMOD_MMODEL) {
+    zmouse = sslice_setxyz(ss, event->x(), event->y());
+    cpt.x = ss->vi->xmouse;
+    cpt.y = ss->vi->ymouse;
+    cpt.z = ss->vi->zmouse;
+    cont = imodContourGet(imod);
+    if (!cont && imod->cindex.point < 0)
+      return;
+    if (imodel_point_dist(&(cont->pts[imod->cindex.point]), &cpt) > 
+        scaleModelRes(imod->res, ss->zoom)) {
+      inputInsertPoint(ss->vi);
+      ss->vi->zmouse = zmouse;
+    }
+  }
+}
+
 static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 {
   Ipoint pnt;
@@ -623,7 +687,7 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
   float selsize = IMOD_SELSIZE / ss->zoom;
   int drawflag = IMOD_DRAW_XYZ;
 
-  sslice_setxyz(ss, x, y);
+  vi->zmouse = sslice_setxyz(ss, x, y);
   if (imod->mousemode == IMOD_MMODEL) {
     pnt.x = vi->xmouse;
     pnt.y = vi->ymouse;
@@ -662,18 +726,22 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 
 static void slicer_insert_point(SlicerStruct *ss, int x, int y)
 {
+  int zmouse;
   if (ss->vi->imod->mousemode == IMOD_MMODEL) {
-    sslice_setxyz(ss, x, y);
+    zmouse = sslice_setxyz(ss, x, y);
     inputInsertPoint(ss->vi);
+    ss->vi->zmouse = zmouse;
   } else
     startMovieCheckSnap(ss, 1);
 }
 
 static void slicer_modify_point(SlicerStruct *ss, int x, int y)
 {
+  int zmouse;
   if (ss->vi->imod->mousemode == IMOD_MMODEL) {
-    sslice_setxyz(ss, x, y);
+    zmouse = sslice_setxyz(ss, x, y);
     inputModifyPoint(ss->vi);
+    ss->vi->zmouse = zmouse;
   } else
     startMovieCheckSnap(ss, -1);
 }
@@ -831,12 +899,13 @@ static float getZScaleBefore(SlicerStruct *ss)
   return zs;
 }
 
-static void sslice_setxyz(SlicerStruct *ss, int x, int y)
+static int sslice_setxyz(SlicerStruct *ss, int x, int y)
 {
   float xoffset, yoffset;
   float xm, ym, zm;
   int zmouse;
   float zs;
+  Ipoint delpt, rotpt;
 
   /* DNM: the xzoom and yzoom are correct for all cases, and the zs
      needs to be applied only for the case of SCALE_BEFORE */
@@ -857,25 +926,25 @@ static void sslice_setxyz(SlicerStruct *ss, int x, int y)
   ym = ss->cy;
   zm = ss->cz;
 
-  xm -= (ss->xstep[b3dX] * xoffset) + (ss->ystep[b3dX] * yoffset);
-  ym -= (ss->xstep[b3dY] * xoffset) + (ss->ystep[b3dY] * yoffset);
-     
-  zm -= (ss->xstep[b3dZ] * xoffset * zs) + (ss->ystep[b3dZ] * yoffset * zs);
+  delpt.x = (ss->xstep[b3dX] * xoffset) + (ss->ystep[b3dX] * yoffset);
+  delpt.y = (ss->xstep[b3dY] * xoffset) + (ss->ystep[b3dY] * yoffset);
+  delpt.z = (ss->xstep[b3dZ] * xoffset * zs) + (ss->ystep[b3dZ] * yoffset *zs);
+  
+  /*
+  setForwardMatrix(ss);
+  imodMatTransform3D(ss->mat, &delpt, &rotpt);
+  printf("angles %.2f %.2f rotpt %f %f %f\n", ss->tang[b3dX], ss->tang[b3dY],
+         rotpt.x, rotpt.y, rotpt.z);
+  */
+  xm -= delpt.x;
+  ym -= delpt.y;
+  zm -= delpt.z;
 
-  if (xm < 0)
-    xm = 0;
-  if (xm >= ss->vi->xsize)
-    xm = ss->vi->xsize - 1;
-  if (ym < 0)
-    ym = 0;
-  if (ym >= ss->vi->ysize)
-    ym = ss->vi->ysize - 1;
-  if (zm < 0)
-    zm = 0;
-  if (zm >= ss->vi->zsize)
-    zm = ss->vi->zsize - 1;
+  xm = B3DMIN(ss->vi->xsize - 1, B3DMAX(0, xm));
+  ym = B3DMIN(ss->vi->ysize - 1, B3DMAX(0, ym));
+  zm = B3DMIN(ss->vi->xsize - 0.51, B3DMAX(-0.49, zm));
 
-  zmouse = (int)(floor((double)(zm + 0.5f)));
+  zmouse = (int)floor(zm + 0.5);
 
   /* Set up pending coordinates for next draw to use */
   ss->pendx = xm;
@@ -883,13 +952,15 @@ static void sslice_setxyz(SlicerStruct *ss, int x, int y)
   ss->pendz = zm;
   ss->pending = 1;
 
-  /* DNM: do this regardless of whether locked or not.  Also, set zmouse
-     to the integral value but keep pendz at a real value */
+  /* DNM: do this regardless of whether locked or not.  
+     9/8/06: changed from setting zmouse to the integral value to
+     setting it the real value but returning the integral value for the
+     call to set after point insertion/modification. */
   ss->vi->xmouse = xm; 
   ss->vi->ymouse = ym; 
-  ss->vi->zmouse = zmouse;
+  ss->vi->zmouse = zm;
   //imodPrintStderr("setxyz %f %f %f\n", xm, ym, zm);
-  return;
+  return zmouse;
 }
 
 
@@ -915,6 +986,23 @@ static double fixangle(double angle)
   return angle;
 }
 
+// Compose the forward transformation matrix with the current angles
+static void setForwardMatrix(SlicerStruct *ss)
+{
+  imodMatId(ss->mat);
+  imodMatRot(ss->mat, (double)ss->tang[b3dZ], b3dZ);
+  imodMatRot(ss->mat, (double)ss->tang[b3dY], b3dY);
+  imodMatRot(ss->mat, (double)ss->tang[b3dX], b3dX); 
+}
+
+// Compose the inverse transformation matrix with the current angles
+static void setInverseMatrix(SlicerStruct *ss)
+{
+  imodMatId(ss->mat);
+  imodMatRot(ss->mat, (double)(-ss->tang[b3dX]), b3dX); 
+  imodMatRot(ss->mat, (double)(-ss->tang[b3dY]), b3dY);
+  imodMatRot(ss->mat, (double)(-ss->tang[b3dZ]), b3dZ);
+}
 
 static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                               Ipoint *p1, Ipoint *p2, int axis)
@@ -983,6 +1071,80 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
   ss->qtWindow->setAngles(ss->tang);
 }
 
+/*
+ * Find the angles that make current contour flat and set center to its center
+ */
+static int setAnglesFromContour(SlicerStruct *ss)
+{
+  Icont *rcont;
+  Icont *cont = imodContourGet(ss->vi->imod);
+  Ipoint scale = {1., 1., 1.};
+  Ipoint n, a;
+  int pt;
+  float smallVal = 1.e-4;
+  double rpd = RADIANS_PER_DEGREE;
+  double beta, alpha, zrot;
+  double xsum, ysum, zsum;
+
+  scale.z = getZScaleBefore(ss);
+  if (!cont || !cont->psize)
+    return 1;
+  rcont = imodContourDup(cont);
+  if (!rcont) {
+    wprint("\aMemory error trying to copy contour.\n");
+    return 1;
+  }
+
+  // Rotate the points in the contour by the current Z so that the X and Y
+  // can be solved on top of the current Z
+  imodMatId(ss->mat);
+  imodMatRot(ss->mat, (double)(ss->tang[b3dZ]), b3dZ);
+  xsum = ysum = zsum = 0.;
+  for (pt = 0; pt < cont->psize; pt++) {
+    imodMatTransform3D(ss->mat, &cont->pts[pt], &rcont->pts[pt]);
+    xsum += cont->pts[pt].x;
+    ysum += cont->pts[pt].y;
+    zsum += cont->pts[pt].z;
+  }
+  if (imodContourMeanNormal(rcont, 10., 1., &scale, &n)) {
+    wprint("\aContour too small or too straight to find normal.\n");
+    imodContourDelete(rcont);
+    return 1;
+  }
+  if (n.z < 0.) {
+    n.x = -n.x;
+    n.y = -n.y;
+    n.z = -n.z;
+  }
+  imodContourDelete(rcont);
+
+  // Get angles and set them
+  beta = 0.;
+  if (fabs((double)n.x) > smallVal || fabs((double)n.z) > smallVal)
+    beta = -atan2((double)n.x, (double)n.z);
+  zrot = n.z * cos(beta) - n.x * sin(beta);
+  alpha = -(atan2(zrot, (double)n.y) - 1.570796);
+  ss->tang[b3dX] = alpha / rpd;
+  ss->tang[b3dY] = beta / rpd;
+  /* printf("norm %f %f %f  zrot %f alpha %.2f  beta %.2f\n", 
+     n.x, n.y, n.z, zrot, alpha/rpd, beta/rpd); */
+  ss->qtWindow->setAngles(ss->tang);
+
+  // Set the center point and mouse point using the floating Z value, do draw
+  // If you set zmouse integer, cz needs to be reset AND displays with Z scale
+  // alternate between between right and wrong when lock is off
+  ss->cx = B3DMAX(0., B3DMIN(xsum / cont->psize, ss->vi->xsize - 1));
+  ss->cy = B3DMAX(0., B3DMIN(ysum / cont->psize, ss->vi->ysize - 1));
+  ss->cz = B3DMAX(0., B3DMIN(zsum / cont->psize, ss->vi->zsize - 1));
+  ss->vi->xmouse = ss->cx;
+  ss->vi->ymouse = ss->cy;
+  ss->vi->zmouse = ss->cz;
+  imodDraw(ss->vi, IMOD_DRAW_XYZ);
+
+  return 0;
+}
+
+
 /* set up the step factors for a new slice angle. */
 static void slice_trans_step(SlicerStruct *ss)
 {
@@ -995,10 +1157,7 @@ static void slice_trans_step(SlicerStruct *ss)
 
   /* DNM: made the angles be negative to match angles applied to volume */
   
-  imodMatId(mat);
-  imodMatRot(mat, (double)(-ss->tang[b3dX]), b3dX); 
-  imodMatRot(mat, (double)(-ss->tang[b3dY]), b3dY);
-  imodMatRot(mat, (double)(-ss->tang[b3dZ]), b3dZ);
+  setInverseMatrix(ss);
 
   pnt.y = pnt.z = 0.0f;
   pnt.x = 1.0f;
@@ -1327,10 +1486,7 @@ static void fillImageArray(SlicerStruct *ss)
     /* Take fractional location of data point within a pixel and
        rotate in 3D to find location in display pixel */
 
-    imodMatId(mat);
-    imodMatRot(mat, (double)ss->tang[b3dZ], b3dZ);
-    imodMatRot(mat, (double)ss->tang[b3dY], b3dY);
-    imodMatRot(mat, (double)ss->tang[b3dX], b3dX); 
+    setForwardMatrix(ss);
 
     pnt.x = ss->cx - (int)ss->cx;
     pnt.y = ss->cy - (int)ss->cy;
@@ -2090,7 +2246,7 @@ void slicerCubePaint(SlicerStruct *ss)
   static float v[3], vx[3], vy[3];
   double x, y, z;
   double r;
-  float zs  = ss->vi->imod->zscale;
+  float zs  = 1;
   float zoom = 1.0/ss->zoom;
   int winx, winy;
   float xo, yo, zo;
@@ -2105,7 +2261,9 @@ void slicerCubePaint(SlicerStruct *ss)
   z = ss->vi->zsize;
 
   /* DNM: take window size * zoom as # of pixels displayed */
-  xo = ss->xo; yo = ss->yo, zo = ss->zo;
+  xo = ss->xo;
+  yo = ss->yo;
+  zo = ss->zo;
   winx = (int)(ss->winx * zoom);
   winy = (int)(ss->winy * zoom);
 
@@ -2219,6 +2377,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.30  2006/08/28 05:18:21  mast
+Do not average multiple slices for colormapped images
+
 Revision 4.29  2006/06/24 16:03:52  mast
 Added arguments to call of FFT routine
 
