@@ -50,6 +50,11 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.44  2006/07/28 19:58:50  sueh
+ * bug# 868 Changed AbstractParallelDialog.isParallel to
+ * usingParallelProcessing because isParallel is too similar to a standard get
+ * function.
+ *
  * Revision 3.43  2006/07/28 17:43:40  sueh
  * bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
  * it will show when it has not been set.  Deleting old versions of combine scripts
@@ -459,7 +464,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, appMgr,
         ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP);
-    pnlSolvematch.visibleResidual(false);
+   // pnlSolvematch.visibleResidual(false);
 
     //  Create the patch parmeters panel
     rbSmallPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -565,7 +570,8 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCombine.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE
+        .getButtonDimension());
 
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -601,7 +607,7 @@ public final class SetupCombinePanel implements ContextMenu,
   public Container getContainer() {
     return pnlRoot;
   }
-  
+
   void show() {
     pnlSolvematch.show();
   }
@@ -648,7 +654,7 @@ public final class SetupCombinePanel implements ContextMenu,
   public void setParallelEnabled(boolean parallelEnabled) {
     cbParallelProcess.setEnabled(parallelEnabled);
   }
-  
+
   public boolean usingParallelProcessing() {
     return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
   }
@@ -703,11 +709,18 @@ public final class SetupCombinePanel implements ContextMenu,
     return true;
   }
 
-  MatchMode getScreenMatchMode() {
+  public MatchMode getMatchMode() {
     if (rbBtoA.isSelected()) {
       return MatchMode.B_TO_A;
     }
     return MatchMode.A_TO_B;
+  }
+  
+  public void setMatchMode(MatchMode matchMode) {
+    if (matchMode == null) {
+      return;
+    }
+    setBtoA(matchMode);
   }
 
   void setVisible(boolean visible) {
@@ -734,13 +747,8 @@ public final class SetupCombinePanel implements ContextMenu,
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
-
-  /**
-   * Set the parameters of the panel using the combineParams object
-   * @param combineParams
-   */
-  public void setParameters(ConstCombineParams combineParams) {
-    MatchMode matchMode = combineParams.getMatchMode();
+  
+  private void setBtoA(MatchMode matchMode) {
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       rbBtoA.setSelected(true);
       matchBtoA = true;
@@ -749,7 +757,15 @@ public final class SetupCombinePanel implements ContextMenu,
       rbAtoB.setSelected(true);
       matchBtoA = false;
     }
+  }
 
+  /**
+   * Set the parameters of the panel using the combineParams object
+   * @param combineParams
+   */
+  public void setParameters(ConstCombineParams combineParams) {
+    MatchMode matchMode = combineParams.getMatchMode();
+    setBtoA(matchMode);
     pnlSolvematch.setParameters(combineParams);
 
     if (combineParams.getPatchSize() == CombinePatchSize.SMALL) {
