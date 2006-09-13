@@ -130,7 +130,7 @@ int main( int argc, char *argv[])
   int    mode = MINFO_STANDARD;
   int    hush = FALSE;
   FILE   *fin;
-  Imod   model;
+  Imod   *model;
   Iobj   *obj;
   Icont  *cont;
   int bins = 0;
@@ -271,8 +271,14 @@ int main( int argc, char *argv[])
               progname, argv[i]);
       exit(3);
     }
-    model.file = fin;
-    errcode = imodReadFile(&model);
+
+    model = imodNew();
+    if (!model) {
+      fprintf(stderr, "%s: Error allocating model structure\n", progname);
+      exit(3);
+    }
+    model->file = fin;
+    errcode = imodReadFile(model);
     if (errcode){
       fprintf(stderr, "%s: Error (%d) reading imod model. (%s)\n", 
               progname, errcode, argv[i]);
@@ -281,29 +287,29 @@ int main( int argc, char *argv[])
     }
 
     fprintf(fout, "# MODEL %s\n", argv[i]);
-    fprintf(fout, "# NAME  %s\n", model.name);
-    fprintf(fout, "# PIX SCALE:  x = %g\n", model.xscale);
-    fprintf(fout, "#             y = %g\n", model.yscale);
-    fprintf(fout, "#             z = %g\n", model.zscale);
-    fprintf(fout, "# PIX SIZE      = %g\n", model.pixsize);
+    fprintf(fout, "# NAME  %s\n", model->name);
+    fprintf(fout, "# PIX SCALE:  x = %g\n", model->xscale);
+    fprintf(fout, "#             y = %g\n", model->yscale);
+    fprintf(fout, "#             z = %g\n", model->zscale);
+    fprintf(fout, "# PIX SIZE      = %g\n", model->pixsize);
     fprintf(fout, "# UNITS: ");
           
-    print_units(model.units);
+    print_units(model->units);
 
-    if (model.refImage){
+    if (model->refImage){
       fprintf(fout, "\n# Model to Image index coords:\n");
       fprintf(fout, "#      SCALE  = ( %g, %g, %g)\n",
-              model.refImage->cscale.x, 
-              model.refImage->cscale.y,
-              model.refImage->cscale.z);
+              model->refImage->cscale.x, 
+              model->refImage->cscale.y,
+              model->refImage->cscale.z);
       fprintf(fout, "#      OFFSET = ( %g, %g, %g)\n",
-              model.refImage->ctrans.x, 
-              model.refImage->ctrans.y,
-              model.refImage->ctrans.z);
+              model->refImage->ctrans.x, 
+              model->refImage->ctrans.y,
+              model->refImage->ctrans.z);
       fprintf(fout, "#      ANGLES = ( %g, %g, %g)\n",
-              model.refImage->crot.x, 
-              model.refImage->crot.y,
-              model.refImage->crot.z);
+              model->refImage->crot.x, 
+              model->refImage->crot.y,
+              model->refImage->crot.z);
 
     }
 
@@ -315,8 +321,8 @@ int main( int argc, char *argv[])
 
     case MINFO_ASCII:
       /* DNM 12/7/04: fixed to just assign fout to file */
-      model.file = fout;
-      imodWriteAscii(&model);
+      model->file = fout;
+      imodWriteAscii(model);
       break;
 
     case MINFO_SPECIAL:
@@ -324,40 +330,40 @@ int main( int argc, char *argv[])
         fclose(fin);
         fin = NULL;
       }
-      imodinfo_special(&model, argv[i]);
+      imodinfo_special(model, argv[i]);
       break;
 
     case MINFO_STANDARD:
-      imodinfo_print_model(&model, verbose, scaninside, subarea,
+      imodinfo_print_model(model, verbose, scaninside, subarea,
                            ptmin, ptmax, useclip);
       break;
 
     case MINFO_SURFACE:
-      imodinfo_surface(&model, scaninside, ptmin, ptmax, useclip);
+      imodinfo_surface(model, scaninside, ptmin, ptmax, useclip);
       break;
 
     case MINFO_POINTS:
-      imodinfo_points(&model, subarea, ptmin, ptmax, useclip, verbose);
+      imodinfo_points(model, subarea, ptmin, ptmax, useclip, verbose);
       break;
 
     case MINFO_RATIOS:
-      imodinfo_ratios(&model);
+      imodinfo_ratios(model);
       break;
 
     case MINFO_CHART:
-      imodinfo_object(&model, scaninside, subarea, ptmin, ptmax, useclip);
+      imodinfo_object(model, scaninside, subarea, ptmin, ptmax, useclip);
       break;
     case MINFO_DIST:
-      imodinfo_objndist(&model, bins);
+      imodinfo_objndist(model, bins);
       break;
     case MINFO_LENGTH:
-      imodinfo_length(&model);
+      imodinfo_length(model);
       break;
     case MINFO_OBJECT:
       for (ob = 0; ob < nlist; ob++) {
         if (ob)
           fprintf(fout, "\n");
-        imodinfo_full_object_report(&model, list[ob], scaninside, subarea,
+        imodinfo_full_object_report(model, list[ob], scaninside, subarea,
                            ptmin, ptmax, useclip);
       }
       break;
@@ -367,6 +373,7 @@ int main( int argc, char *argv[])
     if (fin)
       fclose(fin);
     fprintf(fout, "\n\n\n\n");
+    imodDelete(model);
   }
   exit(0);
 }
@@ -2208,6 +2215,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 
 /*
 $Log$
+Revision 3.16  2006/06/26 14:48:49  mast
+Added b3dutil include for parselist
+
 Revision 3.15  2005/09/11 19:22:11  mast
 Changes for new style of mesh
 
