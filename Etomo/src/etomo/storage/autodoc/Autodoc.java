@@ -94,6 +94,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   public static final String CPU = "cpu";
   public static final String UITEST_AXIS = "uitest_axis";
   public static final String DENS_MATCH = "densmatch";
+  public static final String CORR_SEARCH_3D = "corrsearch3d";
 
   private static Autodoc TILTXCORR_INSTANCE = null;
   private static Autodoc TEST_INSTANCE = null;
@@ -106,6 +107,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private static Autodoc BEADTRACK_INSTANCE = null;
   private static Autodoc CPU_INSTANCE = null;
   private static Autodoc DENS_MATCH_INSTANCE = null;
+  private static Autodoc CORR_SEARCH_3D_INSTANCE = null;
 
   private static HashMap UITEST_AXIS_MAP = null;
 
@@ -231,6 +233,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     else if (name.equals(DENS_MATCH)) {
       DENS_MATCH_INSTANCE = null;
     }
+    else if (name.equals(CORR_SEARCH_3D)) {
+      CORR_SEARCH_3D_INSTANCE = null;
+    }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
@@ -287,6 +292,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     if (name.equals(DENS_MATCH)) {
       return DENS_MATCH_INSTANCE;
+    }
+    if (name.equals(CORR_SEARCH_3D)) {
+      return CORR_SEARCH_3D_INSTANCE;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
@@ -653,6 +661,10 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.6  2006/07/21 22:11:32  sueh
+ *<p> $bug# 901 Getting the calibration directory environment variable name from
+ *<p> $EnvironmentVariable.
+ *<p> $
  *<p> $Revision 1.5  2006/06/14 21:19:54  sueh
  *<p> $bug# 852 Added isAttribute().
  *<p> $
