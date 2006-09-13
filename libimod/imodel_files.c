@@ -1056,7 +1056,7 @@ static int imodel_read_meshskip(Iobj *obj, FILE *fin)
   obj->meshParam->capSkipZlist = (b3dInt32 *)malloc(size * sizeof(b3dInt32));
   if (!obj->meshParam->capSkipZlist)
     return IMOD_ERROR_MEMORY;
-  imodGetInts(fin, &obj->meshParam->capSkipZlist, size);
+  imodGetInts(fin, obj->meshParam->capSkipZlist, size);
   if ((error = ferror(fin)))
     return(error);
   return 0;
@@ -1651,6 +1651,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.25  2006/09/13 02:43:30  mast
+  Stopped calling imodDefault twice when reading a model
+
   Revision 3.24  2006/09/12 15:22:39  mast
   Added mesh parameters
 
