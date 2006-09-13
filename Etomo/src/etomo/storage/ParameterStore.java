@@ -16,6 +16,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2006/06/05 18:05:20  sueh
+ * <p> bug# 766 Added save(Storable), to save a single Storable without overwriting the
+ * <p> other Storables in the data file.
+ * <p>
  * <p> Revision 3.1  2005/09/12 23:58:38  sueh
  * <p> bug# 532 Added save() to save a Storable class without overwriting
  * <p> preference entries from other Storable classes.  Added load(Storable) to
@@ -50,6 +54,9 @@ public class ParameterStore {
   }
 
   public void save(Storable storable) throws IOException {
+    if (paramFile == null) {
+      return;
+    }
     //get the existing property values from paramFile
     FileInputStream inFile = new FileInputStream(paramFile);
     Properties props = new Properties();
