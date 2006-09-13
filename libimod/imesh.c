@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2006/09/12 19:00:54  mast
+Fixed variable declaration after statement
+
 Revision 3.4  2006/09/12 15:25:13  mast
 Added mesh parameter functions and handled member renames
 
@@ -511,7 +514,7 @@ void imeshParamsDefault(MeshParams *params)
   params->tubeDiameter = 10.;
   params->tolLowRes = 2.0;
   params->tolHighRes = 0.25;
-  params->flatCrit = 1.;
+  params->flatCrit = 1.5;
   params->spareInt = 0.;
   params->spareFloat = 0.;
   params->capSkipZlist = NULL;
@@ -563,13 +566,13 @@ void imeshParamsDelete(MeshParams *params)
 int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
 {
   int i;
-  *nto = 0;
   if (*lto && *nto) {
     free(*lto);
   }
+  *nto = 0;
   if (lfrom) {
-    *lto = (b3dInt32 *)malloc((nfrom + 3) * sizeof(b3dInt16));
-    if (!*lto) {
+    *lto = (b3dInt32 *)malloc((nfrom + 3) * sizeof(b3dInt32));
+    if (!(*lto)) {
       b3dError(stderr, "Error getting memory to copy cap exclusion list");
       return 1;
     }
