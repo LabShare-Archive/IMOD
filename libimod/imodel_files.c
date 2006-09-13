@@ -139,6 +139,8 @@ int imodCloseFile(Imod *imod)
 
 /*!
  * Reads model from file pointer in imod->file and places model in [imod].
+ * The model should be set to default settings before calling, either by 
+ * allocating with imodNew or by calling imodDefault.
  * Returns -1 for error.
  */
 int imodReadFile(Imod *imod)
@@ -154,7 +156,6 @@ int imodReadFile(Imod *imod)
     return(-1);
   fp = imod->file;
 
-  imodDefault(imod);
   imod->file = fp;
   rewind(imod->file);
 
@@ -1650,6 +1651,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.24  2006/09/12 15:22:39  mast
+  Added mesh parameters
+
   Revision 3.23  2006/08/31 21:11:29  mast
   Changed mat1 and mt3 to real names
 
