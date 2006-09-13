@@ -1360,7 +1360,7 @@ static void fillImageArray(SlicerStruct *ss)
   float a, b, c, d, e, f;
   float ival;
   int pxi, nxi, pyi, nyi, pzi, nzi;
-  float maxval = 255.0f, minval = 0.0f;
+  int maxval = 255, minval = 0;
   float xzoom, yzoom, zzoom;
   float x, y, z; /* coords of pixel in 3-D image block. */
   unsigned char val, noDataVal = 0;
@@ -2379,6 +2379,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.32  2006/09/13 05:36:41  mast
+Fixed drag drawing when highly tilted by using 3D distance
+
 Revision 4.31  2006/09/12 15:39:50  mast
 Improved locked modeling and added hot key to realign to contour
 
