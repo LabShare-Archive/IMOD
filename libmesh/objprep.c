@@ -403,6 +403,8 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
     if (useObj != obj) {
       /* printf("Old %d  New %d  contsize %d\n", obj->meshsize, 
          useObj->meshsize, useObj->contsize); */
+      if (obj->meshsize)
+        imodMeshesDelete(obj->mesh, obj->meshsize);
       obj->mesh = useObj->mesh;
       obj->meshsize = useObj->meshsize;
       useObj->mesh = NULL;
@@ -428,7 +430,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
     cen.z = 0.;
     for (co = 0; co < obj->contsize; co++) {
       cont = &obj->cont[co];
-      if (cont->surf == surf) {
+      if (cont->surf == surf && cont->psize) {
         volsum += volume[co];
         cen.x += volume[co] * (bbmin[co].x + bbmax[co].x) / 2.;
         cen.y += volume[co] * (bbmin[co].y + bbmax[co].y) / 2.;
@@ -454,7 +456,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
     normsum.x = normsum.y = normsum.z = 0.;
     for (co = 0; co < obj->contsize; co++) {
       cont = &obj->cont[co];
-      if (cont->surf == surf && volume[co] >= volmed && cont->psize > 2) {
+      if (cont->surf == surf && cont->psize > 2 && volume[co] >= volmed) {
         if (!imodContourMeanNormal(cont, 10, 1., scale, &cnorm)) {
 
           /* Invert the normal if it does not match the reference */
@@ -642,6 +644,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
 
       obj->mesh = imodel_mesh_add(mesh, obj->mesh, &obj->meshsize);
       if (!obj->mesh) {
+        free(useObj->mesh);
         useObj->mesh = NULL;
         useObj->meshsize = 0;
         cleanPrepArrays(bbmin, bbmax, volume, volsort, mat, inv, useObj);
@@ -651,6 +654,9 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
     }
     imodMatDelete(inv);
     inv = NULL;
+
+    if (useObj->meshsize)
+      free(useObj->mesh);
     useObj->mesh = NULL;
     useObj->meshsize = 0;
     imodObjectDelete(useObj);
@@ -695,5 +701,8 @@ static int floatcmp(const void *v1, const void *v2)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.1  2006/09/12 14:58:19  mast
+Split up and made into new library
+
 
 */
