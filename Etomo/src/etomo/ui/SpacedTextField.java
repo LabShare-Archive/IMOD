@@ -11,6 +11,7 @@ import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
@@ -77,6 +78,10 @@ final class SpacedTextField {
     return fieldPanel;
   }
   
+  void setText(ConstEtomoNumber number) {
+    textField.setText(number.toString());
+  }
+  
   final void setText(String text) {
     textField.setText(text);
   }
@@ -128,6 +133,9 @@ final class SpacedTextField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/04/25 19:21:25  sueh
+* <p> bug# 787 Named the text field.
+* <p>
 * <p> Revision 1.1  2005/07/06 23:50:12  sueh
 * <p> bug# 437 Class to encapsulate rigid areas within a labeled text field.
 * <p> Uses two panels to hold the label, text field, and x and y rigid areas.
