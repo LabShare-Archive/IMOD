@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2006/06/06 22:33:39  mast
+#  Needed to strip control chars before /p
+#
 #  Revision 3.6  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
@@ -80,7 +83,8 @@ endif
 set numpieces = `sed -n -e '/[[:cntrl:]]/s///g' -e '/^.*COMBINING PIECE *1 *of /s///p' $comname`
 @ numpieces = $numpieces
 
-set optionline = `grep 'set *combinefft_.*=' $comname`
+set optionline = `grep 'set *combinefft_red.*=' $comname`
+set optionline2 = `grep 'set *combinefft_low.*=' $comname`
 
 set usingtmp = `grep '\/usr\/tmp' $comname`
 if ("$usingtmp" != "") then
@@ -129,6 +133,7 @@ EOF
     endif
     
     if ("$optionline" != "") echo $optionline >> $thiscom
+    if ("$optionline2" != "") echo $optionline2 >> $thiscom
     @ nextnum = $num + 1
     set tmpname = $rootname.tmp.$$
     if ($num < $numpieces) then
