@@ -146,7 +146,7 @@ ObjectEditField objectEditFieldData[]    = {
   {"Clip",       mkClip_cb,      setClip_cb,      NULL,       NULL},
   {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
   {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
-  {"Remesh",     mkMakeMesh_cb,  setMakeMesh_cb,  NULL,       NULL},
+  {"Meshing",    mkMakeMesh_cb,  setMakeMesh_cb,  NULL,       NULL},
 
   {NULL, NULL, NULL, NULL, NULL},
 };
@@ -2366,6 +2366,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.26  2006/09/13 05:37:15  mast
+Fixed setting of nowarn flag on duplicate object for meshing
+
 Revision 4.25  2006/09/12 15:48:20  mast
 Added panel to run meshing
 
