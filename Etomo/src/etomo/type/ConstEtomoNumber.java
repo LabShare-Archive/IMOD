@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2006/08/29 20:04:53  sueh
+ * <p> bug# 924 Added static store for storing optional member variables.
+ * <p>
  * <p> Revision 1.39  2006/07/19 15:22:44  sueh
  * <p> bug# 903 Added get(int) and get(ConstEtomoNumber).
  * <p>
@@ -939,6 +942,11 @@ public abstract class ConstEtomoNumber implements Storable {
     validateReturnTypeLong();
     return getValue().longValue();
   }
+  
+  public float getFloat() {
+    validateReturnTypeFloat();
+    return getValue().floatValue();
+  }
 
   public double getDouble() {
     validateReturnTypeDouble();
@@ -1355,6 +1363,13 @@ public abstract class ConstEtomoNumber implements Storable {
     if (type != INTEGER_TYPE && type != LONG_TYPE) {
       throw new IllegalStateException(
           "Cannot place a float or double into a long.");
+    }
+  }
+  
+  private void validateReturnTypeFloat() {
+    if (type != INTEGER_TYPE && type != FLOAT_TYPE) {
+      throw new IllegalStateException(
+          "Cannot place a long or double into a float.");
     }
   }
 
