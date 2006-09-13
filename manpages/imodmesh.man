@@ -134,7 +134,40 @@ overlap, give them different connection numbers.  If only one of a pair of
 contours has a connection number it will be ignored when deciding whether to
 join them.
 
+.SS Tilted contours
+The program's meshing routines assume that contours
+are flat in the X/Y plane and located at integer steps in Z.  However,
+it will first analyze the contours of an object to find out if they
+deviate from flatness.  If they do, it will find an average orientation of
+the contours in each surface and rotate the contours into the X/Y plane.
+It then meshes the rotated contours and rotates the mesh back to the
+original orientation to fit the contours.  In order for this to work,
+two rules must be followed.  First, all the contours in a surface must
+have very nearly the same orientation.  An object can have contours in
+different orientations as long as they are assigned to different surfaces.
+Second, the average spacing between contours must be at least one pixel in
+the direction perpendicular to the plane of the contours.
+This spacing will be maintained when you model in the slicer window with the
+Lock button on and step between slices with the PageUp and PageDown keys. 
+
+.SS Stored parameters
+All of the parameters used to mesh an object are stored in the object.
+Most of these stored values are presented in the Remesh panel of the 3dmod
+Model View Object Edit window, where they can be modified and used to remesh
+the object.  By default, the stored parameters will be ignored and replaced
+when you mesh with Imodmesh.  However, with the
+.B -u
+option, you can use the stored parameters instead of having to enter the
+options specifying them.  When you do use stored parameters, any 
+option entries that you make will override specific stored values.
+In addition,
+a set of "-no" options are available for turning off options selected in the
+stored parameters.
+
 .SS Options
+.TP
+.B -u
+Use parameters stored in each object to set options for meshing.
 .TP
 .B -c
 This option will cap off the ends of objects at their extreme limits in Z.
@@ -242,21 +275,11 @@ computation to take an order of magnitude more time.
 .B -o <list of object #'s>
 Do operations only on objects in the list of numbers.  The list can consist
 of comma-separated ranges (e.g., 1,7-11,13-17,19).
-If this option isn't given all objects are scanned for skinning.
-.TP
-.B -r <value>
-Resolution factor given in pixels.  If this option is
-given, contour data is resampled at a lower pixel
-resolution by removing any point that is within the given distance of both of
-its two neighbors.  This can decrease the size of the
-mesh data leading to faster rendering times, but the 
-.B -R
-option will give more accurate point removal.  The default
-value is 0 which turns this option off.
+Without this option, all objects are scanned for skinning.
 .TP
 .B -R <value>
-Tolerance value given in pixels.  With this option, the number of points is
-reduced by removing ones which are less than a certain
+Tolerance value for point reduction, given in pixels.  With this option, the
+number of points is reduced by removing ones which are less than a certain
 distance from the remaining line segments.  This will remove points
 selectively from relatively straight segments and not from tight corners.
 A tolerance value of about 0.25 can substantially reduce the number of points
@@ -293,6 +316,14 @@ options, relatively large default values are used to generate a coarse mesh.
 The low resolution mesh can be toggled on and off in the 3dmod Model View
 window with the View-Low Res menu entry or the "R" hot key.
 .TP
+.B -F <value>
+This option sets the criterion Z difference for deciding whether
+contours are flat enough to mesh without rotating.
+If the value is nonzero, the program will determine the maximum Z extent of
+all contours in the object.  If the Z difference is greater than the
+criterion, it will mesh each surface separately after finding the best
+rotation angles for it.  The default value is 1.5.
+.TP
 .B -a
 Append the mesh data to objects, replacing only the existing mesh in the
 given range instead of replacing the entire mesh.  This option would be used
@@ -311,6 +342,40 @@ option.
 .B -Z <scale>
 A scaling multiplier applied to the z values of normals.  The
 default value is 1.0.
+.TP
+.B -noc
+.PD 0
+.TP
+.B -noC
+.TP
+.B -nos
+.TP
+.B -noS
+.TP
+.B -noI
+.TP
+.B -nof
+.TP
+.B -noE
+.TP
+.B -noT
+.PD
+Turn off the corresponding option when using stored parameters.
+.TP
+.B -noD
+Remove any restrictions on Z values to cap to when using stored parameters.
+.TP
+.B -not
+Do not mesh open objects as tubes when using stored parameters.
+.TP
+.B -nox
+.PD 0
+.TP
+.B -noy
+.TP
+.B -noz
+.PD
+Remove any limits on X, Y, or Z coordinates when using stored parameters.
 .TP
 .B -B
 Make mesh output backward-compatible to IMOD before 3.6.14 if possible.  
