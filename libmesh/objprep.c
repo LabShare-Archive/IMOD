@@ -370,8 +370,10 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
         maxsurf = B3DMAX(maxsurf, cont->surf);
         imodContourGetBBox(cont, &bbmin[co], &bbmax[co]);
         maxZdiff = B3DMAX(maxZdiff, bbmax[co].z - bbmin[co].z);
-        volume[co] = (bbmax[co].x - bbmin[co].x) * (bbmax[co].y - bbmin[co].y)
-          * (bbmax[co].z - bbmin[co].z);
+
+        /* Add a little thickness to the differences to avoid zero volumes */
+        volume[co] = (bbmax[co].x + 1 - bbmin[co].x) * 
+          (bbmax[co].y + 1 - bbmin[co].y) * (bbmax[co].z + 1 - bbmin[co].z);
         /* printf("co %d volume %f  maxz %f\n", co, volume[co], maxZdiff); */
       }
     }
@@ -488,8 +490,8 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
         beta = -atan2((double)cnorm.x, (double)cnorm.z);
       zrot = cnorm.z * cos(beta) - cnorm.x * sin(beta);
       alpha = -(atan2(zrot, cnorm.y) - 1.570796);
-      /*printf("cnorm %f %f %f  zrot %f alpha %.2f  beta %.2f\n", 
-        cnorm.x, cnorm.y, cnorm.z, zrot, alpha/dtor, beta/dtor);*/
+      /* printf("cnorm %f %f %f  zrot %f alpha %.2f  beta %.2f\n", 
+         cnorm.x, cnorm.y, cnorm.z, zrot, alpha/dtor, beta/dtor); */
     }
 
     /* Figure out how much the normals between planes are being compressed by
@@ -517,8 +519,8 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
        to change to accommodate */
     sclinv.z /= refNorm.z;;
     sclSkin.z *= refNorm.z;
-    /*printf("transformed normal %f %f %f  Z factor %f\n", refNorm.x,
-      refNorm.y, refNorm.z, zfactor); */
+    /* printf("transformed normal %f %f %f  Z factor %f\n", refNorm.x,
+       refNorm.y, refNorm.z, zfactor); */
 
     /* Compose the transformation */
     ceninv.x = -cen.x;
@@ -563,8 +565,8 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
       return 1;
     }
 
-    /*for (co = 0; co < useObj->contsize; co++)
-      printf("%d %.2f\n", co, useObj->cont[co].pts[0].z); */
+    /* for (co = 0; co < useObj->contsize; co++)
+       printf("%d %.2f\n", co, useObj->cont[co].pts[0].z); */
     
     /* Evaluate whether a Z offset is needed to keep contours from rounding
        to inappropriate Z values */
@@ -701,6 +703,9 @@ static int floatcmp(const void *v1, const void *v2)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.2  2006/09/13 02:40:20  mast
+FIxed a memory leak
+
 Revision 1.1  2006/09/12 14:58:19  mast
 Split up and made into new library
 
