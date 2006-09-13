@@ -18,7 +18,7 @@ if ($no_xlibs == false) then
 endif
 
 set fcompFlags = ""
-set fcmpldFlag = ""
+set fcmpldFlags = ""
 
 if ($compiler == intel) then
     set c_includes =  '-I"$(QTDIR)\include"'
@@ -130,6 +130,7 @@ if ($compiler == intel) then
             echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
             echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libimod.lib ../buildlib/libtiff.lib'   >> $configure
             echo 'LIBIMODDEF = /def:libimod.def'     >> $configure
+            echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libimod.lib'     >> $configure
             echo 'LIBIMDEF = /def:libim.def ../../buildlib/libifft.lib ../../buildlib/libimod.lib'  >> $configure
             echo 'LIBHVEMDEF = /def:libhvem.def libim.lib ../../buildlib/libimod.lib'  >> $configure
             echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
@@ -175,6 +176,7 @@ if ($compiler == intel) then
     echo "CLIBS   = " >> $configure
     set limod = libimod.lib
     set liimod = libiimod.lib
+    set limesh = libimesh.lib
     set lifft = libifft.lib
     set ltiff = libtiff.lib
     set imsubsobj = '*.obj'
@@ -270,7 +272,7 @@ echo CONFIG += CONSOLE >! $sourcedoc_qconf
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
+LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
 RC_FILE = 3dmod.rc
