@@ -19,6 +19,7 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSqueezevolParam;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.ExtractmagradParam;
@@ -31,6 +32,7 @@ import etomo.comscript.MatchshiftsParam;
 import etomo.comscript.MatchvolParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.SolvematchParam;
@@ -164,6 +166,7 @@ public final class ApplicationManager extends BaseManager {
   ApplicationManager(String paramFileName, AxisID axisID) {
     super();
     this.metaData = new MetaData(this);
+    createState();
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
@@ -2753,7 +2756,7 @@ public final class ApplicationManager extends BaseManager {
    * Run the sample com script
    */
   public ProcessResult createSample(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, TiltParam tiltParam) {
+      ProcessResultDisplay processResultDisplay, ConstTiltParam tiltParam) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -2958,6 +2961,23 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.startProgressBar("Finding sample position", axisID);
     setThreadName(threadName, axisID);
     return null;
+  }
+
+  /**
+   * post processing after a successful process
+   * @param axisID
+   * @param processName
+   * @param processDetails
+   */
+  public void postProcess(AxisID axisID, ProcessName processName,
+      ProcessDetails processDetails) {
+    //Currently, only create whole tomogram sample has a processDetail object.
+    if (processDetails == null
+        || (processName != ProcessName.TILT && processName != ProcessName.SAMPLE)) {
+      return;
+    }
+    ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
+        axisID)).postProcess(processDetails, state);
   }
 
   public void setTomopitchOutput(AxisID axisID) {
@@ -3924,7 +3944,7 @@ public final class ApplicationManager extends BaseManager {
     }
     return true;
   }
-  
+
   /**
    * Update the matchvol1 com file from the tomogramCombinationDialog
    * @return true if successful, false if not
@@ -3973,15 +3993,14 @@ public final class ApplicationManager extends BaseManager {
     comScriptMgr.saveSolvematch(solvematchParam);
     tomogramCombinationDialog.setSolvematchParams(solvematchParam);
   }
-  
+
   /**
    * load the matchvol1 com script into the tomogram combination dialog
    *
    */
   private void loadMatchvol1() {
     comScriptMgr.loadMatchvol1();
-    tomogramCombinationDialog.setParameters(comScriptMgr
-        .getMatchvolParam());
+    tomogramCombinationDialog.setParameters(comScriptMgr.getMatchvolParam());
   }
 
   /**
@@ -5347,6 +5366,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.264  2006/09/05 17:33:07  sueh
+ * <p> bug# 917 Added loadMatchvol1 and updateMatchvol1Com
+ * <p>
  * <p> Revision 3.263  2006/08/30 16:48:52  sueh
  * <p> bug# 922 Fix null pointer error in updateDialog()
  * <p>
