@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
 
 /**
 * <p>Description: </p>
@@ -16,6 +17,9 @@ import etomo.type.FiducialMatch;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.5  2006/05/16 21:35:41  sueh
+* <p> $bug# 856 Added useCorrespondingPoints and useList.
+* <p> $
 * <p> $Revision 1.4  2006/03/16 01:55:45  sueh
 * <p> $bug# 828 Added isEnabled().
 * <p> $
@@ -47,4 +51,6 @@ interface InitialCombineFields {
   public void setUseCorrespondingPoints(boolean use);
   public void setUseList(String useList);
   public String getUseList();
+  public MatchMode getMatchMode();
+  public void setMatchMode(MatchMode matchMode);
 }
