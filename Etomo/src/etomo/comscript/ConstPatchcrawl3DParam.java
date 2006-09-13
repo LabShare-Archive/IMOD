@@ -17,6 +17,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2006/08/29 20:02:59  sueh
+ * <p> bug# 924 Added kernelSigma.
+ * <p>
  * <p> Revision 3.2  2006/08/25 22:49:43  sueh
  * <p> bug# 918 Convert to PIP
  * <p>
@@ -41,6 +44,10 @@ public class ConstPatchcrawl3DParam {
   protected static final String B_SOURCE_OR_SIZE_XYZ_KEY = "BSourceOrSizeXYZ";
   protected static final String REGION_MODEL_KEY = "RegionModel";
   public static final String KERNEL_SIGMA_KEY = "KernelSigma";
+  public static final String INITIAL_SHIFT_XYZ_KEY = "InitialShiftXYZ";
+  protected static final int X_INDEX = 0;
+  protected static final int Y_INDEX = 1;
+  protected static final int Z_INDEX = 2;
 
   protected final FortranInputString patchSizeXYZ = new FortranInputString(
       "PatchSizeXYZ", 3);
@@ -56,6 +63,8 @@ public class ConstPatchcrawl3DParam {
       "BSourceBorderXLoHi", 2);
   protected final FortranInputString bSourceBorderYZLoHi = new FortranInputString(
       "BSourceBorderYZLoHi", 2);
+  protected final FortranInputString initialShiftXYZ = new FortranInputString(
+      INITIAL_SHIFT_XYZ_KEY, 3);
   protected final ScriptParameter kernelSigma = new ScriptParameter(
       EtomoNumber.FLOAT_TYPE, KERNEL_SIGMA_KEY);
 
@@ -91,6 +100,7 @@ public class ConstPatchcrawl3DParam {
     bSourceOrSizeXYZ = null;
     bSourceBorderXLoHi.reset();
     regionModel = null;
+    initialShiftXYZ.setDefault();//optional parameter
     kernelSigma.reset();
   }
 
@@ -102,42 +112,42 @@ public class ConstPatchcrawl3DParam {
    * @return int
    */
   public int getXPatchSize() {
-    return patchSizeXYZ.getInt(0);
+    return patchSizeXYZ.getInt(X_INDEX);
   }
 
   /**
    * @return int
    */
   public int getYPatchSize() {
-    return patchSizeXYZ.getInt(1);
+    return patchSizeXYZ.getInt(Y_INDEX);
   }
 
   /**
    * @return int
    */
   public int getZPatchSize() {
-    return patchSizeXYZ.getInt(2);
+    return patchSizeXYZ.getInt(Z_INDEX);
   }
 
   /**
    * @return int
    */
   public int getNX() {
-    return numberOfPatchesXYZ.getInt(0);
+    return numberOfPatchesXYZ.getInt(X_INDEX);
   }
 
   /**
    * @return int
    */
   public int getNY() {
-    return numberOfPatchesXYZ.getInt(1);
+    return numberOfPatchesXYZ.getInt(Y_INDEX);
   }
 
   /**
    * @return int
    */
   public int getNZ() {
-    return numberOfPatchesXYZ.getInt(2);
+    return numberOfPatchesXYZ.getInt(Z_INDEX);
   }
 
   /**
@@ -180,6 +190,18 @@ public class ConstPatchcrawl3DParam {
    */
   public int getZHigh() {
     return zMinAndMax.getInt(1);
+  }
+
+  public String getInitialShiftX() {
+    return initialShiftXYZ.toString(X_INDEX);
+  }
+
+  public String getInitialShiftY() {
+    return initialShiftXYZ.toString(Y_INDEX);
+  }
+
+  public String getInitialShiftZ() {
+    return initialShiftXYZ.toString(Z_INDEX);
   }
 
   public boolean isKernelSigmaActive() {
