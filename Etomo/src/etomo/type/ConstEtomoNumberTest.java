@@ -405,6 +405,20 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
+  public void testSetDisplayValue_double() {
+    double testValue = 1;
+    EtomoNumber test = new EtomoNumber();
+    test.setDisplayValue(testValue);
+    assertTrue(testValue == test.getDisplayInteger());
+    assertTrue(testValue == test.getDouble());
+    assertTrue(String.valueOf(testValue).equals(test.toString()));
+    assertTrue(testValue == test.getDouble());
+    assertTrue(testValue == test.getLong());
+    assertTrue(testValue == test.getNumber().doubleValue());
+    assertTrue(testValue == test.getValue().doubleValue());
+    test.internalTest();
+  }
+
   //TODO
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
@@ -1202,15 +1216,26 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   //TODO
-  public final void testEquals_Number_Number() {
+  public void testEquals_Number_Number() {
   }
 
   //TODO
-  public final void testEquals_Number_int() {
+  public void testEquals_Number_int() {
+  }
+  
+  //TODO
+  public void testGetFloat() {
+  }
+  
+  //TODO
+  public void testValidateReturnTypeFloat() {
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2006/09/05 17:36:55  sueh
+ * <p> bug# 692 Added setDisplayValue_Number
+ * <p>
  * <p> Revision 1.34  2006/08/30 19:07:25  sueh
  * <p> bug# 692 Add testSetDisplayValue_boolean
  * <p>
