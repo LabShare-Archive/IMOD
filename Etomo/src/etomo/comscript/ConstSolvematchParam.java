@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2006/05/16 21:25:39  sueh
+ * <p> bug# 856 Added a and bFiducialModel, usePoints, and transferCoordinateFile.
+ * <p> Using matchBToA to add the atob parameter to the script.
+ * <p>
  * <p> Revision 3.3  2005/02/23 01:39:37  sueh
  * <p> bug# 600 Making solvematch radio button options public static final ints.
  * <p>
@@ -25,7 +29,10 @@
  */
 package etomo.comscript;
 
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
+import etomo.type.ScriptParameter;
 
 // Implementation note: this is not derived from either ConstSolvematchmodParam
 // ConstSolvematchshiftParam because that old functionality should be able to be
@@ -53,6 +60,7 @@ public class ConstSolvematchParam {
   public static final String A_FIDUCIAL_MODEL = "AFiducialModel";
   public static final String B_FIDUCIAL_MODEL = "BFiducialModel";
   public static final String USE_POINTS = "UsePoints";
+  public static final String CENTER_SHIFT_LIMIT_KEY = "CenterShiftLimit";
   
   public static final int USE_MODEL_ONLY_OPTION = -2;
   public static final int ONE_SIDE_INVERTED_OPTION = -1;
@@ -79,7 +87,8 @@ public class ConstSolvematchParam {
   protected String aFiducialModel = null;
   protected String bFiducialModel = null;
   protected StringList usePoints = new StringList(0);
-
+  protected ScriptParameter centerShiftLimit = new ScriptParameter(EtomoNumber.FLOAT_TYPE, CENTER_SHIFT_LIMIT_KEY);
+  
   /**
    * @return FortranInputString
    */
@@ -134,6 +143,10 @@ public class ConstSolvematchParam {
    */
   public float getMaximumResidual() {
     return maximumResidual;
+  }
+  
+  public ConstEtomoNumber getCenterShiftLimit() {
+    return centerShiftLimit;
   }
 
   /**
