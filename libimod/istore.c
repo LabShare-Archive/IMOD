@@ -1809,7 +1809,7 @@ int istoreListPointProps(Ilist *list, DrawProps *contProps, DrawProps *ptProps,
                          int pt)
 {
   int stateFlags = 0;
-  int changeFlags, nextChange, lastChange;
+  int changeFlags, nextChange, lastChange = -1;
   *ptProps = *contProps;
 
   /* Go through the changes until the point index is passed */
@@ -1878,6 +1878,9 @@ int istoreTransStateMatches(Ilist *list, int state)
 /* END_SECTION */
 /*
 $Log$
+Revision 3.11  2006/08/31 22:51:40  mast
+Added value and minmax stuff and reorganized for documentation
+
 Revision 3.10  2006/05/08 16:38:31  mast
 Added function to look up connection #
 
