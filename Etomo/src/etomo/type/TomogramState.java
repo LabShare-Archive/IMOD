@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2006/08/14 22:22:41  sueh
+ * <p> bug# 891 Added resetCombineScriptsCreated().
+ * <p>
  * <p> Revision 1.24  2006/07/28 17:42:50  sueh
  * <p> bug# 909 Changed TomogramState.combineScriptsCreated to an EtomoState so
  * <p> it will show when it has not been set.  Deleting old versions of combine scripts
@@ -133,6 +136,9 @@ public class TomogramState implements BaseState {
       + "." + "MatchMode";
   private static final String COMBINE_MATCH_MODE_BACK_KEY = "Setup.Combine.MatchBtoA";
   private static final String COMBINE_SCRIPTS_CREATED_BACK_KEY = "Setup.ComScriptsCreated";
+  private static final String SAMPLE_FIDUCIALESS_KEY = DialogType.TOMOGRAM_POSITIONING
+      .getStorableName()
+      + '.' + ProcessName.TILT + '.' + "Fiducialess";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
@@ -200,17 +206,28 @@ public class TomogramState implements BaseState {
   private final EtomoState combineScriptsCreated = new EtomoState(
       DialogType.TOMOGRAM_COMBINATION.getStorableName() + "."
           + "ScriptsCreated");
-  private EtomoBoolean2 seedingDoneA = new EtomoBoolean2(AxisID.FIRST
+  private final EtomoBoolean2 seedingDoneA = new EtomoBoolean2(AxisID.FIRST
       .getExtension()
       + '.' + "SeedingDone");
-  private EtomoBoolean2 seedingDoneB = new EtomoBoolean2(AxisID.SECOND
+  private final EtomoBoolean2 seedingDoneB = new EtomoBoolean2(AxisID.SECOND
       .getExtension()
       + '.' + "SeedingDone");
+  private EtomoBoolean2 sampleFiducialessA = null;
+  private EtomoBoolean2 sampleFiducialessB = null;
 
   private final BaseManager manager;
+  private final String firstAxis;
+  private String secondAxis = null;
 
   public TomogramState(BaseManager manager) {
     this.manager = manager;
+    if (manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS) {
+      firstAxis = AxisID.FIRST.getExtension().toUpperCase() + '.';
+      secondAxis = AxisID.SECOND.getExtension().toUpperCase() + '.';
+    }
+    else {
+      firstAxis = "";
+    }
     reset();
   }
 
@@ -243,6 +260,8 @@ public class TomogramState implements BaseState {
     fixedFiducialsB.reset();
     combineMatchMode = null;
     combineScriptsCreated.reset();
+    sampleFiducialessA = null;
+    sampleFiducialessB = null;
   }
 
   public void initialize() {
@@ -306,6 +325,12 @@ public class TomogramState implements BaseState {
     //backwards compatibility
     props.remove(COMBINE_SCRIPTS_CREATED_BACK_KEY);
     combineScriptsCreated.store(props, prepend);
+    EtomoBoolean2.store(sampleFiducialessA, props, prepend, firstAxis
+        + SAMPLE_FIDUCIALESS_KEY);
+    if (secondAxis != null) {
+      EtomoBoolean2.store(sampleFiducialessB, props, prepend, secondAxis
+          + SAMPLE_FIDUCIALESS_KEY);
+    }
   }
 
   public boolean equals(TomogramState that) {
@@ -381,6 +406,12 @@ public class TomogramState implements BaseState {
     if (!combineScriptsCreated.equals(that.combineScriptsCreated)) {
       return false;
     }
+    if (!EtomoBoolean2.equals(sampleFiducialessA, this.sampleFiducialessA)) {
+      return false;
+    }
+    if (!EtomoBoolean2.equals(sampleFiducialessB, this.sampleFiducialessB)) {
+      return false;
+    }
     return true;
   }
 
@@ -434,25 +465,31 @@ public class TomogramState implements BaseState {
       String backCombineMatchMode = props
           .getProperty(COMBINE_MATCH_MODE_BACK_KEY);
       if (backCombineMatchMode != null) {
-        combineMatchMode = MatchMode.getInstance(Boolean
-            .valueOf(backCombineMatchMode).booleanValue());
+        combineMatchMode = MatchMode.getInstance(Boolean.valueOf(
+            backCombineMatchMode).booleanValue());
       }
     }
     combineScriptsCreated.load(props, prepend);
     if (combineScriptsCreated.isNull()) {
       //backwards compatibility
       String backCombineScriptsCreated = props
-      .getProperty(COMBINE_SCRIPTS_CREATED_BACK_KEY);
+          .getProperty(COMBINE_SCRIPTS_CREATED_BACK_KEY);
       if (backCombineScriptsCreated != null) {
         combineScriptsCreated.set(backCombineScriptsCreated);
       }
+    }
+    sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA,
+        firstAxis + SAMPLE_FIDUCIALESS_KEY, props, prepend);
+    if (secondAxis != null) {
+      sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB,
+          secondAxis + SAMPLE_FIDUCIALESS_KEY, props, prepend);
     }
   }
 
   public void setCombineScriptsCreated(boolean combineScriptsCreated) {
     this.combineScriptsCreated.set(combineScriptsCreated);
   }
-  
+
   public void resetCombineScriptsCreated() {
     this.combineScriptsCreated.reset();
   }
@@ -513,6 +550,13 @@ public class TomogramState implements BaseState {
     }
     return sampleAxisZShiftA;
   }
+  
+  public EtomoBoolean2 getSampleFiducialess(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleFiducialessB;
+    }
+    return sampleFiducialessA;
+  }
 
   public void setSampleAxisZShift(AxisID axisID, ConstEtomoNumber axisZShift) {
     if (axisID == AxisID.SECOND) {
@@ -520,6 +564,26 @@ public class TomogramState implements BaseState {
     }
     else {
       sampleAxisZShiftA.set(axisZShift);
+    }
+  }
+  
+  public void setSampleAxisZShift(AxisID axisID, double axisZShift) {
+    if (axisID == AxisID.SECOND) {
+      sampleAxisZShiftB.set(axisZShift);
+    }
+    else {
+      sampleAxisZShiftA.set(axisZShift);
+    }
+  }
+
+  public void setSampleFiducialess(AxisID axisID, boolean sampleFiducialess) {
+    if (axisID == AxisID.SECOND) {
+      sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB,
+          secondAxis + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
+    }
+    else {
+      sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA,
+          firstAxis + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
     }
   }
 
@@ -620,6 +684,15 @@ public class TomogramState implements BaseState {
   }
 
   public void setSampleAngleOffset(AxisID axisID, ConstEtomoNumber angleOffset) {
+    if (axisID == AxisID.SECOND) {
+      sampleAngleOffsetB.set(angleOffset);
+    }
+    else {
+      sampleAngleOffsetA.set(angleOffset);
+    }
+  }
+  
+  public void setSampleAngleOffset(AxisID axisID, double angleOffset) {
     if (axisID == AxisID.SECOND) {
       sampleAngleOffsetB.set(angleOffset);
     }
