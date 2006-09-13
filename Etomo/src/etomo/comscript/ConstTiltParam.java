@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/05/11 19:41:58  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 3.7  2005/07/29 00:44:46  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -123,7 +128,7 @@ public class ConstTiltParam implements ProcessDetails {
 
   protected int mode;
 
-  protected float tiltAngleOffset;
+  protected EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.FLOAT_TYPE, "OFFSET");
 
   protected float tiltAxisOffset;
 
@@ -143,9 +148,9 @@ public class ConstTiltParam implements ProcessDetails {
 
   protected float scaleCoeff;
 
-  protected float xOffset;
+  protected float xShift;
 
-  protected float zOffset;
+  protected EtomoNumber zShift = new EtomoNumber(EtomoNumber.FLOAT_TYPE, "SHIFT");
 
   protected int idxSliceStart;
 
@@ -216,7 +221,7 @@ public class ConstTiltParam implements ProcessDetails {
     logOffset = Float.NaN;
     mask = Float.NaN;
     mode = Integer.MIN_VALUE;
-    tiltAngleOffset = Float.NaN;
+    tiltAngleOffset.reset();
     tiltAxisOffset = Float.NaN;
     parallel = false;
     perpendicular = false;
@@ -226,8 +231,8 @@ public class ConstTiltParam implements ProcessDetails {
     incReplicate = Integer.MIN_VALUE;
     scaleFLevel = Float.NaN;
     scaleCoeff = Float.NaN;
-    xOffset = Float.NaN;
-    zOffset = Float.NaN;
+    xShift = Float.NaN;
+    zShift.reset();
     idxSliceStart = Integer.MIN_VALUE;
     idxSliceStop = Integer.MIN_VALUE;
     incrSlice = Integer.MIN_VALUE;
@@ -369,12 +374,12 @@ public class ConstTiltParam implements ProcessDetails {
   /**
    * @return
    */
-  public float getXOffset() {
-    return xOffset;
+  public float getXShift() {
+    return xShift;
   }
 
-  public boolean hasXOffset() {
-    if (Float.isNaN(xOffset))
+  public boolean hasXShift() {
+    if (Float.isNaN(xShift))
       return false;
     return true;
   }
@@ -382,14 +387,12 @@ public class ConstTiltParam implements ProcessDetails {
   /**
    * @return
    */
-  public float getZOffset() {
-    return zOffset;
+  public ConstEtomoNumber getZShift() {
+    return zShift;
   }
 
-  public boolean hasZOffset() {
-    if (Float.isNaN(zOffset))
-      return false;
-    return true;
+  public boolean hasZShift() {
+    return !zShift.isNull();
   }
 
   public boolean isUseZFactors() {
@@ -432,14 +435,12 @@ public class ConstTiltParam implements ProcessDetails {
   /**
    * @return
    */
-  public float getTiltAngleOffset() {
+  public ConstEtomoNumber getTiltAngleOffset() {
     return tiltAngleOffset;
   }
 
   public boolean hasTiltAngleOffset() {
-    if (Float.isNaN(tiltAngleOffset))
-      return false;
-    return true;
+    return !tiltAngleOffset.isNull();
   }
 
   /**
@@ -498,12 +499,21 @@ public class ConstTiltParam implements ProcessDetails {
   }
 
   public boolean getBooleanValue(etomo.comscript.Fields field) {
+    if (field == Fields.FIDUCIALESS) {
+      return fiducialess;
+    }
     throw new IllegalArgumentException("field=" + field);
   }
 
   public double getDoubleValue(etomo.comscript.Fields field) {
     if (field == Fields.X_AXIS_TILT) {
       return xAxisTilt;
+    }
+    if (field == Fields.Z_SHIFT) {
+      return zShift.getDouble();
+    }
+    if (field == Fields.TILT_ANGLE_OFFSET) {
+      return tiltAngleOffset.getDouble();
     }
     throw new IllegalArgumentException("field=" + field);
   }
@@ -521,5 +531,8 @@ public class ConstTiltParam implements ProcessDetails {
     }
 
     public static final Fields X_AXIS_TILT = new Fields();
+    public static final Fields FIDUCIALESS = new Fields();
+    public static final Fields Z_SHIFT = new Fields();
+    public static final Fields TILT_ANGLE_OFFSET = new Fields();
   }
 }
