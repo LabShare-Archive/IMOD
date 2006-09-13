@@ -656,6 +656,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   Ipoint cpt;
   Icont *cont;
   Imod *imod = ss->vi->imod;
+  Ipoint scale = {1., 1., 1.};
 
   if ((event->state() & ImodPrefs->actualButton(2)) && ss->locked &&
       imod->mousemode == IMOD_MMODEL) {
@@ -664,9 +665,10 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
     cpt.y = ss->vi->ymouse;
     cpt.z = ss->vi->zmouse;
     cont = imodContourGet(imod);
-    if (!cont && imod->cindex.point < 0)
+    if (!cont || imod->cindex.point < 0)
       return;
-    if (imodel_point_dist(&(cont->pts[imod->cindex.point]), &cpt) > 
+    if (imodPoint3DScaleDistance
+        (&(cont->pts[imod->cindex.point]), &cpt, &scale) > 
         scaleModelRes(imod->res, ss->zoom)) {
       inputInsertPoint(ss->vi);
       ss->vi->zmouse = zmouse;
@@ -2377,6 +2379,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.31  2006/09/12 15:39:50  mast
+Improved locked modeling and added hot key to realign to contour
+
 Revision 4.30  2006/08/28 05:18:21  mast
 Do not average multiple slices for colormapped images
 
