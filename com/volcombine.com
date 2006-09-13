@@ -1,10 +1,14 @@
 # THIS FILE DOES EVERYTHING FOR COMBINING VOLUMES
 #
-####CreatedVersion#### 3.4.14
+####CreatedVersion#### 3.8.24
 #
 # CHANGE THIS VALUE TO SET ReductionFactor NONZERO IN COMBINEFFT
 #
 $set combinefft_reduce = 0
+#
+# CHANGE THIS VALUE TO SET LowFromBothRadius NONZERO IN COMBINEFFT
+#
+$set combinefft_lowboth = 0
 #
 # TO RESTART AT A PARTICULAR PIECE, CHANGE 0 IN THE FOLLOWING "goto dopiece0"
 # TO THE DESIRED PIECE NUMBER

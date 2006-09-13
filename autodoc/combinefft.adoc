@@ -3,7 +3,6 @@ Pip=1
 
 [Field = AInputFFT]
 short = ainput
-long = AInputFFT
 type = FN
 usage = Input file with FFT of first tomogram (the one being matched to)
 tooltip =
@@ -11,7 +10,6 @@ manpage =
 
 [Field = BInputFFT]
 short = binput
-long = BInputFFT
 type = FN
 usage = Input file with FFT of second tomogram (the transformed one)
 tooltip =
@@ -19,7 +17,6 @@ manpage =
 
 [Field = OutputFFT]
 short = output
-long = OutputFFT
 type = FN
 usage = Output file for combined FFT (omit to rewrite second input file)
 tooltip =
@@ -28,7 +25,6 @@ program will write the combined back to the second input file.
 
 [Field = ATiltFile]
 short = atiltfile
-long = ATiltFile
 type = FN
 usage = File with tilt angles used to generate first tomogram
 tooltip = 
@@ -38,7 +34,6 @@ are assumed to have the starting and ending tilt angles.
 
 [Field = BTiltFile]
 short = btiltfile
-long = BTiltFile
 type = FN
 usage = File with tilt angles used to generate second tomogram
 tooltip = 
@@ -47,7 +42,6 @@ same format as for ATiltFile.
 
 [Field = AHighestTilts]
 short = ahighest
-long = AHighestTilts
 type = FP
 usage = Starting and ending tilt angles used to generate first tomogram
 tooltip = 
@@ -56,7 +50,6 @@ This entry and ATiltFile are mutually exclusive.
 
 [Field = BHighestTilts]
 short = bhighest
-long = BHighestTilts
 type = FP
 usage = Starting and ending tilt angles used to generate second tomogram
 tooltip = 
@@ -65,7 +58,6 @@ This entry and BTiltFile are mutually exclusive.
 
 [Field = InverseTransformFile]
 short = inverse
-long = InverseTransformFile
 type = FN
 usage = File with inverse of matching transformation (output by Matchvol)
 tooltip = 
@@ -74,7 +66,6 @@ tomograms (output by Matchvol)
 
 [Field = ReductionFraction]
 short = reduce
-long = ReductionFraction
 type = F
 usage = Reduce amplitudes in missing wedge regions by this fraction of the
 amount needed to match mixed data regions (default 0 for no 
@@ -95,7 +86,6 @@ amount.
 
 [Field = SeparateReduction]
 short = separate
-long = SeparateReduction
 type = B
 usage = Apply different reduction factors to data from A and B in a ring
 tooltip =
@@ -106,7 +96,6 @@ similarly for B.
 
 [Field = JointReduction]
 short = joint
-long = JointReduction
 type = B
 usage = Measure means for A and B in joint, not missing wedge, regions
 tooltip =
@@ -118,7 +107,6 @@ mean to the average of the means from A and B.
 
 [Field = RingWidth]
 short = ring
-long = RingWidth
 type = F
 usage = Width of rings used to reduce amplitudes (default 0.01)
 tooltip=
@@ -127,7 +115,6 @@ manpage= Width of rings or shells used to reduce amplitudes.  The default is
 
 [Field = NumberOfSlabsInY]
 short = nslabs
-long = NumberOfSlabsInY
 type = I
 usage = Number of divisions in Y dimension when reducing amplitudes 
 (default 1)
@@ -139,7 +126,6 @@ dividing the volume into too many regions with too few pixels.
 
 [Field = MinimumRadiusToReduce]
 short = radius
-long = MinimumRadiusToReduce
 type = F
 usage = Radius at which to start the first ring when reducing amplitudes
 (default 0.02)
@@ -148,16 +134,26 @@ manpage =
 
 [Field = MinimumPointsInRing]
 short = points
-long = MinimumPointsInRing
 type = I
 usage = Minimum number of points required in each region of a ring for
 reducing amplitudes (default 30)
 tooltip =
 manpage =
 
+[Field = LowFromBothRadius]
+short = both
+type = F
+usage = Radius below which data will always be averaged from both tomograms
+tooltip =
+manpage = Radius below which data will always be averaged from both tomograms.
+Sometimes a combined tomogram shows lines between the separate pieces that 
+were run through Combinefft, particularly for pieces containing a boundary 
+between dense material and resin.  This option will eliminate this effect
+by ensuring that the low-frequency components match between the combined 
+pieces.  A values of 0.01 to 0.015 should be effective.
+
 [Field = VerboseOutput]
 short = verbose
-long = VerboseOutput
 type = B
 usage = Output amplitudes being attenuated when reducing
 tooltip =
@@ -172,7 +168,6 @@ for the reduction in mean; and the reduction factor.
 
 [Field = WeightingPower]
 short = weight
-long = WeightingPower
 type = F
 usage = Weight data from A and B by the local sampling density to this power
 (default 0 for no weighting)
@@ -187,7 +182,6 @@ values.  Values between 0 and 1 should be tried; 0 gives no weighting.
 
 [Field = ParameterFile]
 short=param
-long=ParameterFile
 type=PF
 usage=Read parameter entries from file
 tooltip=
@@ -195,7 +189,6 @@ manpage=
 
 [Field = usage]
 short=help
-long=usage
 type=B
 usage=Print help output
 tooltip=
