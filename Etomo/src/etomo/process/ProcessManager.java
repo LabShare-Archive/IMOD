@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.107  2006/08/11 23:50:59  sueh
+ * bug# 816 PostProcess(ComScriptProcess):  calling msgAlignPostProcess()
+ * when align succeeds.
+ *
  * Revision 3.106  2006/08/03 21:29:06  sueh
  * bug# 769 Passing ProcessResultDisplay to reconnectTilt.
  *
@@ -833,7 +837,6 @@ import etomo.comscript.SetupCombine;
 import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
-import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
@@ -842,6 +845,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+
 
 public class ProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
@@ -1833,21 +1837,8 @@ public class ProcessManager extends BaseProcessManager {
     else if (processName == ProcessName.PREBLEND) {
       setInvalidEdgeFunctions(script.getCommand(), true);
     }
-    else if (processName == ProcessName.TILT) {
-      //only create whole tomogram sample has a processDetail object
-      if (processDetails == null) {
-        return;
-      }
-      state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
-      state.setSampleAngleOffset(axisID, state.getAlignAngleOffset(axisID));
-      state.setSampleXAxisTilt(axisID, processDetails
-          .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
-    }
-    else if (processName == ProcessName.SAMPLE) {
-      state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
-      state.setSampleAngleOffset(axisID, state.getAlignAngleOffset(axisID));
-      state.setSampleXAxisTilt(axisID, processDetails
-          .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
+    else if (processName == ProcessName.TILT||processName == ProcessName.SAMPLE) {
+      appManager.postProcess(script.getAxisID(),processName, processDetails);
     }
     else if (processName == ProcessName.TRACK) {
       File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
