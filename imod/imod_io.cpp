@@ -384,7 +384,7 @@ Imod *LoadModel(FILE *mfin)
   if (mfin)
     if (imodImageFileDesc(mfin)) return(NULL);
 
-  imod = (Imod *)malloc(sizeof(Imod));
+  imod = imodNew();
   if (imod == NULL){
     wprint("3dmod Model Load: Not enough memory for model.");
     return(NULL);
@@ -393,8 +393,11 @@ Imod *LoadModel(FILE *mfin)
   imod->file = mfin;
 
   if (imodReadFile(imod)){
-    if (imod)
+    if (imod) {
+      if (imod->view)
+        free(imod->view);
       free(imod);
+    }
     return(NULL);
   }
 
@@ -808,6 +811,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.21  2006/01/14 18:14:45  mast
+Added function for new model initialization and set pizel size and z scale
+
 Revision 4.20  2005/10/14 21:59:47  mast
 Added reload capability, made function to set various state variables into
 model just before saving, added function to set Imod_filename, and cleaned
