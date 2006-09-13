@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2006/05/23 21:02:30  sueh
+ * <p> bug# 617 Changed DatasetFiles.getFiducialModel() to getFiducialModelName().
+ * <p>
  * <p> Revision 3.9  2006/05/16 21:28:40  sueh
  * <p> bug# 856 Added a and bFiducialModel, usePoints, and transferCoordinateFile.
  * <p> Using matchBToA to add the atob parameter to the script.
@@ -56,6 +59,8 @@ import etomo.util.DatasetFiles;
 public class SolvematchParam extends ConstSolvematchParam implements
     CommandParam {
 
+  private static final float CENTER_SHIFT_LIMIT_DEFAULT = 10;
+  
   private final BaseManager manager;
 
   public SolvematchParam(BaseManager manager) {
@@ -103,6 +108,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
         SURFACE_OR_USE_MODELS, surfacesOrModel);
     maximumResidual = ParamUtilities.setParamIfPresent(scriptCommand,
         MAXIMUM_RESIDUAL, maximumResidual);
+    centerShiftLimit.parse(scriptCommand);
     toMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
         TO_MATCHING_MODEL, toMatchingModel);
     fromMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -165,6 +171,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
         surfacesOrModel);
     ParamUtilities.updateScriptParameter(scriptCommand, MAXIMUM_RESIDUAL,
         maximumResidual);
+    centerShiftLimit.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_MATCHING_MODEL,
         toMatchingModel);
     ParamUtilities.updateScriptParameter(scriptCommand, FROM_MATCHING_MODEL,
@@ -196,6 +203,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
     maximumResidual = solvematchshift.getResidualThreshold();
     //older version, so coordinate file would not exist
     transferCoordinateFile = null;
+    centerShiftLimit.set(CENTER_SHIFT_LIMIT_DEFAULT);
   }
 
   /**
@@ -219,6 +227,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
     fromTomogramOrSizeXYZ = solvematchmod.getFromReconstructionFile();
     //older version so coordinate file would not exist
     transferCoordinateFile = null;
+    centerShiftLimit.set(CENTER_SHIFT_LIMIT_DEFAULT);
   }
 
   /**
@@ -299,6 +308,10 @@ public class SolvematchParam extends ConstSolvematchParam implements
 
   public void setMaximumResidual(String value) {
     this.maximumResidual = ParamUtilities.parseFloat(value);
+  }
+  
+  public void setCenterShiftLimit(String centerShiftLimit) {
+    this.centerShiftLimit.set(centerShiftLimit);
   }
 
   /**
