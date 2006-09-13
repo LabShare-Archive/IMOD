@@ -53,6 +53,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2006/07/19 20:05:29  sueh
+ * <p> bug# 902 Added processSucceeded().
+ * <p>
  * <p> Revision 1.42  2006/07/17 21:16:28  sueh
  * <p> bug# 900 Added imodSendEvent functionality back.  Uses the
  * <p> SystemProcessException.
@@ -368,6 +371,7 @@ public final class JoinManager extends BaseManager {
   JoinManager(String paramFileName, AxisID axisID) {
     super();
     this.metaData = new JoinMetaData(this);
+    createState();
     initializeUIParameters(paramFileName, axisID);
     if (!paramFileName.equals("") && loadedParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);

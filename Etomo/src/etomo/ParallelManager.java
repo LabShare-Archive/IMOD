@@ -60,6 +60,7 @@ public final class ParallelManager extends BaseManager {
   public ParallelManager(String paramFileName) {
     super();
     this.metaData = new ParallelMetaData();
+    createState();
     initializeUIParameters(paramFileName, AXIS_ID);
     if (!EtomoDirector.getInstance().isHeadless()) {
       openProcessingPanel();
@@ -273,6 +274,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/07/28 19:43:45  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing.
+ * <p>
  * <p> Revision 1.4  2006/07/26 16:33:55  sueh
  * <p> bug# 868 Temporarily moving part of processchunks to the specific manager.
  * <p> Eventually the process side of processchunks will be in UIExpert.
