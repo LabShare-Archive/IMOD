@@ -102,7 +102,7 @@ char *imodProgName(char *fullname)
 int imodBackupFile(char *filename)
 {
   struct stat buf;
-  int len;
+  int len, err;
   char *backname;
 
   /* If file does not exist, return */
@@ -120,7 +120,9 @@ int imodBackupFile(char *filename)
     return -1;
 
   /* finally, rename file */
-  return rename(filename, backname);
+  err = rename(filename, backname);
+  free(backname);
+  return err;
 }
 
 /*! A fortran wrapper for imodBackupFile */
@@ -429,6 +431,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.11  2006/08/27 23:45:08  mast
+Added fgetline
+
 Revision 1.10  2006/06/08 03:13:15  mast
 Add va_end to the error function
 
