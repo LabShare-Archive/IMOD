@@ -105,8 +105,6 @@ public abstract class BaseManager {
 
   protected abstract void createProcessTrack();
 
-  protected abstract void createState();
-
   protected abstract void updateDialog(ProcessName processName, AxisID axisID);
 
   protected abstract void setMetaData(ImodManager imodManager);
@@ -156,7 +154,6 @@ public abstract class BaseManager {
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
     createProcessTrack();
-    createState();
     createProcessManager();
     createComScriptManager();
     //  Initialize the program settings
@@ -1009,6 +1006,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.66  2006/08/03 21:25:41  sueh
+ * <p> bug# 769 ProcessDone():  Changed boolean error to boolean failed because is
+ * <p> also covers killing a process.
+ * <p>
  * <p> Revision 1.65  2006/07/28 19:43:31  sueh
  * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
  * <p> usingParallelProcessing.
