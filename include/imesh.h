@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2006/09/12 15:18:49  mast
+Changes for meshing parameters and new library
+
 Revision 3.5  2006/02/25 22:08:49  mast
 Cleaned up duplicate functions
 
@@ -65,7 +68,7 @@ Cleaned up duplicate functions
 #define imeshResol(flag) (((flag)&IMESH_FLAG_RES_BITS) >> IMESH_FLAG_RES_SHIFT)
 
 #define DEFAULT_VALUE 0x7fffffff
-#define DEFAULT_FLOAT 1.e30
+#define DEFAULT_FLOAT 1.e30f
 
 #ifdef __cplusplus
 extern "C" {
