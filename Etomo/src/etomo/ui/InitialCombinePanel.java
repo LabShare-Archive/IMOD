@@ -1,12 +1,15 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -16,9 +19,13 @@ import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.DatasetFiles;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
@@ -33,6 +40,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2006/09/05 17:40:23  sueh
+ * <p> bug# 917 Moved Restart Combine button to solvematch panel.  Created a panel
+ * <p> for matchvol1.  Moved Restart Matchvol1 button to matchvol1 panel.
+ * <p>
  * <p> Revision 3.30  2006/07/20 17:20:16  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -214,7 +225,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   private final SpacedPanel pnlMatchvol1Body = new SpacedPanel(true);
   private final PanelHeader matchvol1Header;
   private final LabeledTextField ltfOutputSizeY = new LabeledTextField(
-      "Output Size in Z: ");
+      "Initial match size: ");
+  private final JLabel lOutputSizeYInfo = new JLabel();
+
+  private MatchMode matchMode = null;
 
   /**
    * Default constructor
@@ -242,7 +256,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlMatchvol1.setLayout(new BoxLayout(pnlMatchvol1, BoxLayout.Y_AXIS));
     pnlMatchvol1Body.setBoxLayout(BoxLayout.Y_AXIS);
     pnlMatchvol1Body.add(ltfOutputSizeY);
+    lOutputSizeYInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlMatchvol1Body.add(lOutputSizeYInfo);
     btnMatchvolRestart.setSize();
+    btnMatchvolRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlMatchvol1Body.add(btnMatchvolRestart);
     pnlMatchvol1.add(matchvol1Header.getContainer());
     pnlMatchvol1.add(pnlMatchvol1Body.getContainer());
@@ -259,6 +276,56 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     setToolTipText();
   }
 
+  public void setMatchMode(MatchMode matchMode) {
+    if (this.matchMode == matchMode) {
+      return;
+    }
+    this.matchMode = matchMode;
+    //set lOutputSizeYInfo
+    AxisID toAxisID = AxisID.FIRST;
+    AxisID fromAxisID = AxisID.SECOND;
+    if (matchMode == MatchMode.A_TO_B) {
+      toAxisID = AxisID.SECOND;
+      fromAxisID = AxisID.FIRST;
+    }
+    MRCHeader toHeader = MRCHeader.getInstance(applicationManager, toAxisID,
+        DatasetFiles.TOMO_EXT);
+    MRCHeader fromHeader = MRCHeader.getInstance(applicationManager,
+        fromAxisID, DatasetFiles.TOMO_EXT);
+    int toY = -1;
+    try {
+      toHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    toY = toHeader.getNRows();
+    int fromY = -1;
+    try {
+      fromHeader.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    fromY = fromHeader.getNRows();
+    lOutputSizeYInfo.setText("Original "
+        + fromAxisID.getExtension().toUpperCase() + " size is " + fromY
+        + ".  Final size will be " + toY);
+  }
+
+  /**
+   * Since match mode isn't modified in initial tab, always return null.
+   */
+  public MatchMode getMatchMode() {
+    return null;
+  }
+
   public boolean isUseCorrespondingPoints() {
     return pnlSolvematch.isUseCorrespondingPoints();
   }
@@ -267,9 +334,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlSolvematch.setUseCorrespondingPoints(use);
   }
 
-  public static ProcessResultDisplay getRestartCombineDisplay(DialogType dialogType) {
-    return SolvematchPanel
-        .getRestartCombineDisplay(dialogType);
+  public static ProcessResultDisplay getRestartCombineDisplay(
+      DialogType dialogType) {
+    return SolvematchPanel.getRestartCombineDisplay(dialogType);
   }
 
   public static ProcessResultDisplay getRestartMatchvol1Display(
@@ -284,6 +351,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   void setAdvanced(boolean state) {
     matchvol1Header.setAdvanced(state);
+    pnlSolvematch.setAdvanced(state);
   }
 
   final void setVisible(boolean visible) {
@@ -304,12 +372,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public void expand(ExpandButton button) {
+    boolean expanded = button.isExpanded();
     if (matchvol1Header != null && matchvol1Header.equalsOpenClose(button)) {
-      pnlMatchvol1Body.setVisible(button.isExpanded());
+      pnlMatchvol1Body.setVisible(expanded);
     }
     else if (matchvol1Header != null
         && matchvol1Header.equalsAdvancedBasic(button)) {
-      ltfOutputSizeY.setVisible(button.isExpanded());
+      ltfOutputSizeY.setVisible(expanded);
+      lOutputSizeYInfo.setVisible(expanded);
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
@@ -441,7 +511,13 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     //text = "View the two volumes that are used for assessing whether Matchshifts "
     //    + "found the correct shifts between the volumes.";
     //btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
-    
+
+    text = "Thickness to make initial matching volume, which may need to be "
+        + "thicker than the final matching volume to contain all the material needed for "
+        + "patch correlations.";
+    ltfOutputSizeY.setToolTipText(tooltipFormatter.setText(text).format());
+    lOutputSizeYInfo.setToolTipText(tooltipFormatter.setText(text).format());
+
     text = "Resume and make first matching volume, despite a small displacement "
         + "between the match check volumes";
     btnMatchvolRestart.setToolTipText(tooltipFormatter.setText(text).format());
