@@ -55,6 +55,9 @@ public class EtomoAutodoc {
   }
 
   public static String getTooltip(Autodoc autodoc, String fieldName) {
+    if (autodoc == null) {
+      return null;
+    }
     String tooltip = getTooltip(
         autodoc.getSection(FIELD_SECTION_NAME, fieldName));
     if (tooltip == null) {
@@ -88,6 +91,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/04/25 18:57:00  sueh
+ * <p> bug# 787 Added VAR_TAG, the variable character for autodoc variables.
+ * <p>
  * <p> Revision 1.9  2006/01/12 17:04:10  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
  * <p>
