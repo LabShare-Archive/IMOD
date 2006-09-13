@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2006/05/19 19:29:42  sueh
+ * <p> bug# 866 Doing integer conversions in the param, not the GUI.
+ * <p>
  * <p> Revision 3.18  2006/05/11 19:49:03  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -240,9 +243,9 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (tokens[0].equals("MODE")) {
         mode = Integer.parseInt(tokens[1]);
       }
-      if (tokens[0].equals("OFFSET")) {
+      if (tokens[0].equals(tiltAngleOffset.getName())) {
         String[] params = tokens[1].split("\\s+", 2);
-        tiltAngleOffset = Float.parseFloat(params[0]);
+        tiltAngleOffset.set(params[0]);
         if (params.length > 1) {
           tiltAxisOffset = Float.parseFloat(params[1]);
         }
@@ -270,11 +273,11 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
         scaleFLevel = Float.parseFloat(params[0]);
         scaleCoeff = Float.parseFloat(params[1]);
       }
-      if (tokens[0].equals("SHIFT")) {
+      if (tokens[0].equals(zShift.getName())) {
         String[] params = tokens[1].split("\\s+", 2);
-        xOffset = Float.parseFloat(params[0]);
+        xShift = Float.parseFloat(params[0]);
         if (params.length > 1) {
-          zOffset = Float.parseFloat(params[1]);
+          zShift.set(params[1]);
         }
       }
       if (tokens[0].equals("SLICE")) {
@@ -418,8 +421,8 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument("MASK " + String.valueOf(mask));
       cmdLineArgs.add(newArg);
     }
-    if (!Float.isNaN(tiltAngleOffset)) {
-      String arg = "OFFSET " + String.valueOf(tiltAngleOffset);
+    if (!tiltAngleOffset.isNull()) {
+      String arg = tiltAngleOffset.getName() + " " + tiltAngleOffset.toString();
       if (!Float.isNaN(tiltAxisOffset)) {
         arg += " " + String.valueOf(tiltAxisOffset);
       }
@@ -455,13 +458,19 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
           + String.valueOf(scaleCoeff));
       cmdLineArgs.add(newArg);
     }
-    if (!Float.isNaN(xOffset)) {
-      String arg = "SHIFT " + String.valueOf(xOffset);
-      if (!Float.isNaN(zOffset)) {
-        arg = arg + " " + String.valueOf(zOffset);
+    if (!Float.isNaN(xShift) || !zShift.isNull()) {
+      StringBuffer arg = new StringBuffer(zShift.getName() + " ");
+      if (Float.isNaN(xShift)) {
+        arg.append("0 ");
+      }
+      else {
+        arg.append(String.valueOf(xShift));
+      }
+      if (!zShift.isNull()) {
+        arg.append(" " + zShift.toString());
       }
       newArg = new ComScriptInputArg();
-      newArg.setArgument(arg);
+      newArg.setArgument(arg.toString());
       cmdLineArgs.add(newArg);
     }
     if (idxSliceStart > Integer.MIN_VALUE) {
@@ -510,7 +519,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument("XTILTINTERP " + String.valueOf(xTiltInterp));
       cmdLineArgs.add(newArg);
     }
-    if (useZFactors) {
+    if (useZFactors && !fiducialess) {
       if (zFactorFileName == null || zFactorFileName.matches("\\s*")) {
         zFactorFileName = TiltalignParam.getOutputZFactorFileName(datasetName,
             axisID);
@@ -756,11 +765,15 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @param d
    */
   public void setTiltAngleOffset(float d) {
-    tiltAngleOffset = d;
+    tiltAngleOffset.set(d);
+  }
+
+  public void setTiltAngleOffset(String tiltAngleOffset) {
+    this.tiltAngleOffset.set(tiltAngleOffset);
   }
 
   public void resetTiltAngleOffset() {
-    tiltAngleOffset = Float.NaN;
+    tiltAngleOffset.reset();
   }
 
   /**
@@ -800,23 +813,27 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   /**
    * @param d
    */
-  public void setXOffset(float d) {
-    xOffset = d;
+  public void setXShift(float d) {
+    xShift = d;
   }
 
-  public void resetXOffset() {
-    xOffset = Float.NaN;
+  public void resetXShift() {
+    xShift = Float.NaN;
   }
 
   /**
    * @param d
    */
-  public void setZOffset(float d) {
-    zOffset = d;
+  public void setZShift(float d) {
+    zShift.set(d);
   }
 
-  public void resetZOffset() {
-    zOffset = Float.NaN;
+  public void setZShift(String zShift) {
+    this.zShift.set(zShift);
+  }
+
+  public void resetZShift() {
+    zShift.reset();
   }
 
   public void setUseZFactors(boolean useZFactors) {
@@ -875,11 +892,15 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       if (width != Integer.MIN_VALUE && width != 0) {
         width *= correctionBinning;
       }
-      if (!Float.isNaN(zOffset) && zOffset != 0) {
-        zOffset *= correctionBinning;
+      if (!zShift.isNull()) {
+        float fZShift = zShift.getFloat();
+        if (fZShift != 0) {
+          fZShift *= correctionBinning;
+          zShift.set(fZShift);
+        }
       }
-      if (!Float.isNaN(xOffset) && xOffset != 0) {
-        xOffset *= correctionBinning;
+      if (!Float.isNaN(xShift) && xShift != 0) {
+        xShift *= correctionBinning;
       }
       if (idxSliceStart != Integer.MIN_VALUE && idxSliceStart != 0) {
         idxSliceStart *= correctionBinning;
