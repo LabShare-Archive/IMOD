@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2006/08/29 20:03:19  sueh
+ * <p> bug# 924 Added kernelSigma.
+ * <p>
  * <p> Revision 3.5  2006/08/25 22:51:18  sueh
  * <p> bug# 918 Convert to PIP
  * <p>
@@ -89,6 +92,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
       if (scriptCommand.hasKeyword(REGION_MODEL_KEY)) {
         regionModel = scriptCommand.getValue(REGION_MODEL_KEY);
       }
+      initialShiftXYZ.validateAndSet(scriptCommand);
       kernelSigma.parse(scriptCommand, true);
     }
     catch (NumberFormatException except) {
@@ -97,6 +101,11 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
 
   }
 
+  /**
+   * Handle old version of the comscript
+   * @param param
+   * @throws FortranInputSyntaxException
+   */
   public void load(Patchcrawl3DPrePIPParam param)
       throws FortranInputSyntaxException {
     if (!convertToPIP) {
@@ -183,6 +192,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
     zMinAndMax.updateScriptParameter(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, REGION_MODEL_KEY,
         regionModel);
+    initialShiftXYZ.updateScriptParameter(scriptCommand);
     kernelSigma.updateComScript(scriptCommand);
     if (convertToPIP) {
       scriptCommand.setCommand(COMMAND);
@@ -209,7 +219,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
    * @param nX The nX to set
    */
   public void setNX(int nX) {
-    numberOfPatchesXYZ.set(0, nX);
+    numberOfPatchesXYZ.set(X_INDEX, nX);
   }
 
   /**
@@ -217,7 +227,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
    * @param nY The nY to set
    */
   public void setNY(int nY) {
-    numberOfPatchesXYZ.set(1, nY);
+    numberOfPatchesXYZ.set(Y_INDEX, nY);
   }
 
   /**
@@ -225,7 +235,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
    * @param nZ The nZ to set
    */
   public void setNZ(int nZ) {
-    numberOfPatchesXYZ.set(2, nZ);
+    numberOfPatchesXYZ.set(Z_INDEX, nZ);
   }
 
   /**
@@ -273,7 +283,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
    * @param yPatchSize The yPatchSize to set
    */
   public void setYPatchSize(int yPatchSize) {
-    patchSizeXYZ.set(1, yPatchSize);
+    patchSizeXYZ.set(Y_INDEX, yPatchSize);
   }
 
   /**
@@ -297,7 +307,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
    * @param zPatchSize The zPatchSize to set
    */
   public void setZPatchSize(int zPatchSize) {
-    patchSizeXYZ.set(2, zPatchSize);
+    patchSizeXYZ.set(Z_INDEX, zPatchSize);
   }
 
   public void setUseBoundaryModel(boolean useBoundaryModel) {
@@ -306,6 +316,33 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
     }
     else {
       regionModel = "";
+    }
+  }
+
+  public void setInitialShiftX(String initialShiftX) {
+    if (initialShiftX.matches("\\s*")) {
+      initialShiftXYZ.setDefault(X_INDEX);
+    }
+    else {
+      initialShiftXYZ.set(X_INDEX, initialShiftX);
+    }
+  }
+
+  public void setInitialShiftY(String initialShiftY) {
+    if (initialShiftY.matches("\\s*")) {
+      initialShiftXYZ.setDefault(Y_INDEX);
+    }
+    else {
+      initialShiftXYZ.set(Y_INDEX, initialShiftY);
+    }
+  }
+
+  public void setInitialShiftZ(String initialShiftZ) {
+    if (initialShiftZ.matches("\\s*")) {
+      initialShiftXYZ.setDefault(Z_INDEX);
+    }
+    else {
+      initialShiftXYZ.set(Z_INDEX, initialShiftZ);
     }
   }
 
