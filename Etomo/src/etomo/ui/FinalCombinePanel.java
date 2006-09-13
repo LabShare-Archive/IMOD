@@ -13,7 +13,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstMatchorwarpParam;
@@ -57,6 +56,9 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.51  2006/09/05 17:38:27  sueh
+ * bug# 924 Improved the label for Kernel Sigma
+ *
  * Revision 3.50  2006/08/29 20:09:01  sueh
  * bug# 924 Added kernelSigma checkbox and field.
  *
@@ -320,6 +322,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   static final String NO_VOLCOMBINE_TITLE = "Stop before running volcombine";
   static final String VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP = "Check to distribute the volcombine process across multiple computers.";
+  private static final String KERNEL_SIGMA_LABEL = "Kernel filtering with sigma: ";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
@@ -349,8 +352,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "Number of Z patches :");
   private LabeledTextField ltfZNPatches = new LabeledTextField(
       "Number of Y patches :");
-  private CheckBox cbKernelSigma = new CheckBox("Kernel filtering with sigma: ");
-  private JTextField tfKernelSigma = new JTextField();
+  private CheckBox cbKernelSigma = new CheckBox(KERNEL_SIGMA_LABEL);
+  private TextField tfKernelSigma = new TextField(KERNEL_SIGMA_LABEL);
 
   private JPanel pnlBoundary = new JPanel();
   private LabeledTextField ltfXLow = new LabeledTextField("X Low :");
@@ -410,6 +413,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final PanelHeader matchorwarpHeader;
   private final PanelHeader volcombineHeader;
   private final SpacedPanel pnlKernelSigma = new SpacedPanel();
+  private final LabeledTextField ltfInitialShiftX = new LabeledTextField(
+      "Initial shift in X:");
+  private final LabeledTextField ltfInitialShiftY = new LabeledTextField("Z:");
+  private final LabeledTextField ltfInitialShiftZ = new LabeledTextField("Y:");
+  private final SpacedPanel pnlInitialShiftXYZ = new SpacedPanel();
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
@@ -502,6 +510,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlBoundary.add(ltfYLow.getContainer());
     pnlBoundary.add(ltfYHigh.getContainer());
     pnlPatchcorrBody.add(pnlBoundary);
+
+    pnlInitialShiftXYZ.setBoxLayout(BoxLayout.X_AXIS);
+    pnlInitialShiftXYZ.add(ltfInitialShiftX);
+    pnlInitialShiftXYZ.add(ltfInitialShiftZ);
+    pnlInitialShiftXYZ.add(ltfInitialShiftY);
+    pnlPatchcorrBody.add(pnlInitialShiftXYZ);
 
     pnlKernelSigma.setBoxLayout(BoxLayout.X_AXIS);
     pnlKernelSigma.add(cbKernelSigma);
@@ -666,6 +680,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   final void setAdvancedPatchcorr(boolean state) {
     pnlBoundary.setVisible(state);
+    pnlInitialShiftXYZ.setVisible(state);
     pnlKernelSigma.setVisible(state);
   }
 
@@ -868,6 +883,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ltfYHigh.setText(patchrawlParam.getYHigh());
     ltfZLow.setText(patchrawlParam.getZLow());
     ltfZHigh.setText(patchrawlParam.getZHigh());
+    ltfInitialShiftX.setText(patchrawlParam.getInitialShiftX());
+    ltfInitialShiftY.setText(patchrawlParam.getInitialShiftY());
+    ltfInitialShiftZ.setText(patchrawlParam.getInitialShiftZ());
     cbKernelSigma.setSelected(patchrawlParam.isKernelSigmaActive());
     tfKernelSigma.setText(patchrawlParam.getKernelSigma().toString());
     updateKernelSigma();
@@ -947,6 +965,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       patchcrawl3DParam.setZLow(Integer.parseInt(ltfZLow.getText()));
       badParameter = ltfZHigh.getLabel();
       patchcrawl3DParam.setZHigh(Integer.parseInt(ltfZHigh.getText()));
+      badParameter = ltfInitialShiftX.getLabel();
+      patchcrawl3DParam.setInitialShiftX(ltfInitialShiftX.getText());
+      badParameter = ltfInitialShiftY.getLabel();
+      patchcrawl3DParam.setInitialShiftY(ltfInitialShiftY.getText());
+      badParameter = ltfInitialShiftZ.getLabel();
+      patchcrawl3DParam.setInitialShiftZ(ltfInitialShiftZ.getText());
+      badParameter = cbKernelSigma.getText();
       patchcrawl3DParam.setKernelSigma(cbKernelSigma.isSelected(),
           tfKernelSigma.getText());
     }
@@ -1169,7 +1194,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
-  
+
   private void updateKernelSigma() {
     tfKernelSigma.setEnabled(cbKernelSigma.isSelected());
   }
@@ -1192,10 +1217,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private void setToolTipText() {
     String text;
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    Autodoc autodoc = null;
+    Autodoc adocCombineFft = null;
+    Autodoc adocCorrsearch3d = null;
 
     try {
-      autodoc = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
+      adocCombineFft = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
+      adocCorrsearch3d = Autodoc.getInstance(Autodoc.CORR_SEARCH_3D,
+          AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1311,23 +1339,29 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     text = "View the final combined volume.";
     btnImodCombined.setToolTipText(tooltipFormatter.setText(text).format());
-    
-    text = "Filter by convolving in real space with a Gaussian kernel.  The amount of "+
-"filtering is controlled by the sigma of the Gaussian, in pixels.  Higher "+
-"sigma filters more.  Kernel filtering increases execution time ~30% for "+
-"sigma under 1.5 and ~2-fold for sigma 1.5 or higher.";
+
+    text = "Filter by convolving in real space with a Gaussian kernel.  The amount of "
+        + "filtering is controlled by the sigma of the Gaussian, in pixels.  Higher "
+        + "sigma filters more.  Kernel filtering increases execution time ~30% for "
+        + "sigma under 1.5 and ~2-fold for sigma 1.5 or higher.";
     cbKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
     tfKernelSigma.setToolTipText(tooltipFormatter.setText(text).format());
 
     cbParallelProcess.setToolTipText(tooltipFormatter.setText(
         VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
 
-    if (autodoc != null) {
-      text = EtomoAutodoc.getTooltip(autodoc, "ReductionFraction");
+    if (adocCombineFft != null) {
+      text = EtomoAutodoc.getTooltip(adocCombineFft, "ReductionFraction");
       if (text != null) {
         ltfReductionFactor.setToolTipText(tooltipFormatter.setText(text)
             .format());
       }
     }
+
+    text = EtomoAutodoc.getTooltip(adocCorrsearch3d,
+        Patchcrawl3DParam.INITIAL_SHIFT_XYZ_KEY);
+    ltfInitialShiftX.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfInitialShiftY.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfInitialShiftZ.setToolTipText(tooltipFormatter.setText(text).format());
   }
 }
