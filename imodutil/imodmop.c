@@ -133,7 +133,7 @@ int main( int argc, char *argv[])
     exit(3);
   }
      
-
+  imodDefault(&model);
   model.file = mfin;
   if (imodReadFile(&model)){
     fprintf(stderr, "MOP: Error reading modelfile %s.\n", argv[1]);

@@ -12,6 +12,9 @@
     $Revision$
 
     $Log$
+    Revision 3.6  2005/10/31 20:09:35  mast
+    Removed transformation code that had been turned into a function.
+
     Revision 3.5  2005/10/19 16:00:36  mast
     Needed to transpose inverse to apply normal matrix in usual direction
 
@@ -313,6 +316,7 @@ int main(int argc, char *argv[])
     exit(3);
   }
 
+  imodDefault(&model);
   model.file = fin;
   if (imodReadFile(&model)){
     fprintf(stderr, "ERROR: %s - Error reading imod model. (%s)\n", progname, 

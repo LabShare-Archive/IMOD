@@ -37,6 +37,8 @@ main( int argc, char *argv[])
 		  argv[0], argv[i]);
 	  exit(3);
      }
+
+     imodDefault(&model);
      model.file = fin;
      if (imodReadFile(&model)){
 	  fprintf(stderr, "%s: Error reading imod model. (%s)\n",
