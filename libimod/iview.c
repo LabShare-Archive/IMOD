@@ -25,12 +25,14 @@ Log at end
 
 Iview *imodViewNew(int size)
 {
-  return((Iview *)malloc(sizeof(Iview) * size));
+  Iview *view = (Iview *)malloc(sizeof(Iview) * size);
+  return view;
 }
 
 void imodViewDelete(Iview *vw)
 {
-  if (vw) free(vw);
+  if (vw)
+    free(vw);
   return;
 }
 
@@ -231,16 +233,25 @@ int imodViewModelRead(Imod *imod)
 {
   FILE *fin = imod->file;
   int i, ni = imod->viewsize + 1;
-  Iview *nvw = imodViewNew(ni);
+  Iview *nvw;
   Iview *vw;
   int lbuf;
   IclipPlanes *clips;
   Iobjview *ov;
   int bytesMissing, bytesObjv;
   int bytesRead = 0;
-  if (!nvw) return(IMOD_ERROR_MEMORY);
 
   lbuf = imodGetInt(fin);
+
+  /* only current value selected. */
+  if (lbuf == 4){
+    imod->cview = imodGetInt(fin);
+    return(0);
+  }
+
+  nvw = imodViewNew(ni);
+  if (!nvw)
+    return(IMOD_ERROR_MEMORY);
 
   vw = &nvw[imod->viewsize];
   vw->objvsize = 0;
@@ -251,12 +262,6 @@ int imodViewModelRead(Imod *imod)
      read in (for object views) */
   imodClipsInitialize(&vw->clips);
      
-  /* only current value selected. */
-  if (lbuf == 4){
-    imod->cview = imodGetInt(fin);
-    return(0);
-  }
-
   if (lbuf >= 56){
     imodGetFloats(fin, &vw->fovy, 14);
     bytesRead += 56;
@@ -576,6 +581,9 @@ int imodIMNXWrite(Imod *imod)
 
 /*
 $Log$
+Revision 3.13  2006/08/31 21:11:29  mast
+Changed mat1 and mt3 to real names
+
 Revision 3.12  2005/10/14 21:44:29  mast
 Fixed casting calls to imodPutScaledPoints
 
