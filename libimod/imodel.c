@@ -41,7 +41,8 @@ Imod *imodNew(void)
 }
 
 /*!
- * Initializes model structure pointed to by [model] to default values.  
+ * Initializes model structure pointed to by [model] to default values and
+ * allocates an initial view (which will leak if this is called twice).  
  * Returns 0 (there are no errors) 
  */
 int imodDefault(Imod *model)
@@ -1805,6 +1806,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.25  2006/09/12 15:24:44  mast
+Handled member renames
+
 Revision 3.24  2006/08/31 21:11:29  mast
 Changed mat1 and mt3 to real names
 
