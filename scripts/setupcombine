@@ -784,6 +784,7 @@ InverseTransformFile	$invfile
 ATiltFile	$atlt
 BTiltFile	$btlt
 ReductionFraction	\$combinefft_reduce
+LowFromBothRadius	\$combinefft_lowboth
 \$\\rm ${tmppath}rec.fft
 \$$FFT3D -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
 \$\\rm ${tmppath}mat.fft
@@ -883,6 +884,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.36  2006/08/23 04:35:35  mast
+#  Process new patchcorr.com and extract more tilt parameters for solvematch
+#
 #  Revision 3.35  2006/06/23 03:22:23  mast
 #  Convert com directory path from windows to cygwin format
 #
