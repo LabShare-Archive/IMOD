@@ -35,6 +35,7 @@ static int ObjOnList(int ob, int list[], int nlist);
 static int deletez(Ipoint point, int minz, int maxz);
 
 #define DEFAULT_TOL  0.25
+#define DEFAULT_FLAT 1.5
 
 static int imodmesh_usage(char *prog, int retcode)
 {
@@ -335,14 +336,14 @@ int main(int argc, char **argv)
   if (i >= argc)
     imodmesh_usage(progname, -1);
 
-  if ((setFlags & clearFlags) || (!times && notimes) || (tube_list && notube)
+  if ((setFlags & clearFlags) || (!times && notimes) || (ntube_list && notube)
       || (nocap && cap != IMESH_CAP_OFF) || (noSkipList && cap_skip_nz) ||
       (nozmin && minz != DEFAULT_VALUE) || 
-      (noxmin && triMin.x != DEFAULT_FLOAT) || 
-      (noymin && triMin.y != DEFAULT_FLOAT)) {
+      (noxmin && triMin.x > -DEFAULT_FLOAT) || 
+      (noymin && triMin.y > -DEFAULT_FLOAT)) {
     fprintf(stderr, "%s: You cannot enter an option and its 'no' variation\n",
             progname);
-    
+    exit(1);
   }
 
   if (times) {
@@ -469,7 +470,7 @@ int main(int argc, char **argv)
             if (!useParam || flatCrit >= 0)
               param->flatCrit = flatCrit;
             if (param->flatCrit < 0.)
-              param->flatCrit = 1.;
+              param->flatCrit = DEFAULT_FLAT;
 
             if (!useParam || overlap >= 0)
               param->overlap = B3DMAX(0., overlap);
@@ -480,16 +481,14 @@ int main(int argc, char **argv)
             if (!useParam || cap != IMESH_CAP_OFF || nocap)
               param->cap = cap;
 
-            if (!useParam || triMin.x != DEFAULT_FLOAT || noxmin) {
+            if (!useParam || triMin.x > -DEFAULT_FLOAT || noxmin) {
               param->xmin = triMin.x;
               param->xmax = triMax.x;
             }
-            if (!useParam || triMin.y != DEFAULT_FLOAT || noymin) {
+            if (!useParam || triMin.y > -DEFAULT_FLOAT || noymin) {
               param->ymin = triMin.y;
               param->ymax = triMax.y;
             }
-
-            imeshSetMinMax(triMin, triMax);
         
             if (!useParam || cap_skip_nz || noSkipList) {
               if (imeshCopySkipList(cap_skip_zlist, cap_skip_nz,
@@ -536,6 +535,7 @@ int main(int argc, char **argv)
               exit(3);
 
             }
+
             /* set resolution flag now */
             for(m = 0; m < obj->meshsize; m++) {
               obj->mesh[m].flag |= (resol << IMESH_FLAG_RES_SHIFT);
@@ -544,6 +544,7 @@ int main(int argc, char **argv)
                      ilistSize(obj->mesh[m].store)); */
               //istoreDump(obj->mesh[m].store);
             }
+
             if (tmshsize){
               /* If appending, add new mesh to saved mesh 
                  then put it back into this object's mesh */
@@ -802,6 +803,9 @@ static int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.16  2006/09/12 14:56:18  mast
+Rebuilt to use library and object parameters
+
 Revision 3.15  2006/06/26 14:48:49  mast
 Added b3dutil include for parselist
 
