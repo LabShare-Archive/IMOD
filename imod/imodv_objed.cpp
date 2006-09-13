@@ -2021,7 +2021,7 @@ static void meshObject()
   Imod *imod = Imodv->imod;
   Ipoint scale;
 
-  meshDupObj->flags |= IMESH_MK_IS_COPY | IMESH_MK_NO_WARN;
+  meshDupObj->meshParam->flags |= IMESH_MK_IS_COPY | IMESH_MK_NO_WARN;
 
   scale.x = imod->xscale;
   scale.y = imod->yscale;
@@ -2366,6 +2366,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.25  2006/09/12 15:48:20  mast
+Added panel to run meshing
+
 Revision 4.24  2006/08/31 23:27:44  mast
 Changes for stored value display
 
