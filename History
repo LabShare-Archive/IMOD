@@ -1,5 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/06: Added an option to Combinefft to average very low frequencies from
+both tomograms, to eliminate lines between pieces containing boundaries between
+dense and light material.
+
+9/12/06: 3dmod can now mesh objects through a new panel in the Model View 
+Object Edit window.  Meshing parameters are stored in the object both by 3dmod
+and by Imodmesh.  Imodmesh has new options to use or override the stored
+parameters.
+
+9/12/06: Contours at any orientation can now be meshed, provided that all the
+contours in a surface are at the same orientation and are properly spaced
+apart.  Modeling in the Slicer has been enhanced to provide contours that
+satisfy these requirement: modeled points will now come out exactly in a
+plane; there is a new hot key to return to the orientation of an existing
+contour; when the lock button is on, continuous drawing with the mouse is
+possible and PageUp and PageDown step by one pixel perpendicular to the slice.
+
 9/3/06: 3dmod can now read files in EM format, DigitalMicrograph 3 format,
 and Hanspeter Winkler's FFF format.
 
