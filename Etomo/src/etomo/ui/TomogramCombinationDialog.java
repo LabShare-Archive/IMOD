@@ -30,6 +30,7 @@ import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -50,6 +51,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2006/09/05 17:41:47  sueh
+ * <p> bug# 917 Added matchvol params to initial combine tab.
+ * <p>
  * <p> Revision 3.47  2006/07/28 22:24:44  sueh
  * <p> bug# 910 Done():  moved call to synchronize() to synchronizeFromCurrentTab(),
  * <p> where it can be call from ApplicationManager.saveTomogramCombinationDialog.
@@ -605,6 +609,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void enableReductionFactor(boolean enable) {
     pnlFinal.enableReductionFactor(enable);
   }
+  
+  MatchMode getMatchMode() {
+    return pnlSetup.getMatchMode();
+  }
 
   /**
    * Set the matchorwarp parameters of the UI from the the ConstMatchorwarp
@@ -668,6 +676,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setFiducialMatchListB(fromPanel.getFiducialMatchListB());
     toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
     toPanel.setUseList(fromPanel.getUseList());
+    toPanel.setMatchMode(fromPanel.getMatchMode());
   }
 
   /**
