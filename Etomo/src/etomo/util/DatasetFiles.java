@@ -28,7 +28,7 @@ public final class DatasetFiles {
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
 
-  private static final String TOMO_EXT = ".rec";
+  public static final String TOMO_EXT = ".rec";
   private static final String STACK_EXT = ".st";
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -76,15 +76,18 @@ public final class DatasetFiles {
 
   //Tomograms
 
-  public static File getTomogram(BaseManager manager, AxisID axisID) {
+  public static String getTomogramName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     if (axisID == AxisID.ONLY) {
-      return new File(manager.getPropertyUserDir(), metaData.getName()
-          + "_full" + TOMO_EXT);
+      return metaData.getName() + "_full" + TOMO_EXT;
     }
-    return new File(manager.getPropertyUserDir(), metaData.getName()
-        + axisID.getExtension() + TOMO_EXT);
+    return metaData.getName() + axisID.getExtension() + TOMO_EXT;
+  }
+
+  public static File getTomogram(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getTomogramName(manager,
+        axisID));
   }
 
   public static File getCombinedTomogram(BaseManager manager) {
@@ -301,6 +304,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2006/08/18 00:13:26  sueh
+ * <p> bug# 914 Added getAxisOnlyComFile.
+ * <p>
  * <p> Revision 1.22  2006/08/11 21:47:52  sueh
  * <p> bug# 816 Added getLogName
  * <p>
