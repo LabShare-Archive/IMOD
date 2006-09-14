@@ -11,6 +11,7 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTomopitchParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.NewstParam;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomopitchParam;
@@ -23,6 +24,7 @@ import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.EtomoBoolean2;
 import etomo.type.MetaData;
 import etomo.type.DialogExitState;
 import etomo.type.ProcessResult;
@@ -83,6 +85,32 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   }
 
   /**
+   * Post processing for sample and tilt.  ProcessDetails is required in both
+   * cases.
+   * @param processDetails
+   * @param state
+   */
+  public void postProcess(ProcessDetails processDetails, TomogramState state) {
+    state.setSampleXAxisTilt(axisID, processDetails
+        .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
+    boolean fiducialess = processDetails
+        .getBooleanValue(TiltParam.Fields.FIDUCIALESS);
+    state.setSampleFiducialess(axisID, fiducialess);
+    if (!fiducialess) {
+      state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
+      state.setSampleAngleOffset(axisID, state.getAlignAngleOffset(axisID));
+    }
+    else {
+      //no alignment for fidless
+      state.setSampleAxisZShift(axisID, processDetails
+          .getDoubleValue(TiltParam.Fields.Z_SHIFT));
+      state.setSampleAngleOffset(axisID, processDetails
+          .getDoubleValue(TiltParam.Fields.TILT_ANGLE_OFFSET));
+    }
+    updateFiducialessDisplay();
+  }
+
+  /**
    * Open the tomogram positioning dialog
    * @param axisID
    */
@@ -140,6 +168,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     setFiducialess();
     dialog.setImageRotation(metaData.getImageRotation(axisID));
     setButtonState(manager.getScreenState(axisID));
+    fiducialessAction();
     openDialog(dialog);
   }
 
@@ -204,6 +233,14 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     return true;
   }
 
+  void fiducialessAction() {
+    if (dialog == null) {
+      return;
+    }
+    updateFiducialessDisplay(dialog.isFiducialess());
+    updateFiducialessDisplay();
+  }
+
   protected boolean saveDialog() {
     if (dialog == null) {
       return false;
@@ -213,7 +250,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (updateAlignCom() == null) {
       return false;
     }
-    if (!updateTomoPosTiltCom(false)) {
+    if (updateTomoPosTiltCom(false) == null) {
       return false;
     }
     if (!updateTomopitchCom()) {
@@ -249,12 +286,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    if (!updateTomoPosTiltCom(true)) {
+    ConstTiltParam tiltParam = updateTomoPosTiltCom(true);
+    if (tiltParam == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     comScriptMgr.loadTilt(axisID);
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     setDialogState(ProcessState.INPROGRESS);
     sendMsg(manager.createSample(axisID, processResultDisplay, tiltParam),
         processResultDisplay);
@@ -297,7 +334,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         return;
       }
     }
-    if (!updateTomoPosTiltCom(true)) {
+    if (updateTomoPosTiltCom(true) == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -429,18 +466,19 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * Update the tilt{|a|b}.com file with sample parameters for the specified
    * axis
    */
-  private boolean updateTomoPosTiltCom(boolean sample) {
+  private ConstTiltParam updateTomoPosTiltCom(boolean sample) {
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(
           "Can not update sample.com without an active positioning dialog",
           "Program logic error", axisID);
-      return false;
+      return null;
     }
     // Get the current tilt parameters, make any user changes and save the
     // parameters back to the tilt{|a|b}.com
+    TiltParam tiltParam = null;
     try {
-      TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+      tiltParam = comScriptMgr.getTiltParam(axisID);
       getTiltParams(tiltParam);
       if (sample) {
         getTiltParamsForSample(tiltParam);
@@ -470,9 +508,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
           "Tilt Parameter Syntax Error", axisID);
-      return false;
+      return null;
     }
-    return true;
+    return tiltParam;
   }
 
   /**
@@ -563,7 +601,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    tiltalignParam.setAngleOffset(dialog.getTiltAngleOffsetTotal());
+    tiltalignParam.setAngleOffset(dialog.getAngleOffsetTotal());
     tiltalignParam.setAxisZShift(dialog.getTiltAxisZShiftTotal());
     updateMetaData();
   }
@@ -602,6 +640,28 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   }
 
   /**
+   * If state.sampleFiducialess doesn't match the fiducialess checkbox, don't
+   * allow Tomopitch to be run.  If state.sampleFiducialess is null (sample was
+   * never run) enable Tomopitch.
+   */
+  void updateFiducialessDisplay() {
+    EtomoBoolean2 sampleFiducialess = state.getSampleFiducialess(axisID);
+    boolean enable = false;
+    if (sampleFiducialess == null
+        || sampleFiducialess.is() == dialog.isFiducialess()) {
+      enable = true;
+    }
+    dialog.setTomopitchEnabled(enable);
+    dialog.setAngleOffsetEnabled(enable);
+    dialog.setTiltAxisZShiftEnabled(enable);
+    dialog.setAlignButtonEnabled(enable);
+    dialog.setTiltAngleOffsetEnabled(enable);
+    dialog.setZShiftEnabled(enable);
+    dialog.setXAxisTiltEnabled(enable);
+    dialog.setThicknessEnabled(enable);
+  }
+
+  /**
    * Get the tilt.com parameters from the dialog
    * @param tiltParam
    * @throws NumberFormatException
@@ -609,6 +669,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   private void getTiltParams(TiltParam tiltParam) {
     if (dialog == null) {
       return;
+    }
+    boolean fiducialess = dialog.isFiducialess();
+    tiltParam.setFiducialess(fiducialess);
+    if (fiducialess) {
+      tiltParam.setTiltAngleOffset(dialog.getTiltAngleOffset());
+      tiltParam.setZShift(dialog.getZShift());
     }
     tiltParam.setXAxisTilt(dialog.getXAxisTiltTotal());
     tiltParam.setImageBinned(getBinning());
@@ -633,14 +699,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     tomopitchParam.setScaleFactor(getBinning());
     tomopitchParam.setExtraThickness(dialog.getExtraThickness());
-    if (dialog.isFiducialess()) {
-      tomopitchParam.resetAngleOffsetOld();
-      tomopitchParam.resetZShiftOld();
-    }
-    else {
-      tomopitchParam.setAngleOffsetOld(state.getSampleAngleOffset(axisID));
-      tomopitchParam.setZShiftOld(state.getSampleAxisZShift(axisID));
-    }
+    tomopitchParam.setAngleOffsetOld(state.getSampleAngleOffset(axisID));
+    tomopitchParam.setZShiftOld(state.getSampleAxisZShift(axisID));
     tomopitchParam.setXAxisTiltOld(state.getSampleXAxisTilt(axisID));
     updateMetaData();
   }
@@ -713,7 +773,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    dialog.setTiltAngleOffset(tiltalignParam.getAngleOffset());
+    dialog.setAngleOffset(tiltalignParam.getAngleOffset());
     dialog.setTiltAxisZShift(tiltalignParam.getAxisZShift());
   }
 
@@ -723,6 +783,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     dialog.setXAxisTilt(tiltParam.getXAxisTilt());
     dialog.setThickness(tiltParam.getThickness());
+    dialog.setTiltAngleOffset(tiltParam.getTiltAngleOffset());
+    dialog.setZShift(tiltParam.getZShift());
   }
 
   private void setTomopitchParam(ConstTomopitchParam tomopitchParam) {
@@ -746,9 +808,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return false;
     }
     boolean missingData = false;
-    missingData = !dialog.setTiltAngleOffset(log);
+    missingData = !dialog.setAngleOffset(log);
     missingData = !dialog.setTiltAxisZShift(log);
     missingData = !dialog.setXAxisTilt(log);
+    dialog.setTiltAngleOffset(log);
+    dialog.setZShift(log);
 
     ConstEtomoNumber thickness = log.getThickness();
     if (thickness.isNull()) {
@@ -785,10 +849,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     TooltipFormatter tooltipFormatter = new TooltipFormatter();
     String text;
-    dialog.setTiltAngleOffsetEnabled(!fiducialess);
+    dialog.setAngleOffsetEnabled(!fiducialess);
     dialog.setTiltAxisZShiftEnabled(!fiducialess);
     dialog.setAlignButtonEnabled(!fiducialess);
     dialog.setRotationEnabled(fiducialess);
+    dialog.setFinalAlignmentPanelVisible(!fiducialess);
+    dialog.setTiltAngleOffsetVisible(fiducialess);
+    dialog.setZShiftVisible(fiducialess);
 
     if (dialog.isWholeTomogram()) {
       dialog.setBinningEnabled(true);
@@ -810,6 +877,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/07/28 20:14:56  sueh
+ * <p> bug# 868 checking for null dialog
+ * <p>
  * <p> Revision 1.9  2006/07/26 16:43:08  sueh
  * <p> bug# 868  Created a base class for tomogram reconstruction experts called
  * <p> ReconUIExpert.  Moved responsibility for changing the process result display
