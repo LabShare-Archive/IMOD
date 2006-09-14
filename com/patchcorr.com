@@ -1,6 +1,6 @@
 # THIS FILE RUNS CORRSEARCH3D
 #
-####CreatedVersion#### 3.8.23
+####CreatedVersion#### 3.8.25
 #
 # TO SPECIFY A MODEL FILE WITH CONTOURS ENCLOSING THE PATCHES TO ANALYZE,
 # ADD A LINE WITH "RegionModel   filename"
@@ -26,5 +26,5 @@ BSourceBorderYZLoHi     36,36
 FlipYZMessages
 #
 # Make a patch vector model
-$patch2imod patch.out patch_vector.mod
+$patch2imod patch.out patch_vector_ccc.mod
 $if (-e savework-file) savework-file
