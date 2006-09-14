@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2006/07/28 20:14:28  sueh
+ * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
+ * <p>
  * <p> Revision 3.51  2006/07/20 17:23:17  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -336,13 +339,16 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   private final MultiLineButton btnTomopitch;
   private JPanel pnlFinalAlign = new JPanel();
-  private final CalcPanel cpTiltAngleOffset = new CalcPanel("Angle offset");
+  private final CalcPanel cpAngleOffset = new CalcPanel("Angle offset");
   private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift");
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");
   private final MultiLineButton btnAlign;
   private final TomogramPositioningExpert expert;
   static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
   private final LocalActionListener localActionListener;
+  private final CalcPanel cpTiltAngleOffset = new CalcPanel(
+      "Tilt angle offset");
+  private final CalcPanel cpZShift = new CalcPanel("Z shift");
 
   public TomogramPositioningDialog(ApplicationManager appMgr,
       TomogramPositioningExpert expert, AxisID axisID) {
@@ -359,7 +365,8 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     //  Construct the binning spinner
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("   Binning ", integerModel);
-    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning
+        .setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
 
     //  Create the primary panels
     pnlWholeTomogram
@@ -379,7 +386,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
     pnlFinalAlign.setLayout(new BoxLayout(pnlFinalAlign, BoxLayout.Y_AXIS));
     pnlFinalAlign.setBorder(new EtchedBorder("Final Alignment").getBorder());
-    UIUtilities.addWithYSpace(pnlFinalAlign, cpTiltAngleOffset.getContainer());
+    UIUtilities.addWithYSpace(pnlFinalAlign, cpAngleOffset.getContainer());
     UIUtilities.addWithYSpace(pnlFinalAlign, cpTiltAxisZShift.getContainer());
     btnAlign.setSize();
     UIUtilities.addWithSpace(pnlFinalAlign, btnAlign.getComponent(),
@@ -400,13 +407,20 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     UIUtilities.addWithSpace(pnlPosition, btnTomopitch.getComponent(),
         FixedDim.x0_y10);
     UIUtilities.addWithYSpace(pnlPosition, pnlFinalAlign);
-    UIUtilities.addWithSpace(pnlPosition, cpXAxisTilt.getContainer(),
-        FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlPosition, ltfThickness.getContainer(),
-        FixedDim.x0_y10);
+
+    SpacedPanel pnlTiltParameters = new SpacedPanel();
+    pnlTiltParameters.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlTiltParameters
+        .setBorder(new EtchedBorder("Tilt Parameters").getBorder());
+    pnlTiltParameters.add(cpTiltAngleOffset.getContainer());
+    pnlTiltParameters.add(cpZShift.getContainer());
+    pnlTiltParameters.add(cpXAxisTilt.getContainer());
+    pnlTiltParameters.add(ltfThickness);
+    pnlPosition.add(pnlTiltParameters.getContainer());
+
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
-    UIUtilities
-        .setButtonSizeAll(pnlPosition, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlPosition, UIParameters.INSTANCE
+        .getButtonDimension());
 
     //  Create dialog content pane
     rootPanel.add(pnlPosition);
@@ -426,7 +440,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
-    expert.updateFiducialessDisplay(cbFiducialess.isSelected());
   }
 
   public static ProcessResultDisplay getSampleTomogramDisplay() {
@@ -449,6 +462,10 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     expert.updateFiducialessDisplay(fiducialess);
   }
 
+  public void setFinalAlignmentPanelVisible(boolean visible) {
+    pnlFinalAlign.setVisible(visible);
+  }
+
   public boolean isFiducialess() {
     return cbFiducialess.isSelected();
   }
@@ -460,9 +477,17 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
+  
+  String getOrigTiltAngleOffset() {
+    return cpTiltAngleOffset.getOriginal();
+  }
+  
+  String getOrigZShift() {
+    return cpZShift.getOriginal();
+  }
 
-  void setTiltAngleOffset(ConstEtomoNumber angleOffset) {
-    cpTiltAngleOffset.set(angleOffset);
+  void setAngleOffset(ConstEtomoNumber angleOffset) {
+    cpAngleOffset.set(angleOffset);
   }
 
   void setTiltAxisZShift(ConstEtomoNumber axisZShift) {
@@ -476,13 +501,34 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setThickness(int thickness) {
     ltfThickness.setText(thickness);
   }
+  
+  void setThicknessEnabled(boolean enable) {
+    ltfThickness.setEnabled(enable);
+  }
+  
+  void setTiltAngleOffset(ConstEtomoNumber tiltAngleOffset) {
+    cpTiltAngleOffset.set(tiltAngleOffset);
+  }
+  
+  boolean setTiltAngleOffset(TomopitchLog log) {
+    return cpTiltAngleOffset.set(log.getAngleOffsetOriginal(), log
+        .getAngleOffsetAdded(), log.getAngleOffsetTotal());
+  }
+  
+  void setTiltAngleOffsetEnabled(boolean enable) {
+    cpTiltAngleOffset.setEnabled(enable);
+  }
+  
+  void setTiltAngleOffsetVisible(boolean visible) {
+    cpTiltAngleOffset.setVisible(visible);
+  }
 
   void setThickness(ConstEtomoNumber thickness) {
     ltfThickness.setText(thickness);
   }
 
-  String getTiltAngleOffsetTotal() {
-    return cpTiltAngleOffset.getTotal();
+  String getAngleOffsetTotal() {
+    return cpAngleOffset.getTotal();
   }
 
   String getTiltAxisZShiftTotal() {
@@ -496,9 +542,17 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   String getXAxisTiltTotal() {
     return cpXAxisTilt.getTotal();
   }
+  
+  String getZShift() {
+    return cpZShift.getTotal();
+  }
 
   String getThickness() {
     return ltfThickness.getText();
+  }
+  
+  String getTiltAngleOffset() {
+    return cpTiltAngleOffset.getTotal();
   }
 
   String getSampleThickness() {
@@ -532,7 +586,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   boolean isAlignButton() {
     return btnAlign.isSelected();
   }
-  
+
   boolean isAlignButtonEnabled() {
     return btnAlign.isEnabled();
   }
@@ -541,19 +595,23 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnSample.setButtonState(screenState.getButtonState(btnSample
         .getButtonStateKey()));
   }
-  
+
   void setTomopitchButtonState(ReconScreenState screenState) {
     btnTomopitch.setButtonState(screenState.getButtonState(btnTomopitch
         .getButtonStateKey()));
   }
   
+  void setTomopitchEnabled(boolean enable) {
+    btnTomopitch.setEnabled(enable);
+  }
+
   void setAlignButtonState(ReconScreenState screenState) {
     btnAlign.setButtonState(screenState.getButtonState(btnAlign
         .getButtonStateKey()));
   }
 
   void updateTiltAngleOffsetDisplay(boolean more) {
-    cpTiltAngleOffset.updateDisplay(more);
+    cpAngleOffset.updateDisplay(more);
   }
 
   void updateTiltAxisZShiftDisplay(boolean more) {
@@ -564,8 +622,8 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     cpXAxisTilt.updateDisplay(more);
   }
 
-  boolean setTiltAngleOffset(TomopitchLog log) {
-    return cpTiltAngleOffset.set(log.getAngleOffsetOriginal(), log
+  boolean setAngleOffset(TomopitchLog log) {
+    return cpAngleOffset.set(log.getAngleOffsetOriginal(), log
         .getAngleOffsetAdded(), log.getAngleOffsetTotal());
   }
 
@@ -622,21 +680,26 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     String command = event.getActionCommand();
     if (command.equals(btnSample.getActionCommand())) {
       expert.sampleAction(btnSample);
-    } else if (command.equals(btnTomopitch.getActionCommand())) {
+    }
+    else if (command.equals(btnTomopitch.getActionCommand())) {
       expert.tomopitch(btnTomopitch);
-    } else if (command.equals(btnAlign.getActionCommand())) {
+    }
+    else if (command.equals(btnAlign.getActionCommand())) {
       expert.finalAlign(btnAlign);
-    } else if (command.equals(cbFiducialess.getActionCommand())) {
+    }
+    else if (command.equals(cbFiducialess.getActionCommand())) {
+      expert.fiducialessAction();
+    }
+    else if (command.equals(cbWholeTomogram.getActionCommand())) {
       expert.updateFiducialessDisplay(cbFiducialess.isSelected());
-    } else if (command.equals(cbWholeTomogram.getActionCommand())) {
-      expert.updateFiducialessDisplay(cbFiducialess.isSelected());
-    } else {
+    }
+    else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
 
-  void setTiltAngleOffsetEnabled(boolean enabled) {
-    cpTiltAngleOffset.setEnabled(enabled);
+  void setAngleOffsetEnabled(boolean enabled) {
+    cpAngleOffset.setEnabled(enabled);
   }
 
   void setTiltAxisZShiftEnabled(boolean enabled) {
@@ -645,6 +708,23 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   void setXAxisTiltEnabled(boolean enabled) {
     cpXAxisTilt.setEnabled(enabled);
+  }
+  
+  void setZShift(ConstEtomoNumber zShift) {
+    cpZShift.set(zShift);
+  }
+  
+  boolean setZShift(TomopitchLog log) {
+    return cpZShift.set(log.getAxisZShiftOriginal(), log
+        .getAxisZShiftAdded(), log.getAxisZShiftTotal());
+  }
+  
+  void setZShiftEnabled(boolean enable) {
+    cpZShift.setEnabled(enable);
+  }
+  
+  void setZShiftVisible(boolean visible) {
+    cpZShift.setVisible(visible);
   }
 
   void setAlignButtonEnabled(boolean enabled) {
@@ -719,8 +799,9 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnTomopitch.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Add the additional offset from tomopitch to the amount already "
         + "shown here to get the total offset.";
-    cpTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    cpXAxisTilt.setToolTipText(tooltipFormatter.setText(TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP).format());
+    cpAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
+    cpXAxisTilt.setToolTipText(tooltipFormatter.setText(
+        TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP).format());
     text = "Add the additional shift from tomopitch to the amount shown here to get "
         + "the total shift.";
     cpTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
@@ -738,8 +819,13 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     text = "Rotation angle of tilt axis for generating aligned stack from "
         + "cross-correlation alignment only.";
     ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
-    ltfExtraThickness.setToolTipText(tooltipFormatter.setText("Extra thickness to be added to the top and bottom of the final tomogram.").format());
-    ltfThickness.setToolTipText(tooltipFormatter.setText("The thickness of the final tomogram.").format());
+    ltfExtraThickness
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Extra thickness to be added to the top and bottom of the final tomogram.")
+            .format());
+    ltfThickness.setToolTipText(tooltipFormatter.setText(
+        "The thickness of the final tomogram.").format());
   }
 
   public static final class CalcPanel {
@@ -789,6 +875,10 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       ltfAdded.setToolTipText(text);
       ltfTotal.setToolTipText(text);
     }
+    
+    void setVisible(boolean visible) {
+      panel.setVisible(visible);
+    }
 
     void set(ConstEtomoNumber total) {
       updateDisplay(false);
@@ -815,7 +905,8 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     private void set(ConstEtomoNumber number, LabeledTextField field) {
       if (number == null || number.isNull() || !number.isValid()) {
         field.setText("0.0");
-      } else {
+      }
+      else {
         field.setText(number.toString());
       }
     }
