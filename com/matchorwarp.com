@@ -2,7 +2,7 @@
 #
 # MATCHORWARP RUNS REFINEMATCH AND MATCHVOL, OR FINDWARP AND WARPVOL.
 #
-####CreatedVersion#### 3.4.4
+####CreatedVersion#### 3.8.25
 #
 # -refinelimit #   SPECIFIES THE MAXIMUM MEAN RESIDUAL ALLOWED BY REFINEMATCH;
 # ABOVE THIS, WARPING WILL BE USED.
@@ -23,4 +23,5 @@
 # THE ARGUMENT "-trial"
 #
 $matchorwarp -size g5a.rec -refinelimit 0.3 \
- -warplimit 0.2,0.27,0.35 -tempdir g5tmpdir g5b.rec g5b.mat
+-residualfile patch.resid -vectormodel patch_vector.mod \
+-clipsize 600 -warplimit 0.2,0.27,0.35 -tempdir g5tmpdir g5b.rec g5b.mat
