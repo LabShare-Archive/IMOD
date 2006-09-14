@@ -417,6 +417,19 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(testValue == test.getValue().doubleValue());
     test.internalTest();
   }
+  
+  public void testSetDisplayValue_long() {
+    long testValue = 1;
+    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test.setDisplayValue(testValue);
+    assertTrue(testValue == test.getLong());
+    assertTrue(String.valueOf(testValue).equals(test.toString()));
+    assertTrue(testValue == test.getLong());
+    assertTrue(testValue == test.getLong());
+    assertTrue(testValue == test.getNumber().longValue());
+    assertTrue(testValue == test.getValue().longValue());
+    test.internalTest();
+  }
 
   //TODO
   public final void testValidateReturnTypeInteger() {
@@ -1232,6 +1245,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2006/09/14 15:19:01  sueh
+ * <p> bug# 692 Fixed testSetDisplayValue_double
+ * <p>
  * <p> Revision 1.36  2006/09/13 23:34:04  sueh
  * <p> bug# 692 Added testSetDisplayValue_double().  Bug# 920 added testGetFLoat()
  * <p> and testValidateReturnTypeFloat().
