@@ -1,14 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/06: IMOD_3-8-24
 9/13/06: In Tomogram Positioning, changing the display for fiducialess sample
 creation.
 
 9/13/06: Tilt.com:  removing Local File and Z Factor File when creating a
 fiducialess sample.
 
-9/13/06: Handling bowl shaped tomograms in Combine.  Added center shift limit to
-Solvematch.  Allowing the initial match size to be adjusted in matchvol1.  Added
-initial shift to Patchcorr.
+9/13/06: Handling bowl shaped tomograms in Combine.  Added center shift limit
+to Solvematch.  Allowing the initial match size to be adjusted in matchvol1.
+Added initial shift to Patchcorr.
 
 9/13/06: Added an option to Combinefft to average very low frequencies from
 both tomograms, to eliminate lines between pieces containing boundaries between
