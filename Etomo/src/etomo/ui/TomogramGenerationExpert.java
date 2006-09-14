@@ -752,11 +752,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (tiltParam.hasThickness()) {
       dialog.setTomoThickness(tiltParam.getThickness());
     }
-    if (tiltParam.hasXOffset()) {
-      dialog.setXOffset(tiltParam.getXOffset());
+    if (tiltParam.hasXShift()) {
+      dialog.setXShift(tiltParam.getXShift());
     }
-    if (tiltParam.hasZOffset()) {
-      dialog.setZOffset(tiltParam.getZOffset());
+    if (tiltParam.hasZShift()) {
+      dialog.setZShift(tiltParam.getZShift());
     }
     if (tiltParam.hasSlice()) {
       dialog.setSliceStart(tiltParam.getIdxSliceStart());
@@ -832,26 +832,26 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       else {
         tiltParam.resetWidth();
       }
-      //set Z offset
-      if (dialog.isZOffsetSet()) {
-        badParameter = dialog.getZOffsetLabel();
-        tiltParam.setZOffset(dialog.getZOffset());
+      //set Z Shift
+      if (dialog.isZShiftSet()) {
+        badParameter = dialog.getZShiftLabel();
+        tiltParam.setZShift(dialog.getZShift());
       }
       else {
-        tiltParam.resetZOffset();
+        tiltParam.resetZShift();
       }
 
-      //set X offset
-      if (dialog.isXOffsetSet()) {
-        badParameter = dialog.getXOffsetLabel();
-        tiltParam.setXOffset(dialog.getXOffset());
+      //set X Shift
+      if (dialog.isXShiftSet()) {
+        badParameter = dialog.getXShiftLabel();
+        tiltParam.setXShift(dialog.getXShift());
       }
-      else if (dialog.isZOffsetSet()) {
-        tiltParam.setXOffset(0);
-        dialog.setXOffset(0);
+      else if (dialog.isZShiftSet()) {
+        tiltParam.setXShift(0);
+        dialog.setXShift(0);
       }
       else {
-        tiltParam.resetXOffset();
+        tiltParam.resetXShift();
       }
 
       boolean sliceRangeSpecified = false;
@@ -1026,6 +1026,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/08/03 21:36:24  sueh
+ * <p> bug# Added reconnectTilt().
+ * <p>
  * <p> Revision 1.4  2006/07/31 21:46:10  sueh
  * <p> Removed unnecessary print
  * <p>

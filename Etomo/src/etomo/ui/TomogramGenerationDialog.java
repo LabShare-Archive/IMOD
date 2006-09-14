@@ -59,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.96  2006/07/28 21:27:20  sueh
+ * bug# 868 Moved complex button actions to expert
+ *
  * Revision 3.95  2006/07/28 20:13:51  sueh
  * bug# 868 Adding sets and gets to dialog, moving functionality to expert
  *
@@ -595,8 +598,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       "<html><b>View Full<br>Aligned Stack</b>", this);
 
   //  Tilt objects
-  private SpacedTextField ltfXOffset = new SpacedTextField("X offset:");
-  private SpacedTextField ltfZOffset = new SpacedTextField("Z offset: ");
+  private SpacedTextField ltfXShift = new SpacedTextField("X shift:");
+  private SpacedTextField ltfZShift = new SpacedTextField("Z shift: ");
   private SpacedTextField ltfSliceStart = new SpacedTextField("First slice: ");
   private SpacedTextField ltfSliceStop = new SpacedTextField("Last slice: ");
   private SpacedLabel lblInY = new SpacedLabel(" in Y");
@@ -778,12 +781,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     btnViewFilter.setEnabled(enable);
   }
 
-  void setXOffset(float xOffset) {
-    ltfXOffset.setText(xOffset);
+  void setXShift(float xShift) {
+    ltfXShift.setText(xShift);
   }
 
-  void setZOffset(float zOffset) {
-    ltfZOffset.setText(zOffset);
+  void setZShift(ConstEtomoNumber zShift) {
+    ltfZShift.setText(zShift);
   }
 
   void setUseFilterEnabled(boolean enable) {
@@ -976,7 +979,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfXAxisTilt.setText(xAxisTilt);
   }
 
-  void setTiltAngleOffset(float tiltAngleOffset) {
+  void setTiltAngleOffset(ConstEtomoNumber tiltAngleOffset) {
     ltfTiltAngleOffset.setText(tiltAngleOffset);
   }
 
@@ -1054,20 +1057,20 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return ltfXAxisTilt.getLabel();
   }
   
-  float getXOffset() {
-    return Float.parseFloat(ltfXOffset.getText());
+  float getXShift() {
+    return Float.parseFloat(ltfXShift.getText());
   }
   
-  String getXOffsetLabel() {
-    return ltfXOffset.getLabel();
+  String getXShiftLabel() {
+    return ltfXShift.getLabel();
   }
   
-  float getZOffset() {
-    return Float.parseFloat(ltfZOffset.getText());
+  float getZShift() {
+    return Float.parseFloat(ltfZShift.getText());
   }
   
-  String getZOffsetLabel() {
-    return ltfZOffset.getLabel();
+  String getZShiftLabel() {
+    return ltfZShift.getLabel();
   }
   
   float getRadialFallOff() {
@@ -1155,8 +1158,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfSliceStop.setVisible(advanced);
     lblInY.setVisible(advanced);
     ltfSliceIncr.setVisible(advanced);
-    ltfXOffset.setVisible(advanced);
-    ltfZOffset.setVisible(advanced);
+    ltfXShift.setVisible(advanced);
+    ltfZShift.setVisible(advanced);
     //ltfXAxisTilt
     ltfTiltAngleOffset.setVisible(advanced);
     //ltfRadialMax
@@ -1278,12 +1281,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return ltfXAxisTilt.getText().matches("\\S+");
   }
   
-  boolean isXOffsetSet() {
-    return ltfXOffset.getText().matches("\\S+");
+  boolean isXShiftSet() {
+    return ltfXShift.getText().matches("\\S+");
   }
   
-  boolean isZOffsetSet() {
-    return ltfZOffset.getText().matches("\\S+");
+  boolean isZShiftSet() {
+    return ltfZShift.getText().matches("\\S+");
   }
 
   /**
@@ -1439,8 +1442,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     radialPanel.add(ltfRadialFallOff.getContainer());
     UIUtilities.alignComponentsX(radialPanel, Component.LEFT_ALIGNMENT);
     //offsetPanel
-    offsetPanel.add(ltfXOffset.getContainer());
-    offsetPanel.add(ltfZOffset.getContainer());
+    offsetPanel.add(ltfXShift.getContainer());
+    offsetPanel.add(ltfZShift.getContainer());
     UIUtilities.alignComponentsX(offsetPanel, Component.LEFT_ALIGNMENT);
     //slicesInYPanel
     slicesInYPanel.add(ltfSliceStart.getContainer());
@@ -1795,15 +1798,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         + "width of the input image.";
     ltfTomoWidth.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Amount to shift the reconstructed slices in X before output.  A "
-        + "positive offset will shift the slice to the right, and the "
+        + "positive value will shift the slice to the right, and the "
         + "output will contain the left part of the whole potentially "
         + "reconstructable area.";
-    ltfXOffset.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfXShift.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Amount to shift the reconstructed slices in Z before output.  A "
-        + "positive offset will shift the slice upward.  Do not use this option"
+        + "positive value will shift the slice upward.  Do not use this option"
         + " if you have fiducials and the tomogram is part of a dual-axis "
         + "series.";
-    ltfZOffset.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfZShift.setToolTipText(tooltipFormatter.setText(text).format());
     ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(X_AXIS_TILT_TOOLTIP)
         .format());
     text = "Offset in degrees to apply to the tilt angles; a positive offset will "
