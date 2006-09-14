@@ -17,11 +17,11 @@ mb.transfer-fiducials-open = 1
 bn.transfer-fiducials-from-other-axis =
 waitfor.process = done
 adoc = fid-model.adoc
-function = test
+function = run
 
 [Dialog = FineAlign]
 adoc = fine-align.adoc
-function = run
+function = test
 
 [Dialog = TomoPos]
 adoc = tomo-pos.adoc
