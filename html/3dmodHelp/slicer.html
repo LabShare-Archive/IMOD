@@ -4,12 +4,19 @@
 <H2>The Slicer Window</H2>
 The slicer allows you to display a slice at an arbitrary angle through the
 volume, centered around a selected point.  Multiple slices can be averaged.
+Modeling can be done.
 <P>
 Slicer has two dockable toolbars that may be floated as separate
 windows so that the image will fill the entire window area.  When they 
 are floated, they will still pass hot keys on to the slicer window.
 
-<H3>The First Toolbar</H3>
+<BR><A HREF = "#The First Toolbar">The First Toolbar</A>
+<BR><A HREF = "#The Second Toolbar">The Second Toolbar</A>
+<BR><A HREF = "#Mouse Actions and Movies">Mouse Actions and Movies</A>
+<BR><A HREF = "#Hot Keys">Hot Keys</A>
+<BR><A HREF = "#Modeling Tilted">Modeling Tilted Contours to be Meshed</A>
+
+<A NAME = "The First Toolbar"><H3>The First Toolbar</H3></A>
 <UL>
 <LI>The <B>Up</B> and <B>Down Arrows</B> step the zoom factor up or down.
 <LI>The <B>zoom</B> text box shows the current zoom and allows you to type in 
@@ -18,7 +25,11 @@ intermediate zoom factors.
 (nearest neighbor interpolation) and 
 slower but higher quality image rendering (quadratic interpolation).
 <LI>The <B>lock</B> button will keep the image locked to the current 
-position, even when drawing model points.
+position, even when drawing model points.  When the window is locked,
+points can be added continuously by holding down the second mouse button while
+moving the mouse, just as in the Zap window.  In addition, the image movement
+keys (arrows and PageUp/PageDown) will move the current point by one pixel in
+directions parallel or perpendicular to the plane of the slice.
 <LI>The <B>IM/FT</B> button toggles between displaying the image slice or
 its Fourier transform.  The entire image in the whole window, including any
 gray borders, will be padded into a square array and Fourier
@@ -54,7 +65,7 @@ this case, you can select <B>Z-Scale Before</B> to apply an additional
 Z-scaling, but <B>Z-Scale After</B> will be unavailable.
 </UL>
 
-<H3>The Second Toolbar</H3>
+<A NAME = "The Second Toolbar"><H3>The Second Toolbar</H3></A>
 On the left are three sliders 
 with which you can adjust the rotations about the 
 X, Y, and Z axes.  The rotation angles are applied to the volume, 
@@ -78,7 +89,7 @@ from the data volume.
 On the right are controls for adjusting the thickness of 
 the image slice and the thickness of model that is shown on the slice.
 
-<H3>Mouse Actions and Movies</H3>
+<A NAME = "Mouse Actions and Movies"><H3>Mouse Actions and Movies</H3></A>
 All mouse buttons behave as in the Zap and XYZ windows. 
 The first mouse button in movie mode, and all mouse buttons in model 
 mode, will change the current viewing point in the data 
@@ -94,7 +105,9 @@ In movie mode, the buttons do the following:
 <UL>
 <LI><B>First button:</B> Attach to the nearest model point, or detach from the 
 current contour
-<LI><B>Second button:</B> Insert a point after the current point
+<LI><B>Second button:</B> Insert a point after the current point.  If the
+window position is locked, this button can be held down to insert points
+continuously.
 <LI><B>Third button:</B> Move the current point to the selected location
 </UL>
 By default, these buttons correspond to the left, middle, and right 
@@ -110,7 +123,7 @@ are set in the 3dmod Movie Controller (opened with Edit - Movies...).
 The slice angles can be changed while movieing and these limits will 
 be adjusted dynamically.
 
-<H3>Hot Keys</H3>
+<A NAME = "Hot Keys"><H3>Hot Keys</H3></A>
 <BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase zoom
 <BR><B>_/+</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -127,6 +140,8 @@ Snapshot to TIFF file
 Align current and previous model points along X, Y or Z axis
 <BR><B>X/Y/Z</B> &nbsp;
 Align first and last points of contour along X, Y or Z axis
+<BR><B>W</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Change X and Y angles so that the current contour is flat in the slice.
 <P>
 <B>Numeric Keypad:</B>
 <BR><B>4/6 (Left/Right)</B> &nbsp;&nbsp;
@@ -137,5 +152,32 @@ Decrease/Increase last adjusted angle by 0.5 degree
 Decrease/Increase last adjusted angle by 15 degrees
 <BR><B>0 (Insert)</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Set last adjusted angle to 0
+
+<A NAME = "Modeling Tilted"><H3>Modeling Tilted Contours to be Meshed</H3></A>
+It is possible to mesh contours that have been modeled at an oblique
+orientation in the slicer, provided that all of the contours in a surface are
+at the same orientation, and that the contours are properly spaced apart.
+Follow these procedures:
+<OL>
+<LI>Select an area to model and click on the center of the area.
+<LI>Turn on the <B>Lock</B> button.
+<LI>If there are already contours in this object, start a new surface with 
+<B>N</B>.
+<LI>Model a contour by clicking or dragging with the second mouse button.
+<LI>Step between slices with the <B>PageUp</B> and <B>PageDown</B> keys,
+keeping the window locked.  Start new contours in the same surface with
+<B>n</B>.
+<LI>To model another area at a different orientation, be sure to start a new
+surface. 
+<LI>To return to modeling a surface after changing the angles, or after the
+lock has been turned off, select one of the existing contours with the first
+mouse button.  Press <B>W</B> to reorient to the contour.  Lock the window
+then step to the desired slice.
+Using <B>W</B> is very important, not just for getting the same angles, but
+also for getting back to the exact coordinates to preserve the spacing between
+slices.  
+</OL>
+Note that if you model at intervals of more than one pixel, it is not so
+important to preserve the spacing between slices as just described.
 <P>
 <A HREF="index.html">Help Index<A>
