@@ -26,5 +26,6 @@ BSourceBorderYZLoHi     36,36
 FlipYZMessages
 #
 # Make a patch vector model
-$patch2imod patch.out patch_vector_ccc.mod
+$patch2imod -n "Values are correlation coefficients" patch.out \
+patch_vector_ccc.mod
 $if (-e savework-file) savework-file
