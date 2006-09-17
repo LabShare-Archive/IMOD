@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2003/03/26 06:30:56  mast
+adjusting to font changes
+
 Revision 4.1  2003/02/10 20:41:56  mast
 Merge Qt source
 
@@ -27,6 +30,7 @@ Initial creation
 #define PIXELVIEW_H
 
 int  open_pixelview(struct ViewInfo *vi);
+void pvNewMousePosition(struct ViewInfo *vi, float x, float y, int iz);
 
 #define PV_ROWS 7
 #define PV_COLS 7
@@ -45,9 +49,11 @@ class PixelView: public QWidget
   ~PixelView() {};
   void update();
   void setButtonWidths();
+  QLabel *mMouseLabel;
 
   public slots:
     void buttonPressed(int pos);
+  void fromFileToggled(bool state);
 
  protected:
     void closeEvent ( QCloseEvent * e );

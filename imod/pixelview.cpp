@@ -20,6 +20,9 @@ Log at end of file
 #include <stdlib.h>
 #include <qpushbutton.h>
 #include <qlabel.h>
+#include <qvbox.h>
+#include <qhbox.h>
+#include <qCheckBox.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
 #include "pixelview.h"
@@ -29,10 +32,16 @@ Log at end of file
 #include "preferences.h"
 #include "imod_input.h"
 #include "dia_qtutils.h"
+#include "xzap.h"
+#include "xxyz.h"
+#include "sslice.h"
 
 
 static PixelView *PixelViewDialog = NULL;
 static int ctrl;
+static bool fromFile = false;
+static float lastMouseX = 0.;
+static float lastMouseY = 0.;
 
 static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
 {
@@ -46,6 +55,9 @@ static void pviewDraw_cb(ImodView *vi, void *client, int drawflag)
     PixelViewDialog->update();
 }
 
+/* 
+ * Open the pixel view window
+ */
 int open_pixelview(struct ViewInfo *vi)
 {
 
@@ -73,16 +85,60 @@ int open_pixelview(struct ViewInfo *vi)
 
   PixelViewDialog->show();
   PixelViewDialog->update();
-
+  pvNewMousePosition(vi, vi->xmouse, vi->ymouse, (int)floor(vi->zmouse + 0.5));
+  zapPixelViewState(true);
+  xyzPixelViewState(true);
+  slicerPixelViewState(true);
   return(0);
 }
 
+/*
+ * Display a new mouse position from whoever has one
+ */
+void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
+{
+  int ix = (int)x;
+  int iy = (int)y;
+  int isFloat = 0;
+  float value;
+  QString str;
+
+  lastMouseX = x;
+  lastMouseY = y;
+  if (!PixelViewDialog)
+    return;
+  if (ix < 0 || iy < 0 || ix >= vi->xsize || iy >= vi->ysize || iz < 0 || 
+      iz >= vi->zsize)
+    return;
+  if (fromFile) {
+    value = ivwGetFileValue(vi, ix, iy, iz);
+    if (!(vi->image->mode == MRC_MODE_BYTE || 
+          vi->image->mode == MRC_MODE_SHORT ||
+          vi->image->mode == MRC_MODE_USHORT))
+        isFloat = 1;
+  } else
+    value = ivwGetValue(vi, ix, iz, iz);
+  if (isFloat)
+    str.sprintf("Mouse at  %5d, %5d, %4d   Value = %9g", ix + 1, iy + 1, 
+                iz + 1, value);
+  else
+    str.sprintf("Mouse at  %5d, %5d, %4d   Value = %3d", ix + 1, iy + 1, 
+                iz + 1, (int)value);
+  PixelViewDialog->mMouseLabel->setText(str);
+}
+
+/*
+ * The class constructor
+ */
 PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
   int i, j;
+  QVBoxLayout *vBox = new QVBoxLayout(this);
   QGridLayout *layout = new QGridLayout(this, PV_ROWS + 1, PV_COLS + 1, 
 				       7, 5, "pixel view layout");
+  vBox->addLayout(layout);
+
   // Add labels on left
   for (i = 0; i < PV_ROWS; i++) {
     mLeftLabels[i] = new QLabel("88888", this);
@@ -120,6 +176,16 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   mGrayColor = mButtons[0][0]->paletteBackgroundColor();
   mMinRow = -1;
   mMaxRow = -1;
+
+  QHBoxLayout *hBox = new QHBoxLayout(vBox);
+  mMouseLabel = diaLabel(" ", this, hBox);
+  QHBox *spacer = new QHBox(this);
+  hBox->addWidget(spacer);
+  hBox->setStretchFactor(spacer, 100);
+
+  QCheckBox *cbox = diaCheckBox("Show value in file", this, hBox);
+  diaSetChecked(cbox, fromFile);
+  connect(cbox, SIGNAL(toggled(bool)), this, SLOT(fromFileToggled(bool)));
 }
 
 void PixelView::setButtonWidths()
@@ -133,9 +199,12 @@ void PixelView::setButtonWidths()
       mButtons[i][j]->setMinimumWidth(width);
 }
 
+/*
+ * Routine to update the buttons with values
+ */
 void PixelView::update()
 {
-  struct ViewInfo *vi = App->cvi;
+  ImodView *vi = App->cvi;
   QString str;
   int i, j, x, y;
   float pixel;
@@ -230,6 +299,10 @@ void PixelView::buttonPressed(int pos)
   imodDraw(App->cvi, IMOD_DRAW_XYZ);   // Removed IMOD_DRAW_IMAGE
 }
 
+void PixelView::fromFileToggled(bool state)
+{
+  fromFile = state;
+}
 
 // Close event: just remove control from list and null pointer
 void PixelView::closeEvent ( QCloseEvent * e )
@@ -237,6 +310,9 @@ void PixelView::closeEvent ( QCloseEvent * e )
   ivwRemoveControl(App->cvi, ctrl);
   imodDialogManager.remove((QWidget *)PixelViewDialog);
   PixelViewDialog = NULL;
+  zapPixelViewState(false);
+  xyzPixelViewState(false);
+  slicerPixelViewState(false);
   e->accept();
 }
 
@@ -265,6 +341,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.9  2005/11/11 23:04:29  mast
+Changes for unsigned integers
+
 Revision 4.8  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
