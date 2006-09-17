@@ -113,6 +113,7 @@ class ZapGL : public QGLWidget
         const char * name = 0);
   ~ZapGL() {};
   void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
+  struct zapwin *mZap;
  
 protected:
   void paintGL();
@@ -123,7 +124,6 @@ protected:
   void timerEvent(QTimerEvent *e);
 
  private:
-  struct zapwin *mZap;
   bool mMousePressed;
   bool mFirstDraw;
   int mTimerID;
@@ -131,6 +131,9 @@ protected:
 
 /*
 $Log$
+Revision 4.8  2006/04/01 23:43:15  mast
+Added size output to toolbar
+
 Revision 4.7  2006/01/26 18:45:20  mast
 Enabled swapping control
 

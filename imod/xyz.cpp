@@ -31,6 +31,7 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "imod_input.h"
 #include "autox.h"
+#include "pixelview.h"
 #include "imod_edit.h"
 #include "imod_model_edit.h"
 #include "imod_workprocs.h"
@@ -54,6 +55,7 @@ static struct xxyzwin *XYZ = NULL;
 
 static QTime but1downt;
 static int xyzShowSlice = 0;
+static bool pixelViewOpen = false;
 
 /* routine for opening or raising the window */
 int xxyz_open(ImodView *vi)
@@ -139,6 +141,7 @@ int xxyz_open(ImodView *vi)
   imod_info_input();
   xx->dialog->show();
   xx->dialog->SetCursor(vi->imod->mousemode);
+  xx->glw->setMouseTracking(pixelViewOpen);
   return(0);
 }
 
@@ -194,6 +197,12 @@ static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
     xx->dialog->keyPressPassedOn(e);
 }
 
+void xyzPixelViewState(bool state)
+{
+  pixelViewOpen = state;
+  if (XYZ)
+    XYZ->glw->setMouseTracking(state);
+}
 
 // Implementation of the window class
 XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
@@ -1704,6 +1713,15 @@ void XyzGL::mouseReleaseEvent( QMouseEvent * event )
 void XyzGL::mouseMoveEvent( QMouseEvent * event )
 {
   int button1, button2, button3;
+  float mx, my;
+  int mz;
+
+  if (pixelViewOpen) {
+    mXyz->whichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
+    if (mXyz->whichbox && mXyz->whichbox < 4)
+      pvNewMousePosition(mXyz->vi, mx, my, mz);
+  }
+
   if(!mMousePressed)
     return;
 
@@ -1726,6 +1744,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.29  2006/08/31 23:27:45  mast
+Changes for stored value display
+
 Revision 4.28  2006/07/03 04:14:21  mast
 Changes for beadfixer overlay mode
 

@@ -34,6 +34,7 @@ Log at end of file
 #include "b3dgfx.h"
 #include "xcramp.h"
 #include "xzap.h"
+#include "pixelview.h"
 #include "xgraph.h"
 #include "control.h"
 #include "imodplug.h"
@@ -117,6 +118,7 @@ static int dragRegisterSize = 10;
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int insertDown = 0;
+static bool pixelViewOpen = false;
 
 static QTime insertTime;
 static QTime but1downt;
@@ -602,6 +604,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->insertmode = 0;
   zap->toolstart = 0;
   zap->showslice = 0;
+  zap->showedSlice = 0;
   zap->timeLock = 0;
   zap->toolSection = -1;
   zap->toolMaxZ = vi->zsize;
@@ -766,6 +769,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->qtWindow->move(xleft, ytop);
   zap->qtWindow->show();
   zap->popup = 1;
+  zap->gfx->setMouseTracking(pixelViewOpen);
 
   // 11/24/03: OS 10.3 needs to move after the show, so just put this in without
   // checking if it would work generally
@@ -1104,6 +1108,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         handled = 1;
         break;
       }
+      zap->showslice = zap->showedSlice;
       zapDraw(zap);
       limits = NULL;
       if (zap->rubberband) {
@@ -1211,7 +1216,7 @@ void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
     return;
   insertDown = 0;
   registerDragAdditions(zap);
-  zap->gfx->setMouseTracking(zap->rubberband != 0);
+  zap->gfx->setMouseTracking(zap->rubberband != 0 || pixelViewOpen);
   zap->qtWindow->releaseKeyboard();
   zap->gfx->releaseMouse();
   if (zap->drawCurrentOnly) {
@@ -1329,6 +1334,12 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   int cumthresh = 6 * 6;
   int ctrlDown = event->state() & Qt::ControlButton;
   int shiftDown = event->state() & Qt::ShiftButton;
+  float imx, imy;
+
+  if (pixelViewOpen) {
+    zapGetixy(zap, event->x(), event->y(), &imx, &imy);
+    pvNewMousePosition(zap->vi, imx, imy, zap->section);
+  }
 
   if (!(mousePressed || insertDown)) {
     if (zap->rubberband)
@@ -2813,7 +2824,7 @@ void zapToggleRubberband(ZapStruct *zap)
     zap->startingBand = 0;
     zap->bandChanged = 1;
     setControlAndLimits(zap);
-    zap->gfx->setMouseTracking(insertDown != 0);
+    zap->gfx->setMouseTracking(insertDown != 0 || pixelViewOpen);
   } else {
     zap->startingBand = 1;
     zap->shiftingCont = 0;
@@ -2890,6 +2901,23 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1)
     }
   }
   return 0;
+}
+
+// The pixel view window has opened or closed, set mouse tracking for all zaps
+void zapPixelViewState(bool state)
+{
+  pixelViewOpen = state;
+  QObjectList objList;
+  ZapStruct *zap;
+  int i;
+
+  pixelViewOpen = state;
+  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    zap = ((ZapWindow *)objList.at(i))->mZap;
+    zap->gfx->setMouseTracking(insertDown != 0 || zap->rubberband || state);
+  }
 }
 
 // Take a snapshot by montaging at higher zoom
@@ -3517,6 +3545,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
   }
 
   b3dLineWidth(1);
+  zap->showedSlice = zap->showslice;
   if (zap->showslice){
     b3dColorIndex(App->foreground);
     b3dDrawLine(x, y,
@@ -3803,6 +3832,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.85  2006/09/06 23:11:29  mast
+Fixed Ctrl-A with no rubberband and added Ctrl-Shift A for all objects
+
 Revision 4.84  2006/08/31 23:27:45  mast
 Changes for stored value display
 

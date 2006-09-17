@@ -86,7 +86,8 @@ typedef struct zapwin
   int toolSizeY;
 
   short insertmode;
-  short showslice;
+  short showslice;   /* Flag that slice should be drawn during paint */
+  int showedSlice;   /* Flag that it was drawn last time */
 
   /* Pointer to view and control sturctures. */
   ImodView    *vi;
@@ -123,9 +124,13 @@ int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse,
                     int &nyUse);
 void zapReportRubberband();
 int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
+void zapPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.21  2006/08/24 21:28:50  mast
+Added flag that rubberband changed
+
 Revision 3.20  2006/07/03 04:14:21  mast
 Changes for beadfixer overlay mode
 

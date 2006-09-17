@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2006/09/12 15:35:39  mast
+    Added mouse move slot
+
     Revision 3.7  2005/03/08 15:48:49  mast
     Added enum for toolbar toggles
 
@@ -129,6 +132,7 @@ void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
 		  int ilimshort, int jlimshort, int minval, int maxval);
 int sslice_open(struct ViewInfo *vi);
 void slicerReportAngles();
+void slicerPixelViewState(bool state);
 void slicerHelp();
 void slicerStepZoom(SlicerStruct *win, int dir);
 void slicerEnteredZoom(SlicerStruct *win, float newZoom);

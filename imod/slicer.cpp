@@ -37,6 +37,7 @@ Log at end of file
 #include "xcramp.h"
 #include "xcorr.h"
 #include "imod_edit.h"
+#include "pixelview.h"
 #include "imod_model_edit.h"
 #include "imod_moviecon.h"
 #include "imod_workprocs.h"
@@ -48,6 +49,8 @@ Log at end of file
 static void sslice_cube_draw(SlicerStruct *ss);
 static void sslice_draw(SlicerStruct *ss);
 static int sslice_setxyz(SlicerStruct *ss, int x, int y);
+static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
+                         float &zm);
 static float getZScaleBefore(SlicerStruct *ss);
 static void slice_trans_step(SlicerStruct *ss);
 static void slicer_attach_point(SlicerStruct *ss, int x, int y);
@@ -77,6 +80,7 @@ static void setInverseMatrix(SlicerStruct *ss);
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
 static int ctrlPressed = false;
+static bool pixelViewOpen = false;
 
 /*
  * Open up slicer help dialog.
@@ -351,8 +355,26 @@ int sslice_open(struct ViewInfo *vi)
   }
 
   ss->qtWindow->show();
+  ss->glw->setMouseTracking(pixelViewOpen);
 
   return(0);
+}
+
+// The pixel view window has opened or closed, set mouse tracking for all
+void slicerPixelViewState(bool state)
+{
+  pixelViewOpen = state;
+  QObjectList objList;
+  SlicerWindow *slicer;
+  int i;
+
+  pixelViewOpen = state;
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    slicer = (SlicerWindow *)objList.at(i);
+    slicer->mGLw->setMouseTracking(state);
+  }
 }
 
 // Report the angles of the first slicer window
@@ -653,10 +675,16 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
 {
   int zmouse;
+  float xm, ym, zm;
   Ipoint cpt;
   Icont *cont;
   Imod *imod = ss->vi->imod;
   Ipoint scale = {1., 1., 1.};
+
+  if (pixelViewOpen) {
+    zmouse = sslice_getxyz(ss, event->x(), event->y(), xm, ym, zm);
+    pvNewMousePosition(ss->vi, xm, ym, zmouse);
+  }
 
   if ((event->state() & ImodPrefs->actualButton(2)) && ss->locked &&
       imod->mousemode == IMOD_MMODEL) {
@@ -901,13 +929,38 @@ static float getZScaleBefore(SlicerStruct *ss)
   return zs;
 }
 
+// Set the X, y, z coordinates based on the point in the window
 static int sslice_setxyz(SlicerStruct *ss, int x, int y)
 {
-  float xoffset, yoffset;
   float xm, ym, zm;
   int zmouse;
+
+  zmouse = sslice_getxyz(ss, x, y, xm, ym, zm);
+
+  /* Set up pending coordinates for next draw to use */
+  ss->pendx = xm;
+  ss->pendy = ym;
+  ss->pendz = zm;
+  ss->pending = 1;
+
+  /* DNM: do this regardless of whether locked or not.  
+     9/8/06: changed from setting zmouse to the integral value to
+     setting it the real value but returning the integral value for the
+     call to set after point insertion/modification. */
+  ss->vi->xmouse = xm; 
+  ss->vi->ymouse = ym; 
+  ss->vi->zmouse = zm;
+  //imodPrintStderr("setxyz %f %f %f\n", xm, ym, zm);
+  return zmouse;
+}
+
+// Compute the x, y, z coordinates corresponding to a point in window
+static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
+                         float &zm)
+{
+  float xoffset, yoffset;
   float zs;
-  Ipoint delpt, rotpt;
+  Ipoint delpt;
 
   /* DNM: the xzoom and yzoom are correct for all cases, and the zs
      needs to be applied only for the case of SCALE_BEFORE */
@@ -946,23 +999,7 @@ static int sslice_setxyz(SlicerStruct *ss, int x, int y)
   ym = B3DMIN(ss->vi->ysize - 1, B3DMAX(0, ym));
   zm = B3DMIN(ss->vi->xsize - 0.51, B3DMAX(-0.49, zm));
 
-  zmouse = (int)floor(zm + 0.5);
-
-  /* Set up pending coordinates for next draw to use */
-  ss->pendx = xm;
-  ss->pendy = ym;
-  ss->pendz = zm;
-  ss->pending = 1;
-
-  /* DNM: do this regardless of whether locked or not.  
-     9/8/06: changed from setting zmouse to the integral value to
-     setting it the real value but returning the integral value for the
-     call to set after point insertion/modification. */
-  ss->vi->xmouse = xm; 
-  ss->vi->ymouse = ym; 
-  ss->vi->zmouse = zm;
-  //imodPrintStderr("setxyz %f %f %f\n", xm, ym, zm);
-  return zmouse;
+  return((int)floor(zm + 0.5));
 }
 
 
@@ -2379,6 +2416,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.33  2006/09/13 23:50:38  mast
+Fixed a float in call that takes int
+
 Revision 4.32  2006/09/13 05:36:41  mast
 Fixed drag drawing when highly tilted by using 3D distance
 
