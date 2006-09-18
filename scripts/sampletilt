@@ -1,0 +1,31 @@
+#!/bin/csh -f
+# sampletilt - makes a tilt sample using the current tilt.com
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
+nohup
+
+if ($#argv != 6) then
+    echo "ERROR: sampletilt - need 6 params: slice start & end, ystart, set name, rec name, com file name"
+    exit 1
+endif
+
+set slstart = $argv[1]
+set slend = $argv[2]
+set ystart = $argv[3]
+set setname = $argv[4]
+set recname = $argv[5]
+set tiltname = $argv[6]
+
+sed -e '/^[$#]/d' -e "/SUBSETSTART.*/s//SUBSETSTART 0 $ystart/" \
+ -e "/$setname.*\.rec/s//$recname/" -e '/SLICE/d' -e '/WIDTH/d' \
+ -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
+SLICE'" $slstart $slend"' 1\
+' tilta.com |tilt
+exit $status
