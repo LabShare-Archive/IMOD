@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/18/06: Made processchunks able ot detect and report a failure to cd to the
+data directory or a failure to run IMOD commands.
+
+9/18/06: Stopped imodmesh from rotating or flattening contours to be meshed as
+tubes.
+
 9/18/06: Added continuous display of mouse position and value in pixel view
 window from Zap, XYZ, and Slicer windows, as well as option to close the grid
 of values.
