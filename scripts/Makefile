@@ -5,8 +5,28 @@ include ../configure
 #  $Date$
 #
 #  $Revision$
-#
+#  Log at end
+
+SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
+ newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
+ setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
+ dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
+ chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
+ archiveorig imodkillgroup collectmmm sampletilt $(GENERATED_SCRIPTS)
+
+all:
+
+install:
+	$(CP) $(SCRIPTS) $(INSTBINDIR)
+#	(cd $(INSTBINDIR) ; if (! -e bgimodv) ln -s bgimod bgimodv)
+
+clean:
+	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
+
 #  $Log$
+#  Revision 3.17  2006/03/24 23:09:56  mast
+#  *** empty log message ***
+#
 #  Revision 3.16  2005/08/30 17:41:31  mast
 #  Added imodkillgroup
 #
@@ -56,20 +76,4 @@ include ../configure
 #  Add dm2mrc
 #
 # 3/12/01 take bgimod out, no longer needed
-
-SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
- newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
- setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
- dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
- chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
- archiveorig imodkillgroup collectmmm $(GENERATED_SCRIPTS)
-
-all:
-
-install:
-	$(CP) $(SCRIPTS) $(INSTBINDIR)
-#	(cd $(INSTBINDIR) ; if (! -e bgimodv) ln -s bgimod bgimodv)
-
-clean:
-	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
