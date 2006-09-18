@@ -318,6 +318,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
   Imesh *mesh;
   Icont *cont;
   int co, co2, pt, i, m, surf, ninSurf, numNorm, izdiff, nbad, minbad;
+  int makeTubes;
   Ipoint cen, cnorm, normsum, ceninv, sclinv, refNorm, sclSkin;
   double beta, alpha, xrot, zrot, z1, z2;
   double dtor = 0.017453293;
@@ -350,8 +351,9 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
   tubeDiameter = obj->meshParam->tubeDiameter;
   flatCrit = obj->meshParam->flatCrit;
   imeshSetMinMax(triMin, triMax);
+  makeTubes = iobjOpen(obj->flags) && (flags & IMESH_MK_TUBE) ? 1 : 0;
 
-  if (flatCrit > 0 && !(iobjOpen(obj->flags) && (flags & IMESH_MK_TUBE))) {
+  if (flatCrit > 0 && !makeTubes) {
     
     /* Get arrays for bounding box and find biggest Z difference in contours */
     bbmin = (Ipoint *)malloc(obj->contsize * sizeof(Ipoint));
@@ -393,8 +395,8 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
       useObj = imeshDupMarkedConts(obj, 0);
     if (!useObj)
       return 1;
-    if (imeshPrepContours(useObj, minz, maxz, incz, tol, 
-                          flags & IMESH_MK_USE_MEAN))
+    if (!makeTubes && imeshPrepContours(useObj, minz, maxz, incz, tol, 
+                                    flags & IMESH_MK_USE_MEAN))
       return 1;
     if (imeshSkinObject(useObj, scale, overlap, cap, 
                         obj->meshParam->capSkipZlist,
@@ -703,6 +705,9 @@ static int floatcmp(const void *v1, const void *v2)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.3  2006/09/13 05:39:07  mast
+Increased thickness by 1 to avoid zero volumes when tilted at 90 deg
+
 Revision 1.2  2006/09/13 02:40:20  mast
 FIxed a memory leak
 
