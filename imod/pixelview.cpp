@@ -22,9 +22,10 @@ Log at end of file
 #include <qlabel.h>
 #include <qvbox.h>
 #include <qhbox.h>
-#include <qCheckBox.h>
+#include <qcheckbox.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
+#include <qtooltip.h>
 #include "pixelview.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -42,6 +43,7 @@ static int ctrl;
 static bool fromFile = false;
 static float lastMouseX = 0.;
 static float lastMouseY = 0.;
+static bool showButs = true;
 
 static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
 {
@@ -74,17 +76,9 @@ int open_pixelview(struct ViewInfo *vi)
   ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (void *)0);
   imodDialogManager.add((QWidget *)PixelViewDialog, IMOD_IMAGE);
 
-  // Adjust for the buttons that are too large if the current file is ints
-  // The minimum size setting of the buttons will keep this from getting
-  // too small
-  if (vi->image->mode == MRC_MODE_BYTE || vi->image->mode == MRC_MODE_SHORT ||
-      vi->image->mode == MRC_MODE_USHORT) {
-    QSize hint = PixelViewDialog->sizeHint();
-    PixelViewDialog->resize((int)(0.7 * hint.width()), hint.height());
-  }
-
+  // This takes care of showing/hiding. resizing, and updating
+  PixelViewDialog->showButsToggled(showButs);
   PixelViewDialog->show();
-  PixelViewDialog->update();
   pvNewMousePosition(vi, vi->xmouse, vi->ymouse, (int)floor(vi->zmouse + 0.5));
   zapPixelViewState(true);
   xyzPixelViewState(true);
@@ -119,10 +113,10 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
   } else
     value = ivwGetValue(vi, ix, iz, iz);
   if (isFloat)
-    str.sprintf("Mouse at  %5d, %5d, %4d   Value = %9g", ix + 1, iy + 1, 
+    str.sprintf("Mouse: %5d, %5d, %4d  Value: %9g", ix + 1, iy + 1, 
                 iz + 1, value);
   else
-    str.sprintf("Mouse at  %5d, %5d, %4d   Value = %3d", ix + 1, iy + 1, 
+    str.sprintf("Mouse: %5d, %5d, %4d  Value: %3d", ix + 1, iy + 1, 
                 iz + 1, (int)value);
   PixelViewDialog->mMouseLabel->setText(str);
 }
@@ -135,9 +129,31 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
 {
   int i, j;
   QVBoxLayout *vBox = new QVBoxLayout(this);
-  QGridLayout *layout = new QGridLayout(this, PV_ROWS + 1, PV_COLS + 1, 
-				       7, 5, "pixel view layout");
+
+  // Make the mouse report box
+  QHBoxLayout *hBox = new QHBoxLayout(vBox);
+  mMouseLabel = diaLabel(" ", this, hBox);
+  QHBox *spacer = new QHBox(this);
+  hBox->addWidget(spacer);
+  hBox->setStretchFactor(spacer, 100);
+  hBox->setSpacing(5);
+
+  QCheckBox *cbox = diaCheckBox("File value", this, hBox);
+  diaSetChecked(cbox, fromFile);
+  connect(cbox, SIGNAL(toggled(bool)), this, SLOT(fromFileToggled(bool)));
+  QToolTip::add(cbox, "Show value from file, not byte value from memory, "
+                "at mouse position");
+
+  QCheckBox *gbox = diaCheckBox("Grid", this, hBox);
+  diaSetChecked(gbox, showButs);
+  connect(gbox, SIGNAL(toggled(bool)), this, SLOT(showButsToggled(bool)));
+  QToolTip::add(cbox, "Show grid of buttons with values from file");
+
+  // Make the grid
+  QGridLayout *layout = new QGridLayout(PV_ROWS + 1, PV_COLS + 1, 
+				       5, "pixel view layout");
   vBox->addLayout(layout);
+  vBox->setMargin(7);
 
   // Add labels on left
   for (i = 0; i < PV_ROWS; i++) {
@@ -152,9 +168,9 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
     mBotLabels[i]->setAlignment(AlignCenter);
     layout->addWidget(mBotLabels[i], PV_ROWS, i + 1);
   }
-  QLabel *labXY = new QLabel("Y/X", this);
-  labXY->setAlignment(AlignCenter);
-  layout->addWidget(labXY, PV_ROWS, 0);
+  mLabXY = new QLabel("Y/X", this);
+  mLabXY->setAlignment(AlignCenter);
+  layout->addWidget(mLabXY, PV_ROWS, 0);
 
   // Make signal mapper
   QSignalMapper *mapper = new QSignalMapper(this);
@@ -176,16 +192,6 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   mGrayColor = mButtons[0][0]->paletteBackgroundColor();
   mMinRow = -1;
   mMaxRow = -1;
-
-  QHBoxLayout *hBox = new QHBoxLayout(vBox);
-  mMouseLabel = diaLabel(" ", this, hBox);
-  QHBox *spacer = new QHBox(this);
-  hBox->addWidget(spacer);
-  hBox->setStretchFactor(spacer, 100);
-
-  QCheckBox *cbox = diaCheckBox("Show value in file", this, hBox);
-  diaSetChecked(cbox, fromFile);
-  connect(cbox, SIGNAL(toggled(bool)), this, SLOT(fromFileToggled(bool)));
 }
 
 void PixelView::setButtonWidths()
@@ -214,6 +220,8 @@ void PixelView::update()
 
   /* DNM 11/24/02: Bring window to the top */
   raise();
+  if (!showButs)
+    return;
 
   // Reset the button colors from previous min/max
   if (mMinRow >= 0)
@@ -304,6 +312,48 @@ void PixelView::fromFileToggled(bool state)
   fromFile = state;
 }
 
+// Show or hide the grid of buttons
+void PixelView::showButsToggled(bool state)
+{
+  int i, j;
+  int mode = App->cvi->image->mode;
+  showButs = state;
+  for (i = 0; i < PV_ROWS; i++) {
+    for (j = 0; j < PV_COLS; j++) {
+      if (state)
+        mButtons[i][j]->show();
+      else
+        mButtons[i][j]->hide();
+    }
+    if (state)
+      mLeftLabels[i]->show();
+    else
+      mLeftLabels[i]->hide();
+  }
+
+  for (j = 0; j < PV_COLS; j++) {
+    if (state)
+      mBotLabels[j]->show();
+    else
+      mBotLabels[j]->hide();
+  }
+  if (state)
+    mLabXY->show();
+  else
+    mLabXY->hide();
+
+  // Adjust for the buttons that are too large if the current file is ints
+  // The minimum size setting of the buttons will keep this from getting
+  // too small
+  if (showButs && (mode == MRC_MODE_BYTE || mode == MRC_MODE_SHORT ||
+                   mode == MRC_MODE_USHORT)) {
+    QSize hint = PixelViewDialog->sizeHint();
+    PixelViewDialog->resize((int)(0.7 * hint.width()), hint.height());
+  } else
+    adjustSize();
+  update();
+}
+
 // Close event: just remove control from list and null pointer
 void PixelView::closeEvent ( QCloseEvent * e )
 {
@@ -341,6 +391,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.10  2006/09/17 18:15:34  mast
+Added mouse position/value report line
+
 Revision 4.9  2005/11/11 23:04:29  mast
 Changes for unsigned integers
 
