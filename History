@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/18/06: Added continuous display of mouse position and value in pixel view
+window from Zap, XYZ, and Slicer windows, as well as option to close the grid
+of values.
+
+9/18/06: Stopped time movie when 1, 2, or time arrow in zap toolbar is pushed.
+
 9/13/06: IMOD_3-8-24
 9/13/06: In Tomogram Positioning, changing the display for fiducialess sample
 creation.
