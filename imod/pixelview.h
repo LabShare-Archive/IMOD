@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2006/09/17 18:15:34  mast
+Added mouse position/value report line
+
 Revision 4.2  2003/03/26 06:30:56  mast
 adjusting to font changes
 
@@ -54,6 +57,7 @@ class PixelView: public QWidget
   public slots:
     void buttonPressed(int pos);
   void fromFileToggled(bool state);
+  void showButsToggled(bool state);
 
  protected:
     void closeEvent ( QCloseEvent * e );
@@ -64,6 +68,7 @@ class PixelView: public QWidget
  private:
     QLabel *mBotLabels[PV_COLS];
     QLabel *mLeftLabels[PV_ROWS];
+    QLabel *mLabXY;
     QPushButton *mButtons[PV_ROWS][PV_COLS];
     QColor mGrayColor;       // Original color
     int mMinRow, mMinCol, mMaxRow, mMaxCol;   // Row, column of last min/max
