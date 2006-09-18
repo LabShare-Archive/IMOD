@@ -1145,9 +1145,11 @@ EOF
     cat > $dstfile <<EOF
 # THIS IS A COMMAND FILE TO MAKE 3 TOMOGRAM SAMPLES
 #
+####CreatedVersion#### 3.8.25
+# 
 # The sample aligned stacks will each be $SAMPALISIZE pixels in Y
 # The sample tomograms will have $SAMPLESIZE slices
-# To get more slices in the samples, change "SLICE $slmin $slmax" by
+# To get more slices in the samples, change "sampletilt $slmin $slmax" by
 # decreasing $slmin and increasing $slmax by equal amounts, up to 0 and $sllimit
 #
 EOF
@@ -1184,11 +1186,7 @@ EOF
         endif
 
         cat << EOF >> $dstfile
-\$sed -e '/^[\$#]/d' -e '/SUBSETSTART.*/s//SUBSETSTART 0 $ymin/' \
- -e '/$setname.*\.rec/s//$bmtarr[$ind]/' -e '/SLICE/d' -e '/WIDTH/d' \
- -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\\\\\
-SLICE $slmin $slmax 1\\\\
-' tilt$dstext |tilt
+\$sampletilt $slmin $slmax $ymin $setname $bmtarr[$ind] tilt$dstext
 EOF
     end
 
@@ -1372,6 +1370,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.52  2006/08/17 18:36:54  mast
+#  Added locale statement to keep output of awk from having instead of .
+#
 #  Revision 3.51  2006/06/23 03:21:27  mast
 #  Set com directory name as cygwin not windows path
 #
