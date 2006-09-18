@@ -564,6 +564,7 @@ void zapStepTime(ZapStruct *zap, int step)
     zapDraw(zap);
 
   } else {
+    imodMovieXYZT(zap->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT, 0);
     if (step > 0)
       inputNextTime(zap->vi);
     else
@@ -3832,6 +3833,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.86  2006/09/17 18:15:59  mast
+Changes to provide mouse position to pixelview
+
 Revision 4.85  2006/09/06 23:11:29  mast
 Fixed Ctrl-A with no rubberband and added Ctrl-Shift A for all objects
 

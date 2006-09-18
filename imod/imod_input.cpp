@@ -1104,10 +1104,12 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_1:
+    inputMovieTime(vw, 0);
     inputPrevTime(vw);
     break;
 
   case Qt::Key_2:
+    inputMovieTime(vw, 0);
     inputNextTime(vw);
     break;
 
@@ -1343,6 +1345,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.27  2006/09/12 15:46:14  mast
+Handled contour member renames
+
 Revision 4.26  2006/08/28 05:24:04  mast
 Do not toggle false color mode with colormapped images
 
