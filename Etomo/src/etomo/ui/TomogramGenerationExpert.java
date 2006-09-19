@@ -105,6 +105,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    metaData.getTiltParam(tiltParam, axisID);
     // If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
       // upgrade and save param to comscript
@@ -311,6 +312,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
+      metaData.getTiltParam(tiltParam, axisID);
       getTiltParams(tiltParam);
       if (useDefaultRec) {
         String outputFileName;
@@ -335,6 +337,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       }
       UIExpertUtilities.INSTANCE.rollTiltComAngles(manager, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
+      metaData.setTiltParam(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -1026,6 +1029,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/09/14 00:00:47  sueh
+ * <p> bug# 920 Rename X offset and Z offset to X shift and Z shift.
+ * <p>
  * <p> Revision 1.5  2006/08/03 21:36:24  sueh
  * <p> bug# Added reconnectTilt().
  * <p>

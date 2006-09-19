@@ -150,6 +150,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     // Get the tilt{|a|b}.com parameters
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    metaData.getTiltParam(tiltParam, axisID);
     setTiltParam(tiltParam);
     //If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
@@ -211,8 +212,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
-      if (dialog.isTomopitchButton() && dialog.isAlignButtonEnabled()
-          && !dialog.isAlignButton()) {
+      ConstEtomoNumber sampleFiducialess = state.getSampleFiducialess(axisID);
+      if ((sampleFiducialess == null || !sampleFiducialess.is()) && dialog.isTomopitchButton()
+          && dialog.isAlignButtonEnabled() && !dialog.isAlignButton()) {
         if (!UIHarness.INSTANCE
             .openYesNoWarningDialog(
                 "Final alignment is not done or is out of date.\nReally leave Tomogram Positioning?",
@@ -423,6 +425,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   private void sampleTilt(ProcessResultDisplay processResultDisplay) {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    metaData.getTiltParam(tiltParam, axisID);
     sendMsg(manager.sampleTilt(axisID, processResultDisplay, tiltParam),
         processResultDisplay);
   }
@@ -479,11 +482,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
+      metaData.getTiltParam(tiltParam, axisID);
       getTiltParams(tiltParam);
       if (sample) {
         getTiltParamsForSample(tiltParam);
       }
-      getParameters(metaData);
+      getParameters(metaData, tiltParam);
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
         outputFileName = metaData.getDatasetName() + "_full.rec";
@@ -500,6 +504,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       }
       rollTiltComAngles();
       comScriptMgr.saveTilt(tiltParam, axisID);
+      metaData.setTiltParam(tiltParam, axisID);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -682,7 +687,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     updateMetaData();
   }
 
-  private void getParameters(MetaData metaData) {
+  private void getParameters(MetaData metaData, ConstTiltParam tiltParam) {
     if (dialog == null) {
       return;
     }
@@ -877,6 +882,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/09/14 00:04:48  sueh
+ * <p> bug# 920 Turn off tomopitch fields when the fiducialess setting with which
+ * <p> sample was created does not match the fiducialess setting on the screen.
+ * <p>
  * <p> Revision 1.10  2006/07/28 20:14:56  sueh
  * <p> bug# 868 checking for null dialog
  * <p>
