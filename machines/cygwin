@@ -37,11 +37,16 @@ if ($compiler == intel) then
     # Get the version from icl, assuming we have matched c++/fortran compilers
     #
     icl >&! icl.tmp
-    set iclnum = `sed -n -e '/Version/s/.*Version \([0-9]*\).*/\1/p' -e '/[[:cntrl:]]/s///g' icl.tmp`
-    set iclbuild = `sed -n -e '/Build/s/.*Build \([0-9]*\).*/\1/p' -e '/[[:cntrl:]]/s///g' icl.tmp`
+    set iclnum = `sed -n  -e '/\./s// /g' -e '/[[:cntrl:]]/s///g' -e '/Version/s/.*Version \([0-9 ]*\).*/\1/p' icl.tmp`
+    set iclbuild = `sed -n  -e '/[[:cntrl:]]/s///g' -e '/Build/s/.*Build \([0-9]*\).*/\1/p' icl.tmp`
     \rm -f icl.tmp
     @ iclversion = 7
-    if ("$iclnum" != "") @ iclversion = $iclnum
+    @ subversion = 0
+    echo $iclnum
+    if ("$iclnum" != "") @ iclversion = $iclnum[1]
+    if ($#iclnum > 1) then
+        @ subversion = $iclnum[2]
+    endif
 
     # version 8 and above: remove /C90, set record length to 4 bytes
     # also need to specify that \ is an escape character
@@ -57,6 +62,10 @@ if ($compiler == intel) then
         endif
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132"
+        
+        # Compiler 9.1 suddenly started assuming VC6 compatibility flag 
+        # (it wanted VC8?)
+        if ($iclversion > 8 && $subversion > 0) echo "WINCPUVC = /Qvc7.1" >> $configure
     endif
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
     
