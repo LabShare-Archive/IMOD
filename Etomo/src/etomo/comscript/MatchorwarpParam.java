@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/04/12 16:49:27  sueh
+ * <p> bug# 409 changed interface class CommandParam
+ * <p>
  * <p> Revision 3.1  2004/03/06 03:46:55  sueh
  * <p> bug# 380 added useLinearInterpolation
  * <p>
@@ -66,12 +69,22 @@ public class MatchorwarpParam
         refineLimit = Double.parseDouble(cmdLineArgs[i]);
         useRefinelimit = true;
       }
-
+      if (cmdLineArgs[i].startsWith(RESIDUAL_FILE_KEY)) {
+        i++;
+        residualFile = cmdLineArgs[i];
+      }
+      if (cmdLineArgs[i].startsWith(VECTOR_MODEL_KEY)) {
+        i++;
+        vectormodel = cmdLineArgs[i];
+      }
+      if (cmdLineArgs[i].startsWith(clipsize.getName())) {
+        i++;
+        clipsize.set(cmdLineArgs[i]);
+      }
       if (cmdLineArgs[i].startsWith("-warpl")) {
         i++;
         warpLimit = cmdLineArgs[i];
       }
-
       if (cmdLineArgs[i].startsWith("-m")) {
         i++;
         modelFile = cmdLineArgs[i];
@@ -135,11 +148,18 @@ public class MatchorwarpParam
       if (cmdLineArgs[i].startsWith("-tr")) {
         trial = true;
       }
-
     }
 
     inputFile = cmdLineArgs[cmdLineArgs.length - 2];
     outputFile = cmdLineArgs[cmdLineArgs.length - 1];
+    
+    //Backwards compatibility (before 3.8.25):
+    //Update so that the user can look at the .resid file.
+    if (residualFile == null && vectormodel == null && clipsize.isNull()) {
+      residualFile = RESIDUAL_FILE_DEFAULT;
+      vectormodel = VECTOR_MODEL_DEFAULT;
+      clipsize.set(CLIP_SIZE_DEFAULT);
+    }
   }
 
   /* (non-Javadoc)
@@ -160,6 +180,21 @@ public class MatchorwarpParam
     if (useRefinelimit) {
       cmdLineArgs.add("-refinelimit");
       cmdLineArgs.add(String.valueOf(refineLimit));
+    }
+    
+    if (residualFile != null) {
+      cmdLineArgs.add(RESIDUAL_FILE_KEY);
+      cmdLineArgs.add(residualFile);
+    }
+    
+    if (vectormodel !=null) {
+      cmdLineArgs.add(VECTOR_MODEL_KEY);
+      cmdLineArgs.add(vectormodel);
+    }
+    
+    if (!clipsize.isNull()) {
+      cmdLineArgs.add(clipsize.getName());
+      cmdLineArgs.add(clipsize.toString());
     }
 
     if (!warpLimit.equals("")) {
@@ -401,6 +436,9 @@ public class MatchorwarpParam
   private void reset() {
     size = "";
     useRefinelimit = false;
+    residualFile = null;
+    vectormodel = null;
+    clipsize.reset();
     warpLimit = "";
     modelFile = "";
     patchFile = "";

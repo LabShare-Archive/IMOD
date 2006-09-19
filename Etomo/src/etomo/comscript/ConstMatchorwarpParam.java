@@ -1,5 +1,8 @@
 package etomo.comscript;
 
+import etomo.type.EtomoNumber;
+import etomo.util.DatasetFiles;
+
 /**
  * <p>Description: </p>
  * 
@@ -13,6 +16,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/25 23:23:23  sueh
+ * <p> bug# 485 adding isUseModelFile()
+ * <p>
  * <p> Revision 3.1  2004/03/06 03:46:07  sueh
  * <p> bug# 380 added useLinearInterpolation
  * <p>
@@ -29,8 +35,17 @@ package etomo.comscript;
 public class ConstMatchorwarpParam {
   public static final String rcsid = "$Id$";
   
+  protected static final String RESIDUAL_FILE_KEY = "-residualfile";
+  protected static final String VECTOR_MODEL_KEY = "-vectormodel";
+  protected static final String RESIDUAL_FILE_DEFAULT = "patch.resid";
+  protected static final String VECTOR_MODEL_DEFAULT = DatasetFiles.PATCH_VECTOR_NAME;
+  protected static final int CLIP_SIZE_DEFAULT = 600;
+  
   protected String size = "";
   protected double refineLimit;
+  protected String residualFile = null;
+  protected String vectormodel = null;
+  protected final EtomoNumber clipsize = new EtomoNumber("-clipsize");
   protected boolean useRefinelimit = false;
   protected String warpLimit = "";
   protected String modelFile = "";
