@@ -15,6 +15,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.DatasetFiles;
 
 /*p
  * <p>Description: This class manages the opening, closing and sending of 
@@ -32,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2006/08/11 23:47:26  sueh
+ * <p> bug# 816 Added reopenLog().
+ * <p>
  * <p> Revision 3.44  2006/08/11 21:45:52  sueh
  * <p> bug# 816 Added setOpenLog() and setOpenLogOff()
  * <p>
@@ -415,6 +419,7 @@ public class ImodManager {
   protected ImodState trimmedVolume;
   protected ImodState fiducialModelA;
   protected ImodState fiducialModelB;
+  protected ImodState patchVectorCCCModel;
 
   private boolean metaDataSet = false;
 
@@ -444,6 +449,8 @@ public class ImodManager {
   public static final String ROT_TOMOGRAM_KEY = new String("rotTomogram");
   public static final String TRIAL_JOIN_KEY = new String("TrialJoinKey");
   public static final String SQUEEZED_VOLUME_KEY = new String("SqueezedVolume");
+  public static final String PATCH_VECTOR_CCC_MODEL_KEY = new String(
+  "patch vector ccc model");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -467,6 +474,7 @@ public class ImodManager {
   private static final String rotTomogramKey = ROT_TOMOGRAM_KEY;
   private static final String trialJoinKey = TRIAL_JOIN_KEY;
   private static final String squeezedVolumeKey = SQUEEZED_VOLUME_KEY;
+  private static final String patchVectorCCCModelKey = PATCH_VECTOR_CCC_MODEL_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -522,7 +530,6 @@ public class ImodManager {
     datasetName = metaData.getRootName();
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
-      System.out.println("manager=" + manager);
     }
     createPrivateKeys();
     loadJoinMap();
@@ -1153,6 +1160,9 @@ public class ImodManager {
     if (key.equals(SQUEEZED_VOLUME_KEY)) {
       return newSqueezedVolume();
     }
+    if (key.equals(PATCH_VECTOR_CCC_MODEL_KEY) && axisType == AxisType.DUAL_AXIS) {
+      return newPatchVectorCCCModel();
+    }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1232,6 +1242,7 @@ public class ImodManager {
     imodMap.put(mtfFilterKey + AxisID.SECOND.getExtension(),
         newVector(newMtfFilter(AxisID.SECOND)));
     imodMap.put(squeezedVolumeKey, newVector(newSqueezedVolume()));
+    imodMap.put(patchVectorCCCModelKey, newVector(newPatchVectorCCCModel()));
   }
 
   protected ImodState newRawStack(AxisID axisID) {
@@ -1285,7 +1296,15 @@ public class ImodManager {
   }
 
   protected ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState(manager, "patch_vector.mod",
+    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_NAME,
+        ImodState.MODEL_VIEW, AxisID.ONLY);
+    imodState.setInitialMode(ImodState.MODEL_MODE);
+    imodState.setNoMenuOptions(true);
+    return imodState;
+  }
+  
+  protected ImodState newPatchVectorCCCModel() {
+    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_CCC_NAME,
         ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
