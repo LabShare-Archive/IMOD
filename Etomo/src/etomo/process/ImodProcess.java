@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.41  2006/08/11 23:49:25  sueh
+ * bug# 816 Added reopenLog().
+ *
  * Revision 3.40  2006/08/11 21:46:10  sueh
  * bug# 816 Added setOpenLog()
  *
@@ -544,24 +547,16 @@ public class ImodProcess {
   InteractiveSystemProgram imod = null;
 
   private Vector sendArguments = new Vector();
-
   private String[] datasetNameArray = null;
-
   private boolean frames = false;
-
   private String pieceListFileName = null;
-
   private AxisID axisID;
-
   private Thread imodThread;
-
   private final BaseManager manager;
-
   private long beadfixerDiameter = ImodManager.DEFAULT_BEADFIXER_DIAMETER;
-
   private LinkedList requestQueue = new LinkedList();
-
   private LinkedList stderrQueue = new LinkedList();
+  private ArrayList windowOpenOptionList = null;
 
   /**
    * Constructor for using imodv
@@ -741,6 +736,16 @@ public class ImodProcess {
 
     if (menuOptions.isStartupWindow()) {
       commandOptions.add("-O");
+    }
+
+    if (windowOpenOptionList != null) {
+      commandOptions.add(WindowOpenOption.OPTION);
+      StringBuffer buffer = new StringBuffer(
+          ((WindowOpenOption) windowOpenOptionList.get(0)).toString());
+      for (int i = 1; i < windowOpenOptionList.size(); i++) {
+        buffer.append(((WindowOpenOption) windowOpenOptionList.get(i)).toString());
+      }
+      commandOptions.add(buffer.toString());
     }
 
     if (!datasetName.equals("")) {
@@ -1034,11 +1039,11 @@ public class ImodProcess {
   public void setBeadfixerMode(String beadfixerMode) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode);
   }
-  
+
   public void reopenLog() throws IOException, SystemProcessException {
     sendPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_REREAD_LOG);
   }
-  
+
   public void setOpenLog(String logName) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_OPEN_LOG, logName);
   }
@@ -1073,9 +1078,10 @@ public class ImodProcess {
     args[0] = MESSAGE_SLICER_ANGLES;
     return request(args);
   }
-  
-  private void sendPluginMessage(String plugin, String message) throws IOException, SystemProcessException{
-    send(new String[] {MESSAGE_PLUGIN_MESSAGE,plugin, message});
+
+  private void sendPluginMessage(String plugin, String message)
+      throws IOException, SystemProcessException {
+    send(new String[] { MESSAGE_PLUGIN_MESSAGE, plugin, message });
   }
 
   private void addPluginMessage(String plugin, String message, String value) {
@@ -1471,6 +1477,18 @@ public class ImodProcess {
         + outputWindowID + ", binning=" + binning;
   }
 
+  void addWindowOpenOption(WindowOpenOption option) {
+    if (option.isImodv() && !modelView && !useModv) {
+      System.err.println("WARNING:  Can't use 3dmod " + WindowOpenOption.OPTION
+          + " with " + option.toString()
+          + " because the Model View is not open.");
+    }
+    if (windowOpenOptionList == null) {
+      windowOpenOptionList = new ArrayList();
+    }
+    windowOpenOptionList.add(option);
+  }
+
   /**
    * Class to send a message to 3dmod. Can be run on a separate thread to avoid
    * locking up the GUI.
@@ -1650,6 +1668,28 @@ public class ImodProcess {
         return true;
       }
       return false;
+    }
+  }
+
+  static class WindowOpenOption {
+    static final String OPTION = "-E";
+    static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O",
+        true);
+
+    private final String windowKey;
+    private final boolean imodv;
+
+    private WindowOpenOption(String windowKey, boolean imodv) {
+      this.windowKey = windowKey;
+      this.imodv = imodv;
+    }
+
+    public String toString() {
+      return windowKey;
+    }
+
+    boolean isImodv() {
+      return imodv;
     }
   }
 }
