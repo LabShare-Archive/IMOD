@@ -14,6 +14,8 @@ set pn = processchunks
 set nice = 18
 @ dropcrit = 5
 @ maxchunkerr = 5
+set sleepsec = 2
+@ timeout = 30
 
 if ($#argv < 2) then
 cat <<EOF
@@ -332,6 +334,9 @@ while ($numdone < $#comlist)
             set dropmess = ""
             set checkpid = ""
             if ((-e $logname) && (! -e $cshname)) then
+                
+                # If the log is present and the .csh is gone, it has exited
+                #
                 set lastline = `tail -n 1 $logname | sed '/[[:cntrl:]]/s///g'`
                 if ("$lastline" == "CHUNK DONE") then
 
@@ -348,8 +353,7 @@ while ($numdone < $#comlist)
                     echo "$comlist[$ind] finished on $machines[$proc]"
                 else
 
-                    # If the log file exists but the .csh is gone, 
-                    # set flag to redo it
+                    # otherwise set flag to redo it
                     #
                     set dropout = 1
                     if (! -z $logname) then
@@ -378,24 +382,35 @@ while ($numdone < $#comlist)
                         set checkpid = `grep -v PID: $pidname`
                     endif
                 endif
-            else if (-e $sshname && ! -z $sshname) then
+            else 
 
-                # If the ssh file is non empty check for a cd: error
+                # Either there is no log file or the .csh is still present:
+                # check the ssh file and accumulate timeout
                 #
-                set checkcd = `grep 'cd:' $sshname`
-                if ("$checkcd" != "") then
-                    set dropout = 1
-                    set failed[$name] = $dropcrit
-                    set dropmess = "it cannot cd to $curdir ($checkcd)"
+                if (-e $sshname && ! -z $sshname) then
+
+                    # If the ssh file is non empty check for errors there
+                    #
+                    set checkcd = `grep 'cd:' $sshname`
+                    set checkdown = `grep 'ssh: connect to host' $sshname`
+                    if ("$checkcd" != "" || "$checkdown" != "") then
+                        set dropout = 1
+                        set failed[$name] = $dropcrit
+                        if ("$checkcd" != "") \
+                            set dropmess = "it cannot cd to $curdir ($checkcd)"
+                        if ("$checkdown" != "") \
+                            set dropmess = "cannot connect ($checkdown)"
+                    endif
                 endif
-            else if (! -e $logname) then
+                if (! -e $logname) then
             
-                # Similarly if log file doesn't exist, check the pid
-                # and give up after timeout
-                #
-                set checkpid = `grep -v PID: $pidname`
-                @ tmpcount = $startcount[$proc]
-                if ($count > $tmpcount + 30) set dropout = 1
+                    # if log file doesn't exist, check the pid
+                    # and give up after timeout
+                    #
+                    if (-e $pidname) set checkpid = `grep -v PID: $pidname`
+                    @ tmpcount = $startcount[$proc]
+                    if ($count > $tmpcount + $timeout) set dropout = 1
+                endif
             endif
 
             # Now if pid file has anything but a PID in the two cases of
@@ -528,7 +543,7 @@ while ($numdone < $#comlist)
         endif
     endif
 
-    sleep 2
+    sleep $sleepsec
 end
 
 onintr finishkilled
@@ -686,6 +701,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.24  2006/09/18 20:30:58  mast
+#  Made it capture ssh output and analyze PID output too, so it can detect
+#  faster if something goes wrong and report failure to cd or run IMOD
+#
 #  Revision 3.23  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
