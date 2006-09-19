@@ -12,5 +12,6 @@ bn.use-filtered-stack =
 mb.2d-filtering-open = 0
 mb.parallel-processing-open = 1
 mb.parallel-processing-more = 1
+mb.tilt-open = 1
 bn.generate-tomogram =
 waitfor.process = done

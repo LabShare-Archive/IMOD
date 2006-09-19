@@ -1,16 +1,20 @@
 SCRIPT_PATH = ~sueh/workspace/Etomo/scripts
 
-all:	dual single build_build build_single
+all:	test build
 
-test:	dual single
+test:	test-dual test-single
 
-build:	build_dual build_single
+build:	build-dual build-single
 
-dual:
+build-fidless:	build-dual-fidless
+
+test-dual:
 	$(SCRIPT_PATH)/uitest dual
-single:
+test-single:
 	$(SCRIPT_PATH)/uitest single
 build-dual:
 	$(SCRIPT_PATH)/uitest build-dual
 build-single:
 	$(SCRIPT_PATH)/uitest build-single
+build-dual-fidless:
+	$(SCRIPT_PATH)/uitest build-dual-fidless
