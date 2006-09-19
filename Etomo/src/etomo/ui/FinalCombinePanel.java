@@ -22,6 +22,7 @@ import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
+import etomo.process.ImodManager;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -31,6 +32,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>
@@ -56,6 +58,10 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p>
  * $Log$
+ * Revision 3.52  2006/09/13 23:41:48  sueh
+ * bug# 921 Added initial Shift X, Y, and Z.  Bug# 924 changed the label for
+ * kernel sigma.
+ *
  * Revision 3.51  2006/09/05 17:38:27  sueh
  * bug# 924 Improved the label for Kernel Sigma
  *
@@ -418,6 +424,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final LabeledTextField ltfInitialShiftY = new LabeledTextField("Z:");
   private final LabeledTextField ltfInitialShiftZ = new LabeledTextField("Y:");
   private final SpacedPanel pnlInitialShiftXYZ = new SpacedPanel();
+  private MultiLineButton btnPatchVectorCCCModel = new MultiLineButton(
+      "Open Vector Model with Correlations");
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
@@ -524,7 +532,17 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorrBody.add(pnlKernelSigma);
 
     btnPatchcorrRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlPatchcorrBody.add(btnPatchcorrRestart);
+    JPanel pnlPatchcorrButtons = new JPanel();
+    pnlPatchcorrButtons.setLayout(new BoxLayout(pnlPatchcorrButtons,
+        BoxLayout.X_AXIS));
+    btnPatchcorrRestart.setSize();
+    btnPatchVectorCCCModel.setSize();
+    pnlPatchcorrButtons.add(Box.createHorizontalGlue());
+    pnlPatchcorrButtons.add(btnPatchcorrRestart.getComponent());
+    pnlPatchcorrButtons.add(Box.createHorizontalGlue());
+    pnlPatchcorrButtons.add(btnPatchVectorCCCModel.getComponent());
+    pnlPatchcorrButtons.add(Box.createHorizontalGlue());
+    pnlPatchcorrBody.add(pnlPatchcorrButtons);
 
     pnlPatchsizeButtons.setLayout(new BoxLayout(pnlPatchsizeButtons,
         BoxLayout.Y_AXIS));
@@ -638,6 +656,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     btnImodCombined.addActionListener(actionListener);
     cbParallelProcess.addActionListener(actionListener);
     cbKernelSigma.addActionListener(actionListener);
+    btnPatchVectorCCCModel.addActionListener(actionListener);
 
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -832,6 +851,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorr.setVisible(visible);
     pnlMatchorwarp.setVisible(visible);
     pnlVolcombine.setVisible(visible);
+    updatePatchVectorModelDisplay();
   }
 
   public void expand(ExpandButton button) {
@@ -1120,10 +1140,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     if (command.equals(btnPatchRegionModel.getActionCommand())) {
       applicationManager.imodPatchRegionModel(menuOptions);
     }
-    if (command.equals(btnImodMatchedTo.getActionCommand())) {
+    else if (command.equals(btnImodMatchedTo.getActionCommand())) {
       applicationManager.imodMatchedToTomogram(menuOptions);
     }
-    if (command.equals(btnImodCombined.getActionCommand())) {
+    else if (command.equals(btnImodCombined.getActionCommand())) {
       applicationManager.imodCombinedTomogram(menuOptions);
     }
   }
@@ -1179,7 +1199,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       }
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {
-      applicationManager.imodPatchVectorModel();
+      applicationManager
+          .imodPatchVectorModel(ImodManager.PATCH_VECTOR_MODEL_KEY);
+    }
+    else if (command.equals(btnPatchVectorCCCModel.getActionCommand())) {
+      applicationManager
+          .imodPatchVectorModel(ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
     }
     else if (command.equals(btnReplacePatchOut.getActionCommand())) {
       applicationManager.modelToPatch();
@@ -1197,6 +1222,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   private void updateKernelSigma() {
     tfKernelSigma.setEnabled(cbKernelSigma.isSelected());
+  }
+
+  void updatePatchVectorModelDisplay() {
+    boolean enable = DatasetFiles.getPatchVectorModel(applicationManager).exists();
+    btnPatchVectorModel.setEnabled(enable);
+    btnReplacePatchOut.setEnabled(enable);
   }
 
   class ButtonActionListener implements ActionListener {
@@ -1275,6 +1306,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     text = "Maximum Z coordinate for bottom edge of correlation patches.";
     ltfZHigh.setToolTipText(tooltipFormatter.setText(text).format());
+
+    btnPatchVectorCCCModel
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Open a patch vector model containing cross-correlation coefficients.  "
+                    + "In 3dmodv Objects, click on Values, and select on Show stored values.")
+            .format());
 
     text = "Compute new displacements between patches by cross-correlation.";
     btnPatchcorrRestart.setToolTipText(tooltipFormatter.setText(text).format());
