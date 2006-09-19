@@ -153,7 +153,7 @@ public final class ApplicationManager extends BaseManager {
   private MainTomogramPanel mainPanel;
   private ProcessTrack processTrack;
   private ProcessManager processMgr;
-  private TomogramState state;
+  private TomogramState state = null;
   private boolean[] advancedA = new boolean[DialogType.TOTAL_RECON];
   private boolean[] advancedB = new boolean[DialogType.TOTAL_RECON];
   private ReconScreenState screenStateA = null;
@@ -178,10 +178,12 @@ public final class ApplicationManager extends BaseManager {
         }
         else {
           openSetupDialog();
+          return;
         }
       }
       else {
         openSetupDialog();
+        return;
       }
     }
   }
@@ -1263,6 +1265,7 @@ public final class ApplicationManager extends BaseManager {
     }
     comScriptMgr.loadTilt(axisID);
     TiltParam param = comScriptMgr.getTiltParam(axisID);
+    metaData.getTiltParam(param, axisID);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       param.setMontageFullImage();
     }
@@ -1271,6 +1274,7 @@ public final class ApplicationManager extends BaseManager {
     }
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
     comScriptMgr.saveTilt(param, axisID);
+    metaData.setTiltParam(param, axisID);
     metaData.setBStackProcessed(true);
     saveIntermediateParamFile(axisID);
     return true;
@@ -2030,6 +2034,7 @@ public final class ApplicationManager extends BaseManager {
       AxisID currentAxis) {
     comScriptMgr.loadTilt(currentAxis);
     TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
+    metaData.getTiltParam(tiltParam, currentAxis);
     String alignFileExtension = currentAxis.getExtension() + "local.xf";
     if (tiltalignParam.getLocalAlignments().is()) {
       tiltParam.setLocalAlignFile(metaData.getDatasetName()
@@ -2041,6 +2046,7 @@ public final class ApplicationManager extends BaseManager {
     tiltParam.setExcludeList(tiltalignParam.getExcludeList());
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, currentAxis);
     comScriptMgr.saveTilt(tiltParam, currentAxis);
+    metaData.setTiltParam(tiltParam, currentAxis);
   }
 
   /**
@@ -2972,12 +2978,22 @@ public final class ApplicationManager extends BaseManager {
   public void postProcess(AxisID axisID, ProcessName processName,
       ProcessDetails processDetails) {
     //Currently, only create whole tomogram sample has a processDetail object.
-    if (processDetails == null
-        || (processName != ProcessName.TILT && processName != ProcessName.SAMPLE)) {
-      return;
-    }
+    if ((processName == ProcessName.TILT || processName == ProcessName.SAMPLE)&&processDetails != null) {
     ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
         axisID)).postProcess(processDetails, state);
+    }
+    else if (processName == ProcessName.PATCHCORR) {
+      if (tomogramCombinationDialog != null) {
+        //backwards compatibility - patchcorr used to create patch_vector.mod
+        tomogramCombinationDialog.updatePatchVectorModelDisplay();
+      }
+    }
+  }
+  
+  public void msgPatchVectorCreated() {
+    if (tomogramCombinationDialog != null) {
+      tomogramCombinationDialog.updatePatchVectorModelDisplay();
+    }
   }
 
   public void setTomopitchOutput(AxisID axisID) {
@@ -3620,9 +3636,9 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Open the patch vector models in 3dmod
    */
-  public void imodPatchVectorModel() {
+  public void imodPatchVectorModel(String key) {
     try {
-      imodManager.open(ImodManager.PATCH_VECTOR_MODEL_KEY);
+      imodManager.open(key);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -5366,6 +5382,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.265  2006/09/13 23:05:52  sueh
+ * <p> bug# 920 Moving some postProcessing to TomogramPositioningExpert.
+ * <p>
  * <p> Revision 3.264  2006/09/05 17:33:07  sueh
  * <p> bug# 917 Added loadMatchvol1 and updateMatchvol1Com
  * <p>
