@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2006/09/05 17:33:45  sueh
+ * <p> bug# 917 Added scriptMatchvol1, getMatchvolParam(), loadMatchvol1(), and
+ * <p> saveMatchvol().
+ * <p>
  * <p> Revision 3.44  2006/08/25 22:42:30  sueh
  * <p> bug# 918 Changed updateComScript functions to modifyCommand and addModifyCommand to reduce the number of boolean parameters.  Added
  * <p> deleteCommand and modifyOptionalCommand.  Deleting the old patchcrawl
@@ -297,6 +301,8 @@ import etomo.util.Utilities;
 public class ComScriptManager {
   public static final String rcsid = "$Id$";
 
+  static final String PARAM_KEY = "Param";
+  
   ApplicationManager appManager;
   UIHarness uiHarness = UIHarness.INSTANCE;
 
