@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2006/08/11 00:17:59  sueh
+ * <p> bug# 739 Added reloadWatchedFile() and loadTiltParam().
+ * <p>
  * <p> Revision 3.12  2006/08/02 22:27:37  sueh
  * <p> bug# 768 Added getReconnectInstance(), to get an instances where reconnect
  * <p> is true.
@@ -216,5 +219,6 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
         .getComScriptManager();
     comScriptManager.loadTilt(axisID);
     tiltParam = comScriptManager.getTiltParam(axisID);
+    applicationManager.getMetaData().setTiltParam(tiltParam, axisID);
   }
 }
