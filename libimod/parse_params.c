@@ -846,7 +846,7 @@ int PipParseInput(int argc, char *argv[], char *options[], int numOpts,
  */
 int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 {
-  int i, ind, indst, lineLen, err, needSize, isOption, isSection;
+  int i, ind, indst, lineLen, err, needSize, isOption, isSection = 0;
   FILE *optFile = NULL;
   char *bigStr;
   char *pipDir;
@@ -858,7 +858,7 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
   char *longName, *shortName, *type, *usageStr, *tipStr, *manStr;
   int gotLong, gotShort, gotType, gotUsage, gotTip, gotMan;
   int gotDelim = 0;
-  char *optStr;
+  char *optStr = NULL;
   int optStrSize = 0;
   char **lastGottenStr = NULL;
 
@@ -1223,7 +1223,6 @@ static int ReadParamFile(FILE *pFile)
   int indst, indnd, optNum, gotEquals, err;
   char *strPtr;
   char *token;
-  char ch;
   
   while (1) {
 
@@ -1380,7 +1379,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
   char *fullStr;
   int *iarray = (int *)array;
   float *farray = (float *)array;
-  int err, nChar;
+  int err;
   int numGot = 0;
   int gotComma = 1;
   char sepStr[] = ",\t /";
@@ -1545,7 +1544,6 @@ static int AddValueString(int option, char *strPtr)
 static int LookupOption(char *option, int maxLookup)
 {
   int i;
-  int err;
   int found = LOOKUP_NOT_FOUND;
   char *sname, *lname;
 
@@ -1703,6 +1701,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.19  2006/09/12 15:21:14  mast
+Added include
+
 Revision 3.18  2006/06/08 03:11:31  mast
 Added higher level C functions and provided fallback option string
 output for C.
