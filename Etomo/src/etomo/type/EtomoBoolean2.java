@@ -20,6 +20,11 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2006/09/13 23:37:14  sueh
+ * <p> bug# 920 Added static equals(EtomoBoolean2, EtomoBoolean2) to handle
+ * <p> optional instances.  Fixed getInstance(EtomoBoolean2, String, Properties, String)
+ * <p> to not create an instance if the value is not found in properties.
+ * <p>
  * <p> Revision 1.15  2006/06/09 16:57:11  sueh
  * <p> bug#  869 Added static functions store and getInstance to handle a variable
  * <p> which could be null.
@@ -173,7 +178,7 @@ public class EtomoBoolean2 extends ScriptParameter {
       instance.load(props, prepend);
       return instance;
     }
-    String value = props.getProperty(prepend + "." + prepend + '.' + key);
+    String value = props.getProperty(prepend + '.' + key);
     if (value == null) {
       return null;
     }
