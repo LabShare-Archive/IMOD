@@ -27,9 +27,13 @@ public final class DatasetFiles {
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
-
   public static final String TOMO_EXT = ".rec";
   private static final String STACK_EXT = ".st";
+  private static final String MODEL_EXT = ".mod";
+  private static final String PATCH_VECTOR_STRING = "patch_vector";
+  public static final String PATCH_VECTOR_NAME = PATCH_VECTOR_STRING + MODEL_EXT;
+  public static final String PATCH_VECTOR_CCC_NAME = PATCH_VECTOR_STRING +"_ccc"+ MODEL_EXT;
+  
   private static File calibrationDir = null;
   private static File distortionDir = null;
 
@@ -203,6 +207,10 @@ public final class DatasetFiles {
   public static File getTransferFidCoordFile(BaseManager manager) {
     return new File(manager.getPropertyUserDir(), getTransferFidCoordFileName());
   }
+  
+  public static File getPatchVectorModel(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(), PATCH_VECTOR_NAME);
+  }
 
   //other etomo files
 
@@ -304,6 +312,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2006/09/14 00:06:20  sueh
+ * <p> bug# 921 Added getTomogram()
+ * <p>
  * <p> Revision 1.23  2006/08/18 00:13:26  sueh
  * <p> bug# 914 Added getAxisOnlyComFile.
  * <p>
