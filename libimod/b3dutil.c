@@ -36,6 +36,7 @@ Log at end
 #ifdef MAC103_BIGFILE
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <unistd.h>
 #endif
 
 #ifdef F77FUNCAP
@@ -102,7 +103,7 @@ char *imodProgName(char *fullname)
 int imodBackupFile(char *filename)
 {
   struct stat buf;
-  int len, err;
+  int err;
   char *backname;
 
   /* If file does not exist, return */
@@ -182,7 +183,6 @@ char *f2cString(char *str, int strSize)
   [fSize]; returns -1 for error if the string will not fit. */
 int c2fString(char *cStr, char *fStr, int fSize)
 {
-  int i;
   while (*cStr && fSize > 0) {
     *fStr++ = *cStr++;
     fSize--;
@@ -431,6 +431,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.12  2006/09/13 02:42:07  mast
+Fixed leak in backup filename
+
 Revision 1.11  2006/08/27 23:45:08  mast
 Added fgetline
 
