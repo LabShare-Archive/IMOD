@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2006/09/13 23:12:40  sueh
+ * <p> bug# 920 Changed xOffset and zOffset to xShift and zShift.  Changed zShift
+ * <p> and tiltAngleOffset to EtomoNumber.
+ * <p>
  * <p> Revision 3.8  2006/05/11 19:41:58  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -77,51 +81,38 @@
 package etomo.comscript;
 
 import java.util.Hashtable;
+import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
 
 public class ConstTiltParam implements ProcessDetails {
   public static final String rcsid = "$Id$";
 
+  public static final String COMMAND_NAME = "tilt";
   public static final String THICKNESS_KEY = "THICKNESS";
   public static final String X_AXIS_TILT_KEY = "XAXISTILT";
 
   protected String inputFile;
-
   protected String outputFile;
-
   protected String angles;
-
   protected float compressionFraction;
-
   protected String compression;
-
   protected int cosInterpOrder;
-
   protected float cosInterpFactor;
-
   protected String densityWeightParams;
-
   protected String exclude;
-
   protected StringList excludeList;
-
   protected int fastBackProjInterpOrder;
-
   protected int fullImageX;
-
   protected int fullImageY;
-
   protected String include;
-
   protected String localAlignFile;
-
   protected float localScale;
-
   protected float logOffset;
 
   protected float mask;
@@ -145,7 +136,6 @@ public class ConstTiltParam implements ProcessDetails {
   protected int incReplicate;
 
   protected float scaleFLevel;
-
   protected float scaleCoeff;
 
   protected float xShift;
@@ -173,10 +163,7 @@ public class ConstTiltParam implements ProcessDetails {
   protected double xAxisTilt;
 
   protected String xTiltFile;
-
   protected int xTiltInterp;
-
-  protected boolean fiducialess;
 
   protected boolean useZFactors;
   protected String zFactorFileName;
@@ -186,6 +173,7 @@ public class ConstTiltParam implements ProcessDetails {
   protected boolean loadedFromFile = false;
   protected String datasetName;
   protected AxisID axisID;
+  protected Storables storables = new Storables();
 
   protected final ApplicationManager manager;
 
@@ -198,6 +186,7 @@ public class ConstTiltParam implements ProcessDetails {
     imageBinned = new ScriptParameter(EtomoNumber.LONG_TYPE, "IMAGEBINNED");
     imageBinned.setFloor(1);
     reset();
+    storables.reset();
   }
 
   protected void reset() {
@@ -245,7 +234,6 @@ public class ConstTiltParam implements ProcessDetails {
     xAxisTilt = Double.NaN;
     xTiltFile = "";
     xTiltInterp = Integer.MIN_VALUE;
-    fiducialess = false;
     useZFactors = false;
     excludeList2 = new StringList(0);
     imageBinned.reset();
@@ -500,7 +488,7 @@ public class ConstTiltParam implements ProcessDetails {
 
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     if (field == Fields.FIDUCIALESS) {
-      return fiducialess;
+      return storables.getFiducialess().is();
     }
     throw new IllegalArgumentException("field=" + field);
   }
@@ -534,5 +522,47 @@ public class ConstTiltParam implements ProcessDetails {
     public static final Fields FIDUCIALESS = new Fields();
     public static final Fields Z_SHIFT = new Fields();
     public static final Fields TILT_ANGLE_OFFSET = new Fields();
+  }
+  
+  public static final class Storables {
+    private final EtomoBoolean2 fiducialess = new EtomoBoolean2("Fiducialess");
+    
+    void reset() {
+      fiducialess.reset();
+    }
+    
+    public void store(Properties props, String prepend) {
+      prepend = createPrepend(prepend);
+      fiducialess.store(props, prepend);
+    }
+    
+    public void load(Properties props, String prepend) {
+      reset();
+      prepend = createPrepend(prepend);
+      fiducialess.load(props, prepend);
+    }
+    
+    public void set(ConstTiltParam.Storables storables) {
+      fiducialess.set(storables.fiducialess);
+    }
+    
+    public void set(ConstTiltParam tiltParam) {
+      set(tiltParam.storables);
+    }
+    
+    private static String createPrepend(String prepend) {
+      if (prepend == "") {
+        return ComScriptManager.PARAM_KEY+'.'+COMMAND_NAME;
+      }
+      return prepend + "." + ComScriptManager.PARAM_KEY+'.'+COMMAND_NAME;
+    }
+    
+    protected ConstEtomoNumber getFiducialess() {
+      return fiducialess;
+    }
+    
+    protected void setFiducialess(boolean fiducialess) {
+      this.fiducialess.set(fiducialess);
+    }
   }
 }

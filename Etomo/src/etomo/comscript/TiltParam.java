@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2006/09/13 23:22:01  sueh
+ * <p> bug# 920, bug# 926 Remoing local file and z factor file when fiducialess is true.
+ * <p>
  * <p> Revision 3.19  2006/05/19 19:29:42  sueh
  * <p> bug# 866 Doing integer conversions in the param, not the GUI.
  * <p>
@@ -156,8 +159,6 @@ import etomo.util.Montagesize;
 
 public class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = "$Id$";
-
-  public static final String COMMAND_NAME = "tilt";
 
   public TiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
     super(manager, datasetName, axisID);
@@ -321,7 +322,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     loadedFromFile = true;
   }
-
+  
   /**
    * Update the script command with the current valus of this TiltParam
    * object
@@ -401,7 +402,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument("INCLUDE " + include);
       cmdLineArgs.add(newArg);
     }
-    if (!localAlignFile.equals("") && !fiducialess) {
+    if (!localAlignFile.equals("") && !storables.getFiducialess().is()) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("LOCALFILE " + localAlignFile);
       cmdLineArgs.add(newArg);
@@ -519,7 +520,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument("XTILTINTERP " + String.valueOf(xTiltInterp));
       cmdLineArgs.add(newArg);
     }
-    if (useZFactors && !fiducialess) {
+    if (useZFactors && !storables.getFiducialess().is()) {
       if (zFactorFileName == null || zFactorFileName.matches("\\s*")) {
         zFactorFileName = TiltalignParam.getOutputZFactorFileName(datasetName,
             axisID);
@@ -559,6 +560,10 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       imageBinned.set(1);
     }
     return imageBinned;
+  }
+  
+  public void set(ConstTiltParam.Storables tiltParam) {
+    storables.set(tiltParam);
   }
 
   /**
@@ -841,7 +846,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
   }
 
   public void setFiducialess(boolean fiducialess) {
-    this.fiducialess = fiducialess;
+    storables.setFiducialess(fiducialess);
   }
 
   /**
