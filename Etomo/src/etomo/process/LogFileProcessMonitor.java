@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2006/08/09 20:14:05  sueh
+ * <p> bug# 631 Make updateProgressBar() overrideable.
+ * <p>
  * <p> Revision 3.22  2005/11/19 02:32:56  sueh
  * <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
  * <p> ProcessMonitor because they are potentially valid things to do for any
@@ -257,6 +260,12 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       applicationManager.progressBarDone(axisID, endState);
     }
     done = true;
+    if (!lastProcess) {
+      postProcess();
+    }
+  }
+  
+  protected void postProcess() {
   }
   
   /**
