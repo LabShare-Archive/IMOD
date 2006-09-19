@@ -51,6 +51,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2006/09/13 23:59:12  sueh
+ * <p> bug# 921 Added getMatchMode
+ * <p>
  * <p> Revision 3.48  2006/09/05 17:41:47  sueh
  * <p> bug# 917 Added matchvol params to initial combine tab.
  * <p>
@@ -714,6 +717,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     tabbedPane.setEnabledAt(INITIAL_INDEX, enableTabs);
     tabbedPane.setEnabledAt(FINAL_INDEX, enableTabs);
     pnlSetup.updateDisplay(enableTabs);
+  }
+  
+  public void updatePatchVectorModelDisplay() {
+    pnlFinal.updatePatchVectorModelDisplay();
   }
 
   public boolean isRunVolcombine() {
