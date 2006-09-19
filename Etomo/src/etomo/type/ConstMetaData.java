@@ -8,6 +8,7 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.SqueezevolParam;
+import etomo.comscript.TiltParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 
@@ -103,7 +104,11 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND
       .toString()
       + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
-
+  protected String firstAxisPrepend = null;
+  protected String secondAxisPrepend = null;
+  protected final TiltParam.Storables tiltParamA = new TiltParam.Storables();
+  protected final TiltParam.Storables tiltParamB = new TiltParam.Storables();
+  
   public abstract void load(Properties props);
 
   public abstract void load(Properties props, String prepend);
@@ -120,6 +125,14 @@ public abstract class ConstMetaData extends BaseMetaData {
     useZFactorsB.setDisplayValue(true);
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
     sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
+  }
+  
+  String getFirstAxisPrepend() {
+    return firstAxisPrepend;
+  }
+  
+  String getSecondAxisPrepend() {
+    return secondAxisPrepend;
   }
 
   /**
@@ -198,6 +211,17 @@ public abstract class ConstMetaData extends BaseMetaData {
     defaultParallel.store(props, prepend);
     sampleThicknessA.store(props, prepend);
     sampleThicknessB.store(props, prepend);
+    tiltParamA.store(props,group+firstAxisPrepend);
+    tiltParamB.store(props, group+secondAxisPrepend);
+  }
+  
+  public void getTiltParam(TiltParam tiltParam, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      tiltParam.set(tiltParamB);
+    }
+    else {
+      tiltParam.set(tiltParamA);
+    }
   }
 
   public TrimvolParam getTrimvolParam() {
@@ -699,6 +723,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.36  2006/05/11 19:57:02  sueh
+ * <p> bug# 838 Added sample thickness.
+ * <p>
  * <p> Revision 3.35  2006/03/23 19:45:54  sueh
  * <p> bug# 609 Improving the error message when a dual axis image stack does
  * <p> not end in a.st.

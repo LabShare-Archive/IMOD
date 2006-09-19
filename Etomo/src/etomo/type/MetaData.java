@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TransferfidParam;
 
 /**
@@ -20,6 +21,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2006/05/16 21:32:00  sueh
+ * <p> bug# 856 Removed unused function getCombineParams.
+ * <p>
  * <p> Revision 3.29  2006/05/11 19:57:53  sueh
  * <p> bug# 838 Added sample thickness.
  * <p>
@@ -274,7 +278,7 @@ public class MetaData extends ConstMetaData {
   public void setTransferfidBFields(TransferfidParam param) {
     transferfidParamB.setStorableFields(param);
   }
-  
+
   public void setSampleThickness(AxisID axisID, String thickness) {
     if (axisID == AxisID.SECOND) {
       sampleThicknessB.set(thickness);
@@ -310,6 +314,7 @@ public class MetaData extends ConstMetaData {
 
   public void setAxisType(AxisType at) {
     axisType = at;
+    setAxisPrepends();
   }
 
   public void setViewType(ViewType vt) {
@@ -486,6 +491,22 @@ public class MetaData extends ConstMetaData {
     load(props, "");
   }
 
+  /**
+   * Set up axis prepends.  For dual axis, axis a prepend is "A" and axis b
+   * prepend is "B".  For single axis, axis a prepend is "" and axis b prepend
+   * doesn't exist.
+   */
+  private void setAxisPrepends() {
+    //set firstAxis and secondAxis strings (based on AxisType)
+    if (axisType == AxisType.DUAL_AXIS) {
+      firstAxisPrepend = AxisID.FIRST.getExtension().toUpperCase();
+      secondAxisPrepend = AxisID.SECOND.getExtension().toUpperCase();
+    }
+    else {
+      firstAxisPrepend = "";
+    }
+  }
+
   public void load(Properties props, String prepend) {
     resetToDefault();
     String group;
@@ -496,6 +517,9 @@ public class MetaData extends ConstMetaData {
       prepend += ".Setup";
     }
     group = prepend + ".";
+    axisType = AxisType.fromString(props.getProperty(group + "AxisType",
+        "Not Set"));
+    setAxisPrepends();
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
 
     // Make this true for now until the variable is present in all of the
@@ -511,8 +535,6 @@ public class MetaData extends ConstMetaData {
 
     dataSource = DataSource.fromString(props.getProperty(group + "DataSource",
         "CCD"));
-    axisType = AxisType.fromString(props.getProperty(group + "AxisType",
-        "Not Set"));
     viewType = ViewType.fromString(props.getProperty(group + "ViewType",
         "Single View"));
     pixelSize = Double.parseDouble(props
@@ -592,5 +614,16 @@ public class MetaData extends ConstMetaData {
     defaultParallel.load(props, prepend);
     sampleThicknessA.load(props, prepend);
     sampleThicknessB.load(props, prepend);
+    tiltParamA.load(props, group + firstAxisPrepend);
+    tiltParamB.load(props, group + secondAxisPrepend);
+  }
+
+  public void setTiltParam(ConstTiltParam tiltParam, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      tiltParamB.set(tiltParam);
+    }
+    else {
+      tiltParamA.set(tiltParam);
+    }
   }
 }
