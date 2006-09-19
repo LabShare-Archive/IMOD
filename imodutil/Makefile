@@ -90,6 +90,9 @@ imodcurvature$(E) : imodcurvature.$(O)
 imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
 
+imodwincpu.obj : imodwincpu.cpp CpuUsage.h PerfCounters.h
+	$(CXX) -c $(CXXFLAGS) $(WINCPUVC) imodwincpu.cpp
+
 install : $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -129,6 +132,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.15  2006/09/12 15:01:36  mast
+#  imodmesh uses library
+#
 #  Revision 3.14  2006/06/14 04:28:17  mast
 #  Added imodcurvature
 #
