@@ -205,6 +205,7 @@ public final class UIExpertUtilities {
     if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
       rollTiltComAngles(manager, axisID);
       manager.getComScriptManager().saveTilt(tiltParam, axisID);
+      manager.getMetaData().setTiltParam(tiltParam, axisID);
     }
   }
 
@@ -359,6 +360,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/07/28 20:15:07  sueh
+ * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
+ * <p>
  * <p> Revision 1.1  2006/05/19 19:53:50  sueh
  * <p> bug# 866 Class to contain functionality details shared between dialogs.
  * <p> </p>
