@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import etomo.BaseManager;
+import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2006/09/13 23:38:59  sueh
+ * <p> bug# 920 Added sampleFiducialessA and B.
+ * <p>
  * <p> Revision 1.25  2006/08/14 22:22:41  sueh
  * <p> bug# 891 Added resetCombineScriptsCreated().
  * <p>
@@ -214,21 +217,28 @@ public class TomogramState implements BaseState {
       + '.' + "SeedingDone");
   private EtomoBoolean2 sampleFiducialessA = null;
   private EtomoBoolean2 sampleFiducialessB = null;
+  private final ApplicationManager manager;
+  private String firstAxisGroup = null;
+  private String secondAxisGroup = null;
 
-  private final BaseManager manager;
-  private final String firstAxis;
-  private String secondAxis = null;
-
-  public TomogramState(BaseManager manager) {
+  public TomogramState(ApplicationManager manager) {
     this.manager = manager;
-    if (manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS) {
-      firstAxis = AxisID.FIRST.getExtension().toUpperCase() + '.';
-      secondAxis = AxisID.SECOND.getExtension().toUpperCase() + '.';
-    }
-    else {
-      firstAxis = "";
-    }
     reset();
+  }
+
+  /**
+   * Get the axis keys from meta data.  If dual axis, create a first axis group
+   * string that ends in ".", so .  For single axis, the first axis key is an empty string
+   * and the second axis key is null.
+   * @param metaData
+   */
+  private void setAxisPrepends(ConstMetaData metaData) {
+    firstAxisGroup = metaData.getFirstAxisPrepend();
+    secondAxisGroup = metaData.getSecondAxisPrepend();
+    if (secondAxisGroup != null) {
+      firstAxisGroup += '.';
+      secondAxisGroup += '.';
+    }
   }
 
   private void reset() {
@@ -325,10 +335,10 @@ public class TomogramState implements BaseState {
     //backwards compatibility
     props.remove(COMBINE_SCRIPTS_CREATED_BACK_KEY);
     combineScriptsCreated.store(props, prepend);
-    EtomoBoolean2.store(sampleFiducialessA, props, prepend, firstAxis
+    EtomoBoolean2.store(sampleFiducialessA, props, prepend, firstAxisGroup
         + SAMPLE_FIDUCIALESS_KEY);
-    if (secondAxis != null) {
-      EtomoBoolean2.store(sampleFiducialessB, props, prepend, secondAxis
+    if (secondAxisGroup != null) {
+      EtomoBoolean2.store(sampleFiducialessB, props, prepend, secondAxisGroup
           + SAMPLE_FIDUCIALESS_KEY);
     }
   }
@@ -430,6 +440,7 @@ public class TomogramState implements BaseState {
     reset();
     prepend = createPrepend(prepend);
     String group = prepend + ".";
+    setAxisPrepends(manager.getMetaData());
     trimvolFlipped.load(props, prepend);
     squeezevolFlipped.load(props, prepend);
     madeZFactorsA.load(props, prepend);
@@ -479,10 +490,10 @@ public class TomogramState implements BaseState {
       }
     }
     sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA,
-        firstAxis + SAMPLE_FIDUCIALESS_KEY, props, prepend);
-    if (secondAxis != null) {
+        firstAxisGroup + SAMPLE_FIDUCIALESS_KEY, props, prepend);
+    if (secondAxisGroup != null) {
       sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB,
-          secondAxis + SAMPLE_FIDUCIALESS_KEY, props, prepend);
+          secondAxisGroup + SAMPLE_FIDUCIALESS_KEY, props, prepend);
     }
   }
 
@@ -550,7 +561,7 @@ public class TomogramState implements BaseState {
     }
     return sampleAxisZShiftA;
   }
-  
+
   public EtomoBoolean2 getSampleFiducialess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return sampleFiducialessB;
@@ -566,7 +577,7 @@ public class TomogramState implements BaseState {
       sampleAxisZShiftA.set(axisZShift);
     }
   }
-  
+
   public void setSampleAxisZShift(AxisID axisID, double axisZShift) {
     if (axisID == AxisID.SECOND) {
       sampleAxisZShiftB.set(axisZShift);
@@ -579,11 +590,11 @@ public class TomogramState implements BaseState {
   public void setSampleFiducialess(AxisID axisID, boolean sampleFiducialess) {
     if (axisID == AxisID.SECOND) {
       sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB,
-          secondAxis + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
+          secondAxisGroup + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
     }
     else {
       sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA,
-          firstAxis + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
+          firstAxisGroup + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
     }
   }
 
@@ -691,7 +702,7 @@ public class TomogramState implements BaseState {
       sampleAngleOffsetA.set(angleOffset);
     }
   }
-  
+
   public void setSampleAngleOffset(AxisID axisID, double angleOffset) {
     if (axisID == AxisID.SECOND) {
       sampleAngleOffsetB.set(angleOffset);
