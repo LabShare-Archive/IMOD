@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.38  2006/08/11 23:49:35  sueh
+ * <p> $bug# 816 Added reopenLog().
+ * <p> $
  * <p> $Revision 1.37  2006/08/11 21:46:59  sueh
  * <p> $bug# 816 Added setOpenLog() and setOpenLogOff()
  * <p> $
@@ -444,6 +447,7 @@ public final class ImodState {
     this.datasetName = datasetName;
     process = new ImodProcess(manager, datasetName, axisID);
     setModelViewType(modelViewType);
+    process.addWindowOpenOption(ImodProcess.WindowOpenOption.IMODV_OBJECTS);
     reset();
   }
 
