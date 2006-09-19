@@ -16,6 +16,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2006/09/13 23:30:09  sueh
+ * <p> bug# 921 Preventing null pointer exception in save(Storable).
+ * <p>
  * <p> Revision 3.2  2006/06/05 18:05:20  sueh
  * <p> bug# 766 Added save(Storable), to save a single Storable without overwriting the
  * <p> other Storables in the data file.
@@ -196,9 +199,11 @@ public class ParameterStore {
     //  Send the key/value pairs to the array of storable objects
     //
     for (int i = 0; i < storableArray.length; i++) {
-      if (storableArray[i] != null) {
-        storableArray[i].load(props);
+      if (storableArray[i] == null) {
+        throw new NullPointerException("Storable index " + i
+            + " cannot be null.");
       }
+      storableArray[i].load(props);
     }
   }
 }
