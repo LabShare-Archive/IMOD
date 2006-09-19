@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/11/19 23:24:00  sueh
+ * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p> $
  * <p> $Revision 1.2.4.1  2004/09/29 19:09:27  sueh
  * <p> $bug# 520 Removing pass-through function calls.
  * <p> $
@@ -30,6 +33,7 @@ package etomo.process;
 import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   public static final String rcsid = "$$Id$$";
@@ -97,5 +101,8 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
       }
     }
   }
-
+  
+  protected void postProcess() {
+    applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null);
+  }
 }
