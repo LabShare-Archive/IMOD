@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2006/09/18 21:25:47  mast
+#  Added to allow easier transition to python
+#
 #
 nohup
 
@@ -27,5 +30,5 @@ sed -e '/^[$#]/d' -e "/SUBSETSTART.*/s//SUBSETSTART 0 $ystart/" \
  -e "/$setname.*\.rec/s//$recname/" -e '/SLICE/d' -e '/WIDTH/d' \
  -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
 SLICE'" $slstart $slend"' 1\
-' tilta.com |tilt
+' $tiltname |tilt
 exit $status
