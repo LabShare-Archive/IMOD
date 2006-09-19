@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.9  2006/08/27 23:47:00  mast
+Moved fgetline from mrcfiles to b3dutil
+
 Revision 1.8  2006/06/26 14:49:09  mast
 Moved miscellaneous functions to b3dutil
 
@@ -60,7 +63,7 @@ extern "C" {
   int c2fString(char *cStr, char *fStr, int fSize);
   void b3dSetStoreError(int ival);
   void b3dError(FILE *stream, char *format, ...);
-  char *b3dGetError();
+  char *b3dGetError(void);
 
   int b3dFseek(FILE *fp, int offset, int flag);
   size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp);
@@ -91,8 +94,8 @@ extern "C" {
                    float *mean, float *sd);
 
   /* colormap.c */
-  int *cmapStandardRamp();
-  int *cmapInvertedRamp();
+  int *cmapStandardRamp(void);
+  int *cmapInvertedRamp(void);
   int cmapConvertRamp(int *rampData, unsigned char table[3][256]);
   int cmapReadConvert(char *filename, unsigned char table[3][256]);
 
