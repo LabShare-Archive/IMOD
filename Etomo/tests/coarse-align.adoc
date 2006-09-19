@@ -7,6 +7,14 @@ function = open-newstack
 function = newstack
 function = done
 
+[function = build-fidless]
+function = open-tiltxcorr
+function = tiltxcorr
+function = open-newstack
+function = newstack
+function = fidless
+function = done
+
 [function = test]
 function = test1
 function = tiltxcorr
@@ -29,6 +37,9 @@ mb.newstack-open = 1
 [function = newstack]
 bn.generate-coarse-aligned-stack =
 waitfor.process = done
+
+[function = fidless]
+cb.fiducialless-alignment = 
 
 [function = done]
 bn.done =

@@ -45,6 +45,22 @@ set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
 
+[Test = build-dual-fidless]
+#datafile = BB.edf
+datasetdir = dual
+dataset = BB
+adoc.a = build-fidlessa.adoc
+adoc.b = build-fidlessb.adoc
+filedir = BB
+copy = BBa.st
+copy = BBb.st
+set.pixel-size = 2.02
+set.fiducial-diameter = 10
+set.image-rotation = -12.5
+set.sample-tomogram-thickness = 200
+set.z-axis-min = 5
+set.z-axis-max = 70
+
 [Test = build-single]
 #datafile = BBa.edf
 datasetdir = single

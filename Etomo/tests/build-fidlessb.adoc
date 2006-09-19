@@ -1,0 +1,20 @@
+Version = 1.2
+verbose =
+waitfor = SetupRecon
+
+[Dialog = PreProc]
+adoc = pre-proc.adoc
+function = build
+
+[Dialog = CoarseAlign]
+adoc = coarse-align.adoc
+function = build-fidless
+
+[Dialog = TomoPos]
+adoc = tomo-pos.adoc
+function = run-fidless
+
+[Dialog = TomoGen]
+adoc = tomo-gen.adoc
+function = run
+bn.done =

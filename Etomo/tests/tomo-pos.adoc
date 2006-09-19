@@ -11,3 +11,15 @@ waitfor.process = done
 bn.create-final-alignment =
 waitfor.process = done
 bn.done =
+
+[function = run-fidless]
+copy = %{dataset}%{axis}.fid
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+cb.use-whole-tomogram =
+bn.create-whole-tomogram =
+waitfor.process = done
+copy = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process = done
+bn.done =
+
