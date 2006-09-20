@@ -78,7 +78,7 @@ A section which is treated as a function.
 When the function section is called (see the attribute \fBfunction\fR),
 all the name/value pairs in the function section are executed.
 
-.SS Attributes
+.SS Section Attributes
 Unless otherwise stated, attributes may be used in either of the section types
 described above.
 
