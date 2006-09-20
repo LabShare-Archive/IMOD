@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2006/06/08 03:10:27  mast
+Added higher-level C functions
+
 Revision 3.3  2003/10/08 17:20:39  mast
 New functions for autodoc files
 
@@ -62,9 +65,9 @@ void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
 int PipGetInOutFile(char *option, int nonOptArgNo, char **filename);
 void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
-                           int numOpts, char *progName, 
-                           int minArgs, int numInFiles, int numOutFiles,
-                           int *numOptArgs, int *numNonOptArgs);
+                           int numOpts, char *progName, int minArgs, 
+                           int numInFiles, int numOutFiles, int *numOptArgs,
+                           int *numNonOptArgs, void (headerFunc)(char *));
 #ifdef __cplusplus
 }
 #endif
