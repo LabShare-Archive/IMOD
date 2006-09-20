@@ -2990,6 +2990,21 @@ public final class ApplicationManager extends BaseManager {
     }
   }
   
+  /**
+   * processing done after an unsuccessful process
+   * @param axisID
+   * @param processName
+   * @param processDetails
+   */
+  public void errorProcess(AxisID axisID, ProcessName processName,
+      ProcessDetails processDetails) {
+    if (processName == ProcessName.COMBINE) {
+      if (tomogramCombinationDialog != null) {
+        tomogramCombinationDialog.updatePatchVectorModelDisplay();
+      }
+    }
+  }
+  
   public void msgPatchVectorCreated() {
     if (tomogramCombinationDialog != null) {
       tomogramCombinationDialog.updatePatchVectorModelDisplay();
@@ -5382,6 +5397,12 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.266  2006/09/19 21:53:35  sueh
+ * <p> bug# 920 Values where not being saved correctly by TomogramState.  Add
+ * <p> tilt.fiducialess to metaData.  Bug# 928 Add post processing for patchcorr.
+ * <p> Change imodPatchVectorModel so that it can open either patch_vector.mod or
+ * <p> patch_vector_ccc.mod.
+ * <p>
  * <p> Revision 3.265  2006/09/13 23:05:52  sueh
  * <p> bug# 920 Moving some postProcessing to TomogramPositioningExpert.
  * <p>
