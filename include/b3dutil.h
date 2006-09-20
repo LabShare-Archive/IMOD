@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.10  2006/09/19 16:33:32  mast
+fix prototypes
+
 Revision 1.9  2006/08/27 23:47:00  mast
 Moved fgetline from mrcfiles to b3dutil
 
@@ -57,6 +60,7 @@ extern "C" {
 
   int imodVersion(char *pname);
   void imodCopyright(void);
+  void imodUsageHeader(char *pname);
   char *imodProgName(char *fullname);
   int imodBackupFile(char *filename);
   char *f2cString(char *str, int strSize);
