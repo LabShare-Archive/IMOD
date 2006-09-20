@@ -82,6 +82,7 @@ EXPORTS
 	imodGetByte
 	b3dError
 	imodCopyright
+	imodUsageHeader
 	imodMatMult
 	imodObjectGetValue
 	imodContourFill
