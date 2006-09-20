@@ -1163,9 +1163,9 @@ int PipParseEntries(int argc, char *argv[], int *numOptArgs,
  * Set exit string and output to stdout, print usage if not enough arguments
  */
 void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
-                           int numOpts, char *progName,
-                           int minArgs, int numInFiles, int numOutFiles,
-                           int *numOptArgs, int *numNonOptArgs)
+                           int numOpts, char *progName, int minArgs, 
+                           int numInFiles, int numOutFiles, int *numOptArgs,
+                           int *numNonOptArgs, void (headerFunc)(char *))
 {
   int ierr;
   char *errString;
@@ -1193,8 +1193,8 @@ void PipReadOrParseOptions(int argc, char *argv[], char *options[],
 
   /* Output usage and exit if not enough arguments */
   if (*numOptArgs + *numNonOptArgs < minArgs) {
-    imodVersion(progName);
-    imodCopyright();
+    if (headerFunc)
+      headerFunc(progName);
     PipPrintHelp(progName, 0, numInFiles, numOutFiles);
     exit(0);
   }
@@ -1701,6 +1701,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.20  2006/09/19 16:58:25  mast
+Clean up warnings
+
 Revision 3.19  2006/09/12 15:21:14  mast
 Added include
 
