@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.108  2006/09/13 23:28:54  sueh
+ * bug# 920 Moving some postProcessing to TomogramPositioningExpert.
+ *
  * Revision 3.107  2006/08/11 23:50:59  sueh
  * bug# 816 PostProcess(ComScriptProcess):  calling msgAlignPostProcess()
  * when align succeeds.
@@ -1861,6 +1864,9 @@ public class ProcessManager extends BaseProcessManager {
     }
     else if (processName == ProcessName.PREBLEND) {
       setInvalidEdgeFunctions(script.getCommand(), false);
+    }
+    else if (processName == ProcessName.COMBINE) {
+      appManager.errorProcess(script.getAxisID(), processName, script.getProcessDetails());
     }
   }
 
