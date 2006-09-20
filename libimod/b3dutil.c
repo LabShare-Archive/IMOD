@@ -70,6 +70,13 @@ void imodCopyright(void)
   return;
 }
 
+/*! Calls imodVersion and imodCopyright */
+void imodUsageHeader(char *pname)
+{
+  imodVersion(pname);
+  imodCopyright();
+}
+
 /*! Returns a program name stripped of directories and .exe,
  * given the full name (argv\[0\]) in [fullname].
  * It returns a pointer internal to argv\[0\], unless the name ends in .exe,
@@ -431,6 +438,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.13  2006/09/19 16:38:08  mast
+Clean up warnings
+
 Revision 1.12  2006/09/13 02:42:07  mast
 Fixed leak in backup filename
 
