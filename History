@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/06: In eTomo - Tomogram Combination, giving access to cross correlation
+coefficients (patch_vector_ccc.mod) created by Patchcorr.  Opening the 3dmod's
+Imodv Objects window, so that false colors can be viewed.  Patch_vector.mod is
+now being created by Matchorwarp.  Matchorwarp is also creating a residual file
+called patch.resid.
+
+9/20/06: In Tomogram Positioning, changing the display for fiducialess sample
+creation.
+
 9/18/06: Made processchunks able ot detect and report a failure to cd to the
 data directory or a failure to run IMOD commands.
 
@@ -13,9 +22,6 @@ of values.
 9/18/06: Stopped time movie when 1, 2, or time arrow in zap toolbar is pushed.
 
 9/13/06: IMOD_3-8-24
-9/13/06: In Tomogram Positioning, changing the display for fiducialess sample
-creation.
-
 9/13/06: Tilt.com:  removing Local File and Z Factor File when creating a
 fiducialess sample.
 
