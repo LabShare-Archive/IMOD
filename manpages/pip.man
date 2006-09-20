@@ -374,7 +374,7 @@ void PipReadOrParseOptions(int \fIargc\fB, char \fI*argv[]\fB, char \fI*options[
                            int \fInumOptions\fB, char \fI*progName\fB, 
                            int \fIminArgs\fB, int \fInumInFiles\fB, 
                            int \fInumOutFiles\fB, int \fI*numOptArgs\fB, 
-                           int \fI*numNonOptArgs\fB);
+                           int \fI*numNonOptArgs\fB, void (\fIheaderFunc\fB)(char *));
 .ft R
 .fi
 
@@ -386,9 +386,10 @@ fails, and if \fInumOptions\fR options are provided in an array of
 strings, \fIoptions\fR, it falls back to calling \fBPipParseInput\fR.
 It calls \fBPipExitOnError\fR with "ERROR: \fIprogName\fR - " as the error
 string, defining standard out as the destination for error output.
-If the number of arguments is less than \fIminArgs\fR, it calls
+If the number of arguments is less than \fIminArgs\fR, it first calls the
+function supplied in \fIheaderFunc\fR if it is non-NULL, then calls
 \fBPipPrintHelp\fR with \fInumInFiles\fR and \fInumOutFiles\fR as arguments
-for the number of input and output files, then exits.
+for the number of input and output files, then exits.  
 
 .ft B
 .nf
