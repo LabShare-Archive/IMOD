@@ -63,7 +63,7 @@ Each Test section contains the information to test one instance of Etomo.
 .B adoc\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fIuitest-axis_autodoc\fR
 Required.
 The name of an autodoc file used to test one axis of a dataset.
-The autodoc will be found in the most recently set \fBsource\fR directory.
+The autodoc will be found in the source directory (\fB$IMOD_UITEST_SOURCE\fR).
 Use two entries and specify the axis when testing both the A and B axis.
 Specify the B axis when testing only the B axis.
 Uitest-axis autodocs can have any name, but they must have the extension .adoc.
