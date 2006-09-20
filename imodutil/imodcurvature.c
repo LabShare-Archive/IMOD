@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2006/08/31 23:13:38  mast
+Added value storage
+
 Revision 3.5  2006/08/27 23:49:26  mast
 Switched palette argument to allow a file, fixed initialization bug
 
@@ -124,7 +127,7 @@ int main( int argc, char *argv[])
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
-                        3, 1, 1, &numOptArgs, &numNonOptArgs);
+                        3, 1, 1, &numOptArgs, &numNonOptArgs, imodUsageHeader);
 
   /* Get input and output files */
   if (PipGetInOutFile("InputFile", 0, &filename))
