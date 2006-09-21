@@ -161,6 +161,7 @@ int main( int argc, char *argv[])
   int doFork = 1;
   char *cmdLineStyle = NULL;
   int doImodv = 0;
+  int rawSet = 0;
   int overEntered = 0;
   bool useStdin = false;
   int argScan;
@@ -463,20 +464,24 @@ int main( int argc, char *argv[])
         case 'r':
           sscanf(argv[++i], "%d,%d,%d", &nx, &ny, &nz);
           iiRawSetSize(nx, ny, nz);
+          rawSet = 1;
           break;
 
         case 't':
           sscanf(argv[++i], "%d", &mode);
           iiRawSetMode(mode);
+          rawSet = 1;
           break;
 
         case 'H':
           sscanf(argv[++i], "%d", &mode);
           iiRawSetHeaderSize(mode);
+          rawSet = 1;
           break;
 
         case 'w':
           iiRawSetSwap();
+          rawSet = 1;
           break;
         
         case 'L':
@@ -522,9 +527,13 @@ int main( int argc, char *argv[])
   imodPlugInit();
 
   /* Add check function for raw and QImage formats after plugins so plugins
-     can add them first */
+     can add them first.  But if any raw options were entered, put raw check 
+     first */
   iiAddCheckFunction(iiQImageCheck);
-  iiAddCheckFunction(iiRawCheck);
+  if (rawSet)
+    iiInsertCheckFunction(iiRawCheck,0);
+  else
+    iiAddCheckFunction(iiRawCheck);
 
   QDir *curdir = new QDir();
   Model = NULL;
@@ -1081,6 +1090,9 @@ int imodColorValue(int inColor)
 
 /*
 $Log$
+Revision 4.59  2006/09/03 21:29:22  mast
+Moved check function adding to after plugin loading
+
 Revision 4.58  2006/08/28 05:17:25  mast
 Added option to read in custom color map
 
