@@ -138,6 +138,7 @@ extern "C" {
   typedef int (*IIRawCheckFunction)(FILE *, char *, RawImageInfo *);
 
   void iiAddCheckFunction(IIFileCheckFunction func);
+  void iiInsertCheckFunction(IIFileCheckFunction func, int index);
   void iiAddRawCheckFunction(IIRawCheckFunction func, char *name);
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(char *filename, char *mode);
@@ -179,6 +180,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.10  2006/09/03 22:17:07  mast
+Fiddled for raw checking function, documented
+
 Revision 3.9  2006/09/02 23:50:33  mast
 Added mrc-like structure and functions
 

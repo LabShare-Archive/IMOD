@@ -58,6 +58,22 @@ void iiAddCheckFunction(IIFileCheckFunction func)
 }
 
 /*!
+ * Insert the given function into the list of functions that iiOpen will
+ * call to check a file at position [index] in the list.  The format of the
+ * function is
+ * ^  int iiFormatCheck(ImodImageFile *inFile)
+ */
+void iiInsertCheckFunction(IIFileCheckFunction func, int index)
+{
+  if (initCheckList())
+    return;
+  if (index < ilistSize(checkList))
+    ilistInsert(checkList, &func, index);
+  else
+    ilistAppend(checkList, &func);
+}
+
+/*!
  * Creates a new image file structure and initialize it to default or
  * null values.  Returns 1 for error.
 */ 
@@ -340,6 +356,9 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
 /*
 $Log$
+Revision 3.11  2006/09/03 22:19:36  mast
+Switched to new error codes, handled properly in iiOpen, documented
+
 Revision 3.10  2006/09/02 23:51:15  mast
 Added Like MRC check to list, before mrc
 
