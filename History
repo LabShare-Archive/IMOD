@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/18/06: Made processchunks able to detect and report a failure to cd to the
+
 9/20/06: In eTomo - Tomogram Combination, giving access to cross correlation
 coefficients (patch_vector_ccc.mod) created by Patchcorr.  Opening the 3dmod's
 Imodv Objects window, so that false colors can be viewed.  Patch_vector.mod is
