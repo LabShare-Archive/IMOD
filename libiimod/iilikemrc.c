@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2006/09/12 19:54:56  mast
+Add proper returns to check functions
+
 Revision 3.2  2006/09/03 22:20:14  mast
 Reorganized, provided generic check function list and added DM3 support
 
@@ -188,6 +191,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   inFile->readSection = iiMRCreadSection;
   inFile->readSectionByte = iiMRCreadSectionByte;
   inFile->cleanUp = iiLikeMRCDelete;
+  inFile->mode = hdr->mode;
   return 0;
 }
 
@@ -260,12 +264,15 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info)
     return IIERR_IO_ERROR;
   if (info->swapBytes)
     mrc_swap_longs(ivals, 12);
-  info->nx = ivals[10];
-  info->ny = ivals[6];
-  if (svals[3] == 3)
+  if (svals[3] == 3) {
+    info->nx = ivals[10];
+    info->ny = ivals[6];
     info->nz = ivals[2];
-  else
-      info->nz = 1;
+  } else {
+    info->nx = ivals[6];
+    info->ny = ivals[2];
+    info->nz = 1;
+  }
   
   /* Set these to signal that the range is unknown */
   info->amin = 0.;
