@@ -280,6 +280,11 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.isValid());
     test.set(1);
     assertTrue(test.isValid());
+    test.setNullIsValid(true);
+    test.set("nan");
+    assertFalse(test.isValid());
+    test.set("  ");
+    assertTrue(test.isValid());
   }
 
   public final void testValidate_String_String_AxisID()
@@ -1245,6 +1250,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2006/09/14 22:41:56  sueh
+ * <p> bug#  692 Added testSetDisplayValue_long().
+ * <p>
  * <p> Revision 1.37  2006/09/14 15:19:01  sueh
  * <p> bug# 692 Fixed testSetDisplayValue_double
  * <p>
