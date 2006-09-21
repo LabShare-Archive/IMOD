@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/21/06: Fixed problem with reading FFF files with one section, made 3dmod 
+go right to checking for raw files if any of the raw specifications are
+entered, and fixed setting mode with a MRC-like file so pixel view displays
+correctly.
+
 9/21/06: In eTomo, warning the user when the pixel spacing in an mrc header is
 invalid.
 
