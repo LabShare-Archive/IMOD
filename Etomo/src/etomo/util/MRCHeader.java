@@ -9,6 +9,9 @@ import etomo.BaseManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
+import etomo.ui.UIHarness;
 
 /**
  * <p>Description: An interface to the header information in a MRC Image 
@@ -24,6 +27,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/08/11 00:18:50  sueh
+ * <p> Read():  added more information to error messages.
+ * <p>
  * <p> Revision 3.20  2006/05/19 19:54:37  sueh
  * <p> bug# 866 Added getInstance(BaseManager, AxisID).
  * <p>
@@ -167,9 +173,12 @@ public class MRCHeader {
   private int nRows = -1;
   private int nSections = -1;
   private int mode = -1;
-  private double xPixelSize = Double.NaN;
-  private double yPixelSize = Double.NaN;
-  private double zPixelSize = Double.NaN;
+  private final EtomoNumber xPixelSize = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE);
+  private final EtomoNumber yPixelSize = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE);
+  private final EtomoNumber zPixelSize = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE);
   private double xPixelSpacing = Double.NaN;
   private double yPixelSpacing = Double.NaN;
   private double zPixelSpacing = Double.NaN;
@@ -279,7 +288,7 @@ public class MRCHeader {
         }
         Utilities
             .timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-        throw new InvalidParameterException(filename+":"+message);
+        throw new InvalidParameterException(filename + ":" + message);
       }
     }
     // Throw an exception if the file can not be read
@@ -290,7 +299,7 @@ public class MRCHeader {
         message = message + stdError[i] + "\n";
       }
       Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
-      throw new InvalidParameterException(filename+":"+message);
+      throw new InvalidParameterException(filename + ":" + message);
     }
 
     // Parse the output
@@ -347,7 +356,9 @@ public class MRCHeader {
         }
         mode = Integer.parseInt(tokens[4]);
       }
-
+      //PixelsParsed will be set to true if there are no errors parsing
+      //"Pixel Spacing".
+      boolean pixelsParsed = false;
       // Parse the pixels size
       if (stdOutput[i].startsWith(" Pixel spacing")) {
         String[] tokens = stdOutput[i].split("\\s+");
@@ -357,19 +368,22 @@ public class MRCHeader {
           throw new IOException(
               "Header returned less than three parameters for pixel size");
         }
-        xPixelSize = Double.parseDouble(tokens[4]);
-        yPixelSize = Double.parseDouble(tokens[5]);
-        zPixelSize = Double.parseDouble(tokens[6]);
+        pixelsParsed = parsePixelSpacing(xPixelSize, tokens[4], true);
+        pixelsParsed = pixelsParsed
+            && parsePixelSpacing(yPixelSize, tokens[5], !pixelsParsed);
+        pixelsParsed = pixelsParsed
+            && parsePixelSpacing(zPixelSize, tokens[6], !pixelsParsed);
 
-        xPixelSpacing = xPixelSize;
-        yPixelSpacing = yPixelSize;
-        zPixelSpacing = zPixelSize;
+        xPixelSpacing = xPixelSize.getDouble();
+        yPixelSpacing = yPixelSize.getDouble();
+        zPixelSpacing = zPixelSize.getDouble();
       }
 
       // If the pixel sizes are default value scan for FEI pixel size in the
       // comment section
-      if (xPixelSize == 1.0 && yPixelSize == 1.0 && yPixelSize == 1.0) {
-        parseFEIPixelSize(stdOutput[i]);
+      if (xPixelSize.equals(1.0) && yPixelSize.equals(1.0)
+          && yPixelSize.equals(1.0)) {
+        parseFEIPixelSize(stdOutput[i], !pixelsParsed);
       }
 
       // Parse the rotation angle and/or binning from the comment section
@@ -377,6 +391,30 @@ public class MRCHeader {
       parseBinning(stdOutput[i]);
     }
     Utilities.timestamp("read", "header", filename, Utilities.FINISHED_STATUS);
+    return true;
+  }
+
+  /**
+   * Parse pixel spacing (pixel size).  If there is an error, pop up an error
+   * message, if requested
+   * @param pixelSpacing - current pixel spacing
+   * @param sPixelSpacing - string to parse
+   * @param popupErrorMessage - pop up an error message is there is an error
+   * @return success boolean
+   */
+  private boolean parsePixelSpacing(EtomoNumber pixelSpacing,
+      String sPixelSpacing, boolean popupErrorMessage) {
+    pixelSpacing.set(sPixelSpacing);
+    double dPixelSpacing = pixelSpacing.getDouble();
+    String errorMessage = null;
+    if (!pixelSpacing.isValid() || dPixelSpacing == -1 || dPixelSpacing == 0) {
+      if (popupErrorMessage) {
+        UIHarness.INSTANCE.openMessageDialog("Invalid pixel spacing:  "
+            + sPixelSpacing + ".  Fix the mrc header in " + filename
+            + " with alterheader.", "Header Error", axisID);
+      }
+      return false;
+    }
     return true;
   }
 
@@ -425,21 +463,21 @@ public class MRCHeader {
   /**
    * @return
    */
-  public double getXPixelSize() {
+  public ConstEtomoNumber getXPixelSize() {
     return xPixelSize;
   }
 
   /**
    * @return
    */
-  public double getYPixelSize() {
+  public ConstEtomoNumber getYPixelSize() {
     return yPixelSize;
   }
 
   /**
    * @return
    */
-  public double getZPixelSize() {
+  public ConstEtomoNumber getZPixelSize() {
     return zPixelSize;
   }
 
@@ -496,15 +534,18 @@ public class MRCHeader {
 
   /**
    * FEI pixel size parser
+   * Pixel spacing should remain set to 1
    * @param line
    */
-  private void parseFEIPixelSize(String line) {
+  private void parseFEIPixelSize(String line, boolean userMessage) {
     if (line.matches(".*Pixel size in nanometers.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 6) {
-        xPixelSize = Double.parseDouble(tokens[6]) * 10.0;
-        yPixelSize = xPixelSize;
-        zPixelSize = yPixelSize;
+        if (parsePixelSpacing(xPixelSize, tokens[6], userMessage)) {
+          xPixelSize.set(xPixelSize.getDouble() * 10.0);
+        }
+        yPixelSize.set(xPixelSize);
+        zPixelSize.set(yPixelSize);
       }
     }
   }
