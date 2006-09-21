@@ -1,7 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/18/06: Made processchunks able to detect and report a failure to cd to the
-
+9/20/06: IMOD_3-8-25
 9/20/06: In eTomo - Tomogram Combination, giving access to cross correlation
 coefficients (patch_vector_ccc.mod) created by Patchcorr.  Opening the 3dmod's
 Imodv Objects window, so that false colors can be viewed.  Patch_vector.mod is
@@ -11,7 +10,7 @@ called patch.resid.
 9/20/06: In Tomogram Positioning, changing the display for fiducialess sample
 creation.
 
-9/18/06: Made processchunks able ot detect and report a failure to cd to the
+9/18/06: Made processchunks able to detect and report a failure to cd to the
 data directory or a failure to run IMOD commands.
 
 9/18/06: Stopped imodmesh from rotating or flattening contours to be meshed as
