@@ -801,8 +801,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     }
 
     // set the pixel size if available
-    double xPixelSize = header.getXPixelSize();
-    double yPixelSize = header.getYPixelSize();
+    double xPixelSize = header.getXPixelSize().getDouble();
+    double yPixelSize = header.getYPixelSize().getDouble();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
       uiHarness.openMessageDialog(
           "Pixel size is not defined in the image file header",
@@ -1078,6 +1078,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.52  2006/07/29 14:36:02  mast
+ * <p> Put binning spinner into advanced along with distortion file field
+ * <p>
  * <p> Revision 3.51  2006/07/21 22:12:48  sueh
  * <p> bug# 901 Putting the distortion and mag gradient fields into advanced when the
  * <p> distortion directory isn't available.
