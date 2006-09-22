@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2006/08/11 00:17:18  sueh
+ * <p> bug# 739 Added reloadWatchedFile() and loadNewstParam().
+ * <p>
  * <p> Revision 3.11  2006/08/09 20:14:34  sueh
  * <p> bug# 631 Adding usingLog().
  * <p>
@@ -93,7 +96,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
   private NewstParam newstParam = null;
 
   public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id, ProcessName.NEWST);
   }
 
   /**

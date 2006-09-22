@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2006/08/11 00:17:41  sueh
+ * <p> bug# 739 Added reloadWatchedFile() and loadDatasetPath().
+ * <p>
  * <p> Revision 3.7  2005/07/29 00:52:18  sueh
  * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
  * <p> because the current manager changes when the user changes the tab.
@@ -68,6 +71,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -77,7 +81,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
   private String dataSetPath = null;
   
   public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id, ProcessName.PRENEWST);
   }
 
   /**

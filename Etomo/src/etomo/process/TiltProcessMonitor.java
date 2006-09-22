@@ -9,6 +9,7 @@ import etomo.comscript.ComScriptManager;
 import etomo.comscript.TiltParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -25,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2006/09/19 22:30:02  sueh
+ * <p> bug# 920 Refreshing meta data values in TiltParam each time tilt.com is loaded.
+ * <p>
  * <p> Revision 3.13  2006/08/11 00:17:59  sueh
  * <p> bug# 739 Added reloadWatchedFile() and loadTiltParam().
  * <p>
@@ -107,7 +111,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
   private TiltParam tiltParam = null;
 
   public TiltProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id, ProcessName.TILT);
   }
 
   public static TiltProcessMonitor getReconnectInstance(

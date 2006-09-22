@@ -9,6 +9,7 @@ import etomo.comscript.ComScriptManager;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -26,6 +27,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2006/08/11 00:16:54  sueh
+* <p> bug# 739 Added reloadWatchedFile(), loadComScriptManager(), and
+* <p> loadMtfFilterParam().
+* <p>
 * <p> Revision 1.9  2006/03/27 19:55:05  sueh
 * <p> bug# 836 Removed print statements
 * <p>
@@ -67,7 +72,7 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
   private ComScriptManager comScriptManager = null;
   
   public MtffilterProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id, ProcessName.MTFFILTER);
   }
 
   /* (non-Javadoc)
