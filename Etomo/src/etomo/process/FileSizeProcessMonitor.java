@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2006/09/22 18:17:53  sueh
+ * <p> bug# 931 Changed waitForFile():  Using the log file to find out when the output
+ * <p> file has been backed up.
+ * <p>
  * <p> Revision 3.22  2006/08/11 00:14:34  sueh
  * <p> bug# 739 Added lastSize.  Changed waitForFile() to stop checking the file time,
  * <p> since this is unrealible across computers.  Wait until the watched file starts
@@ -159,6 +163,9 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   int updatePeriod = 250;
   long lastSize = 0;
   private final ProcessName processName;
+  private FileInputStream stream = null;
+  private BufferedReader logFileReader = null;
+  private FileReader fileReader = null;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
       ProcessName processName) {
@@ -194,24 +201,32 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     //  Interrupted ???  kill the thread by exiting
     catch (InterruptedException except) {
       setProcessEndState(ProcessEndState.DONE);
-      closeChannel();
+      closeOpenFiles();
       return;
     }
     catch (InvalidParameterException except) {
       setProcessEndState(ProcessEndState.DONE);
       except.printStackTrace();
-      closeChannel();
+      closeOpenFiles();
       return;
     }
     catch (IOException except) {
       setProcessEndState(ProcessEndState.DONE);
-      closeChannel();
+      closeOpenFiles();
       return;
     }
-    setProcessEndState(ProcessEndState.DONE);
-    // Periodically update the process bar by checking the size of the file
-    updateProgressBar();
-    running = false;
+    try {
+      setProcessEndState(ProcessEndState.DONE);
+      // Periodically update the process bar by checking the size of the file
+      updateProgressBar();
+      closeOpenFiles();
+      Thread.sleep(updatePeriod);
+      running = false;
+    }
+    catch (Throwable t) {
+      closeOpenFiles();
+      t.printStackTrace();
+    }
   }
 
   void stop() {
@@ -243,83 +258,53 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
    * function. Set the process start time to the first new file modification
    * time since we don't have access to the file creation time.  
    */
-  void waitForFile() throws InterruptedException, FileNotFoundException,
-      IOException {
-    System.out.println("waitForFile");
-    //first wait for log file to exist
-    boolean newLogFile = false;
-    File logFile = DatasetFiles.getLogFile(applicationManager, axisID,
-        processName);
-    while (!newLogFile) {
-      // Check to see if the log file exists that signifies that the process
-      // has started
-      if (logFile.exists()) {
-        newLogFile = true;
-      }
-      else {
-        System.out.println("sleeping");
-        Thread.sleep(updatePeriod);
-      }
-    }
-    System.out.println("got log");
+  void waitForFile() throws InterruptedException {
     //look for signal that the watched file has been backed up in the log file
-    BufferedReader logFileReader = new BufferedReader(new FileReader(logFile));
+    openLogFileReader();
     boolean watchedFileBackedUp = false;
-    reloadWatchedFile();
     while (!watchedFileBackedUp) {
-      String line = logFileReader.readLine();
+      String line = null;
+      try {
+        line = logFileReader.readLine();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
       if (line == null) {
-        System.out.println("sleeping");
         Thread.sleep(updatePeriod);
       }
       else {
-        System.out.println(line);
-        if (line != null && line.indexOf(watchedFile.getName()) != -1
+        reloadWatchedFile();
+        if (line.indexOf(watchedFile.getName()) != -1
             && line.trim().toLowerCase().startsWith("new image file on unit")) {
           watchedFileBackedUp = true;
         }
       }
     }
-    System.out.println("found line");
     //Get the watched file
     long currentSize = 0;
     boolean newOutputFile = false;
     while (!newOutputFile) {
-      //keep reloading the watched file to avoid the ~ file.
-      reloadWatchedFile();
-      if (watchedFile.exists()) {
-        FileInputStream stream = null;
-        try {
-          stream = new FileInputStream(watchedFile);
+      openChannel();
+      processStartTime = System.currentTimeMillis();
+      try {
+        currentSize = watchedChannel.size();
+        //Hang out in this loop until the file size is growing, otherwise the
+        //progress bar update with have a divide by zero
+        //The ~ file won't change, so the correct file should be loaded when
+        //the loop ends, however, the first comparison will probably be
+        //between the initial lastSize value of 0 and the ~ size, so ignore
+        //the first comparison
+        if (lastSize > 0 && currentSize > lastSize) {
+          newOutputFile = true;
         }
-        catch (FileNotFoundException e) {
-          e.printStackTrace();
-          System.err
-              .println("Shouldn't be in here, we already checked for existence");
-        }
-        watchedChannel = stream.getChannel();
-        processStartTime = System.currentTimeMillis();
-
-        try {
-          currentSize = watchedChannel.size();
-          //Hang out in this loop until the file size is growing, otherwise the
-          //progress bar update with have a divide by zero
-          //The ~ file won't change, so the correct file should be loaded when
-          //the loop ends, however, the first comparison will probably be
-          //between the initial lastSize value of 0 and the ~ size, so ignore
-          //the first comparison
-          if (lastSize > 0 && currentSize > lastSize) {
-            newOutputFile = true;
-          }
-          lastSize = currentSize;
-        }
-        catch (IOException except) {
-          except.printStackTrace();
-        }
+        lastSize = currentSize;
+      }
+      catch (IOException except) {
+        except.printStackTrace();
       }
       Thread.sleep(updatePeriod);
     }
-    System.out.println("end waitForFile");
   }
 
   /**
@@ -329,7 +314,6 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
    */
   void updateProgressBar() {
     boolean fileWriting = true;
-
     while (fileWriting && !stop) {
       if (!usingLog()) {
         int currentLength = 0;
@@ -363,7 +347,6 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       }
       catch (InterruptedException exception) {
         fileWriting = false;
-        closeChannel();
       }
     }
   }
@@ -375,17 +358,100 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   /**
    * Attempt to close the watched channel file.
    */
-  protected void closeChannel() {
-    if (watchedChannel == null) {
-      return;
-    }
-    try {
-      watchedChannel.close();
-    }
-    catch (IOException e1) {
-      e1.printStackTrace();
-    }
+  protected void closeOpenFiles() {
+    closeChannel();
+    closeLogFileReader();
+  }
 
+  private void openLogFileReader() throws InterruptedException {
+    boolean logFileExists = false;
+    File logFile = null;
+    while (!logFileExists) {
+      logFile = DatasetFiles
+          .getLogFile(applicationManager, axisID, processName);
+      System.out.println("");
+      // Check to see if the log file exists that signifies that the process
+      // has started
+      if (logFile != null && logFile.exists()) {
+        logFileExists = true;
+      }
+      else {
+        Thread.sleep(updatePeriod);
+      }
+    }
+    closeLogFileReader();
+    try {
+      fileReader = new FileReader(logFile);
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    logFileReader = new BufferedReader(fileReader);
+    System.out.println("logFile="+logFile.getName());
+    System.out.println("date="+logFile.lastModified());
+  }
+
+  private void closeLogFileReader() {
+    if (logFileReader != null) {
+      try {
+        logFileReader.close();
+        logFileReader = null;
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
+    }
+    if (fileReader != null) {
+      try {
+        fileReader.close();
+        fileReader = null;
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
+    }
+  }
+
+  private void openChannel() throws InterruptedException {
+    boolean watchedFileExists = false;
+    while (!watchedFileExists) {
+      reloadWatchedFile();
+      if (watchedFile.exists()) {
+        watchedFileExists = true;
+      }
+      else {
+        Thread.sleep(updatePeriod);
+      }
+    }
+    closeChannel();
+    try {
+      stream = new FileInputStream(watchedFile);
+      watchedChannel = stream.getChannel();
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void closeChannel() {
+    if (watchedChannel != null) {
+      try {
+        watchedChannel.close();
+        watchedChannel = null;
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
+    }
+    if (stream != null) {
+      try {
+        stream.close();
+        stream = null;
+      }
+      catch (IOException e1) {
+        e1.printStackTrace();
+      }
+    }
   }
 
   public void kill(SystemProcessInterface process, AxisID axisID) {
