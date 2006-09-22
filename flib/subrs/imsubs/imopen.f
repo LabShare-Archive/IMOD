@@ -12,6 +12,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.6  2006/09/22 00:02:13  mast
+c       Made it flush after printing a new filename
+c
 c       Revision 3.5  2005/11/11 22:36:07  mast
 c       Changed swap test to allow larger files, added nb value for unsigned
 c       
@@ -136,7 +139,7 @@ C       DNM: for unix, change len(at2) to len(atbute)
 c       DNM 9/21/06: flush so etomo can know about renames being done
       if(j.le.5)then
         CALL QINQUIRE(J,FULLNAME,NFILSZ)
-        IF (AT2 .EQ. 'NEW' .OR. AT2 .EQ. 'SCRATCH') THEN
+        IF (AT2(1:len(atbute)) .EQ. 'NEW' .OR. AT2 .EQ. 'SCRATCH') THEN
           if (print)WRITE(6,2000) AT2(1:len(atbute)),ISTREAM,
      &        FULLNAME(1:lnblnk(fullname))
           call flush(6)
