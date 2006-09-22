@@ -1,14 +1,18 @@
 package etomo.process;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
+import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
@@ -25,6 +29,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2006/08/11 00:14:34  sueh
+ * <p> bug# 739 Added lastSize.  Changed waitForFile() to stop checking the file time,
+ * <p> since this is unrealible across computers.  Wait until the watched file starts
+ * <p> growing instead.
+ * <p>
  * <p> Revision 3.21  2006/08/09 20:10:01  sueh
  * <p> bug# 631 UpdateProgressBar():  check usingLog() before doing the percentage
  * <p> calculation.
@@ -149,11 +158,14 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   int nKBytes;
   int updatePeriod = 250;
   long lastSize = 0;
+  private final ProcessName processName;
 
-  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id) {
+  public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
+      ProcessName processName) {
     applicationManager = appMgr;
     axisID = id;
     scriptStartTime = System.currentTimeMillis();
+    this.processName = processName;
   }
 
   // The dervied class must implement this function to 
@@ -162,8 +174,9 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   //   value should be the expected size of the file in k bytes
   // - set the watchedFile reference to the output file being monitored.
   abstract void calcFileSize() throws InvalidParameterException, IOException;
+
   protected abstract void reloadWatchedFile();
-  
+
   public void run() {
     running = true;
     try {
@@ -175,8 +188,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       //  Calculate the expected file size in bytes, initialize the progress bar
       //  and set the File object.
       calcFileSize();
-
-      //  Wait for the output file to be created and set the process start time
+      //  Wait for the output file to be backed up and set the process start time
       waitForFile();
     }
     //  Interrupted ???  kill the thread by exiting
@@ -224,31 +236,69 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
   }
-  
+
   /**
    * Wait for the new output file to be created.  Make sure it is current by
    * comparing the modification time of the file to the start time of this
    * function. Set the process start time to the first new file modification
    * time since we don't have access to the file creation time.  
    */
-  void waitForFile() throws InterruptedException {
+  void waitForFile() throws InterruptedException, FileNotFoundException,
+      IOException {
+    System.out.println("waitForFile");
+    //first wait for log file to exist
+    boolean newLogFile = false;
+    File logFile = DatasetFiles.getLogFile(applicationManager, axisID,
+        processName);
+    while (!newLogFile) {
+      // Check to see if the log file exists that signifies that the process
+      // has started
+      if (logFile.exists()) {
+        newLogFile = true;
+      }
+      else {
+        System.out.println("sleeping");
+        Thread.sleep(updatePeriod);
+      }
+    }
+    System.out.println("got log");
+    //look for signal that the watched file has been backed up in the log file
+    BufferedReader logFileReader = new BufferedReader(new FileReader(logFile));
+    boolean watchedFileBackedUp = false;
+    reloadWatchedFile();
+    while (!watchedFileBackedUp) {
+      String line = logFileReader.readLine();
+      if (line == null) {
+        System.out.println("sleeping");
+        Thread.sleep(updatePeriod);
+      }
+      else {
+        System.out.println(line);
+        if (line != null && line.indexOf(watchedFile.getName()) != -1
+            && line.trim().toLowerCase().startsWith("new image file on unit")) {
+          watchedFileBackedUp = true;
+        }
+      }
+    }
+    System.out.println("found line");
+    //Get the watched file
     long currentSize = 0;
     boolean newOutputFile = false;
     while (!newOutputFile) {
       //keep reloading the watched file to avoid the ~ file.
       reloadWatchedFile();
       if (watchedFile.exists()) {
-          FileInputStream stream = null;
-          try {
-            stream = new FileInputStream(watchedFile);
-          }
-          catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.err
-                .println("Shouldn't be in here, we already checked for existence");
-          }
-          watchedChannel = stream.getChannel();
-          processStartTime = System.currentTimeMillis();
+        FileInputStream stream = null;
+        try {
+          stream = new FileInputStream(watchedFile);
+        }
+        catch (FileNotFoundException e) {
+          e.printStackTrace();
+          System.err
+              .println("Shouldn't be in here, we already checked for existence");
+        }
+        watchedChannel = stream.getChannel();
+        processStartTime = System.currentTimeMillis();
 
         try {
           currentSize = watchedChannel.size();
@@ -269,6 +319,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       }
       Thread.sleep(updatePeriod);
     }
+    System.out.println("end waitForFile");
   }
 
   /**
@@ -316,7 +367,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       }
     }
   }
-  
+
   protected boolean usingLog() {
     return false;
   }
