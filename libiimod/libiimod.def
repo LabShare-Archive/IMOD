@@ -83,6 +83,7 @@ EXPORTS
 	mrc_getval
 	mrc_3dfft
 	mrc_head_label_cp
+	iiInsertCheckFunction
 	iiAddCheckFunction
 	mrc_read_byte
 	sliceComplexFloat

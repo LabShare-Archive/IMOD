@@ -82,7 +82,6 @@ EXPORTS
 	imodGetByte
 	b3dError
 	imodCopyright
-	imodUsageHeader
 	imodMatMult
 	imodObjectGetValue
 	imodContourFill
@@ -414,6 +413,7 @@ EXPORTS
 	imodel_contour_double
 	imodContourGetLabel
 	istoreGenerateItems
+	imodUsageHeader
 	fgetline
 	GETIMODOBJRANGE
 	imodContourSetTimeIndex
