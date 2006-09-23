@@ -1,0 +1,23 @@
+#!/bin/csh -f
+# A simple wrapper to run a python script against the python on the path
+# and get a PID out for Etomo if -P is given before the script name
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
+if ($#argv < 1) exit 1
+if ("$argv[1]" == "-P") then
+    echo2 "Wrapper PID: $$"
+    shift
+endif
+if ($#argv < 1) exit 1
+if (! $?IMOD_DIR) then
+    echo "ERROR: runpyscript - environment variable IMOD_DIR is not defined"
+    exit 1
+endif
+python -u "$IMOD_DIR/bin/$*"
