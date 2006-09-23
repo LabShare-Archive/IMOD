@@ -165,6 +165,8 @@ c
         enddo
       endif
 c       
+      if (nxout .lt. 1 .or. nyout. lt. 1. or. nzout .lt. 1) call exitError(
+     &    'ILLEGAL OUTPUT SIZE')
       print *,'Forward matrix:'
       write(*,102)((mfor(i,j),j=1,3),dxyzin(i),i=1,3)
 102   format(3f10.6,f10.3)
@@ -241,6 +243,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.9  2006/06/01 14:17:23  mast
+c       switched to exiterror
+c
 c       Revision 3.8  2006/02/27 05:25:15  mast
 c       Defer opening output file until all errors are assessed
 c
