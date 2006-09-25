@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2006/09/19 22:23:46  sueh
+ * <p> bug# 928 Added postProcess().  If the process is not the last process, give the
+ * <p> option of post processing by adding a post process call.
+ * <p>
  * <p> Revision 3.23  2006/08/09 20:14:05  sueh
  * <p> bug# 631 Make updateProgressBar() overrideable.
  * <p>
@@ -263,6 +267,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     if (!lastProcess) {
       postProcess();
     }
+  }
+  
+  public void msgLogFileRenamed() {
   }
   
   protected void postProcess() {

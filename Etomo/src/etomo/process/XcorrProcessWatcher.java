@@ -78,6 +78,9 @@ public class XcorrProcessWatcher implements ProcessMonitor {
     setProcessEndState(ProcessEndState.DONE);
   }
   
+  public void msgLogFileRenamed() {
+  }
+  
   /**
    * set end state
    * @param endState
@@ -109,6 +112,11 @@ public class XcorrProcessWatcher implements ProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.15  2005/11/19 02:41:44  sueh
+ * <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
+ * <p> ProcessMonitor because they are potentially valid things to do for any
+ * <p> monitor, not just monitors of detached processes.
+ * <p>
  * <p> Revision 3.14  2005/08/30 18:53:21  sueh
  * <p> bug# 532 Removed functions that only belong to
  * <p> BackgroundProcessMonitor:  getErrorMessage, getStatusString, pause,

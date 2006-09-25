@@ -111,6 +111,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     deleteCommandsPipe(false);
   }
 
+  public void msgLogFileRenamed() {
+  }
+  
   private void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
     processRunning = false;//the only place that this should be changed
@@ -405,6 +408,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/06/05 16:30:51  sueh
+ * <p> bug# 766 Implementing OutfileProcessMonitor - adding getPid.  Getting the pid
+ * <p> from the output file.
+ * <p>
  * <p> Revision 1.17  2006/01/31 20:45:04  sueh
  * <p> bug# 521 Added the process to combine monitor.  This allows the last
  * <p> ProcessResultDisplay used by the monitor to be assigned to the process.
