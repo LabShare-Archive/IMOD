@@ -60,11 +60,11 @@ endif
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 while ($#argv > 2)
-  switch ($argv[1])
+  switch ("$argv[1]")
     case -x:
       set ix = $argv[2]
       shift; shift
@@ -135,7 +135,7 @@ while ($#argv > 2)
       exit 1
   endsw
 end
-if (! -e $argv[1])then
+if (! -e "$argv[1]")then
   echo "ERROR: $pn - input file $argv[1] does not exist"
   exit 1
 endif
@@ -205,7 +205,7 @@ else
     endif
 endif
 
-set nxyz =  `header -si $argv[1] | sed '/[[:cntrl:]]/s///g'`
+set nxyz =  `header -si "$argv[1]" | sed '/[[:cntrl:]]/s///g'`
 
 @ nx = $nxyz[1]
 @ ny = $nxyz[2]
@@ -346,8 +346,8 @@ if ($?contrast) then
     set contout = "-mo 0 -co $contrast"
 endif
 
-set newstout = $argv[2]
-if ($doflip != "0") set newstout = $argv[1].tmp.$$
+set newstout = "$argv[2]"
+if ($doflip != "0") set newstout = "$argv[1].tmp.$$"
 
 if ($?slices) then
     set contslice = `echo $slices | sed 's/,/ /g'`
@@ -369,7 +369,7 @@ if ($?slices) then
     echo "Determining byte scaling of $argv[1] ..."
     echo "findcontrast -slice $slicest,$slicend $fliparg $sxarg $syarg $argv[1]"
     findcontrast -slice $slicest,$slicend $fliparg $sxarg $syarg \
-           $argv[1] > $tmpfil
+           "$argv[1]" > $tmpfil
     if ($status) then
         grep 'ERROR:' $tmpfil
         goto clean
@@ -385,7 +385,7 @@ if ($?slices) then
     set contout = "-mo 0 -co $bwout[1],$bwout[3]"
 endif
 
-newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout
+newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout "$argv[1]" "$newstout"
 
 if ($status) goto clean
 
@@ -399,9 +399,9 @@ echo "newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1]
 
 if ($doflip != "0") then
     echo "Running clip $doflip ..."
-    clip $doflip $newstout $argv[2]
+    clip $doflip "$newstout" "$argv[2]"
     if ($status) goto clean
-    \rm -f $newstout
+    \rm -f "$newstout"
 endif
 
 exit 0
@@ -411,6 +411,9 @@ clean:
 exit 1
 
 #  $Log$
+#  Revision 3.14  2006/08/15 21:15:03  mast
+#  Switched -sx and -sy inputs to be numbered from 1 unless -i given
+#
 #  Revision 3.13  2006/06/23 17:07:17  mast
 #  Added option for rotation around X
 #
