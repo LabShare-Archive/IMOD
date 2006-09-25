@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.40  2006/07/27 19:36:36  sueh
+ * bug# 908 Run():  parsing warning whether or not the script finishes
+ *
  * Revision 3.39  2006/06/15 16:16:30  sueh
  * bug# 871 Added isNohup().
  *
@@ -595,6 +598,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     catch (IOException except) {
       except.printStackTrace();
       System.err.println(except.getMessage());
+    }
+    if (processMonitor != null) {
+      processMonitor.msgLogFileRenamed();
     }
     return true;
   }
