@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2006/09/22 23:47:04  sueh
+ * <p> bug # 931 Making sure that the objects that can block files in Windows
+ * <p> always run their close() function each time they are instanciated.
+ * <p>
  * <p> Revision 3.23  2006/09/22 18:17:53  sueh
  * <p> bug# 931 Changed waitForFile():  Using the log file to find out when the output
  * <p> file has been backed up.
@@ -166,6 +170,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   private FileInputStream stream = null;
   private BufferedReader logFileReader = null;
   private FileReader fileReader = null;
+  private boolean logFileRenamed = false;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
       ProcessName processName) {
@@ -221,6 +226,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       updateProgressBar();
       closeOpenFiles();
       Thread.sleep(updatePeriod);
+      logFileRenamed = false;
       running = false;
     }
     catch (Throwable t) {
@@ -250,6 +256,10 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
 
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
+  }
+  
+  public void msgLogFileRenamed() {
+    logFileRenamed = true;
   }
 
   /**
@@ -364,12 +374,14 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
 
   private void openLogFileReader() throws InterruptedException {
-    boolean logFileExists = false;
+    while (!logFileRenamed) {
+      Thread.sleep(updatePeriod);
+    }
     File logFile = null;
+    boolean logFileExists = false;
     while (!logFileExists) {
       logFile = DatasetFiles
           .getLogFile(applicationManager, axisID, processName);
-      System.out.println("");
       // Check to see if the log file exists that signifies that the process
       // has started
       if (logFile != null && logFile.exists()) {
@@ -387,8 +399,6 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       e.printStackTrace();
     }
     logFileReader = new BufferedReader(fileReader);
-    System.out.println("logFile="+logFile.getName());
-    System.out.println("date="+logFile.lastModified());
   }
 
   private void closeLogFileReader() {
