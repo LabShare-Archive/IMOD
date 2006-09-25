@@ -34,6 +34,12 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.18  2006/01/31 20:42:41  sueh
+ * <p> $bug# 521 Creating instance with the ProcessResultDisplay which started
+ * <p> $the combine.  When changing monitors, call
+ * <p> $setNextProcessResultDisplay() to send a success message to the
+ * <p> $previous display and start the new display.
+ * <p> $
  * <p> $Revision 1.17  2006/01/26 21:53:42  sueh
  * <p> $bug# 401 Using CombinePRocessType for combine indexes
  * <p> $
@@ -429,6 +435,9 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       e1.printStackTrace();
     }
     runSelfTest(RAN_STATE);
+  }
+  
+  public void msgLogFileRenamed() {
   }
 
   /**

@@ -25,9 +25,15 @@ public interface ProcessMonitor extends Runnable {
   public void pause(SystemProcessInterface process, AxisID axisID);
   public String getStatusString();
   public ProcessMessages getProcessMessages();
+  public void msgLogFileRenamed();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2005/11/19 02:26:10  sueh
+* <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
+* <p> ProcessMonitor because they are potentially valid things to do for any
+* <p> monitor, not just monitors of detached processes.
+* <p>
 * <p> Revision 1.6  2005/08/30 18:52:08  sueh
 * <p> bug# Removed functions that only belong to BackgroundProcessMonitor:
 * <p> getErrorMessage, getStatusString, pause, and setProcess.
