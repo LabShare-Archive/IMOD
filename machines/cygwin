@@ -42,7 +42,6 @@ if ($compiler == intel) then
     \rm -f icl.tmp
     @ iclversion = 7
     @ subversion = 0
-    echo $iclnum
     if ("$iclnum" != "") @ iclversion = $iclnum[1]
     if ($#iclnum > 1) then
         @ subversion = $iclnum[2]
@@ -63,9 +62,6 @@ if ($compiler == intel) then
         echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
         set fcompFlags = "/assume:bscc /4L132"
         
-        # Compiler 9.1 suddenly started assuming VC6 compatibility flag 
-        # (it wanted VC8?)
-        if ($iclversion > 8 && $subversion > 0) echo "WINCPUVC = /Qvc7.1" >> $configure
     endif
     set ldfflags = "$fcmpldFlags "'$(LDFLAGS)'
     
@@ -425,6 +421,10 @@ EOF
     # Build imodwincpu
     #
     echo 'IMODWINCPU = imodwincpu.exe' >> $configure
+
+    # Compiler 9.1 suddenly started assuming VC6 compatibility flag 
+    # (No, I installed it wrong)
+    if ($iclversion > 8 && $subversion > 0) echo "WINCPUVC = /Qvc7.1" >> $configure
 else
     set makefile_ext = dummy
     set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir $sourcedoc_dir)
@@ -441,12 +441,26 @@ echo VCEXEDIR = $vcexedir >> $configure
 echo 'QTINSTLIBDIR = bin' >> $configure
 echo 'INSTALL_FILES = IMOD-cygwin.csh IMOD-cygwin.sh' >> $configure
 
+# Manage dual python extension module build
+#
+set toppy = `which python`
+if ("$toppy" == "/usr/bin/python" || "$toppy" == "/bin/python") then
+    set altpy = `echo $PATH | sed '/.*:\([^:]*[Pp]ython[^:]*\):.*/s//\1/'`
+else if (-e "/usr/bin/python") then
+    set altpy = "/usr/bin"
+endif
+if ("$altpy" != "") then
+    echo "ALTPYTHON  = $altpy" >> $configure
+    echo "TWOPYTHONS = twopys" >> $configure
+endif
+
 # Add scripts for running from command line to the install.  They are no
 # longer generated because of permission problems and to handle spaces in args
 #
 echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
+echo "CMDWRAPPERS = cmdwrappers" >> $configure
 
 # Make sure critical scripts are in unix mode
 #
-(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt trimvol >& /dev/null)
+(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt trimvol submfg >& /dev/null)
 (cd dist ; dos2unix installIMOD installStub >& /dev/null)
