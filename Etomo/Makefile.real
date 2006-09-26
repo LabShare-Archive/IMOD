@@ -70,7 +70,7 @@ cpimages:
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 
-install: $(JAR_FILE)
+install: $(JAR_FILE) $(CMDWRAPPERS)
 	\cp -p $(JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/etomo
 	\cp -p scripts/etomo $(INSTBINDIR)
@@ -79,6 +79,9 @@ uitestinstall: uitestjarfile
 	\cp -p $(UITEST_JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/uitest
 	\cp -p scripts/uitest $(INSTBINDIR)
+
+cmdwrappers:
+	../scripts/copywrappers $(INSTBINDIR) scripts/bashwrapper.cmd scripts/etomo
 
 tests: testjarfile
 	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
@@ -127,6 +130,9 @@ linecount:
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.17  2006/01/12 18:21:04  mast
+# Fixed a \ on the dependency line
+#
 # Revision 2.16  2006/01/12 17:39:32  sueh
 # bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
 #
