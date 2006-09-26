@@ -12,18 +12,24 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
- archiveorig imodkillgroup collectmmm sampletilt $(GENERATED_SCRIPTS)
+ archiveorig imodkillgroup collectmmm sampletilt runpyscript\
+ $(GENERATED_SCRIPTS)
 
 all:
 
-install:
+install:  $(CMDWRAPPERS)
 	$(CP) $(SCRIPTS) $(INSTBINDIR)
-#	(cd $(INSTBINDIR) ; if (! -e bgimodv) ln -s bgimod bgimodv)
+
+cmdwrappers:
+	./copywrappers $(INSTBINDIR) tcshwrapper.cmd $(SCRIPTS)
 
 clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.18  2006/09/18 23:50:50  mast
+#  Added sampletilt
+#
 #  Revision 3.17  2006/03/24 23:09:56  mast
 #  *** empty log message ***
 #
