@@ -130,7 +130,7 @@ changed.
 See Note 1.
 
 .TP
-.B copy = \fIfile_name
+.B copy.file = \fIfile_name
 Copy \fIfile_name\fR into the dataset directory.  The file will be copied from
 the filedir value set in the global section of \fBuitest.adoc\fR.
 \fIFile_name\fR should not contain expandable characters such as "*".

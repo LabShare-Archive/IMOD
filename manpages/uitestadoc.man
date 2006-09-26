@@ -73,7 +73,7 @@ Also sets the "axis" variable for the specified axis.
 See \fBman uitestaxisadoc\fR.
 
 .TP
-.B copy = \fIfile_name
+.B copy.file = \fIfile_name
 A dataset file to be copied into the dataset directory.
 The file will be copied from the most recently set \fBsource\fR directory.
 \fIFile_name\fR should not contain expandable characters such as "*".
