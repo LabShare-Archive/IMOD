@@ -1,24 +1,5 @@
 #!/bin/sh
 # Script to run 3dmodv in background under Windows and preserve spaces
 #
-if [ $# -eq 1 ] ; then 
-    3dmod -view "$1" &
-elif [ $# -eq 2 ] ; then 
-    3dmod -view "$1" "$2" &
-elif [ $# -eq 3 ] ; then 
-    3dmod -view "$1" "$2" "$3" &
-elif [ $# -eq 4 ] ; then 
-    3dmod -view "$1" "$2" "$3" "$4" &
-elif [ $# -eq 5 ] ; then 
-    3dmod -view "$1" "$2" "$3" "$4" "$5" &
-elif [ $# -eq 6 ] ; then 
-    3dmod -view "$1" "$2" "$3" "$4" "$5" "$6" &
-elif [ $# -eq 7 ] ; then 
-    3dmod -view "$1" "$2" "$3" "$4" "$5" "$6" "$7" &
-elif [ $# -eq 8 ] ; then 
-    3dmod -view "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" &
-elif [ $# -eq 9 ] ; then 
-    3dmod -view "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" &
-else
-    3dmod -view $* &
-fi
+3dmod -view "$@" &
+
