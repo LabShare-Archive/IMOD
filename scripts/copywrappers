@@ -1,0 +1,30 @@
+#!/bin/csh -f
+# Script to copy .cmd wrappers to install directory
+# First argument is install directory, 2nd is wrapper name, then script names
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#
+
+if ($#argv < 3) then
+    echo "copywrappers: Too few arguments"
+    exit 1
+endif
+
+set instdir = $argv[1]
+set wrapper = $argv[2]
+shift ; shift
+while ($#argv > 0)
+    if (-x $argv[1]) then
+        set name = $argv[1]:t
+        cp $wrapper $instdir/$name.cmd
+        chmod a+rx $instdir/$name.cmd
+    endif
+    shift
+end
+exit 0
