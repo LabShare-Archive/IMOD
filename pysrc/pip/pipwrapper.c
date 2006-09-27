@@ -2,13 +2,16 @@
  * pipwrapper.c - python extension wrapper for the IMOD PIP library
  * June 2005 - Tor Mohling
  */
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
+/* 
+   $Author$
+   
+   $Date$
+   
+   $Revision$
+   
+   $Log$
+   Revision 1.1  2006/09/26 23:03:56  mast
+   Added to package
 */
 
 /* Include the Python C API definitions */
@@ -31,11 +34,11 @@
  *        (x,y) = retval  # or whatever..
  *
  *  - All functions return the None object on error and set the
- *    global PipErrno to the status value returned by the real PIP
- *    function
+ *    static PipErrNo to the status value returned by the real PIP
+ *    function, which is available with PipGetErrNo()
  */
 
-#define PIPMAXARRAY 64
+#define PIPMAXARRAY 256
 static int PipErrNo = 0;
 
 
@@ -203,7 +206,7 @@ PyObject *pip_PipGetNonOptionArg(PyObject *self, PyObject *args) {
 }
 
 /* int PipGetString(char *option, char **string); */
-/*  sVal = PipGetString(opt,str)      NOTE: this wrapper may need to free */
+/*  sVal = PipGetString(opt,str)   */
 PyObject *pip_PipGetString(PyObject *self, PyObject *args) 
 {
   char *option;
@@ -383,7 +386,7 @@ PyObject *pip_PipGetFloatArray(PyObject *self, PyObject *args) {
 }
 
 /* int PipGetError(char **errString); */
-/*  errStr = PipGetError()   NOTE: this wrapper may need to free */
+/*  errStr = PipGetError() */
 PyObject *pip_PipGetError(PyObject *self, PyObject *args)
 {
   char *errStr;
@@ -397,6 +400,14 @@ PyObject *pip_PipGetError(PyObject *self, PyObject *args)
   retval = Py_BuildValue("s", errStr);
   free(errStr);
   return retval;
+}
+
+/* status = PipGetErrNo() */
+PyObject *pip_PipGetErrNo(PyObject *self, PyObject *args)
+{
+  if (!PyArg_ParseTuple(args, ":PipGetErrNo"))
+    return(NULL);
+  return Py_BuildValue("i", PipErrNo);
 }
 
 /* int PipNumberOfEntries(char *option, int *numEntries); */
@@ -603,6 +614,7 @@ static PyMethodDef pipmethods[] = {
   { "PipGetThreeFloats",     pip_PipGetThreeFloats,     METH_VARARGS },
   { "PiPGetFloatArray",      pip_PipGetFloatArray,      METH_VARARGS },
   { "PipGetError",           pip_PipGetError,           METH_VARARGS },
+  { "PipGetErrNo",           pip_PipGetErrNo,           METH_VARARGS },
   { "PipNumberOfEntries",    pip_PipNumberOfEntries,    METH_VARARGS },
   { "PipParseInput",         pip_PipParseInput,         METH_VARARGS },
   { "PipParseEntries",       pip_PipParseEntries,       METH_VARARGS },
