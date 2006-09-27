@@ -84,7 +84,7 @@ values with a series of \fBPipGet...\fR calls, then finish with \fBPipDone\fR.
 PIP can also read the list of options from a separate file, referred to as an
 autodoc file.  In this case, instead of calling \fBPipParseInput\fR, one
 calls \fBPipReadOptionFile\fR to read the options from the file, then 
-\fBPipParseEntries\fR to parse the input.  From Fortran, there is also
+\fBPipParseEntries\fR to parse the input.  There is also
 a convenience function, \fBPipReadOrParseOptions\fR, that will first try to
 read options from an autodoc file, then fall back to a list of options supplied
 by the calling program.
@@ -99,6 +99,10 @@ Fortran-callable wrappers to the C functions have been given the same name as
 the C functions, although internally they are all lower case with an
 underscore appended.  The function calls from Fortran are case-insensitive but
 they are shown with mixed case here for clarity.
+
+PIP can also be used from Python by importing the pip extension module in the 
+IMOD/pylib directory.  The calling conventions are described in a separate
+section below.
 
 .SS Option Specifications Supplied by the Calling Program
 Each legal option should be specified with a string having up to 4 
@@ -205,6 +209,16 @@ In a \fBSectionHeader\fR section, keywords besides \fBusage\fR and
 \fBmanpage\fR are ignored.  Help strings will be output without indentation;
 for a man page that is input to \fBnroff\fR, start the string with .SS or .SH
 to avoid the regular indentation of option text.
+
+.SS Errors and Return Values
+.nh
+All functions return a negative number if an error occurs.  Functions in which
+an option is specified typically return -1 if the option is not a legal one,
+or -2 if the option is abbreviated ambiguously.  An error string is available
+after an error by calling \fBPipGetError\fR.  Alternatively, the program can
+call \fBPipExitOnError\fR at any point, and PIP will print the error string
+itself and exit with an error status.
+
 .SS Functions for Initialization
 .nh
 .ft B
@@ -761,16 +775,117 @@ case the destination for error output can be specified, whereas using
 \fBsetExitPrefix\fR will cause output to go to standard out.  These two
 functions can be used by programs that do not call anything else in PIP.
 
-.SH ERRORS AND RETURN VALUES
-.nh
-All functions return a negative number if an error occurs.  Functions in which
-an option is specified typically return -1 if the option is not a legal one,
-or -2 if the option is abbreviated ambiguously.  An error string is available
-after an error by calling PipGetError.  Alternatively, the program can call
-PipExitOnError at any point, and PIP will print the error string itself and 
-exit with an error status.
+.SS Calling from Python
+The Python versions of the functions handle returned values differently:
+the values that would be returned in the function arguments in C or Fortran
+are returned in a single object as the return value of the function.
+For functions with multiple values, this will be a tuple.  When an error
+occurs, this will be None.  The actual return value of the C function is
+obtained by calling the function \fBPipGetErrNo\fR.  Functions that in C do
+not return any values except for the error code also set the error code for
+retrieval by \fBPipGetErrNo\fR and
+return 0 for success or None for an error.
 
+If you do not set PIP to exit on error,
+then you need to process return values in two steps, as in:
+   retval = PipGetThreeIntegers('option', ix, iy, iz)
+   if retval == None:
+        process the error
+   (ix, iy, iz) = retval
 
+This is not needed if Pip exits on error.  Here are the conventions for all of
+available function calls:
+
+.ft B
+.nf
+Functions for Initialization:
+
+\fIstatus\fB = PipExitOnError(\fIuseStdErr\fB, \fIprefix\fB)
+
+(\fInumOptArgs\fB, \fInumNonOptArgs\fB) = PipParseInput(\fIsys.argv\fB, \fIoptions\fB)
+
+PipReadOptionFile(\fIprogName\fB)
+.ft R
+.fi
+In the call to the C function, the \fIhelpLevel\fR argument is set at 1 and 
+the \fIlocalDir\fR argument is set at 0.
+
+.ft B
+.nf
+(\fInumOptArgs\fB, \fInumNonOptArgs\fB) = PipParseEntries(\fIsys.argv\fB)
+
+(\fInumOptArgs\fB, \fInumNonOptArgs\fB) = PipReadOrParseOptions(\fIsys.argv\fB, \fIoptions\fB, 
+                   \fIprogName\fB, \fIminArgs\fB, \fInumInFiles\fB, \fInumOutFiles\fB)
+.ft R
+.fi
+This calls the C function described above.  \fIoptions\fR should be a list of
+strings as in the call to the C function.
+
+.ft B
+.nf
+\fIstatus\fB = PipInitialize(numOpts)
+
+(\fInumOptArgs\fB, \fInumNonOptArgs\fB) = PipNumberOfArgs()
+
+Functions for Getting Values:
+.ft R
+.br
+.fi
+When an option is not entered, the function returns the supplied
+argument value(s).
+.nf
+.ft B
+
+\fInumEntries\fB = PipNumberOfEntries(\fIoption\fB)
+
+\fIstring\fB = PipGetNonOptionArg(\fInonOptArgNo\fB)
+
+\fIstring\fB = PipGetString(\fIoption\fB, \fIstring\fB)
+
+\fIiVal\fB = PipGetInteger(\fIoption\fB, \fIiVal\fB)
+
+\fIfVal\fB = PipGetFloat(\fIoption\fB, \fIfVal\fB)
+
+(\fIiVal1\fB, \fIiVal2\fB) = PipGetTwoIntegers(\fIoption\fB, \fIiVal1\fB, \fIiVal2\fB)
+
+(\fIfVal1\fB, \fIfVal2\fB) = PipGetTwoFloats(\fIoption\fB, \fIfVal1\fB, \fIfVal2\fB)
+
+(\fIiVal1\fB, \fIiVal2\fB, \fIiVal3\fB) = PipGetThreeIntegers(\fIoption\fB, \fIiVal1\fB, \fIiVal2\fB, \fIiVal3\fB)
+
+(\fIfVal1\fB, \fIfVal2\fB, \fIfVal3\fB) = PipGetThreeFloats(\fIoption\fB, \fIfVal1\fB, \fIfVal2\fB, \fIfVal3\fB)
+
+\fIiVal\fB = PipGetBoolean(\fIoption\fB,\fIiVal\fB)
+
+[ \fIiVal1\fB, ... ] = PipGetIntegerArray(\fIoption\fB, \fInumToGet\fB)
+
+[ \fIfVal1\fB, ... ] = PipGetFloatArray(\fIoption\fB, \fInumToGet\fB)
+.ft R
+.fi
+These two functions return the arrays as lists of values.  As for the C
+functions, \fInumToGet\fR specifies the number to return, or 0 to return all
+values up to the limits of the internal array (256).
+.ft B
+.nf
+
+\fIfilename\fB = PipGetInOutFile(\fIoption\fB, \fInonOptArgNo\fB)
+
+Functions for Help, Cleanup, and Errors:
+
+\fIstatus\fB = PipPrintHelp(\fIprogName\fB, \fIuseStdErr\fB, \fIinputFiles\fB, \fIoutputFiles\fB)
+
+PipDone()
+
+\fIerrStr\fB = PipGetError()
+
+\fIerrNo\fB = PipGetErrNo()
+
+\fIstatus\fB = PipSetError(errString)
+
+exitError(\fIstring\fB)
+
+setExitPrefix(\fIprefix\fB)
+.ft R
+.fi
 
 .SH AUTHOR
 David Mastronarde (mast@colorado.edu)
