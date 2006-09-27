@@ -98,6 +98,11 @@ it is selected.  If the button is a JButton, this assert will always fail.
 See Note 1.
 
 .TP
+.B assert.file.exists = \fIfile_name
+Uses JUnit assert functionality to assert that a file exists.  The file is assumed to
+be in the dataset directory.
+
+.TP
 .B assert.tf.\fIfield_name\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR]
 Uses JUnit assert functionality to assert that a JTextField named \fIfield_name\fR
 contains the value
