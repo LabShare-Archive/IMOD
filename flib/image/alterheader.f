@@ -16,6 +16,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2006/03/25 06:10:04  mast
+c	  Added option to set min/max/mean
+c	
 c	  Revision 3.5  2005/11/11 22:53:01  mast
 c	  Added switch between 1 and 6 modes (not really needed now)
 c	
@@ -36,14 +39,15 @@ C
 	implicit none
 	integer nfunc,idim,nx,ny,nz
         parameter (nfunc=18)
-	parameter (idim=8200)
+	parameter (idim=2100)
 	integer*4 NXYZ(3),MXYZ(3),NXYZST(3),mcrs(3),listdel(1000)
 	real*4 delt(3),tilt(3),
      &      TITLE(20,10),cell(6),array(idim*idim)
 	equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
 	common /bigimg/ array
 C   
-	CHARACTER*80 FILIN,funcin,funcup
+	CHARACTER*160 FILIN
+        character*20 funcin,funcup
         character*8 param(nfunc)
         data param/'ORG','CEL','DAT','DEL','MAP','SAM','TLT'
      &      ,'TLT_ORIG','TLT_ROT','LAB','MMM','RMS','FIXPIXEL',
@@ -56,11 +60,13 @@ C
 	real*4 dmin,dmax,dmean,origx,origy,origz,v1,v2
 	real*4 dmins,dmaxs,sd,rms
 	real*8 dmeans,sums,sumsqs,totn,tsum,sumsq
+	integer*4 maxLines,numChunks, iChunk,numLines
 C   
 C   Read in input file
 C	  
 	call getinout(1,filin,filin)
-C   
+C         
+        call ialbrief(0)
 	CALL IMOPEN(2,FILIN,'OLD')
         call irdhdr(2,nxyz,mxyz,mode,dmin,dmax,dmean)
 C	  
@@ -284,10 +290,8 @@ c
 c	  
 c	  MMM - recompute min/max/mean
 c	  
-11	if (nx*ny.gt.idim**2)then
-	  print *,'Images too large for array'
-	  go to 30
-	endif
+11      maxLines = idim**2 / nx
+	numChunks = (ny + maxLines - 1) / maxLines
 	write(*,121)
 121	format(' Recomputing min/max/mean of images - takes a while...')
 	call imposn(2,0,0)
@@ -295,18 +299,20 @@ c
 	dmax=-1.e10
 	tsum=0.
 	sumsq=0.
+        totn = 0.
 	do iz=1,nz
-	  call irdsec(2,array,*99)
-c	  call iclden(array,nx,ny,1,nx,1,ny,dmins,dmaxs,dmeans)
-	  call iclavgsd(array,nx,ny,1,nx,1,ny,dmins,dmaxs,sums,sumsqs,
-     &	      dmean,sd)
-	  dmin=min(dmin,dmins)
-	  dmax=max(dmax,dmaxs)
-	  tsum=tsum+sums
-	  sumsq=sumsq+sumsqs
+	  do iChunk = 1, numChunks
+	    numLines = min(maxLines, ny - (iChunk - 1) * maxLines)
+	    call irdsecl(2,array, numLines, *99) 
+            call iclavgsd(array,nx,numLines,1,nx,1,numLines,dmins,dmaxs,sums,
+     &          sumsqs, dmean,sd)
+            dmin=min(dmin,dmins)
+            dmax=max(dmax,dmaxs)
+            tsum=tsum+sums
+            sumsq=sumsq+sumsqs
+            totn = totn + nx * numLines
+          enddo
 	enddo
-	totn = nz
-	totn = totn * nx * ny
 	dmeans=tsum/totn
 	rms=sqrt((sumsq - totn * dmeans**2) / totn)
         dmean = dmeans
