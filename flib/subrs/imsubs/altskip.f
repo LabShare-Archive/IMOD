@@ -1,13 +1,23 @@
 c*BITSKIP implements a skip for n-bit data: skip npixel pixels on unit iunit
 c
-        subroutine altskip(iunit,npixel,*)
+        subroutine altskip(iunit,npix1, npix2,*)
+        implicit none
 	include 'imsubs.inc'
-        if(npixel.le.0)return
+        integer*4 iunit,npix1, npix2
+        if(npix1.le.0 .or. npix2 .le. 0)return
         if(mode(iunit).le.8)then
-          call qskip(iunit,npixel)     !regular mode: call regular skip
+          call qskip(iunit,npix1,npix2)     !regular mode: call regular skip
           return
-        endif                          !otherwise fall into bitskip
-        entry bitskip(iunit,npixel,*)
+        endif                                   !otherwise call bitskip
+        call bitskip(iunit, npix1 * npix2, 99)
+        return
+99      return 1
+        end
+
+        subroutine bitskip(iunit,npixel,*)
+        implicit none
+	include 'imsubs.inc'
+        integer*4 iunit,npixel,nbitskip,nbytes,nleft,ier
         nbitskip=mode(iunit)*npixel    !total bits to skip
         nbitskip=nbitskip-ibleft(iunit) !minus the ones in current byte
         nbytes=nbitskip/8              !bytes to simply skip

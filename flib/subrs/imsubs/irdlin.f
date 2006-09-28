@@ -98,7 +98,7 @@ C
 	ELSE IF (ITYPE .EQ. 3) THEN			!READ PART OF LINE
 	  NREAD = (NX2 - NX1  + 1)*JB
 	  NSKIP = NX1*JB				!RELATIVE START!!!!
-          CALL ALTSKIP(J,NSKIP,*99)
+          CALL ALTSKIP(J,NSKIP,1,*99)
 	END IF
 C
 	IF (JMODE .EQ. 2 .OR. JMODE .EQ. 4 .OR.
@@ -194,7 +194,7 @@ c   if "no conversion", have to pack the integer values into real array
 C
 	IF (ITYPE .EQ. 3) THEN				!SKIP TO END OF RECORD
 	  NSKIP = (NCRS(1,J) - NX2 - 1)*JB		!IF PARTIAL READ
-          CALL ALTSKIP(J,NSKIP,*99)
+          CALL ALTSKIP(J,NSKIP,1,*99)
 	END IF
         if(itype.eq.2)ibleft(j)=0      !move to byte boundary at end of section
 	RETURN

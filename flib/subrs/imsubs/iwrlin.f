@@ -19,6 +19,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/12/09 04:39:44  mast
+c	  gfortran: .xor., continuation, byte, or open fixes
+c	
 c	  Revision 3.4  2005/11/15 19:56:00  mast
 c	  Fixed unsigned write for big endian
 c	
@@ -78,7 +81,7 @@ C  and it's not needed anymore because irdhdr and iwrhdr take care of it
 c        call qlocate(j,location)
 c        if(location.ge.0.and.location.le.nbhdr+nbsym(j)+1)ibleft(j)=0
 	IF (FLAG(J)) THEN				!MAKE SURE PAST HEADER
-	  CALL QSEEK(J,2,1,NBHDR+nbsym(j))
+	  CALL QSEEK(J,1+NBHDR+nbsym(j), 1, 1, 1, 1)
 	  FLAG(J) = .FALSE.
           ibleft(j)=0
 	END IF
@@ -250,7 +253,7 @@ C  IF PARTIAL WRITE THEN MAKE CERTAIN POINTER IS CORRECTLY POSITIONED
 C
 	IF (ITYPE .EQ. 3) THEN
 	  NSKIP = (NCRS(1,J) - NX2 + NX1 - 1)*JB
-          CALL ALTSKIP(J,NSKIP,*99)
+          CALL ALTSKIP(J,NSKIP,1,*99)
 	END IF
         if(itype.eq.2)ibleft(j)=0      !move to byte boundary at end of section
 	RETURN

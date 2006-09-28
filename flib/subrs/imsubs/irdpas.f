@@ -17,9 +17,12 @@ C	MUST MULTIPLY MX*2 FOR COMPLEX!!!
 C	BUT NX1,NX2 REFER TO COMPLEX NUMBERS!!!
 C
 	SUBROUTINE IRDPAS(ISTREAM,ARRAY,MX,MY,NX1,NX2,NY1,NY2,*)
+        implicit none
 	include 'imsubs.inc'
 C
-	DIMENSION ARRAY(MX,MY)
+        integer*4 MX,MY,NX1,NX2,NY1,NY2,ISTREAM
+	real*4 ARRAY(MX,MY)
+        integer*4 j, jmode, jb, ncb, jy,nlinleft,ndo
 C
 	J = LSTREAM(ISTREAM)
 	JMODE = MODE(J)
@@ -27,11 +30,10 @@ C
         if(jmode.le.6) JB = NB(JMODE + 1)
 	NCB = NCRS(1,J)*JB
 	CALL ZERO(ARRAY,MX*MY*NBW)
-	NSKIP = NY1*NCB				!NY1 IS RELATIVE OFFSET
 	if(spider(j))then
 	  lrecspi(j)=lrecspi(j)-ny1		!advance properly for SPIDER
 	else
-	  CALL ALTSKIP(J,NSKIP,*99)
+	  CALL ALTSKIP(J,ncb,ny1,*99)           !NY1 IS RELATIVE OFFSET
 	endif
 	NDO = NY2 - NY1 + 1
 C
@@ -52,7 +54,7 @@ C   mast simplified this then changed to handle SPIDER file
 	    if(mod(lrecspi(j),ncrs(2,j)).eq.0)
      &		lrecspi(j)=lrecspi(j)+2*ncrs(2,j)
 	  else
-	    call altskip(j,ncb*nlinleft,*99)
+	    call altskip(j,ncb,nlinleft,*99)
 	  endif
 	endif
         ibleft(j)=0                    !move to byte boundary at end of section

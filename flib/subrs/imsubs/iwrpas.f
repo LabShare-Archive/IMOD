@@ -17,9 +17,12 @@ C	MUST MULTIPLY MX*2 FOR COMPLEX!!!
 C	BUT NX1,NX2 REFER TO COMPLEX NUMBERS!!!
 C
 	SUBROUTINE IWRPAS(ISTREAM,ARRAY,MX,MY,NX1,NX2,NY1,NY2)
+        implicit none
 	include 'imsubs.inc'
 C
-	DIMENSION ARRAY(MX,MY)
+        integer*4 MX,MY,NX1,NX2,NY1,NY2,ISTREAM
+	real*4 ARRAY(MX,MY)
+        integer*4 j, jmode, jb, ncb, jy,npbleft
 C
 	J = LSTREAM(ISTREAM)
 	JMODE = MODE(J)
@@ -33,8 +36,8 @@ C
 C
 C   MAY HAVE TO SKIP TO END OF SECTION
 c   mast simplified this
-        npbleft=ncb*(ncrs(2,j)+ny1-1-ny2)  !# of bytes/pixels left in section
-        if(npbleft.gt.0)call altskip(j,npbleft,*99)
+        npbleft=(ncrs(2,j)+ny1-1-ny2)  !# of lines left in section
+        if(npbleft.gt.0)call altskip(j,ncb,npbleft,*99)
         ibleft(j)=0                    !move to byte boundary at end of section
 C
 	RETURN
