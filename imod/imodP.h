@@ -102,7 +102,7 @@ typedef struct ViewInfo
   unsigned char **idata;  /* 8 bit 3-D grey scale data. */
 
   int   xsize, ysize, zsize;      /* Size of idata */
-  int   xysize;                   /* section size. */
+  unsigned int xysize;                   /* section size. */
   float  xmouse, ymouse, zmouse;   /* Current point in idata. */
   int   xUnbinSize, yUnbinSize, zUnbinSize;  /* Original size of data */
 
@@ -265,6 +265,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.35  2006/08/28 05:19:05  mast
+Added variable for colormapped images
+
 Revision 3.34  2006/07/05 04:16:32  mast
 More members for overlay mode
 
