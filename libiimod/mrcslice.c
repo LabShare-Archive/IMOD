@@ -165,6 +165,13 @@ Islice *sliceCreate(int xsize, int ysize, int mode)
 Islice *mrc_slice_create(int xsize, int ysize, int mode)
 {
   Islice *s;
+  size_t xysize = (size_t)xsize * (size_t)ysize;
+
+  if (xysize / xsize != ysize) {
+    b3dError(stderr, "ERROR: mrc_slice_create - slice is too large for a "
+             "32-bit computer.\n");
+    return(NULL);
+  }
 
   s = (Islice *)malloc(sizeof(Islice));
   if (!s)
@@ -180,51 +187,44 @@ Islice *mrc_slice_create(int xsize, int ysize, int mode)
   case MRC_MODE_BYTE:
     s->dsize = sizeof(unsigned char);
     s->csize = 1;
-    s->data.b = (unsigned char *)malloc
-      (s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.b = (unsigned char *)malloc(xysize * s->dsize * s->csize);
     break;
 
   case MRC_MODE_SHORT:
   case MRC_MODE_USHORT:
     s->dsize = sizeof(b3dInt16);
     s->csize = 1;
-    s->data.s = (b3dInt16 *)
-      malloc(s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.s = (b3dInt16 *)malloc(xysize * s->dsize * s->csize);
     break;
       
   case MRC_MODE_FLOAT:
     s->dsize = sizeof(float);
     s->csize = 1;
-    s->data.f = (float *)
-      malloc(s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.f = (float *)malloc(xysize * s->dsize * s->csize);
     break;
 
   case MRC_MODE_COMPLEX_SHORT:
     s->dsize = sizeof(b3dInt16);
     s->csize = 2;
-    s->data.s = (b3dInt16 *)
-      malloc(s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.s = (b3dInt16 *)malloc(xysize * s->dsize * s->csize);
     break;
 
   case MRC_MODE_COMPLEX_FLOAT:
     s->dsize = sizeof(float);
     s->csize = 2;
-    s->data.f = (float *)
-      malloc(s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.f = (float *)malloc(xysize * s->dsize * s->csize);
     break;
 
   case MRC_MODE_RGB:
     s->dsize = sizeof(unsigned char);
     s->csize = 3;
-    s->data.b = (unsigned char *)
-      malloc(s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.b = (unsigned char *)malloc(xysize * s->dsize * s->csize);
     break;
 
   case SLICE_MODE_MAX:
     s->csize = SLICE_MAX_CSIZE;
     s->dsize = SLICE_MAX_DSIZE;
-    s->data.f = (float *)malloc
-      (s->xsize * s->ysize * s->dsize * s->csize);
+    s->data.f = (float *)malloc(xysize * s->dsize * s->csize);
     break;
 
   default:
@@ -233,7 +233,7 @@ Islice *mrc_slice_create(int xsize, int ysize, int mode)
   }
 
   if (!s->data.b){
-    b3dError(stderr, "mrc_slice_create: not enough memory.\n");
+    b3dError(stderr, "ERROR: mrc_slice_create - not enough memory.\n");
     free(s);
     return(NULL);
   }
@@ -1664,6 +1664,9 @@ int sliceNewMode(Islice *s, int mode)
 
 /*
 $Log$
+Revision 3.12  2005/11/11 22:15:23  mast
+Changes for unsigned file mode
+
 Revision 3.11  2005/05/23 23:45:19  mast
 Changed calculation of slice mean to use doubles and temp sums
 
