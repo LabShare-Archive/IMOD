@@ -49,6 +49,7 @@ EXPORTS
 	imodObjectNew
 	imodContourMoment
 	imodel_maxpt
+	mrcHugeSeek
 	ilistInsert
 	ilistRemove
 	PIPNEXTARG
