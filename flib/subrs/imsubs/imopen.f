@@ -12,6 +12,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.7  2006/09/22 18:17:18  mast
+c       Fixed flush by fixing test for attribute
+c
 c       Revision 3.6  2006/09/22 00:02:13  mast
 c       Made it flush after printing a new filename
 c
@@ -42,14 +45,14 @@ c
       include 'imsubs.inc'
       DATA NBHDR/1024/, NBW/4/, NBW3/12/, NB/1,2,4,4,8,2,2/, NBL/800/
       DATA FLAG/maxunit*.TRUE./, NOCON/maxunit*.FALSE./, numopen/0/
-      data spider/maxunit*.false./, print/.true./
+      data spider/maxunit*.false./, print/.true./, ifBrief/-1/
       data ibleft/maxunit*0/
       real*4 buf(3)
       integer*4 intbuf(3)
       equivalence (buf,intbuf)
       logical mrctyp,spityp
       integer*4 j,i,nsam,lenrec,nfilsz,ier,intflip
-      integer*4 lnblnk
+      integer*4 lnblnk, imodGetEnv
 C       
 C       Check for valid unit number
 C       
@@ -65,6 +68,14 @@ C
 1100    format(//,' ERROR: IMOPEN: - No More than',i4,
      &      ' files can be opened, cannot open file!!',//)
         call exit(1)
+      endif
+c       
+c       Determine whether to write a brief header
+c       
+      if (ifBrief .lt. 0) then
+        j = imodGetEnv('BRIEF_HEADER', fullname)
+        ifBrief = 0
+        if (j .eq. 0) ifBrief = 1
       endif
 C       
 C       Open file
@@ -83,7 +94,7 @@ c
 c       if it an existing file, check if it's a SPIDER file or a flipped file
 c       
       if(at2(1:2).eq.'RO'.or.at2(1:3).eq.'OLD')then
-        CALL QSEEK(J,1,1,1)
+        CALL QSEEK(J,1,1,1,1,1)
         CALL QREAD(J,buf,NBW3,IER)
         IF (IER .NE. 0) then
           print *
@@ -151,9 +162,9 @@ c       DNM 9/21/06: flush so etomo can know about renames being done
 2000  FORMAT(/,1x,A,' image file on unit',I4,' : ',A)
 2100  FORMAT(/,1x,A,' image file on unit',I4,' : ',A,
      &    '     Size= ',I12)
-      if(spider(j).and.print)write(6,2200)
+      if(spider(j).and.print .and. ifBrief .le. 0)write(6,2200)
 2200  format(/,20x,'This is a SPIDER file.')
-      if(mrcflip(j).and.print)write(6,2300)
+      if(mrcflip(j).and.print .and. ifBrief .le. 0)write(6,2300)
 2300  format(/,20x,'This is a byte-swapped file.')
 C       
       RETURN
