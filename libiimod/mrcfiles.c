@@ -553,13 +553,12 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
       (hdata->mode == MRC_MODE_COMPLEX_SHORT))
     channel = 2;
 
-  rewind(fin);
-  /*     fseek(fin, (hdata->headerSize + (channel * pixsize *  
-         ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
-         SEEK_CUR); */
-  mrc_big_seek(fin, hdata->headerSize + channel * pixsize *  
-               (y * hdata->nx + x), channel * pixsize * z, 
-               hdata->nx * hdata->ny, SEEK_CUR);
+  /* rewind(fin);
+     fseek(fin, (hdata->headerSize + (channel * pixsize *  
+     ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
+     SEEK_CUR); */
+  mrcHugeSeek(fin, hdata->headerSize, x, y, z, hdata->nx, hdata->ny, 
+              channel * pixsize, SEEK_SET);
   switch(hdata->mode){
   case MRC_MODE_BYTE:
     fread(&bdata, pixsize, 1, fin);     
@@ -668,7 +667,8 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata, int slice, char axis)
  * Reads one plane of data into the buffer [buf] at the coordinate given by 
  * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
  * or Z.  Reads from the file with pointer [fin] according to the header in 
- * [hdata] and swaps bytes if necessary.  Returns -1 for errors.
+ * [hdata] and swaps bytes if necessary.  Should work with planes > 4 GB on
+ * 64-bit systems.  Returns -1 for errors.
  */
 int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, 
                    char axis)
@@ -676,71 +676,76 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
   unsigned char *data = NULL;
   short *sdata = NULL;
   float *fdata = NULL;
-  int dsize, csize;
+  int dsize, csize, sxsize, sysize;
+  b3dInt16 *sbuf = (b3dInt16 *)buf;
+  b3dFloat *fbuf = (b3dFloat *)buf;
 
-  /* DNM 2/23/01: computed slicesize to make the byte swapping work right */
-  int xysize, slicesize;
+  int dcsize;
   int i,j,k;
 
   rewind(fin);
   fseek(fin, hdata->headerSize, SEEK_SET);
-  xysize = hdata->nx * hdata->ny;
   data = (unsigned char *)buf;
 
   if (mrc_getdcsize(hdata->mode, &dsize, &csize)){
     b3dError(stderr, "ERROR: mrc_read_slice - unknown mode.\n");
     return(-1);
   }
+  dcsize = dsize * csize;
 
   switch (axis){
     /* slowest loading  use z or y if possible. */
   case 'x':
   case 'X':
-    slicesize = hdata->nz * hdata->ny;
+    sxsize = hdata->ny;
+    sysize = hdata->nz;
     if (slice >= hdata->nx)
       return(-1);
-    fseek( fin, slice * dsize * csize, SEEK_CUR);
+    fseek( fin, slice * dcsize, SEEK_CUR);
     for(k = 0; k < hdata->nz; k++){
       for (j = 0; j < hdata->ny; j++){
-        if (fread(data, dsize * csize, 1, fin) != 1){
+        if (fread(data, dcsize, 1, fin) != 1){
           b3dError(stderr, 
                    "ERROR: mrc_read_slice x - fread error.\n");
           return(-1);
         }
-        data += dsize * csize;
-        fseek(fin, dsize * csize * (hdata->nx - 1), SEEK_CUR);
+        data += dcsize;
+        fseek(fin, dcsize * (hdata->nx - 1), SEEK_CUR);
       }
     }
     break;
 
   case 'y':
   case 'Y':
-    slicesize = hdata->nx * hdata->nz;
+    sxsize = hdata->nx;
+    sysize = hdata->nz;
     if (slice >= hdata->ny)
       return(-1);
-    fseek( fin, slice * hdata->nx * dsize * csize, SEEK_CUR);
+    /* fseek( fin, slice * hdata->nx * dcsize, SEEK_CUR); */
+    mrcHugeSeek(fin, 0, 0, slice, 0, hdata->nx, hdata->ny, dcsize, SEEK_CUR);
     for(k = 0; k < hdata->nz; k++){
-      if (fread(data, dsize * csize, hdata->nx, fin) != 
-          hdata->nx){
-        b3dError(stderr, 
-                 "ERROR: mrc_read_slice y - fread error.\n");
+      if (fread(data, dcsize, hdata->nx, fin) != hdata->nx) {
+        b3dError(stderr, "ERROR: mrc_read_slice y - fread error.\n");
         return(-1);
       }
-      data += dsize * csize * hdata->nx;
-      fseek(fin, dsize * csize * (xysize - hdata->nx), SEEK_CUR);
+      data += dcsize * hdata->nx;
+      /*fseek(fin, dcsize * (xysize - hdata->nx), SEEK_CUR);*/
+      mrcHugeSeek(fin, 0, 0, hdata->ny - 1, 0, hdata->nx, hdata->ny, dcsize,
+                  SEEK_CUR);
     }
     break;
           
   case 'z':
   case 'Z':
-    slicesize = xysize;
+    sxsize = hdata->nx;
+    sysize = hdata->ny;
     if (slice >= hdata->nz)
       return(-1);
-    /*  fseek( fin, slice * hdata->nx * hdata->ny * dsize * csize,
+    /*  fseek( fin, slice * hdata->nx * hdata->ny * dcsize,
         SEEK_CUR); */
-    mrc_big_seek( fin, 0, slice, hdata->nx * hdata->ny * dsize * csize,
+    mrcHugeSeek(fin, 0, 0, 0, slice, hdata->nx, hdata->ny, dcsize,
                   SEEK_CUR);
-    if (fread(data, (dsize * csize), xysize, fin) != xysize){
+    if (fread(data, dcsize * hdata->nx, hdata->ny, fin) != hdata->ny) {
       b3dError(stderr, "ERROR: mrc_read_slice z - fread error.\n");
       return(-1);
     }
@@ -757,12 +762,18 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
     case MRC_MODE_SHORT:
     case MRC_MODE_USHORT:
     case MRC_MODE_COMPLEX_SHORT:
-      mrc_swap_shorts((short int *)buf, slicesize * csize);
+      for (j = 0; j < sysize; j++) {
+        mrc_swap_shorts(sbuf, sxsize * csize);
+        sbuf += sxsize * csize;
+      }
       break;
 
     case MRC_MODE_FLOAT:
     case MRC_MODE_COMPLEX_FLOAT:
-      mrc_swap_floats((float *)buf, slicesize * csize);
+      for (j = 0; j < sysize; j++) {
+        mrc_swap_floats(fbuf, sxsize * csize);
+        fbuf += sxsize * csize;
+      }
       break;
 
     default:
@@ -800,8 +811,8 @@ unsigned char **read_mrc_byte(FILE *fin,
  * file, [hdata] is the MRC header structure, [li] is an @@IloadInfo structure@
  * specifying the limits and scaling of the load, and [func] is a function to
  * receive a status string after each slice.  Data memory is allocated with
- * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory.  Returns
- * NULL for error.
+ * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory.  Should work
+ * with planes > 4 GB on 64-bit systems.  Returns NULL for error.
  */
 unsigned char **mrc_read_byte(FILE *fin, 
                               MrcHeader *hdata, 
@@ -810,14 +821,14 @@ unsigned char **mrc_read_byte(FILE *fin,
 {
   int  i, j, k;
   unsigned int ui;
-  int  pindex, bytesRead;
-  unsigned int xysize;               /* Size of each image.       */
+  int bytesRead;
+  size_t xysize;               /* Size of each image.       */
   int xsize, ysize, zsize;  /* Size needed to be loaded. */
   int xoff,  yoff,  zoff;   /* Offsets into image data.  */
   float conscale = 1.0f;
   float fpixel, ipixel, val;
   float kscale = mrcGetComplexScale();  /* scaling value for complex numbers */
-  int seek_head, seek_line, seek_row, seek_endline, seek_endrow;
+  int seek_line, seek_endline, seek_endrow;
 
   short spixel = 0;
   short pixel;
@@ -836,6 +847,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   float slope, offset, total = 0;
   char statstr[128];            /* message sent to callback function. */
   unsigned char **idata;        /* image data to return. */
+  unsigned char *idatap;
   unsigned char *bdata = NULL;
   b3dInt16 *sdata;
   b3dFloat *fdata;
@@ -876,7 +888,7 @@ unsigned char **mrc_read_byte(FILE *fin,
     white = 255;
     smin = smax = 0;
   }
-  xysize = xsize * ysize;
+  xysize = (size_t)xsize * (size_t)ysize;
 
   /*************************************/
   /* Calculate color map ramp scaling. */
@@ -1014,12 +1026,11 @@ unsigned char **mrc_read_byte(FILE *fin,
   }
   
   /* compute offsets for seeking at lines and sections */
-  seek_row  = dsize * yoff * hdata->nx;
   seek_line = dsize * xoff;
   seek_endline = dsize * (hdata->nx - xoff - xsize);
-  seek_endrow  = dsize * (hdata->ny - yoff - ysize) * hdata->nx;
+  seek_endrow  = hdata->ny - yoff - ysize;
   if (zoff)
-    mrc_big_seek(fin, 0, dsize * zoff, hdata->nx * hdata->ny, SEEK_CUR);
+    mrcHugeSeek(fin, 0, 0, 0, zoff, hdata->nx, hdata->ny, dsize, SEEK_CUR);
 
   if (func != ( void (*)() ) NULL){
     sprintf(statstr, "\nReading Image # %3.3d",k+1); 
@@ -1032,17 +1043,18 @@ unsigned char **mrc_read_byte(FILE *fin,
       sprintf(statstr, "\rReading Image # %3.3d",k+1); 
       (*func)(statstr);
     }
-    pindex = 0;
+
+    idatap = idata[k];
     bytesRead = 0;
-    if (seek_row)
-      fseek(fin, seek_row, SEEK_CUR);
+    if (yoff)
+      mrcHugeSeek(fin, 0, 0, yoff, 0, hdata->nx, hdata->ny, dsize, SEEK_CUR);
 
     /* loop on lines */
     for(j = yoff; j < yoff + ysize; j++){
       if (seek_line)
         fseek(fin, seek_line, SEEK_CUR);
       
-      /* get a line of data, amke sure it is right size */
+      /* get a line of data, make sure it is right size */
       if (fread(bdata, dsize, xsize, fin) != xsize) {
         b3dError(stderr, "ERROR: mrc_read_byte - reading from file.");
         mrcFreeDataMemory(idata, contig, zsize);
@@ -1056,35 +1068,35 @@ unsigned char **mrc_read_byte(FILE *fin,
       switch(hdata->mode){
       case MRC_MODE_BYTE:
         if (doscale)
-          for(i = 0; i < xsize; i++,pindex++)
-            idata[k][pindex] = map[bdata[i]];
+          for(i = 0; i < xsize; i++)
+            idatap[i] = map[bdata[i]];
         else
-          for(i = 0; i < xsize; i++,pindex++)
-            idata[k][pindex] = bdata[i];
+          for(i = 0; i < xsize; i++)
+            idatap[i] = bdata[i];
         break;
 
       case MRC_MODE_RGB:
-        for(i = 0; i < xsize; i++,pindex++){
+        for(i = 0; i < xsize; i++){
           fpixel = bdata[i * 3];
           fpixel += bdata[(i * 3) + 1];
           fpixel += bdata[(i * 3) + 2];
           fpixel /= 3;
           pixel = fpixel + 0.5;
-          idata[k][pindex] = pixel;
+          idatap[i] = pixel;
         }
         break;
                   
       case MRC_MODE_SHORT:
       case MRC_MODE_USHORT:
-        for(i = 0; i < xsize; i++, pindex++){
-          idata[k][pindex] = map[usdata[i]];
+        for(i = 0; i < xsize; i++){
+          idatap[i] = map[usdata[i]];
         }
         break ;
                   
       case MRC_MODE_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize);
-        for(i = 0; i < xsize; i++, pindex++){
+        for(i = 0; i < xsize; i++){
           fpixel = fdata[i];
           if (ramptype == MRC_RAMP_EXP)
             fpixel = (float)exp(fpixel);
@@ -1096,7 +1108,7 @@ unsigned char **mrc_read_byte(FILE *fin,
             fpixel = 0.0;
           if (fpixel > 255.0)
             fpixel = 255.0;
-          idata[k][pindex] = fpixel + 0.5;
+          idatap[i] = fpixel + 0.5;
         }
         break ;
           
@@ -1106,7 +1118,7 @@ unsigned char **mrc_read_byte(FILE *fin,
            made it identical to float scaling of magnitude */
         if (hdata->swapped)
           mrc_swap_shorts(sdata, xsize * 2);
-        for(i = 0; i < xsize; i++, pindex++){
+        for(i = 0; i < xsize; i++){
           fpixel = sdata[2 * i];
           ipixel = sdata[2 * i + 1];
           val = (fpixel * fpixel) + (ipixel * ipixel);
@@ -1117,14 +1129,14 @@ unsigned char **mrc_read_byte(FILE *fin,
             fpixel = 0;
           if (fpixel > 255)
             fpixel = 255;
-          idata[k][pindex] = fpixel;
+          idatap[i] = fpixel;
         }
         break ;
         
       case MRC_MODE_COMPLEX_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize * 2);
-        for(i = 0; i < xsize; i++, pindex++){
+        for(i = 0; i < xsize; i++){
           fpixel = fdata[2 * i];
           ipixel = fdata[2 * i + 1];
           val = (fpixel * fpixel) + (ipixel * ipixel);
@@ -1137,10 +1149,11 @@ unsigned char **mrc_read_byte(FILE *fin,
           if (fpixel > 255)
             fpixel = 255;
           /* 1/7/04 remove 0.5 for consistency with mrcsec */
-          idata[k][pindex] = fpixel;/* + 0.5; */
+          idatap[i] = fpixel;/* + 0.5; */
         }
         break;
       }
+      idatap += xsize;
 
       /* Keep track of total number of bytes on full lines that were probably
          read from disk and report status more frequently for large images so 
@@ -1158,8 +1171,8 @@ unsigned char **mrc_read_byte(FILE *fin,
         fseek(fin, seek_endline, SEEK_CUR);
     }
     if (seek_endrow)
-      fseek(fin, seek_endrow, SEEK_CUR);
-
+      mrcHugeSeek(fin, 0, 0, seek_endrow, 0, hdata->nx, hdata->ny, dsize,
+                  SEEK_CUR);
 
   }
   free(bdata);
@@ -1255,18 +1268,17 @@ int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
 /*!
  * Writes byte, short, or float image data to the file with pointer [fout] 
  * according to the dimensions and mode in header [hdata].  [data] must be an
- * array of pointers to {hdata->nz} planes of data.  Does not check for write
- * errors; returns -1 for attempt to write a byte-swapped file, 0 for improper
- * mode, or the number of bytes written (incorrect for > 2 GB of data).  Used
+ * array of pointers to {hdata->nz} planes of data.  Should be able to handle
+ * planes > 4 GB.  Returns -1 for attempt to write a byte-swapped file, 0 for 
+ * improper mode, -2 for a write error, or 1 for success.  Used
  * only by mrcbyte, 5/7/05.
  */
 int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
-  int i,j=0,k;
-  int  xysize;
+  int k, j=0, nwrote;
   unsigned char **bdata;
-  short         **sdata;
-  float         **fdata;
+  b3dInt16         **sdata;
+  b3dFloat         **fdata;
 
   if (hdata->swapped) {
     b3dError(stderr, "ERROR: mrc_write_idata - cannot write to a"
@@ -1274,170 +1286,177 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
     return(-1);
   }
 
-  xysize = hdata->nx * hdata->ny;
 
 
-  switch (hdata->mode)
-    {
+  for (k = 0; k < hdata->nz; k++) {
+    switch (hdata->mode) {
     case MRC_MODE_BYTE:
       bdata = (unsigned char **)data;
-      for (k = 0; k < hdata->nz; k++)
-        fwrite(data[k], 1, xysize, fout);
+      nwrote = fwrite(data[k], hdata->nx, hdata->ny, fout);
+      printf("wrote %d lines from %x\n", nwrote, data[k]);
       break;
-
+      
     case MRC_MODE_SHORT:
     case MRC_MODE_USHORT:
-      sdata = (short **)data;
-      for (k = 0; k < hdata->nz; k++)
-        fwrite(&(sdata[k][j]), sizeof(short), xysize, fout);
+      sdata = (b3dInt16 **)data;
+      nwrote = fwrite(&(sdata[k][j]), hdata->nx * sizeof(b3dInt16),
+                      hdata->ny, fout);
       break;
-
+      
     case MRC_MODE_FLOAT:
-      fdata = (float **)data;
-      for (k = 0; k < hdata->nz; k++)
-        fwrite(&(fdata[k][j]), sizeof(float), xysize, fout);
+      fdata = (b3dFloat **)data;
+      nwrote = fwrite(&(fdata[k][j]),  hdata->nx * sizeof(b3dFloat),  
+                      hdata->ny, fout);
       break;
-
+      
     default:
-      b3dError(stderr, "ERROR: mrc_write - unknown mode\n");
+      b3dError(stderr, "ERROR: mrc_write_idata - unknown mode\n");
       return(0);
     }
-
-  return(xysize * hdata->nz);
+    if (nwrote != hdata->ny) {
+      b3dError(stderr, "ERROR: mrc_write_idata - Writing data to file\n");
+      return(-2);
+    }
+  }
+  return(1);
 }
 
 /*!
  * Writes one plane of data from the buffer [buf] at the coordinate given by 
  * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
  * or Z.  Writes to the file with pointer [fin] according to the header in 
- * [hdata] and swaps bytes if necessary.  Returns -1 for errors.
+ * [hdata] and swaps bytes if necessary.  Should handle planes > 4 GB on 64-bit
+ * systems.  Returns -1 for errors.
  */
-int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, 
-                    int slice, char axis)
+int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
+                    char axis)
 {
-  int dsize, csize = 1;
-  int xysize, slicesize;
-  int i,j,k;
+  int dsize, csize, retval = 0;
+  size_t slicesize, sxsize, sysize;
+  int i,j,k, dcsize, nx, ny;
   unsigned char *data = NULL;
+  b3dInt16 *sbuf;
+  b3dFloat *fbuf;
 
   if (!buf || slice < 0)
     return(-1);
 
   rewind(fout);
   fseek(fout, hdata->headerSize, SEEK_SET);
-  xysize = hdata->nx * hdata->ny;
   data = (unsigned char *)buf;
+  nx = hdata->nx;
+  ny = hdata->ny;
 
   if (mrc_getdcsize(hdata->mode, &dsize, &csize)){
     b3dError(stderr, "ERROR: mrc_write_slice - unknown mode.\n");
     return(-1);
   }
+  dcsize = dsize * csize;
 
   /* find out the actual size of the data in case swapped, and to get
      some error checks out of the way before getting memory */
   switch (axis){
   case 'x':
   case 'X':
-    if (slice >= hdata->nx)
+    if (slice >= nx)
       return(-1);
-    slicesize = hdata->nz * hdata->ny;
+    sxsize = ny;
+    sysize = hdata->nz;
     break;
           
   case 'y':
   case 'Y':
-    if (slice >= hdata->ny)
+    if (slice >= ny)
       return(-1);
-    slicesize = hdata->nx * hdata->nz;
+    sxsize = nx;
+    sysize = hdata->nz;
     break;
           
   case 'z':
   case 'Z':
     if (slice >= hdata->nz)
       return(-1);
-    slicesize = xysize;
+    sxsize = nx;
+    sysize = ny;
     break;
   default:
     b3dError(stderr, "ERROR: mrc_write_slice - axis error.\n");
     return(-1);
   }
-     
+  slicesize = sxsize * sysize;
 
   /* if swapped,  get memory, copy slice, and swap it in one gulp */
   if (hdata->swapped && dsize > 1) {
-    data = malloc(slicesize * dsize * csize);
+    data = malloc(slicesize * dcsize);
     if (!data) {
       b3dError(stderr, "ERROR: mrc_write_slice - "
                "failure to allocate memory.\n");
       return(-1);
     }
-    memcpy(data, buf, slicesize * dsize * csize);
-    if (dsize == 2)
-      mrc_swap_shorts((short int *)data, slicesize * csize);
-    else
-      mrc_swap_floats((float *)data, slicesize * csize);
+    memcpy(data, buf, slicesize * dcsize);
+    sbuf = (b3dInt16 *)data;
+    fbuf = (b3dFloat *)data;
+    for (j = 0; j < sysize; j++) {
+      if (dsize == 2) {
+        mrc_swap_shorts(sbuf, sxsize * csize);
+        sbuf += sxsize * csize;
+      } else {
+        mrc_swap_floats(fbuf, sxsize * csize);
+        fbuf += sxsize * csize;
+      }
+    }
   }
      
-  switch (axis)
-    {
-    case 'x':
-    case 'X':
-      fseek( fout, slice * dsize * csize, SEEK_CUR);
-      for(k = 0; k < hdata->nz; k++){
-        for (j = 0; j < hdata->ny; j++){
-          if (fwrite(data, dsize * csize, 1, fout) != 1){
-            b3dError(stderr, "ERROR: mrc_write_slice x"
-                     " - fwrite error.\n");
-            if (hdata->swapped && dsize > 1)
-              free(data);
-            return(-1);
-          }
-          data += dsize * csize;
-          fseek(fout, csize * dsize * (hdata->nx - 1),  
-                SEEK_CUR);
+  switch (axis) {
+  case 'x':
+  case 'X':
+    fseek( fout, slice * dcsize, SEEK_CUR);
+    for(k = 0; k < hdata->nz && !retval; k++) {
+      for (j = 0; j < ny; j++) {
+        if (fwrite(data, dcsize, 1, fout) != 1) {
+          b3dError(stderr, "ERROR: mrc_write_slice x - fwrite error.\n");
+          retval = -1;
+          break;
         }
+        data += dcsize;
+        fseek(fout, dcsize * (nx - 1), SEEK_CUR);
       }
-      break;
-
-    case 'y':
-    case 'Y':
-      fseek( fout, slice * hdata->nx * csize * dsize, SEEK_CUR);
-      for(k = 0; k < hdata->nz; k++){
-        if (fwrite(data, dsize * csize, hdata->nx, fout) != 
-            hdata->nx){
-          b3dError(stderr, 
-                   "ERROR: mrc_write_slice y - fwrite error.\n");
-          return(-1);
-          if (hdata->swapped && dsize > 1)
-            free(data);
-        }
-        data += dsize * hdata->nx * csize;
-        fseek(fout, csize * dsize * (xysize - hdata->nx), 
-              SEEK_CUR);
-      }
-      break;
-
-    case 'z':
-    case 'Z':
-      /*  fseek( fout, slice * hdata->nx * hdata->ny * csize * dsize, 
-          SEEK_CUR); */
-      mrc_big_seek( fout, 0, slice, hdata->nx * hdata->ny * 
-                    csize * dsize, SEEK_CUR);
-      if (fwrite(data, dsize * csize, xysize, fout) != xysize){
-        b3dError(stderr, 
-                 "ERROR: mrc_write_slice z - fwrite error.\n");
-        if (hdata->swapped && dsize > 1)
-          free(data);
-        return(-1);
-      }
-      break;
-               
-    default:
-      b3dError(stderr, "ERROR: mrc_write_slice - axis error.\n");
-      return(-1);
     }
+    break;
+      
+  case 'y':
+  case 'Y':
+    /* fseek( fout, slice * nx * dcsize, SEEK_CUR);*/
+    mrcHugeSeek(fout, 0, 0, slice, 0, nx, ny, dcsize, SEEK_CUR);
+    for (k = 0; k < hdata->nz; k++) {
+      if (fwrite(data, dcsize, nx, fout) != nx) {
+        b3dError(stderr, "ERROR: mrc_write_slice y - fwrite error.\n");
+        retval = -1;
+        break;
+      }
+      data += dcsize * nx;
+      /* fseek(fout, dcsize * (xysize - nx), SEEK_CUR); */
+      mrcHugeSeek(fout, 0, 0, ny - 1, 0, nx, ny, dcsize, SEEK_CUR);
+    }
+    break;
+
+  case 'z':
+  case 'Z':
+    /*  fseek( fout, slice * nx * ny * dcsize, SEEK_CUR); */
+    mrcHugeSeek(fout, 0, 0, 0, slice, nx, ny, dcsize, SEEK_CUR);
+    if (fwrite(data, dcsize * nx, ny, fout) != ny) {
+      b3dError(stderr, "ERROR: mrc_write_slice z - fwrite error.\n");
+      retval = -1;
+    }
+    break;
+    
+  default:
+    b3dError(stderr, "ERROR: mrc_write_slice - axis error.\n");
+    retval = -1;
+  }
   if (hdata->swapped && dsize > 1)
     free(data);
-  return(0);
+  return(retval);
 }
 
 /*
@@ -1455,9 +1474,10 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata,
  * It attempts to allocate the data in contigous memory if [li] is non-NULL and
  * the {contig} element of [li] is non-zero.  If this fails it falls back to 
  * allocating planes separately, sets {contig} to 0, and issues a warning with
- * b3dError.  Returns NULL for error.
+ * b3dError.  Should be able to allocate planes > 4GB on 64-bit systems.
+ * Returns NULL for error.
  */
-unsigned char **mrcGetDataMemory(IloadInfo *li, int xysize, int zsize,
+unsigned char **mrcGetDataMemory(IloadInfo *li, size_t xysize, int zsize,
                                  int pixsize)
 {
   int contig = 0;   /* if true: load date into contiguous memory.         */
@@ -2111,6 +2131,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.28  2006/08/27 23:45:58  mast
+Moved fgetline to b3dutil
+
 Revision 3.27  2006/08/04 21:04:03  mast
 Add documentation
 

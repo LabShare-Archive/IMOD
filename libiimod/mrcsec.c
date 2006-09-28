@@ -29,7 +29,8 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
  * Routines for accessing particular kinds of data as bytes or raw, Y or Z
- * axis
+ * axis.  They should be able to handle planes > 4 GB on a 64-bit system except
+ * for complex data.
  */
 
 /*!
@@ -121,10 +122,10 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   float offset = li->offset;
   int   outmin = li->outmin;
   int   outmax = li->outmax;
-  int seek_line, seek_endline;
+  int seek_line, seek_endx, seek_endy;
   float kscale = mrcGetComplexScale();
      
-  int pindex = 0;
+  unsigned int pindex = 0;
   int pixel, i, j;
   int pixSize = 1;
   int needData = 0;
@@ -138,6 +139,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   /* Buffer to place complex data into; may be temporary for mirroring */
   unsigned char *fft = buf;
   unsigned char *map = NULL;
+
+  /* Copy of buffer pointer that can be advanced after each line */
+  unsigned char *bufp = buf;
   int freeMap = 0;
   unsigned char *inptr;
   b3dInt16 *sdata;
@@ -268,27 +272,30 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
   /* Seek distance at start of line */
   seek_line    = llx * pixSize;
+  seek_endx = nx - urx - 1 ;
      
   if (readY) {
 
     /* If reading Y, seek at end of line gets to next section, first seek
        is small and seek to starting Z is big */
-    seek_endline = pixSize * (nx - urx - 1 + nx * ny - nx);
-    b3dFseek(fin, hdata->headerSize + (cz * nx * pixSize),  SEEK_SET);
+    /* b3dFseek(fin, hdata->headerSize + (cz * nx * pixSize),  SEEK_SET);
     if (lly)
-      mrc_big_seek(fin, 0, lly, nx * ny * pixSize, SEEK_CUR);
+    mrc_big_seek(fin, 0, lly, nx * ny * pixSize, SEEK_CUR); */
+    seek_endy = ny - 1;
+    mrcHugeSeek(fin, hdata->headerSize, 0, cz, lly, nx, ny, pixSize, SEEK_SET);
 
   } else {
 
     /* If reading X, seek at end of line gets to end of line, first seek
        is in Z and big, seek to starting Y is small */
-    seek_endline = pixSize * (nx - urx - 1);
-    mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * pixSize,  SEEK_SET);
+    /* mrc_big_seek(fin, hdata->headerSize, cz, nx * ny * pixSize,  SEEK_SET);
     if (lly)
-      b3dFseek(fin, lly * nx * pixSize, SEEK_CUR);
+    b3dFseek(fin, lly * nx * pixSize, SEEK_CUR); */
+    seek_endy = 0;
+    mrcHugeSeek(fin, hdata->headerSize, 0, lly, cz, nx, ny, pixSize, SEEK_SET);
   }
-  if (seek_endline < 0)
-    seek_endline = 0;
+  if (seek_endx < 0)
+    seek_endx = 0;
 
   /* Start loop on Y and read a line of data */
   for (j = lly; j <= ury; j++){
@@ -315,31 +322,34 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
         
       case MRC_MODE_SHORT:
       case MRC_MODE_USHORT:
-        for (i = 0; i < xsize; i++, pindex++)
-          buf[pindex] = map[usdata[i]];
+        for (i = 0; i < xsize; i++)
+          bufp[i] = map[usdata[i]];
+        bufp += xsize;
         break;
 
       case MRC_MODE_RGB:
         inptr = bdata;
-        for (i = 0; i < xsize; i++, pindex++) {
+        for (i = 0; i < xsize; i++) {
           pixel = *inptr++;
           pixel += *inptr++;
           pixel += *inptr++;
-          buf[pindex] = pixel / 3;
+          bufp[i] = pixel / 3;
         }
+        bufp += xsize;
         break;
         
       case MRC_MODE_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize);
-        for (i = 0; i < xsize; i++, pindex++){
+        for (i = 0; i < xsize; i++){
           pixel =  fdata[i] * slope + offset;
           if (pixel < outmin)
             pixel = outmin;
           if (pixel > outmax)
             pixel = outmax;
-          buf[pindex] = pixel;
+          bufp[i] = pixel;
         }
+        bufp += xsize;
         break;
 
       case MRC_MODE_COMPLEX_FLOAT:
@@ -418,11 +428,11 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
             toggleY = 1 - toggleY;
             if (toggleY) {
               cz = ymax;
-              seek_endline = pixSize * (nx * (ymax - ymin) - urx - 1);
+              seek_endy = ymax - ymin - 1;
               j--;
             } else {
               cz = ymin;
-              seek_endline = pixSize * (nx * (ymin + ny - ymax) - urx - 1);
+              seek_endy = ymin + ny - ymax - 1;
             }
             /* fprintf(stderr, "toggleY %d cz %d seek %d\n",toggleY, cz,
                seek_endline); */
@@ -454,8 +464,8 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     }
 
     /* End loop on Y */
-    if (seek_endline)
-      b3dFseek(fin, seek_endline, SEEK_CUR);
+    if (seek_endx || seek_endy)
+      mrcHugeSeek(fin, 0, seek_endx, seek_endy, 0, nx, ny, pixSize, SEEK_CUR);
   }
 
   if (needData)
@@ -467,6 +477,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.11  2006/08/04 21:04:03  mast
+Add documentation
+
 Revision 3.10  2005/11/11 22:15:23  mast
 Changes for unsigned file mode
 
