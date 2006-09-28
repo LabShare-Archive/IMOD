@@ -14,6 +14,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.3  2006/02/16 04:05:21  mast
+c       Converted to PIP and added simple output options
+c
 c       Revision 3.2  2004/06/10 22:40:50  mast
 c       Made it rotate a reported tilt angle from FEI header by 180 degrees
 c       if bigger than 90 degrees
@@ -32,22 +35,22 @@ c
 C       
       CHARACTER*120 FILIN
 C       
-      integer*4 numInputFiles, nfilein
+      integer*4 numInputFiles, nfilein, ifBrief
       logical*4 doSize, doMode, doMin,doMax,doMean, silent, doPixel, doOrigin
       real*4 DMIN,DMAX,DMEAN, pixel,tiltaxis, delta(3)
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetLogical, PipGetString, PipGetNonOptionArg
+      integer*4 PipGetLogical, PipGetString, PipGetNonOptionArg, PipGetInteger
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  header
 c       
       integer numOptions
-      parameter (numOptions = 9)
+      parameter (numOptions = 10)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@size:Size:B:@mode:Mode:B:@'//
      &    'pixel:PixelSize:B:@origin:Origin:B:@minimum:Minimum:B:@'//
-     &    'maximum:Maximum:B:@mean:Mean:B:@help:usage:B:'
+     &    'maximum:Maximum:B:@mean:Mean:B:@brief:Brief:B:@help:usage:B:'
 c       
 c       defaults
 c
@@ -59,6 +62,7 @@ c
       doPixel = .false.
       doOrigin = .false.
       nfilein = 1
+      ifBrief = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -75,17 +79,17 @@ C
         ierr = PipGetLogical('Mean', doMean)
         ierr = PipGetLogical('PixelSize', doPixel)
         ierr = PipGetLogical('Origin', doOrigin)
+        ierr = PipGetInteger('Brief', ifBrief)
         call PipNumberOfEntries('InputFile', numInputFiles)
         nfilein = numInputFiles + numNonOptArg
-        if (nfilein .eq. 0) then
-          print *,'ERROR: HEADER - No input file specified'
-          call exit(1)
-        endif
+        if (nfilein .eq. 0)
+     &      call exitError('No input file specified')
       endif
 
       silent = doSize .or. doMode .or. doMin .or. doMax .or. doMean .or.
      &    doPixel .or. doOrigin
       if (silent) call ialprt(.false.)
+      call ialbrief(ifBrief)
 
       do i=1,nfilein
 c         
