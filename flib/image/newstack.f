@@ -21,7 +21,7 @@ c
       implicit none
       integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
       integer lmFields, lmAllGrid
-      parameter (maxdim=72000000,lmfil=1000,lmsec=50000,maxchunks=20)
+      parameter (maxdim=72000000,lmfil=1000,lmsec=50000,maxchunks=250)
       parameter (maxextra=4000000, maxtemp=1000000)
       parameter (lmGrid = 200, lmFields = 1000, lmAllGrid = 1000000)
       integer*4 nx,ny,nz
@@ -70,7 +70,7 @@ c
 c       
       logical rescale
       character dat*9,tim*8,tempext*9
-      character*120 tempname,temp_filename
+      character*80 tempname,temp_filename
       logical nbytes_and_flags
 c       
 c       7/7/00 CER: remove the encode's; titlech is the temp space
@@ -1041,12 +1041,15 @@ c           figure out how the data will be loaded and saved; first see if
 c           both input and output images will fit in one chunk, or if
 c           entire input image will fit
 c           
-          linesleft=(idim-nxbin*nybin)/nx3
-          nchunk=(ny3+linesleft-1)/linesleft
+          nchunk = 0
+          if (idim / nxbin .gt. nybin) then
+            linesleft=(idim-nxbin*nybin)/nx3
+            nchunk=(ny3+linesleft-1)/linesleft
+          endif
           if(nchunk.eq.1.or.(nchunk.gt.0.and.nchunk.le.maxchunks.and.
      &        .not.rescale))then
 c             
-c             Use entire input and multi-chucnk output only if not rescaling
+c             Use entire input and multi-chunk output only if not rescaling
 c             set up chunks for output, and set up that
 c             whole image is needed for every output chunk.
 c             Note that lines are numbered from 0 here
@@ -1122,7 +1125,8 @@ c
 c                 Will the input and output data now fit?  Then terminate.
 c                 
                 if(iscan.eq.2)iytest=nLinesOut(1)
-                if(maxin*nxbin+iytest*nx3.le.idim)then
+                if(idim/maxin .gt. nxbin .and. idim / iytest .gt. nx3 .and.
+     &              maxin*nxbin+iytest*nx3.le.idim)then
                   ifOutChunk=iscan-1
                 else
                   nchunk=nchunk+1
@@ -1382,7 +1386,7 @@ c
               dmax2=optout
             elseif(iffloat.eq.2)then
 c               :float to mean, it's very hairy
-              call sums_to_avgsd8(dsum,dsumsq,nx3*ny3,avgsec,sdsec)
+              call sums_to_avgsd8(dsum,dsumsq,nx3,ny3,avgsec,sdsec)
 c		print *,'overall mean & sd',avgsec,sdsec
               zminsec=(tmpmin-avgsec)/sdsec
               zmaxsec=(tmpmax-avgsec)/sdsec
@@ -1511,7 +1515,7 @@ c
             dmean2=dsum
           endif
 c           
-          dmean2=dmean2/(nx3*ny3)
+          dmean2=dmean2/(float(nx3)*ny3)
           if(ifheaderout.eq.0) print *,
      &        'section   input min&max       output min&max  &  mean'
           ifheaderout=1
@@ -1733,9 +1737,9 @@ c
       enddo
 c       
       if(iffloat.eq.2)then
-        call sums_to_avgsd8(dsum,dsumsq,nx*ny,dmean2,sdsec)
+        call sums_to_avgsd8(dsum,dsumsq,nx,ny,dmean2,sdsec)
       else
-        dmean2=dsum/(nx*ny)
+        dmean2=dsum/(float(nx)*ny)
       endif
       loadynd=iline-1
       loadyst=iline-nlines
@@ -1789,6 +1793,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.41  2006/07/08 13:55:33  mast
+c       Raised extra header size to ridiculously large
+c
 c       Revision 3.40  2006/06/20 00:32:02  mast
 c       Eliminated rescaling and truncation for input mode 2
 c
