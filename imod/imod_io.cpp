@@ -737,7 +737,8 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
   /* Just like the standard MRC load, this loads in native orientation
      and flips afterward if needed, so caller must be sure image axis is 3 */
 
-  idata = mrcGetDataMemory(li, vi->xysize, vi->zsize, pixsize);
+  idata = mrcGetDataMemory(li, (size_t)vi->xsize * (size_t)vi->ysize, 
+                           vi->zsize, pixsize);
   if (!idata)
     return NULL;
 
@@ -811,6 +812,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.22  2006/09/13 00:49:38  mast
+Chnaged to using imodNew to get model structure
+
 Revision 4.21  2006/01/14 18:14:45  mast
 Added function for new model initialization and set pizel size and z scale
 

@@ -517,7 +517,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   // up binned data if there is Z binning
   xsize = im.urx + 1 - im.llx;
   ysize = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
-  unbinbuf = (unsigned char *)malloc(xsize * ysize);
+  unbinbuf = (unsigned char *)malloc((size_t)xsize * (size_t)ysize);
   if (!unbinbuf)
     return 1;
   if (vi->zbin > 1) {
@@ -1915,7 +1915,7 @@ int ivwLoadImage(ImodView *vi)
     /* DNM 9/25/03: it probably no longer matters if data are ever contiguous
        so switch to noncontiguous for anything above 1 GB */
     vi->li->contig = 1; 
-    if (1000000000 / vi->xysize < vi->zsize)
+    if ((1000000000 / vi->xsize) / vi->ysize < vi->zsize)
       vi->li->contig = 0;
     /*imodPrintStderr("contig = %d  axis = %d  xysize %d  % dzsize %d \n",
       vi->li->contig, vi->li->axis, xysize, 4200000000 / xysize, zsize); */
@@ -2138,6 +2138,12 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   vi->xUnbinSize  = vi->li->xmax - vi->li->xmin + 1;
   vi->yUnbinSize  = vi->li->ymax - vi->li->ymin + 1;
   vi->zUnbinSize  = vi->li->zmax - vi->li->zmin + 1;
+  if (((size_t)vi->xUnbinSize * (size_t)vi->yUnbinSize) / vi->xUnbinSize
+      != vi->yUnbinSize) {
+    imodError(NULL, "This image is too large in X and Y to load on a 32-bit "
+              "computer.\n");
+    exit(3);
+  }
 
   // Adjust binning to be positive and not larger than dimensions
   if (vi->xybin < 1)
@@ -2222,7 +2228,7 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   vi->ysize  = vi->li->ymax - vi->li->ymin + 1;
   vi->zsize  = vi->li->zmax - vi->li->zmin + 1;
   vi->xysize = vi->xsize * vi->ysize;
-  
+    
   return 0;
 }
 
@@ -2432,6 +2438,7 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
   int ixofs = (nxin % nbin) / 2;
   int iyofs = (nyin % nbin) / 2;
   int sum, ix, iy;
+  size_t nxins = nxin;
   unsigned char *bdata = brray;
   unsigned char *cline1, *cline2, *cline3, *cline4;
 
@@ -2439,8 +2446,8 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
   switch (nbin) {
   case 2:
     for (iy = 0; iy < nyout; iy++) {
-      cline1 = ((unsigned char *)array) + 2 * iy * nxin;
-      cline2 = cline1 + nxin;
+      cline1 = ((unsigned char *)array) + 2 * iy * nxins;
+      cline2 = cline1 + nxins;
       for (ix = 0;   ix < nxout; ix++) {
         sum = *cline1 + *(cline1 + 1) + *cline2 + *(cline2 + 1);
         *bdata++ = sum / 4;
@@ -2452,9 +2459,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
   
   case 3:
     for (iy = 0; iy < nyout; iy++) {
-      cline1 = ((unsigned char *)array) + (3 * iy + iyofs) * nxin + ixofs;
-      cline2 = cline1 + nxin;
-      cline3 = cline2 + nxin;
+      cline1 = ((unsigned char *)array) + (3 * iy + iyofs) * nxins + ixofs;
+      cline2 = cline1 + nxins;
+      cline3 = cline2 + nxins;
       for (ix = 0; ix < nxout; ix++) {
         sum = *cline1 + *(cline1 + 1) + *(cline1 + 2) +
           *cline2 + *(cline2 + 1) + *(cline2 + 2) +
@@ -2470,10 +2477,10 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
   case 4:
     for (iy = 0; iy < nyout; iy++) {
-      cline1 = ((unsigned char *)array) + (4 * iy + iyofs) * nxin + ixofs;
-      cline2 = cline1 + nxin;
-      cline3 = cline2 + nxin;
-      cline4 = cline3 + nxin;
+      cline1 = ((unsigned char *)array) + (4 * iy + iyofs) * nxins + ixofs;
+      cline2 = cline1 + nxins;
+      cline3 = cline2 + nxins;
+      cline4 = cline3 + nxins;
       for (ix = 0; ix < nxout; ix++) {
         sum = *cline1 + *(cline1 + 1) + *(cline1 + 2) + *(cline1 + 3) +
           *cline2 + *(cline2 + 1) + *(cline2 + 2) + *(cline2 + 3) +
@@ -2490,14 +2497,14 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
   default:
     for (iy = 0; iy < nyout; iy++) {
-      cline1 = ((unsigned char *)array) + (nbin * iy + iyofs) * nxin + ixofs;
+      cline1 = ((unsigned char *)array) + (nbin * iy + iyofs) * nxins + ixofs;
       for (ix = 0; ix < nxout; ix++) {
         sum = 0;
         cline2 = cline1;
         for (j = 0; j < nbin; j++) {
           for (i = 0; i < nbin; i++) 
             sum += cline2[i];
-          cline2 += nxin;
+          cline2 += nxins;
         }
         *bdata++ = sum / nbinsq;
         cline1 += nbin;
@@ -2509,6 +2516,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.51  2006/09/12 15:47:02  mast
+Handled contour member renames
+
 Revision 4.50  2006/09/03 21:30:11  mast
 Handled file opening error string properly
 
