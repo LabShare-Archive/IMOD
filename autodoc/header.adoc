@@ -58,6 +58,14 @@ usage = Output mean value of data
 tooltip = 
 manpage = 
 
+[Field = Brief]
+short = brief
+type = B
+usage = Output brief header
+tooltip = 
+manpage = Output brief header with dimensions, pixel size, mode, minimum,
+maximum, and mean value, and the first and last title
+
 [Field = usage]
 short = help
 type = B
