@@ -18,52 +18,7 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 3.15  2004/11/08 05:55:30  mast
-Backed out atexit, will not compile in AMD64 or work in Windows
-
-Revision 3.13  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.12  2004/06/15 15:15:50  mast
-Had to move declaration out of body of check_unit for SGI
-
-Revision 3.11  2004/06/15 04:42:36  mast
-Fixed bugs created by unneeded cosmetic changes!
-
-Revision 3.10  2004/06/14 20:05:58  mast
-Added check and error reporting for illegal unit number and unit not open
-
-Revision 3.9  2004/04/24 04:42:40  mast
-Rewrote get_fstr to be clearer, but valgrind still complains
-
-Revision 3.8  2004/04/19 18:06:51  mast
-Added newlines in front of all ERROR outputs
-
-Revision 3.7  2004/01/17 20:33:26  mast
-Changes for 2GB problem on Mac OS 10.3 - switch to calling routines in
-b3dutil
-
-Revision 3.6  2003/11/18 19:19:09  mast
-changes for 2GB problem on Windows
-
-Revision 3.5  2003/10/24 03:40:33  mast
-open file as binary; delete ~ before renaming for Windows/Intel
-
-Revision 3.4  2002/10/23 21:01:06  mast
-Directed error messages to stdout instead of stderr because that is
-where Fortran program messages go
-
-Revision 3.3  2002/07/21 19:22:34  mast
-Standardized error output to ERROR: ROUTINE
-
-Revision 3.2  2002/06/26 00:22:53  mast
-Changed abort calls to exit(-1) so that they would set error status
-
-Revision 3.1  2002/01/07 18:23:34  mast
-Add an error message if big_seek fails
-
+Log at end
 */
  
 #define BLOCKIO_C    /*define source name for includes*/
@@ -155,13 +110,15 @@ typedef struct
   char dum2;
   char *str;
 } strDesc_s;
+
+/* DNM 9/27/06: eliminated num_char_per_item and the modes.  These functions
+   work only in terms of bytes and callers assumed that */
  
 typedef struct
 {
   int  being_used;
   char fname[256];
   FILE *fp;
-  int  num_char_per_item;
   int  read_only;
   int  write_only;
   unsigned int  pos;
@@ -189,9 +146,6 @@ Private Global Declarations
 ******************************************************************************/
  
 static Unit units[MAX_UNIT];
-static int modes[MAX_MODE] = {1, 2, 4, 4, 8, 1, 1, 1,
-                               1,1,1,1,1,1,1,1,3 };
-/* JRK: extented modes to include bit modes 9-15, and rgb mode 16. */
 
 /******************************************************************************
  ***************************    PUBLIC FUNCTIONS    ****************************
@@ -231,7 +185,6 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
     u->write_only = 0;
     u->read_only = 0;
     u->pos = 0;
-    u->num_char_per_item = 1;
     get_fstr(attribute, attr_l, matstr, sizeof matstr);
     
     if (strncmp(matstr, "RO", 1) == 0){
@@ -299,21 +252,12 @@ void qclose(int *iunit)
   }
 }
 
-void qmode(int *iunit, int *mode, int *nchitm)
-{
-  int unit = *iunit - 1;
-  
-  Unit *u = check_unit(unit, "qmode", 1);
-  int mchitm = (*mode >= 0 && *mode < MAX_MODE) ? modes[*mode] : 1;
-  *nchitm = u->num_char_per_item = mchitm;
-}
- 
 void qread(int *iunit, char *array, int *nitems, int *ier)
 {
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qread", 0);
   if (u) {
-    int bc = u->num_char_per_item * *nitems;
+    int bc = *nitems;
     if (u->write_only) {
       fprintf(stdout, "\nERROR: qread - file is write only.\n");
       exit(3);
@@ -336,7 +280,7 @@ void qwrite(int *iunit, char *array, int *nitems)
   int unit = *iunit - 1;
   
   Unit *u = check_unit(unit, "qwrite", 1);
-  int bc = u->num_char_per_item * *nitems;
+  int bc = *nitems;
   if (u->read_only) {
        fprintf(stdout, "\nERROR: qwrite - file is read only.\n");
        exit(3);
@@ -355,34 +299,33 @@ void qwrite(int *iunit, char *array, int *nitems)
     big_seek function that seeks in chunks less than 2 GB; also change test
     for error to test for -1 returned rather than a negative number.
     Change to test for nonzero when switch to fseek */
-void qseek(int *iunit, int *irecord, int *ielement, int *ireclength)
+void qseek(int *iunit, int *base, int *line, int *section, int *nxbytes, 
+           int *nylines)
 {
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qseek", 1);
-  u->pos = ((unsigned int)(*irecord - 1) * 
-            (unsigned int)*ireclength + 
-            (unsigned int)(*ielement - 1)) * 
-    (unsigned int)u->num_char_per_item;
+  u->pos = ((unsigned int)(*nxbytes) * 
+            (unsigned int)((*line - 1) + (unsigned int)*nylines * 
+                           (unsigned int)(*section - 1)) +
+            (unsigned int)(*base - 1));
+ 
   /*  if (lseek(u->fp, u->pos = pos, 0) < 0) */
-  if (mrc_big_seek(u->fp, (*ielement - 1) * u->num_char_per_item,
-                   *irecord - 1, 
-                   *ireclength * u->num_char_per_item, 
-                   SEEK_SET))
-    {
-      fprintf(stdout, "\nERROR: qseek - Error on big_seek\n");
-      perror("");
-      exit(3);
-    }
+  if (mrcHugeSeek(u->fp, *base - 1, 0, *line - 1, *section - 1, *nxbytes,
+                  *nylines, 1, SEEK_SET)) {
+    fprintf(stdout, "\nERROR: qseek - Error on mrcHugeSeek\n");
+    perror("");
+    exit(3);
+  }
 }
 
-/* qback and qskip are used only for small movements, within a section, so
-   they don't need to call big_seek.  However, change the test for error to
+/* qback is used only for small movements, within a section, so
+   it doesn't need to call big_seek.  However, change the test for error to
    test for = -1 instead of < 0; then to test for !=0 when switch to fseek */  
 void qback(int *iunit, int *ireclength)
 {
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qback", 1);
-  int amt = -(*ireclength * u->num_char_per_item);
+  int amt = -(*ireclength);
   u->pos += amt;
   if (b3dFseek(u->fp, amt, SEEK_CUR))
     {
@@ -391,13 +334,14 @@ void qback(int *iunit, int *ireclength)
     }
 }
  
-void qskip(int *iunit, int *ireclength)
+/* qskip needs to move by large amounts within sections so it takes two numbers
+   and moves by the product */ 
+void qskip(int *iunit, int *ireclength, int *nrecords)
 {
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qskip", 1);
-  int amt = *ireclength * u->num_char_per_item;
-  u->pos += amt;
-  if (b3dFseek(u->fp, amt, SEEK_CUR))
+  u->pos += *ireclength * *nrecords;
+  if (mrc_big_seek(u->fp, 0, *ireclength, *nrecords, SEEK_CUR))
     {
       fprintf(stdout, "\nERROR: qskip - Error on seek\n");
       exit(3);
@@ -440,7 +384,7 @@ void qlocate(int *iunit, int *location)
 {
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qlocate", 1);
-  *location = u->pos / u->num_char_per_item + 1;
+  *location = u->pos + 1;
 }
  
 void move(char *a, char *b, int *n)
@@ -512,16 +456,15 @@ static void get_fstr(char *fstr, int lfstr, char *str, int l)
   int i = 0;
   int lnblnk = -1;
   
-  /* Keep track of last non blank character and put null after it */
+  /* Keep track of last non blank, non null character and put null after it */
   while (lfstr > 0 && l > 1)
     {
-      if (*fstr != ' ')
+      if (*fstr != ' ' && *fstr)
         lnblnk = i;
       str[i++] = *fstr++;
       lfstr--;
       l--;
     }
-  
   str[lnblnk + 1] = 0;
   
 } /*get_fstr*/
@@ -610,5 +553,53 @@ Private undefines
 *************************************************************************/
 #undef BLOCKIO_C
  
-    
- 
+/*
+$Log$
+Revision 3.16  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.15  2004/11/08 05:55:30  mast
+Backed out atexit, will not compile in AMD64 or work in Windows
+
+Revision 3.13  2004/07/07 19:25:31  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.12  2004/06/15 15:15:50  mast
+Had to move declaration out of body of check_unit for SGI
+
+Revision 3.11  2004/06/15 04:42:36  mast
+Fixed bugs created by unneeded cosmetic changes!
+
+Revision 3.10  2004/06/14 20:05:58  mast
+Added check and error reporting for illegal unit number and unit not open
+
+Revision 3.9  2004/04/24 04:42:40  mast
+Rewrote get_fstr to be clearer, but valgrind still complains
+
+Revision 3.8  2004/04/19 18:06:51  mast
+Added newlines in front of all ERROR outputs
+
+Revision 3.7  2004/01/17 20:33:26  mast
+Changes for 2GB problem on Mac OS 10.3 - switch to calling routines in
+b3dutil
+
+Revision 3.6  2003/11/18 19:19:09  mast
+changes for 2GB problem on Windows
+
+Revision 3.5  2003/10/24 03:40:33  mast
+open file as binary; delete ~ before renaming for Windows/Intel
+
+Revision 3.4  2002/10/23 21:01:06  mast
+Directed error messages to stdout instead of stderr because that is
+where Fortran program messages go
+
+Revision 3.3  2002/07/21 19:22:34  mast
+Standardized error output to ERROR: ROUTINE
+
+Revision 3.2  2002/06/26 00:22:53  mast
+Changed abort calls to exit(-1) so that they would set error status
+
+Revision 3.1  2002/01/07 18:23:34  mast
+Add an error message if big_seek fails
+
+*/
