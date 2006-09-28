@@ -19,6 +19,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.2  2006/02/26 20:22:08  mast
+c       Made it process image in chunks so there is no more size limit
+c
 c       Revision 3.1  2004/08/24 04:15:38  mast
 c       Converted to PIP input, made it 5K capable, added report-only option
 c	
@@ -134,7 +137,7 @@ c
           dsum8 = dsum8 + tsum8
           dsumsq8 = dsumsq8 + tsumsq8
         enddo
-        call sums_to_avgsd8(dsum8, dsumsq8,ndat,avg(iun),sd(iun),sem)
+        call sums_to_avgsd8(dsum8, dsumsq8,ndat,1,avg(iun),sd(iun),sem)
         write(6,103)iun,avg(iun),sd(iun)
 103     format(' Volume',i2,': mean =',f12.4,',  SD =',f12.4)
       enddo

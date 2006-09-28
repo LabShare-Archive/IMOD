@@ -15,6 +15,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/05/26 04:35:43  mast
+c	  Used double precision to get SD correct and for new args to iclavgsd
+c	
 c	  Revision 3.2  2003/12/24 20:02:15  mast
 c	  Changed to read and write in chunks, converted to PIP input, and
 c	  made it have default behavior to subtract two whole volumes
@@ -194,7 +197,7 @@ c	    call iclden(array,nx,ny,1,nx,1,ny,tmin,tmax,tmean)
 	    tmin = min(tmin,cmin)
 	    tmax = max(tmax,cmax)
 	  enddo
-	  call sums_to_avgsd8(sum, sumsq, nx * ny, tmean, sd)
+	  call sums_to_avgsd8(sum, sumsq, nx, ny, tmean, sd)
 	  write(6,4000)asec,tmin,tmax,tmean,sd
 	  sdsum=sdsum+sum
 	  sdsumsq=sdsumsq+sumsq

@@ -15,6 +15,9 @@ c
 c       $Revision$
 c
 c       $Log$
+c       Revision 1.1  2006/01/24 06:46:35  mast
+c       Added to package
+c
 c
 c
       implicit none
@@ -307,7 +310,7 @@ c
           sumsq8 = sumsq8 + vec**2
         enddo
       enddo
-      call sums_to_avgsd8(sum8, sumsq8, nxGrid * nyGrid, avg, sd)
+      call sums_to_avgsd8(sum8, sumsq8, nxGrid, nyGrid, avg, sd)
       return
       end
 
