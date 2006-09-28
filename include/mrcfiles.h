@@ -22,6 +22,7 @@
 #define MRCFILES_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "hvemtypes.h"
 #include "imodconfig.h"
 
@@ -295,8 +296,8 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
 int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, 
 		   int slice, char axis);
 
-  unsigned char **mrcGetDataMemory(struct LoadInfo *li, int xysize, int zsize,
-                                   int pixsize);
+  unsigned char **mrcGetDataMemory(struct LoadInfo *li, size_t xysize,
+                                   int zsize, int pixsize);
   void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize);
   float mrcGetComplexScale();
   void mrcComplexSminSmax(float inMin, float inMax, float *outMin, 
@@ -361,6 +362,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 /*
     $Log$
+    Revision 3.16  2006/08/27 23:47:00  mast
+    Moved fgetline from mrcfiles to b3dutil
+
     Revision 3.15  2006/08/04 21:03:38  mast
     Add documentation tags
 
