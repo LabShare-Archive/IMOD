@@ -147,7 +147,8 @@ int imodbackupfile(char *filename, int strlen)
 }
 
 /*! A Fortran-callable routine to get an environment variable, [var] and return
-  its value in [value].  Returns -1 for error. */
+  its value in [value].  Returns -1 for error or 1 if the variable is not 
+  defined. */
 int imodgetenv(char *var, char *value, int varSize, int valueSize)
 {
   char *valPtr;
@@ -157,7 +158,7 @@ int imodgetenv(char *var, char *value, int varSize, int valueSize)
   valPtr = getenv(cstr);
   free(cstr);
   if (!valPtr)
-    return -1;
+    return 1;
   return c2fString(valPtr, value, valueSize);
 }
 
@@ -332,6 +333,36 @@ int mrc_big_seek(FILE *fp, int base, int size1, int size2, int flag)
 }
 
 /*!
+ * Does a seek in a large image file with pointer [fp].  The amount to seek is
+ * given by [base] plus the change in position indicated by [x], [y], and
+ * [z], where [nx] and [ny] are the image dimensions in X and Y and [dsize] is
+ * the number of bytes per data element.  Specifically, it seeks by 
+ * ^  [base] + [x] * [dsize] + [nx] * [dsize] * ([y] + [ny] * [z]).
+ * ^[flag] has the standard meaning for
+ * seeks, e.g., SEEK_SET, etc.  Returns the nonzero seek error if error.
+ */
+int mrcHugeSeek(FILE *fp, int base, int x, int y, int z, int nx, int ny, 
+               int dsize, int flag)
+{
+  int size1, size2;
+  double testSize = (double)nx * ny * dsize;
+
+  /* Always add the X offset to the base; then test whether X * Y is OK.
+   If so add the Y offset to the base and use X*Y and Z as sizes, otherwise
+   use X and Y*Z as the sizes */
+  base += x * dsize;
+  if (fabs(testSize) < 2.e9) {
+    base += nx * y * dsize;
+    size1 = nx * ny * dsize;
+    size2 = z;
+  } else {
+    size1 = nx * dsize;
+    size2 = y + ny * z;
+  }
+  return mrc_big_seek(fp, base, size1, size2, flag);
+}
+
+/*!
  * Reads a line of characters from the file pointed to by [fp] and places it 
  * into array [s] of size [limit].  Replaces newline with a null or 
  * terminates the string with null if reading stops because the array limit is
@@ -438,6 +469,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.14  2006/09/20 23:03:01  mast
+Added header usage function to be used as callback from PIP
+
 Revision 1.13  2006/09/19 16:38:08  mast
 Clean up warnings
 
