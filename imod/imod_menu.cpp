@@ -673,7 +673,7 @@ void InfoWindow::editContourSlot(int item)
 {
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
-  int ob,co,pt, ptb;
+  int ob,co,pt, ptb, open;
   double dist;
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
@@ -734,7 +734,9 @@ void InfoWindow::editContourSlot(int item)
     if (iobjClose(obj->flags)){
               
       /* 2.00b7 fix added */
-      if (!(cont->flags & ICONT_OPEN)){
+      /* DNM 9/29/06: treat 2-point contours as open and modify messages */
+      open = cont->flags & ICONT_OPEN || cont->psize < 3;
+      if (!open){
         dist = imodContourArea(cont);
         dist *= imod->pixsize * imod->pixsize * vi->xybin * vi->xybin;
         wprint("2D area = %g square %s\n", dist, imodUnits(imod));
@@ -745,12 +747,13 @@ void InfoWindow::editContourSlot(int item)
       }
                
       /* 2.00b7 fix added */
-      if (!(cont->flags & ICONT_OPEN))
+      if (!open)
         dist += imodel_point_dist
           (&(cont->pts[cont->psize-1]), cont->pts);
                
       dist *= imod->pixsize * vi->xybin;
-      wprint("2D length = %g %s\n", dist, imodUnits(imod));
+      wprint("2D %s length = %g %s\n", open ? "open" : "closed", dist, 
+             imodUnits(imod));
                
     }
     if (iobjOpen(obj->flags)){
@@ -769,7 +772,7 @@ void InfoWindow::editContourSlot(int item)
       */
 
       dist *= imod->pixsize;
-      wprint("3D scale length = %g %s\n", dist, imodUnits(imod));
+      wprint("3D scaled open length = %g %s\n", dist, imodUnits(imod));
     }
     if (iobjScat(obj->flags)){
       wprint("No stats available for scattered contours.\n");
@@ -1199,6 +1202,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.28  2006/09/01 20:49:29  mast
+  Added menu item to flatten contours in object
+
   Revision 4.27  2005/11/26 16:49:00  mast
   Fixed bug in memory snapshot
 
