@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
 #
  
 """A collection of useful functions for use in IMOD scripts
@@ -21,6 +24,7 @@ This module provides the following functions:
                          returns a triple of x,y,z size integers
   getmrc(file)         - run the 'header' command on <file>.
                          returns a 'tuple' of x,y,z,mode,px,py,pz
+  makeBackupFile(file)   - renames file to file~, deleting old file~"
 """
 
 # other modules needed by imodpy
@@ -173,4 +177,16 @@ def getmrcsize(file):
     (ix,iy,iz,mode,px,py,pz) = getmrc(file)
     return(ix,iy,iz)
 
+
+def makeBackupFile(filename):
+  """makeBackupFile(file)   - renames file to file~, deleting old file~"""
+  if os.path.exists(filename):
+    backname = filename + '~'
+    try:
+      if os.path.exists(backname):
+        os.remove(backname)
+      os.rename(filename, backname)
+    except:
+      print 'WARNING: Failed to rename existing file %s to %s', \
+        (filename, backname)
 
