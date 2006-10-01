@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
 #
 
 # load System Libraries
@@ -105,13 +108,7 @@ print >> out, "  print >> log, 'ERROR: IMOD_DIR is not defined'"
 print >> out, "  sys.exit(1)"
 print >> out, "from imodpy import *"
 print >> out, "# Back up and open log file"
-print >> out, "if os.path.exists('" + logname + "'):"
-print >> out, "  try:"
-print >> out, "    if os.path.exists('" + logname + "~'):"
-print >> out, "      os.remove('" + logname + "~')"
-print >> out, "    os.rename('" + logname + "', '" + logname + "~')"
-print >> out, "  except:"
-print >> out, "    print 'WARNING: Failed to rename existing log file'"
+print >> out, "makeBackupFile('" + logname + "')"
 print >> out, "try:"
 print >> out, "  log = open('" + logname + "', 'wb')"
 print >> out, "except:"
