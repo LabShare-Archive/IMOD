@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/06: Fixed large-file seeking routine to handle files with X/Y planes
+bigger than 2 Gpixels, and fixed Fortran and C I/O routines to work with such
+images as far as possible.  Newstack works with such large images, 3dmod
+appears to work as well.  Other programs may need to be fixed when needed since
+the assumption that the expression nx * ny will give a valid product is
+ubiquitous.
+
 9/21/06: Fixed problem with reading FFF files with one section, made 3dmod 
 go right to checking for raw files if any of the raw specifications are
 entered, and fixed setting mode with a MRC-like file so pixel view displays
