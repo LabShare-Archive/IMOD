@@ -6,6 +6,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.1  2006/06/26 15:44:06  mast
+*** empty log message ***
+
 Revision 3.3  2003/09/18 00:48:55  mast
 Changed to take starting coordinates and image subset size
 
@@ -40,7 +43,7 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
                  float sample, int nxMatt, int nyMatt, int nxUse, int nyUse,
                  float *mean, float *sd)
 {
-  int nLo, nHi, nSample, nPixUse;
+  int nLo, nHi, nSample;
 
   /* pointers for data of different types */
   char **bytep;
@@ -53,7 +56,7 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   int i, j;
   int val;
   unsigned int uval;
-  double sum, sumsq;
+  double sum, sumsq, nPixUse;
   float fval;
   int nsum;
   
@@ -66,16 +69,20 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   nxUse = nx - nxMatt;
   nyMatt = (int)(ny * matt);
   nyUse = ny - nyMatt; */
-  nPixUse = nxUse * nyUse;
+  nPixUse = ((double)nxUse) * nyUse;
 
   /* get the number of points to sample, and sampling interval */
   nSample = (int)(sample * nPixUse);
-  if (nSample >= nPixUse) nSample = nPixUse;
-  if (nxUse < 2 || nyUse < 2 || nSample < 5) return(1);
+  if (nSample >= nPixUse) 
+    nSample = nPixUse;
+  if (nxUse < 2 || nyUse < 2 || nSample < 5) 
+    return(1);
 
   dxSample = nPixUse / nSample;
-  if (dxSample == 0) dxSample = 1;
-  if (dxSample > 5 && (dxSample % 2 == nPixUse % 2)) dxSample--;
+  if (dxSample == 0)
+    dxSample = 1;
+  if (dxSample > 5 && nPixUse < 2.e9 && (dxSample % 2 == ((int)nPixUse % 2)))
+    dxSample--;
   nSample = nPixUse / dxSample;
 
 

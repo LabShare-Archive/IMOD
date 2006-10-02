@@ -407,7 +407,7 @@ static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart,
     iyStart = matt * vw->ysize;
     nyUse = vw->ysize - 2 * iyStart;
   }
-  sample = 10000.0/(nxUse * nyUse);
+  sample = 10000.0/(((double)nxUse) * nyUse);
   if (sample > 1.0)
     sample = 1.0;
 }
@@ -794,6 +794,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.23  2006/06/26 15:22:25  mast
+Added b3dutil include for samplemeansd
+
 Revision 4.22  2005/06/26 19:37:24  mast
 Added fine-grain entries
 

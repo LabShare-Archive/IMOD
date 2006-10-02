@@ -476,8 +476,9 @@ unsigned char **ivwMakeLinePointers(ImodView *vi, unsigned char *data,
   pixSize = ivwGetPixelBytes(mode);
 
   /* Make up the pointers */
-  for (i = 0; i < ysize; i++)
-    vi->linePtrs[i] = data + pixSize * xsize * i;
+  vi->linePtrs[0] = data;
+  for (i = 1; i < ysize; i++)
+    vi->linePtrs[i] = vi->linePtrs[i - 1] + pixSize * xsize;
   return (vi->linePtrs);
 }
 
@@ -668,9 +669,19 @@ static int idata_GetValue(int x, int y, int z)
   return(imdata[z][x + (y * imdataxsize)]);
 }
 
+static int idata_BigGetValue(int x, int y, int z)
+{
+  return(imdata[z][x + ((size_t)y * (size_t)imdataxsize)]);
+}
+
 static int flipped_GetValue(int x, int y, int z)
 {
   return(imdata[y][x + (z * imdataxsize)]);
+}
+
+static int flipped_BigGetValue(int x, int y, int z)
+{
+  return(imdata[y][x + ((size_t)z * (size_t)imdataxsize)]);
 }
 
 static int cache_GetValue(int x, int y, int z)
@@ -680,11 +691,25 @@ static int cache_GetValue(int x, int y, int z)
   return(imdata[z][x + (y * vmdataxsize[z])]);
 }
 
+static int cache_BigGetValue(int x, int y, int z)
+{
+  if (!imdata[z])
+    return(vmnullvalue);
+  return(imdata[z][x + ((size_t)y * (size_t)vmdataxsize[z])]);
+}
+
 static int cache_GetFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
   return(imdata[y][x + (z * vmdataxsize[y])]);
+}
+
+static int cache_BigGetFlipped(int x, int y, int z)
+{
+  if (!imdata[y])
+    return(vmnullvalue);
+  return(imdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
 }
 
 static int fake_GetValue(int x, int y, int z)
@@ -697,12 +722,16 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
                        int inNullvalue, int *cacheSum)
 {
   int size = vi->zsize;
+  int bigGets;
   int i, iz;
 
   *cacheSum = 0;
+  bigGets = ((double)vi->xsize) * vi->ysize > 2.e9 ? 1 : 0;
 
-  if ((!vi->vmSize || vi->fullCacheFlipped) && vi->li->axis == 2)
+  if ((!vi->vmSize || vi->fullCacheFlipped) && vi->li->axis == 2) {
     size = vi->ysize;
+    bigGets = ((double)vi->xsize) * vi->zsize > 2.e9 ? 1 : 0;
+  }
 
   /* If array(s) are not big enough, get new ones */
   if (imdataMax < size) {
@@ -746,9 +775,9 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     
     vmnullvalue = inNullvalue;
     if (vi->fullCacheFlipped)
-      ivwFastGetValue = cache_GetFlipped;
+      ivwFastGetValue = bigGets ? cache_BigGetFlipped : cache_GetFlipped;
     else
-      ivwFastGetValue = cache_GetValue;
+      ivwFastGetValue = bigGets ? cache_BigGetValue : cache_GetValue;
 
   } else {
     /* for loaded data, get pointers from idata */
@@ -757,9 +786,9 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
       imdata[i] = vi->idata[i];
     imdataxsize = vi->xsize;
     if (vi->li->axis == 3)
-      ivwFastGetValue = idata_GetValue;
+      ivwFastGetValue = bigGets ? idata_BigGetValue : idata_GetValue;
     else
-      ivwFastGetValue = flipped_GetValue;
+      ivwFastGetValue = bigGets ? flipped_BigGetValue : flipped_GetValue;
   }
   *outImdata = imdata;
   return 0;
@@ -2516,6 +2545,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.52  2006/09/28 21:17:28  mast
+Changes to test for impossible slice sizes and handle slices >2-4Gpixel
+
 Revision 4.51  2006/09/12 15:47:02  mast
 Handled contour member renames
 
