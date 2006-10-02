@@ -489,8 +489,9 @@ character*N \fIarg\fB           [Returned argument]
 .fi
 
 This function returns the non-option argument specified by \fIargNo\fR
-(numbered from 0 in C, from 1 in Fortran) in as a string in the argument
-\fIarg\fR.  Note that non-option arguments can also be retrieved by calling
+(numbered from 0 in C and Python, from 1 in Fortran) in as a string in the
+argument \fIarg\fR.  Note that non-option arguments can also be retrieved by
+calling
 \fBPipGetString\fR repeatedly with the option as \fBNonOptionArgument\fR or
 any abbreviation thereof.  When called from C and a string is returned, the
 string is allocated with malloc() and should be freed with free().
@@ -652,7 +653,8 @@ character*N \fIfilename\fB           [Returned argument]
 
 This function gets a filename specified
 by \fIoption\fR; if that option was not entered, it gets the non-option
-argument in the \fInonOptArgNo\fR position.  If that argument does not
+argument in the \fInonOptArgNo\fR position (numbered from 0 in C and Python,
+from 1 in Fortran).  If that argument does not
 exist either, it returns with an error.
 Alternatively for Fortran, if interactive
 input is being used, it prompts for the filename interactively with the
