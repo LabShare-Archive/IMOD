@@ -10,6 +10,9 @@
    $Revision$
    
    $Log$
+   Revision 1.2  2006/09/27 04:35:33  mast
+   Added way to get error value, and increased array size to 256
+
    Revision 1.1  2006/09/26 23:03:56  mast
    Added to package
 */
@@ -583,8 +586,12 @@ PyObject *pip_PipGetInOutFile(PyObject *self, PyObject *args) {
   if (PipErrNo < 0)
     return Py_BuildValue("");
  
-  retval = Py_BuildValue("s", arg);
-  free(arg);
+  if (!PipErrNo) {
+    retval = Py_BuildValue("s", arg);
+    free(arg);
+  } else
+    retval = Py_BuildValue("s", "");
+
   return retval;
 }
 
@@ -604,6 +611,7 @@ static PyMethodDef pipmethods[] = {
   { "PipNumberOfArgs",       pip_PipNumberOfArgs,       METH_VARARGS },
   { "PipGetNonOptionArg",    pip_PipGetNonOptionArg,    METH_VARARGS },
   { "PipGetString",          pip_PipGetString,          METH_VARARGS },
+  { "PipGetInOutFile",       pip_PipGetInOutFile,       METH_VARARGS },
   { "PipGetBoolean",         pip_PipGetBoolean,         METH_VARARGS },
   { "PipGetInteger",         pip_PipGetInteger,         METH_VARARGS },
   { "PipGetTwoIntegers",     pip_PipGetTwoIntegers,     METH_VARARGS },
