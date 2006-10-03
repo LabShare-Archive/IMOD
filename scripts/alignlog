@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2005/07/01 19:21:47  mast
+#  Adapted to new ratio outputs
+#
 #  Revision 3.4  2005/05/19 05:48:30  mast
 #  Fixed (sort of) for angle output with PIP input
 #
@@ -103,7 +106,7 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ view   rotation/, /^$/' $file
+	    awk '/^ view.*deltilt/, /^$/' $file
 	    set output = 1
 	    shift
 	breaksw
