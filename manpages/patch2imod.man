@@ -30,8 +30,8 @@ panel in the model view Object Edit window and selecting "Show stored values".
 The color display can be manipulated and subsets of vectors can be selected.
 .P
 One can also
-read the model in on top of a tomogram; it is marked as flipped so that it
-will display correctly in such a case.
+read the model in on top of a tomogram; by default it is marked as flipped so
+that it will display correctly on tomograms in their original orientations.
 .P
 The scaling is stored as the pixel size in the model header.  Do not change
 this value, or imod2patch will not be able to convert the displacements back
@@ -44,6 +44,11 @@ on top of the original image file.
 .TP
 .B -s <value>
 Change the vector length scaling to the given value; the default is 10.
+.TP
+.B -f
+Do not flip Y and Z coordinates in the model.  Use this option to display the
+model on a tomogram that has been flipped or rotated from its original
+orientation.
 .TP
 .B -c <size>
 Include four clipping planes in the model to enclose a square area of the
