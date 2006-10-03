@@ -9,6 +9,9 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
 #
 
 SCRIPTS = vmstopy
