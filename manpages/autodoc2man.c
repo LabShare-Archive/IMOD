@@ -5,6 +5,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2006/06/08 03:12:51  mast
+    Added stubs and new type of output
+
     Revision 3.3  2003/10/25 02:53:30  mast
     add a ;
 
@@ -35,6 +38,7 @@ int main(int argc , char **argv)
             "          -1 for cat output (.1)\n"
             "           1 for man output (.man)\n"
             "           2 for fallback C option code\n"
+            "           3 for fallback Python option code\n"
             "   directories_up = number of ../ to find autodoc directory\n");
     exit(1);
   }
