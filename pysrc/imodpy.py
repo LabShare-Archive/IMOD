@@ -8,11 +8,7 @@
 #  $Date$
 #
 #  $Revision$
-#
-#  $Log$
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#
+#  Log at end
 #
  
 """A collection of useful functions for use in IMOD scripts
@@ -24,7 +20,9 @@ This module provides the following functions:
                          returns a triple of x,y,z size integers
   getmrc(file)         - run the 'header' command on <file>.
                          returns a 'tuple' of x,y,z,mode,px,py,pz
-  makeBackupFile(file)   - renames file to file~, deleting old file~"
+  makeBackupFile(file)   - renames file to file~, deleting old file~
+  exitFromImodError(pn, errout) - prints the error strings in errout and
+                                  prepends 'ERROR: pn - ' to the last one
 """
 
 # other modules needed by imodpy
@@ -93,7 +91,6 @@ def runcmd(cmd, input=None, outfile=None):
                     output = kout.splitlines(1)
 
             elif toStdout:
-                print 'running Popen(' + cmd
                 p = Popen(cmd, shell=True, stdin=PIPE)
                 p.communicate(input)
             else:
@@ -190,3 +187,23 @@ def makeBackupFile(filename):
       print 'WARNING: Failed to rename existing file %s to %s', \
         (filename, backname)
 
+def exitFromImodError(pn, errout):
+    """exitFromImodError(pn, errout) - prints the error strings in errout
+       and prepends 'ERROR: pn - ' to the last one"""
+    line = None
+    for l in errout:
+        if line:
+            print line,
+        line = l
+    print "ERROR: " + pn + " - " + line,
+    sys.exit(1)
+
+
+#  $Log$
+#  Revision 1.2  2006/10/01 13:36:41  mast
+#  Added backup file function
+#
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
+#
