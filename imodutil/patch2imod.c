@@ -23,7 +23,8 @@ Log at end
 
 #define DEFAULT_SCALE 10.0
 
-Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name);
+Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
+                        int noflip);
 static void usage(char *prog)
 {
   imodVersion(prog);
@@ -32,6 +33,7 @@ static void usage(char *prog)
   printf("Options:\n");
   printf("\t-s #\tScale vectors by given value (default %.1f)\n",
          DEFAULT_SCALE);
+  printf("\t-f\tDo NOT flip the Y and Z coordinates\n");
   printf("\t-n name\tAdd given name to model object\n");
   printf("\t-c #\tSet up clipping planes enclosing area of given size\n");
   exit(1);
@@ -44,6 +46,7 @@ int main( int argc, char *argv[])
   Imod *Model;
   float scale = 10.0;
   int clipSize = 0;
+  int noflip = 0;
   char *name = NULL;
   char *progname = imodProgName(argv[0]);
 
@@ -66,6 +69,10 @@ int main( int argc, char *argv[])
 
       case 'c':
         clipSize = atoi(argv[++i]);
+        break;
+
+      case 'f':
+        noflip = 1;
         break;
 
       default:
@@ -92,7 +99,7 @@ int main( int argc, char *argv[])
   fout = fopen(argv[i], "wb");
   if (!fout)
     exitError("Could not open %s\n", argv[i]);
-  Model = (Imod *)imod_from_patches(fin, scale, clipSize, name);
+  Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, noflip);
      
   imodWrite(Model, fout);
 
@@ -106,7 +113,8 @@ int main( int argc, char *argv[])
 
 #define MAXLINE 128
 
-Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name)
+Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
+                        int noflip)
 {
   int len;
   int i, npatch, nread;
@@ -116,9 +124,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name)
   Iobj *obj;
   Istore store;
   Ipoint *pts;
-  int ix, iy, iz;
+  int ix, iy, iz, itmp;
   int xmin, ymin, zmin, xmax, ymax, zmax;
-  float dx, dy, dz, xx, yy, value, valmin, valmax;
+  float dx, dy, dz, xx, yy, value, valmin, valmax, tmp;
   double valsum, sumsq, valsd, sdmax;
   int residuals = 0;
   int nvals = 0;
@@ -144,7 +152,7 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name)
     exitError("Could not get contour array\n");
   obj->flags |= IMOD_OBJFLAG_OPEN;
   obj->symbol = IOBJ_SYM_CIRCLE;
-  if (!residuals)
+  if (!residuals && !noflip)
     mod->flags |= IMODF_FLIPYZ;
   mod->pixsize = scale;
   xmin = ymin= zmin = 1000000;
@@ -180,6 +188,14 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name)
       else
         nread = sscanf(line, "%d %d %d %f %f %f %f", &ix, &iz, &iy, &dx, &dz,
                &dy, &value);
+      if (noflip) {
+        itmp = iy;
+        iy = iz;
+        iz = itmp;
+        tmp =dy;
+        dy = dz;
+        dz = tmp;
+      }
       xx = ix;
       yy = iy;
     }
@@ -268,6 +284,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name)
 
 /*
 $Log$
+Revision 3.10  2006/08/31 20:57:16  mast
+Added value encoding and name and clipping plane options
+
 Revision 3.9  2006/08/28 14:28:25  mast
 removed internal fgetline
 
