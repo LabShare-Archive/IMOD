@@ -682,9 +682,9 @@ to control the type of help output.  If the value is left at 0, a standard
 usage output is produced.  A value of 1 produces output for a man page to
 be interpreted by \fBnroff\fR (a .man file), while -1 produces output for a
 preformatted man page (a .1 file).  A value of -2 produces the complete 
-Fortran code for a fallback option string to be passed to
-\fBPipReadOrParseOptions\fR, while 2 produces output for C code defining
-an array of option strings.
+Fortran code for a fallback option string, while 2 or 3 produce output for C
+or Python code defining an array of option strings, all suitable for passing
+to \fBPipReadOrParseOptions\fR.
 
 .nh
 .ft B
