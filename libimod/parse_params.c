@@ -680,21 +680,32 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       }
       
       /* Fallback output for C code */
-      if (outputManpage == 2) {
+      if (outputManpage == 2 || outputManpage == 3) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) {
-          fprintf(out, "  int numOptions = %d;\n"
-                  "  char *options[] = {\n    ", numReal);
-          linePos = 4;
+          if (outputManpage == 2) {
+            fprintf(out, "  int numOptions = %d;\n"
+                    "  char *options[] = {\n    ", numReal);
+            linePos = 5;
+          } else {
+            fprintf(out, "options = [");
+            linePos = 12;
+          }
         }
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 7 +
           optTable[i].multiple;
         if (linePos + optLen > 79) {
-          fprintf(out, "\n    ");
-          linePos = 4;
+          if (outputManpage == 2) {
+            fprintf(out, "\n    ");
+            linePos = 5;
+          } else {
+            fprintf(out, "\n           ");
+            linePos = 12;
+          }
         }
         fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, optTable[i].type, 
-                optTable[i].multiple ? "M:" : ":", lastOpt ? "};\n" : ", ");
+                optTable[i].multiple ? "M:" : ":", 
+                lastOpt ? (outputManpage == 2 ? "};\n" : "]\n"): ", ");
         linePos += optLen;
         numOut++;
         continue;
@@ -1701,6 +1712,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.21  2006/09/20 23:04:06  mast
+Made the call to copyright be a callback function to decouple from utils
+
 Revision 3.20  2006/09/19 16:58:25  mast
 Clean up warnings
 
