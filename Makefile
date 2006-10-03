@@ -167,6 +167,7 @@ all : configure clibs
 	cd mrc       ; $(MAKE) all
 	cd clip      ; $(MAKE) all
 	cd midas     ; $(MAKE) all
+	cd pysrc     ; $(MAKE) all
 	cd plugs     ; $(MAKE) all
 
 ##############################################################################
@@ -189,6 +190,7 @@ install : configure man sourcedoc
 	cd qtassist  ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
 	cd midas     ; $(MAKE) $@
+	cd pysrc     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
 	cd clip      ; $(MAKE) $@
 	cd scripts   ; $(MAKE) $@
@@ -240,6 +242,7 @@ clean : configure
 	cd qtassist  ; $(MAKE) $@
 	cd mrc       ; $(MAKE) $@
 	cd midas     ; $(MAKE) $@
+	cd pysrc     ; $(MAKE) $@
 	cd plugs     ; $(MAKE) $@
 	cd clip      ; $(MAKE) $@
 	cd sourcedoc ; $(MAKE) $@
@@ -353,6 +356,8 @@ cleansrc : ALWAYS
 	\find sendevent -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
+	(cd pysrc ; make clean)
+	\rm pysrc/Makefile
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
 	(cd autodoc ; make clean)
@@ -387,7 +392,7 @@ csrc : ALWAYS
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/libdoc/Makefile html/libdoc/*.html \
-	dist scripts com manpages autodoc \
+	dist scripts pysrc com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
 	devkit/*.[ch] devkit/*++ devkit/README devkit/Makefile \
@@ -431,6 +436,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.60  2006/09/12 15:33:49  mast
+#  Added libmesh
+#
 #  Revision 3.59  2006/08/28 21:44:26  mast
 #  Added Etomo/tests to make src
 #
