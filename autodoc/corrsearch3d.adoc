@@ -166,7 +166,7 @@ usage = Sigma in pixels for real-space smoothing with 3D Gaussian kernel
 tooltip = 
 manpage = Sigma for real-space smoothing with 3D Gaussian kernel (in pixels).
 The smoothing is with a 3x3x3 or 5x5x5 kernel whose coefficients are
-proportional to to a Gaussian with the given sigma centered on the central
+proportional to a Gaussian with the given sigma centered on the central
 pixel.  Each patch from the first volume is smoothed before being used for
 either the correlation search or a Fourier correlation.
 
