@@ -103,18 +103,21 @@ Default:  Test_section_name.
 .B datasetdir\fR[\fB.keep\fR]\fB = \fR[\fIrelative_directory_path\fR]
 The directory path relative to the test directory which
 will contain the test dataset for the current test.
-The \fBdatasetdir\fR entry must appear before the first \fBcopy\fR entry, or it will be ignored.
+This option is unnecessary if the dataset directory name is the same as the section name and
+you want to remove all the files in the dataset directory before running the test.
+The \fBdatasetdir\fR entry should appear before \fBcopy\fR entries.
 Use the \fBkeep\fR option is used to prevent the test directory for
 this section from being deleted and recreated each time the test is run.
 See \fBtestdir\fR in Global Attributes.
 The absolute directory path will be /testdir/\fIrelative_directory_path\fR.
-One entry per Test section.
+One entry per Test section.  See \fB[Test = \fITest_section_name\fB]\fR.
 .nf
 Default absolute path:  /testdir/Test_section_name.
 .fi
 
+
 .TP
-.B duration = \fR[\fIdays\fR]\fI:\fR[\fIhours\fR]\fI:\fR[\fIminutes\fR]\fI:\fR[\fIseconds\fR]
+.B duration = \fR[\fIdays\fR]\fB:\fR[\fIhours\fR]\fB:\fR[\fIminutes\fR]\fR[\fB:\fIseconds\fR]
 Duration causes the test program to end after the interval specified,
 if it has not already completed.
 If the test program ends this way,
@@ -122,7 +125,7 @@ it reports a failure.
 This attribute ensures the completion of a test program which is waiting for a dialog,
 process, or popup. 
 .nf
-Default duration:  15 minutes.
+Default duration:  15 minutes (\fB::\fI15\fR).
 .fi 
 
 .TP
