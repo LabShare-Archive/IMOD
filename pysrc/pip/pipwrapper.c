@@ -10,6 +10,9 @@
    $Revision$
    
    $Log$
+   Revision 1.3  2006/10/03 14:42:22  mast
+   Fixed PipGetInOutFile if no string returned, and added to method table
+
    Revision 1.2  2006/09/27 04:35:33  mast
    Added way to get error value, and increased array size to 256
 
@@ -631,9 +634,14 @@ static PyMethodDef pipmethods[] = {
 };
 
 /*
- * Pip module initialization function
+ * Pip module initialization function.
+ * The void is required for backward compatibility to 2.2, RH9 only
  */
+#ifdef PyMODINIT_FUNC
 PyMODINIT_FUNC
+#else
+void
+#endif
 initpip(void) {
   Py_InitModule("pip", pipmethods);
 }
