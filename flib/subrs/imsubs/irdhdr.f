@@ -460,7 +460,7 @@ c
       if (nbsym(k).eq.0) return
       if (mrcflip(j)) then
         print *
-        print *,'ERROR: ITRHDR/ITEXTRA - Cannot transfer extra ',
+        print *,'ERROR: ITRHDR/ITREXTRA - Cannot transfer extra ',
      &      'header to a byte-swapped file'
         call exit(1)
       endif
@@ -492,6 +492,7 @@ c
       nblocks = (nbsym(k) + iblocksize - 1)/iblocksize
       nleft = nbsym(k)
       call qseek(j,1+nbhdr,1,1,1,1)
+      call qseek(k,1+nbhdr,1,1,1,1)
       do iblock = 1,nblocks
         nbread = min(iblocksize,nleft)
         call qread(k,headtmp,nbread,ier)
@@ -1262,6 +1263,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.14  2006/09/28 21:23:22  mast
+c       Changes for brief output and new qseek call
+c
 c       
 c       Revision 3.13  2005/12/09 04:39:44  mast
 c       gfortran: .xor., continuation, byte, or open fixes
