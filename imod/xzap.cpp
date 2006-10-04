@@ -670,6 +670,7 @@ int imod_zap_open(struct ViewInfo *vi)
   imodDialogManager.add((QWidget *)zap->qtWindow, IMOD_IMAGE, ZAP_WINDOW_TYPE);
 
   diaMaximumWindowSize(maxWinx, maxWiny);
+  zap->qtWindow->setSizeText(maxWinx, maxWiny);
 
   oldGeom = ImodPrefs->getZapGeometry();
 
@@ -3833,6 +3834,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.87  2006/09/18 15:51:51  mast
+Stopped time movie with a time step action
+
 Revision 4.86  2006/09/17 18:15:59  mast
 Changes to provide mouse position to pixelview
 
