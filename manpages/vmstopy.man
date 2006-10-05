@@ -1,0 +1,148 @@
+.na
+.nh
+.TH vmstopy 1 3.8.26 BL3DEMC
+.SH NAME
+vmstopy - converts IMOD command file to Python script
+.SH SYNOPSIS
+vmstopy [-x | -q] com_filename log_filename [output_file]
+.SH DESCRIPTION
+Vmstopy is a Python program for converting an IMOD command file into a Python
+script that will run commands in the file and direct output to a log file.
+Commands can consist of a single line running a program with command line
+arguments, or a line running a program followed by entries that the program
+will read from standard input.  Python statements can also be included in
+the file, and variables can be defined in Python then used in the command or
+standard input lines.  A small number of C-shell commands will also be
+recognized and translated to the appropriate Python statements.
+.P
+The easiest way to use this program is through the submbg script
+together with an alias to run submbg in the background, which is provided in
+the IMOD startup scripts as the alias subm.  If you command file is named
+"stuff.pcm", you can give the command "subm stuff".  If it is named with a
+different extension, such as the traditional ".com", you need to indicate
+that the command file is to be run into vmstopy by using "subm -p stuff".
+In either case, the file will be executed in background, a
+log file stuff.log will be created, and you will be notified when the
+job is completed.  Type "submfg" to see the usage statement for more
+details.
+
+.SS Special Characters
+Four special characters are used:
+
+$ at the start of a command line.  Commands may be continued on multiple lines
+by ending each line except the last one with a backslash (\\).  The
+continuation lines should not start with a $
+
+> at the start of a Python statement
+
+% for a variable to be substituted; this may occur anywhere in a command line
+or a standard input line.  Variable substitution will always convert the
+variable to a string, so the value can be an unquoted string or a simple
+numeric value.  Lists of numbers should be quoted (e.g., '1-5').
+
+# at the start of a line with a comment.  A # later in a line will not be
+recognized as starting a comment.
+
+Standard input lines do not start with a special character.  The program will
+consider any lines between a command line and the next command line or Python
+statement as lines to be fed to the command's standard input.
+
+.SS Indentation and Quoting
+Indentation is significant, not only in the Python statements but also in the
+command lines.  Any commands that occur in a Python block must have the
+appropriate indentation; i.e., with extra indentation if they follow a
+statement that starts a block; with the same indentation as the last statement
+if it is part of the same block, or with less indentation if it ends a block.
+If you use no Python at all, all command lines must have the same amount of
+space between the $ and the command.  Standard input lines need not be
+indented.
+.P
+The program will enclose text, such as that used to run a command, in single
+quotes (').  If you need to pass a command line argument containing spaces
+to a program, enclose it in double quotes (").
+.SS Translations
+The following translations will occur:
+
+$goto label 
+.br
+will skip forward to the next command line starting with 
+.br
+$label:
+.br
+Unlike in C-shell, the goto can be used only to skip forward, and it cannot be
+part of a conditional statement.  The goto's and labels are recognized and
+removed in a first pass through the command file.  Any more complicated
+conditional execution must be coded with Python statements.
+
+$if (-e file) command
+.br
+will be converted to 
+.br
+> if os.path.exists(file):
+.br
+$   command
+
+$set variable = value   becomes   >variable = value
+
+If "$set" has been used at all, $variable will be substituted just like
+%variable. 
+
+\\rm   becomes   rm -f
+.br
+\\mv   becomes   mv -f
+
+$echo text   becomes   >print "text"
+
+$exit
+.br
+will cause the rest of the command file to be skipped.
+
+>print "text"   becomes   >print >> log, "text"
+.br
+In other words, in Python statements, print commands not directed to a file
+will be redirected to the log file.
+
+.SS Options
+.TP
+.B -x
+Execute the script with execfile() in the same Python interpreter that is
+doing the conversion.  This throws an exception for no discernable reason so
+it is not possible to detect errors in execution.  Piping to a second Python
+interpreter is more useful.
+.TP
+.B -q
+Suppress output messages about the progress of running the script.
+.SH EXAMPLES
+.nf
+# Example 1: Command file to align an image stack
+# Note the comments embedded in the input to xftoxg
+#
+$xftoxg
+0       global fit
+# Name of input file
+g5a.prexf
+# Name of output file
+g5a.prexg
+$newstack -fl 2 -mo 0 -xf g5a.prexg g5a.st g5a.preali
+
+
+# Example 2: Command file to split a stack into two sets of files
+# Note the indentation for Python and command lines
+#
+>for i in range(100):
+>  if i % 2:
+$    newstack -sec %i data.st oddsec.%i
+>  else:
+$    newstack -sec %i data.st evensec.%i
+$header data.st
+>print "Splitting done"
+
+.fi
+.SH AUTHOR
+David Mastronarde,  mast@colorado.edu
+.SH SEE ALSO
+vmstocsh(1)
+.SH HISTORY
+Why vms and subm?  Parts of IMOD started under the VMS operating system.  The
+ability to submit command files in this kind of format to a queue and get a
+log file with the output was the one good feature of VMS.

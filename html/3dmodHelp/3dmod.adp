@@ -14,6 +14,7 @@
   <section ref="./index.html" title="Image Display Windows">
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
+    <section ref="./tumbler.html" title="Tumbler Window"/>
     <section ref="./graph.html" title="Graph Window"/>
   </section>
   <section ref="./index.html" title="3dmod Dialog Boxes">

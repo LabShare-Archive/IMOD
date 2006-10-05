@@ -1,0 +1,56 @@
+<head>
+<title>Tumbler Window</title>
+</head>
+<H2>Tumbler Window</H2>
+The tumbler window displays a projected view of a rectangular portion
+of the image volume.  The subset is initially a small cube but the size 
+can be changed with the X, Y and Z spin button controls.  The volume 
+can be rotated with the keypad arrow keys just as in 3dmodv.
+
+<H3>Toolbar Controls</H3>
+The <B>zoom</B> spin box lets you increase, decrease, or type in a zoom 
+factor.
+<P>
+The <B>checkerboard</B> toggles between low resolution rendering with 
+nearest-neighbor interpolation and high-resolution rendering with 
+quadratic interpolation.
+<P>
+The <B>lock</B> button will lock the X/Y/Z position of the volume.
+The X, Y, and Z spin controls allow you to change the size of any 
+dimension of the volume.
+<P>
+The <B>Black</B> and <B>White</B> threshold sliders allow you to cut out 
+extraneous image material by setting all pixels in the volume with 
+values below the black threshold to 0, and all pixels with values above 
+the white threshold to 255.
+<H3>Hot Keys Specific to the Tumbler Window</H3>
+<BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Toggle stereo mode.
+<BR><B>b</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Toggle display of bounding box.
+<BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase zoom factor.
+<BR><B>F5/F6</B> &nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase black threshold level.
+<BR><B>F7/F8</B> &nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase white threshold level.
+<BR><B>,/.</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease/Increase angular increment when rotating.
+<BR><B>Ctrl-S</B> &nbsp;&nbsp;&nbsp;&nbsp;
+Make TIFF snapshot of image in window.
+<BR><B>Shift-S</B> &nbsp;&nbsp;
+Make snapshot of window with primary non-TIFF format.
+<BR><B>Ctrl-Shift-S</B> &nbsp;&nbsp;&nbsp;&nbsp;
+Make snapshot with second non-TIFF format.
+<BR><B>Keypad up</B> and <B>down arrows</B> rotate the volume around the X
+axis.
+<BR><B>Keypad left</B> and <B>right arrows</B> rotate the volume around the Y 
+axis.
+<BR><B>Keypad PgUp</B> and <B>PgDn</B> rotate the volume around the Z axis.
+<BR><B>Escape</B> &nbsp;&nbsp;&nbsp;&nbsp;
+Close window.
+<BR>
+All other keys that are common to image display windows perform their 
+normal functions.
+<P>
+<A HREF=index.html>Help Index<A>
