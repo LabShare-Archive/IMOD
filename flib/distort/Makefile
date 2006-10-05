@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.5  2006/06/22 01:09:45  mast
+#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
+#
 #  Revision 1.4  2006/03/04 00:35:46  mast
 #  Added fitrotsearch
 #
@@ -26,7 +29,7 @@ O        = $(OBJEXT)
 E        = $(BINEXT)
 LDFLG    = $(LDFFLAGS)
 PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E) \
-        fitrotsearch$(E)
+        xf2rotmagstr$(E)
 
 DISTOBJS = finddistort.$(O) edgesubs.$(O) smoothgrid.$(O) \
  sdsearch.$(O) sdcalc.$(O) lsqr.$(O) lsqrblas.$(O) multrd.$(O) \
@@ -58,8 +61,8 @@ findgradient$(E): findgradient.$(O)
 makegradtable$(E): makegradtable.$(O)
 	$(FC) -o makegradtable makegradtable.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
-fitrotsearch$(E): fitrotsearch.$(O)
-	$(FC) -o fitrotsearch fitrotsearch.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+xf2rotmagstr$(E): xf2rotmagstr.$(O)
+	$(FC) -o xf2rotmagstr xf2rotmagstr.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)
