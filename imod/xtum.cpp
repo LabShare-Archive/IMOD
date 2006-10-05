@@ -357,43 +357,7 @@ void TumblerWindow::sizeChanged(int which)
 
 void TumblerWindow::help()
 {
-  dia_vasmsg
-    ("Tumbler Window Help\n",
-     "---------------------------------------------------------\n",
-     "The tumbler window displays a projected view of a rectangular portion "
-     "of the image volume.  The subset is initially a small cube but the size "
-     "can be changed with the X, Y and Z spin button controls.  The volume "
-     "can be rotated with the keypad arrow keys just as in 3dmodv.\n\n"
-     
-     "\nToolbar Controls:\n",
-     "\tThe zoom spin box lets you increase, decrease, or type in a zoom "
-     "factor.\n",
-     "\tThe checkerboard toggles between low resolution rendering with "
-     "nearest-neighbor interpolation and high-resolution rendering with "
-     "quadratic interpolation.\n",
-     "\tThe lock button will lock the X/Y/Z position of the volume."
-     "\tThe X, Y, and Z spin controls allow you to change the size of any "
-     "dimension of the volume.\n"
-     "\tThe Black and White threshold sliders allow you to cut out "
-     "extraneous image material by setting all pixels in the volume with "
-     "values below the black threshold to 0, and all pixels with values above "
-     "the white threshold to 255.\n\n",
-     "Hot Keys Specific to the Tumbler Window:\n",
-     "\ts\tToggle stereo mode.\n",
-     "\tb\tToggle display of bounding box.\n",
-     "\t-/=\tDecrease/Increase zoom factor.\n",
-     "\tF5/F6\tDecrease/Increase black threshold level.\n",
-     "\tF7/F8\tDecrease/Increase white threshold level.\n",
-     "\t,/.\tDecrease/Increase angular increment when rotating.\n"
-     "\tS\tMake RGB snapshot of image in window.\n"
-     "\t"CTRL_STRING"-S\tMake TIFF snapshot of image in window.\n"
-     "\tKeypad up and down arrows rotate the volume around the X axis.\n",
-     "\tKeypad left and right arrows rotate the volume around the Y axis.\n",
-     "\tKeypad PgUp and PgDn rotate the volume around the Z axis.\n",
-     "\tEscape\tClose window.\n\n",
-     "All other keys that are common to image display windows perform their "
-     "normal functions.",
-     NULL);
+  imodShowHelpPage("tumbler.html");
 }
 
 // Respond to change in one of the toggle buttons
@@ -1291,6 +1255,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.21  2006/10/05 15:41:32  mast
+Provided for primary and second non-TIFF snapshot format
+
 Revision 4.20  2004/11/05 19:08:12  mast
 Include local files with quotes, not brackets
 
