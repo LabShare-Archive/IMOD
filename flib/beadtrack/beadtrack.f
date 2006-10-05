@@ -259,6 +259,8 @@ c
 c       
       exist=readSmallMod(modelfile)
       if(.not.exist)call errorexit('READING SEED MODEL FILE', 0)
+      if (n_point .eq. 0 .or. max_mod_obj .eq. 0)
+     &    call errorexit('INPUT SEED MODEL IS EMPTY', 0)
 c       
 c       convert to image index coordinates and change the origin and delta
 c       for X to reflect this
@@ -1635,14 +1637,16 @@ c
       implicit none
       integer*4 iflocal
       character*(*) message
-      print *
-      print *,'ERROR: BEADTRACK - ', message
+      write(*,'(/,a,a)')'ERROR: BEADTRACK - ', message
       call exit(1)
       end
 
 c       
 c       
 c       $Log$
+c       Revision 3.23  2006/06/29 04:53:31  mast
+c       Set up to use small model
+c
 c       Revision 3.22  2006/04/10 23:43:28  mast
 c       Fixed use of uninitialized variable in error check
 c
