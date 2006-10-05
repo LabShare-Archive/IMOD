@@ -14,6 +14,8 @@ $set combinefft_lowboth = 0
 # TO THE DESIRED PIECE NUMBER
 #
 $goto dopiece0
+$
+$setenv BRIEF_HEADER 1
 #
 $dopiece0:
 #
