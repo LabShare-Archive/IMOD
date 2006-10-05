@@ -10,26 +10,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.6  2005/10/31 20:09:35  mast
-    Removed transformation code that had been turned into a function.
-
-    Revision 3.5  2005/10/19 16:00:36  mast
-    Needed to transpose inverse to apply normal matrix in usual direction
-
-    Revision 3.4  2005/10/19 14:30:01  mast
-    Fixed handling of normals, and added options for transforming whole volume
-    with 2D transform, manipulating flip state, and transforming to match an
-    image file
-
-    Revision 3.3  2004/09/17 16:27:13  mast
-    Rewrote to do a general 3D transformation from a file, to transform mesh
-    vertices and normals, to set up a transformation matrix as it reads in
-    option arguments, to take the arguments in any order and repeated if
-    desired, and to handle situations of flipped data, Z-scaled data, and
-    different destination image file size.
-
+    Log at end
 */
 
 #include <stdio.h>
@@ -401,6 +382,9 @@ int main(int argc, char *argv[])
     trans_model_3d(&model, mat, normMat, newCen, zscale, doflip);
   }
 
+  model.xmax = newNx ? newNx : model.xmax;
+  model.ymax = newNy ? newNy : model.ymax;
+  model.zmax = newNz ? newNz : model.zmax;
   imodWrite(&model, fout);
   exit(0);
 }
@@ -611,3 +595,28 @@ static int trans_model_3d(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
 
   return 0;
 }
+
+/*
+    $Log$
+    Revision 3.7  2006/09/13 02:37:08  mast
+    Call imodDefault since imodRead will not
+
+    Revision 3.6  2005/10/31 20:09:35  mast
+    Removed transformation code that had been turned into a function.
+
+    Revision 3.5  2005/10/19 16:00:36  mast
+    Needed to transpose inverse to apply normal matrix in usual direction
+
+    Revision 3.4  2005/10/19 14:30:01  mast
+    Fixed handling of normals, and added options for transforming whole volume
+    with 2D transform, manipulating flip state, and transforming to match an
+    image file
+
+    Revision 3.3  2004/09/17 16:27:13  mast
+    Rewrote to do a general 3D transformation from a file, to transform mesh
+    vertices and normals, to set up a transformation matrix as it reads in
+    option arguments, to take the arguments in any order and repeated if
+    desired, and to handle situations of flipped data, Z-scaled data, and
+    different destination image file size.
+
+*/
