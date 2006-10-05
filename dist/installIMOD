@@ -125,12 +125,6 @@ if (! -w $installdir || ! -w $sysdir) then
     exit 1
 endif
 
-if (! -w $installdir) then
-    echo "You do not have permission to write to $installdir"
-    echo  "Run this command with sudo or as root"
-    exit 1
-endif
-
 # Construct absolute path to package if necessary
 #
 set packpath = ""
@@ -281,18 +275,28 @@ echo ""
 echo "The installation of IMOD $vernum is complete."
 echo "You may need to start a new terminal window for changes to take effect"
 echo ""
-echo "It is up to you to remove any previous versions when you are sure"
-echo " that you are done with them."
 echo "IMOD-related files in $installdir :"
 cd ..
 ls -l | grep -i imod | grep -vi tempDir
 echo ""
+set oldlist = `\find . -type d -name 'imod_*.*[0-9]' -print | sed '/^\.\//s///g'`
+if ("$oldlist" != "") then
+    echo "Do you want to remove these other versions?"
+    echo "    " $oldlist
+    echo -n "Enter Y to remove them: "
+    set yesno = $<
+    if ("$yesno" == "Y" || "$yesno" == "y") \rm -rf $oldlist
+endif
+echo ""    
 echo "If there are version-specific IMOD startup commands in individual user"
 echo " startup files (.cshrc, .bashrc) they should be changed or removed."
 exit 0
 
 #
 #  $Log$
+#  Revision 3.10  2005/01/10 17:51:36  mast
+#  Fixed for Mac - switched to editing startup scripts in IMOD
+#
 #  Revision 3.9  2005/01/10 16:32:13  mast
 #  Added option to install elsewhere
 #
