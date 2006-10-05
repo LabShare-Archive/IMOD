@@ -14,6 +14,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2006/09/28 21:45:25  mast
+c       Added brief output option and turned off brief output by default
+c
 c       Revision 3.3  2006/02/16 04:05:21  mast
 c       Converted to PIP and added simple output options
 c
@@ -131,8 +134,8 @@ C
             if (.not. nbytes_and_flags(nint, nreal) .and. nreal .ge. 12) then
               tiltaxis = array(nint + 11)
               if (tiltaxis .ge. -360. .and. tiltaxis .le. 360.) then
-                if (tiltaxis .lt. -90.) tiltaxis = tiltaxis + 180.
-                if (tiltaxis .gt. 90.) tiltaxis = tiltaxis - 180.
+                if (tiltaxis .lt. -180.) tiltaxis = tiltaxis + 360.
+                if (tiltaxis .gt. 180.) tiltaxis = tiltaxis - 360.
                 write(*,101)tiltaxis
 101             format(10x,'Tilt axis rotation angle =', f6.1)
               endif
