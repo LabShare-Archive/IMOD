@@ -28,6 +28,7 @@
 #include "imodv_image.h"
 #include "imodv_movie.h"
 #include "imodv_window.h"
+#include "preferences.h"
 #include "control.h"
 
 /* The movie control structure  */
@@ -133,8 +134,7 @@ void imodvMovieClosing()
 {
   int format;
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
-                              format, movie->saved);
-  movie->file_format = format ? SnapShot_TIF : SnapShot_RGB; 
+                              movie->file_format, movie->saved);
   movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
   imodvDialogManager.remove((QWidget *)movie->dia);
   movie->dia = NULL;
@@ -151,8 +151,7 @@ void imodvMovieMake()
   int format;
 
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
-                              format, movie->saved);
-  movie->file_format = format ? SnapShot_TIF : SnapShot_RGB; 
+                              movie->file_format, movie->saved);
   movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
 
   /* DNM: only make if not already making */
@@ -175,7 +174,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
     movie->dia = NULL;
     movie->reverse = 0;
     movie->longway = 0;
-    movie->file_format = SnapShot_TIF;
+    movie->file_format = 0;
     movie->montage = 0;
     movie->frames = 10;
     movie->montFrames = 2;
@@ -217,8 +216,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
   imodvMovieSetStart();
   imodvMovieSetEnd();
   movie->dia->setButtonStates(movie->longway, movie->reverse, movie->montage,
-                              movie->file_format == SnapShot_TIF ? 1 : 0, 
-                              movie->saved);
+                              movie->file_format, movie->saved);
   movie->dia->setFrameBoxes(movie->frames, movie->montFrames);
   imodvDialogManager.add((QWidget *)movie->dia, IMODV_DIALOG);
   movie->dia->show();
@@ -368,9 +366,14 @@ static void imodvMakeMovie(int frames)
 
   movie->abort = 0;
   for(frame = 1; frame <= frames; frame++){
-    if (movie->saved)
-      imodv_auto_snapshot(NULL, movie->file_format);
-    else
+    if (movie->saved) {
+      if (movie->file_format == 2)
+        ImodPrefs->set2ndSnapFormat();
+      imodv_auto_snapshot(NULL, movie->file_format ? SnapShot_RGB : 
+                          SnapShot_TIF);
+      if (movie->file_format == 2)
+        ImodPrefs->restoreSnapFormat();
+    } else
       imodvDraw(a);
 
     xinput(); 
@@ -584,6 +587,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.12  2006/05/10 14:16:23  mast
+    Fixed to avoid two initial shots at same x/y/z position
+
     Revision 4.11  2005/04/06 15:52:25  mast
     Disabled buffer swap and read from back buffer in montage mode to
     prevent getting wrong buffer on mustang

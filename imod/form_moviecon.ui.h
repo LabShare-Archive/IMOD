@@ -33,9 +33,22 @@ void MovieController::setFontDependentWidths()
     rateLineEdit->setMaximumWidth(fontMetrics().width("8888.888"));
 }
 
+// Set the labels of the non-tiff buttons
 void MovieController::setNonTifLabel()
 {
+    QString str;
     rgbRadioButton->setText(ImodPrefs->snapFormat());
+    str = ImodPrefs->snapFormat2();
+    pngRadioButton->setEnabled(!str.isEmpty());
+    
+    // If no second format, make sure selection is in legal range
+    if (str.isEmpty()) {
+      if (snapshotGroup->selectedId() > 2) {
+        diaSetGroup(snapshotGroup, 2);
+        imcSnapSelected(2);
+      }
+    } else
+      pngRadioButton->setText(str);
 }
 
 // Pass on actions directly to imod_moviecon

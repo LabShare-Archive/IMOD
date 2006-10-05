@@ -150,6 +150,7 @@ int b3dSnapshot(char *fname);
 void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
                         int &fileno);
 int b3dAutoSnapshot(char *name, int format_type, int *limits);
+int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits);
 int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits);
 int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
 		     unsigned char **data);
@@ -160,6 +161,9 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.10  2006/07/03 04:14:21  mast
+    Changes for beadfixer overlay mode
+
     Revision 3.9  2004/11/29 19:25:21  mast
     Changes to do QImage instead of RGB snapshots
 

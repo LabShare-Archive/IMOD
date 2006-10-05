@@ -33,6 +33,7 @@
 #include "imod_edit.h"
 #include "b3dgfx.h"
 #include "imod_input.h"
+#include "preferences.h"
 #include "control.h"
 #include "imodv_menu.h"
 #include "imodv_ogl.h"
@@ -190,9 +191,13 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_S:
-    if (shifted)
+    if (shifted) {
+      if (ctrl)
+        ImodPrefs->set2ndSnapFormat();
       imodv_auto_snapshot(NULL, SnapShot_RGB);
-    else if (ctrl)
+      if (ctrl)
+        ImodPrefs->restoreSnapFormat();
+    } else if (ctrl)
       imodv_auto_snapshot(NULL, SnapShot_TIF);
     else
       imodvStereoToggle();
@@ -1106,6 +1111,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.21  2006/09/12 15:47:19  mast
+    Handled contour member renames
+
     Revision 4.20  2006/09/01 20:49:03  mast
     Left a debugging statement in
 

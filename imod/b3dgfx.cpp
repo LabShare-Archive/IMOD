@@ -1510,6 +1510,22 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits)
   return retval;
 }
 
+/* Take a snapshot of the current window with prefix in name and type selected
+   by shift and ctrl key states */
+int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits)
+{
+  int retval;
+  if (shifted) {
+    if (ctrl)
+      ImodPrefs->set2ndSnapFormat();
+    retval = b3dAutoSnapshot(name, SnapShot_RGB, limits);
+    if (ctrl)
+      ImodPrefs->restoreSnapFormat();
+  } else
+    retval = b3dAutoSnapshot(name, SnapShot_TIF, limits);
+  return retval;
+}
+
 /* DNM 12/24/00 changed long length, long offset to types below, to prevent
    compiler warnings on SGI */
 static void puttiffentry(short tag, short type, 
@@ -1946,6 +1962,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.28  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
 Revision 4.27  2005/10/21 23:58:41  mast
 Fixed for gcc 4.0 on Mac
 

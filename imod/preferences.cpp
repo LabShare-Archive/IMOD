@@ -770,6 +770,37 @@ int hotSliderKey()
   return keys[ImodPrefs->hotSliderKey()];
 }
 
+// Return the second snap format: return PNG if the first one is not PNG, or
+// JPEG if first one is PNG; but return empty if selected one doesn't exist
+QString ImodPreferences::snapFormat2()
+{
+  QStringList formats = snapFormatList();
+  QString format2 = "PNG";
+  if (snapFormat() == "PNG")
+    format2 = "JPEG";
+  for (int i = 0; i < formats.count(); i++)
+    if (formats[i] == format2)
+      return format2;
+  return QString("");
+}
+
+// Temporarily set the snap format to the second format if it exists
+void ImodPreferences::set2ndSnapFormat()
+{
+  QString str;
+  mSavedSnapFormat = mCurrentPrefs.snapFormat;
+  str = snapFormat2();
+  if (!str.isEmpty())
+    mCurrentPrefs.snapFormat = str;
+}
+
+// Restore the saved snap format
+void ImodPreferences::restoreSnapFormat()
+{
+  mCurrentPrefs.snapFormat = mSavedSnapFormat;
+}
+
+
 // Determine code for actual mouse button given the logical button number
 // (1, 2, or 3)
 int ImodPreferences::actualButton(int logicalButton)
@@ -988,6 +1019,9 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
 
 /*
 $Log$
+Revision 1.22  2006/07/17 18:47:25  mast
+Put our plugin directory on Qt's library path so it can find image formats
+
 Revision 1.21  2006/07/14 04:14:23  mast
 Made default nontiff snapshot be jpeg except on Irix, fallback to png
 

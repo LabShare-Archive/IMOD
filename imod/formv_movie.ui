@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>imodvMovieForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>301</width>
-            <height>610</height>
+            <height>664</height>
         </rect>
     </property>
     <property name="caption">
@@ -949,17 +949,11 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout39</cstring>
+                <cstring>layout12</cstring>
             </property>
             <hbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
                 </property>
                 <widget class="QButtonGroup">
                     <property name="name">
@@ -1023,8 +1017,22 @@
                             <number>11</number>
                         </property>
                         <property name="spacing">
-                            <number>6</number>
+                            <number>0</number>
                         </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>tiffRadioButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>TIFFs</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Write frames as TIFF files</string>
+                            </property>
+                        </widget>
                         <widget class="QRadioButton">
                             <property name="name">
                                 <cstring>rgbRadioButton</cstring>
@@ -1041,16 +1049,16 @@
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
-                                <cstring>tiffRadioButton</cstring>
+                                <cstring>pngRadioButton</cstring>
                             </property>
                             <property name="focusPolicy">
                                 <enum>NoFocus</enum>
                             </property>
                             <property name="text">
-                                <string>TIFFs</string>
+                                <string>PNGs</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Write frames as TIFF files</string>
+                                <string>Write frames as files in current non-TIFF format</string>
                             </property>
                         </widget>
                     </vbox>
@@ -1463,6 +1471,7 @@
     <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">imodv.h</include>
     <include location="local" impldecl="in implementation">preferences.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">formv_movie.ui.h</include>
 </includes>
 <variables>

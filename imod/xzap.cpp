@@ -210,6 +210,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   ZapStruct *zap = (ZapStruct *)client;
   int *limits;
   int limarr[4];
+  int snaptype = imcGetSnapshot(zap->vi);
 
   if (imodDebug('z'))
     imodPrintStderr("Zap Draw\n");
@@ -247,7 +248,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     zapDraw(zap);
 
     /* DNM 3/8/01: add autosnapshot when movieing */
-    if (imcGetSnapshot(zap->vi) && zap->vi->zmovie && 
+    if (snaptype && zap->vi->zmovie && 
         zap->movieSnapCount && imcGetStarterID() == zap->ctrl) {
       limits = NULL;
       if (zap->rubberband) {
@@ -258,10 +259,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
         limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
         limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
       }
-      if (imcGetSnapshot(zap->vi) == 1)
-        b3dAutoSnapshot("zap", SnapShot_TIF, limits);
-      else
-        b3dAutoSnapshot("zap", SnapShot_RGB, limits);
+      b3dKeySnapshot("zap", snaptype - 1, snaptype % 2, limits);
       zap->movieSnapCount--;
       /* When count expires, stop movie */
       if(!zap->movieSnapCount)
@@ -856,6 +854,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int rx, ix, iy, i, obst, obnd, ob;
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
+  int ctrl = event->state() & Qt::ControlButton;
   int handled = 0;
   Iindex indadd;
   Iindex *indp;
@@ -1017,7 +1016,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
     /* DNM 12/13/01: add next and smooth hotkeys to autox */
   case Qt::Key_A:
-    if (event->state() & Qt::ControlButton) {
+    if (ctrl) {
 
       // Select all contours in current object on section or in rubberband
       if (zap->rubberband) {
@@ -1101,8 +1100,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_S:
-    if (shifted || 
-        (event->state() & Qt::ControlButton)){
+    if (shifted || ctrl){
 
       // Take a montage snapshot if selected and no rubberband is on
       if (!shifted && !zap->rubberband && imcGetMontageFactor() > 1) {
@@ -1121,10 +1119,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
         limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
       }
-      if (shifted)
-        b3dAutoSnapshot("zap", SnapShot_RGB, limits);
-      else
-        b3dAutoSnapshot("zap", SnapShot_TIF, limits);
+      b3dKeySnapshot("zap", shifted, ctrl, limits);
     }else
       inputSaveModel(vi);
     handled = 1;
@@ -3834,6 +3829,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.88  2006/10/04 20:08:23  mast
+Fixed window size being too small for toolbar due to new size text
+
 Revision 4.87  2006/09/18 15:51:51  mast
 Stopped time movie with a time step action
 

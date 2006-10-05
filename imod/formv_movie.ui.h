@@ -61,7 +61,19 @@ void imodvMovieForm::init()
 
 void imodvMovieForm::setNonTifLabel()
 {
+    QString str;
     rgbRadioButton->setText(ImodPrefs->snapFormat() + "s");
+    str = ImodPrefs->snapFormat2();
+    pngRadioButton->setEnabled(!str.isEmpty());
+    
+    // If no second format, make sure selection is in legal range
+    if (str.isEmpty()) {
+      if (mRgbTiff > 1) {
+        diaSetGroup(writeGroup, 1);
+        mRgbTiff = 1;
+      }
+    } else
+      pngRadioButton->setText(str + "s");
 }
 
 void imodvMovieForm::fullXPressed()
@@ -162,6 +174,9 @@ void imodvMovieForm::setButtonStates( bool longWay, bool reverse, int movieMont,
   writeBox->setChecked(writeFiles);
   makeGroup->setButton(movieMont);
   mRgbTiff = rgbTiff;
+  if (ImodPrefs->snapFormat2().isEmpty() && rgbTiff > 1)
+    mRgbTiff = 1;
+  diaSetGroup(writeGroup, mRgbTiff);
   manageSensitivities(movieMont);
   mLongWay = longWay;
   mReverse = reverse;

@@ -1521,7 +1521,8 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   struct ViewInfo *vi = xx->vi;
 
   int keysym = event->key();
-  int state = event->state();
+  int shifted = event->state() & Qt::ShiftButton;
+  int ctrl = event->state() & Qt::ControlButton;
 
   if (inputTestMetaKey(event))
     return;
@@ -1544,20 +1545,17 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     break;
 
   case Qt::Key_S:
-    if ((state & Qt::ShiftButton) || (state & Qt::ControlButton)) {
+    if (shifted || ctrl) {
 
       // Need to draw the window now (didn't have to in X version)
       Draw();
-      if (state & Qt::ShiftButton)
-	b3dAutoSnapshot("xyz", SnapShot_RGB, NULL);
-      else 
-	b3dAutoSnapshot("xyz", SnapShot_TIF, NULL);
+      b3dKeySnapshot("xyz", shifted, ctrl, NULL);
     } else
       handled = 0;
     break;
 
   case Qt::Key_R:
-    if (!(event->state() & Qt::ControlButton)) {
+    if (!ctrl) {
       xx->hq = 1 - xx->hq;
       wprint("\aHigh-resolution mode %s\n", xx->hq ? "ON" : "OFF");
       Draw();
@@ -1566,7 +1564,7 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     break;
 
   case Qt::Key_P:
-    if (!(state & Qt::ShiftButton)) {
+    if (!shifted) {
       handled = 0;
       break;
     }
@@ -1744,6 +1742,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.30  2006/09/17 18:15:59  mast
+Changes to provide mouse position to pixelview
+
 Revision 4.29  2006/08/31 23:27:45  mast
 Changes for stored value display
 

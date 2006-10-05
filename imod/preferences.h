@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.10  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Log at end of file
 */
 
@@ -166,6 +169,9 @@ class ImodPreferences : public QObject
   bool getRoundedStyle();
   QString snapFormat() {return mCurrentPrefs.snapFormat;};
   int snapQuality() {return mCurrentPrefs.snapQuality;};
+  QString snapFormat2();
+  void set2ndSnapFormat();
+  void restoreSnapFormat();
   QStringList snapFormatList();
 
   public slots:
@@ -191,6 +197,7 @@ class ImodPreferences : public QObject
   QRect mGeomZapWin[MAX_GEOMETRIES];
   QRect mRecordedZapGeom;
   int mGeomLastSaved;
+  QString mSavedSnapFormat;
   Ilist *mGenericList;
 };
 

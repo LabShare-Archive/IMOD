@@ -503,10 +503,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
       // Snapshots: need to update just the image window
       ss->glw->updateGL();
-      if (shift)
-        b3dAutoSnapshot("slicer", SnapShot_RGB, NULL);
-      else
-        b3dAutoSnapshot("slicer", SnapShot_TIF, NULL);
+      b3dKeySnapshot("slicer", shift, ctrl, NULL);
     }else
       sslice_showslice(ss);
     dodraw = 0;
@@ -2097,10 +2094,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 
       // Get snapshots if there is a count for doing so
       if (imcGetSnapshot(ss->vi) && ss->movieSnapCount) {
-        if (imcGetSnapshot(ss->vi) == 1)
-          b3dAutoSnapshot("slicer", SnapShot_TIF, NULL);
-        else
-          b3dAutoSnapshot("slicer", SnapShot_RGB, NULL);
+        b3dKeySnapshot("slicer", imcGetSnapshot(ss->vi) - 1, 
+                       imcGetSnapshot(ss->vi) % 2, NULL);
         ss->movieSnapCount--;
 
         /* When count expires, stop movie */
@@ -2416,6 +2411,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.34  2006/09/17 18:15:59  mast
+Changes to provide mouse position to pixelview
+
 Revision 4.33  2006/09/13 23:50:38  mast
 Fixed a float in call that takes int
 
