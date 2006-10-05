@@ -49,8 +49,8 @@ number of processors that you want to use.  The local machine on which you are
 running Processchunks can be identified by its hostname or as "localhost"; in
 either case the command will be run directly on the machine.  For all other
 machines, the command will be run with ssh.  You must be set up to log into
-each of the machines with ssh without having to enter a password.  Each
-machine must have access to the current directory.  If the directory path
+each of the machines with ssh without having to enter a password (see below).
+Each machine must have access to the current directory.  If the directory path
 starts with "/localscratch" this will be replaced by "/scratch/hostname" where
 "hostname" is the name of the current machine.  (This works for the scratch
 filesystem at the BL3DEMC.)  For other situations, the 
@@ -93,6 +93,19 @@ this program after stopping in this way, be sure to use the
 .B -r
 option so that existing results will be retained.
 
+To set up ssh keys for access without passwords, simply run 
+   ssh-keygen -t dsa
+.br
+and type Enter for all of the queries.  Then enter:
+   cp $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2
+.br
+If necessary, distribute this authorized_keys2 file to the .ssh directories
+on other machines that do not have the same home directory.  The three 
+different kinds of platforms (Linux/Unix, Mac OSX, Windows) seem to require
+separately generated keys.  Run ssh-keygen once on each type of machine then
+combine the .ssh/id_dsa.pub files from each into one authorized_keys2 file.
+Distribute this combined authorized_keys2 file to the .ssh directories.
+
 .SS Options
 .TP
 .B -r
@@ -130,8 +143,9 @@ Output process ID.
 .SH FILES
 Log files will be generated for all command files that are run.  The C-shell
 script produced by Vmstocsh for rootname-nnn.com is saved to rootname-nnn.csh
-and the process ID is saved to rootname-nnn.pid.  Both of these files are
-removed after the command file exits.
+and the process ID is saved to rootname-nnn.pid.  Ssh output (which should not
+occur) is saved to rootname-nnn.ssh.  The latter three files are
+removed after the command file completes.
 .SH BUGS
 The command for probing machine status and loads uses w, which is not in the
 Cygwin install.  If your machine list includes Windows machines, either run 
@@ -139,9 +153,9 @@ with the
 .B -g
 and
 .B -P
-options, install the procps package, or make a link on each Windows machine,
-such as:
-   ln -s /usr/bin/users /usr/bin/w
+options, use imodwincpu, or install the procps package.  If you want to use
+imodwincpu, make a link on each Windows machine, such as:
+   ln -s /usr/local/IMOD/bin/imodwincpu /usr/bin/w
 
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
