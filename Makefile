@@ -141,7 +141,7 @@ LAST_OPTIONS = `if [ -e .options ] ; then sed '/[[:cntrl:]]/s///g' .options ; fi
 #
 # Define programs and paths we need.
 #
-PWD      = `pwd`
+PWD      = `pwd | sed '/[[:cntrl:]]/s///g`
 
 COMPRESS = gzip -f
 
@@ -436,6 +436,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.61  2006/10/03 21:15:34  mast
+#  Added pysrc to make
+#
 #  Revision 3.60  2006/09/12 15:33:49  mast
 #  Added libmesh
 #
