@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.6  2006/09/12 15:36:09  mast
+Added mouse move slot
+
 Revision 4.5  2005/03/08 15:49:00  mast
 Added enum for toolbar toggles
 
@@ -183,5 +186,24 @@ class HotToolBar : public QToolBar
   void keyPressEvent ( QKeyEvent * e ) {emit keyPress(e);};
   void keyReleaseEvent ( QKeyEvent * e ) {emit keyRelease(e);};
 };
+
+#ifdef QT_THREAD_SUPPORT
+#include <qthread.h>
+
+class SlicerThread : public QThread
+{
+ public:
+  SlicerThread(int jStart, int jLimit);
+  ~SlicerThread() {};
+
+ protected:
+  void run();
+
+ private:
+  int mJstart, mJlimit;
+};
+#endif
+
+void fillImageArray(SlicerStruct *ss);
 
 #endif     // SLICER_CLASSES_H
