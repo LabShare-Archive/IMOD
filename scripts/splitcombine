@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9  2006/10/05 17:46:05  mast
+#  copied BRIEF_HEADER line too
+#
 #  Revision 3.8  2006/09/13 23:51:30  mast
 #  Handle second combinefft line
 #
@@ -88,7 +91,7 @@ set numpieces = `sed -n -e '/[[:cntrl:]]/s///g' -e '/^.*COMBINING PIECE *1 *of /
 
 set optionline = `grep 'set *combinefft_red.*=' $comname`
 set optionline2 = `grep 'set *combinefft_low.*=' $comname`
-set optionline3 = `grep 'setenv BRIEF_HEADER' $comname`
+set optionline3 = `grep 'setenv IMOD_BRIEF_HEADER' $comname`
 
 set usingtmp = `grep '\/usr\/tmp' $comname`
 if ("$usingtmp" != "") then
