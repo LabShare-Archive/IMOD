@@ -43,7 +43,8 @@ void MovieController::setNonTifLabel()
     
     // If no second format, make sure selection is in legal range
     if (str.isEmpty()) {
-      if (snapshotGroup->selectedId() > 2) {
+      if (!snapshotGroup->selected() || 
+          snapshotGroup->id(snapshotGroup->selected())> 2) {
         diaSetGroup(snapshotGroup, 2);
         imcSnapSelected(2);
       }
