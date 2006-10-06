@@ -29,12 +29,18 @@ Log at end of file
 #include <qcombobox.h>
 #include <qspinbox.h>
 #include <qframe.h>
+#include <qdatetime.h>
 #include <qslider.h>
 #include <qvalidator.h>
-
+#ifdef QT_THREAD_SUPPORT
+#include <qmutex.h>
+#endif
 #include "imod.h"
 #include "slicer_classes.h"
 #include "sslice.h"
+#include "xcramp.h"
+#include "b3dgfx.h"
+#include "xcorr.h"
 #include "tooledit.h"
 #include "floatspinbox.h"
 #include "arrowbutton.h"
@@ -46,6 +52,13 @@ Log at end of file
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
+
+#define MAX_THREADS 16
+#define NUM_THREADS 4
+
+static void fillArraySegment(int jstart, int jlimit);
+static void findIndexLimits(int isize, int xsize, float xo, float xsx,
+                            float offset, float *fstart, float *fend);
 
 #include "unlock.bits"
 #include "lock.bits"
@@ -439,8 +452,706 @@ void SlicerCube::resizeGL( int wdth, int hght )
   slicerCubeResize(mSlicer, wdth, hght);
 }
 
+////////////////////////////////////////////////
+// Array filling functions and threads.
+// Here so the statics won't interfere with the namespace in slicer.cpp
+
+// The thread class saves the limits in Y and run calls the fill with limits
+#ifdef QT_THREAD_SUPPORT
+SlicerThread::SlicerThread(int jStart, int jLimit)
+{
+  mJstart = jStart;
+  mJlimit = jLimit;
+}
+
+void SlicerThread::run()
+{
+  fillArraySegment(mJstart, mJlimit);
+}
+
+static QMutex fillMutex;
+#endif
+
+// Statics are read-only data for the threads to use
+static float xsx, ysx, zsx; /* steps for moving x in zap. */
+static float xsy, ysy, zsy; /* steps for moving y in zap. */
+static float xsz, ysz, zsz; /* steps for moving z in zap. */
+static int xsize;
+static int ysize;
+static int zsize;
+static float xzost, yzost, zzost;
+static int izoom, shortcut, ilimshort, jlimshort;
+static int isize, jsize, ksize;
+static unsigned char noDataVal;
+static b3dUInt16 *cidata;
+static int maxval, minval;
+static int sshq, sswinx;
+
+
+// The top-level routine called to fill the image array
+void fillImageArray(SlicerStruct *ss)
+{
+  int i, j, k;
+  unsigned short rbase;
+  float xo, yo, zo;  /* coords of the lower left zap origin. */
+  float xs = 1.0f, ys = 1.0f, zs = 1.0f;  /* scale factors.  */
+  float zoffset;
+
+  float xzoom, yzoom, zzoom;
+  float zoom = ss->zoom;
+  int iz;
+  float extrashift;
+  int crossget, crosswant;
+  Ipoint pnt, tpnt;
+  Imat *mat = ss->mat;
+
+  int cindex, pixsize;
+  unsigned int *cmap = App->cvi->cramp->ramp;
+  b3dUByte **imdata;
+  b3dUByte *bdata;
+  b3dUInt32 *idata;
+  Islice *slice;
+  int vmnullvalue;
+  int numThreads = 1;
+  char *procChar;
+#ifdef QT_THREAD_SUPPORT
+  SlicerThread *threads[MAX_THREADS];
+#endif  
+
+  QTime fillTime;
+  fillTime.start();
+  if (!ss->image)
+      return;
+  cidata = ss->image->id1;
+  idata = (b3dUInt32 *)cidata;
+  pixsize  = b3dGetImageType(NULL, NULL);
+
+  xsize = ss->vi->xsize;
+  ysize = ss->vi->ysize;
+  zsize = ss->vi->zsize;
+  noDataVal = 0;
+  maxval = 255;
+  minval = 0;
+  sswinx = ss->winx;
+  sshq = ss->hq;
+ 
+  /* DNM 5/16/02: force a cache load of the current z slice at least */
+  iz = (int)floor((double)(ss->cz + 0.5));
+  ivwGetZSection(ss->vi, iz);
+
+  /* Set up image pointer tables */
+  vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
+  if (ivwSetupFastAccess(ss->vi, &imdata, vmnullvalue, &i))
+    return;
+
+  noDataVal = vmnullvalue;
+
+  slice_trans_step(ss);
+  rbase = ss->vi->rampbase;
+  if (!App->rgba && App->depth == 8){
+    minval = ss->vi->rampbase;
+    maxval = minval + ss->vi->rampsize;
+    noDataVal = (unsigned char)minval;
+  }
+
+  ksize = ss->vi->colormapImage ? 1 : ss->nslice;
+  zoffset = (float)(ksize - 1) * 0.5;
+
+  /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
+  xzoom = yzoom = zzoom = ss->zoom;
+  xo = ss->lx = ss->cx;
+  yo = ss->ly = ss->cy;
+  zo = ss->lz = ss->cz;
+
+  xsx = ss->xstep[b3dX];
+  ysx = ss->xstep[b3dY];
+  zsx = ss->xstep[b3dZ];
+  xsy = ss->ystep[b3dX];
+  ysy = ss->ystep[b3dY];
+  zsy = ss->ystep[b3dZ];
+  xsz = ss->zstep[b3dX];
+  ysz = ss->zstep[b3dY];
+  zsz = ss->zstep[b3dZ];
+
+  zs = 1.0f / getZScaleBefore(ss);
+  // if ((ss->scalez) && (ss->vi->imod->zscale > 0))
+  //  zs  = 1.0f/ss->vi->imod->zscale;
+
+  if (ss->scalez == SLICE_ZSCALE_AFTER){
+    if (ss->vi->imod->zscale > 0)
+      zs = ss->vi->imod->zscale;
+    xzoom = zoom * sqrt((double)
+                        ((xsx * xsx + ysx * ysx + zsx * zsx * zs * zs)/
+                         (xsx * xsx + ysx * ysx + zsx * zsx)));
+    yzoom = zoom * sqrt((double)
+                        ((xsy * xsy + ysy * ysy + zsy * zsy * zs * zs)/
+                         (xsy * xsy + ysy * ysy + zsy * zsy)));
+    zzoom = zoom * sqrt((double)
+                        ((xsz * xsz + ysz * ysz + zsz * zsz * zs * zs)/
+                         (xsz * xsz + ysz * ysz + zsz * zsz)));
+          
+    xs = zoom / xzoom;
+    ys = zoom / yzoom;
+    zs = 1.0;
+  }
+
+  /* size of 2-D loop for i, j */
+  /* DNM: don't use xzoom, yzoom; make pixels be zoom x zoom */
+  isize = (int)(ss->winx / zoom + 0.9);
+  jsize = (int)(ss->winy / zoom + 0.9);
+
+  if ((ss->hq || (int)ss->zoom != ss->zoom) && 
+      (!ss->fftMode || ss->zoom < 1.)){ 
+    /* high quality image or fractional zoom */
+    isize = ss->winx; /* calculate each pixel for zoom unless FFT. */
+    jsize = ss->winy;
+    xsx /= xzoom;
+    ysx /= xzoom;
+    zsx /= xzoom / zs; 
+    xsy /= yzoom;
+    ysy /= yzoom;
+    zsy /= yzoom / zs;
+    xo -= (isize / 2) * xsx;
+    yo -= (isize / 2) * ysx;
+    zo -= (isize / 2) * zsx;
+    xo -= (jsize / 2) * xsy;
+    yo -= (jsize / 2) * ysy;
+    zo -= (jsize / 2) * zsy;
+    ss->xshift = 0;
+    ss->yshift = 0;
+  }else{
+    xsx *= zoom / xzoom;
+    ysx *= zoom / xzoom;
+    zsx *= zs * zoom / xzoom;
+    xsy *= zoom / yzoom;
+    ysy *= zoom / yzoom;
+    zsy *= zs * zoom / yzoom;
+
+    /* Take fractional location of data point within a pixel and
+       rotate in 3D to find location in display pixel */
+
+    setForwardMatrix(ss);
+
+    pnt.x = ss->cx - (int)ss->cx;
+    pnt.y = ss->cy - (int)ss->cy;
+    pnt.z = ss->cz - (int)ss->cz;
+    imodMatTransform3D(mat, &pnt, &tpnt);
+          
+    if (tpnt.x < 0.0)
+      tpnt.x += 1.0;
+    if (tpnt.y < 0.0)
+      tpnt.y += 1.0;
+
+    /* Compute where we want the crosshair to come out in the central
+       pixel, and where it will fall with no raster offset, use 
+       difference to set raster offset */
+
+    crosswant = (int)(zoom * tpnt.x);  /* don't take nearest int here! */
+    if (crosswant >= zoom)
+      crosswant -= (int)zoom;
+    crossget = (ss->winx / 2) % (int)zoom;
+    ss->xshift = crossget - crosswant;
+    if (ss->xshift < 0)
+      ss->xshift += zoom;
+
+    crosswant = (int)(zoom * tpnt.y);
+    if (crosswant >= zoom)
+      crosswant -= (int)zoom;
+    crossget = (ss->winy / 2) % (int)zoom;
+    ss->yshift = crossget - crosswant;
+    if (ss->yshift < 0)
+      ss->yshift += zoom;
+
+    extrashift = 0.5;      /* Needed for proper sampling */
+    if (zoom == 1.0)
+      extrashift = 0.0;
+
+    xo -= ((ss->winx / 2 - ss->xshift) / zoom - extrashift) * xsx;
+    yo -= ((ss->winx / 2 - ss->xshift) / zoom - extrashift) * ysx;
+    zo -= ((ss->winx / 2 - ss->xshift) / zoom - extrashift) * zsx;
+    xo -= ((ss->winy / 2 - ss->yshift) / zoom - extrashift) * xsy;
+    yo -= ((ss->winy / 2 - ss->yshift) / zoom - extrashift) * ysy;
+    zo -= ((ss->winy / 2 - ss->yshift) / zoom - extrashift) * zsy;
+  }
+
+  /* steps per step in Z are independent of HQ versus regular */
+  xsz *= zoom / zzoom;
+  ysz *= zoom / zzoom;
+  zsz *= zs * zoom / zzoom;
+
+  /* Save values of starting position */
+  ss->xo = xo;
+  ss->yo = yo;
+  ss->zo = zo;
+
+  /* Adjust for multiple slices */
+  xo -= zoffset * xsz;
+  yo -= zoffset * ysz;
+  zo -= zoffset * zsz;
+  xzost = xo; 
+  yzost = yo;
+  zzost = zo;
+
+  shortcut = 0;
+  izoom = (int) zoom;
+  if ((ss->hq != 0) && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) {
+    shortcut = 1;
+    ilimshort = izoom * ((isize - 1) / izoom - 1);
+    jlimshort = izoom * ((jsize - 1) / izoom - 1);
+  } else if (!izoom) {
+    /* DNM 11/22/01: workaround to Intel compiler bug - it insists on
+       doing j % izoom even when shortcut is 0 */ 
+    izoom = 1;
+  }
+
+  //  int timeStart = imodv_sys_time();
+  /* DNM: don't need to clear array in advance */
+
+#ifdef QT_THREAD_SUPPORT
+
+  // Start with defined number of threads and modify with environment variable
+  numThreads = NUM_THREADS;
+  procChar = getenv("IMOD_PROCESSORS");
+  if (procChar) {
+    numThreads = atoi(procChar);
+    numThreads = B3DMIN(MAX_THREADS, B3DMAX(1, numThreads));
+  }
+
+  // Use threads if image is big enough
+  if (numThreads > 1 && jsize > 8 * numThreads && 
+      isize * ksize > 200000 / jsize) {
+    if (Imod_debug)
+      imodPrintStderr("%d threads - ", numThreads);
+    for (i = 0; i < numThreads; i++) {
+      threads[i] = new SlicerThread((i * jsize) / numThreads, 
+                                    ((i + 1) * jsize) / numThreads);
+      threads[i]->start();
+    }
+
+    // Wait for all threads to finish
+    for (i = 0; i < numThreads; i++)
+      threads[i]->wait();
+
+  } else
+    fillArraySegment(0, jsize);
+
+#else
+  fillArraySegment(0, jsize);
+#endif
+
+  if (shortcut) {
+
+    /* DNM 1/9/03: deleted quadratic interpolation code, turned cubic code
+       into a routine that can be used by tumbler */
+    slicerCubicFillin(cidata, ss->winx, ss->winy, izoom, ilimshort, jlimshort,
+		      minval * ksize, maxval * ksize);
+  }
+
+  // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
+  cindex = ss->image->width * ss->image->height;
+  k = ksize;
+
+  // Take FFT if flag is set
+  if (ss->fftMode) {
+    slice = sliceCreate(isize, jsize, SLICE_MODE_BYTE);
+    if (slice) {
+      bdata = slice->data.b;
+      for (j = 0; j < jsize; j++) {
+        if (k > 1)
+          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+            *bdata++ = (b3dUByte)(cidata[i] / k);
+        else
+          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+            *bdata++ = (b3dUByte)cidata[i];
+      }
+      slice->min = minval;
+      slice->max = maxval;
+      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1, &i, &j) 
+          > 0) {
+        bdata = slice->data.b;
+        for (j = 0; j < jsize; j++)
+          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+            cidata[i] = *bdata++;
+      }
+      sliceFree(slice);
+      k = 1;
+    }
+  }
+
+  /* for 8-bit displays, range is less then 256 gray scales. */
+  if (!App->rgba && App->depth == 8){
+    int tval;
+    int minval = ss->vi->rampbase;
+    int maxval = minval + ss->vi->rampsize;
+    if (k > 1)
+      for (j = 0; j < jsize; j++)
+        for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+          tval = cidata[i]/k;
+          if (tval > maxval) tval = maxval;
+          if (tval < minval) tval = minval;
+          cidata[i] = tval;
+        }
+    else
+      for (j = 0; j < jsize; j++)
+        for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+          if (cidata[i] > maxval) cidata[i] = maxval;
+          if (cidata[i] < minval) cidata[i] = minval;
+        }
+
+  }else{
+    switch (pixsize){
+    case 1:
+      if (k > 1)
+        for (j = 0; j < jsize; j++)
+          for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+            cidata[i] = (cidata[i]/k);
+          }
+      break;
+    case 2:
+      if (k > 1)
+        for (j = 0; j < jsize; j++)
+          for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+            cidata[i] = (cidata[i]/k)+ rbase;
+          }
+      else
+        for (j = 0; j < jsize; j++)
+          for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+            cidata[i] = cidata[i]+ rbase;
+          }
+      break;
+    case 4:
+      if (k > 1)
+        for (j = jsize - 1; j >= 0; j--)
+          for(i = j * ss->winx + isize - 1; i >= j * ss->winx;
+              i--){
+            idata[i] = cmap[(cidata[i]/k)];
+          }
+      else
+	for (j = jsize - 1; j >= 0; j--) {
+	  for(i = j * ss->winx + isize - 1; i >= j * ss->winx; i--){
+	    idata[i] = cmap[cidata[i]];
+	  }
+	}
+    }
+  }
+  ss->xzoom = xzoom;
+  ss->yzoom = yzoom;
+  if (Imod_debug)
+    imodPrintStderr("Fill time %d\n", fillTime.elapsed());
+  return;
+}
+
+// Find the limits that need to be filled for a particular line
+static void findIndexLimits(int isize, int xsize, float xo, float xsx,
+                            float offset, float *fstart, float *fend)
+{
+  float flower, fupper, ftmp;
+  float endCoord = xo + (isize - 1) * xsx + offset;
+  float startCoord = xo + offset;
+ 
+  /* If start and end is all to one side of data, set limits to middle to skip
+     the line */
+  if ((startCoord < 0 && endCoord < 0) || 
+      (startCoord >= xsize && endCoord >= xsize)) {
+    *fstart = isize / 2.;
+    *fend = *fstart;
+ 
+    /* Otherwise evaluate place where line cuts volume for this coordinate */
+  } else if (xsx > 1.e-6 || xsx < -1.e-6) {
+    flower = -startCoord / xsx;
+    fupper = (xsize - startCoord) / xsx;
+    if (flower > fupper) {
+      ftmp = flower;
+      flower = fupper;
+      fupper = ftmp;
+    }
+    if (flower > *fstart)
+      *fstart = flower;
+    if (fupper < *fend)
+      *fend = fupper;
+  }
+}
+
+// Fill a portion of the array from jstart to jlimit - 1
+// This routine is called by the threads
+static void fillArraySegment(int jstart, int jlimit)
+{
+  int i, j, k, cindex, ishort;
+  int xi, yi, zi;
+  float xo, yo, zo;  /* coords of the lower left origin. */
+  float x, y, z; /* coords of pixel in 3-D image block. */
+  float xzo, yzo,zzo;
+  int innerStart, innerEnd, outerStart, outerEnd;
+  float fstart, fend;
+
+  /* for 3-D quadratic interpolation */
+  float dx, dy, dz;
+  float x1, x2, y1, y2, z1, z2;
+  float a, b, c, d, e, f;
+  float ival;
+  int pxi, nxi, pyi, nyi, pzi, nzi;
+  unsigned char val;
+
+  xzo = xzost;
+  yzo = yzost;
+  zzo = zzost;
+
+
+  for(k = 0; k < ksize; k++){
+    xo = xzo;
+    yo = yzo;
+    zo = zzo;
+
+    // advance coordinates to get to j start
+    for (j = 0; j < jstart; j++) {
+      xo += xsy;
+      yo += ysy;
+      zo += zsy;
+    }    
+          
+    /* (i,j) location in zap window data. */
+    for (j = jstart; j < jlimit; j++){
+
+#ifdef QT_THREAD_SUPPORT
+      // Take the lock for working on first or last line (superstition)
+      if (j == jstart || j == jlimit - 1)
+        fillMutex.lock();
+#endif
+
+      /* Compute starting and ending index that intersects data volume
+         for each dimension, and find smallest range of indexes */
+      fstart = 0;
+      fend = isize;
+      findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
+      findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend);
+      findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
+
+      /* If there is no range, set up for fills to cover the range */
+      if (fstart >= fend) {
+        outerStart = isize / 2;
+        innerStart = innerEnd = outerEnd = outerStart;
+      } else {
+
+        /* Otherwise, set outer region safely outside the index limits */
+        outerStart = fstart - 2.;
+        if (outerStart < 0)
+          outerStart = 0;
+        outerEnd = fend + 2.;
+        if (outerEnd > isize)
+          outerEnd = isize;
+
+        /* If not doing HQ, compute inner limits of region that needs no
+           testing */
+        if (!sshq) {
+          innerStart = outerStart + 4;
+          innerEnd = outerEnd - 4;
+          if (innerStart >= innerEnd)
+            innerStart = innerEnd = outerStart;
+          
+        } else if (shortcut) {
+          /* If doing shortcuts, set up for whole line if it is a line to skip
+             or make sure start is a multiple of the zoom */
+          if (j >= izoom && j < jlimshort && j % izoom) {
+            outerStart = 0;
+            outerEnd = isize;
+          } else
+            outerStart = izoom * (outerStart / izoom);
+        }
+
+      }
+
+      cindex = j * sswinx;
+      
+      /* Fill outer regions */
+      
+      if (k) {
+        for (i = 0; i < outerStart; i++)
+          cidata[i + cindex] += noDataVal;
+        for (i = outerEnd; i < isize; i++)
+          cidata[i + cindex] += noDataVal;
+      } else {
+        for (i = 0; i < outerStart; i++)
+          cidata[i + cindex] = noDataVal;
+        for (i = outerEnd; i < isize; i++)
+          cidata[i + cindex] = noDataVal;
+      }
+
+      x = xo + outerStart * xsx;
+      y = yo + outerStart * ysx;
+      z = zo + outerStart * zsx;
+
+      if (sshq) {
+        /* For HQ, do tests all the time since they are minor component */
+        for (i = outerStart; i < outerEnd; i++) {
+
+          /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
+             Pentium 4 below 2.6 GHz... */
+          xi = (int)x;
+          yi = (int)y;
+          zi = (int)(z + 0.5);
+                    
+          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              z > -0.5 && zi < zsize) {
+            val = (*ivwFastGetValue)(xi, yi, zi);
+                         
+            /* do quadratic interpolation. */
+            dx = x - xi - 0.5;
+            dy = y - yi - 0.5;
+            dz = z - zi;
+                              
+            pxi = xi - 1;
+            nxi = xi + 1;
+            pyi = yi - 1;
+            nyi = yi + 1;
+            pzi = zi - 1;
+            nzi = zi + 1;
+                              
+            if (pxi < 0) pxi = 0;
+            if (nxi >= xsize) nxi = xi;
+            if (pyi < 0) pyi = 0;
+            if (nyi >= ysize) nyi = yi;
+            if (pzi < 0) pzi = 0;
+            if (nzi >= zsize) nzi = zi;
+                            
+            x1 = (*ivwFastGetValue)(pxi,  yi,  zi);
+            x2 = (*ivwFastGetValue)(nxi,  yi,  zi);
+            y1 = (*ivwFastGetValue)( xi, pyi,  zi);
+            y2 = (*ivwFastGetValue)( xi, nyi,  zi);
+            z1 = (*ivwFastGetValue)( xi,  yi, pzi);
+            z2 = (*ivwFastGetValue)( xi,  yi, nzi);
+                              
+            a = (x1 + x2) * 0.5f - (float)val;
+            b = (y1 + y2) * 0.5f - (float)val;
+            c = (z1 + z2) * 0.5f - (float)val;
+            d = (x2 - x1) * 0.5f;
+            e = (y2 - y1) * 0.5f;
+            f = (z2 - z1) * 0.5f;
+            ival = (a * dx * dx) + 
+              (b * dy * dy) + 
+              (c * dz * dz) +
+              (d * dx) + (e * dy) + 
+              (f * dz) + (float)val;
+            if (ival > maxval)
+              ival = maxval;
+            if (ival < minval)
+              ival = minval;
+            val = (unsigned char)(ival + 0.5f);
+                              
+          } else
+            val = noDataVal;
+                    
+          if (k)
+            cidata[i + cindex] += val;
+          else
+            cidata[i + cindex] = val;
+                    
+          x += xsx;
+          y += ysx;
+          z += zsx;
+
+          if (shortcut != 0 && ((i >= izoom && j % izoom == 0) ||
+                                (i >= izoom - 1 && j % izoom != 0))
+              && i < ilimshort && j >= izoom && j < jlimshort) {
+            ishort = izoom - 1;
+            if (j % izoom)
+              ishort = ilimshort - izoom;
+            x += xsx * ishort;
+            y += ysx * ishort;
+            z += zsx * ishort;
+            i += ishort;
+          }
+        }
+      } else {
+
+        /* Non HQ data */
+        for (i = outerStart; i < innerStart; i++) {
+          xi = (int)x;
+          yi = (int)y;
+          zi = (int)(z + 0.5);
+                    
+          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              z > -0.5 && zi < zsize)
+            val = (*ivwFastGetValue)(xi, yi, zi);
+          else
+            val = noDataVal;
+                    
+          if (k)
+            cidata[i + cindex] += val;
+          else
+            cidata[i + cindex] = val;
+                    
+          x += xsx;
+          y += ysx;
+          z += zsx;
+        }
+
+        if (k) {
+          for (i = innerStart; i < innerEnd; i++) {
+            xi = (int)x;
+            yi = (int)y;
+            zi = (int)(z + 0.5);
+            val = (*ivwFastGetValue)(xi, yi, zi);
+            cidata[i + cindex] += val;
+            x += xsx;
+            y += ysx;
+            z += zsx;
+          }
+        } else {
+          for (i = innerStart; i < innerEnd; i++) {
+            xi = (int)x;
+            yi = (int)y;
+            zi = (int)(z + 0.5);
+            val = (*ivwFastGetValue)(xi, yi, zi);
+            cidata[i + cindex] = val;
+            x += xsx;
+            y += ysx;
+            z += zsx;
+          }
+        }
+
+        for (i = innerEnd; i < outerEnd; i++) {
+          xi = (int)x;
+          yi = (int)y;
+          zi = (int)(z + 0.5);
+                    
+          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              z > -0.5 && zi < zsize)
+            val = (*ivwFastGetValue)(xi, yi, zi);
+          else
+            val = noDataVal;
+                    
+          if (k)
+            cidata[i + cindex] += val;
+          else
+            cidata[i + cindex] = val;
+                    
+          x += xsx;
+          y += ysx;
+          z += zsx;
+        }
+
+      }
+      xo += xsy;
+      yo += ysy;
+      zo += zsy;
+
+#ifdef QT_THREAD_SUPPORT
+      if (j == jstart || j == jlimit - 1)
+        fillMutex.unlock();
+#endif
+    }
+    xzo += xsz;
+    yzo += ysz;
+    zzo += zsz;
+  }
+}
+
+
  /*
 $Log$
+Revision 4.12  2006/09/12 15:36:09  mast
+Added mouse move slot
+
 Revision 4.11  2005/03/08 15:49:23  mast
 Added FT/IM toggle button
 
