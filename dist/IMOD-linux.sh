@@ -30,13 +30,13 @@ export IMOD_PLUGIN_DIR=$IMOD_DIR/lib/imodplug
 #
 export LD_LIBRARY_PATH=$IMOD_DIR/lib:$LD_LIBRARY_PATH
 
-# Set a variable with the location of calibration/data files
-#
-export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
-
 # A subm function to run command files in the background with submfg
 #
 function subm () { submfg $* & }
+
+# Set a variable with the location of configuration/calibration/data files
+#
+export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
 
 # This command allows fast backprojection if the USFFT license file exists
 # in either /usr/local/USFFT by hostname, or in IMOD_DIR
@@ -45,4 +45,10 @@ if [ -d /usr/local/USFFT ] ; then
     export USFFT2_LICENSE_FILE=/usr/local/USFFT/license.clo.$HOST
 else
     export USFFT2_LICENSE_FILE=$IMOD_DIR/license.clo
+fi
+
+# Source local startup file in ImodCalib if it exists
+#
+if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
+    . $IMOD_CALIB_DIR/IMOD.sh
 fi

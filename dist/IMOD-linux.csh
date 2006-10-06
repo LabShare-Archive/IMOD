@@ -1,4 +1,4 @@
-# IMOD 3.4.17
+# IMOD 3.8.26
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -38,9 +38,13 @@ else
 	setenv LD_LIBRARY_PATH $IMOD_DIR/lib
 endif
 
-# Set a variable with the location of calibration/data files
+# Set a variable with the location of configuration/calibration/data files
 #
 if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
+
+# Source local startup file in ImodCalib if it exists
+#
+if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 
 # A subm alias to run command files in the background with submfg
 #
@@ -54,3 +58,4 @@ if (-d /usr/local/USFFT) then
 else
     setenv USFFT2_LICENSE_FILE $IMOD_DIR/license.clo
 endif
+

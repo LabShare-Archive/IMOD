@@ -1,4 +1,4 @@
-# IMOD 3.8.2
+# IMOD 3.8.26
 #
 # Startup file for bash users of IMOD under Cygwin
 #
@@ -32,6 +32,13 @@ export IMOD_PLUGIN_DIR=${IMOD_PLUGIN_DIR:=$IMOD_DIR\\lib\\imodplug}
 # Set a variable with the location of calibration/data files, in Windows format
 #
 export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=`/usr/bin/cygpath -w /usr/local/ImodCalib`}
+
+# Source local startup file in ImodCalib if it exists
+#
+IMOD_CALIB_CYG=`cygpath $IMOD_CALIB_DIR`
+if [ -r $IMOD_CALIB_CYG/IMOD.sh ] ; then
+    . $IMOD_CALIB_CYG/IMOD.sh
+fi
 
 # A subm function to run command files in the background with submfg
 #

@@ -1,4 +1,4 @@
-# IMOD 3.8.13
+# IMOD 3.8.26
 #
 # Startup file for users of IMOD on a Macintosh, running bash
 #
@@ -28,6 +28,12 @@ export DYLD_LIBRARY_PATH=$IMOD_DIR/lib:$DYLD_LIBRARY_PATH
 # Set a variable with the location of calibration/data files
 #
 export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
+
+# Source local startup file in ImodCalib if it exists
+#
+if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
+    . $IMOD_CALIB_DIR/IMOD.sh
+fi
 
 # A subm function to run command files in the background with submfg
 #

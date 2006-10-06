@@ -1,4 +1,4 @@
-# IMOD 3.8.23
+# IMOD 3.8.26
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
@@ -34,9 +34,13 @@ else
 	setenv DYLD_LIBRARY_PATH $IMOD_DIR/lib
 endif
 
-# Set a variable with the location of calibration/data files
+# Set a variable with the location of configuration/calibration/data files
 #
 if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR /usr/local/ImodCalib
+
+# Source local startup file in ImodCalib if it exists
+#
+if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 
 # A subm alias to run command files in the background with submfg
 #
