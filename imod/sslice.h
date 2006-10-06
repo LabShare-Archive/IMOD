@@ -13,38 +13,7 @@
     $Date$
 
     $Revision$
-
-    $Log$
-    Revision 3.8  2006/09/12 15:35:39  mast
-    Added mouse move slot
-
-    Revision 3.7  2005/03/08 15:48:49  mast
-    Added enum for toolbar toggles
-
-    Revision 3.6  2004/08/12 17:05:17  mast
-    Added message to get slicer angles
-
-    Revision 3.5  2003/12/18 22:45:56  mast
-    changes for movieing
-
-    Revision 3.4  2003/03/03 22:18:41  mast
-    Added variable for keeping track of cursor
-
-    Revision 3.3  2003/02/10 20:41:56  mast
-    Merge Qt source
-
-    Revision 3.2.2.2  2003/01/10 23:55:34  mast
-    moved declaration of cubicFillin to include file
-
-    Revision 3.2.2.1  2003/01/06 15:48:11  mast
-    Qt version
-
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-    Revision 3.1  2002/09/05 16:02:20  mast
-    Add a flag for whether the cube is in a doublebuffered visual
-
+    Log at end
 */
 
 #ifndef SSLICE_H
@@ -99,10 +68,8 @@ typedef struct Super_slicer{
   
   /* data for high res slicer */
   int   hq;
-  float xs, ys;
   float xsz, ysz, zsz;
   float xo, yo, zo;
-  int   yline;
   
   /* slicer version 3 data. */
   float inangle[3]; /* three user input angles.                      */
@@ -152,9 +119,45 @@ void slicerMousePress(SlicerStruct *sslice, QMouseEvent *event);
 void slicerMouseMove(SlicerStruct *sslice, QMouseEvent *event);
 void slicerPaint(SlicerStruct *win);
 void slicerCubePaint(SlicerStruct *ss);
-
-
+void slice_trans_step(SlicerStruct *ss);
+float getZScaleBefore(SlicerStruct *ss);
+void setForwardMatrix(SlicerStruct *ss);
 
 #endif
 
+/*
+    $Log$
+    Revision 3.9  2006/09/17 18:15:59  mast
+    Changes to provide mouse position to pixelview
 
+    Revision 3.8  2006/09/12 15:35:39  mast
+    Added mouse move slot
+
+    Revision 3.7  2005/03/08 15:48:49  mast
+    Added enum for toolbar toggles
+
+    Revision 3.6  2004/08/12 17:05:17  mast
+    Added message to get slicer angles
+
+    Revision 3.5  2003/12/18 22:45:56  mast
+    changes for movieing
+
+    Revision 3.4  2003/03/03 22:18:41  mast
+    Added variable for keeping track of cursor
+
+    Revision 3.3  2003/02/10 20:41:56  mast
+    Merge Qt source
+
+    Revision 3.2.2.2  2003/01/10 23:55:34  mast
+    moved declaration of cubicFillin to include file
+
+    Revision 3.2.2.1  2003/01/06 15:48:11  mast
+    Qt version
+
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
+    Revision 3.1  2002/09/05 16:02:20  mast
+    Add a flag for whether the cube is in a doublebuffered visual
+
+*/
