@@ -12,6 +12,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.8  2006/09/28 21:23:22  mast
+c       Changes for brief output and new qseek call
+c
 c       Revision 3.7  2006/09/22 18:17:18  mast
 c       Fixed flush by fixing test for attribute
 c
@@ -73,7 +76,7 @@ c
 c       Determine whether to write a brief header
 c       
       if (ifBrief .lt. 0) then
-        j = imodGetEnv('BRIEF_HEADER', fullname)
+        j = imodGetEnv('IMOD_BRIEF_HEADER', fullname)
         ifBrief = 0
         if (j .eq. 0) ifBrief = 1
       endif
