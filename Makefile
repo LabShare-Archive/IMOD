@@ -141,7 +141,7 @@ LAST_OPTIONS = `if [ -e .options ] ; then sed '/[[:cntrl:]]/s///g' .options ; fi
 #
 # Define programs and paths we need.
 #
-PWD      = `pwd | sed '/[[:cntrl:]]/s///g`
+PWD      = `pwd | sed '/[[:cntrl:]]/s///g'`
 
 COMPRESS = gzip -f
 
@@ -436,6 +436,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.62  2006/10/06 21:14:08  mast
+#  Strip ctrl-r from pwd output for new cygwin bash bug
+#
 #  Revision 3.61  2006/10/03 21:15:34  mast
 #  Added pysrc to make
 #
