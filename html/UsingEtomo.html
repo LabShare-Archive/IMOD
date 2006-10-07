@@ -11,6 +11,9 @@
 $Revision$
 
 $Log$
+Revision 3.6  2006/06/19 18:54:01  mast
+*** empty log message ***
+
 Revision 3.5  2006/01/07 01:58:54  mast
 *** empty log message ***
 
@@ -262,6 +265,13 @@ serial sections.&nbsp; If you start working on more than one data set
 by any of these routes, eTomo will place each data set in a separate
 tab so that you can go between them easily.<br>
 </p>
+<p class="western">The <span style="font-weight: bold;">Options/Settings</span>
+dialog presents several configuration options, such as one to change
+the font size being used, and one to switch to a compact display in
+which the buttons on the left are very small.&nbsp; It may be necessary
+to close and reopen the program to see options like these take full
+effect.<br>
+</p>
 <h2 class="western"><a name="Accessing Help|outline"></a>Accessing
 Help</h2>
 <p class="western">One of the significant features of the eTomo GUI
@@ -288,7 +298,11 @@ appropriate man pages for the current processing step. The final
 section provides access to the Tomography Guide, Serial Section Joining
 Guide, IMOD Guide and the 3dmod Introduction. If
 the Tomography Guide is selected the Guide will be opened up to the
-section that is appropriate for the current processing step.</p>
+section that is appropriate for the current processing step.&nbsp; All
+documentation is opened in the Qt Assistant, so that you can follow
+hyperlinks and return from them, as well as have access to the full
+IMOD documentation using the sidebar on the left.<br>
+</p>
 <h2 class="western">Saving Your Work</h2>
 <p class="western">The current state of the
 processing and the value of any parameters you entered or changed (that
@@ -310,9 +324,12 @@ stage of combining volumes in a dual-axis data set.&nbsp; This
 capability is enabled if the machine on which you are running eTomo has
 a configuration file called cpu.adoc located in the IMOD calibration
 directory, which is /usr/local/ImodCalib by default.&nbsp; Run "man
-cpuadoc" for a full description of how to set up such a file.&nbsp; You
+cpuadoc" for a full description of how to set up such a file.&nbsp; A
+two-line file is sufficient to use a single multiprocessor
+system.&nbsp; You
 will also need to be able to log in via ssh without entering a password
-and run IMOD on all of the other computers that you want to use.&nbsp;
+(see below) and run IMOD on all of the other computers that you want to
+use.&nbsp;
 When parallel processing is available, you will be able to select
 whether to use it with checkboxes on the Tomogram Generation and the
 Combination Final Match pages.&nbsp; With it selected, a parallel
@@ -356,7 +373,24 @@ selected computers and information needed while running.<br>
     </span></li>
 </ul>
 <p class="western"> </p>
-<span style="font-weight: bold;"></span>
+<span style="font-family: helvetica,arial,sans-serif;">To&nbsp; be able
+to log in via ssh without a password, you need to generate ssh keys
+that are present on each machine.&nbsp; First run <br>
+&nbsp;&nbsp; </span><span
+ style="font-family: helvetica,arial,sans-serif; font-style: italic;">ssh-keygen
+-t dsa</span><br>
+<span style="font-family: helvetica,arial,sans-serif;">and type Enter
+for all of the queries.&nbsp; Then do<br>
+&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">cp
+$HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2</span><br>
+If necessary, distribute this authorized_keys2 file to the .ssh
+directories on other machines that do not have the same home
+directory.&nbsp; The three different kinds of platforms (Linux/Unix,
+Mac OSX, Windows) seem to require separately generated keys.&nbsp; Run
+ssh-keygen once on each type of machine then combine the
+.ssh/id_dsa.pub files from each into one authorized_keys2 file.&nbsp;
+Distribute this combined authorized_keys2 file to the .ssh directories.<br>
+&nbsp;</span><span style="font-weight: bold;"></span>
 <h1 class="western"><a name="Reporting bugs|outline"></a>Reporting
 bugs</h1>
 <p class="western">We very much appreciate feedback from our

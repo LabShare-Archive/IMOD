@@ -1,5 +1,48 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/6/06: IMOD_3-8-26 (eTomo unstable)
+10/6/06: Made slicer multi-threaded to take advantage of multiple processors.
+The default is to use 4 threads but this can be overriden by setting the
+environment variable IMOD_PROCESSORS to the number of processors.
+
+10/6/06: Startup files now source site-specific startup files IMOD.sh and
+IMOD.csh if they exist in $IMOD_CALIB_DIR.
+
+10/5/06: Made beadtrack exit with error if the seed model is empty.
+
+10/5/06: Set the model max values to the new size if -n is used in imodtrans.
+
+10/5/06: Stopped rotating tilt axis angles from FEI/Agard headers by 180
+degrees if they were beyond +/- 90; this would screw up handedness.
+
+10/5/06: Added xf2rotmagstr for converting a transform file to rotations,
+magnifications, and stretches.
+
+10/5/06: Removed fitrotsearch; the approach was flawed.
+
+10/5/06: Set up a second non-TIFF snapshot format, so that both PNG and JPEG
+snapshots can be made without switching the primary format.  Three formats are
+now available in image and model movie control dialogs, and Ctrl-Shift-S can
+be used ot snapshot with the second non-TIFF format from any window.
+
+10/4/06: Fixed problem with zap window having wrong size to fit toolbar.
+
+10/4/06: Implemented a structure for using Python within IMOD.  This consists
+of: a module for running programs and getting MRC header information
+conveniently; an extension module for the PIP parameter parsing interface; and
+a program, vmstopy, that converts the IMOD command file format (and some of
+the C-shell constructs found in them) to a Python script.
+
+10/1/06: Added .cmd wrappers for scripts in Windows so that they can be run
+from a DOS window as long as IMOD and Cygwin are on the path.
+
+10/1/06: Alterheader now reads data in chunks for mmm and rms commands so it
+will work with any size data.
+
+10/1/06: Added a capability for brief header output from Fortran programs when
+they read MRC headers; it is activated by setting an environment variable
+IMOD_BRIEF_HEADER.  This is now used in volcombine.com.
+
 10/1/06: Fixed large-file seeking routine to handle files with X/Y planes
 bigger than 2 Gpixels, and fixed Fortran and C I/O routines to work with such
 images as far as possible.  Newstack works with such large images, 3dmod
