@@ -11,6 +11,9 @@
 $Revision$
 
 $Log$
+Revision 3.7  2006/10/07 00:14:11  mast
+*** empty log message ***
+
 Revision 3.6  2006/06/19 18:54:01  mast
 *** empty log message ***
 
@@ -386,7 +389,8 @@ $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2</span><br>
 If necessary, distribute this authorized_keys2 file to the .ssh
 directories on other machines that do not have the same home
 directory.&nbsp; The three different kinds of platforms (Linux/Unix,
-Mac OSX, Windows) seem to require separately generated keys.&nbsp; Run
+Mac OSX, Windows) may require separately generated keys.&nbsp; If this seems
+to be the case, run
 ssh-keygen once on each type of machine then combine the
 .ssh/id_dsa.pub files from each into one authorized_keys2 file.&nbsp;
 Distribute this combined authorized_keys2 file to the .ssh directories.<br>

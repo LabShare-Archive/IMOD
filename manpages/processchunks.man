@@ -101,8 +101,9 @@ and type Enter for all of the queries.  Then enter:
 .br
 If necessary, distribute this authorized_keys2 file to the .ssh directories
 on other machines that do not have the same home directory.  The three 
-different kinds of platforms (Linux/Unix, Mac OSX, Windows) seem to require
-separately generated keys.  Run ssh-keygen once on each type of machine then
+different kinds of platforms (Linux/Unix, Mac OSX, Windows) may require
+separately generated keys.  If this seems to be the case, run ssh-keygen once
+on each type of machine then
 combine the .ssh/id_dsa.pub files from each into one authorized_keys2 file.
 Distribute this combined authorized_keys2 file to the .ssh directories.
 
