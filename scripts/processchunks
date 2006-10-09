@@ -283,6 +283,30 @@ continue:
 while ($numdone < $#comlist)
     @ count++
 
+    # Check the check file now so it can be stopped before running anything
+    #
+    if ("$checkfile" != "" && -r "$checkfile") then
+        set checkwc = `wc -l $checkfile`
+        @ checklen = $checkwc[1]
+        if ($checklen > $checkline) then
+            @ checkline++
+            set comline = `tail -n +$checkline $checkfile | head -n 1 | sed '/[[:cntrl:]]/s///g'`
+            if ($#comline > 0) then
+                set ans = $comline[1]
+                if ("$ans" == "P" || "$ans" == "Q" || \
+                    ("$ans" == "D" && $#comline > 1)) then
+                    if ("$ans" == "D") then
+                        shift comline
+                        set drops = `echo $comline | sed '/,/s// /g'`
+                    endif
+                    goto command
+                else
+                    echo "BAD COMMAND IGNORED: $comline"
+                endif
+            endif
+        endif
+    endif
+
     # Count failures and assignments
     #
     @ proc = 0
@@ -518,30 +542,6 @@ while ($numdone < $#comlist)
         @ nextsync = $#comlist + 2
         @ numdone++
     endif
-    
-    # Check the check file now
-    #
-    if ("$checkfile" != "" && -r "$checkfile") then
-        set checkwc = `wc -l $checkfile`
-        @ checklen = $checkwc[1]
-        if ($checklen > $checkline) then
-            @ checkline++
-            set comline = `tail -n +$checkline $checkfile | head -n 1 | sed '/[[:cntrl:]]/s///g'`
-            if ($#comline > 0) then
-                set ans = $comline[1]
-                if ("$ans" == "P" || "$ans" == "Q" || \
-                    ("$ans" == "D" && $#comline > 1)) then
-                    if ("$ans" == "D") then
-                        shift comline
-                        set drops = `echo $comline | sed '/,/s// /g'`
-                    endif
-                    goto command
-                else
-                    echo "BAD COMMAND IGNORED: $comline"
-                endif
-            endif
-        endif
-    endif
 
     sleep $sleepsec
 end
@@ -701,6 +701,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.25  2006/09/19 20:29:10  mast
+#  Fixed problem with losing timeouts and checked for connect errors too
+#
 #  Revision 3.24  2006/09/18 20:30:58  mast
 #  Made it capture ssh output and analyze PID output too, so it can detect
 #  faster if something goes wrong and report failure to cd or run IMOD
