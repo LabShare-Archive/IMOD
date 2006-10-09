@@ -223,7 +223,6 @@ endif
 set objname = "Values are residuals"
 if ("$clipsize" != "") set objname = "Values are residuals; clip planes exist"
 # Run refinematch
-echo $residualfile
 echo "MATCHORWARP: RUNNING REFINEMATCH TO TRY TO FIND SINGLE TRANSFORMATION"
 
 set skipwarp = 0
@@ -339,6 +338,9 @@ echo "ERROR: MATCHORWARP - YOU NEED TO GET BETTER PATCHES, EDIT PATCHES, OR ELIM
 exit 1
 
 #  $Log$
+#  Revision 3.8  2006/09/01 23:15:36  mast
+#  Added patch vector model output before running match/warpvol
+#
 #  Revision 3.7  2006/08/21 17:01:09  mast
 #  Changed to use pip input to refinematch and findwarp, to provide new options
 #  for residual output and Y patch exclusion, and to handle size properly if
