@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.1  2005/08/24 16:04:38  mast
+#  Addition to package
+#
 #
 
 if ($#argv < 1) then
@@ -49,5 +52,5 @@ while ($#proclist >= 2)
     endif
     shift proclist ; shift proclist
 end
-echo "ERROR: imodkillgroup - no process found with PID $pid"
+echo "imodkillgroup - no process found with PID $pid"
 exit 3
