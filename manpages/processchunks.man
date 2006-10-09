@@ -138,6 +138,10 @@ default criterion is reported by the program's usage statement.
 Quit if a chunk gives a processing error (as opposed to failing to start) this
 number of times.  All running jobs will be killed.  The
 default limit is reported by the program's usage statement.
+.TP
+.B -c <file>
+Check the given file periodically for lines with commands to quit, pause, or 
+drop a machine (Q, P, or D machine_name).
 .TP 
 .B -P
 Output process ID.
