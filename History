@@ -234,8 +234,6 @@ and when it is opened with an edf file from the command line.
 7/18/06: Made eTomo go back to clipboard communication with 3dmod on Windows
 due to problems with core duo processors.
 
-7/17/06: Windows only:  using ImodSendEvent to communicate with 3dmod. 
-
 7/17/06: Stopped Bead fixer from recentering added or moved points in Zap
 window, made up and down arrows in gap mode non-optional, made sure hot keys
 only worked in the appropriate mode.
@@ -645,7 +643,7 @@ process has been run.  Saving the state of two-state buttons in the .edf file.
 1/25/06: Fixed gaps in zap montage snapshot and set read buffer so it works
 on Quadro cards. (In 3.7)
 
-1/23/06: Added Idfprocess for doing simple operationson image distortion 
+1/23/06: Added Idfprocess for doing simple operations on image distortion 
 fields.
 
 1/23/06: Fixed progress output of matchvol/warpvol for > 999 cubes. (In 3.7)
