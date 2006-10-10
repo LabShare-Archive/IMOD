@@ -31,8 +31,12 @@ public final class DatasetFiles {
   private static final String STACK_EXT = ".st";
   private static final String MODEL_EXT = ".mod";
   private static final String PATCH_VECTOR_STRING = "patch_vector";
-  public static final String PATCH_VECTOR_NAME = PATCH_VECTOR_STRING + MODEL_EXT;
-  public static final String PATCH_VECTOR_CCC_NAME = PATCH_VECTOR_STRING +"_ccc"+ MODEL_EXT;
+  public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING + MODEL_EXT;
+  public static final String PATCH_VECTOR_CCC_MODEL = PATCH_VECTOR_STRING +"_ccc"+ MODEL_EXT;
+  public static final String LOG_EXT = ".log";
+  public static final char BACKUP_CHAR = '~';
+  public static final String TRANSFER_FID_LOG = "transferfid.log";
+  public static final String PATCH_OUT = "patch.out";
   
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -130,15 +134,7 @@ public final class DatasetFiles {
       ProcessName processName) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return processName.toString() + axisID.getExtension() + ".log";
-  }
-
-  public static File getLogFile(BaseManager manager, AxisID axisID,
-      ProcessName processName) {
-    BaseMetaData metaData = manager.getBaseMetaData();
-    axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), getLogName(manager, axisID,
-        processName));
+    return processName.toString() + axisID.getExtension() + LOG_EXT;
   }
 
   public static File getAxisOnlyComFile(BaseManager manager,
@@ -171,6 +167,10 @@ public final class DatasetFiles {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".fid";
+  }
+  
+  public static File getJoinInfo(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(), manager.getName()+ ".info");
   }
 
   public static File getFiducialModelFile(BaseManager manager, AxisID axisID) {
@@ -209,7 +209,7 @@ public final class DatasetFiles {
   }
   
   public static File getPatchVectorModel(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(), PATCH_VECTOR_NAME);
+    return new File(manager.getPropertyUserDir(), PATCH_VECTOR_MODEL);
   }
 
   //other etomo files
@@ -250,7 +250,7 @@ public final class DatasetFiles {
       AxisID axisID) {
     return ProcessName.TOMOPITCH.toString()
         + correctAxisID(manager.getBaseMetaData(), axisID).getExtension()
-        + ".log";
+        + LOG_EXT;
   }
 
   //com scripts
@@ -312,6 +312,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2006/09/19 22:39:53  sueh
+ * <p> bug# 928 Added PATCH_VECTOR_NAME, PATCH_VECTOR_CCC_NAME,
+ * <p> and getPatchVectorModel().
+ * <p>
  * <p> Revision 1.24  2006/09/14 00:06:20  sueh
  * <p> bug# 921 Added getTomogram()
  * <p>
