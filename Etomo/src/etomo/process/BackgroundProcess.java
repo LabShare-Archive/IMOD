@@ -26,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2006/07/20 23:12:35  sueh
+ * <p> bug# 885 GetProcessMessages():  handling NullPointerException.
+ * <p>
  * <p> Revision 3.30  2006/07/19 20:06:01  sueh
  * <p> bug# 902 Added getProcessName().
  * <p>
@@ -245,8 +248,8 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   private boolean forceNextProcess = false;
   private final ProcessData processData;
 
-  private String stdoutLogFile = "";
-  private String stderrLogFile = "";
+  //private String stdoutLogFile = "";
+  //private String stderrLogFile = "";
 
   private boolean started = false;
   private ProcessEndState endState = null;
