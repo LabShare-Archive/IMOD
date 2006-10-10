@@ -43,9 +43,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   static final File TEST_REPOSITORY = Utilities.getExistingDir(
       "IMOD_UITEST_SOURCE", AxisID.ONLY);
   static final long DEFAULT_SLEEP = 1000;
-  static final String DATASET_ATTRIB = "dataset";
-
   private static final String[] ARGS = new String[] { "--selftest", "--test" };
+  
+  private static Throwable uncaughtException = null;
 
   private AdocCommandReader reader = null;
   private File testDir = null;
@@ -58,7 +58,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   private boolean keep = false;
   private UITestAxis axisAUITest = null;
   private UITestAxis axisBUITest = null;
-  private long duration = 15 * 60;
+  private long duration = 15 * 60;//test duration in seconds
   private File baseFileDir = TEST_REPOSITORY;
   private File currentFileDir = baseFileDir;
   private AxisID axisIDA = null;
@@ -66,7 +66,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   private String dataFileName = null;
   private ArrayList variablesA = null;
   private ArrayList variablesB = null;
-
+  
   protected void setUp() throws Exception {
     super.setUp();
     helper = new JFCTestHelper();
@@ -176,8 +176,11 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 
   private void setDuration(UITestTestCommand command) {
     String[] durationArray = command.getValue().split(":");
-    if (durationArray.length == 4) {
+    if (durationArray.length == 4 && !durationArray[3].equals("")) {
       duration = Long.parseLong(durationArray[3]);
+    }
+    else {
+      duration = 0;
     }
     if (!durationArray[2].equals("")) {
       duration += Long.parseLong(durationArray[2]) * 60;
@@ -186,7 +189,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       duration += Long.parseLong(durationArray[1]) * 60 * 60;
     }
     if (!durationArray[0].equals("")) {
-      duration += Long.parseLong(durationArray[1]) * 60 * 60 * 24;
+      duration += Long.parseLong(durationArray[0]) * 60 * 60 * 24;
     }
   }
 
@@ -207,8 +210,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
   }
 
-  private ArrayList setVariable(UITestTestCommand command,
-      ArrayList variables) {
+  private ArrayList setVariable(UITestTestCommand command, ArrayList variables) {
     if (variables == null) {
       variables = new ArrayList();
     }
@@ -230,8 +232,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   private void processSection() throws FileNotFoundException, IOException {
-    UITestTestCommand command = (UITestTestCommand) reader.nextCommand(
-        null, this);
+    UITestTestCommand command = (UITestTestCommand) reader.nextCommand(null,
+        this);
     boolean datasetDirCommand = false;
     while (!command.isEmpty()) {
       if (command.isKnown()) {
@@ -281,6 +283,18 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   long getDuration() {
     return duration;
   }
+  
+  public static void setUncaughtException(Throwable throwable) {
+    uncaughtException = throwable;
+  }
+  
+  boolean isUncaughtException() {
+    return uncaughtException != null;
+  }
+  
+  void uncaughtException(String info, String command) {
+    fail(info, command, uncaughtException.getMessage());
+  }
 
   /**
    * runs tests with uitest-axis autodocs for A and/or B
@@ -296,8 +310,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       etomo = EtomoDirector.createInstance_test(ARGS);
     }
     else {
-      File dataFile = new File(new File(testDir, reader.getName()),
-          dataFileName);
+      File dataFile = new File(System.getProperty("user.dir"), dataFileName);
       String[] args = new String[ARGS.length + 1];
       for (int i = 0; i < ARGS.length; i++) {
         args[i] = ARGS[i];
@@ -448,13 +461,27 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
     //if keep, do not clean the directory
     if (!keep) {
-      //clean the directory by deleting it
-      SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
-          new String[] { "rm", "-fr", datasetDir.getAbsolutePath() },
-          AxisID.ONLY);
-      remove.run();
-      //make the directory
-      datasetDir.mkdir();
+       //clean the directory by deleting it
+       SystemProgram remove = new SystemProgram(System.getProperty("user.dir"),
+       new String[] { "rm", "-fr", datasetDir.getAbsolutePath() },
+       AxisID.ONLY);
+       remove.run();
+       //make the directory
+       datasetDir.mkdir();
+      /**File[] oldFiles = datasetDir.listFiles();
+      boolean allDeletesSuccessful = true;
+      if (oldFiles != null) {
+        for (int i = 0; i < oldFiles.length; i++) {
+          if (oldFiles[i].isFile()) {
+            allDeletesSuccessful = allDeletesSuccessful || oldFiles[i].delete();
+          }
+        }
+        if (!allDeletesSuccessful) {
+          throw new IllegalStateException(
+              "Unable to clean out old files from the dataset.\n"
+                  + datasetDir.getAbsolutePath());
+        }
+      }*/
     }
     //make the directory the working directory
     System.setProperty("user.dir", datasetDir.getAbsolutePath());
@@ -467,9 +494,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     boolean keep = command.isKeep();
     setDatasetDir(dirName, keep);
   }
-  
-  private File getAbsoluteDir(AdocCommand command,
-      boolean makeDirs) {
+
+  private File getAbsoluteDir(AdocCommand command, boolean makeDirs) {
     //Get the directory name
     String dirName = command.getValue();
     assertNotNull(reader.getInfo(), "Unknown name/value pair format: "
@@ -560,6 +586,18 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
     assertTrue(message, condition);
   }
+  
+  public void fail(String sectionInfo, String command, String message) {
+    StringBuffer buffer = new StringBuffer();
+    if (sectionInfo != null) {
+      buffer.append(sectionInfo + ": ");
+    }
+    if (command != null) {
+      buffer.append(command+":\n");
+    }
+    buffer.append(message);
+    fail(message);
+  }
 
   public void fail(String sectionInfo, String message) {
     if (sectionInfo != null) {
@@ -613,6 +651,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/08/28 18:27:04  sueh
+ * <p> bug# 923 Changed the source attribute to filedir.  Global filedir is an absolute file
+ * <p> path.
+ * <p>
  * <p> Revision 1.17  2006/06/30 16:29:54  sueh
  * <p> bug# 883 Added EnvironmentVariable, a class to get and store environment
  * <p> variables.
