@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Vector;
 
+import etomo.storage.LogFile;
+
 /**
  * <p>Description: </p>
  * 
@@ -40,6 +42,8 @@ public final class ProcessMessages {
   private BufferedReader bufferedReader = null;
   private String processOutputString = null;
   private String[] processOutputStringArray = null;
+  private LogFile logFile = null;
+  private long logFileReadId = LogFile.NO_ID;
   private int index = -1;
   private String line = null;
   private Vector infoList = null;
@@ -116,6 +120,17 @@ public final class ProcessMessages {
     bufferedReader = new BufferedReader(new InputStreamReader(fileStream));
     nextLine();
     while (bufferedReader != null) {
+      parse();
+    }
+  }
+
+  synchronized final void addProcessOutput(LogFile processOutput)
+      throws LogFile.ReadException {
+    //Open the log file
+    logFile = processOutput;
+    logFileReadId = logFile.openReader();
+    nextLine();
+    while (logFile != null) {
       parse();
     }
   }
@@ -241,7 +256,7 @@ public final class ProcessMessages {
   boolean isError() {
     return errorList != null && errorList.size() > 0;
   }
-  
+
   boolean isSuccess() {
     return success;
   }
@@ -630,6 +645,9 @@ public final class ProcessMessages {
     if (bufferedReader != null) {
       return nextBufferedReaderLine();
     }
+    if (logFile != null) {
+      return nextLogFileLine();
+    }
     if (processOutputString != null) {
       line = processOutputString;
       processOutputString = null;
@@ -702,6 +720,27 @@ public final class ProcessMessages {
     }
     return true;
   }
+  
+  private final boolean nextLogFileLine() {
+    try {
+      if ((line = logFile.readLine(logFileReadId)) == null) {
+        logFile.closeReader(logFileReadId);
+        logFile = null;
+        logFileReadId = LogFile.NO_ID;
+        return false;
+      }
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      logFile.closeReader(logFileReadId);
+      logFile = null;
+      logFileReadId = LogFile.NO_ID;
+      line = null;
+      return false;
+    }
+    return true;
+  }
+
 
   /**
    * Add a substring of line, from startIndex to end of line, to list.
@@ -789,6 +828,10 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/08/03 21:30:59  sueh
+ * <p> bug# 769 Fixed parse():  once a message is found, return.  This means that all
+ * <p> line will be checked for all messages.  Added parseSuccessLine().
+ * <p>
  * <p> Revision 1.6  2006/06/14 00:09:03  sueh
  * <p> bug# 785 Not saving to error list when saving to chunk error list
  * <p>
