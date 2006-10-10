@@ -54,6 +54,7 @@ import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.EtomoFileFilter;
+import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.storage.XrayStackArchiveFilter;
@@ -4584,6 +4585,14 @@ public final class ApplicationManager extends BaseManager {
           AxisID.ONLY);
       return;
     }
+    catch (LogFile.BackupException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Patch vector model error",
+          AxisID.ONLY);
+      return;
+    }
   }
 
   /**
@@ -4763,15 +4772,16 @@ public final class ApplicationManager extends BaseManager {
    * @return true if any log files where changed
    */
   public boolean updateLog(String commandName, AxisID axisID) {
-    String alignLogName = "align" + axisID.getExtension() + ".log";
-    File alignLog = new File(propertyUserDir, alignLogName);
+    //String alignLogName = "align" + axisID.getExtension() + ".log";
+    LogFile alignLogFile = LogFile.getInstance(propertyUserDir, axisID, ProcessName.ALIGN);
+    //File alignLog = new File(propertyUserDir, alignLogName);
     String taErrorLogName = "taError" + axisID.getExtension() + ".log";
     File taErrorLog = new File(propertyUserDir, taErrorLogName);
-    if (!alignLog.exists()) {
+    if (!alignLogFile.exists()) {
       return false;
     }
     if (!taErrorLog.exists()
-        || taErrorLog.lastModified() < alignLog.lastModified()) {
+        || taErrorLog.lastModified() < alignLogFile.lastModified()) {
       processMgr.generateAlignLogs(axisID);
       return true;
     }
@@ -5397,6 +5407,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.267  2006/09/20 20:41:25  sueh
+ * <p> bug# 928 Added errorProcess().
+ * <p>
  * <p> Revision 3.266  2006/09/19 21:53:35  sueh
  * <p> bug# 920 Values where not being saved correctly by TomogramState.  Add
  * <p> tilt.fiducialess to metaData.  Bug# 928 Add post processing for patchcorr.
