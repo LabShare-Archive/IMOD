@@ -17,6 +17,7 @@ public class UITestField {
   
   private static final String BUTTON_STRING = "bn";
   private static final String CHECK_BOX_STRING = "cb";
+  private static final String FILE_STRING = "file";
   private static final String MINI_BUTTON_STRING = "mb";
   private static final String POPUP_STRING = "popup";
   private static final String PROCESS_STRING = "process";
@@ -27,6 +28,7 @@ public class UITestField {
   
   public static final UITestField BUTTON = new UITestField(BUTTON_STRING);
   public static final UITestField CHECK_BOX = new UITestField(CHECK_BOX_STRING);
+  public static final UITestField FILE = new UITestField(FILE_STRING);
   public static final UITestField MINI_BUTTON = new UITestField(MINI_BUTTON_STRING);
   public static final UITestField POPUP = new UITestField(POPUP_STRING);
   public static final UITestField PROCESS = new UITestField(PROCESS_STRING);
@@ -46,11 +48,17 @@ public class UITestField {
   }
   
   public static UITestField getInstance(String field) {
+    if (field == null) {
+      return null;
+    }
     if (field.equals(BUTTON_STRING)) {
       return BUTTON;
     }
     if (field.equals(CHECK_BOX_STRING)) {
       return CHECK_BOX;
+    }
+    if (field.equals(FILE_STRING)) {
+      return FILE;
     }
     if (field.equals(MINI_BUTTON_STRING)) {
       return MINI_BUTTON;
@@ -78,6 +86,9 @@ public class UITestField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/04/28 20:57:32  sueh
+* <p> bug# 787 Added mini-button.
+* <p>
 * <p> Revision 1.1  2006/04/25 18:59:16  sueh
 * <p> bug# 787 An enum style class which contains the fields found in
 * <p> uitestaxis.adoc files.
