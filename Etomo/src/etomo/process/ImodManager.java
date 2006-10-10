@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2006/09/19 22:19:53  sueh
+ * <p> bug# 928 Added patchVectorCCCModel.
+ * <p>
  * <p> Revision 3.45  2006/08/11 23:47:26  sueh
  * <p> bug# 816 Added reopenLog().
  * <p>
@@ -1296,7 +1299,7 @@ public class ImodManager {
   }
 
   protected ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_NAME,
+    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_MODEL,
         ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
@@ -1304,7 +1307,7 @@ public class ImodManager {
   }
   
   protected ImodState newPatchVectorCCCModel() {
-    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_CCC_NAME,
+    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_CCC_MODEL,
         ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
