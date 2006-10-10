@@ -61,6 +61,9 @@ public final class UITestAction {
   }
   
   public static UITestAction getInstance(String action) {
+    if (action == null) {
+      return null;
+    }
     if (action.equals(ADOC_STRING)) {
       return ADOC;
     }
@@ -114,6 +117,10 @@ public final class UITestAction {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2006/08/28 18:26:50  sueh
+* <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
+* <p> absolute file path.
+* <p>
 * <p> Revision 1.5  2006/06/27 22:35:16  sueh
 * <p> bug# 852 Added FUNCTION.
 * <p>
