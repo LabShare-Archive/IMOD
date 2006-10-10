@@ -7,6 +7,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import etomo.comscript.ComScriptTests;
 import etomo.process.ProcessTests;
+import etomo.storage.StorageTests;
 import etomo.storage.autodoc.AutodocTests;
 import etomo.type.TypeTests;
 import etomo.util.UtilTests;
@@ -58,6 +59,15 @@ public class JUnitTests {
       }
     }
     
+    testSuite = (TestSuite) StorageTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
+    
     testSuite = (TestSuite) AutodocTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
@@ -90,6 +100,9 @@ public class JUnitTests {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2006/06/14 00:06:04  sueh
+* <p> bug# 852 Adding tests for Autodoc.
+* <p>
 * <p> Revision 1.4  2005/12/23 02:04:12  sueh
 * <p> bug# 675 This class should not depend on EtomoDirector.
 * <p>
