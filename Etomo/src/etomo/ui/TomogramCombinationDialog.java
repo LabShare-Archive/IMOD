@@ -7,7 +7,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -51,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2006/09/19 22:37:43  sueh
+ * <p> bug# 928 Added updatePatchVectorModelDisplay().
+ * <p>
  * <p> Revision 3.49  2006/09/13 23:59:12  sueh
  * <p> bug# 921 Added getMatchMode
  * <p>
@@ -350,7 +352,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   private boolean combinePanelEnabled;
   private JPanel parallelPanelContainer = new JPanel();
 
-  private JTabbedPane tabbedPane = new JTabbedPane();
+  private TabbedPane tabbedPane = new TabbedPane();
   final String parallelProcessCheckBoxText;
   private boolean constructed = false;
 
