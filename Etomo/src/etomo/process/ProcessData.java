@@ -65,6 +65,12 @@ public final class ProcessData implements Storable {
     return processData;
   }
 
+  /**
+   * Create an instance of ProcessData designed to be loaded from the param
+   * file.
+   * @param axisID
+   * @param manager
+   */
   ProcessData(AxisID axisID, BaseManager manager) {
     if (axisID == AxisID.ONLY) {
       axisID = AxisID.FIRST;
@@ -214,6 +220,9 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/07/19 20:09:29  sueh
+ * <p> bug# 902 GetProcessName():  return ProcessName instead of string.
+ * <p>
  * <p> Revision 1.2  2006/06/06 17:19:16  sueh
  * <p> bug# 766 change threadData to processData.
  * <p>
