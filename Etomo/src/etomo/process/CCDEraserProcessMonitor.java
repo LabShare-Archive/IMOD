@@ -1,8 +1,7 @@
 package etomo.process;
 
-import java.io.IOException;
-
 import etomo.ApplicationManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 
 /**
@@ -18,6 +17,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/11/19 23:18:54  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.2.4.1  2004/09/29 17:48:45  sueh
  * <p> bug# 520 Removed MainPanel pass-through functions.
  * <p>
@@ -69,9 +71,9 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection()
-    throws NumberFormatException, IOException {
+    throws NumberFormatException, LogFile.ReadException {
     String line;
-    while ((line = logFileReader.readLine()) != null) {
+    while ((line = readLogFileLine()) != null) {
       if (line.startsWith("Section")) {
         String[] fields = line.split("\\s+");
         if (fields.length > 1) {

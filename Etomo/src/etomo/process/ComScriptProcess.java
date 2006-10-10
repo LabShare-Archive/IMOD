@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.41  2006/09/25 16:34:55  sueh
+ * bug# 931 renameFiles():  Tell the processMonitor when the log file has been
+ * renamed.
+ *
  * Revision 3.40  2006/07/27 19:36:36  sueh
  * bug# 908 Run():  parsing warning whether or not the script finishes
  *
@@ -357,7 +361,6 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -368,11 +371,11 @@ import etomo.BaseManager;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.util.Utilities;
 
 public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
@@ -402,6 +405,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private final BaseManager manager;
   private final ProcessMessages processMessages = ProcessMessages.getInstance();
   private ProcessResultDisplay processResultDisplay = null;
+  protected final LogFile logFile;
 
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
@@ -415,6 +419,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
 
@@ -433,6 +439,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processDetails = processDetails;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+        getProcessName());
   }
 
   public ComScriptProcess(BaseManager manager, String comScript,
@@ -446,6 +454,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
     processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
 
@@ -463,6 +473,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
     processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
 
@@ -481,6 +493,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
 
@@ -497,6 +511,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
 
@@ -547,9 +563,15 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         return;
       }
 
-      if (!renameFiles()) {
-        error = true;
-        processManager.msgComScriptDone(this, 1);
+      try {
+        if (!renameFiles()) {
+          error = true;
+          processManager.msgComScriptDone(this, 1);
+        }
+      }
+      catch (LogFile.BackupException except) {
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
+        return;
       }
       //  Covert the com script to a sequence of csh commands
       String[] commands;
@@ -581,7 +603,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       try {
         parse();
       }
-      catch (FileNotFoundException except2) {
+      catch (LogFile.ReadException except2) {
         processMessages.addError(except2.getMessage());
       }
     }
@@ -591,14 +613,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processManager.msgComScriptDone(this, csh.getExitValue());
   }
 
-  protected boolean renameFiles() {
-    try {
-      renameFiles(comScriptName, watchedFileName, workingDirectory);
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      System.err.println(except.getMessage());
-    }
+  protected boolean renameFiles() throws LogFile.BackupException{
+      renameFiles(comScriptName, watchedFileName, workingDirectory, logFile);
     if (processMonitor != null) {
       processMonitor.msgLogFileRenamed();
     }
@@ -606,18 +622,21 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   static protected void renameFiles(String name, String watchedFileName,
-      File workingDirectory) throws IOException {
+      File workingDirectory, LogFile logFile) throws LogFile.BackupException{
     // Rename the logfile so that any log file monitor does not get confused
     // by an existing log file
-    String logFileName = parseBaseName(name, ".com") + ".log";
-    File logFile = new File(workingDirectory, logFileName);
-    File oldLog = new File(workingDirectory, logFileName + "~");
-    Utilities.renameFile(logFile, oldLog);
-
+    //String logFileName = parseBaseName(name, ".com") + ".log";
+    //File logFile = new File(workingDirectory, logFileName);
+    //File oldLog = new File(workingDirectory, logFileName + "~");
+    logFile.backup();
+    //Utilities.renameFile(logFile, oldLog);
     if (watchedFileName != null) {
-      File watchedFile = new File(workingDirectory, watchedFileName);
-      File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
-      Utilities.renameFile(watchedFile, oldWatchedFile);
+      LogFile watchedFile = LogFile.getInstance(workingDirectory
+          .getAbsolutePath(), watchedFileName);
+      watchedFile.backup();
+      /*File watchedFile = new File(workingDirectory, watchedFileName);
+       File oldWatchedFile = new File(workingDirectory, watchedFileName + "~");
+       Utilities.renameFile(watchedFile, oldWatchedFile);*/
     }
   }
 
@@ -727,9 +746,13 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     ParsePID parsePID = new ParsePID(csh, cshProcessID, processData);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
+    //make sure nothing else is writing or backing up the log file
+    long logWriteId = logFile.openForWriting();
 
     csh.run();
 
+    //release the log file
+    logFile.closeForWriting(logWriteId);
     // Check the exit value, if it is non zero, parse the warnings and errors
     // from the log file.
     if (csh.getExitValue() != 0) {
@@ -747,8 +770,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // called, need to pump the com file directly into the stdin of vmstocsh
     String[] comSequence = loadFile();
     String[] command = new String[] {
-        ApplicationManager.getIMODBinPath() + "vmstocsh",
-        parseBaseName(comScriptName, ".com") + ".log" };
+        ApplicationManager.getIMODBinPath() + "vmstocsh", logFile.getName() };
+    //parseBaseName(comScriptName, ".com") + ".log" };
     vmstocsh = new SystemProgram(manager.getPropertyUserDir(), command, axisID);
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
@@ -796,7 +819,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    * @return
    * @throws IOException
    */
-  protected void parse() throws FileNotFoundException {
+  protected void parse() throws LogFile.ReadException {
     parse(comScriptName, true);
   }
 
@@ -811,13 +834,13 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    *         then zero length array will be returned.
    */
   protected final void parse(String name, boolean mustExist)
-      throws FileNotFoundException {
+      throws LogFile.ReadException {
     ArrayList errors = new ArrayList();
-    File file = new File(workingDirectory, parseBaseName(name, ".com") + ".log");
-    if (!file.exists() && !mustExist) {
+    //File file = new File(workingDirectory, parseBaseName(name, ".com") + ".log");
+    if (!logFile.exists() && !mustExist) {
       return;
     }
-    processMessages.addProcessOutput(file);
+    processMessages.addProcessOutput(logFile);
     processMessages.print();
   }
 

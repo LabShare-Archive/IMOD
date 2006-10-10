@@ -14,6 +14,10 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2006/09/19 22:27:56  sueh
+ * <p> $bug# 928 Add post processing for patchcorr to the watcher because patchcorr is
+ * <p> $run independently by combine and doesn't return to ProcessManager.
+ * <p> $
  * <p> $Revision 1.3  2004/11/19 23:24:00  sueh
  * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p> $
@@ -32,8 +36,10 @@ package etomo.process;
 
 import java.io.IOException;
 import etomo.ApplicationManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
+import etomo.util.DatasetFiles;
 
 public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   public static final String rcsid = "$$Id$$";
@@ -46,7 +52,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   public PatchcorrProcessWatcher(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id);
     standardLogFileName = false;
-    logFileBasename = "patch.out";
+    logFileBasename = DatasetFiles.PATCH_OUT;
   }
 
   /* (non-Javadoc)
@@ -68,9 +74,9 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection()
-    throws NumberFormatException, IOException {
+    throws NumberFormatException, LogFile.ReadException {
     String line;
-    while ((line = logFileReader.readLine()) != null) {
+    while ((line = readLogFileLine()) != null) {
       if (!line.trim().endsWith("positions")) {
         currentSection++;
       }
@@ -85,14 +91,14 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    * Search patch.out file for the number of positions
    */
   protected void findNSections()
-    throws InterruptedException, NumberFormatException, IOException {
+    throws InterruptedException, NumberFormatException, IOException,LogFile.ReadException {
 
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
     while (!foundNSections) {
       Thread.sleep(updatePeriod);
-      String line = logFileReader.readLine();
+      String line = readLogFileLine();
       if (line != null && line.trim().endsWith("positions")) {
         line = line.trim();
         String[] strings = line.split("\\s+");

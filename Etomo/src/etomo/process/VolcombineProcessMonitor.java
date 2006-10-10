@@ -1,8 +1,7 @@
 package etomo.process;
 
-import java.io.IOException;
-
 import etomo.ApplicationManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 
 /**
@@ -18,6 +17,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.4  2006/08/09 20:15:11  sueh
+ * <p> $bug# 631 Checking for reassembing and filltomo.
+ * <p> $
  * <p> $Revision 1.3  2004/11/19 23:26:21  sueh
  * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p> $
@@ -72,9 +74,10 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException, IOException {
+  protected void getCurrentSection() throws NumberFormatException,
+      LogFile.ReadException {
     String line;
-    while ((line = logFileReader.readLine()) != null) {
+    while ((line = readLogFileLine()) != null) {
       if (line.startsWith("STATUS:")) {
         if (line.indexOf("EXTRACTING AND COMBINING") != -1) {
           String[] fields = line.split("\\s+");
@@ -97,8 +100,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, IOException {
-
+      LogFile.ReadException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 
@@ -106,7 +108,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
     while (!foundNSections) {
       Thread.sleep(updatePeriod);
       String line;
-      while ((line = logFileReader.readLine()) != null && !foundNSections) {
+      while ((line = readLogFileLine()) != null && !foundNSections) {
         if (line.startsWith("STATUS: EXTRACTING AND COMBINING")) {
           String[] fields = line.split("\\s+");
           nSections = parseFields(fields, 7, nSections);
@@ -132,8 +134,8 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
 
   protected void updateProgressBar() {
     if (filltomo && waitingForExit <= 0) {
-      applicationManager.getMainPanel().setProgressBarValue(0,
-          "filltomo", axisID);
+      applicationManager.getMainPanel().setProgressBarValue(0, "filltomo",
+          axisID);
     }
     else if (reassembling && waitingForExit <= 0) {
       applicationManager.getMainPanel().setProgressBarValue(0, "Reassembling",

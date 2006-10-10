@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2006/09/22 18:18:47  sueh
+ * <p> bug# 931 Passing the process name to super().
+ * <p>
  * <p> Revision 3.12  2006/08/11 00:17:18  sueh
  * <p> bug# 739 Added reloadWatchedFile() and loadNewstParam().
  * <p>
@@ -74,25 +77,22 @@
  */
 package etomo.process;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.NewstParam;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
-import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 final class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  private BufferedReader logReader = null;
-  private boolean logAvailable = true;
-  private boolean usingLog = false;
+  //private BufferedReader logReader = null;
+  private boolean gotStatusFromLog = false;
   private NewstParam newstParam = null;
 
   public NewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
@@ -100,58 +100,42 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
   }
 
   /**
-   * Set usingLog to true and return true if mrctaper is being run
-   * If there is a problem accessing the log, set logAvailable to false and stop
-   * checking.
+   * Set gettingStatusFromLog to true and return true if mrctaper is being run
    */
-  protected boolean usingLog() {
+  protected boolean gotStatusFromLog() {
     //log already in use, return true
-    if (usingLog) {
+    if (gotStatusFromLog) {
       return true;
-    }
-    //log could not be opened, return false
-    if (!logAvailable) {
-      return false;
-    }
-    //create logReader
-    if (logReader == null) {
-      try {
-        logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
-            applicationManager, axisID, ProcessName.NEWST)));
-      }
-      //set logAvailable to false if there is a problem with the log
-      catch (IOException e) {
-        logAvailable = false;
-        return false;
-      }
-      if (logReader == null) {
-        logAvailable = false;
-        return false;
-      }
     }
     //read the lines available in the log and look for a line shows that
     //mrctaper started
     String line;
+    long logReadId = LogFile.NO_ID;
     try {
-      while ((line = logReader.readLine()) != null) {
+      logReadId = logFile.openReader();
+    }
+    catch (LogFile.ReadException e) {
+      return false;
+    }
+    try {
+      while ((line = logFile.readLine(logReadId)) != null) {
         if (line.startsWith("Doing section")) {
           //mrctaper started
           applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper",
               axisID);
-          usingLog = true;
-          try {
-            logReader.close();
-          }
-          catch (IOException e) {
-          }
+          gotStatusFromLog = true;
+          logFile.closeReader(logReadId);
+          logReadId = LogFile.NO_ID;
           return true;
         }
       }
     }
-    //set logAvailable to false if there is a problem with the log
-    catch (IOException e) {
-      logAvailable = false;
+    //there is a problem with the log
+    catch (LogFile.ReadException e) {
       return false;
+    }
+    if (logReadId != LogFile.NO_ID) {
+      logFile.closeReader(logReadId);
     }
     //did not find a line shows that mrctaper started
     return false;
@@ -221,10 +205,10 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     if (newstParam != null) {
       return;
     }
-      ComScriptManager comScriptManager = applicationManager
-          .getComScriptManager();
-      comScriptManager.loadNewst(axisID);
-      newstParam = comScriptManager.getNewstComNewstParam(axisID);
+    ComScriptManager comScriptManager = applicationManager
+        .getComScriptManager();
+    comScriptManager.loadNewst(axisID);
+    newstParam = comScriptManager.getNewstComNewstParam(axisID);
   }
 
   protected void reloadWatchedFile() {

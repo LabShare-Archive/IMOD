@@ -1,17 +1,13 @@
 package etomo.process;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -38,6 +34,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   private ProcessEndState endState = null;
   private ProcessResultDisplay processResultDisplay = null;
   private ProcessMessages messages = null;
+  private final LogFile logFile;
 
   ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
       FileSizeProcessMonitor monitor, ProcessData processData, AxisID axisID) {
@@ -46,6 +43,8 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     this.monitor = monitor;
     this.processData = processData;
     this.axisID = axisID;
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+        processData.getProcessName());
   }
 
   public void run() {
@@ -53,6 +52,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       return;
     }
     new Thread(monitor).start();
+    //make sure nothing else is writing or backing up the log file
+    long logWriteId = LogFile.NO_ID;
+    logWriteId = logFile.openForWriting();
     while (processData.isRunning()) {
       try {
         Thread.sleep(500);
@@ -60,6 +62,8 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       catch (InterruptedException e) {
       }
     }
+    //release the log file
+    logFile.closeForWriting(logWriteId);
     monitor.stop();
     while (!monitor.isRunning()) {
       try {
@@ -68,13 +72,13 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       catch (InterruptedException e) {
       }
     }
-    messages = ProcessMessages.getInstance("Reconstruction of", "slices complete.");
+    messages = ProcessMessages.getInstance("Reconstruction of",
+        "slices complete.");
     ProcessName processName = processData.getProcessName();
     try {
-      messages.addProcessOutput(DatasetFiles.getLogFile(manager, axisID,
-          processData.getProcessName()));
+      messages.addProcessOutput(logFile);
     }
-    catch (FileNotFoundException e) {
+    catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
     int exitValue = 0;
@@ -103,30 +107,35 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
    * Return the log file as the standard output
    */
   public String[] getStdOutput() {
-    BufferedReader logReader;
+    //BufferedReader logReader;
+    long readId = LogFile.NO_ID;
     try {
-      logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
-          manager, axisID, processData.getProcessName())));
+      readId = logFile.openReader();
+      //logReader = new BufferedReader(new FileReader(DatasetFiles.getLogFile(
+      //    manager, axisID, processData.getProcessName())));
     }
-    catch (FileNotFoundException e) {
+    catch (LogFile.ReadException e) {
       return null;
     }
     Vector log = new Vector();
     String line;
     try {
-      while ((line = logReader.readLine()) != null) {
+      while ((line = logFile.readLine(readId)) != null) {
         log.add(line);
       }
     }
-    catch (IOException e) {
+    catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
     if (log.size() == 0) {
+      logFile.closeReader(readId);
       return null;
     }
     if (log.size() == 1) {
+      logFile.closeReader(readId);
       return new String[] { (String) log.get(0) };
     }
+    logFile.closeReader(readId);
     return (String[]) log.toArray(new String[log.size()]);
   }
 
@@ -178,24 +187,28 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
-  
+
   final ProcessEndState getProcessEndState() {
     if (monitor == null) {
       return endState;
     }
     return monitor.getProcessEndState();
   }
-  
+
   final AxisID getAxisID() {
     return axisID;
   }
-  
+
   final ProcessResultDisplay getProcessResultDisplay() {
     return processResultDisplay;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/08/03 21:31:55  sueh
+ * <p> bug# 769 Run():  check the end of the log for a line that shows the process
+ * <p> completed successfully.
+ * <p>
  * <p> Revision 1.1  2006/08/02 22:26:44  sueh
  * <p> bug# 769 Attaches to an existing process on entering etomo.  Controls the
  * <p> monitor and checks processData.isRunning().

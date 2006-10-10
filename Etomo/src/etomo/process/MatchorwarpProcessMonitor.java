@@ -1,8 +1,7 @@
 package etomo.process;
 
-import java.io.IOException;
-
 import etomo.ApplicationManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 
 /**
@@ -19,6 +18,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2006/09/19 22:26:08  sueh
+ * <p> bug# 928 Find the line that announces that patch_vector.mod has been created.
+ * <p>
  * <p> Revision 1.2  2006/01/06 22:18:06  sueh
  * <p> bug# 794 Fixed findNSections().  It was sleeping each time it read a line.
  * <p> Now it sleeps when there are no lines to read.
@@ -60,9 +62,9 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException, IOException {
+  protected void getCurrentSection() throws NumberFormatException, LogFile.ReadException {
     String line;
-    while ((line = logFileReader.readLine()) != null) {
+    while ((line = readLogFileLine()) != null) {
       line = line.trim();
       if (line.startsWith("Finished")) {
         String[] strings = line.split("\\s+");
@@ -79,13 +81,13 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    * Search matchvol1.log.out file for the number of positions
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, IOException {
+      NumberFormatException, LogFile.ReadException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
     Thread.sleep(updatePeriod);
     while (!foundNSections) {
-      String line = logFileReader.readLine();
+      String line = readLogFileLine();
       if (line == null) {
         Thread.sleep(updatePeriod);
       }

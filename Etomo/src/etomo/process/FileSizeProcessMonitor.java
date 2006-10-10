@@ -1,18 +1,16 @@
 package etomo.process;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
 import etomo.ApplicationManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
-import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
@@ -29,6 +27,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2006/09/25 16:35:48  sueh
+ * <p> bug# 931 Added msgLogFileRenamed() and logFileRenamed.  use
+ * <p> logFileRenamed to open the correct log file.
+ * <p>
  * <p> Revision 3.24  2006/09/22 23:47:04  sueh
  * <p> bug # 931 Making sure that the objects that can block files in Windows
  * <p> always run their close() function each time they are instanciated.
@@ -168,9 +170,11 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   long lastSize = 0;
   private final ProcessName processName;
   private FileInputStream stream = null;
-  private BufferedReader logFileReader = null;
-  private FileReader fileReader = null;
+  //private BufferedReader logFileReader = null;
+  //private FileReader fileReader = null;
   private boolean logFileRenamed = false;
+  protected final LogFile logFile;
+  private long logReadId = LogFile.NO_ID;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
       ProcessName processName) {
@@ -178,6 +182,8 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     axisID = id;
     scriptStartTime = System.currentTimeMillis();
     this.processName = processName;
+    logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
+        processName);
   }
 
   // The dervied class must implement this function to 
@@ -220,19 +226,17 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       closeOpenFiles();
       return;
     }
+
+    setProcessEndState(ProcessEndState.DONE);
+    // Periodically update the process bar by checking the size of the file
+    updateProgressBar();
     try {
-      setProcessEndState(ProcessEndState.DONE);
-      // Periodically update the process bar by checking the size of the file
-      updateProgressBar();
-      closeOpenFiles();
       Thread.sleep(updatePeriod);
-      logFileRenamed = false;
-      running = false;
     }
-    catch (Throwable t) {
-      closeOpenFiles();
-      t.printStackTrace();
+    catch (InterruptedException e) {
     }
+    logFileRenamed = false;
+    running = false;
   }
 
   void stop() {
@@ -257,7 +261,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
   }
-  
+
   public void msgLogFileRenamed() {
     logFileRenamed = true;
   }
@@ -275,9 +279,9 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     while (!watchedFileBackedUp) {
       String line = null;
       try {
-        line = logFileReader.readLine();
+        line = logFile.readLine(logReadId);
       }
-      catch (IOException e) {
+      catch (LogFile.ReadException e) {
         e.printStackTrace();
       }
       if (line == null) {
@@ -291,6 +295,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         }
       }
     }
+    closeLogFileReader();
     //Get the watched file
     long currentSize = 0;
     boolean newOutputFile = false;
@@ -325,7 +330,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   void updateProgressBar() {
     boolean fileWriting = true;
     while (fileWriting && !stop) {
-      if (!usingLog()) {
+      if (!gotStatusFromLog()) {
         int currentLength = 0;
         long size = 0;
         try {
@@ -359,9 +364,10 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         fileWriting = false;
       }
     }
+    closeOpenFiles();
   }
 
-  protected boolean usingLog() {
+  protected boolean gotStatusFromLog() {
     return false;
   }
 
@@ -377,48 +383,35 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     while (!logFileRenamed) {
       Thread.sleep(updatePeriod);
     }
-    File logFile = null;
+    //File logFile = null;
     boolean logFileExists = false;
     while (!logFileExists) {
-      logFile = DatasetFiles
-          .getLogFile(applicationManager, axisID, processName);
+      //logFile = DatasetFiles
+      //    .getLogFile(applicationManager, axisID, processName);
       // Check to see if the log file exists that signifies that the process
       // has started
-      if (logFile != null && logFile.exists()) {
+      if (/*logFile != null && */logFile.exists()) {
         logFileExists = true;
       }
       else {
         Thread.sleep(updatePeriod);
       }
     }
-    closeLogFileReader();
+    //closeLogFileReader();
     try {
-      fileReader = new FileReader(logFile);
+      //fileReader = new FileReader(logFile);
+      logReadId = logFile.openReader();
     }
-    catch (FileNotFoundException e) {
+    catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
-    logFileReader = new BufferedReader(fileReader);
+    //logFileReader = new BufferedReader(fileReader);
   }
 
   private void closeLogFileReader() {
-    if (logFileReader != null) {
-      try {
-        logFileReader.close();
-        logFileReader = null;
-      }
-      catch (IOException e1) {
-        e1.printStackTrace();
-      }
-    }
-    if (fileReader != null) {
-      try {
-        fileReader.close();
-        fileReader = null;
-      }
-      catch (IOException e1) {
-        e1.printStackTrace();
-      }
+    if (logReadId != LogFile.NO_ID) {
+      logFile.closeReader(logReadId);
+      logReadId = LogFile.NO_ID;
     }
   }
 

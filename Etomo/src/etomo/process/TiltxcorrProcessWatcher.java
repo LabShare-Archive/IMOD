@@ -1,8 +1,7 @@
 package etomo.process;
 
-import java.io.IOException;
-
 import etomo.ApplicationManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 
 /**
@@ -66,9 +65,9 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
   protected void getCurrentSection()
-    throws NumberFormatException, IOException {
+    throws NumberFormatException, LogFile.ReadException {
     String line;
-    while ((line = logFileReader.readLine()) != null) {
+    while ((line = readLogFileLine()) != null) {
       if (line.startsWith("View")) {
         currentSection++;
       }
@@ -86,7 +85,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, IOException {
+      NumberFormatException, LogFile.ReadException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 
@@ -94,7 +93,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
     while (!foundNSections) {
       Thread.sleep(updatePeriod);
       String line;
-      while ((line = logFileReader.readLine()) != null) {
+      while ((line = readLogFileLine()) != null) {
         if (line.startsWith(" Number of columns, rows, sections")) {
           String[] fields = line.split("\\s+");
           if (fields.length > 9) {
@@ -118,5 +117,9 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/03/09 18:08:59  sueh
+* <p> bug# 533 This class used to be the XcorrProcessWatcher.  It watches
+* <p> tiltxcorr in the xcorr script.
+* <p> </p>
 */
