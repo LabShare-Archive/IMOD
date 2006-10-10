@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2006/08/03 21:28:01  sueh
+ * <p> bug# 769 MsgReconnectDone():  When calling manager.processDone, also
+ * <p> setting failed to true when the process end state is not done.
+ * <p>
  * <p> Revision 1.46  2006/08/02 22:15:39  sueh
  * <p> bug# 769 Added msgReconnectDone()
  * <p>
@@ -547,7 +551,8 @@ public abstract class BaseProcessManager {
           break;
         }
       }
-      processMonitorThread = new Thread(processMonitor);
+      processMonitorThread = new Thread(new etomo.process.ThreadGroup(
+          "startComScript"), processMonitor);
       processMonitorThread.start();
       mapAxisProcessMonitor(processMonitorThread, axisID);
     }
@@ -1179,7 +1184,7 @@ public abstract class BaseProcessManager {
           break;
         }
       }
-      Thread processMonitorThread = new Thread(processMonitor);
+      Thread processMonitorThread = new Thread(new etomo.process.ThreadGroup("startBackgroundProcess"), processMonitor);
       processMonitorThread.start();
       mapAxisProcessMonitor(processMonitorThread, axisID);
     }
