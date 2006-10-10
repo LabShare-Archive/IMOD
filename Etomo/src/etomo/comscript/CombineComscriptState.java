@@ -3,6 +3,7 @@ package etomo.comscript;
 import etomo.EtomoDirector;
 import etomo.type.ProcessName;
 import etomo.ui.TomogramCombinationDialog;
+import etomo.util.DatasetFiles;
 
 /**
 * <p>Description: Represents the state of the combine.com.  Used to modify
@@ -20,6 +21,9 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.7  2005/09/16 17:14:53  sueh
+* <p> bug# 532 Getting command strings from ProcessName.
+* <p>
 * <p> Revision 1.6  2004/11/19 22:39:07  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -84,7 +88,7 @@ public class CombineComscriptState implements ComscriptState {
     {
       null,
       null,
-      "patch.out",
+      DatasetFiles.PATCH_OUT,
       null,
       null };
       
