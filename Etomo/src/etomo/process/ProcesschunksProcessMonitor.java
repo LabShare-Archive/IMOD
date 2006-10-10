@@ -15,6 +15,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.ui.ParallelProgressDisplay;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -86,7 +87,12 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   public void run() {
     //make sure commmandsPipe is deleted and enable its use
-    deleteCommandsPipe(true);
+    try {
+      deleteCommandsPipe(true);
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Processchunks Error",axisID);
+    }
     parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
     nChunks.set(0);
     chunksFinished.set(0);
@@ -108,7 +114,12 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     parallelProgressDisplay.setParallelProcessMonitor(null);
     //make sure commmandsPipe is deleted and disable its use
+    try {
     deleteCommandsPipe(false);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public void msgLogFileRenamed() {
@@ -312,7 +323,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * synchronization is for useCommandsPipe and commmandsPipe
    * @param startup
    */
-  private synchronized final void deleteCommandsPipe(boolean enable) {
+  private synchronized final void deleteCommandsPipe(boolean enable) throws IOException{
     if (!enable) {
       //turn off useCommandsPipe to prevent use of commandsPipe
       useCommandsPipe = false;
@@ -322,6 +333,14 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       commandsPipe = DatasetFiles.getCommandsFile(manager, rootName);
     }
     commandsPipe.delete();
+    try {
+      Thread.sleep(2000);
+    }
+    catch (InterruptedException e) {
+    }
+    if (commandsPipe.exists()) {
+      throw new IOException("Cannot delete "+commandsPipe.getAbsolutePath() + ".  Processchunks may not behave normally.\nExit and re-enter eTomo or delete "+commandsPipe.getName()+" to fix the problem.");
+    }
     if (enable) {
       //turn on useCommandsPipe to enable use of commandsPipe
       useCommandsPipe = true;
@@ -408,6 +427,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/09/25 16:36:18  sueh
+ * <p> bug# 931 Added empty function msgLogFileRenamed().
+ * <p>
  * <p> Revision 1.18  2006/06/05 16:30:51  sueh
  * <p> bug# 766 Implementing OutfileProcessMonitor - adding getPid.  Getting the pid
  * <p> from the output file.
