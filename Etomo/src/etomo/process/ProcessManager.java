@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.110  2006/10/10 05:12:40  sueh
+ * bug# 931  runCommand():  Managing the optional log file with LogFile.
+ *
  * Revision 3.109  2006/09/20 20:42:58  sueh
  * bug# 928 Adding combine to errorProcess, so that the combine dialog can check
  * for the existance of patch_vector.mod.
@@ -1715,12 +1718,14 @@ public class ProcessManager extends BaseProcessManager {
    * @param process
    */
   private void handleTransferfidMessage(BackgroundProcess process, AxisID axisID) {
+    LogFile logFile = null;
+    long writeId = LogFile.NO_ID;
     try {
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
-      LogFile logFile = LogFile.getInstance(appManager.getPropertyUserDir(),
+      logFile = LogFile.getInstance(appManager.getPropertyUserDir(),
           DatasetFiles.TRANSFER_FID_LOG);
-      long writeId = logFile.openWriter();
+      writeId = logFile.openWriter();
       //BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(appManager
       //    .getPropertyUserDir()
       //    + "/transferfid.log"));
@@ -1740,6 +1745,7 @@ public class ProcessManager extends BaseProcessManager {
           + File.separator + DatasetFiles.TRANSFER_FID_LOG));
     }
     catch (LogFile.WriteException except) {
+      logFile.closeWriter(writeId);
       uiHarness.openMessageDialog(except.getMessage(), "Transferfid log error",
           axisID);
     }
