@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -36,6 +37,7 @@ import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
 import etomo.type.UITestAction;
 import etomo.type.UITestField;
+import etomo.type.UITestTest;
 import etomo.util.Utilities;
 
 /**
@@ -52,6 +54,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2006/08/28 18:27:16  sueh
+ * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
+ * <p> absolute file path.
+ * <p>
  * <p> Revision 1.7  2006/08/18 23:25:44  sueh
  * <p> bug# 852 clickCheckBox:  remove assert that prevents cb. from having a value
  * <p>
@@ -131,9 +137,8 @@ final class UITestAxis implements AdocCommandFactory {
   private boolean stopped = false;
   private UITestAxisDialogCommand command = null;
 
-  UITestAxis(UITest testCase, Autodoc autodoc,
-      JFCTestHelper helper, AxisID axisID,
-      boolean loadedDataFile, ArrayList variables) {
+  UITestAxis(UITest testCase, Autodoc autodoc, JFCTestHelper helper,
+      AxisID axisID, boolean loadedDataFile, ArrayList variables) {
     this.testCase = testCase;
     this.autodoc = autodoc;
     this.helper = helper;
@@ -179,6 +184,9 @@ final class UITestAxis implements AdocCommandFactory {
    * @param takeTurns
    */
   void testAxis() {
+    if (isUncaughtException()) {
+      return;
+    }
     if (reader.isDone()) {
       return;
     }
@@ -197,7 +205,7 @@ final class UITestAxis implements AdocCommandFactory {
       }
     }
     //process sections
-    while (!reader.isDone()) {
+    while (!isUncaughtException() && !reader.isDone()) {
       if (!reader.isReadingSections()) {
         reader.nextSection();
       }
@@ -213,7 +221,8 @@ final class UITestAxis implements AdocCommandFactory {
       }
       //Go through the commands in the reader if this dialog should be
       //tested (testfrom and datafile attributes).
-      while (test
+      while (!isUncaughtException()
+          && test
           && !command.isEmpty()
           && (testFromDialog == null || testFromDialog.equals(reader.getName()))
           && (!loadedDataFile || !DialogType.SETUP_RECON.equals(reader
@@ -227,8 +236,7 @@ final class UITestAxis implements AdocCommandFactory {
         }
         if (getNextCommand) {
           //get the next command if not waiting
-          command = (UITestAxisDialogCommand) reader
-              .nextCommand(command, this);
+          command = (UITestAxisDialogCommand) reader.nextCommand(command, this);
         }
         if (turnOver) {
           sleep(UITest.DEFAULT_SLEEP);
@@ -243,6 +251,7 @@ final class UITestAxis implements AdocCommandFactory {
       sleep(WAIT_SLEEP);
       return;
     }
+
     testCase.assertFalse(reader.getInfo(), "Popups where not handled",
         lookForPopup());
   }
@@ -258,6 +267,22 @@ final class UITestAxis implements AdocCommandFactory {
       testCase.fail(reader.getInfo(), "exceeded maximum duration, duration="
           + duration + ",currentDuration=" + currentDuration);
     }
+  }
+
+  private boolean isUncaughtException() {
+    if (testCase.isUncaughtException()) {
+      String info = null;
+      if (reader != null) {
+        info = reader.getInfo();
+      }
+      String commandString = null;
+      if (command != null) {
+        commandString = command.toString();
+      }
+      testCase.uncaughtException(info, commandString);
+      return true;
+    }
+    return false;
   }
 
   private void setGlobalAttrib() {
@@ -666,7 +691,7 @@ final class UITestAxis implements AdocCommandFactory {
     }
   }
 
-private void testAssert(UITestAxisDialogCommand command) {
+  private void testAssert(UITestAxisDialogCommand command) {
     UITestField field = command.getType();
     if (field == UITestField.BUTTON) {
       assertButton(command);
@@ -686,22 +711,35 @@ private void testAssert(UITestAxisDialogCommand command) {
     else if (field == UITestField.SPINNER) {
       assertSpinner(command);
     }
+    else if (field == UITestField.FILE) {
+      assertFileExists(command);
+    }
     else {
       testCase.fail(reader.getInfo(), "Unknown name/value pair format: "
           + command);
     }
-  }  private void assertTextField(UITestAxisDialogCommand command) {
+  }
+
+  private void assertTextField(UITestAxisDialogCommand command) {
     JTextField textField = (JTextField) getComponent(command, JTextField.class);
-    if (command.isEnabled()) {
+    if (command.getTest() == UITestTest.ENABLED) {
       assertEnabled(command, textField);
       return;
     }
     assertEquals(command, textField);
   }
 
+  private void assertFileExists(UITestAxisDialogCommand command) {
+    sleep(1000);
+    File file = new File(System.getProperty("user.dir"), command.getValue());
+    //System.out.println("file=" + file.getAbsolutePath());
+    //System.out.println("exists=" + file.exists());
+    testCase.assertTrue(reader.getInfo(), command.toString(), file.exists());
+  }
+
   private void assertSpinner(UITestAxisDialogCommand command) {
     JSpinner spinner = (JSpinner) getComponent(command, JSpinner.class);
-    if (command.isEnabled()) {
+    if (command.getTest() == UITestTest.ENABLED) {
       assertEnabled(command, spinner);
       return;
     }
@@ -712,7 +750,7 @@ private void testAssert(UITestAxisDialogCommand command) {
   private void assertRadioButton(UITestAxisDialogCommand command) {
     JRadioButton radioButton = (JRadioButton) getComponent(command,
         JRadioButton.class);
-    if (command.isEnabled()) {
+    if (command.getTest() == UITestTest.ENABLED) {
       assertEnabled(command, radioButton);
       return;
     }
@@ -721,7 +759,7 @@ private void testAssert(UITestAxisDialogCommand command) {
 
   private void assertCheckBox(UITestAxisDialogCommand command) {
     JCheckBox checkBox = (JCheckBox) getComponent(command, JCheckBox.class);
-    if (command.isEnabled()) {
+    if (command.getTest() == UITestTest.ENABLED) {
       assertEnabled(command, checkBox);
       return;
     }
@@ -731,7 +769,7 @@ private void testAssert(UITestAxisDialogCommand command) {
   private void assertButton(UITestAxisDialogCommand command) {
     AbstractButton button = (AbstractButton) getComponent(command,
         AbstractButton.class);
-    if (command.isEnabled()) {
+    if (command.getTest() == UITestTest.ENABLED) {
       assertEnabled(command, button);
       return;
     }
@@ -740,7 +778,7 @@ private void testAssert(UITestAxisDialogCommand command) {
 
   private void assertMiniButton(UITestAxisDialogCommand command) {
     JButton button = (JButton) getComponent(command, JButton.class);
-    if (command.isEnabled()) {
+    if (command.getTest() == UITestTest.ENABLED) {
       assertEnabled(command, button);
       return;
     }
@@ -757,7 +795,7 @@ private void testAssert(UITestAxisDialogCommand command) {
   private void assertEnabled(UITestAxisDialogCommand command,
       Component component) {
     testCase.assertTrue(reader.getInfo(), "bad call to assertEnabled", command
-        .isEnabled());
+        .getTest() == UITestTest.ENABLED);
     String value = command.getValue();
     boolean enabled = false;
     if (value != null && value.equals("1")) {
@@ -797,7 +835,7 @@ private void testAssert(UITestAxisDialogCommand command) {
     }
     return button;
   }
-  
+
   private void callback(UITestAxisDialogCommand command) {
     command.getCallbackClassEnum().getCallbackClass().callback(command);
   }
@@ -882,8 +920,8 @@ private void testAssert(UITestAxisDialogCommand command) {
     return getComponent(panel, command, componentClass, required);
   }
 
-  private Component getComponent(JPanel panel,
-      UITestAxisDialogCommand command, Class componentClass) {
+  private Component getComponent(JPanel panel, UITestAxisDialogCommand command,
+      Class componentClass) {
     return getComponent(panel, command, componentClass, true);
   }
 
@@ -895,8 +933,8 @@ private void testAssert(UITestAxisDialogCommand command) {
    * @param required
    * @return
    */
-  private Component getComponent(JPanel panel,
-      UITestAxisDialogCommand command, Class componentClass, boolean required) {
+  private Component getComponent(JPanel panel, UITestAxisDialogCommand command,
+      Class componentClass, boolean required) {
     String name = command.getName();
     int index = command.getIndex();
     Component component;
@@ -975,6 +1013,10 @@ private void testAssert(UITestAxisDialogCommand command) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/08/28 18:27:16  sueh
+ * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
+ * <p> absolute file path.
+ * <p>
  * <p> Revision 1.7  2006/08/18 23:25:44  sueh
  * <p> bug# 852 clickCheckBox:  remove assert that prevents cb. from having a value
  * <p>
