@@ -2,6 +2,7 @@ package etomo.storage.autodoc;
 
 import etomo.type.AxisID;
 import etomo.type.UITestAction;
+import etomo.type.UITestField;
 
 /**
  * <p>Description: </p>
@@ -23,6 +24,7 @@ public final class UITestTestCommand implements AdocCommand {
   private static final String KEEP_STRING = "keep";
 
   private UITestAction action = null;
+  private UITestField field = null;
   private String value = null;
   private String string = "";
   private boolean empty = true;
@@ -56,7 +58,6 @@ public final class UITestTestCommand implements AdocCommand {
       String keepString = pair.getName(1);
       if (keepString != null && keepString.equals(KEEP_STRING)) {
         keep = true;
-        return;
       }
     }
     else if (action == UITestAction.SET) {
@@ -72,8 +73,12 @@ public final class UITestTestCommand implements AdocCommand {
     else if (action == UITestAction.DATASET) {
       variable = new Variable(action.toString(), value);
     }
+    else if (action == UITestAction.COPY) {
+      field = UITestField.getInstance(pair.getName(1));
+    }
     //ignore unknown commands
-    if (action == UITestAction.ADOC || action == UITestAction.COPY
+    if (action == UITestAction.ADOC
+        || (action == UITestAction.COPY && field == UITestField.FILE)
         || action == UITestAction.DATA_FILE || action == UITestAction.DATASET
         || action == UITestAction.DATASET_DIR
         || action == UITestAction.DURATION || action == UITestAction.SET
@@ -82,6 +87,7 @@ public final class UITestTestCommand implements AdocCommand {
     }
     else {
       action = null;
+      System.err.println("Unknown command:  " + string);
     }
   }
 
@@ -127,7 +133,7 @@ public final class UITestTestCommand implements AdocCommand {
   public boolean isFunctionLocation() {
     return false;
   }
-  
+
   public boolean isFunction() {
     return false;
   }
@@ -159,6 +165,10 @@ public final class UITestTestCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/08/28 18:25:31  sueh
+ * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
+ * <p> absolute file path.
+ * <p>
  * <p> Revision 1.2  2006/08/08 18:17:38  sueh
  * <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
  * <p> isSecondaryAutodoc().
