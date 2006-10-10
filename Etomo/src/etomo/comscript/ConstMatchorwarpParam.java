@@ -16,6 +16,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2006/09/19 21:55:47  sueh
+ * <p> bug# 928 Added residualFile, vectormodel, and clipsize.
+ * <p>
  * <p> Revision 3.2  2004/06/25 23:23:23  sueh
  * <p> bug# 485 adding isUseModelFile()
  * <p>
@@ -38,7 +41,7 @@ public class ConstMatchorwarpParam {
   protected static final String RESIDUAL_FILE_KEY = "-residualfile";
   protected static final String VECTOR_MODEL_KEY = "-vectormodel";
   protected static final String RESIDUAL_FILE_DEFAULT = "patch.resid";
-  protected static final String VECTOR_MODEL_DEFAULT = DatasetFiles.PATCH_VECTOR_NAME;
+  protected static final String VECTOR_MODEL_DEFAULT = DatasetFiles.PATCH_VECTOR_MODEL;
   protected static final int CLIP_SIZE_DEFAULT = 600;
   
   protected String size = "";
