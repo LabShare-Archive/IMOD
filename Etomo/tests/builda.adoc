@@ -1,4 +1,6 @@
 Version = 1.2
+verbose =
+#testfrom = FidModel
 
 [Dialog = SetupRecon]
 adoc = setup-recon.adoc
@@ -13,7 +15,7 @@ adoc = coarse-align.adoc
 function = build
 
 [Dialog = FidModel]
-copy = %{dataset}%{axis}.seed
+copy.file = %{dataset}%{axis}.seed
 adoc = fid-model.adoc
 function = run-dual
 

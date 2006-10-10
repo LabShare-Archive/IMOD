@@ -1,7 +1,7 @@
 Version = 1.2
-waitfor = SetupRecon
+#waitfor = SetupRecon
 verbose = 
-#testfrom = 
+#waitfor = PostProc
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc
@@ -16,6 +16,8 @@ waitfor =  FineAlign
 mb.transfer-fiducials-open = 1
 bn.transfer-fiducials-from-other-axis =
 waitfor.process = done
+#bn.transfer-fiducials-from-other-axis =
+#waitfor.process = done
 adoc = fid-model.adoc
 function = run
 

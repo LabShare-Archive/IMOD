@@ -18,8 +18,15 @@ function = done
 [function = test]
 function = test1
 function = tiltxcorr
+function = test-tiltxcorr
+function = tiltxcorr
+function = test-backup-tiltxcorr
 function = open-newstack
 function = newstack
+function = test-newstack
+function = newstack
+function = test-newstack
+function = test-backup-newstack
 function = 3dmod
 function = test2
 function = done
@@ -31,12 +38,24 @@ mb.tiltxcorr-open = 1
 bn.calculate-cross-correlation =
 waitfor.process = done
 
+[function = test-tiltxcorr]
+assert.file.exists = xcorr%{axis}.log
+
+[function = test-backup-tiltxcorr]
+assert.file.exists = xcorr%{axis}.log~
+
 [function = open-newstack]
 mb.newstack-open = 1
 
 [function = newstack]
 bn.generate-coarse-aligned-stack =
 waitfor.process = done
+
+[function = test-newstack]
+assert.file.exists = prenewst%{axis}.log
+
+[function = test-backup-newstack]
+assert.file.exists = prenewst%{axis}.log~
 
 [function = fidless]
 cb.fiducialless-alignment = 

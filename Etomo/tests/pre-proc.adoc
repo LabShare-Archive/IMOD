@@ -8,6 +8,9 @@ function = done
 [function = test]
 function = test1
 function = create
+function = test-create
+function = create
+function = test-backup
 function = 3dmod
 function = use
 function = popup
@@ -18,6 +21,13 @@ function = popup
 [function = create]
 bn.create-fixed-stack =
 waitfor.process = done
+
+[function = test-create]
+assert.file.exists = eraser%{axis}.log
+
+[function = test-backup]
+assert.file.exists = eraser%{axis}.log~
+
 
 [function = use]
 bn.use-fixed-stack = 
@@ -32,6 +42,19 @@ bn.view-fixed-stack =
 waitfor.popup.etomo-question = Yes
 
 [function = test1]
+#
+#
+# copytomocoms
+assert.file.exists = align%{axis}.com
+assert.file.exists = eraser%{axis}.com
+assert.file.exists = mtffilter%{axis}.com
+assert.file.exists = newst%{axis}.com
+assert.file.exists = prenewst%{axis}.com
+assert.file.exists = sample%{axis}.com
+assert.file.exists = tilt%{axis}.com
+assert.file.exists = tomopitch%{axis}.com
+assert.file.exists = track%{axis}.com
+assert.file.exists = xcorr%{axis}.com
 #
 # ccd eraser
 #
@@ -126,6 +149,8 @@ adoc = pre-proc.adoc
 #
 # test find x-rays
 #
+bn.find-x-rays =
+waitfor.process = done
 bn.find-x-rays =
 waitfor.process = done
 bn.view-x-ray-model =

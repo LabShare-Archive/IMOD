@@ -1,5 +1,6 @@
 Version = 1.2
-waitfor = SetupRecon
+#waitfor = FineAlign
+verbose =
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc
