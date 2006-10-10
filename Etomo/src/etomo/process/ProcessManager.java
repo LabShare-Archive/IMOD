@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.109  2006/09/20 20:42:58  sueh
+ * bug# 928 Adding combine to errorProcess, so that the combine dialog can check
+ * for the existance of patch_vector.mod.
+ *
  * Revision 3.108  2006/09/13 23:28:54  sueh
  * bug# 920 Moving some postProcessing to TomogramPositioningExpert.
  *
@@ -806,6 +810,7 @@
 
 package etomo.process;
 
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -844,11 +849,8 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
-
 
 public class ProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
@@ -865,7 +867,7 @@ public class ProcessManager extends BaseProcessManager {
     super(appMgr);
     appManager = appMgr;
   }
-  
+
   public ProcessName getRunningProcessName(AxisID axisID) {
     ProcessData processData = getSavedProcessData(axisID);
     if (processData == null || !processData.isRunning()) {
@@ -1054,7 +1056,7 @@ public class ProcessManager extends BaseProcessManager {
     xftoxg[2] = "0";
     xftoxg[3] = getDatasetName() + axisID.getExtension() + ".prexf";
     xftoxg[4] = getDatasetName() + axisID.getExtension() + ".prexg";
-    runCommand(xftoxg, axisID);
+    runCommand(xftoxg, axisID, null);
   }
 
   /**
@@ -1069,7 +1071,7 @@ public class ProcessManager extends BaseProcessManager {
     xfproduct[2] = "rotation" + axisID.getExtension() + ".xf";
     xfproduct[3] = getDatasetName() + axisID.getExtension() + "_nonfid.xf";
 
-    runCommand(xfproduct, axisID);
+    runCommand(xfproduct, axisID, null);
   }
 
   /**
@@ -1386,10 +1388,12 @@ public class ProcessManager extends BaseProcessManager {
         mtffilterProcessMonitor, axisID, processResultDisplay);
     return comScriptProcess.getName();
   }
-  
-  public void reconnectTilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
-    ReconnectProcess process = new ReconnectProcess(appManager, this, TiltProcessMonitor.getReconnectInstance(appManager,
-        axisID), getSavedProcessData(axisID), axisID);
+
+  public void reconnectTilt(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
+    ReconnectProcess process = new ReconnectProcess(appManager, this,
+        TiltProcessMonitor.getReconnectInstance(appManager, axisID),
+        getSavedProcessData(axisID), axisID);
     process.setProcessResultDisplay(processResultDisplay);
     Thread thread = new Thread(process);
     thread.start();
@@ -1551,16 +1555,21 @@ public class ProcessManager extends BaseProcessManager {
    * Run the imod2patch command, don't save meta data because it doesn't change
    * for this command
    */
-  public void modelToPatch(AxisID axisID) throws SystemProcessException {
-    File patchOut = new File(appManager.getPropertyUserDir(), "patch.out");
-    if (patchOut.exists()) {
-      //  Copy the old patch.out to patch.out~
-      String[] mv = { "mv", "-f", "patch.out", "patch.out~" };
-      runCommand(mv, axisID);
-    }
+  public void modelToPatch(AxisID axisID) throws LogFile.BackupException,
+      SystemProcessException {
+    LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
+        DatasetFiles.PATCH_OUT);
+    patchOut.backup();
+    /*File patchOut = new File(appManager.getPropertyUserDir(), "patch.out");
+     if (patchOut.exists()) {
+     //  Copy the old patch.out to patch.out~
+     String[] mv = { "mv", "-f", "patch.out", "patch.out~" };
+     runCommand(mv, axisID);
+     }*/
     // Convert the new patchvector.mod
-    String[] imod2patch = { "imod2patch", "patch_vector.mod", "patch.out" };
-    runCommand(imod2patch, axisID);
+    String[] imod2patch = { "imod2patch", DatasetFiles.PATCH_VECTOR_MODEL,
+        DatasetFiles.PATCH_OUT };
+    runCommand(imod2patch, axisID, patchOut);
   }
 
   /**
@@ -1707,28 +1716,30 @@ public class ProcessManager extends BaseProcessManager {
    */
   private void handleTransferfidMessage(BackgroundProcess process, AxisID axisID) {
     try {
-
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
-      BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(appManager
-          .getPropertyUserDir()
-          + "/transferfid.log"));
+      LogFile logFile = LogFile.getInstance(appManager.getPropertyUserDir(),
+          DatasetFiles.TRANSFER_FID_LOG);
+      long writeId = logFile.openWriter();
+      //BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(appManager
+      //    .getPropertyUserDir()
+      //    + "/transferfid.log"));
 
       if (stdOutput != null) {
         for (int i = 0; i < stdOutput.length; i++) {
-          fileBuffer.write(stdOutput[i]);
-          fileBuffer.newLine();
+          logFile.write(stdOutput[i], writeId);
+          logFile.newLine(writeId);
         }
       }
-      fileBuffer.close();
+      logFile.closeWriter(writeId);
 
       //  Show a log file window to the user
       TextPageWindow logFileWindow = new TextPageWindow();
       logFileWindow.setVisible(logFileWindow.setFile(appManager
           .getPropertyUserDir()
-          + File.separator + "transferfid.log"));
+          + File.separator + DatasetFiles.TRANSFER_FID_LOG));
     }
-    catch (IOException except) {
+    catch (LogFile.WriteException except) {
       uiHarness.openMessageDialog(except.getMessage(), "Transferfid log error",
           axisID);
     }
@@ -1755,15 +1766,21 @@ public class ProcessManager extends BaseProcessManager {
    * @param commandArray
    * @throws SystemProcessException
    */
-  private void runCommand(String[] commandArray, AxisID axisID)
+  private void runCommand(String[] commandArray, AxisID axisID, LogFile logFile)
       throws SystemProcessException {
     SystemProgram systemProgram = new SystemProgram(appManager
         .getPropertyUserDir(), commandArray, axisID);
     systemProgram
         .setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
-
+    long logWriteId = LogFile.NO_ID;
+    if (logFile != null) {
+      logFile.openForWriting();
+    }
     systemProgram.run();
+    if (logFile != null) {
+      logFile.closeForWriting(logWriteId);
+    }
     if (systemProgram.getExitValue() != 0) {
       String message = "";
       // Copy any stderr output to the message
@@ -1794,7 +1811,7 @@ public class ProcessManager extends BaseProcessManager {
       throw new SystemProcessException(message);
     }
   }
-  
+
   protected void postProcess(ReconnectProcess script) {
   }
 
@@ -1840,8 +1857,9 @@ public class ProcessManager extends BaseProcessManager {
     else if (processName == ProcessName.PREBLEND) {
       setInvalidEdgeFunctions(script.getCommand(), true);
     }
-    else if (processName == ProcessName.TILT||processName == ProcessName.SAMPLE) {
-      appManager.postProcess(script.getAxisID(),processName, processDetails);
+    else if (processName == ProcessName.TILT
+        || processName == ProcessName.SAMPLE) {
+      appManager.postProcess(script.getAxisID(), processName, processDetails);
     }
     else if (processName == ProcessName.TRACK) {
       File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
@@ -1853,7 +1871,7 @@ public class ProcessManager extends BaseProcessManager {
       }
     }
   }
-  
+
   protected void errorProcess(ReconnectProcess script) {
   }
 
@@ -1866,7 +1884,8 @@ public class ProcessManager extends BaseProcessManager {
       setInvalidEdgeFunctions(script.getCommand(), false);
     }
     else if (processName == ProcessName.COMBINE) {
-      appManager.errorProcess(script.getAxisID(), processName, script.getProcessDetails());
+      appManager.errorProcess(script.getAxisID(), processName, script
+          .getProcessDetails());
     }
   }
 
