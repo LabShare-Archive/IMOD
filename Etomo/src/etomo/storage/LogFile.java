@@ -63,7 +63,6 @@ public final class LogFile {
   private File backupFile = null;
   private FileWriter fileWriter = null;
   private BufferedWriter bufferedWriter = null;
-  private boolean writerOpen = false;
 
   private LogFile(String userDir, String fileName) {
     this.userDir = userDir;
@@ -244,6 +243,9 @@ public final class LogFile {
 
   private synchronized long openForWriting(boolean openWriter)
       throws WriteException {
+    if (fileWriter != null) {
+      throw new WriteException(this, lock.getWriteId(), "Writer is already open.");
+    }
     long writeId = NO_ID;
     try {
       writeId = lock.lock(LockType.WRITE);
@@ -272,7 +274,7 @@ public final class LogFile {
    * Unlocks the open variable and closes the writer
    */
   public synchronized boolean closeForWriting(long writeId) {
-    if (writerOpen) {
+    if (fileWriter != null) {
       new WriteException(this, writeId,
           "Must use closeWriter() when opened with openWriter()")
           .printStackTrace();
@@ -373,9 +375,6 @@ public final class LogFile {
     if (!lock.isLocked(LockType.WRITE, writeId)) {
       throw new WriteException(this, writeId);
     }
-    if (!writerOpen) {
-      throw new WriteException(this, writeId);
-    }
     try {
       bufferedWriter.write(string);
     }
@@ -386,9 +385,6 @@ public final class LogFile {
 
   public synchronized void newLine(long writeId) throws WriteException {
     if (!lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
-    }
-    if (!writerOpen) {
       throw new WriteException(this, writeId);
     }
     try {
@@ -422,27 +418,32 @@ public final class LogFile {
 
   private void createWriter() throws IOException {
     createFile();
-    //check for and handle a partial create
-    if (fileWriter == null || bufferedWriter == null) {
-      closeWriter();
-      fileWriter = null;
-      bufferedWriter = null;
+    try {
+      if (fileWriter == null) {
+        fileWriter = new FileWriter(file);
+        bufferedWriter = new BufferedWriter(fileWriter);
+      }
     }
-    if (fileWriter == null) {
-      fileWriter = new FileWriter(file);
-      bufferedWriter = new BufferedWriter(fileWriter);
+    catch (IOException e) {
+      try {
+        closeWriter();
+      }
+      catch (IOException e0) {
+        e0.printStackTrace();
+      }
+      throw e;
     }
-    writerOpen = true;
   }
 
   private void closeWriter() throws IOException {
     if (bufferedWriter != null) {
       bufferedWriter.close();
+      bufferedWriter = null;
     }
     if (fileWriter != null) {
       fileWriter.close();
+      fileWriter = null;
     }
-    writerOpen = false;
   }
 
   public synchronized boolean exists() {
@@ -475,10 +476,11 @@ public final class LogFile {
   public synchronized boolean isOpen(LockType lockType, long id) {
     return lock.isLocked(lockType, id);
   }
-  
-  synchronized boolean noLocks()  {
+
+  synchronized boolean noLocks() {
     try {
-    lock.assertNoLocks();}
+      lock.assertNoLocks();
+    }
     catch (LockException e) {
       e.printStackTrace();
       return false;
@@ -694,6 +696,10 @@ public final class LogFile {
       }
       throw new LockException(this, lockType, id);
     }
+    
+    long getWriteId() {
+      return writeId;
+    }
 
     private void createReadIdHashMap() {
       if (readIdHashMap == null) {
@@ -816,5 +822,9 @@ public final class LogFile {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/10/10 05:18:57  sueh
+ * <p> Bug# 931 Class to manage log files.  Prevents access that would violate  Windows file locking.  Handles backups, reading, and writing.  Also can use to
+ * <p> prevent access while another process is writing to the file.
+ * <p> </p>
  */
