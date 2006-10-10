@@ -8,6 +8,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessEndState;
 import etomo.type.UITestAction;
 import etomo.type.UITestField;
+import etomo.type.UITestTest;
 
 /**
  * <p>Description: </p>
@@ -32,6 +33,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
 
   private UITestAction action = null;
   private UITestField field = null;
+  private UITestTest test = null;
   private String fieldName = null;
   private String formattedFieldName = null;
   private int fieldIndex = 0;
@@ -40,7 +42,6 @@ public class UITestAxisDialogCommand implements AdocCommand {
   private String string = "";
   private DialogType dialogType = null;
   private ProcessEndState processEndState = null;
-  private boolean enabled = false;
   private boolean empty = true;
   private boolean known = false;
   private boolean functionLocation = false;
@@ -72,12 +73,9 @@ public class UITestAxisDialogCommand implements AdocCommand {
         function = true;
       }
       //set the field
-      else if (action != UITestAction.SLEEP && action != UITestAction.STOP
-          && action != UITestAction.COPY) {
-        if (action == UITestAction.WAIT_FOR) {
-          index++;
-        }
-        else if (action == UITestAction.ASSERT) {
+      else if (action != UITestAction.SLEEP && action != UITestAction.STOP) {
+        if (action == UITestAction.WAIT_FOR || action == UITestAction.ASSERT
+            || action == UITestAction.COPY) {
           index++;
         }
         setField(pair, index);
@@ -97,15 +95,28 @@ public class UITestAxisDialogCommand implements AdocCommand {
       }
     }
     //this ignores the Version name/value pair
-    if (action == UITestAction.ADOC || action == UITestAction.ASSERT
-        || action == UITestAction.COPY || action == UITestAction.SLEEP
-        || action == UITestAction.STOP || action == UITestAction.WAIT_FOR
-        || action == UITestAction.FUNCTION || field != null) {
+    if (action == UITestAction.ADOC
+        || (action == UITestAction.COPY && field == UITestField.FILE)
+        || action == UITestAction.SLEEP || action == UITestAction.STOP
+        || action == UITestAction.WAIT_FOR || action == UITestAction.FUNCTION
+        || field != null) {
       known = true;
+      return;
     }
-    else {
-      action = null;
+    //check for valid assert
+    if (action == UITestAction.ASSERT && field != null) {
+      if (test == null) {
+        known = true;
+        return;
+      }
+      if ((field != UITestField.FILE && test == UITestTest.ENABLED)
+          || (field == UITestField.FILE && test == UITestTest.EXISTS)) {
+        known = true;
+        return;
+      }
     }
+    action = null;
+    System.err.println("Unknown command:  " + string);
   }
 
   private void setField(NameValuePair pair, int index) {
@@ -117,28 +128,32 @@ public class UITestAxisDialogCommand implements AdocCommand {
     if (index >= levels) {
       return;
     }
-    fieldName = pair.getName(index++);
-    formattedFieldName = replaceVariables(fieldName, formattedFieldName);
-    if (index >= levels) {
-      return;
+    if (action == UITestAction.ASSERT && field == UITestField.FILE) {
+      test = UITestTest.getInstance(pair.getName(index++));
     }
-    String name = pair.getName(index++);
-    if (name.equals(ENABLED_STRING)) {
-      enabled = true;
-      return;
-    }
-    try {
-      fieldIndex = Integer.parseInt(name);
-    }
-    catch (NumberFormatException e) {
-    }
-    if (index >= levels) {
-      return;
-    }
-    name = pair.getName(index++);
-    if (name.equals(ENABLED_STRING)) {
-      enabled = true;
-      return;
+    else {
+      fieldName = pair.getName(index++);
+      formattedFieldName = replaceVariables(fieldName, formattedFieldName);
+      if (index >= levels) {
+        return;
+      }
+      //may end in ".enabled"
+      String name = pair.getName(index++);
+      test = UITestTest.getInstance(name);
+      if (test == UITestTest.ENABLED) {
+        return;
+      }
+      try {
+        //may contain an index
+        fieldIndex = Integer.parseInt(name);
+      }
+      catch (NumberFormatException e) {
+      }
+      if (index >= levels) {
+        return;
+      }
+      //may end in ".enabled"
+      test = UITestTest.getInstance(pair.getName(index));
     }
   }
 
@@ -192,6 +207,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
     known = false;
     action = null;
     field = null;
+    test = null;
     fieldName = null;
     formattedFieldName = null;
     fieldIndex = 0;
@@ -200,7 +216,6 @@ public class UITestAxisDialogCommand implements AdocCommand {
     string = "";
     dialogType = null;
     processEndState = null;
-    enabled = false;
     functionLocation = false;
     function = false;
   }
@@ -247,8 +262,8 @@ public class UITestAxisDialogCommand implements AdocCommand {
     return processEndState;
   }
 
-  public boolean isEnabled() {
-    return enabled;
+  public UITestTest getTest() {
+    return test;
   }
 
   public boolean isEmpty() {
@@ -269,6 +284,9 @@ public class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/09/07 17:24:00  sueh
+ * <p> bug# 852 Added functionality to replace variables in field names.
+ * <p>
  * <p> Revision 1.4  2006/08/08 18:12:55  sueh
  * <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
  * <p> isSecondaryAutodoc().  Changing the adoc command to mean the function
