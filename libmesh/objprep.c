@@ -322,7 +322,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
   Ipoint cen, cnorm, normsum, ceninv, sclinv, refNorm, sclSkin;
   double beta, alpha, xrot, zrot, z1, z2;
   double dtor = 0.017453293;
-  float volsum, volavg, volmed, zofs, minofs, zfactor;
+  float volsum, volavg, volmed, zofs, minofs, zfactor, dval;
   float smallVal = 1.e-4;
  
   /* Unpack values from the mesh parameter structure */
@@ -461,7 +461,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
     for (co = 0; co < obj->contsize; co++) {
       cont = &obj->cont[co];
       if (cont->surf == surf && cont->psize > 2 && volume[co] >= volmed) {
-        if (!imodContourMeanNormal(cont, 10, 1., scale, &cnorm)) {
+        if (!imodContourFitPlane(cont, scale, &cnorm, &dval, &alpha, &beta)) {
 
           /* Invert the normal if it does not match the reference */
           if ((numNorm && imodPointDot(&cnorm, &refNorm) < 0) ||
@@ -705,6 +705,9 @@ static int floatcmp(const void *v1, const void *v2)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.4  2006/09/18 19:35:41  mast
+Made it not flatten or rotate contours to be meshed as tubes
+
 Revision 1.3  2006/09/13 05:39:07  mast
 Increased thickness by 1 to avoid zero volumes when tilted at 90 deg
 

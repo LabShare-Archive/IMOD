@@ -818,64 +818,162 @@ double imodContourPrincipalAxis(Icont *cont)
 }
 
 /*!
- * Computes a mean normal to the contour [cont] by averaging over sets of three
- * points equally spaced around the contour, where spacing is simply based on
- * point index.  Averages up to [maxNorms] sets of points, including only ones
- * where the magnitude of the cross-product of the two vectors connecting the
- * three points is >= [minDist].  Points are scaled by [scale].  The mean 
- * normal is returned in [norm].  Returns 1 if there are too few points in the
- * contour or if all the cross-products are < [minDist].
+ * Fits a plane to the contour [cont], where points are scaled by [scale].
+ * For a plane equation Ax + By + Cz + D = 0, the normal (A,B,C) is returned
+ * in [norm], and D is returned in [dval].  The rotations (in radians) around 
+ * the Y axis then the X axis that will make the plane be flat are returned 
+ * in [beta] and [alpha].  Returns 1 if there are too few points in the
+ * contour or if the points are too close to colinear.
  */
-int imodContourMeanNormal(Icont *cont, int maxNorms, float minDist, 
-                          Ipoint *scale, Ipoint *norm)
+int imodContourFitPlane(Icont *cont, Ipoint *scale, Ipoint *norm, float *dval,
+                        double *alpha, double *beta)
 {
-  int ipdel, numdo, ipst, i, nsum;
-  Ipoint *p1, *p2, *p3, n, v1, v2;
-  double sdist;
-  float dist;
+  double sx, sy, sz, sxsq, sysq, szsq, sxy, sxz, syz, xm, ym, zm;
+  double cosfac, sinfac, sinb, cosa, cosb, xnorm, ynorm, znorm, zrot;
+  double a[3][3];
+  double small = 1.e-4;
+  int i, n, nrot;
+  Ipoint *pts = cont->pts;
+  Ipoint pmin, pmax;
+  float x, y, z;
 
-  norm->x = norm->y = norm->z = 0.;
-  nsum = 0;
-  ipdel = cont->psize / 3;
-  if (!ipdel)
+  n = cont->psize;
+  if (n < 3)
     return 1;
-  numdo = B3DMIN(maxNorms, ipdel);
-  ipst = 0;
-  /* printf("psize %d ipdel %d numdo %d\n", cont->psize, ipdel, numdo);*/
-  for (i = 0; i < numdo; i++) {
-    p1 = &cont->pts[ipst];
-    p2 = &cont->pts[ipst + ipdel];
-    p3 = &cont->pts[ipst + 2 * ipdel];
-    v1.x = (p3->x - p2->x) * scale->x;
-    v1.y = (p3->y - p2->y) * scale->y;
-    v1.z = (p3->z - p2->z) * scale->z;
-    v2.x = (p1->x - p2->x) * scale->x;
-    v2.y = (p1->y - p2->y) * scale->y;
-    v2.z = (p1->z - p2->z) * scale->z;
-    n.x = (v1.y * v2.z) - (v1.z * v2.y);
-    n.y = (v1.z * v2.x) - (v1.x * v2.z);
-    n.z = (v1.x * v2.y) - (v1.y * v2.x);
-    sdist = (n.x * n.x) + (n.y * n.y) + (n.z * n.z);
-    if (sdist > 0) {
-      dist = (float)sqrt(sdist);
-      /*printf("dist %.2f norm %.2f %.2f %.2f\n", dist, n.x / dist, n.y / dist,
-         n.z / dist); */
-      if (dist >= minDist) {
-        norm->x += n.x / dist;
-        norm->y += n.y / dist;
-        norm->z += n.z / dist;
-        nsum++;
-      }
+
+  /* Find axis of smallest extent and setup to rotate data so that axis 
+     becomes Z.  If that axis is constant, this moves the all-zero terms
+     to the third equation */
+  imodContourGetBBox(cont, &pmin, &pmax);
+  nrot = 0;
+  if (pmax.y - pmin.y < pmax.x - pmin.x && pmax.y - pmin.y < pmax.z - pmin.z)
+    nrot = 1;
+  if (pmax.x - pmin.x < pmax.y - pmin.y && pmax.x - pmin.x < pmax.z - pmin.z)
+    nrot = 2;
+
+  /* Form sums of all kinds */
+  sx = sy = sz = sxsq = sysq = szsq = sxy = sxz = syz = 0.;
+  for (i = 0; i < n; i++) {
+    if (nrot == 0) {
+      x = pts[i].x * scale->x;
+      y = pts[i].y * scale->y;
+      z = pts[i].z * scale->z;
+    } else if (nrot == 1) {
+      y = pts[i].x * scale->x;
+      z = pts[i].y * scale->y;
+      x = pts[i].z * scale->z;
+    } else {
+      z = pts[i].x * scale->x;
+      x = pts[i].y * scale->y;
+      y = pts[i].z * scale->z;
     }
-    ipst += ipdel / numdo;
+    sx += x;
+    sy += y;
+    sz += z;
+    sxsq += x * x;
+    sysq += y * y;
+    szsq += z * z;
+    sxy += x * y;
+    sxz += x * z;
+    syz += y * z;
   }
 
-  if (!nsum)
-    return 1;
-  norm->x /= nsum;
-  norm->y /= nsum;
-  norm->z /= nsum;
-  /*printf("nsum %d norm %.2f %.2f %.2f\n", nsum, norm->x, norm->y, norm->z);*/
+  /* Compute the terms of the 3 equations in the normal components, which are:
+     -ai0*cos(a)*sin(b) + a11*sin(a) + ai2*cos(a)*cos(b) = 0   for i = 0,1,2
+   */
+  xm = sx / n;
+  ym = sy / n;
+  zm = sz / n;
+  a[0][0] = sxsq - xm * sx;
+  a[0][1] = sxy - ym * sx;
+  a[0][2] = sxz - zm * sx;
+  a[1][0] = sxy - xm * sy;
+  a[1][1] = sysq - ym * sy;
+  a[1][2] = syz - zm * sy;
+  a[2][0] = sxz - xm * sz;
+  a[2][1] = syz - ym * sz;
+  a[2][2] = szsq - zm * sz;
+
+  /* Combine the first and second equation, or first and third if that fails */
+  for (i = 1; i < 3; i++) {
+    sinfac = a[0][1] * a[i][0] - a[i][1] * a[0][0];
+    cosfac =  a[0][1] * a[i][2] - a[i][1] * a[0][2];
+    
+    /* If both factors are too small, the equations are redundant due to 
+       colinear points on the two dimensions, so try other pair or quit */
+    if (fabs(sinfac) < small && fabs(cosfac) < small) {
+      if (i == 1)
+        continue;
+      return 1;
+      }
+    
+    /* get angle between +/- 90 */
+    if (sinfac < 0.) {
+      sinfac = -sinfac;
+      cosfac = -cosfac;
+    }
+    *beta = atan2(cosfac, sinfac);
+    break;
+  }
+
+  sinb = sin(*beta);
+  cosb = cos(*beta);
+  for (i = 0; i < 3; i++) {
+    sinfac = a[i][1];
+    cosfac = a[i][0] * sinb - a[i][2] * cosb;
+
+    /* If both factors are too small, try the next equation. */
+    if (fabs(sinfac) < small && fabs(cosfac) < small) {
+      if (i < 2)
+        continue;
+      return 1;
+    }
+
+    /* again get angle between +/- 90 */
+    if (sinfac < 0.) {
+      sinfac = -sinfac;
+      cosfac = -cosfac;
+    }
+    *alpha = atan2(cosfac, sinfac);
+    break;
+  }
+
+  cosa = cos(*alpha);
+
+  /* Rotate the normal back to native coordinates and make Z positive */
+  if (nrot == 0) {
+    xnorm = -cosa * sinb;
+    ynorm = sin(*alpha);
+    znorm = cosa * cosb;
+  } else if (nrot == 1) {
+    znorm = -cosa * sinb;
+    xnorm = sin(*alpha);
+    ynorm = cosa * cosb;
+  } else {
+    ynorm = -cosa * sinb;
+    znorm = sin(*alpha);
+    xnorm = cosa * cosb;
+  }
+  if (znorm < 0.) {
+    xnorm = -xnorm;
+    ynorm = -ynorm;
+    znorm = -znorm;
+  }
+
+  norm->x = (float)xnorm;
+  norm->y = (float)ynorm;
+  norm->z = (float)znorm;
+  *dval = -(xm * norm->x + ym * norm->y + zm * norm->z);
+
+  /* Find the angles again */
+  *beta = 0.;
+  *alpha = 0.;
+  if (fabs(xnorm) > small || fabs(znorm) > small)
+    *beta = -atan2(xnorm, znorm);
+  zrot = znorm * cos(*beta) - xnorm * sin(*beta);
+  if (fabs(zrot) > small || fabs(ynorm) > small)
+    *alpha = -(atan2(zrot, ynorm) - 1.570796327);
+
   return 0;
 }
 
@@ -3246,6 +3344,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.21  2006/09/12 15:24:17  mast
+  Added contour normal, handled member renames
+
   Revision 3.20  2006/09/05 14:23:19  mast
   Renamed imodel_contour_clear due to its usefulness
 

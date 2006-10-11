@@ -124,8 +124,8 @@ double imodContourLongAxis(Icont *cont, float precision, float *aspect,
 double imodContourPrincipalAxis(Icont *cont);
 double imodContourCircularity(Icont *cont);
 int imodContourZValue(Icont *cont);
-int imodContourMeanNormal(Icont *cont, int maxNorms, float minDist, 
-                          Ipoint *scale, Ipoint *norm);
+int imodContourFitPlane(Icont *cont, Ipoint *scale, Ipoint *norm, float *dval,
+                        double *alpha, double *beta);
 
 /* calculates the center of mass values for cont and puts them in rpt. */
 int    imodContourCenterOfMass(Icont *cont, Ipoint *rpt);
@@ -203,6 +203,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.10  2006/09/12 15:20:15  mast
+Added mean normal routine, cleaned up flags
+
 Revision 3.9  2006/09/05 14:23:53  mast
 Renamed imodel_contour_clear
 
