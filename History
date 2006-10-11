@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/11/06: Fixed crash from closing Xyz with Esc if pixel view open.
+
 10/11/06: Changed routine for finding mean normal to a contour, so slicer will
 be more robust with open, almost straight contour.
 
