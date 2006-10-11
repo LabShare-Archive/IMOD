@@ -1,15 +1,10 @@
 package etomo.process;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
@@ -54,14 +49,17 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
   private ProcessEndState endState = null;
-  private File commandsPipe = null;
-  private BufferedWriter commandsWriter = null;
+  private LogFile commandsPipe = null;
+  private long commandsPipeWriteId = LogFile.NO_ID;
+  //private BufferedWriter commandsWriter = null;
   private boolean useCommandsPipe = true;
-  private BufferedReader bufferedReader = null;
+  //private BufferedReader bufferedReader = null;
+  private LogFile processOutput = null;
+  private long processOutputReadId = LogFile.NO_ID;
   private boolean processRunning = true;
   private boolean pausing = false;
   private boolean killing = false;
-  private File processOutputFile = null;
+  //private File processOutputFile = null;
   private String pid = null;
 
   /**
@@ -90,8 +88,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     try {
       deleteCommandsPipe(true);
     }
-    catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Processchunks Error",axisID);
+    catch (LogFile.FileException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(),
+          "Processchunks Error", axisID);
     }
     parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
     nChunks.set(0);
@@ -104,27 +103,32 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           updateProgressBar();
         }
       }
+      closeProcessOutput();
     }
     catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
     }
-    catch (IOException e) {
+    catch (LogFile.ReadException e) {
+      endMonitor(ProcessEndState.FAILED);
+      e.printStackTrace();
+    }
+    catch (LogFile.FileException e) {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
     parallelProgressDisplay.setParallelProcessMonitor(null);
     //make sure commmandsPipe is deleted and disable its use
     try {
-    deleteCommandsPipe(false);
+      deleteCommandsPipe(false);
     }
-    catch (IOException e) {
+    catch (LogFile.FileException e) {
       e.printStackTrace();
     }
   }
 
   public void msgLogFileRenamed() {
   }
-  
+
   private void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
     processRunning = false;//the only place that this should be changed
@@ -134,17 +138,18 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     return pid;
   }
 
-  protected final boolean updateState() throws IOException {
-    if (bufferedReader == null) {
-      bufferedReader = getProcessOutputBufferedReader();
+  protected final boolean updateState() throws LogFile.ReadException ,LogFile.FileException{
+    createProcessOutput();
+    if (processOutputReadId == LogFile.NO_ID) {
+      processOutputReadId = processOutput.openReader();
     }
     boolean returnValue = false;
-    if (bufferedReader == null) {
+    if (processOutputReadId == LogFile.NO_ID) {
       return returnValue;
     }
     String line;
     boolean failed = false;
-    while ((line = bufferedReader.readLine()) != null) {
+    while ((line = processOutput.readLine(processOutputReadId)) != null) {
       line = line.trim();
       //get the first pid
       if (pid == null && line.startsWith("Shell PID:")) {
@@ -207,7 +212,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
             //handle a dropped CPU
             parallelProgressDisplay.msgDropped(strings[1], "not responding");
           }
-          //handle a finished chunk
+          //handle commandsPipeWriteIda finished chunk
           else if (strings[1].equals("finished")) {
             parallelProgressDisplay.addSuccess(strings[3]);
           }
@@ -281,7 +286,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       killing = true;
       setProgressBarTitle = true;
     }
-    catch (IOException e) {
+    catch (LogFile.WriteException e) {
       e.printStackTrace();
     }
   }
@@ -293,7 +298,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       pausing = true;
       setProgressBarTitle = true;
     }
-    catch (IOException e) {
+    catch (LogFile.WriteException e) {
       e.printStackTrace();
     }
   }
@@ -311,7 +316,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         writeCommand("D " + computer);
         setProgressBarTitle = true;
       }
-      catch (IOException e) {
+      catch (LogFile.WriteException e) {
         e.printStackTrace();
       }
     }
@@ -323,52 +328,29 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * synchronization is for useCommandsPipe and commmandsPipe
    * @param startup
    */
-  private synchronized final void deleteCommandsPipe(boolean enable) throws IOException{
+  private synchronized final void deleteCommandsPipe(boolean enable)
+      throws LogFile.FileException {
     if (!enable) {
       //turn off useCommandsPipe to prevent use of commandsPipe
       useCommandsPipe = false;
     }
     //delete the commands pipe even if it was never created (just to be sure)
     if (commandsPipe == null) {
-      commandsPipe = DatasetFiles.getCommandsFile(manager, rootName);
+      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
+          DatasetFiles.getCommandsFileName(rootName));
+    }
+    if (commandsPipeWriteId != LogFile.NO_ID) {
+      commandsPipe.closeWriter(commandsPipeWriteId);
+      commandsPipeWriteId = LogFile.NO_ID;
     }
     commandsPipe.delete();
-    try {
-      Thread.sleep(2000);
-    }
-    catch (InterruptedException e) {
-    }
-    if (commandsPipe.exists()) {
-      throw new IOException("Cannot delete "+commandsPipe.getAbsolutePath() + ".  Processchunks may not behave normally.\nExit and re-enter eTomo or delete "+commandsPipe.getName()+" to fix the problem.");
-    }
     if (enable) {
       //turn on useCommandsPipe to enable use of commandsPipe
       useCommandsPipe = true;
     }
-  }
-
-  /**
-   * creates commandsWriter and, if necessary, commandsPipe and the commandsPipe
-   * file.
-   * synchronized with deleteCommandsPipe
-   * synchronization is for useCommandsPipe and commmandsPipe
-   * @return true if commandsWriter can be used
-   * @throws IOException
-   */
-  private synchronized final boolean createCommandsWriter() throws IOException {
-    if (!useCommandsPipe) {
-      commandsWriter = null;
-      return false;
+    else {
+      commandsPipe = null;
     }
-    if (commandsWriter != null) {
-      return true;
-    }
-    if (commandsPipe == null) {
-      commandsPipe = DatasetFiles.getCommandsFile(manager, rootName);
-    }
-    commandsPipe.createNewFile();
-    commandsWriter = new BufferedWriter(new FileWriter(commandsPipe));
-    return true;
   }
 
   /**
@@ -376,13 +358,23 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * @param command
    * @throws IOException
    */
-  private final void writeCommand(String command) throws IOException {
-    if (!createCommandsWriter()) {
+  private final void writeCommand(String command) throws LogFile.WriteException {
+    if (!useCommandsPipe) {
       return;
     }
-    commandsWriter.write(command);
-    commandsWriter.newLine();
-    commandsWriter.flush();
+    if (commandsPipe == null) {
+      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),DatasetFiles.getCommandsFileName(rootName));
+      //commandsPipe.createNewFile();
+    }
+    if (commandsPipeWriteId == LogFile.NO_ID) {
+      commandsPipeWriteId = commandsPipe.openWriter();
+    }
+    if (commandsPipeWriteId == LogFile.NO_ID) {
+      return;
+    }
+    commandsPipe.write(command, commandsPipeWriteId);
+    commandsPipe.newLine(commandsPipeWriteId);
+    commandsPipe.flush(commandsPipeWriteId);
   }
 
   public final AxisID getAxisID() {
@@ -392,41 +384,39 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final boolean isProcessRunning() {
     return processRunning;
   }
+  
+  private synchronized void closeProcessOutput() {
+    if (processOutput != null&& processOutputReadId != LogFile.NO_ID) {
+      processOutput.closeReader(processOutputReadId);
+      processOutput = null;
+    }
+  }
 
   /**
    * make sure process output file is new and set processOutputFile.  This
    * function should be first run before the process starts.
    */
-  private synchronized final void makeProcessOutputFile() {
-    if (processOutputFile == null) {
-      processOutputFile = DatasetFiles.getOutFile(manager,
-          ProcessName.PROCESSCHUNKS.toString(), axisID);
+  private synchronized final void createProcessOutput() throws LogFile.FileException{
+    if (processOutput == null) {
+      processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
+          DatasetFiles.getOutFileName(manager, ProcessName.PROCESSCHUNKS
+              .toString(), axisID));
       //delete it the first time to avoid looking at a file from a previous run
-      processOutputFile.delete();
+      processOutput.delete();
     }
   }
 
-  public final String getProcessOutputFileName() {
-    makeProcessOutputFile();
-    return processOutputFile.getName();
-  }
-
-  private final BufferedReader getProcessOutputBufferedReader() {
-    makeProcessOutputFile();
-    if (!processOutputFile.exists()) {
-      return null;
-    }
-    try {
-      return new BufferedReader(new FileReader(processOutputFile));
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-      return null;
-    }
+  public final String getProcessOutputFileName()throws LogFile.FileException {
+    createProcessOutput();
+    return processOutput.getName();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2006/10/10 12:06:40  sueh
+ * <p> bug# 931 deleteCommandPipe():  throwing an exception if can't delete
+ * <p> the .cmds file.
+ * <p>
  * <p> Revision 1.19  2006/09/25 16:36:18  sueh
  * <p> bug# 931 Added empty function msgLogFileRenamed().
  * <p>
