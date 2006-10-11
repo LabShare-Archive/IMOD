@@ -1,8 +1,5 @@
 package etomo.process;
 
-import etomo.EtomoDirector;
-import etomo.ui.UITest;
-
 /**
  * <p>Description: </p>
  * 
@@ -16,7 +13,11 @@ import etomo.ui.UITest;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/10/10 05:14:18  sueh
+ * <p> bug# 931 Override ThreadGroup, so that uncaught exceptions can be handled
+ * <p> during a UITest.
+ * <p> </p>
  */
 class ThreadGroup extends java.lang.ThreadGroup {
   public static final String rcsid = "$Id$";
@@ -35,18 +36,13 @@ class ThreadGroup extends java.lang.ThreadGroup {
     //necessary when there is no parent ThreadGroup or the parent is the
     //java.lang ThreadGroup.  The "non-runtime" exceptions should cause Etomo to
     //fail or be handled by Etomo.
-    if (throwable instanceof ThreadDeath
-       /* || !(throwable instanceof RuntimeException)*/) {
+    if (throwable instanceof ThreadDeath) {
       return;
     }
     java.lang.ThreadGroup parent = getParent();
     if (parent != null && parent instanceof etomo.process.ThreadGroup) {
       return;
     }
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
-    if (!etomoDirector.isTestDone() && etomoDirector.isTest()
-        && !etomoDirector.isHeadless()) {
-      UITest.setUncaughtException(throwable);
-    }
+    UncaughtException.INSTANCE.setThrowable(throwable);
   }
 }

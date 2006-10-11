@@ -283,18 +283,6 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
   long getDuration() {
     return duration;
   }
-  
-  public static void setUncaughtException(Throwable throwable) {
-    uncaughtException = throwable;
-  }
-  
-  boolean isUncaughtException() {
-    return uncaughtException != null;
-  }
-  
-  void uncaughtException(String info, String command) {
-    fail(info, command, uncaughtException.getMessage());
-  }
 
   /**
    * runs tests with uitest-axis autodocs for A and/or B
@@ -651,6 +639,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/10/10 05:25:25  sueh
+ * <p> bug# 931 Added uncaughtException to handle uncaught exceptions in Etomo
+ * <p> during UITest.
+ * <p>
  * <p> Revision 1.18  2006/08/28 18:27:04  sueh
  * <p> bug# 923 Changed the source attribute to filedir.  Global filedir is an absolute file
  * <p> path.
