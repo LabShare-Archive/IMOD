@@ -83,7 +83,8 @@ void imodDrawModel(ImodView *vi, Imod *imod)
   zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
 
   /* draw if current contour exists and it is not at wrong time */
-  if (cont && cont->psize && !ivwTimeMismatch(vi, 0, obj, cont)) { 
+  if (cont && cont->psize && !ivwTimeMismatch(vi, 0, obj, cont) && 
+      vi->drawcursor) { 
     
     /* draw ends if more than one point */
     if (cont->psize > 1) {
@@ -375,6 +376,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.13  2006/09/12 16:20:37  mast
+Changed to draw current contour as open
+
 Revision 4.12  2006/08/31 23:27:44  mast
 Changes for stored value display
 
