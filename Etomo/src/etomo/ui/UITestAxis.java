@@ -26,6 +26,7 @@ import junit.extensions.jfcunit.finder.AbstractButtonFinder;
 import junit.extensions.jfcunit.finder.ComponentFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 
+import etomo.process.UncaughtException;
 import etomo.storage.autodoc.AdocCommand;
 import etomo.storage.autodoc.AdocCommandFactory;
 import etomo.storage.autodoc.AdocCommandReader;
@@ -54,6 +55,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2006/10/10 05:26:10  sueh
+ * <p> bug# 931 Added assert file exists functionality.  Failing on an uncaught
+ * <p> exception.
+ * <p>
  * <p> Revision 1.8  2006/08/28 18:27:16  sueh
  * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
  * <p> absolute file path.
@@ -270,7 +275,8 @@ final class UITestAxis implements AdocCommandFactory {
   }
 
   private boolean isUncaughtException() {
-    if (testCase.isUncaughtException()) {
+    String message;
+    if ((message = UncaughtException.INSTANCE.getThrowableString()) != null) {
       String info = null;
       if (reader != null) {
         info = reader.getInfo();
@@ -279,7 +285,7 @@ final class UITestAxis implements AdocCommandFactory {
       if (command != null) {
         commandString = command.toString();
       }
-      testCase.uncaughtException(info, commandString);
+      testCase.fail(info, command.toString(), message);
       return true;
     }
     return false;
@@ -1013,6 +1019,10 @@ final class UITestAxis implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/10/10 05:26:10  sueh
+ * <p> bug# 931 Added assert file exists functionality.  Failing on an uncaught
+ * <p> exception.
+ * <p>
  * <p> Revision 1.8  2006/08/28 18:27:16  sueh
  * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
  * <p> absolute file path.
