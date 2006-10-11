@@ -31,13 +31,15 @@ public final class DatasetFiles {
   private static final String STACK_EXT = ".st";
   private static final String MODEL_EXT = ".mod";
   private static final String PATCH_VECTOR_STRING = "patch_vector";
-  public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING + MODEL_EXT;
-  public static final String PATCH_VECTOR_CCC_MODEL = PATCH_VECTOR_STRING +"_ccc"+ MODEL_EXT;
+  public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING
+      + MODEL_EXT;
+  public static final String PATCH_VECTOR_CCC_MODEL = PATCH_VECTOR_STRING
+      + "_ccc" + MODEL_EXT;
   public static final String LOG_EXT = ".log";
   public static final char BACKUP_CHAR = '~';
   public static final String TRANSFER_FID_LOG = "transferfid.log";
   public static final String PATCH_OUT = "patch.out";
-  
+
   private static File calibrationDir = null;
   private static File distortionDir = null;
 
@@ -168,9 +170,9 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".fid";
   }
-  
+
   public static File getJoinInfo(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(), manager.getName()+ ".info");
+    return new File(manager.getPropertyUserDir(), manager.getName() + ".info");
   }
 
   public static File getFiducialModelFile(BaseManager manager, AxisID axisID) {
@@ -207,7 +209,7 @@ public final class DatasetFiles {
   public static File getTransferFidCoordFile(BaseManager manager) {
     return new File(manager.getPropertyUserDir(), getTransferFidCoordFileName());
   }
-  
+
   public static File getPatchVectorModel(BaseManager manager) {
     return new File(manager.getPropertyUserDir(), PATCH_VECTOR_MODEL);
   }
@@ -240,8 +242,14 @@ public final class DatasetFiles {
   public static File getOutFile(BaseManager manager, String commandName,
       AxisID axisID) {
     axisID = correctAxisID(manager.getBaseMetaData(), axisID);
-    return new File(manager.getPropertyUserDir(), commandName
-        + axisID.getExtension() + ".out");
+    return new File(manager.getPropertyUserDir(), getOutFileName(manager,
+        commandName, axisID));
+  }
+
+  public static String getOutFileName(BaseManager manager, String commandName,
+      AxisID axisID) {
+    axisID = correctAxisID(manager.getBaseMetaData(), axisID);
+    return commandName + axisID.getExtension() + ".out";
   }
 
   //log files
@@ -312,6 +320,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2006/10/10 05:26:47  sueh
+ * <p> bug# 931 Adding names of transfer log and patch out.
+ * <p>
  * <p> Revision 1.25  2006/09/19 22:39:53  sueh
  * <p> bug# 928 Added PATCH_VECTOR_NAME, PATCH_VECTOR_CCC_NAME,
  * <p> and getPatchVectorModel().
