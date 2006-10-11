@@ -111,6 +111,7 @@ class XyzGL : public QGLWidget
   XyzGL(  struct xxyzwin *xyz, QGLFormat format, XyzWindow * parent = 0,
         const char * name = 0);
   ~XyzGL() {};
+  bool mClosing;
  
  protected:
   void paintGL();
@@ -131,6 +132,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.6  2006/09/17 18:15:59  mast
+Changes to provide mouse position to pixelview
+
 Revision 3.5  2004/11/01 22:57:24  mast
 Changed to floating x and y positions in getxyz
 
