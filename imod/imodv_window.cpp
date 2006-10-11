@@ -52,8 +52,8 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mFileMenu->setItemEnabled(VFILE_MENU_SAVEAS, standAlone);
   mFileMenu->insertSeparator();
 
-  mFileMenu->insertItem("Snap &RGB As...", VFILE_MENU_SNAPRGB);
   mFileMenu->insertItem("Snap &Tiff As...", VFILE_MENU_SNAPTIFF);
+  mFileMenu->insertItem("Snap &NonT As...", VFILE_MENU_SNAPRGB);
   mFileMenu->insertItem("&Zero Snap File #", VFILE_MENU_ZEROSNAP);
   mFileMenu->insertItem("&Movie...", VFILE_MENU_MOVIE);
   mFileMenu->setAccel(Key_M, VFILE_MENU_MOVIE);
@@ -297,6 +297,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.11  2006/08/31 23:23:14  mast
+Removed hot key for Save As
+
 Revision 4.10  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

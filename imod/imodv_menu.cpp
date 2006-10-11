@@ -104,8 +104,8 @@ void imodvHelpMenu(int item)
        "     Open Model\t\tLoad a new model to view.\n",
        "     Save Model\t\tSave the current model.\n",
        "     Save Model As...\tSave model under a different name.\n",
-       "     Snap RGB As...\tSave a snapshot to a specified non-TIFF file.\n",
-       "     Snap TIFF As...\tSave a snapshot a specified TIFF file.\n",
+       "     Snap TIFF As...\tSave a snapshot to a specified TIFF file.\n",
+       "     Snap NonT As...\tSave a snapshot to a specified non-TIFF file.\n",
        "     Zero Snap File #\tReset the counter for snapshot files to 0.\n",
        "     Movie...\t\tProgram a sequence of displays and save them.\n",
        "     Close\t\tQuit 3dmodv or close model view window in imod.\n",
@@ -622,6 +622,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.20  2006/09/12 15:47:34  mast
+Handled contour member renames
+
 Revision 4.19  2006/09/01 20:48:46  mast
 Added mouse help for selection
 
