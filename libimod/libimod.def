@@ -176,8 +176,8 @@ EXPORTS
 	ilistAppend
 	imodMeshGetIndex
 	imodMatRot
-	imodContourSplice
 	imodel_contour_scan
+	imodContourSplice
 	imodContourPrincipalAxis
 	AMOEBA
 	imodClipsFixCount
@@ -206,7 +206,6 @@ EXPORTS
 	GETIMODSCAT
 	setExitPrefix
 	imodPutShort
-	imodContourMeanNormal
 	imodel_contour_centroid
 	PipNumberOfEntries
 	IMODPARTIALMODE
@@ -251,6 +250,7 @@ EXPORTS
 	imod_to_wmod
 	imodContourShave
 	imodContourSetSurface
+	imodContourFitPlane
 	PipInitialize
 	imodViewModelDefault
 	PipNumberOfArgs
@@ -336,8 +336,8 @@ EXPORTS
 	imodDelete
 	b3dFread
 	imodLabelItemDelete
-	istoreAddOneIndexItem
 	imodContourCheckNesting
+	istoreAddOneIndexItem
 	imodDeleteContour
 	PIPNUMBEROFENTRIES
 	PipGetBoolean

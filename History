@@ -3,6 +3,8 @@ IMOD History
 10/11/06: Changed routine for finding mean normal to a contour, so slicer will
 be more robust with open, almost straight contour.
 
+10/9/06: Took ERROR: out of Imodkillgroup's message when it can't find process.
+
 10/6/06: IMOD_3-8-26 (eTomo unstable)
 10/6/06: Made slicer multi-threaded to take advantage of multiple processors.
 The default is to use 4 threads but this can be overriden by setting the
