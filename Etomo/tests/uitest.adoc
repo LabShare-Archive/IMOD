@@ -45,7 +45,7 @@ set.image-rotation = -12.5
 set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
-duration = ::20
+duration = ::25
 
 [Test = build-dual-fidless]
 datasetdir = dual
