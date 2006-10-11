@@ -245,6 +245,7 @@ void XyzWindow::closeEvent (QCloseEvent * e )
   free(xx);
   XYZ = NULL;
 
+  mGLw->mClosing = true;
   e->accept();
 }
 
@@ -1594,6 +1595,7 @@ XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, XyzWindow * parent,
   mMousePressed = false;
   mXyz = xyz;
   mWin = parent;
+  mClosing = false;
 }
 
 
@@ -1714,6 +1716,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   float mx, my;
   int mz;
 
+  // Reject event if closing (why is there an event anyway?)
+  if (mClosing)
+    return;
   if (pixelViewOpen) {
     mXyz->whichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
     if (mXyz->whichbox && mXyz->whichbox < 4)
@@ -1742,6 +1747,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.31  2006/10/05 15:41:32  mast
+Provided for primary and second non-TIFF snapshot format
+
 Revision 4.30  2006/09/17 18:15:59  mast
 Changes to provide mouse position to pixelview
 
