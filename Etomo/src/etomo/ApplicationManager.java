@@ -4585,7 +4585,7 @@ public final class ApplicationManager extends BaseManager {
           AxisID.ONLY);
       return;
     }
-    catch (LogFile.BackupException except) {
+    catch (LogFile.FileException except) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
@@ -5407,6 +5407,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.268  2006/10/10 05:00:40  sueh
+ * <p> bug# 931 Managing log files with LogFile
+ * <p>
  * <p> Revision 3.267  2006/09/20 20:41:25  sueh
  * <p> bug# 928 Added errorProcess().
  * <p>

@@ -1,5 +1,7 @@
 package etomo.process;
 
+import etomo.storage.LogFile;
+
 /**
 * <p>Description: </p>
 * 
@@ -18,7 +20,7 @@ interface DetachedProcessMonitor extends ProcessMonitor {
   public static  final String  rcsid =  "$Id$";
   
   public boolean isProcessRunning();
-  public String getProcessOutputFileName();
+  public String getProcessOutputFileName()throws LogFile.FileException;
   public void setProcess(SystemProcessInterface process);
 }
 /**
@@ -48,6 +50,10 @@ interface DetachedProcessMonitor extends ProcessMonitor {
  */
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/01/31 20:44:33  sueh
+* <p> bug# 521 Added the process to combine monitor.  This allows the last
+* <p> ProcessResultDisplay used by the monitor to be assigned to the process.
+* <p>
 * <p> Revision 1.2  2005/11/19 02:24:09  sueh
 * <p> bug# 744 Removing BackgroundComScriptMonitor.  Using
 * <p> DetachedProcessMonitor with both DetachedProcess and

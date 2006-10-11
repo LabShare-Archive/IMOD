@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2006/10/10 05:05:05  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 1.22  2006/06/05 16:17:46  sueh
  * <p> bug# 766 Removed an unused constructor.  Added ProcessData to the base
  * <p> class.
@@ -255,7 +258,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       renameFiles(getComScriptName(), getWatchedFileName(),
           getWorkingDirectory(), logFile);
     }
-    catch (LogFile.BackupException e) {
+    catch (LogFile.FileException e) {
       getProcessMessages().addError(e.getMessage());
       getProcessMessages().addError(
           getComScriptName() + " may already be running.  Check the log file.");
@@ -272,7 +275,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
             manager.getPropertyUserDir(), getAxisID(), comscriptState
                 .getCommand(index)));
       }
-      catch (LogFile.BackupException e) {
+      catch (LogFile.FileException e) {
         getProcessMessages().addError(e.getMessage());
         getProcessMessages().addError(
             getComScriptName()

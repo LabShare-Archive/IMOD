@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.111  2006/10/10 07:43:14  sueh
+ * bug# 931 In handleTransferfidMessage(), close the log file writer on error.
+ *
  * Revision 3.110  2006/10/10 05:12:40  sueh
  * bug# 931  runCommand():  Managing the optional log file with LogFile.
  *
@@ -1558,7 +1561,7 @@ public class ProcessManager extends BaseProcessManager {
    * Run the imod2patch command, don't save meta data because it doesn't change
    * for this command
    */
-  public void modelToPatch(AxisID axisID) throws LogFile.BackupException,
+  public void modelToPatch(AxisID axisID) throws LogFile.FileException,
       SystemProcessException {
     LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
         DatasetFiles.PATCH_OUT);

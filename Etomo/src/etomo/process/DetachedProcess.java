@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.comscript.DetachedCommand;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -54,6 +55,12 @@ final class DetachedProcess extends BackgroundProcess {
           + getCommandName());
       return false;
     }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Can't Run "
+          + getCommandName());
+      return false;
+    }
     if (!((DetachedCommand) getCommand()).isValid()) {
       processDone(1);
       return false;
@@ -80,7 +87,7 @@ final class DetachedProcess extends BackgroundProcess {
     return true;
   }
 
-  private final String[] makeRunFile() throws IOException {
+  private final String[] makeRunFile() throws IOException,LogFile.FileException {
     String commandName = getCommandName();
     AxisID axisID = getAxisID();
     File runFile = DatasetFiles.getShellScript(manager, commandName, axisID);
@@ -173,6 +180,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/07/20 23:13:34  sueh
+ * <p> bug# 885 Check for a valid command before running.
+ * <p>
  * <p> Revision 1.7  2006/06/15 16:16:53  sueh
  * <p> bug# 871 Added isNohup().
  * <p>

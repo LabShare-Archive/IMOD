@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.42  2006/10/10 05:08:30  sueh
+ * bug# 931 Managing the log file with LogFile.
+ *
  * Revision 3.41  2006/09/25 16:34:55  sueh
  * bug# 931 renameFiles():  Tell the processMonitor when the log file has been
  * renamed.
@@ -569,7 +572,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
           processManager.msgComScriptDone(this, 1);
         }
       }
-      catch (LogFile.BackupException except) {
+      catch (LogFile.FileException except) {
         processManager.msgComScriptDone(this, vmstocsh.getExitValue());
         return;
       }
@@ -613,7 +616,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processManager.msgComScriptDone(this, csh.getExitValue());
   }
 
-  protected boolean renameFiles() throws LogFile.BackupException{
+  protected boolean renameFiles() throws LogFile.FileException{
       renameFiles(comScriptName, watchedFileName, workingDirectory, logFile);
     if (processMonitor != null) {
       processMonitor.msgLogFileRenamed();
@@ -622,7 +625,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   static protected void renameFiles(String name, String watchedFileName,
-      File workingDirectory, LogFile logFile) throws LogFile.BackupException{
+      File workingDirectory, LogFile logFile) throws LogFile.FileException{
     // Rename the logfile so that any log file monitor does not get confused
     // by an existing log file
     //String logFileName = parseBaseName(name, ".com") + ".log";

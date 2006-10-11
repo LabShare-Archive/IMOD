@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.20  2006/10/10 05:07:55  sueh
+ * <p> $bug# 931 Managing the log file with LogFile.
+ * <p> $
  * <p> $Revision 1.19  2006/09/25 16:33:32  sueh
  * <p> $bug# 931 Added msgLogFileRenamed().
  * <p> $
@@ -552,7 +555,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     return null;
   }
 
-  public final String getProcessOutputFileName() {
+  public final String getProcessOutputFileName()throws LogFile.FileException {
     return null;
   }
 }

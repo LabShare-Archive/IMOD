@@ -23,7 +23,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/10/10 05:19:14  sueh
+ * <p> bug# 931 Test class for LogFile.
+ * <p> </p>
  */
 public class LogFileTest extends TestCase {
   public static final String rcsid = "$Id$";
@@ -76,7 +79,7 @@ public class LogFileTest extends TestCase {
     readId1 = test.openReader();
     assertFalse(
         "Should be able to open a log file reader when a reader is is already opened.",
-        readId1== LogFile.NO_ID);
+        readId1 == LogFile.NO_ID);
     assertTrue(
         "A successful openReader() call should open the log file reader.", test
             .isOpen(LogFile.LockType.READ, readId1));
@@ -84,7 +87,7 @@ public class LogFileTest extends TestCase {
       test.backup();
       fail("Can't backup a log file with an open reader.");
     }
-    catch (LogFile.BackupException e) {
+    catch (LogFile.FileException e) {
     }
     assertFalse(
         "CloseReader should fail when passed an id that doesn't match the one returned by the open call.",
@@ -123,7 +126,7 @@ public class LogFileTest extends TestCase {
   }
 
   public void testCloseReader() throws LogFile.ReadException,
-      LogFile.BackupException {
+      LogFile.FileException {
     LogFile test = getInstance();
     assertFalse("Closing unnecessarily should fail.", test.closeReader(0));
     long readId = test.openReader();
@@ -156,12 +159,12 @@ public class LogFileTest extends TestCase {
     long writeId2 = LogFile.NO_ID;
     assertEquals(
         "Shouldn't be able to open a log file for writing when it is already open for writing.",
-        writeId2 = test.openForWriting() ,LogFile.NO_ID);
+        writeId2 = test.openForWriting(), LogFile.NO_ID);
     try {
       test.backup();
       fail("Can't backup an open log file.");
     }
-    catch (LogFile.BackupException e) {
+    catch (LogFile.FileException e) {
     }
     long readId2 = test.openReader();
     assertFalse(
@@ -205,7 +208,7 @@ public class LogFileTest extends TestCase {
       test.backup();
       fail("Can't backup an open log file.");
     }
-    catch (LogFile.BackupException e) {
+    catch (LogFile.FileException e) {
     }
     long readId2 = test.openReader();
     assertFalse(
@@ -279,7 +282,7 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
-  public void testCloseForWriting() throws LogFile.BackupException,
+  public void testCloseForWriting() throws LogFile.FileException,
       LogFile.WriteException {
     LogFile test = getInstance();
     assertFalse("Closing unnecessarily should fail.", test.closeForWriting(0));
@@ -306,8 +309,7 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
-  public void testBackup() throws LogFile.BackupException,
-      LogFile.WriteException {
+  public void testBackup() throws LogFile.FileException, LogFile.WriteException {
     LogFile test = getInstance();
     assertTrue("Should be able to backup an unopened log file.", test.backup());
     assertFalse("Backup should rename the log to .log~.", log.exists());
@@ -333,6 +335,43 @@ public class LogFileTest extends TestCase {
         writeId == LogFile.NO_ID);
     assertTrue(test.closeWriter(writeId));
     assertTrue(test.noLocks());
+  }
+
+  public void testDelete() throws LogFile.FileException, LogFile.ReadException,
+      LogFile.WriteException {
+    LogFile test = getInstance();
+    long readId = test.openReader();
+    try {
+      test.delete();
+      fail("Should throw an exception if a reader is open.");
+    }
+    catch (LogFile.FileException e) {
+    }
+    assertTrue(test.closeReader(readId));
+    long writeId = LogFile.NO_ID;
+    assertFalse((writeId = test.openForWriting()) == LogFile.NO_ID);
+    try {
+      test.delete();
+      fail("Should throw an exception if open for writing.");
+    }
+    catch (LogFile.FileException e) {
+    }
+    assertTrue(test.closeForWriting(writeId));
+    writeId = test.openWriter();
+    try {
+      test.delete();
+      fail("Should throw an exception if the writer is open.");
+    }
+    catch (LogFile.FileException e) {
+    }
+    assertTrue(test.closeWriter(writeId));
+    assertTrue(test.backup());
+    createLog();
+    assertTrue("Should be able to delete when it can get an exclusive lock.",
+        test.delete());
+    assertFalse("Should delete the file.",log.exists());
+    assertFalse("Should return false when there is nothing to delete", test
+        .delete());
   }
 
   public void testIsOpen() throws LogFile.ReadException, LogFile.WriteException {

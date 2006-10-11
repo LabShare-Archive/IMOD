@@ -22,9 +22,11 @@ import etomo.util.Utilities;
  * become unreliable and a separate class was needed to ensure that the log
  * files are not left open.
  * 
- * This class contains a semaphore called Lock, which can prevent the functions
- * backup() and open() from completing.  The waitLimit parameter can be used to
- * prevent eTomo from being deadlocked.
+ * This class contains a semaphore called Lock, which contains three types of
+ * locks:  Read, Write, and File.  File is the most exclusive.  Only one File
+ * lock can exists at a time and it can't coexist with any other kind of lock.  
+ * Only one Write lock can exist at a time, but it can coexist with Read locks.
+ * Multiple Read locks can exist at a time.
  * 
  * LogFile is an N'ton and stores its instances in a Hashtable, which is a
  * synchronized class.
@@ -138,29 +140,28 @@ public final class LogFile {
   /**
    * Delete the current backup file and rename the current file to be the new
    * backup file.  The current backup file will not be deleted unless the
-   * current file exists.  A waitLimit < 0 can cause deadlock.
-   * @see waitForLock()
-   * @param waitLimit
+   * current file exists.
    * @return true if a backup was done
-   * @throws BackupException
+   * @throws FileException
    */
-  public synchronized boolean backup() throws BackupException {
-    long backupId = NO_ID;
+  public synchronized boolean backup() throws FileException {
+    long fileId = NO_ID;
     try {
-      backupId = lock.lock(LockType.BACKUP);
+      fileId = lock.lock(LockType.FILE);
     }
     catch (LockException e) {
-      throw new BackupException(this, backupId, e);
+      throw new FileException(this, fileId, e);
     }
     createFile();
     createBackupFile();
     if (!file.exists()) {
       //nothing to backup
       try {
-        lock.unlock(LockType.BACKUP, backupId);
+        lock.unlock(LockType.FILE, fileId);
       }
       catch (LockException e) {
-        //only throw backup exception when the backup failed because of an error
+        //Don't throw a file exception because the error didn't affect the
+        //backup.
         e.printStackTrace();
       }
       return false;
@@ -207,18 +208,59 @@ public final class LogFile {
         message
             .append("\nIf either of these files is open in 3dmod, close 3dmod.");
       }
-      throw new BackupException(this, backupId, message.toString());
+      throw new FileException(this, fileId, message.toString());
     }
     //reset the File variables sinces the file names may have changed.
     file = null;
     backupFile = null;
     try {
-      lock.unlock(LockType.BACKUP, backupId);
+      lock.unlock(LockType.FILE, fileId);
     }
     catch (LockException e) {
       e.printStackTrace();
     }
     return success;
+  }
+  
+  public synchronized boolean delete() throws FileException {
+    long fileId = NO_ID;
+    try {
+      fileId = lock.lock(LockType.FILE);
+    }
+    catch (LockException e) {
+      throw new FileException(this, fileId, e);
+    }
+    createFile();
+    if (!file.exists()) {
+      //nothing to delete
+      try {
+        lock.unlock(LockType.FILE, fileId);
+      }
+      catch (LockException e) {
+        //Don't throw a file exception because the error didn't affect the
+        //delete.
+        e.printStackTrace();
+      }
+      return false;
+    }
+    file.delete();
+    try {
+      Thread.sleep(200);
+    }
+    catch (InterruptedException e) {
+    }
+    boolean success = !file.exists();
+    file = null;
+    try {
+      lock.unlock(LockType.FILE, fileId);
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    if (success) {
+      return true;
+    }
+    throw new FileException(this, fileId, "Unable to delete "+file.getAbsolutePath());
   }
 
   public long openWriter() throws WriteException {
@@ -394,6 +436,18 @@ public final class LogFile {
       throw new WriteException(this, writeId, e);
     }
   }
+  
+  public synchronized void flush(long writeId) throws WriteException {
+    if (!lock.isLocked(LockType.WRITE, writeId)) {
+      throw new WriteException(this, writeId);
+    }
+    try {
+      bufferedWriter.flush();
+    }
+    catch (IOException e) {
+      throw new WriteException(this, writeId, e);
+    }
+  }
 
   private void createFile() {
     if (file != null) {
@@ -491,7 +545,7 @@ public final class LogFile {
   public static final class LockType {
     public static final LockType READ = new LockType("read");
     public static final LockType WRITE = new LockType("write");
-    public static final LockType BACKUP = new LockType("backup");
+    public static final LockType FILE = new LockType("file");
 
     private final String name;
 
@@ -543,14 +597,14 @@ public final class LogFile {
     }
   }
 
-  public static final class BackupException extends Exception {
-    BackupException(LogFile logFile, long id, Exception e) {
+  public static final class FileException extends Exception {
+    FileException(LogFile logFile, long id, Exception e) {
       super(e.toString() + "\nid=" + id + ",logFile=" + logFile
           + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
 
-    BackupException(LogFile logFile, long id, String message) {
+    FileException(LogFile logFile, long id, String message) {
       super(message + "\nid=" + id + ",logFile=" + logFile
           + PUBLIC_EXCEPTION_MESSAGE);
     }
@@ -576,7 +630,7 @@ public final class LogFile {
     private long currentId = NO_ID;
     private HashMap readIdHashMap = null;
     private long writeId = NO_ID;
-    private long backupId = NO_ID;
+    private long fileId = NO_ID;
 
     private static String makeKey(long id) {
       return String.valueOf(id);
@@ -584,7 +638,7 @@ public final class LogFile {
 
     public String toString() {
       return "\n[readIdHashMap=" + readIdHashMap + ",\nwrite=Id=" + writeId
-          + ",backupId=" + backupId + "]";
+          + ",fileId=" + fileId + "]";
     }
 
     long lock(LockType lockType) throws LockException {
@@ -605,7 +659,7 @@ public final class LogFile {
         writeId = currentId;
       }
       else {
-        backupId = currentId;
+        fileId = currentId;
       }
       return currentId;
     }
@@ -621,14 +675,14 @@ public final class LogFile {
       else if (lockType == LockType.WRITE && id == writeId) {
         writeId = NO_ID;
       }
-      else if (lockType == LockType.BACKUP && id == backupId) {
-        backupId = NO_ID;
+      else if (lockType == LockType.FILE && id == fileId) {
+        fileId = NO_ID;
       }
       else {
         throw new LockException(this, lockType);
       }
       //turn off locked if all the saved ids are empty
-      if (readIdHashMap.isEmpty() && writeId == NO_ID && backupId == NO_ID) {
+      if (readIdHashMap.isEmpty() && writeId == NO_ID && fileId == NO_ID) {
         locked = false;
       }
       return;
@@ -642,7 +696,7 @@ public final class LogFile {
       return (lockType == LockType.READ && readIdHashMap
           .containsKey(makeKey(id)))
           || (lockType == LockType.WRITE && id == writeId)
-          || (lockType == LockType.BACKUP && id == backupId);
+          || (lockType == LockType.FILE && id == fileId);
     }
 
     boolean isLocked(LockType lockType) {
@@ -652,7 +706,7 @@ public final class LogFile {
       createReadIdHashMap();
       return (lockType == LockType.READ && !readIdHashMap.isEmpty())
           || (lockType == LockType.WRITE && writeId != NO_ID)
-          || (lockType == LockType.BACKUP && backupId != NO_ID);
+          || (lockType == LockType.FILE && fileId != NO_ID);
     }
 
     void assertNoLocks() throws LockException {
@@ -666,9 +720,9 @@ public final class LogFile {
         //succeed - not locked
         return;
       }
-      //nothing else can be done during a backup
+      //nothing else can be done during a file lock
       //only one write can be done at a time
-      if (lockType == LockType.BACKUP || backupId != NO_ID
+      if (lockType == LockType.FILE || fileId != NO_ID
           || (lockType == LockType.WRITE && writeId != NO_ID)) {
         throw new LockException(this, lockType);
       }
@@ -682,16 +736,16 @@ public final class LogFile {
         throw new LockException(this, lockType, id);
       }
       createReadIdHashMap();
-      if (readIdHashMap.isEmpty() && writeId == NO_ID && backupId == NO_ID) {
+      if (readIdHashMap.isEmpty() && writeId == NO_ID && fileId == NO_ID) {
         throw new IllegalStateException(
             "Ids don't match the locked boolean:\nlocked=" + locked
                 + ",readId=" + readIdHashMap.toString() + ",writeId=" + writeId
-                + ",backup=" + backupId);
+                + ",fileId=" + fileId);
       }
       //checking for unlockability
       if ((lockType == LockType.READ && readIdHashMap.containsKey(makeKey(id)))
           || (lockType == LockType.WRITE && id == writeId)
-          || (lockType == LockType.BACKUP && id == backupId)) {
+          || (lockType == LockType.FILE && id == fileId)) {
         return;
       }
       throw new LockException(this, lockType, id);
@@ -823,6 +877,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/10/10 07:44:20  sueh
+ * <p> bug# 931 When BufferedWriter.close() is called, the instance can't be
+ * <p> reopened, so don't preserve the buffered writer instance.
+ * <p>
  * <p> Revision 1.1  2006/10/10 05:18:57  sueh
  * <p> Bug# 931 Class to manage log files.  Prevents access that would violate  Windows file locking.  Handles backups, reading, and writing.  Also can use to
  * <p> prevent access while another process is writing to the file.
