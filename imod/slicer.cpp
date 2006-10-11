@@ -1114,6 +1114,7 @@ static int setAnglesFromContour(SlicerStruct *ss)
   Ipoint n, a;
   int pt;
   float smallVal = 1.e-4;
+  float dval;
   double rpd = RADIANS_PER_DEGREE;
   double beta, alpha, zrot;
   double xsum, ysum, zsum;
@@ -1138,28 +1139,17 @@ static int setAnglesFromContour(SlicerStruct *ss)
     ysum += cont->pts[pt].y;
     zsum += cont->pts[pt].z;
   }
-  if (imodContourMeanNormal(rcont, 10., 1., &scale, &n)) {
-    wprint("\aContour too small or too straight to find normal.\n");
+
+  if (imodContourFitPlane(rcont, &scale, &n, &dval, &alpha, &beta)) {
+    wprint("\aContour too small or too straight to find plane.\n");
     imodContourDelete(rcont);
     return 1;
   }
-  if (n.z < 0.) {
-    n.x = -n.x;
-    n.y = -n.y;
-    n.z = -n.z;
-  }
   imodContourDelete(rcont);
-
-  // Get angles and set them
-  beta = 0.;
-  if (fabs((double)n.x) > smallVal || fabs((double)n.z) > smallVal)
-    beta = -atan2((double)n.x, (double)n.z);
-  zrot = n.z * cos(beta) - n.x * sin(beta);
-  alpha = -(atan2(zrot, (double)n.y) - 1.570796);
   ss->tang[b3dX] = alpha / rpd;
   ss->tang[b3dY] = beta / rpd;
-  /* printf("norm %f %f %f  zrot %f alpha %.2f  beta %.2f\n", 
-     n.x, n.y, n.z, zrot, alpha/rpd, beta/rpd); */
+  /* printf("norm %f %f %f alpha %.2f  beta %.2f\n", 
+     n.x, n.y, n.z, alpha/rpd, beta/rpd); */
   ss->qtWindow->setAngles(ss->tang);
 
   // Set the center point and mouse point using the floating Z value, do draw
@@ -1821,6 +1811,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.36  2006/10/06 19:36:30  mast
+Moved fillImageArry to slicer_classes for threading
+
 Revision 4.35  2006/10/05 15:41:32  mast
 Provided for primary and second non-TIFF snapshot format
 
