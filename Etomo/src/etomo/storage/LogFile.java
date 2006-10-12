@@ -414,7 +414,7 @@ public final class LogFile {
 
   public synchronized void write(String string, long writeId)
       throws WriteException {
-    if (!lock.isLocked(LockType.WRITE, writeId)) {
+    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
       throw new WriteException(this, writeId);
     }
     try {
@@ -426,7 +426,7 @@ public final class LogFile {
   }
 
   public synchronized void newLine(long writeId) throws WriteException {
-    if (!lock.isLocked(LockType.WRITE, writeId)) {
+    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
       throw new WriteException(this, writeId);
     }
     try {
@@ -877,6 +877,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/10/11 10:12:05  sueh
+ * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p> FileException.
+ * <p>
  * <p> Revision 1.2  2006/10/10 07:44:20  sueh
  * <p> bug# 931 When BufferedWriter.close() is called, the instance can't be
  * <p> reopened, so don't preserve the buffered writer instance.
