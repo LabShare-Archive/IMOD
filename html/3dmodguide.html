@@ -4,7 +4,7 @@
   <title>3dmod Introduction</title>
 </head>
 <body>
-<h2 align="center">Introduction to 3dmod, Version 3.7<br>
+<h2 align="center">Introduction to 3dmod, Version 3.9<br>
 </h2>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
@@ -12,20 +12,21 @@ Cells</h3>
 <h3>Table of Contents</h3>
 <ul>
   <br>
-  <a href="#Model Organization">Model Organization</a> <br>
-  <a href="#Starting 3dmod"> Starting 3dmod</a> <br>
-  <a href="#Information Window">The Information Window</a> <br>
-  <a href="#Zap Window">The Zap Window</a> <br>
-  <a href="#Object Edit">The Object Edit Dialog</a> <br>
-  <a href="#Modeling in Zap">Modeling in the Zap Window</a> <br>
-  <a href="#Zap Toolbar">The Zap Toolbar</a> <br>
-  <a href="#Common Hot Keys">Most Frequently Used Hot Keys</a> <br>
-  <a href="#XYZ Window">The XYZ Window</a> <br>
-  <a href="#Slicer Window">The Slicer Window</a> <br>
-  <a href="#Setting Z-scale">Setting Z-scale and Pixel Size</a> <br>
-  <a href="#Viewing Model">Viewing the Model in 3D</a> <br>
-  <a href="#Skinning Model">Putting a skin on model data</a> <br>
-  <a href="#Advanced Topics">Advanced topics</a>
+  <a href="#Model%20Organization">Model Organization</a> <br>
+  <a href="#Starting%203dmod"> Starting 3dmod</a> <br>
+  <a href="#Information%20Window">The Information Window</a> <br>
+  <a href="#Zap%20Window">The Zap Window</a> <br>
+  <a href="#Object%20Edit">The Object Edit Dialog</a> <br>
+  <a href="#Modeling%20in%20Zap">Modeling in the Zap Window</a> <br>
+  <a href="#Zap%20Toolbar">The Zap Toolbar</a> <br>
+  <a href="#Common%20Hot%20Keys">Most Frequently Used Hot Keys</a> <br>
+  <a href="#XYZ%20Window">The XYZ Window</a> <br>
+  <a href="#Slicer%20Window">The Slicer Window</a> <br>
+  <a href="#Setting%20Z-scale">Setting Z-scale and Pixel Size</a> <br>
+  <a href="#Viewing%20Model">Viewing the Model in 3D</a> <br>
+  <a href="#Skinning%20Model">Putting a Skin on Model Data</a> <br>
+  <a href="#Making_Movies">Making Movies</a> <br>
+  <a href="#Advanced%20Topics">Advanced Topics</a>
 </ul>
 <hr>
 <a name="Model Organization"> <dd>
@@ -375,9 +376,12 @@ if this does not make it clear enough you can also
 make a separate symbol be displayed only on the central section. </li>
 </ul>
 <p>
-<a name="Object Edit">
+</p>
+<h3><a name="Object Edit">
 <h4>The Object Edit Dialog</h4>
-</a>The type of contours in an object, and the symbols displayed at
+</a></h3>
+<p><a name="Object Edit"></a>The type of contours in an object, and the
+symbols displayed at
 individual points, can be selected with the Object Edit dialog box.
 Here are two examples.
 <table align="center" border="0">
@@ -403,9 +407,11 @@ vesicles;
 here no symbol is
 selected but the sphere radius for points has been set to 14.
 </p>
-<p><a name="Modeling in Zap">
+<h3><a name="Modeling in Zap">
 <h4>Modeling in the Zap Window</h4>
-</a>Model points are added or changed using a 3-button mouse with the
+</a></h3>
+<p><a name="Modeling in Zap"></a>Model points are added or changed
+using a 3-button mouse with the
 program in Model mode.
 The table below gives an overview of the mouse controls in Movie and
 Model mode.
@@ -470,9 +476,10 @@ moving or deleting them. Use this button alone to move one or more
 points; hold down the Ctrl key to delete points under the cursor while
 clicking or holding down the right button.
 </p>
-<p><a name="Zap Toolbar">
+<h3><a name="Zap Toolbar">
 <h4>The Zap Toolbar</h4>
-</a></p>
+</a></h3>
+<p><a name="Zap Toolbar"></a></p>
 <center> <img src="3dmodimages/zaptoolbar.png" alt="Zap window toolbar">
 </center>
 <p>The toolbar for the Zap window has a number of useful controls.
@@ -482,7 +489,12 @@ clicking or holding down the right button.
 there is a text box which both displays the current zoom value and
 allows you
 to enter any arbitrary zoom.
-(Fractional zooms may be slower on some machines.) </li>
+(Fractional zooms may be slower on some machines.)</li>
+  <li>The numbers next to the zoom text box show the size of the
+window, or of the area enclosed by the rubberband, in pixels in the
+screen.&nbsp; This could be useful for taking a snapshot of an area of
+a particular size.<br>
+  </li>
   <li>The Checkerboard button will toggle between fast drawing and
 slower, high-resolution drawing with pixel smoothing when the zoom is
 greater than 1. </li>
@@ -551,7 +563,7 @@ particular windows, which are described in the help for those windows.
 The most commonly used hot keys
 are listed here:
 </p>
-<pre>PageUp     Show the next section (increase Z)<br>PageDown   Show the previous section (decrease Z)<br>Home       Show the last section<br>End        Show the first section<br>Delete     Delete current model point<br>-          Zoom down<br>=          Zoom up<br>s          Save the model<br>n          Start a new contour<br>Ctrl-S     Snapshot an image window to a Tiff file<br>t          Toggle model drawing off or on<br>,          Slow down movie or model rotation<br>.          Speed up movie or model rotation<br></pre>
+<pre>PageUp     Show the next section (increase Z)<br>PageDown   Show the previous section (decrease Z)<br>Home       Show the last section<br>End        Show the first section<br>Delete     Delete current model point<br>-          Zoom down<br>=          Zoom up<br>s          Save the model<br>n          Start a new contour<br>Ctrl-S     Snapshot an image window to a Tiff file<br>Shift-S, Ctrl-Shift-S   Shapshot to non-Tiff file (usually JPEG and PNG)<br>t          Toggle model drawing off or on<br>,          Slow down movie or model rotation<br>.          Speed up movie or model rotation<br></pre>
 <p>
 <a name="XYZ Window"> <dd>
   <h3>The XYZ Window</h3>
@@ -638,8 +650,13 @@ maintain a selected view in a Slicer Window while changing to other
 views in other windows (including other Slicers). Second, it allows
 you to model in the slicer without having the slice jump around.
 Third, it prevents the slow drawing in the slicer from slowing down
-the program when you want to work in or movie through other windows. </li>
-  <li>The help button describes hot keys and other features. </li>
+the program when you want to work in or movie through other windows.</li>
+  <li>The IM/FT button toggles between showing an image and a Fourier
+transform of the image.</li>
+  <li>The C button shows the slice in which the current contour will
+appear flat.<br>
+  </li>
+  <li>The Help button describes hot keys and other features. </li>
   <li>The box to the right of the sliders portrays the portion of the
 slice being viewed as a red plane inside of a representation of the
 whole image volume. </li>
@@ -662,15 +679,21 @@ movieing.<br>
 <p>It is possible to model in the Slicer, again with the same mouse
 button functions as in the Zap window. This provides a convenient way
 to track trajectories on 3D. If the lock button is not on,
-every mouse click will bring the selected point to the center.
-Sometimes
-this behavior is desirable, sometimes not. If not, just lock the
-slicer
-for modeling.
+every mouse click will bring the selected point to the center. Locking
+the slicer will prevent this behavior, which is often not desirable,
+and provides several other features when modeling.&nbsp; First, points
+can be drawn continuously by moving the mouse while holding the second
+mouse button down.&nbsp; Second, points drawn in one plane will lie
+exactly in a plane.&nbsp; Third, the PageUp and PageDown keys will move
+the center point by one pixel perpendicular to the plane being viewed
+instead of in the Z direction, which allows you to draw evenly spaced
+contours at oblique angles.&nbsp; See the Slicer <a
+ href="3dmodHelp/slicer.html">help page</a>
+for the more details. <br>
 </p>
 <p>The power of the Slicer comes at a cost - it is the first window
 that we have seen where the computation time can easily make the
-display unacceptably slow. Display time depends on three factors:
+display unacceptably slow. Display time depends on four factors:
 image thickness, high versus low resolution, and image size. If you
 need to average through many slices with a high resolution display, be
 sure to make the image as small as possible. If you must work with a
@@ -688,7 +711,7 @@ because these values are used for calculating length, surface area
 or volume from object, contour or mesh data.
 To adjust these fields in the model header
 select the Model Header menu item from the Edit menu in the
-3dmod <a href="#Information Window">Information Window</a>.
+3dmod <a href="#Information%20Window">Information Window</a>.
 </p>
 <p>The Z-Scale is the ratio of the thickness between successive images
 to the pixel size. Its two most common uses are to adjust for
@@ -756,7 +779,7 @@ two changes that can be made immediately, without having to compute
 surface meshes for the contours. The microtubule lines (green) have
 been made
 thicker and the scattered points are displayed as lighted surfaces.
-On the right is the display after making a meshes for the objects (as
+On the right is the display after making meshes for the objects (as
 explained below) and setting all objects to display as lighted
 surfaces. These display settings are all changed in the 3dmodv
 Objects dialog box, opened with the Edit-Objects menu item or the O hot
@@ -789,7 +812,7 @@ its name in the list.
 </p>
 <p>The example on the left shows how the appearance of the green lines
 was changed for the middle model view panel above. The "Lines" panel
-was selected, the line width was increased from 1 to 3, and
+was selected, the 3D line width was increased from 1 to 3, and
 "Anti-alias rendering" was turned on to smooth out the jagged edges of
 the lines.
 </p>
@@ -846,7 +869,7 @@ projection.&nbsp; The following images show an example of this display.<br>
 </table>
 </p>
 <p><a name="Skinning Model"> <dd>
-  <h3>Putting a skin on model data</h3>
+  <h3>Putting a Skin on Model Data</h3>
 </dd>
 </a>Skinning is the name used for calculating a three-dimensional
 surface from contour data. This surface, once calculated, is
@@ -855,9 +878,12 @@ a mesh of triangles that can be stored within each object.
 If any contour points within that object are edited then the mesh
 for that object must be recalculated in order for it to match
 the contour data.
-The <a href="man/imodmesh.html">imodmesh</a> program must be used
-to calculate the mesh from the contour data within a model
-since the skinning calculation can take many seconds for large objects.
+There are two ways to calculate the mesh from the contour data within a
+model: with the <a href="man/imodmesh.html">imodmesh</a> program, and
+with the Meshing panel of Objects dialog box.&nbsp; Using imodmesh
+allows many objects to be meshed at once and provides a wide range of
+options for controlling the meshing; whereas the Meshing panel provides
+a more intuitive interface with the most important options.<br>
 </p>
 <p>To skin the example model, this command was used:
 <br>
@@ -876,27 +902,17 @@ did this because of the
 "-t" option, which is followed by a list of open contour object numbers
 that should be given tubular meshes
 (here, just object 1). The "-d" option is then used to specify the
-diameter of the tubes, in pixels (10).
+diameter of the tubes, in pixels (10).<br>
 </p>
-<p>It is easy to lose your meshed model if you are modeling in 3dmod,
-save the model, run imodmesh, look at the meshed model with 3dmodv,
-then continue modeling in 3dmod and save the unmeshed model again.
-There are two ways to
-avoid this problem. You can exit from 3dmod before you run imodmesh, so
-that you will be working with the meshed model when you
-start 3dmod again. Or, after running imodmesh, be sure to read the
-meshed model back into 3dmod with the Open Model entry in the File
-menu.
-</p>
-<p>Sometimes the mesh data structure can get so large that interactive
+Sometimes the mesh data structure can get so large that interactive
 viewing is very slow. There are two ways to make a mesh with a lower
 resolution, the "-R" option to skip points within contours and
-the and "-i" option to skip Z levels. With "-R", imodmesh will skip
+the "-i" option to skip Z levels. With "-R", imodmesh will skip
 points that are within a certain distance of the line segments between
 the remaining points, thus preserving the shape of
 curves. For example,
 <br>
-<code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
+<p><code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
 <br>
 Here, a new mesh is created only for object 4 (-o 4), and
 points will
@@ -918,10 +934,122 @@ low-resolution mode then switched to high-resolution mode for studying
 details.
 Other commonly needed options are -s and -P to connect contours across
 gaps; see the <a href="man/imodmesh.html">imodmesh</a> man page for
-details.
+details.<br>
+</p>
+<p>All the options just mentioned are presented in the interface in the
+Meshing panel:<br>
+</p>
+<table style="margin-left: auto; margin-right: auto; text-align: left;"
+ border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;"><img
+ alt="Meshing panel for vesicle object"
+ src="3dmodimages/objedvesmeshing.png"
+ style="width: 303px; height: 523px;"><br>
+      </td>
+      <td style="text-align: center; vertical-align: top;"><img
+ alt="Meshing panel for tube object"
+ src="3dmodimages/objedmtmeshing.png"
+ style="width: 303px; height: 523px;"><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>Whenever an object is meshed, either with imodmesh or through this
+interface, the options used to mesh the object are stored in the model,
+and their values will be displayed when this panel is opened.&nbsp;
+This makes it easy to remesh objects without having to remember exactly
+what options were used previously.&nbsp; On the left, the "Tol" and "Z
+inc" settings reflects the values entered with the -R and -i options to
+imodmesh, and the "Cap" checkbox indicates that the -C option was used
+for the vesicle object.&nbsp; On the right, the "Tube" selection and
+the
+diameter are shown for the microtubule object.&nbsp; When the "Make
+Mesh" button is pressed, the meshing process is started in a separate
+thread so that you can continue working in 3dmod while the mesh is
+being computed.<br>
+</p>
+<p>If you do mesh with imodmesh while you are modeling in 3dmod,
+be sure to save the model, run imodmesh, then immediately load the
+model back into 3dmod with the Reload Model entry in the File
+menu.<br>
+</p>
+<h3><a name="Making_Movies"></a>Making Movies</h3>
+<p>Because IMOD does not produce files that can be used in movie
+players, if you want to make a movie of your images or models, you need
+to make a series
+of snapshots of a window and import those images into movie-making
+software.&nbsp; There are two dialogs that help manage this task:<br>
+</p>
+<table style="margin-left: auto; margin-right: auto; text-align: left;"
+ border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;"><img
+ alt="Movie dialog for images" src="3dmodimages/imagemovies.png"
+ style="width: 225px; height: 553px;"><br>
+      </td>
+      <td style="vertical-align: top;"><img
+ alt="Movie dialog for models" src="3dmodimages/modelmovies.png"
+ style="width: 306px; height: 562px;"><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>On the left is the dialog box used to control movieing and automatic
+snapshots in image display windows (primarily Zap and Slicer).&nbsp;
+The sliders at the top allow you select the range and increment between
+slices to be snapshot.&nbsp; Here, every slice from 6 to 56 will be
+snapshot.&nbsp; The<span style="font-weight: bold;"> Looping</span>
+radio buttons control how many pictures will be taken when you start a
+movie.&nbsp; With <span style="font-weight: bold;">Round trip</span>
+selected, pictures will be taken going in both directions, which is
+useful if your movie playing software will not loop back and
+forth.&nbsp; If your movie software will loop back and forth, you can
+select <span style="font-weight: bold;">One way</span> and get
+pictures going in just one direction.&nbsp; The <span
+ style="font-weight: bold;">Start at </span>radio buttons allow you to
+choose whether the set of pictures will start and end at the limits in
+Z (<span style="font-weight: bold;">Start/end</span>) or at the
+currently display section (<span style="font-weight: bold;">Current pt</span>).&nbsp;
+To get a series of pictures, select one of the file formats in the <span
+ style="font-weight: bold;">Snapshot</span> box and start a movie in a
+Zap or Slicer window with the middle or right mouse button.&nbsp; The
+window will stop movieing when the set of pictures is finished.<br>
+</p>
+<p>On the right is the corresponding dialog for movies from the model
+display window.&nbsp; In the most general case, you can adjust the
+model display to the desired starting position, orientation, and size,
+and press <span style="font-weight: bold;">Set Start</span>; then
+adjust the display to the desired final state and press <span
+ style="font-weight: bold;">Set End</span>.&nbsp; Often one simply
+wants the model to spin all the way around, which is provided by the
+buttons <span style="font-weight: bold;">Full 360 X</span> and <span
+ style="font-weight: bold;">Full 360 Y</span>.&nbsp; When you press <span
+ style="font-weight: bold;">Make,</span> you will see the model go
+through its sequence of positions.&nbsp; If it is doing the right
+thing, select a file format and check <span style="font-weight: bold;">Write
+files</span>, then press <span style="font-weight: bold;">Make</span>
+again.<br>
+</p>
+<p>The different image formats differ in their degree and type of
+compression.&nbsp; TIFF files are uncompressed and can be quite large,
+since they are 24-bit color.&nbsp; PNG files have a loss-less
+compression that is quite effective for most model snapshots but much
+less effective for image snapshots.&nbsp; JPEG files will give the most
+compression, with some loss of information that can be controlled by
+the percent quality factor, selectable in the 3dmod <span
+ style="font-weight: bold;">Preferences</span> dialog.&nbsp; For images
+with no model overlay, 80% quality is usually adequate for making
+movies.&nbsp; If there is a model overlay, you need 90% or higher
+quality to make it look decent in the individual snapshots (images here
+were shot at 90% quality).&nbsp; It might be preferable to take such
+snapshots as PNG's and let your movie software take care of the
+compression.<br>
 </p>
 <p><a name="Advanced Topics"> <dd>
-  <h3>Advanced topics</h3>
+  <h3>Advanced Topics</h3>
 </dd>
 </a>This section is to make you aware of some other features in 3dmod,
 so
@@ -1023,16 +1151,25 @@ in the boundary or the object. </li>
   <li><b>Pixel View window.</b> Use the Image-Pixel View menu entry to
 open a
 window
-that displays a grid of pixel intensity values. The actual values
-from the image file are shown. </li>
+that displays a grid of pixel intensity values as well as a continuous
+display of the mouse position in the image and the pixel value at that
+location. The actual values
+from the image file are shown in the grid; the continuous display can
+show either the byte values from within 3dmod or the values in the
+file. </li>
   <li><b>Graph Window.</b> Use the Image-Graph menu entry to open a
 window
 that can display a graph of pixel values along a line or along a
-contour. </li>
+contour; here is the <a href="3dmodHelp/graph.html">help page</a>.&nbsp;
+It is possible to define a line width so as to average over several
+pixels, and to see the average value over a subset of a line selected
+with the Zap window rubberband.<br>
+  </li>
   <li><b>Tumbler Window.</b> Use the Image-Tumbler menu entry to open a
 window
 that will show a projection through a small volume of data as the
-volume is tilted to different orientations. </li>
+volume is tilted to different orientations; here is the <a
+ href="3dmodHelp/tumbler.html">help page</a>. </li>
   <li><b>Making movies.</b> In addition to being able to snapshot a
 window
 with a hot key, you can open two dialog boxes that will help you
