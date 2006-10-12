@@ -203,7 +203,7 @@ public final class LogFile {
       System.err.println("Unable to rename log file to: "
           + backupFile.getAbsolutePath());
       StringBuffer message = new StringBuffer("Unable to rename "
-          + file.getAbsolutePath() + " to " + file.getAbsolutePath());
+          + file.getAbsolutePath() + " to " + backupFile.getAbsolutePath());
       if (Utilities.isWindowsOS()) {
         message
             .append("\nIf either of these files is open in 3dmod, close 3dmod.");
@@ -245,12 +245,11 @@ public final class LogFile {
     }
     file.delete();
     try {
-      Thread.sleep(200);
+      Thread.sleep(500);
     }
     catch (InterruptedException e) {
     }
     boolean success = !file.exists();
-    file = null;
     try {
       lock.unlock(LockType.FILE, fileId);
     }
@@ -258,9 +257,12 @@ public final class LogFile {
       e.printStackTrace();
     }
     if (success) {
+      file = null;
       return true;
     }
-    throw new FileException(this, fileId, "Unable to delete "+file.getAbsolutePath());
+    String path = file.getAbsolutePath();
+    file = null;
+    throw new FileException(this, fileId, "Unable to delete "+path);
   }
 
   public long openWriter() throws WriteException {
@@ -877,6 +879,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/10/12 03:19:56  sueh
+ * <p> bug# 931 In newLine() an write() throw WriteException instead of
+ * <p> NullPointerException when the writer is not open.
+ * <p>
  * <p> Revision 1.3  2006/10/11 10:12:05  sueh
  * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
  * <p> FileException.
