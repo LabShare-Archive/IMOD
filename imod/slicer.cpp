@@ -59,7 +59,6 @@ static void drawThickControls(SlicerStruct *ss);
 static void sslice_draw_model(SlicerStruct *ss);
 static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                               Ipoint *p1, Ipoint *p2, int axis);
-static int setAnglesFromContour(SlicerStruct *ss);
 static void slicerKey_cb(ImodView *vi, void *client, int released, 
 			 QKeyEvent *e);
 static double fixangle(double angle);
@@ -67,7 +66,6 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag);
 static void slicerClose_cb(ImodView *vi, void *client, int junk);
 static int sslice_showslice(SlicerStruct *ss);
 static void startMovieCheckSnap(SlicerStruct *ss, int dir);
-static void checkMovieLimits(SlicerStruct *ss);
 static void setMovieLimits(SlicerStruct *ss, int axis);
 static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
                           int *zmovie, int dir, int *axis);
@@ -179,7 +177,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
       (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
     sslice_draw(ss);
     sslice_showslice(ss);
-    checkMovieLimits(ss);
+    slicerCheckMovieLimits(ss);
   } else {
 
     // Otherwise, just draw the cube
@@ -538,7 +536,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   case Qt::Key_W:
     if (shift) {
-      if (!setAnglesFromContour(ss))
+      if (!slicerAnglesFromContour(ss))
         docheck = 1;
       dodraw = 0;
     } else
@@ -639,7 +637,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   if (dodraw)
     sslice_draw(ss);         
   if (docheck)
-    checkMovieLimits(ss);
+    slicerCheckMovieLimits(ss);
 }
 
 // On any key release, clear the ctrl pressed flag and release the keyboard
@@ -833,7 +831,7 @@ static void setMovieLimits(SlicerStruct *ss, int axis)
 }
 
 // Check for movie and set new limits when angles have changed
-static void checkMovieLimits(SlicerStruct *ss)
+void slicerCheckMovieLimits(SlicerStruct *ss)
 {
   int xmovie, ymovie, zmovie;
   int axis;
@@ -914,7 +912,7 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
 // Get the Z scale of the volume before slicing: it is the product of
 // an implicit Z scael from the ration of Z to XY binning, and actual z scale
 // if zscale before is selected 
-float getZScaleBefore(SlicerStruct *ss)
+float slicerGetZScaleBefore(SlicerStruct *ss)
 {
   float zs = (float)ss->vi->zbin / (float)ss->vi->xybin;
   if (ss->scalez == SLICE_ZSCALE_BEFORE && ss->vi->imod->zscale > 0)
@@ -958,7 +956,7 @@ static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
   /* DNM: the xzoom and yzoom are correct for all cases, and the zs
      needs to be applied only for the case of SCALE_BEFORE */
 
-  zs = 1.0f / getZScaleBefore(ss);
+  zs = 1.0f / slicerGetZScaleBefore(ss);
   //  if (ss->scalez == SLICE_ZSCALE_BEFORE && ss->vi->imod->zscale > 0)
   //  zs = 1.0 / ss->vi->imod->zscale;
 
@@ -979,7 +977,7 @@ static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
   delpt.z = (ss->xstep[b3dZ] * xoffset * zs) + (ss->ystep[b3dZ] * yoffset *zs);
   
   /*
-  setForwardMatrix(ss);
+  slicerSetForwardMatrix(ss);
   imodMatTransform3D(ss->mat, &delpt, &rotpt);
   printf("angles %.2f %.2f rotpt %f %f %f\n", ss->tang[b3dX], ss->tang[b3dY],
          rotpt.x, rotpt.y, rotpt.z);
@@ -1019,7 +1017,7 @@ static double fixangle(double angle)
 }
 
 // Compose the forward transformation matrix with the current angles
-void setForwardMatrix(SlicerStruct *ss)
+void slicerSetForwardMatrix(SlicerStruct *ss)
 {
   imodMatId(ss->mat);
   imodMatRot(ss->mat, (double)ss->tang[b3dZ], b3dZ);
@@ -1047,7 +1045,7 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
   n.x = p2->x - p1->x;
   n.y = p2->y - p1->y;
   n.z = p2->z - p1->z;
-  n.z *= getZScaleBefore(ss);
+  n.z *= slicerGetZScaleBefore(ss);
   //  if (ss->scalez == SLICE_ZSCALE_BEFORE)
   //  n.z *= ss->vi->imod->zscale;
   if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0)
@@ -1106,7 +1104,7 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
 /*
  * Find the angles that make current contour flat and set center to its center
  */
-static int setAnglesFromContour(SlicerStruct *ss)
+int slicerAnglesFromContour(SlicerStruct *ss)
 {
   Icont *rcont;
   Icont *cont = imodContourGet(ss->vi->imod);
@@ -1119,7 +1117,7 @@ static int setAnglesFromContour(SlicerStruct *ss)
   double beta, alpha, zrot;
   double xsum, ysum, zsum;
 
-  scale.z = getZScaleBefore(ss);
+  scale.z = slicerGetZScaleBefore(ss);
   if (!cont || !cont->psize)
     return 1;
   rcont = imodContourDup(cont);
@@ -1308,7 +1306,7 @@ void slice_trans_step(SlicerStruct *ss)
   jsize = ss->winy / ss->zoom;
 
   /* z stretch scale factor.   */
-  zs = 1.0f / getZScaleBefore(ss);
+  zs = 1.0f / slicerGetZScaleBefore(ss);
   /*  zs  = ss->vi->imod->zscale; 
   if (zs <= 0.0f)
     zs = 1.0f;
@@ -1656,7 +1654,7 @@ static void sslice_draw_model(SlicerStruct *ss)
   glRotatef(ss->tang[b3dY], 0.0f, 1.0f, 0.0f);
   glRotatef(ss->tang[b3dZ], 0.0f, 0.0f, 1.0f);
   
-  glScalef(1.0f, 1.0f, getZScaleBefore(ss));
+  glScalef(1.0f, 1.0f, slicerGetZScaleBefore(ss));
   // if (ss->scalez == SLICE_ZSCALE_BEFORE)
   //  glScalef(1.0f, 1.0f, ss->vi->imod->zscale);
 
@@ -1811,6 +1809,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.37  2006/10/11 04:07:05  mast
+*** empty log message ***
+
 Revision 4.36  2006/10/06 19:36:30  mast
 Moved fillImageArry to slicer_classes for threading
 

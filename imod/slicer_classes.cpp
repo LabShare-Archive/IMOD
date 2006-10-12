@@ -66,6 +66,7 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
 #include "highres.bits"
 #include "image.bits"
 #include "fft.bits"
+#include "contour.bits"
 
 static unsigned char showslice_bits[] = {
      0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x00, 0x00, 0xff, 0xef, 0xff, 0xef,
@@ -80,6 +81,7 @@ static unsigned char *bitList[MAX_SLICER_TOGGLES][2] =
 
 static QBitmap *bitmaps[MAX_SLICER_TOGGLES][2];
 static QBitmap *showBitmap;
+static QBitmap *contBitmap;
 static int firstTime = 1;
 
 static char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
@@ -131,8 +133,10 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
     setupToggleButton(mToolBar, toggleMapper, j);
   
   // The showslice button is simpler
-  if (firstTime)
+  if (firstTime) {
     showBitmap = new QBitmap(BM_WIDTH, BM_HEIGHT, showslice_bits, true);
+    contBitmap = new QBitmap(BM_WIDTH, BM_HEIGHT, contour_bits, true);
+  }
   
   QToolButton *button = new QToolButton(mToolBar, "show slice");
   button->setPixmap(*showBitmap);
@@ -140,6 +144,13 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
   QToolTip::add(button, "Show slice cutting lines in Xyz and Zap windows");
   
+  button = new QToolButton(mToolBar, "contour flat");
+  button->setPixmap(*contBitmap);
+  button->setAutoRaise(AUTO_RAISE);
+  connect(button, SIGNAL(clicked()), this, SLOT(contourPressed()));
+  QToolTip::add(button, "Set angles and position to show plane of current"
+                " contour");
+
   // The Z scale combo box
   mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
   mZscaleCombo->insertItem("Z-Scale Off", SLICE_ZSCALE_OFF);
@@ -321,6 +332,12 @@ void SlicerWindow::toggleClicked(int index)
 void SlicerWindow::showslicePressed()
 {
   slicerShowSlice(mSlicer);
+}
+
+void SlicerWindow::contourPressed()
+{
+  if (!slicerAnglesFromContour(mSlicer))
+    slicerCheckMovieLimits(mSlicer);
 }
 
 void SlicerWindow::zScaleSelected(int item)
@@ -573,7 +590,7 @@ void fillImageArray(SlicerStruct *ss)
   ysz = ss->zstep[b3dY];
   zsz = ss->zstep[b3dZ];
 
-  zs = 1.0f / getZScaleBefore(ss);
+  zs = 1.0f / slicerGetZScaleBefore(ss);
   // if ((ss->scalez) && (ss->vi->imod->zscale > 0))
   //  zs  = 1.0f/ss->vi->imod->zscale;
 
@@ -630,7 +647,7 @@ void fillImageArray(SlicerStruct *ss)
     /* Take fractional location of data point within a pixel and
        rotate in 3D to find location in display pixel */
 
-    setForwardMatrix(ss);
+    slicerSetForwardMatrix(ss);
 
     pnt.x = ss->cx - (int)ss->cx;
     pnt.y = ss->cy - (int)ss->cy;
@@ -1149,6 +1166,9 @@ static void fillArraySegment(int jstart, int jlimit)
 
  /*
 $Log$
+Revision 4.13  2006/10/06 19:38:08  mast
+Made array filling routine multithreaded and moved it here
+
 Revision 4.12  2006/09/12 15:36:09  mast
 Added mouse move slot
 

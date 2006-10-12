@@ -10,36 +10,9 @@
 $Date$
 
 $Revision$
-
-$Log$
-Revision 4.6  2006/09/12 15:36:09  mast
-Added mouse move slot
-
-Revision 4.5  2005/03/08 15:49:00  mast
-Added enum for toolbar toggles
-
-Revision 4.4  2004/08/12 17:14:11  mast
-Made mSlicer public so angle reporting routine can access it
-
-Revision 4.3  2003/12/16 23:54:22  mast
-Move floatspinbox to libdiaqt
-
-Revision 4.2  2003/03/26 17:15:31  mast
-Adjust sizes for font changes
-
-Revision 4.1  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 1.1.2.3  2003/01/30 00:53:49  mast
-New timer logic for clean first image
-
-Revision 1.1.2.2  2003/01/10 23:55:07  mast
-make setAngle public, remove timer
-
-Revision 1.1.2.1  2003/01/06 15:48:55  mast
-initila creation
-
+Log at end
 */
+
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
@@ -99,6 +72,7 @@ class SlicerWindow : public QMainWindow
   void imageThicknessChanged(int depth);
   void modelThicknessChanged(int depth);
   void showslicePressed();
+  void contourPressed();
   void zScaleSelected(int item);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
   void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
@@ -207,3 +181,37 @@ class SlicerThread : public QThread
 void fillImageArray(SlicerStruct *ss);
 
 #endif     // SLICER_CLASSES_H
+
+/*
+$Log$
+Revision 4.7  2006/10/06 19:25:40  mast
+Added thread definition
+
+Revision 4.6  2006/09/12 15:36:09  mast
+Added mouse move slot
+
+Revision 4.5  2005/03/08 15:49:00  mast
+Added enum for toolbar toggles
+
+Revision 4.4  2004/08/12 17:14:11  mast
+Made mSlicer public so angle reporting routine can access it
+
+Revision 4.3  2003/12/16 23:54:22  mast
+Move floatspinbox to libdiaqt
+
+Revision 4.2  2003/03/26 17:15:31  mast
+Adjust sizes for font changes
+
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
+Revision 1.1.2.3  2003/01/30 00:53:49  mast
+New timer logic for clean first image
+
+Revision 1.1.2.2  2003/01/10 23:55:07  mast
+make setAngle public, remove timer
+
+Revision 1.1.2.1  2003/01/06 15:48:55  mast
+initila creation
+
+*/

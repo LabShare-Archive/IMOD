@@ -120,13 +120,18 @@ void slicerMouseMove(SlicerStruct *sslice, QMouseEvent *event);
 void slicerPaint(SlicerStruct *win);
 void slicerCubePaint(SlicerStruct *ss);
 void slice_trans_step(SlicerStruct *ss);
-float getZScaleBefore(SlicerStruct *ss);
-void setForwardMatrix(SlicerStruct *ss);
+float slicerGetZScaleBefore(SlicerStruct *ss);
+void slicerSetForwardMatrix(SlicerStruct *ss);
+int slicerAnglesFromContour(SlicerStruct *ss);
+void slicerCheckMovieLimits(SlicerStruct *ss);
 
 #endif
 
 /*
     $Log$
+    Revision 3.10  2006/10/06 19:35:50  mast
+    Added declarations for the fillin routine to be in slicer_classes
+
     Revision 3.9  2006/09/17 18:15:59  mast
     Changes to provide mouse position to pixelview
 
