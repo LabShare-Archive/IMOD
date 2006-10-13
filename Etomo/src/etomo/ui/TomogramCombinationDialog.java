@@ -50,6 +50,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2006/10/10 05:24:43  sueh
+ * <p> bug# 931 Allowing UITest to manipulate the tabs by changing to
+ * <p> etomo.ui.TabbedPane.
+ * <p>
  * <p> Revision 3.50  2006/09/19 22:37:43  sueh
  * <p> bug# 928 Added updatePatchVectorModelDisplay().
  * <p>
@@ -592,8 +596,12 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlFinal.setPatchcrawl3DParams(patchcrawl3DParams);
   }
 
-  public void setVolcombineParams(ConstSetParam setParam) {
-    pnlFinal.setVolcombineParams(setParam);
+  public void setReductionFactorParams(ConstSetParam setParam) {
+    pnlFinal.setReductionFactorParams(setParam);
+  }
+  
+  public void setLowFromBothRadiusParams(ConstSetParam setParam) {
+    pnlFinal.setLowFromBothRadiusParams(setParam);
   }
 
   /**
@@ -607,12 +615,20 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams);
   }
 
-  public void getVolcombineParams(SetParam setParam) {
-    pnlFinal.getVolcombineParams(setParam);
+  public void getReductionFactorParam(SetParam setParam) {
+    pnlFinal.getReductionFactorParam(setParam);
+  }
+  
+  public void getLowFromBothRadiusParam(SetParam setParam) {
+    pnlFinal.getLowFromBothRadiusParam(setParam);
   }
 
   public void enableReductionFactor(boolean enable) {
     pnlFinal.enableReductionFactor(enable);
+  }
+  
+  public void enableLowFromBothRadius(boolean enable) {
+    pnlFinal.enableLowFromBothRadius(enable);
   }
   
   MatchMode getMatchMode() {
