@@ -33,6 +33,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/07/21 19:14:14  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 1.20  2006/07/10 21:28:56  sueh
  * <p> Removed order cut added Z order.
  * <p>
@@ -212,6 +216,7 @@ public final class SectionTableRow {
   private final FieldCell rotationAngleX = new FieldCell();
   private final FieldCell rotationAngleY = new FieldCell();
   private final FieldCell rotationAngleZ = new FieldCell();
+  private final boolean inverted = false;
   private final SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
       this);
 
