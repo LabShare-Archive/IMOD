@@ -58,6 +58,10 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.53  2006/09/19 22:36:49  sueh
+ * bug# 928 Added btnPatchVectorCCCModel and
+ * updatePatchVectorModelDisplay().
+ *
  * Revision 3.52  2006/09/13 23:41:48  sueh
  * bug# 921 Added initial Shift X, Y, and Z.  Bug# 924 changed the label for
  * kernel sigma.
@@ -413,6 +417,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private CheckBox cbNoVolcombine = new CheckBox(NO_VOLCOMBINE_TITLE);
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
+  private LabeledTextField ltfLowFromBothRadius = new LabeledTextField(
+  "Low from both radius: ");
   private CheckBox cbParallelProcess;
   private final PanelHeader patchRegionModelHeader;
   private final PanelHeader patchcorrHeader;
@@ -602,6 +608,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombineBody.add(cbParallelProcess);
     pnlVolcombineBody.add(cbNoVolcombine);
     pnlVolcombineBody.add(ltfReductionFactor.getContainer());
+    pnlVolcombineBody.add(ltfLowFromBothRadius.getContainer());
     pnlVolcombineBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlVolcombineBody.add(btnVolcombineRestart.getComponent());
     cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -710,6 +717,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   final void setAdvancedVolcombine(boolean state) {
     ltfReductionFactor.setVisible(state);
+    ltfLowFromBothRadius.setVisible(state);
   }
 
   ProcessResultDisplay getPatchcorrProcessResultDisplay() {
@@ -911,11 +919,18 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     updateKernelSigma();
   }
 
-  void setVolcombineParams(ConstSetParam setParam) {
+  void setReductionFactorParams(ConstSetParam setParam) {
     if (setParam == null || !setParam.isValid()) {
       return;
     }
     ltfReductionFactor.setText(setParam.getValue());
+  }
+  
+  void setLowFromBothRadiusParams(ConstSetParam setParam) {
+    if (setParam == null || !setParam.isValid()) {
+      return;
+    }
+    ltfLowFromBothRadius.setText(setParam.getValue());
   }
 
   public final void setNoVolcombine(boolean noVolcombine) {
@@ -934,15 +949,26 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     cbParallelProcess.setEnabled(parallelEnabled);
   }
 
-  void getVolcombineParams(SetParam setParam) {
-    if (setParam == null) {
+  void getReductionFactorParam(SetParam param) {
+    if (param == null) {
       return;
     }
-    setParam.setValue(ltfReductionFactor.getText());
+    param.setValue(ltfReductionFactor.getText());
+  }
+  
+  void getLowFromBothRadiusParam(SetParam param) {
+    if (param == null) {
+      return;
+    }
+    param.setValue(ltfLowFromBothRadius.getText());
   }
 
   void enableReductionFactor(boolean enable) {
     ltfReductionFactor.setEnabled(enable);
+  }
+  
+  void enableLowFromBothRadius(boolean enable) {
+    ltfLowFromBothRadius.setEnabled(enable);
   }
 
   /**
