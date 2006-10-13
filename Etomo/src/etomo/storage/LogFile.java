@@ -33,7 +33,7 @@ import etomo.util.Utilities;
  * 
  * Log File is a syncrhonized class:  all of its public and package-level
  * functions are synchronized (except functions which only call a synchronized
- * functions).</p>
+ * function).</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -104,6 +104,9 @@ public final class LogFile {
     return logFile;
   }
 
+  /**
+   * For testing.  Removes all instances of LogFile.
+   */
   static void reset() {
     logFileHashTable = null;
     readerList = null;
@@ -544,10 +547,10 @@ public final class LogFile {
     return true;
   }
 
-  public static final class LockType {
-    public static final LockType READ = new LockType("read");
-    public static final LockType WRITE = new LockType("write");
-    public static final LockType FILE = new LockType("file");
+  static final class LockType {
+    static final LockType READ = new LockType("read");
+    static final LockType WRITE = new LockType("write");
+    static final LockType FILE = new LockType("file");
 
     private final String name;
 
@@ -879,6 +882,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/10/12 10:41:16  sueh
+ * <p> bug# 931 Sleeping longer in delete because windows is slow.
+ * <p>
  * <p> Revision 1.4  2006/10/12 03:19:56  sueh
  * <p> bug# 931 In newLine() an write() throw WriteException instead of
  * <p> NullPointerException when the writer is not open.
