@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2005/09/01 17:45:34  sueh
+ * <p> bug# 688 putting temporary prints (for finding cause of undistort
+ * <p> parameters being set in xcorr) into the error log
+ * <p>
  * <p> Revision 3.9  2005/08/24 23:06:13  sueh
  * <p> bug# 715 Temporarily adding print statement to writeComFile() in case
  * <p> problem with xcorr.com having arguments meant for undistort.com comes
@@ -96,16 +100,16 @@ import etomo.EtomoDirector;
 //TODO check for necessary defensive copying
 
 public class ComScript {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private File comFile;
   private ArrayList scriptCommands = new ArrayList();
 
   private boolean parseComments = true;
-  
+
   private boolean commandLoaded = false; //true when at least one command has be found or
-                                         //created
+
+  //created
 
   public ComScript(File comFile) {
     this.comFile = comFile;
@@ -132,8 +136,8 @@ public class ComScript {
    * @throws IOException from BufferedReader.
    * @throws BadComScriptException if the com script has a syntax error.
    */
-  public void readComFile()
-    throws FileNotFoundException, IOException, BadComScriptException {
+  public void readComFile() throws FileNotFoundException, IOException,
+      BadComScriptException {
 
     // Open the com file for reading using a buffered reader
     if (!comFile.exists()) {
@@ -195,7 +199,7 @@ public class ComScript {
         currentScriptCommand.setCommandLineArgs(cmdLineArgs);
         // Force the comment parsing from the standard input lines to off
         // if a keyword/value pair input format is detected
-        if(currentScriptCommand.isKeywordValuePairs()){
+        if (currentScriptCommand.isKeywordValuePairs()) {
           parseComments = false;
         }
       }
@@ -234,10 +238,8 @@ public class ComScript {
         }
         else {
           if (currentScriptCommand == null) {
-            String description =
-              "Input parameter found before command in "
-                + comFile.getAbsoluteFile()
-                + " line: "
+            String description = "Input parameter found before command in "
+                + comFile.getAbsoluteFile() + " line: "
                 + String.valueOf(lineNumber);
             throw new BadComScriptException(description);
           }
@@ -291,7 +293,7 @@ public class ComScript {
    * null if no command with the specified name is found.
    */
   public ComScriptCommand getScriptCommand(String cmdName)
-    throws BadComScriptException {
+      throws BadComScriptException {
     if (!commandLoaded) {
       createCommand(cmdName);
     }
@@ -303,7 +305,7 @@ public class ComScript {
     }
     throw (new BadComScriptException("Did not find command: " + cmdName));
   }
-  
+
   /**
    * Return the instance of ComScriptCommand with the specified command
    * corresponding to commandIndex
@@ -311,14 +313,13 @@ public class ComScript {
    * @return the first ComScriptCommand in the collection that matches cmdName,
    * null if no command with the specified name is found.
    */
-  public ComScriptCommand getScriptCommand(String cmdName, int commandIndex, 
-    boolean addNew)
-    throws BadComScriptException {
+  public ComScriptCommand getScriptCommand(String cmdName, int commandIndex,
+      boolean addNew) throws BadComScriptException {
     if (!commandLoaded) {
       createCommand(cmdName, commandIndex);
     }
-    ComScriptCommand command = 
-      (ComScriptCommand) scriptCommands.get(commandIndex);
+    ComScriptCommand command = (ComScriptCommand) scriptCommands
+        .get(commandIndex);
     if (command.getCommand().equals(cmdName)) {
       return command;
     }
@@ -329,8 +330,8 @@ public class ComScript {
         return command;
       }
     }
-    throw (new BadComScriptException("Did not find command: " + cmdName + 
-      " at index " + commandIndex));
+    throw (new BadComScriptException("Did not find command: " + cmdName
+        + " at index " + commandIndex));
   }
 
   /**
@@ -345,7 +346,7 @@ public class ComScript {
     commandLoaded = true;
     return scriptCommands.size() - 1;
   }
-  
+
   /**
    * 
    * @param cmdName
@@ -358,7 +359,7 @@ public class ComScript {
     currentScriptCommand.setCommand(cmdName);
     commandLoaded = true;
   }
-  
+
   public void deleteCommand(int commandIndex) {
     scriptCommands.remove(commandIndex);
     if (scriptCommands.isEmpty()) {
@@ -366,17 +367,17 @@ public class ComScript {
     }
   }
 
-
   /**
    * Return the index of the specified command or -1 if the command is not
    * present in the script
    * @param cmdName the name of the command to find
    * @return index of the command or -1 if not present
    */
-  public int getScriptCommandIndex(String cmdName){
+  public int getScriptCommandIndex(String cmdName) {
     return getScriptCommandIndex(cmdName, false);
   }
-  public int getScriptCommandIndex(String cmdName, boolean addNew){
+
+  public int getScriptCommandIndex(String cmdName, boolean addNew) {
     if (!commandLoaded) {
       createCommand(cmdName);
     }
@@ -391,7 +392,23 @@ public class ComScript {
     }
     return -1;
   }
-  
+
+  public int getScriptCommandIndex(String cmdName, int commandIndex,
+      boolean addNew) {
+    if (!commandLoaded) {
+      createCommand(cmdName);
+    }
+    ComScriptCommand command = (ComScriptCommand) scriptCommands
+        .get(commandIndex);
+    if (command.getCommand().equals(cmdName)) {
+      return commandIndex;
+    }
+    if (addNew) {
+      return createCommand(cmdName);
+    }
+    return -1;
+  }
+
   /**
    * 
    * @param cmdName
@@ -402,25 +419,24 @@ public class ComScript {
     if (!commandLoaded) {
       createCommand(cmdName);
     }
-    ComScriptCommand command =
-      (ComScriptCommand) scriptCommands.get(commandIndex);
+    ComScriptCommand command = (ComScriptCommand) scriptCommands
+        .get(commandIndex);
     if (command.getCommand().equals(cmdName)) {
       return commandIndex;
     }
     return -1;
   }
 
-  
   /**
    * Write out the command file currently represented by this object
    */
-  public void writeComFile()
-    throws FileNotFoundException, IOException, BadComScriptException {
+  public void writeComFile() throws FileNotFoundException, IOException,
+      BadComScriptException {
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
       return;
     }
     //TEMP
-    System.err.println("write "+comFile.getName());
+    System.err.println("write " + comFile.getName());
     // Open the com file for writing using a buffered writer
     BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
 
@@ -492,7 +508,7 @@ public class ComScript {
   public String getComFileName() {
     return comFile.getAbsolutePath();
   }
-  
+
   /**
    * Get the com file name.
    * @return a String containing the name of the com file.
@@ -500,7 +516,7 @@ public class ComScript {
   public String getName() {
     return comFile.getName();
   }
-  
+
   public boolean isCommandLoaded() {
     return commandLoaded;
   }
