@@ -171,8 +171,8 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + ".fid";
   }
 
-  public static File getJoinInfo(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(), manager.getName() + ".info");
+  public static String getJoinInfoName(BaseManager manager) {
+    return manager.getName() + ".info";
   }
 
   public static File getFiducialModelFile(BaseManager manager, AxisID axisID) {
@@ -320,6 +320,11 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2006/10/11 10:13:31  sueh
+ * <p> bug# 931 Managing the commands pipe and the process output with LogFile so
+ * <p> that the file access problem which appears in Windows will show up in Linux.
+ * <p> Added getOutFileName().
+ * <p>
  * <p> Revision 1.26  2006/10/10 05:26:47  sueh
  * <p> bug# 931 Adding names of transfer log and patch out.
  * <p>
