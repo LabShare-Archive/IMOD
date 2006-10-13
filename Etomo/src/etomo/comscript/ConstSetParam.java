@@ -16,6 +16,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/01/25 21:26:29  sueh
+* <p> No longer using EtomoNumber.default for display.
+* <p>
 * <p> Revision 1.2  2004/12/03 20:21:03  sueh
 * <p> bug# 556 Support older versions of volcombine.com.  Check for an
 * <p> incorrect set name and set "valid = false" instead of throw an exception.
@@ -27,6 +30,10 @@ import etomo.type.EtomoNumber;
 public class ConstSetParam {
   public static  final String  rcsid =  "$Id$";
   public static final String COMMAND_NAME = "set";
+  public static final String COMBINEFFT_REDUCTION_FACTOR_NAME = "combinefft_reduce";
+  public static final int COMBINEFFT_REDUCTION_FACTOR_TYPE = EtomoNumber.FLOAT_TYPE;
+  public static final String COMBINEFFT_LOW_FROM_BOTH_RADIUS_NAME = "combinefft_lowboth";
+  public static final int COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE = EtomoNumber.FLOAT_TYPE;
   
   protected static final String delimiter = "=";
   
