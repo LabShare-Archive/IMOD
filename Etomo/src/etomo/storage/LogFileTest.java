@@ -24,6 +24,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2006/10/11 10:12:17  sueh
+ * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p> FileException.
+ * <p>
  * <p> Revision 1.1  2006/10/10 05:19:14  sueh
  * <p> bug# 931 Test class for LogFile.
  * <p> </p>
@@ -423,7 +427,7 @@ public class LogFileTest extends TestCase {
     if (!log.exists()) {
       EtomoDirector.getInstance().getCurrentManager_test().touch(log);
       try {
-        Thread.sleep(200);
+        Thread.sleep(500);
       }
       catch (InterruptedException e) {
       }
