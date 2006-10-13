@@ -1,6 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/11/06: Fixed crash from closing Xyz with Esc if pixel view open.
+10/12/06: IMOD_3-8-27
+10/12/06: eTomo now manages log files and files used for process monitors
+better to solve problem in Windows with trying to rename or delete open files.
+
+10/11/06: T now turns off current and endpoint symbols in slicer too.
+
+10/11/06: Fixed crash from closing Xyz window with Esc if pixel view open.
 
 10/11/06: Changed routine for finding mean normal to a contour, so slicer will
 be more robust with open, almost straight contour.
