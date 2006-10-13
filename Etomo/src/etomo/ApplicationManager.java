@@ -2979,9 +2979,10 @@ public final class ApplicationManager extends BaseManager {
   public void postProcess(AxisID axisID, ProcessName processName,
       ProcessDetails processDetails) {
     //Currently, only create whole tomogram sample has a processDetail object.
-    if ((processName == ProcessName.TILT || processName == ProcessName.SAMPLE)&&processDetails != null) {
-    ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
-        axisID)).postProcess(processDetails, state);
+    if ((processName == ProcessName.TILT || processName == ProcessName.SAMPLE)
+        && processDetails != null) {
+      ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
+          axisID)).postProcess(processDetails, state);
     }
     else if (processName == ProcessName.PATCHCORR) {
       if (tomogramCombinationDialog != null) {
@@ -2990,7 +2991,7 @@ public final class ApplicationManager extends BaseManager {
       }
     }
   }
-  
+
   /**
    * processing done after an unsuccessful process
    * @param axisID
@@ -3005,7 +3006,7 @@ public final class ApplicationManager extends BaseManager {
       }
     }
   }
-  
+
   public void msgPatchVectorCreated() {
     if (tomogramCombinationDialog != null) {
       tomogramCombinationDialog.updatePatchVectorModelDisplay();
@@ -4046,10 +4047,18 @@ public final class ApplicationManager extends BaseManager {
 
   private void loadVolcombine() {
     comScriptMgr.loadVolcombine();
-    ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine();
-    tomogramCombinationDialog.setVolcombineParams(setParam);
-
+    //try to load reduction factor
+    ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine(
+        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.FLOAT_TYPE);
+    tomogramCombinationDialog.setReductionFactorParams(setParam);
     tomogramCombinationDialog.enableReductionFactor(setParam != null
+        && setParam.isValid());
+    //try to load low from both radius
+    setParam = comScriptMgr.getSetParamFromVolcombine(
+        SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_NAME,
+        SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE, SetParam.COMMAND_NAME);
+    tomogramCombinationDialog.setLowFromBothRadiusParams(setParam);
+    tomogramCombinationDialog.enableLowFromBothRadius(setParam != null
         && setParam.isValid());
   }
 
@@ -4100,12 +4109,24 @@ public final class ApplicationManager extends BaseManager {
       return false;
     }
     try {
-      SetParam setParam = comScriptMgr.getSetParamFromVolcombine();
+      //Make sure the reduction factor set command is available in volcombine.com
+      SetParam setParam = comScriptMgr.getSetParamFromVolcombine(
+          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.FLOAT_TYPE);
       boolean setParamIsValid = setParam != null && setParam.isValid();
       tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
-      tomogramCombinationDialog.getVolcombineParams(setParam);
+      tomogramCombinationDialog.getReductionFactorParam(setParam);
       if (setParamIsValid) {
         comScriptMgr.saveVolcombine(setParam);
+      }
+      //Make sure the low from both radius set command is available in volcombine.com
+      setParam = comScriptMgr.getSetParamFromVolcombine(
+          SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_NAME,
+          SetParam.COMBINEFFT_LOW_FROM_BOTH_RADIUS_TYPE, SetParam.COMMAND_NAME);
+      setParamIsValid = setParam != null && setParam.isValid();
+      tomogramCombinationDialog.enableLowFromBothRadius(setParamIsValid);
+      tomogramCombinationDialog.getLowFromBothRadiusParam(setParam);
+      if (setParamIsValid) {
+        comScriptMgr.saveVolcombine(setParam, SetParam.COMMAND_NAME);
       }
     }
     catch (NumberFormatException except) {
@@ -4773,7 +4794,8 @@ public final class ApplicationManager extends BaseManager {
    */
   public boolean updateLog(String commandName, AxisID axisID) {
     //String alignLogName = "align" + axisID.getExtension() + ".log";
-    LogFile alignLogFile = LogFile.getInstance(propertyUserDir, axisID, ProcessName.ALIGN);
+    LogFile alignLogFile = LogFile.getInstance(propertyUserDir, axisID,
+        ProcessName.ALIGN);
     //File alignLog = new File(propertyUserDir, alignLogName);
     String taErrorLogName = "taError" + axisID.getExtension() + ".log";
     File taErrorLog = new File(propertyUserDir, taErrorLogName);
@@ -5407,6 +5429,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.269  2006/10/11 10:05:08  sueh
+ * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p> FileException.
+ * <p>
  * <p> Revision 3.268  2006/10/10 05:00:40  sueh
  * <p> bug# 931 Managing log files with LogFile
  * <p>
