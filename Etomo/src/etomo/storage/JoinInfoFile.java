@@ -1,14 +1,11 @@
 package etomo.storage;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
@@ -53,11 +50,15 @@ public class JoinInfoFile {
   private void load() {
     reset();
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(DatasetFiles
-          .getJoinInfo(manager)));
-      reader.readLine();
-      String line = reader.readLine();
-      if (line != null) {
+      LogFile joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
+          DatasetFiles.getJoinInfoName(manager));
+      long readId = joinInfo.openReader();
+      joinInfo.readLine(readId);
+      String line = joinInfo.readLine(readId);
+      if (line == null) {
+        UIHarness.INSTANCE.openMessageDialog("Join Info File Error","WARNING:  Unable to find out if sections with be inverted.");
+      }
+      else {
         String[] array = line.trim().split(" +");
         for (int i = 0; i < array.length; i++) {
           EtomoBoolean2 inverted = new EtomoBoolean2();
@@ -66,15 +67,11 @@ public class JoinInfoFile {
           }
         }
       }
-      reader.close();
+      joinInfo.closeReader(readId);
+      readId = LogFile.NO_ID;
     }
-    catch (FileNotFoundException e) {
-      //programmer error
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      //programmer or system error
-      e.printStackTrace();
+    catch (LogFile.ReadException e) {
+      UIHarness.INSTANCE.openMessageDialog("Join Info File Error","WARNING:  Unable to find out if sections with be inverted.\n"+e.getMessage());
     }
     loaded = true;
   }
@@ -89,5 +86,8 @@ public class JoinInfoFile {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/10/10 05:16:25  sueh
+ * <p> bug# 919 File to read the join info file.
+ * <p> </p>
  */
