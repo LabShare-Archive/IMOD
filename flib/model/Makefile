@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.10  2006/09/11 22:18:12  mast
+#  Added mtrotlong
+#
 #  Revision 3.9  2006/08/21 16:50:00  mast
 #  Changed findwarp and refinematch links
 #
@@ -45,7 +48,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  checkmtmod$(E) joinmodel$(E) mtsmooth$(E) reducemtmod$(E) xfinterstack$(E) \
  clipmodel$(E) mtmodel$(E) remapmodel$(E) mtlengths$(E) contourmod$(E)\
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
- refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) \
+ refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E)
 
 WLIBS = $(LWMOD) $(IMLIBS) $(FORTCLIBS)
@@ -158,6 +161,9 @@ resamplemod$(E): resamplemod.$(O)
 
 sumdensity$(E): sumdensity.$(O)
 	$(FC) -o sumdensity sumdensity.$(O) $(LDFLG) $(WLIBS)
+
+howflared$(E): howflared.$(O) planefit.$(O)
+	$(FC) -o howflared howflared.$(O) planefit.$(O) $(LDFLG) $(SMALLLIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)
