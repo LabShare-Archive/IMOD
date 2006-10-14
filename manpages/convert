@@ -10,6 +10,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2006/02/10 02:52:48  mast
+#  Added program name argument to mantohtml
+#
 #  Revision 3.4  2003/10/29 18:25:20  mast
 #  Add -Tascii flag for RH8 and RH9
 #
@@ -59,7 +62,9 @@ end
 
 foreach i (*.man)
     echo "converting $i to ${i:r}.1"
-    sed "/^\.TH/s/ [0-9]\.[0-9\.]* / $version /" $i | nroff -man $copt >! ${i:r}.1
+    sed -e "/^\.TH/s/ [0-9]\.[0-9\.]* / $version /" \
+        -e "/\([^ ]*\)@colorado.edu/s//\1 at colorado dot edu/g" $i \
+        | nroff -man $copt >! ${i:r}.1
 end
 
 foreach j (*.1)
