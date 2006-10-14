@@ -34,6 +34,11 @@ there is at least one contour above and one contour below the point in Z.
 Here one may need to explore the
 effects of varying both the window length and the Z range.
 .P
+If contours are in arbitrary planes rather than in Z planes, the 
+.B -ro
+option allows them to be individually rotated into the best-fitting plane, and
+the 2D curvature can then be determined.
+.P
 A radius of curvature is encoded into the model only if it falls within the
 range of the lower and upper criteria set with the 
 .B -rc

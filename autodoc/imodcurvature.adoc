@@ -24,7 +24,10 @@ usage = Window length over which to fit circle
 tooltip = 
 manpage = Length in pixels over which to fit a circle to the contour data
 around a point.  The default is the mean of the lower and upper radius
-criteria.
+criteria.  , The radius will not be determined in 
+contours less than this length for closed contour objects, or less than half
+this length for open contour objects.  In the latter case, the window will be
+reduced for for fitting to points near the ends of the contour.
 
 [Field = ZRangeToFit]
 short = zr
@@ -59,6 +62,15 @@ type = LI
 usage = List of objects to encode
 tooltip = 
 manpage = 
+
+[Field = RotateToXYPlane]
+short = ro
+type = B
+usage = Rotate out-of-plane contours into X/Y plane
+tooltip = 
+manpage = Rotate contours that are not all in one X/Y plane into the 
+best-fitting X/Y plane.  Circles will be fit to the rotated contour.  This
+option cannot be used with the -zr option for spherical fitting.
 
 [Field = PointSize]
 short = ps
