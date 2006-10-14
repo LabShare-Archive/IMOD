@@ -12,9 +12,12 @@
 
 $Date$
 
-$Revision$
+5B$Revision$
 
 $Log$
+Revision 3.7  2006/09/20 23:04:28  mast
+Added callback for copyright to read/parse function call
+
 Revision 3.6  2006/08/31 23:13:38  mast
 Added value storage
 
@@ -61,7 +64,8 @@ static int encodeCurvature(Imod *mod, int obnum, float rCritLo, float rCritHi,
                            int pointSize, float symZoom, int numCol,
                            unsigned char *red, unsigned char *green, 
                            unsigned char *blue, int storeVals, float zrange,
-                           float zscale, int verbose, int testCo, int TestPt);
+                           float zscale, int rotateWild, int verbose,
+                           int testCo, int TestPt);
 
 /* Structures for keeping track of connected contours and the near contours
    to be used for a spherical fit */
@@ -104,6 +108,7 @@ int main( int argc, char *argv[])
   float sample = 2.;
   int verbose = 0;
   int palette = 0;
+  int rotateWild = 0;
   float zrange = 0;
   float rCritLo, rCritHi, window;
   float symZoom = 0.;
@@ -143,6 +148,7 @@ int main( int argc, char *argv[])
 
   /* Process options */
   PipGetBoolean("TestCircleFits", &testcurve);
+  PipGetBoolean("RotateToXYPlane", &rotateWild);
   
   if (!testcurve) {
 
@@ -154,6 +160,8 @@ int main( int argc, char *argv[])
     PipGetFloat("FitCriterion", &fitCrit);
     PipGetFloat("SampleSpacing", &sample);
     PipGetFloat("ZRangeToFit", &zrange);
+    if (zrange && rotateWild)
+      exitError("You cannot do rotation of contours with fitting to spheres");
     
     /* Color options */
     PipGetBoolean("DivideRange", &divColors);
@@ -248,8 +256,8 @@ int main( int argc, char *argv[])
       if (encodeCurvature(model, ob, rCritLo, rCritHi, window, sample,
                           fitCrit, pointSize, symZoom, numColUse, 
                           &cmap[0][colorInd], &cmap[1][colorInd], 
-                          &cmap[2][colorInd], storeVals, 
-                          zrange, model->zscale, verbose, testCo, testPt))
+                          &cmap[2][colorInd], storeVals, zrange,
+                          model->zscale, rotateWild, verbose, testCo, testPt))
         exitError("Error allocating memory in curvature routine");
 
       if (numColors && !divColors && colorInd < numColors - 1)
@@ -312,28 +320,38 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                     int pointSize, float symZoom, int numCol,
                     unsigned char *red, unsigned char *green, 
                     unsigned char *blue, int storeVals, float zrange,
-                    float zscale, int verbose, int testCo, int testPt)
+                    float zscale, int rotateWild, int verbose, int testCo,
+                    int testPt)
 {
   Iobj *obj = &model->obj[obnum];
   Icont *cont;
   Icont *cont2;
   Icont *minCont;
+  Icont *rcont;
   int co, pt, indCol, maxSamp, activeSym;
   float *xx, *yy, *zz = NULL;
-  float xcen, ycen, zcen, rad, rmsErr;
+  float xcen, ycen, zcen, rad, rmsErr, dval;
   float minDist, dist, cumz, subWind, valMin = 1.e30, valMax = -1.e30;
   int cenPt, meetsCrit, activeCol, numPts, minPt, zhalf, pt2, zdir, icheck;
   int numMidSlice, delz, j, newnum, maxZ, iud, minDiff, diffUp, diffDown;
-  int diff, activeVal;
+  int diff, activeVal, rotated, needFull;
   Istore store;
   Ilist *list;
-  Ipoint scale, *cenPoint, point;
+  Ipoint scale, *cenPoint, point, norm;
+  double alpha, beta;
+  double dtor = 0.017453293;
   ConnectedCont conCont;
   ConnectedCont *conItem;
   NearCont *nearOnes;
   NearCont *nearPt;
   int numUpDown[2];
   Iobjview *obv;
+  Imat *mat;
+
+  scale.x = 1.;
+  scale.y = 1.;
+  scale.z = zscale;
+  needFull = iobjOpen(obj->flags) ? -1 : 1;
 
   /* Make the arrays generously large */
   maxSamp = (int)(window / sample + 10.);
@@ -341,9 +359,6 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
     maxZ = (int)(zrange / zscale + 2.);
     maxSamp *= maxZ;
     zz = (float *)malloc(maxSamp * sizeof(float));
-    scale.x = 1.;
-    scale.y = 1.;
-    scale.z = zscale;
     nearOnes = (NearCont *)malloc(sizeof(NearCont) * maxZ);
     if (!zz || !nearOnes)
       return 1;
@@ -357,15 +372,44 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
 
-    /* Skip wild open contours */
-    if (iobjOpen(obj->flags)) {
-      imodel_contour_check_wild(cont);
-      if (cont->flags & ICONT_WILD)
-        continue;
-    }
-
     if (cont->psize < 3 || (testCo >= 0 && testCo != co))
       continue;
+
+    rotated = 0;
+    rcont = cont;
+    if (rotateWild) {
+
+      /* If we are rotating wild contours, check all types and try to fit 
+         plane to the contour */
+      imodel_contour_check_wild(cont);
+      if (cont->flags & ICONT_WILD) {
+        if (imodContourFitPlane(cont, &scale, &norm, &dval, &alpha, &beta))
+          continue;
+        rcont = imodContourDup(cont);
+        mat = imodMatNew(3);
+        if (!rcont || !mat)
+          return 1;
+        
+        /* Compose matrix and scale points.  There should be no need to scale 
+           Z back after the rotation */
+        imodMatId(mat);
+        imodMatScale(mat, &scale);
+        imodMatRot(mat, beta / dtor, b3dY);
+        imodMatRot(mat, alpha / dtor, b3dX);
+        for (pt = 0; pt < cont->psize; pt++)
+          imodMatTransform(mat, &cont->pts[pt], &rcont->pts[pt]);
+        rotated = 1;
+      }
+    } else {
+
+      /* Otherwise skip wild open contours */
+      if (iobjOpen(obj->flags)) {
+        imodel_contour_check_wild(cont);
+        if (cont->flags & ICONT_WILD)
+          continue;
+      }
+    }
+
     if (verbose)
       printf("Doing contour %d...\n", co + 1);
 
@@ -423,9 +467,9 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
 
       numPts = 0;
       meetsCrit = 0;
-      loadWindowPoints(obj, cont, cenPt, window, sample, 1, zscale, xx, yy, zz,
-                       &numPts);
-      if (numPts) {
+      loadWindowPoints(obj, rcont, cenPt, window, sample, needFull, zscale, xx,
+                       yy, zz, &numPts);
+      if (numPts > 2) {
 
         /* Fit to circle and test against criteria */
         if (circleThrough3Pts(xx[0], yy[0], xx[numPts / 2], yy[numPts / 2],
@@ -644,6 +688,10 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
 
     if (zrange)
       ilistDelete(list);
+    if (rotated) {
+      imodMatDelete(mat);
+      imodContourDelete(rcont);
+    }
   }
 
   if (zrange) {
@@ -674,8 +722,9 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
 
 /*
  * Add a set of points at the given sample spacing from the contour, equally
- * distributed around the center point cenPt.  If needFull is set to 1,
- * return with no points if the full window length cannot be provided.
+ * distributed around the center point cenPt.  If needFull is set to 1 or -1,
+ * return with no points if the full or half window length cannot be provided,
+ * respectively.
  */
 void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window, 
                       float sample, int needFull, float zscale, float *xx,
@@ -713,7 +762,7 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
     lenBefore += imodPointDistance(&pts[ptBefore], &pts[lastPt]);
     lastPt = ptBefore;
   }
-  if (lenBefore < window / 2. && needFull)
+  if (lenBefore < window / 2. && needFull > 0)
     return;
 
   /* Find next point at half-window distance */
@@ -732,7 +781,8 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
     lenAfter += imodPointDistance(&pts[ptAfter], &pts[lastPt]);
     lastPt = ptAfter;
   }
-  if (lenAfter < window / 2. && needFull)
+  if ((lenAfter < window / 2. && needFull > 0) || 
+      (lenBefore + lenAfter < window / 2. && needFull < 0))
     return;
 
   /* Load the sampled points into the arrays */
