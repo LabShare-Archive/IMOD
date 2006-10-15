@@ -13,6 +13,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.1  2006/10/14 21:20:10  mast
+c       Added to package
+c
 c
       implicit none
       include 'smallmodel.inc'
@@ -151,7 +154,7 @@ c
           objused(iobj) = .false.
         enddo
         nwidth=0
-        call scale_model(0);
+        call scale_model(0)
         
         do jobj=1,max_mod_obj
           if (npt_in_obj(jobj).gt.1 .and. .not.objused(jobj))then
