@@ -1960,24 +1960,6 @@ public final class ApplicationManager extends BaseManager {
     return (long) (metaData.getFiducialDiameter() / metaData.getPixelSize());
   }
 
-  public void msgAlignPostProcess(AxisID axisID) {
-    try {
-      imodManager.reopenLog(ImodManager.COARSE_ALIGNED_KEY, axisID);
-    }
-    catch (AxisTypeException e) {
-      uiHarness.openMessageDialog("Unable to reopen log file.\n"
-          + e.getMessage(), "3dmod Error");
-    }
-    catch (IOException e) {
-      uiHarness.openMessageDialog("Unable to reopen log file.\n"
-          + e.getMessage(), "3dmod Error");
-    }
-    catch (SystemProcessException e) {
-      uiHarness.openMessageDialog("Unable to reopen log file.\n"
-          + e.getMessage(), "3dmod Error");
-    }
-  }
-
   /**
    * Open 3dmod with the new fidcuial model
    */
@@ -2977,9 +2959,28 @@ public final class ApplicationManager extends BaseManager {
    * @param processDetails
    */
   public void postProcess(AxisID axisID, ProcessName processName,
-      ProcessDetails processDetails) {
+      ProcessDetails processDetails, ProcessResultDisplay processResultDisplay) {
+    if (processName == ProcessName.ALIGN
+        && processResultDisplay == getProcessResultDisplayFactory(axisID)
+            .getComputeAlignment()) {
+      try {
+        imodManager.reopenLog(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      }
+      catch (AxisTypeException e) {
+        uiHarness.openMessageDialog("Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
+      }
+      catch (IOException e) {
+        uiHarness.openMessageDialog("Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
+      }
+      catch (SystemProcessException e) {
+        uiHarness.openMessageDialog("Unable to reopen log file.\n"
+            + e.getMessage(), "3dmod Error");
+      }
+    }
     //Currently, only create whole tomogram sample has a processDetail object.
-    if ((processName == ProcessName.TILT || processName == ProcessName.SAMPLE)
+    else if ((processName == ProcessName.TILT || processName == ProcessName.SAMPLE)
         && processDetails != null) {
       ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
           axisID)).postProcess(processDetails, state);
@@ -5272,8 +5273,8 @@ public final class ApplicationManager extends BaseManager {
     processMgr.pause(axisID);
   }
 
-  public void touch(File file) {
-    processMgr.touch(file);
+  public void touch(String absolutePath) {
+    processMgr.touch(absolutePath);
   }
 
   public ProcessResult splittilt(AxisID axisID, boolean trialMode,
@@ -5429,6 +5430,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.270  2006/10/13 22:18:24  sueh
+ * <p> bug# 927 In volcombine, managing combinefft LowFromBothRadius.
+ * <p>
  * <p> Revision 3.269  2006/10/11 10:05:08  sueh
  * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
  * <p> FileException.
