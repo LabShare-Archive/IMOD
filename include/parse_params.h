@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2006/09/20 23:02:34  mast
+Added callback for header usage function
+
 Revision 3.4  2006/06/08 03:10:27  mast
 Added higher-level C functions
 
@@ -27,6 +30,9 @@ Revision 3.1  2003/06/05 00:19:44  mast
 */
 #ifndef PARSE_PARAMS_H
 #define PARSE_PARAMS_H
+#include <stdio.h>
+#define PIP_INTEGER  1
+#define PIP_FLOAT    2
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,11 +69,16 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir);
 int PipMemoryError(void *ptr, char *routine);
 void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
+int PipStartsWith(char *fullStr, char *subStr);
 int PipGetInOutFile(char *option, int nonOptArgNo, char **filename);
 void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
                            int numOpts, char *progName, int minArgs, 
                            int numInFiles, int numOutFiles, int *numOptArgs,
                            int *numNonOptArgs, void (headerFunc)(char *));
+int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, 
+                    int inLineComments, int *firstNonWhite);
+int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType, 
+                       int *numToGet, int arraySize);
 #ifdef __cplusplus
 }
 #endif
