@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2006/10/10 05:09:14  sueh
+ * <p> bug# 931 Getting the patch vector model file names from DatasetFiles.
+ * <p>
  * <p> Revision 3.46  2006/09/19 22:19:53  sueh
  * <p> bug# 928 Added patchVectorCCCModel.
  * <p>
@@ -453,7 +456,7 @@ public class ImodManager {
   public static final String TRIAL_JOIN_KEY = new String("TrialJoinKey");
   public static final String SQUEEZED_VOLUME_KEY = new String("SqueezedVolume");
   public static final String PATCH_VECTOR_CCC_MODEL_KEY = new String(
-  "patch vector ccc model");
+      "patch vector ccc model");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -900,10 +903,11 @@ public class ImodManager {
     }
     imodState.setOpenLog(openLog, logName);
   }
-  
-  public void reopenLog(String key, AxisID axisID) throws AxisTypeException,SystemProcessException, IOException {
+
+  public void reopenLog(String key, AxisID axisID) throws AxisTypeException,
+      SystemProcessException, IOException {
     ImodState imodState = get(key, axisID);
-    if (imodState == null) {
+    if (imodState == null || !imodState.isOpen()) {
       return;
     }
     imodState.reopenLog();
@@ -1163,7 +1167,8 @@ public class ImodManager {
     if (key.equals(SQUEEZED_VOLUME_KEY)) {
       return newSqueezedVolume();
     }
-    if (key.equals(PATCH_VECTOR_CCC_MODEL_KEY) && axisType == AxisType.DUAL_AXIS) {
+    if (key.equals(PATCH_VECTOR_CCC_MODEL_KEY)
+        && axisType == AxisType.DUAL_AXIS) {
       return newPatchVectorCCCModel();
     }
     throw new IllegalArgumentException(key + " cannot be created in "
@@ -1299,16 +1304,16 @@ public class ImodManager {
   }
 
   protected ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_MODEL,
-        ImodState.MODEL_VIEW, AxisID.ONLY);
+    ImodState imodState = new ImodState(manager,
+        DatasetFiles.PATCH_VECTOR_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
-  
+
   protected ImodState newPatchVectorCCCModel() {
-    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_CCC_MODEL,
-        ImodState.MODEL_VIEW, AxisID.ONLY);
+    ImodState imodState = new ImodState(manager,
+        DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
     return imodState;
