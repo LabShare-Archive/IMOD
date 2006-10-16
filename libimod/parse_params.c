@@ -19,7 +19,6 @@ Log at end of file
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "b3dutil.h"
 
 #define NON_OPTION_STRING "NonOptionArgument"
 #define STANDARD_INPUT_STRING "StandardInput"
@@ -28,8 +27,6 @@ Log at end of file
 #define BOOLEAN_STRING    "B"
 #define LOOKUP_NOT_FOUND -1
 #define LOOKUP_AMBIGUOUS -2
-#define INTEGER_TYPE  1
-#define FLOAT_TYPE    2
 #define TEMP_STR_SIZE  1024
 #define LINE_STR_SIZE  10240
 #ifdef _WIN32
@@ -83,21 +80,16 @@ static char *nullString = &nullChar;
 
 /* declarations of local functions */
 static int ReadParamFile(FILE *pFile);
-static int GetLineOfValues(char *option, void *array, int valType, 
+static int OptionLineOfValues(char *option, void *array, int valType, 
                            int *numToGet, int arraySize);
 static int GetNextValueString(char *option, char **strPtr);
 static int AddValueString(int option, char *strPtr);
 static int LookupOption(char *option, int maxLookup);
 static char *PipSubStrDup(char *s1, int i1, int i2);
 static void AppendToErrorString(char *str);
-static int StartsWith(char *fullStr, char *subStr);
 static int LineIsOptionToken(char *line);
 static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
                         char ***lastCopied);
-static int ReadNextLine(FILE *pFile, char *lineStr, int strSize, 
-                        int inLineComments, int *firstNonWhite);
-
-
 
 
 /* The static tables and variables */
@@ -341,14 +333,14 @@ int PipAddOption(char *optionString)
 
           oldShort = optTable[ind].shortName;
           oldLong = optTable[ind].longName;
-          if (StartsWith(newShort, oldShort) || 
-              StartsWith(oldShort, newShort) ||
-              StartsWith(oldLong, newShort) ||
-              StartsWith(newShort, oldLong) ||
-              StartsWith(oldShort, newLong) ||
-              StartsWith(newLong, oldShort) ||
-              StartsWith(oldLong, newLong) ||
-              StartsWith(newLong, oldLong)) {
+          if (PipStartsWith(newShort, oldShort) || 
+              PipStartsWith(oldShort, newShort) ||
+              PipStartsWith(oldLong, newShort) ||
+              PipStartsWith(newShort, oldLong) ||
+              PipStartsWith(oldShort, newLong) ||
+              PipStartsWith(newLong, oldShort) ||
+              PipStartsWith(oldLong, newLong) ||
+              PipStartsWith(newLong, oldLong)) {
             sprintf(tempStr, "Option %s  %s is ambiguous with option %s"
                     "  %s", newShort, newLong, oldShort, oldLong);
             PipSetError(tempStr);
@@ -413,7 +405,7 @@ int PipNextArg(char *argString)
     }
 
     /* First check for StandardInput */
-    if (StartsWith(STANDARD_INPUT_STRING, argString + indStart)) {
+    if (PipStartsWith(STANDARD_INPUT_STRING, argString + indStart)) {
       err = ReadParamFile(stdin);
       return err;
     }
@@ -597,13 +589,13 @@ int PipGetThreeFloats(char *option, float *val1, float *val2, float *val3)
  */
 int PipGetIntegerArray(char *option, int *array, int *numToGet, int arraySize)
 {
-  return GetLineOfValues(option, (void *)array, INTEGER_TYPE, numToGet,
+  return OptionLineOfValues(option, (void *)array, PIP_INTEGER, numToGet,
                          arraySize);
 }
 
 int PipGetFloatArray(char *option, float *array, int *numToGet, int arraySize)
 {
-  return GetLineOfValues(option, (void *)array, FLOAT_TYPE, numToGet,
+  return OptionLineOfValues(option, (void *)array, PIP_FLOAT, numToGet,
                          arraySize);
 }
 
@@ -940,7 +932,7 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 
   /* Count up the options */
   while (1) {
-    lineLen = ReadNextLine(optFile, bigStr, bigSize, 0, &indst);
+    lineLen = PipReadNextLine(optFile, bigStr, bigSize, 0, &indst);
     if (!lineLen)
       break;
     if (lineLen == -2) {
@@ -982,7 +974,7 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
   gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = 0;
 
   while (1) {
-    lineLen = ReadNextLine(optFile, bigStr, bigSize, 0, &indst);
+    lineLen = PipReadNextLine(optFile, bigStr, bigSize, 0, &indst);
     if (lineLen == -2) {
       PipSetError("Error reading autodoc file");
       return -1;
@@ -1237,7 +1229,7 @@ static int ReadParamFile(FILE *pFile)
   
   while (1) {
 
-    lineLen = ReadNextLine(pFile, lineStr, LINE_STR_SIZE, 1, &indst);
+    lineLen = PipReadNextLine(pFile, lineStr, LINE_STR_SIZE, 1, &indst);
     if (!lineLen)
         break;
     if (lineLen == -2) {
@@ -1314,12 +1306,15 @@ static int ReadParamFile(FILE *pFile)
   return 0;
 }
 
-/*
- * Reads the file until a non-blank line is found, stripping in-line comments
- *  if indicated, returns the line, the length, and the index of the first
- * non-white space character
+/*!
+ * Reads the file [pFile] until a non-blank line is found, stripping white 
+ * space at the end of the line and in-line comments if [inLineComments] is
+ * non-zero.  Returns the line in [lineStr] and the index of the first
+ * non-white space character in [firstNonWhite].  The size of [lineStr] is
+ * provided in [strSize].  Returns the length of the line, or 0 for end of 
+ * file, -1 if the line is too long, or -2 for error reading file.
  */
-static int ReadNextLine(FILE *pFile, char *lineStr, int strSize, 
+int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, 
                         int inLineComments, int *firstNonWhite)
 {
   int indst, lineLen;
@@ -1378,12 +1373,33 @@ static int ReadNextLine(FILE *pFile, char *lineStr, int strSize,
 }
 
 /*
- * Parse a line of values and return them into an array
+ * Parse a line of values for an option and return them into an array
  */
-static int GetLineOfValues(char *option, void *array, int valType, 
-                           int *numToGet, int arraySize)
+static int OptionLineOfValues(char *option, void *array, int valType, 
+                              int *numToGet, int arraySize)
 {
   char *strPtr;
+  int err;
+
+  /* Get string  and save pointer to it for error messages */
+  if ((err = GetNextValueString(option, &strPtr)))
+    return err;
+  return PipGetLineOfValues(option, strPtr, array, valType, numToGet, 
+                            arraySize);
+}
+
+/*!
+ * Parses a line of values from the string in [strPtr] and returns them into
+ * [array], whose size is given by [arraySize].  The type is indicated in
+ * [valType] as PIP_INTEGER (1) for integer or PIP_FLOAT (2) for float.
+ * The number of values to get is set in [numToGet], where a value of zero
+ * indicates all values should be returned, in which case the number gotten is 
+ * returned in [numToGet].  The return value is -1 for errors in parsing,
+ * too few values on the line, or not enough space in the array.
+ */
+int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType, 
+                       int *numToGet, int arraySize)
+{
   char *sepPtr;
   char *endPtr;
   char *invalid;
@@ -1395,9 +1411,6 @@ static int GetLineOfValues(char *option, void *array, int valType,
   int gotComma = 1;
   char sepStr[] = ",\t /";
 
-  /* Get string  and save pointer to it for error messages */
-  if ((err = GetNextValueString(option, &strPtr)))
-    return err;
   fullStr = strPtr;
 
   while (strlen(strPtr)) {
@@ -1458,7 +1471,7 @@ static int GetLineOfValues(char *option, void *array, int valType,
     }
     
     /* convert number, get pointer  to first invalid char */
-    if (valType == INTEGER_TYPE)
+    if (valType == PIP_INTEGER)
       iarray[numGot++] = strtol(strPtr, &invalid, 10);
     else
       farray[numGot++] = (float)strtod(strPtr, &invalid);
@@ -1608,6 +1621,13 @@ int PipMemoryError(void *ptr, char *routine)
 {
   if (ptr)
     return 0;
+  if (!tempStr)
+    tempStr = (char *)malloc(TEMP_STR_SIZE);
+  if (!tempStr) {
+    PipSetError("Failed to get memory for string in PipMemoryError");
+    return -1;
+  }
+    
   sprintf(tempStr, "Failed to get memory for string in %s", routine);
   PipSetError(tempStr);
   return -1;
@@ -1624,10 +1644,11 @@ static void AppendToErrorString(char *str)
   PipSetError(tempStr);
 }
 
-/*
- * returns 1 if fullStr starts with subStr, with tests for NULL strings
+/*!
+ * Returns 1 if [fullStr] starts with [subStr], where either strings can be 
+ * NULL.
  */
-static int StartsWith(char *fullStr, char *subStr)
+int PipStartsWith(char *fullStr, char *subStr)
 {
   if (!fullStr || !subStr)
     return 0;
@@ -1648,14 +1669,14 @@ static int LineIsOptionToken(char *line)
   char *token;
 
   /* It is not a token unless it starts with open delim and contains close */
-  if (!StartsWith(line, OPEN_DELIM) || !strstr(line, CLOSE_DELIM))
+  if (!PipStartsWith(line, OPEN_DELIM) || !strstr(line, CLOSE_DELIM))
     return 0;
 
   /* It must then contain "Field" right after delim to be an option */
   token = line + strlen(OPEN_DELIM);
-  if (StartsWith(token, "Field"))
+  if (PipStartsWith(token, "Field"))
     return 1;
-  if (StartsWith(token, "SectionHeader"))
+  if (PipStartsWith(token, "SectionHeader"))
     return 2;
 
   return -1;
@@ -1675,7 +1696,7 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
   char *copyStr;
 
   /* First make sure line starts with it */
-  if (!StartsWith(line, keyword))
+  if (!PipStartsWith(line, keyword))
     return 0;
 
   /* Now look for delimiter */
@@ -1712,6 +1733,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.22  2006/10/03 14:41:46  mast
+Added python option output
+
 Revision 3.21  2006/09/20 23:04:06  mast
 Made the call to copyright be a callback function to decouple from utils
 
