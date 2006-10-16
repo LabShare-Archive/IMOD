@@ -49,6 +49,7 @@ abstract class InputCell {
   abstract protected Component getComponent();
   abstract protected void setForeground();
   abstract int getWidth();
+  abstract void setToolTipText(String toolTipText);
 
   /**
    * constructor should not call any overridable or abstract function
@@ -145,6 +146,11 @@ abstract class InputCell {
     setBackground();
   }
   
+  final void setWarning(boolean warning, String tooltip) {
+    setWarning(warning);
+    setToolTipText(tooltip);
+  }
+  
   final void setError(boolean error) {
     //if switching from warning to error, turn off warning first
     if (error && warning) {
@@ -187,6 +193,9 @@ abstract class InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2005/08/04 20:11:15  sueh
+ * <p> bug# 532 Fixed setWarning and setError.
+ * <p>
  * <p> Revision 1.2  2005/07/19 22:32:40  sueh
  * <p> bug# 532 changing the look of inUse == false to greyed out text.
  * <p> Changing the look of error == true to red background.  Added warning
