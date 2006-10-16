@@ -6,6 +6,9 @@ EXPORTS
 	imodPointIsEqual
 	istoreAddMinMax
 	imodContourGetName
+	AdocSetCurrent
+	PipGetLineOfValues
+	AdocGetTwoFloats
 	imodTransform
 	OPENIMODDATA
 	imodChecksum
@@ -22,21 +25,26 @@ EXPORTS
 	imodContourFlatten
 	imod_to_RIB
 	ilistPop
+	ADOCGETTHREEFLOATS
 	imodel_contour_newsurf
 	imodContourMakeDirection
 	imodGetMaxObject
 	imodGetIndex
 	imodContourCopy
 	WRITEIMOD
+	ADOCGETTWOINTEGERS
 	imodContoursDeleteToEnd
 	imodPointSetSize
 	imodPointAreaScale
+	ADOCGETSTRING
 	istoreShiftIndex
 	imodContourJoin
+	ADOCGETINTEGERARRAY
 	PipGetInteger
 	imodel_object_centroid
 	imodObjectVolume
 	imodObjectDefault
+	ADOCSETKEYVALUE
 	f2cString
 	imodObjviewComplete
 	imodMeshDeleteIndex
@@ -51,10 +59,12 @@ EXPORTS
 	imodel_maxpt
 	mrcHugeSeek
 	ilistInsert
+	AdocGetThreeFloats
 	ilistRemove
 	PIPNEXTARG
 	imodReadFile
 	istoreChecksum
+	AdocSetKeyValue
 	imodClipsTrans
 	imodObjectDelete
 	imodViewStore
@@ -75,10 +85,13 @@ EXPORTS
 	imodObjectGetContour
 	imodMatTrans
 	imodObjectRemoveContour
+	ADOCGETNUMBEROFSECTIONS
 	imodel_transform_slice
 	imodObjectClip
 	istorePointIsGap
+	AdocDeleteKeyValue
 	imodViewDefault
+	PipStartsWith
 	imodWriteStore
 	imodGetByte
 	b3dError
@@ -101,12 +114,14 @@ EXPORTS
 	imodMatDelete
 	imodPutScaledPoints
 	imodObjectGetMesh
+	AdocGetString
 	imodPlaneTranslate
 	imodGetFlipped
 	imodLabelDelete
 	PIPNUMBEROFARGS
 	imodPointNormalize
 	istoreRetainPoint
+	AdocGetThreeIntegers
 	imodPlaneDelete
 	imodContourAutoSort
 	B3DHEADERITEMBYTES
@@ -128,6 +143,7 @@ EXPORTS
 	GETIMODMESH
 	PipParseInput
 	imodLabelName
+	ADOCGETTHREEINTEGERS
 	imodContZDirection
 	b3dGetError
 	imodMatScale
@@ -142,6 +158,7 @@ EXPORTS
 	imodLabelWrite
 	imodContourCircularity
 	imodFgetline
+	AdocNew
 	imodLabelNew
 	PIPGETTWOFLOATS
 	PIPALLOWCOMMADEFAULTS
@@ -155,6 +172,7 @@ EXPORTS
 	imodViewNew
 	imodel_overlap_fractions
 	ilistPush
+	ADOCDELETEKEYVALUE
 	imodLabelItemMove
 	PIPINITIALIZE
 	imodContourUnique
@@ -166,11 +184,13 @@ EXPORTS
 	imodPrevContour
 	PUTIMODMAXES
 	imodContourGetPoint
+	AdocWrite
 	imodMatCopy
 	imodContourFreeZTables
 	imodObjectGetNext
 	istoreCountItems
 	GETIMODFLAGS
+	ADOCDONE
 	GETIMODSIZES
 	imodMatTransform
 	ilistAppend
@@ -181,6 +201,8 @@ EXPORTS
 	imodContourPrincipalAxis
 	AMOEBA
 	imodClipsFixCount
+	AdocGetFloatArray
+	ADOCWRITE
 	imodel_contour_nearest
 	imodObjectInsertContour
 	imodSetIndex
@@ -188,17 +210,22 @@ EXPORTS
 	imodObjectDup
 	imodContoursFromImagePoints
 	b3dSetStoreError
+	ADOCGETFLOATARRAY
 	imodIMNXWrite
 	PipDone
 	cmapConvertRamp
 	PUTOBJCOLOR
 	imodPutFloats
+	AdocGetTwoIntegers
 	istoreCopyContSurfItems
+	ADOCGETINTEGER
 	imodContoursDelete
 	imodNewObject
 	imodProgName
 	imodFileWrite
 	istoreFindBreak
+	ADOCGETFLOAT
+	ADOCGETSECTIONNAME
 	imeshParamsDelete
 	PipReadOptionFile
 	imodMatFindVector
@@ -214,10 +241,12 @@ EXPORTS
 	PIPGETINTEGER
 	imodContourGetNext
 	imodel_contour_length
+	ADOCADDSECTION
 	imodDeletePoint
 	imodPointAdd
 	imodObjectSetColor
 	imodPlaneRotate
+	AdocRead
 	istoreDeleteContSurf
 	imodMatTransform2D
 	imodel_minpt
@@ -271,6 +300,7 @@ EXPORTS
 	PipSetError
 	amoebaInit
 	PipGetIntegerArray
+	AdocGetSectionName
 	imodContourFindPoint
 	imodContourArea
 	imodel_point_dist
@@ -344,6 +374,7 @@ EXPORTS
 	PIPGETSTRING
 	b3dIMax
 	ilistItem
+	AdocDone
 	imodGetInts
 	PIPGETBOOLEAN
 	imodWrite
@@ -359,11 +390,13 @@ EXPORTS
 	imodFileRead
 	PIPSETMANPAGEOUTPUT
 	PipGetString
+	AdocGetNumberOfSections
 	cmapStandardRamp
 	imodPutByte
 	imodObjviewToObject
 	istoreEndChange
 	PipGetThreeFloats
+	PipReadNextLine
 	imodMeshesNew
 	imodContourSetPointData
 	imodPutInt
@@ -425,11 +458,13 @@ EXPORTS
 	PIPEXITONERROR
 	imodViewUse
 	imodContourGetPoints
+	AdocAddSection
 	NEWIMOD
 	ilistQuantum
 	imeshParamsNew
 	imodObjectSetValue
 	imodContourNearest
+	ADOCREAD
 	imodContourSwap
 	imodObjviewsFree
 	imodOpenFile
@@ -453,6 +488,7 @@ EXPORTS
 	imodContourBreak
 	imodel_contour_sorty
 	istoreListPointProps
+	AdocGetFloat
 	imodObjviewDelete
 	imodMeshNew
 	istoreSort
@@ -460,11 +496,15 @@ EXPORTS
 	GETIMODHEAD
 	imodViewDelete
 	istoreContSurfDrawProps
+	ADOCNEW
 	imod_to_synu
 	imodContourGetBBox
 	b3dFseek
 	imodContourClear
 	imodVersion
+	ADOCSETCURRENT
+	ADOCGETTWOFLOATS
+	AdocGetInteger
 	imodPointDistance
 	imodPlaneInit
 	imodGetBytes
@@ -475,6 +515,7 @@ EXPORTS
 	PipPrintHelp
 	imodDelCurrentContour
 	imodLabelItemMatch
+	AdocGetIntegerArray
 	PUTIMODMESH
 	PipGetNonOptionArg
 	imodel_contour_on
