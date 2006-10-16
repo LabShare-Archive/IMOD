@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2006/10/10 05:11:15  sueh
+ * <p> $bug# 931 Managing the log file with LogFile.
+ * <p> $
  * <p> $Revision 1.4  2006/09/19 22:27:56  sueh
  * <p> $bug# 928 Add post processing for patchcorr to the watcher because patchcorr is
  * <p> $run independently by combine and doesn't return to ProcessManager.
@@ -109,6 +112,6 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   }
   
   protected void postProcess() {
-    applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null);
+    applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null,null);
   }
 }
