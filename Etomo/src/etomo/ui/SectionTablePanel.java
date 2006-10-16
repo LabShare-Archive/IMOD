@@ -23,8 +23,10 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 
 import etomo.JoinManager;
+import etomo.storage.JoinInfoFile;
 import etomo.storage.TomogramFileFilter;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
@@ -49,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2006/07/21 19:13:56  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 1.31  2006/07/20 17:21:17  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -336,6 +342,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final SpacedPanel pnlButtons = new SpacedPanel();
   private final SpacedPanel pnlButtonsComponent1 = new SpacedPanel();
   private final SpacedPanel pnlButtonsComponent2 = new SpacedPanel();
+  private final SpacedPanel pnlButtonsComponent4 = new SpacedPanel();
   private final UIHarness uiHarness = UIHarness.INSTANCE;
   private final MultiLineButton btnMoveSectionUp = new MultiLineButton(
       "Move Section Up");
@@ -347,6 +354,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       "Delete Section");
   private final MultiLineButton btnGetAngles = new MultiLineButton(
       "Get Angles from Slicer");
+  private final MultiLineButton btnInvertTable = new MultiLineButton(
+  "Invert Table");
   //first header row
   private final HeaderCell header1ZOrder = new HeaderCell("Z Order");
   private final HeaderCell header1SetupSections = new HeaderCell(
@@ -401,13 +410,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3RotationZ = new HeaderCell("Z",
       UIParameters.INSTANCE.getNumericWidth());
-  private final ArrayList rows = new ArrayList();
+  private ArrayList rows = new ArrayList();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(
       this);
 
-  private final JoinManager joinManager;
+  private final JoinManager manager;
   private final JoinDialog joinDialog;
 
   private LabeledSpinner spinBinning;
@@ -421,9 +430,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * Creates the panel and table.
    *
    */
-  SectionTablePanel(JoinDialog joinDialog, JoinManager joinManager) {
+  SectionTablePanel(JoinDialog joinDialog, JoinManager manager) {
     this.joinDialog = joinDialog;
-    this.joinManager = joinManager;
+    this.manager = manager;
     //create root panel
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(BorderFactory.createEtchedBorder());
@@ -647,10 +656,14 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
     pnlImod = joinDialog.createOpen3dmodPanel(spinBinning, btnOpen3dmod);
-    //createImodPanel();
     //fourth component
+    pnlButtonsComponent4.setBoxLayout(BoxLayout.Y_AXIS);
     btnGetAngles.setSize(true);
     btnGetAngles.addActionListener(sectionTableActionListener);
+    pnlButtonsComponent4.add(btnGetAngles);
+    btnInvertTable.setSize(true);
+    btnInvertTable.addActionListener(sectionTableActionListener);
+    pnlButtonsComponent4.add(btnInvertTable);
   }
 
   private void addButtonsPanelComponents() {
@@ -662,7 +675,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       pnlButtons.add(pnlImod);
     }
     if (isSetupTab()) {
-      pnlButtons.add(btnGetAngles);
+      pnlButtons.add(pnlButtonsComponent4);
     }
   }
 
@@ -717,6 +730,32 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return -1;
   }
 
+  void setInverted() {
+    JoinInfoFile joinInfoFile = new JoinInfoFile(manager);
+    int invertedCount = 0;
+    int size = rows.size();
+    for (int i = 0; i < size; i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      ConstEtomoNumber inverted = joinInfoFile.getInverted(i);
+      if (inverted == null) {
+        continue;
+      }
+      if (inverted.is()) {
+        invertedCount++;
+      }
+      row.setInverted(inverted);
+    }
+    if (invertedCount > size / 2) {
+      uiHarness
+          .openMessageDialog(
+              "Most of the sections in this join will be inverted.  "
+                  + SectionTableRow.INVERTED_WARNING
+                  + "  If you don't want these inversions, "
+                  + "push the \"Change Setup\" button and then push the \"Invert Table\" button.",
+              "Join Warning");
+    }
+  }
+
   /**
    * enable buttons made on the current mode parameter
    *
@@ -739,12 +778,14 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       btnMoveSectionDown.setEnabled(false);
       btnDeleteSection.setEnabled(false);
       btnGetAngles.setEnabled(false);
+      btnInvertTable.setEnabled(false);
       break;
     case JoinDialog.SETUP_MODE:
     case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
     case JoinDialog.CHANGING_SAMPLE_MODE:
       if (!flipping) {
         btnAddSection.setEnabled(true);
+        btnInvertTable.setEnabled(true);
       }
       break;
     default:
@@ -872,7 +913,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     rows.add(rowIndex, rowMoveDown);
     addRowsToTable(rowIndex - 1);
     renumberTable(rowIndex - 1);
-    joinManager.getState().moveRowUp(rowIndex);
+    manager.getState().moveRowUp(rowIndex);
     configureRows();
     enableRowButtons(rowIndex - 1);
     repaint();
@@ -901,7 +942,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     rows.add(rowIndex + 1, rowMoveDown);
     addRowsToTable(rowIndex);
     renumberTable(rowIndex);
-    joinManager.getState().moveRowDown(rowIndex);
+    manager.getState().moveRowDown(rowIndex);
     configureRows();
     enableRowButtons(rowIndex + 1);
     repaint();
@@ -917,7 +958,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       return;
     }
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(joinManager
+    JFileChooser chooser = new JFileChooser(new File(manager
         .getPropertyUserDir()));
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
@@ -929,14 +970,14 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       if (isDuplicate(tomogram)) {
         return;
       }
-      MRCHeader header = MRCHeader.getInstance(
-          joinManager.getPropertyUserDir(), tomogram.getAbsolutePath(),
-          AxisID.ONLY);
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+          tomogram.getAbsolutePath(), AxisID.ONLY);
       if (!readHeader(header)) {
         return;
       }
       flipping = true;
       btnAddSection.setEnabled(false);
+      btnInvertTable.setEnabled(false);
       if (header.getNRows() < header.getNSections()) {
         //The tomogram may not be flipped
         //Ask use if can flip the tomogram
@@ -946,12 +987,12 @@ public class SectionTablePanel implements ContextMenu, Expandable,
             flipWarning[0], flipWarning[1],
             "Shall I use the clip flipyz command to flip Y and Z?" };
         if (uiHarness.openYesNoDialog(msgFlipped, AxisID.ONLY)) {
-          joinManager.flip(tomogram, joinDialog.getWorkingDir());
+          manager.flip(tomogram, joinDialog.getWorkingDir());
           return;
         }
       }
       addSection(tomogram);
-      uiHarness.pack(AxisID.ONLY, joinManager);
+      uiHarness.pack(AxisID.ONLY, manager);
     }
   }
 
@@ -1023,8 +1064,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     //Sections are only added in the Setup tab, so assume that the join
     //expand button is contracted.
-    SectionTableRow row = new SectionTableRow(joinManager, this,
-        rows.size() + 1, tomogram, button1ExpandSections.isExpanded());
+    SectionTableRow row = new SectionTableRow(manager, this, rows.size() + 1,
+        tomogram, button1ExpandSections.isExpanded());
     row.setMode(mode);
     row.add(pnlTable);
     rows.add(row);
@@ -1052,7 +1093,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     row.remove();
     row.removeImod();
     renumberTable(rowIndex);
-    joinManager.getState().deleteRow(rowIndex);
+    manager.getState().deleteRow(rowIndex);
     configureRows();
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
@@ -1110,7 +1151,28 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
     }
   }
-  
+
+  private void invertTable() {
+    int size = rows.size();
+    ArrayList newRows = new ArrayList();
+    int rowNumber = 0;
+    for (int i = size - 1; i >= 0; i--) {
+      SectionTableRow row = (SectionTableRow)rows.get(i);
+      //remove the row from the display
+      row.remove();
+      //place the row in its new position in the array and configure it
+      row.setRowNumber(++rowNumber);
+      row.swapBottomTop();
+      newRows.add(row);
+    }
+    //add the rows to the display
+    rows = newRows;
+    addRowsToTable(0);
+    configureRows();
+    enableRowButtons(getHighlightedRowIndex());
+    repaint();
+  }
+
   /**
    * Remove the rows from the table starting from the row in the ArrayList at
    * startIndex.
@@ -1142,8 +1204,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       if (!row.isValid()) {
         success = false; //getData() failed
       }
-      metaData
-          .setSectionTableData(new SectionTableRowData(joinManager, rowData));
+      metaData.setSectionTableData(new SectionTableRowData(manager, rowData));
     }
     return success;
   }
@@ -1179,7 +1240,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     for (int i = 0; i < rowData.size(); i++) {
       SectionTableRowData data = (SectionTableRowData) rowData.get(i);
-      SectionTableRow row = new SectionTableRow(joinManager, this, data, false);
+      SectionTableRow row = new SectionTableRow(manager, this, data, false);
       int rowIndex = data.getRowIndex();
       rows.add(rowIndex, row);
     }
@@ -1255,7 +1316,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    *
    */
   private final void repaint() {
-    joinManager.getMainPanel().repaint();
+    manager.getMainPanel().repaint();
   }
 
   /**
@@ -1319,6 +1380,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     else if (command.equals(btnGetAngles.getActionCommand())) {
       imodGetAngles();
+    }
+    else if (command.equals(btnInvertTable.getActionCommand())) {
+      invertTable();
     }
     else {
       run3dmod(command, new Run3dmodMenuOptions());

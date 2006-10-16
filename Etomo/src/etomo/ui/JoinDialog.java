@@ -47,6 +47,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.35  2006/07/21 19:03:07  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 1.34  2006/07/20 17:20:27  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -642,6 +646,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     synchronize(prevTab);
     addPanelComponents(curTab);
     UIHarness.INSTANCE.pack(joinManager);
+  }
+  
+  public void setInverted() {
+    pnlSectionTable.setInverted();
   }
 
   public final void setMode(int mode) {

@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2006/10/13 22:30:37  sueh
+ * <p> bug# 919 Added inverted boolean.
+ * <p>
  * <p> Revision 1.21  2006/07/21 19:14:14  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
@@ -198,7 +201,9 @@ import etomo.util.DatasetFiles;
  */
 public final class SectionTableRow {
   public static final String rcsid = "$Id$";
-
+  
+  static final String INVERTED_WARNING = "The handedness of structures will change in inverted sections.";
+  
   private final FieldCell setupSection = new FieldCell();
   private final FieldCell joinSection = new FieldCell();
   private final FieldCell sampleBottomStart = new FieldCell();
@@ -216,7 +221,6 @@ public final class SectionTableRow {
   private final FieldCell rotationAngleX = new FieldCell();
   private final FieldCell rotationAngleY = new FieldCell();
   private final FieldCell rotationAngleZ = new FieldCell();
-  private final boolean inverted = false;
   private final SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
       this);
 
@@ -231,6 +235,7 @@ public final class SectionTableRow {
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
   private boolean valid = true;
+  private boolean inverted = false;
 
   /**
    * Create colors, fields, and buttons.  Add the row to the table
@@ -371,6 +376,33 @@ public final class SectionTableRow {
     default:
       throw new IllegalStateException("mode=" + mode);
     }
+  }
+  
+  void setInverted(ConstEtomoNumber inverted) {
+    if (inverted == null) {
+      return;
+    }
+    this.inverted = inverted.is();
+    String tooltip = null;
+    if (this.inverted) {
+      tooltip = "This section is inverted.  "+INVERTED_WARNING;
+    }
+    setupSection.setWarning(this.inverted, tooltip);
+    joinSection.setWarning(this.inverted, tooltip);
+    sampleBottomStart.setWarning(this.inverted, tooltip);
+    sampleBottomEnd.setWarning(this.inverted, tooltip);
+    sampleTopStart.setWarning(this.inverted, tooltip);
+    sampleTopEnd.setWarning(this.inverted, tooltip);
+    slicesInSample.setWarning(this.inverted, tooltip);
+    referenceSection.setWarning(this.inverted, tooltip);
+    currentSection.setWarning(this.inverted, tooltip);
+    setupFinalStart.setWarning(this.inverted, tooltip);
+    setupFinalEnd.setWarning(this.inverted, tooltip);
+    joinFinalStart.setWarning(this.inverted, tooltip);
+    joinFinalEnd.setWarning(this.inverted, tooltip);
+    rotationAngleX.setWarning(this.inverted, tooltip);
+    rotationAngleY.setWarning(this.inverted, tooltip);
+    rotationAngleZ.setWarning(this.inverted, tooltip);
   }
 
   private int totalInRange(ConstEtomoNumber start, ConstEtomoNumber end) {
@@ -532,6 +564,7 @@ public final class SectionTableRow {
     rotationAngleX.setValue(data.getRotationAngleX().toString());
     rotationAngleY.setValue(data.getRotationAngleY().toString());
     rotationAngleZ.setValue(data.getRotationAngleZ().toString());
+    setInverted(data.getInverted());
   }
 
   /**
@@ -543,6 +576,7 @@ public final class SectionTableRow {
    * @return
    */
   private boolean retrieveData(boolean displayErrorMessage) {
+    data.setInverted(inverted);
     valid = true;
     String errorTitle = "Invalid number in section " + rowNumber.getText();
     if (!data.setSampleBottomStart(sampleBottomStart.getValue()).isValid(
@@ -676,6 +710,17 @@ public final class SectionTableRow {
     else {
       joinSection.setValue(section.getName());
     }
+  }
+  
+  void swapBottomTop() {
+    String bottom = sampleBottomStart.getValue();
+    String top = sampleTopStart.getValue();
+    sampleBottomStart.setValue(top);
+    sampleTopStart.setValue(bottom);
+    bottom = sampleBottomEnd.getValue();
+    top = sampleTopEnd.getValue();
+    sampleBottomEnd.setValue(top);
+    sampleTopEnd.setValue(bottom);
   }
 
   void setRowNumber(int rowNumber) {
