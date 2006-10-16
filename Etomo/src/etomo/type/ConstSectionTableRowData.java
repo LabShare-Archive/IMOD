@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2006/06/29 22:01:06  sueh
+ * <p> bug# 880 Removed orderCut because it doesn't need to be stored.
+ * <p>
  * <p> Revision 1.18  2006/06/29 20:06:00  sueh
  * <p> bug# 880 Added orderCut
  * <p>
@@ -180,6 +183,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
   protected StringBuffer invalidReason = null;
+  protected final EtomoBoolean2 inverted = new EtomoBoolean2("Inverted");
 
   public abstract void load(Properties props);
 
@@ -291,6 +295,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     joinYMax = constSectionTableRowData.joinYMax;
     setupZMax = constSectionTableRowData.setupZMax;
     joinZMax = constSectionTableRowData.joinZMax;
+    inverted.set(constSectionTableRowData.inverted);
   }
 
   public void store(Properties props) {
@@ -313,6 +318,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleX.store(props, prepend);
     rotationAngleY.store(props, prepend);
     rotationAngleZ.store(props, prepend);
+    inverted.store(props, prepend);
   }
 
   void remove(Properties props, String prepend) {
@@ -330,6 +336,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleX.remove(props, prepend);
     rotationAngleY.remove(props, prepend);
     rotationAngleZ.remove(props, prepend);
+    inverted.remove(props, prepend);
   }
 
   protected String createPrepend(String prepend) {
@@ -485,6 +492,10 @@ public abstract class ConstSectionTableRowData implements Storable {
     return sampleTopEnd;
   }
 
+  public ConstEtomoNumber getInverted() {
+    return inverted;
+  }
+  
   public int getSampleBottomNumberSlices() {
     int sampleBottomEnd = this.sampleBottomEnd.getInt();
     int sampleBottomStart = this.sampleBottomStart.getInt();
