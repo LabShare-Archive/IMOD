@@ -24,39 +24,48 @@ import etomo.util.DatasetFiles;
 public class JoinInfoFile {
   public static final String rcsid = "$Id$";
 
-  private final BaseManager manager;
+  private static final String ERROR_TITLE = "Etomo Error";
+  private static final String ERROR_MESSAGE = "WARNING:  Unable to find out if sections will be inverted.";
+  private final LogFile joinInfo;
 
   private boolean loaded = false;
   private ArrayList invertedArray = null;
 
   public JoinInfoFile(BaseManager manager) {
-    this.manager = manager;
+    joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getJoinInfoName(manager));
+  }
+  
+  JoinInfoFile(LogFile logFile){
+    joinInfo = logFile;
   }
 
   public ConstEtomoNumber getInverted(int index) {
     if (!loaded) {
-      load();
+      if (!load()) {
+        return null;
+      }
     }
     try {
       return (EtomoBoolean2) invertedArray.get(index);
     }
     catch (IndexOutOfBoundsException e) {
-      //programmer error
       e.printStackTrace();
-      return new EtomoBoolean2();
+      UIHarness.INSTANCE.openMessageDialog(ERROR_TITLE, ERROR_MESSAGE + "\n"
+          + e.toString());
+      return null;
     }
   }
 
-  private void load() {
+  private boolean load() {
     reset();
     try {
-      LogFile joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getJoinInfoName(manager));
       long readId = joinInfo.openReader();
       joinInfo.readLine(readId);
       String line = joinInfo.readLine(readId);
       if (line == null) {
-        UIHarness.INSTANCE.openMessageDialog("Join Info File Error","WARNING:  Unable to find out if sections with be inverted.");
+        UIHarness.INSTANCE.openMessageDialog(ERROR_TITLE, ERROR_MESSAGE);
+        return false;
       }
       else {
         String[] array = line.trim().split(" +");
@@ -71,9 +80,13 @@ public class JoinInfoFile {
       readId = LogFile.NO_ID;
     }
     catch (LogFile.ReadException e) {
-      UIHarness.INSTANCE.openMessageDialog("Join Info File Error","WARNING:  Unable to find out if sections with be inverted.\n"+e.getMessage());
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("Etomo Error", ERROR_MESSAGE + "\n"
+          + e.toString());
+      return false;
     }
     loaded = true;
+    return true;
   }
 
   private void reset() {
@@ -87,6 +100,10 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/10/13 22:28:56  sueh
+ * <p> bug# 919 Using LogFile to read the .info file.  Popping up a message when
+ * <p> unable to read.
+ * <p>
  * <p> Revision 1.1  2006/10/10 05:16:25  sueh
  * <p> bug# 919 File to read the join info file.
  * <p> </p>
