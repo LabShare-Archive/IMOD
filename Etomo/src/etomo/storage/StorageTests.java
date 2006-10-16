@@ -20,7 +20,10 @@ import etomo.JUnitTests;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/10/10 05:19:38  sueh
+* <p> bug# 931 Test suite for the storage package.
+* <p> </p>
 */
 
 public class StorageTests {
@@ -33,6 +36,7 @@ public class StorageTests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(LogFileTest.class);
+    suite.addTestSuite(JoinInfoFileTest.class);
     //$JUnit-END$
     return suite;
   }
