@@ -38,6 +38,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2006/10/10 05:06:54  sueh
+ * <p> bug# 931 In startBackgroundProcess() and startComScript() set
+ * <p> etomo.processThreadGroup to be the ThreadGroup, so that exceptions can be
+ * <p> handled during a UITest.
+ * <p>
  * <p> Revision 1.47  2006/08/03 21:28:01  sueh
  * <p> bug# 769 MsgReconnectDone():  When calling manager.processDone, also
  * <p> setting failed to true when the process end state is not done.
@@ -381,8 +386,8 @@ public abstract class BaseProcessManager {
    * run touch command on file
    * @param file
    */
-  public void touch(File file) {
-    String[] commandArray = { "touch", file.getAbsolutePath() };
+  public void touch(String absolutePath) {
+    String[] commandArray = { "touch", absolutePath };
     startSystemProgramThread(commandArray, AxisID.ONLY);
   }
 

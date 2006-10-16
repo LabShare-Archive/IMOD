@@ -181,8 +181,8 @@ public final class ParallelManager extends BaseManager {
       ProcessResultDisplay processResultDisplay) {
   }
 
-  public void touch(File file) {
-    processMgr.touch(file);
+  public void touch(String absolutePath) {
+    processMgr.touch(absolutePath);
   }
 
   public String getName() {
@@ -274,6 +274,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/09/13 23:07:23  sueh
+ * <p> bug# 920 Moving BaseManager.createState() call to child classes, so it can be
+ * <p> done after meta data is created.
+ * <p>
  * <p> Revision 1.5  2006/07/28 19:43:45  sueh
  * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
  * <p> usingParallelProcessing.

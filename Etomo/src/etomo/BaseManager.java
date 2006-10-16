@@ -126,7 +126,7 @@ public abstract class BaseManager {
   protected abstract Storable[] getParamFileStorableArray(
       boolean includeMetaData, int baseElements);
 
-  public abstract void touch(File file);
+  public abstract void touch(String absolutePath);
 
   protected abstract BaseProcessManager getProcessManager();
 
@@ -1006,6 +1006,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.67  2006/09/13 23:06:47  sueh
+ * <p> bug# 920 Moving createState() call to child classes, so it can be done after meta
+ * <p> data is created.
+ * <p>
  * <p> Revision 1.66  2006/08/03 21:25:41  sueh
  * <p> bug# 769 ProcessDone():  Changed boolean error to boolean failed because is
  * <p> also covers killing a process.
