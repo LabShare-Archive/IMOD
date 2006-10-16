@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2006/10/16 18:06:10  mast
+#  Added some debug output
+#
 #  Revision 1.1  2006/09/26 22:18:46  mast
 #  Added to package
 #
@@ -19,17 +22,15 @@ if ($#argv < 3) then
     exit 1
 endif
 
-echo "In copywrappers"
 set instdir = $argv[1]
 set wrapper = $argv[2]
 shift ; shift
+set numarg = $#argv
 while ($#argv > 0)
-    if (-x $argv[1]) then
+    if (-x $argv[1] || $numarg == 1) then
         set name = $argv[1]:t
         \cp $wrapper $instdir/$name.cmd
-        echo "$status status from copy"
         chmod a+rx $instdir/$name.cmd
-        echo "$status status from chmod"
     endif
     shift
 end
