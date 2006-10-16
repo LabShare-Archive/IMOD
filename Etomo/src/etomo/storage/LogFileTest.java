@@ -24,6 +24,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2006/10/13 18:35:58  sueh
+ * <p> bug# 931 Increasing sleep in createLog().
+ * <p>
  * <p> Revision 1.2  2006/10/11 10:12:17  sueh
  * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
  * <p> FileException.
@@ -425,7 +428,7 @@ public class LogFileTest extends TestCase {
 
   private void createLog() {
     if (!log.exists()) {
-      EtomoDirector.getInstance().getCurrentManager_test().touch(log);
+      EtomoDirector.getInstance().getCurrentManager_test().touch(log.getAbsolutePath());
       try {
         Thread.sleep(500);
       }
