@@ -10,6 +10,7 @@ import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
+import etomo.comscript.ProcessDetails;
 import etomo.comscript.StartJoinParam;
 import etomo.comscript.XfalignParam;
 import etomo.process.BaseProcessManager;
@@ -53,6 +54,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2006/09/13 23:07:14  sueh
+ * <p> bug# 920 Moving BaseManager.createState() call to child classes, so it can be
+ * <p> done after meta data is created.
+ * <p>
  * <p> Revision 1.43  2006/07/19 20:05:29  sueh
  * <p> bug# 902 Added processSucceeded().
  * <p>
@@ -678,6 +683,27 @@ public final class JoinManager extends BaseManager {
     setNextProcess(AxisID.ONLY, "startjoin");
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
   }
+  
+  /**
+   * post processing after a successful process
+   * @param axisID
+   * @param processName
+   * @param processDetails
+   */
+  public void postProcess(String commandName,
+      ProcessDetails processDetails) {
+    if (processDetails != null) {
+    if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
+      StartJoinParam param = newStartJoinParam();
+      param.setRotate(true);
+      param.setTotalRows(processDetails
+          .getIntValue(MakejoincomParam.Fields.TOTAL_ROWS));
+      param.setRotationAnglesList(processDetails
+          .getHashtable(MakejoincomParam.Fields.ROTATION_ANGLES_LIST));
+    }
+    }
+    joinDialog.setInverted();
+  }
 
   /**
    * if paramFile is not set, attempts to end setup mode and set the param file name.
@@ -900,18 +926,18 @@ public final class JoinManager extends BaseManager {
   public void revertXfFileToMidas() {
     File midasOutputFile = new File(propertyUserDir, metaData.getRootName()
         + MidasParam.getOutputFileExtension());
-    touch(midasOutputFile);
+    touch(midasOutputFile.getAbsolutePath());
     copyXfFile(midasOutputFile);
   }
 
-  public void touch(File file) {
-    processMgr.touch(file);
+  public void touch(String absolutePath) {
+    processMgr.touch(absolutePath);
   }
 
   public void revertXfFileToEmpty() {
     File emptyFile = new File(propertyUserDir, metaData.getRootName()
         + "_empty.xf");
-    touch(emptyFile);
+    touch(emptyFile.getAbsolutePath());
     copyXfFile(emptyFile);
   }
 
