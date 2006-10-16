@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.112  2006/10/11 10:10:25  sueh
+ * bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * FileException.
+ *
  * Revision 3.111  2006/10/10 07:43:14  sueh
  * bug# 931 In handleTransferfidMessage(), close the log file writer on error.
  *
@@ -1843,7 +1847,7 @@ public class ProcessManager extends BaseProcessManager {
           .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
       state.setAlignAngleOffset(axisID, processDetails
           .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
-      appManager.msgAlignPostProcess(axisID);
+      appManager.postProcess(axisID, processName, processDetails, script.getProcessResultDisplay());
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.setTomopitchOutput(axisID);
@@ -1868,7 +1872,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     else if (processName == ProcessName.TILT
         || processName == ProcessName.SAMPLE) {
-      appManager.postProcess(script.getAxisID(), processName, processDetails);
+      appManager.postProcess(script.getAxisID(), processName, processDetails,null);
     }
     else if (processName == ProcessName.TRACK) {
       File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
