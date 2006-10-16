@@ -30,6 +30,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.20  2006/08/02 22:24:00  sueh
+ * <p> bug# 769 Added empty functions errorProcess and postProcess.
+ * <p>
  * <p> Revision 1.19  2006/06/05 16:26:15  sueh
  * <p> bug# 766 Added manager to the base class.  Passing the process name to the
  * <p> processes.
@@ -314,17 +317,7 @@ public class JoinProcessManager extends BaseProcessManager {
       }
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
-      if (processDetails == null) {
-        return;
-      }
-      if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
-        StartJoinParam param = joinManager.newStartJoinParam();
-        param.setRotate(true);
-        param.setTotalRows(processDetails
-            .getIntValue(MakejoincomParam.Fields.TOTAL_ROWS));
-        param.setRotationAnglesList(processDetails
-            .getHashtable(MakejoincomParam.Fields.ROTATION_ANGLES_LIST));
-      }
+      joinManager.postProcess(commandName, processDetails);
     }
   }
 
