@@ -839,13 +839,7 @@ public final class LogFile {
 
     void open() throws FileNotFoundException {
       if (fileReader == null) {
-        try {
-          fileReader = new FileReader(file.getAbsolutePath());
-        }
-        catch (FileNotFoundException e) {
-          throw new FileNotFoundException(e.getMessage() + "\nfile="
-              + file.getAbsolutePath());
-        }
+        fileReader = new FileReader(file.getAbsolutePath());
       }
       if (bufferedReader == null) {
         bufferedReader = new BufferedReader(fileReader);
@@ -882,6 +876,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/10/13 22:29:48  sueh
+ * <p> bug# 931 Making LockType package level, since its no used outside of LogFile.
+ * <p>
  * <p> Revision 1.5  2006/10/12 10:41:16  sueh
  * <p> bug# 931 Sleeping longer in delete because windows is slow.
  * <p>
