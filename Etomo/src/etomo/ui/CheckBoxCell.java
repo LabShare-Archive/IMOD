@@ -98,9 +98,16 @@ final class CheckBoxCell extends InputCell {
   final int getLeftBorder() {
     return checkBox.getBorder().getBorderInsets(checkBox).left;
   }
+  
+  void setToolTipText(String toolTipText) {
+    checkBox.setToolTipText(toolTipText);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/11/04 00:53:39  sueh
+ * <p> fixed file comment
+ * <p>
  * <p> Revision 1.5  2005/08/04 20:07:52  sueh
  * <p> bug# 532 added setSelected() and getWidth().
  * <p>

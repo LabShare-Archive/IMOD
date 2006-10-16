@@ -112,9 +112,16 @@ class SpinnerCell extends InputCell {
   final void addChangeListener(ChangeListener changeListener) {
     spinner.addChangeListener(changeListener);
   }
+  
+  void setToolTipText(String toolTipText) {
+    spinner.setToolTipText(toolTipText);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2005/09/13 00:02:47  sueh
+ * <p> bug# 532 Fixed bug in setEnabled() by return if nothing has to be done.
+ * <p>
  * <p> Revision 1.5  2005/08/04 20:19:46  sueh
  * <p> bug# 532 added getWidth().
  * <p>
