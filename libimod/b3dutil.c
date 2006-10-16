@@ -124,8 +124,10 @@ int imodBackupFile(char *filename)
   sprintf(backname, "%s~", filename);
 
   /* If the backup file exists, try to remove it first (Windows/Intel) */
-  if (!stat(backname, &buf) && remove(backname))
+  if (!stat(backname, &buf) && remove(backname)) {
+    free(backname);
     return -1;
+  }
 
   /* finally, rename file */
   err = rename(filename, backname);
@@ -469,6 +471,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.15  2006/09/28 21:12:16  mast
+Added huge seek routine that can handle images of any size
+
 Revision 1.14  2006/09/20 23:03:01  mast
 Added header usage function to be used as callback from PIP
 
