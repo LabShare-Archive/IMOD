@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2006/09/13 23:31:30  sueh
+ * <p> bug# 920 Added getFloat().
+ * <p>
  * <p> Revision 1.40  2006/08/29 20:04:53  sueh
  * <p> bug# 924 Added static store for storing optional member variables.
  * <p>
@@ -261,6 +264,8 @@ public abstract class ConstEtomoNumber implements Storable {
   protected Vector validValues = null;//optional
   //number below validFloor are invalid
   private Number validFloor;//optional, defaults to newNumber()
+  //default - only used when defaultIfNull is true
+  protected Number defaultValue;
 
   //internal validation result
   protected StringBuffer invalidReason = null;
@@ -326,6 +331,7 @@ public abstract class ConstEtomoNumber implements Storable {
     floorValue = instance.floorValue;
     validFloor = instance.validFloor;
     nullIsValid = instance.nullIsValid;
+    defaultValue = instance.defaultValue;
     if (instance.validValues != null && instance.validValues.size() > 0) {
       validValues = new Vector(instance.validValues.size());
       for (int i = 0; i < instance.validValues.size(); i++) {
@@ -614,6 +620,10 @@ public abstract class ConstEtomoNumber implements Storable {
     if (validFloor == null) {
       throw new IllegalStateException("validFloor cannot be null.");
     }
+    //defaultValue should never be null
+    if (defaultValue == null) {
+      throw new IllegalStateException("defaultValue cannot be null.");
+    }
     //Type should be either double, float, integer, or long.
     if (type != DOUBLE_TYPE && type != FLOAT_TYPE && type != INTEGER_TYPE
         && type != LONG_TYPE) {
@@ -656,6 +666,11 @@ public abstract class ConstEtomoNumber implements Storable {
             "validFloor doesn't match the current type.  validFloor.getClass()="
                 + validFloor.getClass() + ",type=" + type);
       }
+      if (!(defaultValue instanceof Double)) {
+        throw new IllegalStateException(
+            "defaultValue doesn't match the current type.  defaultValue.getClass()="
+                + defaultValue.getClass() + ",type=" + type);
+      }
     }
     if (type == FLOAT_TYPE) {
       if (!(currentValue instanceof Float)) {
@@ -682,6 +697,11 @@ public abstract class ConstEtomoNumber implements Storable {
         throw new IllegalStateException(
             "validFloor doesn't match the current type.  validFloor.getClass()="
                 + validFloor.getClass() + ",type=" + type);
+      }
+      if (!(defaultValue instanceof Float)) {
+        throw new IllegalStateException(
+            "defaultValue doesn't match the current type.  defaultValue.getClass()="
+                + defaultValue.getClass() + ",type=" + type);
       }
     }
     if (type == INTEGER_TYPE) {
@@ -710,6 +730,11 @@ public abstract class ConstEtomoNumber implements Storable {
             "validFloor doesn't match the current type.  validFloor.getClass()="
                 + validFloor.getClass() + ",type=" + type);
       }
+      if (!(defaultValue instanceof Integer)) {
+        throw new IllegalStateException(
+            "defaultValue doesn't match the current type.  defaultValue.getClass()="
+                + defaultValue.getClass() + ",type=" + type);
+      }
     }
     if (type == LONG_TYPE) {
       if (!(currentValue instanceof Long)) {
@@ -736,6 +761,11 @@ public abstract class ConstEtomoNumber implements Storable {
         throw new IllegalStateException(
             "validFloor doesn't match the current type.  validFloor.getClass()="
                 + validFloor.getClass() + ",type=" + type);
+      }
+      if (!(defaultValue instanceof Long)) {
+        throw new IllegalStateException(
+            "defaultValue doesn't match the current type.  defaultValue.getClass()="
+                + defaultValue.getClass() + ",type=" + type);
       }
     }
     //floorValue <= ceilingValue
@@ -952,6 +982,32 @@ public abstract class ConstEtomoNumber implements Storable {
     validateReturnTypeDouble();
     return getValue().doubleValue();
   }
+  
+  public double getDouble(boolean defaultIfNull) {
+    validateReturnTypeDouble();
+    return getValue(defaultIfNull).doubleValue();
+  }
+  
+  public ConstEtomoNumber setDefault(int defaultValue) {
+    this.defaultValue = newNumber(defaultValue);
+    return this;
+  }
+  
+  /**
+   * Returns true if defaultValue is not null and getValue() is equal to
+   * defaultValue.
+   * @return
+   */
+  protected boolean isDefault(Number value) {
+    if (isNull(value) || isNull(defaultValue)) {
+      return false;
+    }
+    return equals(value, defaultValue);
+  }
+  
+  public ConstEtomoNumber useDefaultAsDisplayValue() {
+    return setDisplayValue(defaultValue);
+  }
 
   public Number getNumber() {
     return newNumber(getValue());
@@ -1013,15 +1069,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private void initialize() {
-    initialize(newNumber());
-  }
-
-  private void initialize(Number displayValue) {
     ceilingValue = newNumber();
     floorValue = newNumber();
-    this.displayValue = newNumber(displayValue);
+    this.displayValue = newNumber();
     currentValue = newNumber();
     validFloor = newNumber();
+    defaultValue = newNumber();
   }
 
   /**
@@ -1041,6 +1094,13 @@ public abstract class ConstEtomoNumber implements Storable {
       return displayValue;
     }
     return currentValue;
+  }
+  
+  protected Number getValue(boolean defaultIfNull) {
+    if (defaultIfNull && isNull()) {
+      return defaultValue;
+    }
+    return getValue();
   }
 
   protected String toString(Number value) {
@@ -1489,6 +1549,7 @@ public abstract class ConstEtomoNumber implements Storable {
         || !equals(ceilingValue, original.ceilingValue)
         || !equals(floorValue, original.floorValue)
         || !equals(validFloor, original.validFloor)
+        || !equals(defaultValue, original.defaultValue)
         || (validValues != null && original.validValues == null)
         || (validValues == null && original.validValues != null)
         || (validValues != null && original.validValues != null && !validValues
