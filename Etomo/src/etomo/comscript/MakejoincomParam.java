@@ -10,7 +10,6 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
-import etomo.type.EtomoNumber;
 import etomo.type.JoinState;
 import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
@@ -37,6 +36,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/05/22 22:39:16  sueh
+ * <p> bug# 577 Added getCommand().
+ * <p>
  * <p> Revision 1.19  2006/05/11 19:44:38  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -223,34 +225,18 @@ public final class MakejoincomParam implements CommandDetails {
           options.add(screen.getSampleBottomStart().toString() + ","
               + screen.getSampleBottomEnd().toString());
         }
-        //Get the rotation angles from the screen.  Use 0 in place of null.
-        ConstEtomoNumber rotationAngleX = screen.getRotationAngleXParameter();
-        EtomoNumber rotAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
-            JoinState.ROTATION_ANGLE_X).set(0);
-        if (!rotationAngleX.isNull()) {
-          rotAngleX.set(rotationAngleX);
-        }
-        ConstEtomoNumber rotationAngleY = screen.getRotationAngleYParameter();
-        EtomoNumber rotAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
-            JoinState.ROTATION_ANGLE_X).set(0);
-        if (!rotationAngleY.isNull()) {
-          rotAngleY.set(rotationAngleY);
-        }
-        ConstEtomoNumber rotationAngleZ = screen.getRotationAngleZParameter();
-        EtomoNumber rotAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
-            JoinState.ROTATION_ANGLE_X).set(0);
-        if (!rotationAngleZ.isNull()) {
-          rotAngleZ.set(rotationAngleZ);
-        }
         //Is the volume rotated?
-        if (!rotAngleX.equals(0) || !rotAngleY.equals(0)
-            || !rotAngleZ.equals(0)) {
+        if (screen.isRotated()) {
           rotate = true;
+          //Get the rotation angles from the screen.  Use 0 in place of null.
+          ConstEtomoNumber rotationAngleX = screen.getRotationAngleX();
+          ConstEtomoNumber rotationAngleY = screen.getRotationAngleY();
+          ConstEtomoNumber rotationAngleZ = screen.getRotationAngleZ();
           //Save the angles, so they can be saved in the state object.
           SlicerAngles rotationAngles = new SlicerAngles();
-          rotationAngles.setX(rotAngleX);
-          rotationAngles.setY(rotAngleY);
-          rotationAngles.setZ(rotAngleZ);
+          rotationAngles.setX(rotationAngleX);
+          rotationAngles.setY(rotationAngleY);
+          rotationAngles.setZ(rotationAngleZ);
           if (rotationAnglesList == null) {
             rotationAnglesList = new Hashtable();
           }
@@ -271,9 +257,9 @@ public final class MakejoincomParam implements CommandDetails {
           //See if the rotation file exists and has the same angles
           SlicerAngles curRotationAngles = state.getRotationAngles(hashKey);
           if (rotFile.exists() && curRotationAngles != null
-              && rotAngleX.equals(curRotationAngles.getX())
-              && rotAngleY.equals(curRotationAngles.getY())
-              && rotAngleZ.equals(curRotationAngles.getZ())) {
+              && rotationAngleX.equals(curRotationAngles.getX())
+              && rotationAngleY.equals(curRotationAngles.getY())
+              && rotationAngleZ.equals(curRotationAngles.getZ())) {
             //Use the existing .rot file, since the angles haven't changed.
             options.add("-already");
           }
@@ -282,11 +268,11 @@ public final class MakejoincomParam implements CommandDetails {
             //Add the -rot option to run rotatevol and save the angles.
             options.add("-rot");
             StringBuffer buffer = new StringBuffer();
-            buffer.append(rotAngleX);
+            buffer.append(rotationAngleX.getDouble(true));
             buffer.append(",");
-            buffer.append(rotAngleY);
+            buffer.append(rotationAngleY.getDouble(true));
             buffer.append(",");
-            buffer.append(rotAngleZ);
+            buffer.append(rotationAngleZ.getDouble(true));
             options.add(buffer.toString());
             options.add("-maxxysize");
           }
