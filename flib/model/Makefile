@@ -1,40 +1,7 @@
+#  Makefile for flib/model
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.10  2006/09/11 22:18:12  mast
-#  Added mtrotlong
-#
-#  Revision 3.9  2006/08/21 16:50:00  mast
-#  Changed findwarp and refinematch links
-#
-#  Revision 3.8  2006/08/16 23:49:59  mast
-#  changed corrsearch3d link
-#
-#  Revision 3.7  2006/06/29 05:10:14  mast
-#  Changes for new model libraries
-#
-#  Revision 3.6  2006/06/22 01:09:45  mast
-#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
-#
-#  Revision 3.5  2005/05/12 05:07:40  mast
-#  Use strip variable
-#
-#  Revision 3.4  2004/09/10 18:10:59  mast
-#  Added sumdensity
-#
-#  Revision 3.3  2003/10/24 02:30:57  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.2  2003/09/06 00:02:06  mast
-#  Added resamplemod
-#
-#  Revision 3.1  2002/05/23 04:41:37  mast
-#  Added repackseed
+#  $Id$
+#  Log at end
 #
 
 include ../configure
@@ -49,7 +16,8 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  clipmodel$(E) mtmodel$(E) remapmodel$(E) mtlengths$(E) contourmod$(E)\
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
- tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E)
+ tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
+ findhotpixels$(E)
 
 WLIBS = $(LWMOD) $(IMLIBS) $(FORTCLIBS)
 SMALLLIBS = $(LSMLMOD) $(IMLIBS) $(FORTCLIBS)
@@ -165,6 +133,9 @@ sumdensity$(E): sumdensity.$(O)
 howflared$(E): howflared.$(O) planefit.$(O)
 	$(FC) -o howflared howflared.$(O) planefit.$(O) $(LDFLG) $(SMALLLIBS)
 
+findhotpixels$(E): findhotpixels.$(O)
+	$(FC) -o findhotpixels findhotpixels.$(O) $(LDFLG) $(SMALLLIBS)
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -172,3 +143,37 @@ install: $(PROGS)
 clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
+#  $Log$
+#  Revision 3.11  2006/10/14 21:20:40  mast
+#  Added howflared
+#
+#  Revision 3.10  2006/09/11 22:18:12  mast
+#  Added mtrotlong
+#
+#  Revision 3.9  2006/08/21 16:50:00  mast
+#  Changed findwarp and refinematch links
+#
+#  Revision 3.8  2006/08/16 23:49:59  mast
+#  changed corrsearch3d link
+#
+#  Revision 3.7  2006/06/29 05:10:14  mast
+#  Changes for new model libraries
+#
+#  Revision 3.6  2006/06/22 01:09:45  mast
+#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
+#
+#  Revision 3.5  2005/05/12 05:07:40  mast
+#  Use strip variable
+#
+#  Revision 3.4  2004/09/10 18:10:59  mast
+#  Added sumdensity
+#
+#  Revision 3.3  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
+#  Revision 3.2  2003/09/06 00:02:06  mast
+#  Added resamplemod
+#
+#  Revision 3.1  2002/05/23 04:41:37  mast
+#  Added repackseed
+#
