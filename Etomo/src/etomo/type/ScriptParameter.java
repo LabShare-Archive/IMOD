@@ -19,6 +19,10 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2006/08/29 20:08:47  sueh
+ * <p> bug# 924 Added active - an optional member variable that causes the value to be
+ * <p> removed from ComScriptCommand (in updateComScript) when it is false.
+ * <p>
  * <p> Revision 1.8  2005/11/29 22:40:49  sueh
  * <p> bug# 757 Added getDouble(booleahn defaultIfNull).
  * <p>
@@ -71,7 +75,6 @@ import etomo.comscript.InvalidParameterException;
 public class ScriptParameter extends EtomoNumber {
   public static final String rcsid = "$Id$";
 
-  protected Number defaultValue;
   protected String shortName = null;
   //An inactive value is not placed in the comscript
   private EtomoBoolean2 active = null;
@@ -82,43 +85,32 @@ public class ScriptParameter extends EtomoNumber {
    */
   public ScriptParameter(String name) {
     super(name);
-    defaultValue = newNumber();
   }
 
   public ScriptParameter(int type) {
     super(type);
-    defaultValue = newNumber();
   }
 
   public ScriptParameter(int type, String name) {
     super(type, name);
-    defaultValue = newNumber();
   }
 
   public ScriptParameter(int type, String name, HashMap requiredMap) {
     super(type, name);
-    defaultValue = newNumber();
     setRequired(requiredMap);
   }
 
   public ScriptParameter(int type, String name, String shortName) {
     super(type, name);
     this.shortName = shortName;
-    defaultValue = newNumber();
-  }
-
-  public ScriptParameter(ScriptParameter that) {
-    super(that);
-    defaultValue = newNumber(that.defaultValue);
   }
 
   public ScriptParameter(ConstEtomoNumber that) {
     super(that);
-    defaultValue = newNumber();
   }
 
   protected String paramString() {
-    return super.paramString() + ",\ndefaultValue=" + defaultValue;
+    return super.paramString() + ",\nactive=" + active;
   }
 
   /**
@@ -139,39 +131,6 @@ public class ScriptParameter extends EtomoNumber {
     return this;
   }
 
-  /**
-   * Sets defaultValue.  When defaultValue is not null and currentValue is
-   * equal to defaultValue, isUseInScript() will return null.  Also
-   * updateComScript will remove the entry.  Most of the time comscripts should
-   * show the value, even if it is defaulted, so this is rarely used.
-   * @param defaultValue
-   * @return
-   */
-  public ScriptParameter setDefault(int defaultValue) {
-    this.defaultValue = newNumber(defaultValue);
-    return this;
-  }
-
-  public ConstEtomoNumber useDefaultAsDisplayValue() {
-    return setDisplayValue(defaultValue);
-  }
-
-  public double getDefaultDouble() {
-    return defaultValue.doubleValue();
-  }
-
-  /**
-   * Returns true if defaultValue is not null and getValue() is equal to
-   * defaultValue.
-   * @return
-   */
-  protected boolean isDefault(Number value) {
-    if (isNull(value) || isNull(defaultValue)) {
-      return false;
-    }
-    return equals(value, defaultValue);
-  }
-
   public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
     if (isActive() && isUseInScript()) {
       scriptCommand.setValue(name, toString(getValue()));
@@ -185,6 +144,11 @@ public class ScriptParameter extends EtomoNumber {
   /**
    * Returns true if value would be placed in a script (not null and not
    * default).
+   * When defaultValue is not null and currentValue is
+   * equal to defaultValue, isUseInScript() will return null.  Also
+   * updateComScript will remove the entry.  Most of the time comscripts should
+   * show the value, even if it is defaulted, so this is rarely used.
+   * @param defaultValue
    * @return
    */
   public boolean isUseInScript() {
@@ -226,13 +190,6 @@ public class ScriptParameter extends EtomoNumber {
       setActive(found);
     }
     return this;
-  }
-
-  public final double getDouble(boolean defaultIfNull) {
-    if (defaultIfNull && isNull()) {
-      return defaultValue.doubleValue();
-    }
-    return getDouble();
   }
 
   public void setActive(boolean active) {
