@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2006/10/16 22:53:01  sueh
+ * <p> bug# 919  Added setInverted().
+ * <p>
  * <p> Revision 1.22  2006/10/13 22:30:37  sueh
  * <p> bug# 919 Added inverted boolean.
  * <p>
@@ -387,6 +390,7 @@ public final class SectionTableRow {
     if (this.inverted) {
       tooltip = "This section is inverted.  "+INVERTED_WARNING;
     }
+    rowNumber.setWarning(this.inverted,tooltip);
     setupSection.setWarning(this.inverted, tooltip);
     joinSection.setWarning(this.inverted, tooltip);
     sampleBottomStart.setWarning(this.inverted, tooltip);
@@ -394,8 +398,6 @@ public final class SectionTableRow {
     sampleTopStart.setWarning(this.inverted, tooltip);
     sampleTopEnd.setWarning(this.inverted, tooltip);
     slicesInSample.setWarning(this.inverted, tooltip);
-    referenceSection.setWarning(this.inverted, tooltip);
-    currentSection.setWarning(this.inverted, tooltip);
     setupFinalStart.setWarning(this.inverted, tooltip);
     setupFinalEnd.setWarning(this.inverted, tooltip);
     joinFinalStart.setWarning(this.inverted, tooltip);
