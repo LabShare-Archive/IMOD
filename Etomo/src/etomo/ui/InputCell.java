@@ -27,11 +27,12 @@ abstract class InputCell {
   private static boolean colorInitialized = false;
   protected static ColorUIResource foreground = null;
   protected static ColorUIResource notInUseForeground = null;
-  private static ColorUIResource background = null;
+  static final ColorUIResource background = new ColorUIResource(255, 255, 255);
   private static ColorUIResource disabledBackground = null;
   private static ColorUIResource highlightedBackground = null;
   private static ColorUIResource disabledhighlightedBackground = null;
-  private static ColorUIResource warningBackground = null;
+  static final ColorUIResource warningBackground = new ColorUIResource(255,
+      255, 204);
   private static ColorUIResource disabledWarningBackground = null;
   private static ColorUIResource errorBackground = null;
   private static ColorUIResource disabledErrorBackground = null;
@@ -47,8 +48,11 @@ abstract class InputCell {
   private JPanel jpanelContainer = null;
 
   abstract protected Component getComponent();
+
   abstract protected void setForeground();
+
   abstract int getWidth();
+
   abstract void setToolTipText(String toolTipText);
 
   /**
@@ -82,7 +86,7 @@ abstract class InputCell {
       jpanelContainer = null;
     }
   }
-  
+
   void setEnabled(boolean enabled) {
     this.enabled = enabled;
     getComponent().setEnabled(enabled);
@@ -145,12 +149,12 @@ abstract class InputCell {
     this.warning = warning;
     setBackground();
   }
-  
+
   final void setWarning(boolean warning, String tooltip) {
     setWarning(warning);
     setToolTipText(tooltip);
   }
-  
+
   final void setError(boolean error) {
     //if switching from warning to error, turn off warning first
     if (error && warning) {
@@ -161,18 +165,20 @@ abstract class InputCell {
     setBackground();
   }
 
-  private final static ColorUIResource subtract(ColorUIResource color, ColorUIResource subtractColor) {
-    return new ColorUIResource(color.getRed() - subtractColor.getRed(),
-                               color.getGreen() - subtractColor.getGreen(),
-                               color.getBlue() - subtractColor.getBlue());
+  final static ColorUIResource subtract(ColorUIResource color,
+      ColorUIResource subtractColor) {
+    return new ColorUIResource(color.getRed() - subtractColor.getRed(), color
+        .getGreen()
+        - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
   }
-  
-  private final static ColorUIResource add(ColorUIResource color, ColorUIResource subtractColor) {
-    return new ColorUIResource(color.getRed() + subtractColor.getRed(),
-                               color.getGreen() + subtractColor.getGreen(),
-                               color.getBlue() + subtractColor.getBlue());
+
+  private final static ColorUIResource add(ColorUIResource color,
+      ColorUIResource subtractColor) {
+    return new ColorUIResource(color.getRed() + subtractColor.getRed(), color
+        .getGreen()
+        + subtractColor.getGreen(), color.getBlue() + subtractColor.getBlue());
   }
-  
+
   private final static void initializeColor() {
     if (colorInitialized) {
       return;
@@ -181,11 +187,9 @@ abstract class InputCell {
     ColorUIResource greyout = new ColorUIResource(25, 25, 25);
     foreground = new ColorUIResource(0, 0, 0);
     notInUseForeground = new ColorUIResource(102, 102, 102);
-    background = new ColorUIResource(255, 255, 255);
     disabledBackground = subtract(background, greyout);
     highlightedBackground = new ColorUIResource(204, 255, 255);
     disabledhighlightedBackground = subtract(highlightedBackground, greyout);
-    warningBackground = new ColorUIResource(255, 255, 204);
     disabledWarningBackground = subtract(warningBackground, greyout);
     errorBackground = new ColorUIResource(255, 204, 204);
     disabledErrorBackground = subtract(errorBackground, greyout);
@@ -193,6 +197,9 @@ abstract class InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/10/16 22:51:16  sueh
+ * <p> bug# 919  Added abstract setToolTipText().
+ * <p>
  * <p> Revision 1.3  2005/08/04 20:11:15  sueh
  * <p> bug# 532 Fixed setWarning and setError.
  * <p>
