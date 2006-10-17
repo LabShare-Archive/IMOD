@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/10/16 22:50:03  sueh
+ * <p> bug# 919  Added inverted.
+ * <p>
  * <p> Revision 1.12  2006/06/29 22:01:19  sueh
  * <p> bug# 880 Removed orderCut because it doesn't need to be stored.
  * <p>
@@ -293,23 +296,16 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   private final long convertToRotatedZ(ConstEtomoNumber z) {
     double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
         * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
-    System.out.println("rotationAngleX="+rotationAngleX);
-    System.out.println("rotationAngleY="+rotationAngleY);
-    System.out.println("cosXY="+cosXY);
-    System.out.println("COS_X_Y_THRESHOLD="+COS_X_Y_THRESHOLD);
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
     }
     double zSlice = z.getDouble();
     double zSize = setupZMax;
-    System.out.println("zSize="+zSize);
     double zSizeRotated = joinZMax;
-    System.out.println("zSizeRotated="+zSizeRotated);
     //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
     //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
     double convertedZ = cosXY * (zSlice - (zSize + 1.) / 2.)
         + (zSizeRotated + 1.) / 2.;
-    System.out.println("convertedZ="+convertedZ);
     //System.out.println("convertedZ=" + convertedZ);
     return Math.round(convertedZ);
   }
