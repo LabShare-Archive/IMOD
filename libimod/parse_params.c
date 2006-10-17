@@ -1,18 +1,12 @@
 /*   parse_params.cpp  -  the PIP package for parsing input parameters
  *
- *   Copyright (C) 2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 2003-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.
+ *   Colorado.  See dist/COPYRIGHT for full notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include "parse_params.h"
 #include <string.h>
@@ -932,8 +926,8 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 
   /* Count up the options */
   while (1) {
-    lineLen = PipReadNextLine(optFile, bigStr, bigSize, 0, &indst);
-    if (!lineLen)
+    lineLen = PipReadNextLine(optFile, bigStr, bigSize, '#', 0, 0, &indst);
+    if (lineLen == -3)
       break;
     if (lineLen == -2) {
       PipSetError("Error reading option file");
@@ -974,7 +968,7 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
   gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = 0;
 
   while (1) {
-    lineLen = PipReadNextLine(optFile, bigStr, bigSize, 0, &indst);
+    lineLen = PipReadNextLine(optFile, bigStr, bigSize, '#', 0, 0, &indst);
     if (lineLen == -2) {
       PipSetError("Error reading autodoc file");
       return -1;
@@ -982,7 +976,7 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 
     textStr = bigStr + indst;
     isOption = LineIsOptionToken(textStr);
-    if (readingOpt && (!lineLen || isOption)) {
+    if (readingOpt && (lineLen == -3 || isOption)) {
       
       /* If we were reading options, it is time to add them if we are at
          end of file or if we have reached a new token of any kind
@@ -1057,7 +1051,7 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
       readingOpt = 0;
     }
 
-    if (!lineLen)
+    if (lineLen == -3)
       break;
 
     /* If reading options, look for the various keywords */
@@ -1229,8 +1223,9 @@ static int ReadParamFile(FILE *pFile)
   
   while (1) {
 
-    lineLen = PipReadNextLine(pFile, lineStr, LINE_STR_SIZE, 1, &indst);
-    if (!lineLen)
+    lineLen = PipReadNextLine(pFile, lineStr, LINE_STR_SIZE, '#', 0, 1, 
+                              &indst);
+    if (lineLen == -3)
         break;
     if (lineLen == -2) {
       PipSetError("Error reading parameter file or "STANDARD_INPUT_STRING);
@@ -1307,15 +1302,17 @@ static int ReadParamFile(FILE *pFile)
 }
 
 /*!
- * Reads the file [pFile] until a non-blank line is found, stripping white 
- * space at the end of the line and in-line comments if [inLineComments] is
- * non-zero.  Returns the line in [lineStr] and the index of the first
+ * Reads a line from the file [pFile], stripping white space at the end of the
+ * line and in-line comments starting with [comment] if [inLineComments] is 
+ * non-zero.  Discards the line and reads another if it is blank or if the 
+ * first non-blank character is [comment], unless [keepComments] is nonzero.
+ * Returns the line in [lineStr] and the index of the first
  * non-white space character in [firstNonWhite].  The size of [lineStr] is
- * provided in [strSize].  Returns the length of the line, or 0 for end of 
+ * provided in [strSize].  Returns the length of the line, or -3 for end of 
  * file, -1 if the line is too long, or -2 for error reading file.
  */
-int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, 
-                        int inLineComments, int *firstNonWhite)
+int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment, 
+                    int keepComments, int inLineComments, int *firstNonWhite)
 {
   int indst, lineLen;
   char ch;
@@ -1328,7 +1325,7 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize,
 
       /* If error, it's OK if it's an EOF, or an error otherwise */
       if (feof(pFile))
-        return 0;
+        return -3;
       return -2;
     }
 
@@ -1346,12 +1343,19 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize,
       indst++;
     }
 
-    /* If it is a comment, skip */
-    if (lineStr[indst] == '#')
-      continue;
+    /* If it is a comment, skip or strip line ending and return */
+    if (lineStr[indst] == comment) {
+      if (keepComments) {
+        while (lineStr[lineLen - 1] == '\n' || lineStr[lineLen - 1] == '\r')
+          lineLen--;
+        lineStr[lineLen] = 0x00;
+        break;
+      } else
+        continue;
+    }
 
     /* adjust line length to remove comment, if we have in-line comments */
-    strPtr = strchr(lineStr, '#');
+    strPtr = strchr(lineStr, comment);
     if (strPtr && inLineComments)
       lineLen = strPtr - lineStr;
 
@@ -1364,8 +1368,8 @@ int PipReadNextLine(FILE *pFile, char *lineStr, int strSize,
     }
     lineStr[lineLen] = 0x00;
 
-    /* Return if something is on line */
-    if (indst < lineLen)
+    /* Return if something is on line or we are keeping comments */
+    if (indst < lineLen || keepComments)
       break;
   }
   *firstNonWhite = indst;
@@ -1733,6 +1737,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.23  2006/10/16 16:17:27  mast
+Made some functions global for autodoc reader
+
 Revision 3.22  2006/10/03 14:41:46  mast
 Added python option output
 
