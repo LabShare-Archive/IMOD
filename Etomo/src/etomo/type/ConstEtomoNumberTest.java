@@ -200,6 +200,12 @@ public final class ConstEtomoNumberTest extends TestCase {
     //internal tests
     test.internalTest();
     copy.internalTest();
+    int defaultValue = 1;
+    test = new EtomoNumber();
+    test.setDefault(defaultValue);
+    copy = new EtomoNumber(test);
+    copy.internalTestDeepCopy(test);
+    assertTrue(defaultValue == copy.getDouble(true));
   }
 
   public void testGetDisplayInteger() {
@@ -422,7 +428,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(testValue == test.getValue().doubleValue());
     test.internalTest();
   }
-  
+
   public void testSetDisplayValue_long() {
     long testValue = 1;
     EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
@@ -1239,17 +1245,114 @@ public final class ConstEtomoNumberTest extends TestCase {
   //TODO
   public void testEquals_Number_int() {
   }
-  
+
   //TODO
   public void testGetFloat() {
   }
-  
+
   //TODO
   public void testValidateReturnTypeFloat() {
+  }
+
+  public void testSetDefault_int() {
+    EtomoNumber test = new EtomoNumber();
+    int defaultValue = 1;
+    assertTrue("DefaultValue is null when not set.",
+        test.getDouble(true) == EtomoNumber.INTEGER_NULL_VALUE);
+    test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
+    assertTrue("Setting defaultValue to null is the same as not setting it.",
+        test.getDouble(true) == EtomoNumber.INTEGER_NULL_VALUE);
+    test.setDefault(defaultValue);
+    assertTrue("setDefault sets defaultValue.",
+        test.getDouble(true) == defaultValue);
+    test.internalTest();
+    test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
+    assertTrue("Setting defaultValue to null is the same as unsetting it.",
+        test.getDouble(true) == EtomoNumber.INTEGER_NULL_VALUE);
+    test.internalTest();
+  }
+
+  public void testIsDefault_Number() {
+    EtomoNumber test = new EtomoNumber();
+    int defaultValue = 1;
+    Number defaultNumber = new Integer(defaultValue);
+    assertFalse("Should return false when defaultValue is not set.", test
+        .isDefault(defaultNumber));
+    test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
+    assertFalse("Null is not a valid value for defaultValue.", test
+        .isDefault(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
+    test.setDefault(defaultValue);
+    assertFalse("Should only return true when it matches the defaultValue.",
+        test.isDefault(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse("Should only return true when it matches the defaultValue.",
+        test.isDefault(new Integer(2)));
+    assertTrue("Should return true when it matches the defaultValue.", test
+        .isDefault(defaultNumber));
+    test.internalTest();
+  }
+
+  public void testUseDefaultAsDisplayValue() {
+    EtomoNumber test = new EtomoNumber();
+    test.useDefaultAsDisplayValue();
+    assertEquals("An unset display value is null.", test.getDisplayInteger(),
+        EtomoNumber.INTEGER_NULL_VALUE);
+    test.useDefaultAsDisplayValue();
+    assertEquals(
+        "Calling useDefaultAsDisplayValue when defaultValue isn't set has no effect.",
+        test.getDisplayInteger(), EtomoNumber.INTEGER_NULL_VALUE);
+    int defaultValue = 1;
+    test.setDefault(defaultValue);
+    assertEquals(
+        "Default should not affect the displayValue, unless useDefaultAsDisplay is called.",
+        test.getDisplayInteger(), EtomoNumber.INTEGER_NULL_VALUE);
+    test.useDefaultAsDisplayValue();
+    assertEquals(
+        "Calling useDefaultAsDisplayValue when defaultValue is set should change the display value.",
+        test.getDisplayInteger(), defaultValue);
+  }
+
+  public void testGetValue_boolean() {
+    EtomoNumber test = new EtomoNumber();
+    assertEquals(
+        "When default value isn't set, the result of getValue(boolean) should be the same as that of getValue().",
+        test.getValue(false).intValue(), test.getValue().intValue());
+    assertEquals(
+        "When default value isn't set, the result of getValue(boolean) should be the same as that of getValue().",
+        test.getValue(true).intValue(), test.getValue().intValue());
+    int defaultValue = 1;
+    assertEquals(
+        "When default value is set, the result of getValue(false) should be the same as that of getValue().",
+        test.getValue(false).intValue(), test.getValue().intValue());
+    test.setDefault(defaultValue);
+    assertEquals(
+        "When default value is set, the result of getValue(true) should be defaultValue.",
+        test.getValue(true).intValue(), defaultValue);
+  }
+  
+  public void testGetDouble_boolean() {
+    EtomoNumber test = new EtomoNumber();
+    assertTrue(
+        "When default value isn't set, the result of getDouble(boolean) should be the same as that of getDouble().",
+        test.getDouble(false)== test.getDouble());
+    assertTrue(
+        "When default value isn't set, the result of getDouble(boolean) should be the same as that of getDouble().",
+        test.getDouble(true)== test.getDouble());
+    int defaultValue = 1;
+    assertTrue(
+        "When default value is set, the result of getDouble(false) should be the same as that of getDouble().",
+        test.getDouble(false)== test.getDouble());
+    test.setDefault(defaultValue);
+    assertTrue(
+        "When default value is set, the result of getDouble(true) should be defaultValue.",
+        test.getDouble(true)== defaultValue);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2006/09/21 16:36:23  sueh
+ * <p> bug# 680 Modified testIsValid() to test assumptions in
+ * <p> MRCHeader.parsePixelSpacing().
+ * <p>
  * <p> Revision 1.38  2006/09/14 22:41:56  sueh
  * <p> bug#  692 Added testSetDisplayValue_long().
  * <p>
