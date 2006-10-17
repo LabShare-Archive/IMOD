@@ -3,31 +3,10 @@
  *   Copyright (C) 2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *   $Id$
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.5  2006/09/20 23:02:34  mast
-Added callback for header usage function
-
-Revision 3.4  2006/06/08 03:10:27  mast
-Added higher-level C functions
-
-Revision 3.3  2003/10/08 17:20:39  mast
-New functions for autodoc files
-
-Revision 3.2  2003/08/08 16:21:33  mast
-Add functions for getting two numbers
-
-Revision 3.1  2003/06/05 00:19:44  mast
-*** empty log message ***
-
-*/
 #ifndef PARSE_PARAMS_H
 #define PARSE_PARAMS_H
 #include <stdio.h>
@@ -75,11 +54,33 @@ void PipReadOrParseOptions(int argc, char *argv[], char *options[],
                            int numOpts, char *progName, int minArgs, 
                            int numInFiles, int numOutFiles, int *numOptArgs,
                            int *numNonOptArgs, void (headerFunc)(char *));
-int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, 
-                    int inLineComments, int *firstNonWhite);
+int PipReadNextLine(FILE *pFile, char *lineStr, int strSize, char comment, 
+                    int keepComments, int inLineComments, int *firstNonWhite);
 int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType, 
                        int *numToGet, int arraySize);
 #ifdef __cplusplus
 }
 #endif
 #endif
+
+/*
+$Log$
+Revision 3.6  2006/10/16 16:17:48  mast
+Made some functions global
+
+Revision 3.5  2006/09/20 23:02:34  mast
+Added callback for header usage function
+
+Revision 3.4  2006/06/08 03:10:27  mast
+Added higher-level C functions
+
+Revision 3.3  2003/10/08 17:20:39  mast
+New functions for autodoc files
+
+Revision 3.2  2003/08/08 16:21:33  mast
+Add functions for getting two numbers
+
+Revision 3.1  2003/06/05 00:19:44  mast
+*** empty log message ***
+
+*/
