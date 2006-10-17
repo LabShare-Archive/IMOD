@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2006/10/16 22:49:20  sueh
+ * <p> bug# 919  Added getInverted().
+ * <p>
  * <p> Revision 1.19  2006/06/29 22:01:06  sueh
  * <p> bug# 880 Removed orderCut because it doesn't need to be stored.
  * <p>
@@ -164,9 +167,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected final EtomoNumber setupFinalEnd;
   protected final EtomoNumber joinFinalStart;
   protected final EtomoNumber joinFinalEnd;
-  protected final ScriptParameter rotationAngleX;
-  protected final ScriptParameter rotationAngleY;
-  protected final ScriptParameter rotationAngleZ;
+  protected final EtomoNumber rotationAngleX;
+  protected final EtomoNumber rotationAngleY;
+  protected final EtomoNumber rotationAngleZ;
 
   protected File setupSection = null;
   protected File joinSection = null;
@@ -204,11 +207,11 @@ public abstract class ConstSectionTableRowData implements Storable {
     setupFinalEnd = new EtomoNumber(EtomoNumber.LONG_TYPE, "FinalEnd");
     joinFinalStart = new EtomoNumber(EtomoNumber.LONG_TYPE);
     joinFinalEnd = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    rotationAngleX = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    rotationAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
         "RotationAngleX");
-    rotationAngleY = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    rotationAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
         "RotationAngleY");
-    rotationAngleZ = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    rotationAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
         "RotationAngleZ");
     //configure
     sampleBottomStart.setDescription("Sample Slices, Bottom, Start");
@@ -221,8 +224,11 @@ public abstract class ConstSectionTableRowData implements Storable {
     joinFinalStart.setDescription("Final, Start");
     joinFinalEnd.setDescription("Final, End");
     rotationAngleX.setDescription("Rotation Angles, X");
+    rotationAngleX.setDefault(0);
     rotationAngleY.setDescription("Rotation Angles, Y");
+    rotationAngleY.setDefault(0);
     rotationAngleZ.setDescription("Rotation Angles, Z");
+    rotationAngleZ.setDefault(0);
     //initialize
     this.rowNumber.set(rowNumber);
   }
@@ -342,7 +348,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected String createPrepend(String prepend) {
     return createPrepend(prepend, rowNumber);
   }
-  
+
   public static String createPrepend(String prepend, ConstEtomoNumber rowNumber) {
     if (prepend == "") {
       return groupString + "." + rowNumber.toString();
@@ -495,7 +501,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   public ConstEtomoNumber getInverted() {
     return inverted;
   }
-  
+
   public int getSampleBottomNumberSlices() {
     int sampleBottomEnd = this.sampleBottomEnd.getInt();
     int sampleBottomStart = this.sampleBottomStart.getInt();
@@ -544,11 +550,12 @@ public abstract class ConstSectionTableRowData implements Storable {
     return joinFinalEnd;
   }
 
-  public ConstEtomoNumber getRotationAngleX() {
-    return rotationAngleX;
+  public boolean isRotated() {
+    return !rotationAngleX.isNull() || !rotationAngleY.isNull()
+        || !rotationAngleZ.isNull();
   }
 
-  public ConstEtomoNumber getRotationAngleXParameter() {
+  public ConstEtomoNumber getRotationAngleX() {
     return rotationAngleX;
   }
 
@@ -556,16 +563,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     return rotationAngleY;
   }
 
-  public ConstEtomoNumber getRotationAngleYParameter() {
-    return rotationAngleY;
-  }
-
   public ConstEtomoNumber getRotationAngleZ() {
     return rotationAngleZ;
   }
-
-  public ConstEtomoNumber getRotationAngleZParameter() {
-    return rotationAngleZ;
-  }
-
 }
