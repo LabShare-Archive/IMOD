@@ -4,7 +4,7 @@
 </HEAD>
 
 <BODY>
-<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.7</H1>
+<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.9</H1>
 </CENTER>
 <HR>
 <UL> 
@@ -82,6 +82,9 @@ image using a threshold based algorithm.
 
 <LI><b><A HREF="man/patch2imod.html">patch2imod</A></b>
 : Make an IMOD model of displacement vectors from a patch displacement file.
+
+<LI><b><A HREF="man/imodcurvature.html">imodcurvature</A></b>
+: Analyze radius of curvature of contours or surfaces and encode in model.
 
 <LI><b><A HREF="man/imod2patch.html">imod2patch</A></b>
 : Make a patch displacement file from an IMOD model.
@@ -194,8 +197,6 @@ file.
 : Extracts images from objects with rotational symmetry.
 <LI><B><A HREF="man/extposition.html">extposition</A></B>
 : Get list of position numbers for axoneme doublets.
-<LI><B><A HREF="man/fenestra.html">fenestra</A></B>
-: Calculate projected area of holes (fenestrae) in a 3D model.
 <LI><B><A HREF="man/fixmont.html">fixmont</A></B>
 : Substitute sections from one montage into another
 <LI><b><A HREF="man/fftrans.html">fftrans</a></b>
@@ -241,7 +242,9 @@ file.
 <LI><b><A HREF="man/sumdensity.html">sumdensity</a></b>
 : Adds densities for pixels above a threshold within contours.
 <LI><B><A HREF="man/vmstocsh.html">vmstocsh</A></B>
-: Converts VMS-style command file to C-shell script.
+: Converts IMOD command file to C-shell script.
+<LI><B><A HREF="man/vmstopy.html">vmstocsh</A></B>
+: Converts IMOD command file to Python script.
 <LI><b><A HREF="man/xcorr.html">xcorr</a></b>
 : Cross-correlate a single image with a whole image stack.
 <LI><b><A HREF="man/xyzproj.html">xyzproj</a></b>
@@ -254,6 +257,8 @@ X, Y, or Z axis.
 <UL>
 <LI><B><A HREF="man/checkxforms.html">checkxforms</A></B>
 : Find maximum displacement & rotation in a set of transforms.
+<LI><B><A HREF="man/xf2rotmagstr.html">xf2rotmagstr</A></B>
+: Convert transforms to rotations, magnifications, and stretches along an axis.
 <LI><B><A HREF="man/xfalign.html">xfalign</A></B>
 : Automated alignment of an image stack.
 <LI><B><A HREF="man/xfinterstack.html">xfinterstack</A></B>
@@ -290,6 +295,8 @@ above if possible.
 : Convert an IMOD model file to a WIMP model file
 <LI><B><A HREF="man/endmodel.html">endmodel</A></B>
 : Make a model file with starting and ending points of objects.
+<LI><B><A HREF="man/fenestra.html">fenestra</A></B>
+: Calculate projected area of holes (fenestrae) in a 3D model.
 <LI><B><A HREF="man/joinmodel.html">joinmodel</A></B>
 : Join two models together.
 <LI><B><A HREF="man/model2point.html">model2point</A></B>
@@ -329,10 +336,10 @@ from a tilt series obtained from an electron microscope.
 : Combine FFTs of tomograms from a double-axis tilt series.
 <LI><B>copytomocoms</B>
 : Generate command files needed for processing a tilt series.
-<LI><B><A HREF="man/densmatch.html">densmatch</A></B>
-: Scale densities in one volume to match those in another.
 <LI><B><A HREF="man/corrsearch3d.html">corrsearch3d</A></B>
 : Search for displacements between two volumes at an array of positions.
+<LI><B><A HREF="man/densmatch.html">densmatch</A></B>
+: Scale densities in one volume to match those in another.
 <LI><B><A HREF="man/filltomo.html">filltomo</A></B>
 : Replace pixels in combined tomogram with values from one.
 <LI><B><A HREF="man/findsection.html">findsection</A></B>
@@ -408,14 +415,33 @@ image inside the edges.
 </UL>
 
 <P>
+<LI> Programs used for working with distortions and other microscope
+properties.
+<LI><B><A HREF="man/finddistort.html"></A>finddistort</B>
+: Solves for image distortion field from overlapping images.
+<LI><B><A HREF="man/findgradient.html"></A>findgradient</B>
+: Finds magnification gradient that minimizes montage blending error.
+<LI><B><A HREF="man/findhotpixels.html"></A>findhotpixels</B>
+: find pixels to exclude from X-ray analysis in SerialEM.
+<LI><B><A HREF="man/idfprocess.html"></A>idfprocess</B>
+: do operations on and get statistics from distortion fields.
+<LI><B><A HREF="man/makegradtable.html"></A>makegradtable</B>
+: Make a magnification gradient table.
+<LI><b><A HREF="man/matchrotpairs.html">matchrotpairs</a></b>
+: find transform between best matching pair of rotated, slightly tilted views.
+<UL>
+
+<P>
 <LI> Special programs used for microtubule (MT) studies.
 <UL>
 <LI><B><A HREF="man/checkmtmod.html">checkmtmod</A></B>
 : Check various features of a MT model.
-<LI><B><A HREF="man/mtdetect.html">mtdetect</A></B>
-: Detect circularly symmetric features.
+<LI><B><A HREF="man/howflared.html">howflared</A></B>
+: Measure microtubule end flaring and curvature.
 <LI><B><A HREF="man/fiberpitch.html">fiberpitch</A></B>
 : Measure pitch of fibers and position relative to an axis.
+<LI><B><A HREF="man/mtdetect.html">mtdetect</A></B>
+: Detect circularly symmetric features.
 <LI><B><A HREF="man/mtlengths.html">mtlengths</A></B>
 : Compute lengths of MTs in a model.
 <LI><B><A HREF="man/mtmodel.html">mtmodel</A></B>
@@ -424,6 +450,8 @@ image inside the edges.
 : Display and analyze overlap of spindle MTs.
 <LI><b><A HREF="man/mtpairing.html">mtpairing</a></b>
 : Analyze pairing between MTs.
+<LI><b><A HREF="man/mtrotlong.html">mtrotlong</a></b>
+: Extract MTs rotated into longitudinal orientation.
 <LI><B><A HREF="man/mtsmooth.html">mtsmooth</A></B>
 : Smooth a model of MTs.
 <LI><B><A HREF="man/mtteach.html">mtteach</A></B>
@@ -437,7 +465,7 @@ image inside the edges.
 
 </UL>
 <HR>
-<I>Last updated: January 19, 2006</I>
+<I>Last updated: October 17, 2006</I>
 [<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
 [<A HREF="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</A>]
 </body>
