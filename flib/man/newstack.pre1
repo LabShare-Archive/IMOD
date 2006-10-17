@@ -32,8 +32,9 @@ INSERT OPTION TEXT HERE
   -StandardInput
      Read parameter entries from standard input.
 
-  All inputs are prompted interactively.  The input is as follows; lines
-  starting with IF are entered only if a particular option is selected.
+  If no command line arguments are entered, inputs are prompted interactively.
+  The input is as follows; lines starting with IF are entered only if a
+  particular option is selected.
 
   Number of input files, or -1 to enter list of files from a file
 
