@@ -1,5 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/17/06: In eTomo - Join, display a warning highlight in sections which will be
+inverted in the final join.  Also added an Invert Table button, to change which
+sections will be inverted.
+
+10/17/06: Windows.  In eTomo - Fine Alignment, fixed a bug where an
+ImodSendEvent error message pops up when Compute Aligment is run and the .preali
+is not open.
+
+10/17/06: Windows.  In eTomo - Tomogram Positioning, fixed a bug where an
+ImodSendEvent error message pops up when Final Aligment is run.
+
+10/17/06: In eTomo - Join - Setup & Join, fixed a bug where the Final Start and
+End values are set to zero when a value is entered only in the X (or Y) rotation
+angle.
+
+10/13/06: In eTomo - Tomogram Combination - Final Match - Volcombine Parameters,
+added a field for combinefft:  Low from both radius.
+
 10/12/06: IMOD_3-8-27
 10/12/06: eTomo now manages log files and files used for process monitors
 better to solve problem in Windows with trying to rename or delete open files.
@@ -70,6 +88,9 @@ correctly.
 
 9/21/06: In eTomo, warning the user when the pixel spacing in an mrc header is
 invalid.
+
+9/20/06: In eTomo - Tomogram Positioning, changing the interface to work with
+Fiducialess Tomograms.
 
 9/20/06: IMOD_3-8-25
 9/20/06: In eTomo - Tomogram Combination, giving access to cross correlation
