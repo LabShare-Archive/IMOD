@@ -1,13 +1,7 @@
 #
-# Makefile for libimod.a
+# Makefile for libimod
 #
-#
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
+# $Id$
 # Log at end
 #
 include ../configure
@@ -20,9 +14,9 @@ IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
              imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
 	     ilist.$(O) ilabel.$(O) b3dutil.$(O) parselist.$(O) istore.$(O)\
-             amoeba.$(O) samplemeansd.$(O) colormap.$(O)
+             amoeba.$(O) samplemeansd.$(O) colormap.$(O) 
 
-PIPOBJS = parse_params.$(O) pip_fwrap.$(O)
+PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
 all : $(LIBI)
 
@@ -69,8 +63,13 @@ imodel_from.$(O) : $(INCDIR)/b3dutil.h
 $(PIPOBJS) : $(INCDIR)/parse_params.h
 pip_fwrap.$(O) : $(INCDIR)/b3dutil.h
 colormap.$(O) : $(INCDIR)/b3dutil.h
+autodoc.$(O) : $(INCDIR)/autodoc.h
+adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 
 #  $Log$
+#  Revision 3.13  2006/08/27 23:44:46  mast
+#  Added colormap
+#
 #  Revision 3.12  2006/06/26 15:45:02  mast
 #  Added samplemeansd
 #
