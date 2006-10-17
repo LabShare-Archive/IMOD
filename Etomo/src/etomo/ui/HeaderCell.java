@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,6 +7,7 @@ import java.awt.GridBagLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.plaf.ColorUIResource;
 
 /**
  * <p>Description: </p>
@@ -25,9 +25,17 @@ import javax.swing.JPanel;
 class HeaderCell {
   public static final String rcsid = "$Id$";
 
+  private static final ColorUIResource background = new ColorUIResource(204,
+      204, 204);
+  private static final ColorUIResource greyout = InputCell.subtract(
+      InputCell.background, background);
+  private static final ColorUIResource warningBackground = InputCell.subtract(
+      InputCell.warningBackground, greyout);
+
   private JButton cell;
   private JPanel jpanelContainer = null;
   private String text = "";
+  private final boolean controlColor;
 
   HeaderCell() {
     this(null, -1, true);
@@ -37,20 +45,21 @@ class HeaderCell {
     this(text, -1, true);
   }
 
-  HeaderCell(String text, boolean fixedColor) {
-    this(text, -1, fixedColor);
+  HeaderCell(String text, boolean controlColor) {
+    this(text, -1, controlColor);
   }
-  
+
   HeaderCell(int width) {
     this(null, width, true);
   }
-  
+
   HeaderCell(String text, int width) {
     this(text, width, true);
   }
 
-  private HeaderCell(String text, int width, boolean fixedColor) {
+  private HeaderCell(String text, int width, boolean controlColor) {
     this.text = text;
+    this.controlColor = controlColor;
     if (text == null) {
       cell = new JButton();
     }
@@ -64,8 +73,26 @@ class HeaderCell {
       size.width = width;
       cell.setPreferredSize(size);
     }
-    if (fixedColor) {
-      cell.setBackground(new Color(204, 204, 204));
+    if (controlColor) {
+      cell.setBackground(background);
+    }
+  }
+
+  final void setWarning(boolean warning, String tooltip) {
+    setWarning(warning);
+    setToolTipText(tooltip);
+  }
+
+  final void setWarning(boolean warning) {
+    //Can't change the color if not controlling color
+    if (!controlColor) {
+      return;
+    }
+    if (warning) {
+      cell.setBackground(warningBackground);
+    }
+    else {
+      cell.setBackground(background);
     }
   }
 
@@ -116,6 +143,9 @@ class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.12  2006/06/29 20:06:57  sueh
+ * * <p> bug# 880 Added HeaderCell(int).
+ * * <p>
  * * <p> Revision 1.11  2006/04/10 19:08:43  sueh
  * * <p> bug# 846 Added fixedColor parameter to constructor to preserve the color
  * * <p> relationships in the tables.
