@@ -5,7 +5,7 @@
  * Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
- * $Id
+ * $Id$
  */                                                                           
 
 #ifndef AUTODOC_H
@@ -45,4 +45,7 @@ int AdocGetFloatArray(char *collName, int sectInd, char *key, float *array,
 
 /*
   $Log$
+  Revision 3.1  2006/10/17 18:00:32  mast
+  Added to package
+
 */
