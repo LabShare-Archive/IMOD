@@ -1,12 +1,12 @@
      BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
 
-SUMDENSITY(1)							 SUMDENSITY(1)
+IDFPROCESS(1)							 IDFPROCESS(1)
 
 NNAAMMEE
-  sumdensity - adds densities above a threshold for pixels within contours
+  idfprocess - do operations on and get statistics from distortion fields
 
 SSYYNNOOPPSSIISS
-  sumdensity [options] image_file model_file output_file
+  idfprocess [options] input_file(s) output_file
 
 DDEESSCCRRIIPPTTIIOONN
   Idfprocess will do several simple operations on image distortion field
