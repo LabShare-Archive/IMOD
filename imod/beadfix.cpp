@@ -81,7 +81,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 9
+#define NUM_SAVED_VALS 10
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -98,6 +98,7 @@ typedef struct
   int    overlaySec;
   int    showMode;
   int    reverseOverlay;
+  int    autoNewCont;
   char   *filename;
 }PlugData;
 
@@ -227,6 +228,8 @@ static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
  *  see imodplug.h for a list of support functions.
  */
 
+#define loadSaved(a,b) if (nvals > (b)) (a) = (int)(savedValues[(b)] + 0.01);
+
 void imodPlugExecute(ImodView *inImodView)
 {
   double savedValues[NUM_SAVED_VALS];
@@ -250,17 +253,14 @@ void imodPlugExecute(ImodView *inImodView)
   if (firstTime) {
     nvals = ImodPrefs->getGenericSettings("BeadFixer", savedValues, 
                                           NUM_SAVED_VALS);
-    if (nvals > 2) {
-      plug->autoCenter = (int)(savedValues[2] + 0.01);
-      plug->diameter = (int)(savedValues[3] + 0.01);
-      plug->lightBead = (int)(savedValues[4] + 0.01);
-    }
-    if (nvals > 7) {
+    loadSaved(plug->autoCenter, 2);
+    loadSaved(plug->diameter, 3);
+    loadSaved(plug->lightBead, 4);
+    if (nvals > 7)
       plug->overlaySec = (int)(savedValues[5] + 0.01);
-      plug->showMode = (int)(savedValues[7] + 0.01);
-    }
-    if (nvals > 8)
-      plug->reverseOverlay = (int)(savedValues[8] + 0.01);
+    loadSaved(plug->showMode, 7);
+    loadSaved(plug->reverseOverlay, 8);
+    loadSaved(plug->autoNewCont, 9);
   }
 
   /*
@@ -320,8 +320,8 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
       return 0;
     return plug->window->reread();
   case MESSAGE_BEADFIX_SEEDMODE:
-    mSeedMode = (*strings)[++(*arg)].toInt() != 0;
-    diaSetChecked(seedModeBox, mSeedMode);
+    plug->autoNewCont = (*strings)[++(*arg)].toInt();
+    diaSetChecked(seedModeBox, plug->autoNewCont != 0);
     return 0;
   case MESSAGE_BEADFIX_AUTOCENTER:
     plug->autoCenter = (*strings)[++(*arg)].toInt();
@@ -1255,7 +1255,7 @@ int BeadFixer::insertPoint(float imx, float imy)
   // But in seed mode, see if need to start a new contour - i.e. if there is
   // a point at the same z or the point at nearest Z is farther away than
   // a criterion
-  if (mSeedMode && plug->showMode == SEED_MODE) {
+  if (plug->autoNewCont && plug->showMode == SEED_MODE) {
     zdiff = 1000000;
     for (i = 0; i < npnt; i++) {
       if (fabs((double)(curz - pts[i].z)) < zdiff) {
@@ -1452,7 +1452,7 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
 // Slots for centering/seed controls
 void BeadFixer::seedToggled(bool state)
 {
-  mSeedMode = state;
+  plug->autoNewCont = state;
 }
 
 void BeadFixer::autoCenToggled(bool state)
@@ -1585,7 +1585,6 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   mAreaMax = 0;
   mCurrentRes = -1;
   mBell = 0;
-  mSeedMode = false;
   mMovingAll = false;
   mRoundedStyle = ImodPrefs->getRoundedStyle();
 
@@ -1652,8 +1651,10 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 
   seedModeBox = diaCheckBox("Automatic new contour", this, mLayout);
   connect(seedModeBox, SIGNAL(toggled(bool)), this, SLOT(seedToggled(bool)));
+  diaSetChecked(seedModeBox, plug->autoNewCont != 0);
   QToolTip::add(seedModeBox, "Make new contour for every point in a new "
                 "position");
+  
 
   if (App->rgba && !App->cvi->rawImageStore) {
     overlayHbox = new QHBox(this);
@@ -1902,6 +1903,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[6] = 0;    // Was up down arrow flag
   posValues[7] = plug->showMode;
   posValues[8] = plug->reverseOverlay;
+  posValues[9] = plug->autoNewCont;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
@@ -1984,6 +1986,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.39  2006/09/06 22:14:45  mast
+    Really make it ignore the reopne message regardless of state
+
     Revision 1.38  2006/08/24 16:53:34  mast
     Reopen message should not generate error if align log not open yet
 
