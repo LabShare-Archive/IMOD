@@ -11,6 +11,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.1  2006/10/17 22:57:31  mast
+c       Added to package
+c
 c
       implicit none
       integer idim,limsec
@@ -35,17 +38,19 @@ c
       integer*4 PipGetInOutFile, PipParseInput, PipGetBoolean
       integer numOptions
       parameter (numOptions = 5)
-      character*120 options(numOptions) /
-     &    'input:InputFile:FN:Name of input image file',
-     &    'output:OutputFile:FN:Name of output model file',
-     &    'columns:HotColumns:LI:List of hot columns to exclude (numbered '//
-     &    'from 0)' ,'threshold:ThresholdDifference:F:Threshold difference'//
-     &    ' from mean value for hot pixels','help:usage:B:Print help output'/
+      character*(120 * numOptions) options(1) 
+      options(1) = 
+     &    'input:InputFile:FN:Name of input image file@'//
+     &    'output:OutputFile:FN:Name of output model file@'//
+     &    'columns:HotColumns:LI:List of hot columns to exclude '//
+     &    '(numbered from 0)@threshold:ThresholdDifference:F:'//
+     &    'Threshold difference from mean value for hot pixels@'//
+     &    'help:usage:B:Print help output'
 c       
       nhotcols = 0
       call PipExitOnError(0, 'ERROR: FINDHOTPIXELS - ')
       call PipAllowCommaDefaults(1)
-      ierr = PipParseInput(options, numOptions, ' ', numOptArg, numNonOptArg)
+      ierr = PipParseInput(options, numOptions, '@', numOptArg, numNonOptArg)
       pipinput = numOptArg + numNonOptArg .gt. 0
       if ((pipinput .and. numOptArg + numNonOptArg .lt. 3)  .or.
      &    PipGetBoolean('help', j) .eq. 0) then
