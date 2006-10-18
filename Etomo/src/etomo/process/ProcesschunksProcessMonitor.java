@@ -158,7 +158,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           pid = array[2].trim();
         }
       }
-      //System.out.println(line);
+      if (debug) {
+        System.err.println(line);
+      }
       messages.addProcessOutput(line);
       if (messages.isError()) {
         //Set failure boolean but continue to add all the output lines to
@@ -209,8 +211,27 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         }
         else if (strings.length > 1) {
           if (line.startsWith("Dropping")) {
+            String failureReason;
+            if (line.indexOf("it cannot cd to")!=-1) {
+              failureReason =  "cd failed";
+            }
+            else if (line.indexOf("cannot connect")!=-1) {
+              failureReason =  "connect failed";
+            }
+            else if (line.indexOf("it cannot run IMOD commands")!=-1) {
+              failureReason =  "run error";
+            }
+            else if (line.indexOf("it failed (with time out)")!=-1) {
+              failureReason =  "chunk timed out";
+            }
+            else if (line.indexOf("it failed (with chunk error)")!=-1) {
+              failureReason =  "chunk error";
+            }
+            else {
+              failureReason = "unknown error";
+            }
             //handle a dropped CPU
-            parallelProgressDisplay.msgDropped(strings[1], "not responding");
+            parallelProgressDisplay.msgDropped(strings[1], failureReason);
           }
           //handle commandsPipeWriteIda finished chunk
           else if (strings[1].equals("finished")) {
@@ -413,6 +434,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/10/11 10:10:14  sueh
+ * <p> bug# 931 Managing the commands pipe and the process output with LogFile so
+ * <p> that the file access problem which appears in Windows will show up in Linux.
+ * <p>
  * <p> Revision 1.20  2006/10/10 12:06:40  sueh
  * <p> bug# 931 deleteCommandPipe():  throwing an exception if can't delete
  * <p> the .cmds file.
