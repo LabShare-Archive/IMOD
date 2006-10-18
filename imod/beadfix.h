@@ -3,16 +3,10 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end
-*/
 
 #ifndef BEADFIX_H
 #define BEADFIX_H
@@ -147,7 +141,6 @@ class BeadFixer : public DialogFrame
   AreaData *mAreaList;                  /* Data about areas */
   int    mAreaMax;                      /* Size allocated */
   int    mBell;                         /* 1 to ring bell, -1 to suppress */ 
-  bool   mSeedMode;                     /* Seeding mode for inserting points */
   bool   mMovingAll;                  /* Flag for moving all points in local */
   int    mNumAllMoved;                  /* Number moved in local area */
   QVButtonGroup *modeGroup;
@@ -185,6 +178,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.18  2006/07/18 04:17:47  mast
+Removed up down arrow box
+
 Revision 1.17  2006/07/05 04:17:54  mast
 Enhanced overlay mode
 
