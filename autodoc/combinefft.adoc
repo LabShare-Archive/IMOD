@@ -150,7 +150,7 @@ Sometimes a combined tomogram shows lines between the separate pieces that
 were run through Combinefft, particularly for pieces containing a boundary 
 between dense material and resin.  This option will eliminate this effect
 by ensuring that the low-frequency components match between the combined 
-pieces.  A values of 0.01 to 0.015 should be effective.
+pieces.  A value of 0.01 to 0.015 should be effective.
 
 [Field = VerboseOutput]
 short = verbose
