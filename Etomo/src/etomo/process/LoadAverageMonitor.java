@@ -134,7 +134,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   public final void msgIntermittentCommandFailed(IntermittentCommand command) {
     String key = command.getComputer();
     if (programs.containsKey(key)) {
-      display.msgLoadAverageFailed(key, "timeout");
+      display.msgLoadAverageFailed(key, "no connection");
     }
   }
 
@@ -191,6 +191,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2006/02/15 22:06:44  sueh
+ * <p> bug# 796 Added a key phrase for windows
+ * <p>
  * <p> Revision 1.14  2006/02/15 18:51:23  sueh
  * <p> bug# 796 Set wait for command back to 0 when a imodwincpu returns a
  * <p> string
