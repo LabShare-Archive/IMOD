@@ -71,6 +71,7 @@ set sendevent_qconf = sendevent/qconfigure
 set qtassist_qconf  = qtassist/qconfigure
 set sourcedoc_qconf = sourcedoc/qconfigure
 set sourcedoc_exe   = sourcedoc
+set qtdel1          = ""
 set fort_cpplibs    =
 set ctrl_string     = Ctrl
 set ld_lib_var      = LD_LIBRARY_PATH
@@ -280,6 +281,11 @@ foreach dir ($qtassist_dir)
     if (! -e $dir/imod_assistant.cpp) \cp $imod_dir/imod_assistant.cpp $dir
     if (! -e $dir/imod_assistant.h) \cp $imod_dir/imod_assistant.h $dir
 end
+
+# Make lists of qt directories and project names
+#
+set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist_dir $sourcedoc_dir)
+set qpro = (midas.pro imod.pro imodsendevent.pro imodqtassist.pro sourcedoc.pro)
 
 # Manage imodhelp for the qmake without having to delete a good one
 if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
@@ -648,42 +654,51 @@ EOF
     #
     if ($machine != "macosx") then
         cat <<EOF >> $imod_qconf
-unix:3dmodv.extra = cd $inst_bin_dir ; \\rm -f 3dmodv imod imodv ; ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
+3dmodv.extra = cd $inst_bin_dir ; strip 3dmod ; \\rm -f 3dmodv imod imodv ; ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
+        echo "target.extra = strip $inst_bin_dir/midas" >> $midas_qconf
+        echo "target.extra = strip $inst_bin_dir/imodsendevent" >> $sendevent_qconf
+        echo "target.extra = strip $inst_bin_dir/imodqtassist" >> $qtassist_qconf
+
     else
+
+        # For Mac, copy the run files, also strip (-x needed for 3dmod)
+        #
         cat << EOF >> $sendevent_qconf
-INSTALLS += runsendevent
-runsendevent.path = $inst_bin_dir
-runsendevent.extra = \\cp -f runsendevent $inst_bin_dir/imodsendevent
+target.extra = \\cp -f runsendevent $inst_bin_dir/imodsendevent ; strip $inst_bin_dir/imodsendevent.app/Contents/MacOS/imodsendevent
 EOF
 
         cat << EOF  >> $midas_qconf
-INSTALLS += runmidas
-runmidas.path = $inst_bin_dir
-runmidas.extra = \\cp -f runmidas $inst_bin_dir/midas
+target.extra = \\cp -f runmidas $inst_bin_dir/midas ; strip $inst_bin_dir/midas.app/Contents/MacOS/midas
 EOF
 
         cat << EOF >> $imod_qconf
-3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
+target.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; strip -x 3dmod.app/Contents/MacOS/3dmod
 EOF
 
         cat << EOF >> $qtassist_qconf
-INSTALLS += runqtassist
-runqtassist.path = $inst_bin_dir
-runqtassist.extra = \\cp -f runqtassist $inst_bin_dir/imodqtassist
+target.extra = \\cp -f runqtassist $inst_bin_dir/imodqtassist ; strip $inst_bin_dir/imodqtassist.app/Contents/MacOS/imodqtassist
 EOF
     endif
 
-    (cd $midas_dir ; qmake midas.pro)
-    if ($status) then
-        echo "ERROR: setup - executing qmake"
-        exit 1
-    endif
-    (cd $sendevent_dir ; qmake imodsendevent.pro)
-    (cd $qtassist_dir ; qmake imodqtassist.pro)
-    (cd $sourcedoc_dir ; qmake sourcedoc.pro)
-
-    (cd $imod_dir ; qmake imod.pro ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
+    # Finally run qmake and doctor the Makefiles if necessary
+    #
+    @ i = 0
+    while ($i < $#qdir)
+        @ i++
+        (cd $qdir[$i] ; qmake $qpro[$i])
+        if ($status) then
+            echo "ERROR: setup - executing qmake"
+            exit 1
+        endif
+        if ("$qtdel1" != "") then
+            sed -e "/$qtdel1/s///g"  -e "/$qtdel2/s///g" \
+                -e "/$qtsub1f/s//$qtsub1t/g" \
+                < $qdir[$i]/Makefile >! $qdir[$i]/makefile.tmp
+            \mv $qdir[$i]/makefile.tmp $qdir[$i]/Makefile
+        endif
+    end
+    (cd $imod_dir ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
 
@@ -855,6 +870,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.20  2006/10/03 21:16:01  mast
+#  Took care of pysrc Makefile, dummy if no Python
+#
 #  Revision 1.19  2006/09/12 15:06:06  mast
 #  Added libimesh entries
 #
