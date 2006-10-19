@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.54  2006/10/13 22:30:18  sueh
+ * bug# 927 Added ltfLowFromBothRadius.
+ *
  * Revision 3.53  2006/09/19 22:36:49  sueh
  * bug# 928 Added btnPatchVectorCCCModel and
  * updatePatchVectorModelDisplay().
@@ -418,7 +421,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
   private LabeledTextField ltfLowFromBothRadius = new LabeledTextField(
-  "Low from both radius: ");
+      "Radius below which to average components from both tomograms: ");
   private CheckBox cbParallelProcess;
   private final PanelHeader patchRegionModelHeader;
   private final PanelHeader patchcorrHeader;
@@ -925,7 +928,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
     ltfReductionFactor.setText(setParam.getValue());
   }
-  
+
   void setLowFromBothRadiusParams(ConstSetParam setParam) {
     if (setParam == null || !setParam.isValid()) {
       return;
@@ -955,7 +958,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
     param.setValue(ltfReductionFactor.getText());
   }
-  
+
   void getLowFromBothRadiusParam(SetParam param) {
     if (param == null) {
       return;
@@ -966,7 +969,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   void enableReductionFactor(boolean enable) {
     ltfReductionFactor.setEnabled(enable);
   }
-  
+
   void enableLowFromBothRadius(boolean enable) {
     ltfLowFromBothRadius.setEnabled(enable);
   }
@@ -1251,7 +1254,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   void updatePatchVectorModelDisplay() {
-    boolean enable = DatasetFiles.getPatchVectorModel(applicationManager).exists();
+    boolean enable = DatasetFiles.getPatchVectorModel(applicationManager)
+        .exists();
     btnPatchVectorModel.setEnabled(enable);
     btnReplacePatchOut.setEnabled(enable);
   }
@@ -1415,11 +1419,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
 
     if (adocCombineFft != null) {
-      text = EtomoAutodoc.getTooltip(adocCombineFft, "ReductionFraction");
-      if (text != null) {
-        ltfReductionFactor.setToolTipText(tooltipFormatter.setText(text)
-            .format());
-      }
+      ltfReductionFactor.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(adocCombineFft, "ReductionFraction"))
+          .format());
+      ltfLowFromBothRadius.setToolTipText(tooltipFormatter.setText(
+          EtomoAutodoc.getTooltip(adocCombineFft, "LowFromBothRadius"))
+          .format());
     }
 
     text = EtomoAutodoc.getTooltip(adocCorrsearch3d,
