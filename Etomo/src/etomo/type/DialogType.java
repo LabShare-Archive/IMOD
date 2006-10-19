@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2006/07/31 21:42:13  sueh
+ * <p> bug# 438 Added getCompactLabel
+ * <p>
  * <p> Revision 1.7  2006/04/28 20:56:23  sueh
  * <p> bug# 787 Added equals(String)
  * <p>
@@ -178,7 +181,7 @@ public final class DialogType {
       case coarseAlignmentIndex:
         return "Coarse";
       case fiducialModelIndex:
-        return "Fid";
+        return "Track";
       case fineAlignmentIndex:
         return "Fine";
       case tomogramPositioningIndex:
