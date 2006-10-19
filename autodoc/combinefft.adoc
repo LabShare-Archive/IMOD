@@ -144,7 +144,9 @@ manpage =
 short = both
 type = F
 usage = Radius below which data will always be averaged from both tomograms
-tooltip =
+tooltip = Frequency below which data will always be averaged from both
+tomograms.  A value of 0.01 to 0.015 should be effective in preventing lines
+between pieces.
 manpage = Radius below which data will always be averaged from both tomograms.
 Sometimes a combined tomogram shows lines between the separate pieces that 
 were run through Combinefft, particularly for pieces containing a boundary 
