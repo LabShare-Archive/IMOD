@@ -185,7 +185,7 @@ set ctrl_string = Apple
 
 # 5/11/05: removed libdl.a and dlfcn.h copying, no longer needed
 # set up strip to use -x flag (needed for 10.4)
-set strip = "strip -x"
+if ($compiler != ifort) set strip = "strip -x"
 
 #
 # Set up things for Qt include files
