@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/06: Improved parallel processing failure reasons.
+
 10/17/06: In eTomo - Join, display a warning highlight in sections which will be
 inverted in the final join.  Also added an Invert Table button, to change which
 sections will be inverted.
