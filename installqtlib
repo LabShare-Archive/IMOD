@@ -93,7 +93,7 @@ while ($dllnum < 100)
     set dlllist = `sed -n "/DLLSTOCOPY$dllnum/s/^.*= *//p" configure`
     if ("$dlllist" != "") then
         foreach i ($dlllist)
-            \cp -R "$dlldir"/$i.*$dllext $instdir/$dlldestdir
+            \cp -R "$dlldir"/$i.*$dllext* $instdir/$dlldestdir
         end
     else
         break
@@ -184,6 +184,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.27  2006/07/17 18:46:30  mast
+#  Added Qt plugin copying
+#
 #  Revision 3.26  2006/06/21 21:26:38  mast
 #  Generalized the dll copy logic to work for Mac, and to take names without
 #  extensions, and to take destination directory
