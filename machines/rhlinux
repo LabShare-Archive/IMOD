@@ -7,7 +7,6 @@
 #
 set c_includes =  ' -I$(QTDIR)/include'
 
-echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
@@ -15,10 +14,15 @@ set defines = -D_FILE_OFFSET_BITS=64
 
 set fcompFlags = ""
 if ($compiler == intel) then
+    echo 'LDFLAGS = -L$(LIBDIR) -i-dynamic' >> $configure
     echo "CC        = icc"              >> $configure
-    echo "FC        = ifc"              >> $configure
-    set usfftdir = $source_dir/USFFTlib/pc-intel
+    echo "CXX       = icpc"              >> $configure
+    echo "FC        = ifort"              >> $configure
+    set fcompFlags = '-132 -assume bscc'
+    echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+
 else
+    echo 'LDFLAGS = -L$(LIBDIR)' >> $configure
     echo "CC        = gcc"              >> $configure
     set fcompFlags = "-ffixed-line-length-0"
     set fortvers = 3
@@ -59,29 +63,32 @@ EOF
 set m64flags =
 set libflags =
 if ($m64bit == true) then
-    set m64flags = "-m64"
-    set libflags = "-fPIC"
+    if ($compiler != intel) then
+        set m64flags = "-m64"
+        set libflags = "-fPIC"
+    endif
     set include_flags = "$include_flags -I/usr/lib64"
 endif
 
 set wrapper = ""
 
 if ($shared_libs != false) then
-    echo "AR      = g++"                 >> $configure
-    echo "ARCPP   = g++"                >> $configure
-    echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
+    if ($compiler == intel) then
+        #
+        # Intel compiler defines a different flag in fortran and C so add them
+        # to the archive commands
+        #
+        echo "AR      = icc -fPIC"                 >> $configure
+        echo "ARCPP   = icpc -fPIC"                >> $configure
+        echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
+        set far = 'ifort -fpic'
+    else
+        echo "AR      = g++"                 >> $configure
+        echo "ARCPP   = g++"                >> $configure
+        echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
+    endif
     echo "RANLIB    = true"                     >> $configure
     echo "LIBEXT  = so"                 >> $configure
-    #
-    # With Intel compiler, call an ld wrapper to strip out the -static flag
-    # make blockio into a static libary  to drag in stat64 properly, and 
-    # exclude it from libim.so
-    #
-    if ($compiler == intel) then
-    	set wrapper = "-Qlocation,link,$source_dir/scripts"
-    	set blockio = libblockio.a
-    	set imsubsobj = '[^b]*.o'
-    endif
 else
     echo "AR      = ar"                 >> $configure
     echo "ARCPP   = ar"                 >> $configure
@@ -92,24 +99,17 @@ endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
 echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
-echo "MAKELIBSO = g++ $flags -shared -o " >> $configure
-
+echo 'MAKELIBSO = $(MAKELIBCPP)' >> $configure
 
 echo "CLIBS   = -lc -lm" >> $configure
 echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
 if ($compiler == intel) then
-    # For Intel, add -lXp, add -Vaxlib flag for compatibility calls
-    echo "IMLIBS     = $wrapper -Vaxlib -lhvem -lim -lblockio -lifft  -limod -lb3dcmpt " >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod " >> $configure
 else
     echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
 endif
-
-echo 'IMODCC    = $(CC)'              >> $configure
-echo  'MAKEF77PLUGIN  = $(FC) '"$wrapper"' -shared $(LDFLAGS) -lb3dcmpt -o'  >> $configure
-echo 'FLCC      = $(FC)'              >> $configure
-echo "F77LIBS   = $wrapper"                  >> $configure
 
 #
 # It said "Needed for Red Hat 9/Qt 3.1" but now it seems not, and gcc 4 needs
@@ -127,37 +127,7 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 #
 \cp $endian_dir/little_endian.inc $endian_dir/endian.inc
 
-#
-#
-# tell zap window to redraw twice after a resize (GeForce3/RH7.1 problem)
-#
-#echo '#define ZAP_RESIZE_HACK'  >> $hconfigure
-#
-# The following hacks were needed for Nvidia 0.95 drivers
-#
-# tell imod to not count on GL_LINE_LOOP working
-#echo '#define LINE_LOOP_HACK'  >> $hconfigure
-# tell imod to fill all the way across lines when drawing pixels
-#echo '#define PIXELDRAW_HACK'  >> $hconfigure
-# tell imod to clear top of xyz window after draw
-#echo '#define XYZ_CLEAR_HACK'  >> $hconfigure
-# tell imod to draw images in chunks
-#echo '#define CHUNKDRAW_HACK 4'  >> $hconfigure
-#
-# If using Mesa libGLU, tell imod that hacks are needed for contour fill by
-# tesselation
-#
-#echo '#define TESS_HACK'  >> $hconfigure
-#
-# tell midas to time out expose events in montage fixing mode, and imod
-# to do it generally
-#
-#echo '#define MIDAS_EXPOSE_HACK'  >> $hconfigure
-#echo '#define ZAP_EXPOSE_HACK'  >> $hconfigure
-#
-# Use fixed CLK_TCK so code compiled on 7.1 runs on 7.0
-#
-#echo '#define FIXED_CLK_TCK 100'  >> $hconfigure
+# 10/1906: Removed lots of ancient hack defines
 
 #
 # Use a workaround when window managers won't do StaysOnTop reliably
@@ -190,8 +160,13 @@ echo "NOOPFFLAGS = $fflags -O0" >> $configure
 
 # 4/8/04: Add flags for building libraries
 #
-echo "LIBCFLAGS  = $libflags $cflags" >> $configure
-echo "LIBFFLAGS  = $libflags $fflags" >> $configure
+if ($compiler == intel) then
+    echo "LIBCFLAGS  = -fPIC $libflags $cflags" >> $configure
+    echo "LIBFFLAGS  = -fpic $libflags $fflags" >> $configure
+else
+    echo "LIBCFLAGS  = $libflags $cflags" >> $configure
+    echo "LIBFFLAGS  = $libflags $fflags" >> $configure
+endif
 
 # 7/6/05: took out the fallbacks; no longer needed on SGI
 #
@@ -206,7 +181,7 @@ endif
 
 # make extra fortran libs
 #
-echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
+if ($compiler != intel) echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 
 # Qtplax needs to kill second thread on Linux, but problem in Suse 64-bit
 #
@@ -238,6 +213,33 @@ DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E
 EOF
+
+# Set up to massage QT makefiles for intel, and take care of DLL copies
+if ($compiler == intel) then
+    set ccdir = `which icc`
+    set cclibdir = $ccdir:h:h/lib
+    echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
+    set fortdir = `which ifort`
+    set fortlibdir = $fortdir:h:h/lib
+    echo "DLLSOURCEDIR2 = $fortlibdir" >> $configure
+    echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
+    echo "DLLDESTDIR = lib" >> $configure
+    setenv QMAKESPEC linux-icc
+
+    if ($m64bit == true) then
+        echo "DLLSTOCOPY1 = libcxaguard libirc libimf libsvml" >> $configure
+        set qtdel1 = "-m64"
+        set qtdel2 = "-mtune=nocona"
+        set qtsub1f = "X11R6\/lib "
+        set qtsub1t = "X11R6\/lib64 "
+    else
+        echo "DLLSTOCOPY1 = libcxaguard libirc libimf" >> $configure
+        set qtdel1 = "-m32"
+        set qtdel2 = "-fasynchronous-unwind-tables"
+        set qtsub1f = gibberish
+        set qtsub1t = t
+    endif
+endif
 
 if ($packqt == true) then
     #
