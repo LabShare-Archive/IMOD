@@ -241,6 +241,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     updateFiducialessDisplay(dialog.isFiducialess());
     updateFiducialessDisplay();
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
 
   protected boolean saveDialog() {
@@ -885,6 +886,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2006/10/19 22:01:16  sueh
+ * <p> bug# 942  updateFiducialessDisplay():  checking for dialog == null
+ * <p>
  * <p> Revision 1.12  2006/09/19 22:38:35  sueh
  * <p> bug# 920 Refreshing meta data values in TiltParam each time tilt.com is loaded.
  * <p>
