@@ -650,6 +650,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * never run) enable Tomopitch.
    */
   void updateFiducialessDisplay() {
+    if (dialog == null) {
+      return;
+    }
     EtomoBoolean2 sampleFiducialess = state.getSampleFiducialess(axisID);
     boolean enable = false;
     if (sampleFiducialess == null
@@ -882,6 +885,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2006/09/19 22:38:35  sueh
+ * <p> bug# 920 Refreshing meta data values in TiltParam each time tilt.com is loaded.
+ * <p>
  * <p> Revision 1.11  2006/09/14 00:04:48  sueh
  * <p> bug# 920 Turn off tomopitch fields when the fiducialess setting with which
  * <p> sample was created does not match the fiducialess setting on the screen.
