@@ -159,6 +159,7 @@ while($#argv > 0)
 			breaksw
 
 		case -compiler:
+		case -c:
 			shift
 			set compiler = $argv[1]
 			breaksw
@@ -654,30 +655,63 @@ EOF
     #
     if ($machine != "macosx") then
         cat <<EOF >> $imod_qconf
-3dmodv.extra = cd $inst_bin_dir ; strip 3dmod ; \\rm -f 3dmodv imod imodv ; ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
+3dmodv.extra = strip 3dmod ; cd $inst_bin_dir ; \
+if [ -e 3dmod ] ; then strip 3dmod ; fi ; mod ; \\rm -f 3dmodv imod imodv ; \
+ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
-        echo "target.extra = strip $inst_bin_dir/midas" >> $midas_qconf
-        echo "target.extra = strip $inst_bin_dir/imodsendevent" >> $sendevent_qconf
-        echo "target.extra = strip $inst_bin_dir/imodqtassist" >> $qtassist_qconf
+
+        cat <<EOF  >> $midas_qconf
+INSTALLS += strip
+strip.path = $inst_bin_dir
+strip.extra = strip midas ; if [ -e $inst_bin_dir/midas ] ; then strip $inst_bin_dir/midas ; fi
+EOF
+
+        cat <<EOF  >> $sendevent_qconf
+INSTALLS += strip
+strip.path = $inst_bin_dir
+strip.extra = strip imodsendevent ; if [ -e $inst_bin_dir/imodsendevent ] ; then strip $inst_bin_dir/imodsendevent ; fi
+EOF
+
+        cat <<EOF  >> $qtassist_qconf
+INSTALLS += strip
+strip.path = $inst_bin_dir
+strip.extra = strip imodqtassist ; if [ -e $inst_bin_dir/imodqtassist] ; then strip $inst_bin_dir/imodqtassist ; fi
+EOF
 
     else
 
         # For Mac, copy the run files, also strip (-x needed for 3dmod)
         #
         cat << EOF >> $sendevent_qconf
-target.extra = \\cp -f runsendevent $inst_bin_dir/imodsendevent ; strip $inst_bin_dir/imodsendevent.app/Contents/MacOS/imodsendevent
+INSTALLS += runsendevent
+runsendevent.path = $inst_bin_dir
+runsendevent.extra = \\cp -f runsendevent $inst_bin_dir/imodsendevent ; \
+strip imodsendevent.app/Contents/MacOS/imodsendevent ; \
+if [ -e $inst_bin_dir/imodsendevent.app ] ; then strip $inst_bin_dir/imodsendevent.app/Contents/MacOS/imodsendevent ; fi
 EOF
 
         cat << EOF  >> $midas_qconf
-target.extra = \\cp -f runmidas $inst_bin_dir/midas ; strip $inst_bin_dir/midas.app/Contents/MacOS/midas
+INSTALLS += runmidas
+runmidas.path = $inst_bin_dir
+runmidas.extra = \\cp -f runmidas $inst_bin_dir/midas ; \
+strip midas.app/Contents/MacOS/midas ; \
+if [ -e $inst_bin_dir/midas.app ] ; then strip $inst_bin_dir/midas.app/Contents/MacOS/midas ; fi
 EOF
 
         cat << EOF >> $imod_qconf
-target.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; strip -x 3dmod.app/Contents/MacOS/3dmod
+3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \
+strip -x 3dmod.app/Contents/MacOS/3dmod ; \
+\\cp -f runimod $inst_bin_dir/3dmod ; cd $inst_bin_dir ; \
+\\rm -f imod imodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv ; \
+if [ -e 3dmod.app ] ; then strip -x 3dmod.app/Contents/MacOS/3dmod ; fi
 EOF
 
         cat << EOF >> $qtassist_qconf
-target.extra = \\cp -f runqtassist $inst_bin_dir/imodqtassist ; strip $inst_bin_dir/imodqtassist.app/Contents/MacOS/imodqtassist
+INSTALLS += runqtassist
+runqtassist.path = $inst_bin_dir
+runqtassist.extra = \\cp -f runqtassist $inst_bin_dir/imodqtassist ; \
+strip imodqtassist.app/Contents/MacOS/imodqtassist ; \
+if [ -e $inst_bin_dir/imodqtassist.app ] ; then strip $inst_bin_dir/imodqtassist.app/Contents/MacOS/imodqtassist ; fi
 EOF
     endif
 
@@ -859,7 +893,7 @@ echo "             -no_shared   Make libraries non-shared"
 echo "             -tiff        Link with TIFF libraries"
 echo "             -no_tiff     Do not try to link with TIFF libraries"
 echo "             -no_xlibs    Do not try to make X version of plax routines"
-echo "             -compiler    Use specified compilers (intel or gfortran for"
+echo "             -compiler,-c Use specified compilers (intel or gfortran for"
 echo "                          rhlinux, gnu for cygwin)"
 echo "             -packqt      Pack Qt library into distribution (Linux only)"
 echo "             -useqt       Use local Qt in startup script in distribution"
@@ -870,6 +904,10 @@ exit
 
 #
 #  $Log$
+#  Revision 1.21  2006/10/19 23:50:20  mast
+#  Used lists to do qmake, doctor qmake for intel/Linux compiler, add
+#  stripping on Linux and Mac
+#
 #  Revision 1.20  2006/10/03 21:16:01  mast
 #  Took care of pysrc Makefile, dummy if no Python
 #
