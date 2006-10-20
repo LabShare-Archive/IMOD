@@ -250,39 +250,39 @@ To start eTomo, type:<br>
 </div>
 <p class="MsoNormal"><br>
 </p>
-<p class="MsoNormal">When eTomo is first started, a<b> Setup panel</b>
+<p class="MsoNormal">When eTomo is first started, a <b>Setup Tomogram</b> panel
 will come up (shown above). At this point you can either set up
 processing of a new data set or open an existing data set under the <b>File</b>
 menu.&nbsp;<br>
 </p>
 <p class="MsoNormal"><br>
 To start working on a new data set, the following fields must be filled
-out. The <b>Dataset Name</b> is the name of the file containing the
+out. The <b>Dataset name</b> is the name of the file containing the
 raw, tilt series (or the root name if a dual axis data set was
-collected). &nbsp;You can enter the <b>Dataset Name</b> by clicking
-on the yellow file selection associated with the <b>Dataset Name</b>
+collected). &nbsp;You can enter the <b>Dataset name</b> by clicking
+on the yellow file selection associated with the <b>Dataset name</b>
 field, or type in the directory path and file name directly in the
-field. The <b>Backup Directory </b>is an optional field to save small
+field. The <b>Backup directory </b>is an optional field to save small
 working files every time you run a procedure. This field can be left
 empty if you don't wish to use a backup directory. <br>
 </p>
 <p class="MsoNormal"><o:p></o:p></p>
 <p class="MsoNormal"><o:p></o:p></p>
 <p class="MsoNormal"><br>
-Select whether the data set is <b>Single Axis</b> or <b>Dual Axis.</b>
+Select whether the data set is <b>Single axis</b> or <b>Dual axis.</b>
 The <b>Montage</b> option is available for processing montaged tilt
 series. <br>
 </p>
 <p class="MsoNormal"><br>
-The next fields specify Pixel size (nm), the size of gold fiducials
+The next fields specify pixel size (nm), the size of gold fiducials
 (nm) and Image rotation (degrees).  &nbsp;<b>Pixel size</b> (in
 nm) is dependent on the microscope, camera, and magnification. The<b>
 Image rotation</b> (tilt axis angle from vertical, in degrees)
 will
 also vary based on the microscope and magnification. Pressing the <b>Scan
-Header button </b>will retrieve the<b> Pixel size</b> and<b> Image
-rotation </b>values if these are specified in the<b> </b>MRC file
-header. For this tutorial example,&nbsp; press Scan Header to define
+Header</b> button will retrieve the <b>Pixel size</b> and <b>Image
+rotation</b> values if these are specified in the MRC file
+header. For this tutorial example,&nbsp; press <b>Scan Header</b> to define
 the
 pixel size for this data set (2.02) and Image rotation (-12.5). You
 must
@@ -296,9 +296,8 @@ is particularly useful with data from an energy filter.<br>
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal">Specify the source of the tilt angles for either
-one or both axes, as appropriate. In this example, tilt angles are
-stored in the extended header and so the default "<span
- style="font-weight: bold;">Extract tilt angles from data</span>"
+one or both axes, as appropriate in the <b>Axis A</b> and, if necessary, the <b>Axis B</b> box(es). In this example, tilt angles are
+stored in the extended header and so the default <b>Extract tilt angles from data</b>
 should be used. You can also optionally specify individual projections
 to exclude from processing steps. &nbsp;The syntax for this exclude
 list
@@ -329,7 +328,7 @@ III. eTomo Main Window</b></span></p>
 left is a column of buttons (Process Control Buttons) that allow you to
 select a particular stage of tomogram computation to work on. On the
 top is a Process Monitor that informs you of the status of the
-current process or the last process completed.  To the left of the Process Monitor are the Axis Buttons which allow you to move between <b>Axis A</b> and <b>Axis B</b>.  The Main Window is currently open to <b>Axis A</b><br>
+current process or the last process completed.  To the left of the Process Monitor are the Axis Buttons which allow you to move between Axis A and Axis B.  The Main Window is currently open to Axis A<br>
 <br>
 </p>
 <div align="center"><img src="etomoImages/mainwindow.png" title=""
@@ -446,7 +445,7 @@ button. </b><br>
 <br>
 </p>
 <p class="MsoNormal">This will open BBa.preali in 3dmod and create an
-empty model file named BBa.seed.&nbsp;</p>
+empty model file named BBa.seed.  It will also bring up the Bead Fixer dialog box in <b>Make seed</b> mode with <b>Autocenter</b> checked.&nbsp;</p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <p class="MsoNormal">Go to section 31 by pressing the Insert key on
 your keyboard (this will go directly to the middle section, which is
@@ -466,13 +465,12 @@ the center of 20-40<span style="">&nbsp; </span>gold particles by
 centering the cursor in the middle of the gold particle and pressing
 the middle mouse button. With each new gold bead selected, hit the
 &#8216;n&#8217; key on the keyboard. This creates a new contour for each new gold
-bead. It&#8217;s useful to adjust the contrast of the image and to increase
-the magnification of the image using the &#8216;+&#8217; key to make sure the model
-point is positioned in the center of the gold bead. In my example
-(BBa.seed) I selected 24 gold particles; the model contains 1 object,
-24 contours, with each contour having 1 point.<span style="">&nbsp;</span>Save
+bead.  Because <b>Autocenter</b> is checked, 3dmod should make sure that the model
+point is positioned in the center of the gold bead.  In my example
+(BBa.seed) I selected 25 gold particles; the model contains 1 object,
+24 contours, with each contour having 1 point. <span style="">&nbsp;</span>Save
 this &#8216;seed&#8217; model by going to File -&gt; Save model, or by hitting
-the hot key 's'. The model is referred to as a &#8216;seed&#8217; because it
+the hot key 's'.  The model is referred to as a &#8216;seed&#8217; because it
 contains model points on only one section. The next step uses this
 model
 as a seed from which a complete fiducial model is built. </p>
@@ -489,9 +487,13 @@ gold on all other sections. The output file created by tracka.com is
 BBa.fid, which is the completed fiducial model. This computer-generated
 model is not perfect, and so the next procedure involves an iterative
 process to edit this fiducial model.</p>
-<p class="MsoNormal">&nbsp;<o:p></o:p></p>
-<h1>&nbsp;Press the 'Fix Fiducial Model' process
+<p class="MsoNormal" align="center">&nbsp;<br>
+</p>
+<p class="MsoNormal"><b>Press the 'Fix Fiducial Model' process
 button.</h1>
+</b><br>
+<br>
+<b></b></p>
 <p class="MsoNormal" align="center"><img
  src="etomoImages/fiducialA3.png" title="" alt="">&nbsp; <o:p></o:p></p>
 <p class="MsoNormal"><br>
@@ -507,7 +509,7 @@ fiducial model file (BBa.fid) in 3dmod. </p>
  title="" alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
-A dialog box called Bead Fixer will come up. Bead Fixer facilitates
+The Bead Fixer dialog box will come up in <b>Fill gaps</b> mode.  The Bead Fixer facilitates
 editing the fiducial
 model.</p>
 <p class="MsoNormal"><br>
@@ -560,7 +562,7 @@ The <span style="font-weight: bold;">Errors</span> tab contains a mean
 residual error and standard deviation and the ratio of measured values
 to total unknowns. <br>
 In my example, the first <span style="font-weight: bold;">Compute
-Alignment</span> run gave a Residual error mean of 0.351<br>
+Alignment</span> run gave a Residual error mean of 0.365<br>
 <br>
 </p>
 <p class="MsoNormal" style="text-align: center;"><img
@@ -620,26 +622,22 @@ are needed. In this example, local alignments are not needed. It is
 common to have larger residuals at the higher extreme tilts. Leave
 3dmod open for the next several steps and press the <span
  style="font-weight: bold;">'View/Edit Fiducial Model'</span> button to
-reload the fiducial model for editing.</p>
+reload the fiducial model for editing.  This will bring up the Bead Fixer dialog box in <b>Fix big residuals</b> mode and load the aligna.log file.</p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <p class="MsoNormal"><span style="font-weight: bold;">The following
 iterative steps involve fixing fiducial points with large residuals.</span>
 </p>
 <p class="MsoNormal"><br>
 </p>
-<p class="MsoNormal">Select &#8216;Open Tiltalign Log File&#8217; in the Bead Fixer
-dialog
-box. Select the aligna.log file.<br>
-</p>
 <p class="MsoNormal"><br>
 <br>
 </p>
 <p class="MsoNormal" align="center"><img
- src="etomoImages/beadfixer2.png" alt="" style="">&nbsp;&nbsp;
+ src="etomoImages/3dmod.png" alt="" style="">&nbsp;&nbsp;
 &nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;<img
- src="etomoImages/beadfixer3.png" title="" alt=""> &nbsp;<o:p></o:p></p>
+ src="etomoImages/beadfixer2.png" title="" alt=""> &nbsp;<o:p></o:p></p>
 <p class="MsoNormal"><br>
 Click<span style="">&nbsp; </span>&#8216;<b>Go to Next Big Residual</b>&#8217; in
 the <b>Bead Fixer</b> dialog box.</p>
@@ -686,7 +684,7 @@ Access the aligna.log file and go to the Surface Angles tab.<br>
 </p>
 <p class="MsoNormal">Note the Total tilt angle change at the bottom (in
 my example,
-this value was -0.29). Put this value in the <span
+this value was 0.00). Put this value in the <span
  style="font-weight: bold;">Fine Alignment Volume Position Parameters</span>
 box under <span style="font-weight: bold;">Total tilt angle offset</span>.
 Press the&nbsp; Compute Alignment button again, then select &#8216;Reread log
@@ -714,14 +712,12 @@ in the <span style="font-weight: bold;">Distortion Solution Type</span>
 area at the bottom of the panel. This will activate solving for two
 types of distortion: X-axis stretch and Skew. Keep the default group
 size and hit the '<span style="font-weight: bold;">Compute Alignment</span>'
-button to run the alignment.<br>
+button to run the alignment.  3dmod will re-read the log file when <b>Compute Alignment</b> is done.<br>
 </span><b><o:p></o:p></b></p>
 <p class="MsoNormal"><br>
-Return to the 3dmod windows and select <span style="font-weight: bold;">Reread
-Log File</span> in the
-Bead Fixer dialog window. Repeat fixing the new residuals that
+Return to the 3dmod windows and repeat fixing the new residuals that
 Tiltalign
-came up with after solving for distortion. This time press the <span
+came up with after solving for distortion.  Then press the <span
  style="font-weight: bold;">Save &amp; Run Tiltalign</span> button in
 the Bead Fixer window to save the model and compute the
 alignment.&nbsp; You can use this button to avoid having to go back to
@@ -729,7 +725,7 @@ eTomo, as long as you haven't changed any parameters in eTomo. After a
 few runs of running the alignment and
 checking model points in 3dmod, the final mean residual should come
 down to 0.2-0.4.&nbsp;&nbsp; In my example, the final Residual error
-mean was 0.308.</p>
+mean was 0.315.</p>
 <p class="MsoNormal"><br>
 </p>
 <div style="text-align: center;"><img src="etomoImages/finalAerror.png"
@@ -757,6 +753,7 @@ Increase the Sample tomogram thickness to 200.&nbsp; This will create a
 reconstruction that is much thicker than the original section.</p>
 <p class="MsoNormal"><b>&nbsp;<o:p></o:p></b><br>
 <span style="font-weight: bold;"> Press Create Sample Tomograms</span></p>
+<p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <div align="center"><img src="etomoImages/TomopositionA2.png" title=""
  alt="">&nbsp; <br>
 <br>
@@ -766,12 +763,8 @@ reconstruction that is much thicker than the original section.</p>
 The
 program then uses these samples to create 10 slices of the
 reconstruction from the top, middle, and bottom of the aligned stack.
-These output files are named topa.rec, mida.rec, bota.rec.</p>
-<h1 style="">&nbsp;<o:p></o:p></h1>
-<h1 style="">Press Create Boundary Models</h1>
-<p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/TomopositionA3.png" title="" alt=""> <o:p></o:p></p>
-<p class="MsoNormal"><br>
+These output files are named topa.rec, mida.rec, bota.rec.  Press <b>Create Boundary Models</b></p>
+<p class="MsoNormal"><b>&nbsp;<o:p></o:p></b><br>
 <span style="font-weight: bold;">This step involves creating a model to
 define the top and bottom surfaces of each reconstruction.</span> </p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
@@ -804,6 +797,7 @@ surfaces of the other two reconstructions, hitting &#8216;n&#8217; for a new
 contour for each surface. The final model should have 1 object and 6
 contours, and each contour should have 2 model points.&nbsp; Save this
 model file.</p>
+<p>I generally make the thickness of the final tomogram ~20 pixels greater then the tomopitch result.  To do this, add ~7 pixels to <b>Added border thickness</b>.</p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1>&nbsp;Press 'Compute Z Shift and Pitch Angles' </h1>
 <h1 align="center"><span style="font-weight: normal;"> <o:p></o:p></span></h1>
@@ -813,11 +807,12 @@ possible and to fit in the smallest volume as possible. This command
 file creates an output file &#8216;tomopitcha.log&#8217;. &nbsp;This log
 &nbsp;file will automatically open &nbsp;after the program is finished.
 <o:p></o:p></span></h1>
+<p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <p class="MsoNormal" align="center">&nbsp;<img
  src="etomoImages/TomopositionA5.png" title="" alt=""> <o:p></o:p></p>
 <h2>IX. The final runs to create the full-size tomogram</h2>
 <p class="MsoNormal"><span style="font-size: 14pt;"><b>&nbsp;<o:p></o:p></b></span><br>
-&nbsp;An example of the tomopitcha.log from my example is shown
+&nbsp;Right click on the <b>Tomogram Positioning</b> dialog and open the <b>Tomopitch log file</b>.  An example of the tomopitcha.log from my example is shown
 below: <br>
 <br>
 </p>
@@ -828,16 +823,9 @@ below: <br>
 <h1><br>
 </h1>
 <p class="MsoNormal">The bottom of the log file contains information
-calculated from all three positions. Enter the offsets to the fields
-directly below the <span style="font-weight: bold;">Compute Z Shift
-and Pitch Angles </span>button. In my example, the "add -0.2 to total
-angle offset" in the log file (above) gives the information for the <span
- style="font-weight: bold;">Total angle offset</span> field in eTomo
-(below). This value must be added to any existing value in this field
-(my example, -0.29 - 0.2 = -0.49). The "x-tilted lines imply added Z
-shift of 14.7" in the tomopitcha.log file (above) gives information for
-the <span style="font-weight: bold;">Total Z shift</span> in the eTomo
-field (below). After adding these values, hit the <span
+calculated from all three positions. These offsets are automatically added to the existing <b>Angle offset</b>, <b>Z shift</b> and <b>X axis tilt</b> values.  The <b>Added</b> values correspond to the values mentioned in the fifth paragraph in the tomopitch log ("Pitch betwen samples can be corrected...") and must be added to the existing values and entered by the user if eTomo doesn't enter them (Look for the "added X-axis tilt", "total angle offset", and "added Z shift").  The <b>Final tomogram thickness</b> is also entered by eTomo from the tomopitch log.</p>
+
+<p>Press the <span
  style="font-weight: bold;">Create Final Alignment</span> button.
 &nbsp;
 After the final alignment transforms are created, press the <span
@@ -886,15 +874,6 @@ section of the Tomography Guide for details).&nbsp; <br>
 </span></h1>
 <h1><br>
 </h1>
-<h1><span style="font-weight: normal;">Refer back to the
-tomopitcha.log file (see above). Edit</span> <span
- style="font-weight: normal;">the fields for <span
- style="font-weight: bold;">Tomogram thickness in Z</span> and <span
- style="font-weight: bold;">X axis tilt</span>. In my example, the
-tomopitcha.log file contained a recommended X-axis tilt of 2.29 and
-the thickness is 74. I generally make the thickness ~20 pixels greater
-than the tomopitch result (i.e. 95).</span></h1>
-<br>
 <br>
 <h1 style="text-align: center;"><span style="font-weight: normal;"><img
  src="etomoImages/TomogenA2.png" title="" alt="">&nbsp;<o:p></o:p></span></h1>
@@ -915,7 +894,7 @@ tomogram to the bottom surface.&nbsp;</p>
  title="" alt="">&nbsp; <br>
 </div>
 <p class="MsoNormal"><br>
-To see <b>Axis B</b>, press the Axis B button at the top of the Etomo window.  This will bring up another set of process buttons which can be used to perform the operations for aligning the <b>Axis B</b> tilt series and calculating the tomogram.  To prvent confusion, Axis A has a blue background and Axis B has a green background.
+To see the B Axis, press the <b>Axis B</b> button at the top of the Etomo window.  This will bring up another set of process buttons which can be used to perform the operations for aligning the Axis B tilt series and calculating the tomogram.  To prevent confusion, Axis A has a blue background and Axis B has a green background.
 </p>
 <p class="MsoNormal"><br>
 On the right-hand side of the eTomo main window are the process buttons
@@ -934,7 +913,9 @@ described above for Axis A.<br>
 <p class="MsoNormal" style="text-align: center;"><img
  src="etomoImages/coarseB1.png" title="" alt="">&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp; &nbsp;<img src="etomoImages/coarseB2.png" title=""
+&nbsp;&nbsp;&nbsp; &nbsp;</p>
+<br>
+<p class="MsoNormal" style="text-align: center;"><img src="etomoImages/coarseB2.png" title=""
  alt=""> &nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; <br>
 </p>
@@ -955,14 +936,13 @@ In order to combine both tilt axes <span style="color: black;">at
 least some (8-10) of the beads that you track must be the same in the
 two series. </span>To accomplish this, use the program Transferfid.</span></p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
-<h1>&nbsp;Press 'Transfer Fiducials From Other Axis'</h1>
+<h1>&nbsp;Press 'Transfer Fiducials From Other Axis'</h1><br>
 <div align="center"><span style="color: black;"><img
  src="etomoImages/transferfid.png" title="" alt="">&nbsp; </span><br>
 <span style="color: black;"></span></div>
-<p class="MsoNormal"><span style="color: black;">&nbsp;Pressing the <span
+<br><p class="MsoNormal"><span style="color: black;">&nbsp;Pressing the <span
  style="font-weight: bold;">Transfer Fiducials From Other Axis</span>
-button will run the shell script, Transferfid, that creates a&nbsp;
-seed model for the second axis based on the fiducial model from the
+button will run the shell script, Transferfid, that creates a seed model for the second axis based on the fiducial model from the
 first axis.<span style="">&nbsp; </span>The program will search for
 the pair of views in the two series that correspond the best, then
 transfer the fiducials from the first series to make the seed model for
@@ -970,7 +950,7 @@ the second series. At the end, the program indicates how corresponding
 fiducials should be specified when setting up to combine the tomograms
 and this information is stored in the transferfid.log file. The log
 file from my example is:&nbsp;<br>
-</span></p>
+<br></span></p>
 <div align="center"><span style="color: black;"><img
  src="etomoImages/transferfid1.png" title="" alt="">&nbsp; </span><br>
 <span style="color: black;"></span></div>
@@ -984,13 +964,13 @@ file from my example is:&nbsp;<br>
 <h1><span style="font-weight: normal;">The &nbsp;transferfid log file
 will list the fiducial correspondence between the first and second
 axes.
-In this example, all 24 fiducials correspond:</span></h1>
+In this example, all 25 fiducials correspond:</span></h1>
 <h1><span style="font-weight: normal;"><o:p></o:p></span></h1>
 <p class="MsoNormal"></p>
 <h1><code style="font-weight: normal;">&nbsp;&nbsp; &nbsp; Points in A:
-1-24</code><code><b>&nbsp;</b></code></h1>
+1-25</code><code><b>&nbsp;</b></code></h1>
 <h1><code><b>&nbsp; &nbsp; &nbsp;</b><span style="font-weight: normal;">Points
-in B: 1-24</span></code><br>
+in B: 1-25</span></code><br>
 </h1>
 <h1><br>
 <span style="font-weight: normal;"></span></h1>
@@ -1037,7 +1017,7 @@ outlined above for the A Axis.</b></p>
 <div style="text-align: center;"><img src="etomoImages/axisButtonsB1.png"
  title="" alt="">&nbsp; <br>
 </div>
-<p>Go back to <b>Axis A</b> by pressing the <b>Axis A</b> button.</p>
+<p>Go back to the A Axis by pressing the <b>Axis A</b> button.</p>
 <p>To combine the two tomograms press the <b>Tomogram Combination</b> process button.</p>
 <h1 align="center">&nbsp;<img src="etomoImages/combine.png" title=""
  alt=""> <o:p></o:p></h1>
@@ -1057,11 +1037,10 @@ describes the <span style="font-weight: bold;">Tomogram Matching
 Relationship</span>. It is most common to match the B tomogram to A.<br>
 </p>
 <p class="MsoNormal"><br>
-The<span style="font-weight: bold;"> Initial Volume Alignment Method</span>
-field asks for information on the fiducial marker distribution. In this
-example, fiducials are on both sides. The corresponding fiducial list
-in A and B is from the transferfid.log file. In this example, all
-fiducials (1-24) correspond.&nbsp;</p>
+The <span style="font-weight: bold;">Solvematch Parameters</span>
+box asks for information on the fiducial marker distribution. In this
+example, fiducials are on both sides. In this example, all
+fiducials (1-25) correspond so it is not necessary to fill out <b>Starting points to use from A</b>.&nbsp;</p>
 <p class="MsoNormal"><br>
 </p>
 <p class="MsoNormal">The next section contains information for <span
@@ -1080,7 +1059,7 @@ images and decide what range of the X axis, Y axis and Z axis contains
 useful information for matching up the volumes. In this example,
 defaults were kept for the X and Y axis, but the Z axis (in the
 flipped tomogram) was set to select slices that contained biological
-material (within the section range 23-68). </p>
+material (within the section range 22-69). </p>
 <p class="MsoNormal" align="center">&nbsp; <o:p></o:p></p>
 <p class="MsoNormal">Sometimes, this will not eliminate &#8220;extraneous&#8221;
 material to allow the two axes to combine. In that case, you have to
@@ -1123,6 +1102,7 @@ squeezed
 down volume,&nbsp; which is useful when working with very large data
 sets,
 particularly when reconstructing serial sections.&nbsp;&nbsp;
+<p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1 style="text-align: center;"><img src="etomoImages/trim.png" title=""
  alt=""></h1>
 <br>
@@ -1139,10 +1119,10 @@ you press <span style="font-weight: bold;">Get XY Volume Range from
 3dmod,</span> eTomo will retrieve the X and Y values of the rubberband
 from 3dmod. In this example, the default ranges for X and Y
 are used. The Z axis (in the flipped tomogram) range has been set from
-a Z min of 20 to a Z max of 68 to exclude non-cellular material.
+a Z min of 22 to a Z max of 75 to exclude non-cellular material.
 Finally a scaling range is set to find the range of slices that exclude
 the gold beads. In this example, the scaling is section based and has a
-range between slices 34 and 64. &nbsp;Press the <b>Trim Volume</b>
+range between slices 32 and 64. &nbsp;Press the <b>Trim Volume</b>
 button
 to run Trimvol. Trimvol is a single tool for trimming a volume and
 converting it to bytes. Finally, view the final, trimmed volume
