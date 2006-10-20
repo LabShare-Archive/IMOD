@@ -10,6 +10,7 @@ import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -35,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2006/08/16 22:42:26  sueh
+ * <p> bug# 912 Rubberband panel border label is no longer optional.
+ * <p>
  * <p> Revision 3.19  2006/08/16 18:52:26  sueh
  * <p> bug# 912 Making the rubberband panel generic.
  * <p>
@@ -191,12 +195,17 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private LabeledTextField ltfSectionScaleMax = new LabeledTextField(
       SECTION_SCALE_MAX_LABEL);
 
-  private final JPanel pnlReorientation = new JPanel();
-  private final ButtonGroup bgSwap = new ButtonGroup();
+  private final JPanel pnlReorientationChoices = new JPanel();
+  private final ButtonGroup bgReorientation = new ButtonGroup();
   private final RadioButton rbNone = new RadioButton("None");
   private final RadioButton rbSwapYZ = new RadioButton(
       "Swap Y and Z dimensions");
   private final RadioButton rbRotateX = new RadioButton("Rotate around X axis");
+  private final JLabel lWarning1 = new JLabel("Warning:");
+  private final JLabel lWarning2 = new JLabel("For serial joins, use");
+  private final JLabel lWarning3 = new JLabel("the same reorientation");
+  private final JLabel lWarning4 = new JLabel("method for each");
+  private final JLabel lWarning5 = new JLabel("section.");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = new Run3dmodButton(
@@ -303,20 +312,34 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlReorientation
-        .setLayout(new BoxLayout(pnlReorientation, BoxLayout.Y_AXIS));
-    pnlReorientation.setBorder(new EtchedBorder("Reorientation:").getBorder());
-    pnlReorientation.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    bgSwap.add(rbNone);
-    bgSwap.add(rbSwapYZ);
-    bgSwap.add(rbRotateX);
+    SpacedPanel pnlReorientation = new SpacedPanel();
+    pnlReorientation.setBoxLayout(BoxLayout.X_AXIS);
+    pnlReorientationChoices
+        .setLayout(new BoxLayout(pnlReorientationChoices, BoxLayout.Y_AXIS));
+    pnlReorientationChoices.setBorder(new EtchedBorder("Reorientation:").getBorder());
+    pnlReorientationChoices.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    bgReorientation.add(rbNone);
+    bgReorientation.add(rbSwapYZ);
+    bgReorientation.add(rbRotateX);
     rbNone.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbSwapYZ.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbRotateX.setAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlReorientation.add(rbNone);
-    pnlReorientation.add(rbSwapYZ);
-    pnlReorientation.add(rbRotateX);
-    pnlTrimvol.add(pnlReorientation);
+    pnlReorientationChoices.add(rbNone);
+    pnlReorientationChoices.add(rbSwapYZ);
+    pnlReorientationChoices.add(rbRotateX);
+    pnlReorientation.add(pnlReorientationChoices);
+    //reorientation warning panel
+    JPanel pnlReorientationWarning = new JPanel();
+    pnlReorientationWarning
+    .setLayout(new BoxLayout(pnlReorientationWarning, BoxLayout.Y_AXIS));
+    pnlReorientationWarning.add(lWarning1);
+    pnlReorientationWarning.add(lWarning2);
+    pnlReorientationWarning.add(lWarning3);
+    pnlReorientationWarning.add(lWarning4);
+    pnlReorientationWarning.add(lWarning5);
+    pnlReorientation.add(pnlReorientationWarning);
+    //trimvol panel
+    pnlTrimvol.add(pnlReorientation.getContainer());
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -605,7 +628,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     text = "Maximum Z section of the subset to analyze for contrast range.";
     ltfSectionScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
 
-    pnlReorientation.setToolTipText(tooltipFormatter.setText(
+    pnlReorientationChoices.setToolTipText(tooltipFormatter.setText(
         "If the output volume is not reoriented, "
             + "the file will need to be flipped when loaded into 3dmod.")
         .format());
