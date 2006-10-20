@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2006/08/16 18:49:27  sueh
+ * <p> bug# 912, bug# 915 Converted scale x and y min and max to an XYParam.
+ * <p> No longer converting scale imod coords to index coords.  Added a version.
+ * <p> Attempting to convert index coords back to imod coords for older versions.
+ * <p>
  * <p> Revision 3.20  2006/08/14 18:33:15  sueh
  * <p> bug#  890 Converted section scale min and max, and fixed scale min and max
  * <p> to EtomoNumber to provide error checking
@@ -187,8 +192,8 @@ public class TrimvolParam implements CommandDetails {
   private final EtomoNumber sectionScaleMax = new EtomoNumber("SectionScaleMax");
   private final EtomoNumber fixedScaleMin = new EtomoNumber("FixedScaleMin");
   private final EtomoNumber fixedScaleMax = new EtomoNumber("FixedScaleMax");
-  private boolean swapYZ = true;
-  private boolean rotateX = false;
+  private boolean swapYZ = false;
+  private boolean rotateX = true;
   private String inputFile = "";
   private String outputFile = "";
   private String[] commandArray;
