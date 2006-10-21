@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/20/06: In eTomo - Post Processing, made Rotate around the X-axis the default
+reorientation method.
+
 10/20/06: Fixed install script so its new offer to remove previous versions
 does not include the current version.
 
