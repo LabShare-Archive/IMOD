@@ -656,7 +656,7 @@ EOF
     if ($machine != "macosx") then
         cat <<EOF >> $imod_qconf
 3dmodv.extra = strip 3dmod ; cd $inst_bin_dir ; \
-if [ -e 3dmod ] ; then strip 3dmod ; fi ; mod ; \\rm -f 3dmodv imod imodv ; \
+if [ -e 3dmod ] ; then strip 3dmod ; fi ; \\rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
@@ -904,6 +904,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.22  2006/10/20 17:29:17  mast
+#  Fixed stripping setup in qconfigure files
+#
 #  Revision 1.21  2006/10/19 23:50:20  mast
 #  Used lists to do qmake, doctor qmake for intel/Linux compiler, add
 #  stripping on Linux and Mac
