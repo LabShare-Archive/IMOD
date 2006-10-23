@@ -13,11 +13,11 @@ name.
 [Field = OutputFile]
 short = output
 type = FN
-usage = Output file for warping transformations (optional)
+usage = Output file for refining transformation (optional)
 tooltip = 
-manpage = Optional output file for warping transformations.  If this option is
-not entered, the second non-option argument (if any) will be used for the
-output file name.
+manpage = Optional output file for the refining transformation.  If this
+option is not entered, the second non-option argument (if any) will be used
+for the output file name.
 
 [Field = RegionModel]
 short = region
