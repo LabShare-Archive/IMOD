@@ -27,6 +27,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2006/09/22 18:18:35  sueh
+* <p> bug# 931 Passing the process name to super().
+* <p>
 * <p> Revision 1.10  2006/08/11 00:16:54  sueh
 * <p> bug# 739 Added reloadWatchedFile(), loadComScriptManager(), and
 * <p> loadMtfFilterParam().
@@ -151,7 +154,7 @@ final class MtffilterProcessMonitor extends FileSizeProcessMonitor {
     double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Running MTF filter",
-        nKBytes, axisID);
+        nKBytes, axisID,ProcessName.MTFFILTER);
   }
   
   protected void reloadWatchedFile() {

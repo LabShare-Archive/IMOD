@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2006/10/10 05:10:53  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 3.13  2006/09/22 18:18:47  sueh
  * <p> bug# 931 Passing the process name to super().
  * <p>
@@ -198,7 +201,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
-        nKBytes, axisID);
+        nKBytes, axisID,processName);
   }
 
   private void loadNewstParam() {

@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2006/10/16 22:43:06  sueh
+ * <p> $bug# 933 Added ProcessResultDisplay to ApplicationManager.postProcess().
+ * <p> $
  * <p> $Revision 1.5  2006/10/10 05:11:15  sueh
  * <p> $bug# 931 Managing the log file with LogFile.
  * <p> $
@@ -47,13 +50,14 @@ import etomo.util.DatasetFiles;
 public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   public static final String rcsid = "$$Id$$";
   String lastLineRead = null;
+
   /**
    * Construct a xcorr process watcher
    * @param appMgr
    * @param id
    */
   public PatchcorrProcessWatcher(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id, ProcessName.PATCHCORR);
     standardLogFileName = false;
     logFileBasename = DatasetFiles.PATCH_OUT;
   }
@@ -63,21 +67,21 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Combine: patchcorr", 1, axisID);
-      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
+      applicationManager.getMainPanel().setProgressBar("Combine: patchcorr", 1,
+          axisID, processName);
+      applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
+          axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar(
-      "Combine: patchcorr",
-      nSections,
-      axisID);
+    applicationManager.getMainPanel().setProgressBar("Combine: patchcorr",
+        nSections, axisID, processName);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection()
-    throws NumberFormatException, LogFile.ReadException {
+  protected void getCurrentSection() throws NumberFormatException,
+      LogFile.ReadException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (!line.trim().endsWith("positions")) {
@@ -93,8 +97,8 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
   /**
    * Search patch.out file for the number of positions
    */
-  protected void findNSections()
-    throws InterruptedException, NumberFormatException, IOException,LogFile.ReadException {
+  protected void findNSections() throws InterruptedException,
+      NumberFormatException, IOException, LogFile.ReadException {
 
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
@@ -110,8 +114,8 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
       }
     }
   }
-  
+
   protected void postProcess() {
-    applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null,null);
+    applicationManager.postProcess(axisID, ProcessName.PATCHCORR, null, null);
   }
 }
