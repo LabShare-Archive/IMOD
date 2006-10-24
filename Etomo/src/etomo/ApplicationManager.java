@@ -832,7 +832,7 @@ public final class ApplicationManager extends BaseManager {
     }
     // set progress bar and process state
     mainPanel.startProgressBar("Archiving " + stackAxisID + " stack",
-        AxisID.ONLY);
+        AxisID.ONLY, ProcessName.ARCHIVEORIG);
     processTrack.setCleanUpState(ProcessState.INPROGRESS);
     mainPanel.setCleanUpState(ProcessState.INPROGRESS);
     // create param
@@ -1308,7 +1308,7 @@ public final class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME,
-        axisID);
+        axisID,ProcessName.EXTRACTTILTS);
   }
 
   private final void extractpieces(AxisID axisID,
@@ -1338,7 +1338,7 @@ public final class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
-        axisID);
+        axisID,ProcessName.EXTRACTPIECES);
   }
 
   private final void extractmagrad(AxisID axisID,
@@ -1379,7 +1379,7 @@ public final class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtractmagradParam.COMMAND_NAME,
-        axisID);
+        axisID,ProcessName.EXTRACTMAGRAD);
   }
 
   /**
@@ -1856,7 +1856,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Tracking fiducials", axisID);
+    mainPanel.startProgressBar("Tracking fiducials", axisID,ProcessName.TRACK);
   }
 
   /**
@@ -2461,7 +2461,7 @@ public final class ApplicationManager extends BaseManager {
     }
     metaData.setFiducialessAlignment(axisID, false);
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Aligning stack", axisID);
+    mainPanel.startProgressBar("Aligning stack", axisID,ProcessName.ALIGN);
   }
 
   /**
@@ -2648,7 +2648,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, destAxisID);
-    mainPanel.startProgressBar("Transferring fiducials", destAxisID);
+    mainPanel.startProgressBar("Transferring fiducials", destAxisID,ProcessName.TRANSFERFID);
     updateDialog(fiducialModelDialog, destAxisID);
   }
 
@@ -2779,7 +2779,7 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    mainPanel.startProgressBar("Creating sample tomogram", axisID);
+    mainPanel.startProgressBar("Creating sample tomogram", axisID,ProcessName.SAMPLE);
     setThreadName(threadName, axisID);
     return null;
   }
@@ -2947,7 +2947,7 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    mainPanel.startProgressBar("Finding sample position", axisID);
+    mainPanel.startProgressBar("Finding sample position", axisID,ProcessName.TOMOPITCH);
     setThreadName(threadName, axisID);
     return null;
   }
@@ -3048,7 +3048,7 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    mainPanel.startProgressBar("Calculating final alignment", axisID);
+    mainPanel.startProgressBar("Calculating final alignment", axisID,ProcessName.ALIGN);
     setThreadName(threadName, axisID);
     return null;
   }
@@ -3818,7 +3818,7 @@ public final class ApplicationManager extends BaseManager {
    */
   public void createCombineScripts(ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
-    mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY);
+    mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY, ProcessName.SOLVEMATCH);
     updateCombineParams();
     try {
       if (!processMgr.setupCombineScripts(metaData, processResultDisplay)) {
@@ -4554,7 +4554,7 @@ public final class ApplicationManager extends BaseManager {
       // FIXME why show the final pane when the button that calls this function
       // on the final pane?
       tomogramCombinationDialog.showPane(CombineProcessType.MATCHORWARP);
-      mainPanel.startProgressBar("matchorwarp", AxisID.FIRST);
+      mainPanel.startProgressBar("matchorwarp", AxisID.FIRST,ProcessName.MATCHORWARP);
     }
   }
 
@@ -4905,7 +4905,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
-    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY);
+    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY,ProcessName.TRIMVOL);
   }
 
   /**
@@ -4939,7 +4939,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
-    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY);
+    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY,ProcessName.SQUEEZEVOL);
   }
 
   /**
@@ -5007,8 +5007,8 @@ public final class ApplicationManager extends BaseManager {
    * @param value
    * @param axisID
    */
-  public void startProgressBar(String label, AxisID axisID) {
-    mainPanel.startProgressBar(label, axisID);
+  public void startProgressBar(String label, AxisID axisID, ProcessName processName) {
+    mainPanel.startProgressBar(label, axisID,processName);
   }
 
   /**
@@ -5294,7 +5294,7 @@ public final class ApplicationManager extends BaseManager {
     setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
     setThreadName(threadName, axisID);
     mainPanel
-        .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID);
+        .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID, ProcessName.SPLITTILT);
     return null;
   }
 
@@ -5325,7 +5325,7 @@ public final class ApplicationManager extends BaseManager {
         getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     setThreadName(threadName, AxisID.ONLY);
     mainPanel.startProgressBar("Running " + SplitcombineParam.COMMAND_NAME,
-        AxisID.ONLY);
+        AxisID.ONLY,ProcessName.SPLITCOMBINE);
     return;
   }
 
@@ -5430,6 +5430,12 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.271  2006/10/16 22:33:13  sueh
+ * <p> bug# 919  Changed touch(File) to touch(String absolutePath).  bug# 933  Moved
+ * <p> the code in msgAlignPostProcess to postProcess.  Only doing align post process
+ * <p> (reopening log) when the Computer Alignment button was used to run Fine
+ * <p> Alignment.
+ * <p>
  * <p> Revision 3.270  2006/10/13 22:18:24  sueh
  * <p> bug# 927 In volcombine, managing combinefft LowFromBothRadius.
  * <p>

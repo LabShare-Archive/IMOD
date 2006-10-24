@@ -6,6 +6,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
 import etomo.util.Montagesize;
 
@@ -31,7 +32,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   private int mode;
 
   public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, int mode) {
-    super(appMgr, id);
+    super(appMgr, id, ProcessName.BLEND);
     this.mode = mode;
     logFileBasename = BlendmontParam.getProcessName(mode).toString();
     switch (mode) {
@@ -56,13 +57,13 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       applicationManager.getMainPanel().setProgressBar(title + ": blendmont",
-          1, axisID);
+          1, axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar(title + ": blendmont",
-        nSections, axisID);
+        nSections, axisID,processName);
   }
 
   protected void getCurrentSection() throws NumberFormatException,
@@ -80,7 +81,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
           applicationManager.getMainPanel().setProgressBar(
-              title + ": mrctaper", 1, axisID);
+              title + ": mrctaper", 1, axisID, processName);
         }
         else if (currentSection >= nSections && line.startsWith("Done!")) {
           lastLineFound = true;
@@ -104,6 +105,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2006/10/10 05:07:23  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 1.12  2005/08/24 22:34:58  sueh
  * <p> bug# 715 Changed BlendmontParam.getCommandFileName() to
  * <p> getProcessName() to make use of ProcessName.

@@ -4,6 +4,7 @@ import etomo.ApplicationManager;
 import etomo.util.InvalidParameterException;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -19,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2006/10/10 05:10:34  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 1.2  2006/01/06 22:28:38  sueh
  * <p> bug# 794 Fixed findNSections().  It was sleeping each time it read a line.
  * <p> Now it sleeps when there are no lines to read.
@@ -38,7 +42,7 @@ public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
    * @param id
    */
   public Matchvol1ProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id,ProcessName.MATCHVOL1);
     logFileBasename = "matchvol1";
   }
 
@@ -48,13 +52,13 @@ public class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       applicationManager.getMainPanel().setProgressBar("Combine: matchvol1", 1,
-          axisID);
+          axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar("Combine: matchvol1",
-        nSections, axisID);
+        nSections, axisID,processName);
   }
 
   /* (non-Javadoc)

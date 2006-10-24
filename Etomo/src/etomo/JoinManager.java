@@ -54,6 +54,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2006/10/16 22:35:47  sueh
+ * <p> bug# 919 Doing makejoincom post processing in JoinManager.postProcess().
+ * <p> call JoinDialog.setInverted().
+ * <p>
  * <p> Revision 1.44  2006/09/13 23:07:14  sueh
  * <p> bug# 920 Moving BaseManager.createState() call to child classes, so it can be
  * <p> done after meta data is created.
@@ -681,7 +685,7 @@ public final class JoinManager extends BaseManager {
       return;
     }
     setNextProcess(AxisID.ONLY, "startjoin");
-    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
+    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY,ProcessName.MAKEJOINCOM);
   }
   
   /**
@@ -768,7 +772,7 @@ public final class JoinManager extends BaseManager {
       joinDialog.enableMidas();
       return;
     }
-    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
+    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY,ProcessName.XFALIGN);
   }
 
   public void xfalignRefine() {
@@ -790,7 +794,7 @@ public final class JoinManager extends BaseManager {
       joinDialog.enableMidas();
       return;
     }
-    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
+    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY,ProcessName.XFALIGN);
   }
 
   private boolean copyMostRecentXfFile(String commandDescription) {
@@ -920,7 +924,7 @@ public final class JoinManager extends BaseManager {
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
-    mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
+    mainPanel.startProgressBar("Startjoin", AxisID.ONLY,ProcessName.STARTJOIN);
   }
 
   public void revertXfFileToMidas() {
@@ -965,7 +969,7 @@ public final class JoinManager extends BaseManager {
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
-    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY);
+    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,ProcessName.FINISHJOIN);
   }
 
   private boolean updateMetaDataFromJoinDialog(AxisID axisID) {

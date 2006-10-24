@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.21  2006/10/11 10:07:34  sueh
+ * <p> $bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p> $FileException.
+ * <p> $
  * <p> $Revision 1.20  2006/10/10 05:07:55  sueh
  * <p> $bug# 931 Managing the log file with LogFile.
  * <p> $
@@ -241,7 +245,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   }
 
   private void initializeProgressBar() {
-    manager.startProgressBar(COMBINE_LABEL, axisID);
+    manager.startProgressBar(COMBINE_LABEL, axisID,ProcessName.SOLVEMATCH);
     return;
   }
 
@@ -290,7 +294,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     manager.progressBarDone(axisID, ProcessEndState.DONE);
     String childCommandName = comscriptName.substring(0, comscriptName
         .indexOf(".com"));
-    currentCommand = ProcessName.fromString(childCommandName);
+    currentCommand = ProcessName.getInstance(childCommandName);
     if (currentCommand != null) {
       childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
           currentCommand);
@@ -321,7 +325,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       childMonitor = new VolcombineProcessMonitor(manager, axisID);
     }
     else {
-      startProgressBar(childCommandName);
+      startProgressBar(childCommandName, currentCommand);
     }
   }
 
@@ -392,7 +396,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * Used for the process that runs before matchavol1
    * @param childCommandName
    */
-  private void startProgressBar(String childCommandName) {
+  private void startProgressBar(String childCommandName, ProcessName processName) {
     CombineProcessType combineProcessType = CombineProcessType
         .getInstance(childCommandName);
     if (combineProcessType == null) {
@@ -401,7 +405,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     setNextProcessResultDisplay(null);
     manager.showPane(CombineComscriptState.COMSCRIPT_NAME, combineProcessType);
-    manager.startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID);
+    manager.startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID, processName);
   }
 
   /**

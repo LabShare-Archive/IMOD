@@ -7,6 +7,7 @@ import etomo.util.InvalidParameterException;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.util.Utilities;
 
 /**
@@ -22,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2006/10/10 05:09:33  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 3.25  2006/09/25 16:36:08  sueh
  * <p> bug# 931 Added empty function msgLogFileRenamed().
  * <p>
@@ -193,6 +197,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   protected String logFileBasename;
   private LogFile logFile;
   private long logFileReadId = LogFile.NO_ID;
+  protected final ProcessName processName;
 
   protected abstract void initializeProgressBar();
 
@@ -204,9 +209,10 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @param appMgr  The application manager object
    * @param id  The axis ID to be monitored
    */
-  public LogFileProcessMonitor(ApplicationManager appMgr, AxisID id) {
+  public LogFileProcessMonitor(ApplicationManager appMgr, AxisID id, ProcessName processName) {
     applicationManager = appMgr;
     axisID = id;
+    this.processName = processName;
   }
 
   public void run() {

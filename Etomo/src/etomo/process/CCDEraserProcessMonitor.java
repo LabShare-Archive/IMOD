@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -17,6 +18,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2006/10/10 05:07:40  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 3.3  2004/11/19 23:18:54  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -51,7 +55,7 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
     ApplicationManager appMgr,
     AxisID id) {
 
-    super(appMgr, id);
+    super(appMgr, id,ProcessName.ERASER);
     logFileBasename = "eraser";
   }
 
@@ -60,11 +64,11 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID);
+      applicationManager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    applicationManager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID);
+    applicationManager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID,processName);
   }
 
   /* (non-Javadoc)

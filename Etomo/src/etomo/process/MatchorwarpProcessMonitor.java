@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -18,6 +19,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2006/10/10 05:10:17  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 1.3  2006/09/19 22:26:08  sueh
  * <p> bug# 928 Find the line that announces that patch_vector.mod has been created.
  * <p>
@@ -40,7 +44,7 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    * @param id
    */
   public MatchorwarpProcessMonitor(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id,ProcessName.MATCHORWARP);
     logFileBasename = "matchorwarp";
   }
 
@@ -50,13 +54,13 @@ public class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       applicationManager.getMainPanel().setProgressBar("Combine: matchorwarp",
-          1, axisID);
+          1, axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar("Combine: matchorwarp",
-        nSections, axisID);
+        nSections, axisID,processName);
   }
 
   /* (non-Javadoc)

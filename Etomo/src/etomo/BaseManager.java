@@ -1001,11 +1001,14 @@ public abstract class BaseManager {
     }
     setThreadName(threadName, axisID);
     getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
-        axisID);
+        axisID,ProcessName.TOMOSNAPSHOT);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.68  2006/10/16 22:33:29  sueh
+ * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
+ * <p>
  * <p> Revision 1.67  2006/09/13 23:06:47  sueh
  * <p> bug# 920 Moving createState() call to child classes, so it can be done after meta
  * <p> data is created.
