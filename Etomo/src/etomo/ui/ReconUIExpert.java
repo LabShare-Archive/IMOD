@@ -157,8 +157,8 @@ public abstract class ReconUIExpert implements UIExpert {
    * Run processchunks.
    * @param axisID
    */
-  protected void processchunks(BaseManager manager, AbstractParallelDialog dialog,
-      ProcessResultDisplay processResultDisplay) {
+  protected void processchunks(BaseManager manager,
+      AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -183,17 +183,27 @@ public abstract class ReconUIExpert implements UIExpert {
   protected ParallelPanel getParallelPanel() {
     return mainPanel.getParallelPanel(axisID);
   }
-  
+
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
-    mainPanel.setProgressBar(label, nSteps, axisID);
+    setProgressBar(label, nSteps, axisID, null);
   }
-  
+
+  public void setProgressBar(String label, int nSteps, AxisID axisID,
+      ProcessName processName) {
+    mainPanel.setProgressBar(label, nSteps, axisID, processName);
+  }
+
   public void stopProgressBar(AxisID axisID) {
     mainPanel.stopProgressBar(axisID);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/07/28 19:57:37  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing because isParallel is too similar to a standard get
+ * <p> function.
+ * <p>
  * <p> Revision 1.1  2006/07/26 16:41:20  sueh
  * <p> bug# 868 A base class for Expert used for tomogram reconstruction
  * <p> </p>
