@@ -1,4 +1,4 @@
- package etomo.ui;
+package etomo.ui;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -20,6 +20,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -34,6 +35,9 @@ import etomo.type.ProcessEndState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.33  2006/03/20 18:03:59  sueh
+ * <p> Improved the name of the parameter of setParallelDialog
+ * <p>
  * <p> Revision 1.32  2005/10/15 00:33:53  sueh
  * <p> bug# 532 Changed showParallelStatus() to setParallelDialog().
  * <p>
@@ -221,12 +225,11 @@ import etomo.type.ProcessEndState;
  * <p> </p>
  */
 public abstract class MainPanel extends JPanel {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   protected static final String STATUS_BAR_EMPTY_TITLE = "No data set loaded";
   protected static final String STATUS_BAR_BASE_TITLE = "Data file: ";
-  
+
   protected JLabel statusBar = new JLabel(STATUS_BAR_EMPTY_TITLE);
 
   protected JPanel panelCenter = new JPanel();
@@ -234,7 +237,7 @@ public abstract class MainPanel extends JPanel {
   //protected ScrollPanel scroll;
   //protected JScrollPane scrollPane;
   //protected JPanel axisPanel = new JPanel();
-  
+
   //  These panels get instantiated as needed
   protected ScrollPanel scrollA;
   protected JScrollPane scrollPaneA;
@@ -246,27 +249,43 @@ public abstract class MainPanel extends JPanel {
   private boolean showingAxisA = true;
   protected boolean showingSetup = false;
   protected AxisType axisType = AxisType.NOT_SET;
-  
+
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
-  
+
   protected abstract void createAxisPanelA(AxisID axisID);
+
   protected abstract void createAxisPanelB();
+
   protected abstract void resetAxisPanels();
+
   protected abstract void addAxisPanelA();
+
   protected abstract void addAxisPanelB();
+
   protected abstract boolean AxisPanelAIsNull();
+
   protected abstract boolean AxisPanelBIsNull();
+
   protected abstract boolean hideAxisPanelA();
+
   protected abstract boolean hideAxisPanelB();
-  protected abstract void showAxisPanelA();  
+
+  protected abstract void showAxisPanelA();
+
   protected abstract void showAxisPanelB();
+
   protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
+
   protected abstract DataFileFilter getDataFileFilter();
+
   public abstract void saveDisplayState();
+
   protected abstract AxisProcessPanel getAxisPanelA();
+
   protected abstract AxisProcessPanel getAxisPanelB();
+
   public abstract void setState(ProcessState processState, AxisID axisID,
       AbstractParallelDialog parallelDialog);
 
@@ -276,29 +295,29 @@ public abstract class MainPanel extends JPanel {
   public MainPanel(BaseManager manager) {
     this.manager = manager;
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-/*
-    Toolkit toolkit = Toolkit.getDefaultToolkit();
-    Dimension screenSize = toolkit.getScreenSize();
-    screenSize.height -= estimatedMenuHeight;
-    screenSize.width *= extraScreenWidthMultiplier;
-    Dimension mainPanelSize = new Dimension(screenSize);
-    mainPanelSize.height -= frameBorder.height;
-    mainPanelSize.width -= frameBorder.width;
-*/
+    /*
+     Toolkit toolkit = Toolkit.getDefaultToolkit();
+     Dimension screenSize = toolkit.getScreenSize();
+     screenSize.height -= estimatedMenuHeight;
+     screenSize.width *= extraScreenWidthMultiplier;
+     Dimension mainPanelSize = new Dimension(screenSize);
+     mainPanelSize.height -= frameBorder.height;
+     mainPanelSize.width -= frameBorder.width;
+     */
     setLayout(new BorderLayout());
-/*    setMaximumSize(mainPanelSize);
-*/
+    /*    setMaximumSize(mainPanelSize);
+     */
     //  Construct the main frame panel layout
     panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     add(panelCenter, BorderLayout.CENTER);
     add(statusBar, BorderLayout.SOUTH);
     //axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
   }
-  
+
   String getStatusBarText() {
     return statusBar.getText();
   }
-  
+
   protected void setStatusBarText(File paramFile, BaseMetaData metaData) {
     int maxTitleLength = 79;
     if (metaData == null) {
@@ -321,7 +340,6 @@ public abstract class MainPanel extends JPanel {
       }
     }
   }
-
 
   /**
    * set divider location
@@ -358,22 +376,29 @@ public abstract class MainPanel extends JPanel {
   }
 
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
-    setProgressBar(label, nSteps, axisID, false);
+    setProgressBar(label, nSteps, axisID, false, null);
   }
+
+  public void setProgressBar(String label, int nSteps, AxisID axisID,
+      ProcessName processName) {
+    setProgressBar(label, nSteps, axisID, false, processName);
+  }
+
   /**
    * Set the progress bar to the beginning of determinant sequence
    * @param label
    * @param nSteps
    */
-  public void setProgressBar(String label, int nSteps, AxisID axisID, boolean pauseEnabled) {
+  public void setProgressBar(String label, int nSteps, AxisID axisID,
+      boolean pauseEnabled, ProcessName processName) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
       return;
     }
-    axisPanel.setProgressBar(label, nSteps, pauseEnabled);
+    axisPanel.setProgressBar(label, nSteps, pauseEnabled, processName);
     axisPanel.setProgressBarValue(0);
   }
-  
+
   /**
    * create (if necessary) and show/hide the parallel panel
    * @param axisID
@@ -386,7 +411,7 @@ public abstract class MainPanel extends JPanel {
     }
     axisPanel.setParallelDialog(show);
   }
-  
+
   public ParallelPanel getParallelPanel(AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
@@ -394,14 +419,14 @@ public abstract class MainPanel extends JPanel {
     }
     return axisPanel.getParallelPanel();
   }
-  
+
   public void pack(AxisID axisID) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel != null) {
       axisPanel.pack();
     }
   }
-  
+
   public void done() {
     AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
     if (axisPanel != null) {
@@ -412,7 +437,7 @@ public abstract class MainPanel extends JPanel {
       axisPanel.done();
     }
   }
-  
+
   /**
    * Set the progress bar to the specified value
    * @param value
@@ -434,21 +459,27 @@ public abstract class MainPanel extends JPanel {
     axisPanel.setProgressBarValue(value, string);
   }
 
+  public void startProgressBar(String name, AxisID axisID) {
+    startProgressBar(name, axisID, null);
+  }
+
   /**
    *  Start the indeterminate progress bar on the specified axis 
    */
-  public void startProgressBar(String name, AxisID axisID) {
+  public void startProgressBar(String name, AxisID axisID,
+      ProcessName processName) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    axisPanel.startProgressBar(name);
+    axisPanel.startProgressBar(name, processName);
   }
 
   public void stopProgressBar(AxisID axisID) {
     stopProgressBar(axisID, ProcessEndState.DONE, null);
   }
-  
+
   public void stopProgressBar(AxisID axisID, ProcessEndState processEndState) {
     stopProgressBar(axisID, processEndState, null);
   }
+
   /**
    * Stop the specified progress bar
    * @param axisID
@@ -487,7 +518,7 @@ public abstract class MainPanel extends JPanel {
       setAxisA();
     }
   }
-  
+
   JScrollPane showBothAxis() {
     if (axisType != AxisType.DUAL_AXIS || showingBothAxis) {
       return null;
@@ -501,142 +532,143 @@ public abstract class MainPanel extends JPanel {
     getAxisPanelA().showBothAxis();
     return scrollPaneB;
   }
-  
+
   boolean isShowingBothAxis() {
     return showingBothAxis;
   }
-  
+
   boolean isShowingAxisA() {
     return showingAxisA;
   }
-  
+
   private void setBothAxis() {
-    splitPane =
-      new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
+    splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA,
+        scrollPaneB);
     splitPane.setDividerLocation(0.5);
     splitPane.setOneTouchExpandable(true);
     panelCenter.add(splitPane);
   }
-  
+
   public String toString() {
     if (manager != null) {
       return "[" + manager.getPropertyUserDir() + "," + super.toString() + "]";
     }
     return "[" + super.toString() + "]";
   }
-  
+
   void showAxisA() {
     panelCenter.removeAll();
     setAxisA();
   }
-  
+
   private void setAxisA() {
     showingBothAxis = false;
     showingAxisA = true;
     panelCenter.add(scrollPaneA);
   }
-  
+
   void showAxisB() {
     showingBothAxis = false;
     showingAxisA = false;
     panelCenter.removeAll();
     panelCenter.add(scrollPaneB);
   }
+
   /*
-  Point getPreviousSubFrameLocation() {
-    return previousSubFrameLocation;
-  }
-  
-  void setPreviousSubFrameLocation(Point previousSubFrameLocation) {
-    this.previousSubFrameLocation = previousSubFrameLocation;
-  }
-  */
+   Point getPreviousSubFrameLocation() {
+   return previousSubFrameLocation;
+   }
+   
+   void setPreviousSubFrameLocation(Point previousSubFrameLocation) {
+   this.previousSubFrameLocation = previousSubFrameLocation;
+   }
+   */
   /**
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
    *
-   *//*
-  protected void packAxis() {
-    if (!EtomoDirector.getInstance().isNewstuff()) {
-      packAxisOld();
-      return;
-    }
-    EtomoDirector.getInstance().getMainFrame().pack();
-    //if (splitPane != null) {
-    //  splitPane.resetToPreferredSizes();
-    //}*/
-    /*if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
-      splitPane.resetToPreferredSizes();
-      
-      //handle bug in Windows where divider goes all the way to the left
-      //when the frame is wider then the screen
-      if (isAxisPanelAFitScreenError()) {
-        setDividerLocation(.8); //.8 currently works.  Adjust as needed.
-        splitPane.resetToPreferredSizes();
-      }
-    }*/
+   */
+  /*
+   protected void packAxis() {
+   if (!EtomoDirector.getInstance().isNewstuff()) {
+   packAxisOld();
+   return;
+   }
+   EtomoDirector.getInstance().getMainFrame().pack();
+   //if (splitPane != null) {
+   //  splitPane.resetToPreferredSizes();
+   //}*/
+  /*if (manager.isDualAxis() && showingBothAxis && splitPane != null) {
+   splitPane.resetToPreferredSizes();
+   
+   //handle bug in Windows where divider goes all the way to the left
+   //when the frame is wider then the screen
+   if (isAxisPanelAFitScreenError()) {
+   setDividerLocation(.8); //.8 currently works.  Adjust as needed.
+   splitPane.resetToPreferredSizes();
+   }
+   }*/
   //}
   /*
-  protected void packAxisOld() {
-    if (manager.isDualAxis()
-      && !AxisPanelAIsNull()
-      && !AxisPanelBIsNull()) {
-      boolean hideA = hideAxisPanelA();
-      boolean hideB = hideAxisPanelB();
-      //if both widths are zero, get getWidth is failing - just pack
-      if (hideA && hideB) {
-        showAxisPanelA();
-        showAxisPanelB();
-        EtomoDirector.getInstance().getMainFrame().pack();
-        return;
-      }
-      EtomoDirector.getInstance().getMainFrame().pack();
-      splitPane.resetToPreferredSizes();
-      
-      //handle bug in Windows where divider goes all the way to the left
-      //when the frame is wider then the screen
-      if (!hideA && !hideB && isAxisPanelAFitScreenError()) {
-        setDividerLocation(.8); //.8 currently works.  Adjust as needed.
-        splitPane.resetToPreferredSizes();
-      }
-      
-      showAxisPanelA();
-      showAxisPanelB();
-      if (hideA) {
-        setDividerLocation(0);
-      }
-      else if (hideB) {
-        setDividerLocation(1);
-      }
-    }
-    else {
-      EtomoDirector.getInstance().getMainFrame().pack();
-    }
-  }
-*/
-  
+   protected void packAxisOld() {
+   if (manager.isDualAxis()
+   && !AxisPanelAIsNull()
+   && !AxisPanelBIsNull()) {
+   boolean hideA = hideAxisPanelA();
+   boolean hideB = hideAxisPanelB();
+   //if both widths are zero, get getWidth is failing - just pack
+   if (hideA && hideB) {
+   showAxisPanelA();
+   showAxisPanelB();
+   EtomoDirector.getInstance().getMainFrame().pack();
+   return;
+   }
+   EtomoDirector.getInstance().getMainFrame().pack();
+   splitPane.resetToPreferredSizes();
+   
+   //handle bug in Windows where divider goes all the way to the left
+   //when the frame is wider then the screen
+   if (!hideA && !hideB && isAxisPanelAFitScreenError()) {
+   setDividerLocation(.8); //.8 currently works.  Adjust as needed.
+   splitPane.resetToPreferredSizes();
+   }
+   
+   showAxisPanelA();
+   showAxisPanelB();
+   if (hideA) {
+   setDividerLocation(0);
+   }
+   else if (hideB) {
+   setDividerLocation(1);
+   }
+   }
+   else {
+   EtomoDirector.getInstance().getMainFrame().pack();
+   }
+   }
+   */
+
   /**
    * checks for a bug in windows that causes MainFrame.fitScreen() to move the
    * divider almost all the way to the left
    * @return
-   *//*
-  protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
-    EtomoDirector.getInstance().getMainFrame().setVisible(true);
-      //EtomoDirector.getInstance().getMainFrame().show();
-    if (axisPanel.getWidth() <= 16) {
-      return true;
-    }
-    return false;
-  }*/
+   */
+  /*
+   protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
+   EtomoDirector.getInstance().getMainFrame().setVisible(true);
+   //EtomoDirector.getInstance().getMainFrame().show();
+   if (axisPanel.getWidth() <= 16) {
+   return true;
+   }
+   return false;
+   }*/
 
   /**
    * set vertical scrollbar policy
    * @param always
    */
   protected void setVerticalScrollBarPolicy(boolean always) {
-    int policy =
-      always
-        ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+    int policy = always ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
         : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
     if (scrollPaneA != null) {
       scrollPaneA.setVerticalScrollBarPolicy(policy);
@@ -645,65 +677,67 @@ public abstract class MainPanel extends JPanel {
       scrollPaneB.setVerticalScrollBarPolicy(policy);
     }
   }
+
   /*
-  public void fitWindow() {
-    fitWindow(false);
-  }
-  */
+   public void fitWindow() {
+   fitWindow(false);
+   }
+   */
   /**
    * fit window to its components and to the screen
    *
+   */
+  /*
+   public void fitWindow(boolean force) {
+   if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+   *//* Need a function which does what 1.4.2 show did:
+   * Makes the Window visible. If the Window and/or its owner are not yet
+   * displayable, both are made displayable. The Window will be validated
+   * prior to being made visible. If the Window is already visible, this
+   * will bring the Window to the front.
+   * Component.SetVisible() is recommended as the replacement  
    *//*
-  public void fitWindow(boolean force) {
-    if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
-     */ /* Need a function which does what 1.4.2 show did:
-       * Makes the Window visible. If the Window and/or its owner are not yet
-       * displayable, both are made displayable. The Window will be validated
-       * prior to being made visible. If the Window is already visible, this
-       * will bring the Window to the front.
-       * Component.SetVisible() is recommended as the replacement  
-       *//*
-      EtomoDirector.getInstance().getMainFrame().setVisible(true);
-      //EtomoDirector.getInstance().getMainFrame().show();
-      return;
-    }
-    synchronized (MainFrame.class) {
-      packAxis();
-      if (EtomoDirector.getInstance().isNewstuff()) {
-        return;
-      }
-      //the mainPanel has a limited size, but the frame does not
-      //if the frame has a greater height then the mainPanel + the frame's border
-      //height, then a scroll bar will be used.
-      //Make room for the scroll bar when calling pack()
-      int tabHeight = 0;
-      if (EtomoDirector.getInstance().getControllerListSize() > 1) {
-        String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.indexOf("mac os") == -1) {
-          tabHeight = 30;
-        }
-        else {
-          //Tabs in mac are taller
-          tabHeight = 43;
-        }
-      }*/
-      /*
-      System.out.println("difference="
-          + Integer.toString(EtomoDirector.getInstance().getMainFrame()
-              .getSize().height
-              - getSize().height));
-      System.out.println("tabHeight=" + tabHeight + ",frameBorder.height="
-          + frameBorder.height + ",both="
-          + Integer.toString(frameBorder.height + tabHeight));
-      *//*
-      if (EtomoDirector.getInstance().getMainFrame().getSize().height
-          - getSize().height > frameBorder.height+tabHeight) {
-        setVerticalScrollBarPolicy(true);
-        packAxis();
-        setVerticalScrollBarPolicy(false);
-      }
-    }
-  }*/
+   EtomoDirector.getInstance().getMainFrame().setVisible(true);
+   //EtomoDirector.getInstance().getMainFrame().show();
+   return;
+   }
+   synchronized (MainFrame.class) {
+   packAxis();
+   if (EtomoDirector.getInstance().isNewstuff()) {
+   return;
+   }
+   //the mainPanel has a limited size, but the frame does not
+   //if the frame has a greater height then the mainPanel + the frame's border
+   //height, then a scroll bar will be used.
+   //Make room for the scroll bar when calling pack()
+   int tabHeight = 0;
+   if (EtomoDirector.getInstance().getControllerListSize() > 1) {
+   String osName = System.getProperty("os.name").toLowerCase();
+   if (osName.indexOf("mac os") == -1) {
+   tabHeight = 30;
+   }
+   else {
+   //Tabs in mac are taller
+   tabHeight = 43;
+   }
+   }*/
+  /*
+   System.out.println("difference="
+   + Integer.toString(EtomoDirector.getInstance().getMainFrame()
+   .getSize().height
+   - getSize().height));
+   System.out.println("tabHeight=" + tabHeight + ",frameBorder.height="
+   + frameBorder.height + ",both="
+   + Integer.toString(frameBorder.height + tabHeight));
+   *//*
+   if (EtomoDirector.getInstance().getMainFrame().getSize().height
+   - getSize().height > frameBorder.height+tabHeight) {
+   setVerticalScrollBarPolicy(true);
+   packAxis();
+   setVerticalScrollBarPolicy(false);
+   }
+   }
+   }*/
 
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {
@@ -721,11 +755,11 @@ public abstract class MainPanel extends JPanel {
       comps[i].repaint();
     }
   }
-  
+
   AxisType getAxisType() {
     return axisType;
   }
-  
+
   boolean isShowingSetup() {
     return showingSetup;
   }
