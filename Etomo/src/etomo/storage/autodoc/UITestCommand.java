@@ -38,8 +38,7 @@ public final class UITestCommand implements AdocCommand {
     //get the value
     value = pair.getValue();
     //ignore unknown commands
-    if (action == UITestAction.SLEEP || action == UITestAction.FILE_DIR
-        || action == UITestAction.TEST_DIR) {
+    if (action == UITestAction.SLEEP) {
       known = true;
     }
     else {
@@ -85,6 +84,10 @@ public final class UITestCommand implements AdocCommand {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/08/28 18:24:27  sueh
+* <p> bug# 923 Changed the source attribute to filedir.  Global filedir is an absolute file
+* <p> path.
+* <p>
 * <p> Revision 1.2  2006/08/08 18:17:20  sueh
 * <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
 * <p> isSecondaryAutodoc().
