@@ -19,16 +19,15 @@ public final class UITestAction {
   private static final String ADOC_STRING = "adoc";
   private static final String ASSERT_STRING = "assert";
   private static final String COPY_STRING = "copy";
+  private static final String DATA_DIR_STRING = "datadir";
   private static final String DATA_FILE_STRING = "datafile";
   private static final String DATASET_STRING = "dataset";
   private static final String DATASET_DIR_STRING = "datasetdir";
   private static final String DURATION_STRING = "duration";
-  private static final String FILE_DIR_STRING = "filedir";
   private static final String FUNCTION_STRING = "function";
   private static final String SET_STRING = "set";
   private static final String SLEEP_STRING = "sleep";
   private static final String STOP_STRING = "stop";
-  private static final String TEST_DIR_STRING = "testdir";
   private static final String TEST_FROM_STRING = "testfrom";
   private static final String VERBOSE_STRING = "verbose";
   private static final String WAIT_FOR_STRING = "waitfor";
@@ -40,12 +39,11 @@ public final class UITestAction {
   public static final UITestAction DATASET = new UITestAction(DATASET_STRING);
   public static final UITestAction DATASET_DIR = new UITestAction(DATASET_DIR_STRING);
   public static final UITestAction DURATION = new UITestAction(DURATION_STRING);
-  public static final UITestAction FILE_DIR = new UITestAction(FILE_DIR_STRING);
+  public static final UITestAction DATA_DIR = new UITestAction(DATA_DIR_STRING);
   public static final UITestAction FUNCTION = new UITestAction(FUNCTION_STRING);
   public static final UITestAction SET = new UITestAction(SET_STRING);
   public static final UITestAction SLEEP = new UITestAction(SLEEP_STRING);
   public static final UITestAction STOP = new UITestAction(STOP_STRING);
-  public static final UITestAction TEST_DIR = new UITestAction(TEST_DIR_STRING);
   public static final UITestAction TEST_FROM = new UITestAction(TEST_FROM_STRING);
   public static final UITestAction VERBOSE = new UITestAction(VERBOSE_STRING);
   public static final UITestAction WAIT_FOR = new UITestAction(WAIT_FOR_STRING);
@@ -85,8 +83,8 @@ public final class UITestAction {
     if (action.equals(DURATION_STRING)) {
       return DURATION;
     }
-    if (action.equals(FILE_DIR_STRING)) {
-      return FILE_DIR;
+    if (action.equals(DATA_DIR_STRING)) {
+      return DATA_DIR;
     }
     if (action.equals(FUNCTION_STRING)) {
       return FUNCTION;
@@ -99,9 +97,6 @@ public final class UITestAction {
     }
     if (action.equals(STOP_STRING)) {
       return STOP;
-    }
-    if (action.equals(TEST_DIR_STRING)) {
-      return TEST_DIR;
     }
     if (action.equals(TEST_FROM_STRING)) {
       return TEST_FROM;
@@ -117,6 +112,9 @@ public final class UITestAction {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2006/10/10 05:22:34  sueh
+* <p> bug# 931  getInstance():  preventing null pointer exception.
+* <p>
 * <p> Revision 1.6  2006/08/28 18:26:50  sueh
 * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
 * <p> absolute file path.
