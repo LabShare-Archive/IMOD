@@ -32,6 +32,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2006/10/13 22:22:39  sueh
+ * <p> bug# 927 Added parameters String and int to getSetParamFromVolcombine().
+ * <p> Added getSetParamFromVolcombine(String,int,String) to get the second set
+ * <p> command in volcombine.  Added the ability to initialize an optional command
+ * <p> using the previous command.  Added a new modifyCommand(), which can
+ * <p> modify a command based on a previous command.
+ * <p>
  * <p> Revision 3.46  2006/09/19 21:55:05  sueh
  * <p> bug# 920 Added a global key for saving param values in data files.
  * <p>
@@ -1576,7 +1583,7 @@ public class ComScriptManager {
 
   private ComScript loadComScript(String scriptName, AxisID axisID,
       boolean parseComments) {
-    return loadComScript(ProcessName.fromString(scriptName), axisID,
+    return loadComScript(ProcessName.getInstance(scriptName), axisID,
         parseComments);
   }
 

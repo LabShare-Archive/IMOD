@@ -27,6 +27,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2006/10/10 05:08:51  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 3.25  2006/09/25 16:35:48  sueh
  * <p> bug# 931 Added msgLogFileRenamed() and logFileRenamed.  use
  * <p> logFileRenamed to open the correct log file.
@@ -168,7 +171,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   int nKBytes;
   int updatePeriod = 250;
   long lastSize = 0;
-  private final ProcessName processName;
+  protected final ProcessName processName;
   private FileInputStream stream = null;
   //private BufferedReader logFileReader = null;
   //private FileReader fileReader = null;
@@ -199,7 +202,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     running = true;
     try {
       // Reset the progressBar 
-      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID);
+      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0,
           reconnect ? "Reconnecting..." : "Starting...", axisID);
 
