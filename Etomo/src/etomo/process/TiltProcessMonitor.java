@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2006/09/22 18:19:09  sueh
+ * <p> bug# 931 Passing the process name to super().
+ * <p>
  * <p> Revision 3.14  2006/09/19 22:30:02  sueh
  * <p> bug# 920 Refreshing meta data values in TiltParam each time tilt.com is loaded.
  * <p>
@@ -205,7 +208,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
           + imageBinned);
     }
     applicationManager.getMainPanel().setProgressBar("Calculating tomogram",
-        nKBytes, axisID);
+        nKBytes, axisID,ProcessName.TILT);
   }
 
   protected void reloadWatchedFile() {

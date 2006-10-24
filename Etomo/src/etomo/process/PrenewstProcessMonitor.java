@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2006/09/22 18:18:58  sueh
+ * <p> bug# 931 Passing the process name to super().
+ * <p>
  * <p> Revision 3.8  2006/08/11 00:17:41  sueh
  * <p> bug# 739 Added reloadWatchedFile() and loadDatasetPath().
  * <p>
@@ -118,7 +121,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     }
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID,ProcessName.PRENEWST);
   }
   
   protected void reloadWatchedFile() {

@@ -297,7 +297,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       title.append(" - pausing:  finishing current chunks");
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(),
-        axisID, !reassembling && !killing);
+        axisID, !reassembling && !killing, ProcessName.PROCESSCHUNKS);
   }
 
   public void kill(SystemProcessInterface process, AxisID axisID) {
@@ -434,6 +434,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2006/10/18 15:42:06  sueh
+ * <p> bug# 929  updateState():  Improving failure reasons.
+ * <p>
  * <p> Revision 1.21  2006/10/11 10:10:14  sueh
  * <p> bug# 931 Managing the commands pipe and the process output with LogFile so
  * <p> that the file access problem which appears in Windows will show up in Linux.

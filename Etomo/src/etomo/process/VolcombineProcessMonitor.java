@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
  * <p>Description: </p>
@@ -17,6 +18,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.5  2006/10/10 05:14:48  sueh
+ * <p> $bug# 931 Managing the log file with LogFile.
+ * <p> $
  * <p> $Revision 1.4  2006/08/09 20:15:11  sueh
  * <p> $bug# 631 Checking for reassembing and filltomo.
  * <p> $
@@ -52,7 +56,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   public VolcombineProcessMonitor(ApplicationManager appMgr, AxisID id) {
 
-    super(appMgr, id);
+    super(appMgr, id,ProcessName.VOLCOMBINE);
     logFileBasename = "volcombine";
   }
 
@@ -62,13 +66,13 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
-          1, axisID);
+          1, axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
-        nSections, axisID);
+        nSections, axisID,processName);
   }
 
   /* (non-Javadoc)

@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.ApplicationManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
 * <p>Description: </p>
@@ -29,7 +30,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @param id
    */
   public TiltxcorrProcessWatcher(ApplicationManager appMgr, AxisID id) {
-    super(appMgr, id);
+    super(appMgr, id,ProcessName.XCORR);
     logFileBasename = "xcorr";
   }
 
@@ -41,7 +42,7 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    *        tiltxcorr output.
    */
   public TiltxcorrProcessWatcher(ApplicationManager appMgr, AxisID id, boolean blendmontRan) {
-    super(appMgr, id);
+    super(appMgr, id,ProcessName.XCORR);
     logFileBasename = "xcorr";
     this.blendmontRan = blendmontRan;
   }
@@ -51,14 +52,14 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      applicationManager.getMainPanel().setProgressBar("Cross-correlating stack", 1, axisID);
+      applicationManager.getMainPanel().setProgressBar("Cross-correlating stack", 1, axisID,processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar(
       "Cross-correlating stack",
       nSections,
-      axisID);
+      axisID,processName);
   }
 
   /* (non-Javadoc)
@@ -118,6 +119,9 @@ public class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/10/10 05:14:39  sueh
+* <p> bug# 931 Managing the log file with LogFile.
+* <p>
 * <p> Revision 1.1  2005/03/09 18:08:59  sueh
 * <p> bug# 533 This class used to be the XcorrProcessWatcher.  It watches
 * <p> tiltxcorr in the xcorr script.
