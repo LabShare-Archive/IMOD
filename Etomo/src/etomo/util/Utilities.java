@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.50  2006/08/18 23:26:31  sueh
+ * <p> $bug# 852 convertLabelToName:  keeping the leading dash
+ * <p> $
  * <p> $Revision 3.49  2006/07/04 18:15:28  sueh
  * <p> $bug# 897 renameFile():  Tell user to close 3dmod in Windows.
  * <p> $
@@ -397,10 +400,11 @@ public class Utilities {
         }
         System.err.println("Unable to rename log file to: "
             + destination.getAbsolutePath());
-        StringBuffer message = new StringBuffer("Unable to rename " + source.getAbsolutePath()
-            + " to " + destination.getAbsolutePath());
+        StringBuffer message = new StringBuffer("Unable to rename "
+            + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
         if (isWindowsOS()) {
-          message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
+          message
+              .append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
         throw (new IOException(message.toString()));
       }
@@ -745,7 +749,7 @@ public class Utilities {
     }
     return windowsOS;
   }
-  
+
   public static boolean isMacOS() {
     if (!setMacOS) {
       String osName = System.getProperty("os.name").toLowerCase();
@@ -958,7 +962,8 @@ public class Utilities {
     if (envVariable == null || envVariable.matches("\\s*+")) {
       return null;
     }
-    String dirName = EnvironmentVariable.INSTANCE.getValue(null, envVariable, axisID);
+    String dirName = EnvironmentVariable.INSTANCE.getValue(null, envVariable,
+        axisID);
     if (dirName == null || dirName.matches("\\s*+")) {
       return null;
     }
@@ -986,6 +991,13 @@ public class Utilities {
       return false;
     }
     return true;
+  }
+
+  public static final String convertLabelToName(String label, ProcessName processName) {
+    if (processName == null) {
+      return convertLabelToName(label);
+    }
+    return convertLabelToName(label + ' ' + processName);
   }
 
   /**
@@ -1021,7 +1033,8 @@ public class Utilities {
     //Remove unnecessary symbols and strings from the label.
     boolean ignoreParen = false;
     boolean ignoreBracket = false;
-    while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
+    while (token != null && !token.is(Token.Type.EOF)
+        && !token.is(Token.Type.EOL)) {
       if (token.equals(Token.Type.SYMBOL, '(')) {
         //ignore parenthesis and everything in them
         ignoreParen = true;
@@ -1081,7 +1094,8 @@ public class Utilities {
       return name;
     }
     //Convert interior whitespace to a single dash
-    while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
+    while (token != null && !token.is(Token.Type.EOF)
+        && !token.is(Token.Type.EOL)) {
       if (token.is(Token.Type.WHITESPACE)) {
         buffer.append('-');
       }
