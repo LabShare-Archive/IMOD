@@ -59,6 +59,11 @@ option has no effect if the
 .B -trial
 option is not entered.
 .TP
+.B -xform <file>
+Use the refinement transforms contained in the given file to compute the
+transforms to apply to the tomograms.  The file should contain global
+transforms as computed by Xfjointomo(1).
+.TP
 .B -maxsize
 Just compute the maximum size and offsets needed to contain the transformed
 images from all of the sections, given the current transformations.  No
