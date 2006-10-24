@@ -15,9 +15,9 @@ waitfor =  FineAlign
 [Dialog = FidModel]
 mb.transfer-fiducials-open = 1
 bn.transfer-fiducials-from-other-axis =
-waitfor.process = done
+waitfor.process.transferfid = done
 #bn.transfer-fiducials-from-other-axis =
-#waitfor.process = done
+#waitfor.process.transferfid = done
 adoc = fid-model.adoc
 function = run
 

@@ -36,7 +36,7 @@ mb.tiltxcorr-open = 1
 
 [function = tiltxcorr]
 bn.calculate-cross-correlation =
-waitfor.process = done
+waitfor.process.xcorr = done
 
 [function = test-tiltxcorr]
 assert.file.exists = xcorr%{axis}.log
@@ -49,7 +49,7 @@ mb.newstack-open = 1
 
 [function = newstack]
 bn.generate-coarse-aligned-stack =
-waitfor.process = done
+waitfor.process.prenewst = done
 
 [function = test-newstack]
 assert.file.exists = prenewst%{axis}.log

@@ -4,12 +4,12 @@ Version = 2.1
 bn.archive-original-stacks =
 waitfor.popup.delete-file? = Delete
 waitfor.popup.delete-file? = Delete
-waitfor.process = done
+waitfor.process.archiveorig = done
 bn.done =
 
 
 [function = run-single]
 bn.archive-original-stack =
 waitfor.popup.delete-file? = Delete
-waitfor.process = done
+waitfor.process.archiveorig = done
 bn.done =

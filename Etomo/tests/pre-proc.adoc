@@ -20,7 +20,7 @@ function = popup
 
 [function = create]
 bn.create-fixed-stack =
-waitfor.process = done
+waitfor.process.eraser = done
 
 [function = test-create]
 assert.file.exists = eraser%{axis}.log
@@ -150,9 +150,9 @@ adoc = pre-proc.adoc
 # test find x-rays
 #
 bn.find-x-rays =
-waitfor.process = done
+waitfor.process.eraser = done
 bn.find-x-rays =
-waitfor.process = done
+waitfor.process.eraser = done
 bn.view-x-ray-model =
 #
 # manual replacement

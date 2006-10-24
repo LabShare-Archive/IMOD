@@ -36,6 +36,7 @@ import etomo.storage.autodoc.UITestAxisDialogCommand;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.type.UITestAction;
 import etomo.type.UITestField;
 import etomo.type.UITestTest;
@@ -55,6 +56,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2006/10/11 10:12:46  sueh
+ * <p> bug# 938 Making ThreadGroup dependent on UncaughtException instead of
+ * <p> UITest, so that it does not require JfcUnit to compile.
+ * <p>
  * <p> Revision 1.9  2006/10/10 05:26:10  sueh
  * <p> bug# 931 Added assert file exists functionality.  Failing on an uncaught
  * <p> exception.
@@ -157,7 +162,7 @@ final class UITestAxis implements AdocCommandFactory {
     reader = new AdocCommandReader(autodoc,
         UITestAxisDialogCommand.SECTION_TYPE);
     reader.setAxisID(axisID);
-    reader.setFunctionLocationSourceDir(UITest.TEST_REPOSITORY);
+    reader.setFunctionLocationSourceDir(UITest.SOURCE_DIR);
   }
 
   boolean isDone() {
@@ -389,13 +394,13 @@ final class UITestAxis implements AdocCommandFactory {
     if (frame != null) {
       return;
     }
-    frame = (JPanel) getComponent(JPanel.class, MainFrame.NAME);
+    frame = (JPanel) getRequiredComponent(JPanel.class, MainFrame.NAME);
     if (axisID == AxisID.SECOND) {
       //for the b axis, open the b axis in the second frame
       clickButton(Utilities
           .convertLabelToName(TomogramProcessPanel.BOTH_AXIS_LABEL), false);
       frame = null;
-      frame = (JPanel) getComponent(JPanel.class, SubFrame.NAME);
+      frame = (JPanel) getRequiredComponent(JPanel.class, SubFrame.NAME);
     }
   }
 
@@ -409,7 +414,7 @@ final class UITestAxis implements AdocCommandFactory {
     }
     String panelName = reader.getName();
     //get the dialog
-    panel = (JPanel) getComponent(JPanel.class, panelName, false);
+    panel = (JPanel) getComponent(JPanel.class, panelName, false, false);
     if (panelName.equals(DialogType.SETUP_RECON.getStorableName())) {
       if (panel == null) {
         return;
@@ -418,7 +423,7 @@ final class UITestAxis implements AdocCommandFactory {
     else if (panel == null) {
       //need to click the process button to get the dialog to come up
       clickButton(panelName);
-      panel = (JPanel) getComponent(JPanel.class, panelName);
+      panel = (JPanel) getRequiredComponent(JPanel.class, panelName);
     }
     if (axisID != AxisID.SECOND) {
       testCase.moveSubFrame();
@@ -613,6 +618,10 @@ final class UITestAxis implements AdocCommandFactory {
    * Check whether any process has ended.  Returns false if the process has not
    * ended.  Asserts that the process has ended with the end state specified in
    * command.value.
+   * This function will only be reliable when used to find the last process in a
+   * sequence or a single process.  This is because there is a delay between
+   * checking the kill process button and looking at the process
+   * bar, so there is no way to know if the next process has already started.
    * @param command
    * @return
    */
@@ -622,21 +631,36 @@ final class UITestAxis implements AdocCommandFactory {
       testCase.fail(reader.getInfo(), "Invalid waitfor process format: "
           + command);
     }
-    JButton killProcessButton = (JButton) getComponent(JButton.class, Utilities
-        .convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
-    if (killProcessButton.isEnabled()) {
+    ProcessName processName = command.getProcessName();
+    JButton killProcessButton;
+    if (processName == null) {
+      //If the command process name is null, get the kill process button no
+      //matter what its name is.
+      killProcessButton = (JButton) getRequiredComponentStartsWith(
+          JButton.class, Utilities
+              .convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
+    }
+    else {
+      //If the command process name is set, get the kill process button only if
+      //the name matches the process.
+      //This is not required since there may be multiple processes.
+      killProcessButton = (JButton) getComponent(JButton.class, Utilities
+          .convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL, processName));
+    }
+    if (killProcessButton == null || killProcessButton.isEnabled()) {
       turnOver = true;
       sleep(WAIT_SLEEP);
       return false;
     }
-    //let process bar catch up with kill process button
+    //Let process bar catch up with kill process button.
     sleep(BUTTON_SLEEP);
-    //ignore the quick stops between processes
-    if (killProcessButton.isEnabled()) {
-      turnOver = true;
-      sleep(WAIT_SLEEP);
-      return false;
-    }
+    /*
+     //ignore the quick stops between processes
+     if (killProcessButton.isEnabled()) {
+     turnOver = true;
+     sleep(WAIT_SLEEP);
+     return false;
+     }*/
     JProgressBar progressBar = (JProgressBar) getComponent(JProgressBar.class,
         ProgressPanel.NAME);
     testCase.assertTrue(reader.getInfo(), command + ": process is not "
@@ -852,10 +876,10 @@ final class UITestAxis implements AdocCommandFactory {
 
   private AbstractButton getButton(String name, boolean required) {
     AbstractButton button = (AbstractButton) getComponent(JButton.class, name,
-        false);
+        false, false);
     if (button == null) {
       button = (AbstractButton) getComponent(JToggleButton.class, name,
-          required);
+          required, false);
     }
     return button;
   }
@@ -868,14 +892,21 @@ final class UITestAxis implements AdocCommandFactory {
 
   private NamedComponentFinder getNamedComponentFinder(Class componentClass,
       String name) {
+    return getNamedComponentFinder(componentClass, name,
+        NamedComponentFinder.OP_EQUALS);
+  }
+
+  private NamedComponentFinder getNamedComponentFinder(Class componentClass,
+      String name, int operation) {
     if (finder == null) {
       finder = new NamedComponentFinder(componentClass, name);
       finder.setWait(1);
-      finder.setOperation(NamedComponentFinder.OP_EQUALS);
+      finder.setOperation(operation);
     }
     else {
       finder.setComponentClass(componentClass);
       finder.setName(name);
+      finder.setOperation(operation);
     }
     return finder;
   }
@@ -958,21 +989,34 @@ final class UITestAxis implements AdocCommandFactory {
     return component;
   }
 
-  private Component getComponent(Class componentClass, String name) {
-    return getComponent(componentClass, name, true);
+  private Component getRequiredComponentStartsWith(Class componentClass,
+      String name) {
+    return getComponent(componentClass, name, true, true);
   }
 
+  private Component getComponent(Class componentClass, String name) {
+    return getComponent(componentClass, name, false, false);
+  }
+
+  private Component getRequiredComponent(Class componentClass, String name) {
+    return getComponent(componentClass, name, true, false);
+  }
+
+  //TODO add startsWith
   /**
    * Finds components in the framePanel at index 0.
    * @param fieldClass
    * @param name
    * @param required
+   * @param startsWith
    * @return
    */
   private Component getComponent(Class componentClass, String name,
-      boolean required) {
+      boolean required, boolean startsWith) {
     Component component;
-    finder = getNamedComponentFinder(componentClass, name);
+    int operation = startsWith ? NamedComponentFinder.OP_CONTAINS
+        : NamedComponentFinder.OP_EQUALS;
+    finder = getNamedComponentFinder(componentClass, name, operation);
     if (frame == null) {
       component = finder.find();
     }
@@ -1019,6 +1063,10 @@ final class UITestAxis implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/10/11 10:12:46  sueh
+ * <p> bug# 938 Making ThreadGroup dependent on UncaughtException instead of
+ * <p> UITest, so that it does not require JfcUnit to compile.
+ * <p>
  * <p> Revision 1.9  2006/10/10 05:26:10  sueh
  * <p> bug# 931 Added assert file exists functionality.  Failing on an uncaught
  * <p> exception.
