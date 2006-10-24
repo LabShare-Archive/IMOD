@@ -25,6 +25,15 @@ fit to all sections
 tooltip = 
 manpage = 
 
+[Field = ReferenceSection]
+short = ref
+type = I
+usage = Do a global alignment to the given section (numbered from 1)
+tooltip = 
+manpage = Do a global alignment to the given section; this will give the
+reference section a unit transform and keep it from being transformed.
+Sections are numbered from 1.
+
 [Field = OrderOfPolynomialFit]
 short = order
 type = I
