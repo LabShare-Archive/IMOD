@@ -6,6 +6,7 @@ import etomo.type.CallbackClassEnum;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.type.UITestAction;
 import etomo.type.UITestField;
 import etomo.type.UITestTest;
@@ -47,6 +48,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
   private boolean functionLocation = false;
   private boolean function = false;
   private CallbackClassEnum callbackClassEnum = null;
+  private ProcessName processName = null;
 
   public UITestAxisDialogCommand(ArrayList variables) {
     this.variables = variables;
@@ -130,6 +132,9 @@ public class UITestAxisDialogCommand implements AdocCommand {
     }
     if (action == UITestAction.ASSERT && field == UITestField.FILE) {
       test = UITestTest.getInstance(pair.getName(index++));
+    }
+    else if (action == UITestAction.WAIT_FOR && field == UITestField.PROCESS) {
+      processName = ProcessName.getInstance(pair.getName(index++));
     }
     else {
       fieldName = pair.getName(index++);
@@ -218,6 +223,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
     processEndState = null;
     functionLocation = false;
     function = false;
+    processName = null;
   }
 
   public final UITestAction getAction() {
@@ -226,6 +232,10 @@ public class UITestAxisDialogCommand implements AdocCommand {
 
   public final UITestField getType() {
     return field;
+  }
+  
+  public final ProcessName getProcessName() {
+    return processName;
   }
 
   public final String getName() {
@@ -284,6 +294,9 @@ public class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/10/10 05:20:11  sueh
+ * <p> bug# 931 Added file exists functionality to UITest.
+ * <p>
  * <p> Revision 1.5  2006/09/07 17:24:00  sueh
  * <p> bug# 852 Added functionality to replace variables in field names.
  * <p>
