@@ -82,7 +82,7 @@ public final class UITestTestCommand implements AdocCommand {
         || action == UITestAction.DATA_FILE || action == UITestAction.DATASET
         || action == UITestAction.DATASET_DIR
         || action == UITestAction.DURATION || action == UITestAction.SET
-        || action == UITestAction.FILE_DIR) {
+        || action == UITestAction.DATA_DIR) {
       known = true;
     }
     else {
@@ -165,6 +165,9 @@ public final class UITestTestCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/10/10 05:21:23  sueh
+ * <p> bug# 931 Fixed dataset dir functionality.
+ * <p>
  * <p> Revision 1.3  2006/08/28 18:25:31  sueh
  * <p> bug# 923 Changed the uitest source attribute to filedir.  Global filedir is an
  * <p> absolute file path.
