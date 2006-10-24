@@ -213,13 +213,16 @@ public final class ProcessData implements Storable {
     //load processName
     String sProcessName = props.getProperty(group + PROCESS_NAME_KEY);
     if (sProcessName != null) {
-      processName = ProcessName.fromString(sProcessName);
+      processName = ProcessName.getInstance(sProcessName);
     }
 
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/10/10 05:11:44  sueh
+ * <p> Added comment
+ * <p>
  * <p> Revision 1.3  2006/07/19 20:09:29  sueh
  * <p> bug# 902 GetProcessName():  return ProcessName instead of string.
  * <p>
