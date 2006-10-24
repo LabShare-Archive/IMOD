@@ -15,6 +15,11 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.9  2006/06/05 16:04:17  sueh
+ * <p> $bug# 766 Added the rest of the non-comscript processes.  Changed
+ * <p> $getCommand() and getCommandArray() to getComscript... because the fuctions
+ * <p> $are specialized for comscripts.
+ * <p> $
  * <p> $Revision 1.8  2006/04/06 20:13:59  sueh
  * <p> $bug# 808 Added the ability to strip the extension in equals().  Getting the
  * <p> $extension from DatasetFiles.
@@ -140,7 +145,7 @@ public class ProcessName {
   }
 
   public final boolean equals(String name) {
-    if (fromString(name) == this) {
+    if (getInstance(name) == this) {
       return true;
     }
     return false;
@@ -152,7 +157,7 @@ public class ProcessName {
    * static object.  The string is case insensitive.  Null is returned if the
    * string is not one of the known process names.
    */
-  public static ProcessName fromString(String name) {
+  public static ProcessName getInstance(String name) {
     if (name.endsWith(DatasetFiles.COMSCRIPT_EXT)) {
       int extIndex = name.lastIndexOf(DatasetFiles.COMSCRIPT_EXT);
       name = name.substring(0, extIndex);
@@ -277,7 +282,7 @@ public class ProcessName {
     if (axisID != AxisID.ONLY) {
       base = stripExtension(base, axisID.getExtension());
     }
-    return fromString(base);
+    return getInstance(base);
   }
 
   private static String stripExtension(String fileName, String extension) {
