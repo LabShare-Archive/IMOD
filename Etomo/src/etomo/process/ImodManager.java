@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2006/10/16 22:37:58  sueh
+ * <p> bug# 933 Don't reopen log unless the 3dmod is open.
+ * <p>
  * <p> Revision 3.47  2006/10/10 05:09:14  sueh
  * <p> bug# 931 Getting the patch vector model file names from DatasetFiles.
  * <p>
@@ -1313,8 +1316,7 @@ public class ImodManager {
 
   protected ImodState newPatchVectorCCCModel() {
     ImodState imodState = new ImodState(manager,
-        DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY);
-    imodState.setInitialMode(ImodState.MODEL_MODE);
+        DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODV, AxisID.ONLY);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
