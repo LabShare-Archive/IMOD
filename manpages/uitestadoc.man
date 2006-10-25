@@ -8,6 +8,7 @@ uitest.adoc \- Description of user interface tests
 .SH SYNOPSIS
 .nf
 .B $IMOD_UITEST_SOURCE/uitest.adoc
+.B cd \fIthe_run_directory
 .B uitest \fITest_section_name
 .fi
 
@@ -16,7 +17,19 @@ The uitest.adoc file contains a master list of tests of the Etomo user
 interface and set up information for each test.  Any section
 type or attribute name not listed below will be ignored during testing.
 A test can be run by running \fBuitest\fR with the name of the Test section
-desired (See Test Section and Attributes).
+desired (See \fBTest Section and Attributes\fR).  The test will run under a directory
+called UITests, which will be created in the run directory if it doesn't exist.
+
+.SS Environment Variables
+.B IMOD_UITEST_SOURCE
+Required.
+The location of the uitest.adoc and all autodocs it refers to.
+
+.B IMOD_UITEST_DATA
+Required.
+The root directory of directories containing the stacks and other files to be copied to
+the test dataset directory.  The directories that contain the stacks and other files
+have the same name as the dataset.
 
 .SS Global Attributes
 
@@ -28,29 +41,8 @@ The default is 1000 milliseconds.  One entry per file.
 See Note 2 in the \fBuitestaxisadoc\fR man page.
 
 .TP
-.B filedir = \fIabsolute_directory_path
-The path of a directory which may contain the
-dataset files to be copied, and/or
-files for comparison.  The absolute directory path will be
-One entry per file.
-This setting is inherited by all axis-level tests.
-.nf
-Default absolute path:  $IMOD_UITEST_SOURCE.
-.fi
-
-.TP
-.B testdir = \fIrelative_directory_path\fR
-The top-level test directory.  The directories will be created if they do not exist.
-The absolute directory path will be
-/the_run_directory/UITests/\fIrelative_directory_path\fR.
-One entry per file.
-.nf
-Default absolute path:  /\fIthe_run_directory\fR/UITests.
-.fi
-
-.TP
 .B Version = 1.2
-Required.  The latest version of the autodoc language.
+Required.  The version of the autodoc format used.
 
 .SS Test Section and Attributes
 
@@ -75,13 +67,22 @@ See \fBman uitestaxisadoc\fR.
 .TP
 .B copy.file = \fIfile_name
 A dataset file to be copied into the dataset directory.
-The file will be copied from the most recently set \fBsource\fR directory.
+The file will be copied from the \fBdatadir\fR directory,
+which should be set first.
 \fIFile_name\fR should not contain expandable characters such as "*".
 Use this attribute to copy any file
 which can be copied before Etomo starts running.
 If the \fBkeep\fR attribute is used with \fBdatasetdir\fR, then
 \fIfile_name\fR will only be copied if it
 doesn't exist in the dataset directory.
+
+.TP
+.B datadir = \fIrelative_directory_path\fR
+Required.
+The path of a directory which may containdataset files to be copied, and/or
+files for comparison (see \fBcopy\fR).  The absolute directory path will be
+$IMOD_UITEST_DATA/\fIrelative_directory_path\fR.
+The section-level setting is used in the axis-level tests.
 
 .TP
 .B datafile = \fIdata_file_name
@@ -95,6 +96,7 @@ The dataset that Etomo will create.
 \fIDataset_name\fR will be automatically added to the Setup dialog.
 One entry per Test section.
 Also sets the "dataset" variable.
+The \fBdataset\fR entry should appear before \fBcopy\fR entries.
 .nf
 Default:  Test_section_name.
 .fi
@@ -105,16 +107,15 @@ The directory path relative to the test directory which
 will contain the test dataset for the current test.
 This option is unnecessary if the dataset directory name is the same as the section name and
 you want to remove all the files in the dataset directory before running the test.
-The \fBdatasetdir\fR entry should appear before \fBcopy\fR entries.
 Use the \fBkeep\fR option is used to prevent the test directory for
 this section from being deleted and recreated each time the test is run.
-See \fBtestdir\fR in Global Attributes.
-The absolute directory path will be /testdir/\fIrelative_directory_path\fR.
+The absolute directory path will be /\fIthe_run_directory\fR/UITests/\fIrelative_directory_path\fR.
 One entry per Test section.  See \fB[Test = \fITest_section_name\fB]\fR.
+If \fBdatasetdir\fR is used, it must appear before the \fBcopy\fR commands or
+the default will be used.
 .nf
-Default absolute path:  /testdir/Test_section_name.
+Default absolute path:  /\fIthe_run_directory\fR/UITests/Test_section_name.
 .fi
-
 
 .TP
 .B duration = \fR[\fIdays\fR]\fB:\fR[\fIhours\fR]\fB:\fR[\fIminutes\fR]\fR[\fB:\fIseconds\fR]
@@ -140,16 +141,6 @@ Variables are refered to with the syntax \fB%{\fIvariable_name\fB}\fR.
 Do not use the variables names "dataset" or "axis"
 because they are set automatically.  Do not use the variable names "a" or "b".
 Variable names may not contain ".", "/", "\", or the delimiter (default - "=").
-
-
-.TP
-.B filedir = \fIrelative_directory_path\fR
-The path of a directory which may containdataset files to be copied, and/or
-files for comparison (see \fBcopy\fR).  The absolute directory path will be
-$IMOD_UITEST_SOURCE/\fIrelative_directory_path\fR unless the global \fBfiledir\fR
-attribute has been used.  In that case the section-level \fBfiledir\fR defines a
-subdirectory of the the global \fBfiledir\fR.
-The section-level setting is used in the axis-level tests.
 
 .SH AUTHOR
 Written by Sue Held.
