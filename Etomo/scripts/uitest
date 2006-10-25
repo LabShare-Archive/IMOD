@@ -43,14 +43,16 @@ fi
 
 
 #export IMOD_JAVADIR=/usr/local/j2re1.4.0_04
-junit_home=${JUNIT_HOME:=/usr/local/junit}
-jfcunit_home=${JFCUNIT_HOME:=/usr/local/jfcunit}
+junit_home=${IMOD_JUNIT_HOME:=/usr/local/junit}
+jfcunit_home=${IMOD_JFCUNIT_HOME:=/usr/local/jfcunit}
+jakarta_regexp_home=${IMOD_JAKARTA_REGEXP_HOME:=$jfcunit_home}
+jakarta_regexp_jar=${IMOD_JAKARTA_REGEXP_JAR:=jakarta-regexp-1.2.jar}
 java_class_separator=${JAVA_CLASS_SEPARATOR:=:}
 
 class_path=$IMOD_DIR/bin/etomoUITest.jar\
 $JAVA_CLASS_SEPARATOR$junit_home/junit.jar\
-$JAVA_CLASS_SEPARATOR$JFCUNIT_HOME/jfcunit.jar\
-$JAVA_CLASS_SEPARATOR$JFCUNIT_HOME/jakarta-regexp-1.2.jar\
+$JAVA_CLASS_SEPARATOR$jfcunit_home/jfcunit.jar\
+$JAVA_CLASS_SEPARATOR$jakarta_regexp_home/$jakarta_regexp_jar\
 
 if [ ! -z "$IMOD_JAVADIR" ]; then
   export PATH=${IMOD_JAVADIR}/bin:${PATH}
