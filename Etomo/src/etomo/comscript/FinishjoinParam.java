@@ -27,6 +27,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.20  2006/05/22 22:38:52  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.19  2006/05/11 19:43:18  sueh
 * <p> bug# 838 Add CommandDetails, which extends Command and
 * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -173,10 +176,16 @@ public class FinishjoinParam implements CommandDetails {
     commandArray = new String[options.size() + 3];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
+    //TEMP 949
+    StringBuffer printBuffer = new StringBuffer(commandName);
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + 3] = (String) options.get(i);
+      //TEMP 949
+      printBuffer.append(' '+(String) options.get(i));
     }
+    //TEMP 949
+    System.err.println(printBuffer.toString());
   }
   
   public AxisID getAxisID() {
