@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/24/06: IMOD_3-8-28
+10/24/06: Added an option to xftoxg to make one section be the reference that
+others are aligned to.
+
 10/20/06: In eTomo - Post Processing, made Rotate around the X-axis the default
 reorientation method.
 
