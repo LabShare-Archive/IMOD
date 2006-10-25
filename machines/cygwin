@@ -113,12 +113,11 @@ endif
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
 SHELL     = /bin/sh
-CP        = \\cp
+CP        = /bin/cp
 FIND      = /usr/bin/find
 EOF
 
 
-set wrapper = ""
 #
 if ($compiler == intel) then
         if ($shared_libs == default) set shared_libs = true
@@ -462,5 +461,5 @@ echo "CMDWRAPPERS = cmdwrappers" >> $configure
 # Make sure critical scripts are in unix mode
 #
 (cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt trimvol submfg runpyscript 3dmodbg 3dmodv >& /dev/null)
-(cd dist ; dos2unix installIMOD installStub >& /dev/null)
+(cd dist ; dos2unix installIMOD installStub IMOD-cygwin.sh >& /dev/null)
 (cd Etomo/scripts ; dos2unix etomo >& /dev/null)
