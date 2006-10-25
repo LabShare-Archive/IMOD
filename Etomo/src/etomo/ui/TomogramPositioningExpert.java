@@ -241,6 +241,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     updateFiducialessDisplay(dialog.isFiducialess());
     updateFiducialessDisplay();
+    updateTiltCom();
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
@@ -465,6 +466,21 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     return tiltalignParam;
   }
+  
+  /**
+   * updates z shift and tilt angle offset
+   */
+  private void updateTiltCom() {
+    if (dialog == null) {
+      return;
+    }
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    metaData.getTiltParam(tiltParam, axisID);
+    getTiltAngleOffset(tiltParam);
+    getZShift(tiltParam);
+    comScriptMgr.saveTilt(tiltParam, axisID);
+    metaData.setTiltParam(tiltParam, axisID);
+  }
 
   /**
    * Update the tilt{|a|b}.com file with sample parameters for the specified
@@ -668,6 +684,20 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setZShiftEnabled(enable);
     dialog.setXAxisTiltEnabled(enable);
     dialog.setThicknessEnabled(enable);
+  }
+  
+  private void getTiltAngleOffset(TiltParam tiltParam) {
+    if (dialog == null) {
+      return;
+    }
+    tiltParam.setTiltAngleOffset(dialog.getTiltAngleOffset());
+  }
+  
+  private void getZShift(TiltParam tiltParam) {
+    if (dialog == null) {
+      return;
+    }
+    tiltParam.setZShift(dialog.getZShift());
   }
 
   /**
@@ -886,6 +916,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2006/10/19 22:53:28  sueh
+ * <p> bug# 941  Refit on fiducialess action
+ * <p>
  * <p> Revision 1.13  2006/10/19 22:01:16  sueh
  * <p> bug# 942  updateFiducialessDisplay():  checking for dialog == null
  * <p>
