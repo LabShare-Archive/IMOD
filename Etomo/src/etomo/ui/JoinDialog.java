@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.36  2006/10/16 22:52:19  sueh
+ * <p> bug# 919  Added setInverted().
+ * <p>
  * <p> Revision 1.35  2006/07/21 19:03:07  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
@@ -1105,14 +1108,14 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     useAlignmentRefSectionAction();
     spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection()
         .getNumber());
-    ltfSizeInX.setText(metaData.getSizeInX().toString());
-    ltfSizeInY.setText(metaData.getSizeInY().toString());
     ltfShiftInX.setText(metaData.getShiftInX().toString());
     ltfShiftInY.setText(metaData.getShiftInY().toString());
     spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices().getNumber());
     spinTrialBinning.setValue(metaData.getTrialBinning().getNumber());
     ltfMidasLimit.setText(metaData.getMidasLimit().toString());
     pnlSectionTable.setMetaData(metaData);
+    ltfSizeInX.setText(metaData.getSizeInX().toString());
+    ltfSizeInY.setText(metaData.getSizeInY().toString());
   }
 
   public Container getContainer() {
