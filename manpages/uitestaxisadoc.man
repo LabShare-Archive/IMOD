@@ -8,7 +8,7 @@ uitest-axis.adoc \- Description of an axis-level user interface test
 .SH SYNOPSIS
 .nf
 .B etomo --names
-.B $IMOD_UITEST_SOURCE/\fR[...\fB/\fR]\fIfile_name\fB.adoc\fR
+.B $IMOD_UITEST_SOURCE/\fIfile_name\fB.adoc\fR
 .fi
 
 .SH DESCRIPTION
@@ -137,7 +137,7 @@ See Note 1.
 .TP
 .B copy.file = \fIfile_name
 Copy \fIfile_name\fR into the dataset directory.  The file will be copied from
-the filedir value set in the global section of \fBuitest.adoc\fR.
+the \fBdatadir\fR value set in the current section of \fBuitest.adoc\fR.
 \fIFile_name\fR should not contain expandable characters such as "*".
 \fIFile_name\fR may contain two variables:  \fB%dataset\fR and \fB%axis\fR.
 
@@ -212,11 +212,18 @@ If the popup dialog does not appear, the test program will wait until it exceeds
 the duration set in \fBuitest.adoc\fR and fails.
 
 .TP
-.B waitfor.process = \fR(\fBdone\fR|\fBfailed\fR|\fBkilled\fR|\fBpaused\fR)
-Causes the test program to wait for the progress bar to show "done", "failed,
-"killed", or "paused".  If the
-process never completes, the test program will wait until it exceeds
-the duration set in \fBuitest.adoc\fR and fails.
+.B waitfor.process\fR[\fB.\fIprocess_name\fR]\fB = \fR(\fBdone\fR|\fBfailed\fR|\fBkilled\fR|\fBpaused\fR)
+Causes the test program to wait for the progress bar to show
+"done", "failed, "killed", or "paused".
+If the process never completes,
+the test program will wait until it exceeds the duration set in \fBuitest.adoc\fR and fails.
+If the \fIprocess_name\fR is used, the test program will wait until the process
+matching process_name completes and
+will ignore other processes.
+Only use \fIprocess_name\fR to refer to the last process name in sequence of processes or
+to a single process.
+If \fIprocess_name\fR is used to refer to a process at the beginning or middle of a sequence,
+the behavior is undefined.
 
 .TP
 .B %{\fIvariable_name\fB}
