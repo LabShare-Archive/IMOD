@@ -59,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.97  2006/09/14 00:00:38  sueh
+ * bug# 920 Rename X offset and Z offset to X shift and Z shift.
+ *
  * Revision 3.96  2006/07/28 21:27:20  sueh
  * bug# 868 Moved complex button actions to expert
  *
@@ -1803,16 +1806,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         + "reconstructable area.";
     ltfXShift.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Amount to shift the reconstructed slices in Z before output.  A "
-        + "positive value will shift the slice upward.  Do not use this option"
-        + " if you have fiducials and the tomogram is part of a dual-axis "
-        + "series.";
+        + "positive value will shift the slice upward.";
     ltfZShift.setToolTipText(tooltipFormatter.setText(text).format());
     ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(X_AXIS_TILT_TOOLTIP)
         .format());
     text = "Offset in degrees to apply to the tilt angles; a positive offset will "
-        + "rotate the reconstructed slices counterclockwise.  Do not use this "
-        + "option if you have fiducials and the tomogram is part of a dual-axis"
-        + " series.";
+        + "rotate the reconstructed slices counterclockwise.";
     ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
     text = "The spatial frequency at which to switch from the R-weighted radial "
         + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
