@@ -17,7 +17,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
- findhotpixels$(E)
+ findhotpixels$(E) xfjointomo$(E)
 
 WLIBS = $(LWMOD) $(IMLIBS) $(FORTCLIBS)
 SMALLLIBS = $(LSMLMOD) $(IMLIBS) $(FORTCLIBS)
@@ -136,6 +136,9 @@ howflared$(E): howflared.$(O) planefit.$(O)
 findhotpixels$(E): findhotpixels.$(O)
 	$(FC) -o findhotpixels findhotpixels.$(O) $(LDFLG) $(SMALLLIBS)
 
+xfjointomo$(E): xfjointomo.$(O)
+	$(FC) -o xfjointomo xfjointomo.$(O) $(LDFLG) $(SMALLLIBS)
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -144,6 +147,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.12  2006/10/17 22:58:55  mast
+#  Added findhotpixels
+#
 #  Revision 3.11  2006/10/14 21:20:40  mast
 #  Added howflared
 #
