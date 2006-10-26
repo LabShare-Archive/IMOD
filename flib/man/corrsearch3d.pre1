@@ -37,7 +37,8 @@ DDEESSCCRRIIPPTTIIOONN
   increase by ~30% when smoothing with a 3x3x3 kernel and it will double
   with a 5x5x5 kernel.  By default, the program will select a 3x3x3
   kernel for sigma less than 1.5 and a 5x5x5 kernel for larger sigmas,
-  unless the size is explicitly selected.
+  unless the size is explicitly selected.  The useful range of sigma is
+  probably 0.5 to 3.
 
   Low and high frequency filtering can also be applied in Fourier space,
   but this is useful only for testing because it is used only with the
