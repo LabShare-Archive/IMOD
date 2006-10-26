@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2006/09/14 00:01:30  sueh
+ * <p> bug# z shift and angle offset fields associated with tilt.
+ * <p>
  * <p> Revision 3.52  2006/07/28 20:14:28  sueh
  * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
  * <p>
@@ -346,8 +349,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   private final TomogramPositioningExpert expert;
   static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
   private final LocalActionListener localActionListener;
-  private final CalcPanel cpTiltAngleOffset = new CalcPanel(
-      "Tilt angle offset");
+  private final CalcPanel cpTiltAngleOffset = new CalcPanel("Tilt angle offset");
   private final CalcPanel cpZShift = new CalcPanel("Z shift");
 
   public TomogramPositioningDialog(ApplicationManager appMgr,
@@ -477,11 +479,11 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
-  
+
   String getOrigTiltAngleOffset() {
     return cpTiltAngleOffset.getOriginal();
   }
-  
+
   String getOrigZShift() {
     return cpZShift.getOriginal();
   }
@@ -501,24 +503,24 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setThickness(int thickness) {
     ltfThickness.setText(thickness);
   }
-  
+
   void setThicknessEnabled(boolean enable) {
     ltfThickness.setEnabled(enable);
   }
-  
+
   void setTiltAngleOffset(ConstEtomoNumber tiltAngleOffset) {
     cpTiltAngleOffset.set(tiltAngleOffset);
   }
-  
+
   boolean setTiltAngleOffset(TomopitchLog log) {
     return cpTiltAngleOffset.set(log.getAngleOffsetOriginal(), log
         .getAngleOffsetAdded(), log.getAngleOffsetTotal());
   }
-  
+
   void setTiltAngleOffsetEnabled(boolean enable) {
     cpTiltAngleOffset.setEnabled(enable);
   }
-  
+
   void setTiltAngleOffsetVisible(boolean visible) {
     cpTiltAngleOffset.setVisible(visible);
   }
@@ -542,7 +544,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   String getXAxisTiltTotal() {
     return cpXAxisTilt.getTotal();
   }
-  
+
   String getZShift() {
     return cpZShift.getTotal();
   }
@@ -550,7 +552,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   String getThickness() {
     return ltfThickness.getText();
   }
-  
+
   String getTiltAngleOffset() {
     return cpTiltAngleOffset.getTotal();
   }
@@ -600,7 +602,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnTomopitch.setButtonState(screenState.getButtonState(btnTomopitch
         .getButtonStateKey()));
   }
-  
+
   void setTomopitchEnabled(boolean enable) {
     btnTomopitch.setEnabled(enable);
   }
@@ -709,20 +711,20 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   void setXAxisTiltEnabled(boolean enabled) {
     cpXAxisTilt.setEnabled(enabled);
   }
-  
+
   void setZShift(ConstEtomoNumber zShift) {
     cpZShift.set(zShift);
   }
-  
+
   boolean setZShift(TomopitchLog log) {
-    return cpZShift.set(log.getAxisZShiftOriginal(), log
-        .getAxisZShiftAdded(), log.getAxisZShiftTotal());
+    return cpZShift.set(log.getAxisZShiftOriginal(), log.getAxisZShiftAdded(),
+        log.getAxisZShiftTotal());
   }
-  
+
   void setZShiftEnabled(boolean enable) {
     cpZShift.setEnabled(enable);
   }
-  
+
   void setZShiftVisible(boolean visible) {
     cpZShift.setVisible(visible);
   }
@@ -794,16 +796,14 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     text = "Open samples in 3dmod to make a model with lines along top and bottom "
         + "edges of the section in each sample.";
     btnCreateBoundary.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Run tomopitch.  You need to examine the log file to determine the"
-        + "Z shift, additional angle offset, and X-axis tilt.";
+    text = "Run tomopitch.  This will compute the positioning values and adjust the totals shown here.";
     btnTomopitch.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Add the additional offset from tomopitch to the amount already "
-        + "shown here to get the total offset.";
+    text = "The total offset is sum of the original offset and the additional offset from tomopitch.";
     cpAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
     cpXAxisTilt.setToolTipText(tooltipFormatter.setText(
         TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP).format());
-    text = "Add the additional shift from tomopitch to the amount shown here to get "
-        + "the total shift.";
+    text = "The total shift is the sum of the original shift and the"
++"additional shift from tomopitch.";
     cpTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Run tiltalign with these final offset parameters.";
     btnAlign.setToolTipText(tooltipFormatter.setText(text).format());
@@ -826,6 +826,20 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
             .format());
     ltfThickness.setToolTipText(tooltipFormatter.setText(
         "The thickness of the final tomogram.").format());
+    cpTiltAngleOffset
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Tilt parameter:  the spatial frequency at which to switch from the R-weighted radial "
+                    + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
+                    + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.")
+            .format());
+    cpZShift
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Tilt parameter:  amount to shift the reconstructed slices in Z before output.  A "
+                    + "positive value will shift the slice upward.  Do not use this option"
+                    + " if you have fiducials and the tomogram is part of a dual-axis "
+                    + "series.").format());
   }
 
   public static final class CalcPanel {
@@ -875,7 +889,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       ltfAdded.setToolTipText(text);
       ltfTotal.setToolTipText(text);
     }
-    
+
     void setVisible(boolean visible) {
       panel.setVisible(visible);
     }
