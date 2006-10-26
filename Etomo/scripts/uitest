@@ -47,12 +47,13 @@ junit_home=${IMOD_JUNIT_HOME:=/usr/local/junit}
 jfcunit_home=${IMOD_JFCUNIT_HOME:=/usr/local/jfcunit}
 jakarta_regexp_home=${IMOD_JAKARTA_REGEXP_HOME:=$jfcunit_home}
 jakarta_regexp_jar=${IMOD_JAKARTA_REGEXP_JAR:=jakarta-regexp-1.2.jar}
-java_class_separator=${JAVA_CLASS_SEPARATOR:=:}
+class_separator=${IMOD_CLASS_SEPARATOR:=:}
+path_separator=${IMOD_PATH_SEPARATOR:=/}
 
-class_path=$IMOD_DIR/bin/etomoUITest.jar\
-$JAVA_CLASS_SEPARATOR$junit_home/junit.jar\
-$JAVA_CLASS_SEPARATOR$jfcunit_home/jfcunit.jar\
-$JAVA_CLASS_SEPARATOR$jakarta_regexp_home/$jakarta_regexp_jar\
+class_path=$IMOD_DIR${path_separator}bin${path_separator}etomoUITest.jar\
+$class_separator$junit_home${path_separator}junit.jar\
+$class_separator$jfcunit_home${path_separator}jfcunit.jar\
+$class_separator$jakarta_regexp_home${path_separator}$jakarta_regexp_jar\
 
 if [ ! -z "$IMOD_JAVADIR" ]; then
   export PATH=${IMOD_JAVADIR}/bin:${PATH}
@@ -113,7 +114,8 @@ fi
 
 export IMOD_TEST_SECTION=$1
 echo "starting eTomo UI test:  Test section $IMOD_TEST_SECTION"
-java -Xmx${javaMemLim} -cp $class_path \
+echo "class_path:  $class_path"
+java -Xmx${javaMemLim} -cp "$class_path" \
 junit.textui.TestRunner etomo.JfcUnitTests 2>${errlog} >${outlog}
 #
 # $Log$
