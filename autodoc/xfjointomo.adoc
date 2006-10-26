@@ -1,0 +1,176 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file from which transforms will be found.  If this
+option is not entered, the first non-option argument will be used.
+
+[Field = FOutputFile]
+short = foutput
+type = FN
+usage = Output file for list of section-to-section (f) transforms
+tooltip = 
+manpage = Output file for list of f transforms, which align each section to
+the previous one.  If this
+option is not entered, the second non-option argument will be used.
+
+[Field = GOutputFile]
+short = goutput
+type = FN
+usage = Output file for list of global transforms for Finishjoin
+tooltip = 
+manpage = Output file for list of global transforms that can be supplied to 
+Finishjoin(1), adjusted for any offsets used when making the join file that 
+was modeled.  This entry is required unless not outputting transforms for every
+slice, in which case it must be omitted.  If this option is not entered, the
+third non-option argument will be used.
+
+[Field = EditExistingFile]
+short = edit
+type = B
+usage = Use transforms in existing file for boundaries not being aligned
+tooltip = 
+manpage = If the specified output file for f transforms exists, read 
+transforms from it and use those them for any boundaries not being aligned.
+This option allows the program to be run repeatedly, computing transforms
+for a subset of boundaries each time.
+
+[Field = SliceTransforms]
+short = slice
+type = B
+usage = Output transforms for every slice of join file
+tooltip = 
+manpage = Output transforms for every slice of joined tomogram that was
+modeled.  Use this option if you plan to transform the joined file instead of
+rerunning Finishjoin(1).
+
+[Field = JoinFileOrSizeXYZ]
+short = join
+type = FN
+usage = Joined tomogram that was modeled, or its size in X, Y, Z (optional)
+tooltip =
+manpage = Joined tomogram that model was built on, or its size in X, Y, and Z.
+If this option is not entered, 
+entered, the image X and Y size will be used from the model header.
+
+[Field = SizesOfSections]
+short = sizes
+type = IA
+usage = Number of slices in each section of joined file
+tooltip = 
+manpage =
+
+[Field = ZValuesOfBoundaries]
+short = zvalues
+type = IA
+usage = Z value of last slice before each boundary (numbered from 1)
+tooltip = 
+manpage = Z value of last slice before each boundary (numbered from 1).
+Either this entry or the sizes of the sections must be entered.  If this
+option and the -slice option are used, then a -join entry is also needed to
+inform the program of the full Z size of the file.
+
+[Field = OffsetOfJoin]
+short = offset
+type = IP
+usage = Offset applied in making the join file (negative of shift)
+tooltip = 
+manpage = Offset applied in making the join file that was modeled.  This is
+the same as the offset entry to Finishjoin(1), and the negative of the shift
+values that appear in eTomo.
+
+[Field = BinningOfJoin]
+short = binning
+type = I
+usage = Binning used to make the join file that was modeled
+tooltip = 
+manpage =
+
+[Field = ReferenceSection]
+short = refsec
+type = I
+usage = Reference section that was not transformed in the join, numbered from 1
+tooltip = 
+manpage =
+
+[Field = TranslationOnly]
+short = transonly
+type = B
+usage = Solve only for translations in X and Y
+tooltip =
+manpage = Solve for transformations that include only translations in X and Y.
+
+[Field = RotationTranslation]
+short = rottrans
+type = B
+usage = Solve for rotations and translations
+tooltip =
+manpage = Solve for transformations that include rotations and translations,
+which requires at least 2 points at each boundary.
+
+[Field = MagRotTrans]
+short = magrot
+type = B
+usage = Solve for magnifications, rotations, and translations
+tooltip =
+manpage = Solve for transformations that include magnifications, rotations 
+and translations, i.e. no stretch.  These solutions require at least 3 points
+at each boundary.  If none of of these three options is
+given, the default is to solve for a full linear transformation, which
+requires at least 4 points.
+
+[Field = BoundariesToAnalyze]
+short = boundaries
+type = LI
+usage = Boundaries to find transformations across (numbered from 1)
+tooltip =
+manpage = List of boundaries to find transformations across, numbered from 1.
+The default is to do all boundaries.
+
+[Field = PointsToFit]
+short = points
+type = IP
+usage = Maximum and minimum number of points to fit on each side of boundary
+tooltip = 
+manpage = Maximum and minimum number of points to fit on each side of
+boundary.  If a contour contains the minimum number of points in each of the
+sections forming a boundary, then lines will be fit separately to the points
+on each side.  The number of points in each fit is limited by the given
+maximum value.  A contour is ignored at a particular boundary if it has fewer
+than the minimum number of points in the section on either side, unless it
+has just one point on each side.  The defaults are 5 and 2.
+
+[Field = GapStartEndInc]
+short = gap
+type = FT
+usage = Starting and ending gap size to try between sections, and increment
+tooltip = 
+manpage = Starting and ending gap size to try between sections, and increment
+between gap sizes.  The gap sizes can be negative or positive.  Only one gap
+size will be used if the ending value equals the starting value or the
+increment is 0.  The default is 0,0,0.
+
+[Field = ObjectsToInclude]
+short = objects
+type = LI
+usage = Objects to include in the fits
+tooltip = 
+manpage =
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
