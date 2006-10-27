@@ -11,9 +11,7 @@ function = create
 function = test-create
 function = create
 function = test-backup
-function = 3dmod
 function = use
-function = popup
 function = test2
 function = done
 function = popup
@@ -28,15 +26,11 @@ assert.file.exists = eraser%{axis}.log
 [function = test-backup]
 assert.file.exists = eraser%{axis}.log~
 
-
 [function = use]
 bn.use-fixed-stack = 
 
 [function = done]
 bn.done =
-
-[function = 3dmod]
-bn.view-fixed-stack =
 
 [function = popup]
 waitfor.popup.etomo-question = Yes
@@ -153,7 +147,6 @@ bn.find-x-rays =
 waitfor.process.eraser = done
 bn.find-x-rays =
 waitfor.process.eraser = done
-bn.view-x-ray-model =
 #
 # manual replacement
 #
