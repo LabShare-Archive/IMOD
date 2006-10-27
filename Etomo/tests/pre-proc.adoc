@@ -14,7 +14,6 @@ function = test-backup
 function = use
 function = test2
 function = done
-function = popup
 
 [function = create]
 bn.create-fixed-stack =
