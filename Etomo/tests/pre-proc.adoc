@@ -13,6 +13,7 @@ function = create
 function = test-backup
 function = use
 function = test2
+function = test-3dmod
 function = done
 function = popup
 
@@ -31,6 +32,18 @@ bn.use-fixed-stack =
 
 [function = done]
 bn.done =
+
+[function = test-3dmod]
+bn.view-x-ray-model =
+bn.view-fixed-stack =
+#
+# manual replacement
+#
+bn.advanced =
+cb.manual-replacement = 1
+bn.create-manual-replacement-model =
+cb.manual-replacement = 0
+bn.basic =
 
 [function = popup]
 waitfor.popup.etomo-question = Yes
@@ -100,7 +113,7 @@ assert.tf.difference-criterion.enabled = 0
 assert.tf.grow-criterion.enabled = 0
 assert.tf.edge-exclusion.enabled = 0
 assert.tf.maximum-radius.enabled = 0
-assert.tf.annulus-width.enabled = 0
+assert.tf.anBB.edfnulus-width.enabled = 0
 assert.tf.xy-scan-size.enabled = 0
 assert.tf.scan-criterion.enabled = 0
 assert.bn.find-x-rays.enabled = 0
@@ -147,14 +160,6 @@ bn.find-x-rays =
 waitfor.process.eraser = done
 bn.find-x-rays =
 waitfor.process.eraser = done
-#
-# manual replacement
-#
-bn.advanced =
-cb.manual-replacement = 1
-bn.create-manual-replacement-model =
-cb.manual-replacement = 0
-bn.basic =
 #
 # test missing data
 #
