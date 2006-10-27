@@ -13,7 +13,6 @@ function = create
 function = test-backup
 function = use
 function = test2
-function = test-3dmod
 function = done
 function = popup
 
@@ -32,18 +31,6 @@ bn.use-fixed-stack =
 
 [function = done]
 bn.done =
-
-[function = test-3dmod]
-bn.view-x-ray-model =
-bn.view-fixed-stack =
-#
-# manual replacement
-#
-#bn.advanced =
-#cb.manual-replacement = 1
-#bn.create-manual-replacement-model =
-#cb.manual-replacement = 0
-#bn.basic =
 
 [function = popup]
 waitfor.popup.etomo-question = Yes
