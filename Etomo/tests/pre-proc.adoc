@@ -39,11 +39,11 @@ bn.view-fixed-stack =
 #
 # manual replacement
 #
-bn.advanced =
-cb.manual-replacement = 1
-bn.create-manual-replacement-model =
-cb.manual-replacement = 0
-bn.basic =
+#bn.advanced =
+#cb.manual-replacement = 1
+#bn.create-manual-replacement-model =
+#cb.manual-replacement = 0
+#bn.basic =
 
 [function = popup]
 waitfor.popup.etomo-question = Yes
