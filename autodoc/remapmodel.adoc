@@ -1,0 +1,88 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file.  If this option is not entered, the first
+non-optional argument will be used.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output model file
+tooltip = 
+manpage = Output model file.  If this option is not entered, the second
+non-optional argument will be used.
+
+[Field = OldZList]
+short = old
+type = LI
+usage = List of Z values to remap
+tooltip = 
+manpage = List of Z values in the input model that are to be remapped.  The 
+default is the actual list of Z values, which could have gaps that make it
+difficult to compose the list of values to map to.
+
+[Field = FullRangeInZ]
+short = full
+type = B
+usage = Use range from 0 to maximum Z in model header as old list
+tooltip = 
+manpage = For the list of values to remap, use the complete range from 0 to
+NZ-1, where NZ is the Z size of the image file that the model was last loaded
+on, determined from the model header.
+
+[Field = NewZList]
+short = new
+type = LI
+usage = List of Z values to map old list to
+tooltip = 
+manpage = List of Z values to map old list to.  There must be as many values
+in this list as in the list of Z values to remap.  See notes above on the
+contents of this list.
+
+[Field = AddToAllPoints]
+short = add
+type = FT
+usage = Amount to add to all coordinates in X, Y, and Z, after remapping
+tooltip = 
+manpage = 
+
+[Field = ReorderPointsInZ]
+short = reorder
+type = I
+usage = Make points be monotonically increasing (1) or decreasing (-1) in Z
+tooltip = 
+manpage = Go through each contour and reorder the points so that they are
+monotonically increasing in Z (for an input value of 1) or monotonically
+decreasing (for a value of -1)
+
+[Field = FromChunkLimits]
+short = fromchunks
+type = IA
+usage = Starting and ending slices in old serial tomogram join
+tooltip = 
+manpage = To remap Z values after changing the spacing between sections in a
+joined set of serial section tomograms, enter the original starting and ending
+slice for each tomogram in the join (start1, end1, start2, end2, etc).  If a
+tomogram was inverted in the join, be sure that the high Z number is listed as
+the start and the low Z number is listed as the end.
+
+[Field = ToChunkLimits]
+short = tochunks
+type = IA
+usage = Starting and ending slices in new serial tomogram join
+tooltip = 
+manpage = The new starting and ending slices for each tomogram in a serial
+section join, in the same format as for -fromchunks.  When these two options
+are entered, none of the other mapping options (-old, -new, -full) can be used.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 
