@@ -13,6 +13,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.2  2006/10/15 14:09:11  mast
+c       Removed a ;
+c
 c       Revision 3.1  2006/10/14 21:20:10  mast
 c       Added to package
 c
@@ -34,12 +37,13 @@ c
       integer*4 ncolout,ident,ierr,iobj,jobj,imodobj,imodcont,nwidth,iModel
       integer*4 jpt,izobj,natz,intobj,npack,ipt,intpack,itmp,lr,i,j,iztime
       integer*4 ndat,lop,ibas,ifflip,numModels,numStartEnds, numIDs, idStart
+      integer*4 iobjLim
       real*4 fittop,fitbot,fitmax,ymax,ymin,ytmp,xint,pol,xx,yy,xlas
       real*4 baslas,ylas,xfit,delx,delxw,dely,avwidth,sdwidth,sem,centroid(3)
       real*4 avcol,sdcol,semcol,base,slope,xleft,delang,seglen,pixsize,dxlas
       real*4 pixsizeDef,xyscal,zscale,xofs,yofs,zofs,widthDef,defscal,dylas
       real*4 fitStartDef, fitEndDef
-      logical*4 useSurf
+      logical*4 useSurf,noPairs
       integer*4 getimodtimes, getimodhead, lnblnk, getImodSurfaces
       real*4 xinterp, acosd, atan2d
 c       
@@ -52,13 +56,14 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  howflared
 c       
       integer numOptions
-      parameter (numOptions = 9)
+      parameter (numOptions = 10)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'output:OutputFile:FN:@columns:ColumnsToOutput:LI:@'//
      &    'pixel:PixelSizeDefault:F:@width:WidthDefault:F:@'//
-     &    'surface:UseSurfaceNumbers:B:@model:ModelFile:FNM:@'//
-     &    'fit:FitTopAndBottom:FPM:@id:Identifier:IM:@help:usage:B:'
+     &    'surface:UseSurfaceNumbers:B:@nopairs:NoPairsOrMarkers:B:@'//
+     &    'model:ModelFile:FNM:@fit:FitTopAndBottom:FPM:@id:Identifier:IM:@'//
+     &    'help:usage:B:'
 c
       pixsizeDef = 1.
       widthDef = 20.
@@ -66,6 +71,7 @@ c
       fitStartDef = 0.
       fitEndDef = 0.
       useSurf = .false.
+      noPairs = .false.
 
       print *,'Columns 1-6 are for LEFT, 7-12 for RIGHT, ',
      &    '13-18 for SUM, 19-22 LEFT, 23-26 RIGHT'
@@ -94,6 +100,9 @@ c
       ierr = PipGetFloat('PixelSizeDefault', pixsizeDef)
       ierr = PipGetFloat('WidthDefault', widthDef)
       ierr = PipGetLogical('UseSurfaceNumbers', useSurf)
+      ierr = PipGetLogical('NoPairsOrMarkers', noPairs)
+      if (useSurf .and. noPairs) call exitError(
+     &    'YOU CANNOT ENTER BOTH -surface AND -nopairs')
 
       ierr = PipNumberOfEntries('ModelFile', numModels)
       if (ierr.ne. 0 .or. numModels .eq. 0)
@@ -169,7 +178,9 @@ c
             npack = 0
             iztime=izobj+1
             if (itimes(jobj).gt.0) iztime=itimes(jobj)
-            do iobj=jobj,max_mod_obj
+            iobjLim = max_mod_obj
+            if (noPairs) iobjLim = jobj
+            do iobj=jobj,iobjLim
               if(npt_in_obj(iobj).gt.1 .and. .not.objused(iobj))then
                 ipt=object(ibase_obj(iobj)+1)
 c                 
@@ -283,7 +294,7 @@ c
             enddo
 c             
             ndat=0
-             print *,'fitmax & min', fitmax, (fitmin(lr), lr =1 ,natz)
+c             print *,'fitmax & min', fitmax, (fitmin(lr), lr =1 ,natz)
             do lr=1,natz
 c               
 c               do fit for one wall: use all points from limit of this wall,
@@ -354,7 +365,7 @@ c
               call lsfit(yt,xt,ndat,slope,xleft,delxw)
               delxw = widthDef / pixsize
             endif
-             print *,'fit',ndat,slope,delxw,xleft,ywall(1,1)
+c             print *,'fit',ndat,slope,delxw,xleft,ywall(1,1)
             nwidth=nwidth+1
             width(nwidth)=delxw * pixsize
             do i = 1, 26
@@ -451,6 +462,7 @@ c                     print *,itimes(jobj),lr,pol,i,delx,dely,seglen,delang,fina
             izsav(1,nwidth)=iztime
             iobjsave(nwidth)=imodobj
             isurfsave(nwidth)=isurfs(jobj)
+            if (noPairs) isurfsave(nwidth) = imodcont
 c             write(1,101)ident,izsav(1,nwidth)
 c             &		  ,(arsum(i),arsqrt(i),angsum(i),i=1,3)
 c             101	    format(2i5,(6f10.2))
@@ -470,7 +482,7 @@ c
           do i=1,ncolout
             coltmp(i)=col(j,icolout(i))
           enddo
-          if (useSurf) then
+          if (useSurf .or. noPairs) then
             write(1,102)ident,iobjsave(j),isurfsave(j),izsav(1,j),
      &          (coltmp(i),i=1,ncolout)
 102         format(4i5,(14f10.3))
