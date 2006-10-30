@@ -64,13 +64,15 @@ DDEESSCCRRIIPPTTIIOONN
   multiple sub-volumes, the program will segregate the tracing based on their
   times; if you are modeling in a stack of single slices from different MTs,
   the segregation will be based upon Z value.  However, if you want to trace
-  multiple, unpaired walls in the Slicer, you need to segregate them by
-  placing them in either separate objects or separate surfaces.  Thus, you
-  could have one object for all of the first tracings in each MT, a second
-  object for the second tracing, etc.  Similarly, you could use the surface
-  number 0 for the first tracing in each MT, 1 for the second, etc.; or you
-  could simply put each tracing (or tracing pair) with associated marker into
-  a separate surface.
+  multiple, unpaired walls in the Slicer, either you need to segregate them by
+  placing them in either separate objects or separate surfaces, or you need to
+  use the -nopairs option.  Thus, you could have one object for all of the
+  first tracings in each MT, a second object for the second tracing, etc.
+  Similarly, you could use the surface number 0 for the first tracing in each
+  MT, 1 for the second, etc.; or you could simply put each tracing (or tracing
+  pair) with associated marker into a separate surface.  If you are willing to
+  have no marker lines, then you can use the -nopairs option to indicate that
+  there are neither pairs nor markers.
 
     The program computes various quantities and stores them in columns of a
   data matrix; you specify which columns you want output with -columns.  The
@@ -97,6 +99,13 @@ DDEESSCCRRIIPPTTIIOONN
   The last 4 items are placed into columns 19-22 for the left wall of a pair
   or for an unpaired wall, and into columns 23-26 for the right wall of a
   pair.
+
+    In the output file, these columns of output are preceded by 3 or 4
+  numbers.  The first number is a model identifier; the second is the object
+  number.  If you used surface numbers to segregate tracings, the third of 4
+  numbers is the surface number; if you used the -nopairs option, the third of
+  4 numbers is the contour number.  The last number is the time value, or the
+  Z value.
 
     Howflared uses the PIP package for input exclusively (see the manual page
   for pip(1)).  The following options can be specified either as command line

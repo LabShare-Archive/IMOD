@@ -47,6 +47,15 @@ paired and whether a horizontal marker contour matches a wall tracing.  This
 is not the default because surface numbers might have been introduced by
 accident.
 
+[Field = NoPairsOrMarkers]
+short = nopairs
+type = B
+usage = Tracings are all unpaired and there are no boundary markers
+tooltip = 
+manpage = There are no paired tracings and no horizontal marker lines.  With
+this option you do not need to segregate tracings in separate objects or
+surfaces.
+
 [Field = ModelFile]
 short = model
 type = FNM
@@ -66,7 +75,7 @@ the maximum Y is used.  If the lower limit is 0, the limit used depends on
 whether there is a horizontal marker line or not.  If there is a line, it is
 used as the limit; if not, the second point of the contour is used as the
 lower limit.  Enter this option once to use the same limit for all models, or
-once per model.  If it is not entered, the default limis are 0,0.
+once per model.  If it is not entered, the default limits are 0,0.
 
 [Field = Identifier]
 short = id
