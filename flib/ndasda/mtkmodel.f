@@ -5,6 +5,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.6  2006/05/12 14:37:32  mast
+c       Added moving contours in surfaces within window to new objects
+c
 c       Revision 3.5  2004/10/08 03:27:08  mast
 c       Added scaling to undo image file pixel size
 c	
@@ -391,7 +394,7 @@ c
             icoltmp = 0
             do imesh = 1, nmeshloaded
               if (isurf .ge. iobjsurf(imesh) .and. isurf .lt.
-     &            iobjsurf(imesh+1)) then
+     &            iobjsurf(imesh) + nsurfobj(imesh)) then
 c                 
 c                 See if this object is on change list
 c                 
@@ -432,7 +435,9 @@ c
       do icol = 1, ncolchg
         if (icolused(icol) .ne. 0) then
           lastobject = lastobject + 1
-          call putimodflag(lastobject, iobjflag(icolold(icol)))
+          iflag = iobjflag(icolold(icol))
+          if (iflag .eq. 4) iflag = 0
+          call putimodflag(lastobject, iflag)
         endif
       enddo
 c       
