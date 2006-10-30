@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/30/06: Fixed Mtk moving surface contours to a new object for last or only
+meshed object.
+
 10/27/06: Converted Remapmodel to PIP and added options to allow easy
 remapping of a model after rejoining serial tomograms with a different
 spacing.
