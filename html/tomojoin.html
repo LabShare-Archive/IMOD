@@ -1,5 +1,5 @@
 <html><head><title>Tomogram Joining</title></head><body>
-<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.7.2<BR>
+<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.9<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -7,7 +7,8 @@
 <UL>
 <BR><A HREF = "#Background">1. Background</A>
 <BR><A HREF = "#TopBottom">1.1. Top and Bottom</A>
-<BR><A HREF = "#Flipping">1.2. Flipping Tomograms</A>
+<BR><A HREF = "#Handedness">1.2. Preserving or Restoring Handedness</A>
+<BR><A HREF = "#Flipping">1.3. Flipping Tomograms</A>
 <BR><A HREF = "#Setup">2. The Setup Panel</A>
 <BR><A HREF = "#InitialEntries">2.1. Initial Entries</A>
 <BR><A HREF = "#AddingSections">2.2. Adding and Manipulating Sections</A>
@@ -15,11 +16,13 @@
 <BR><A HREF = "#DecidingSlices">2.4. Deciding on Slices to Extract</A>
 <BR><A HREF = "#MakingSamples">2.5. Density Matching and Making Samples</A>
 <BR><A HREF = "#ModifyingSetup">2.6. Modifying the Setup to Make New Samples</A>
+<BR><A HREF = "#InvertingTable">2.7. Inverting the Table</A>
 <BR><A HREF = "#Align">3. Aligning the Sample Slices</A>
 <BR><A HREF = "#ManualAlignment">3.1. Manual Alignment with Midas</A>
 <BR><A HREF = "#AutoAlignment">3.2. Automatic Alignment with Xfalign</A>
 <BR><A HREF = "#AutoParameters">3.3. Parameters for Automatic Alignment</A>
 <BR><A HREF = "#Joining">4. Making the Final Joined Volume</A>
+<BR><A HREF = "#Refining">5. Refining the Alignment with a Fiducial Model</A>
 </UL>
 <HR>
 <P>
@@ -63,11 +66,21 @@ runs the program <A href="man/finishjoin.man">Finishjoin</A>.
 1.1. Top and Bottom
 </H4></A>
      If you have N tomograms, then there are N-1 boundaries between sections.
-The words "top" and "bottom" are used here with a particular meaning: the
-"top" of a section is the part of the tomogram that matches up with the
-"bottom" of the next section.  These words do not refer to the high Z and low
+The words "top" and "bottom" are used here with a particular meaning: 
+the "bottom" of a section is the part of the tomogram that will end up at
+lower Z in the final joined volume, while the "top" is the part that will end
+up at higher Z in the final volume.
+The
+"top" of one section thus matches up with the
+"bottom" of the next section higher in Z.
+These words do not refer to the
+high Z and low
 Z portions of a tomogram, so the top of a section may be at either the high or
-the low Z end.  The programs will take care of any inversions in Z, both in
+the low Z end.  Indeed, if you invert the order in which the tomograms are
+to be stacked from low to high Z, you will change which side of each tomogram
+is considered the top by this definition.  
+The programs will take care of any 
+inversions in Z, both in
 extracting sample slices and in assembling the final volume, so you do not
 need to worry about entering slice numbers in a particular order.
 <P>
@@ -76,18 +89,50 @@ the block during cutting, then the surface of a section against the formvar
 should be the top, and the other surface should be the bottom.  You should be
 able to distinguish these surfaces by which one has gold particles closest to
 the sectioned material.
-
 <P>
+The following figures illustrate the meaning of these terms and how they
+translate into slice numbers to place in eTomo's table, for a case where all
+the sections have a consistent orientation.  Refer back to these figures
+as you read through the more
+detailed instructions below.
+<div align="center"><img src="joinImages/topBotSide1.jpg"><br>
+</div>
+<div align="center"><img src="joinImages/topBotTable1.png"><br>
+Entries in the table for the sections described above.
+</div>
+<P>
+<div align="center"><img src="joinImages/topBotStacked1.jpg"><br>
+The result of completing the join with the table entries shown above.
+</div>
+<A NAME = "Handedness"><H4>
+1.2. Preserving or Restoring Handedness
+</H4></A>
+The order in which you stack the sections will determine whether the
+handedness of structures is preserved or inverted from the individual
+tomograms to the joined volume.  When the final joined volume is made, slices
+are stacked in either original or inverted Z order, and in the latter case
+handedness is inverted.  When you finish the setup process, eTomo will signal
+to you whether tomograms are being inverted.  If you care about handedness, 
+the points to remember are:
+<UL>
+<LI> Your reconstruction has true handedness if the formvar comes out on the 
+same side of the section (lower or upper Z) as its physical location in the
+scope.
+<LI> If a reconstruction has true handedness, stack so as to avoid inverting
+it.
+<LI> If a reconstruction is inverted, stack so as to invert it.
+</UL>
 <A NAME = "Flipping"><H4>
-1.2. Flipping Tomograms
+1.3. Flipping Tomograms
 </H4></A>
 The interface in eTomo was designed to work only with tomograms that
-have been flipped after generation so that the Z sections in the image
-file correspond to actual slices in Z, parallel to the plane of
+have been flipped or rotated after generation so that the Z sections in the
+image file correspond to actual slices in Z, parallel to the plane of
 section.  If you identify a tomogram for joining that appears not to
 have been flipped
 in the post-processing step, eTomo will offer to flip it for you and
-produce a file with extension ".flip"  in the working directory.
+produce a file with extension ".flip"  in the working directory.  However,
+this will invert the handedness of structures in the volume.
 <P>
 <A NAME = "Setup"><H3>
 2. The Setup Panel
@@ -260,6 +305,30 @@ restore the entries that were used to make the existing samples.  This
 will unlock the other tabs.
 
 <P>
+<A NAME = "InvertingTable"><H4>
+2.7. Inverting the Table
+</H4></A>
+After you run <B>Make Samples</B>, eTomo is able to calculate whether some or
+all of the sections will be inverted in the final join.  It will highlight
+inverted sections with yellow in the table and warn you if morethan half are
+being inverted.  At this point, you can press <B>Change Setup</B> then
+<B>Invert Table</B> to invert the order of sections and change the inversion,
+if this will give the desired result.  The program will manage all of the
+starting and ending slice entries, so you can just go on and make new samples.
+<P>
+The following figures show a more complicated example illustrating rotations
+and inversions.  If the sections were stacked in this order, the resulting
+joined volume would be identical to the one shown above.  However, in this
+case that stacking would invert the handedness, so this is a case where
+inverting the table would be helpful.
+<div align="center"><img src="joinImages/topBotSide2.jpg"><br>
+</div>
+<div align="center"><img src="joinImages/topBotTable2.png"><br>
+Entries in the table for the sections described above.
+</div>
+
+
+<P>
 <A NAME = "Align"><H3>
 3. Aligning the Sample Slices
 </H3></A>
@@ -334,8 +403,8 @@ successful, you can get back to the last transforms written from
 Again, you would have to restart <A href="midas.man">Midas</A> or reload
 "rootname.xf" to work with these transforms.  There is no easy way to take
 some of the refined transformations but not others; to do this you could
-read "join_name.xf" into a text editor and substitute lines from
-"join_name_midas.xf" for the sections that have a better alignment from 
+read "rootname.xf" into a text editor and substitute lines from
+"rootname_midas.xf" for the sections that have a better alignment from 
 <A href="midas.man">Midas</A>.
 </OL>
 
@@ -421,12 +490,141 @@ starting and ending slices.  If so, make an appropriate change and generate
 a new trial volume to see if these limits work better.
 <LI> Press <B>Finish Join</B> to generate the full joined volume
 "rootname.join".
-<LI>Examine the joined volume ("join_name.join") to see whether you want fewer or
+<LI>Examine the joined volume ("rootname.join") to see whether you want fewer or
 more slices at any of the section boundaries.  If so, change the slices
-numbers in the table repeat <B>Finish Join</B>.
+numbers in the table and repeat <B>Finish Join</B>.
 </OL>
 Once you are done, you should be able to delete all of the intermediate
 image files that have been created (...flip, ...rot, rootname_trial.join,
 rootname.sample, rootname.sampavg).  The other
 files should be kept for future reference.
+
+<P>
+<A NAME = "Refining"><H3>
+5. Refining the Alignment with a Fiducial Model
+</H3></A>
+Once you have a joined volume, it is possible to model some of the features in
+the volume and use those features as fiducials for refining the alignment with 
+<A href="xfjointomo.man">Xfjointomo</A>.  The model can contain pairs of points
+that should correspond between two sections.  It can also contain
+features such as oblique microtubules that are otherwise hard to use for
+alignment because their position shifts between the top of one section and the
+bottom of the next.  If there are enough data from trajectories, it is even
+possible to determine the proper spacing between sections.  See the 
+<A href="xfjointomo.man">Xfjointomo man page</A> for complete details on how to
+prepare the model and run the program.
+<P>
+An interface is being planned for this refinement.  The directions below
+suggest file names based on naming conventions that will be used in this
+interface. 
+<P>
+The fiducial model can be built on the final joined file, or a binned trial
+join file that includes all of the slices.  Do not use a trial join that skips
+slices. 
+<P>
+Here is the sequence of operations for the simple case where you do not want
+to adjust the spacing between sections:
+<OL>
+<LI> You should first rename the file that you want to model to
+"rootname_modeled.join", so that it is not inadvertently lost when you rerun 
+<A href="man/finishjoin.man">Finishjoin</A>.
+<LI> Model features to indicate correspondences between sections.  One model
+can contain the fiducials for all of the sections.  Save the model as
+"rootname_refine.mod"
+<LI> Collect information needed to run <A
+href="xfjointomo.man">Xfjointomo</A>.  Note the number of slices in each of
+the sections (referred to as {sizes} below).
+The offset entry, referred to as {offset}, is the
+<B>negative</B> of the values in the <B>Shift in X</B> and <B>Y</B> fields on
+the <B>Join</B> panel in eTomo.
+<LI> Decide what kind of transformations to solve for.
+If you have enough data (at least four well-defined positions per boundary,
+preferably at least 6) you can solve for linear transformations that account
+for stretch.  If you have much less data on some boundaries than on others,
+you may have to run <A href="xfjointomo.man">Xfjointomo</A> several
+times with different specifications for the different boundaries.
+<LI> Run <A href="xfjointomo.man">Xfjointomo</A> with (all on one line):
+<br><code>
+  xfjointomo -ed -si {sizes} -of {offset} rootname_refine.mod
+  rootname_refine.xf rootname_refinejoin.xg
+<br></code>
+If you used a binned trial join, add "-bin" with
+the binning.  Add options such as "-rot" or "-mag" to restrict the
+transformation being solved for.
+Add "-bound" and a list of boundary numbers (numbered from 1) to solve for
+a subset of boundaries in one run.  The "-ed" option lets you run the command
+several times, "editing" the transform file "rootname_refine.xf" by
+accumulating results from different runs for different boundaries.
+<LI> Extract the <A href="man/finishjoin.man">Finishjoin</A> command from
+etomo_err.log with:
+<br><pre>
+  grep finishjoin etomo_err.log
+</pre>
+You should get something like:
+<br><pre>
+  finishjoin -P -s 535,460 -o 54,31 unicross 1,49 3,63 7,60
+</pre>
+Copy and paste this onto the command line, adding "-xf rootname_refinejoin.xg"
+right after the "finishjoin".  
+<LI> Run the "finishjoin" command as modified.
+<LI> To transform the model into the new alignment run
+<br><pre>
+  xftoxg -n 0 rootname_refine.xf
+  xfmodel -xf rootname_refine.xg -ch {sizes} rootname_refine.mod rootname_refine.alimod
+</pre>
+<LI> If need to refine the model after seeing the transformed images or model,
+go back and edit the original model on the original volume,
+"rootname_modeled.join". 
+</OL>
+The fit from this procedure may be adequate, but if you want to eliminate all
+the kinks from lines passing obliquely between sections, you may need to
+adjust the inter-section spacing.  You can use 
+<A href="xfjointomo.man">Xfjointomo</A> to find the best
+spacing between sections if your model contains some of these
+oblique lines at a variety of angles.  To do so, modify the steps above as
+follows:
+<UL>
+<LI> In step 5, add an entry such as
+"gap -4,6,2" when running <A href="xfjointomo.man">Xfjointomo</A>, so that it
+will fit the data with a series of assumed gaps between the sections.
+<LI> In the "finishjoin" command, the pairs of numbers after the rootname are
+the slices to use from each section.  They may not be in the right order,
+i.e., starting slice then ending slice.  
+In step 6, reorder the numbers for each section
+if necessary so that the starting slice is the smaller number for sections
+that were not inverted in the join and the larger number for sections that were
+inverted.  If there are no inversions, the starting number should
+always be less than the ending number.  Make a note of these slice numbers
+in the original join.
+<LI> In step 7, if you 
+found that a non-zero gap gave the best solution for a boundary, you need
+to add
+slices to a boundary for a positive gap size and remove them for a negative
+gap size in the "finishjoin" command.  You can do this by adjusting either the
+ending slice before a boundary, the starting slice after a boundary, or both.
+If this is not feasible, first rerun 
+<A href="xfjointomo.man">Xfjointomo</A> with no gap entry for the boundary
+in question, and leave the ending and starting slices on the two sides of that
+boundary unchanged.
+<LI> In step 8, the transformed model needs a
+similar adjustment to the boundaries, which is done with:
+<br><pre>
+  remapmodel -from {old_slices} -to {new_slices} rootname_refine.alimod rootname_refine.remapmod
+</pre>
+where {old_slices} is the original list of starting and ending slices (with
+spaces replaced by commas) and {new_slices} is the new list.  
+</UL>
+<P>
+For example,
+if the original list on the "finishjoin" command is "3,87 5,92 65,2" and
+there were no inversions, and the best fit is found with a gap of 2 at the 
+first boundary but a gap of -2 at the second boundary, then the modified
+entry for "finishjoin" could be "3,88 4,92 4,65".  This adds two slices to the
+first boundary, one from each section, and removes two slices from the second
+boundary, both from the last section.  In this case, the aligned model would
+be remapped with:
+<br><pre>
+  remapmodel -from 3,87,5,92,2,65 -to 3,88,4,92,4,65 rootname_refine.alimod rootname_refine.remapmod
+</pre>
 </body></html>
+
