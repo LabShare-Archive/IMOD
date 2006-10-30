@@ -12,6 +12,11 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2005/01/07 15:56:12  mast
+c	  Fixed to work with unscaled data; made all vectors go the same
+c	  direction along the main axis so that they would sum correctly even
+c	  when not inverting contours for output
+c	
 c	  Revision 3.4  2004/06/17 17:48:35  mast
 c	  Corrected program name in error messages
 c	
@@ -179,7 +184,8 @@ c
 
 	call vectors_to_rmat(vecmean,vecnorm,rmat)
 
-	print *,'vecmean:',(vecmean(i),i=1,3)
+	write(*,'(a,3f10.1)')'Mean vector:', (vecmean(i),i=1,3)
+        print *,'Rotation matrix:'
 	write(*,'(3f8.4)')((rmat(i,ipt),i=1,3),ipt=1,3)
 	xt = vecmean(1)
 	yt = vecmean(2)
@@ -187,7 +193,7 @@ c
 	xmt(1)=xt*rmat(1,1)+yt*rmat(1,2)+zt*rmat(1,3)
 	ymt(1)=xt*rmat(2,1)+yt*rmat(2,2)+zt*rmat(2,3)
 	zmt(1)=(xt*rmat(3,1)+yt*rmat(3,2)+zt*rmat(3,3))/zscale
-	print *,'rotated vec:', xmt(1),ymt(1),zmt(1)
+	write(*,'(a,3f10.1)')'Rotated vector:', xmt(1),ymt(1),zmt(1)
 
 	xmin=1.e10
 	ymin=1.e10
@@ -339,7 +345,7 @@ c
 	subroutine vectors_to_rmat(avec,bvec,rm)
 	implicit none
 	real*4 rm(3,3),avec(*),bvec(*),cvec(3)
-	real*4 x, y, z, sina, cosa, angle, asind, cosd, omca, absval
+	real*4 x, y, z, sina, cosa, angle, sind, acosd, omca, absval
 	equivalence (x,cvec(1)),(y,cvec(2)),(z,cvec(3))
 	integer*4 i, j
 
@@ -351,10 +357,10 @@ c
 	  enddo
 	enddo
 	if(absval(cvec).eq.0.)return
-	sina=absval(cvec)/(absval(avec)*absval(bvec))
-	angle=asind(sina)
-	cosa=cosd(angle)
-	sina=-sina
+        cosa = (avec(1)*bvec(1) + avec(2)*bvec(2) + avec(3)*bvec(3)) /
+     &      (absval(avec)*absval(bvec))
+        angle = acosd(cosa)
+        sina = -sind(angle)
 	omca=1.0-cosa
 	call normalize(cvec)
         rm(1,1) = x * x * omca + cosa
