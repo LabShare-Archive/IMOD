@@ -427,8 +427,6 @@ Rotate an image volume by -90 degrees about the X axis.  This rotation is
 preferable to flipyz because it preserves the handedness of structures.
 The origin and tilt angles in the header will be modified to retain the
 coordinate system of the original volume, as is done by Rotatevol(1).  
-.B -iz
-entry.  
 .TP
 .B sharpen
 .PD 0
