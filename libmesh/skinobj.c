@@ -2782,6 +2782,7 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
   Icont *c1, *c2;
   int pt, pto;
   int reversed = 0;
+
   if (st2 < st1) {
     reversed = st1;
     st1 = st2;
@@ -2833,6 +2834,32 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
     c2->pts[pto++] = point;
   for (pt = st1; pt <= st2; pt++)
     c2->pts[pto++] = cin->pts[pt];
+
+  /* printf("Break in out size %d  st1 %d  st2 %d new sizes %d %d\n", 
+     cin->psize, st1, st2, c1->psize, c2->psize);
+     istoreDump(cin->store); */
+  /* Transfer properties */
+  if (istoreExtractChanges(cin->store, &c1->store, 0, st1, 0, cin->psize))
+    return 1;
+  if (fill && istoreExtractChanges(cin->store, &c1->store, st1, st1, st1 + 1,
+                                   cin->psize))
+    return 1;
+
+  if (istoreExtractChanges(cin->store, &c1->store, st2, cin->psize - 1, 
+                           st1 + (fill ? 2 : 1), cin->psize))
+    return 1;
+
+  if (fill &&istoreExtractChanges(cin->store, &c2->store, st1, st1, 0,
+                                  cin->psize))
+    return 1;
+  
+  if (istoreExtractChanges(cin->store, &c2->store, st1, st2, fill ? 1 : 0,
+                           cin->psize))
+    return 1;
+
+  /* istoreDump(c1->store);
+     istoreDump(c2->store); */
+  
   *cout1 = c1;
   *cout2 = c2;
   if (reversed) {
@@ -2846,5 +2873,8 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.1  2006/09/12 14:58:19  mast
+Split up and made into new library
+
 
 */
