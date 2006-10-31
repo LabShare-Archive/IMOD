@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/31/06: Made Imodemesh propagate properties like gaps to created connector
+points made when meshing complex geometry.
+
+10/30/06: Fixed Resamplemod rotation when mean vector has a negative Z 
+component.
+
 10/30/06: Fixed Mtk moving surface contours to a new object for last or only
 meshed object.
 
