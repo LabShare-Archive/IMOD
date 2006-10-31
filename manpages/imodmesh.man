@@ -401,11 +401,6 @@ from planar contours.  Graphics and Image Processing, 20: 693-702.
 Shantz, M. 1981.  Surface definition for branching, contour-defined objects.
 Computer Graphics, 15: 242-267.
 .SH BUGS
-Only closed contours that have all of their points in one
-Z plane can be
-skinned.  imodmesh will use the average Z value for the contour
-and try anyway. 
-
 The algorithm for finding the set of triangles with minimum area is currently
 quadratic; that is, execution time is proportional to the square of the number
 of points in the contours being connected.  imodmesh can bog down badly if
