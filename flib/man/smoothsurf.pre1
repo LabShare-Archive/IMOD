@@ -21,7 +21,7 @@ DDEESSCCRRIIPPTTIIOONN
   for the maximum distance in 3D should give a good starting point for
   smoothing models drawn on tomographic reconstructions.  Increase or
   decrease these two numbers together to increase or decrease the
-  smoothing.  Because the default values give a bug disparity between the
+  smoothing.  Because the default values give a big disparity between the
   total extent in Z versus X and Y (7 versus 30), the Z range should be
   increased more than the distance.  For example, try "-nz 11 -dist 20" and
   "-nz 15 -dist 25" for progressively more smoothing.  If you want to
