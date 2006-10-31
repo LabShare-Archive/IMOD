@@ -1186,7 +1186,9 @@ int imodel_contour_nearest(Icont *cont, int x, int y)
  * and [st2]; if either one is negative they will be joined at their nearest 
  * points. ^
  *   If [fill] is  1 or -1, a point will be placed in the middle of the 
- * connector at 0.75 pixels up or down in Z, respectively. ^
+ * connector at 0.75 pixels up or down in Z, respectively.  The fill point will
+ * be given the general storage properties of the preceding point in the 
+ * contour. ^
  *   If [counterdir] is nonzero the two contours will be made to go in opposite
  * directions before being joined.
  */
@@ -1275,16 +1277,21 @@ Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
     point.z -= 0.75f;
 
   /* Take care of joining storage lists first, but keep new list separate
-     to avoid having it get renumbered */
+     to avoid having it get renumbered.  Propagate the properties at st1 and
+     st2 into the fill point */
   if (ilistSize(c1->store) || ilistSize(c2->store)) {
     lst2 = st1 + 1 + (fill ? 1 : 0);
     lst3 = lst2 + c2->psize - st2;
     lst4 = st1 + c2->psize + 2 + (fill ? 2 : 0);
     if (istoreExtractChanges(c1->store, &nstore, 0, st1, 0, c1->psize) ||
+        (fill && istoreExtractChanges(c1->store, &nstore, st1, st1, st1 + 1,
+                                      c1->psize)) ||
         istoreExtractChanges(c2->store, &nstore, st2, c2->psize - 1, 
                              lst2, c2->psize) ||
         istoreExtractChanges(c2->store, &nstore, 0, st2, 
                              lst3, c2->psize) ||
+        (fill && istoreExtractChanges(c2->store, &nstore, st2, st2,
+                                      lst4 - 1, c2->psize)) ||
         istoreExtractChanges(c1->store, &nstore, st1, c1->psize - 1, 
                              lst4, c1->psize) ||
         istoreCopyNonIndex(c1->store, &nstore) ||
@@ -3344,6 +3351,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.22  2006/10/11 04:06:47  mast
+  Changed to plane fitting from mean normal routine
+
   Revision 3.21  2006/09/12 15:24:17  mast
   Added contour normal, handled member renames
 
