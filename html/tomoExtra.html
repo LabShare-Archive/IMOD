@@ -20,8 +20,8 @@
 Nearly all of the processing for tomography is done by running command
 files.  The format of these files was originally based on the batch files used
 in VMS.  In our command files, every line that runs a command or program must
-start with "$" or "%"; comments can be inserted anywhere in the file on lines
-that start with "$!" or "#".  To skip over part of a command file, you can
+start with "$"; comments can be inserted anywhere in the file on lines
+that start with "#".  To skip over part of a command file, you can
 insert the lines:
 <PRE>
   $goto label             ("label" can be any label you choose)
@@ -36,7 +36,7 @@ IMOD startup files:
 that will run one or more command
 files in sequence, creating a log file for each and reporting on their
 success or failure.  It uses the program Vmstocsh to
-converts a command file to a script that can be run
+convert a command file to a script that can be run
 by the C shell, csh.
 With this alias, you can enter, e.g., "subm track", and a file named
 track.com will be executed in the background, a log file will be created
@@ -105,7 +105,7 @@ has a short name and a long name defined for it.  The short names are meant
 to be used on the command line, while the long names are more explanatory
 and are suitable for command files.  Option names can be abbreviated to
 a unique set of characters, which makes command line use even more
-convenient, although it is better not to abbreviated options in command files.
+convenient, although it is better not to abbreviate options in command files.
 All text starting with a '#' is treated as a comment and ignored.
 
 <P>
@@ -113,14 +113,15 @@ It may help to be aware of the underlying structure of the programs in
 the IMOD package.  They are written in three languages: C, Fortran, and shell
 script language.  The C programs take command line arguments; none have yet
 been converted to use <A HREF = "man/pip.html">PIP</A> for input.  Most of the
-shell scripts also take command line arguments, the main exceptions being
-Copytomocoms, Setupcombine, and Makejoincom, which take inputs interactively.
+shell scripts also take command line arguments, the exceptions being
+Copytomocoms, Setupcombine, and Makejoincom, which originally took inputs
+interactively and have been converted to take command line arguments as well.
 The Fortran programs, which are the predominant programs used for tomography,
 originally all took inputs interactively.  Some of them also took input and
-output filenames on the command line, particularly ones which need no other
+output filenames on the command line, particularly ones which needed no other
 entries (e.g., Header and Fftrans).  Fortran programs used for tomography
-are gradually being converted to use <A HREF = "man/pip.html">PIP</A> for
-input whenever new entries are needed.
+have almost all been converted to use <A HREF = "man/pip.html">PIP</A> for
+input.
 <P>
 Fortran programs have several conventions for numeric interactive input,
 and <A HREF = "man/pip.html">PIP</A> follows essentially the same conventions:
@@ -172,7 +173,7 @@ after lists.
      If you need to get command files for a situation that Etomo cannot handle,
 go to the directory where you will be working and enter
 <CODE><BR>     copytomocoms</CODE><BR>
- No command-line arguments are needed; the program will ask you a series of
+With no command-line arguments like this; the program will ask you a series of
 questions about whether you have a tilt series about one axis or two, whether
 the data are from CCD camera or film, etc.  The program works best if your
 data files are already present in the current directory.
@@ -207,24 +208,18 @@ go to the <B>Tomogram Positioning</B> page.
 You have the same two choices as when
 there are fiducials: generating 3 small samples or generating a whole
 tomogram (presumably binned down) to draw boundary lines in.  After you run
-<B>Compute Z Shift & Pitch Angles</B>, however, you cannot enter the
-parameters on this panel but must press
-<B>Done</B> to go on to the <B>Tomogram Generation</B> panel.  
-Go to
-Advanced mode and, under <B>Tilt Parameters</B>, enter the suggested Z
-shift in the <B>Z offset</B> text box and the total angle offset in the
-<B>Tilt angle offset</B> text box.  These entries have the same effect as,
-and are additive to, the
-corresponding entries on the <B>Tomogram Positioning</B> page that are
-used
-when running <A HREF = "man/tiltalign.html">Tiltalign</A>.
-They should be used only for fiducialless
-alignment because they are not taken into account by 
-<A HREF = "man/solvematch.html">Solvematch</A>
-when it uses the fiducial coordinates to obtain the initial
-transformation between dual-axis tomograms.  If you do go on to do a
-fiducial alignment for this tilt series, you should remove these
-entries before redoing the positioning.
+<B>Compute Z Shift & Pitch Angles</B>, your positioning parameters will appear
+on the screen just as they do with a fiducial alignment.  However, the 
+<B>Tilt angle offset</B> and <B>Z-shift</B> shown here will be input to the
+tomogram generation program, not the alignment program.  They are the same
+parameters visible in Advanced mode on the <B>Tomogram Generation</B>.
+These entries have the same effect as, and are additive to, the
+entries that appear on the <B>Tomogram Positioning</B> page when
+<A HREF = "man/tiltalign.html">Tiltalign</A> is being run.
+As of IMOD 3.8.26, both sets of parameters can be present and will be properly
+taken into account when <A HREF = "man/solvematch.html">Solvematch</A>
+uses the fiducial coordinates to obtain the initial
+transformation between dual-axis tomograms.
 
 <LI><B>Tomogram Generation.</B> There is one parameter that can be adjusted to
 affect the results at this stage, the angle of the tilt axis.  A possible
@@ -239,6 +234,8 @@ would be:
 <LI>Compute the cross-correlation.  Check <B>Fiducialless alignment</B> and
 press <B>Done</B> (remember, there is no need to generate the coarse aligned
 stack).
+<LI>Go to <B>Tomogram Positioning</B> and determine the positioning
+parameters.
 <LI>Go to <B>Tomogram Generation</B> and generate and view an aligned stack. 
 If features are not staying in one horizontal line,
 adjust the <B>Tilt axis rotation</B> and make a new aligned stack to try to
@@ -252,10 +249,7 @@ cumulative correlation or a subset area).
 trial tomogram.
 <LI>Repeat the last two steps until optimal parameters are determined then
 compute the correlation again, if necessary.
-<LI>Go to <B>Tomogram Positioning</B> and determine the positioning
-parameters.
-<LI>Go to <B>Tomogram Generation</B>, set the positioning parameters, reset
-the binning if it was changed to make a binned down tomogram, and generate
+<LI>Go to <B>Tomogram Generation</B>, generate
 the aligned stack.  Apply 2D filtering if needed.  Reset the slice limits and 
 width, and make the final tomogram.
 </OL>
