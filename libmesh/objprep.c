@@ -31,274 +31,13 @@ static void cleanPrepArrays(Ipoint *bbmin, Ipoint *bbmax, float *volume,
 
 
 /*!
- * Deletes meshes pointed to by [meshp] and their {store} elements if their
- * resolution flag matches [resol].  [size] is the size of the mesh; both
- * [meshp] and [size] are updated for the new mesh.  Returns -1 for error.
- */
-int imodMeshesDeleteRes(Imesh **meshp, int *size, int resol)
-{
-  int ms;
-  int newsize = 0;
-  Imesh *mesh;
-  if (!meshp || !(*meshp))
-    return(-1);
-  mesh = *meshp;
-
-  for(ms = 0; ms < *size; ms++){
-    if (imeshResol(mesh[ms].flag) == resol) {
-      if (mesh[ms].vert)
-        free(mesh[ms].vert);
-      if (mesh[ms].list)
-        free(mesh[ms].list);
-      ilistDelete(mesh[ms].store);
-    } else
-      mesh[newsize++] = mesh[ms];
-  }
-  if (!newsize) {
-    free(mesh);
-    *meshp = NULL;
-  }
-  *size = newsize;
-  return(0);
-}
-
-/*!
- * Flattens, resections, reduces resolution, and cleans up small numbers in 
- * the contours of [obj].  Contours are flattened by setting their Z values
- * to the Z of the first point, or to the mean Z value if [useMeanZ] is 
- * nonzero.  Contours with Z not between [minz] and [maxz] and not multiples
- * of [incz] are eliminated ([minz] and [maxz] should both be set to 
- * DEFAULT_VALUE to retain the full Z range).  Point reduction is applied with
- * tolerance [tol] if it is nonzero.  Returns 1 for error.
- */
-int imeshPrepContours(Iobj *obj, int minz, int maxz, int incz, float tol,
-                      int useMeanZ)
-{
-  Icont *cont;
-  int co, i;
-  float zval;
-
-  for (co = 0; co < obj->contsize; co++) {
-    cont = &obj->cont[co];
-    zval = cont->pts[0].z;
-    if (useMeanZ) {
-      for (i = 1; i < cont->psize; i++)
-        zval += cont->pts[i].z;
-      zval /= cont->psize;
-    }
-    for (i = 1; i < cont->psize; i++)
-      cont->pts[i].z = zval;
-  }
-
-  if (resecobj(obj, minz, maxz, incz))
-    return 1;
-  if (ReduceObj(obj, tol))
-    return 1;
-  cleanzero(obj);
-  return 0;
-}
-
-/*
- * Resection object - remove contours that don't fall on multiple of incz 
- */
-static int resecobj(Iobj *obj, int minz, int maxz, int incz)
-{
-  Icont *cont;
-  int co;
-  int z = 0;
-  int rmcont;
-
-  if (incz <= 0) 
-    incz = 1;
-  if ((minz == DEFAULT_VALUE) && (maxz == DEFAULT_VALUE) && (incz == 1))
-    return 0;
-
-  /* printf("Z section filter from %d to %d, step by %d\n", minz, maxz, incz);
-     printf("%d contours\n", obj->contsize); */
-
-  for (co = 0; co < obj->contsize; co++) {
-    cont = &(obj->cont[co]);
-    rmcont = FALSE;
-        
-    if (!cont->psize) 
-      rmcont = TRUE;
-
-    /*
-     * find the zvalue of the contour.
-     */
-    if (!rmcont)
-      z = imodContourZValue(cont);
-        
-    /*
-     * Check the Z value.
-     */
-    if ((minz != DEFAULT_VALUE && z < minz) ||
-        (maxz != DEFAULT_VALUE && z > maxz) || (z % incz))
-      rmcont = TRUE;
-
-    if (rmcont) {
-
-      /* printf("removed cont %d : %d\n", co, z); */
-      imodContourClear(cont);
-      if (imodObjectRemoveContour(obj, co)) {
-        b3dError(stderr, "Error removing contour at unneeded slice in Z\n");
-        return 1;
-      }
-      co--;
-    }
-  }
-  return 0;
-}
-
-/*
- * Reduce points by removing ones within dist of the remaining lines
- */
-static int ReduceObj(Iobj *obj, float dist)
-{
-  int co;
-  Icont *cont;
-  Icont *tc;
-  float tol;
-
-  if (dist <= 0.0)
-    return 0;
-  if (!obj)
-    return 0;
-
-  for (co = 0; co < obj->contsize; co++){
-    cont = &(obj->cont[co]);
-    tol = dist;
-    if (cont->psize > 4)
-      while(tol > 0.01 * dist){
-        tc = imodContourDup(cont);
-        if (!tc) {
-          b3dError(stderr, "Failed to get duplicate contour for point "
-                   "reduction\n");
-          return 1;
-        }
-        imodContourReduce(tc, tol);
-        if (tc->psize < 4){
-          tol *= 0.5;
-          imodContourDelete(tc);
-        } else {
-          imodContourClear(cont);
-          imodContourCopy(tc, cont);
-          free(tc);
-          break;
-        }
-      }
-  }
-  return 0;
-}
-
-/*
- * avoid underflow exceptions.  No idea if this is still needed.
-*/
-static void cleanzero(Iobj *obj)
-{
-  Icont  *cont;
-  Ipoint pnt;
-  int co,pt;
-
-  for(co = 0; co < obj->contsize; co++){
-    cont = &obj->cont[co];
-    for(pt = 0; pt < cont->psize; pt++){
-      pnt = cont->pts[pt];
-      
-      if ((pnt.x < 0.001f) && (pnt.x > -0.001f))
-        pnt.x = 0.0f;
-      if ((pnt.y < 0.001f) && (pnt.y > -0.001f))
-        pnt.y = 0.0f;
-      if ((pnt.z < 0.001f) && (pnt.z > -0.001f))
-        pnt.z = 0.0f;
-      
-    }
-  }
-}
-
-/*!
- * Makes an object with duplicates of the contours in [obj]; either 
- * contours whose flag has a non-zero AND with [flags], or
- * all non-empty contours if [flag] is zero.  Copies store data but not meshes.
- * Returns NULL for error.
- */
-Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
-{
-  Iobj *newObj;
-  Icont *cont;
-  int i, err, newInd;
-  int maxsurf = 0;
-
-  newObj = imodObjectNew();
-  if (!newObj) {
-    b3dError(stderr, "Error duplicating contours for meshing\n");
-    return NULL;
-  }
-
-  /* Copy object structure but zero out the count of mesh and contours in case
-     we have to free it */
-  imodObjectCopy(obj, newObj);
-  newObj->contsize = 0;
-  newObj->cont = NULL;
-  newObj->store = NULL;
-  newObj->label = NULL;
-  newObj->meshParam = NULL;
-  newObj->meshsize = 0;
-
-  /* Duplicate contours one at a time and add to object */
-  
-  for (i = 0; i < obj->contsize; i++) {
-
-    /* Skip if there is a flag and this contour is not marked; otherwise
-       reset the flag before the copy.  Then skip if empty */
-    if (flag && !(flag & obj->cont[i].flags))
-      continue;
-    if (flag)
-      obj->cont[i].flags &= ~flag;
-    if (!obj->cont[i].psize)
-      continue;
-
-    /* Duplicate the contour and all its data and add to new object */
-    err = 1;
-    cont = imodContourDup(&obj->cont[i]);
-    if (!cont)
-      break;
-
-    maxsurf= B3DMAX(maxsurf, cont->surf);
-    if ((newInd = imodObjectAddContour(newObj, cont)) < 0)
-      break;
-
-    if ((err = istoreCopyContSurfItems(obj->store, &newObj->store, i, newInd,
-                                       0)))
-      break;
-    free(cont);
-  }
-
-  /* Copy non-index items and surface items up to the maximum surface copied */
-  if (!err)
-    err = istoreCopyNonIndex(obj->store, &newObj->store);
-  if (!err) {
-    for (i = 0; i <= maxsurf; i++)
-      if ((err = istoreCopyContSurfItems(obj->store, &newObj->store, i, i, 1)))
-        break;
-  }
-
-  if (err) {
-    imodObjectDelete(newObj);
-    b3dError(stderr, "Error duplicating contours for meshing\n");
-    return NULL;
-  }
-
-  return newObj;
-}
-
-/*!
  * Provides a single call for analysis, preparation, and skinning of object 
- * [obj].  Uses the meshing parameters in the {meshParam} member of [obj].
+ * [obj].  Uses the meshing parameters in the {meshParam} member of [obj],
+ * a @@MeshParams structure@.
  * Duplicates the contours unless IMESH_MK_IS_COPY is set in {flags}.
  * Analyzes for flatness if {flatCrit} is nonzero and if the contours are
  * not flat enough, finds a separate rotation to flatness for each surface.
- * Calls @imeshPrepContours and @imeshSkinObj.  Returns 1 for error.
+ * Calls @imeshPrepContours and @imeshSkinObj .  Returns 1 for error.
  */
 int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
 {
@@ -701,10 +440,275 @@ static int floatcmp(const void *v1, const void *v2)
   return 0;
 }
 
+/*!
+ * Deletes meshes pointed to by [meshp] and their {store} elements if their
+ * resolution flag matches [resol].  [size] is the size of the mesh; both
+ * [meshp] and [size] are updated for the new mesh.  Returns -1 for error.
+ */
+int imodMeshesDeleteRes(Imesh **meshp, int *size, int resol)
+{
+  int ms;
+  int newsize = 0;
+  Imesh *mesh;
+  if (!meshp || !(*meshp))
+    return(-1);
+  mesh = *meshp;
+
+  for(ms = 0; ms < *size; ms++){
+    if (imeshResol(mesh[ms].flag) == resol) {
+      if (mesh[ms].vert)
+        free(mesh[ms].vert);
+      if (mesh[ms].list)
+        free(mesh[ms].list);
+      ilistDelete(mesh[ms].store);
+    } else
+      mesh[newsize++] = mesh[ms];
+  }
+  if (!newsize) {
+    free(mesh);
+    *meshp = NULL;
+  }
+  *size = newsize;
+  return(0);
+}
+
+/*!
+ * Flattens, resections, reduces resolution, and cleans up small numbers in 
+ * the contours of [obj].  Contours are flattened by setting their Z values
+ * to the Z of the first point, or to the mean Z value if [useMeanZ] is 
+ * nonzero.  Contours with Z not between [minz] and [maxz] and not multiples
+ * of [incz] are eliminated ([minz] and [maxz] should both be set to 
+ * DEFAULT_VALUE to retain the full Z range).  Point reduction is applied with
+ * tolerance [tol] if it is nonzero.  Returns 1 for error.
+ */
+int imeshPrepContours(Iobj *obj, int minz, int maxz, int incz, float tol,
+                      int useMeanZ)
+{
+  Icont *cont;
+  int co, i;
+  float zval;
+
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    zval = cont->pts[0].z;
+    if (useMeanZ) {
+      for (i = 1; i < cont->psize; i++)
+        zval += cont->pts[i].z;
+      zval /= cont->psize;
+    }
+    for (i = 1; i < cont->psize; i++)
+      cont->pts[i].z = zval;
+  }
+
+  if (resecobj(obj, minz, maxz, incz))
+    return 1;
+  if (ReduceObj(obj, tol))
+    return 1;
+  cleanzero(obj);
+  return 0;
+}
+
+/*
+ * Resection object - remove contours that don't fall on multiple of incz 
+ */
+static int resecobj(Iobj *obj, int minz, int maxz, int incz)
+{
+  Icont *cont;
+  int co;
+  int z = 0;
+  int rmcont;
+
+  if (incz <= 0) 
+    incz = 1;
+  if ((minz == DEFAULT_VALUE) && (maxz == DEFAULT_VALUE) && (incz == 1))
+    return 0;
+
+  /* printf("Z section filter from %d to %d, step by %d\n", minz, maxz, incz);
+     printf("%d contours\n", obj->contsize); */
+
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &(obj->cont[co]);
+    rmcont = FALSE;
+        
+    if (!cont->psize) 
+      rmcont = TRUE;
+
+    /*
+     * find the zvalue of the contour.
+     */
+    if (!rmcont)
+      z = imodContourZValue(cont);
+        
+    /*
+     * Check the Z value.
+     */
+    if ((minz != DEFAULT_VALUE && z < minz) ||
+        (maxz != DEFAULT_VALUE && z > maxz) || (z % incz))
+      rmcont = TRUE;
+
+    if (rmcont) {
+
+      /* printf("removed cont %d : %d\n", co, z); */
+      imodContourClear(cont);
+      if (imodObjectRemoveContour(obj, co)) {
+        b3dError(stderr, "Error removing contour at unneeded slice in Z\n");
+        return 1;
+      }
+      co--;
+    }
+  }
+  return 0;
+}
+
+/*
+ * Reduce points by removing ones within dist of the remaining lines
+ */
+static int ReduceObj(Iobj *obj, float dist)
+{
+  int co;
+  Icont *cont;
+  Icont *tc;
+  float tol;
+
+  if (dist <= 0.0)
+    return 0;
+  if (!obj)
+    return 0;
+
+  for (co = 0; co < obj->contsize; co++){
+    cont = &(obj->cont[co]);
+    tol = dist;
+    if (cont->psize > 4)
+      while(tol > 0.01 * dist){
+        tc = imodContourDup(cont);
+        if (!tc) {
+          b3dError(stderr, "Failed to get duplicate contour for point "
+                   "reduction\n");
+          return 1;
+        }
+        imodContourReduce(tc, tol);
+        if (tc->psize < 4){
+          tol *= 0.5;
+          imodContourDelete(tc);
+        } else {
+          imodContourClear(cont);
+          imodContourCopy(tc, cont);
+          free(tc);
+          break;
+        }
+      }
+  }
+  return 0;
+}
+
+/*
+ * avoid underflow exceptions.  No idea if this is still needed.
+*/
+static void cleanzero(Iobj *obj)
+{
+  Icont  *cont;
+  Ipoint pnt;
+  int co,pt;
+
+  for(co = 0; co < obj->contsize; co++){
+    cont = &obj->cont[co];
+    for(pt = 0; pt < cont->psize; pt++){
+      pnt = cont->pts[pt];
+      
+      if ((pnt.x < 0.001f) && (pnt.x > -0.001f))
+        pnt.x = 0.0f;
+      if ((pnt.y < 0.001f) && (pnt.y > -0.001f))
+        pnt.y = 0.0f;
+      if ((pnt.z < 0.001f) && (pnt.z > -0.001f))
+        pnt.z = 0.0f;
+      
+    }
+  }
+}
+
+/*!
+ * Makes an object with duplicates of the contours in [obj]; either 
+ * contours whose flag has a non-zero AND with [flags], or
+ * all non-empty contours if [flag] is zero.  Copies store data but not meshes.
+ * Returns NULL for error.
+ */
+Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
+{
+  Iobj *newObj;
+  Icont *cont;
+  int i, err, newInd;
+  int maxsurf = 0;
+
+  newObj = imodObjectNew();
+  if (!newObj) {
+    b3dError(stderr, "Error duplicating contours for meshing\n");
+    return NULL;
+  }
+
+  /* Copy object structure but zero out the count of mesh and contours in case
+     we have to free it */
+  imodObjectCopy(obj, newObj);
+  newObj->contsize = 0;
+  newObj->cont = NULL;
+  newObj->store = NULL;
+  newObj->label = NULL;
+  newObj->meshParam = NULL;
+  newObj->meshsize = 0;
+
+  /* Duplicate contours one at a time and add to object */
+  
+  for (i = 0; i < obj->contsize; i++) {
+
+    /* Skip if there is a flag and this contour is not marked; otherwise
+       reset the flag before the copy.  Then skip if empty */
+    if (flag && !(flag & obj->cont[i].flags))
+      continue;
+    if (flag)
+      obj->cont[i].flags &= ~flag;
+    if (!obj->cont[i].psize)
+      continue;
+
+    /* Duplicate the contour and all its data and add to new object */
+    err = 1;
+    cont = imodContourDup(&obj->cont[i]);
+    if (!cont)
+      break;
+
+    maxsurf= B3DMAX(maxsurf, cont->surf);
+    if ((newInd = imodObjectAddContour(newObj, cont)) < 0)
+      break;
+
+    if ((err = istoreCopyContSurfItems(obj->store, &newObj->store, i, newInd,
+                                       0)))
+      break;
+    free(cont);
+  }
+
+  /* Copy non-index items and surface items up to the maximum surface copied */
+  if (!err)
+    err = istoreCopyNonIndex(obj->store, &newObj->store);
+  if (!err) {
+    for (i = 0; i <= maxsurf; i++)
+      if ((err = istoreCopyContSurfItems(obj->store, &newObj->store, i, i, 1)))
+        break;
+  }
+
+  if (err) {
+    imodObjectDelete(newObj);
+    b3dError(stderr, "Error duplicating contours for meshing\n");
+    return NULL;
+  }
+
+  return newObj;
+}
+
 
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.5  2006/10/11 04:06:58  mast
+Changed to plane fitting from mean normal routine
+
 Revision 1.4  2006/09/18 19:35:41  mast
 Made it not flatten or rotate contours to be meshed as tubes
 
