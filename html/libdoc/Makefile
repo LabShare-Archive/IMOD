@@ -28,6 +28,10 @@ all :
 	  ../libhelp/b3dutil.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod mrcfiles.html \
 	  ../libhelp/mrcfiles.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libmesh libmesh.html \
+	  ../libhelp/libmesh.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libcfft libifft.html \
+	  ../libhelp/libifft.html
 
 # For testing
 #	../../sourcedoc/$(SOURCEDOC_EXE) testin.html testout.html
