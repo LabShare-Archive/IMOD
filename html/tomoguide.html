@@ -835,7 +835,11 @@ views.  There are two reasons to do this.  Your data might have a
 sudden
 lurch in magnification or tilt angle, and you want to avoid having
 views on both sides of this discontinuity assigned the same value
-for such variables.  In this case, you would list all the views up to
+for such variables.  Taking a tilt
+series in two directions from zero degrees instead of all in one direction
+introduces such a discontinuity; you should always define a separate view
+group for tilt series taken this way.
+In cases of discontinuity, you would list all the views up to
 the discontinuity (or all of the views after it).  Secondly, there
 might be views that don't match the surrounding ones for
 some other reason, such as having been taken on a second pass through
