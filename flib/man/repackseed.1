@@ -11,10 +11,15 @@ SSYYNNOOPPSSIISS
 DDEESSCCRRIIPPTTIIOONN
   This is a companion program for the shell script Transferfid.
   It is used to give the user a list of how points correspond between
-  the original fiducial model and the new seed model, and to repack
-  the seed model to eliminate empty contours.  If it is given a file
+  the original fiducial model and the new seed model, to repack
+  the seed model to eliminate empty contours, and to produce a file with
+  the coordinates of corresponding fiducials.  If it is given a file
   listing object and contour numbers for fiducials whose positions
-  have been solved for in the first set, the 
+  have been solved for in the first set, the list provided to the user
+  will be correct provided that all of the seed points track.  Otherwise
+  the lists could be wrong.  If a corresponding coordinate file is
+  produced, no statements are made about the accuracy of the list and the
+  user is informed that fiducials can be added or deleted as needed.
 
   Its inputs are:
 
@@ -28,5 +33,11 @@ DDEESSCCRRIIPPTTIIOONN
   
   Output file for final repacked seed model
 
+  Output file for list of corresponding coordinates (Return for none)
+
+  Section numbers (numbered from 0) for the best views in the original and
+  in the second tilt series, and 0 or 1 for A to B or B to A transfer
+
 HHIISSTTOORRYY
   Written by David Mastronarde, 5/23/02
+  Modified for corresponding coordinates, April 2006
