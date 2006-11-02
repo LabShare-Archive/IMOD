@@ -34,16 +34,22 @@ void imeshSetNewPolyNorm(int value)
   newPolyNorm = value;
 }
 
-/* Remake meshes into one mesh to store data more efficiently.
- * and calculate normals for all verticies.
- * The normals are scaled by the values in the point scale.
+#define XDIV 10
+
+/*!
+ * Remakes meshes into one mesh per surface and time to store data more 
+ * efficiently, and calculates normals for all vertices.  The array of meshes
+ * is in [meshes], and [size] specifies the number of meshes.  Only meshes
+ * matching the resolution given by [resol] will be processed; others will be
+ * copied to the output.  The normals are scaled by the values in [scale].
+ * THIS FUNCTION DELETES THE INPUT MESH BEFORE RETURNING
+ * Returns NULL for error.
+ */
+/*
  * DNM: modified to take both POLY meshes and POLYNORM meshes
- * WARNING: THIS FUNCTION WILL DELETE THE INPUT MESH BEFORE RETURNING
  * Note: the division by X for sorting of points was implemented before qsort
  * was used.  It made a huge difference then but only a small one with qsort.
  */
-
-#define XDIV 10
 Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
 {
   Imesh *nm;
@@ -494,5 +500,8 @@ static int ptcompare(const void *v1, const void *v2)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.1  2006/09/12 14:58:19  mast
+Split up and made into new library
+
 
 */
