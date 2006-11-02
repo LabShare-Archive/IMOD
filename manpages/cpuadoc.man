@@ -132,6 +132,13 @@ I/O bottlenecks.  We are currently setting
 .B max.volcombine
 to 8.
 
+\fBseparate-chunks = \fIvalue\fR
+This attribute can be used to force programs to write chunks into separate
+files that will be reassembled at the end of processing.  Without this
+setting, different instances of the Tilt program will all write to one output
+file simultaneously, which has given problems in one Mac installation.  Any
+value other than 0 activates the feature.
+
 \fBmountrule.#.local = \fIlocal_directory_path\fR
 .br
 \fBmountrule.#.local = \fIremote_directory_path\fR
