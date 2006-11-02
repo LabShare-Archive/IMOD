@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/06: Fixed a problem with numeric precision of circle fits in 
+Imodcurvature.
+
 10/31/06: Made Imodemesh propagate properties like gaps to created connector
 points made when meshing complex geometry.
 
