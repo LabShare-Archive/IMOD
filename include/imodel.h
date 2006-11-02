@@ -273,6 +273,9 @@ typedef struct
   IlabelItem *label;
 }Ilabel;
 
+
+/* DOC_SECTION MESHPARAMS */
+/* DOC_CODE MeshParams structure */
 /*
  * Parameters for meshing an object 
  */
@@ -296,7 +299,8 @@ typedef struct Meshing_Param
   b3dFloat spareFloat;
   b3dInt32 *capSkipZlist;  /* List of Z values not to cap to */
 } MeshParams;
-
+/* END_CODE */
+/* END_SECTION */
 
 /*
  * Contours are an array of points describing an open or closed contour.
@@ -652,6 +656,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.34  2006/09/12 15:18:18  mast
+    Various meshing changes, and new meshparam structure
+
     Revision 3.33  2006/08/31 21:04:00  mast
     New flags and redefinition of mat1 and mat3 variables
 
