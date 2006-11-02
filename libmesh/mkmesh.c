@@ -66,8 +66,15 @@ void imeshSetSkinFlags(int inFlag, int inFast)
   fastmesh = inFast;
 }
 
-/* Create a mesh between two contours using a minimum area
- * cost analysis.
+/*!
+ * Creates and returns a mesh between two contours using a minimum area
+ * cost analysis.  The bottom and top (low Z and high Z) contours are [bc] and
+ * [tc], and [obj] is the object containing them, and their contour indices are
+ * [bco] and [tco].  These indices are used to look up general storage 
+ * properties of the contours in the object.  [scale] contains the X, Y, 
+ * and Z scale, typically 1, 1, and the model Z scale.  A non-zero value of 
+ * [inside] indicates that the contours are inside others, at an even nesting 
+ * level.  Returns NULL for error.
  */
 Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
                                 int inside, int bco, int tco)
@@ -1002,11 +1009,13 @@ static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
   chunkMeshAddIndex(mesh, o3, maxsize);
 }
 
-/* DNM: routine to add mesh index and reallocate new memory in chunks.
-   Frequent reallocs are very expensive */
-
 #define CHUNKSIZE 8192
-
+/*!
+ * Adds [index] to the index list of [mesh], allocating new memory in large 
+ * chunks to avoid expensive frequent reallocations.  [maxlist] specifies the 
+ * current size of the allocated list and is returned with a new size when it
+ * becomes larger.  Returns NULL for error
+ */
 int chunkMeshAddIndex(Imesh *mesh, int index, int *maxlist)
 {
   int *tmp;
@@ -1242,6 +1251,9 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
 
 /*
 $Log$
+Revision 1.1  2006/09/12 14:58:19  mast
+Split up and made into new library
+
 Revision 3.20  2006/09/01 15:20:41  mast
 Encoded stored values in mesh as well
 
