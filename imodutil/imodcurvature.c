@@ -15,6 +15,10 @@ $Date$
 5B$Revision$
 
 $Log$
+Revision 3.8  2006/10/14 20:00:49  mast
+Added option to rotate to plane, and let open contour fits use half window
+length to fit all the way to end
+
 Revision 3.7  2006/09/20 23:04:28  mast
 Added callback for copyright to read/parse function call
 
@@ -308,6 +312,7 @@ int main( int argc, char *argv[])
   if (imodOpenFile(filename, "wb", model))
     exitError("Opening new model %s\n", filename);
   imodWriteFile(model);
+  printf("Objects must be remeshed to see changes in surface display\n");
   exit(0);
 }
 
@@ -334,7 +339,7 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   float minDist, dist, cumz, subWind, valMin = 1.e30, valMax = -1.e30;
   int cenPt, meetsCrit, activeCol, numPts, minPt, zhalf, pt2, zdir, icheck;
   int numMidSlice, delz, j, newnum, maxZ, iud, minDiff, diffUp, diffDown;
-  int diff, activeVal, rotated, needFull;
+  int diff, activeVal, rotated, needFull, numContDone, numPtDone, ifDidCont;
   Istore store;
   Ilist *list;
   Ipoint scale, *cenPoint, point, norm;
@@ -352,6 +357,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   scale.y = 1.;
   scale.z = zscale;
   needFull = iobjOpen(obj->flags) ? -1 : 1;
+  numContDone = 0;
+  numPtDone = 0;
 
   /* Make the arrays generously large */
   maxSamp = (int)(window / sample + 10.);
@@ -371,6 +378,7 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   /* Loop on contours */
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
+    ifDidCont = 0;
 
     if (cont->psize < 3 || (testCo >= 0 && testCo != co))
       continue;
@@ -622,6 +630,11 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
         }
       }
 
+      if (meetsCrit) {
+        numPtDone++;
+        ifDidCont++;
+      }
+
       /* For points, set size or clear an existing size */
       if (pointSize) {
         if (meetsCrit) 
@@ -686,6 +699,9 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
 
     }
 
+    if (ifDidCont)
+      numContDone++;
+
     if (zrange)
       ilistDelete(list);
     if (rotated) {
@@ -715,6 +731,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
     }
   }
 
+  printf("Curvature within criteria encoded for %d points in %d contours\n",
+         numPtDone, numContDone);
   free(xx);
   free(yy);
   return 0;
@@ -731,7 +749,7 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
                       float *yy, float *zz, int *numPts)
 {
   Ipoint *pts = cont->pts;
-  int lastPt, ptBefore, ptAfter, nextPt;
+  int lastPt, ptBefore, ptAfter, nextPt, first;
   float length, lenBefore, lenAfter, skip,segment;
 
   /* If contour has less than 3 points, just load center point unless full load
@@ -745,7 +763,7 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
     yy[(*numPts)++] = pts[cenPt].y;
     return;
   }
-    
+
   /* Find previous point at half-window distance */
   lenBefore = 0.;
   ptBefore = cenPt;
@@ -791,6 +809,7 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
   lastPt = ptBefore;
   nextPt = (lastPt + 1) % cont->psize;
   segment = imodPointDistance(&pts[nextPt], &pts[lastPt]);
+  first = 1;
   while (length < window - sample / 2.) {
           
     /* If skip distance is past segment, advance to next segment */
@@ -811,8 +830,9 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
           
     /* Add to skip and length */
     skip += sample;
-    if (*numPts > 1)
+    if (!first)
       length += sample;
+    first = 0;
   }
 }
 
@@ -968,9 +988,10 @@ int circleThrough3Pts(float x1, float y1, float x2, float y2, float x3,
   /* printf("x,y,sq: %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n",
      x1, y1, sq1, x2, y2, sq2, x3, y3, sq3); */
 
-  a = determ3(x1, y1, 1.f, x2, y2, 1.f, x3, y3, 1.f);
-  d = -determ3(sq1, y1, 1.f, sq2, y2, 1.f, sq3, y3, 1.f);
-  e = determ3(sq1, x1, 1.f, sq2, x2, 1.f, sq3, x3, 1.f);
+  /* Needed to use doubles for the 1.'s to keep them accurate enough */
+  a = determ3(x1, y1, 1., x2, y2, 1., x3, y3, 1.);
+  d = -determ3(sq1, y1, 1., sq2, y2, 1., sq3, y3, 1.);
+  e = determ3(sq1, x1, 1., sq2, x2, 1., sq3, x3, 1.);
   f = -determ3(sq1, x1, y1, sq2, x2, y2, sq3, x3, y3);
   /* printf("a, d, e, f: %f  %f  %f  %f\n", a, d, e, f); */
   absa = fabs((double)a);
