@@ -991,12 +991,15 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
   int checkTime = (int)iobjTime(obj->flags);
   DrawProps contProps, ptProps;
   int nextChange, stateFlags, changeFlags, changeFlags2;
-  int handleFlags = HANDLE_MESH_COLOR | HANDLE_TRANS;
+  int handleCoFlgs = HANDLE_MESH_COLOR | HANDLE_TRANS;
+  int handlePtFlgs = HANDLE_TRANS;
   if (!CTime)
     checkTime = 0;
 
-  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
-    handleFlags |= HANDLE_VALUE1;
+  if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1)) {
+    handleCoFlgs |= HANDLE_VALUE1;
+    handlePtFlgs |= HANDLE_VALUE1;
+  }
 
   // First time in, if object has transparency, then check whether any 
   // contour or point stores set transparency to 0 and if not, skip
@@ -1021,7 +1024,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
       continue;
 
     nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                     &stateFlags, handleFlags, 0);
+                                     &stateFlags, handleCoFlgs, 0);
     if (contProps.gap)
       continue;
 
@@ -1032,7 +1035,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
     if ((ptProps.trans ? 1 : 0) != drawTrans) {
       nextChange = ifgContTransMatch(obj, cont, &pt, drawTrans, 
                                      &contProps, &ptProps, &stateFlags,
-                                     &changeFlags, handleFlags);
+                                     &changeFlags, handleCoFlgs);
       obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       if (ptProps.gap)
         pt++;
@@ -1053,13 +1056,15 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
         if (nextChange == pt) {
           nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                            &ptProps, &stateFlags, 
-                                           &changeFlags, handleFlags, 0);
+                                           &changeFlags, handlePtFlgs, 0);
 
           // If trans state changes, seek point that restores it
           if ((ptProps.trans ? 1 : 0) != drawTrans) {
+            glEnd();
             nextChange = ifgContTransMatch(obj, cont, &pt, drawTrans, 
                                            &contProps, &ptProps, &stateFlags,
-                                           &changeFlags, handleFlags);
+                                           &changeFlags, handleCoFlgs);
+            glBegin(GL_POINTS);
             obj->flags |= IMOD_OBJFLAG_TEMPUSE;
             if (pt >= cont->psize)
               break;
@@ -1068,6 +1073,12 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
           if (changeFlags & CHANGED_3DWIDTH) {
             glEnd();
             glPointSize((GLfloat)ptProps.linewidth + thickAdd);
+            glBegin(GL_POINTS);
+          }
+          if (changeFlags & CHANGED_COLOR) {
+            glEnd();
+            ifgHandleColorTrans(obj, ptProps.red, ptProps.green,
+                                ptProps.blue, ptProps.trans);
             glBegin(GL_POINTS);
           }
         }
@@ -1086,7 +1097,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
         if (nextChange == pt) {
           nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                            &ptProps, &stateFlags, 
-                                           &changeFlags, handleFlags, 0);
+                                           &changeFlags, handlePtFlgs, 0);
           glVertex3fv((GLfloat *)&(cont->pts[pt]));
 
           // Skip ahead if trans state changed
@@ -1096,7 +1107,7 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
             glEnd();
             nextChange = ifgContTransMatch(obj, cont, &pt, drawTrans, 
                                            &contProps, &ptProps, &stateFlags,
-                                           &changeFlags2, handleFlags);
+                                           &changeFlags2, handlePtFlgs);
             obj->flags |= IMOD_OBJFLAG_TEMPUSE;
             if (imodDebug('v'))
               imodPrintStderr("Skipped to %d\n", pt);
@@ -1108,16 +1119,28 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
             }
             if ((changeFlags | changeFlags2) & CHANGED_3DWIDTH)
               glLineWidth((GLfloat)ptProps.linewidth + thickAdd);
+            if ((changeFlags | changeFlags2) & CHANGED_COLOR)
+              ifgHandleColorTrans(obj, ptProps.red, ptProps.green,
+                                  ptProps.blue, ptProps.trans);
             glBegin(GL_LINE_STRIP);
 
-          } else if (changeFlags & CHANGED_3DWIDTH) {
+          } else {
+            if (changeFlags & CHANGED_3DWIDTH) {
 
-            // Width change requires ending the strip and restarting it
-            glEnd();
-            glLineWidth((GLfloat)ptProps.linewidth + thickAdd);
-            glBegin(GL_LINE_STRIP);
+              // Width change requires ending the strip and restarting it
+              glEnd();
+              glLineWidth((GLfloat)ptProps.linewidth + thickAdd);
+              glBegin(GL_LINE_STRIP);
+            }
+           
+            // So do color changes on nvidia/Linux
+            if (changeFlags & CHANGED_COLOR) {
+              glEnd();
+              ifgHandleColorTrans(obj, ptProps.red, ptProps.green,
+                                  ptProps.blue, ptProps.trans);
+              glBegin(GL_LINE_STRIP);
+            }
           }
-
         }
         glVertex3fv((GLfloat *)&(cont->pts[pt]));
 
@@ -2332,6 +2355,9 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
 
 /*
 $Log$
+Revision 4.32  2006/09/12 15:44:07  mast
+Handled mesh member renames
+
 Revision 4.31  2006/09/01 20:47:51  mast
 Fixed drawing of selected contours so it works with multiple objects
 
