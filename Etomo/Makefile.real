@@ -44,7 +44,7 @@ $(JAR_FILE): $(SE)/*.java $(SE)/comscript/*.java $(SE)/ui/*.java \
              $(SE)/storage/autodoc/*.java $(SE)/type/*.java \
              $(SE)/util/*.java src/images/*.* 
 	mkdir -p $(CLASSPATH)
-	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -rpf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 	mkdir -p jar_dir
@@ -64,21 +64,21 @@ uitestjarfile: cpimages
 
 cpimages:
 	mkdir -p $(CLASSPATH)
-	\cp -rpf $(SOURCEPATH)/images $(CLASSPATH)
+	$(CP) -rpf $(SOURCEPATH)/images $(CLASSPATH)
 	rm -rf  $(CLASSPATH)/images/CVS
 
 compile: 
 	$(JAVAC)  $(SOURCEPATH)/etomo/EtomoDirector.java
 
 install: $(JAR_FILE) $(CMDWRAPPERS)
-	\cp -p $(JAR_FILE) $(INSTBINDIR)
+	$(CP) -pf $(JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/etomo
-	\cp -p scripts/etomo $(INSTBINDIR)
+	$(CP) -pf scripts/etomo $(INSTBINDIR)
 
 uitestinstall: uitestjarfile
-	\cp -p $(UITEST_JAR_FILE) $(INSTBINDIR)
+	$(CP) -pf $(UITEST_JAR_FILE) $(INSTBINDIR)
 	chmod 755 scripts/uitest
-	\cp -p scripts/uitest $(INSTBINDIR)
+	$(CP) -pf scripts/uitest $(INSTBINDIR)
 
 cmdwrappers:
 	../scripts/copywrappers $(INSTBINDIR) scripts/bashwrapper.cmd scripts/etomo
@@ -130,6 +130,9 @@ linecount:
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.18  2006/09/26 22:22:26  mast
+# Added bash wrapper to windows install
+#
 # Revision 2.17  2006/01/12 18:21:04  mast
 # Fixed a \ on the dependency line
 #
