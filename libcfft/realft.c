@@ -1,3 +1,9 @@
+/*  realft.c -   real fourier transform
+ * Original author: Lynn Ten Eyck
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ */
+
 /*
 C     REAL FOURIER TRANSFORM
 C
@@ -16,13 +22,12 @@ C     THE ODD NUMBERED TERMS (NUMBERING STARTING AT 0).  ON RETURN THE
 C     REAL PART OF THE TRANSFORM REPLACES THE EVEN TERMS AND THE
 C     IMAGINARY PART OF THE TRANSFORM REPLACES THE ODD TERMS.
 */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/*  $Id$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 
 #include "cfft.h"

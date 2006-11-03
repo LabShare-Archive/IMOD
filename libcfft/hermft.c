@@ -1,3 +1,9 @@
+/*  hermft.c -   hermitian symmetric fourier transform
+ * Original author: Lynn Ten Eyck
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ */
+
 /*
 C     HERMITIAN SYMMETRIC FOURIER TRANSFORM
 C
@@ -11,13 +17,12 @@ C     A FINITE HERMITIAN SEQUENCE OF LENGTH 2N CONTAINS N + 1 UNIQUE
 C     REAL NUMBERS AND N - 1 UNIQUE IMAGINARY NUMBERS.  FOR CONVENIENCE
 C     THE REAL VALUE FOR X(N) IS STORED AT Y(0).
 */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/*  $Id$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 
 #include "cfft.h"

@@ -1,3 +1,8 @@
+/*  cmplft.c -   complex finite discrete fourier transform
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ */
+
 /*
 C     COMPLEX FINITE DISCRETE FOURIER TRANSFORM
 C     TRANSFORMS ONE DIMENSION OF MULTI-DIMENSIONAL DATA
@@ -25,13 +30,12 @@ C     WITH THIS INDEXING IT IS POSSIBLE TO USE A NUMBER OF ARRANGEMENTS
 C     OF THE DATA, INCLUDING NORMAL FORTRAN COMPLEX NUMBERS (D(5) = 2)
 C     OR SEPARATE STORAGE OF REAL AND IMAGINARY PARTS.
 */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/*  $Id$
 
 $Log$
+Revision 1.2  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 1.1  2004/10/24 21:18:39  mast
 Added C version of library to package
 

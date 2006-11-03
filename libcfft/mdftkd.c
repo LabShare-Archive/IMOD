@@ -1,11 +1,14 @@
-/*     multi-dimensional complex fourier transform kernel driver */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/* mdftkd.c -   multi-dimensional complex fourier transform kernel driver
+ * Original author: Lynn Ten Eyck
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ */
+/*  $Id$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 
 #include "cfft.h"

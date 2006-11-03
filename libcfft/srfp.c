@@ -1,13 +1,16 @@
-     /*     symmetrized reordering factoring programme */
-     /* USE FORTRAN INDEXING TO AVOID REWRITING INDEXING LOGIC */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/*  srfp.c -   symmetrized reordering factoring programme
+ * Original author: Lynn Ten Eyck
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ */
+/*  $Id$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
+/* USE FORTRAN INDEXING TO AVOID REWRITING INDEXING LOGIC */
 
 #include "cfft.h"
 #include <stdio.h>

@@ -1,41 +1,46 @@
 /*
-  C*TODFFT.FOR********************************************************
-  C
-  C   TWO-DIMENSIONAL FOURIER TRANSFORM SUBROUTINE FOR IMAGE
-  C   PROCESSING. DOES BOTH FORWARD & INVERSE TRANSFORMS
-  C   USES LYNN TENEYCK'S MIXED-RADIX ROUTINES
-  C   THUS THE ONLY RESTRICTION IS THAT THE IMAGE SIZE BE
-  C   AN EVEN NUMBER AND HAVE NO PRIME FACTORS LARGER THAN 19!!
-  C
-  C   IDIR =  0   FORWARD  TRANSFORM :  exp(+2PIirs)
-  C   IDIR =  1   INVERSE TRANSFORM  :  exp(-2PIirs)
-  C   IDIR = -1   INVERSE TRANSFORM BUT NO COMPLEX CONJUGATE
-  C
-  C   DATA SET UP AS NY ROWS OF NX NUMBERS
-  C   NOTE NX,NY ALWAYS REFER TO THE REAL-SPACE IMAGE SIZE
-  C
-  C   NX,NY IMAGE IS TRANSFORMED IN-PLACE INTO NY STRIPS OF
-  C   NX/2 + 1 COMPLEX FOURIER COEFFICIENTS
-  C   THE ORIGIN IS LOCATED AT THE FIRST POINT!!!
-  C
-  C   ARRAY MUST BE DIMENSIONED TO ALLOW FOR EXTRA STRIP OF COMPLEX
-  C   NUMBERS ON OUTPUT.
-  C   THUS FOR A 300X400 TRANSFORM, ARRAY MUST BE DIMENSIONED:
-  C   REAL ARRAY(302,400)
-  C
-  C   A NORMALIZATION FACTOR IS APPLIED DURING BOTH  TRANSFORMATIONS
-  C
-  C   VERSION 1.00    OCT 11 1981     DAA
-  C   VERSION 1.02    APR 19 1982     DAA
-  C   VERSION 1.03    NOV 23 1982     DAA
+ * todfft.c - 2D FFTs
+ *
+ * Original author: David Agard.
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ *
+ * Original header comments:
+ *
+ *   TWO-DIMENSIONAL FOURIER TRANSFORM SUBROUTINE FOR IMAGE
+ *   PROCESSING. DOES BOTH FORWARD & INVERSE TRANSFORMS
+ *   USES LYNN TENEYCK'S MIXED-RADIX ROUTINES
+ *   THUS THE ONLY RESTRICTION IS THAT THE IMAGE SIZE BE
+ *   AN EVEN NUMBER AND HAVE NO PRIME FACTORS LARGER THAN 19!!
+ *
+ *   IDIR =  0   FORWARD  TRANSFORM :  exp(+2PIirs)
+ *   IDIR =  1   INVERSE TRANSFORM  :  exp(-2PIirs)
+ *   IDIR = -1   INVERSE TRANSFORM BUT NO COMPLEX CONJUGATE
+ *
+ *   DATA SET UP AS NY ROWS OF NX NUMBERS
+ *   NOTE NX,NY ALWAYS REFER TO THE REAL-SPACE IMAGE SIZE
+ *
+ *   NX,NY IMAGE IS TRANSFORMED IN-PLACE INTO NY STRIPS OF
+ *   NX/2 + 1 COMPLEX FOURIER COEFFICIENTS
+ *   THE ORIGIN IS LOCATED AT THE FIRST POINT!!!
+ *
+ *   ARRAY MUST BE DIMENSIONED TO ALLOW FOR EXTRA STRIP OF COMPLEX
+ *   NUMBERS ON OUTPUT.
+ *   THUS FOR A 300X400 TRANSFORM, ARRAY MUST BE DIMENSIONED:
+ *   REAL ARRAY(302,400)
+ *
+ *   A NORMALIZATION FACTOR IS APPLIED DURING BOTH  TRANSFORMATIONS
+ *
+ *   VERSION 1.00    OCT 11 1981     DAA
+ *   VERSION 1.02    APR 19 1982     DAA
+ *   VERSION 1.03    NOV 23 1982     DAA
 */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/*  $Id$
 
 $Log$
+Revision 1.2  2005/02/11 01:42:33  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 1.1  2004/10/24 21:18:39  mast
 Added C version of library to package
 
@@ -45,7 +50,18 @@ Added C version of library to package
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+/*!
+ * Performs a two-dimensional FFT in place in [array].  The data are organized
+ * as [nyp] rows of [nxp] values in the real space image.  The direction 
+ * of the transform is determined by [idirp]: ^
+ *     0   forward  transform :  exp(+2PIirs) ^
+ *     1   inverse transform  :  exp(-2PIirs) ^
+ *    -1   inverse transform but no complex conjugate ^
+ * The origin of the transform is at the first point.  The Y coordinate of the
+ * transform progresses from Y = 0 on the first line, to Y = [nyp] / 2 - 1 on
+ * the middle line, then from -[nyp] / 2 on the next line up, to -1 on the 
+ * last line.
+ */
 void todfft(float *array, int *nxp, int *nyp, int *idirp)
 {
   int idim[6];   /* Make it 6 so that indexes 1 to 5 work */
@@ -57,7 +73,7 @@ void todfft(float *array, int *nxp, int *nyp, int *idirp)
 
   nxo2 = nx/2;
   if (2*nxo2 != nx) {
-    printf(" todfft: nx= %d must be even!!!\n", nx);
+    printf("ERROR: todfft - nx= %d must be even\n", nx);
     exit(1);
   }
   nxp2 = nx + 2;

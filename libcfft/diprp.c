@@ -1,11 +1,14 @@
-/*     double in place reordering programme */
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/* diprp.c -  double in place reordering programme
+ * Original author: Lynn Ten Eyck
+ * Translated to C: David Mastronarde
+ * This translation is released under the General Public License.
+ */
+/*  $Id$
 
 $Log$
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
 */
 #define al u[1]
 #define bs s[2]

@@ -1,30 +1,36 @@
 /*
- * Three-dimensional FFT routine, does forward and inverse transforms
- * idir = 0   forward transform
- * idir = 1   inverse transform (for sake of completeness)
- * idir = -1  inverse transform with no complex conjugate in 2D FFTs
- *    The latter is apparently needed for proper phases
+ * thrdfft.c - 3D FFTs
  *
- * Data are organized as nx rows by ny columns by nz slices in the
- * real-space image, in an array dimensioned to nx + 2 in X to allow for
- * extra complex numbers in X dimension.
- * nx,ny,nz image is transformed in place into 
- * nx/2 + 1, ny, nz complex numbers
- *
- * brray is for working storage and must be dimensioned to at least nx + 2 * nz
+ * Original Author: David Mastronarde
+ * Translated to C: David 
+ * This code is released under the General Public License.
  */
-
-/*  $Author$
-    
-$Date$
-
-$Revision$
+/*  $Id$
 
 $Log$
-*/
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
 
+*/
 #include "cfft.h"
 #include <math.h>
+
+/*!
+ * Performs a three-dimensional FFT in place on data in [array].
+ * Data are organized as [nzp] slices each consisting of [nyp] rows of [nxp]
+ * values in the real-space image.  [brray] is for working storage and must be
+ * dimensioned to at least [nxp] + 2 * [nzp].  The direction of the transform 
+ * is determined by [idirp]: ^
+ *     0   forward transform ^
+ *     1   inverse transform (for sake of completeness) ^
+ *    -1   inverse transform with no complex conjugate in 2D FFTs ^
+ *         The latter is needed for proper phases and should be used. ^
+ * The origin of the transform is at the first point.  The Y coordinate of the
+ * transform progresses from Y = 0 on the first line, to Y = [nyp] / 2 - 1 on
+ * the middle line, then from -[nyp] / 2 on the next line up, to -1 on the 
+ * last line.  Similarly the Z coordinate progresses from Z = 0 on the first
+ * slice to Z = [nzp] / 2 - 1, then from -[nzp] / 2 to -1.
+ */
 void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
              int *idirp)
 {
