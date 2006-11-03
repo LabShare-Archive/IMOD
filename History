@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/3/06: IMOD_3-10-0 and branch to IMOD_3-9-0
 11/3/06: In Etomo - Join, handling inverted samples by making sure that the
 final start and end slices are in the right order.
+
+11/2/06: Fixed problem of gaps and missing contours when contours with color 
+changes are displayed in model view.
 
 11/2/06: Fixed a problem with numeric precision of circle fits in 
 Imodcurvature.

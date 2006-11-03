@@ -589,14 +589,11 @@ follows:
 "gap -4,6,2" when running <A href="xfjointomo.man">Xfjointomo</A>, so that it
 will fit the data with a series of assumed gaps between the sections.
 <LI> In the "finishjoin" command, the pairs of numbers after the rootname are
-the slices to use from each section.  They may not be in the right order,
-i.e., starting slice then ending slice.  
-In step 6, reorder the numbers for each section
-if necessary so that the starting slice is the smaller number for sections
-that were not inverted in the join and the larger number for sections that were
-inverted.  If there are no inversions, the starting number should
-always be less than the ending number.  Make a note of these slice numbers
-in the original join.
+the slices to use from each section, and they are ordered so the first number
+in each pair corresponds to the slice that will be stacked at low Z, i.e., the
+first slice after a boundary.  The second number in a pair corresponds to 
+the last slice before a boundary.  In step 6, make a note of the slice numbers
+in the original join, since you will need both original and modified numbers.
 <LI> In step 7, if you 
 found that a non-zero gap gave the best solution for a boundary, you need
 to add
@@ -617,15 +614,16 @@ spaces replaced by commas) and {new_slices} is the new list.
 </UL>
 <P>
 For example,
-if the original list on the "finishjoin" command is "3,87 5,92 65,2" and
-there were no inversions, and the best fit is found with a gap of 2 at the 
+suppose the original list on the "finishjoin" command is "3,87 5,92 65,2".
+(The last pair of numbers are out of order because the last slice is inverted.)
+If the best fit is found with a gap of 2 at the 
 first boundary but a gap of -2 at the second boundary, then the modified
-entry for "finishjoin" could be "3,88 4,92 4,65".  This adds two slices to the
+entry for "finishjoin" could be "3,88 4,92 63,2".  This adds two slices to the
 first boundary, one from each section, and removes two slices from the second
 boundary, both from the last section.  In this case, the aligned model would
 be remapped with:
 <br><pre>
-  remapmodel -from 3,87,5,92,2,65 -to 3,88,4,92,4,65 rootname_refine.alimod rootname_refine.remapmod
+  remapmodel -from 3,87,5,92,65,2 -to 3,88,4,92,63,2 rootname_refine.alimod rootname_refine.remapmod
 </pre>
 </body></html>
 
