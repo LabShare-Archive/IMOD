@@ -4,6 +4,29 @@ Fourier transforms, callable from C or Fortran.  The FFT routines were written
 by Lynn Ten Eyck, wrapper routines were written by David Agard, and it was
 translated from Fortran to C by David Mastronarde.
 <P>
+In these routines, all dimensions being transformed must be even and their
+largest prime factors must be no larger than 19.  All transforms are done in
+place and a normalization is applied in each case.  The X dimension of the
+array must always be dimensioned to 2 more than the dimension of the real
+space image to allow space for an extra column of complex numbers.  The sizes
+passed to the routines are always the real-space image sizes.  Thus, in
+Fortran, an array would be dimensioned as:
+<BR>
+<PRE>
+     real*4 array(nx+2, ny)
+or:
+     complex array((nx+2)/2, ny)
+</PRE>
+<P>
+There are no separate Fortran wrappers for these routines; their names are
+defined so that they can be called directly from Fortran.
+From C, include "cfft.h" to have the function name defined with an underscore
+on Unix-type systems and with capital letters on Windows.  Pass all arguments
+by reference (as pointers).
+<P>
+All functions exit with an error message to standard out if the image size
+is not allowed or the direction parameter is incorrect.
+<P>
 LIST FUNCTIONS FROM odfft.c
 LIST FUNCTIONS FROM todfft.c
 LIST FUNCTIONS FROM thrdfft.c
