@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2006/10/17 20:18:07  sueh
+ * <p> bug# 939  Remoing print statements.
+ * <p>
  * <p> Revision 1.13  2006/10/16 22:50:03  sueh
  * <p> bug# 919  Added inverted.
  * <p>
@@ -133,7 +136,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     this.manager = manager;
     reset();
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -209,7 +212,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * Assumes setupSection is set.
    */
   public final void synchronizeSetupToJoin() {
-    File rotatedSection = DatasetFiles.getRotatedTomogram(manager, setupSection);
+    File rotatedSection = DatasetFiles
+        .getRotatedTomogram(manager, setupSection);
     if (rotatedSection.exists()
         && (!rotationAngleX.isNull() || !rotationAngleY.isNull() || !rotationAngleZ
             .isNull())) {
@@ -217,6 +221,14 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     }
     else {
       copySetupToJoin();
+    }
+    //If inverted: start must be greater then end
+    //If not inverted:  end must be greater then start
+    if ((inverted.is() && joinFinalEnd.gt(joinFinalStart))
+        || (!inverted.is() && joinFinalStart.gt(joinFinalEnd))) {
+      long temp = joinFinalEnd.getLong();
+      joinFinalEnd.set(joinFinalStart);
+      joinFinalStart.set(temp);
     }
   }
 
@@ -257,10 +269,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     if (!setJoinSection(rotatedSection)) {
       return;
     }
-    System.out.println("setupFinalStart="+setupFinalStart);
     joinFinalStart.set(convertToRotatedZ(setupFinalStart));
     joinFinalEnd.set(convertToRotatedZ(setupFinalEnd));
-    System.out.println("joinFinalStart="+joinFinalStart);
   }
 
   /**
@@ -435,7 +445,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     }
     return header;
   }
-  
+
   public void setInverted(boolean inverted) {
     this.inverted.set(inverted);
   }
