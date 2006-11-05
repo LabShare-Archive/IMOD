@@ -399,6 +399,7 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
                           stateTest);
       if (nmesh) {
         nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
+        nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
         obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
         free(nmesh);
       }
@@ -422,6 +423,8 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
       nmesh = joinTubeCont(&clst[pt], &clst[pt+1], &nrot, &lastProps, 
                            lastState, &ptProps, stateFlags);
       if (nmesh) {
+        nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
+        nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
         obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
         free(nmesh);
       }
@@ -432,6 +435,7 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
                           0, &ptProps, stateFlags, stateTest);
       if (nmesh) {
         nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
+        nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
         obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
         free(nmesh);
       }
@@ -2873,6 +2877,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.2  2006/10/31 15:35:06  mast
+Propagated properties into fill point when breaking a contour in/out
+
 Revision 1.1  2006/09/12 14:58:19  mast
 Split up and made into new library
 
