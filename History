@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/06: Fixed treatment of ends of open contours in Imodcurvature (In 3.9).
+
+11/4/06: Add time values to tube meshes so multiple times don't all show up at
+once (In 3.9).
+
 11/3/06: IMOD_3-10-0 and branch to IMOD_3-9-0
 11/3/06: In Etomo - Join, handling inverted samples by making sure that the
 final start and end slices are in the right order.
