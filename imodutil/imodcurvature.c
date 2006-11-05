@@ -6,42 +6,11 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
 
-/*  $Author$
-
-$Date$
-
-5B$Revision$
-
-$Log$
-Revision 3.8  2006/10/14 20:00:49  mast
-Added option to rotate to plane, and let open contour fits use half window
-length to fit all the way to end
-
-Revision 3.7  2006/09/20 23:04:28  mast
-Added callback for copyright to read/parse function call
-
-Revision 3.6  2006/08/31 23:13:38  mast
-Added value storage
-
-Revision 3.5  2006/08/27 23:49:26  mast
-Switched palette argument to allow a file, fixed initialization bug
-
-Revision 3.4  2006/06/26 14:48:48  mast
-Added b3dutil include for parselist
-
-Revision 3.3  2006/06/18 19:37:11  mast
-Changed for new amoeba function type
-
-Revision 3.2  2006/06/14 14:21:01  mast
-Needed to eliminate ;;
-
-Revision 3.1  2006/06/14 04:28:43  mast
-Initial creation
-
-
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -749,8 +718,8 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
                       float *yy, float *zz, int *numPts)
 {
   Ipoint *pts = cont->pts;
-  int lastPt, ptBefore, ptAfter, nextPt, first;
-  float length, lenBefore, lenAfter, skip,segment;
+  int lastPt, ptBefore, ptAfter, nextPt, first, numContPts;
+  float length, lenBefore, lenAfter, skip,segment, winActual;
 
   /* If contour has less than 3 points, just load center point unless full load
      is requested */
@@ -765,20 +734,24 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
   }
 
   /* Find previous point at half-window distance */
+  numContPts = 0;
   lenBefore = 0.;
   ptBefore = cenPt;
   lastPt = cenPt;
   while (lenBefore < window / 2.) {
     ptBefore--;
     if (ptBefore < 0) {
-      if (iobjOpen(obj->flags))
+      if (iobjOpen(obj->flags)) {
+        ptBefore = 0;
         break;
+      }
       ptBefore = cont->psize - 1;
     }
     if (ptBefore == cenPt)
       break;
     lenBefore += imodPointDistance(&pts[ptBefore], &pts[lastPt]);
     lastPt = ptBefore;
+    numContPts++;
   }
   if (lenBefore < window / 2. && needFull > 0)
     return;
@@ -790,30 +763,47 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
   while (lenAfter < window / 2.) {
     ptAfter++;
     if (ptAfter >= cont->psize) {
-      if (iobjOpen(obj->flags))
+      if (iobjOpen(obj->flags)) {
+        ptAfter--;
         break;
+      }
       ptAfter = 0;
     }
     if (ptAfter == ptBefore)
       break;
     lenAfter += imodPointDistance(&pts[ptAfter], &pts[lastPt]);
     lastPt = ptAfter;
+    numContPts++;
   }
-  if ((lenAfter < window / 2. && needFull > 0) || 
-      (lenBefore + lenAfter < window / 2. && needFull < 0))
+
+  /* Skip if there is not enough length with needFull set, or if there are
+     only two actual points which will give no curvature */
+  if ((lenAfter < window / 2. && needFull > 0) || (numContPts < 3 && needFull) 
+      || (lenBefore + lenAfter < window / 2. && needFull < 0))
     return;
 
   /* Load the sampled points into the arrays */
-  skip = lenBefore - window / 2.;
+  skip = B3DMAX(0., lenBefore - window / 2.);
   length = 0.;
   lastPt = ptBefore;
   nextPt = (lastPt + 1) % cont->psize;
   segment = imodPointDistance(&pts[nextPt], &pts[lastPt]);
   first = 1;
-  while (length < window - sample / 2.) {
+  winActual = B3DMIN(lenBefore, window / 2.) + B3DMIN(lenAfter, window / 2.);
+  while (length < winActual - sample / 2.) {
           
     /* If skip distance is past segment, advance to next segment */
     while (skip > segment) {
+
+      /* But if at end of open contour, either return if the next desired 
+         point is less than half the sample length past the last point, or
+         add the last point in the contour */
+      if (nextPt == cont->psize - 1 && iobjOpen(obj->flags)) {
+        if (skip - segment < sample / 2.)
+          return;
+        skip = segment;
+        break;
+      }
       skip -= segment;
       lastPt = nextPt;
       nextPt = (lastPt + 1) % cont->psize;
@@ -1121,3 +1111,35 @@ static void sphereErr(float *y, float *error)
 
   *error = (float)(err / numpt);
 }
+
+/* $Log$
+   Revision 3.9  2006/11/02 22:04:09  mast
+Fixed a precision problem in the 3 point fits and added summary output
+
+Revision 3.8  2006/10/14 20:00:49  mast
+Added option to rotate to plane, and let open contour fits use half window
+length to fit all the way to end
+
+Revision 3.7  2006/09/20 23:04:28  mast
+Added callback for copyright to read/parse function call
+
+Revision 3.6  2006/08/31 23:13:38  mast
+Added value storage
+
+Revision 3.5  2006/08/27 23:49:26  mast
+Switched palette argument to allow a file, fixed initialization bug
+
+Revision 3.4  2006/06/26 14:48:48  mast
+Added b3dutil include for parselist
+
+Revision 3.3  2006/06/18 19:37:11  mast
+Changed for new amoeba function type
+
+Revision 3.2  2006/06/14 14:21:01  mast
+Needed to eliminate ;;
+
+Revision 3.1  2006/06/14 04:28:43  mast
+Initial creation
+
+
+*/
