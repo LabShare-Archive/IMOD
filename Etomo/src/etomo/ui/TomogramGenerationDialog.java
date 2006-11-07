@@ -59,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.98  2006/10/26 23:57:53  sueh
+ * bug# 953 updated tooltips
+ *
  * Revision 3.97  2006/09/14 00:00:38  sueh
  * bug# 920 Rename X offset and Z offset to X shift and Z shift.
  *
@@ -761,7 +764,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return MultiLineButton.getToggleButtonInstance("Generate Tomogram",
         DialogType.TOMOGRAM_GENERATION);
   }
-  
+
   void addToTrialTomogramName(String trialTomogramName) {
     cmboTrialTomogramName.addItem(trialTomogramName);
   }
@@ -805,11 +808,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     cbFiducialess.setSelected(state);
     updateFiducialess();
   }
-  
+
   public boolean isDensityOffsetSet() {
     return ltfDensityOffset.getText().matches("\\S+");
   }
-  
+
   public boolean isDensityScaleSet() {
     return ltfDensityScale.getText().matches("\\S+");
   }
@@ -817,7 +820,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public boolean isFiducialess() {
     return cbFiducialess.isSelected();
   }
-  
+
   boolean isLogOffsetSet() {
     return ltfLogOffset.getText().matches("\\S+");
   }
@@ -825,11 +828,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public void setImageRotation(float tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
-  
+
   void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma) {
     ltfInverseRolloffRadiusSigma.setText(inverseRolloffRadiusSigma);
   }
-  
+
   void setLowPassRadiusSigma(String lowPassRadiusSigma) {
     ltfLowPassRadiusSigma.setText(lowPassRadiusSigma);
   }
@@ -845,28 +848,27 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
   }
-  
+
   String getInverseRolloffRadiusSigma() {
-    return ltfInverseRolloffRadiusSigma
-    .getText();
+    return ltfInverseRolloffRadiusSigma.getText();
   }
-  
+
   float getLogOffset() {
     return Float.parseFloat(ltfLogOffset.getText());
   }
-  
+
   String getLogOffsetLabel() {
     return ltfLogOffset.getLabel();
   }
-  
+
   String getMaximumInverse() {
     return ltfMaximumInverse.getText();
   }
-  
+
   String getLowPassRadiusSigma() {
     return ltfLowPassRadiusSigma.getText();
   }
-  
+
   String getMtfFile() {
     return ltfMtfFile.getText();
   }
@@ -874,12 +876,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   String getStartingAndEndingZ() {
     return ltfStartingAndEndingZ.getText();
   }
-  
+
   float getTiltAngleOffset() {
-    return Float.parseFloat(ltfTiltAngleOffset
-        .getText());
+    return Float.parseFloat(ltfTiltAngleOffset.getText());
   }
-  
+
   String getTiltAngleOffsetLabel() {
     return ltfTiltAngleOffset.getLabel();
   }
@@ -887,19 +888,19 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void getTiltHeaderState(PanelHeaderState state) {
     tiltHeader.getState(state);
   }
-  
+
   String getTomoThickness() {
     return ltfTomoThickness.getText();
   }
-  
+
   String getTomoThicknessLabel() {
     return ltfTomoThickness.getLabel();
   }
-  
+
   int getTomoWidth() {
     return Integer.parseInt(ltfTomoWidth.getText());
   }
-  
+
   String getTomoWidthLabel() {
     return ltfTomoWidth.getLabel();
   }
@@ -916,23 +917,23 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   int getBinning() {
     return ((Integer) spinBinning.getValue()).intValue();
   }
-  
+
   float getDensityOffset() {
     return Float.parseFloat(ltfDensityOffset.getText());
   }
-  
+
   String getDensityOffsetLabel() {
     return ltfDensityOffset.getLabel();
   }
-  
+
   float getDensityScale() {
     return Float.parseFloat(ltfDensityScale.getText());
   }
-  
+
   String getExtraExcludeList() {
     return ltfExtraExcludeList.getText();
   }
-  
+
   String getDensityScaleLabel() {
     return ltfDensityScale.getLabel();
   }
@@ -948,7 +949,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void getNewstHeaderState(PanelHeaderState state) {
     newstHeader.getState(state);
   }
-  
+
   public final void getParameters(ParallelParam param) {
     expert.getParameters(param);
   }
@@ -969,7 +970,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void setSliceStop(int sliceStop) {
     ltfSliceStop.setText(sliceStop);
   }
-  
+
   void setStartingAndEndingZ(String startingAndEndingZ) {
     ltfStartingAndEndingZ.setText(startingAndEndingZ);
   }
@@ -997,27 +998,27 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void setDensityOffset(float densityOffset) {
     ltfDensityOffset.setText(densityOffset);
   }
-  
+
   void setDensityScale(float densityScale) {
     ltfDensityScale.setText(densityScale);
   }
-  
+
   void setExtraExcludeList(String extraExcludeList) {
     ltfExtraExcludeList.setText(extraExcludeList);
   }
-  
+
   void setMaximumInverse(String maximumInverse) {
     ltfMaximumInverse.setText(maximumInverse);
   }
-  
+
   void setMtfFile(String mtfFile) {
     ltfMtfFile.setText(mtfFile);
   }
-  
+
   void setLogOffset(float logOffset) {
     ltfLogOffset.setText(logOffset);
   }
-  
+
   void setParallelProcess(boolean select) {
     cbParallelProcess.setSelected(select);
   }
@@ -1051,67 +1052,67 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
     return trialTomogramName;
   }
-  
+
   String getXAxisTilt() {
     return ltfXAxisTilt.getText();
   }
-  
+
   String getXAxisTiltLabel() {
     return ltfXAxisTilt.getLabel();
   }
-  
+
   float getXShift() {
     return Float.parseFloat(ltfXShift.getText());
   }
-  
+
   String getXShiftLabel() {
     return ltfXShift.getLabel();
   }
-  
+
   float getZShift() {
     return Float.parseFloat(ltfZShift.getText());
   }
-  
+
   String getZShiftLabel() {
     return ltfZShift.getLabel();
   }
-  
+
   float getRadialFallOff() {
     return Float.parseFloat(ltfRadialFallOff.getText());
   }
-  
+
   String getRadialFallOffLabel() {
     return ltfRadialFallOff.getLabel();
   }
-  
+
   float getRadialMax() {
     return Float.parseFloat(ltfRadialMax.getText());
   }
-  
+
   String getRadialMaxLabel() {
     return ltfRadialMax.getLabel();
   }
-  
+
   int getSliceIncr() {
     return Integer.parseInt(ltfSliceIncr.getText());
   }
-  
+
   String getSliceIncrLabel() {
     return ltfSliceIncr.getLabel();
   }
-  
+
   int getSliceStart() {
     return Integer.parseInt(ltfSliceStart.getText());
   }
-  
+
   String getSliceStartLabel() {
     return ltfSliceStart.getLabel();
   }
-  
+
   int getSliceStop() {
     return Integer.parseInt(ltfSliceStop.getText());
   }
-  
+
   String getSliceStopLabel() {
     return ltfSliceStop.getLabel();
   }
@@ -1211,7 +1212,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   public boolean usingParallelProcessing() {
     return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
   }
@@ -1219,75 +1220,75 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   boolean isParallelProcess() {
     return cbParallelProcess.isSelected();
   }
-  
+
   boolean isRadialFallOffSet() {
     return ltfRadialFallOff.getText().matches("\\S+");
   }
-  
+
   boolean isRadialMaxSet() {
     return ltfRadialMax.getText().matches("\\S+");
   }
-  
+
   boolean isSliceIncrSet() {
     return ltfSliceIncr.getText().matches("\\S+");
   }
-  
+
   boolean isSliceStartSet() {
     return ltfSliceStart.getText().matches("\\S+");
   }
-  
+
   boolean isSliceStartNull() {
     return ltfSliceStart.getText().matches("^\\s*$");
   }
-  
+
   boolean isSliceStopNull() {
     return ltfSliceStop.getText().matches("^\\s*$");
   }
-  
+
   boolean isSliceStopSet() {
     return ltfSliceStop.getText().matches("\\S+");
   }
-  
+
   boolean isTiltAngleOffsetSet() {
     return ltfTiltAngleOffset.getText().matches("\\S+");
   }
-  
+
   boolean isTomoThicknessSet() {
     return ltfTomoThickness.getText().matches("\\S+");
   }
-  
+
   boolean isTomoWidthSet() {
     return ltfTomoWidth.getText().matches("\\S+");
   }
-  
+
   boolean isUseLinearInterpolation() {
     return cbUseLinearInterpolation.isSelected();
   }
-  
+
   boolean isUseLocalAlignment() {
     return cbUseLocalAlignment.isSelected();
   }
-  
+
   boolean isUseLocalAlignmentEnabled() {
     return cbUseLocalAlignment.isEnabled();
   }
-  
+
   boolean isUseZFactors() {
     return cbUseZFactors.isSelected();
   }
-  
+
   boolean isUseZFactorsEnabled() {
     return cbUseZFactors.isEnabled();
   }
-  
+
   boolean isXAxisTiltSet() {
     return ltfXAxisTilt.getText().matches("\\S+");
   }
-  
+
   boolean isXShiftSet() {
     return ltfXShift.getText().matches("\\S+");
   }
-  
+
   boolean isZShiftSet() {
     return ltfZShift.getText().matches("\\S+");
   }
@@ -1588,7 +1589,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public void startingAndEndingZKeyReleased(KeyEvent event) {
     expert.enableUseFilter();
   }
-  
+
   public void setUseZFactors(boolean select) {
     cbUseZFactors.setSelected(select);
   }
@@ -1596,7 +1597,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public void setUseZFactorsEnabled(boolean enable) {
     cbUseZFactors.setEnabled(enable);
   }
-  
+
   public void setUseLocalAlignment(boolean select) {
     cbUseLocalAlignment.setSelected(select);
   }
@@ -1765,7 +1766,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       }
       text = EtomoAutodoc.getTooltip(autodoc, "MtfFile");
       if (text != null) {
+        text = tooltipFormatter.setText(text).format();
         ltfMtfFile.setToolTipText(tooltipFormatter.setText(text).format());
+        btnMtfFile.setToolTipText(text);
       }
       text = EtomoAutodoc.getTooltip(autodoc, "MaximumInverse");
       if (text != null) {
@@ -1835,8 +1838,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfLogOffset.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Select this checkbox to use local alignments.  You must have "
         + "created the local alignments in the Fine Alignment step";
-    cbUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text)
-        .format());
+    cbUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text).format());
     text = "Compute the tomogram from the full aligned stack.  This runs "
         + "the tilt.com script.";
     btnTilt.setToolTipText(tooltipFormatter.setText(text).format());
@@ -1870,5 +1872,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         + "binned tomogram, all of the thickness, position, and size parameters"
         + " below are still entered in unbinned pixels.";
     spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
+    cbUseZFactors
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Use the file containing factors for adjusting the backprojection position "
+                    + "in each image as a function of Z height in the output slice (.zfac file).  "
+                    + "These factors are necessary when input images have been transformed to "
+                    + "correct for an apparent specimen stretch.  "
+                    + "If this box is not checked, "
+                    + "Z factors in a local alignment file will not be applied.")
+            .format());
   }
 }
