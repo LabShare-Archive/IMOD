@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.55  2006/10/19 23:34:03  sueh
+ * bug# 927 Changed the label for and added a tooltip to ltfLowFromBothRadius.
+ *
  * Revision 3.54  2006/10/13 22:30:18  sueh
  * bug# 927 Added ltfLowFromBothRadius.
  *
@@ -1407,6 +1410,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     text = "View the final combined volume.";
     btnImodCombined.setToolTipText(tooltipFormatter.setText(text).format());
+    cbNoVolcombine
+    .setToolTipText(tooltipFormatter
+        .setText(
+            "Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue.")
+        .format());
 
     text = "Filter by convolving in real space with a Gaussian kernel.  The amount of "
         + "filtering is controlled by the sigma of the Gaussian, in pixels.  Higher "
