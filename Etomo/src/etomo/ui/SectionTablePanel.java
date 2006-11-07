@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2006/10/16 22:52:47  sueh
+ * <p> bug# 919  Added setInverted().
+ * <p>
  * <p> Revision 1.32  2006/07/21 19:13:56  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
@@ -355,7 +358,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final MultiLineButton btnGetAngles = new MultiLineButton(
       "Get Angles from Slicer");
   private final MultiLineButton btnInvertTable = new MultiLineButton(
-  "Invert Table");
+      "Invert Table");
   //first header row
   private final HeaderCell header1ZOrder = new HeaderCell("Z Order");
   private final HeaderCell header1SetupSections = new HeaderCell(
@@ -655,7 +658,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
-    pnlImod = joinDialog.createOpen3dmodPanel(spinBinning, btnOpen3dmod);
+    pnlImod = joinDialog.createOpen3dmodPanel(spinBinning,
+        "The binning to use when opening a section in 3dmod.", btnOpen3dmod);
     //fourth component
     pnlButtonsComponent4.setBoxLayout(BoxLayout.Y_AXIS);
     btnGetAngles.setSize(true);
@@ -1157,7 +1161,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     ArrayList newRows = new ArrayList();
     int rowNumber = 0;
     for (int i = size - 1; i >= 0; i--) {
-      SectionTableRow row = (SectionTableRow)rows.get(i);
+      SectionTableRow row = (SectionTableRow) rows.get(i);
       //remove the row from the display
       row.remove();
       //place the row in its new position in the array and configure it
@@ -1435,19 +1439,19 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     btnDeleteSection.setToolTipText(tooltipFormatter.setText(
         "The order of the sections in the joined tomogram.").format());
 
-    String toolTip = tooltipFormatter.setText(
+    String tooltip = tooltipFormatter.setText(
         "The sections used in the joined tomogram.").format();
-    header1SetupSections.setToolTipText(toolTip);
-    header2SetupSections.setToolTipText(toolTip);
-    header3SetupSections.setToolTipText(toolTip);
+    header1SetupSections.setToolTipText(tooltip);
+    header2SetupSections.setToolTipText(tooltip);
+    header3SetupSections.setToolTipText(tooltip);
 
-    toolTip = tooltipFormatter
+    tooltip = tooltipFormatter
         .setText(
             "The sections, including rotated sections, used in the joined tomogram.")
         .format();
-    header1JoinSections.setToolTipText(toolTip);
-    header2JoinSections.setToolTipText(toolTip);
-    header3JoinSections.setToolTipText(toolTip);
+    header1JoinSections.setToolTipText(tooltip);
+    header2JoinSections.setToolTipText(tooltip);
+    header3JoinSections.setToolTipText(tooltip);
 
     header1Sample.setToolTipText(tooltipFormatter.setText(
         "The slices to be used in the sample.").format());
@@ -1482,49 +1486,49 @@ public class SectionTablePanel implements ContextMenu, Expandable,
                 "The ending top slice to be used in the sample.  The top slices should be matched against the bottom slices of the next section.")
             .format());
 
-    toolTip = tooltipFormatter.setText(
+    tooltip = tooltipFormatter.setText(
         "Shows where each of the sample slices comes from.").format();
-    header1SlicesInSample.setToolTipText(toolTip);
-    header2SlicesInSample.setToolTipText(toolTip);
+    header1SlicesInSample.setToolTipText(tooltip);
+    header2SlicesInSample.setToolTipText(tooltip);
 
-    toolTip = tooltipFormatter.setText(
+    tooltip = tooltipFormatter.setText(
         "Shows how the sample is divided up in Midas.").format();
-    header1CurrentChunk.setToolTipText(toolTip);
-    header2CurrentChunk.setToolTipText(toolTip);
+    header1CurrentChunk.setToolTipText(tooltip);
+    header2CurrentChunk.setToolTipText(tooltip);
 
-    toolTip = tooltipFormatter.setText(
+    tooltip = tooltipFormatter.setText(
         "The reference section slices for each chunk in Midas.").format();
-    header1ReferenceSection.setToolTipText(toolTip);
-    header2ReferenceSection.setToolTipText(toolTip);
+    header1ReferenceSection.setToolTipText(tooltip);
+    header2ReferenceSection.setToolTipText(tooltip);
 
-    toolTip = tooltipFormatter.setText(
+    tooltip = tooltipFormatter.setText(
         "The current section slices for each chunk in Midas.").format();
-    header1CurrentSection.setToolTipText(toolTip);
-    header2CurrentSection.setToolTipText(toolTip);
+    header1CurrentSection.setToolTipText(tooltip);
+    header2CurrentSection.setToolTipText(tooltip);
 
-    toolTip = tooltipFormatter
+    tooltip = tooltipFormatter
         .setText(
             "Enter to starting and ending Z values to be used to trim each section in the joined tomogram.")
         .format();
-    header1SetupFinal.setToolTipText(toolTip);
-    header2SetupFinal.setToolTipText(toolTip);
+    header1SetupFinal.setToolTipText(tooltip);
+    header2SetupFinal.setToolTipText(tooltip);
     header3SetupFinalStart
         .setToolTipText(tooltipFormatter
             .setText(
                 "Enter to starting Z value to be used to trim each section in the joined tomogram.")
             .format());
-    header3SetupFinalStart
+    header3SetupFinalEnd
         .setToolTipText(tooltipFormatter
             .setText(
                 "Enter to ending Z value to be used to trim the section in the joined tomogram.")
             .format());
 
-    toolTip = tooltipFormatter
+    tooltip = tooltipFormatter
         .setText(
             "Enter to starting and ending Z values to be used to trim each section or rotated section in the joined tomogram.")
         .format();
-    header1JoinFinal.setToolTipText(toolTip);
-    header2JoinFinal.setToolTipText(toolTip);
+    header1JoinFinal.setToolTipText(tooltip);
+    header2JoinFinal.setToolTipText(tooltip);
     header3JoinFinalStart
         .setToolTipText(tooltipFormatter
             .setText(
@@ -1536,21 +1540,23 @@ public class SectionTablePanel implements ContextMenu, Expandable,
                 "Enter to ending Z values to be used to trim each section or rotated section in the joined tomogram.")
             .format());
 
-    toolTip = tooltipFormatter.setText(
+    tooltip = tooltipFormatter.setText(
         "The rotation in X, Y, and Z of each section.").format();
-    header1Rotation.setToolTipText(toolTip);
-    header2Rotation.setToolTipText(toolTip);
+    header1Rotation.setToolTipText(tooltip);
+    header2Rotation.setToolTipText(tooltip);
     header3RotationX.setToolTipText(tooltipFormatter.setText(
         "The rotation in X of each section.").format());
     header3RotationY.setToolTipText(tooltipFormatter.setText(
         "The rotation in Y of each section.").format());
     header3RotationZ.setToolTipText(tooltipFormatter.setText(
         "The rotation in Z of each section.").format());
-
-    spinBinning.setToolTipText(tooltipFormatter.setText(
-        "The binning to use when opening a section in 3dmod.").format());
     btnOpen3dmod.setToolTipText(tooltipFormatter.setText(
         "Press to open a section in 3dmod.").format());
+    tooltip = tooltipFormatter.setText("Order of the sections in Z.").format();
+    header1ZOrder.setToolTipText(tooltip);
+    header2ZOrder.setToolTipText(tooltip);
+    header3ZOrder.setToolTipText(tooltip);
+    btnInvertTable.setToolTipText(tooltipFormatter.setText("Reverse the order of the sections in the table.").format());
   }
 
   //
