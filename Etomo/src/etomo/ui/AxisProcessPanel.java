@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2006/10/24 22:33:41  sueh
+ * <p> bug# 947
+ * <p>
  * <p> Revision 3.26  2006/08/10 17:45:43  sueh
  * <p> bug# 686 Passing manager and axis to ProgressPanel.
  * <p>
@@ -276,6 +279,7 @@ abstract class AxisProcessPanel implements ContextMenu {
     innerStatusPanel.add(Box.createRigidArea(FixedDim.x0_y5));
     innerStatusPanel
         .setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
+    buttonKillProcess.setToolTipText("Press to end the current process.");
   }
 
   private void setName(ProcessName processName) {
