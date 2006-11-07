@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2006/09/13 23:48:40  sueh
+ * bug# 921
+ *
  * Revision 3.44  2006/07/28 19:58:50  sueh
  * bug# 868 Changed AbstractParallelDialog.isParallel to
  * usingParallelProcessing because isParallel is too similar to a standard get
@@ -464,7 +467,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, appMgr,
         ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP);
-   // pnlSolvematch.visibleResidual(false);
+    // pnlSolvematch.visibleResidual(false);
 
     //  Create the patch parmeters panel
     rbSmallPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -715,7 +718,7 @@ public final class SetupCombinePanel implements ContextMenu,
     }
     return MatchMode.A_TO_B;
   }
-  
+
   public void setMatchMode(MatchMode matchMode) {
     if (matchMode == null) {
       return;
@@ -747,7 +750,7 @@ public final class SetupCombinePanel implements ContextMenu,
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
-  
+
   private void setBtoA(MatchMode matchMode) {
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       rbBtoA.setSelected(true);
@@ -1194,6 +1197,12 @@ public final class SetupCombinePanel implements ContextMenu,
 
     text = "Start running the combine operation from the beginning.";
     btnCombine.setToolTipText(tooltipFormatter.setText(text).format());
+
+    cbNoVolcombine
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue.")
+            .format());
 
     cbParallelProcess.setToolTipText(tooltipFormatter.setText(
         FinalCombinePanel.VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
