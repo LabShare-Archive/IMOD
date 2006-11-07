@@ -76,6 +76,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
     pnlRoot.add(btnRunProcess);
     pnlRoot.alignComponentsX(Component.CENTER_ALIGNMENT);
     setActionListener();
+    setToolTipText();
   }
 
   public Container getContainer() {
@@ -162,6 +163,23 @@ public final class ParallelDialog implements AbstractParallelDialog {
     }
   }
 
+  private void setToolTipText() {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    ltfProcessName
+        .setToolTipText(tooltipFormatter
+            .setText(
+                "The process name is based on the name of the first comscript (-001.com).")
+            .format());
+    btnChunkComscript.setToolTipText(tooltipFormatter
+        .setText(
+        "Selects the first comscript (-001.com).")
+    .format());
+    btnRunProcess.setToolTipText(tooltipFormatter
+        .setText(
+        "Runs the process.")
+    .format());
+  }
+
   private class ParallelActionListener implements ActionListener {
     ParallelDialog adaptee;
 
@@ -188,6 +206,11 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2006/07/28 19:57:10  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing because isParallel is too similar to a standard get
+ * <p> function.
+ * <p>
  * <p> Revision 1.11  2006/04/06 20:52:26  sueh
  * <p> bug# 840 When getting the name of the parallel process, don't strip any
  * <p> dash but the last one off.
