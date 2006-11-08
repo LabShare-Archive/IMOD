@@ -1,5 +1,7 @@
 package etomo.process;
 
+import java.util.HashMap;
+
 import etomo.comscript.IntermittentCommand;
 import etomo.ui.LoadAverageDisplay;
 import etomo.util.HashedArray;
@@ -24,9 +26,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
   private static final String OUTPUT_KEY_PHRASE = "load average";
   private static final String OUTPUT_KEY_PHRASE_WINDOWS = "Percent CPU usage";
-  
+
   private final LoadAverageDisplay display;
-  
+
   private HashedArray programs = new HashedArray();
   private boolean running = false;
 
@@ -37,6 +39,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   public void run() {
     try {
       while (!isStopped()) {
+        //update the output on the display from each of the running programs.
         for (int i = 0; i < programs.size(); i++) {
           ProgramState programState = (ProgramState) programs.get(i);
           if (!programState.isStopped()) {
@@ -87,32 +90,64 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     return true;
   }
 
+  /**
+   * Processes the output of programState.program.  Sets the results in display.
+   * This function is meant to be called over and over while
+   * programState.program is running.
+   * @param programState
+   */
   private void processData(ProgramState programState) {
     //process standard out
     String[] stdout = programState.getStdOutput(this);
     if (stdout == null) {
       return;
     }
+    double cpuUsage = -1;
+    double load1 = -1;
+    double load5 = -1;
+    programState.clearUsers();
+    int users = 0;
+    boolean headerLineFound = false;
     for (int i = 0; i < stdout.length; i++) {
       //System.out.println(stdout[i]);
       if (Utilities.isWindowsOS()) {
         if (stdout[i].indexOf(OUTPUT_KEY_PHRASE_WINDOWS) != -1) {
-        programState.setWaitForCommand(0);
-        String[] array = stdout[i].trim().split("\\s+");
-        display.setCPUUsage(programState.getCommand().getComputer(),
-            getLoad(array[array.length - 1]));
-        }
-      }
-      else {
-        if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
           programState.setWaitForCommand(0);
           String[] array = stdout[i].trim().split("\\s+");
-          display.setLoadAverage(programState.getCommand().getComputer(),
-              getLoad(array[array.length - 3]),
-              getLoad(array[array.length - 2]),
-              getLoad(array[array.length - 1]));
+          cpuUsage = getLoad(array[array.length - 1]);
         }
       }
+      else if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
+        programState.setWaitForCommand(0);
+        String[] array = stdout[i].trim().split("\\s+");
+        load1 = getLoad(array[array.length - 3]);
+        load5 = getLoad(array[array.length - 2]);
+      }
+      else if (!headerLineFound) {
+        //ignore the header line
+        headerLineFound = true;
+      }
+      else {
+        //count users
+        String[] array = stdout[i].trim().split("\\s+");
+        if (!array[0].equals("root") && !programState.containsUser(array[0])) {
+          programState.addUser(array[0]);
+          users++;
+        }
+      }
+    }
+    if (Utilities.isWindowsOS()) {
+      if (cpuUsage == -1) {
+        return;
+      }
+      display.setCPUUsage(programState.getCommand().getComputer(), cpuUsage);
+    }
+    else {
+      if (load1 == -1) {
+        return;
+      }
+      display.setLoadAverage(programState.getCommand().getComputer(), load1,
+          load5, users);
     }
   }
 
@@ -120,7 +155,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     if (Utilities.isWindowsOS()) {
       return OUTPUT_KEY_PHRASE_WINDOWS;
     }
-    return OUTPUT_KEY_PHRASE;
+    //need to get users for linux systems, so don't use the output key phrase to limit process output
+    //return OUTPUT_KEY_PHRASE;
+    return null;
   }
 
   private final double getLoad(String load) {
@@ -149,48 +186,66 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
   private final class ProgramState {
     private final IntermittentBackgroundProcess program;
+    //userMap:  convenience variable for counting the number of different users logged into a computer.
+    private final HashMap userMap = new HashMap();
+
     private int waitForCommand = 0;
 
     private ProgramState(IntermittentBackgroundProcess program) {
       this.program = program;
     }
 
-    public final String toString() {
+    public String toString() {
       return "[program=" + program + ",\nwaitForCommand=" + waitForCommand
           + "," + super.toString() + "]";
     }
 
-    protected final boolean isStopped() {
+    boolean isStopped() {
       return program.isStopped();
     }
 
-    protected final int getWaitForCommand() {
+    int getWaitForCommand() {
       return waitForCommand;
     }
 
-    protected final void incrementWaitForCommand() {
+    void incrementWaitForCommand() {
       waitForCommand++;
     }
 
-    protected final void setWaitForCommand(int waitForCommand) {
+    void setWaitForCommand(int waitForCommand) {
       this.waitForCommand = waitForCommand;
     }
 
-    protected final IntermittentCommand getCommand() {
+    IntermittentCommand getCommand() {
       return program.getCommand();
     }
 
-    protected final void stop(IntermittentProcessMonitor monitor) {
+    void stop(IntermittentProcessMonitor monitor) {
       program.stop(monitor);
     }
 
-    protected final String[] getStdOutput(IntermittentProcessMonitor monitor) {
+    String[] getStdOutput(IntermittentProcessMonitor monitor) {
       return program.getStdOutput(monitor);
+    }
+
+    void clearUsers() {
+      userMap.clear();
+    }
+
+    boolean containsUser(String user) {
+      return userMap.containsKey(user);
+    }
+
+    void addUser(String user) {
+      userMap.put(user, null);
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/10/18 15:41:15  sueh
+ * <p> bug# 929 Changed failure reason to "no connection"
+ * <p>
  * <p> Revision 1.15  2006/02/15 22:06:44  sueh
  * <p> bug# 796 Added a key phrase for windows
  * <p>
