@@ -19,13 +19,16 @@ public interface LoadAverageDisplay {
   public static  final String  rcsid =  "$Id$";
   
   public LoadAverageMonitor getLoadAverageMonitor();
-  public void setLoadAverage(String computer, double load1, double load5, double load15);
+  public void setLoadAverage(String computer, double load1, double load5, int users);
   public void msgLoadAverageFailed(String computer, String reason);
   public void msgStartingProcess(String computer);
   public void setCPUUsage(String computer, double CPUUsage);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2006/02/08 03:35:22  sueh
+* <p> bug# 796 Use imodwindcpu instead of w for windows.
+* <p>
 * <p> Revision 1.6  2005/11/19 02:42:21  sueh
 * <p> bug# 744 Changed parallel processing display clearFailureReason
 * <p> function to msgStartingProcess.  This hides the implementation.
