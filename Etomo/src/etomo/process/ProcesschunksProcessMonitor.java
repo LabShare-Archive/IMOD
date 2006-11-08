@@ -422,8 +422,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, ProcessName.PROCESSCHUNKS
               .toString(), axisID));
-      //delete it the first time to avoid looking at a file from a previous run
-      processOutput.delete();
+      //avoid looking at a file from a previous run
+      processOutput.backup();
     }
   }
 
@@ -434,6 +434,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2006/10/24 21:38:10  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.22  2006/10/18 15:42:06  sueh
  * <p> bug# 929  updateState():  Improving failure reasons.
  * <p>
