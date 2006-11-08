@@ -165,8 +165,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   }
 
   public final void setLoadAverage(String computer, double load1, double load5,
-      double load15) {
-    processorTable.setLoadAverage(computer, load1, load5, load15);
+      int users) {
+    processorTable.setLoadAverage(computer, load1, load5, users);
   }
   
   public final void setCPUUsage(String computer, double cpuUsage) {
@@ -465,6 +465,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2006/07/21 22:12:03  sueh
+ * <p> bug# 901 Getting the calibration directory environment variable name from
+ * <p> EnvironmentVariable.
+ * <p>
  * <p> Revision 1.37  2006/07/21 19:12:29  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
