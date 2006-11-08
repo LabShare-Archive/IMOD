@@ -38,7 +38,7 @@ final class ProcessorTableRow implements Storable {
   private final FieldCell cellNumberCpus = new FieldCell();
   private final FieldCell cellLoad1 = new FieldCell();
   private final FieldCell cellLoad5 = new FieldCell();
-  private final FieldCell cellLoad15 = new FieldCell();
+  private final FieldCell cellUsers = new FieldCell();
   private final FieldCell cellCPUUsage = new FieldCell();
   private final FieldCell cellRestarts = new FieldCell();
   private final FieldCell cellSuccesses = new FieldCell();
@@ -171,7 +171,7 @@ final class ProcessorTableRow implements Storable {
     cellNumberCpus.setEnabled(false);
     cellLoad1.setEnabled(false);
     cellLoad5.setEnabled(false);
-    cellLoad15.setEnabled(false);
+    cellUsers.setEnabled(false);
     cellCPUUsage.setEnabled(false);
     cellRestarts.setEnabled(false);
     cellSuccesses.setEnabled(false);
@@ -236,7 +236,7 @@ final class ProcessorTableRow implements Storable {
     else {
       cellLoad1.add(panel, layout, constraints);
       cellLoad5.add(panel, layout, constraints);
-      cellLoad15.add(panel, layout, constraints);
+      cellUsers.add(panel, layout, constraints);
     }
     if (typeColumn) {
       cellCPUType.add(panel, layout, constraints);
@@ -287,15 +287,14 @@ final class ProcessorTableRow implements Storable {
   }
 
   private void setSelectedError() {
-    boolean loadIsEmpty;
+    boolean noloadAverage;
     if (Utilities.isWindowsOS()) {
-      loadIsEmpty = cellCPUUsage.isEmpty();
+      noloadAverage = cellCPUUsage.isEmpty();
     }
     else {
-      loadIsEmpty = cellLoad1.isEmpty() && cellLoad5.isEmpty()
-          && cellLoad15.isEmpty();
+      noloadAverage = cellLoad1.isEmpty();
     }
-    cellComputer.setError(cellComputer.isSelected() && loadIsEmpty);
+    cellComputer.setError(cellComputer.isSelected() && noloadAverage);
   }
 
   final boolean isSelected() {
@@ -366,11 +365,11 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  final void setLoadAverage(double load1, double load5, double load15) {
+  final void setLoadAverage(double load1, double load5, int users) {
     int numberCpus = cellNumberCpus.getIntValue();
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
-    setLoad(cellLoad15, load15, numberCpus);
+    cellUsers.setValue(users);
   }
 
   final void setCPUUsage(double cpuUsage) {
@@ -394,8 +393,7 @@ final class ProcessorTableRow implements Storable {
       cellLoad1.setWarning(false);
       cellLoad5.setValue();
       cellLoad5.setWarning(false);
-      cellLoad15.setValue();
-      cellLoad15.setWarning(false);
+      cellUsers.setValue();
     }
     setSelectedError();
     cellFailureReason.setValue(reason);
@@ -435,7 +433,7 @@ final class ProcessorTableRow implements Storable {
     else {
       width += cellLoad1.getWidth();
       width += cellLoad5.getWidth();
-      width += cellLoad15.getWidth();
+      width += cellUsers.getWidth();
     }
     if (typeColumn) {
       width += cellCPUType.getWidth();
@@ -481,6 +479,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/02/08 03:46:14  sueh
+ * <p> bug# 796 added cellCPUUsage to use instead of load averages in windows
+ * <p>
  * <p> Revision 1.20  2005/12/16 01:46:10  sueh
  * <p> bug# 784 Added tool tips.
  * <p>
