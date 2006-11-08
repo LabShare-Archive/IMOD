@@ -53,6 +53,7 @@ public final class ProcessorTable implements Storable {
   private final HeaderCell header1Computer = new HeaderCell("Computer");
   private final HeaderCell header1NumberCPUs = new HeaderCell("# CPUs");
   private final HeaderCell header1Load = new HeaderCell("Load Average");
+  private final HeaderCell header1Users = new HeaderCell("Users");
   private final HeaderCell header1CPUUsage = new HeaderCell("CPU Usage");
   private HeaderCell header1CPUType = null;
   private HeaderCell header1Speed = null;
@@ -66,7 +67,7 @@ public final class ProcessorTable implements Storable {
   private HeaderCell header2NumberCPUsMax = null;
   private final HeaderCell header2Load1 = new HeaderCell("1 Min.");
   private final HeaderCell header2Load5 = new HeaderCell("5 Min.");
-  private final HeaderCell header2Load15 = new HeaderCell("15 Min.");
+  private final HeaderCell header2Users = new HeaderCell();
   private final HeaderCell header2CPUUsage = new HeaderCell();
   private HeaderCell header2CPUType = null;
   private HeaderCell header2Speed = null;
@@ -258,9 +259,10 @@ public final class ProcessorTable implements Storable {
       header1CPUUsage.add(tablePanel, layout, constraints);
     }
     else {
-      constraints.gridwidth = 3;
+      constraints.gridwidth = 2;
       header1Load.add(tablePanel, layout, constraints);
       constraints.gridwidth = 1;
+      header1Users.add(tablePanel, layout, constraints);
     }
     if (useTypeColumn()) {
       header1CPUType.add(tablePanel, layout, constraints);
@@ -295,7 +297,7 @@ public final class ProcessorTable implements Storable {
     else {
       header2Load1.add(tablePanel, layout, constraints);
       header2Load5.add(tablePanel, layout, constraints);
-      header2Load15.add(tablePanel, layout, constraints);
+      header2Users.add(tablePanel, layout, constraints);
     }
     if (useTypeColumn()) {
       header2CPUType.add(tablePanel, layout, constraints);
@@ -467,7 +469,7 @@ public final class ProcessorTable implements Storable {
     }
     width += header2Load1.getWidth();
     width += header2Load5.getWidth();
-    width += header2Load15.getWidth();
+    width += header2Users.getWidth();
     if (useTypeColumn()) {
       width += header2CPUType.getWidth();
     }
@@ -605,12 +607,12 @@ public final class ProcessorTable implements Storable {
   }
 
   final void setLoadAverage(String computer, double load1, double load5,
-      double load15) {
+      int users) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5,
-        load15);
+        users);
   }
 
   final void setCPUUsage(String computer, double cpuUsage) {
@@ -725,8 +727,10 @@ public final class ProcessorTable implements Storable {
           "The load averaged over one minute.").format());
       header2Load5.setToolTipText(tooltipFormatter.setText(
           "The load averaged over five minutes.").format());
-      header2Load15.setToolTipText(tooltipFormatter.setText(
-          "The load averaged over fifteen minutes.").format());
+      text = tooltipFormatter.setText(
+      "The number of users logged into the computer.").format();
+      header1Users.setToolTipText(text);
+      header2Users.setToolTipText(text);
     }
     text = tooltipFormatter.setText(
         "The number of times processes failed on each computer.").format();
@@ -769,6 +773,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2006/11/07 22:53:36  sueh
+ * <p> bug# 954 Added tooltips
+ * <p>
  * <p> Revision 1.31  2006/02/09 23:40:36  sueh
  * <p> bug# 796 In Windows an exception was caused by tool tips being set
  * <p>
