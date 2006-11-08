@@ -59,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.98  2006/10/26 23:57:53  sueh
+ * bug# 953 updated tooltips
+ *
  * Revision 3.97  2006/09/14 00:00:38  sueh
  * bug# 920 Rename X offset and Z offset to X shift and Z shift.
  *
@@ -1870,5 +1873,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         + "binned tomogram, all of the thickness, position, and size parameters"
         + " below are still entered in unbinned pixels.";
     spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
+    cbUseZFactors
+    .setToolTipText(tooltipFormatter
+        .setText(
+            "Use the file containing factors for adjusting the backprojection position "
+                + "in each image as a function of Z height in the output slice (.zfac file).  "
+                + "These factors are necessary when input images have been transformed to "
+                + "correct for an apparent specimen stretch.  "
+                + "If this box is not checked, "
+                + "Z factors in a local alignment file will not be applied.")
+        .format());
   }
 }

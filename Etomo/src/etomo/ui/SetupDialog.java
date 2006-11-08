@@ -899,7 +899,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 
     text = "OPTIONAL: If you wish to correct for image distortion, enter the name of the appropriate image distortion file in this field and the CCD camera binning in the following spin control.";
     ltfDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
-
+    btnDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
+    
     text = "Specify the binning in the CCD camera when the raw image stack was acquired.";
     spnBinning.setToolTipText(tooltipFormatter.setText(text).format());
 
@@ -931,6 +932,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 
     spnBinning.setToolTipText(tooltipFormatter.setText(
         "Binning at which images were acquired on CCD camera.").format());
+    btnViewRawStackA.setToolTipText(tooltipFormatter.setText(
+    "View the current raw image stack.").format());
+btnViewRawStackB.setToolTipText(tooltipFormatter.setText(
+    "View the current raw image stack.").format());
+cbAdjustedFocusA
+    .setToolTipText(tooltipFormatter
+        .setText(
+            "Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.")
+        .format());
+cbAdjustedFocusB
+    .setToolTipText(tooltipFormatter
+        .setText(
+            "Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.")
+        .format());
   }
 
   //  Button action listener classes
@@ -1078,6 +1093,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.53  2006/09/21 16:41:08  sueh
+ * <p> bug# 680 Changed MRCHeader.x/y/zPixelSize to EtomoNumber.
+ * <p>
  * <p> Revision 3.52  2006/07/29 14:36:02  mast
  * <p> Put binning spinner into advanced along with distortion file field
  * <p>

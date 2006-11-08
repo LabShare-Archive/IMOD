@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/04/25 19:15:21  sueh
+ * <p> bug# 787 Added UITestField, an enum style class which contains the
+ * <p> fields found in uitestaxis.adoc files.
+ * <p>
  * <p> Revision 1.12  2006/04/06 20:16:56  sueh
  * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
  * <p> util.Utilities.
@@ -207,6 +211,7 @@ public class LabeledSpinner {
   public void setToolTipText(String toolTipText) {
     panel.setToolTipText(toolTipText);
     spinner.setToolTipText(toolTipText);
+    label.setToolTipText(toolTipText);
   }
 
   public void addMouseListener(MouseListener listener) {

@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2006/09/13 23:48:40  sueh
+ * bug# 921
+ *
  * Revision 3.44  2006/07/28 19:58:50  sueh
  * bug# 868 Changed AbstractParallelDialog.isParallel to
  * usingParallelProcessing because isParallel is too similar to a standard get
@@ -1197,5 +1200,10 @@ public final class SetupCombinePanel implements ContextMenu,
 
     cbParallelProcess.setToolTipText(tooltipFormatter.setText(
         FinalCombinePanel.VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP).format());
+    cbNoVolcombine
+    .setToolTipText(tooltipFormatter
+        .setText(
+            "Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue.")
+        .format());
   }
 }

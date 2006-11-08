@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2006/10/16 22:52:47  sueh
+ * <p> bug# 919  Added setInverted().
+ * <p>
  * <p> Revision 1.32  2006/07/21 19:13:56  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
@@ -655,7 +658,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
-    pnlImod = joinDialog.createOpen3dmodPanel(spinBinning, btnOpen3dmod);
+    pnlImod = joinDialog.createOpen3dmodPanel(spinBinning, "The binning to use when opening a section in 3dmod.", btnOpen3dmod);
     //fourth component
     pnlButtonsComponent4.setBoxLayout(BoxLayout.Y_AXIS);
     btnGetAngles.setSize(true);
@@ -1547,10 +1550,12 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     header3RotationZ.setToolTipText(tooltipFormatter.setText(
         "The rotation in Z of each section.").format());
 
-    spinBinning.setToolTipText(tooltipFormatter.setText(
-        "The binning to use when opening a section in 3dmod.").format());
     btnOpen3dmod.setToolTipText(tooltipFormatter.setText(
         "Press to open a section in 3dmod.").format());
+    header1ZOrder.setToolTipText(toolTip);
+    header2ZOrder.setToolTipText(toolTip);
+    header3ZOrder.setToolTipText(toolTip);
+    btnInvertTable.setToolTipText(tooltipFormatter.setText("Reverse the order of the sections in the table.").format());
   }
 
   //

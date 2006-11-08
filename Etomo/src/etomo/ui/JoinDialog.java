@@ -47,6 +47,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.37  2006/10/25 15:51:29  sueh
+ * <p> bug# 950 The section table setMetaData function calls the function that sets the
+ * <p> default join size.  So load the join size from metaData after the section table
+ * <p> setMetaData function has been called.
+ * <p>
  * <p> Revision 1.36  2006/10/16 22:52:19  sueh
  * <p> bug# 919  Added setInverted().
  * <p>
@@ -906,7 +911,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     spinOpenBinnedBy = new LabeledSpinner(OPEN_BINNED_BY, spinnerModel);
     btnOpenIn3dmod = new Run3dmodButton(OPEN_IN_3DMOD, this);
     //btnOpenIn3dmod.addActionListener(joinActionListener);
-    pnlFinishJoin.add(createOpen3dmodPanel(spinOpenBinnedBy, btnOpenIn3dmod));
+    pnlFinishJoin.add(createOpen3dmodPanel(spinOpenBinnedBy, "The binning to use when opening the joined tomogram in 3dmod.",btnOpenIn3dmod));
   }
 
   private void createTrialJoinPanel() {
@@ -937,7 +942,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnOpenTrialIn3dmod = new Run3dmodButton("Open Trial in 3dmod", this);
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenTrialBinnedBy = new LabeledSpinner(OPEN_BINNED_BY, spinnerModel);
-    pnlTrialJoin.add(createOpen3dmodPanel(spinOpenTrialBinnedBy,
+    pnlTrialJoin.add(createOpen3dmodPanel(spinOpenTrialBinnedBy,"The binning to use when opening the trial joined tomogram in 3dmod.",
         btnOpenTrialIn3dmod));
     //fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
@@ -946,7 +951,8 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   SpacedPanel createOpen3dmodPanel(LabeledSpinner spinner,
-      MultiLineButton button) {
+      String spinnerTooltip, MultiLineButton button) {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
     SpacedPanel open3dmodPanel = new SpacedPanel();
     open3dmodPanel.setBoxLayout(BoxLayout.Y_AXIS);
     open3dmodPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -955,7 +961,11 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     spinnerPanel.setBoxLayout(BoxLayout.X_AXIS);
     spinner.setTextMaxmimumSize(dimSpinner);
     spinnerPanel.add(spinner);
-    spinnerPanel.add(new JLabel(IN_X_AND_Y));
+    String tooltip = tooltipFormatter.setText(spinnerTooltip).format();
+    spinner.setToolTipText(tooltip);
+    JLabel label = new JLabel(IN_X_AND_Y);
+    label.setToolTipText(tooltip);
+    spinnerPanel.add(label);
     open3dmodPanel.add(spinnerPanel);
     //add button
     open3dmodPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1519,8 +1529,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         "The binning to use when creating the trial joined tomogram.").format());
     btnTrialJoin.setToolTipText(tooltipFormatter.setText(
         "Press to make a trial version of the joined tomogram.").format());
-    spinOpenTrialBinnedBy.setToolTipText(tooltipFormatter.setText(
-        "The binning to use when opening the trial joined tomogram in 3dmod.").format());
     btnOpenTrialIn3dmod.setToolTipText(tooltipFormatter.setText(
         "Press to open the trial joined tomogram.").format());
     btnGetSubarea
@@ -1530,8 +1538,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             .format());
     btnFinishJoin.setToolTipText(tooltipFormatter.setText(
         "Press to make the joined tomogram.").format());
-    spinOpenBinnedBy.setToolTipText(tooltipFormatter.setText(
-        "The binning to use when opening the joined tomogram in 3dmod.").format());
     btnOpenIn3dmod.setToolTipText(tooltipFormatter.setText(
         "Press to open the joined tomogram in 3dmod.").format());
   }

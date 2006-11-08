@@ -737,11 +737,41 @@ public final class ProcessorTable implements Storable {
         .format();
     header1Finished.setToolTipText(text);
     header2Finished.setToolTipText(text);
+    if (header1CPUType != null) {
+      text = tooltipFormatter.setText("The CPU type of each computer.")
+          .format();
+      header1CPUType.setToolTipText(text);
+      header2CPUType.setToolTipText(text);
+    }
+    if (header1Speed != null) {
+      text = tooltipFormatter.setText("The speed of each computer.").format();
+      header1Speed.setToolTipText(text);
+      header2Speed.setToolTipText(text);
+    }
+    if (header1RAM != null) {
+      text = tooltipFormatter.setText("The amount of RAM in each computer.")
+          .format();
+      header1RAM.setToolTipText(text);
+      header2RAM.setToolTipText(text);
+    }
+    if (header1OS != null) {
+      text = tooltipFormatter.setText("The operating system of each computer.")
+          .format();
+      header1OS.setToolTipText(text);
+      header2OS.setToolTipText(text);
+    }
+    text = tooltipFormatter.setText(
+    "Reason for a failure by the load average or a process").format();
+    header1Failure.setToolTipText(text);
+    header2Failure.setToolTipText(text);
   }
 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2006/02/09 23:40:36  sueh
+ * <p> bug# 796 In Windows an exception was caused by tool tips being set
+ * <p>
  * <p> Revision 1.30  2006/02/08 03:38:11  sueh
  * <p> bug# 796 Use cpu usage instead of load average for windows.
  * <p>

@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/07/04 18:47:23  sueh
+ * <p> bug# 893 Added updateAdvanced(boolean) to change the headers when the
+ * <p> advanced button is pressed.
+ * <p>
  * <p> Revision 3.20  2006/06/21 15:52:08  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>
@@ -463,11 +467,17 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     }
     text = EtomoAutodoc.getTooltip(autodoc, "XMinAndMax");
     if (text != null) {
-      pnlXMinAndMax.setToolTipText(tooltipFormatter.setText(text).format());
+      text = tooltipFormatter.setText(text).format();
+      pnlXMinAndMax.setToolTipText(text);
+      ltfXMin.setToolTipText(text);
+      ltfXMax.setToolTipText(text);
     }
     text = EtomoAutodoc.getTooltip(autodoc, "YMinAndMax");
     if (text != null) {
-      pnlYMinAndMax.setToolTipText(tooltipFormatter.setText(text).format());
+      text = tooltipFormatter.setText(text).format();
+      pnlYMinAndMax.setToolTipText(text);
+      ltfYMin.setToolTipText(text);
+      ltfYMax.setToolTipText(text);
     }
     text = EtomoAutodoc.getTooltip(autodoc, "PadsInXandY");
     if (text != null) {
