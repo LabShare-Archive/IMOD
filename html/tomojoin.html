@@ -571,6 +571,13 @@ right after the "finishjoin".
 <LI> To transform the model into the new alignment run
 <br><pre>
   xftoxg -n 0 rootname_refine.xf
+</pre>
+Or, if you set one section (referred to as {refsec}) as the reference, use
+<br><pre>
+  xftoxg -n 0 -ref {refsec} rootname_refine.xf
+</pre>
+Then run:
+<br><pre>
   xfmodel -xf rootname_refine.xg -ch {sizes} rootname_refine.mod rootname_refine.alimod
 </pre>
 <LI> If need to refine the model after seeing the transformed images or model,
