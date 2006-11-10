@@ -270,6 +270,24 @@ else
     end
 endif
 
+# Try to take care of SELinux problems in recommended fashion
+#
+if ($os == linux && -e /usr/sbin/sestatus) then
+    set test = `/usr/sbin/sestatus | grep enabled`
+    if ("$test" != "") then
+        echo ""
+        echo "SELinux is enabled - Trying to change security context of libraries."
+        chcon -t texrel_shlib_t lib/*.so pylib/*.so >& /dev/null
+        if ($status) then
+            echo "Errors occurred changing the security context."
+            echo "Disable SELinux if you have permission problems running IMOD programs."
+        endif
+        if (-e qtlib) chcon -t texrel_shlib_t qtlib/*.so >& /dev/null
+    endif
+endif
+
+# List files and offer to clean up
+#
 set vernum = `echo $version | sed '/[^0-9.]/s///g'`
 echo ""
 echo "The installation of IMOD $vernum is complete."
@@ -294,6 +312,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.12  2006/10/19 19:13:45  mast
+#  Removed current version from old version list
+#
 #  Revision 3.11  2006/10/05 22:19:43  mast
 #  Offered to remove other versions
 #
