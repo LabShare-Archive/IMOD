@@ -1,0 +1,28 @@
+One or more IMOD programs use the LSQR routine from Michael Saunders.  Two
+source files are used: lsqr.f and lsqrblas.f.  They are covered by the
+Common Public License, a copy of which is in cpl1.0.txt.
+
+What follows is the readme file from the original package:
+
+============================================================================
+
+lsqr_f77.README
+
+The software for LSQR (f77 version) is provided by SOL, Stanford University
+under the terms of the Common Public License (CPL):
+http://oss.software.ibm.com/developerworks/opensource/license-cpl.html
+
+
+11 Feb 2000: First set of files available for download from SOL.
+
+Please send comments to Michael Saunders, SOL, Stanford University
+                        saunders@stanford.edu  650-723-1875
+-----------------------------------------------------------------------------
+
+The f77 version of LSQR involves the following files:
+
+   lsqr.doc
+   lsqr.f
+   lsqrblas.f   (not needed if you have BLAS-1)
+   lsqrchk.f
+   lsqrtest.f
