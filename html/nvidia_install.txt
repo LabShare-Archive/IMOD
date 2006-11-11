@@ -11,16 +11,6 @@ can install this with:
 or by installing the corresponding rpm from your distribution disk, e.g.
    rpm -ivh kernel-devel*.rpm
 
-However, on a 32-bit system under FC6, you need the i586 rpm and not the i686
-rpm, so the easiest way to get this right is to install it from the
-distribution disk. If you already have one installed you can see which with:
-   ls /usr/src/kernels
-If it is the wrong one, find out the proper name with
-   rpm -q kernel-devel
-Then use
-   rpm -e kernel-devel-...
-   rpm -ivh kernel-devel*i586.rpm
-
 2. On Fedora Core 5 or 6, the installation procedure will complain, and things
 may not work, unless you install xorg-x11-server-sdk.  You can do this with
    yum install xorg-x11-server-sdk
@@ -41,6 +31,19 @@ another machine.  Bring the machine to runlevel 3 with:
 5. Go to the location where you have placed your Nvidia install file and
 run it as recommended in the instructions, e.g.
  sh NVIDIA-Linux-x86-1.0-8776-pkg1.run
+
+If you are on a 32-bit system under FC6 and the procedure fails, claiming
+that it cannot find the kernel source, then you probably need to install the
+i586 kernel-devel package instead of the i686 package.  To correct this,
+you will probably need to install an rpm from the distribution disk.  First
+check which kernel source is installed with:
+   ls /usr/src/kernels
+The directory name will end in either i586 or i686.  If it is the wrong one,
+find out the proper name to use for removing with:
+   rpm -q kernel-devel
+Then use:
+   rpm -e kernel-devel-...   (i.e., use the name just reported)
+   rpm -ivh kernel-devel*i586.rpm
 
 6. Edit your /etc/X11/xorg.conf.
 Make sure the modules section loads "glx".
