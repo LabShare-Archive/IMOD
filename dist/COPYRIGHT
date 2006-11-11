@@ -1,6 +1,6 @@
-IMOD Version 3.5.2                       Copyright Notice and Credits
+IMOD Version 3.9.1                      Copyright Notice and Credits
 --------------------------------------------------------------------------
-Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2005 by
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2006 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 ("BL3DEMC") and the Regents of the University of Colorado.
 
@@ -27,11 +27,17 @@ The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
 excluded from this notice; it is copyright Max-Planck-Institut for
 Biochemistry, Martinsried, Germany.
 
-This work is supported by NIH/NCRR grant RR00592 and NIH Program Project
-grant P01GM61306 to J.R. McIntosh and NIBIB grant EB005027 to David 
-Mastronarde for the Boulder Laboratory for 3-Dimensional Electron Microscopy 
-of Cells.
+The LSQR routine by Michael Saunders is used in some programs.  It is
+covered by the Common Public License.  The source code used here and the
+license can be found at  http://bio3d.colorado.edu/imod/openSource
+
+The program imodwincpu was adapted from code obtained from
+www.codeproject.com and written by Dudi Abramov.
+
+This work is supported by NIH/NCRR grant RR00592 to Andreas Hoenger and
+NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
+3-Dimensional Electron Microscopy of Cells.
 University of Colorado, Dept. of MCD Biology, 347 UCB, Boulder, CO 80309
 
-Contact email: mast@colorado.edu
-        www:   http://bio3d.colorado.edu/imod/index.html
+Contact:  mast at colorado dot edu
+    www:  http://bio3d.colorado.edu/imod/index.html
