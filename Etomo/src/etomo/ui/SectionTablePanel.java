@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33.2.1  2006/11/08 00:11:15  sueh
+ * <p> bug# 954 Added tooltips
+ * <p>
  * <p> Revision 1.33  2006/10/16 22:52:47  sueh
  * <p> bug# 919  Added setInverted().
  * <p>
@@ -1408,7 +1411,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       for (int i = 0; i < rows.size(); i++) {
         ((SectionTableRow) rows.get(i)).synchronizeSetupToJoin();
       }
-      joinDialog.defaultSizeInXY();
+      //joinDialog.defaultSizeInXY();
     }
     //synchronize join columns to setup columns when the users leaves the join
     //tab
