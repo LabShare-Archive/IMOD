@@ -41,16 +41,7 @@ public class JUnitTests {
     //$JUnit-BEGIN$
     //$JUnit-END$
     
-    testSuite = (TestSuite) ComScriptTests.suite();
-    tests = testSuite.tests();
-    while (tests.hasMoreElements()) {
-      test = tests.nextElement();
-      if (test instanceof Test) {
-        suite.addTest((Test) test);
-      }
-    }
-
-    testSuite = (TestSuite) ProcessTests.suite();
+    testSuite = (TestSuite) StorageTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
       test = tests.nextElement();
@@ -59,7 +50,16 @@ public class JUnitTests {
       }
     }
     
-    testSuite = (TestSuite) StorageTests.suite();
+    testSuite = (TestSuite) TypeTests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
+    
+    testSuite = (TestSuite) UtilTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
       test = tests.nextElement();
@@ -77,7 +77,7 @@ public class JUnitTests {
       }
     }
     
-    testSuite = (TestSuite) TypeTests.suite();
+    testSuite = (TestSuite) ComScriptTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
       test = tests.nextElement();
@@ -86,7 +86,7 @@ public class JUnitTests {
       }
     }
 
-    testSuite = (TestSuite) UtilTests.suite();
+    testSuite = (TestSuite) ProcessTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
       test = tests.nextElement();
@@ -94,12 +94,15 @@ public class JUnitTests {
         suite.addTest((Test) test);
       }
     }
-    
+
     return suite;
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2006/10/10 05:01:20  sueh
+* <p> bug# 931 Adding StorageTests.
+* <p>
 * <p> Revision 1.5  2006/06/14 00:06:04  sueh
 * <p> bug# 852 Adding tests for Autodoc.
 * <p>

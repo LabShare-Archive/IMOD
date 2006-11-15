@@ -14,6 +14,12 @@ package etomo.comscript;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.5  2005/11/10 18:02:42  sueh
+* <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+* <p> instanciated once so there won't be a problem if the working directory is
+* <p> changed.  Added a root test directory File object to each of the suites,
+* <p> which is based on the JUnitTests root test directory.
+* <p>
 * <p> Revision 3.4  2005/07/29 00:44:10  sueh
 * <p> bug# 709 Removed SetupCombineTest because is has no tests.
 * <p>
@@ -39,8 +45,8 @@ public class ComScriptTests {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     suite.addTestSuite(StringListTest.class);
-    suite.addTestSuite(NewstParamTest.class);
     suite.addTestSuite(FortranInputStringTest.class);
+    suite.addTestSuite(NewstParamTest.class);
     
     //suite.addTestSuite(CombineComscriptStateTest.class);
     //suite.addTest(new NewstParamTest("testParseComScriptCommand"));
