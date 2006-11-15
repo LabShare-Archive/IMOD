@@ -155,6 +155,7 @@ public class SettingsDialog extends JDialog {
 
   void buttonDoneAction() {
     EtomoDirector.getInstance().getSettingsParameters();
+    EtomoDirector.getInstance().saveSettingsDialog();
     EtomoDirector.getInstance().closeSettingsDialog();
   }
 
