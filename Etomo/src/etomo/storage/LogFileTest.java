@@ -1,6 +1,7 @@
 package etomo.storage;
 
 import java.io.File;
+import java.util.Properties;
 
 import etomo.EtomoDirector;
 import etomo.JUnitTests;
@@ -24,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2006/10/16 22:47:42  sueh
+ * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
+ * <p>
  * <p> Revision 1.3  2006/10/13 18:35:58  sueh
  * <p> bug# 931 Increasing sleep in createLog().
  * <p>
@@ -47,6 +51,14 @@ public class LogFileTest extends TestCase {
   private final File backupLog = new File(log.getAbsolutePath()
       + DatasetFiles.BACKUP_CHAR);
 
+  public LogFileTest() {
+    super();
+  }
+  
+  public LogFileTest(String test){
+    super(test);
+  }
+  
   protected void setUp() throws Exception {
     super.setUp();
     testDir.mkdirs();
@@ -76,20 +88,24 @@ public class LogFileTest extends TestCase {
     assertTrue("Should be able to close an open reader.", test
         .closeReader(readId1));
     long writeId = test.openForWriting();
-    readId1 = test.openReader();
+    assertEquals("Ids should increment by one",readId1+1,writeId);
+    long readId2 = test.openReader();
     assertFalse(
         "Should be able to open a log file reader when it is opened for writing.",
-        readId1 == LogFile.NO_ID);
+        readId2 == LogFile.NO_ID);
+    assertEquals("Ids should increment by one",writeId+1,readId2);
     assertTrue(test.closeForWriting(writeId));
-    assertTrue(test.closeReader(readId1));
-    long readId2 = test.openReader();
-    readId1 = test.openReader();
+    assertTrue(test.closeReader(readId2));
+    long readId3 = test.openReader();
+    assertEquals("Ids should increment by one",readId2+1,readId3);
+    long readId4 = test.openReader();
+    assertEquals("Ids should increment by one",readId3+1,readId4);
     assertFalse(
         "Should be able to open a log file reader when a reader is is already opened.",
-        readId1 == LogFile.NO_ID);
+        readId4 == LogFile.NO_ID);
     assertTrue(
         "A successful openReader() call should open the log file reader.", test
-            .isOpen(LogFile.LockType.READ, readId1));
+            .isOpen(LogFile.LockType.READ, readId4));
     try {
       test.backup();
       fail("Can't backup a log file with an open reader.");
@@ -99,8 +115,20 @@ public class LogFileTest extends TestCase {
     assertFalse(
         "CloseReader should fail when passed an id that doesn't match the one returned by the open call.",
         test.closeReader(LogFile.NO_ID));
-    assertTrue(test.closeReader(readId1));
-    assertTrue(test.closeReader(readId2));
+    assertTrue(test.closeReader(readId3));
+    assertTrue(test.closeReader(readId4));
+    log.delete();
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
+    try {
+      test.openReader();
+      fail("Should throw read exception when there is no file");
+    }
+    catch (LogFile.ReadException e) {
+    }
     assertTrue(test.noLocks());
   }
 
@@ -147,9 +175,11 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
-  public void testOpenForWriting() throws LogFile.ReadException {
+  public void testOpenForWriting() throws LogFile.ReadException,
+      LogFile.FileException {
     LogFile test = getInstance();
     long writeId1 = test.openForWriting();
+    assertWriteLock(test, writeId1);
     assertFalse("Should be able to open an unopened log file for writing.",
         writeId1 == LogFile.NO_ID);
     assertTrue(
@@ -187,9 +217,10 @@ public class LogFileTest extends TestCase {
   }
 
   public void testOpenWriter() throws LogFile.WriteException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     LogFile test = getInstance();
     long writeId1 = test.openWriter();
+    assertWriteLock(test, writeId1);
     assertFalse("Should be able to open an unopened log file for writing.",
         writeId1 == LogFile.NO_ID);
     assertFalse(
@@ -344,6 +375,18 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
+  public void testBackupOnce() throws LogFile.FileException {
+    LogFile test = getInstance();
+    assertTrue("Should be able to backup a log file.", test.backupOnce());
+    createLog();
+    assertFalse(
+        "Should not be able to backup a log file more then once when it has been backed up with backupOnce.",
+        test.backup());
+    assertFalse(
+        "Should not be able to backup a log file more then once when it has been backed up with backupOnce.",
+        test.backupOnce());
+  }
+
   public void testDelete() throws LogFile.FileException, LogFile.ReadException,
       LogFile.WriteException {
     LogFile test = getInstance();
@@ -376,9 +419,31 @@ public class LogFileTest extends TestCase {
     createLog();
     assertTrue("Should be able to delete when it can get an exclusive lock.",
         test.delete());
-    assertFalse("Should delete the file.",log.exists());
+    assertFalse("Should delete the file.", log.exists());
     assertFalse("Should return false when there is nothing to delete", test
         .delete());
+  }
+
+  public void testCreate() throws LogFile.FileException, LogFile.ReadException {
+    LogFile test = getInstance();
+    long readId = test.openReader();
+    assertFalse("When file exists, shouldn't check locks; just return false",
+        test.create());
+    assertTrue(test.closeReader(readId));
+    log.delete();
+    assertFalse(log.exists());
+    long writeId = test.openForWriting();
+    assertFalse(writeId == LogFile.NO_ID);
+    try {
+      test.create();
+      fail("Should throw file exception when WRITE locked");
+    }
+    catch (LogFile.FileException e) {
+    }
+    assertTrue(test.closeForWriting(writeId));
+    test.create();
+    assertTrue("Create should create the log file", log.exists());
+    assertTrue(test.noLocks());
   }
 
   public void testIsOpen() throws LogFile.ReadException, LogFile.WriteException {
@@ -420,6 +485,214 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
+  public void testInputStream() throws LogFile.WriteException,
+      LogFile.FileException, LogFile.ReadException {
+    LogFile test = getInstance();
+    long writeId = test.openWriter();
+    String key = "key";
+    String value = "1";
+    test.write(key + '=' + value, writeId);
+    test.newLine(writeId);
+    test.closeWriter(writeId);
+    writeId = test.openInputStream();
+    assertFalse(
+        "Should be able to open an input stream when there are no locks.",
+        writeId == LogFile.NO_ID);
+    assertWriteLock(test, writeId);
+    Properties props = new Properties();
+    test.load(props, writeId);
+    assertTrue("Should be able to load with input stream open", props
+        .getProperty(key).equals(value));
+    assertFalse(
+        "Should not be able to close for writing when the input stream is open",
+        test.closeForWriting(writeId));
+    assertFalse(
+        "Should not be able to close output stream when the input stream is open",
+        test.closeOutputStream(writeId));
+    assertFalse(
+        "Should not be able to close writer when the input stream is open",
+        test.closeWriter(writeId));
+    try {
+      test.flush(writeId);
+      fail("Should not be able to flush when the input stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    try {
+      test.newLine(writeId);
+      fail("Should not be able to write a new line when the input stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    try {
+      test.store(props, writeId);
+      fail("Should not be able to store when the input stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    try {
+      test.write("string", writeId);
+      fail("Should not be able to write when the input stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    assertTrue("Should be able to close an open input stream.", test
+        .closeInputStream(writeId));
+    assertFalse("Should be able to close a closed input stream.", test
+        .closeInputStream(writeId));
+    assertTrue(test.noLocks());
+  }
+
+  public void testOutputStream() throws LogFile.WriteException,
+      LogFile.FileException, LogFile.ReadException {
+    String key = "key";
+    String value = "1";
+    LogFile test = getInstance();
+    long writeId = test.openOutputStream();
+    assertFalse(
+        "Should be able to open an output stream when there are no locks.",
+        writeId == LogFile.NO_ID);
+    assertWriteLock(test, writeId);
+    try {
+      test.load(new Properties(), writeId);
+      fail("Should not be able to load with output stream open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    assertFalse(
+        "Should not be able to close for writing when the output stream is open",
+        test.closeForWriting(writeId));
+    assertFalse(
+        "Should not be able to close input stream when the output stream is open",
+        test.closeInputStream(writeId));
+    assertFalse(
+        "Should not be able to close writer when the output stream is open",
+        test.closeWriter(writeId));
+    try {
+      test.flush(writeId);
+      fail("Should not be able to flush when the output stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    try {
+      test.newLine(writeId);
+      fail("Should not be able to write a new line when the output stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    Properties props = new Properties();
+    props.setProperty(key, value);
+    test.store(props, writeId);
+    long readId = test.openReader();
+    test.readLine(readId);
+    String line = test.readLine(readId);
+    assertTrue("Should be able to store when the output stream is open\nline="+line, line.equals(key + '=' + value));
+    test.closeReader(readId);
+    try {
+      test.write("string", writeId);
+      fail("Should not be able to write when the output stream is open");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    assertTrue("Should be able to close an open output stream.", test
+        .closeOutputStream(writeId));
+    assertFalse("Should not be able to close a closed output stream.", test
+        .closeOutputStream(writeId));
+    assertTrue(test.noLocks());
+  }
+  
+  public void testIds() throws LogFile.WriteException,LogFile.ReadException,LogFile.FileException{
+    LogFile testa = getInstance();
+    LogFile testb = LogFile.getInstance(log.getParent(), AxisID.ONLY,
+        ProcessName.ALIGN);
+    long id0a = testa.openInputStream();
+    long id0b = testb.openForWriting();
+    assertEquals("Ids in different instances do not affect each other",id0a,id0b);
+    testa.closeInputStream(id0a);
+    testb.closeForWriting(id0b);
+    long id1 = testa.openOutputStream();
+    assertEquals("Ids should increment by one",id0a+1,id1);
+    testa.closeOutputStream(id1);
+    long id2 = testa.openForWriting();
+    assertEquals("Ids should increment by one",id1+1,id2);
+    long id3 = testa.openReader();
+    assertEquals("Ids should increment by one",id2+1,id3);
+    testa.closeForWriting(id2);
+    long id4 = testa.openWriter();
+    assertEquals("Ids should increment by one",id3+1,id4);
+    testa.closeReader(id3);
+    testa.closeWriter(id4);
+    testa.backup();
+    long id5 = testa.openWriter();
+    assertEquals("backing up should cause the Id to increment",id4+2,id5);
+    testa.closeWriter(id5);
+    testa.delete();
+    assertTrue(testa.create());
+    long id6 = testa.openReader();
+    assertEquals("deleting and creating should cause the Id to increment",id5+3,id6);
+    testa.closeReader(id6);
+    assertTrue(testa.noLocks());
+  }
+
+  private void assertWriteLock(LogFile test, long testWriteId)
+      throws LogFile.FileException, LogFile.ReadException {
+    assertTrue("The WRITE lock should be set", test.isOpen(
+        LogFile.LockType.WRITE, testWriteId));
+    try {
+      test.backup();
+      fail("Should not be able to backup with WRITE lock set");
+    }
+    catch (LogFile.FileException e) {
+    }
+    try {
+      test.backupOnce();
+      fail("Should not be able to backup with WRITE lock set");
+    }
+    catch (LogFile.FileException e) {
+    }
+    try {
+      test.delete();
+      fail("Should not be able to delete with WRITE lock set");
+    }
+    catch (LogFile.FileException e) {
+    }
+    assertTrue("Should be able to run exists() with WRITE lock set", test
+        .exists());
+    assertTrue("Should be able to run getAbsolutePath() with WRITE lock set",
+        test.getAbsolutePath().equals(log.getAbsolutePath()));
+    assertTrue("Should be able to run getName() with WRITE lock set", test
+        .getName().equals(log.getName()));
+    assertEquals("Should be able to run lastModified() with WRITE lock set",
+        test.lastModified(), log.lastModified());
+    assertEquals("Should not be able to open for writing with WRITE lock set",
+        test.openForWriting(), LogFile.NO_ID);
+    try {
+      test.openInputStream();
+      fail("Should not be able to open input stream with WRITE lock set");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    try {
+      test.openOutputStream();
+      fail("Should not be able to open output stream with WRITE lock set");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    long readId = test.openReader();
+    assertFalse("Should be able to open a reader with WRITE lock set",
+        readId == LogFile.NO_ID);
+    try {
+      test.openWriter();
+      fail("Should not be able to open writer with WRITE lock set");
+    }
+    catch (LogFile.WriteException e) {
+    }
+    //Should be able to read line with reader open and WRITE lock set
+    test.readLine(readId);
+    //Should be able to close reader with reader open and WRITE lock set
+    test.closeReader(readId);
+  }
+
   private LogFile getInstance() {
     LogFile logFile = LogFile.getInstance(log.getParent(), AxisID.ONLY,
         ProcessName.BLEND);
@@ -428,7 +701,8 @@ public class LogFileTest extends TestCase {
 
   private void createLog() {
     if (!log.exists()) {
-      EtomoDirector.getInstance().getCurrentManager_test().touch(log.getAbsolutePath());
+      EtomoDirector.getInstance().getCurrentManager_test().touch(
+          log.getAbsolutePath());
       try {
         Thread.sleep(500);
       }
