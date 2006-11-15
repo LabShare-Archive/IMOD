@@ -16,6 +16,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2006/09/19 22:30:47  sueh
+ * <p> bug# 920 Do not allow a storable to be null.
+ * <p>
  * <p> Revision 3.3  2006/09/13 23:30:09  sueh
  * <p> bug# 921 Preventing null pointer exception in save(Storable).
  * <p>
@@ -42,10 +45,15 @@ import java.util.*;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class ParameterStore {
+public final class ParameterStore {
   public static final String rcsid = "$Id$";
 
-  private File paramFile;
+  private final Properties properties = new Properties();
+
+  private final LogFile dataFile;
+
+  private boolean propertiesLoaded = false;
+  private boolean autoStore = true;
 
   /**
    * Construct a ParameterStore using the File specified
@@ -53,157 +61,88 @@ public class ParameterStore {
    * or to be stored.  <i>What happens when the file does not exist</i>
    */
   public ParameterStore(File paramFile) {
-    this.paramFile = paramFile;
+    dataFile = LogFile.getInstance(paramFile);
   }
 
-  public void save(Storable storable) throws IOException {
-    if (paramFile == null) {
+  /**
+   * Loads the properties if they haven't been loaded before.
+   * @throws IOException
+   */
+  private void loadProperties() throws LogFile.WriteException {
+    if (propertiesLoaded) {
       return;
     }
-    //get the existing property values from paramFile
-    FileInputStream inFile = new FileInputStream(paramFile);
-    Properties props = new Properties();
-    props.load(inFile);
-    inFile.close();
-    //let storable overwrite its values
-    storable.store(props);
-    //write the property values to paramFile
-    FileOutputStream outFile = new FileOutputStream(paramFile);
-    props.store(outFile, null);
-    outFile.close();
-  }
-
-  /**
-   * Save opens the given parameter file, collects the property key value
-   * pairs from the array of storable objects and stores them to the file.
-   * @param storableArray an array of storable objects that are iterated over
-   * to collect the
-   */
-  public void save(Storable[] storableArray) throws IOException {
-    //
-    //  Open the parameter file
-    //
-    FileOutputStream outFile = new FileOutputStream(paramFile);
-
-    //
-    //  Collect the key/value pairs from the array of storable objects
-    //
-    Properties props = new Properties();
-    for (int i = 0; i < storableArray.length; i++) {
-      if (storableArray[i] != null) {
-        storableArray[i].store(props);
+    //synchronize to avoid loading the properties more then once
+    //The file should only be modified by this instance of this class, so there
+    //should be no reason to reload.
+    //To modify the data file by hand, exit etomo, edit the data file, and rerun
+    //etomo.
+    synchronized (this) {
+      if (propertiesLoaded) {
+        return;
       }
-    }
-
-    //
-    //  Write out the key/value to the file
-    //
-    props.store(outFile, null);
-
-    //
-    //  Close the output stream
-    //
-    outFile.close();
-  }
-
-  /**
-   * Save opens the given parameter file, collects the property key value
-   * pairs from the array of storable objects and stores them to the file.
-   * @param storableArray an array of storable objects that are iterated over
-   * to collect the
-   */
-  public void save(Storable[] storableArray, int numberStorablesExpected)
-      throws IOException {
-    Properties props = null;
-    if (storableArray.length < numberStorablesExpected) {
-      //if not all the storables are being saved, don't overwrite the ones that
-      //are not being saved.
-      //
-      //  Open the parameter file
-      //
-      FileInputStream inFile = new FileInputStream(paramFile);
-      //
-      //  Load the key/value pairs into the properties object
-      //
-      props = new Properties();
-      props.load(inFile);
-      inFile.close();
-    }
-    //
-    //  Open the parameter file
-    //
-    FileOutputStream outFile = new FileOutputStream(paramFile);
-
-    //
-    //  Collect the key/value pairs from the array of storable objects
-    //
-    if (props == null) {
-      props = new Properties();
-    }
-    for (int i = 0; i < storableArray.length; i++) {
-      storableArray[i].store(props);
-    }
-
-    //
-    //  Write out the key/value to the file
-    //
-    props.store(outFile, null);
-
-    //
-    //  Close the output stream
-    //
-    outFile.close();
-  }
-
-  /**
-   * Load in the stored property key value pairs and send them to the
-   * storable object.
-   */
-  public void load(Storable storable) throws IOException {
-    if (paramFile == null) {
-      return;
-    }
-    //
-    //  Open the parameter file
-    //
-    FileInputStream inFile = new FileInputStream(paramFile);
-    //
-    //  Load the key/value pairs into the properties object
-    //
-    Properties props = new Properties();
-    props.load(inFile);
-    inFile.close();
-    //
-    //  Send the key/value pairs to the storable object
-    //
-    storable.load(props);
-  }
-
-  /**
-   * Load in the stored property key value pairs and send them to the array of
-   * storable objects.
-   */
-  public void load(Storable[] storableArray) throws IOException {
-    //
-    //  Open the parameter file
-    //
-    FileInputStream inFile = new FileInputStream(paramFile);
-    //
-    //  Load the key/value pairs into the properties object
-    //
-    Properties props = new Properties();
-    props.load(inFile);
-    inFile.close();
-
-    //
-    //  Send the key/value pairs to the array of storable objects
-    //
-    for (int i = 0; i < storableArray.length; i++) {
-      if (storableArray[i] == null) {
-        throw new NullPointerException("Storable index " + i
-            + " cannot be null.");
+      if (!dataFile.exists()) {
+        propertiesLoaded = true;
+        return;
       }
-      storableArray[i].load(props);
+      long writeId = dataFile.openInputStream();
+      dataFile.load(properties, writeId);
+      propertiesLoaded = true;
+      dataFile.closeInputStream(writeId);
     }
+  }
+
+  /**
+   * Saves properties to the paramFile.
+   * @throws IOException
+   */
+  public void storeProperties() throws LogFile.FileException, LogFile.WriteException {
+    dataFile.backupOnce();
+    if (!dataFile.exists()) {
+      dataFile.create();
+    }
+    long outputStreamId = dataFile.openOutputStream();
+    dataFile.store(properties, outputStreamId);
+    dataFile.closeOutputStream(outputStreamId);
+  }
+
+  /**
+   * When autoStore is true (default), the paramFile is updated each time
+   * save(Storable) is called.  When autoStore is false, storeProperties must be
+   * called to write properties to the paramFile.
+   * @param autoStore
+   */
+  public void setAutoStore(boolean autoStore) {
+    this.autoStore = autoStore;
+  }
+
+  /**
+   * Saved the values in storable to properties and then save properties to the
+   * paramFile.  Loads the properties if they haven't been loaded before.
+   * @param storable
+   * @throws IOException
+   */
+  public void save(Storable storable) throws LogFile.WriteException, LogFile.FileException {
+    loadProperties();
+    //let the storable overwrite its values
+    storable.store(properties);
+    if (autoStore) {
+      storeProperties();
+    }
+  }
+
+  /**
+   * Load storable from properties.  Loads the properties if they haven't been
+   * loaded before.
+   * @param storable
+   * @throws IOException
+   */
+  public void load(Storable storable) throws LogFile.WriteException {
+    loadProperties();
+    storable.load(properties);
+  }
+
+  public String getAbsolutePath() {
+    return dataFile.getAbsolutePath();
   }
 }
