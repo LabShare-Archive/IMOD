@@ -2,12 +2,13 @@ package etomo.type;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
+import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
-import etomo.storage.Storable;
 import junit.framework.TestCase;
 
 /**
@@ -563,15 +564,14 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public final void testStore_Properties() throws IOException {
+  public final void testStore_Properties() throws LogFile.FileException,
+      LogFile.WriteException, FileNotFoundException, IOException {
     String name = "TestStore_PropertiesName";
     EtomoNumber test = new EtomoNumber(name);
     test.set(smallInteger);
     ParameterStore properties = new ParameterStore(propertiesFile);
-    Storable storable[] = new Storable[1];
-    storable[0] = test;
     //test: no IOException thrown on save
-    properties.save(storable);
+    properties.save(test);
     //test: write parameter to file
     BufferedReader logFileReader = new BufferedReader(new FileReader(
         propertiesFile));
@@ -1328,27 +1328,30 @@ public final class ConstEtomoNumberTest extends TestCase {
         "When default value is set, the result of getValue(true) should be defaultValue.",
         test.getValue(true).intValue(), defaultValue);
   }
-  
+
   public void testGetDouble_boolean() {
     EtomoNumber test = new EtomoNumber();
     assertTrue(
         "When default value isn't set, the result of getDouble(boolean) should be the same as that of getDouble().",
-        test.getDouble(false)== test.getDouble());
+        test.getDouble(false) == test.getDouble());
     assertTrue(
         "When default value isn't set, the result of getDouble(boolean) should be the same as that of getDouble().",
-        test.getDouble(true)== test.getDouble());
+        test.getDouble(true) == test.getDouble());
     int defaultValue = 1;
     assertTrue(
         "When default value is set, the result of getDouble(false) should be the same as that of getDouble().",
-        test.getDouble(false)== test.getDouble());
+        test.getDouble(false) == test.getDouble());
     test.setDefault(defaultValue);
     assertTrue(
         "When default value is set, the result of getDouble(true) should be defaultValue.",
-        test.getDouble(true)== defaultValue);
+        test.getDouble(true) == defaultValue);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2006/10/17 20:07:40  sueh
+ * <p> bug# 939  Added testGetDouble_boolean(), testGetValue_boolean(), testIsDefault_Number(), testSetDefault_int(), testUseDefaultAsDisplayValue().
+ * <p>
  * <p> Revision 1.39  2006/09/21 16:36:23  sueh
  * <p> bug# 680 Modified testIsValid() to test assumptions in
  * <p> MRCHeader.parsePixelSpacing().

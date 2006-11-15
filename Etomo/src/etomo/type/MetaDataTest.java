@@ -1,14 +1,13 @@
 package etomo.type;
 
 import java.io.File;
-import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.JUnitTests;
 import etomo.process.SystemProcessException;
+import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
-import etomo.storage.Storable;
 import etomo.util.InvalidParameterException;
 import etomo.util.TestUtilites;
 import junit.framework.TestCase;
@@ -27,6 +26,11 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2005/12/23 02:07:20  sueh
+ * <p> bug# 675 Changed EtomoDirector.getCurrentTestManager to
+ * <p> getCurrentManager_test.  EtomoDirectory.getInstance no longer initializes
+ * <p> etomo.
+ * <p>
  * <p> Revision 3.14  2005/11/10 18:10:35  sueh
  * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
  * <p> instanciated once so there won't be a problem if the working directory is
@@ -125,29 +129,25 @@ public class MetaDataTest extends TestCase {
   /*
    * Class to test for void store(Properties)
    */
-  public void testStoreProperties() throws IOException {
-    Storable[] storable = new Storable[1];
-    
+  public void testStoreProperties() throws LogFile.WriteException,LogFile.FileException {
     for (int i = 0; i < edfList.length; i++) {
       MetaData origMetaData = new MetaData(manager);
-      storable[0] = origMetaData;
 
       //  Load in the original etomo data file
       File origFile = new File(testDir, edfList[i]);
       ParameterStore paramStore = new ParameterStore(origFile);
-      paramStore.load(storable);
+      paramStore.load(origMetaData);
 
       //  Create a new output file
       File newFile = new File(testDir, edfList[i] + "new");
       paramStore = new ParameterStore(newFile);
 
       //  Write out the meta data to the new file
-      paramStore.save(storable);
+      paramStore.save(origMetaData);
 
       //  Load in the new file
       MetaData newMetaData = new MetaData(manager);
-      storable[0] = newMetaData;
-      paramStore.load(storable);
+      paramStore.load(newMetaData);
 
       //  Compare it to the old metadata object
       assertTrue("MetaData not invariant in : " + origFile.getAbsolutePath()
@@ -158,15 +158,12 @@ public class MetaDataTest extends TestCase {
   /*
    * Class to test for void load(Properties)
    */
-  public void testLoadProperties() throws IOException,
+  public void testLoadProperties() throws LogFile.WriteException,
       InvalidParameterException {
-
-    Storable[] storable = new Storable[1];
     for (int i = 0; i < edfList.length; i++) {
       MetaData metaData = new MetaData(manager);
-      storable[0] = metaData;
       ParameterStore paramStore = new ParameterStore(new File(testDir, edfList[i]));
-      paramStore.load(storable);
+      paramStore.load(metaData);
       //  Check some basic parameters to see if we actually loaded something
       if (metaData.getDatasetName().equals("")) {
         fail("Did not read dataset name in " + edfList[i]);
@@ -181,5 +178,4 @@ public class MetaDataTest extends TestCase {
       }
     }
   }
-
 }
