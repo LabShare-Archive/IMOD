@@ -30,12 +30,15 @@ public class AutodocTests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(AutodocTest.class);
-    
-    //suite.addTest(new AutodocTest("testUITest"));
+
+    //suite.addTest(new AutodocTest("testBeadtrack"));
     //$JUnit-END$
     return suite;
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/06/14 00:23:24  sueh
+* <p> bug# 852 Test suite for the autodoc package.
+* <p> </p>
 */
