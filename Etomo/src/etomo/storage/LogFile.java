@@ -3,13 +3,16 @@ package etomo.storage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Properties;
 
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -32,8 +35,8 @@ import etomo.util.Utilities;
  * synchronized class.
  * 
  * Log File is a syncrhonized class:  all of its public and package-level
- * functions are synchronized (except functions which only call a synchronized
- * function).</p>
+ * functions are synchronized, except getInstance functions (createInstance() is
+ * synchronized).</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -58,21 +61,22 @@ public final class LogFile {
 
   private final Lock lock = new Lock();
 
-  private final String userDir;
-  private final String fileName;
+  private final String fileAbsolutePath;
 
   private File file = null;
   private File backupFile = null;
   private FileWriter fileWriter = null;
   private BufferedWriter bufferedWriter = null;
+  private FileInputStream inputStream = null;
+  private FileOutputStream outputStream = null;
+  private boolean backedUp = false;
 
-  private LogFile(String userDir, String fileName) {
-    this.userDir = userDir;
-    this.fileName = fileName;
+  private LogFile(File file) {
+    this.fileAbsolutePath = file.getAbsolutePath();
   }
 
   public String toString() {
-    return "\n[fileName=" + fileName + ",lock=" + lock + "]";
+    return "\n[fileAbsolutePath=" + fileAbsolutePath + ",lock=" + lock + "]";
   }
 
   /**
@@ -94,12 +98,16 @@ public final class LogFile {
   }
 
   public static LogFile getInstance(String userDir, String fileName) {
+    return getInstance(new File(userDir, fileName));
+  }
+
+  public static LogFile getInstance(File file) {
     LogFile logFile;
-    String key = makeKey(userDir, fileName);
+    String key = makeKey(file);
     if (logFileHashTable == null
         || (logFile = (LogFile) logFileHashTable.get(key)) == null) {
       //the instance doesn't exist - create it
-      logFile = createInstance(userDir, fileName, key);
+      logFile = createInstance(file, key);
     }
     return logFile;
   }
@@ -107,7 +115,7 @@ public final class LogFile {
   /**
    * For testing.  Removes all instances of LogFile.
    */
-  static void reset() {
+  synchronized static void reset() {
     logFileHashTable = null;
     readerList = null;
   }
@@ -122,8 +130,7 @@ public final class LogFile {
    * @param key
    * @return created instance
    */
-  private static synchronized LogFile createInstance(String userDir,
-      String fileName, String key) {
+  private static synchronized LogFile createInstance(File file, String key) {
     LogFile logFile;
     //make sure that the instance wasn't created by another thread
     if (logFileHashTable != null
@@ -131,7 +138,7 @@ public final class LogFile {
       return logFile;
     }
     //create the instance
-    logFile = new LogFile(userDir, fileName);
+    logFile = new LogFile(file);
     if (logFileHashTable == null) {
       logFileHashTable = new Hashtable();
     }
@@ -141,13 +148,46 @@ public final class LogFile {
   }
 
   /**
+   * Try to do a backup and set backedUp to true.  This prevents more then one backup to
+   * be done on the file during the lifetime of the instance.  This prevents the
+   * loss of data from a previous session because of too many backups being
+   * done.
+   * If backup() throws an exception, set backedUp to false and rethrow the
+   * exception.
+   * @return true if backup() was called and was successful
+   * @throws FileException
+   */
+  public synchronized boolean backupOnce() throws FileException {
+    if (backedUp) {
+      return false;
+    }
+    boolean backupResult = false;
+    try {
+      backupResult = backup();
+      backedUp = true;
+    }
+    catch (FileException e) {
+      throw e;
+    }
+    return backupResult;
+  }
+
+  /**
    * Delete the current backup file and rename the current file to be the new
    * backup file.  The current backup file will not be deleted unless the
    * current file exists.
-   * @return true if a backup was done
+   * Will not backup if backedUp is true (doesn't set backedUp)
+   * @return true if backup() successful or already backed up
    * @throws FileException
    */
   public synchronized boolean backup() throws FileException {
+    if (backedUp) {
+      return false;
+    }
+    createFile();
+    if (!file.exists()) {
+      return false;
+    }
     long fileId = NO_ID;
     try {
       fileId = lock.lock(LockType.FILE);
@@ -155,7 +195,6 @@ public final class LogFile {
     catch (LockException e) {
       throw new FileException(this, fileId, e);
     }
-    createFile();
     createBackupFile();
     if (!file.exists()) {
       //nothing to backup
@@ -224,8 +263,12 @@ public final class LogFile {
     }
     return success;
   }
-  
-  public synchronized boolean delete() throws FileException {
+
+  public synchronized boolean create() throws FileException {
+    createFile();
+    if (file.exists()) {
+      return false;
+    }
     long fileId = NO_ID;
     try {
       fileId = lock.lock(LockType.FILE);
@@ -233,7 +276,52 @@ public final class LogFile {
     catch (LockException e) {
       throw new FileException(this, fileId, e);
     }
+    if (file.exists()) {
+      //nothing to create
+      try {
+        lock.unlock(LockType.FILE, fileId);
+      }
+      catch (LockException e) {
+        //Don't throw a file exception because the error didn't affect the
+        //create.
+        e.printStackTrace();
+      }
+      return false;
+    }
+    try {
+      file.createNewFile();
+    }
+    catch (IOException e) {
+      throw new FileException(this, e);
+    }
+    boolean success = file.exists();
+    try {
+      lock.unlock(LockType.FILE, fileId);
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    if (success) {
+      file = null;
+      return true;
+    }
+    String path = file.getAbsolutePath();
+    file = null;
+    throw new FileException(this, fileId, "Unable to create " + path);
+  }
+
+  public synchronized boolean delete() throws FileException {
     createFile();
+    if (!file.exists()) {
+      return false;
+    }
+    long fileId = NO_ID;
+    try {
+      fileId = lock.lock(LockType.FILE);
+    }
+    catch (LockException e) {
+      throw new FileException(this, fileId, e);
+    }
     if (!file.exists()) {
       //nothing to delete
       try {
@@ -265,10 +353,10 @@ public final class LogFile {
     }
     String path = file.getAbsolutePath();
     file = null;
-    throw new FileException(this, fileId, "Unable to delete "+path);
+    throw new FileException(this, fileId, "Unable to delete " + path);
   }
 
-  public long openWriter() throws WriteException {
+  public synchronized long openWriter() throws WriteException {
     return openForWriting(true);
   }
 
@@ -277,7 +365,7 @@ public final class LogFile {
    * @see waitForLock()
    * @return
    */
-  public long openForWriting() {
+  public synchronized long openForWriting() {
     long writeId = NO_ID;
     try {
       writeId = openForWriting(false);
@@ -288,11 +376,7 @@ public final class LogFile {
     return writeId;
   }
 
-  private synchronized long openForWriting(boolean openWriter)
-      throws WriteException {
-    if (fileWriter != null) {
-      throw new WriteException(this, lock.getWriteId(), "Writer is already open.");
-    }
+  private long openForWriting(boolean openWriter) throws WriteException {
     long writeId = NO_ID;
     try {
       writeId = lock.lock(LockType.WRITE);
@@ -318,12 +402,156 @@ public final class LogFile {
   }
 
   /**
+   * Opens the input stream.  Although this is a reader, it needs to exclude
+   * writers because it is used to read the entire file.  So I'm using the
+   * writer lock for now.  If more then one input stream must be opened at a
+   * time, I will add a new input stream lock that will allow multiple input
+   * streams (and readers), but no writers.
+   * @return
+   * @throws InputStreamException
+   */
+  public synchronized long openInputStream() throws WriteException {
+    long writeId = NO_ID;
+    try {
+      writeId = lock.lock(LockType.WRITE);
+    }
+    catch (LockException e) {
+      throw new WriteException(this, e);
+    }
+    try {
+      createInputStream();
+    }
+    catch (IOException e) {
+      try {
+        lock.unlock(LockType.WRITE, writeId);
+      }
+      catch (LockException e0) {
+        e0.printStackTrace();
+      }
+      throw new WriteException(this, e);
+    }
+    return writeId;
+  }
+
+  /**
+   * Opens the output stream.  Locks the WRITE lock and returns a writeId.
+   * @return
+   * @throws WriteException
+   */
+  public synchronized long openOutputStream() throws WriteException {
+    long writeId = NO_ID;
+    try {
+      writeId = lock.lock(LockType.WRITE);
+    }
+    catch (LockException e) {
+      throw new WriteException(this, e);
+    }
+    try {
+      createOutputStream();
+    }
+    catch (IOException e) {
+      try {
+        lock.unlock(LockType.WRITE, writeId);
+      }
+      catch (LockException e0) {
+        e0.printStackTrace();
+      }
+      throw new WriteException(this, e);
+    }
+    return writeId;
+  }
+
+  public synchronized boolean closeInputStream(long writeId) {
+    if (fileWriter != null) {
+      new WriteException(this, writeId,
+          "Must use closeWriter() when opened with openWriter()")
+          .printStackTrace();
+      return false;
+    }
+    if (outputStream != null) {
+      new WriteException(this, writeId,
+          "Must use closeOutputStream() when opened with openOutputStream()")
+          .printStackTrace();
+      return false;
+    }
+    if (inputStream == null) {
+      new WriteException(this, writeId,
+          "Must use closeForWriting() when opened with openForWriting()")
+          .printStackTrace();
+      return false;
+    }
+    //close the input stream before unlocking
+    try {
+      lock.assertUnlockable(LockType.WRITE, writeId);
+      closeInputStream();
+      lock.unlock(LockType.WRITE, writeId);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public synchronized boolean closeOutputStream(long writeId) {
+    if (fileWriter != null) {
+      new WriteException(this, writeId,
+          "Must use closeWriter() when opened with openWriter()")
+          .printStackTrace();
+      return false;
+    }
+    if (inputStream != null) {
+      new WriteException(this, writeId,
+          "Must use closeInputStream() when opened with openInputStream()")
+          .printStackTrace();
+      return false;
+    }
+    if (outputStream == null) {
+      new WriteException(this, writeId,
+          "Must use closeForWriting() when opened with openForWriting()")
+          .printStackTrace();
+      return false;
+    }
+    //close the input stream before unlocking
+    try {
+      lock.assertUnlockable(LockType.WRITE, writeId);
+      closeOutputStream();
+      lock.unlock(LockType.WRITE, writeId);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Unlocks the open variable and closes the writer
    */
   public synchronized boolean closeForWriting(long writeId) {
     if (fileWriter != null) {
       new WriteException(this, writeId,
           "Must use closeWriter() when opened with openWriter()")
+          .printStackTrace();
+      return false;
+    }
+    if (inputStream != null) {
+      new WriteException(this, writeId,
+          "Must use closeInputStream() when opened with openInputStream()")
+          .printStackTrace();
+      return false;
+    }
+    if (outputStream != null) {
+      new WriteException(this, writeId,
+          "Must use closeOutputStream() when opened with openOutputStream()")
           .printStackTrace();
       return false;
     }
@@ -338,6 +566,24 @@ public final class LogFile {
   }
 
   public synchronized boolean closeWriter(long writeId) {
+    if (inputStream != null) {
+      new WriteException(this, writeId,
+          "Must use closeInputStream() when opened with openInputStream()")
+          .printStackTrace();
+      return false;
+    }
+    if (outputStream != null) {
+      new WriteException(this, writeId,
+          "Must use closeOutputStream() when opened with openOutputStream()")
+          .printStackTrace();
+      return false;
+    }
+    if (fileWriter == null) {
+      new WriteException(this, writeId,
+          "Must use closeForWriting() when opened with openForWriting()")
+          .printStackTrace();
+      return false;
+    }
     //close the writer before unlocking
     try {
       lock.assertUnlockable(LockType.WRITE, writeId);
@@ -417,6 +663,32 @@ public final class LogFile {
     }
   }
 
+  public synchronized void load(Properties properties, long writeId)
+      throws WriteException {
+    if (inputStream == null || !lock.isLocked(LockType.WRITE, writeId)) {
+      throw new WriteException(this, writeId);
+    }
+    try {
+      properties.load(inputStream);
+    }
+    catch (IOException e) {
+      throw new WriteException(this, writeId, e);
+    }
+  }
+
+  public synchronized void store(Properties properties, long writeId)
+      throws WriteException {
+    if (outputStream == null || !lock.isLocked(LockType.WRITE, writeId)) {
+      throw new WriteException(this, writeId);
+    }
+    try {
+      properties.store(outputStream, null);
+    }
+    catch (IOException e) {
+      throw new WriteException(this, writeId, e);
+    }
+  }
+
   public synchronized void write(String string, long writeId)
       throws WriteException {
     if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
@@ -441,7 +713,7 @@ public final class LogFile {
       throw new WriteException(this, writeId, e);
     }
   }
-  
+
   public synchronized void flush(long writeId) throws WriteException {
     if (!lock.isLocked(LockType.WRITE, writeId)) {
       throw new WriteException(this, writeId);
@@ -452,13 +724,16 @@ public final class LogFile {
     catch (IOException e) {
       throw new WriteException(this, writeId, e);
     }
+    catch (NullPointerException e) {
+      throw new WriteException(this, writeId, "Must open with openWriter() to be able to call flush().", e);
+    }
   }
 
   private void createFile() {
     if (file != null) {
       return;
     }
-    file = new File(userDir, fileName);
+    file = new File(fileAbsolutePath);
   }
 
   private void createReaderList() {
@@ -472,7 +747,7 @@ public final class LogFile {
     if (backupFile != null) {
       return;
     }
-    backupFile = new File(userDir, fileName + DatasetFiles.BACKUP_CHAR);
+    backupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR);
   }
 
   private void createWriter() throws IOException {
@@ -494,6 +769,42 @@ public final class LogFile {
     }
   }
 
+  private void createInputStream() throws IOException {
+    createFile();
+    try {
+      if (inputStream == null) {
+        inputStream = new FileInputStream(file);
+      }
+    }
+    catch (IOException e) {
+      try {
+        closeInputStream();
+      }
+      catch (IOException e0) {
+        e0.printStackTrace();
+      }
+      throw e;
+    }
+  }
+
+  private void createOutputStream() throws IOException {
+    createFile();
+    try {
+      if (outputStream == null) {
+        outputStream = new FileOutputStream(file);
+      }
+    }
+    catch (IOException e) {
+      try {
+        closeOutputStream();
+      }
+      catch (IOException e0) {
+        e0.printStackTrace();
+      }
+      throw e;
+    }
+  }
+
   private void closeWriter() throws IOException {
     if (bufferedWriter != null) {
       bufferedWriter.close();
@@ -502,6 +813,20 @@ public final class LogFile {
     if (fileWriter != null) {
       fileWriter.close();
       fileWriter = null;
+    }
+  }
+
+  private void closeInputStream() throws IOException {
+    if (inputStream != null) {
+      inputStream.close();
+      inputStream = null;
+    }
+  }
+
+  private void closeOutputStream() throws IOException {
+    if (outputStream != null) {
+      outputStream.close();
+      outputStream = null;
     }
   }
 
@@ -525,8 +850,8 @@ public final class LogFile {
     return file.getName();
   }
 
-  private static String makeKey(String userDir, String fileName) {
-    return userDir + fileName;
+  private static String makeKey(File file) {
+    return file.getAbsolutePath();
   }
 
   /**
@@ -580,7 +905,7 @@ public final class LogFile {
     }
   }
 
-  public static final class WriteException extends Exception {
+  public static class WriteException extends Exception {
     WriteException(LogFile logFile, long id) {
       super("id=" + id + ",logFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
     }
@@ -600,6 +925,12 @@ public final class LogFile {
           + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
+    
+    WriteException(LogFile logFile, long id, String message, Exception e) {
+      super(message+'\n'+e.toString() + "\nid=" + id + ",logFile=" + logFile
+          + PUBLIC_EXCEPTION_MESSAGE);
+      e.printStackTrace();
+    }
   }
 
   public static final class FileException extends Exception {
@@ -612,6 +943,11 @@ public final class LogFile {
     FileException(LogFile logFile, long id, String message) {
       super(message + "\nid=" + id + ",logFile=" + logFile
           + PUBLIC_EXCEPTION_MESSAGE);
+    }
+
+    FileException(LogFile logFile, Exception e) {
+      super(e.toString() + "\nlogFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
+      e.printStackTrace();
     }
   }
 
@@ -653,6 +989,7 @@ public final class LogFile {
       //save the lock id in the variable matching the lock type
       //increment the current id
       if (++currentId < 0) {
+        System.err.println("LogFile overflow - setting currentId to zero:currentId="+currentId);
         //catching overflow
         currentId = 0;
       }
@@ -755,7 +1092,7 @@ public final class LogFile {
       }
       throw new LockException(this, lockType, id);
     }
-    
+
     long getWriteId() {
       return writeId;
     }
@@ -876,6 +1213,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/10/16 22:46:54  sueh
+ * <p> bug# 919  Reader.open():  Simplifying new FileReader error handling.
+ * <p>
  * <p> Revision 1.6  2006/10/13 22:29:48  sueh
  * <p> bug# 931 Making LockType package level, since its no used outside of LogFile.
  * <p>
