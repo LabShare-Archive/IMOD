@@ -228,7 +228,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (!updateMTFFilterCom()) {
       return false;
     }
-    manager.saveIntermediateParamFile(axisID);
+    manager.saveStorables(axisID);
     return true;
   }
 
@@ -1029,6 +1029,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/09/19 22:38:06  sueh
+ * <p> bug# 920 Refreshing meta data values in TiltParam each time tilt.com is loaded.
+ * <p>
  * <p> Revision 1.6  2006/09/14 00:00:47  sueh
  * <p> bug# 920 Rename X offset and Z offset to X shift and Z shift.
  * <p>

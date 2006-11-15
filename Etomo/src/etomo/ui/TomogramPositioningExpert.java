@@ -267,7 +267,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (metaData.getViewType() != ViewType.MONTAGE && updateNewstCom() == null) {
       return false;
     }
-    manager.saveIntermediateParamFile(axisID);
+    manager.saveStorables(axisID);
     return true;
   }
 
@@ -916,6 +916,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2006/10/25 22:12:54  sueh
+ * <p> bug# 952  fiducialessAction():  when unchecking fidless, update tilt.com from the
+ * <p> screen version of z shift and tilt angle offset.
+ * <p>
  * <p> Revision 1.14  2006/10/19 22:53:28  sueh
  * <p> bug# 941  Refit on fiducialess action
  * <p>
