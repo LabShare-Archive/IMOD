@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.113  2006/10/16 22:43:41  sueh
+ * bug# 933  Moved the code in msgAlignPostProcess to postProcess.  Only doing
+ * align post process (reopening log) when the Computer Alignment button was
+ * used to run Fine Alignment.
+ *
  * Revision 3.112  2006/10/11 10:10:25  sueh
  * bug# 931 Added delete functionality to LogFile - changed BackupException to
  * FileException.
@@ -901,7 +906,7 @@ public class ProcessManager extends BaseProcessManager {
       System.err.println("copytomocoms command line: "
           + copyTomoComs.getCommandLine());
     }
-    appManager.saveIntermediateParamFile(axisID);
+    appManager.saveStorables(axisID);
     int exitValue = copyTomoComs.run();
     //process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
@@ -1505,7 +1510,7 @@ public class ProcessManager extends BaseProcessManager {
    * Run splitcombine
    */
   public String splitcombine(ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
+      throws SystemProcessException{
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new SplitcombineParam().getCommand(), AxisID.ONLY,
         processResultDisplay, ProcessName.SPLITCOMBINE);
@@ -1530,7 +1535,7 @@ public class ProcessManager extends BaseProcessManager {
           AxisID.ONLY);
       return false;
     }
-    appManager.saveIntermediateParamFile(AxisID.ONLY);
+    appManager.saveStorables(AxisID.ONLY);
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
     for (int i = 0; i < messages.errorListSize(); i++) {
@@ -1565,8 +1570,8 @@ public class ProcessManager extends BaseProcessManager {
    * Run the imod2patch command, don't save meta data because it doesn't change
    * for this command
    */
-  public void modelToPatch(AxisID axisID) throws LogFile.FileException,
-      SystemProcessException {
+  public void modelToPatch(AxisID axisID) throws 
+      SystemProcessException, LogFile.FileException {
     LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
         DatasetFiles.PATCH_OUT);
     patchOut.backup();
