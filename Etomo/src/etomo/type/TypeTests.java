@@ -19,6 +19,11 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/01/26 22:00:03  sueh
+ * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
+ * <p> functionality into ProcessResultDisplayState.  This allows a greater
+ * <p> variety of classes to be ProcessResultDisplay's.
+ * <p>
  * <p> Revision 3.7  2006/01/20 21:09:01  sueh
  * <p> bug# 401 Added tests for ProcessResultDisplay
  * <p>
@@ -53,8 +58,8 @@ public class TypeTests {
     //$JUnit-BEGIN$
     suite.addTestSuite(ConstEtomoNumberTest.class);
     suite.addTestSuite(ConstMetaDataTest.class);
-    suite.addTestSuite(MetaDataTest.class);
     suite.addTestSuite(ProcessResultDisplayStateTest.class);
+    suite.addTestSuite(MetaDataTest.class);
     //$JUnit-END$
     return suite;
   }
