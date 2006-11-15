@@ -19,7 +19,7 @@ c
       end
 
       subroutine realgraphicsmain()
-      parameter (limgraphs=50,limbins=1001,limwobj=100000,limxyz=2000000,
+      parameter (limgraphs=50,limbins=1001,limwobj=100000,limxyz=10000000,
      &    limregion=200,itypall=999)
       parameter (limtyp=250,limrand=1000,limflag=512)
       parameter (limprobs=50,limprobsets=50)
@@ -71,6 +71,7 @@ c
       integer*4 getimodobjname
       integer*4 in5
       common /nmsinput/ in5
+      common /bigmts/ xmt, ymt, zmt
 c       
       in5 = 5
       ifanyplot=0
@@ -1277,6 +1278,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.12  2006/07/15 03:04:25  mast
+c       Copied power to mean and sd graphs for random data
+c
 c       Revision 3.11  2006/05/13 15:10:16  mast
 c       Increased some dimensions including # of points
 c
