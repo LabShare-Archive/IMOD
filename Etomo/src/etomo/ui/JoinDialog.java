@@ -26,6 +26,7 @@ import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
@@ -47,6 +48,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.38  2006/11/07 22:43:36  sueh
+ * <p> bug# 954 Adding tooltip to the second label in the spinners.
+ * <p>
  * <p> Revision 1.37  2006/10/25 15:51:29  sueh
  * <p> bug# 950 The section table setMetaData function calls the function that sets the
  * <p> default join size.  So load the join size from metaData after the section table
@@ -1340,8 +1344,19 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
-      getMetaData(joinManager.getJoinMetaData());
-      joinManager.saveIntermediateParamFile(AxisID.ONLY);
+      JoinMetaData metaData = joinManager.getJoinMetaData();
+      getMetaData(metaData);
+      try {
+        joinManager.getParameterStore().save(metaData);
+      }
+      catch (LogFile.FileException e) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to save JoinMetaData.\n"
+            + e.getMessage(), "Etomo Error");
+      }
+      catch (LogFile.WriteException e) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to write JoinMetaData.\n"
+            + e.getMessage(), "Etomo Error");
+      }
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
