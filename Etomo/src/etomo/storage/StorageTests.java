@@ -21,6 +21,9 @@ import etomo.JUnitTests;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2006/10/16 22:48:39  sueh
+* <p> bug# 919  Added JoinInfoFileTest.
+* <p>
 * <p> Revision 1.1  2006/10/10 05:19:38  sueh
 * <p> bug# 931 Test suite for the storage package.
 * <p> </p>
@@ -36,7 +39,10 @@ public class StorageTests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(LogFileTest.class);
+    suite.addTestSuite(ParameterStoreTest.class);
     suite.addTestSuite(JoinInfoFileTest.class);
+    
+    //suite.addTest(new LogFileTest("testIds"));
     //$JUnit-END$
     return suite;
   }
