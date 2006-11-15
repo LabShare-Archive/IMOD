@@ -28,11 +28,11 @@ public class UtilTests {
   public static Test suite() {
     TestSuite suite = new TestSuite("Test:  " + TEST_DIR);
     //$JUnit-BEGIN$
+    suite.addTestSuite(UtilitiesTest.class);
     suite.addTestSuite(FileModifiedFlagTest.class);
     suite.addTestSuite(MRCHeaderTest.class);
     suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
-    suite.addTestSuite(UtilitiesTest.class);
 
     //suite.addTest(new RemotePathTest("test_getRemotePath_globalRules"));
     //$JUnit-END$
@@ -41,6 +41,9 @@ public class UtilTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/06/14 00:47:55  sueh
+ * <p> bug# 852
+ * <p>
  * <p> Revision 1.9  2006/01/04 20:29:22  sueh
  * <p> bug# 675 Removed unnecessary import.
  * <p>
