@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/08/29 20:06:30  sueh
+ * <p> bug# 924 Added a static load, for loading into an optional parameter
+ * <p>
  * <p> Revision 1.12  2005/10/27 00:32:51  sueh
  * <p> bug# 725 Added set(float).
  * <p>
@@ -134,7 +137,12 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
 
   public void load(Properties props, String prepend) {
-    set(props.getProperty(prepend + "." + name));
+    if (prepend == null) {
+      load(props);
+    }
+    else {
+      set(props.getProperty(prepend + "." + name));
+    }
   }
 
   /**
