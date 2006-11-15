@@ -13,6 +13,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
@@ -229,7 +230,13 @@ public final class ProcessorTable implements Storable {
     if (osColumn) {
       header2OS = new HeaderCell();
     }
-    EtomoDirector.getInstance().loadPreferences(this, axisID);
+    try {
+      EtomoDirector.getInstance().getParameterStore().load(this);
+    }
+    catch (LogFile.WriteException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to load parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
+    }
     setToolTipText();
   }
 
@@ -611,8 +618,8 @@ public final class ProcessorTable implements Storable {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5,
-        users);
+    ((ProcessorTableRow) rows.get(computer))
+        .setLoadAverage(load1, load5, users);
   }
 
   final void setCPUUsage(String computer, double cpuUsage) {
@@ -728,7 +735,7 @@ public final class ProcessorTable implements Storable {
       header2Load5.setToolTipText(tooltipFormatter.setText(
           "The load averaged over five minutes.").format());
       text = tooltipFormatter.setText(
-      "The number of users logged into the computer.").format();
+          "The number of users logged into the computer.").format();
       header1Users.setToolTipText(text);
       header2Users.setToolTipText(text);
     }
@@ -766,13 +773,16 @@ public final class ProcessorTable implements Storable {
       header2OS.setToolTipText(text);
     }
     text = tooltipFormatter.setText(
-    "Reason for a failure by the load average or a process").format();
+        "Reason for a failure by the load average or a process").format();
     header1Failure.setToolTipText(text);
     header2Failure.setToolTipText(text);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2006/11/08 21:08:01  sueh
+ * <p> bug# 936:  Remove the 15 Min. column and add the Users column.
+ * <p>
  * <p> Revision 1.32  2006/11/07 22:53:36  sueh
  * <p> bug# 954 Added tooltips
  * <p>
