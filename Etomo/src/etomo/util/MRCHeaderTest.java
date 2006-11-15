@@ -1,11 +1,10 @@
-
 package etomo.util;
 
 import java.io.File;
 import java.io.IOException;
 
-import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.JUnitTests;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
@@ -24,6 +23,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2005/12/23 02:28:06  sueh
+ * <p> bug# 675 Changed EtomoDirectory.getCurrentTestManager to
+ * <p> getCurrentManager_test.
+ * <p>
  * <p> Revision 3.18  2005/11/10 18:19:50  sueh
  * <p> bug# 758 Standardized the way files are created.
  * <p>
@@ -115,7 +118,6 @@ public class MRCHeaderTest extends TestCase {
   private final MRCHeader badFilename;
   private final MRCHeader mrcHeader;
   private final MRCHeader mrcWithSpaces;
-  private final BaseManager manager = EtomoDirector.getInstance().getCurrentManager_test();
   private final File testDir = new File(UtilTests.TEST_ROOT_DIR, "MRCHeader");
   private final String testDirPath = testDir.getAbsolutePath();
 
@@ -145,6 +147,7 @@ public class MRCHeaderTest extends TestCase {
    */
   protected void setUp() throws Exception {
     super.setUp();
+    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
   }
 
   /**
@@ -180,7 +183,7 @@ public class MRCHeaderTest extends TestCase {
 
   public void testRead() throws IOException, InvalidParameterException {
     //  Create the test directory
-    
+
     File testDir1 = new File(testDir, testDirectory1);
     if (testDir1.isFile()) {
       testDir1.delete();
@@ -191,14 +194,15 @@ public class MRCHeaderTest extends TestCase {
 
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.getVector(manager, testDirPath, testDirectory1,
+      TestUtilites.getVector(EtomoDirector.getInstance()
+          .getCurrentManager_test(), testDirPath, testDirectory1,
           headerTestStack);
     }
     catch (SystemProcessException except) {
       System.err.println(except.getMessage());
       fail("Error checking out test vector:\n" + except.getMessage());
     }
-    
+
     assertTrue(mrcHeader.read());
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
     assertEquals("Incorrect row count", 512, mrcHeader.getNRows());
@@ -208,22 +212,22 @@ public class MRCHeaderTest extends TestCase {
     assertFalse(mrcHeader.read());
     //TEMP test failing - fix later
     /*
-    //test: re-read works when the file modify time is later then previous read
-    //time
-    try {
-      Thread.sleep(10);
-    }
-    catch (InterruptedException e) {
-    }
-    File file = new File(UtilTests.testRoot + testDirectory1, headerTestStack);
-    EtomoDirector.getInstance().getCurrentManager().touch(file);
-    try {
-      Thread.sleep(1000);
-    }
-    catch (InterruptedException e) {
-    }
-    assertTrue(mrcHeader.read());
-    */
+     //test: re-read works when the file modify time is later then previous read
+     //time
+     try {
+     Thread.sleep(10);
+     }
+     catch (InterruptedException e) {
+     }
+     File file = new File(UtilTests.testRoot + testDirectory1, headerTestStack);
+     EtomoDirector.getInstance().getCurrentManager().touch(file);
+     try {
+     Thread.sleep(1000);
+     }
+     catch (InterruptedException e) {
+     }
+     assertTrue(mrcHeader.read());
+     */
   }
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
@@ -237,7 +241,8 @@ public class MRCHeaderTest extends TestCase {
     }
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.getVector(manager, testDirPath, testDirectory2,
+      TestUtilites.getVector(EtomoDirector.getInstance()
+          .getCurrentManager_test(), testDirPath, testDirectory2,
           "headerTest.st");
     }
     catch (SystemProcessException except) {
