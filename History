@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 11/10/06: IMOD_3-9-1
+11/14/06: Allowed 10,000,000 points in line/point arrays in mtk.
+
 11/10/06: Added attempt to deal with SELinux in install script.
 
 11/4/06: Fixed treatment of ends of open contours in Imodcurvature.
