@@ -27,6 +27,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/09/21 16:41:50  sueh
+ * <p> bug# 680 Changed MRCHeader.x/y/zPixelSize to EtomoNumber.  Added
+ * <p> parsePixelSpacing to check for errors.
+ * <p>
  * <p> Revision 3.21  2006/08/11 00:18:50  sueh
  * <p> Read():  added more information to error messages.
  * <p>
@@ -234,7 +238,6 @@ public class MRCHeader {
     }
     mrcHeader = new MRCHeader(fileLocation, file, axisID);
     instances.put(key, mrcHeader);
-    mrcHeader.selfTestInvariants();
     return mrcHeader;
   }
 
@@ -547,31 +550,6 @@ public class MRCHeader {
         yPixelSize.set(xPixelSize);
         zPixelSize.set(yPixelSize);
       }
-    }
-  }
-
-  //
-  //self test functions
-  //
-  void selfTestInvariants() {
-    if (!Utilities.isSelfTest()) {
-      return;
-    }
-    if (instances == null) {
-      throw new IllegalStateException("instances is null");
-    }
-    if (filename == null || filename.matches("\\s*")) {
-      throw new IllegalStateException("file is null");
-    }
-    String key = makeKey(Utilities.getFile(fileLocation, filename));
-    if (key == null || key.matches("\\s*")) {
-      throw new IllegalStateException("unable to make key: filename="
-          + filename);
-    }
-    MRCHeader mrcHeader = (MRCHeader) instances.get(key);
-    if (mrcHeader == null || mrcHeader != this) {
-      throw new IllegalStateException("this instance is not in instances: key="
-          + key + ",filename=" + filename);
     }
   }
 
