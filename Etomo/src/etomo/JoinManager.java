@@ -19,6 +19,7 @@ import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProcessException;
+import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -54,6 +55,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2006/10/24 21:14:06  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.45  2006/10/16 22:35:47  sueh
  * <p> bug# 919 Doing makejoincom post processing in JoinManager.postProcess().
  * <p> call JoinDialog.setInverted().
@@ -414,7 +418,7 @@ public final class JoinManager extends BaseManager {
 
   protected void createProcessTrack() {
   }
-  
+
   protected void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
@@ -464,6 +468,7 @@ public final class JoinManager extends BaseManager {
     }
     joinDialog.getMetaData(metaData);
     state.setDoneMode(joinDialog.getMode());
+    saveStorables(AxisID.ONLY);
   }
 
   protected void createMainPanel() {
@@ -491,8 +496,7 @@ public final class JoinManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -515,8 +519,7 @@ public final class JoinManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -546,8 +549,7 @@ public final class JoinManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
     return imodIndex;
   }
@@ -571,12 +573,12 @@ public final class JoinManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          AxisID.ONLY);
     }
   }
 
@@ -596,12 +598,12 @@ public final class JoinManager extends BaseManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(),
-          "IO Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
+          AxisID.ONLY);
     }
     Vector messageArray = new Vector();
     SlicerAngles slicerAngles = null;
@@ -671,7 +673,8 @@ public final class JoinManager extends BaseManager {
     String rootName = metaData.getRootName();
     EtomoDirector.getInstance().renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
-    MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state, this);
+    MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state,
+        this);
     if (paramFile == null) {
       endSetupMode();
     }
@@ -685,9 +688,10 @@ public final class JoinManager extends BaseManager {
       return;
     }
     setNextProcess(AxisID.ONLY, "startjoin");
-    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY,ProcessName.MAKEJOINCOM);
+    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY,
+        ProcessName.MAKEJOINCOM);
   }
-  
+
   /**
    * post processing after a successful process
    * @param axisID
@@ -772,7 +776,8 @@ public final class JoinManager extends BaseManager {
       joinDialog.enableMidas();
       return;
     }
-    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY,ProcessName.XFALIGN);
+    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY,
+        ProcessName.XFALIGN);
   }
 
   public void xfalignRefine() {
@@ -794,7 +799,8 @@ public final class JoinManager extends BaseManager {
       joinDialog.enableMidas();
       return;
     }
-    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY,ProcessName.XFALIGN);
+    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY,
+        ProcessName.XFALIGN);
   }
 
   private boolean copyMostRecentXfFile(String commandDescription) {
@@ -924,7 +930,7 @@ public final class JoinManager extends BaseManager {
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
-    mainPanel.startProgressBar("Startjoin", AxisID.ONLY,ProcessName.STARTJOIN);
+    mainPanel.startProgressBar("Startjoin", AxisID.ONLY, ProcessName.STARTJOIN);
   }
 
   public void revertXfFileToMidas() {
@@ -969,7 +975,8 @@ public final class JoinManager extends BaseManager {
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
-    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,ProcessName.FINISHJOIN);
+    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,
+        ProcessName.FINISHJOIN);
   }
 
   private boolean updateMetaDataFromJoinDialog(AxisID axisID) {
@@ -981,7 +988,17 @@ public final class JoinManager extends BaseManager {
           axisID);
       return false;
     }
-    saveIntermediateParamFile(axisID);
+    try {
+      getParameterStore().save(metaData);
+    }
+    catch (LogFile.FileException e) {
+      uiHarness.openMessageDialog("Cannot save metaData.\n" + e.getMessage(),
+          "Etomo Error");
+    }
+    catch (LogFile.WriteException e) {
+      uiHarness.openMessageDialog("Cannot write to metaData.\n"
+          + e.getMessage(), "Etomo Error");
+    }
     return true;
   }
 
@@ -1089,7 +1106,7 @@ public final class JoinManager extends BaseManager {
   public JoinState getState() {
     return state;
   }
-  
+
   public StartJoinParam newStartJoinParam() {
     startJoinParam = new StartJoinParam(AxisID.ONLY);
     return startJoinParam;
@@ -1131,16 +1148,10 @@ public final class JoinManager extends BaseManager {
     return processMgr;
   }
 
-  protected final Storable[] getParamFileStorableArray(boolean includeMetaData, int baseElements) {
-    int arraySize = 2 + baseElements;
-    if (!includeMetaData) {
-      arraySize--;
-    }
-    Storable[] storable = new Storable[arraySize];
-    int index = baseElements;
-    if (includeMetaData) {
-      storable[index++] = metaData;
-    }
+  protected final Storable[] getStorables(int offset) {
+    Storable[] storable = new Storable[2 + offset];
+    int index = offset;
+    storable[index++] = metaData;
     storable[index] = state;
     return storable;
   }
@@ -1148,9 +1159,8 @@ public final class JoinManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        doneJoinDialog();
-        mainPanel.done();
-        saveParamFile(axisID);
+        stop();
+        saveParamFile();
         return true;
       }
       return false;
@@ -1161,16 +1171,16 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public boolean save(AxisID axisID) {
+  public void save() throws LogFile.FileException, LogFile.WriteException {
+    super.save();
     doneJoinDialog();
     mainPanel.done();
-    return saveParamFile(axisID);
   }
 
   public final boolean canSnapshot() {
     return false;
   }
-  
+
   public String getName() {
     return metaData.getName();
   }

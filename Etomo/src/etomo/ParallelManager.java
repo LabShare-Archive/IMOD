@@ -1,6 +1,7 @@
 package etomo;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
@@ -79,7 +80,7 @@ public final class ParallelManager extends BaseManager {
 
   protected void createComScriptManager() {
   }
-  
+
   protected void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
@@ -113,18 +114,12 @@ public final class ParallelManager extends BaseManager {
     return mainPanel;
   }
 
-  protected final Storable[] getParamFileStorableArray(boolean includeMetaData, int baseElements) {
-    int arraySize = 2 + baseElements;
-    if (!includeMetaData) {
-      arraySize--;
-    }
-    Storable[] storable = new Storable[arraySize];
-    int index = baseElements;
-    if (includeMetaData) {
-      storable[index++] = metaData;
-    }
-    storable[index++] = screenState;
-    return storable;
+  protected final Storable[] getStorables(int offset) {
+    Storable[] storables = new Storable[2 + offset];
+    int index = offset;
+    storables[index++] = metaData;
+    storables[index++] = screenState;
+    return storables;
   }
 
   protected BaseProcessManager getProcessManager() {
@@ -150,16 +145,16 @@ public final class ParallelManager extends BaseManager {
     processMgr.pause(axisID);
   }
 
-  public boolean save(AxisID axisID) {
+  public void save(AxisID axisID) throws IOException {
     mainPanel.done();
     saveDialog();
-    return saveParamFile(axisID);
   }
-  
+
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        save(axisID);
+        stop();
+        saveParamFile();
         return true;
       }
       return false;
@@ -201,7 +196,8 @@ public final class ParallelManager extends BaseManager {
     if (parallelDialog == null) {
       parallelDialog = new ParallelDialog(this, AXIS_ID);
     }
-    mainPanel.setParallelDialog(AXIS_ID, parallelDialog.usingParallelProcessing());
+    mainPanel.setParallelDialog(AXIS_ID, parallelDialog
+        .usingParallelProcessing());
     parallelDialog.setParameters(screenState);
     if (paramFile != null && metaData.isValid()) {
       parallelDialog.setParameters(metaData);
@@ -274,6 +270,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/10/16 22:36:32  sueh
+ * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
+ * <p>
  * <p> Revision 1.6  2006/09/13 23:07:23  sueh
  * <p> bug# 920 Moving BaseManager.createState() call to child classes, so it can be
  * <p> done after meta data is created.
