@@ -23,6 +23,7 @@ import etomo.EtomoDirector;
 import etomo.process.ImodqtassistProcess;
 import etomo.process.ProcessMessages;
 import etomo.storage.DataFileFilter;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -86,7 +87,7 @@ abstract class EtomoFrame extends JFrame {
   void toFront(AxisID axisID) {
     getFrame(axisID).toFront();
   }
-  
+
   final boolean isMenu3dmodStartupWindow() {
     return menu.isMenu3dmodStartupWindow();
   }
@@ -131,30 +132,38 @@ abstract class EtomoFrame extends JFrame {
         EtomoDirector.getInstance().openManager(dataFile, true, axisID);
       }
     }
+    try {
+      if (menu.equalsFileSave(event)) {
+        if (currentManager.saveParamFile()) {
+          return;
+        }
+        //Don't allow the user to do the equivalent of a Save As without checking.
+        if (!currentManager.canChangeParamFileName()) {
+          openMessageDialog(
+              "Please set the name of dataset or the join before saving",
+              "Cannot Save");
+          return;
+        }
+        //Do a Save As
+        if (getTestParamFilename()) {
+          currentManager.saveParamFile();
+        }
+      }
 
-    if (menu.equalsFileSave(event)) {
-      if (currentManager.save(axisID)) {
-        return;
-      }
-      //Don't allow the user to do the equivalent of a Save As without checking.
-      if (!currentManager.canChangeParamFileName()) {
-        openMessageDialog(
-            "Please set the name of dataset or the join before saving",
-            "Cannot Save");
-        return;
-      }
-      //Do a Save As
-      if (getTestParamFilename()) {
-        currentManager.save(axisID);
+      if (menu.equalsFileSaveAs(event)) {
+        if (getTestParamFilename()) {
+          currentManager.saveParamFile();
+        }
       }
     }
-
-    if (menu.equalsFileSaveAs(event)) {
-      if (getTestParamFilename()) {
-        currentManager.save(axisID);
-      }
+    catch (LogFile.FileException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
-
+    catch (LogFile.WriteException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
+    }
     if (menu.equalsFileClose(event)) {
       EtomoDirector.getInstance().closeCurrentManager(axisID);
     }
@@ -204,25 +213,30 @@ abstract class EtomoFrame extends JFrame {
     if (menu.equalsTomoGuide(event)) {
       //TODO
       /*HTMLPageWindow manpage = new HTMLPageWindow();
-      manpage.openURL(imodURL + "tomoguide.html");
-      manpage.setVisible(true);*/
-      ImodqtassistProcess.INSTANCE.open(currentManager, "tomoguide.html", getAxisID());
+       manpage.openURL(imodURL + "tomoguide.html");
+       manpage.setVisible(true);*/
+      ImodqtassistProcess.INSTANCE.open(currentManager, "tomoguide.html",
+          getAxisID());
     }
 
     if (menu.equalsImodGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "guide.html", getAxisID());
+      ImodqtassistProcess.INSTANCE.open(currentManager, "guide.html",
+          getAxisID());
     }
 
     if (menu.equals3dmodGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "3dmodguide.html", getAxisID());
+      ImodqtassistProcess.INSTANCE.open(currentManager, "3dmodguide.html",
+          getAxisID());
     }
 
     if (menu.equalsEtomoGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "UsingEtomo.html", getAxisID());
+      ImodqtassistProcess.INSTANCE.open(currentManager, "UsingEtomo.html",
+          getAxisID());
     }
 
     if (menu.equalsJoinGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(currentManager, "tomojoin.html", getAxisID());
+      ImodqtassistProcess.INSTANCE.open(currentManager, "tomojoin.html",
+          getAxisID());
     }
 
     if (menu.equalsHelpAbout(event)) {
@@ -815,10 +829,13 @@ abstract class EtomoFrame extends JFrame {
     return mainFrame;
   }
 
-  
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2006/07/21 19:02:15  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 1.26  2006/06/21 15:52:31  sueh
  * <p> bug# 581 Using Imodqtassist instead of HTMLPageWindow() to pop up help.
  * <p>
