@@ -3,7 +3,6 @@ package etomo;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -17,6 +16,7 @@ import etomo.process.ImodqtassistProcess;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
+import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -66,7 +66,7 @@ public abstract class BaseManager {
   protected boolean loadedParamFile = false;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
-  protected ImodManager imodManager = null;
+  protected final ImodManager imodManager;
   //  This object controls the reading and writing of David's com scripts
   protected ComScriptManager comScriptMgr = null;
   //FIXME paramFile may not have to be visible
@@ -96,6 +96,7 @@ public abstract class BaseManager {
   private DialogType processDialogTypeB = null;
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
+  private ParameterStore parameterStore = null;
 
   protected abstract void createComScriptManager();
 
@@ -123,16 +124,11 @@ public abstract class BaseManager {
 
   public abstract void pause(AxisID axisID);
 
-  protected abstract Storable[] getParamFileStorableArray(
-      boolean includeMetaData, int baseElements);
-
   public abstract void touch(String absolutePath);
 
   protected abstract BaseProcessManager getProcessManager();
 
   public abstract BaseScreenState getBaseScreenState(AxisID axisID);
-
-  public abstract boolean save(AxisID axisID);
 
   public abstract boolean canChangeParamFileName();
 
@@ -149,6 +145,8 @@ public abstract class BaseManager {
   protected abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay);
 
+  protected abstract Storable[] getStorables(int offset);
+
   public abstract String getName();
 
   public BaseManager() {
@@ -163,7 +161,7 @@ public abstract class BaseManager {
       createMainPanel();
       //mainFrame = EtomoDirector.getInstance().getMainFrame();
     }
-    createImodManager();
+    imodManager = new ImodManager(this);
     initProgram();
   }
 
@@ -226,25 +224,99 @@ public abstract class BaseManager {
     initialized = true;
   }
 
-  public final void saveIntermediateParamFile(AxisID axisID) {
-    if (exiting) {
+  /**
+   * Save etomo to parametersState by asking the child manager for a list of
+   * storable objects.  This is used when storable objects may have been
+   * changes and nothing has been saved (update comscript functions).  This will
+   * often do unnecessary saves but it guarentees that everything will be saved.
+   * @throws IOException
+   */
+  public void saveStorables(AxisID axisID) {
+    getParameterStore();
+    if (parameterStore == null) {
       return;
     }
-    saveParamFile(axisID);
+    parameterStore.setAutoStore(false);
+    Storable[] storables = getStorables();
+    if (storables == null) {
+      return;
+    }
+    try {
+      for (int i = 0; i < storables.length; i++) {
+        parameterStore.save(storables[i]);
+      }
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to save to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to write to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
+    }
+    parameterStore.setAutoStore(true);
+    try {
+      parameterStore.storeProperties();
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to save to "
+          + paramFile.getAbsolutePath() + ".  " + e.getMessage(),
+          "Etomo Error", axisID);
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to write to "
+          + paramFile.getAbsolutePath() + ".  " + e.getMessage(),
+          "Etomo Error", axisID);
+    }
+  }
+
+  /**
+   * Get the storable objects from the child and base manager.
+   * @return
+   */
+  private Storable[] getStorables() {
+    Storable[] storables = getStorables(2);
+    storables[0] = getProcessManager().getProcessData(AxisID.FIRST);
+    storables[1] = getProcessManager().getProcessData(AxisID.SECOND);
+    return storables;
+  }
+
+  /**
+   * Save etomo to parameterStore by asking the child manager to save its state.
+   * This is used when using the done functionality of the dialogs (file save
+   * and exit).
+   * @throws IOException
+   */
+  protected void save() throws LogFile.FileException, LogFile.WriteException {
+    if (parameterStore == null) {
+      return;
+    }
+    parameterStore.setAutoStore(false);
+    parameterStore.save(getProcessManager().getProcessData(AxisID.FIRST));
+    parameterStore.save(getProcessManager().getProcessData(AxisID.SECOND));
   }
 
   /**
    * A message asking the ApplicationManager to save the test parameter
    * information to a file.
    */
-  protected final boolean saveParamFile(AxisID axisID) {
-    if (paramFile == null) {
+  public final boolean saveParamFile() throws LogFile.FileException,
+      LogFile.WriteException {
+    if (parameterStore == null) {
       return false;
     }
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
       return true;
     }
-    save(getStorableArray(true), axisID);
+    System.out.println("saveParamFile");
+    save();
+    parameterStore.setAutoStore(true);
+    parameterStore.storeProperties();
+    //save(getStorableArray(true), axisID);
     //  Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
@@ -256,42 +328,32 @@ public abstract class BaseManager {
     return true;
   }
 
-  private Storable[] getStorableArray(boolean includeMetaData) {
-    //if starting or exiting etomo, include the thread data
-    if (exiting || !initialized) {
-      Storable[] storableArray = getParamFileStorableArray(includeMetaData, 2);
-      storableArray[0] = getProcessManager().getProcessData(AxisID.FIRST);
-      storableArray[1] = getProcessManager().getProcessData(AxisID.SECOND);
-      return storableArray;
+  /**
+   * Creates parameterStore if it doesn't already exist.  Return null if paramFile is
+   * null.
+   * @return
+   */
+  public ParameterStore getParameterStore() {
+    if (paramFile == null) {
+      return null;
     }
-    return getParamFileStorableArray(includeMetaData, 0);
+    if (parameterStore != null) {
+      return parameterStore;
+    }
+    //synchronize to prevent more then one parameter store from being created
+    synchronized (this) {
+      if (parameterStore != null) {
+        return parameterStore;
+      }
+      parameterStore = new ParameterStore(paramFile);
+      return parameterStore;
+    }
   }
 
-  /** 
-   * Saves Storables in a synchronized function.  Only this function should use
-   * the ParameterStore.save() call.  This prevents problems when multiple
-   * threads try to save to the paramFile.
-   * Backs up paramFile before saving.
-   * paramFile must not be null.
-   * @param storable
-   */
-  private synchronized void save(Storable[] storable, AxisID axisID) {
-    if (storable == null || paramFile == null) {
-      return;
-    }
-    backupFile(paramFile, axisID);
-    ParameterStore paramStore = new ParameterStore(paramFile);
-    try {
-      paramStore.save(storable);
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Test parameter file save error";
-      errorMessage[1] = "Could not save test parameter data to file:";
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Test parameter file save error", axisID);
+  void stop() {
+    imodManager.stopRequestHandler();
+    if (parameterStore != null) {
+      parameterStore.setAutoStore(false);
     }
   }
 
@@ -299,7 +361,7 @@ public abstract class BaseManager {
    * Exit the program.  To guarantee that etomo can always exit, catch all
    * unrecognized Exceptions and Errors and return true.
    */
-  public boolean exitProgram(AxisID axisID) {
+  boolean exitProgram(AxisID axisID) {
     exiting = true;
     try {
       //Check for processes that will die if etomo exits
@@ -486,44 +548,13 @@ public abstract class BaseManager {
    */
   protected boolean loadTestParamFile(File paramFile, AxisID axisID) {
     FileInputStream processDataStream;
-    try {
-      // Read in the test parameter data file
-      ParameterStore paramStore = new ParameterStore(paramFile);
-      paramStore.load(getBaseMetaData());
-      Storable[] storable = getStorableArray(false);
-      paramStore.load(storable);
-
-      // Set the current working directory for the application, this is the
-      // path to the EDF or EJF file.  The working directory is defined by the current
-      // user.dir system property.
-      // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
-      // was created with the full path
-      paramFile = new File(paramFile.getAbsolutePath());
-      propertyUserDir = paramFile.getParent();
-      // Update the MRU test data filename list
-      userConfig.putDataFile(paramFile.getAbsolutePath());
-      //  Initialize a new IMOD manager
-      setMetaData(imodManager);
-    }
-    catch (FileNotFoundException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Test parameter file read error";
-      errorMessage[1] = "Could not find the test parameter data file:";
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "File not found error", axisID);
-      return false;
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Test parameter file read error";
-      errorMessage[1] = "Could not read the test parameter data from file:";
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage,
-          "Test parameter file read error", axisID);
-      return false;
-    }
+    // Set the current working directory for the application, this is the
+    // path to the EDF or EJF file.  The working directory is defined by the current
+    // user.dir system property.
+    // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
+    // was created with the full path
+    paramFile = new File(paramFile.getAbsolutePath());
+    propertyUserDir = paramFile.getParent();
     StringBuffer invalidReason = new StringBuffer();
     if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason,
         true, true, true, false)) {
@@ -532,6 +563,31 @@ public abstract class BaseManager {
       return false;
     }
     this.paramFile = paramFile;
+    // Read in the test parameter data file
+    getParameterStore();
+    //must load meta data before other storables can be constructed
+    try {
+      parameterStore.load(getBaseMetaData());
+      Storable[] storables = getStorables();
+      if (storables != null) {
+        for (int i = 0; i < storables.length; i++) {
+          parameterStore.load(storables[i]);
+        }
+      }
+    }
+    catch (LogFile.WriteException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Test parameter file read error";
+      errorMessage[1] = "Could not find the test parameter data file:";
+      errorMessage[2] = except.getMessage();
+      uiHarness.openMessageDialog(errorMessage, "Etomo Error", axisID);
+      return false;
+    }
+    // Update the MRU test data filename list
+    userConfig.putDataFile(paramFile.getAbsolutePath());
+    //  Initialize a new IMOD manager
+    setMetaData(imodManager);
     return true;
   }
 
@@ -548,10 +604,6 @@ public abstract class BaseManager {
             axisID);
       }
     }
-  }
-
-  private void createImodManager() {
-    imodManager = new ImodManager(this);
   }
 
   /**
@@ -906,17 +958,23 @@ public abstract class BaseManager {
   }
 
   public final void savePreferences(AxisID axisID, Storable storable) {
-    if (getProcessManager().inUse(axisID, null)) {
-      return;
-    }
     MainPanel mainPanel = getMainPanel();
-    mainPanel.setProgressBar("Saving defaults", 1, axisID);
-    if (!EtomoDirector.getInstance().savePreferences(storable, axisID)) {
-      mainPanel.stopProgressBar(axisID, ProcessEndState.FAILED);
+    try {
+      if (getProcessManager().inUse(axisID, null)) {
+        return;
+      }
+      mainPanel.setProgressBar("Saving defaults", 1, axisID);
+      EtomoDirector.getInstance().getParameterStore().save(storable);
     }
-    else {
-      mainPanel.stopProgressBar(axisID);
+    catch (LogFile.FileException e) {
+      uiHarness.openMessageDialog("Unable to save preferences.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
+    catch (LogFile.WriteException e) {
+      uiHarness.openMessageDialog("Unable to write preferences.\n"
+          + e.getMessage(), "Etomo Error", axisID);
+    }
+    mainPanel.stopProgressBar(axisID);
   }
 
   /**
@@ -1001,11 +1059,14 @@ public abstract class BaseManager {
     }
     setThreadName(threadName, axisID);
     getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
-        axisID,ProcessName.TOMOSNAPSHOT);
+        axisID, ProcessName.TOMOSNAPSHOT);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.69  2006/10/24 21:13:43  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.68  2006/10/16 22:33:29  sueh
  * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
  * <p>
