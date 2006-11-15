@@ -51,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2006/11/07 23:01:24  sueh
+ * <p> bug# 954 Adding tooltip to the second label in the spinners.  Adding Z order and
+ * <p> invert table tooltips.
+ * <p>
  * <p> Revision 1.33  2006/10/16 22:52:47  sueh
  * <p> bug# 919  Added setInverted().
  * <p>
@@ -1409,7 +1413,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       for (int i = 0; i < rows.size(); i++) {
         ((SectionTableRow) rows.get(i)).synchronizeSetupToJoin();
       }
-      joinDialog.defaultSizeInXY();
+      //joinDialog.defaultSizeInXY();
     }
     //synchronize join columns to setup columns when the users leaves the join
     //tab
