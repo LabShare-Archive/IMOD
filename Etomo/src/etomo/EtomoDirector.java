@@ -14,9 +14,9 @@ import javax.swing.plaf.FontUIResource;
 
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
+import etomo.storage.LogFile;
 import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
-import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
@@ -81,6 +81,7 @@ public class EtomoDirector {
   private String originalUserDir = null;
   private MemoryThread memoryThread = null;
   private boolean testDone = false;
+  private ParameterStore parameterStore = null;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -227,35 +228,38 @@ public class EtomoDirector {
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    String imodCalibDirectoryName = System.getProperty(EnvironmentVariable.CALIB_DIR);
+    String imodCalibDirectoryName = System
+        .getProperty(EnvironmentVariable.CALIB_DIR);
     if (imodCalibDirectoryName == null) {
       imodCalibDirectoryName = EnvironmentVariable.INSTANCE.getValue(null,
           EnvironmentVariable.CALIB_DIR, AxisID.ONLY);
       if (!imodCalibDirectoryName.equals("")) {
         if (debug) {
-          System.err.println(EnvironmentVariable.CALIB_DIR+" (env): " + imodCalibDirectoryName);
+          System.err.println(EnvironmentVariable.CALIB_DIR + " (env): "
+              + imodCalibDirectoryName);
         }
       }
       else {
-        System.err
-            .println("WARNING:\nThe environment variable "+EnvironmentVariable.CALIB_DIR+ "is not set.\n"
-                + "Several eTomo functions will not be available:\n"
-                + "Image distortion field files, "
-                + "Mag gradient correction, " + "and parallel processing.\n");
+        System.err.println("WARNING:\nThe environment variable "
+            + EnvironmentVariable.CALIB_DIR + "is not set.\n"
+            + "Several eTomo functions will not be available:\n"
+            + "Image distortion field files, " + "Mag gradient correction, "
+            + "and parallel processing.\n");
       }
     }
     else {
       if (debug) {
-        System.err.println(EnvironmentVariable.CALIB_DIR+" (-D): " + imodCalibDirectoryName);
+        System.err.println(EnvironmentVariable.CALIB_DIR + " (-D): "
+            + imodCalibDirectoryName);
       }
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
     memoryThread = new MemoryThread();
     new Thread(memoryThread).start();
   }
-  
+
   private void printProperties(String type) {
-    System.err.println("\nprintProperties:type="+type);
+    System.err.println("\nprintProperties:type=" + type);
     if (type == null) {
       return;
     }
@@ -585,11 +589,7 @@ public class EtomoDirector {
         userConfig.setMainWindowWidth(size.width);
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
-        File userConfigFile = getUserConfigFile();
-        ParameterStore userParams = new ParameterStore(userConfigFile);
-        Storable storable[] = new Storable[1];
-        storable[0] = userConfig;
-        savePreferences(storable, axisID);
+        getParameterStore().save(userConfig);
         return true;
       }
     }
@@ -600,67 +600,57 @@ public class EtomoDirector {
     return true;
   }
 
-  public final void loadPreferences(Storable storable, AxisID axisID) {
-    //  Create a File object specifying the user configuration file
-    File userConfigFile = getUserConfigFile();
-    // Load in the user configuration
-    ParameterStore userParams = new ParameterStore(userConfigFile);
-    try {
-      userParams.load(storable);
+  public ParameterStore getParameterStore() {
+    if (parameterStore != null) {
+      return parameterStore;
     }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(),
-          "IO Exception: Can't load user configuration"
-              + userConfigFile.getAbsolutePath(), AxisID.ONLY);
-    }
-  }
-
-  private final File getUserConfigFile() {
-    File userConfigFile = new File(homeDirectory, ".etomo");
-    //  Make sure the config file exists, create it if it doesn't
-    try {
-      userConfigFile.createNewFile();
-    }
-    catch (IOException except) {
-      System.err.println("Could not create file:"
-          + userConfigFile.getAbsolutePath());
-      System.err.println(except.getMessage());
-    }
-    return userConfigFile;
-  }
-
-  public final boolean savePreferences(Storable storable, AxisID axisID) {
-    Storable storableArray[] = new Storable[2];
-    storableArray[0] = userConfig;
-    storableArray[1] = storable;
-    return savePreferences(storableArray, axisID);
-  }
-
-  private synchronized final boolean savePreferences(Storable[] storable,
-      AxisID axisID) {
-    File userConfigFile = getUserConfigFile();
-    ParameterStore userParams = new ParameterStore(userConfigFile);
-    if (!userConfigFile.canWrite()) {
-      uiHarness.openMessageDialog(
-          "Change permissions of $HOME/.etomo to allow writing",
-          "Unable to save user configuration file", axisID);
-      return false;
-    }
-    if (userConfigFile.canWrite()) {
+    //synchronize to prevent more then one parameter store from being created
+    synchronized (this) {
+      if (parameterStore != null) {
+        return parameterStore;
+      }
+      //create the user config file
+      File userConfigFile = new File(homeDirectory, ".etomo");
+      //  Make sure the config file exists, create it if it doesn't
       try {
-        userParams.save(storable, NUMBER_STORABLES);
+        userConfigFile.createNewFile();
       }
-      catch (IOException excep) {
-        excep.printStackTrace();
-        uiHarness.openMessageDialog(
-            "IOException: unable to save user parameters\n"
-                + excep.getMessage(), "Unable to save user parameters", axisID);
-        return false;
+      catch (IOException except) {
+        System.err.println("Could not create file:"
+            + userConfigFile.getAbsolutePath());
+        System.err.println(except.getMessage());
       }
+      parameterStore = new ParameterStore(userConfigFile);
+      return parameterStore;
     }
-    return true;
   }
 
+  /*
+   private synchronized final boolean savePreferences(Storable[] storable,
+   AxisID axisID) {
+   File userConfigFile = getUserConfigFile();
+   ParameterStore userParams = new ParameterStore(userConfigFile);
+   if (!userConfigFile.canWrite()) {
+   uiHarness.openMessageDialog(
+   "Change permissions of $HOME/.etomo to allow writing",
+   "Unable to save user configuration file", axisID);
+   return false;
+   }
+   if (userConfigFile.canWrite()) {
+   try {
+   userParams.save(storable, NUMBER_STORABLES);
+   }
+   catch (IOException excep) {
+   excep.printStackTrace();
+   uiHarness.openMessageDialog(
+   "IOException: unable to save user parameters\n"
+   + excep.getMessage(), "Unable to save user parameters", axisID);
+   return false;
+   }
+   }
+   return true;
+   }
+   */
   public void renameCurrentManager(String managerName) {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey;
@@ -678,18 +668,13 @@ public class EtomoDirector {
   private void createUserConfiguration() {
     userConfig = new UserConfiguration();
     //  Create a File object specifying the user configuration file
-    File userConfigFile = getUserConfigFile();
-    // Load in the user configuration
-    ParameterStore userParams = new ParameterStore(userConfigFile);
-    Storable storable[] = new Storable[1];
-    storable[0] = userConfig;
+    getParameterStore();
     try {
-      userParams.load(storable);
+      parameterStore.load(userConfig);
     }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(),
-          "IO Exception: Can't load user configuration"
-              + userConfigFile.getAbsolutePath(), AxisID.ONLY);
+    catch (LogFile.WriteException except) {
+      uiHarness.openMessageDialog("Can't load user configuration.\n"
+          + except.getMessage(), "Etomo Error");
     }
   }
 
@@ -966,7 +951,22 @@ public class EtomoDirector {
       settingsDialog.setModal(false);
     }
     settingsDialog.setVisible(true);
-    //settingsDialog.show();
+  }
+
+  public void saveSettingsDialog() {
+    try {
+      getParameterStore().save(userConfig);
+    }
+    catch (LogFile.FileException e) {
+      uiHarness.openMessageDialog("Unable to save preferences to "
+          + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
+          "Etomo Error");
+    }
+    catch (LogFile.WriteException e) {
+      uiHarness.openMessageDialog("Unable to write preferences to "
+          + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
+          "Etomo Error");
+    }
   }
 
   /**
@@ -1053,6 +1053,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.52  2006/07/26 21:50:54  sueh
+ * <p> bug# 907 setting headless to GraphicsEnvironment.isHeadless().
+ * <p>
  * <p> Revision 1.51  2006/07/21 22:11:10  sueh
  * <p> bug# 901 Getting the calibration directory environment variable name from
  * <p> EnvironmentVariable.
