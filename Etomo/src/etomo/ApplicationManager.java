@@ -351,13 +351,13 @@ public final class ApplicationManager extends BaseManager {
     for (int i = 0; i < edfFiles.length; i++) {
       MetaData savedMetaData = new MetaData(this);
       ParameterStore paramStore = new ParameterStore(edfFiles[i]);
-      Storable[] storable = new Storable[1];
-      storable[0] = savedMetaData;
       try {
-        paramStore.load(storable);
+        paramStore.load(savedMetaData);
       }
-      catch (IOException e) {
+      catch (LogFile.WriteException e) {
         e.printStackTrace();
+        uiHarness.openMessageDialog("Unable to read .edf files in "
+            + propertyUserDir, "Etomo Error");
         continue;
       }
       // Create File instances based on the stacks specified in the edf file
@@ -486,7 +486,7 @@ public final class ApplicationManager extends BaseManager {
     openProcessingPanel();
     // Free the dialog
     setupDialog = null;
-    saveIntermediateParamFile(AxisID.ONLY);
+    saveStorables(AxisID.ONLY);
   }
 
   /**
@@ -619,7 +619,7 @@ public final class ApplicationManager extends BaseManager {
         // Go to the coarse align dialog by default
         mainPanel.showBlankProcess(axisID);
       }
-      saveIntermediateParamFile(axisID);
+      saveStorables(axisID);
     }
     return true;
   }
@@ -789,9 +789,9 @@ public final class ApplicationManager extends BaseManager {
   }
 
   public void archiveOriginalStack() {
-    if (processMgr.inUse(AxisID.ONLY, null)) {
-      return;
-    }
+      if (processMgr.inUse(AxisID.ONLY, null)) {
+        return;
+      }
     archiveOriginalStack(null);
   }
 
@@ -1180,7 +1180,7 @@ public final class ApplicationManager extends BaseManager {
         mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      saveIntermediateParamFile(axisID);
+      saveStorables(axisID);
     }
     return true;
   }
@@ -1277,7 +1277,7 @@ public final class ApplicationManager extends BaseManager {
     comScriptMgr.saveTilt(param, axisID);
     metaData.setTiltParam(param, axisID);
     metaData.setBStackProcessed(true);
-    saveIntermediateParamFile(axisID);
+    saveStorables(axisID);
     return true;
   }
 
@@ -1308,7 +1308,7 @@ public final class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtracttiltsParam.COMMAND_NAME,
-        axisID,ProcessName.EXTRACTTILTS);
+        axisID, ProcessName.EXTRACTTILTS);
   }
 
   private final void extractpieces(AxisID axisID,
@@ -1338,7 +1338,7 @@ public final class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtractpiecesParam.COMMAND_NAME,
-        axisID,ProcessName.EXTRACTPIECES);
+        axisID, ProcessName.EXTRACTPIECES);
   }
 
   private final void extractmagrad(AxisID axisID,
@@ -1379,7 +1379,7 @@ public final class ApplicationManager extends BaseManager {
     }
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ExtractmagradParam.COMMAND_NAME,
-        axisID,ProcessName.EXTRACTMAGRAD);
+        axisID, ProcessName.EXTRACTMAGRAD);
   }
 
   /**
@@ -1429,7 +1429,7 @@ public final class ApplicationManager extends BaseManager {
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    String threadName;
+    String threadName =null;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
         threadName = processMgr.preblend(blendmontParam, axisID,
@@ -1725,7 +1725,7 @@ public final class ApplicationManager extends BaseManager {
         mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
-      saveIntermediateParamFile(axisID);
+      saveStorables(axisID);
     }
     return true;
   }
@@ -1856,7 +1856,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Tracking fiducials", axisID,ProcessName.TRACK);
+    mainPanel.startProgressBar("Tracking fiducials", axisID, ProcessName.TRACK);
   }
 
   /**
@@ -2158,23 +2158,22 @@ public final class ApplicationManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        save(axisID);
-        imodManager.stopRequestHandler();
+        stop();
+        saveParamFile();
         return true;
       }
       return false;
     }
     catch (Throwable e) {
       e.printStackTrace();
-      imodManager.stopRequestHandler();
       return true;
     }
   }
 
-  public boolean save(AxisID axisID) {
+  public void save() throws LogFile.FileException, LogFile.WriteException {
+    super.save();
     mainPanel.done();
     saveDialogs();
-    return saveParamFile(axisID);
   }
 
   /**
@@ -2337,7 +2336,7 @@ public final class ApplicationManager extends BaseManager {
         closeImod(ImodManager.FIDUCIAL_MODEL_KEY, axisID, "fiducial model");
         getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID).openDialog();
       }
-      saveIntermediateParamFile(axisID);
+      saveStorables(axisID);
     }
     return true;
   }
@@ -2461,7 +2460,7 @@ public final class ApplicationManager extends BaseManager {
     }
     metaData.setFiducialessAlignment(axisID, false);
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Aligning stack", axisID,ProcessName.ALIGN);
+    mainPanel.startProgressBar("Aligning stack", axisID, ProcessName.ALIGN);
   }
 
   /**
@@ -2648,7 +2647,8 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, destAxisID);
-    mainPanel.startProgressBar("Transferring fiducials", destAxisID,ProcessName.TRANSFERFID);
+    mainPanel.startProgressBar("Transferring fiducials", destAxisID,
+        ProcessName.TRANSFERFID);
     updateDialog(fiducialModelDialog, destAxisID);
   }
 
@@ -2779,7 +2779,8 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    mainPanel.startProgressBar("Creating sample tomogram", axisID,ProcessName.SAMPLE);
+    mainPanel.startProgressBar("Creating sample tomogram", axisID,
+        ProcessName.SAMPLE);
     setThreadName(threadName, axisID);
     return null;
   }
@@ -2947,7 +2948,8 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    mainPanel.startProgressBar("Finding sample position", axisID,ProcessName.TOMOPITCH);
+    mainPanel.startProgressBar("Finding sample position", axisID,
+        ProcessName.TOMOPITCH);
     setThreadName(threadName, axisID);
     return null;
   }
@@ -3048,7 +3050,8 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    mainPanel.startProgressBar("Calculating final alignment", axisID,ProcessName.ALIGN);
+    mainPanel.startProgressBar("Calculating final alignment", axisID,
+        ProcessName.ALIGN);
     setThreadName(threadName, axisID);
     return null;
   }
@@ -3211,7 +3214,7 @@ public final class ApplicationManager extends BaseManager {
 
   public boolean isAxisBusy(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    return processMgr.inUse(axisID, processResultDisplay);
+      return processMgr.inUse(axisID, processResultDisplay);
   }
 
   /**
@@ -3771,7 +3774,7 @@ public final class ApplicationManager extends BaseManager {
         closeImod(ImodManager.PATCH_VECTOR_MODEL_KEY, "patch vector model");
         openPostProcessingDialog();
       }
-      saveIntermediateParamFile(AxisID.ONLY);
+      saveStorables(AxisID.ONLY);
     }
     return true;
   }
@@ -3818,7 +3821,8 @@ public final class ApplicationManager extends BaseManager {
    */
   public void createCombineScripts(ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
-    mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY, ProcessName.SOLVEMATCH);
+    mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY,
+        ProcessName.SOLVEMATCH);
     updateCombineParams();
     try {
       if (!processMgr.setupCombineScripts(metaData, processResultDisplay)) {
@@ -3910,7 +3914,7 @@ public final class ApplicationManager extends BaseManager {
     CombineParams originalCombineParams = metaData.getCombineParams();
     if (!originalCombineParams.equals(combineParams)) {
       metaData.setCombineParams(combineParams);
-      saveIntermediateParamFile(AxisID.ONLY);
+      saveStorables(AxisID.ONLY);
     }
     return;
   }
@@ -4537,7 +4541,7 @@ public final class ApplicationManager extends BaseManager {
       mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
       // Set the next process to execute when this is finished
       // nextProcess = next;
-      String threadName;
+      String threadName = null;
       try {
         threadName = processMgr.matchorwarp();
       }
@@ -4554,7 +4558,8 @@ public final class ApplicationManager extends BaseManager {
       // FIXME why show the final pane when the button that calls this function
       // on the final pane?
       tomogramCombinationDialog.showPane(CombineProcessType.MATCHORWARP);
-      mainPanel.startProgressBar("matchorwarp", AxisID.FIRST,ProcessName.MATCHORWARP);
+      mainPanel.startProgressBar("matchorwarp", AxisID.FIRST,
+          ProcessName.MATCHORWARP);
     }
   }
 
@@ -4573,7 +4578,7 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     // Set the next process to execute when this is finished
     // nextProcess = "";
-    String threadName;
+    String threadName =null;
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay);
@@ -4731,7 +4736,7 @@ public final class ApplicationManager extends BaseManager {
         closeImod(ImodManager.SQUEEZED_VOLUME_KEY, "squeezed volume");
         openCleanUpDialog();
       }
-      saveIntermediateParamFile(AxisID.ONLY);
+      saveStorables(AxisID.ONLY);
     }
     return true;
   }
@@ -4760,7 +4765,7 @@ public final class ApplicationManager extends BaseManager {
         processTrack.setCleanUpState(ProcessState.COMPLETE);
         mainPanel.setCleanUpState(ProcessState.COMPLETE);
       }
-      saveIntermediateParamFile(AxisID.ONLY);
+      saveStorables(AxisID.ONLY);
     }
   }
 
@@ -4905,7 +4910,8 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
-    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY,ProcessName.TRIMVOL);
+    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY,
+        ProcessName.TRIMVOL);
   }
 
   /**
@@ -4939,7 +4945,8 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
-    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY,ProcessName.SQUEEZEVOL);
+    mainPanel.startProgressBar("Squeezing volume", AxisID.ONLY,
+        ProcessName.SQUEEZEVOL);
   }
 
   /**
@@ -5007,8 +5014,9 @@ public final class ApplicationManager extends BaseManager {
    * @param value
    * @param axisID
    */
-  public void startProgressBar(String label, AxisID axisID, ProcessName processName) {
-    mainPanel.startProgressBar(label, axisID,processName);
+  public void startProgressBar(String label, AxisID axisID,
+      ProcessName processName) {
+    mainPanel.startProgressBar(label, axisID, processName);
   }
 
   /**
@@ -5293,8 +5301,8 @@ public final class ApplicationManager extends BaseManager {
     }
     setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
     setThreadName(threadName, axisID);
-    mainPanel
-        .startProgressBar("Running " + SplittiltParam.COMMAND_NAME, axisID, ProcessName.SPLITTILT);
+    mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME,
+        axisID, ProcessName.SPLITTILT);
     return null;
   }
 
@@ -5325,8 +5333,7 @@ public final class ApplicationManager extends BaseManager {
         getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     setThreadName(threadName, AxisID.ONLY);
     mainPanel.startProgressBar("Running " + SplitcombineParam.COMMAND_NAME,
-        AxisID.ONLY,ProcessName.SPLITCOMBINE);
-    return;
+        AxisID.ONLY, ProcessName.SPLITCOMBINE);
   }
 
   private String getNextProcessProcesschunksString(ProcessName processName) {
@@ -5370,29 +5377,23 @@ public final class ApplicationManager extends BaseManager {
     return processMgr;
   }
 
-  protected Storable[] getParamFileStorableArray(boolean includeMetaData,
-      int baseElements) {
+  protected Storable[] getStorables(int offset) {
+    int arraySize = 5 + offset;
     boolean dualAxis = true;
-    int arraySize = 5 + baseElements;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       dualAxis = false;
       arraySize--;
     }
-    if (!includeMetaData) {
-      arraySize--;
-    }
-    Storable[] storable = new Storable[arraySize];
-    int index = baseElements;
-    if (includeMetaData) {
-      storable[index++] = metaData;
-    }
-    storable[index++] = state;
-    storable[index++] = processTrack;
-    storable[index++] = getScreenState(AxisID.FIRST);
+    Storable[] storables = new Storable[arraySize];
+    int index = offset;
+    storables[index++] = metaData;
+    storables[index++] = state;
+    storables[index++] = processTrack;
+    storables[index++] = getScreenState(AxisID.FIRST);
     if (dualAxis) {
-      storable[index] = getScreenState(AxisID.SECOND);
+      storables[index] = getScreenState(AxisID.SECOND);
     }
-    return storable;
+    return storables;
   }
 
   public ReconScreenState getScreenState(AxisID axisID) {
@@ -5430,6 +5431,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.272  2006/10/24 21:13:17  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.271  2006/10/16 22:33:13  sueh
  * <p> bug# 919  Changed touch(File) to touch(String absolutePath).  bug# 933  Moved
  * <p> the code in msgAlignPostProcess to postProcess.  Only doing align post process
