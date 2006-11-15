@@ -1,7 +1,6 @@
 package etomo.process;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,6 +14,7 @@ import etomo.comscript.ComscriptState;
 import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TomosnapshotParam;
+import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2006/10/16 22:36:52  sueh
+ * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
+ * <p>
  * <p> Revision 1.48  2006/10/10 05:06:54  sueh
  * <p> bug# 931 In startBackgroundProcess() and startComScript() set
  * <p> etomo.processThreadGroup to be the ThreadGroup, so that exceptions can be
@@ -319,7 +322,7 @@ public abstract class BaseProcessManager {
   private HashMap killedList = new HashMap();
   EtomoDirector etomoDirector = EtomoDirector.getInstance();
   protected UIHarness uiHarness = UIHarness.INSTANCE;
-  private final ProcessData savedPrcoessDataA;
+  private final ProcessData savedProcessDataA;
   private final ProcessData savedProcessDataB;
   private final BaseManager manager;
 
@@ -337,7 +340,7 @@ public abstract class BaseProcessManager {
 
   public BaseProcessManager(BaseManager manager) {
     this.manager = manager;
-    savedPrcoessDataA = new ProcessData(AxisID.FIRST, manager);
+    savedProcessDataA = new ProcessData(AxisID.FIRST, manager);
     savedProcessDataB = new ProcessData(AxisID.SECOND, manager);
   }
 
@@ -371,7 +374,7 @@ public abstract class BaseProcessManager {
    */
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
       ParallelProgressDisplay parallelProgressDisplay,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException{
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
         manager, axisID, parallelProgressDisplay, param.getRootName(), param
@@ -465,7 +468,7 @@ public abstract class BaseProcessManager {
 
   protected ComScriptProcess startComScript(Command command,
       ProcessMonitor processMonitor, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException{
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
         null, processMonitor, processResultDisplay), command.getCommandLine(),
         processMonitor, axisID);
@@ -526,7 +529,7 @@ public abstract class BaseProcessManager {
         .setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.isDebug());
     comScriptProcess.setDemoMode(etomoDirector.isDemo());
-    manager.saveIntermediateParamFile(axisID);
+    manager.saveStorables(axisID);
     comScriptProcess.start();
 
     // Map the thread to the correct axis
@@ -633,15 +636,18 @@ public abstract class BaseProcessManager {
     if (axisID == AxisID.SECOND) {
       return savedProcessDataB;
     }
-    return savedPrcoessDataA;
+    return savedProcessDataA;
   }
 
   private void saveProcessData(ProcessData processData) {
     ParameterStore paramStore = new ParameterStore(manager.getParamFile());
     try {
-      paramStore.save(processData);
+    manager.getParameterStore().save(processData);
     }
-    catch (IOException e) {
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.WriteException e) {
       e.printStackTrace();
     }
   }
@@ -994,7 +1000,7 @@ public abstract class BaseProcessManager {
             + " warnings", script.getAxisID());
       }
     }
-    manager.saveIntermediateParamFile(script.getAxisID());
+    manager.saveStorables(script.getAxisID());
     //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
@@ -1056,7 +1062,7 @@ public abstract class BaseProcessManager {
             .getAxisID());
       }
     }
-    manager.saveIntermediateParamFile(script.getAxisID());
+    manager.saveStorables(script.getAxisID());
     //  Null out the correct thread
     // Interrupt the process monitor and nulll out the appropriate references
     if (threadAxisA == script) {
@@ -1108,7 +1114,7 @@ public abstract class BaseProcessManager {
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
       AxisID axisID, boolean forceNextProcess,
       ProcessResultDisplay processResultDisplay, ProcessName processName)
-      throws SystemProcessException {
+      throws SystemProcessException{
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
         commandArray, this, axisID, forceNextProcess, processResultDisplay,
         processName);
@@ -1147,7 +1153,7 @@ public abstract class BaseProcessManager {
   }
 
   protected BackgroundProcess startBackgroundProcess(Command command,
-      AxisID axisID, ProcessName processName) throws SystemProcessException {
+      AxisID axisID, ProcessName processName) throws SystemProcessException{
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
         command, this, axisID, processName);
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
@@ -1170,7 +1176,7 @@ public abstract class BaseProcessManager {
         .setWorkingDirectory(new File(manager.getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.isDemo());
     backgroundProcess.setDebug(etomoDirector.isDebug());
-    manager.saveIntermediateParamFile(axisID);
+    manager.saveStorables(axisID);
     isAxisBusy(axisID, backgroundProcess.getProcessResultDisplay());
     backgroundProcess.start();
     if (etomoDirector.isDebug()) {
@@ -1203,7 +1209,7 @@ public abstract class BaseProcessManager {
         command, this, command.getAxisID());
     program.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     Thread thread = new Thread(program);
-    manager.saveIntermediateParamFile(command.getAxisID());
+    manager.saveStorables(command.getAxisID());
     thread.start();
     program.setName(thread.getName());
     if (etomoDirector.isDebug()) {
@@ -1237,7 +1243,7 @@ public abstract class BaseProcessManager {
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
-    manager.saveIntermediateParamFile(sysProgram.getAxisID());
+    manager.saveStorables(sysProgram.getAxisID());
     sysProgThread.start();
     if (etomoDirector.isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
@@ -1262,7 +1268,7 @@ public abstract class BaseProcessManager {
     else {
       postProcess(process);
     }
-    manager.saveIntermediateParamFile(process.getAxisID());
+    manager.saveStorables(process.getAxisID());
 
     // Null the reference to the appropriate thread
     if (process == threadAxisA) {
@@ -1290,7 +1296,7 @@ public abstract class BaseProcessManager {
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program,
       int exitValue) {
     postProcess(program);
-    manager.saveIntermediateParamFile(program.getAxisID());
+    manager.saveStorables(program.getAxisID());
   }
 
   public final String tomosnapshot(AxisID axisID) throws SystemProcessException {
