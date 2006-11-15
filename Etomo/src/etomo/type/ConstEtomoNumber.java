@@ -21,6 +21,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2006/10/17 20:04:25  sueh
+ * <p> bug# 939  Added defaultValue, getDouble(boolean), getValue(boolean),
+ * <p> isDefault(Number), setDefault(int), and useDefaultAsDisplayValue().  Placed the
+ * <p> code from initialize(Number) into initialize().
+ * <p>
  * <p> Revision 1.41  2006/09/13 23:31:30  sueh
  * <p> bug# 920 Added getFloat().
  * <p>
@@ -924,7 +929,12 @@ public abstract class ConstEtomoNumber implements Storable {
       remove(props, prepend);
       return;
     }
-    props.setProperty(prepend + "." + name, toString(currentValue));
+    if (prepend == null) {
+      store(props);
+    }
+    else {
+      props.setProperty(prepend + "." + name, toString(currentValue));
+    }
   }
 
   public static void store(EtomoNumber etomoNumber, String name,
@@ -941,7 +951,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public void remove(Properties props, String prepend) {
-    props.remove(prepend + "." + name);
+    if (prepend == null) {
+      remove(props);
+    }
+    else {
+      props.remove(prepend + "." + name);
+    }
   }
 
   public String toString() {
@@ -972,7 +987,7 @@ public abstract class ConstEtomoNumber implements Storable {
     validateReturnTypeLong();
     return getValue().longValue();
   }
-  
+
   public float getFloat() {
     validateReturnTypeFloat();
     return getValue().floatValue();
@@ -982,17 +997,17 @@ public abstract class ConstEtomoNumber implements Storable {
     validateReturnTypeDouble();
     return getValue().doubleValue();
   }
-  
+
   public double getDouble(boolean defaultIfNull) {
     validateReturnTypeDouble();
     return getValue(defaultIfNull).doubleValue();
   }
-  
+
   public ConstEtomoNumber setDefault(int defaultValue) {
     this.defaultValue = newNumber(defaultValue);
     return this;
   }
-  
+
   /**
    * Returns true if defaultValue is not null and getValue() is equal to
    * defaultValue.
@@ -1004,7 +1019,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return equals(value, defaultValue);
   }
-  
+
   public ConstEtomoNumber useDefaultAsDisplayValue() {
     return setDisplayValue(defaultValue);
   }
@@ -1095,7 +1110,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return currentValue;
   }
-  
+
   protected Number getValue(boolean defaultIfNull) {
     if (defaultIfNull && isNull()) {
       return defaultValue;
@@ -1425,7 +1440,7 @@ public abstract class ConstEtomoNumber implements Storable {
           "Cannot place a float or double into a long.");
     }
   }
-  
+
   private void validateReturnTypeFloat() {
     if (type != INTEGER_TYPE && type != FLOAT_TYPE) {
       throw new IllegalStateException(
