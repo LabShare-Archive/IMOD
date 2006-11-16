@@ -28,7 +28,7 @@ public class AutodocTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
-
+    Autodoc.setTestDir(null);
   }
 
   protected void tearDown() throws Exception {
@@ -98,6 +98,9 @@ public class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/06/15 18:46:12  sueh
+ * <p> bug# 876 Removed unnecessary commented out functions.
+ * <p>
  * <p> Revision 1.5  2006/06/15 17:55:14  sueh
  * <p> bug# 876 Remove test against cpu.adoc because cpu.adoc is optional.
  * <p>
