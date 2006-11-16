@@ -306,7 +306,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * for test
    * @param testDirAbsolutePath
    */
-  public static void setDir_test(String testDirAbsolutePath) {
+  public static void setTestDir(String testDirAbsolutePath) {
     if (!test) {
       throw new IllegalStateException();
     }
@@ -506,7 +506,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * @param envVariable
    */
   private File setAutodocFile(String name, AxisID axisID, String envVariable) {
-    File dir = getTestAutodocDir();
+    File dir = getTestDir();
     if (dir != null) {
       return getAutodocFile(dir, name);
     }
@@ -556,7 +556,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return file;
   }
 
-  private File getTestAutodocDir() {
+  private File getTestDir() {
     if (!test) {
       return null;
     }
@@ -661,6 +661,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.7  2006/09/13 23:30:50  sueh
+ *<p> $bug# 921 Adding corrsearch3d.adoc.
+ *<p> $
  *<p> $Revision 1.6  2006/07/21 22:11:32  sueh
  *<p> $bug# 901 Getting the calibration directory environment variable name from
  *<p> $EnvironmentVariable.
