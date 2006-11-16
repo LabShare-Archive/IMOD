@@ -20,6 +20,7 @@ import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
+import etomo.type.EtomoNumber;
 import etomo.type.ParallelMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
@@ -48,8 +49,11 @@ import etomo.util.Utilities;
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
-  public static final double MIN_AVAILABLE_MEMORY = 0.75;
+  private static final long TO_BYTES = 1024;
+  public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 0.75 * TO_BYTES
+      * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
+  private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "JAVA_MEM_LIM";
 
   private static EtomoDirector theEtomoDirector = null;
   private File IMODDirectory;
@@ -82,6 +86,7 @@ public class EtomoDirector {
   private MemoryThread memoryThread = null;
   private boolean testDone = false;
   private ParameterStore parameterStore = null;
+  private EtomoNumber javaMemoryLimit = null;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -979,6 +984,34 @@ public class EtomoDirector {
   }
 
   public boolean isMemoryAvailable() {
+    if (javaMemoryLimit == null) {
+      //get the java memory limit
+      //check it before complaining about having too little memory available
+      //SGI seems to go very low on the available memory, but its fine as long
+      //as long as it does't get near the java memory limit.
+      javaMemoryLimit = new EtomoNumber(EtomoNumber.LONG_TYPE);
+      String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(
+          originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
+      if (sJavaMemoryLimit != null) {
+        long conversionNumber = 1;
+        if (sJavaMemoryLimit.endsWith("k") || sJavaMemoryLimit.endsWith("K")) {
+          conversionNumber = TO_BYTES;
+          sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
+              .length() - 1);
+        }
+        else if (sJavaMemoryLimit.endsWith("m")
+            || sJavaMemoryLimit.endsWith("M")) {
+          conversionNumber = TO_BYTES * TO_BYTES;
+          sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
+              .length() - 1);
+        }
+        javaMemoryLimit.set(sJavaMemoryLimit);
+        javaMemoryLimit.set(javaMemoryLimit.getLong() * conversionNumber);
+        System.err.println(JAVA_MEMORY_LIMIT_ENV_VAR + "=" + javaMemoryLimit);
+        System.err.println("MIN_AVAILABLE_MEMORY_REQUIRED="
+            + MIN_AVAILABLE_MEMORY_REQUIRED);
+      }
+    }
     long availableMemory = Runtime.getRuntime().maxMemory()
         - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
@@ -992,19 +1025,27 @@ public class EtomoDirector {
       System.err.println("Available memory = " + availableMemory);
       System.err.println("Memory in use    = " + usedMemory);
     }
-    //Check available memory
-    if (availableMemory < EtomoDirector.MIN_AVAILABLE_MEMORY * 1024.0 * 1024.0) {
-      //send message once per memory problem
-      if (!outOfMemoryMessage) {
-        UIHarness.INSTANCE
-            .openMessageDialog(
-                "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
-                    + "comscript files may not be saved."
-                    + "\nPlease close open windows or exit Etomo.",
-                "Out of Memory");
+    //Check to see if the memory has been made available up to the memory limit.
+    //SGI doesn't make all the memory available up to the memory limit until it
+    //needs to.
+    //Memory limit is adjusted down because availableMemory never matches
+    //javaMemoryLimit.
+    if (javaMemoryLimit.isNull()
+        || availableMemory + usedMemory >= javaMemoryLimit.getLong()
+            - (MIN_AVAILABLE_MEMORY_REQUIRED * 3)) {
+      //Check available memory
+      if (availableMemory < MIN_AVAILABLE_MEMORY_REQUIRED) {
+        //send message once per memory problem
+        if (!outOfMemoryMessage) {
+          UIHarness.INSTANCE.openMessageDialog(
+              "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
+                  + " comscript files may not be saved."
+                  + "\nPlease close open windows or exit Etomo.",
+              "Out of Memory");
+        }
+        outOfMemoryMessage = true;
+        return false;
       }
-      outOfMemoryMessage = true;
-      return false;
     }
     //memory problem is gone - reset message
     outOfMemoryMessage = false;
@@ -1053,6 +1094,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.53  2006/11/15 18:46:37  sueh
+ * <p> bug# 872 Using ParameterStore to save to the .etomo file.
+ * <p>
  * <p> Revision 1.52  2006/07/26 21:50:54  sueh
  * <p> bug# 907 setting headless to GraphicsEnvironment.isHeadless().
  * <p>
