@@ -443,7 +443,7 @@ public class RemotePathTest extends TestCase {
   private final File setUpTestDirectory(String testDirName) throws IOException {
     File testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
-    Autodoc.setDir_test(testDir.getAbsolutePath());
+    Autodoc.setTestDir(testDir.getAbsolutePath());
     Autodoc.resetInstance_test(RemotePath.AUTODOC);
     return testDir;
   }
@@ -998,6 +998,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2006/07/21 00:41:34  sueh
+ * <p> bug# 885 fixed the test
+ * <p>
  * <p> Revision 1.30  2006/07/20 23:15:56  sueh
  * <p> bug# 885 Handling InvalidMountRuleException.
  * <p>
