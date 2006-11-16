@@ -312,7 +312,6 @@ public abstract class BaseManager {
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
       return true;
     }
-    System.out.println("saveParamFile");
     save();
     parameterStore.setAutoStore(true);
     parameterStore.storeProperties();
@@ -1064,6 +1063,12 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.70  2006/11/15 18:18:21  sueh
+ * <p> bug# 872 There are two ways to save:  saveStorables and saveParamFile.
+ * <p> SaveParamFile is used with the done... functions when exiting etomo.
+ * <p> SaveStorables is for saving before or after processes, when more then one
+ * <p> storable may require saving.
+ * <p>
  * <p> Revision 1.69  2006/10/24 21:13:43  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
