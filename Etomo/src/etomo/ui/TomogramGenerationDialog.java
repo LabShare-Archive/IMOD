@@ -59,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.99  2006/11/07 23:10:44  sueh
+ * bug# 954 Added tooltips
+ *
  * Revision 3.98  2006/10/26 23:57:53  sueh
  * bug# 953 updated tooltips
  *
@@ -1882,5 +1885,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
                     + "If this box is not checked, "
                     + "Z factors in a local alignment file will not be applied.")
             .format());
+    ltfExtraExcludeList.setToolTipText(tooltipFormatter.setText(
+        "List of views to exclude from the reconstruction, in addition to the ones"
+            + "excluded from fine alignment.").format());
   }
 }
