@@ -6,6 +6,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.JUnitTests;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 import junit.framework.TestCase;
 
 /**
@@ -21,7 +22,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/10/16 22:45:21  sueh
+ * <p> bug# 919  File to test JoinInfoFile.
+ * <p> </p>
  */
 public class JoinInfoFileTest extends TestCase {
   public static final String rcsid = "$Id$";
@@ -31,6 +35,10 @@ public class JoinInfoFileTest extends TestCase {
 
   public void testGetInverted() throws LogFile.FileException,
       LogFile.WriteException {
+    //TEMP
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     testDir.mkdirs();
     BaseManager manager = EtomoDirector.createInstance_test(
         JUnitTests.ETOMO_ARGUMENTS).getCurrentManager_test();
