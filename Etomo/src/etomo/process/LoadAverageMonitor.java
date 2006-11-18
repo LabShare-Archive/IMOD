@@ -1,5 +1,6 @@
 package etomo.process;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import etomo.comscript.IntermittentCommand;
@@ -147,7 +148,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
         return;
       }
       display.setLoadAverage(programState.getCommand().getComputer(), load1,
-          load5, users);
+          load5, users, programState.getUserList());
     }
   }
 
@@ -188,6 +189,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     private final IntermittentBackgroundProcess program;
     //userMap:  convenience variable for counting the number of different users logged into a computer.
     private final HashMap userMap = new HashMap();
+    private final ArrayList userList = new ArrayList();
 
     private int waitForCommand = 0;
 
@@ -230,6 +232,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
     void clearUsers() {
       userMap.clear();
+      userList.clear();
     }
 
     boolean containsUser(String user) {
@@ -238,11 +241,28 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
     void addUser(String user) {
       userMap.put(user, null);
+      userList.add(user);
+    }
+
+    String getUserList() {
+      if (userList.isEmpty()) {
+        return null;
+      }
+      StringBuffer list = new StringBuffer((String) userList.get(0));
+      for (int i = 1; i < userList.size(); i++) {
+        list.append(',' + (String) userList.get(i));
+      }
+      return list.toString();
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2006/11/08 21:05:53  sueh
+ * <p> bug# 936  Linux and Mac:  getOutputKey:  send null as the outputKeyPhrase, so
+ * <p> that all output lines are returned.  processData:  process the detail lines of the
+ * <p> "w" command and total all the different users on each computer.
+ * <p>
  * <p> Revision 1.16  2006/10/18 15:41:15  sueh
  * <p> bug# 929 Changed failure reason to "no connection"
  * <p>

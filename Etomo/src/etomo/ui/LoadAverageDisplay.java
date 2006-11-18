@@ -19,13 +19,16 @@ public interface LoadAverageDisplay {
   public static  final String  rcsid =  "$Id$";
   
   public LoadAverageMonitor getLoadAverageMonitor();
-  public void setLoadAverage(String computer, double load1, double load5, int users);
+  public void setLoadAverage(String computer, double load1, double load5, int users, String usersTooltip);
   public void msgLoadAverageFailed(String computer, String reason);
   public void msgStartingProcess(String computer);
   public void setCPUUsage(String computer, double CPUUsage);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2006/11/08 21:06:51  sueh
+* <p> bug# 936:  SetLoadAverage:  Remove load15 and add users.
+* <p>
 * <p> Revision 1.7  2006/02/08 03:35:22  sueh
 * <p> bug# 796 Use imodwindcpu instead of w for windows.
 * <p>

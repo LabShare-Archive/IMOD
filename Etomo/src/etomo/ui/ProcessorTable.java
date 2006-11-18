@@ -614,12 +614,12 @@ public final class ProcessorTable implements Storable {
   }
 
   final void setLoadAverage(String computer, double load1, double load5,
-      int users) {
+      int users, String usersTooltip) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer))
-        .setLoadAverage(load1, load5, users);
+        .setLoadAverage(load1, load5, users, usersTooltip);
   }
 
   final void setCPUUsage(String computer, double cpuUsage) {
@@ -780,6 +780,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2006/11/15 21:24:34  sueh
+ * <p> bug# 872 Saving to .etomo with ParameterStore.
+ * <p>
  * <p> Revision 1.33  2006/11/08 21:08:01  sueh
  * <p> bug# 936:  Remove the 15 Min. column and add the Users column.
  * <p>

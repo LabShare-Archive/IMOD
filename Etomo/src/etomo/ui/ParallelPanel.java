@@ -165,8 +165,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   }
 
   public final void setLoadAverage(String computer, double load1, double load5,
-      int users) {
-    processorTable.setLoadAverage(computer, load1, load5, users);
+      int users, String usersTooltip) {
+    processorTable.setLoadAverage(computer, load1, load5, users, usersTooltip);
   }
   
   public final void setCPUUsage(String computer, double cpuUsage) {
@@ -465,6 +465,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2006/11/08 21:07:14  sueh
+ * <p> bug# 936  SetLoadAverage:  Remove load15 and add users.
+ * <p>
  * <p> Revision 1.38  2006/07/21 22:12:03  sueh
  * <p> bug# 901 Getting the calibration directory environment variable name from
  * <p> EnvironmentVariable.

@@ -365,11 +365,12 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  final void setLoadAverage(double load1, double load5, int users) {
+  final void setLoadAverage(double load1, double load5, int users, String usersTooltip) {
     int numberCpus = cellNumberCpus.getIntValue();
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
     cellUsers.setValue(users);
+    cellUsers.setToolTipText(usersTooltip);
   }
 
   final void setCPUUsage(double cpuUsage) {
@@ -479,6 +480,11 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2006/11/08 21:10:13  sueh
+ * <p> bug# 936:  Remove cellLoad15 and add cellUsers.  Clear cellUsers with the load
+ * <p> averages, but never set its warning.  Check that the load average has been set
+ * <p> by just looking at cellLoad1 (for Linux/Mac) since they are all set together.
+ * <p>
  * <p> Revision 1.21  2006/02/08 03:46:14  sueh
  * <p> bug# 796 added cellCPUUsage to use instead of load averages in windows
  * <p>
