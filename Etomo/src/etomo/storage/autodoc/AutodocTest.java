@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import etomo.type.AxisID;
+import etomo.util.Utilities;
 import junit.framework.TestCase;
 
 /**
@@ -28,6 +29,10 @@ public class AutodocTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
+    //TEMP
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     Autodoc.setTestDir(null);
   }
 
@@ -57,6 +62,10 @@ public class AutodocTest extends TestCase {
    */
   
   public void testBeadtrack() throws FileNotFoundException, IOException {
+    //TEMP
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     Autodoc autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
@@ -98,6 +107,10 @@ public class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/11/16 23:42:46  sueh
+ * <p> bug# 872 Set autodoc test dir to null to avoid changes made by previous test
+ * <p> classes.
+ * <p>
  * <p> Revision 1.6  2006/06/15 18:46:12  sueh
  * <p> bug# 876 Removed unnecessary commented out functions.
  * <p>

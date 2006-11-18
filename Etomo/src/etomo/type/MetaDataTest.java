@@ -10,6 +10,7 @@ import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.util.InvalidParameterException;
 import etomo.util.TestUtilites;
+import etomo.util.Utilities;
 import junit.framework.TestCase;
 
 /**
@@ -26,6 +27,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2006/11/15 20:49:12  sueh
+ * <p> bug# 872 testStore_Properties:  throw LogFile exceptions because properties is
+ * <p> using LogFile.
+ * <p>
  * <p> Revision 3.15  2005/12/23 02:07:20  sueh
  * <p> bug# 675 Changed EtomoDirector.getCurrentTestManager to
  * <p> getCurrentManager_test.  EtomoDirectory.getInstance no longer initializes
@@ -106,6 +111,9 @@ public class MetaDataTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     EtomoDirector etomoDirector = EtomoDirector.getInstance();
     testDir = new File(TypeTests.TEST_ROOT_DIR, testDirectory);
     if (!testDir.exists()) {
@@ -160,6 +168,10 @@ public class MetaDataTest extends TestCase {
    */
   public void testLoadProperties() throws LogFile.WriteException,
       InvalidParameterException {
+    //TEMP
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     for (int i = 0; i < edfList.length; i++) {
       MetaData metaData = new MetaData(manager);
       ParameterStore paramStore = new ParameterStore(new File(testDir, edfList[i]));

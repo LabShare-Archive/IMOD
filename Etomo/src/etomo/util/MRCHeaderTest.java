@@ -23,6 +23,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2006/11/15 21:37:18  sueh
+ * <p> bug# 872 In setup:  create the etomo instance the same way other test classes
+ * <p> create it.
+ * <p>
  * <p> Revision 3.19  2005/12/23 02:28:06  sueh
  * <p> bug# 675 Changed EtomoDirectory.getCurrentTestManager to
  * <p> getCurrentManager_test.
@@ -182,8 +186,11 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testRead() throws IOException, InvalidParameterException {
+    //TEMP
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     //  Create the test directory
-
     File testDir1 = new File(testDir, testDirectory1);
     if (testDir1.isFile()) {
       testDir1.delete();
@@ -231,6 +238,10 @@ public class MRCHeaderTest extends TestCase {
   }
 
   public void testWithSpaces() throws IOException, InvalidParameterException {
+    //TEMP
+    if (Utilities.isWindowsOS()) {
+      return;
+    }
     //  Create the test directory
     File testDir2 = new File(testDir, testDirectory2);
     if (testDir2.isFile()) {
