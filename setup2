@@ -103,6 +103,7 @@ set junit_home      = /usr/local/junit
 set jfcunit_home      = /usr/local/jfcunit
 set class_sep       = ':'
 set strip           = strip
+set rmcmd           = '/bin/rm -f'
 
 set b3dbyte         = "char"
 set ubyte           = "unsigned char"
@@ -783,6 +784,7 @@ echo "JFCUNIT_HOME = $jfcunit_home" >> $configure
 echo "CLASS_SEPARATOR = $class_sep" >> $configure
 echo "SOURCEDOC_EXE = $sourcedoc_exe" >> $configure
 echo "STRIP = $strip" >> $configure
+echo "RM = $rmcmd" >> $configure
 
 # Take care of Fortran graphics variations
 #
@@ -904,6 +906,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.23  2006/10/21 16:41:13  mast
+#  Removed bad command in 3dmodv.extra
+#
 #  Revision 1.22  2006/10/20 17:29:17  mast
 #  Fixed stripping setup in qconfigure files
 #
