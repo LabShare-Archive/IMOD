@@ -35,7 +35,7 @@ type = B
 usage = Use transforms in existing file for boundaries not being aligned
 tooltip = 
 manpage = If the specified output file for f transforms exists, read 
-transforms from it and use those them for any boundaries not being aligned.
+transforms from it and use them for any boundaries not being aligned.
 This option allows the program to be run repeatedly, computing transforms
 for a subset of boundaries each time.
 
@@ -55,7 +55,7 @@ usage = Joined tomogram that was modeled, or its size in X, Y, Z (optional)
 tooltip =
 manpage = Joined tomogram that model was built on, or its size in X, Y, and Z.
 If this option is not entered, 
-entered, the image X and Y size will be used from the model header.
+the image X and Y size will be used from the model header.
 
 [Field = SizesOfSections]
 short = sizes
