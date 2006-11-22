@@ -423,7 +423,7 @@ static void imodvMakeMovie(int frames)
 static void imodvMakeMontage(int frames, int overlap)
 {
   ImodvApp *a = movie->a;
-  Iview *vw;
+  Iview *vw = a->imod->view;
   Ipoint transave;
   Imat *mat;
   Ipoint ipt, spt, xunit, yunit;
@@ -449,6 +449,14 @@ static void imodvMakeMontage(int frames, int overlap)
   xFullSize = frames * a->winx - (frames - 1) * overlap;
   yFullSize = frames * a->winy - (frames - 1) * overlap;
 
+  // Check for perspective and give error message
+  if (vw->fovy >= 1.0f) {
+    imodError(NULL, "This model has a perspective setting of %d (see "
+              "Edit-Controls window).\nThe montage will not work right "
+              "with perspective.", (int)vw->fovy);
+    return;
+  }
+
   if (movie->saved) {
     framePix = (unsigned char *)malloc(4 * a->winx * a->winy);
     fullPix = (unsigned char *)malloc(4 * xFullSize * yFullSize);
@@ -469,7 +477,6 @@ static void imodvMakeMontage(int frames, int overlap)
   movie->abort = 0;
 
   /* Save current zoom and translations */
-  vw = a->imod->view;
   radsave = vw->rad;
   transave = vw->trans;
 
@@ -587,6 +594,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.13  2006/10/05 15:41:32  mast
+    Provided for primary and second non-TIFF snapshot format
+
     Revision 4.12  2006/05/10 14:16:23  mast
     Fixed to avoid two initial shots at same x/y/z position
 
