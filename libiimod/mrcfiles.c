@@ -946,7 +946,7 @@ unsigned char **mrc_read_byte(FILE *fin,
 
   /********************/
   /* Print some info. */
-  if (func != ( void (*)() ) NULL){
+  if (func != ( void (*)(char *) ) NULL){
     if (zsize > 1)
       sprintf(statstr, "Image size %d x %d, %d sections.\n", 
               xsize, ysize, zsize);
@@ -1032,14 +1032,14 @@ unsigned char **mrc_read_byte(FILE *fin,
   if (zoff)
     mrcHugeSeek(fin, 0, 0, 0, zoff, hdata->nx, hdata->ny, dsize, SEEK_CUR);
 
-  if (func != ( void (*)() ) NULL){
+  if (func != ( void (*)(char *) ) NULL){
     sprintf(statstr, "\nReading Image # %3.3d",k+1); 
     (*func)(statstr);
   }
 
   /* Loop on sections */
   for (k = 0; k < zsize; k++){
-    if (func != ( void (*)() ) NULL){
+    if (func != ( void (*)(char *) ) NULL){
       sprintf(statstr, "\rReading Image # %3.3d",k+1); 
       (*func)(statstr);
     }
@@ -1158,7 +1158,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       /* Keep track of total number of bytes on full lines that were probably
          read from disk and report status more frequently for large images so 
          3dmod can process messages */
-      if (func != ( void (*)() ) NULL) {
+      if (func != ( void (*)(char *) ) NULL) {
         bytesRead += dsize * hdata->nx;
         if (bytesRead > statusLimit) {
           (*func)(statstr);
@@ -1192,7 +1192,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   hdata->zlen = hdata->nz;
      
   sprintf(statstr, "\n");
-  if (func != ( void (*)() ) NULL)
+  if (func != ( void (*)(char *) ) NULL)
     (*func)(statstr);
 
   return(idata);
@@ -2131,6 +2131,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.29  2006/09/28 21:15:01  mast
+Changes to work with > 2Gpix and > 4 Gpix images as much as possible
+
 Revision 3.28  2006/08/27 23:45:58  mast
 Moved fgetline to b3dutil
 

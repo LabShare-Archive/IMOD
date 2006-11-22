@@ -1190,7 +1190,7 @@ void PipReadOrParseOptions(int argc, char *argv[], char *options[],
 
   /* Output usage and exit if not enough arguments */
   if (*numOptArgs + *numNonOptArgs < minArgs) {
-    if (headerFunc)
+    if (headerFunc != NULL)
       headerFunc(progName);
     PipPrintHelp(progName, 0, numInFiles, numOutFiles);
     exit(0);
@@ -1737,6 +1737,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.24  2006/10/17 18:15:11  mast
+Made the line reading function able to pass comments and blank lines back
+
 Revision 3.23  2006/10/16 16:17:27  mast
 Made some functions global for autodoc reader
 
