@@ -22,9 +22,16 @@ public interface IntermittentProcessMonitor {
   public void msgIntermittentCommandFailed(IntermittentCommand command);
   public void msgSentIntermittentCommand(IntermittentCommand command);
   public String getOutputKeyPhrase();
+  public void stop();
+  public boolean isMonitoring(IntermittentBackgroundProcess program);
+  public void stopMonitoring(IntermittentBackgroundProcess program);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/11/19 02:28:22  sueh
+* <p> bug# 744 The base monitor interface extends Runnable.
+* <p> IntermittentProcessMonitor doesn't need to.
+* <p>
 * <p> Revision 1.1  2005/09/10 01:49:08  sueh
 * <p> bug# 532 Changed IntermittentSystemProgram to
 * <p> IntermittentBackgroundProcess.  Made intermittentSystemProgram a child
