@@ -55,6 +55,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2006/11/15 18:47:01  sueh
+ * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
+ * <p> save param file function call save().  getStorables always gets all the storables
+ * <p> (including meta data) each time, to make it simpler.
+ * <p>
  * <p> Revision 1.46  2006/10/24 21:14:06  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -1159,7 +1164,7 @@ public final class JoinManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        stop();
+        endThreads();
         saveParamFile();
         return true;
       }

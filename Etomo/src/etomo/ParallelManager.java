@@ -153,7 +153,7 @@ public final class ParallelManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        stop();
+        endThreads();
         saveParamFile();
         return true;
       }
@@ -270,6 +270,11 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/11/15 18:49:00  sueh
+ * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
+ * <p> save param file function call save().  getStorables always gets all the storables
+ * <p> (including meta data) each time, to make it simpler.
+ * <p>
  * <p> Revision 1.7  2006/10/16 22:36:32  sueh
  * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
  * <p>

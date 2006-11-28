@@ -2158,7 +2158,7 @@ public final class ApplicationManager extends BaseManager {
   public boolean exitProgram(AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
-        stop();
+        endThreads();
         saveParamFile();
         return true;
       }
@@ -5431,6 +5431,11 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.273  2006/11/15 18:14:38  sueh
+ * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
+ * <p> save param file function call save().  getStorables always gets all the storables
+ * <p> (including meta data) each time, to make it simpler.
+ * <p>
  * <p> Revision 3.272  2006/10/24 21:13:17  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
