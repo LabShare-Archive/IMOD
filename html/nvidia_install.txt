@@ -62,7 +62,8 @@ the Display line matches up with one of the screens that is declared.
   init 5
 
 9. Log in as a normal user.  Assuming IMOD is installed normally, run 3dmodv
-on the file yeastpore.mod:
+on the file yeastpore.mod (available in 
+http://bio3d.colorado.edu/imod/files/imod_data.tar.gz):
 
    3dmodv yeastpore.mod
 
