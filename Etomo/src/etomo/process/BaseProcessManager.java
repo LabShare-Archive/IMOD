@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2006/11/15 18:53:21  sueh
+ * <p> bug# 872 Changed getParamFileStorableArray to getStorables in the managers.
+ * <p>
  * <p> Revision 1.49  2006/10/16 22:36:52  sueh
  * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
  * <p>
@@ -358,6 +361,11 @@ public abstract class BaseProcessManager {
   public final void startGetLoadAverage(LoadAverageParam param,
       LoadAverageMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(manager, param, monitor);
+  }
+  
+  public final void endGetLoadAverage(LoadAverageParam param,
+      LoadAverageMonitor monitor) {
+    IntermittentBackgroundProcess.endInstance(manager, param, monitor);
   }
 
   public final void stopGetLoadAverage(LoadAverageParam param,
