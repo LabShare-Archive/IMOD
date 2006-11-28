@@ -12,6 +12,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
+import etomo.process.IntermittentBackgroundProcess;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
@@ -587,6 +588,7 @@ public class EtomoDirector {
           return false;
         }
       }
+      IntermittentBackgroundProcess.endRestartThread();
       if (isMemoryAvailable()) {
         //  Should we close the 3dmod windows
         //  Save the current window size to the user config
@@ -1094,6 +1096,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.54  2006/11/16 23:15:36  sueh
+ * <p> bug# 882 isMemoryAvailable:  checking available memory plus used memory against JAVA_MEM_LIM before checking for enough available memory.
+ * <p>
  * <p> Revision 1.53  2006/11/15 18:46:37  sueh
  * <p> bug# 872 Using ParameterStore to save to the .etomo file.
  * <p>
