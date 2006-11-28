@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/22/06: For model view movie-making, fixed behavior of file type buttons
+when montaging and added check for perspective (In 3.9).
+
+11/15/06: In eTomo join, prevented join size from being reset to default 
+(In 3.9).
+
 11/14/06: Allowed 10,000,000 points in line/point arrays in mtk (In 3.9).
 
 11/10/06: Added attempt to deal with SELinux in install script (In 3.9).
