@@ -349,8 +349,9 @@ public abstract class BaseManager {
     }
   }
 
-  void stop() {
+  void endThreads() {
     imodManager.stopRequestHandler();
+    getMainPanel().endThreads();
     if (parameterStore != null) {
       parameterStore.setAutoStore(false);
     }
@@ -939,6 +940,13 @@ public abstract class BaseManager {
     getProcessManager().startGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
+  
+  public final void endGetLoadAverage(LoadAverageDisplay display,
+      String computer) {
+    LoadAverageParam param = LoadAverageParam.getInstance(computer);
+    getProcessManager().endGetLoadAverage(param,
+        display.getLoadAverageMonitor());
+  }
 
   public final void stopGetLoadAverage(LoadAverageDisplay display,
       String computer) {
@@ -1063,6 +1071,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.71  2006/11/16 23:13:42  sueh
+ * <p> bug# 872 Removed print statement
+ * <p>
  * <p> Revision 1.70  2006/11/15 18:18:21  sueh
  * <p> bug# 872 There are two ways to save:  saveStorables and saveParamFile.
  * <p> SaveParamFile is used with the done... functions when exiting etomo.
