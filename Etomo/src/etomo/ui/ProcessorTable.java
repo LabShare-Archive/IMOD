@@ -602,6 +602,16 @@ public final class ProcessorTable implements Storable {
           .getComputer());
     }
   }
+  
+  final void endGetLoadAverage(ParallelPanel display) {
+    if (rows == null) {
+      return;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      display.endGetLoadAverage(((ProcessorTableRow) rows.get(i))
+          .getComputer());
+    }
+  }
 
   final void stopGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
@@ -636,11 +646,11 @@ public final class ProcessorTable implements Storable {
     ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason);
   }
 
-  final void clearFailureReason(String computer) {
+  final void clearFailureReason(String computer, String failureReason) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).clearFailureReason();
+    ((ProcessorTableRow) rows.get(computer)).clearFailureReason(failureReason);
   }
 
   final void clearFailureReason(boolean selectedComputers) {
@@ -780,6 +790,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2006/11/18 00:49:50  sueh
+ * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
+ * <p>
  * <p> Revision 1.34  2006/11/15 21:24:34  sueh
  * <p> bug# 872 Saving to .etomo with ParameterStore.
  * <p>
