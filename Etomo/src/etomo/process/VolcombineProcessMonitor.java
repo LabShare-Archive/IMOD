@@ -18,6 +18,9 @@ import etomo.type.ProcessName;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2006/10/24 21:41:18  sueh
+ * <p> $bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p> $
  * <p> $Revision 1.5  2006/10/10 05:14:48  sueh
  * <p> $bug# 931 Managing the log file with LogFile.
  * <p> $
@@ -48,6 +51,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
 
   private boolean reassembling = false;
   private boolean filltomo = false;
+  private boolean densmatch = false;
 
   /**
    * Default constructor
@@ -56,7 +60,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   public VolcombineProcessMonitor(ApplicationManager appMgr, AxisID id) {
 
-    super(appMgr, id,ProcessName.VOLCOMBINE);
+    super(appMgr, id, ProcessName.VOLCOMBINE);
     logFileBasename = "volcombine";
   }
 
@@ -66,13 +70,13 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
-          1, axisID,processName);
+          1, axisID, processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar("Combine: volcombine",
-        nSections, axisID,processName);
+        nSections, axisID, processName);
   }
 
   /* (non-Javadoc)
@@ -83,20 +87,37 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("STATUS:")) {
-        if (line.indexOf("EXTRACTING AND COMBINING") != -1) {
+        if (!setSubprocess(line)&&line.indexOf("EXTRACTING AND COMBINING") != -1) {
           String[] fields = line.split("\\s+");
           currentSection = parseFields(fields, 5, currentSection);
         }
-        else if (line.indexOf("REASSEMBLING PIECES") != -1) {
-          reassembling = true;
-          filltomo = false;
-        }
-        else if (line.indexOf("RUNNING FILLTOMO ON FINAL VOLUME") != -1) {
-          filltomo = true;
-          reassembling = false;
-        }
       }
     }
+  }
+
+  private boolean setSubprocess(String line) {
+    if (line.indexOf("REASSEMBLING PIECES") != -1) {
+      reassembling = true;
+      filltomo = false;
+      densmatch = false;
+      return true;
+    }
+    if (line.indexOf("RUNNING FILLTOMO") != -1) {
+      filltomo = true;
+      reassembling = false;
+      densmatch = false;
+      return true;
+    }
+    if (line.indexOf("RUNNING DENSMATCH TO MATCH DENSITIES") != -1) {
+      densmatch = true;
+      filltomo = false;
+      reassembling = false;
+      return true;
+    }
+    densmatch = false;
+    filltomo = false;
+    reassembling = false;
+    return false;
   }
 
   /**
@@ -113,17 +134,22 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
       Thread.sleep(updatePeriod);
       String line;
       while ((line = readLogFileLine()) != null && !foundNSections) {
-        if (line.startsWith("STATUS: EXTRACTING AND COMBINING")) {
-          String[] fields = line.split("\\s+");
-          nSections = parseFields(fields, 7, nSections);
-          if (nSections != Integer.MIN_VALUE) {
-            foundNSections = true;
+        if (line.startsWith("STATUS:")) {
+          if (setSubprocess(line)) {
+            updateProgressBar();
           }
-          else {
-            throw new NumberFormatException(
-                "Unable to read first STATUS: EXTRACTING AND COMBINING line");
+          else if (line.indexOf("EXTRACTING AND COMBINING") != -1) {
+            String[] fields = line.split("\\s+");
+            nSections = parseFields(fields, 7, nSections);
+            if (nSections != Integer.MIN_VALUE) {
+              foundNSections = true;
+            }
+            else {
+              throw new NumberFormatException(
+                  "Unable to read first STATUS: EXTRACTING AND COMBINING line");
+            }
+            currentSection = parseFields(fields, 5, currentSection);
           }
-          currentSection = parseFields(fields, 5, currentSection);
         }
       }
     }
@@ -137,13 +163,22 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
   }
 
   protected void updateProgressBar() {
-    if (filltomo && waitingForExit <= 0) {
-      applicationManager.getMainPanel().setProgressBarValue(0, "filltomo",
-          axisID);
-    }
-    else if (reassembling && waitingForExit <= 0) {
-      applicationManager.getMainPanel().setProgressBarValue(0, "Reassembling",
-          axisID);
+    if (waitingForExit <= 0) {
+      if (filltomo) {
+        applicationManager.getMainPanel().setProgressBarValue(0, "filltomo",
+            axisID);
+      }
+      else if (reassembling) {
+        applicationManager.getMainPanel().setProgressBarValue(0,
+            "Reassembling", axisID);
+      }
+      else if (densmatch) {
+        applicationManager.getMainPanel().setProgressBarValue(0, "densmatch",
+            axisID);
+      }
+      else {
+        super.updateProgressBar();
+      }
     }
     else {
       super.updateProgressBar();
