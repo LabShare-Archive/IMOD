@@ -294,7 +294,7 @@ final class ProcessorTableRow implements Storable {
     else {
       noloadAverage = cellLoad1.isEmpty();
     }
-    cellComputer.setError(cellComputer.isSelected() && noloadAverage);
+    cellComputer.setWarning(cellComputer.isSelected() && noloadAverage);
   }
 
   final boolean isSelected() {
@@ -365,7 +365,8 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  final void setLoadAverage(double load1, double load5, int users, String usersTooltip) {
+  final void setLoadAverage(double load1, double load5, int users,
+      String usersTooltip) {
     int numberCpus = cellNumberCpus.getIntValue();
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
@@ -378,7 +379,7 @@ final class ProcessorTableRow implements Storable {
     double usage = cpuUsage * numberCPUs / 100.0;
     cellCPUUsage.setWarning(numberCPUs - usage <= .25);
     cellCPUUsage.setValue(usage);
-    cellComputer.setError(false);
+    cellComputer.setWarning(false);
   }
 
   final void clearLoadAverage(String reason) {
@@ -402,6 +403,14 @@ final class ProcessorTableRow implements Storable {
         "Unable to get the " + loadName + " for this computer.").format());
   }
 
+  final void clearFailureReason(String failureReason) {
+    String value = cellFailureReason.getValue();
+    if (value == null || !value.equals(failureReason)) {
+      return;
+    }
+    clearFailureReason();
+  }
+
   final void clearFailureReason() {
     cellFailureReason.setValue();
     cellFailureReason.setToolTipText(null);
@@ -410,7 +419,7 @@ final class ProcessorTableRow implements Storable {
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
     cellLoad.setWarning(load >= numberCpus);
     cellLoad.setValue(load);
-    cellComputer.setError(false);
+    cellComputer.setWarning(false);
   }
 
   final int getHeight() {
@@ -480,6 +489,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2006/11/18 00:50:01  sueh
+ * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
+ * <p>
  * <p> Revision 1.22  2006/11/08 21:10:13  sueh
  * <p> bug# 936:  Remove cellLoad15 and add cellUsers.  Clear cellUsers with the load
  * <p> averages, but never set its warning.  Check that the load average has been set
