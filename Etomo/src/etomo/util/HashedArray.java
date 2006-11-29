@@ -18,6 +18,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2005/09/09 21:48:15  sueh
+* <p> bug# 532 Handling null from stderr and stdout.
+* <p>
 * <p> Revision 1.8  2005/09/01 18:07:25  sueh
 * <p> bug# 532  Added invariant self testing.  In remove(), return if the key isn't
 * <p> found.
@@ -102,8 +105,8 @@ public class HashedArray {
   }
   
   /**
-   * Add a new value with unique key is creates from keyName
-   * @param keyName
+   * Add a new value with key
+   * @param key
    * @param value
    * @return
    */
@@ -160,7 +163,7 @@ public class HashedArray {
     return valueMap.size();
   }
   
-  public boolean containsKey(Object key) {
+  public synchronized boolean containsKey(Object key) {
     return valueMap.containsKey(key);
   }  
 }
