@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.34  2006/10/24 22:34:34  sueh
+ * <p> bug# 947
+ * <p>
  * <p> Revision 1.33  2006/03/20 18:03:59  sueh
  * <p> Improved the name of the parameter of setParallelDialog
  * <p>
@@ -397,6 +400,17 @@ public abstract class MainPanel extends JPanel {
     }
     axisPanel.setProgressBar(label, nSteps, pauseEnabled, processName);
     axisPanel.setProgressBarValue(0);
+  }
+  
+  public void endThreads() {
+    AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
+    if (axisPanel != null) {
+      axisPanel.endThreads();
+    }
+    axisPanel = mapBaseAxis(AxisID.SECOND);
+    if (axisPanel != null) {
+      axisPanel.endThreads();
+    }
   }
 
   /**

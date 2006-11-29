@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2006/11/07 22:32:04  sueh
+ * <p> bug# 954 Adding tooltip for buttonKillProcess.
+ * <p>
  * <p> Revision 3.27  2006/10/24 22:33:41  sueh
  * <p> bug# 947
  * <p>
@@ -243,7 +246,7 @@ abstract class AxisProcessPanel implements ContextMenu {
   //  Progress panel
   final ProgressPanel progressPanel;
   private final JButton buttonKillProcess = new JButton(KILL_BUTTON_LABEL);
-  ParallelPanel parallelPanel = null;
+  private ParallelPanel parallelPanel = null;
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
@@ -373,6 +376,12 @@ abstract class AxisProcessPanel implements ContextMenu {
     parallelPanel.start();
     parallelStatusPanel.setVisible(true);
     UIHarness.INSTANCE.pack(axisID, manager);
+  }
+  
+  void endThreads() {
+    if (parallelPanel !=null) {
+      parallelPanel.end();
+    }
   }
 
   private final void stopParallelPanel() {
