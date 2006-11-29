@@ -142,6 +142,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   public final void start() {
     processorTable.startGetLoadAverage(this);
   }
+  
+  public final void end() {
+    processorTable.endGetLoadAverage(this);
+  }
 
   public final void stop() {
     processorTable.stopGetLoadAverage(this);
@@ -149,6 +153,12 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 
   final void startGetLoadAverage(String computer) {
     manager.startGetLoadAverage(this, computer);
+  }
+  
+  final void endGetLoadAverage(String computer) {
+    if (loadAverageMonitor != null) {
+      manager.endGetLoadAverage(this, computer);
+    }
   }
 
   final void stopGetLoadAverage(String computer) {
@@ -390,15 +400,23 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
+  /**
+   * Clears the load average from the display.  Done not ask the monitor to
+   * drop the computer because processchunks handles this very well, and it is
+   * possible that the computer may still be available.
+   */
   public final void msgLoadAverageFailed(String computer, String reason) {
-    if (parallelProcessMonitor != null) {
-      parallelProcessMonitor.drop(computer);
-    }
     processorTable.clearLoadAverage(computer, reason);
   }
 
-  public void msgStartingProcess(String computer) {
-    processorTable.clearFailureReason(computer);
+  /**
+   * Clear failure reason, if failure reason equals failureReason.  This means
+   * that intermittent processes only clear their own messages.  This is useful
+   * for restarting an intermittent process without losing the processchunks
+   * failure reason.
+   */
+  public void msgStartingProcess(String computer, String failureReason) {
+    processorTable.clearFailureReason(computer, failureReason);
   }
 
   public void msgStartingProcessOnSelectedComputers() {
@@ -465,6 +483,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2006/11/18 00:49:24  sueh
+ * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
+ * <p>
  * <p> Revision 1.39  2006/11/08 21:07:14  sueh
  * <p> bug# 936  SetLoadAverage:  Remove load15 and add users.
  * <p>
