@@ -21,11 +21,14 @@ public interface LoadAverageDisplay {
   public LoadAverageMonitor getLoadAverageMonitor();
   public void setLoadAverage(String computer, double load1, double load5, int users, String usersTooltip);
   public void msgLoadAverageFailed(String computer, String reason);
-  public void msgStartingProcess(String computer);
+  public void msgStartingProcess(String computer, String failureReason);
   public void setCPUUsage(String computer, double CPUUsage);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2006/11/18 00:49:13  sueh
+* <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
+* <p>
 * <p> Revision 1.8  2006/11/08 21:06:51  sueh
 * <p> bug# 936:  SetLoadAverage:  Remove load15 and add users.
 * <p>
