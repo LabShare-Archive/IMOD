@@ -27,11 +27,14 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
   private static final String OUTPUT_KEY_PHRASE = "load average";
   private static final String OUTPUT_KEY_PHRASE_WINDOWS = "Percent CPU usage";
+  private static final String FAILURE_REASON = "no connection";
 
   private final LoadAverageDisplay display;
 
   private HashedArray programs = new HashedArray();
-  private boolean running = false;
+  //stopped:  true when the run() is not executing.  Set at the end of the run
+  //program.  Also set externally to stop the run() program.
+  private boolean stopped = true;
 
   public LoadAverageMonitor(LoadAverageDisplay display) {
     this.display = display;
@@ -39,18 +42,22 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
   public void run() {
     try {
-      while (!isStopped()) {
+      while (!stopped) {
+        boolean programsStopped = true;
         //update the output on the display from each of the running programs.
         for (int i = 0; i < programs.size(); i++) {
           ProgramState programState = (ProgramState) programs.get(i);
-          if (!programState.isStopped()) {
+          if (!stopped && !programState.isStopped()) {
+            programsStopped = false;
             processData(programState);
             if (programState.getWaitForCommand() > 12) {
               programState.setWaitForCommand(0);
               msgIntermittentCommandFailed(programState.getCommand());
-              programState.stop(this);
             }
           }
+        }
+        if (programsStopped) {
+          stopped = true;
         }
         Thread.sleep(1000);
       }
@@ -58,37 +65,71 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     catch (InterruptedException e) {
       e.printStackTrace();
     }
-    running = false;
+    stopped = true;
   }
 
-  public void setProcess(IntermittentBackgroundProcess program) {
+  /**
+   * set stopped to true
+   */
+  public void stop() {
+    this.stopped = true;
+  }
+
+  /**
+   * Sets the stopping member variable in the program state.  This just sets a flag in ProgramState
+   * and doesn't affect the program.  Check all the program states.  If they are
+   * all stopping or the program is stopped, then set stopped to true.
+   * @param program
+   */
+  public void stopMonitoring(IntermittentBackgroundProcess program) {
+    ProgramState programState = (ProgramState) programs.get(program
+        .getCommand().getComputer());
+    programState.setStopMonitoring(true);
+    boolean programsStopped = true;
+    for (int i = 0; i < programs.size(); i++) {
+      programState = (ProgramState) programs.get(i);
+      if (!programState.isStopMonitoring() && !programState.isStopped()) {
+        programsStopped = false;
+        break;
+      }
+    }
+    if (programsStopped) {
+      stopped = true;
+    }
+  }
+
+  /**
+   * returns true if the monitor is stopped, the program is unknown, or if it
+   * has received a stop monitoring command from the program.
+   * @param program
+   * @return
+   */
+  public boolean isMonitoring(IntermittentBackgroundProcess program) {
+    if (stopped) {
+      return false;
+    }
+    String key = program.getCommand().getComputer();
+    if (key == null) {
+      return false;
+    }
+    return !((ProgramState) programs.get(key)).isStopMonitoring();
+  }
+
+  public synchronized void setProcess(IntermittentBackgroundProcess program) {
     String key = program.getCommand().getComputer();
     ProgramState programState = (ProgramState) programs.get(key);
     if (programState == null) {
       programs.add(key, new ProgramState(program));
     }
     else {
+      programState.setStopMonitoring(false);
       programState.setWaitForCommand(0);
     }
-    synchronized (programs) {
-      if (!running) {
-        running = true;
-        new Thread(this).start();
-      }
+    if (stopped) {
+      stopped = false;
+      new Thread(this).start();
     }
-    display.msgStartingProcess(key);
-  }
-
-  private boolean isStopped() {
-    if (programs.size() == 0) {
-      return false;
-    }
-    for (int i = 0; i < programs.size(); i++) {
-      if (!((ProgramState) programs.get(i)).isStopped()) {
-        return false;
-      }
-    }
-    return true;
+    display.msgStartingProcess(key, FAILURE_REASON);
   }
 
   /**
@@ -157,7 +198,6 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       return OUTPUT_KEY_PHRASE_WINDOWS;
     }
     //need to get users for linux systems, so don't use the output key phrase to limit process output
-    //return OUTPUT_KEY_PHRASE;
     return null;
   }
 
@@ -172,7 +212,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   public final void msgIntermittentCommandFailed(IntermittentCommand command) {
     String key = command.getComputer();
     if (programs.containsKey(key)) {
-      display.msgLoadAverageFailed(key, "no connection");
+      display.msgLoadAverageFailed(key, FAILURE_REASON);
+      ProgramState program = (ProgramState) programs.get(key);
+      program.fail();
+      program.restart();
     }
   }
 
@@ -192,6 +235,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     private final ArrayList userList = new ArrayList();
 
     private int waitForCommand = 0;
+    private boolean stopMonitoring = false;
 
     private ProgramState(IntermittentBackgroundProcess program) {
       this.program = program;
@@ -204,6 +248,18 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
     boolean isStopped() {
       return program.isStopped();
+    }
+
+    void setStopMonitoring(boolean stopMonitoring) {
+      this.stopMonitoring = stopMonitoring;
+    }
+
+    boolean isStopMonitoring() {
+      return stopMonitoring;
+    }
+
+    void fail() {
+      program.fail();
     }
 
     int getWaitForCommand() {
@@ -222,8 +278,8 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       return program.getCommand();
     }
 
-    void stop(IntermittentProcessMonitor monitor) {
-      program.stop(monitor);
+    void restart() {
+      program.restart();
     }
 
     String[] getStdOutput(IntermittentProcessMonitor monitor) {
@@ -258,6 +314,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/11/18 00:49:02  sueh
+ * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
+ * <p>
  * <p> Revision 1.17  2006/11/08 21:05:53  sueh
  * <p> bug# 936  Linux and Mac:  getOutputKey:  send null as the outputKeyPhrase, so
  * <p> that all output lines are returned.  processData:  process the detail lines of the
