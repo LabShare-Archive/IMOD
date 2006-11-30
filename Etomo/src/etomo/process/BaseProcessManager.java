@@ -38,6 +38,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.51  2006/11/28 22:52:31  sueh
+ * <p> bug# 934 Added endGetLoadAverage().  Does the same thing as
+ * <p> stopGetLoadAverage(), but also removes the monitor.  Uses when a manager
+ * <p> exits.
+ * <p>
  * <p> Revision 1.50  2006/11/15 18:53:21  sueh
  * <p> bug# 872 Changed getParamFileStorableArray to getStorables in the managers.
  * <p>
@@ -390,6 +395,7 @@ public abstract class BaseProcessManager {
 
     BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
         processResultDisplay, ProcessName.PROCESSCHUNKS);
+    monitor.setProcess(process);
     return process.getName();
   }
 
