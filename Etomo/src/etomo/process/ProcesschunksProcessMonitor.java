@@ -61,6 +61,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private boolean killing = false;
   //private File processOutputFile = null;
   private String pid = null;
+  private boolean starting = true;
+  private SystemProcessInterface process = null;
 
   /**
    * Default constructor
@@ -81,6 +83,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   public void setProcess(SystemProcessInterface process) {
+    this.process = process;
   }
 
   public void run() {
@@ -151,6 +154,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     boolean failed = false;
     while ((line = processOutput.readLine(processOutputReadId)) != null) {
       line = line.trim();
+      //System.out.println(line);
       //get the first pid
       if (pid == null && line.startsWith("Shell PID:")) {
         String[] array = line.split("\\s+");
@@ -202,6 +206,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         String[] strings = line.split("\\s+");
         //set nChunks and chunksFinished
         if (strings.length > 2 && line.endsWith("DONE SO FAR")) {
+          starting = false;
           if (!nChunks.equals(strings[2])) {
             nChunks.set(strings[2]);
             setProgressBarTitle = true;
@@ -306,6 +311,21 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       parallelProgressDisplay.msgKillingProcess();
       killing = true;
       setProgressBarTitle = true;
+      if (starting) {
+        //wait to see if processchunks is already starting chunks.
+        try {
+          Thread.sleep(2001);
+        }
+        catch (InterruptedException e) {
+        }
+        if (starting) {
+          //processchunks hasn't started chunks and it won't because the "Q" has
+          //been sent.  So it is save to kill it in the usual way.
+          if (process != null) {
+            process.signalKill(axisID);
+          }
+        }
+      }
     }
     catch (LogFile.WriteException e) {
       e.printStackTrace();
@@ -434,6 +454,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2006/11/08 00:24:05  sueh
+ * <p> bug# 935  createProcessOutput():  backup the old process output file instead of
+ * <p> deleting it.
+ * <p>
  * <p> Revision 1.23  2006/10/24 21:38:10  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
