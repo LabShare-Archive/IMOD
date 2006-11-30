@@ -76,9 +76,6 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
-  public void testInitialize() {
-  }
-
   public void testInitialize_Number() {
     EtomoNumber test = new EtomoNumber();
     assertEquals(test.getDisplayInteger(), EtomoNumber.INTEGER_NULL_VALUE);
@@ -210,6 +207,19 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public void testGetDisplayInteger() {
+    int displayValue = 1;
+    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test.setDisplayValue(displayValue);
+    try {
+      test.getDisplayInteger();
+      fail("Display value should be stored as a double because of the type setting.");
+    }
+    catch (IllegalStateException e) {
+    }
+    test = new EtomoNumber();
+    test.setDisplayValue(displayValue);
+    assertEquals("Function should return the display value", displayValue, test
+        .getDisplayInteger());
   }
 
   public void testSetInvalidReason() {
@@ -778,15 +788,23 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public final void testGetNumber() {
     testGetValue();
-    testGetNumber_Number();
+    testNewNumber_Number();
   }
 
-  //TODO
-  public final void testGetNumber_Number() {
-  }
-
-  //TODO
   public final void testEquals_Number() {
+    Double d = new Double(9);
+    EtomoNumber test = new EtomoNumber();
+    test.set(9);
+    try {
+      test.equals(d);
+      fail("Cannot compare incompatible types");
+    }
+    catch (IllegalStateException e) {}
+    Integer i = new Integer(9);
+    //this is an unfortunate side-effect of storing things in Number
+    assertTrue("Values should be equal", test.equals(i));
+    test.set(4);
+    assertFalse("Values should be unequal",test.equals(i));
   }
 
   //TODO
@@ -1349,6 +1367,10 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2006/11/15 20:44:47  sueh
+ * <p> bug# 872 testStore_Properties:  throw LogFile exceptions because properties is
+ * <p> using LogFile.
+ * <p>
  * <p> Revision 1.40  2006/10/17 20:07:40  sueh
  * <p> bug# 939  Added testGetDouble_boolean(), testGetValue_boolean(), testIsDefault_Number(), testSetDefault_int(), testUseDefaultAsDisplayValue().
  * <p>
