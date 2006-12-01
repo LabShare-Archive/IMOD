@@ -117,6 +117,21 @@ final class DetachedProcess extends BackgroundProcess {
     return runCommand;
   }
   
+  public String getShellProcessID() {
+    if (monitor == null) {
+      return super.getShellProcessID();
+    }
+    return monitor.getPid();
+  }
+  
+  public void notifyKilled() {
+    super.notifyKilled();
+    if (monitor == null) {
+      return;
+    }
+    monitor.endMonitor(getProcessEndState());
+  }
+  
   protected ProcessMessages getMonitorMessages() {
     return monitor.getProcessMessages();
   }
@@ -180,6 +195,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/10/11 10:08:14  sueh
+ * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p> FileException.
+ * <p>
  * <p> Revision 1.8  2006/07/20 23:13:34  sueh
  * <p> bug# 885 Check for a valid command before running.
  * <p>
