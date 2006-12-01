@@ -62,7 +62,6 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   //private File processOutputFile = null;
   private String pid = null;
   private boolean starting = true;
-  private SystemProcessInterface process = null;
 
   /**
    * Default constructor
@@ -83,7 +82,6 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   public void setProcess(SystemProcessInterface process) {
-    this.process = process;
   }
 
   public void run() {
@@ -132,7 +130,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public void msgLogFileRenamed() {
   }
 
-  private void endMonitor(ProcessEndState endState) {
+  public void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
     processRunning = false;//the only place that this should be changed
   }
@@ -454,6 +452,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2006/11/30 20:10:28  sueh
+ * <p> bug# 937 In kill(), kill processchunk chunks with signalKill, if it hasn't started yet.
+ * <p>
  * <p> Revision 1.24  2006/11/08 00:24:05  sueh
  * <p> bug# 935  createProcessOutput():  backup the old process output file instead of
  * <p> deleting it.
