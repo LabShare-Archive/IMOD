@@ -26,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.32  2006/10/10 05:05:39  sueh
+ * <p> bug# 931 Removed unused variables stdoutLogFile and stderrLogFile.
+ * <p>
  * <p> Revision 3.31  2006/07/20 23:12:35  sueh
  * <p> bug# 885 GetProcessMessages():  handling NullPointerException.
  * <p>
@@ -652,17 +655,14 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * Get the shell process ID if it is available
    * @return
    */
-  public final String getShellProcessID() {
+  public String getShellProcessID() {
     if (commandProcessID == null) {
       return "";
     }
     return commandProcessID.toString();
   }
 
-  /**
-   * nothing to do
-   */
-  public final void notifyKilled() {
+  public void notifyKilled() {
     setProcessEndState(ProcessEndState.KILLED);
   }
 
