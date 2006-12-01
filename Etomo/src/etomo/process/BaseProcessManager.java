@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2006/11/30 19:58:47  sueh
+ * <p> bug# 937 In processchunks(), setting the process in the monitor.
+ * <p>
  * <p> Revision 1.51  2006/11/28 22:52:31  sueh
  * <p> bug# 934 Added endGetLoadAverage().  Does the same thing as
  * <p> stopGetLoadAverage(), but also removes the monitor.  Uses when a manager
@@ -367,7 +370,7 @@ public abstract class BaseProcessManager {
       LoadAverageMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(manager, param, monitor);
   }
-  
+
   public final void endGetLoadAverage(LoadAverageParam param,
       LoadAverageMonitor monitor) {
     IntermittentBackgroundProcess.endInstance(manager, param, monitor);
@@ -387,7 +390,7 @@ public abstract class BaseProcessManager {
    */
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
       ParallelProgressDisplay parallelProgressDisplay,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException{
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
         manager, axisID, parallelProgressDisplay, param.getRootName(), param
@@ -395,7 +398,6 @@ public abstract class BaseProcessManager {
 
     BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
         processResultDisplay, ProcessName.PROCESSCHUNKS);
-    monitor.setProcess(process);
     return process.getName();
   }
 
@@ -482,7 +484,7 @@ public abstract class BaseProcessManager {
 
   protected ComScriptProcess startComScript(Command command,
       ProcessMonitor processMonitor, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException{
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
         null, processMonitor, processResultDisplay), command.getCommandLine(),
         processMonitor, axisID);
@@ -656,7 +658,7 @@ public abstract class BaseProcessManager {
   private void saveProcessData(ProcessData processData) {
     ParameterStore paramStore = new ParameterStore(manager.getParamFile());
     try {
-    manager.getParameterStore().save(processData);
+      manager.getParameterStore().save(processData);
     }
     catch (LogFile.FileException e) {
       e.printStackTrace();
@@ -745,7 +747,11 @@ public abstract class BaseProcessManager {
     processID = thread.getShellProcessID();
     killProcessGroup(processID, axisID);
     killProcessAndDescendants(processID, axisID);
-
+    try {
+      Thread.sleep(100);
+    }
+    catch (InterruptedException e) {
+    }
     thread.notifyKilled();
   }
 
@@ -1128,7 +1134,7 @@ public abstract class BaseProcessManager {
   protected BackgroundProcess startBackgroundProcess(String[] commandArray,
       AxisID axisID, boolean forceNextProcess,
       ProcessResultDisplay processResultDisplay, ProcessName processName)
-      throws SystemProcessException{
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
         commandArray, this, axisID, forceNextProcess, processResultDisplay,
         processName);
@@ -1167,7 +1173,7 @@ public abstract class BaseProcessManager {
   }
 
   protected BackgroundProcess startBackgroundProcess(Command command,
-      AxisID axisID, ProcessName processName) throws SystemProcessException{
+      AxisID axisID, ProcessName processName) throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
         command, this, axisID, processName);
     return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
@@ -1209,7 +1215,8 @@ public abstract class BaseProcessManager {
           break;
         }
       }
-      Thread processMonitorThread = new Thread(new etomo.process.ThreadGroup("startBackgroundProcess"), processMonitor);
+      Thread processMonitorThread = new Thread(new etomo.process.ThreadGroup(
+          "startBackgroundProcess"), processMonitor);
       processMonitorThread.start();
       mapAxisProcessMonitor(processMonitorThread, axisID);
     }
