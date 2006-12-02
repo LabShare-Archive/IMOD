@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.56  2006/11/07 22:36:03  sueh
+ * bug# 954 Adding tooltip to cbNoVolcombine.
+ *
  * Revision 3.55  2006/10/19 23:34:03  sueh
  * bug# 927 Changed the label for and added a tooltip to ltfLowFromBothRadius.
  *
@@ -1181,7 +1184,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   public final void getParameters(ProcesschunksParam param) {
-    param.setRootName(ProcessName.VOLCOMBINE.toString());
+    param.setProcessName(ProcessName.VOLCOMBINE);
   }
 
   protected void buttonAction(ActionEvent event) {

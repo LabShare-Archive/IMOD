@@ -986,7 +986,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 
   void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setRootName(TiltParam.COMMAND_NAME);
+    processchunksParam.setProcessName(ProcessName.TILT);
   }
 
   void trialAction(ProcessResultDisplay trial) {
@@ -1029,6 +1029,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/11/15 21:35:49  sueh
+ * <p> bug# 872 Changed saveIntermediateParamFile to saveStorables.
+ * <p>
  * <p> Revision 1.7  2006/09/19 22:38:06  sueh
  * <p> bug# 920 Refreshing meta data values in TiltParam each time tilt.com is loaded.
  * <p>
