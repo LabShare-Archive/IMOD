@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.53  2006/12/01 00:54:40  sueh
+ * <p> bug# 937 In processchunks, don't have to set process in monitor because its
+ * <p> being passed to the kill function.
+ * <p>
  * <p> Revision 1.52  2006/11/30 19:58:47  sueh
  * <p> bug# 937 In processchunks(), setting the process in the monitor.
  * <p>
@@ -392,10 +396,15 @@ public abstract class BaseProcessManager {
       ParallelProgressDisplay parallelProgressDisplay,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Instantiate the process monitor
-    ProcesschunksProcessMonitor monitor = new ProcesschunksProcessMonitor(
-        manager, axisID, parallelProgressDisplay, param.getRootName(), param
-            .getMachineList());
-
+    ProcesschunksProcessMonitor monitor;
+    if (param.getProcessName() == ProcessName.VOLCOMBINE) {
+      monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
+          parallelProgressDisplay, param.getRootName(), param.getMachineList());
+    }
+    else {
+      monitor = new ProcesschunksProcessMonitor(manager, axisID,
+          parallelProgressDisplay, param.getRootName(), param.getMachineList());
+    }
     BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
         processResultDisplay, ProcessName.PROCESSCHUNKS);
     return process.getName();
