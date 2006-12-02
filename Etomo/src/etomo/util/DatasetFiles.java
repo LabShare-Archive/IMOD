@@ -39,6 +39,12 @@ public final class DatasetFiles {
   public static final char BACKUP_CHAR = '~';
   public static final String TRANSFER_FID_LOG = "transferfid.log";
   public static final String PATCH_OUT = "patch.out";
+  public static final String VOLCOMBINE_START_LOG = ProcessName.VOLCOMBINE
+      .toString()
+      + "-start" + LOG_EXT;
+  public static final String VOLCOMBINE_FINISH_LOG = ProcessName.VOLCOMBINE
+      .toString()
+      + "-finish" + LOG_EXT;
 
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -320,6 +326,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2006/10/13 22:31:25  sueh
+ * <p> bug# 919 Deleted getJoinInfo().  Added getJoinInfoName().
+ * <p>
  * <p> Revision 1.27  2006/10/11 10:13:31  sueh
  * <p> bug# 931 Managing the commands pipe and the process output with LogFile so
  * <p> that the file access problem which appears in Windows will show up in Linux.
