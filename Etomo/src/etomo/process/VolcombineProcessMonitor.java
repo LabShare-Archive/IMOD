@@ -18,6 +18,9 @@ import etomo.type.ProcessName;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.7  2006/11/29 20:17:10  sueh
+ * <p> $bug# 944 Added display for densmatch.
+ * <p> $
  * <p> $Revision 1.6  2006/10/24 21:41:18  sueh
  * <p> $bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p> $
@@ -49,9 +52,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
 
   public static final String rcsid = "$$Id$$";
 
-  private boolean reassembling = false;
-  private boolean filltomo = false;
-  private boolean densmatch = false;
+  private Subprocess subprocess = new Subprocess();
 
   /**
    * Default constructor
@@ -87,7 +88,8 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("STATUS:")) {
-        if (!setSubprocess(line)&&line.indexOf("EXTRACTING AND COMBINING") != -1) {
+        if (!setSubprocess(line, subprocess)
+            && line.indexOf("EXTRACTING AND COMBINING") != -1) {
           String[] fields = line.split("\\s+");
           currentSection = parseFields(fields, 5, currentSection);
         }
@@ -95,28 +97,26 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
     }
   }
 
-  private boolean setSubprocess(String line) {
+  /**
+   * Sets the subprocess.  Returns the subprocess.  Returns null if there is no
+   * current subprocess.
+   * @param line
+   * @return
+   */
+  static boolean setSubprocess(String line, Subprocess subprocess) {
     if (line.indexOf("REASSEMBLING PIECES") != -1) {
-      reassembling = true;
-      filltomo = false;
-      densmatch = false;
+      subprocess.setReassembling();
       return true;
     }
     if (line.indexOf("RUNNING FILLTOMO") != -1) {
-      filltomo = true;
-      reassembling = false;
-      densmatch = false;
+      subprocess.setFilltomo();
       return true;
     }
     if (line.indexOf("RUNNING DENSMATCH TO MATCH DENSITIES") != -1) {
-      densmatch = true;
-      filltomo = false;
-      reassembling = false;
+      subprocess.setDensmatch();
       return true;
     }
-    densmatch = false;
-    filltomo = false;
-    reassembling = false;
+    subprocess.reset();
     return false;
   }
 
@@ -135,7 +135,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
       String line;
       while ((line = readLogFileLine()) != null && !foundNSections) {
         if (line.startsWith("STATUS:")) {
-          if (setSubprocess(line)) {
+          if (setSubprocess(line, subprocess)) {
             updateProgressBar();
           }
           else if (line.indexOf("EXTRACTING AND COMBINING") != -1) {
@@ -164,16 +164,16 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
 
   protected void updateProgressBar() {
     if (waitingForExit <= 0) {
-      if (filltomo) {
-        applicationManager.getMainPanel().setProgressBarValue(0, "filltomo",
+      if (subprocess.isFilltomo()) {
+        applicationManager.getMainPanel().setProgressBarValue(0, "Filltomo",
             axisID);
       }
-      else if (reassembling) {
+      else if (subprocess.isReassembling()) {
         applicationManager.getMainPanel().setProgressBarValue(0,
             "Reassembling", axisID);
       }
-      else if (densmatch) {
-        applicationManager.getMainPanel().setProgressBarValue(0, "densmatch",
+      else if (subprocess.isDensmatch()) {
+        applicationManager.getMainPanel().setProgressBarValue(0, "Densmatch",
             axisID);
       }
       else {
@@ -182,6 +182,51 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
     }
     else {
       super.updateProgressBar();
+    }
+  }
+
+  static final class Subprocess {
+    private boolean reassembling = false;
+    private boolean filltomo = false;
+    private boolean densmatch = false;
+
+    Subprocess() {
+    }
+
+    void setReassembling() {
+      reassembling = true;
+      filltomo = false;
+      densmatch = false;
+    }
+
+    void setFilltomo() {
+      filltomo = true;
+      reassembling = false;
+      densmatch = false;
+    }
+
+    void setDensmatch() {
+      densmatch = true;
+      filltomo = false;
+      reassembling = false;
+    }
+
+    void reset() {
+      densmatch = false;
+      filltomo = false;
+      reassembling = false;
+    }
+
+    boolean isFilltomo() {
+      return filltomo;
+    }
+
+    boolean isDensmatch() {
+      return densmatch;
+    }
+
+    boolean isReassembling() {
+      return reassembling;
     }
   }
 }
