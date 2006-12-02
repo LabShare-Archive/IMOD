@@ -51,6 +51,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private String rootName = null;
   private StringBuffer machineList = null;
   private boolean valid = true;
+  private ProcessName processName = null;
 
   public ProcesschunksParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
@@ -123,7 +124,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
   }
 
-  private final void buildMachineList() {
+  private void buildMachineList() {
     int size = machineNames.size();
     if (size > 0) {
       machineList = new StringBuffer((String) machineNames.get(0));
@@ -141,7 +142,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * Causes commandArray to be set to null.
    * @param resume
    */
-  public final void setResume(boolean resume) {
+  public void setResume(boolean resume) {
     if (this.resume.equals(resume)) {
       return;
     }
@@ -156,15 +157,24 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * Causes commandArray to be set to null.
    * @param nice
    */
-  public final void setNice(Number nice) {
+  public void setNice(Number nice) {
     if (this.nice.equals(nice)) {
       return;
     }
     commandArray = null;
     this.nice.set(nice);
   }
+  
+  public void setProcessName(ProcessName processName) {
+    this.processName = processName;
+    setRootName(processName.toString());
+  }
+  
+  public ProcessName getProcessName() {
+    return processName;
+  }
 
-  public final void setRootName(String rootName) {
+  public void setRootName(String rootName) {
     if (commandArray != null) {
       throw new IllegalStateException(
           "can't change parameter values after command is built");
@@ -172,15 +182,15 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     this.rootName = rootName + axisID.getExtension();
   }
 
-  public final String getRootName() {
+  public String getRootName() {
     return rootName;
   }
 
-  public final ConstEtomoNumber getResume() {
+  public ConstEtomoNumber getResume() {
     return resume;
   }
 
-  public final String getMachineList() {
+  public String getMachineList() {
     if (machineList == null) {
       buildMachineList();
     }
@@ -196,7 +206,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * 
    * Causes commandArray to be set to null.
    */
-  public final void resetMachineName() {
+  public void resetMachineName() {
     if (machineNames.size() == 0) {
       return;
     }
@@ -204,7 +214,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     machineNames.clear();
   }
 
-  public final void addMachineName(String machineName) {
+  public void addMachineName(String machineName) {
     if (commandArray != null) {
       throw new IllegalStateException(
           "can't change parameter values after command is built");
@@ -244,7 +254,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * if there are embedded spaces in the directory paths, because the directory
    * path spaces have been back-slashed.
    */
-  public final String getCommandString() {
+  public String getCommandString() {
     getCommandArray();
     if (commandArray == null) {
       return null;
@@ -283,7 +293,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * @param directoryPath
    * @return
    */
-  private final String backSlashSpaces(String directoryPath) {
+  private String backSlashSpaces(String directoryPath) {
     if (directoryPath == null) {
       return null;
     }
@@ -303,7 +313,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return directoryPath;
   }
 
-  public final String validate() {
+  public String validate() {
     if (machineNames == null || machineNames.size() == 0) {
       return "No CPUs where selected.";
     }
@@ -312,6 +322,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2006/07/20 23:17:24  sueh
+ * <p> bug# 885 Added isValid().  BuildCommand():  handling
+ * <p> InvalidMountRuleException.
+ * <p>
  * <p> Revision 1.17  2006/05/22 22:40:17  sueh
  * <p> bug# 577 Moved the call to buildCommand to getCommandArray().  Made
  * <p> getCommand() conform to the Command interface.
