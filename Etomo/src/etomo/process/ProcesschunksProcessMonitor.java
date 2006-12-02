@@ -38,8 +38,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
 
-  private final BaseManager manager;
-  private final AxisID axisID;
+  protected final BaseManager manager;
+  protected final AxisID axisID;
   private final ParallelProgressDisplay parallelProgressDisplay;
   private final String rootName;
   private final String computerList;
@@ -62,6 +62,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   //private File processOutputFile = null;
   private String pid = null;
   private boolean starting = true;
+  private boolean finishing = false;
 
   /**
    * Default constructor
@@ -81,10 +82,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     parallelProgressDisplay.setParallelProcessMonitor(this);
   }
 
-  public void setProcess(SystemProcessInterface process) {
+  public final void setProcess(SystemProcessInterface process) {
   }
 
-  public void run() {
+  public final void run() {
     //make sure commmandsPipe is deleted and enable its use
     try {
       deleteCommandsPipe(true);
@@ -127,10 +128,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
-  public void msgLogFileRenamed() {
+  public final void msgLogFileRenamed() {
   }
 
-  public void endMonitor(ProcessEndState endState) {
+  public final void endMonitor(ProcessEndState endState) {
     setProcessEndState(endState);
     processRunning = false;//the only place that this should be changed
   }
@@ -139,7 +140,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     return pid;
   }
 
-  protected final boolean updateState() throws LogFile.ReadException ,LogFile.FileException{
+  protected boolean updateState() throws LogFile.ReadException ,LogFile.FileException{
     createProcessOutput();
     if (processOutputReadId == LogFile.NO_ID) {
       processOutputReadId = processOutput.openReader();
@@ -210,6 +211,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
             setProgressBarTitle = true;
           }
           chunksFinished.set(strings[0]);
+          if (chunksFinished.equals(nChunks)) {
+            finishing = true;
+          }
           returnValue = true;
         }
         else if (strings.length > 1) {
@@ -276,7 +280,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         "Starting...", axisID);
   }
 
-  private void updateProgressBar() {
+  protected void updateProgressBar() {
     if (setProgressBarTitle) {
       setProgressBarTitle = false;
       setProgressBarTitle();
@@ -303,7 +307,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         axisID, !reassembling && !killing, ProcessName.PROCESSCHUNKS);
   }
 
-  public void kill(SystemProcessInterface process, AxisID axisID) {
+  public final void kill(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("Q");
       parallelProgressDisplay.msgKillingProcess();
@@ -330,7 +334,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
-  public void pause(SystemProcessInterface process, AxisID axisID) {
+  public final void pause(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("P");
       parallelProgressDisplay.msgPausingProcess();
@@ -342,7 +346,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
-  public String getStatusString() {
+  public final String getStatusString() {
     return chunksFinished + " of " + nChunks + " completed";
   }
 
@@ -367,7 +371,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * synchronization is for useCommandsPipe and commmandsPipe
    * @param startup
    */
-  private synchronized final void deleteCommandsPipe(boolean enable)
+  private synchronized void deleteCommandsPipe(boolean enable)
       throws LogFile.FileException {
     if (!enable) {
       //turn off useCommandsPipe to prevent use of commandsPipe
@@ -397,7 +401,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * @param command
    * @throws IOException
    */
-  private final void writeCommand(String command) throws LogFile.WriteException {
+  private void writeCommand(String command) throws LogFile.WriteException {
     if (!useCommandsPipe) {
       return;
     }
@@ -424,7 +428,15 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     return processRunning;
   }
   
-  private synchronized void closeProcessOutput() {
+  protected final boolean isStarting() {
+    return starting;
+  }
+  
+  protected final boolean isFinishing() {
+    return finishing;
+  }
+  
+  protected synchronized void closeProcessOutput() {
     if (processOutput != null&& processOutputReadId != LogFile.NO_ID) {
       processOutput.closeReader(processOutputReadId);
       processOutput = null;
@@ -435,7 +447,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * make sure process output file is new and set processOutputFile.  This
    * function should be first run before the process starts.
    */
-  private synchronized final void createProcessOutput() throws LogFile.FileException{
+  private synchronized void createProcessOutput() throws LogFile.FileException{
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, ProcessName.PROCESSCHUNKS
@@ -452,6 +464,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2006/12/01 00:58:06  sueh
+ * <p> bug# 937 Don't have to set process in monitor because its being passed to the
+ * <p> kill function.  Made endMonitor public so that the process could stop the monitor.
+ * <p>
  * <p> Revision 1.25  2006/11/30 20:10:28  sueh
  * <p> bug# 937 In kill(), kill processchunk chunks with signalKill, if it hasn't started yet.
  * <p>
