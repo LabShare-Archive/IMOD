@@ -12,6 +12,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.1  2006/10/26 19:08:20  mast
+c       Added to package
+c
 c       
       implicit none
       integer limsec,limslc,idim
@@ -26,10 +29,11 @@ c
       equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
       real*4 xx(limsec),yy(limsec),zz(limsec)
       real*4 xr(msiz,idim)
+      real*4 errmin(limsec),errmaxmin(limsec),gapmin(limsec)
       character*160 modelfile,xffile,xgfile
       character*1024 listString
       integer*4 imodobj,imodcont,ipntmax,izsec,npnts,ngaps,igap,indf,icol,idir
-      real*4 xcen,ycen,errmin,devavg,gapmin,gapinc,devmax,devsd
+      real*4 xcen,ycen,devavg,gapinc,devmax,devsd
       logical exist,sliceOut,editOld
       integer*4 limpnts,ifTrans,ifRoTrans,ifMagRot,joinBin,joinOffsetX,nfit
       integer*4 minfit,joinOffsetY,nobjUse,ierr2,ierr,numBoundaries,nzSecSum
@@ -224,7 +228,7 @@ c
       do isec = 1, numSecDo
         izsec = iSecDo(isec)
         gapz = izBound(izsec) - 0.5
-        errmin = 1.e10
+        errmin(isec) = 1.e10
         if (ngaps .gt. 1) write(*,123) isecDo(isec)
 123     format(/,'For boundary #',i4,':')
 c
@@ -339,9 +343,10 @@ c
 C             
 c             save transform at minimum error, adjust for binning 
 c
-            if (devavg .lt. errmin) then
-              errmin = devavg
-              gapmin = gapinc
+            if (devavg .lt. errmin(isec)) then
+              errmin(isec) = devavg
+              errmaxmin(isec) = devmax
+              gapmin(isec) = gapinc
               indf = izsec + 1
               if (sliceOut) indf = izBound(izsec) + 1
               call xfcopy(gtmp, f(1,1,indf))
@@ -372,11 +377,18 @@ c
               enddo
             endif
           else if (igap .eq. 1) then
-            print *,'less than',limpnts,' points across boundary', isec
+            write(*,130)npnts,isec,limpnts
+130         format('WARNING: There are only',i2,'points across boundary',i4,
+     &          '; ',i2,' are needed to solve for the selected parameters')
           endif
         enddo
-        if (ngaps .gt. 1 .and. npnts.ge.limpnts) write(*,126)errmin,gapmin
-126     format('Minimum error',f9.2,' at gap', f6.1)
+      enddo
+      print *
+      do isec = 1, numSecDo
+        if (errmin(isec) .lt. 1.e9) write(*,126)iSecDo(isec),gapmin(isec),
+     &      errmin(isec),errmaxmin(isec)
+126     format('At boundary',i4,', best gap =',f6.1,' with error mean =',f9.2,
+     &      ', max =',f9.2);
       enddo
 c       
 c       Write the F transforms
