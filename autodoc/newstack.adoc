@@ -57,6 +57,16 @@ sections in the file.  If multiple lists are entered, each
 one will be applied to the respective input file.  If no list is entered for
 a file, all sections will be read.
 
+[Field = SkipSectionIncrement]
+short = skip
+type = I
+usage = Increment for reading regularly spaced subset of sections in the list
+tooltip = 
+manpage = Increment for reading a regularly spaced subset of the sections in
+the list from the input file.  Enter 2 to take every other section, 3 to take
+every third section, etc.  Note that the increment is used to select from
+the input list, not from all the sections in the file.
+
 [Field = NumberToOutput]
 short = numout
 type = IAM
@@ -66,6 +76,17 @@ manpage = Number of sections to write to each output file, when there are
 multiple output files.  These numbers may be listed in sequence in one entry,
 or in several entries.
 
+[Field = BlankOutput]
+short = blank
+type = B
+usage = Output blank sections for nonexistent section numbers in input file
+tooltip = 
+manpage = Output blank sections for nonexistent section numbers in input file,
+namely for section numbers less than 0 or more than the NZ - 1.  The sections
+are filled with the mean value of the input file or with a fill value if one
+is entered with the -fill option; this value is then scaled in the same way
+that actual data are.
+
 [Field = SizeToOutputInXandY]
 short = size
 type = IP
@@ -74,7 +95,6 @@ file.
 tooltip = 
 manpage = The dimensions of the output image in X and Y.
 The default size is the same as that of the first input file.
-
 
 [Field = ModeToOutput]
 short = mode
