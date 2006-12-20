@@ -68,6 +68,13 @@ transforms as computed by Xfjointomo(1).
 Just compute the maximum size and offsets needed to contain the transformed
 images from all of the sections, given the current transformations.  No
 image file will be created.
+.TP
+.B -gaps
+Create blank slices when the slice ranges include values out of bounds 
+(below 1 or above the number of slices in the file).  This option can be used
+to make the gap between two sections bigger than what would be provided by
+simply stacking all the slices from each file.
+Without this option, values out of bounds are not allowed.
 .TP 
 .B -P
 Output process ID.
