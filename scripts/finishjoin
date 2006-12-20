@@ -40,6 +40,8 @@ cat <<EOF
         -m[axsize]    Just compute the maximum size and offsets needed to
                       contain all of the transformed data, then exit
         -x[form] file Refine alignment with g transforms in the given file
+        -g[aps]       Fill gaps with blank slices if a slice range goes beyond
+                      the bounds of the input
         -P            Output process ID
 EOF
 exit 0
@@ -64,6 +66,7 @@ set offset = "0,0"
 set trial = ""
 set newmode = ""
 set xffile = ""
+set gaps = 0
 
 while ($#argv > 2 && $joinroot == "")
   switch ($argv[1])
@@ -95,6 +98,10 @@ while ($#argv > 2 && $joinroot == "")
       breaksw
     case -m*:
       set maxsize = 1
+      shift
+      breaksw
+    case -g*:
+      set gaps = 1
       shift
       breaksw
     case -x*:
@@ -241,7 +248,7 @@ while ($itomo <= $ntomo)
     @ znd = $zentry[2]
     @ zst--
     @ znd--
-    if ($zst < 0 || $zst >= $nz || $znd < 0 || $znd >= $nz) then
+    if ($gaps == 0 && ($zst < 0 || $zst >= $nz || $znd < 0 || $znd >= $nz)) then
 	echo "ERROR: $pn - The Z range for tomogram # $itomo has coordinates out of range"
 	exit 1
     endif
@@ -354,6 +361,7 @@ while ($itomo <= $ntomo)
 end
 if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> $newstin
 if ($newmode != "") echo "ModeToOutput $newmode" >> $newstin
+if ($gaps == 1) echo "BlankOutput" >> $newstin
 cat >> $newstin <<EOF
 OneTransformPerFile
 BinByFactor $binning
@@ -384,6 +392,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.17  2006/10/24 19:38:54  mast
+#  Added refinement transforms
+#
 #  Revision 3.16  2006/07/04 19:03:28  mast
 #  Stripped returns from head and tail output for Windows
 #
