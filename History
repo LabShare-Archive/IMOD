@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/20/06: Added options to Newstack for outputting sections at a regular
+increment and for outputting blank sections given section numbers out of
+range.  Finishjoin now has an option to accept numbers out of range for
+producing blank slices between sections.
+
 11/22/06: For model view movie-making, fixed behavior of file type buttons
 when montaging and added check for perspective (In 3.9).
 
