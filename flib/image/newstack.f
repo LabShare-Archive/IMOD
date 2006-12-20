@@ -68,7 +68,7 @@ c
       real*4 pixelMagGrad, axisRot
       real*4 tiltAngles(lmsec), dmagPerUm(lmsec), rotPerUm(lmsec)
 c       
-      logical rescale
+      logical rescale,blankOutput
       character dat*9,tim*8,tempext*9
       character*80 tempname,temp_filename
       logical nbytes_and_flags
@@ -88,8 +88,7 @@ c
       real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
       integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
       integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs,numXfLines
-      real*4 dmeansec,tmpmin,tmpmax,val,tsum2,dminnew
-      real*4 dmaxnew,zminsec,zmaxsec,tmpmean,tmpminshf,tmpmaxshf,sclfac
+      real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
       integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
       integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear,ifLinear
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
@@ -97,7 +96,7 @@ c
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
       integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
-      integer*4 nLineTemp,ifOnePerFile,ifUseFill
+      integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
       real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
       real*8 dsum,dsumsq,tsum,tsumsq
       real*4 cosd, sind
@@ -105,19 +104,20 @@ c
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetInteger,PipGetBoolean
+      integer*4 PipGetInteger,PipGetBoolean, PipGetLogical
       integer*4 PipGetString,PipGetTwoIntegers, PipGetFloatArray, PipGetFloat
       integer*4 PipGetIntegerArray, PipGetNonOptionArg, PipGetTwoFloats
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 29)
+      parameter (numOptions = 31)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
      &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
-     &    'secs:SectionsToRead:LIM:@numout:NumberToOutput:IAM:@'//
+     &    'secs:SectionsToRead:LIM:@skip:SkipSectionIncrement:I:@'//
+     &    'numout:NumberToOutput:IAM:@blank:BlankOutput:B:@'//
      &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
      &    'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'//
      &    'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'//
@@ -160,6 +160,8 @@ c
       ifLinear = 0
       numScaleFacs = 0
       ifUseFill = 0
+      blankOutput = .false.
+      listIncrement = 1
 C       
 C       Read in list of input files
 C       
@@ -172,10 +174,12 @@ c
         ierr = PipGetString('FileOfInputs', filistin)
         call PipNumberOfEntries('InputFile', numInputFiles)
         nfilein = numInputFiles + max(0, numNonOptArg - 1)
-        if (nfilein .gt. 0 .and. filistin .ne. ' ') call errorexit(
+        if (nfilein .gt. 0 .and. filistin .ne. ' ') call exitError(
      &      'YOU CANNOT ENTER BOTH INPUT FILES AND AN INPUT LIST FILE')
         if (filistin .ne. ' ')nfilein = -1
         call PipNumberOfEntries('SectionsToRead', numSecLists)
+        ierr = PipGetInteger('SkipSectionIncrement', listIncrement)
+        ierr = PipGetLogical('BlankOutput', blankOutput)
       else
         write(*,'(1x,a,$)')'# of input files (or -1 to read list'//
      &      ' of input files from file): '
@@ -184,7 +188,7 @@ c
 c       
 c       if it is negative, open a list file, set up input from 7
 c       
-      if (nfilein .eq. 0) call errorexit('NO INPUT FILE SPECIFIED')
+      if (nfilein .eq. 0) call exitError('NO INPUT FILE SPECIFIED')
       if(nfilein.lt.0)then
         inunit=7
         if (.not.pipinput) then
@@ -195,8 +199,7 @@ c
         read(inunit,*)nfilein
       endif
       listot=0
-      if(nfilein.gt.lmfil)call errorexit(
-     &    'TOO MANY FILES FOR ARRAYS')
+      if(nfilein.gt.lmfil)call exitError('TOO MANY FILES FOR ARRAYS')
 c       
       do i=1,nfilein
 c         
@@ -223,7 +226,7 @@ c         open file to make sure it exists and get default section list
 c         
         CALL IMOPEN(1,FILIN(i),'RO')
         CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
-        if (mode .eq. 16) call errorexit('CANNOT WORK WITH COLOR DATA'//
+        if (mode .eq. 16) call exitError('CANNOT WORK WITH COLOR DATA'//
      &      ' (MODE 16); SEE MAN PAGE FOR ALTERNATIVES')
         call imclose(1)
         if (i .eq. 1) then
@@ -249,18 +252,21 @@ c
 c         check list legality
 c         
         listind(i)=listot+1
-        do isec = listot + 1, listot + nlist(i)
-          if (inlist(isec) .lt. 0 .or. inlist(isec) .ge. nz) then
-            print *
-            print *,'ERROR: NEWSTACK -',inlist(isec),
+        indout = listind(i)
+        do isec = listot + 1, listot + nlist(i), max(1, listIncrement)
+          if (.not.blankOutput .and.
+     &        (inlist(isec) .lt. 0 .or. inlist(isec) .ge. nz)) then
+            write(*,'(/,a,i7,a,a)')'ERROR: NEWSTACK -',inlist(isec),
      &          ' IS AN ILLEGAL SECTION NUMBER FOR ',
      &          filin(i)(1:lnblnk(filin(i)))
             call exit(1)
           endif
+          inlist(indout) = inlist(isec)
+          indout = indout + 1
         enddo
+        nlist(i) = indout - listind(i)
         listot=listot+nlist(i)
-        if(listot.gt.lmsec)call errorexit(
-     &      'TOO MANY SECTIONS FOR ARRAYS')
+        if(listot.gt.lmsec)call exitError('TOO MANY SECTIONS FOR ARRAYS')
       enddo
       close(7)
 101   FORMAT(A)
@@ -276,7 +282,7 @@ c
         ierr = PipGetString('FileOfOutputs', filistout)
         call PipNumberOfEntries('OutputFile', numOutputFiles)
         nfileout = numOutputFiles + min(1, numNonOptArg)
-        if (nfileout .gt. 0 .and. filistout .ne. ' ') call errorexit(
+        if (nfileout .gt. 0 .and. filistout .ne. ' ') call exitError(
      &      'YOU CANNOT ENTER BOTH OUTPUT FILES AND AN OUTPUT'//
      &      ' LIST FILE')
         if (filistout .ne. ' ') nfileout = -1
@@ -285,8 +291,8 @@ c
      &      ' of output files from file): '
         read(5,*)nfileout
       endif
-      if (nfileout .eq. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
-      if(nfileout.gt.lmfil)call errorexit(
+      if (nfileout .eq. 0) call exitError('NO OUTPUT FILE SPECIFIED')
+      if(nfileout.gt.lmfil)call exitError(
      &    'TOO MANY OUTPUT FILES FOR ARRAYS')
 c       
 c       get list input
@@ -322,7 +328,7 @@ c
           else
             call PipNumberOfEntries('NumberToOutput', numOutEntries)
             if (numOutEntries .eq. 0)
-     &          call errorexit('YOU MUST SPECIFY NUMBER OF SECTIONS '//
+     &          call exitError('YOU MUST SPECIFY NUMBER OF SECTIONS '//
      &          'TO WRITE TO EACH OUTPUT FILE')
             
             numOutValues = 0
@@ -332,7 +338,7 @@ c
      &            nsecout(numOutValues + 1), numToGet, lmfil)
               numOutValues = numOutValues + numToGet
             enddo
-            if (numOutValues .ne. nfileout) call errorexit(
+            if (numOutValues .ne. nfileout) call exitError(
      &          'THE NUMBER OF VALUES FOR SECTIONS TO OUTPUT DOES'
      &          //' NOT EQUAL THE NUMBER OF OUTPUT FILES')
           endif
@@ -356,7 +362,7 @@ c
           enddo
         endif
       endif
-      if(noutot.ne.listot)call errorexit(
+      if(noutot.ne.listot)call exitError(
      &    'Number of input and output sections does not match')
 c       
 c       get new size and mode and offsets
@@ -381,7 +387,7 @@ c
             numOutValues = numOutValues + numToGet
           enddo
           if (numOutValues .ne. 2 .and. numOutValues .ne. 2 * listot)
-     &        call errorexit('THERE MUST BE EITHER ONE OFFSET OR AN'
+     &        call exitError('THERE MUST BE EITHER ONE OFFSET OR AN'
      &        //' OFFSET FOR EACH SECTION')
           do i = 1, numOutValues / 2
             xcen(i) = array(2 * i - 1)
@@ -449,7 +455,7 @@ c
         call dopen(3,xffil,'ro','f')
         call xfrdall(3,f,nxforms,*96)
         close(3)
-        if (nxforms .eq. 0) call errorexit
+        if (nxforms .eq. 0) call exitError
      &      ('THE TRANSFORM FILE CONTAINS NO TRANSFORMS')
 
         call getItemsToUse(nxforms, listot, inlist, 'UseTransformLines',
@@ -457,7 +463,7 @@ c
      &      lineUse, nLineUse, lmsec)
 
         if (ifOnePerFile .gt. 0) then
-          if (nLineUse .lt. nfilein) call errorexit(
+          if (nLineUse .lt. nfilein) call exitError(
      &        'NOT ENOUGH TRANSFORMS SPECIFIED FOR THE INPUT FILES')
 c           
 c           Copy list to temp array and build list with line for each sec
@@ -483,7 +489,7 @@ C
           enddo
           nlineuse=listot
         endif
-        if(nlineuse.ne.listot)call errorexit(
+        if(nlineuse.ne.listot)call exitError(
      &      'Specified # of transform lines does not match # of sections')
       endif
 c       
@@ -503,13 +509,13 @@ c
         call PipNumberOfEntries('MultiplyAndAdd', numScaleFacs)
         ifUseFill = 1 - PipGetFloat('FillValue', fillVal)
         if (iffloat .ge. 4) then
-          if (ierr2 .eq. 0) call errorexit
+          if (ierr2 .eq. 0) call exitError
      &        ('You must enter -scale with -float 4')
         else
           if (ierr + ierr2 + ierr3 + min(numScaleFacs,1) .gt. 1)
-     &        call errorexit('The -scale, -contrast, -multadd, and -float '//
+     &        call exitError('The -scale, -contrast, -multadd, and -float '//
      &        'options are mutually exclusive except with -float 4')
-          if (iffloat .lt. 0)call errorexit('You must use -contrast or '
+          if (iffloat .lt. 0)call exitError('You must use -contrast or '
      &        //'-scale instead of a negative -float entry')
           if (ierr .ne. 0) iffloat = -2
           if (ierr2 .ne. 0 .or. numScaleFacs .ne. 0) iffloat = -1
@@ -518,7 +524,7 @@ c           get scale factors, make sure there are right number
 c           
           if (numScaleFacs .gt. 0) then
             if (numScaleFacs .ne. 1 .and. numScaleFacs .ne. nfilein)
-     &          call errorexit('You must enter -multadd either once '//
+     &          call exitError('You must enter -multadd either once '//
      &          'or once per input file')
             do i = 1, numScaleFacs
               ierr = PipGetTwoFloats('MultiplyAndAdd', scaleFacs(i),
@@ -572,7 +578,7 @@ c
         ierr = PipGetTwoIntegers('TestLimits', limdim, lenTemp)
         limdim = min(limdim, maxdim)
         lenTemp = min(lenTemp, maxTemp)
-        if (iBinning .le. 0) call errorexit
+        if (iBinning .le. 0) call exitError
      &      ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
         if (idfFile .ne. ' ') then
           ifDistort = 1
@@ -584,11 +590,11 @@ c
 c           
           if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
             if (nxFirst .le. idfNx * idfBinning / 2 .and.
-     &          nyFirst .le. idfNy * idfBinning / 2) call errorexit
+     &          nyFirst .le. idfNy * idfBinning / 2) call exitError
      &		('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &          'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
           endif
-          if (inputBinning .le. 0) call errorexit
+          if (inputBinning .le. 0) call exitError
      &        ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
 c           
 c           Set up default field numbers to use then process use list if any
@@ -601,7 +607,7 @@ c
             enddo
             numIdfUse=listot
           endif
-          if(numIdfUse.ne.listot)call errorexit(
+          if(numIdfUse.ne.listot)call exitError(
      &        'Specified # of fields does not match # of sections')
 
         endif
@@ -713,28 +719,30 @@ c
 c             
             do ilis=1,nlist(ifil)
               nsecred=inlist(ilis+listind(ifil)-1)
-c		
-              call scansection(array,idim,nxbin,nybin, iBinning, ixOffset,
-     &            iyOffset,nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,
-     &            loadyst,loadynd,array(idim + 1), lenTemp)
-              secmean(ilis+listind(ifil)-1)=dmean2
-c               
-              if(iffloat.eq.2)then
+              if (nsecred .ge. 0 .and. nsecred .lt. nz) then
 c                 
-c                 find the min and max Z values ((density-mean)/sd) 
+                call scansection(array,idim,nxbin,nybin, iBinning, ixOffset,
+     &              iyOffset,nsecred,iffloat,dmin2, dmax2,dmean2,sdsec,
+     &              loadyst,loadynd,array(idim + 1), lenTemp)
+                secmean(ilis+listind(ifil)-1)=dmean2
 c                 
-                if (dmax2 .gt. dmin2 .and. sdsec .gt. 0.) then
-                  zmin=min(zmin,(dmin2-dmean2)/sdsec)
-                  zmax=max(zmax,(dmax2-dmean2)/sdsec)
+                if(iffloat.eq.2)then
+c                   
+c                   find the min and max Z values ((density-mean)/sd) 
+c                   
+                  if (dmax2 .gt. dmin2 .and. sdsec .gt. 0.) then
+                    zmin=min(zmin,(dmin2-dmean2)/sdsec)
+                    zmax=max(zmax,(dmax2-dmean2)/sdsec)
+                  endif
+                else
+c                   
+c                   or, if shifting, get maximum range from mean
+c                   
+                  diffmin=min(diffmin,dmin2-dmean2)
+                  diffmax=max(diffmax,dmax2-dmean2)
+                  grandsum=grandsum+dmean2
+                  nsum=nsum+1
                 endif
-              else
-c                 
-c                 or, if shifting, get maximum range from mean
-c                 
-                diffmin=min(diffmin,dmin2-dmean2)
-                diffmax=max(diffmax,dmax2-dmean2)
-                grandsum=grandsum+dmean2
-                nsum=nsum+1
               endif
             enddo
             call imclose(1)
@@ -903,9 +911,9 @@ C
 c           handle complex images here and skip out
 c           
           if((newmode+1)/2.eq.2.or.(mode+1)/2.eq.2)then
-            if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)call errorexit(
+            if((mode+1)/2.ne.2.or.(newmode+1)/2.ne.2)call exitError(
      &          'ALL INPUT FILES MUST BE COMPLEX IF ANY ARE')
-            if(nx*ny*2.gt.idim)call errorexit(
+            if(nx*ny*2.gt.idim)call exitError(
      &          'INPUT IMAGE TOO LARGE FOR ARRAY.')
             call imposn(1,nsecred,0)
             call irdsec(1,array,*99)
@@ -937,6 +945,32 @@ c
             rescale=mode.ne.newmode
           elseif(iffloat.ne.0)then
             rescale=.true.
+          endif
+c           
+c           Handle blank images here and skip out
+c           
+          if (nsecred .lt. 0 .or. nsecred .ge. nz) then
+            tmpmin = dmeanin
+            if (ifUseFill .ne. 0) tmpmin = fillVal
+            tmpmax = tmpmin
+            dsumsq = 0.
+            dsum = tmpmin * (float(nx3) * ny3)
+            call findScaleFactors(iffloat, ifmean, rescale, bottomin,
+     &          bottomout, optin, optout, tmpmin, tmpmax, dminspec, dmaxspec,
+     &          numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum,
+     &          dsumsq, nx3, ny3, newmode, dminin, dmaxin, fraczero, shiftmin,
+     &          shiftmax, shiftmean, ifil, sclfac, const)
+            do i = 1, nx3
+              array(i) = tmpmin * sclfac + const
+            enddo
+            call imposn(2, isecout - 1, 0)
+            do i = 1, ny3
+              call iwrlin(2, array)
+            enddo
+            dmin2 = array(1)
+            dmax2 = dmin2
+            dmean2 = dmin2
+            go to 80
           endif
 c           
 c           if transforming, and apply first is selected, get the shifts by
@@ -1134,7 +1168,7 @@ c
               enddo
               iscan=iscan+1
             enddo
-            if(ifOutChunk.lt.0)call errorexit(
+            if(ifOutChunk.lt.0)call exitError(
      &          ' INPUT IMAGE TOO LARGE FOR ARRAY.')
           endif
 c	    print *,'number of chunks:',nchunk
@@ -1336,131 +1370,14 @@ c		print *,'writing to temp file',ichunk
               call iwrsecl(3,array(ibbase),nLinesOut(ichunk))
             endif
           enddo
-c           
-c           calculate new min and max after rescaling under various possibilities
-c           
-          dmin2=tmpmin
-          dmax2=tmpmax
-c           
-          if(iffloat.eq.0.and.rescale)then
-c             
-c             no float but mode change (not to mode 2):
-c             rescale from input range to output range
-c             
-            dmin2=(tmpmin-bottomin)*(optout-bottomout)/
-     &          (optin-bottomin)+bottomout
-            dmax2=(tmpmax-bottomin)*(optout-bottomout)/
-     &          (optin-bottomin)+bottomout
-          elseif(iffloat.lt.0 .and. numScaleFacs .eq. 0)then
-c             
-c             if specified global rescale, set values that dminin and dmaxin
-c             map to, either the maximum range or the values specified
-c             
-            if(dminspec.eq.0.and.dmaxspec.eq.0)then
-              dminnew=0.
-              dmaxnew=optout
-            else if(dminspec.eq.dmaxspec)then
-              dminnew=dminin
-              dmaxnew=dmaxin
-            else
-              dminnew=dminspec
-              dmaxnew=dmaxspec
-            endif
-c             
-c             then compute what this section's tmpmin and tmpmax map to
-c             
-            dmin2=(tmpmin-dminin)*(dmaxnew-dminnew)/(dmaxin-dminin)
-     &          +dminnew
-            dmax2=(tmpmax-dminin)*(dmaxnew-dminnew)/(dmaxin-dminin)
-     &          +dminnew
-          elseif(iffloat.gt.0)then
-c             
-c             If floating: scale to a dmin2 that will knock out fraczero of
-c             the range after truncation to zero
-c             
-            dmin2=-optout*fraczero/(1.-fraczero)
-            if(ifmean.eq.0)then
-c               
-c               float to range, new dmax2 is the max of the range
-c               
-              dmax2=optout
-            elseif(iffloat.eq.2)then
-c               :float to mean, it's very hairy
-              call sums_to_avgsd8(dsum,dsumsq,nx3,ny3,avgsec,sdsec)
-c		print *,'overall mean & sd',avgsec,sdsec
-              zminsec=(tmpmin-avgsec)/sdsec
-              zmaxsec=(tmpmax-avgsec)/sdsec
-              dmin2=(zminsec-zmin)*optout/(zmax-zmin)
-              dmax2=(zmaxsec-zmin)*optout/(zmax-zmin)
-              dmin2=max(0.,dmin2)
-              dmax2=min(dmax2,optout)
-            else
-c               
-c               shift to mean
-c               
-              tmpmean=dsum/(nx3*ny3)
-c               
-c               values that min and max shift to
-c               
-              tmpminshf=tmpmin+shiftmean-tmpmean
-              tmpmaxshf=tmpmax+shiftmean-tmpmean
-c               
-              if(iffloat.eq.3)then
-c                 
-c                 for no specified scaling, set new min and max to
-c                 shifted values
-c                 
-                dmin2=tmpminshf
-                dmax2=tmpmaxshf
-                if(newmode.ne.2)then
-c                   
-c                   then, if mode is not 2, set up for scaling if range is
-c                   too large and/or if there is a modal shift
-c                   
-                  optin=max(optin,shiftmax)
-                  dmin2=tmpminshf*optout/optin
-                  dmax2=tmpmaxshf*optout/optin
-                endif
-              else
-c                 
-c                 for specified scaling of shifted means
-c                 
-                if(dminspec.eq.dmaxspec)then
-                  dminnew=0.5
-                  dmaxnew=optout-0.5
-                else
-                  dminnew=dminspec
-                  dmaxnew=dmaxspec
-                endif
-c                 
-c                 for specified scaling, compute what this section's tmpmin
-c                 and tmpmax map to
-c                 
-                dmin2=(tmpminshf-shiftmin)*(dmaxnew-dminnew)/
-     &              (shiftmax-shiftmin)+dminnew
-                dmax2=(tmpmaxshf-shiftmin)*(dmaxnew-dminnew)/
-     &              (shiftmax-shiftmin)+dminnew
-              endif
-            endif
-          endif
-c           
+
+          call findScaleFactors(iffloat, ifmean, rescale, bottomin, bottomout,
+     &        optin, optout, tmpmin, tmpmax, dminspec, dmaxspec, numScaleFacs,
+     &        scaleFacs, scaleConsts, zmin, zmax, dsum, dsumsq, nx3, ny3,
+     &        newmode, dminin, dmaxin, fraczero, shiftmin, shiftmax,
+     &        shiftmean, ifil, sclfac, const)
+
           if(rescale)then
-c             
-c             if scaling, set up equation, scale and compute new mean
-c             or use scaling factors directly
-c             
-            if (numScaleFacs .gt. 0) then
-              sclfac = scaleFacs(min(numScaleFacs, ifil))
-              const = scaleConsts(min(numScaleFacs, ifil))
-            else
-c               
-c               2/9/05: keep scale factor 1 if image has no range
-c               
-              sclfac = 1.
-              if (dmax2.ne.dmin2 .and. tmpmax.ne.tmpmin)
-     &            sclfac=(dmax2-dmin2)/(tmpmax-tmpmin)
-              const=dmin2-sclfac*tmpmin
-            endif
             dmin2=1.e20
             dmax2=-1.e20
             dmean2=0.
@@ -1564,9 +1481,160 @@ C
 103   format(' TRUNCATIONS OCCURRED:',i7,' at low end and',i7,
      &    ' at high end of range')
       call exit(0)
-99    call errorexit(' END OF IMAGE WHILE READING')
-96    call errorexit('ERROR READING TRANSFORM FILE')
+99    call exitError(' END OF IMAGE WHILE READING')
+96    call exitError('ERROR READING TRANSFORM FILE')
       END
+
+
+c       Determine the scale factors SCLFAC and CONST from a host of option 
+c       settings, controlling values, and values determined for the particular
+c       section.  This code is really dreadful since first it calculates new
+c       min and max and uses that to determine scaling.
+c
+      subroutine findScaleFactors(iffloat, ifmean, rescale, bottomin,
+     &    bottomout, optin, optout, tmpmin, tmpmax, dminspec, dmaxspec,
+     &    numScaleFacs, scaleFacs, scaleConsts, zmin, zmax, dsum, dsumsq, nx3,
+     &    ny3, newmode, dminin, dmaxin, fraczero, shiftmin, shiftmax,
+     &    shiftmean, ifil, sclfac, const)
+      implicit none
+      integer*4 iffloat, ifmean, numScaleFacs, nx3, ny3, newmode, ifil
+      logical*4 rescale
+      real*4 bottomin, bottomout, optin, optout, tmpmin, tmpmax, dminspec
+      real*4 dmaxspec, scaleFacs(*), scaleConsts(*), zmin, zmax, sclfac, const
+      real*4 dminin, dmaxin, fraczero, shiftmin, shiftmax, shiftmean
+      real*8 dsum, dsumsq
+c       
+      real*4 avgsec, sdsec, dminnew, dmaxnew, dmin2, dmax2, zminsec, zmaxsec
+      real*4 tmpmean, tmpminshf, tmpmaxshf
+c       
+c       calculate new min and max after rescaling under various possibilities
+c       
+      sclfac = 1.
+      const = 0.
+      dmin2=tmpmin
+      dmax2=tmpmax
+c       
+      if(iffloat.eq.0.and.rescale)then
+c         
+c         no float but mode change (not to mode 2):
+c         rescale from input range to output range
+c         
+        dmin2=(tmpmin-bottomin)*(optout-bottomout)/
+     &      (optin-bottomin)+bottomout
+        dmax2=(tmpmax-bottomin)*(optout-bottomout)/
+     &      (optin-bottomin)+bottomout
+      elseif(iffloat.lt.0 .and. numScaleFacs .eq. 0)then
+c         
+c         if specified global rescale, set values that dminin and dmaxin
+c         map to, either the maximum range or the values specified
+c         
+        if(dminspec.eq.0.and.dmaxspec.eq.0)then
+          dminnew=0.
+          dmaxnew=optout
+        else if(dminspec.eq.dmaxspec)then
+          dminnew=dminin
+          dmaxnew=dmaxin
+        else
+          dminnew=dminspec
+          dmaxnew=dmaxspec
+        endif
+c         
+c         then compute what this section's tmpmin and tmpmax map to
+c         
+        dmin2=(tmpmin-dminin)*(dmaxnew-dminnew)/(dmaxin-dminin) +dminnew
+        dmax2=(tmpmax-dminin)*(dmaxnew-dminnew)/(dmaxin-dminin) +dminnew
+      elseif(iffloat.gt.0)then
+c         
+c         If floating: scale to a dmin2 that will knock out fraczero of
+c         the range after truncation to zero
+c         
+        dmin2=-optout*fraczero/(1.-fraczero)
+        if(ifmean.eq.0)then
+c           
+c           float to range, new dmax2 is the max of the range
+c           
+          dmax2=optout
+        elseif(iffloat.eq.2)then
+c           :float to mean, it's very hairy
+          call sums_to_avgsd8(dsum,dsumsq,nx3,ny3,avgsec,sdsec)
+c           print *,'overall mean & sd',avgsec,sdsec
+          if (tmpmin .eq. tmpmax .or. sdsec .eq. 0.) sdsec = 1.
+          zminsec=(tmpmin-avgsec)/sdsec
+          zmaxsec=(tmpmax-avgsec)/sdsec
+          dmin2=(zminsec-zmin)*optout/(zmax-zmin)
+          dmax2=(zmaxsec-zmin)*optout/(zmax-zmin)
+          dmin2=max(0.,dmin2)
+          dmax2=min(dmax2,optout)
+        else
+c           
+c           shift to mean
+c           
+          tmpmean=dsum/(float(nx3)*ny3)
+c           
+c           values that min and max shift to
+c           
+          tmpminshf=tmpmin+shiftmean-tmpmean
+          tmpmaxshf=tmpmax+shiftmean-tmpmean
+c           
+          if(iffloat.eq.3)then
+c             
+c             for no specified scaling, set new min and max to
+c             shifted values
+c             
+            dmin2=tmpminshf
+            dmax2=tmpmaxshf
+            if(newmode.ne.2)then
+c               
+c               then, if mode is not 2, set up for scaling if range is
+c               too large and/or if there is a modal shift
+c               
+              optin=max(optin,shiftmax)
+              dmin2=tmpminshf*optout/optin
+              dmax2=tmpmaxshf*optout/optin
+            endif
+          else
+c             
+c             for specified scaling of shifted means
+c             
+            if(dminspec.eq.dmaxspec)then
+              dminnew=0.5
+              dmaxnew=optout-0.5
+            else
+              dminnew=dminspec
+              dmaxnew=dmaxspec
+            endif
+c             
+c             for specified scaling, compute what this section's tmpmin
+c             and tmpmax map to
+c             
+            dmin2=(tmpminshf-shiftmin)*(dmaxnew-dminnew)/
+     &          (shiftmax-shiftmin)+dminnew
+            dmax2=(tmpmaxshf-shiftmin)*(dmaxnew-dminnew)/
+     &          (shiftmax-shiftmin)+dminnew
+          endif
+        endif
+      endif
+c       
+      if(rescale)then
+c         
+c         if scaling, set up equation, scale and compute new mean
+c         or use scaling factors directly
+c         
+        if (numScaleFacs .gt. 0) then
+          sclfac = scaleFacs(min(numScaleFacs, ifil))
+          const = scaleConsts(min(numScaleFacs, ifil))
+        else
+c           
+c           2/9/05: keep scale factor 1 if image has no range
+c           
+          sclfac = 1.
+          if (dmax2.ne.dmin2 .and. tmpmax.ne.tmpmin)
+     &        sclfac=(dmax2-dmin2)/(tmpmax-tmpmin)
+          const=dmin2-sclfac*tmpmin
+        endif
+      endif
+      return
+      end
 
 
 c       getItemsToUse gets the list of transform line numbers or distortion
@@ -1622,7 +1690,7 @@ c
             ierr = PipGetString(option, listString)
             call parselist(listString, lineuse(nLineUse + 1), nlineTemp)
             nLineUse = nLineUse + nLineTemp
-            if (nLineUse .gt. lmsec) call errorexit
+            if (nLineUse .gt. lmsec) call exitError
      &          (errString(1:lnblnk(errString)))
           enddo
         endif
@@ -1633,14 +1701,14 @@ c
         print *,' transform to all sections',
      &      ' (1st line is 0; ranges OK; / for section list)'
         call rdlist(5,lineuse,nlineuse)
-        if (nLineUse .gt. lmsec) call errorexit(errString(1:lnblnk(errString)))
+        if (nLineUse .gt. lmsec) call exitError(errString(1:lnblnk(errString)))
       endif
         
       do i = 1, nLineUse
         if (lineUse(i) .lt. 0 .or. lineUse(i) .ge. nxforms) then
           write(errString, '(a, a,i5)')error, ' NUMBER OUT OF BOUNDS:',
      &        lineUse(i)
-          call errorexit(errString(1:lnblnk(errString)))
+          call exitError(errString(1:lnblnk(errString)))
         endif
       enddo
       return
@@ -1715,7 +1783,7 @@ c
 c         call imposn(1,nsecred,iline)
         call irdBinned(1, nsecred, array, nx, nlines, ixOffset, iyOffset +
      &      nbin * iline, nbin, nx, nlines, temp, lenTemp, ierr)
-        if (ierr .ne. 0) call errorexit('READING FILE')
+        if (ierr .ne. 0) call exitError('READING FILE')
 c         call irdsecl(1,array,nlines,*99)
 c         
 c         accumulate sums for mean and sd if float 2, otherwise
@@ -1744,7 +1812,7 @@ c
       loadynd=iline-1
       loadyst=iline-nlines
       return
-99    call errorexit( 'READ ERROR')
+99    call exitError( 'READ ERROR')
       end
 
 
@@ -1782,17 +1850,12 @@ c
       return
       end
 
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: NEWSTACK - ',message
-      call exit(1)
-      end
-
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.42  2006/09/28 21:26:30  mast
+c       Changes to work with huge images
+c
 c       Revision 3.41  2006/07/08 13:55:33  mast
 c       Raised extra header size to ridiculously large
 c
