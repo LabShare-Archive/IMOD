@@ -12,6 +12,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2006/12/19 22:19:37  mast
+c       Reorganized output to be parseable
+c
 c       Revision 3.1  2006/10/26 19:08:20  mast
 c       Added to package
 c
@@ -388,7 +391,7 @@ c
         if (errmin(isec) .lt. 1.e9) write(*,126)iSecDo(isec),gapmin(isec),
      &      errmin(isec),errmaxmin(isec)
 126     format('At boundary',i4,', best gap =',f6.1,' with error mean =',f9.2,
-     &      ', max =',f9.2);
+     &      ', max =',f9.2)
       enddo
 c       
 c       Write the F transforms
