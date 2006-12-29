@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/29/06: Fixed bug in Pixel View display of mouse position value from memory
+(value from file was OK).
+
 12/20/06: Added options to Newstack for outputting sections at a regular
 increment and for outputting blank sections given section numbers out of
 range.  Finishjoin now has an option to accept numbers out of range for
