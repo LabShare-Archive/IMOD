@@ -111,7 +111,7 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
           vi->image->mode == MRC_MODE_USHORT))
         isFloat = 1;
   } else
-    value = ivwGetValue(vi, ix, iz, iz);
+    value = ivwGetValue(vi, ix, iy, iz);
   if (isFloat)
     str.sprintf("Mouse: %5d, %5d, %4d  Value: %9g", ix + 1, iy + 1, 
                 iz + 1, value);
@@ -391,6 +391,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2006/09/18 15:46:34  mast
+Moved mouse line to top and added show/hide for the grid
+
 Revision 4.10  2006/09/17 18:15:34  mast
 Added mouse position/value report line
 
