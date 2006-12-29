@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/29/06: Fixed bug in Pixel View display of mouse position value from memory
+(value from file was OK).
+
 11/27/06: IMOD_3-9-2
 11/22/06: For model view movie-making, fixed behavior of file type buttons
 when montaging and added check for perspective.
