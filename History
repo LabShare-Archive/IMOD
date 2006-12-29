@@ -1,7 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/29/06: Fixed bug in Pixel View display of mouse position value from memory
-(value from file was OK).
+(value from file was OK) (In 3.9).
 
 12/20/06: Added options to Newstack for outputting sections at a regular
 increment and for outputting blank sections given section numbers out of
