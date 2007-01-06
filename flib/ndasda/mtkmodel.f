@@ -5,6 +5,10 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.7  2006/10/30 17:45:14  mast
+c       Fixed moving contours to new object when only one meshed object and
+c       fixed flag setting to get closed contour objects
+c
 c       Revision 3.6  2006/05/12 14:37:32  mast
 c       Added moving contours in surfaces within window to new objects
 c
@@ -268,18 +272,20 @@ c
       implicit none
       include 'model.inc'
       include 'mtk.inc'
-      integer limchg
-      parameter (limchg=2000)
+      integer limchg,limsizes
+      parameter (limchg=2000, limsizes = 10000)
       real*4 xmt(*),ymt(*),zmt(*),endsep(*),chnglo(limchg),chnghi(limchg)
       integer*4 indstrt(*),npntobj(*),icolor(*),iobjwin(*),iobjmod(*)
       real*4 xyscal,zscal,xofs,yofs,zofs,ftmp,xt,yt,zt
-      real*4 ximscale, yimscale, zimscale
+      real*4 ximscale, yimscale, zimscale, sizes(limsizes)
       integer*4 ifflip,nmt,ninwin,nobjwin,ibasescat,locobj,icont,isurf,imesh
       integer*4 icolold(limchg),icolnew(limchg),iobjflag(*),icolused(limchg)
       integer*4 i,lastobject,ncolchg,icolcon,icolscat,ierr2,iflag,iobj,iorig
       integer*4 icoltmp,maybenew,icol,icolind,iow,ibase,ipt,ii,jj,ibasecon
+      integer*4 inew, numSizes, imodobj, imodcont
       character*120 lastmodel
       integer*4 getimodobjsize,getimodscales
+      integer*4 getContPointSizes,putContPointSizes
       integer*4 in5
       common /nmsinput/ in5
 c       
@@ -320,7 +326,6 @@ c       being accessed
 c       
       do iobj=1,nmt
         iorig=iobjmod(iobj)
-        npt_in_obj(iorig)=npntobj(iobj)
 c	  ibase_obj(iobj)=indstrt(iobj)-1
         icoltmp=icolor(iobj)
         if(ncolchg.ne.0)then
@@ -365,16 +370,34 @@ c
           endif
         endif
 c         
-c         reassign contour to new object with the color value and copy the
-c         contour's points in
+c         reassign contour to new object by making a new contour with the
+c         new color value, leaving old one empty, and copy the
+c         contour's points in regardless of whether it is new or old
+c         Also transfer point sizes to a new contour
 c
-        obj_color(2,iorig)=256-abs(icoltmp)
+        inew = iorig
+        if (icoltmp.ne.icolor(iobj)) then
+          max_mod_obj = max_mod_obj + 1
+          inew = max_mod_obj
+          obj_color(2,inew)=256-abs(icoltmp)
+          call objtocont(iorig, obj_color, imodobj, imodcont)
+          ierr2 = getContPointSizes(imodobj, imodcont, sizes, limsizes,
+     &        numSizes)
+          if (ierr2 .eq. 0 .and. numSizes .gt. 0) then
+            call objtocont(inew, obj_color, imodobj, imodcont)
+            ierr2 = putContPointSizes(imodobj, imodcont, sizes, numSizes);
+          endif
+        endif
+        obj_color(2,inew)=256-abs(icoltmp)
+        npt_in_obj(inew)=npntobj(iobj)
         if(icoltmp.ge.0)then
-          obj_color(1,iorig)=1
+          obj_color(1,inew)=1
         else
-          obj_color(1,iorig)=0
+          obj_color(1,inew)=0
         endif
         ibase=ibase_obj(iorig)
+        ibase_obj(inew) = ibase
+
         do ipt=1,npntobj(iobj)
           ii=indstrt(iobj)+ipt-1
           jj=object(ibase+ipt)
@@ -404,12 +427,28 @@ c
                 enddo
                 if (icolind .gt. 0) then
 c                   
-c                   change all the contours in the surface
+c                   change all the contours in the surface: again, make a new
+c                   contour, assign points to it and zero out old one, and
+c                   transfer point sizes
 c
                   icolused(icolind) = 1
                   do icont=istrcont(isurf),istrcont(isurf)+ncontinsurf(isurf)-1
                     iobj=listcont(icont)
-                    obj_color(2,iobj) = 256 - icolnew(icolind)
+                    max_mod_obj = max_mod_obj + 1
+                    inew = max_mod_obj
+                    npt_in_obj(inew) = npt_in_obj(iobj)
+                    npt_in_obj(iobj) = 0
+                    ibase_obj(inew) = ibase_obj(iobj)
+                    obj_color(2,inew) = 256 - icolnew(icolind)
+                    obj_color(1,inew) = 1
+                    call objtocont(iobj, obj_color, imodobj, imodcont)
+                    ierr2 = getContPointSizes(imodobj, imodcont, sizes,
+     &                  limsizes, numSizes)
+                    if (ierr2 .eq. 0 .and. numSizes .gt. 0) then
+                      call objtocont(inew, obj_color, imodobj, imodcont)
+                      ierr2 = putContPointSizes(imodobj, imodcont, sizes,
+     &                    numSizes);
+                    endif
                   enddo
                 endif
               endif
