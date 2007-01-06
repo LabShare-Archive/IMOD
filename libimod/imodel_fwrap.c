@@ -70,6 +70,8 @@ Log at end of file
 #define putimodzscale PUTIMODZSCALE
 #define putimodrotation PUTIMODROTATION
 #define getimodtimes  GETIMODTIMES
+#define getcontpointsizes  GETCONTPOINTSIZES
+#define putcontpointsizes  PUTCONTPOINTSIZES
 #define getimodsurfaces  GETIMODSURFACES
 #define getimodobjname  GETIMODOBJNAME
 #define getimodobjsize  GETIMODOBJSIZE
@@ -107,6 +109,8 @@ Log at end of file
 #define putimodzscale putimodzscale_
 #define putimodrotation putimodrotation_
 #define getimodtimes  getimodtimes_
+#define getcontpointsizes  getcontpointsizes_
+#define putcontpointsizes  putcontpointsizes_
 #define getimodsurfaces  getimodsurfaces_
 #define getimodobjname  getimodobjname_
 #define getimodobjsize  getimodobjsize_
@@ -129,6 +133,12 @@ static void deleteFimod();
 static int getMeshTrans(Ipoint *trans);
 void putimodflag(int *objnum, int *flag);
 
+typedef struct {
+  int ob;
+  int co;
+  int num;
+  float *sizes;
+} SizeStruct;
 
 static Imod *Fimod = NULL;
 
@@ -141,6 +151,8 @@ static int maxes_put = 0;
 static int xmax_put, ymax_put, zmax_put;
 static float zscale_put = NO_VALUE_PUT;
 static Ipoint rotation_put = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
+static int nsizes_put = 0;
+static SizeStruct *sizes_put = NULL;
 
 #define SCAT_SIZE_FLAG  (1 << 2)
 #define SYMBOL_SIZE_FLAG (1 << 3)
@@ -152,6 +164,7 @@ static Ipoint rotation_put = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
 /* DNM: a common function to delete model and object flags */
 static void deleteFimod()
 {
+  int i;
   if (Fimod)
     imodDelete(Fimod);
   Fimod = NULL;
@@ -162,6 +175,13 @@ static void deleteFimod()
   maxes_put = 0;
   zscale_put = NO_VALUE_PUT;
   rotation_put.x = rotation_put.y = rotation_put.z = NO_VALUE_PUT;
+  for (i = 0; i < nsizes_put; i++)
+    if (sizes_put[i].sizes)
+      free(sizes_put[i].sizes);
+  if (nsizes_put && sizes_put)
+    free(sizes_put);
+  nsizes_put = 0;
+  sizes_put = NULL;
 }
 
 static int getMeshTrans(Ipoint *trans)
@@ -649,7 +669,7 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
 
 /*!
  * Returns point sizes for the given object [ob] in array [sizes]; [limsizes] 
- * specifies the size of the array and the number or points is returned 
+ * specifies the size of the array and the number of points is returned 
  * in [nsizes].
  */
 int getimodsizes(int *ob, float *sizes, int *limsizes, int *nsizes)
@@ -676,6 +696,67 @@ int getimodsizes(int *ob, float *sizes, int *limsizes, int *nsizes)
      
   return FWRAP_NOERROR;
 }          
+
+/*!
+ * Returns the values in the point size array for contour [co] of object [ob]
+ * into array [sizes]; [limsizes] specifies the size of the array and the 
+ * number of points is returned in [nsizes].  The array contains a -1 for 
+ * points with the deafult size.  Returns no points if there is no
+ * point size array.
+ */
+int getcontpointsizes(int *ob, int *co, float *sizes, int *limsizes, 
+                      int *nsizes)
+{
+  Iobj *obj;
+  Icont *cont;
+  int pt;
+  *nsizes = 0;
+  if (!Fimod) return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 && *ob > Fimod->objsize)
+    return(1);
+  obj = &Fimod->obj[*ob - 1];
+  if (!obj || *co < 1 || *co > obj->contsize) 
+    return(1);
+  cont = &obj->cont[*co - 1];
+  if (!cont->sizes)
+    return FWRAP_NOERROR;
+    
+  if (cont->psize > *limsizes) {
+      fprintf(stderr, "getcontpointsizes: Too many points for array\n");
+      return(FWRAP_ERROR_FILE_TO_BIG);
+  }
+  for (pt = 0; pt < cont->psize; pt++)
+    *sizes++ = cont->sizes[pt];
+  *nsizes = cont->psize;
+  return FWRAP_NOERROR;
+}          
+
+/*!
+ * Fills the point size array for contour [co] of object [ob] with the values
+ * in the array [sizes]; [nsizes] specifies the number of values in the array.
+ */
+int putcontpointsizes(int *ob, int *co, float *sizes, int *nsizes)
+{
+  SizeStruct *sizetmp;
+
+  /* Saves the sizes in a new element of the size structure array */
+  if (!nsizes_put) 
+    sizetmp = (SizeStruct *)malloc(sizeof(SizeStruct));
+  else
+    sizetmp = (SizeStruct *)realloc(sizes_put, (nsizes_put + 1) * 
+                                  sizeof(SizeStruct));
+  if (!sizetmp)
+    return FWRAP_ERROR_MEMORY;
+  sizes_put = sizetmp;
+  sizes_put[nsizes_put].ob = *ob - 1;
+  sizes_put[nsizes_put].co = *co - 1;
+  sizes_put[nsizes_put].num = *nsizes;
+  sizes_put[nsizes_put].sizes = (float *)malloc(*nsizes * sizeof(float));
+  if (!sizes_put[nsizes_put].sizes)
+    return FWRAP_ERROR_MEMORY;
+  memcpy(sizes_put[nsizes_put++].sizes, sizes, *nsizes * sizeof(float));
+  return FWRAP_NOERROR;
+}
 
 /*!
  * Returns time values for all contours in all objects into array [times]
@@ -944,9 +1025,11 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
  */
 int writeimod(char *fname, int fsize)
 {
-  int i, ob, flag, value;
+  int i, j, ob, flag, value;
   int retcode = 0;
   Iobjview *objview;
+  Iobj *obj;
+  Icont *cont;
   char *filename = f2cString(fname, fsize);
   if (!filename)
     return(FWRAP_ERROR_BAD_FILENAME);
@@ -991,6 +1074,7 @@ int writeimod(char *fname, int fsize)
   if (Fimod->flags & IMODF_FLIPYZ)
     imodFlipYZ(Fimod);
 
+  /* Put out the flag data */
   for (i = 0; i < nflags_put; i++) {
     ob = flags_put[2 * i];
     flag = flags_put[2 * i + 1];
@@ -1059,6 +1143,24 @@ int writeimod(char *fname, int fsize)
     Fimod->zscale = zscale_put;
   if (Fimod->cview > 0 && rotation_put.x != NO_VALUE_PUT)
     Fimod->view[Fimod->cview].rot = rotation_put;
+
+  /* Put out the sizes into the contours */
+  for (i = 0; i < nsizes_put; i++) {
+
+    /* Ignore illegal object or contour numbers */
+    if (sizes_put[i].ob < 0 || sizes_put[i].ob >= Fimod->objsize)
+      continue;
+    obj = &Fimod->obj[sizes_put[i].ob];
+    if (sizes_put[i].co < 0 || sizes_put[i].co >= obj->contsize)
+      continue;
+
+    /* Fill up to the limit on the number of point in array and contour */
+    cont = &obj->cont[sizes_put[i].co];
+    value = B3DMIN(sizes_put[i].num, cont->psize);
+    for (j = 0; j < value; j++)
+      if (sizes_put[i].sizes[j] >= 0.)
+        imodPointSetSize(cont, j, sizes_put[i].sizes[j]);
+  }
      
   /* Complete the set of object views just before writing */
   imodObjviewComplete(Fimod);
@@ -1598,6 +1700,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.30  2006/09/12 15:22:15  mast
+renamed cont type to time
+
 Revision 3.29  2006/09/04 19:32:26  mast
 Rename contour clearing function
 
