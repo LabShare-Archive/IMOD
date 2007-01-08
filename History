@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/6/06: Made Mtk preserve point sizes when assigning contours to new objects.
+1/8/07: Fixed bug in slicer in which the Z coordinate computed from a mouse
+position was limited by the X size instead of the Z size (In 3.9).
+
+1/6/07: Made Mtk preserve point sizes when assigning contours to new objects.
 
 12/29/06: Fixed bug in Pixel View display of mouse position value from memory
 (value from file was OK) (In 3.9).
