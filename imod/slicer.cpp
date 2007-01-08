@@ -988,7 +988,7 @@ static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
 
   xm = B3DMIN(ss->vi->xsize - 1, B3DMAX(0, xm));
   ym = B3DMIN(ss->vi->ysize - 1, B3DMAX(0, ym));
-  zm = B3DMIN(ss->vi->xsize - 0.51, B3DMAX(-0.49, zm));
+  zm = B3DMIN(ss->vi->zsize - 0.51, B3DMAX(-0.49, zm));
 
   return((int)floor(zm + 0.5));
 }
@@ -1809,6 +1809,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.38  2006/10/12 19:02:54  mast
+Added toolbar button for W function
+
 Revision 4.37  2006/10/11 04:07:05  mast
 *** empty log message ***
 
