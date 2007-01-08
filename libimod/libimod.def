@@ -361,6 +361,7 @@ EXPORTS
 	PipNextArg
 	ilistSize
 	imodPrevObject
+	PUTCONTPOINTSIZES
 	imodReadStore
 	imodPointPlaneEdge
 	imodDelete
@@ -451,6 +452,7 @@ EXPORTS
 	fgetline
 	GETIMODOBJRANGE
 	imodContourSetTimeIndex
+	GETCONTPOINTSIZES
 	PUTSYMSIZE
 	PipGetFloatArray
 	PUTIMODROTATION
