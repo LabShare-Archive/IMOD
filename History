@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/17/07: Fixed failure to initialize number of patches to exclude in Findwarp
+(in 3.9).
+
 1/9/07: IMOD_3-10-1
 1/8/07: Fixed bug in slicer in which the Z coordinate computed from a mouse
 position was limited by the X size instead of the Z size (In 3.9).
