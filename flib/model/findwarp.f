@@ -94,6 +94,9 @@ c
       nofsx=0
       nofsy=0
       nofsz=0
+      nexclxhi = 0
+      nexclyhi = 0
+      nexclzhi = 0
       ifsubset=0
       ratmin=4.0
       ratmax=20.0
@@ -917,6 +920,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.12  2006/08/21 23:16:16  mast
+c       Needed to clear out filename before getting model name
+c
 c       Revision 3.11  2006/08/21 16:41:17  mast
 c       Converted to PIP, made it handle either orientation of volume, made
 c       automatic fitting more flexible in the thin dimension, changed outlier
