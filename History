@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/17/07: Fixed failure to initialize number of patches to exclude in Findwarp.
+
+1/8/07: Fixed bug in slicer in which the Z coordinate computed from a mouse
+position was limited by the X size instead of the Z size.
+
 12/29/06: Fixed bug in Pixel View display of mouse position value from memory
 (value from file was OK).
 
