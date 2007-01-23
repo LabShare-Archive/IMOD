@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/23/07: Etomo - Combine:  Fixed a failure in "Replace Patch Vectors".
+
+11/23/07: Etomo - Join:  Fixed a failure that occurred when running Makejoincom.
+Failure occurred when a section was rotated and the .rot file already existed
+and did not need to be changed.
+
 1/17/07: Fixed failure to initialize number of patches to exclude in Findwarp.
 
 1/8/07: Fixed bug in slicer in which the Z coordinate computed from a mouse
