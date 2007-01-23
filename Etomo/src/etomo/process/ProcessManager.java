@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.113  2006/10/16 22:43:41  sueh
+ * bug# 933  Moved the code in msgAlignPostProcess to postProcess.  Only doing
+ * align post process (reopening log) when the Computer Alignment button was
+ * used to run Fine Alignment.
+ *
  * Revision 3.112  2006/10/11 10:10:25  sueh
  * bug# 931 Added delete functionality to LogFile - changed BackupException to
  * FileException.
@@ -1788,7 +1793,7 @@ public class ProcessManager extends BaseProcessManager {
     systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
     long logWriteId = LogFile.NO_ID;
     if (logFile != null) {
-      logFile.openForWriting();
+      logWriteId = logFile.openForWriting();
     }
     systemProgram.run();
     if (logFile != null) {
