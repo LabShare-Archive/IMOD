@@ -36,6 +36,10 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/10/17 20:02:21  sueh
+ * <p> bug# 939  Simplify genOptions() using ConstEtomoNumber.getDouble(boolean
+ * <p> defaultIfNull).
+ * <p>
  * <p> Revision 1.20  2006/05/22 22:39:16  sueh
  * <p> bug# 577 Added getCommand().
  * <p>
@@ -242,7 +246,17 @@ public final class MakejoincomParam implements CommandDetails {
           }
           Integer hashKey = new Integer(i);
           rotationAnglesList.put(hashKey, rotationAngles);
-
+          //The rotation file does not exist or the angles have changed.
+          //Add the -rot option to run rotatevol and save the angles.
+          options.add("-rot");
+          StringBuffer buffer = new StringBuffer();
+          buffer.append(rotationAngleX.getDouble(true));
+          buffer.append(",");
+          buffer.append(rotationAngleY.getDouble(true));
+          buffer.append(",");
+          buffer.append(rotationAngleZ.getDouble(true));
+          options.add(buffer.toString());
+          options.add("-maxxysize");
           //Get the .rot file
           String rotFileName = section.getName();
           int extIndex = rotFileName.lastIndexOf('.');
@@ -263,19 +277,6 @@ public final class MakejoincomParam implements CommandDetails {
             //Use the existing .rot file, since the angles haven't changed.
             options.add("-already");
           }
-          else {
-            //The rotation file does not exist or the angles have changed.
-            //Add the -rot option to run rotatevol and save the angles.
-            options.add("-rot");
-            StringBuffer buffer = new StringBuffer();
-            buffer.append(rotationAngleX.getDouble(true));
-            buffer.append(",");
-            buffer.append(rotationAngleY.getDouble(true));
-            buffer.append(",");
-            buffer.append(rotationAngleZ.getDouble(true));
-            options.add(buffer.toString());
-            options.add("-maxxysize");
-          }
         }
         options.add(section.getAbsolutePath());
       }
@@ -294,7 +295,7 @@ public final class MakejoincomParam implements CommandDetails {
     options.add(metaData.getRootName());
     return options;
   }
-  
+
   public String getCommand() {
     return commandName;
   }
