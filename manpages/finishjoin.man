@@ -12,7 +12,7 @@ the command file, and found alignments between the tomograms.  "root_name"
 is the root name for various intermediate files and the joined tomogram, as
 already specified to "makejoincom".  The command line must also have a slice
 range to include from each individual tomogram.  Enter the starting and ending
-slice numbers of the desired ranges, separated by comma or dash.  Slices
+slice numbers of the desired ranges, separated by a comma.  Slices
 are numbered from 1.
 .SS Options
 Options may be abbreviated to a single letter.

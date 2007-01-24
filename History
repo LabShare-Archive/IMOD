@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/24/07: Finishjoin no longer allows dashes in the slice range entries, because
+negative numbers can now be entered to get gray slices.
+
+1/24/07: Fixed ancient bug that kept Remapmodel from working with significant
+sized models (In 3.9).
+
+11/23/07: Etomo - Combine:  Fixed a failure in "Replace Patch Vectors" (In 
+3.9).
+
+11/23/07: Etomo - Join:  Fixed a bug that occurred when running Makejoincom.
+Failure occurred when a section was rotated and the .rot file already existed
+and did not need to be changed (In 3.9).
+
 1/23/07: Made Blendmont bin overlap areas for cross-correlation when they 
 exceed 1Mpixel in size.
 
