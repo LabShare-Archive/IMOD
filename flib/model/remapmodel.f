@@ -83,14 +83,21 @@ c
 c       make list of all z values in the model and set default output list
 c       
       ninzlis=0
-      do iobj=1,max_mod_obj
-        do indobj=1,npt_in_obj(iobj)
-          ipnt=object(indobj+ibase_obj(iobj))
-          if(ipnt.gt.0.and.ipnt.le.n_point)then
-            ninzlis=ninzlis+1
+      do iobj = 1, max_mod_obj
+        do indobj = 1, npt_in_obj(iobj)
+          ipnt = abs(object(indobj + ibase_obj(iobj)))
+          izval = nint(p_coord(3,ipnt))
+          ifadd = 1
+          i = 1
+          do while (i .le. ninzlis .and. ifadd .eq. 1)
+            if (izlist(i) .eq. izval) ifadd = 0
+            i = i + 1
+          enddo
+          if (ifadd .eq. 1) then
+            ninzlis = ninzlis + 1
             if (ninzlis .gt. limsec) call exitError(
      &          'TOO MANY Z VALUES FOR ARRAYS') 
-            izlist(ninzlis)=nint(p_coord(3,ipnt))
+            izlist(ninzlis) = izval
           endif
         enddo
       enddo
@@ -358,6 +365,9 @@ c       DNM 7/20/89  changes for new model format
 c       DNM 2/20/90  changes to negate Z and reorder by Z
 c       
 c       $Log$
+c       Revision 3.4  2006/10/27 20:49:37  mast
+c       Converted to PIP, added options for serial tomogram chunks
+c
 c       Revision 3.3  2002/07/28 01:01:21  mast
 c       Added scaling of points back to index coordinates so pixel sizes
 c       would be ignored
