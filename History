@@ -1,8 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/24/07: Fixed ancient bug that kept Remapmodel from working with significant
+sized models.
+
 11/23/07: Etomo - Combine:  Fixed a failure in "Replace Patch Vectors".
 
-11/23/07: Etomo - Join:  Fixed a failure that occurred when running Makejoincom.
+11/23/07: Etomo - Join:  Fixed a bug that occurred when running Makejoincom.
 Failure occurred when a section was rotated and the .rot file already existed
 and did not need to be changed.
 
