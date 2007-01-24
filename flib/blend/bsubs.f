@@ -20,6 +20,7 @@ c       FIND_BEST_SHIFTS
 c       findBestGradient
 c       IWRBINNED
 c       GETEXTRAINDENTS
+c       IBINPAK
 c       DUMPEDGE
 c       
 c       
@@ -30,6 +31,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.20  2006/06/18 19:38:08  mast
+c       Changed to use new C function for amoeba
+c
 c       Revision 3.19  2006/02/27 15:20:20  mast
 c       g77 wanted find_best_shift called with an equivalenced real*8 array
 c
@@ -1494,13 +1498,15 @@ c
       real*4 ctf(8193),rdispl(2)
       real*4 overfrac,delta,xpeak,ypeak,peak,sdmin,ddenmin
       integer*4 indentSD,niter,limstep,iyx,nxpad,nypad,nxtap, indentUse
-      integer*4 nytap,jx,ixdispl,iydispl,i,nExtra(2)
+      integer*4 nytap,jx,ixdispl,iydispl,i,nExtra(2),nbin, maxBinSize
       integer*4 niceframe
 
       indentSD=5                                !indent for sdsearch
       overfrac=0.9                              !fraction of overlap to use
       niter=4                                   !iterations for sdsearch
       limstep=10                                !limiting distance
+      maxBinSize = 1024
+      nbin = 1
 c       
 c       find size and limits of box in overlap zone to cut out
 c       
@@ -1509,14 +1515,24 @@ c
       indentSD = indentSD + indentUse
       nxybox(ixy)=noverlap(ixy) - indentUse * 2
       nxybox(iyx)=min(nxyzin(iyx), int(aspectmax*noverlap(ixy)))
+c
+c       find binning that brings area down to maximum size
+c
+      do while (nxybox(ixy) * nxybox(iyx) .gt. (nbin * maxBinSize)**2)
+        nbin = nbin + 1
+      enddo
+      nxybox(ixy) = nxybox(ixy) / nbin
+      nxybox(iyx) = nxybox(iyx) / nbin
+
 c       nxybox(iyx)=nxyzin(iyx)
       nExtra(iyx)=0
       nExtra(ixy) = 2 * (nint(extraWidth * nxybox(ixy)) / 2)
       nxybox(ixy) = nxybox(ixy) + nExtra(ixy)
-      ind0(iyx)=nxyzin(iyx)/2 - nxybox(iyx)/2 
-      ind1(iyx)=nxyzin(iyx)/2 + nxybox(iyx)/2 - 1
-      ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nExtra(ixy)
-      ind1(ixy)=nxyzin(ixy) - 1 - indentUse
+      ind0(iyx)=nxyzin(iyx)/2 - nbin * (nxybox(iyx)/2)
+      ind1(iyx)=ind0(iyx) + nbin * nxybox(iyx) - 1
+c      ind1(iyx)=nxyzin(iyx)/2 + nbin * (nxybox(iyx)/2) - 1
+      ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nbin * nExtra(ixy)
+      ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
 c       
 c       get the padded size and the taper extents
 c       Limit the long dimension padding to twice the default short dim
@@ -1537,8 +1553,8 @@ c       nxybord(iyx)=max(5,nint(padFrac*nxybox(iyx)))
 c       
 c       get the first image, lower piece
 c       
-      call irepak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
-     &    ind1(2))
+      call ibinpak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
+     &    ind1(2), nbin)
       call taperinpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
      &    nypad,nxtap,nytap)
       call meanzero(xcray,nxpad+2,nxpad,nypad)
@@ -1548,10 +1564,10 @@ c
 c       get the second image, upper piece
 c       
       ind0(ixy)=indentUse
-      ind1(ixy)=noverlap(ixy) - 1 - indentUse + nExtra(ixy)
+      ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
 c       
-      call irepak(brray, drray,nxin,nyin,ind0(1),ind1(1),ind0(2),
-     &    ind1(2))
+      call ibinpak(brray, drray,nxin,nyin,ind0(1),ind1(1),ind0(2),
+     &    ind1(2), nbin)
       call taperinpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
      &    nypad,nxtap,nytap)
       call meanzero(xdray,nxpad+2,nxpad,nypad)
@@ -1563,8 +1579,12 @@ c
       do jx=1,nypad*(nxpad+2)/2
         xcray(jx)=xcray(jx)*conjg(xdray(jx))
       enddo
-
-      call setctfwsr(sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,delta)
+c       
+c       Multiply all filter parameters by the binning so they are equivalent
+c       to frequencies in unbinned images
+c
+      call setctfwsr(nbin*sigma1,nbin*sigma2,nbin*radius1,nbin*radius2,ctf,
+     &    nxpad,nypad,delta)
 c       
       if(delta.ne.0.)call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
       call todfft(xcray,nxpad,nypad,1)
@@ -1573,8 +1593,8 @@ c
 c       
 c       return the amount to shift upper to align it to lower (verified)
 c       
-      xdisp=xpeak - nExtra(1)
-      ydisp=ypeak - nExtra(2)
+      xdisp = nbin * (xpeak - nExtra(1))
+      ydisp = nbin * (ypeak - nExtra(2))
 c       write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
       if(legacy)return
 c       
@@ -2191,6 +2211,39 @@ c
      &      -fieldDx(1, 1, memup), fieldDx(nxField, nyField, memlow),
      &      fieldDx(nxField, 1, memup))
       endif
+      return
+      end
+
+c       IBINPAK packs a portion of ARRAY into BRRAY with binning given by 
+c       NBIN.  MX, MY are the dimensions of ARRAY, NX1, NX2, NY1, and NY2
+c       are starting and ending indexes (numbered from 0) from which to take
+c       the data
+c
+      subroutine ibinpak(brray, array, mx, my, nx1, nx2, ny1, ny2, nbin)
+      implicit none
+      integer*4 mx, my, nx1, nx2, ny1, ny2, nbin
+      real*4 brray(*), array(mx, my), sum
+      integer*4 nx2adj, ny2adj, ix, iy, ipx, ipy, iout
+
+      if (nbin .eq. 1) then
+        call irepak(brray,array,mx,my,nx1,nx2,ny1,ny2)
+        return
+      endif
+      nx2adj = nbin * ((nx2 + 1 - nx1) / nbin - 1) + nx1
+      ny2adj = nbin * ((ny2 + 1 - ny1) / nbin - 1) + ny1
+      iout = 1
+      do iy = ny1, ny2adj, nbin
+        do ix = nx1, nx2adj, nbin
+          sum = 0.
+          do ipy = 1, nbin
+            do ipx = 1, nbin
+              sum = sum + array(ipx + ix, ipy + iy)
+            enddo
+          enddo
+          brray(iout) = sum / nbin**2
+          iout = iout + 1
+        enddo
+      enddo
       return
       end
 
