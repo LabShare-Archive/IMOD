@@ -4,10 +4,10 @@
 	parameter (maxsiz=2600*2600*12)		!# of pixels
 	parameter (limvar=3000)                 !# of variables for shift fits
 c
-c         With default padding (0.45) and aspectmax (2), idimc must be
-c         (max overlap * 1.9) * (max overlap * 3.8)
+c         Needed size for idimc now determined by maximum unpadded size after
+c         binning, 1K x 1K
 c
-	parameter (ifastsiz=32,maxlinelength=100000,maxbin=8,idimc=1520*3040)
+	parameter (ifastsiz=32,maxlinelength=100000,maxbin=8,idimc=2048*2048)
         parameter (maxbsiz=(ifastsiz+maxbin)*maxlinelength)
         parameter (maxDistNear = 5)
         parameter (maxPcNear = (2*maxDistNear + 1) * (2*maxDistNear + 1))

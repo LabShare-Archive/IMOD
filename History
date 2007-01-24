@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/23/07: Made Blendmont bin overlap areas for cross-correlation when they 
+exceed 1Mpixel in size.
+
 1/17/07: Fixed failure to initialize number of patches to exclude in Findwarp
 (in 3.9).
 
