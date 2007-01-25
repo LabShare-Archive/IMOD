@@ -33,10 +33,13 @@ increment and for outputting blank sections given section numbers out of
 range.  Finishjoin now has an option to accept numbers out of range for
 producing blank slices between sections.
 
+11/27/06: IMOD_3-9-2 released
+
 11/22/06: For model view movie-making, fixed behavior of file type buttons
 when montaging and added check for perspective (In 3.9).
 
-11/16/06: SGI:  Prevented out-of-memory errors from popping up incorrectly.
+11/16/06: SGI:  Prevented out-of-memory errors from popping up incorrectly (In
+3.9).
 
 11/15/06: In eTomo join, prevented join size from being reset to default 
 (In 3.9).
