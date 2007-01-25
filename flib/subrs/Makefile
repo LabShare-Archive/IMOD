@@ -25,7 +25,7 @@ $(LIBHVEM): $(LIBIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
 	(cd statsubs ; $(MAKE) all)
-	\rm -f $(LIBHVEM)
+	$(RM) $(LIBHVEM)
 	$(FAR) $(ARFLAGS)$(LIBHVEM) $(LIBHVEMDEF) \
 	piecesubs/*.$(O) hvem/*.$(O) xfsubs/*.$(O) statsubs/*.$(O)
 	$(RANLIB) $(LIBHVEM)
@@ -33,7 +33,7 @@ $(LIBHVEM): $(LIBIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 
 $(LIBWMOD): model/*.f $(INCDIR)/model.inc
 	(cd model ; $(MAKE) all)
-	\rm -f $(LIBWMOD)
+	$(RM) $(LIBWMOD)
 	$(MAKEWMOD)$(LIBWMOD) model/*.$(O)
 	$(RANLIB) $(LIBWMOD)
 	$(CP) $(LIBWMOD) $(LIBDIR)
@@ -47,7 +47,7 @@ $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 $(LIBIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
-	\rm -f $(LIBIM)
+	$(RM) $(LIBIM)
 	$(FAR) $(ARFLAGS)$(LIBIM) $(LIBIMDEF) imsubs/$(IMSUBSOBJ) \
 	imsubs2/*.$(O)
 	$(RANLIB) $(LIBIM)
@@ -57,28 +57,28 @@ $(LIBIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 
 $(LIBIFFT):	ifftsub/*.f
 	(cd ifftsub ; $(MAKE) all)
-	\rm -f $(LIBIFFT)
+	$(RM) $(LIBIFFT)
 	$(FAR) $(ARFLAGS)$(LIBIFFT) $(LIBIFFTDEF) ifftsub/*.$(O)
 	$(RANLIB) $(LIBIFFT)
 	$(CP) libifft.$(LIBEXT) $(LIBDIR)
 
 $(LIBNMCAR):	graphics/*.f graphics/*.c*
 	(cd graphics ; $(MAKE) all)
-	\rm -f $(LIBNMCAR)
+	$(RM) $(LIBNMCAR)
 	$(MAKENONDLL)$(LIBNMCAR) graphics/*.$(O)
 	$(RANLIB) $(LIBNMCAR)
 	$(CP) libdnmncar.$(NMCAREXT) $(LIBDIR)
 
 $(LIBCOMPAT):	$(COMPATSRC) 
 	(cd compat; $(MAKE) all)
-	\rm -f $(LIBCOMPAT)
+	$(RM) $(LIBCOMPAT)
 	$(FAR) $(ARFLAGS)$(LIBCOMPAT) $(COMPATOBJ)
 	$(RANLIB) $(LIBCOMPAT)
 	$(CP) libb3dcmpt.$(LIBEXT) $(LIBDIR)
 
 $(LIBTRACK):	linetrack/*.f linetrack/*.c*
 	(cd linetrack; $(MAKE) all)
-	\rm -f $(LIBTRACK)
+	$(RM) $(LIBTRACK)
 	$(FAR) $(ARFLAGS)$(LIBTRACK) $(LIBTRACKDEF) linetrack/*.$(O)
 	$(RANLIB) $(LIBTRACK)
 	$(CP) libtrack.$(LIBEXT) $(LIBDIR)
@@ -88,8 +88,8 @@ install:
 	$(CP) $(LIBS) $(INSTLIBDIR)
 
 clean : 
-#	\rm -f $(LIBS)
-#	\rm -f *.o */*.o *~ */*~ *.a
+#	$(RM) $(LIBS)
+#	$(RM) *.o */*.o *~ */*~ *.a
 	$(FIND) . -type f -name "*.so" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.a" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.*lib" -exec rm "{}" \;
