@@ -20,6 +20,19 @@ the right walls, and 13-18 are the sum of values from 1-6 and 7-12.
 Unpaired walls are treated as left walls, and their values will appear in
 both columns 1-6 and 13-18.  See description of computed values above.
 
+[Field = PointOutputFile]
+short = point
+type = FN
+usage = Output file for points in the flared region of each MT
+tooltip = 
+manpage = Output file for points in each wall, starting at the point where the
+flare measurement begins.  The points are rotated so that the wall above that
+point would be vertical, and they are expressed in nanometers relative to the
+starting point.  For each MT wall, there is a line starting with the number of
+points, then containing the 3 or 4 numbers described above as preceding the
+columns of output in the standard output file, and ending with 1 for a left or
+unpaired wall, or 2 for a right wall.
+
 [Field = PixelSizeDefault]
 short = pixel
 type = F
