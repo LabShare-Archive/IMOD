@@ -13,6 +13,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.3  2006/10/30 20:09:10  mast
+c       Added nopair option
+c
 c       Revision 3.2  2006/10/15 14:09:11  mast
 c       Removed a ;
 c
@@ -25,7 +28,7 @@ c
       integer limd,limcol
       parameter (limd=1000,limcol=30)
       logical readSmallMod,exist,started
-      character*120 modelfile,fileout,colstring
+      character*120 modelfile,fileout,colstring,curveout
       integer*4 iobjatz(99),nwall(2),ipackstr(99)
       real*4 xobj(99),xwall(limd,2),ywall(limd,2),xt(limd),yt(limd)
       real*4 xlr(limd),arsum(3),arsqrt(3),fitmin(2),angsum(3)
@@ -34,18 +37,19 @@ c
       integer*4 itimes(max_obj_num), isurfs(max_obj_num)
       logical objused(max_obj_num)
       real*4 rmat(3,3),packxyz(3,limd),packrot(3,limd)
+      real*4 xcurve(limd),ycurve(limd)
       integer*4 ncolout,ident,ierr,iobj,jobj,imodobj,imodcont,nwidth,iModel
       integer*4 jpt,izobj,natz,intobj,npack,ipt,intpack,itmp,lr,i,j,iztime
       integer*4 ndat,lop,ibas,ifflip,numModels,numStartEnds, numIDs, idStart
-      integer*4 iobjLim
+      integer*4 iobjLim,ncurve
       real*4 fittop,fitbot,fitmax,ymax,ymin,ytmp,xint,pol,xx,yy,xlas
       real*4 baslas,ylas,xfit,delx,delxw,dely,avwidth,sdwidth,sem,centroid(3)
       real*4 avcol,sdcol,semcol,base,slope,xleft,delang,seglen,pixsize,dxlas
       real*4 pixsizeDef,xyscal,zscale,xofs,yofs,zofs,widthDef,defscal,dylas
-      real*4 fitStartDef, fitEndDef
+      real*4 fitStartDef, fitEndDef, cosang, sinang
       logical*4 useSurf,noPairs
       integer*4 getimodtimes, getimodhead, lnblnk, getImodSurfaces
-      real*4 xinterp, acosd, atan2d
+      real*4 xinterp, acosd, atan2d, cosd, sind, atand
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -56,14 +60,14 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  howflared
 c       
       integer numOptions
-      parameter (numOptions = 10)
+      parameter (numOptions = 11)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'output:OutputFile:FN:@columns:ColumnsToOutput:LI:@'//
-     &    'pixel:PixelSizeDefault:F:@width:WidthDefault:F:@'//
-     &    'surface:UseSurfaceNumbers:B:@nopairs:NoPairsOrMarkers:B:@'//
-     &    'model:ModelFile:FNM:@fit:FitTopAndBottom:FPM:@id:Identifier:IM:@'//
-     &    'help:usage:B:'
+     &    'point:PointOutputFile:FN:@pixel:PixelSizeDefault:F:@'//
+     &    'width:WidthDefault:F:@surface:UseSurfaceNumbers:B:@'//
+     &    'nopairs:NoPairsOrMarkers:B:@model:ModelFile:FNM:@'//
+     &    'fit:FitTopAndBottom:FPM:@id:Identifier:IM:@help:usage:B:'
 c
       pixsizeDef = 1.
       widthDef = 20.
@@ -72,6 +76,7 @@ c
       fitEndDef = 0.
       useSurf = .false.
       noPairs = .false.
+      curveout = ' '
 
       print *,'Columns 1-6 are for LEFT, 7-12 for RIGHT, ',
      &    '13-18 for SUM, 19-22 LEFT, 23-26 RIGHT'
@@ -125,6 +130,11 @@ c
       i = ncolout+2
       if (useSurf) i = i + 1
       write(1,'(i4)')i
+c       
+c       Open file for curve output if present
+c
+      ierr = PipGetString('PointOutputFile', curveout)
+      if (curveout .ne. ' ') call dopen(2, curveout, 'new', 'f')
 c       
 c       loop on the models and get the model name and optional fit start and
 c       end and identifier for each model
@@ -397,6 +407,9 @@ c
                 baslas=xinterp(xwall(1,lr),ywall(1,lr),nwall(lr),ylas)
               endif
               xlas=xinterp(xwall(1,lr),ywall(1,lr),nwall(lr),ylas)
+              ncurve = 1
+              xcurve(1) = baslas
+              ycurve(1) = ylas
               started=.false.
               if(xlas.ne.-99999.)then
                 do i=1,nwall(lr)
@@ -437,8 +450,34 @@ c                     print *,itimes(jobj),lr,pol,i,delx,dely,seglen,delang,fina
                     dxlas = delx
                     dylas = dely
                     started = .true.
+                    ncurve = ncurve + 1
+                    xcurve(ncurve) = xx
+                    ycurve(ncurve) = yy
                   endif
                 enddo
+c                 
+c                 Output points for this wall if more than one
+c
+                if (curveout .ne. ' ' .and. ncurve .gt. 1) then
+                  delang = atand(slope)
+                  cosang = pixsize * cosd(delang)
+                  sinang = pixsize * sind(delang)
+                  if (noPairs) then
+                    write(2,111)ncurve,ident,imodobj,imodcont,iztime,lr
+                  else if (useSurf) then
+                    write(2,111)ncurve,ident,imodobj,isurfs(jobj),iztime,lr
+                  else
+                    write(2,111)ncurve,ident,imodobj,iztime,lr
+                  endif
+111               format(6i5)
+                  do i = 1, ncurve
+                    delx = xcurve(i) - xcurve(1)
+                    dely = ycurve(i) - ycurve(1)
+                    xx = cosang * delx - sinang * dely
+                    yy = sinang * delx + cosang * dely
+                    write(2,'(2f9.2)')xx,yy
+                  enddo
+                endif
               endif
             enddo
             arsum(3)=arsum(1)+arsum(2)
@@ -498,6 +537,8 @@ c
 108       format(i3,2f10.3,i4)
         enddo
       enddo
+      close(1)
+      if (curveout .ne. ' ') close(2)
       end
       
       
