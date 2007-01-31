@@ -46,6 +46,11 @@ int set_mrc_coords(ClipOptions *opt)
   MrcHeader *hout = opt->hout;
 
   mrc_coord_cp(hout, hin);
+  
+  /* 1/30/07: In response to a request to preserve the n[xyz]start */
+  hout->nxstart = hin->nxstart;
+  hout->nystart = hin->nystart;
+  hout->nzstart = hin->nzstart;
      
   /* DNM 9/21/01: subtract rather than add tx, ty, tz, because of weird
      definition of origin */
@@ -646,6 +651,9 @@ int mrc_head_print(MrcHeader *data)
 
 /*
 $Log$
+Revision 3.8  2005/11/11 22:14:56  mast
+Changes for unsigned file mode
+
 Revision 3.7  2005/01/17 17:10:33  mast
 Fully implemented 2D processing scheme to match 3D behavior
 
