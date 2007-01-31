@@ -48,21 +48,21 @@ c
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetInteger
+      integer*4 PipGetInteger,PipGetFloat
       integer*4 PipGetString,PipGetThreeIntegers,PipGetThreeFloats
       integer*4 PipGetNonOptionArg, PipGetInOutFile, PipGetLogical
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  rotatevol
 c       
       integer numOptions
-      parameter (numOptions = 8)
+      parameter (numOptions = 11)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
      &    'tempdir:TemporaryDirectory:CH:@size:OutputSizeXYZ:IT:@'//
-     &    'center:RotationCenterXYZ:FT:@'//
-     &    'angles:RotationAnglesZYX:FT:@query:QuerySizeNeeded:B:@'//
-     &    'order:InterpolationOrder:I:@help:usage:B:'
+     &    'center:RotationCenterXYZ:FT:@angles:RotationAnglesZYX:FT:@'//
+     &    'order:InterpolationOrder:I:@query:QuerySizeNeeded:B:@'//
+     &    'fill:FillValue:F:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here
 c       
@@ -106,6 +106,7 @@ c
         ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
         ierr = PipGetThreeFloats('RotationAnglesZYX', angles(3), angles(2),
      &      angles(1))
+        ierr = PipGetFloat('FillValue', dmeanin)
       else
 c         
         write(*,'(1x,a,/,a,$)')'Enter path name of directory for '//
@@ -225,6 +226,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.10  2006/06/23 17:13:48  mast
+c       Modified origin computation so it works with a 90 degree rotation
+c
 c       Revision 3.9  2006/06/01 14:17:08  mast
 c       Swirched to exiterror
 c
