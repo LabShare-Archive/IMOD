@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/31/07: Adde option to rotatevol to set fill value for areas with no image.
+
+1/31/07: Made clip transfer header "start" information to output file.
+
 1/24/07: Finishjoin no longer allows dashes in the slice range entries, because
 negative numbers can now be entered to get gray slices.
 

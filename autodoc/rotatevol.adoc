@@ -57,13 +57,6 @@ tooltip =
 manpage = Order of interpolation to use.  Currently only quadratic (2) and
 linear (1) interpolation are available; the default is quadratic.
 
-[Field = ParameterFile]
-short = param
-type = PF
-usage = Read parameter entries from file
-tooltip = 
-manpage = Read parameter entries as keyword-value pairs from a parameter file.
-
 [Field = QuerySizeNeeded]
 short = query
 type = B
@@ -72,6 +65,20 @@ tooltip =
 manpage = With this entry, the program will compute the size of the output
 volume needed to contain the whole original volume after rotation.  It will
 just print the sizes in X, Y, and Z then exit.
+
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to fill regions without image data (default is file mean)
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
 
 [Field = usage]
 short = help
