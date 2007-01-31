@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/31/07: Adde option to rotatevol to set fill value for areas with no image.
+1/31/07: Added option to rotatevol to set fill value for areas with no image.
 
 1/31/07: Made clip transfer header "start" information to output file.
 
