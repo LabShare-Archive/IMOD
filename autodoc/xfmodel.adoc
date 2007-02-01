@@ -161,6 +161,19 @@ are specified: with -xforms, the model will be back-transformed to match
 the raw images; with -prealign, the model will be transformed to match
 prealigned but distorted images.
 
+[Field = ScaleShifts]
+short = scale
+type = F
+usage = Factor to scale X/Y translations before applying transforms 
+factors
+tooltip = 
+manpage = Factor by which to scale X/Y translations in the transforms before
+applying them.  Use this option if a set of transforms is appropriate for
+images at one scale but the model was built on images at another scale.  For
+example, if images are scaled by binning, the factor would be the binning of
+the images that the transforms apply to, divided by the binning of the images
+on which the model was built.
+
 [Field = DistortionField]
 short = distort
 type = FN
