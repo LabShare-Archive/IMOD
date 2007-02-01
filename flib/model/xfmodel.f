@@ -31,7 +31,7 @@ c       real*4 delt(3)
       character*120 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
       character*120 magGradFile
       logical gotthis,gotlast,exist,readw_or_imod
-      integer*4 getimodhead,getimodscales,getimodmaxes
+      integer*4 getimodmaxes
       integer*4 limpnts/4/                      !min # of points for regression
 c       
       integer*4 i,nlistz,nfout,npclist,izrange,iffillgap,indf,indval
@@ -39,8 +39,7 @@ c
       real*4 xhaf,yhaf,xcen,ycen,critmean,critmax,dmin,dmax,dmean
       integer*4 ifxfmod,iftrans,ifrotrans,ifprealign,ntofind, ifmagrot
       integer*4 ifsingle,izsingle,iffullrpt,ierr,ierr2,ifflip,indg
-      real*4 xyscal,zscale,xofs,yofs,zofs
-      real*4 ximscale, yimscale, zimscale,zz,zdex,zthis,zlast
+      real*4 zz,zdex,zthis,zlast, shiftScale
       integer*4 nundefine,iobj,ipt,iz,nfgin,indind,izmin,izmax,ibase
       integer*4 lastsec,npnts,iobject,ninobj,ipnt,isol,ipntmax,j
       real*4 const,rsq,fra,theta,sinth,costh,gmag,devmax
@@ -69,22 +68,20 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  xfmodel
 c       
       integer numOptions
-      parameter (numOptions = 23)
+      parameter (numOptions = 24)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FN:@output:OutputFile:FN:@'//
-     &    'image:ImageFile:FN:@piece:PieceListFile:FN:@'//
-     &    'allz:AllZhaveTransforms:B:@center:CenterInXandY:FP:@'//
-     &    'transonly:TranslationOnly:B:@'//
+     &    'input:InputFile:FN:@output:OutputFile:FN:@image:ImageFile:FN:@'//
+     &    'piece:PieceListFile:FN:@allz:AllZhaveTransforms:B:@'//
+     &    'center:CenterInXandY:FP:@transonly:TranslationOnly:B:@'//
      &    'rottrans:RotationTranslation:B:@magrot:MagRotTrans:B:@'//
      &    'sections:SectionsToAnalyze:LI:@single:SingleSection:I:@'//
-     &    'full:FullReportMeanAndMax:FP:@'//
-     &    'prealign:PrealignTransforms:FN:@edit:EditTransforms:FN:@'//
-     &    'xforms:XformsToApply:FN:@useline:UseTransformLine:I:@'//
-     &    'chunks:ChunkSizes:LI:@back:BackTransform:B:@'//
+     &    'full:FullReportMeanAndMax:FP:@prealign:PrealignTransforms:FN:@'//
+     &    'edit:EditTransforms:FN:@xforms:XformsToApply:FN:@'//
+     &    'useline:UseTransformLine:I:@chunks:ChunkSizes:LI:@'//
+     &    'back:BackTransform:B:@scale:ScaleShifts:F:@'//
      &    'distort:DistortionField:FN:@binning:BinningOfImages:I:@'//
-     &    'gradient:GradientFile:FN:@param:ParameterFile:PF:@'//
-     &    'help:usage:B:'
+     &    'gradient:GradientFile:FN:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults
 c       
@@ -96,6 +93,7 @@ c
       ifDistort = 0
       ifMagGrad = 0
       numChunks = 0
+      shiftScale = 1.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -154,7 +152,7 @@ c
         endif
         call read_piece_list(modelfile,ixpclist,iypclist,izpclist,
      &      npclist)
-        if (npclist.gt.limpcl)call errorexit(
+        if (npclist.gt.limpcl)call exitError(
      &      'too many piece coordinates for arrays')
 c         
 c         if no pieces, set up mocklist
@@ -168,7 +166,7 @@ c         if no pieces, set up mocklist
         endif
 c         get ordered list of z values 
         call fill_listz(izpclist,npclist,listz,nlistz)
-        if (nlistz.gt.nflimit)call errorexit(
+        if (nlistz.gt.nflimit)call exitError(
      &      'too many Z values for arrays')
         
         call checklist(ixpclist,npclist,1,nx,minxpiece
@@ -246,7 +244,7 @@ c        print *,numChunks,(numInChunks(j),j=1,numChunks)
           do i = 1, numInChunks(j)
             indfl(indf) = j
             indf = indf + 1
-            if (indf .ge. nflimit) call errorexit(
+            if (indf .ge. nflimit) call exitError(
      &          'TOO MANY SECTIONS IN CHUNKS FOR ARRAYS')
           enddo
         enddo
@@ -256,7 +254,7 @@ c
       ifxfmod = 0
       ifprealign = 0
       if (PipGetInOutFile('InputFile', 1, 'Input model file', modelfile)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
       oldxfgfile = ' '
       oldxffile = ' '
       idfFile = ' '
@@ -270,6 +268,7 @@ c
         ierr = PipGetBoolean('RotationTranslation', ifrotrans)
         ierr = PipGetBoolean('MagRotTrans', ifmagrot)
         ierr = PipGetInteger('UseTransformLine', lineUse)
+        ierr = PipGetFloat('ScaleShifts', shiftScale)
 
         if (PipGetString('XformsToApply', oldxffile) .eq. 0) ifxfmod = 1
         if (PipGetString('DistortionField', idfFile) .eq. 0) ifxfmod = 1
@@ -280,10 +279,10 @@ c
 c         if back-transform, first check for legality
 c         
         if (PipGetBoolean('BackTransform', ifBack) .eq. 0) then
-          if (oldxffile .ne. ' ' .and. oldxfgfile .ne. ' ') call errorexit(
+          if (oldxffile .ne. ' ' .and. oldxfgfile .ne. ' ') call exitError(
      &        'You cannot enter both -xform and -prealign with -back')
           if (ifxfmod + ifprealign .eq. 0)
-     &        call errorexit('You must enter -xform, -prealign,'//
+     &        call exitError('You must enter -xform, -prealign,'//
      &        ' -distort or -gradient with -back')
 c           
 c           in any case, set filename for use in back-transform, clear out
@@ -299,23 +298,25 @@ c
           if (oldxfgfile .ne. ' ') ifprealign = 1
         endif
 c         
-        if (iftrans + ifrotrans + ifmagrot .gt. 1) call errorexit
+        if (iftrans + ifrotrans + ifmagrot .gt. 1) call exitError
      &      ('Only one of -trans, -rottrans, -magrot may be entered')
         if (iftrans + ifrotrans + ifmagrot .gt. 0 .and. ifxfmod .ne. 0)
-     &      call errorexit('You cannot both find transforms '//
+     &      call exitError('You cannot both find transforms '//
      &      'and transform a model')
+        if (ifxfmod .eq. 0 .and. shiftScale .ne. 0) call exitError
+     &      ('You cannot enter -scale unless you are transforming a model')
         if (iftrans .ne. 0) ifxfmod = 2
         if (ifrotrans .ne. 0) ifxfmod = 3
         if (ifmagrot .ne. 0) ifxfmod = 4
 
         if (.not.(ifxfmod .eq. -1 .or. (ifxfmod .eq. 1 .and. 
      &      (oldxffile .ne. ' ' .or. oldxfgfile .ne. ' '))))  then
-          if (lineUse .ge. 0) call errorexit('You cannot enter -useline'//
+          if (lineUse .ge. 0) call exitError('You cannot enter -useline'//
      &        ' unless you are transforming a model')
-          if (numChunks .gt. 0) call errorexit('You cannot enter -chunks'//
+          if (numChunks .gt. 0) call exitError('You cannot enter -chunks'//
      &        ' unless you are transforming a model')
         endif
-        if (lineuse .ge. 0 .and. numChunks .gt. 0) call errorexit('It is '//
+        if (lineuse .ge. 0 .and. numChunks .gt. 0) call exitError('It is '//
      &      'meaningless to enter both -useline and -chunks')
       else
 c         
@@ -349,7 +350,7 @@ c
       ntofind=0
       if (pipinput) then
         if (PipGetInOutFile('OutputFile', 2, ' ', newxffile) .ne. 0)
-     &      call errorexit('NO OUTPUT FILE SPECIFIED')
+     &      call exitError('NO OUTPUT FILE SPECIFIED')
         if(ifxfmod.eq.0)then
           oldxffile = ' '
           ierr = PipGetString('EditTransforms', oldxffile)
@@ -385,11 +386,11 @@ c
             if (PipGetInteger('BinningOfImages', iBinning) .ne. 0) then
               
               if (2. * xcen .le. idfNx * idfBinning / 2 .and.
-     &            2. * ycen .le. idfNy * idfBinning / 2) call errorexit
+     &            2. * ycen .le. idfNy * idfBinning / 2) call exitError
      &            ('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &            'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
             endif
-            if (iBinning .le. 0) call errorexit
+            if (iBinning .le. 0) call exitError
      &          ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
             binRatio = 1.
             if (iBinning .ne. idfBinning) then
@@ -499,10 +500,6 @@ c
       exist=readw_or_imod(modelfile)
       if(.not.exist)go to 91
 c       
-      ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
-      ierr2 = getimodscales(ximscale, yimscale, zimscale)
-      if (ierr .ne. 0 .or. ierr2 .ne. 0) call errorexit(
-     &    'getting model header')
 c       
 c       if the center is not yet defined, use the model header sizes
 c       
@@ -514,14 +511,9 @@ c
      &      'center coordinates:', xcen, ycen
       endif
 c       
-c       shift the data to display coordinates before using
+c       shift the data to image coordinates before using
 c       
-      do i=1,n_point
-        p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
-        p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
-        p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
-      enddo
-
+      call scale_model(0)
 c       
 c       first fill array with unit transforms in case things get weird
 c       
@@ -535,12 +527,13 @@ c       back-transform if necessary
 c         
 c         get g transforms into g list
         call xfrdall(3,g,noldg,*92)
-        if (noldg.gt.nflimit)call errorexit(
-     &      'too many transforms for arrays')   
+        if (noldg.gt.nflimit)call exitError('too many transforms for arrays')
         close(3)
 c         
 c         invert the g's into the g list
         do indg=1,noldg
+          g(1,3,indg) = g(1,3,indg) * shiftScale
+          g(2,3,indg) = g(2,3,indg) * shiftScale
           call xfinvert(g(1,1,indg),gtmp)
           call xfcopy(gtmp,g(1,1,indg))
         enddo
@@ -578,9 +571,12 @@ c
       if(oldxffile.ne.' ')then
         call dopen(1,oldxffile,'ro','f')
         call xfrdall(1,f,nfgin,*92)
-        if (nfgin.gt.nflimit)call errorexit(
-     &      'too many transforms for arrays')   
+        if (nfgin.gt.nflimit)call exitError('too many transforms for arrays')
         close(1)
+        do indg=1,nfgin
+          f(1,3,indg) = f(1,3,indg) * shiftScale
+          f(2,3,indg) = f(2,3,indg) * shiftScale
+        enddo
         lineToUse = lineUse
         if (nfgin .eq. 1 .and. numChunks .eq. 0) then
           lineToUse = 0
@@ -836,9 +832,9 @@ c
         close(2)
       endif
       call exit(0)
-91    call errorexit('reading model file')
-92    call errorexit('reading old f/g file')
-94    call errorexit('writing out f file')
+91    call exitError('reading model file')
+92    call exitError('reading old f/g file')
+94    call exitError('writing out f file')
       end
 
 
@@ -885,12 +881,7 @@ c           zdex=(zz+zorig)/delt(3)
       include 'model.inc'
       integer*4 nundefine
       character*(*) newmodel
-      integer*4 getimodhead,getimodscales,ifflip,i,ierr
-      real*4 xyscal,zscale,xofs,yofs,zofs
-      real*4 ximscale, yimscale, zimscale
       
-      ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
-      ierr = getimodscales(ximscale, yimscale, zimscale)
 c       
       if(nundefine.gt.0)print *,nundefine,
      &    ' points with Z values out of range of transforms'
@@ -898,24 +889,16 @@ c
 c       write model out
 c       shift the data back for saving
 c       
-      do i=1,n_point
-        p_coord(1,i)=ximscale*p_coord(1,i)+xofs
-        p_coord(2,i)=yimscale*p_coord(2,i)+yofs
-        p_coord(3,i)=zimscale*p_coord(3,i)+zofs
-      enddo
+      call scale_model(1)
       call write_wmod(newmodel)
       return
-      end
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: XFMODEL - ',message
-      call exit(1)
       end
 c       
 c       
 c       $Log$
+c       Revision 3.13  2006/02/27 16:54:30  mast
+c       Removed debug output of chunks
+c
 c       Revision 3.12  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
