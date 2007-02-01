@@ -192,11 +192,11 @@ if ("$refarg" != "") then
     endif
 endif
 
-# If trial mode with binning, adjust newsize and offset
+# If trial mode with binning, adjust newsize (and not offset - 1/31/07)
 #
 if ($trial == "") @ binning = 1
-if ($binning > 1) then
-    set arrtmp = `echo $offset | sed '/,/s// /g'`
+if ($binning > 1 && $newsize != "") then
+    set arrtmp = `echo $newsize | sed '/,/s// /g'`
     if ($#arrtmp < 2) goto twoerr
     set numtmp = `echo $arrtmp[1] | sed '/\..*/s///'`
     if ($numtmp == "") goto converr
@@ -207,22 +207,7 @@ if ($binning > 1) then
     if ($numtmp == "") goto converr
     @ ytmp = $numtmp
     @ ytmp /= $binning
-    set offset = $xtmp,$ytmp
-
-    if ($newsize != "") then
-        set arrtmp = `echo $newsize | sed '/,/s// /g'`
-        if ($#arrtmp < 2) goto twoerr
-        set numtmp = `echo $arrtmp[1] | sed '/\..*/s///'`
-        if ($numtmp == "") goto converr
-        @ xtmp = $numtmp
-        @ xtmp /= $binning
-
-        set numtmp = `echo $arrtmp[2] | sed '/\..*/s///'`
-        if ($numtmp == "") goto converr
-        @ ytmp = $numtmp
-        @ ytmp /= $binning
-        set newsize = $xtmp,$ytmp
-    endif
+    set newsize = $xtmp,$ytmp
 endif
 
 #  Get Z ranges
@@ -392,6 +377,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.19  2007/01/24 23:53:42  mast
+#  No longer allow dashes in slice ranges, so negative numbers can be used
+#
 #  Revision 3.18  2006/12/20 05:58:05  mast
 #  Added gap option to get blank output from newstack
 #
