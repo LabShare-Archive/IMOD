@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/2/07: Fixed bug in binvol when specifying input file with -input.
+
+1/31/07: Added option to Xfmodel to specify a scaling of the shifts so it can
+transform a model built on binned stack with transforms for unbinned stack.
+
+1/31/07: Stopped Finishjoin from scaling offset down by binning.
+
 1/31/07: Added option to rotatevol to set fill value for areas with no image.
 
 1/31/07: Made clip transfer header "start" information to output file.
