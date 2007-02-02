@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2006/07/11 19:28:18  mast
+c	  Set up to write in chunks too to work on really big images
+c	
 c	  Revision 3.3  2005/04/13 23:50:06  mast
 c	  Set up to read in chunks, so it only needs one large array
 c	
@@ -63,7 +66,7 @@ c
      &	    numNonOptArg)
 	if (PipGetInOutFile('InputFile', 1, ' ', filbig)
      &	    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
-	if (PipGetInOutFile('InputFile', 2, ' ', filout)
+	if (PipGetInOutFile('OutputFile', 2, ' ', filout)
      &	    .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
 
 c	  
