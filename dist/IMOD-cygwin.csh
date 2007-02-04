@@ -39,7 +39,7 @@ if (! $?IMOD_CALIB_DIR) setenv IMOD_CALIB_DIR `/usr/bin/cygpath -w /usr/local/Im
 
 # Source local startup file in ImodCalib if it exists
 #
-set IMOD_CALIB_CYG = `cygpath $IMOD_CALIB_DIR`
+set IMOD_CALIB_CYG = `/usr/bin/cygpath $IMOD_CALIB_DIR`
 if (-r $IMOD_CALIB_CYG/IMOD.csh) source $IMOD_CALIB_CYG/IMOD.csh
 
 # A subm alias to run command files in the background with submfg

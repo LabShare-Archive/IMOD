@@ -23,7 +23,7 @@ fi
 
 # Put the IMOD programs on the path
 #
-export PATH=`cygpath $IMOD_DIR`/bin:$PATH
+export PATH=`/usr/bin/cygpath $IMOD_DIR`/bin:$PATH
 
 # Specify the location of plugins if any
 #
@@ -35,7 +35,7 @@ export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=`/usr/bin/cygpath -w /usr/local/ImodCali
 
 # Source local startup file in ImodCalib if it exists
 #
-IMOD_CALIB_CYG=`cygpath $IMOD_CALIB_DIR`
+IMOD_CALIB_CYG=`/usr/bin/cygpath $IMOD_CALIB_DIR`
 if [ -r $IMOD_CALIB_CYG/IMOD.sh ] ; then
     . $IMOD_CALIB_CYG/IMOD.sh
 fi
