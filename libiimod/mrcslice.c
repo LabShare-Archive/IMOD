@@ -1787,6 +1787,74 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.15  2007/02/04 21:01:31  mast
+Fix id string
+
+Revision 3.14  2007/02/04 21:00:56  mast
+Documentation and cleanup of duplicate and bad code
+
+Revision 3.13  2006/09/28 21:16:15  mast
+Changed to allocate slices > 2 Gpixel and > 4 GPixel if on 64-bit machine
+
+Revision 3.12  2005/11/11 22:15:23  mast
+Changes for unsigned file mode
+
+Revision 3.11  2005/05/23 23:45:19  mast
+Changed calculation of slice mean to use doubles and temp sums
+
+Revision 3.10  2005/01/17 17:13:34  mast
+Used typedefs for structures, fixed new mode conversion to truncate
+bytes and ints
+
+Revision 3.9  2005/01/06 18:15:28  mast
+Fixed _lie scaling function, fixed matrix filtering function
+
+Revision 3.8  2004/12/02 21:54:53  mast
+Fixed sliceReadMRC to return null upon error
+
+Revision 3.7  2004/11/07 23:06:09  mast
+Fixed sliceGradient to not saturate
+
+Revision 3.6  2004/11/05 18:53:04  mast
+Include local files with quotes, not brackets
+
+Revision 3.5  2004/11/04 17:10:27  mast
+libiimod.def
+
+Revision 3.4  2004/09/10 21:33:53  mast
+Eliminated long variables
+
+*/
+
+Revision 3.13  2006/09/28 21:16:15  mast
+Changed to allocate slices > 2 Gpixel and > 4 GPixel if on 64-bit machine
+
+Revision 3.12  2005/11/11 22:15:23  mast
+Changes for unsigned file mode
+
+Revision 3.11  2005/05/23 23:45:19  mast
+Changed calculation of slice mean to use doubles and temp sums
+
+Revision 3.10  2005/01/17 17:13:34  mast
+Used typedefs for structures, fixed new mode conversion to truncate
+bytes and ints
+
+Revision 3.9  2005/01/06 18:15:28  mast
+Fixed _lie scaling function, fixed matrix filtering function
+
+Revision 3.8  2004/12/02 21:54:53  mast
+Fixed sliceReadMRC to return null upon error
+
+Revision 3.7  2004/11/07 23:06:09  mast
+Fixed sliceGradient to not saturate
+
+Revision 3.6  2004/11/05 18:53:04  mast
+Include local files with quotes, not brackets
+
+Revision 3.5  2004/11/04 17:10:27  mast
+libiimod.def
+
+Revision 3.4  2004/09/10 21:33:53 
 Revision 3.14  2007/02/04 21:00:56  mast
 Documentation and cleanup of duplicate and bad code
 
