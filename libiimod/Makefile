@@ -14,11 +14,10 @@ LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
- mrcslice.$(O) plist.$(O) sliceproc.$(O) \
- diffusion.$(O) iilikemrc.$(O)
+ mrcslice.$(O) plist.$(O) sliceproc.$(O) diffusion.$(O) iilikemrc.$(O)
 
-INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h $(INCDIR)/mrcproc.h \
- $(INCDIR)/mrcspectral.h $(INCDIR)/mrcc.h $(INCDIR)/b3dutil.h
+INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h \
+ $(INCDIR)/mrcc.h $(INCDIR)/b3dutil.h
 
 all : $(LIBS)
 
@@ -74,6 +73,9 @@ ALWAYS :
 
 
 #  $Log$
+#  Revision 3.16  2007/02/04 21:05:07  mast
+#  Removed mrcspectral and mrcproc
+#
 #  Revision 3.15  2006/09/02 23:51:41  mast
 #  Added iilikemrc
 #
