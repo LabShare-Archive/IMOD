@@ -2,40 +2,8 @@
 #
 # libiimod.a - C library for handling mrc and other types of files and images
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.14  2005/12/09 21:21:22  mast
-#  Take extension off dummytiff, it needs to come in complete
-#
-#  Revision 3.13  2005/08/30 06:17:03  mast
-#  Added extension to the dummy tiff lib
-#
-#  Revision 3.12  2005/07/15 03:43:44  mast
-#  Put LIBIIMODDEF at end of link line so -ltiff on Mac will work
-#
-#  Revision 3.11  2005/01/27 05:56:56  mast
-#  Added anisotropic diffusion
-#
-#  Revision 3.10  2005/01/18 22:08:30  mast
-#  Needed to add / after INCDIR
-#
-#  Revision 3.9  2005/01/07 20:00:12  mast
-#  Added sliceproc
-#
-#  Revision 3.8  2004/04/08 17:04:36  mast
-#  Changed to use a separate LIBCFLAGS variable
-#
-#  Revision 3.7  2003/12/30 17:29:15  mast
-#  changes for windows DLLs and to produce nolibtiff only when needed
-#
-#  Revision 3.6  2003/11/04 17:21:20  mast
-#  Add dependencies on b3dutil.h
-#
+#  $Id$
+#  Log at end
 #
 include ../configure
 
@@ -46,7 +14,7 @@ LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
- mrcslice.$(O) mrcproc.$(O) mrcspectral.$(O) plist.$(O) sliceproc.$(O) \
+ mrcslice.$(O) plist.$(O) sliceproc.$(O) \
  diffusion.$(O) iilikemrc.$(O)
 
 INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h $(INCDIR)/mrcproc.h \
@@ -104,3 +72,35 @@ sliceproc.$(O) : $(INCDIR)/sliceproc.h
 ALWAYS :
 
 
+
+#  $Log$
+#  Revision 3.15  2006/09/02 23:51:41  mast
+#  Added iilikemrc
+#
+#  Revision 3.14  2005/12/09 21:21:22  mast
+#  Take extension off dummytiff, it needs to come in complete
+#
+#  Revision 3.13  2005/08/30 06:17:03  mast
+#  Added extension to the dummy tiff lib
+#
+#  Revision 3.12  2005/07/15 03:43:44  mast
+#  Put LIBIIMODDEF at end of link line so -ltiff on Mac will work
+#
+#  Revision 3.11  2005/01/27 05:56:56  mast
+#  Added anisotropic diffusion
+#
+#  Revision 3.10  2005/01/18 22:08:30  mast
+#  Needed to add / after INCDIR
+#
+#  Revision 3.9  2005/01/07 20:00:12  mast
+#  Added sliceproc
+#
+#  Revision 3.8  2004/04/08 17:04:36  mast
+#  Changed to use a separate LIBCFLAGS variable
+#
+#  Revision 3.7  2003/12/30 17:29:15  mast
+#  changes for windows DLLs and to produce nolibtiff only when needed
+#
+#  Revision 3.6  2003/11/04 17:21:20  mast
+#  Add dependencies on b3dutil.h
+#
