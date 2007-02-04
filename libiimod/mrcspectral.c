@@ -99,7 +99,7 @@ int mrc_3dfft(struct MRCvolume *v, int direction)
     }
     free(ftmp);
     mrc_slice_putvol(v, s, x, 'x');
-    mrc_slice_free(s);
+    sliceFree(s);
   }
   return(0);
 }
@@ -120,7 +120,7 @@ struct MRCslice *mrc_fftx(struct MRCslice *si, int direction, int doy)
   int nn[3];
 
 
-  s = mrc_slice_create(si->xsize + mrc_pow2pad(si->xsize), 
+  s = sliceCreate(si->xsize + mrc_pow2pad(si->xsize), 
                        si->ysize + mrc_pow2pad(si->ysize), 
                        MRC_MODE_COMPLEX_FLOAT);
 
@@ -215,7 +215,7 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
     ysize = 2 * s1->ysize;
   xsize = 2 * s1->xsize;
 
-  sg   = (struct MRCslice *)mrc_slice_create
+  sg   = (struct MRCslice *)sliceCreate
     (xsize, ysize, s1->mode);
   if (!sg){
     b3dError(stderr, "cor: error, not enough memory.\n");
@@ -223,7 +223,7 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
   }
 
   if (!autocorr)
-    sh   = mrc_slice_create(xsize, ysize, s2->mode);
+    sh   = sliceCreate(xsize, ysize, s2->mode);
   else
     sh = sg;
 
@@ -270,16 +270,16 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
   corr_conj(stg->data.f, sth->data.f, stg->xsize * stg->ysize);
   sc = mrc_fft(stg, -1);
 
-  mrc_slice_free(sg);
-  mrc_slice_free(stg);
+  sliceFree(sg);
+  sliceFree(stg);
   if (!autocorr){
-    mrc_slice_free(sh);
-    mrc_slice_free(sth);
+    sliceFree(sh);
+    sliceFree(sth);
   }
      
   rsc = mrc_slice_real(sc);
-  mrc_slice_free(sc);
-  ssc = mrc_slice_create(s1->xsize, s1->ysize, MRC_MODE_FLOAT);
+  sliceFree(sc);
+  ssc = sliceCreate(s1->xsize, s1->ysize, MRC_MODE_FLOAT);
 
   ym = ssc->ysize / 2;
   xm = ssc->xsize / 2;
@@ -310,57 +310,10 @@ struct MRCslice *mrc_corr(struct MRCslice *s1, struct MRCslice *s2)
       slicePutVal(ssc, x, y, val);
     }
 
-  mrc_slice_free(rsc);
+  sliceFree(rsc);
   return(ssc);
      
 }
-
-/* sin is the slice input, low and high are between (0 - 0.5) */
-int mrc_bandpass_filter(struct MRCslice *sin, double low, double high)
-{
-  int i, j;
-  double dist, mval, dx, dy, xscale, xadd, power = 3;
-  Ival val;
-     
-  if (sin->mode != MRC_MODE_COMPLEX_FLOAT){
-    b3dError(stderr, " mrc_band_filter: Only complex float mode.\n");
-    return(-1);
-  }
-
-  /* Set up X coordinate scaling for odd or even (mirrored) FFTs */
-  if (sin->xsize % 2) {
-    xscale = 0.5 / (sin->xsize - 1.);
-    xadd = 0.;
-  } else {
-    xscale = 1. / sin->xsize;
-    xadd = -0.5;
-  }
-
-  for (j = 0; j < sin->ysize; j++)
-    for(i = 0; i < sin->xsize; i++){
-      dx = xscale * i + xadd;
-
-      dy = (float)j / sin->ysize - 0.5;
-      dist = sqrt(dx *dx + dy * dy);
-      if (low > 0.) {
-        if (dist < 0.00001)
-          mval = 0;
-        else
-          mval = 1 / (1 + pow(low / dist, power));
-      } else 
-        mval = 1.0;
-           
-      if (high > 0.0)
-        mval *= 1 / (1 + pow(dist / high, power));
-
-      sliceGetVal(sin, i, j, val);
-      val[0] *= mval;
-      val[1] *= mval;
-      slicePutVal(sin, i, j, val);
-    }
-  return(0);
-}
-
 
 
 
@@ -437,24 +390,6 @@ int corr_conj3d(struct MRCvolume *v1, struct MRCvolume *v2)
   size = v1->vol[0]->xsize * v1->vol[0]->ysize;
   for (k = 0; k < v1->zsize; k++)
     corr_conj(v1->vol[k]->data.f, v2->vol[k]->data.f, size);
-  return(0);
-}
-
-int corr_conj(float *g, float *h, int size)
-{
-  int i;
-  int real, imag;
-  float temp, rtmp, itmp;
-
-  for ( i = 0; i < size; i++){
-    real = i * 2;
-    imag = real + 1;
-    temp = g[real];
-    rtmp = h[real];
-    itmp = h[imag];
-    g[real] = rtmp * temp + itmp * g[imag];
-    g[imag] = itmp * temp - rtmp * g[imag];
-  }
   return(0);
 }
 

@@ -44,8 +44,6 @@ struct MRCslice *mrc_corr (struct MRCslice *s1, struct MRCslice *s2);
 
 void  mrc_1dfft(float *data, int nn, int isign);
 int corr_conj3d(struct MRCvolume *v1, struct MRCvolume *v2);
-int corr_conj(float *g, float *h, int size);
-int mrc_bandpass_filter(struct MRCslice *sin, double low, double high);
 
 #ifdef __cplusplus
 }
