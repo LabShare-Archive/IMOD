@@ -1,17 +1,22 @@
 /*
- *  $Id$
+ *  mrcslice.h : Definitions and declarations for mrcslice.c
  *
- *  Author: James Kremer email: kremer@colorado.edu
+ *  Original author: James Kremer
+ *  Revised by David Mastronarde
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
 
 #ifndef MRCSLICE_H
 #define MRCSLICE_H
 #include "mrcfiles.h"
 
+/* DOC_CODE MRCslice definitions */
 /* The following modes are supported by the MRC file format. */
 #define SLICE_MODE_BYTE          0   /* type unsigned char                   */
 #define SLICE_MODE_SHORT         1   /* type short                           */
@@ -21,15 +26,22 @@
 #define SLICE_MODE_USHORT        6   /* unsigned short                       */
 #define SLICE_MODE_RGB           16  /* 3 channels of bytes                  */
 
+/* Other modes */
 #define SLICE_MODE_MAX           99  /* float data with max channels.        */
 #define SLICE_MODE_UNDEFINED     -1  /* float data with max channels.        */
 
+/* The maximum values for channels and bytes/channel */
 #define SLICE_MAX_CSIZE          3   /* max channels.                        */
 #define SLICE_MAX_DSIZE          4   /* max data size of pixel in bytes.     */
+/* END_CODE */
 
-
+/* DOC_CODE Ival type */
+/* An Ival is just an small array of floats to hold any type of data */
 typedef float Ival[SLICE_MAX_CSIZE];
+/* END_CODE */
 
+/* DOC_CODE Islice structure */
+/* Union to support all data types */
 union MRCdata
 {
   unsigned char *b;
@@ -38,17 +50,10 @@ union MRCdata
   b3dFloat      *f;
 };
 
-union VOLdata
-{
-  unsigned char **b;
-  b3dInt16      **s;
-  b3dUInt16     **us;
-  b3dFloat      **f;
-};
-
+/* The Islice structure */
 typedef struct MRCslice
 {
-  union MRCdata data;
+  union MRCdata data;              /* pointer to data: data.b, data.s, etc */
   b3dInt32 xsize;                  /* size of data.           */
   b3dInt32 ysize;
   b3dInt32 mode;                   /* type of storage         */
@@ -58,117 +63,87 @@ typedef struct MRCslice
   b3dInt32 index;                  /* index of current value  */
   float  cval[SLICE_MAX_CSIZE];  /* value of current index  */
 }Islice;
+/* END_CODE */
 
+/* DOC_CODE Istack structure */
+/* An Istack is an array of pointers to Islice structures, plus a size */
 typedef struct MRCvolume
 {
   struct MRCslice **vol;
   b3dInt32           zsize;
 }Istack;
+/* END_CODE */
 
-typedef struct BL3DFSvolume
-{
-  union VOLdata data;
-  b3dInt32 xsize;
-  b3dInt32 ysize;
-  b3dInt32 zsize;
-  b3dInt32 tsize;
-  b3dInt32 mode;
-  b3dInt32 csize;
-  b3dInt32 dsize;
-  b3dInt32 index;
-  float cval[SLICE_MAX_CSIZE]; 
-}Ivol;
-
+/* 2/3/07: removed VOLdata union and BL3DFSvolume (4D) volume structure */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-  /*****************************************************************************/
-  /* library functions                                                         */
-  int     sliceInit   (Islice *s, int xsize, int ysize, int mode, void *data);
+  /***************************************************************************/
+  /* library functions                                                       */
   Islice *sliceCreate (int xsize, int ysize, int mode);
+  int     sliceInit   (Islice *s, int xsize, int ysize, int mode, void *data);
   void    sliceFree   (Islice *s);
-  int     sliceMode   (char *mst);
   void    sliceClear  (Islice *sl, Ival val);
+  int     sliceGetXSize(Islice *slice);
+  int     sliceGetYSize(Islice *slice);
   int     sliceGetVal (Islice *s, int x, int y, Ival val);
   float   sliceGetPixelMagnitude(Islice *s, int x, int y);
   float   sliceGetValMagnitude(Ival val, int mode);
   int     slicePutVal (Islice *s, int x, int y, Ival val);
   int     sliceNewMode(Islice *s, int mode);
-  void    sliceQuadInterpolate(Islice *sl, double x, double y, Ival val);
-  Islice *sliceGradient(Islice *sin);
+  int     sliceFloat(Islice *slice);
+  int     sliceComplexFloat(Islice *slice);
+  void    sliceMMM(Islice *slice);
+  Islice *mrc_slice_getvol(Istack *v, int sno, char axis);
+  int     mrc_slice_putvol(Istack *v, Islice *s, int sno, char axis);
+  int     sliceMode(char *mst);
+  int     corr_conj(float *g, float *h, int size);
+
+  int     sliceAddConst(Islice *slice, Ival c);
+  int     sliceMultConst(Islice *slice, Ival c);
+  int     mrc_slice_valscale(Islice *s, double scale);
+  int     mrc_slice_lie(Islice *sin, double in, double alpha);
+
   Islice *sliceBox(Islice *sl, int llx, int lly, int urx, int ury);
   int     sliceBoxIn(Islice *sl, int llx, int lly, int urx, int ury);
   int     sliceResizeIn(Islice *sl, int x, int y);
+  Islice *mrc_slice_resize(Islice *slin, int nx, int ny);
+  int     sliceMirror(Islice *s, char axis);
+  int     sliceWrapFFTLines(Islice *s);
+  int     sliceReduceMirroredFFT(Islice *s);
 
-  int sliceWriteMRCfile(char *filename, Islice *slice);
+  int     sliceWriteMRCfile(char *filename, Islice *slice);
   Islice *sliceReadMRC(struct MRCheader *hin, int sno, char axis);
   Islice *sliceReadSubm(struct MRCheader *hin, int sno, char axis,
                         int s1, int s2, int c1, int c2);
-  void sliceMMM(Islice *slice);
-  int sliceMirror(Islice *s, char axis);
-  int sliceAddConst(Islice *slice, Ival c);
 
-  int sliceFloat(Islice *slice);
-  int sliceComplexFloat(Islice *slice);
-  int mrc_slice_wrap(struct MRCslice *s);
-  int sliceWrapFFTLines(Islice *s);
-  int sliceReduceMirroredFFT(Islice *s);
+  Islice *sliceGradient(Islice *sin);
+  int     mrc_bandpass_filter(Islice *sin, double low, double high);
+  Islice *slice_mat_filter(Islice *sin, float *mat, int dim);
+  void   mrc_slice_mat_getimat(Islice *sin, int x, int y, int dim, float *mat);
+  float  mrc_slice_mat_mult(float *m1, float *m2, int dim);
+  Islice *mrc_slice_translate(Islice *sin, double dx, double dy,
+                              int xsize, int ysize);
+  Islice *mrc_slice_zoom(Islice *sin, double xz, double yz, 
+                         int xsize, int ysize, double cx, double cy);
+  int     mrc_slice_zooms(Islice *sin, Islice *sout, double xz, double yz,
+                          double cx,    double cy);
+  Islice *mrc_slice_rotate(Islice *slin, double angle, int xsize, int ysize,
+                           double cx, double cy);
+  int      mrc_slice_rotates(Islice *slin, Islice *sout,
+                        double angle, double cx, double cy);
+  void    sliceQuadInterpolate(Islice *sl, double x, double y, Ival val);
 
 
   /***************************************************************************/
-  /* internal/test functions */
-  int mrc_slice_init(struct MRCslice *s, int xsize, int ysize, 
-                     int mode, void *data);
-  int mrc_slice_free(struct MRCslice *s);
-  struct MRCslice *mrc_slice_create(int xsize, int ysize, int mode);
+  /* unused/undocumented functions */
 
-  int mrc_slice_getval(struct MRCslice *s, int x, int y, float *val);
-  int mrc_slice_putval(struct MRCslice *s, int x, int y, float *val);
-  int mrc_slice_calcmmm(struct MRCslice *s);
-  struct MRCslice *mrc_slice_real(struct MRCslice *sin);
-
-  struct MRCslice *mrc_slice_translate(struct MRCslice *sin,
-                                       double dx, double dy,
-                                       int xsize, int ysize);
-  struct MRCslice *mrc_slice_zoom(struct MRCslice *sin,
-                                  double xz, double yz, 
-                                  int xsize, int ysize,
-                                  double cx, double cy);
-  int mrc_slice_zooms(struct MRCslice *sin, struct MRCslice *sout,
-                      double xz, double yz,
-                      int xsize, int ysize,
-                      double cx,    double cy);
-  struct MRCslice *mrc_slice_rotate(struct MRCslice *slin, double angle,
-                                    int xsize, int ysize,
-                                    double cx, double cy);
-  int mrc_slice_rotates(struct MRCslice *slin, struct MRCslice *sout,
-                        double angle, int xsize, int ysize,
-                        double cx, double cy);
-  float mrc_slice_getmagnitude(struct MRCslice *s, int x, int y);
-  struct MRCslice *mrc_slice_resize(struct MRCslice *slin, int nx, int ny);
-  struct MRCslice *mrc_slice_getvol(struct MRCvolume *v, int sno, char axis);
-  int mrc_slice_putvol(struct MRCvolume *v, struct MRCslice *s, 
-                       int sno, char axis);
-  struct MRCslice *slice_mat_filter(struct MRCslice *sin, float *mat, int dim);
-  int mrc_slice_lie_img(struct MRCslice *sin, 
-                        struct MRCslice *mask, double alpha);     
-  int mrc_slice_interpolate(struct MRCslice *sin,
-                            double x, double y, float *val);
-  int mrc_slice_lie(struct MRCslice *sin, double in, double alpha);
-  int mrc_slice_valscale(struct MRCslice *s, double scale);
-
-  void mrc_slice_mat_getimat(struct MRCslice *sin, int x, int y, int dim, 
-                             float *mat);
-  float mrc_slice_mat_mult(float *m1, float *m2, int dim);
-  int mrc_vol_wrap(struct MRCvolume *v);
-  int sliceGetXSize(Islice *slice);
-  int sliceGetYSize(Islice *slice);
-  int sliceMultConst(Islice *slice, Ival c);
-
-
-
+  Islice *mrc_slice_real(Islice *sin);
+  int mrc_vol_wrap(Istack *v);
+  int mrc_slice_wrap(Islice *s);
+  int mrc_slice_lie_img(Islice *sin, Islice *mask, double alpha);     
 
 
 #ifdef __cplusplus
@@ -178,6 +153,8 @@ extern "C" {
 
 /* macro functions */
 /* no error checking. */
+#define mrc_slice_create sliceCreate
+#define mrc_slice_calcmmm sliceMMM
 #define sliceGetComplexFloatVal(s,x,y,val) memcpy((val), ((s)->data.f + ( 2 * ((x) + ((y) * (s)->xsize)))), 8)
 #define slicePutComplexFloatVal(s,x,y,val) memcpy(((s)->data.f + ( 2 * ((x) + ((y) * (s)->xsize)))), (val), 8)
 #define slicePutFloatVal(s,x,y,val) ((s)->data.f[ (x) + ((y) + ((s)->xsize))]=(val))
@@ -185,3 +162,7 @@ extern "C" {
 
 
 #endif /* islice.h */
+
+/*
+  $Log$
+*/
