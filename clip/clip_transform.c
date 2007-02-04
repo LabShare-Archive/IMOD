@@ -12,6 +12,9 @@
 
 /*
 $Log$
+Revision 3.3  2007/02/04 21:10:15  mast
+Function name changes from mrcslice cleanup
+
 Revision 3.2  2005/01/17 17:07:40  mast
 Converted to new typedefs, looked at code in horror and abandoned it
 
@@ -20,7 +23,6 @@ Converted to new typedefs, looked at code in horror and abandoned it
 #include <stdlib.h>
 #include "mrcfiles.h"
 #include "mrcslice.h"
-#include "mrcspectral.h"
 #include "clip.h"
 
 
