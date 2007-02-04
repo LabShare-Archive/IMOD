@@ -8,6 +8,7 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
+ *  $Id: 
  *  $Id$
  *  Log at end
  */
@@ -19,7 +20,6 @@
 #include "mrcfiles.h"
 #include "mrcslice.h"
 #include "sliceproc.h"
-#include "mrcspectral.h"
 #include "b3dutil.h"
 #include "clip.h"
 
@@ -1490,6 +1490,54 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.18  2007/02/04 21:10:15  mast
+Function name changes from mrcslice cleanup
+
+Revision 3.17  2006/08/04 21:04:50  mast
+Made clip stat a little faster for ints and added min location
+
+Revision 3.16  2006/06/23 17:13:19  mast
+Added rotx option and adjusted header as in rotatevol
+
+Revision 3.15  2005/11/15 19:55:28  mast
+Fixed initialization of grand sum for stat
+
+Revision 3.14  2005/11/11 22:14:56  mast
+Changes for unsigned file mode
+
+Revision 3.13  2005/05/23 23:31:29  mast
+Switched mean and SD computation to use doubles
+
+Revision 3.12  2005/02/11 01:42:32  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.11  2005/01/28 05:43:08  mast
+Changed defaults for diffusion to match 3dmod
+
+Revision 3.10  2005/01/27 05:55:17  mast
+Added anisotropic diffusion option
+
+Revision 3.9  2005/01/17 17:11:02  mast
+Changes for new typedefs and 2D processing scheme
+
+Revision 3.8  2005/01/07 20:13:59  mast
+Fixed problems with filtering and scaling, added many filtering operations
+
+
+Revision 3.7  2004/09/21 22:31:13  mast
+Added return 0 for split_rgb and join_rgb functions
+
+Revision 3.6  2004/04/22 19:08:45  mast
+Added error checks and returns on mrc I/O calls
+
+Revision 3.5  2004/01/17 20:32:33  mast
+Remove unneeded rewind
+
+Revision 3.4  2004/01/16 18:09:52  mast
+Added functions to split and join rgb images
+
+*/
+
 Revision 3.17  2006/08/04 21:04:50  mast
 Made clip stat a little faster for ints and added min location
 

@@ -21,7 +21,6 @@ Log at end of file
 #include <string.h>
 #include "mrcfiles.h"
 #include "mrcslice.h"
-#include "mrcspectral.h"
 #include "clip.h"
 #include "imodconfig.h"
 #include "b3dutil.h"
@@ -612,6 +611,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.16  2006/06/23 17:12:02  mast
+Added rotx option
+
 Revision 3.15  2005/01/28 05:42:22  mast
 Set low to IP_DEFAULT so default would work for diffusion
 
