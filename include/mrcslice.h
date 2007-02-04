@@ -95,7 +95,7 @@ extern "C" {
   int     sliceNewMode(Islice *s, int mode);
   int     sliceFloat(Islice *slice);
   int     sliceComplexFloat(Islice *slice);
-  void    sliceMMM(Islice *slice);
+  int     sliceMMM(Islice *slice);
   Islice *mrc_slice_getvol(Istack *v, int sno, char axis);
   int     mrc_slice_putvol(Istack *v, Islice *s, int sno, char axis);
   int     sliceMode(char *mst);
@@ -165,4 +165,7 @@ extern "C" {
 
 /*
   $Log$
+  Revision 3.5  2007/02/04 20:57:14  mast
+  Changes for documentation and cleanup
+
 */
