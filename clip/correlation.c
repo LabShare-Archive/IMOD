@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,7 +50,7 @@ void corr_getmax(Islice *is, int sa, int xm, int ym, float *x, float *y)
   row = weight = 0.0f;
   for(i = 0; i < xs; i++)
     for(j = 0; j < ys; j++){
-      ftmp = mrc_slice_getmagnitude(s, i, j);
+      ftmp = sliceGetPixelMagnitude(s, i, j);
 
       /*         printf("ftmp %d, %d = %g\n", i, j, ftmp); */
       if (ftmp > 0){
@@ -71,7 +66,7 @@ void corr_getmax(Islice *is, int sa, int xm, int ym, float *x, float *y)
   row = weight = 0.0f;
   for(i = 0; i < xs; i++)
     for(j = 0; j < ys; j++){
-      ftmp = mrc_slice_getmagnitude(s, i, j);
+      ftmp = sliceGetPixelMagnitude(s, i, j);
       if (ftmp > 0){
         row += (j + 1) * ftmp;
         weight += ftmp;
@@ -85,9 +80,9 @@ void corr_getmax(Islice *is, int sa, int xm, int ym, float *x, float *y)
   /* max value */
   /*
     x1 = xmax - 1; x2 = xmax; x3 = xmax + 1;
-    y1 = mrc_slice_getmagnitude(v->vol[k], xmax - 1, ymax);
-    y2 = mrc_slice_getmagnitude(v->vol[k], xmax, ymax);
-    y3 = mrc_slice_getmagnitude(v->vol[k], xmax + 1, ymax);
+    y1 = sliceGetPixelMagnitude(v->vol[k], xmax - 1, ymax);
+    y2 = sliceGetPixelMagnitude(v->vol[k], xmax, ymax);
+    y3 = sliceGetPixelMagnitude(v->vol[k], xmax + 1, ymax);
     a = (y1*(x2-x3)) + (y2*(x3-x1)) + (y3*(x1-x2));
     b = (x1*x1*(y2-y3)) + (x2*x2*(y3-y1)) + (x3*x3*(y1-y2));
     if (a)
@@ -96,9 +91,9 @@ void corr_getmax(Islice *is, int sa, int xm, int ym, float *x, float *y)
     x = xmax;
 
     x1 = ymax - 1; x2 = ymax; x3 = ymax + 1;
-    y1 = mrc_slice_getmagnitude(v->vol[k], xmax, ymax - 1);
-    y2 = mrc_slice_getmagnitude(v->vol[k], xmax, ymax);
-    y3 = mrc_slice_getmagnitude(v->vol[k], xmax, ymax + 1);
+    y1 = sliceGetPixelMagnitude(v->vol[k], xmax, ymax - 1);
+    y2 = sliceGetPixelMagnitude(v->vol[k], xmax, ymax);
+    y3 = sliceGetPixelMagnitude(v->vol[k], xmax, ymax + 1);
     a = (y1*(x2-x3)) + (y2*(x3-x1)) + (y3*(x1-x2));
     b = (x1*x1*(y2-y3)) + (x2*x2*(y3-y1)) + (x3*x3*(y1-y2));
     if (a)
@@ -375,11 +370,11 @@ int grap_3dcorr(MrcHeader *hin1, MrcHeader *hin2,
 
      
   size = hin1->nx * hin1->ny;
-  sin1 = mrc_slice_create(hin1->nx, hin1->ny, MRC_MODE_COMPLEX_FLOAT);
+  sin1 = sliceCreate(hin1->nx, hin1->ny, MRC_MODE_COMPLEX_FLOAT);
   if (autoc)
     sin2 = sin1;
   else
-    sin2 = mrc_slice_create(hin1->nx, hin1->ny, MRC_MODE_COMPLEX_FLOAT);
+    sin2 = sliceCreate(hin1->nx, hin1->ny, MRC_MODE_COMPLEX_FLOAT);
 
   for(k = 0; k < hin1->nz; k++){
     if (mrc_read_slice((void *)sin1->data.b, hin1->fp, hin1, k, 'z'))
@@ -491,18 +486,18 @@ int grap_corr(MrcHeader *hin1, MrcHeader *hin2,
 
   /*     printf(" %d %d %d %d\n", llx, lly, urx, ury); */
 
-  mrc_slice_init(&sin1, hin1->nx, hin1->ny, hin1->mode, buf1);
+  sliceInit(&sin1, hin1->nx, hin1->ny, hin1->mode, buf1);
   sliceMMM(&sin1);
   sliceBoxIn(&sin1, llx, lly, urx, ury);
   sliceMMM(&sin1);
 
   if (opt->infiles == 2){
-    mrc_slice_init(&sin2, hin2->nx, hin2->ny, hin2->mode, buf2);
+    sliceInit(&sin2, hin2->nx, hin2->ny, hin2->mode, buf2);
     sliceMMM(&sin2);
     sliceBoxIn(&sin2, llx, lly, urx, ury);
     sliceMMM(&sin2);
   }else{
-    mrc_slice_init(&sin2, hin2->nx, hin2->ny, hin1->mode, buf2);
+    sliceInit(&sin2, hin2->nx, hin2->ny, hin1->mode, buf2);
     sliceMMM(&sin2);
     sliceBoxIn(&sin2, llx, lly, urx, ury);
     sliceMMM(&sin2);  
@@ -583,11 +578,11 @@ int grap_corr(MrcHeader *hin1, MrcHeader *hin2,
     
   /* now find the exact peak location */
   xmax = ymax = 0;
-  max = mrc_slice_getmagnitude(cslice, 0, 0);
+  max = sliceGetPixelMagnitude(cslice, 0, 0);
   
   for(j = 0; j < cslice->ysize; j++)
     for(i = 0; i < cslice->xsize; i++){
-      m = mrc_slice_getmagnitude(cslice, i, j);
+      m = sliceGetPixelMagnitude(cslice, i, j);
       if (m > max){
         max = m;
         xmax = i;
@@ -616,7 +611,7 @@ int grap_corr(MrcHeader *hin1, MrcHeader *hin2,
     for (dj = 0, j = ymax - 1; j <= ymax + 1; j++, dj++)
       for(di = 0,i = xmax - 1; i <= xmax + 1; i++ , di++)
         data[dj][di] =
-          mrc_slice_getmagnitude(cslice, i, j);
+          sliceGetPixelMagnitude(cslice, i, j);
 
     parabolic_fit(&cx, &cy, data);
     x = cx + xmax;
@@ -632,7 +627,7 @@ int grap_corr(MrcHeader *hin1, MrcHeader *hin2,
   printf("Maximum at ( %.2f, %.2f), transformation ( %.2f, %.2f)\n", 
          x, y, -x, -y);
 
-  mrc_slice_free(cslice);
+  sliceFree(cslice);
   free(sin1.data.b);
   free(sin2.data.b);
   return(0);
@@ -744,6 +739,9 @@ double parabolic_fit(double *outX, double *outY, double i[3][3])
 
 /*
 $Log$
+Revision 3.6  2005/01/17 17:09:24  mast
+Converted to new typedefs
+
 Revision 3.5  2005/01/12 22:34:28  mast
 Really fixed it this time
 

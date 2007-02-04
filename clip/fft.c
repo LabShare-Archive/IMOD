@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -548,7 +544,7 @@ int clip_3dffft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   show_status("Demangeling.\n");
   clip_wrapfile(hout);
 
-  s = mrc_slice_create(hout->nx, hout->ny, hout->mode);
+  s = sliceCreate(hout->nx, hout->ny, hout->mode);
   if (mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z'))
     return -1;
   sliceMMM(s);
@@ -711,6 +707,9 @@ int clip_nicesize(int size)
 
 /*
 $Log$
+Revision 3.7  2005/01/17 17:08:48  mast
+Rarranged file, put in option checks, converted to new 2D processing
+
 Revision 3.6  2004/11/04 17:04:21  mast
 Switched to producing and using non-mirrored FFTs
 

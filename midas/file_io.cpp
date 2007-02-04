@@ -7,31 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.7  2004/11/05 18:53:22  mast
-Include local files with quotes, not brackets
-
-Revision 3.6  2004/08/04 22:35:13  mast
-Changed unsigned long to b3dUInt32 for 64-bit use
-
-Revision 3.5  2004/07/12 18:42:43  mast
-Changes for chunk alignment
-
-Revision 3.4  2003/12/17 21:44:19  mast
-Changes to implement global rotations
-
-Revision 3.3  2003/11/01 16:43:10  mast
-changed to put out virtually all error messages to a window
-
-*/
 
 #include <stdlib.h>
 #include "midas.h"
@@ -146,7 +125,7 @@ int save_view(struct Midas_view *vw, char *filename)
   struct MRCslice *s, *orgSlice;
   int k;
 
-  s = mrc_slice_create(vw->xsize, vw->ysize, MRC_MODE_BYTE);
+  s = sliceCreate(vw->xsize, vw->ysize, MRC_MODE_BYTE);
   if (!s) {
     midas_error("Error creating slice. ","Out of memory", 0);
     return(-1);
@@ -178,7 +157,7 @@ int save_view(struct Midas_view *vw, char *filename)
   }
 
   /* Clean up and restore. */
-  mrc_slice_free(s);
+  sliceFree(s);
   fclose(hout->fp);
   return(0);
 }
@@ -319,3 +298,26 @@ int write_transforms(struct Midas_view *vw, char *filename)
   file.close();
   return(0);
 }
+
+/*
+$Log$
+Revision 3.8  2005/11/08 02:37:25  mast
+Added a space to ecd output
+
+Revision 3.7  2004/11/05 18:53:22  mast
+Include local files with quotes, not brackets
+
+Revision 3.6  2004/08/04 22:35:13  mast
+Changed unsigned long to b3dUInt32 for 64-bit use
+
+Revision 3.5  2004/07/12 18:42:43  mast
+Changes for chunk alignment
+
+Revision 3.4  2003/12/17 21:44:19  mast
+Changes to implement global rotations
+
+Revision 3.3  2003/11/01 16:43:10  mast
+changed to put out virtually all error messages to a window
+
+*/
+

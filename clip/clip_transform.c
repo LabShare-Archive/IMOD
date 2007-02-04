@@ -6,15 +6,14 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
+/*
 $Log$
+Revision 3.2  2005/01/17 17:07:40  mast
+Converted to new typedefs, looked at code in horror and abandoned it
 
 */
 
@@ -53,7 +52,7 @@ int grap_rotate(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   opt->cy = hout->ny * 0.5;
   opt->cz = hout->nz * 0.5;
 
-  sin = mrc_slice_create(hin->nx, hin->ny, hin->mode);
+  sin = sliceCreate(hin->nx, hin->ny, hin->mode);
   vol = (Islice **)malloc( opt->oz * sizeof(Islice *));
   v.vol = vol;
   v.zsize = opt->oz;
@@ -70,7 +69,7 @@ int grap_rotate(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
                                 (double)opt->cx,
                                 (double)opt->cy);
     }else{
-      vol[k] = mrc_slice_create(opt->ox, opt->oy, hin->mode);
+      vol[k] = sliceCreate(opt->ox, opt->oy, hin->mode);
     }
   }
   if ((opt->x == 0) && (opt->y == 0)){
@@ -86,7 +85,7 @@ int grap_rotate(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
                             (double)opt->cx,
                             (double)opt->cz);
     mrc_slice_putvol(&v, sout, j, 'y');
-    mrc_slice_free(sout);
+    sliceFree(sout);
   }
   if (opt->x == 0){
     write_vol(vol, hout);
@@ -102,7 +101,7 @@ int grap_rotate(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
                             (double)opt->cz);
 
     mrc_slice_putvol(&v, sout, i, 'x');
-    mrc_slice_free(sout);
+    sliceFree(sout);
   }
 
   write_vol(vol, hout);
@@ -144,7 +143,7 @@ int grap_trans(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   mrc_head_label(hout, "Image translated.");
 
-  sin = mrc_slice_create(hin->nx, hin->ny, hin->mode);
+  sin = sliceCreate(hin->nx, hin->ny, hin->mode);
   vol = (Islice **)malloc( hin->nz * sizeof(Islice *));
   v.vol = vol;
   v.zsize = hin->nz;
@@ -157,7 +156,7 @@ int grap_trans(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
                                  opt->ox, opt->oy);
   }
 
-  mrc_slice_free(sin);
+  sliceFree(sin);
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
@@ -169,15 +168,15 @@ int grap_trans(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   }
 
   mrc_data_new(hout->fp, hout);
-  sin  = mrc_slice_create(opt->ox, hin->nz, hin->mode);
-  sout = mrc_slice_create(opt->ox, opt->oz, hin->mode);
+  sin  = sliceCreate(opt->ox, hin->nz, hin->mode);
+  sout = sliceCreate(opt->ox, opt->oz, hin->mode);
   for (j = 0; j < vol[0]->ysize; j++){
     sin  = mrc_slice_getvol(&v, j, 'y');
     sout = mrc_slice_translate(sin, (double)0.0, (double)opt->z,
                                opt->ox, opt->oz);
     if (mrc_write_slice((void *)sout->data.b, hout->fp, hout, j, 'y'))
       return -1;
-    mrc_slice_calcmmm(sout);
+    sliceMMM(sout);
     if (!j){
       hout->amin = sout->min;
       hout->amax = sout->max;
@@ -194,8 +193,8 @@ int grap_trans(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   if (mrc_head_write(hout->fp, hout))
     return -1;
   free_vol(vol, hin->nz);
-  mrc_slice_free(sout);
-  mrc_slice_free(sin);
+  sliceFree(sout);
+  sliceFree(sin);
   return(0);
 }
 
@@ -253,7 +252,7 @@ int grap_zoom(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   mrc_head_label(hout, "Image zoomed.");
 
-  sin = mrc_slice_create(hin->nx, hin->ny, hin->mode);
+  sin = sliceCreate(hin->nx, hin->ny, hin->mode);
   vol = (Islice **)malloc( hin->nz * sizeof(Islice *));
   v.vol = vol;
   v.zsize = hin->nz;
@@ -266,7 +265,7 @@ int grap_zoom(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
                             (double)opt->cx, (double)opt->cy);
   }
 
-  mrc_slice_free(sin);
+  sliceFree(sin);
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
@@ -278,8 +277,8 @@ int grap_zoom(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   }
 
   mrc_data_new(hout->fp, hout);
-  sin  = mrc_slice_create(opt->ox, hin->nz, hin->mode);
-  sout = mrc_slice_create(opt->ox, opt->oz, hin->mode);
+  sin  = sliceCreate(opt->ox, hin->nz, hin->mode);
+  sout = sliceCreate(opt->ox, opt->oz, hin->mode);
   for (j = 0; j < vol[0]->ysize; j++){
     sin  = mrc_slice_getvol(&v, j, 'y');
     sout = mrc_slice_zoom(sin, (double)1.0, (double)opt->z,
@@ -288,7 +287,7 @@ int grap_zoom(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
                           (double)opt->cz);
     if (mrc_write_slice((void *)sout->data.b, hout->fp, hout, j, 'y'))
       return -1;
-    mrc_slice_calcmmm(sout);
+    sliceMMM(sout);
     if (!j){
       hout->amin = sout->min;
       hout->amax = sout->max;
@@ -307,11 +306,11 @@ int grap_zoom(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   /* free vol */
   for (k = 0; k < hin->nz; k++){
-    mrc_slice_free(vol[k]);
+    sliceFree(vol[k]);
   }
   free(vol);
-  mrc_slice_free(sout);
-  mrc_slice_free(sin);
+  sliceFree(sout);
+  sliceFree(sin);
      
 
   return(0);

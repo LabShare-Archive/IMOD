@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -345,7 +339,7 @@ Istack *grap_volume_read(MrcHeader *hin, ClipOptions *opt)
   v->zsize = opt->iz;
 
   for (k = 0; k < opt->iz; k++) {
-    v->vol[k] = mrc_slice_create(opt->ix, opt->iy, hin->mode);
+    v->vol[k] = sliceCreate(opt->ix, opt->iy, hin->mode);
     if (!v->vol[k])
       return(NULL);
     for( j = 0; j < opt->iy; j++)
@@ -356,7 +350,7 @@ Istack *grap_volume_read(MrcHeader *hin, ClipOptions *opt)
     v->vol[k]->min  = hin->amin;
   }
 
-  s = mrc_slice_create(hin->nx, hin->ny, hin->mode);
+  s = sliceCreate(hin->nx, hin->ny, hin->mode);
   if (!s)
     return(NULL);
 
@@ -414,12 +408,12 @@ int grap_volume_write(Istack *v,  MrcHeader *hout, ClipOptions *opt)
     }
 
   /* calculate min, max, mean of volume. */
-  mrc_slice_calcmmm(v->vol[0]);
+  sliceMMM(v->vol[0]);
   min = v->vol[0]->min;
   max = v->vol[0]->max;
   mean = v->vol[0]->mean;
   for(k = 1; k < v->zsize; k++){
-    mrc_slice_calcmmm(v->vol[k]);
+    sliceMMM(v->vol[k]);
     min = B3DMIN(min, v->vol[k]->min);
     max = B3DMAX(max, v->vol[k]->max);
     mean += v->vol[k]->mean;
@@ -527,7 +521,7 @@ static Islice *clipBlankSlice(MrcHeader *hout, ClipOptions *opt)
 {
   Ival val;
   int i, j;
-  Islice *ps = mrc_slice_create(hout->nx, hout->ny, hout->mode);
+  Islice *ps = sliceCreate(hout->nx, hout->ny, hout->mode);
   if (!ps){
     fprintf(stderr, "clipBlankSlice:  error getting slice\n");
     return NULL;
@@ -651,6 +645,9 @@ int mrc_head_print(MrcHeader *data)
 
 /*
 $Log$
+Revision 3.9  2007/01/31 16:17:43  mast
+Transfer nxyzstart info in header to new file
+
 Revision 3.8  2005/11/11 22:14:56  mast
 Changes for unsigned file mode
 

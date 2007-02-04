@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -164,7 +159,7 @@ int load_view(struct Midas_view *vw, char *fname)
                                            sizeof(struct Midas_cache));
 
   for(k = 0; k < vw->cachesize; k++){
-    vw->cache[k].sec = mrc_slice_create(vw->xsize, vw->ysize, 
+    vw->cache[k].sec = sliceCreate(vw->xsize, vw->ysize, 
                                         MRC_MODE_BYTE);
     if (!vw->cache[k].sec)
       midas_error("Out of memory! ", "Exiting", 3);
@@ -187,7 +182,7 @@ int load_view(struct Midas_view *vw, char *fname)
 
   /* Create and load slice for reference image now */
   if (vw->refname) {
-    vw->ref = mrc_slice_create(vw->xsize, vw->ysize, MRC_MODE_BYTE);
+    vw->ref = sliceCreate(vw->xsize, vw->ysize, MRC_MODE_BYTE);
     if (!vw->ref)
       midas_error("Out of memory! ", "Exiting", 3);
     if (load_refimage(vw, vw->refname))
@@ -1672,6 +1667,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.16  2006/07/08 15:32:13  mast
+Changes to implement second fixed point for stretching
+
 Revision 3.15  2006/05/13 22:52:52  mast
 Changes to allow overlay colors to be specified
 

@@ -1411,7 +1411,7 @@ int mrcvb_loadsec(char *fname, int section, int black, int white, char axis)
 	  return(-1);
      }
 
-     sl = mrc_slice_create(vi->xsize, vi->ysize, hdata.mode);
+     sl = sliceCreate(vi->xsize, vi->ysize, hdata.mode);
      mrc_read_slice(sl->data.b, fin, &hdata, section, axis);
      vi->idata = (unsigned char **)malloc(sizeof(unsigned char*));
      vi->idata[0] = (unsigned char *)malloc
@@ -1460,7 +1460,7 @@ int mrcvb_loadsec(char *fname, int section, int black, int white, char axis)
 	       vi->idata[0][i + (j * vi->xsize)] = (unsigned char)ival;
 	  }
 
-     mrc_slice_free(sl);
+     sliceFree(sl);
      if (fin)
 	  fclose(fin);
 

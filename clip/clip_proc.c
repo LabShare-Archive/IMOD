@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <limits.h>
 #include <math.h>
@@ -264,7 +258,7 @@ int clip_convolve(MrcHeader *hin,
 
     s->mean = hin->amean;
     slice = slice_mat_filter(s, blur, 3);
-    mrc_slice_free(s);
+    sliceFree(s);
 
     if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
@@ -770,9 +764,9 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
-  s = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
+  s = sliceCreate(h1->nx, h1->ny, MRC_MODE_RGB);
   for (i = 0; i < 3; i++) {
-    srgb[i] = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_BYTE);
+    srgb[i] = sliceCreate(h1->nx, h1->ny, MRC_MODE_BYTE);
     if (!s || !srgb[i]) {
       fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
       return (-1);
@@ -807,8 +801,8 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
   puts("");
 
   for (i = 0; i < 3; i++)
-    mrc_slice_free(srgb[i]);
-  mrc_slice_free(s);
+    sliceFree(srgb[i]);
+  sliceFree(s);
   return(0);
 }
 
@@ -843,7 +837,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
   }
 
   /* Set up output files and get slices */
-  s = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
+  s = sliceCreate(h1->nx, h1->ny, MRC_MODE_RGB);
   for (i = 0; i < 3; i++) {
     sprintf(fname, "%s%s", opt->fnames[1], ext[i]);
     imodBackupFile(fname);
@@ -863,7 +857,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     mrc_head_label(&hdr[i], "CLIP Split RGB into 3 files");
     if (mrc_head_write(hdr[i].fp, &hdr[i]))
       return -1;
-    srgb[i] = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_BYTE);
+    srgb[i] = sliceCreate(h1->nx, h1->ny, MRC_MODE_BYTE);
     if (!s || !srgb[i]) {
       fprintf(stderr, "ERROR: CLIP - getting memory for slices\n");
       return (-1);
@@ -890,7 +884,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     for (i = 0; i < 3; i++) {
       if (mrc_write_slice((void *)srgb[i]->data.b, hdr[i].fp, &hdr[i], k, 'z'))
         return -1;
-      mrc_slice_calcmmm(srgb[i]);
+      sliceMMM(srgb[i]);
       if (srgb[i]->min < hdr[i].amin)
         hdr[i].amin = srgb[i]->min;
       if (srgb[i]->max > hdr[i].amax)
@@ -905,9 +899,9 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     hdr[i].amean /= k;
     if (mrc_head_write(hdr[i].fp, &hdr[i]))
       return -1;
-    mrc_slice_free(srgb[i]);
+    sliceFree(srgb[i]);
   }
-  mrc_slice_free(s);
+  sliceFree(s);
   return(0);
 }
 
@@ -944,15 +938,15 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
-  s = mrc_slice_create(h1->nx, h1->ny, h1->mode);
+  s = sliceCreate(h1->nx, h1->ny, h1->mode);
   if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
-    so = mrc_slice_create(h1->nx, h1->ny, 4);
+    so = sliceCreate(h1->nx, h1->ny, 4);
     hout->mode = MRC_MODE_COMPLEX_FLOAT;
   }else if (h1->mode == MRC_MODE_RGB){
-    so = mrc_slice_create(h1->nx, h1->ny, MRC_MODE_RGB);
+    so = sliceCreate(h1->nx, h1->ny, MRC_MODE_RGB);
     hout->mode = MRC_MODE_RGB;
   }else{
-    so = mrc_slice_create(h1->nx, h1->ny, 2);
+    so = sliceCreate(h1->nx, h1->ny, 2);
   }
   hdr = (MrcHeader **)malloc(opt->infiles * sizeof(MrcHeader *));
   if (!hdr)
@@ -1014,7 +1008,7 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
 
     if (mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z'))
       return -1;
-    mrc_slice_calcmmm(so);
+    sliceMMM(so);
     if (!k){
       hout->amin = so->min;
       hout->amax = so->max;
@@ -1033,8 +1027,8 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   hout->amean /= k;
   if (mrc_head_write(hout->fp, hout))
     return -1;
-  mrc_slice_free(s);
-  mrc_slice_free(so);
+  sliceFree(s);
+  sliceFree(so);
   return(0);
 }
 
@@ -1101,7 +1095,7 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
            threshold.  In any case, add up the number of items contributing 
            to the average */
         if (thresh){
-          dval = mrc_slice_getmagnitude(slice, i, j);
+          dval = sliceGetPixelMagnitude(slice, i, j);
           if (dval > opt->val){
             cnts->data.f[i + (j * cnts->xsize)] += 1.0f;
             slicePutVal(avgs,  i, j, aval);
@@ -1167,9 +1161,9 @@ int clip_parxyz(Istack *v,
     x1 = v->vol[0]->xsize - 1;
   if (x3 >= v->vol[0]->xsize) 
     x3 = 0;
-  y1 = mrc_slice_getmagnitude(v->vol[zmax], x1, ymax);
-  y2 = mrc_slice_getmagnitude(v->vol[zmax], x2, ymax);
-  y3 = mrc_slice_getmagnitude(v->vol[zmax], x3, ymax);
+  y1 = sliceGetPixelMagnitude(v->vol[zmax], x1, ymax);
+  y2 = sliceGetPixelMagnitude(v->vol[zmax], x2, ymax);
+  y3 = sliceGetPixelMagnitude(v->vol[zmax], x3, ymax);
   x1 = xmax - 1; x3 = xmax + 1;
   a = (y1*(x2-x3)) + (y2*(x3-x1)) + (y3*(x1-x2));
   b = (x1*x1*(y2-y3)) + (x2*x2*(y3-y1)) + (x3*x3*(y1-y2));
@@ -1183,9 +1177,9 @@ int clip_parxyz(Istack *v,
     x1 = v->vol[0]->ysize - 1;
   if (x3 >= v->vol[0]->ysize)
     x3 = 0;
-  y1 = mrc_slice_getmagnitude(v->vol[zmax], xmax, x1);
-  y2 = mrc_slice_getmagnitude(v->vol[zmax], xmax, x2);
-  y3 = mrc_slice_getmagnitude(v->vol[zmax], xmax, x3);
+  y1 = sliceGetPixelMagnitude(v->vol[zmax], xmax, x1);
+  y2 = sliceGetPixelMagnitude(v->vol[zmax], xmax, x2);
+  y3 = sliceGetPixelMagnitude(v->vol[zmax], xmax, x3);
   x1 = ymax - 1; x3 = ymax + 1;
   a = (y1*(x2-x3)) + (y2*(x3-x1)) + (y3*(x1-x2));
   b = (x1*x1*(y2-y3)) + (x2*x2*(y3-y1)) + (x3*x3*(y1-y2));
@@ -1199,9 +1193,9 @@ int clip_parxyz(Istack *v,
     x1 = v->zsize - 1;
   if (x3 >= v->zsize)
     x3 = 0;
-  y1 = mrc_slice_getmagnitude(v->vol[x1], xmax, ymax);
-  y2 = mrc_slice_getmagnitude(v->vol[x2], xmax, ymax);
-  y3 = mrc_slice_getmagnitude(v->vol[x3], xmax, ymax);
+  y1 = sliceGetPixelMagnitude(v->vol[x1], xmax, ymax);
+  y2 = sliceGetPixelMagnitude(v->vol[x2], xmax, ymax);
+  y3 = sliceGetPixelMagnitude(v->vol[x3], xmax, ymax);
   x1 = zmax - 1; x3 = zmax + 1;
   a = (y1*(x2-x3)) + (y2*(x3-x1)) + (y3*(x1-x2));
   b = (x1*x1*(y2-y3)) + (x2*x2*(y3-y1)) + (x3*x3*(y1-y2));
@@ -1256,7 +1250,7 @@ int clip_get_stat3d(Istack *v,
   for (k = 0; k < nz; k++){
     for(j = 0; j < ny; j++)
       for(i = 0; i < nx; i++){
-        m = mrc_slice_getmagnitude(v->vol[k], i, j);
+        m = sliceGetPixelMagnitude(v->vol[k], i, j);
         if (m > max){
           max = m;
           xmax = i;
@@ -1319,7 +1313,7 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
       show_error("stat: error reading slice.");
       return(-1);
     }
-    m = mrc_slice_getmagnitude(slice, 0, 0);
+    m = sliceGetPixelMagnitude(slice, 0, 0);
     min = m;
     max = m;
     std = 0;
@@ -1355,7 +1349,7 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
         
       default:
         for (i = 0; i < slice->xsize; i++) {
-          m = mrc_slice_getmagnitude(slice, i, j);
+          m = sliceGetPixelMagnitude(slice, i, j);
           if (m > max){
             max = m;
             xmax = i;
@@ -1382,7 +1376,7 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
   
     /*	  for (di = 0, j = ymax - 1; j <= ymax + 1; j++)
           for(i = xmax - 1; i <= xmax + 1; i++ , di++)
-          data[di] = mrc_slice_getmagnitude(slice, i, j);
+          data[di] = sliceGetPixelMagnitude(slice, i, j);
     */	
     x = xmax;
     y = ymax;
@@ -1416,7 +1410,7 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
 
     printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", 
            iz, min, xmin, ymin, max, x, y, mean, std);
-    mrc_slice_free(slice);
+    sliceFree(slice);
   }
   vmean /= (float)opt->nofsecs;
   ptnum *= opt->nofsecs;
@@ -1437,7 +1431,7 @@ int write_vol(Islice **vol, MrcHeader *hout)
   for (k = 0; k < hout->nz; k++){
     if (mrc_write_slice((void *)vol[k]->data.b, hout->fp, hout, k, 'z'))
       return -1;
-    mrc_slice_calcmmm(vol[k]);
+    sliceMMM(vol[k]);
     if (!k){
       hout->amin = vol[k]->min;
       hout->amax = vol[k]->max;
@@ -1458,7 +1452,7 @@ int free_vol(Islice **vol, int z)
 {
   int k;
   for (k = 0; k < z; k++){
-    mrc_slice_free(vol[k]);
+    sliceFree(vol[k]);
   }
   free(vol);
   return(0);
@@ -1496,6 +1490,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.17  2006/08/04 21:04:50  mast
+Made clip stat a little faster for ints and added min location
+
 Revision 3.16  2006/06/23 17:13:19  mast
 Added rotx option and adjusted header as in rotatevol
 
