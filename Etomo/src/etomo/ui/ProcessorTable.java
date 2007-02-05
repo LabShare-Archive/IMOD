@@ -142,7 +142,7 @@ public final class ProcessorTable implements Storable {
     //get first section
     SectionLocation sectionLocation = autodoc.getSectionLocation(SECTION_TYPE);
     Section computer = autodoc.nextSection(sectionLocation);
-    EtomoNumber number = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber number = new EtomoNumber(EtomoNumber.Type.INTEGER);
     //loop on sections
     while (computer != null) {
       //get name of the section
@@ -790,6 +790,11 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2006/11/29 00:20:49  sueh
+ * <p> bug# 934 Added endGetLoadAverage().  Does the same thing as
+ * <p> stopGetLoadAverage(), but also removes the monitor.  Uses when a manager
+ * <p> exits.
+ * <p>
  * <p> Revision 1.35  2006/11/18 00:49:50  sueh
  * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
  * <p>
