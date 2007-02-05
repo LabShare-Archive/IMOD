@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/04/06 20:33:47  sueh
+ * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
+ * <p> util.Utilities.
+ * <p>
  * <p> Revision 1.12  2006/01/26 22:11:08  sueh
  * <p> bug# 401 Fixed bug where a dash was not handled correctly in
  * <p> convertLabelToName().
@@ -67,6 +71,7 @@
 
 package etomo.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -78,9 +83,17 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
+import javax.swing.text.JTextComponent;
 
 public class UIUtilities {
   public static final String rcsid = "$Id$";
+
+  static final ColorUIResource BACKGROUND = new ColorUIResource(255, 255, 255);
+  static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255,
+      255, 204);
+  static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204,
+      255, 255);
+  static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
   private static final int estimatedMenuHeight = 60;
 
@@ -182,5 +195,54 @@ public class UIUtilities {
       screenSize.height -= estimatedMenuHeight;
     }
     return screenSize;
+  }
+
+  static void highlightJTextComponents(boolean highlight, Container container) {
+    Component[] componentList = container.getComponents();
+    if (componentList == null) {
+      return;
+    }
+    for (int i = 0; i < componentList.length; i++) {
+      if (componentList[i] instanceof JTextComponent) {
+        if (highlight) {
+          componentList[i].setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
+        }
+        else {
+          componentList[i].setBackground(UIUtilities.BACKGROUND);
+        }
+      }
+      if (componentList[i] instanceof Container) {
+        highlightJTextComponents(highlight, (Container) componentList[i]);
+      }
+    }
+  }
+
+  static void printComponents(Container container) {
+    Component[] componentList = container.getComponents();
+    if (componentList == null || componentList.length == 0) {
+      System.out.println();
+      return;
+    }
+    System.out.println(":");
+    for (int i = 0; i < componentList.length; i++) {
+      System.out.print(componentList[i].getClass());
+      if (componentList[i] instanceof Container) {
+        printComponents((Container) componentList[i]);
+      }
+      else {
+        System.out.println();
+      }
+    }
+  }
+
+  static ColorUIResource subtractColor(Color color, Color subtractColor) {
+    return new ColorUIResource(color.getRed() - subtractColor.getRed(), color
+        .getGreen()
+        - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
+  }
+
+  static ColorUIResource divideColor(Color color, int divisor) {
+    return new ColorUIResource(color.getRed() / divisor, color.getGreen()
+        / divisor, color.getBlue() / divisor);
   }
 }
