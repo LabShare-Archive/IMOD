@@ -356,6 +356,84 @@ public final class LogFile {
     throw new FileException(this, fileId, "Unable to delete " + path);
   }
 
+  public synchronized boolean move(LogFile target) throws FileException {
+    createFile();
+    if (!file.exists()) {
+      return false;
+    }
+    long fileId = NO_ID;
+    try {
+      fileId = lock.lock(LockType.FILE);
+    }
+    catch (LockException e) {
+      throw new FileException(this, fileId, e);
+    }
+    if (!file.exists()) {
+      //nothing to move
+      try {
+        lock.unlock(LockType.FILE, fileId);
+      }
+      catch (LockException e) {
+        //Don't throw a file exception because the error didn't affect the
+        //move.
+        e.printStackTrace();
+      }
+      return false;
+    }
+    try {
+    target.backup();
+    }
+    catch (FileException backupException) {
+      //unable to backup
+      try {
+        lock.unlock(LockType.FILE, fileId);
+      }
+      catch (LockException e) {
+        //Don't throw a file exception because the error didn't affect the
+        //move.
+        e.printStackTrace();
+      }
+      
+      throw backupException;
+    }
+    //need to get a file lock on the target for this operation
+    long targetFileId = NO_ID;
+    try {
+      targetFileId = target.lock.lock(LockType.FILE);
+    }
+    catch (LockException e) {
+      throw new FileException(this, targetFileId, e);
+    }
+    target.createFile();
+    file.renameTo(target.file);
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
+    boolean success = !file.exists();
+    try {
+      lock.unlock(LockType.FILE, fileId);
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    //unlock target file lock
+    try {
+      target.lock.unlock(LockType.FILE, targetFileId);
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    if (success) {
+      file = null;
+      return true;
+    }
+    String path = file.getAbsolutePath();
+    file = null;
+    throw new FileException(this, fileId, "Unable to delete " + path);
+  }
+
   public synchronized long openWriter() throws WriteException {
     return openForWriting(true);
   }
@@ -725,7 +803,8 @@ public final class LogFile {
       throw new WriteException(this, writeId, e);
     }
     catch (NullPointerException e) {
-      throw new WriteException(this, writeId, "Must open with openWriter() to be able to call flush().", e);
+      throw new WriteException(this, writeId,
+          "Must open with openWriter() to be able to call flush().", e);
     }
   }
 
@@ -925,10 +1004,10 @@ public final class LogFile {
           + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
-    
+
     WriteException(LogFile logFile, long id, String message, Exception e) {
-      super(message+'\n'+e.toString() + "\nid=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
+      super(message + '\n' + e.toString() + "\nid=" + id + ",logFile="
+          + logFile + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
   }
@@ -989,7 +1068,9 @@ public final class LogFile {
       //save the lock id in the variable matching the lock type
       //increment the current id
       if (++currentId < 0) {
-        System.err.println("LogFile overflow - setting currentId to zero:currentId="+currentId);
+        System.err
+            .println("LogFile overflow - setting currentId to zero:currentId="
+                + currentId);
         //catching overflow
         currentId = 0;
       }
@@ -1213,6 +1294,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/11/15 20:03:13  sueh
+ * <p> bug# 872 Added backupOnce, input stream and output stream management,
+ * <p> create, load(), and store().
+ * <p>
  * <p> Revision 1.7  2006/10/16 22:46:54  sueh
  * <p> bug# 919  Reader.open():  Simplifying new FileReader error handling.
  * <p>
