@@ -13,6 +13,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
@@ -32,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2006/10/24 21:16:48  sueh
+ * <p> bug# 947 Changed ProcessName.fromString() to getInstance().
+ * <p>
  * <p> Revision 3.47  2006/10/13 22:22:39  sueh
  * <p> bug# 927 Added parameters String and int to getSetParamFromVolcombine().
  * <p> Added getSetParamFromVolcombine(String,int,String) to get the second set
@@ -436,11 +440,11 @@ public class ComScriptManager {
   public void loadUndistort(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       scriptUndistortB = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.UNDISTORT_MODE), axisID, true);
+          .getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true);
     }
     else {
       scriptUndistortA = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.UNDISTORT_MODE), axisID, true);
+          .getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true);
     }
   }
 
@@ -557,11 +561,11 @@ public class ComScriptManager {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptPreblendB = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.PREBLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true);
     }
     else {
       scriptPreblendA = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.PREBLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true);
     }
   }
 
@@ -569,11 +573,11 @@ public class ComScriptManager {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
       scriptBlendB = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.BLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.Mode.BLEND), axisID, true);
     }
     else {
       scriptBlendA = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.BLEND_MODE), axisID, true);
+          .getProcessName(BlendmontParam.Mode.BLEND), axisID, true);
     }
   }
 
@@ -617,7 +621,7 @@ public class ComScriptManager {
 
     // Initialize a BlendmontParam object from the com script command object
     BlendmontParam preblendParam = new BlendmontParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID, BlendmontParam.PREBLEND_MODE);
+        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.PREBLEND);
     initialize(preblendParam, scriptPreblend, BlendmontParam.COMMAND_NAME,
         axisID);
     return preblendParam;
@@ -635,7 +639,7 @@ public class ComScriptManager {
 
     // Initialize a BlendmontParam object from the com script command object
     BlendmontParam blendParam = new BlendmontParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID, BlendmontParam.BLEND_MODE);
+        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.BLEND);
     initialize(blendParam, scriptBlend, BlendmontParam.COMMAND_NAME, axisID);
     return blendParam;
   }
@@ -1422,7 +1426,7 @@ public class ComScriptManager {
     return gotoParam;
   }
 
-  public SetParam getSetParamFromVolcombine(String name, int type) {
+  public SetParam getSetParamFromVolcombine(String name, EtomoNumber.Type type) {
     SetParam setParam = new SetParam(name, type);
     if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME,
         AxisID.ONLY, true)) {
@@ -1431,7 +1435,7 @@ public class ComScriptManager {
     return setParam;
   }
 
-  public SetParam getSetParamFromVolcombine(String name, int type,
+  public SetParam getSetParamFromVolcombine(String name, EtomoNumber.Type type,
       String previousCommand) {
     SetParam setParam = new SetParam(name, type);
     if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME,
