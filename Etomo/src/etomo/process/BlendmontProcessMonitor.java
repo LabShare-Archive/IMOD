@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.BlendmontParam.Mode;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -29,41 +30,39 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   private String title;
   private boolean lastLineFound = false;
   private boolean doingMrctaper = false;
-  private int mode;
+  private Mode mode;
 
-  public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, int mode) {
+  public BlendmontProcessMonitor(ApplicationManager appMgr, AxisID id, Mode mode) {
     super(appMgr, id, ProcessName.BLEND);
     this.mode = mode;
     logFileBasename = BlendmontParam.getProcessName(mode).toString();
-    switch (mode) {
-    case BlendmontParam.XCORR_MODE:
+    if (mode == BlendmontParam.Mode.XCORR) {
       title = "Cross-correlation";
-      break;
-    case BlendmontParam.PREBLEND_MODE:
+    }
+    else if (mode == BlendmontParam.Mode.PREBLEND) {
       title = "Coarse alignment";
-      break;
-    case BlendmontParam.BLEND_MODE:
+    }
+    else if (mode == BlendmontParam.Mode.BLEND) {
       title = "Full alignment";
-      break;
-    case BlendmontParam.UNDISTORT_MODE:
+    }
+    else if (mode == BlendmontParam.Mode.UNDISTORT) {
       title = "Distortion correction";
-      break;
-    case BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE:
+    }
+    else if (mode == BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) {
       title = "Whole tomogram";
-      break;
     }
   }
 
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       applicationManager.getMainPanel().setProgressBar(title + ": blendmont",
-          1, axisID,processName);
+          1, axisID, processName);
       applicationManager.getMainPanel().setProgressBarValue(0, "Starting...",
           axisID);
       return;
     }
     applicationManager.getMainPanel().setProgressBar(title + ": blendmont",
-        nSections, axisID,processName);
+        nSections, axisID, processName);
   }
 
   protected void getCurrentSection() throws NumberFormatException,
@@ -76,8 +75,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         //set currentSection - section in log starts from 0
         currentSection = Integer.parseInt(strings[4]) + 1;
       }
-      else if (mode == BlendmontParam.BLEND_MODE
-          || mode == BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE) {
+      else if (mode == BlendmontParam.Mode.BLEND
+          || mode == BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
           applicationManager.getMainPanel().setProgressBar(
@@ -90,13 +89,14 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
     }
     //Start timeout on last section
     if (currentSection >= nSections
-        && ((mode != BlendmontParam.BLEND_MODE && mode != BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE) || lastLineFound)) {
+        && ((mode != BlendmontParam.Mode.BLEND && mode != BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) || lastLineFound)) {
       waitingForExit++;
     }
   }
 
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.ReadException, InvalidParameterException,IOException {
+      NumberFormatException, LogFile.ReadException, InvalidParameterException,
+      IOException {
     Montagesize montagesize = null;
     montagesize = Montagesize.getInstance(applicationManager, axisID);
     montagesize.read();
@@ -105,6 +105,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2006/10/24 21:17:41  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.13  2006/10/10 05:07:23  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
