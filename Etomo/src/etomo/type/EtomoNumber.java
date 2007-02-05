@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2006/11/15 20:45:59  sueh
+ * <p> bug# 872 Fixed bug - load are not handling a null prepend.
+ * <p>
  * <p> Revision 1.13  2006/08/29 20:06:30  sueh
  * <p> bug# 924 Added a static load, for loading into an optional parameter
  * <p>
@@ -120,11 +123,11 @@ public class EtomoNumber extends ConstEtomoNumber {
     super(name);
   }
 
-  public EtomoNumber(int type) {
+  public EtomoNumber(Type type) {
     super(type);
   }
 
-  public EtomoNumber(int type, String name) {
+  public EtomoNumber(Type type, String name) {
     super(type, name);
   }
 
@@ -147,7 +150,7 @@ public class EtomoNumber extends ConstEtomoNumber {
 
   /**
    * Attempt to get the property specified by prepend and name.  If it doesn't
-   * exist, return null.  If it does, set it in etomoNumber (create etomoNumber)
+   * exist, return null.  If it does, set it in instance (create instance
    * if it doesn't exist).
    * @param etomoNumber
    * @param type
@@ -156,17 +159,40 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @param prepend
    * @return etomoNumber
    */
-  public static EtomoNumber load(EtomoNumber etomoNumber, int type,
-      String name, Properties props, String prepend) {
+  public static EtomoNumber load(EtomoNumber instance, Type type, String name,
+      Properties props, String prepend) {
     String value = props.getProperty(prepend + '.' + name);
     if (value == null) {
       return null;
     }
-    if (etomoNumber == null) {
-      etomoNumber = new EtomoNumber(type, name);
+    if (instance == null) {
+      instance = new EtomoNumber(type, name);
     }
-    etomoNumber.set(value);
-    return etomoNumber;
+    instance.set(value);
+    return instance;
+  }
+
+  /**
+   * Attempt to get the property specified by prepend and name.  If it doesn't
+   * exist, return null.  If it does, set it in instance (create instance
+   * if it doesn't exist).
+   * @param etomoNumber
+   * @param name
+   * @param props
+   * @param prepend
+   * @return etomoNumber
+   */
+  public static EtomoNumber load(EtomoNumber instance, String name,
+      Properties props, String prepend) {
+    String value = props.getProperty(prepend + '.' + name);
+    if (value == null) {
+      return null;
+    }
+    if (instance == null) {
+      instance = new EtomoNumber(name);
+    }
+    instance.set(value);
+    return instance;
   }
 
   /**
@@ -195,6 +221,10 @@ public class EtomoNumber extends ConstEtomoNumber {
     setInvalidReason();
     return this;
   }
+  
+  public void setToDefault() {
+    set(defaultValue);
+  }
 
   public EtomoNumber set(Number value) {
     resetInvalidReason();
@@ -210,7 +240,12 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public ConstEtomoNumber set(ConstEtomoNumber number) {
-    set(number.getValue());
+    if (number == null) {
+      reset();
+    }
+    else {
+      set(number.getValue());
+    }
     return this;
   }
 

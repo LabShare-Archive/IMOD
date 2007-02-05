@@ -21,7 +21,7 @@ public class EtomoNumericState {
   EtomoNumber currentValue;
   boolean resultSet = true;
   
-  public EtomoNumericState(int type, String name) {
+  public EtomoNumericState(EtomoNumber.Type type, String name) {
     currentValue = new EtomoNumber(type, name);
   }
 
@@ -76,6 +76,9 @@ public class EtomoNumericState {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/07/29 19:47:07  sueh
+* <p> bug# 692 Changed ConstEtomoNumber.getInteger() to getInt.
+* <p>
 * <p> Revision 1.1  2005/06/11 02:37:05  sueh
 * <p> EtomoNumericState functions like EtomoState, except that it can contain
 * <p> the same set of numeric values that EtomoNumber can.

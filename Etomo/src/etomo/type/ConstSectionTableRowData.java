@@ -19,6 +19,11 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/10/17 20:12:25  sueh
+ * <p> bug# 939  Moved ScriptParameter.defaultValue to ConstEtomoNumber.  Making
+ * <p> rotation values EtomoNumber instead of ScriptParameter.  Setting default value
+ * <p> to that the rotation conversion of Z will work.
+ * <p>
  * <p> Revision 1.20  2006/10/16 22:49:20  sueh
  * <p> bug# 919  Added getInverted().
  * <p>
@@ -203,15 +208,15 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleBottomEnd = new EtomoNumber("SampleBottomEnd");
     sampleTopStart = new EtomoNumber("SampleTopStart");
     sampleTopEnd = new EtomoNumber("SampleTopEnd");
-    setupFinalStart = new EtomoNumber(EtomoNumber.LONG_TYPE, "FinalStart");
-    setupFinalEnd = new EtomoNumber(EtomoNumber.LONG_TYPE, "FinalEnd");
-    joinFinalStart = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    joinFinalEnd = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    rotationAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
+    setupFinalStart = new EtomoNumber(EtomoNumber.Type.LONG, "FinalStart");
+    setupFinalEnd = new EtomoNumber(EtomoNumber.Type.LONG, "FinalEnd");
+    joinFinalStart = new EtomoNumber(EtomoNumber.Type.LONG);
+    joinFinalEnd = new EtomoNumber(EtomoNumber.Type.LONG);
+    rotationAngleX = new EtomoNumber(EtomoNumber.Type.DOUBLE,
         "RotationAngleX");
-    rotationAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
+    rotationAngleY = new EtomoNumber(EtomoNumber.Type.DOUBLE,
         "RotationAngleY");
-    rotationAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE,
+    rotationAngleZ = new EtomoNumber(EtomoNumber.Type.DOUBLE,
         "RotationAngleZ");
     //configure
     sampleBottomStart.setDescription("Sample Slices, Bottom, Start");
@@ -238,7 +243,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String paramString() {
-    return "rowNumber=" + rowNumber + ",sampleBottomStart=" + sampleBottomStart
+    return "rowNumber=" + rowNumber + ",inverted="+inverted/*+",sampleBottomStart=" + sampleBottomStart
         + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
         + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
         + ",\nsampleTopEnd=" + sampleTopEnd + ",setupFinalStart="
@@ -252,7 +257,7 @@ public abstract class ConstSectionTableRowData implements Storable {
         + setupZMax + ",\njoinZMax=" + joinZMax + ",imodIndex=" + imodIndex
         + ",\nimodRotIndex=" + imodRotIndex + ",sectionExpanded="
         + sectionExpanded + ",\ninvalidReason=" + invalidReason
-        + super.toString();
+        + super.toString()*/;
   }
 
   /**

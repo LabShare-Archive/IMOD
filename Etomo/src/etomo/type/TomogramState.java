@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2006/09/19 22:35:11  sueh
+ * <p> bug# 920 Added first and secondAxisGroups for saving axis-level values.  Fixed
+ * <p> sample fiducial key.
+ * <p>
  * <p> Revision 1.26  2006/09/13 23:38:59  sueh
  * <p> bug# 920 Added sampleFiducialessA and B.
  * <p>
@@ -156,48 +160,48 @@ public class TomogramState implements BaseState {
   EtomoState invalidEdgeFunctionsA = new EtomoState("InvalidEdgeFunctionsA");
   EtomoState invalidEdgeFunctionsB = new EtomoState("InvalidEdgeFunctionsB");
   private final EtomoNumber angleOffsetA = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.ALIGN + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
   private final EtomoNumber angleOffsetB = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.ALIGN + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
   private final EtomoNumber axisZShiftA = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.ALIGN + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
   private final EtomoNumber axisZShiftB = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.ALIGN + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
 
   private final EtomoNumber sampleAngleOffsetA = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
   private final EtomoNumber sampleAngleOffsetB = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
   private final EtomoNumber sampleAxisZShiftA = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
   private final EtomoNumber sampleAxisZShiftB = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
   private final EtomoNumber sampleXAxisTiltA = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
   private final EtomoNumber sampleXAxisTiltB = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
           + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
 
   private final EtomoNumber fidFileLastModifiedA = new EtomoNumber(
-      EtomoNumber.LONG_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.LONG, AxisID.FIRST.getExtension() + '.'
           + ProcessName.TRACK + '.' + LAST_MODIFIED);
   private final EtomoNumber fidFileLastModifiedB = new EtomoNumber(
-      EtomoNumber.LONG_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.LONG, AxisID.SECOND.getExtension() + '.'
           + ProcessName.TRACK + '.' + LAST_MODIFIED);
   private final EtomoNumber seedFileLastModifiedA = new EtomoNumber(
-      EtomoNumber.LONG_TYPE, AxisID.FIRST.getExtension() + '.'
+      EtomoNumber.Type.LONG, AxisID.FIRST.getExtension() + '.'
           + USE_FID_AS_SEED + '.' + LAST_MODIFIED);
   private final EtomoNumber seedFileLastModifiedB = new EtomoNumber(
-      EtomoNumber.LONG_TYPE, AxisID.SECOND.getExtension() + '.'
+      EtomoNumber.Type.LONG, AxisID.SECOND.getExtension() + '.'
           + USE_FID_AS_SEED + '.' + LAST_MODIFIED);
   private final EtomoBoolean2 fixedFiducialsA = new EtomoBoolean2(AxisID.FIRST
       .getExtension()

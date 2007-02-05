@@ -24,6 +24,14 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2005/05/10 03:22:32  sueh
+ * <p> bug# 658 Remove the constructor which sets keys, do this with set
+ * <p> functions.    Change set(ComScriptCommand) to
+ * <p> parse(ComScriptCommand).  Since ScriptParameter now handles short
+ * <p> keys internally, simplify parse(ComScriptCommand).  Change update() to
+ * <p> updateComScript().  Add tiltAngles to parse(), updateComScript(), store(),
+ * <p> and load().
+ * <p>
  * <p> Revision 3.5  2005/01/26 00:01:07  sueh
  * <p> Converted EtomoNumber parameters to ScriptParameters.
  * <p>
@@ -281,14 +289,14 @@ public class TiltAngleSpec implements Storable {
   public void parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException, FortranInputSyntaxException {
     //Get rangeMin
-    ScriptParameter rangeMin = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    ScriptParameter rangeMin = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         rangeMinKey, rangeMinShortKey);
     rangeMin.parse(scriptCommand);
     if (!rangeMin.isNull()) {
       type = TiltAngleType.RANGE;
       this.rangeMin = rangeMin.getDouble();
       //Get rangeStep
-      ScriptParameter rangeStep = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+      ScriptParameter rangeStep = new ScriptParameter(EtomoNumber.Type.DOUBLE,
           rangeStepKey, rangeStepShortKey);
       rangeStep.parse(scriptCommand);
       if (!rangeStep.isNull()) {

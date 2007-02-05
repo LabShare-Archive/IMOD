@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2006/04/06 20:15:02  sueh
+* <p> bug# 808 Turned x, y, and z into EtomoNumbers.  Added load and store.
+* <p>
 * <p> Revision 1.2  2004/11/19 23:40:04  sueh
 * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
 * <p>
@@ -28,9 +31,9 @@ public final class SlicerAngles {
   
   private static final String NAME = "SlicerAngles";
   
-  private final EtomoNumber x = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "X");
-  private final EtomoNumber y = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "Y");
-  private final EtomoNumber z = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "Z");
+  private final EtomoNumber x = new EtomoNumber(EtomoNumber.Type.DOUBLE, "X");
+  private final EtomoNumber y = new EtomoNumber(EtomoNumber.Type.DOUBLE, "Y");
+  private final EtomoNumber z = new EtomoNumber(EtomoNumber.Type.DOUBLE, "Z");
   
   public boolean isComplete() {
     return !x.isNull() && !y.isNull() && !z.isNull();

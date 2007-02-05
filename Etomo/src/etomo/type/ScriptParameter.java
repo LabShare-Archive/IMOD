@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2006/10/17 20:17:42  sueh
+ * <p> bug# 939  Moving defaultValue and associated functions to ConstEtomoNumber.
+ * <p>
  * <p> Revision 1.9  2006/08/29 20:08:47  sueh
  * <p> bug# 924 Added active - an optional member variable that causes the value to be
  * <p> removed from ComScriptCommand (in updateComScript) when it is false.
@@ -87,20 +90,20 @@ public class ScriptParameter extends EtomoNumber {
     super(name);
   }
 
-  public ScriptParameter(int type) {
+  public ScriptParameter(Type type) {
     super(type);
   }
 
-  public ScriptParameter(int type, String name) {
+  public ScriptParameter(Type type, String name) {
     super(type, name);
   }
 
-  public ScriptParameter(int type, String name, HashMap requiredMap) {
+  public ScriptParameter(Type type, String name, HashMap requiredMap) {
     super(type, name);
     setRequired(requiredMap);
   }
 
-  public ScriptParameter(int type, String name, String shortName) {
+  public ScriptParameter(Type type, String name, String shortName) {
     super(type, name);
     this.shortName = shortName;
   }

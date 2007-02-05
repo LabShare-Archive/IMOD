@@ -164,7 +164,7 @@ public final class ReconScreenState extends BaseScreenState {
       combineFinalMatchorwarpHeaderState.load(props, prepend);
       combineFinalVolcombineHeaderState.load(props, prepend);
       patchcorrKernelSigma = EtomoNumber.load(patchcorrKernelSigma,
-          EtomoNumber.FLOAT_TYPE, PATCHCORR_KERNEL_SIGMA_KEY, props, prepend);
+          EtomoNumber.Type.FLOAT, PATCHCORR_KERNEL_SIGMA_KEY, props, prepend);
     }
   }
 
@@ -237,7 +237,7 @@ public final class ReconScreenState extends BaseScreenState {
 
   public void setPatchcorrKernelSigma(String patchcorrKernelSigma) {
     if (this.patchcorrKernelSigma == null) {
-      this.patchcorrKernelSigma = new EtomoNumber(EtomoNumber.FLOAT_TYPE,
+      this.patchcorrKernelSigma = new EtomoNumber(EtomoNumber.Type.FLOAT,
           PATCHCORR_KERNEL_SIGMA_KEY);
     }
     this.patchcorrKernelSigma.set(patchcorrKernelSigma);
@@ -245,6 +245,9 @@ public final class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2006/08/29 20:06:45  sueh
+ * <p> bug# 924 Added kernelSigma.
+ * <p>
  * <p> Revision 1.5  2006/05/11 19:58:23  sueh
  * <p> Making class final.
  * <p>

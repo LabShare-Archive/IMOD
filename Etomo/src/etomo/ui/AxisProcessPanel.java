@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2006/11/29 00:18:36  sueh
+ * <p> bug# 934 Added endThreads() to notify the load average threads when the
+ * <p> manager exits.
+ * <p>
  * <p> Revision 3.28  2006/11/07 22:32:04  sueh
  * <p> bug# 954 Adding tooltip for buttonKillProcess.
  * <p>
@@ -237,7 +241,7 @@ abstract class AxisProcessPanel implements ContextMenu {
   protected final JPanel innerStatusPanel = new JPanel();
   protected JPanel panelDialog = new JPanel();
   protected final JPanel parallelStatusPanel = new JPanel();
-  private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.Type.INTEGER);
   private KillButtonActionListener actionListener;
   private boolean parallelShowing = false;
   private boolean parallelDialog = false;
