@@ -2,6 +2,9 @@ package etomo.comscript;
 
 import java.util.Hashtable;
 
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
+
 /**
  * <p>Description: </p>
  * 
@@ -22,9 +25,17 @@ public interface ProcessDetails {
   public boolean getBooleanValue(etomo.comscript.Fields field);
   public double getDoubleValue(etomo.comscript.Fields field);
   public Hashtable getHashtable(etomo.comscript.Fields field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field);
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field);
+  public String getString(etomo.comscript.Fields field);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/05/11 19:48:05  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
  * <p> Revision 1.3  2006/04/06 19:36:31  sueh
  * <p> bug# 808 Passing Fields to generic get classes.  Fields is an interface for
  * <p> inner enum-type classes.  This is more reliable then using integers to
