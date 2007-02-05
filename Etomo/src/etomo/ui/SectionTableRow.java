@@ -33,6 +33,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2006/10/17 20:21:16  sueh
+ * <p> bug# 919  setInverted():  Removing setWarning call from referenceSection and
+ * <p> currentSection.  Adding setWarning call to rowNumber.
+ * <p>
  * <p> Revision 1.23  2006/10/16 22:53:01  sueh
  * <p> bug# 919  Added setInverted().
  * <p>
@@ -204,9 +208,9 @@ import etomo.util.DatasetFiles;
  */
 public final class SectionTableRow {
   public static final String rcsid = "$Id$";
-  
+
   static final String INVERTED_WARNING = "The handedness of structures will change in inverted sections.";
-  
+
   private final FieldCell setupSection = new FieldCell();
   private final FieldCell joinSection = new FieldCell();
   private final FieldCell sampleBottomStart = new FieldCell();
@@ -232,7 +236,8 @@ public final class SectionTableRow {
   private final MultiLineButton highlighterButton;
 
   private SectionTableRowData data;
-  private final HeaderCell rowNumber = new HeaderCell((int)(30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+  private final HeaderCell rowNumber = new HeaderCell(
+      (int) (30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
 
   private int imodIndex = -1;
   private int imodRotIndex = -1;
@@ -268,8 +273,8 @@ public final class SectionTableRow {
     this.manager = manager;
     this.table = table;
     this.sectionExpanded = sectionExpanded;
-    highlighterButton = table.createToggleButton("=>",(int)(
-        40 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+    highlighterButton = table.createToggleButton("=>",
+        (int) (40 * UIParameters.INSTANCE.getFontSizeAdjustment()));
     //configure
     highlighterButton.addActionListener(actionListener);
     setupSection.setEnabled(false);
@@ -354,6 +359,22 @@ public final class SectionTableRow {
     manager.imodRemove(ImodManager.ROT_TOMOGRAM_KEY, imodRotIndex);
   }
 
+  void setJoinFinalStartHighlight(boolean highlight) {
+    setCellHighlight(highlight, joinFinalStart);
+  }
+
+  void setJoinFinalEndHighlight(boolean highlight) {
+    setCellHighlight(highlight, joinFinalEnd);
+  }
+
+  private void setCellHighlight(boolean highlight, InputCell cell) {
+    //avoid turning off highlighting in a highlighted row
+    if (!highlight && highlighterButton.isSelected()) {
+      return;
+    }
+    cell.setHighlight(highlight);
+  }
+
   void setMode(int mode) {
     switch (mode) {
     case JoinDialog.SAMPLE_PRODUCED_MODE:
@@ -380,7 +401,7 @@ public final class SectionTableRow {
       throw new IllegalStateException("mode=" + mode);
     }
   }
-  
+
   void setInverted(ConstEtomoNumber inverted) {
     if (inverted == null) {
       return;
@@ -388,9 +409,9 @@ public final class SectionTableRow {
     this.inverted = inverted.is();
     String tooltip = null;
     if (this.inverted) {
-      tooltip = "This section is inverted.  "+INVERTED_WARNING;
+      tooltip = "This section is inverted.  " + INVERTED_WARNING;
     }
-    rowNumber.setWarning(this.inverted,tooltip);
+    rowNumber.setWarning(this.inverted, tooltip);
     setupSection.setWarning(this.inverted, tooltip);
     joinSection.setWarning(this.inverted, tooltip);
     sampleBottomStart.setWarning(this.inverted, tooltip);
@@ -485,18 +506,23 @@ public final class SectionTableRow {
     else if (table.isJoinTab()) {
       addJoin(panel);
     }
+    else if (table.isRejoinTab()) {
+      addRejoin(panel);
+    }
   }
 
   private void addSetup(JPanel panel) {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weightx = 0.0;
-    constraints.weighty = 0.0;
+    constraints.weighty = 0.1;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
     table.addCell(highlighterButton.getComponent());
+    constraints.weightx = 0.2;
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     sampleBottomStart.add(panel, layout, constraints);
     sampleBottomEnd.add(panel, layout, constraints);
@@ -514,11 +540,13 @@ public final class SectionTableRow {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weightx = 0.0;
-    constraints.weighty = 0.0;
+    constraints.weighty = 0.1;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
+    constraints.weightx = 0.2;
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     slicesInSample.add(panel, layout, constraints);
     currentChunk.add(panel, layout, constraints);
@@ -531,18 +559,28 @@ public final class SectionTableRow {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weightx = 0.0;
-    constraints.weighty = 0.0;
+    constraints.weighty = 0.1;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
     table.addCell(highlighterButton.getComponent());
+    constraints.weightx = 0.2;
     constraints.gridwidth = 2;
     joinSection.add(panel, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     joinFinalStart.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     joinFinalEnd.add(panel, layout, constraints);
+    joinFinalStart.setEnabled(true);
+    joinFinalEnd.setEnabled(true);
   }
   
+  private void addRejoin(JPanel panel) {
+    addJoin(panel);
+    joinFinalStart.setEnabled(false);
+    joinFinalEnd.setEnabled(false);
+  }
+
   private void displayData(int rowNumber) {
     this.rowNumber.setText(String.valueOf(rowNumber));
     displayData();
@@ -713,7 +751,7 @@ public final class SectionTableRow {
       joinSection.setValue(section.getName());
     }
   }
-  
+
   void swapBottomTop() {
     String bottom = sampleBottomStart.getValue();
     String top = sampleTopStart.getValue();
@@ -765,20 +803,20 @@ public final class SectionTableRow {
    */
   private void highlight() {
     boolean highlight = highlighterButton.isSelected();
-    setupSection.setHighlighted(highlight);
-    joinSection.setHighlighted(highlight);
-    sampleBottomStart.setHighlighted(highlight);
-    sampleBottomEnd.setHighlighted(highlight);
-    sampleTopStart.setHighlighted(highlight);
-    sampleTopEnd.setHighlighted(highlight);
-    slicesInSample.setHighlighted(highlight);
-    setupFinalStart.setHighlighted(highlight);
-    setupFinalEnd.setHighlighted(highlight);
-    joinFinalStart.setHighlighted(highlight);
-    joinFinalEnd.setHighlighted(highlight);
-    rotationAngleX.setHighlighted(highlight);
-    rotationAngleY.setHighlighted(highlight);
-    rotationAngleZ.setHighlighted(highlight);
+    setupSection.setHighlight(highlight);
+    joinSection.setHighlight(highlight);
+    sampleBottomStart.setHighlight(highlight);
+    sampleBottomEnd.setHighlight(highlight);
+    sampleTopStart.setHighlight(highlight);
+    sampleTopEnd.setHighlight(highlight);
+    slicesInSample.setHighlight(highlight);
+    setupFinalStart.setHighlight(highlight);
+    setupFinalEnd.setHighlight(highlight);
+    joinFinalStart.setHighlight(highlight);
+    joinFinalEnd.setHighlight(highlight);
+    rotationAngleX.setHighlight(highlight);
+    rotationAngleY.setHighlight(highlight);
+    rotationAngleZ.setHighlight(highlight);
   }
 
   private void highlighterButtonAction() {
@@ -875,20 +913,20 @@ public final class SectionTableRow {
     }
   }
 
-  final void imodOpenSetupSectionFile(int binning) {
+  final void imodOpenSetupSectionFile(int binning,Run3dmodMenuOptions menuOptions) {
     imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, data
-        .getSetupSection(), binning, new Run3dmodMenuOptions());
+        .getSetupSection(), binning, menuOptions);
   }
 
-  final void imodOpenJoinSectionFile(int binning) {
+  final void imodOpenJoinSectionFile(int binning,Run3dmodMenuOptions menuOptions) {
     File joinSection = data.getJoinSection();
     if (DatasetFiles.isRotatedTomogram(joinSection)) {
       imodRotIndex = manager.imodOpen(ImodManager.ROT_TOMOGRAM_KEY,
-          imodRotIndex, joinSection, binning, new Run3dmodMenuOptions());
+          imodRotIndex, joinSection, binning, menuOptions);
     }
     else {
       imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex,
-          joinSection, binning, new Run3dmodMenuOptions());
+          joinSection, binning, menuOptions);
     }
   }
 
