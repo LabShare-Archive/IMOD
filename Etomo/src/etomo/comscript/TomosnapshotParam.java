@@ -42,8 +42,8 @@ public final class TomosnapshotParam implements Command {
     return COMMAND_NAME;
   }
 
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
 
   public File getCommandOutputFile() {
@@ -93,6 +93,10 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/05/22 22:41:07  sueh
+ * <p> bug# 577 Moved the call to buildCommand to getCommandArray().  Made
+ * <p> getCommand() conform to the Command interface.
+ * <p>
  * <p> Revision 1.4  2006/05/11 19:50:20  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
