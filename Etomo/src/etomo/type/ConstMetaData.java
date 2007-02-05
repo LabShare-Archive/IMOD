@@ -66,13 +66,13 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected boolean wholeTomogramSampleB = false;
   //binning values - null if missing
   protected EtomoNumber tomoPosBinningA = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "TomoPosBinningA");
+      EtomoNumber.Type.INTEGER, "TomoPosBinningA");
   protected EtomoNumber tomoPosBinningB = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "TomoPosBinningB");
+      EtomoNumber.Type.INTEGER, "TomoPosBinningB");
   protected EtomoNumber tomoGenBinningA = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "TomoGenBinningA");
+      EtomoNumber.Type.INTEGER, "TomoGenBinningA");
   protected EtomoNumber tomoGenBinningB = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "TomoGenBinningB");
+      EtomoNumber.Type.INTEGER, "TomoGenBinningB");
 
   //  Axis specific data
   protected TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
@@ -723,6 +723,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.37  2006/09/19 22:32:39  sueh
+ * <p> bug# 920 Added first and second axisPrepends for storing axis-level values.
+ * <p> Added TiltParam.Storables for A and B.
+ * <p>
  * <p> Revision 3.36  2006/05/11 19:57:02  sueh
  * <p> bug# 838 Added sample thickness.
  * <p>

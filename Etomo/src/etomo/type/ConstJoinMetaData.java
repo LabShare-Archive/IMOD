@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2005/12/14 01:28:27  sueh
+ * <p> bug# 782 Updated toString().
+ * <p>
  * <p> Revision 1.9  2005/11/02 23:59:35  sueh
  * <p> bug# 738 Added midas limit.
  * <p>
@@ -140,54 +143,73 @@ import etomo.util.Utilities;
 public abstract class ConstJoinMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
 
-  protected static final String latestRevisionNumber = "1.0";
+  protected static final EtomoVersion latestRevisionNumber = EtomoVersion
+      .getInstance(revisionNumberString, "1.1");
   private static final String newJoinTitle = "New Join";
 
   protected static final String groupString = "Join";
   protected static final String sectionTableDataSizeString = "SectionTableDataSize";
   protected static final String rootNameString = "RootName";
+  protected static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
+  protected static final String REFINING_WITH_TRIAL_KEY = "RefiningWithTrial";
+  protected static final String ALIGN_TRANFORM_KEY = "AlignTransform";
+  protected static final String MODEL_TRANFORM_KEY = "ModelTransform";
+  protected static final String BOUNDARIES_TO_ANALYZE_KEY = "BoundariesToAnalyze";
+  protected static final String OBJECTS_TO_INCLUDE_KEY = "ObjectsToInclude";
+  private static final String BOUNDARY_ROW_KEY="BoundaryRow";
+
+  //Version 1.0
   protected static final String fullLinearTransformationString = "FullLinearTransformation";
   protected static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
   protected static final String rotationTranslationString = "RotationTranslation";
-  protected static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
 
-  protected static final boolean defaultFullLinearTransformation = true;
+  public static final Transform TRANSFORM_DEFAULT = Transform.FULL_LINEAR_TRANSFORMATION;
 
   protected ArrayList sectionTableData;
   protected String rootName;
+  protected String boundariesToAnalyze = null;
+  protected String objectsToInclude = null;
   protected ScriptParameter densityRefSection = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "DensityRefSection");
+      EtomoNumber.Type.INTEGER, "DensityRefSection");
   protected ScriptParameter sigmaLowFrequency = new ScriptParameter(
-      EtomoNumber.DOUBLE_TYPE, "SigmaLowFrequency");
+      EtomoNumber.Type.DOUBLE, "SigmaLowFrequency");
   protected ScriptParameter cutoffHighFrequency = new ScriptParameter(
-      EtomoNumber.DOUBLE_TYPE, "CutoffHighFrequency");
+      EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
   protected ScriptParameter sigmaHighFrequency = new ScriptParameter(
-      EtomoNumber.DOUBLE_TYPE, "SigmaHighFrequency");
-  protected boolean fullLinearTransformation;
-  protected boolean rotationTranslationMagnification;
-  protected boolean rotationTranslation;
+      EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
+  protected Transform alignTransform = TRANSFORM_DEFAULT;
+  protected Transform modelTransform = TRANSFORM_DEFAULT;
   protected boolean useAlignmentRefSection;
   protected ScriptParameter alignmentRefSection = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "AlignmentRefSection");
+      EtomoNumber.Type.INTEGER, "AlignmentRefSection");
   protected ScriptParameter sizeInX = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "SizeInX");
+      EtomoNumber.Type.INTEGER, "SizeInX");
   protected ScriptParameter sizeInY = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "SizeInY");
+      EtomoNumber.Type.INTEGER, "SizeInY");
   protected ScriptParameter shiftInX = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "ShiftInX");
+      EtomoNumber.Type.INTEGER, "ShiftInX");
   protected ScriptParameter shiftInY = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "ShiftInY");
+      EtomoNumber.Type.INTEGER, "ShiftInY");
   protected EtomoNumber useEveryNSlices = new EtomoNumber(
-      EtomoNumber.INTEGER_TYPE, "UseEveryNSlices");
-  protected ScriptParameter trialBinning = new ScriptParameter(
-      EtomoNumber.INTEGER_TYPE, "TrialBinning");
+      EtomoNumber.Type.INTEGER, "UseEveryNSlices");
+  protected final ScriptParameter trialBinning = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "TrialBinning");
   protected final EtomoNumber midasLimit = new EtomoNumber("MidasLimit");
+  protected final EtomoBoolean2 gap = new EtomoBoolean2("Gap");
+  protected final EtomoNumber gapStart = new EtomoNumber("GapStart");
+  protected final EtomoNumber gapEnd = new EtomoNumber("GapEnd");
+  protected final EtomoNumber gapInc= new EtomoNumber("GapInc");
+  protected final EtomoNumber pointsToFitMin=new EtomoNumber("PointsToFitMin");
+  protected final EtomoNumber pointsToFitMax=new EtomoNumber("PointsToFitMax");
+  protected final IntKeyList boundaryRowStartList=IntKeyList.getNumericInstance("BoundaryRow"+'.'+"StartList");
+  protected final IntKeyList boundaryRowEndList=IntKeyList.getNumericInstance("BoundaryRow"+'.'+"EndList");
 
   public abstract void load(Properties props);
 
   public abstract void load(Properties props, String prepend);
 
   public ConstJoinMetaData() {
+    axisType=AxisType.SINGLE_AXIS;
     fileExtension = ".ejf";
     densityRefSection.setDefault(1).useDefaultAsDisplayValue();
     alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
@@ -198,6 +220,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
     sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
     midasLimit.setDisplayValue(MakejoincomParam.MIDAS_LIMIT_DEFAULT);
+    gapStart.setDisplayValue(-4);
+    gapEnd.setDisplayValue(8);
+    gapInc.setDisplayValue(2);
+    gap.setDisplayValue(true);
   }
 
   public String toString() {
@@ -209,28 +235,59 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
         + ",\ndensityRefSection=" + densityRefSection + ",sigmaLowFrequency="
         + sigmaLowFrequency + ",\ncutoffHighFrequency=" + cutoffHighFrequency
         + ",\nsigmaHighFrequency=" + sigmaHighFrequency
-        + ",\nfullLinearTransformation=" + fullLinearTransformation
-        + ",\nrotationTranslationMagnification="
-        + rotationTranslationMagnification + ",\nrotationTranslation="
-        + rotationTranslation + ",\nuseAlignmentRefSection="
-        + useAlignmentRefSection + ",\nalignmentRefSection="
-        + alignmentRefSection + ",\nsizeInX=" + sizeInX + ",sizeInY=" + sizeInY
-        + ",\nshiftInX=" + shiftInX + ",shiftInY=" + shiftInY
-        + ",\nuseEveryNSlices=" + useEveryNSlices + ",trialBinning="
-        + trialBinning + ",\nmidasLimit=" + midasLimit + ",\nsuper["
-        + super.paramString() + "]";
+        + ",\nuseAlignmentRefSection=" + useAlignmentRefSection
+        + ",\nalignmentRefSection=" + alignmentRefSection + ",\nsizeInX="
+        + sizeInX + ",sizeInY=" + sizeInY + ",\nshiftInX=" + shiftInX
+        + ",shiftInY=" + shiftInY + ",\nuseEveryNSlices=" + useEveryNSlices
+        + ",trialBinning=" + trialBinning + ",\nmidasLimit=" + midasLimit
+        + ",\nsuper[" + super.paramString() + "]";
   }
 
   public ArrayList getSectionTableData() {
     return sectionTableData;
   }
 
+  /**
+   * Remove data not used after version 1.0 of join meta data.
+   * Assumes the that data has been loaded (see loadVersion1_0()).
+   * @param props
+   * @param prepend
+   */
+  private void removeVersion1_0(Properties props, String prepend) {
+    String group = prepend + '.';
+    props.remove(group + fullLinearTransformationString);
+    props.remove(group + rotationTranslationMagnificationString);
+    props.remove(group + rotationTranslationString);
+  }
+
   public void store(Properties props, String prepend) {
     removeSectionTableData(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    props.setProperty(group + revisionNumberString, latestRevisionNumber);
+    //removing data used in old versions of join meta data
+    //change this this when there are more then one old version
+    if (revisionNumber.lt(latestRevisionNumber)) {
+      removeVersion1_0(props, prepend);
+    }
+    latestRevisionNumber.store(props, prepend);
     props.setProperty(group + rootNameString, rootName);
+    if (boundariesToAnalyze == null) {
+      props.remove(group + BOUNDARIES_TO_ANALYZE_KEY);
+    }
+    else {
+      props.setProperty(group + BOUNDARIES_TO_ANALYZE_KEY, boundariesToAnalyze);
+    }
+    if (objectsToInclude == null) {
+      props.remove(group + OBJECTS_TO_INCLUDE_KEY);
+    }
+    else {
+      props.setProperty(group + OBJECTS_TO_INCLUDE_KEY, objectsToInclude);
+    }
+    gapStart.store(props,prepend);
+    gapEnd.store(props,prepend);
+    gapInc.store(props,prepend);
+    pointsToFitMin.store(props,prepend);
+    pointsToFitMax.store(props,prepend);
     densityRefSection.store(props, prepend);
     if (sectionTableData == null) {
       props.setProperty(group + sectionTableDataSizeString, "0");
@@ -242,12 +299,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     sigmaLowFrequency.store(props, prepend);
     cutoffHighFrequency.store(props, prepend);
     sigmaHighFrequency.store(props, prepend);
-    props.setProperty(group + fullLinearTransformationString, Boolean
-        .toString(fullLinearTransformation));
-    props.setProperty(group + rotationTranslationMagnificationString, Boolean
-        .toString(rotationTranslationMagnification));
-    props.setProperty(group + rotationTranslationString, Boolean
-        .toString(rotationTranslation));
+    Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
+    Transform.store(modelTransform, props, prepend, MODEL_TRANFORM_KEY);
     props.setProperty(group + useAlignmentRefSectionString, Boolean
         .toString(useAlignmentRefSection));
     alignmentRefSection.store(props, prepend);
@@ -257,12 +310,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     shiftInY.store(props, prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
+    gap.store(props, prepend);
     midasLimit.store(props, prepend);
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
       }
     }
+    boundaryRowStartList.store(props,prepend);
+    boundaryRowEndList.store(props,prepend);
   }
 
   public void removeSectionTableData(Properties props, String prepend) {
@@ -334,9 +390,33 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     }
     return true;
   }
-
-  public String getRootName() {
-    return rootName;
+  
+  public String getBoundariesToAnalyze() {
+    return boundariesToAnalyze;
+  }
+  
+  public String getObjectsToInclude() {
+    return objectsToInclude;
+  }
+  
+  public ConstEtomoNumber getGapStart() {
+    return gapStart;
+  }
+  
+  public ConstEtomoNumber getGapEnd() {
+    return gapEnd;
+  }
+  
+  public ConstEtomoNumber getGapInc() {
+    return gapInc;
+  }
+  
+  public ConstEtomoNumber getPointsToFitMin() {
+    return pointsToFitMin;
+  }
+  
+  public ConstEtomoNumber getPointsToFitMax() {
+    return pointsToFitMax;
   }
 
   public boolean isRootNameSet() {
@@ -350,9 +430,45 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ScriptParameter getDensityRefSectionParameter() {
     return densityRefSection;
   }
+  
+  public IntKeyList.Walker getBoundaryRowStartListWalker(){
+    return boundaryRowStartList.getWalker();
+  }
+  
+  public void setBoundaryRowStart(int key, String start) {
+    boundaryRowStartList.put(key,start);
+  }
+  
+  public void resetBoundaryRowStartList() {
+    boundaryRowStartList.reset();
+  }
+  
+  public IntKeyList.Walker getBoundaryRowEndListWalker(){
+    return boundaryRowEndList.getWalker();
+  }
+  
+  public boolean isBoundaryRowEndListEmpty() {
+    return boundaryRowEndList.isEmpty();
+  }
+  
+  public void resetBoundaryRowEndList() {
+    boundaryRowEndList.reset();
+  }
+  
+  public ConstEtomoNumber getBoundaryRowEnd(int key) {
+    return boundaryRowEndList.getNumeric(key);
+  }
+  
+  public void setBoundaryRowEnd(int key, String end) {
+    boundaryRowEndList.put(key,end);
+  }
 
   public ConstEtomoNumber getUseEveryNSlices() {
     return useEveryNSlices;
+  }
+  
+  public ConstEtomoNumber getGap() {
+    return gap;
   }
 
   public ConstEtomoNumber getTrialBinning() {
@@ -372,6 +488,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public final ConstEtomoNumber getMidasLimit() {
     return midasLimit;
+  }
+  
+  public String getRootName() {
+    return rootName;
   }
 
   public String getName() {
@@ -414,19 +534,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
 
   public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
-    return coordinate.getInt() * state.getTrialBinning().getInt();
+    return coordinate.getInt() * state.getJoinTrialBinning().getInt();
   }
 
-  public boolean isFullLinearTransformation() {
-    return fullLinearTransformation;
+  public Transform getAlignTransform() {
+    return alignTransform;
   }
 
-  public boolean isRotationTranslationMagnification() {
-    return rotationTranslationMagnification;
-  }
-
-  public boolean isRotationTranslation() {
-    return rotationTranslation;
+  public Transform getModelTransform() {
+    return modelTransform;
   }
 
   public boolean isUseAlignmentRefSection() {
@@ -451,10 +567,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public ScriptParameter getSizeInYParameter() {
     return sizeInY;
-  }
-
-  public boolean getUseAlignmentRefSection() {
-    return useAlignmentRefSection;
   }
 
   public ConstEtomoNumber getShiftInX() {
