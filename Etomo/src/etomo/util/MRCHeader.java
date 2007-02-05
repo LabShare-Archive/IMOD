@@ -27,6 +27,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2006/11/15 21:36:38  sueh
+ * <p> bug# 872 Removed setTestInvariants
+ * <p>
  * <p> Revision 3.22  2006/09/21 16:41:50  sueh
  * <p> bug# 680 Changed MRCHeader.x/y/zPixelSize to EtomoNumber.  Added
  * <p> parsePixelSpacing to check for errors.
@@ -178,11 +181,11 @@ public class MRCHeader {
   private int nSections = -1;
   private int mode = -1;
   private final EtomoNumber xPixelSize = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber yPixelSize = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber zPixelSize = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private double xPixelSpacing = Double.NaN;
   private double yPixelSpacing = Double.NaN;
   private double zPixelSpacing = Double.NaN;

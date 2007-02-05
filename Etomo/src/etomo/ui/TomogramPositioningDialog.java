@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2006/10/26 23:58:19  sueh
+ * <p> bug# 953 added/updated tooltips
+ * <p>
  * <p> Revision 3.53  2006/09/14 00:01:30  sueh
  * <p> bug# z shift and angle offset fields associated with tilt.
  * <p>
@@ -853,7 +856,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
         ADDED_KEY + ':');
     private final LabeledTextField ltfTotal = new LabeledTextField("Total:");
     //utility field
-    private final EtomoNumber number = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    private final EtomoNumber number = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     private boolean more = true;
 
     CalcPanel(String label) {

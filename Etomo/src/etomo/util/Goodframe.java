@@ -26,8 +26,8 @@ import etomo.type.EtomoNumber;
 public class Goodframe {
   public static final String rcsid = "$Id$";
 
-  private EtomoNumber firstOutput = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-  private EtomoNumber secondOutput = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private EtomoNumber firstOutput = new EtomoNumber(EtomoNumber.Type.INTEGER);
+  private EtomoNumber secondOutput = new EtomoNumber(EtomoNumber.Type.INTEGER);
   private AxisID axisID;
   private final String propertyUserDir;
 
@@ -122,6 +122,9 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2005/11/02 22:15:37  sueh
+* <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
+* <p>
 * <p> Revision 1.7  2005/10/28 18:57:59  sueh
 * <p> bug# 747 Standardizing SystemProgram message parsing.
 * <p>

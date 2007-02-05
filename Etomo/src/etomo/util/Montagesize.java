@@ -41,9 +41,9 @@ public class Montagesize {
   //
   //other member variables
   //
-  private EtomoNumber x = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-  private EtomoNumber y = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-  private EtomoNumber z = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private EtomoNumber x = new EtomoNumber(EtomoNumber.Type.INTEGER);
+  private EtomoNumber y = new EtomoNumber(EtomoNumber.Type.INTEGER);
+  private EtomoNumber z = new EtomoNumber(EtomoNumber.Type.INTEGER);
   
   private final File file;
   private final String propertyUserDir;
@@ -315,6 +315,9 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2005/11/02 22:15:51  sueh
+ * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
+ * <p>
  * <p> Revision 1.11  2005/10/28 18:58:09  sueh
  * <p> bug# 747 Standardizing SystemProgram message parsing.
  * <p>
