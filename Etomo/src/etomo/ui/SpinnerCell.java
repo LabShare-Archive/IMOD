@@ -28,18 +28,25 @@ import etomo.type.EtomoNumber;
 class SpinnerCell extends InputCell {
   public static final String rcsid = "$Id$";
 
+  private final EtomoNumber disabledValue;
+  private final EtomoNumber savedValue;
   private JSpinner spinner = null;
-  private EtomoNumber disabledValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-  private EtomoNumber savedValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+  private final EtomoNumber.Type type;
 
-  SpinnerCell(int min, int max) {
-    super();
-    spinner = new JSpinner(new SpinnerNumberModel(min, min, max, 1));
-    setBackground();
-    setFont();
-    setForeground();
-    spinner.setBorder(BorderFactory.createEtchedBorder());
-    getTextField().setHorizontalAlignment(JTextField.LEFT);
+  public String toString() {
+    return getTextField().getText();
+  }
+
+  static SpinnerCell getIntInstance(int min, int max) {
+    return new SpinnerCell(min, max);
+  }
+
+  static SpinnerCell getLongInstance(long min, long max) {
+    return new SpinnerCell(min, max);
+  }
+
+  void setEditable(boolean editable) {
+    getTextField().setEditable(editable);
   }
 
   void setEnabled(boolean enabled) {
@@ -69,25 +76,60 @@ class SpinnerCell extends InputCell {
     return spinner;
   }
 
-  private final JFormattedTextField getTextField() {
-    return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
+  final void setValue(int value) {
+    setValue(new EtomoNumber(type).set(value).getNumber());
   }
 
-  final void setValue(int value) {
-    savedValue.set(value);
-    if (enabled || disabledValue.isNull()) {
-      spinner.setValue(new Integer(value));
-    }
+  final void setValue(long value) {
+    setValue(new EtomoNumber(type).set(value).getNumber());
   }
 
   final void setValue(String value) {
-    setValue(new EtomoNumber(EtomoNumber.INTEGER_TYPE).set(value).getInt());
+    setValue(new EtomoNumber(type).set(value).getNumber());
   }
 
-  final int getValue() {
+  final int getIntValue() {
     return ((Integer) spinner.getValue()).intValue();
   }
 
+  final long getLongValue() {
+    return ((Long) spinner.getValue()).longValue();
+  }
+
+  final String getStringValue() {
+    if (type == EtomoNumber.Type.INTEGER) {
+      return String.valueOf(getIntValue());
+    }
+    if (type == EtomoNumber.Type.LONG) {
+      return String.valueOf(getLongValue());
+    }
+    return null;
+  }
+
+  final int getWidth() {
+    return spinner.getWidth();
+  }
+
+  final void addChangeListener(ChangeListener changeListener) {
+    spinner.addChangeListener(changeListener);
+  }
+
+  final void removeChangeListener(ChangeListener changeListener) {
+    spinner.removeChangeListener(changeListener);
+  }
+
+  void setToolTipText(String toolTipText) {
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    String tooltip = tooltipFormatter.setText(toolTipText).format();
+    spinner.setToolTipText(tooltip);
+    getTextField().setToolTipText(tooltip);
+  }
+
+  /**
+   * This probably doesn't work.  Should use something like
+   * UIUtilities.highlightJTextComponents.  Will need to control the background
+   * color more carefully.
+   */
   protected final void setBackground(ColorUIResource color) {
     getTextField().setBackground(color);
   }
@@ -103,22 +145,50 @@ class SpinnerCell extends InputCell {
       textField.setDisabledTextColor(notInUseForeground);
     }
   }
-  
-  final int getWidth() {
-    return spinner.getWidth();
-     //   + spinner.getBorder().getBorderInsets(spinner).right / 2;
+
+  private SpinnerCell(int min, int max) {
+    super();
+    type = EtomoNumber.Type.INTEGER;
+    disabledValue = new EtomoNumber();
+    savedValue = new EtomoNumber();
+    spinner = new JSpinner(new SpinnerNumberModel(min, min, max, 1));
+    setBackground();
+    setFont();
+    setForeground();
+    spinner.setBorder(BorderFactory.createEtchedBorder());
+    getTextField().setHorizontalAlignment(JTextField.LEFT);
   }
-  
-  final void addChangeListener(ChangeListener changeListener) {
-    spinner.addChangeListener(changeListener);
+
+  private SpinnerCell(long min, long max) {
+    super();
+    type = EtomoNumber.Type.LONG;
+    disabledValue = new EtomoNumber(EtomoNumber.Type.LONG);
+    savedValue = new EtomoNumber(EtomoNumber.Type.LONG);
+    spinner = new JSpinner(new SpinnerNumberModel(new Long(min), new Long(min),
+        new Long(max), new Long(1)));
+    setBackground();
+    setFont();
+    setForeground();
+    spinner.setBorder(BorderFactory.createEtchedBorder());
+    getTextField().setHorizontalAlignment(JTextField.LEFT);
   }
-  
-  void setToolTipText(String toolTipText) {
-    spinner.setToolTipText(toolTipText);
+
+  private final JFormattedTextField getTextField() {
+    return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
+  }
+
+  private final void setValue(Number value) {
+    savedValue.set(value);
+    if (enabled || disabledValue.isNull()) {
+      spinner.setValue(value);
+    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/10/16 22:53:13  sueh
+ * <p> bug# 919  Added setToolTipText().
+ * <p>
  * <p> Revision 1.6  2005/09/13 00:02:47  sueh
  * <p> bug# 532 Fixed bug in setEnabled() by return if nothing has to be done.
  * <p>
