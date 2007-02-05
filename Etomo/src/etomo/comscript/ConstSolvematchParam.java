@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2006/09/13 23:10:02  sueh
+ * <p> bug# 921 Added centerShiftLimit.
+ * <p>
  * <p> Revision 3.4  2006/05/16 21:25:39  sueh
  * <p> bug# 856 Added a and bFiducialModel, usePoints, and transferCoordinateFile.
  * <p> Using matchBToA to add the atob parameter to the script.
@@ -87,7 +90,7 @@ public class ConstSolvematchParam {
   protected String aFiducialModel = null;
   protected String bFiducialModel = null;
   protected StringList usePoints = new StringList(0);
-  protected ScriptParameter centerShiftLimit = new ScriptParameter(EtomoNumber.FLOAT_TYPE, CENTER_SHIFT_LIMIT_KEY);
+  protected ScriptParameter centerShiftLimit = new ScriptParameter(EtomoNumber.Type.FLOAT, CENTER_SHIFT_LIMIT_KEY);
   
   /**
    * @return FortranInputString

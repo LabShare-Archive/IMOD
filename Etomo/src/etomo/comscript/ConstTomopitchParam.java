@@ -38,9 +38,9 @@ public class ConstTomopitchParam {
   protected double spacingInY;
   protected double scaleFactor;
   protected String parameterFile;
-  protected ScriptParameter angleOffsetOld = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "AngleOffsetOld");
-  protected ScriptParameter zShiftOld = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "ZShiftOld");
-  protected ScriptParameter xAxisTiltOld = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "XAxisTiltOld");
+  protected ScriptParameter angleOffsetOld = new ScriptParameter(EtomoNumber.Type.DOUBLE, "AngleOffsetOld");
+  protected ScriptParameter zShiftOld = new ScriptParameter(EtomoNumber.Type.DOUBLE, "ZShiftOld");
+  protected ScriptParameter xAxisTiltOld = new ScriptParameter(EtomoNumber.Type.DOUBLE, "XAxisTiltOld");
   
   public ConstTomopitchParam() {
     reset();

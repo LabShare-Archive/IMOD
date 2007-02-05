@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/09/19 21:58:39  sueh
+ * <p> bug# 920 Added Storables, an object for storing variables that don't going into the
+ * <p> the .com file.  Storables can be added to MetaData or another storable type
+ * <p> without creating an instance of TiltParam.  Moved fiducialess to Storables.
+ * <p>
  * <p> Revision 3.9  2006/09/13 23:12:40  sueh
  * <p> bug# 920 Changed xOffset and zOffset to xShift and zShift.  Changed zShift
  * <p> and tiltAngleOffset to EtomoNumber.
@@ -86,6 +91,7 @@ import java.util.Properties;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
@@ -119,7 +125,7 @@ public class ConstTiltParam implements ProcessDetails {
 
   protected int mode;
 
-  protected EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.FLOAT_TYPE, "OFFSET");
+  protected EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.FLOAT, "OFFSET");
 
   protected float tiltAxisOffset;
 
@@ -140,7 +146,7 @@ public class ConstTiltParam implements ProcessDetails {
 
   protected float xShift;
 
-  protected EtomoNumber zShift = new EtomoNumber(EtomoNumber.FLOAT_TYPE, "SHIFT");
+  protected EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.FLOAT, "SHIFT");
 
   protected int idxSliceStart;
 
@@ -183,7 +189,7 @@ public class ConstTiltParam implements ProcessDetails {
     this.datasetName = datasetName;
     this.axisID = axisID;
     //do not default imageBinned
-    imageBinned = new ScriptParameter(EtomoNumber.LONG_TYPE, "IMAGEBINNED");
+    imageBinned = new ScriptParameter(EtomoNumber.Type.LONG, "IMAGEBINNED");
     imageBinned.setFloor(1);
     reset();
     storables.reset();
@@ -492,6 +498,10 @@ public class ConstTiltParam implements ProcessDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
+  
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public double getDoubleValue(etomo.comscript.Fields field) {
     if (field == Fields.X_AXIS_TILT) {
@@ -503,6 +513,14 @@ public class ConstTiltParam implements ProcessDetails {
     if (field == Fields.TILT_ANGLE_OFFSET) {
       return tiltAngleOffset.getDouble();
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

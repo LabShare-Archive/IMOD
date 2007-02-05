@@ -5,6 +5,7 @@ import java.util.Hashtable;
 
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
@@ -182,68 +183,68 @@ public class ConstTiltalignParam implements CommandDetails {
   public ConstTiltalignParam(String datasetName, AxisID axisID) {
     this.axisID = axisID;
     this.datasetName = datasetName;
-    rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, "RotationAngle");
+    rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE, "RotationAngle");
     tiltAngleSpec = new TiltAngleSpec();
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
     tiltAngleSpec.setTiltAngleFilenameKey("TiltFile", "tiltFile");
-    angleOffset = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, ANGLE_OFFSET_KEY);
+    angleOffset = new ScriptParameter(EtomoNumber.Type.DOUBLE, ANGLE_OFFSET_KEY);
     projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
-    rotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_OPTION_KEY);
+    rotOption = new ScriptParameter(EtomoNumber.Type.INTEGER, ROT_OPTION_KEY);
     rotOption.setValidValues(rotOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    rotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, ROT_DEFAULT_GROUPING_KEY);
+    rotDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, ROT_DEFAULT_GROUPING_KEY);
     rotDefaultGrouping.setDisplayValue(3);
-    rotationFixedView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "RotationFixedView");
-    localRotOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_ROT_OPTION_KEY);
+    rotationFixedView = new ScriptParameter(EtomoNumber.Type.INTEGER, "RotationFixedView");
+    localRotOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_ROT_OPTION_KEY);
     localRotOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localRotDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_ROT_DEFAULT_GROUPING_KEY);
+    localRotDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_ROT_DEFAULT_GROUPING_KEY);
     localRotDefaultGrouping.setDisplayValue(6);
-    tiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, TILT_OPTION_KEY);
+    tiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER, TILT_OPTION_KEY);
     tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(TILT_ALL_OPTION);
-    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, TILT_DEFAULT_GROUPING_KEY);
+    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, TILT_DEFAULT_GROUPING_KEY);
     tiltDefaultGrouping.setDisplayValue(5);
-    localTiltOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_TILT_OPTION_KEY);
+    localTiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_TILT_OPTION_KEY);
     localTiltOption.setValidValues(localTiltOptionValidValues).setDisplayValue(TILT_AUTOMAPPED_OPTION);
-    localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_TILT_DEFAULT_GROUPING_KEY);
+    localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_TILT_DEFAULT_GROUPING_KEY);
     localTiltDefaultGrouping.setDisplayValue(6);
-    magReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_REFERENCE_VIEW_KEY);
-    magOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_OPTION_KEY);
+    magReferenceView = new ScriptParameter(EtomoNumber.Type.INTEGER, MAG_REFERENCE_VIEW_KEY);
+    magOption = new ScriptParameter(EtomoNumber.Type.INTEGER, MAG_OPTION_KEY);
     magOption.setValidValues(optionValidValues).setDisplayValue(ALL_OPTION);
-    magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAG_DEFAULT_GROUPING_KEY);
+    magDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, MAG_DEFAULT_GROUPING_KEY);
     magDefaultGrouping.setDisplayValue(4);
-    localMagReferenceView = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalMagReferenceView");
-    localMagOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_MAG_OPTION_KEY);
+    localMagReferenceView = new ScriptParameter(EtomoNumber.Type.INTEGER, "LocalMagReferenceView");
+    localMagOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_MAG_OPTION_KEY);
     localMagOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localMagDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_MAG_DEFAULT_GROUPING_KEY);
+    localMagDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_MAG_DEFAULT_GROUPING_KEY);
     localMagDefaultGrouping.setDisplayValue(7);
-    xStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "XStretchOption");
+    xStretchOption = new ScriptParameter(EtomoNumber.Type.INTEGER, "XStretchOption");
     xStretchOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
-    xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, X_STRETCH_DEFAULT_GROUPING_KEY);
+    xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, X_STRETCH_DEFAULT_GROUPING_KEY);
     xStretchDefaultGrouping.setDisplayValue(7);
-    localXStretchOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "LocalXStretchOption");
+    localXStretchOption = new ScriptParameter(EtomoNumber.Type.INTEGER, "LocalXStretchOption");
     localXStretchOption.setValidValues(localOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
+    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
     localXStretchDefaultGrouping.setDisplayValue(7);
-    skewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SKEW_OPTION_KEY);
+    skewOption = new ScriptParameter(EtomoNumber.Type.INTEGER, SKEW_OPTION_KEY);
     skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
-    skewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SKEW_DEFAULT_GROUPING_KEY);
+    skewDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, SKEW_DEFAULT_GROUPING_KEY);
     skewDefaultGrouping.setDisplayValue(11);
-    localSkewOption = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_SKEW_OPTION_KEY);
+    localSkewOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_SKEW_OPTION_KEY);
     localSkewOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE, LOCAL_SKEW_DEFAULT_GROUPING_KEY);
+    localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_SKEW_DEFAULT_GROUPING_KEY);
     localSkewDefaultGrouping.setDisplayValue(11);
-    residualReportCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, RESIDUAL_REPORT_CRITERION_KEY);
-    surfacesToAnalyze = new ScriptParameter(EtomoNumber.INTEGER_TYPE, SURFACES_TO_ANALYZE_KEY);
+    residualReportCriterion = new ScriptParameter(EtomoNumber.Type.DOUBLE, RESIDUAL_REPORT_CRITERION_KEY);
+    surfacesToAnalyze = new ScriptParameter(EtomoNumber.Type.INTEGER, SURFACES_TO_ANALYZE_KEY);
     surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
-    metroFactor = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, METRO_FACTOR_KEY);
-    maximumCycles = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAXIMUM_CYCLES_KEY);
-    axisZShift = new ScriptParameter(EtomoNumber.DOUBLE_TYPE, AXIS_Z_SHIFT_KEY);
+    metroFactor = new ScriptParameter(EtomoNumber.Type.DOUBLE, METRO_FACTOR_KEY);
+    maximumCycles = new ScriptParameter(EtomoNumber.Type.INTEGER, MAXIMUM_CYCLES_KEY);
+    axisZShift = new ScriptParameter(EtomoNumber.Type.DOUBLE, AXIS_Z_SHIFT_KEY);
     localAlignments = new EtomoBoolean2(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setDisplayAsInteger(true);
     fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
     fixXYZCoordinates.setDisplayAsInteger(true);
     //do not default imagesAreBinnned
-    imagesAreBinned = new ScriptParameter(EtomoNumber.LONG_TYPE, "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
     imagesAreBinned.setFloor(1);
     reset();
   }
@@ -384,8 +385,8 @@ public class ConstTiltalignParam implements CommandDetails {
     return array;
   }
   
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
   
   public File getCommandOutputFile() {
@@ -406,6 +407,10 @@ public class ConstTiltalignParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
   public double getDoubleValue(etomo.comscript.Fields field) {
     if (field == Fields.AXIS_Z_SHIFT) {
       return axisZShift.getDouble();
@@ -413,6 +418,14 @@ public class ConstTiltalignParam implements CommandDetails {
     if (field == Fields.ANGLE_OFFSET) {
       return angleOffset.getDouble();
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   
@@ -812,6 +825,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2006/08/22 22:45:06  sueh
+ * <p> bug# 913 Added single rot option
+ * <p>
  * <p> Revision 3.26  2006/05/22 22:36:19  sueh
  * <p> bug# 577 Added getCommand().
  * <p>

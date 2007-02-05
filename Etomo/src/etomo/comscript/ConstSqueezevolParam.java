@@ -10,6 +10,7 @@ import etomo.BaseManager;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.ConstMetaData;
 import etomo.type.EtomoNumber;
 
@@ -27,6 +28,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2006/05/22 22:36:01  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.14  2006/05/11 19:39:30  sueh
 * <p> bug# 838 Add CommandDetails, which extends Command and
 * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -95,9 +99,9 @@ public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
   private static final int commandSize = 3;
   private static final String commandName = "squeezevol";
   
-  protected EtomoNumber reductionFactorX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorX");
-  protected EtomoNumber reductionFactorY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorY");
-  protected EtomoNumber reductionFactorZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "ReductionFactorZ");
+  protected EtomoNumber reductionFactorX = new EtomoNumber(EtomoNumber.Type.DOUBLE, "ReductionFactorX");
+  protected EtomoNumber reductionFactorY = new EtomoNumber(EtomoNumber.Type.DOUBLE, "ReductionFactorY");
+  protected EtomoNumber reductionFactorZ = new EtomoNumber(EtomoNumber.Type.DOUBLE, "ReductionFactorZ");
   protected boolean linearInterpolation;
   protected boolean flipped = false;
   private String[] commandArray = null;
@@ -215,6 +219,10 @@ public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -224,6 +232,14 @@ public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
   }
   
   public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   
@@ -239,8 +255,8 @@ public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
     return commandName;
   }
   
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
   
   public File getCommandOutputFile() {

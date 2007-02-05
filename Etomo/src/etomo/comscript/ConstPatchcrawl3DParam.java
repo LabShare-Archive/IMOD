@@ -17,6 +17,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2006/09/13 23:08:56  sueh
+ * <p> bug# 921 Added initialShiftXYZ.
+ * <p>
  * <p> Revision 3.3  2006/08/29 20:02:59  sueh
  * <p> bug# 924 Added kernelSigma.
  * <p>
@@ -66,7 +69,7 @@ public class ConstPatchcrawl3DParam {
   protected final FortranInputString initialShiftXYZ = new FortranInputString(
       INITIAL_SHIFT_XYZ_KEY, 3);
   protected final ScriptParameter kernelSigma = new ScriptParameter(
-      EtomoNumber.FLOAT_TYPE, KERNEL_SIGMA_KEY);
+      EtomoNumber.Type.FLOAT, KERNEL_SIGMA_KEY);
 
   protected String referenceFile = null;
   protected String fileToAlign = null;
