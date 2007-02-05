@@ -11,8 +11,12 @@ import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.ProcessDetails;
+import etomo.comscript.RemapmodelParam;
 import etomo.comscript.StartJoinParam;
 import etomo.comscript.XfalignParam;
+import etomo.comscript.XfjointomoParam;
+import etomo.comscript.XfmodelParam;
+import etomo.comscript.XftoxgParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
@@ -29,8 +33,10 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.ConstJoinState;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
+import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -39,6 +45,7 @@ import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
+import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -55,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2006/11/28 22:48:38  sueh
+ * <p> bug# 934 Changed BaseManager.stop() to endThreads().
+ * <p>
  * <p> Revision 1.47  2006/11/15 18:47:01  sueh
  * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
  * <p> save param file function call save().  getStorables always gets all the storables
@@ -385,11 +395,15 @@ public final class JoinManager extends BaseManager {
   private JoinProcessManager processMgr;
   private JoinState state;
   private StartJoinParam startJoinParam = null;
+  private final JoinScreenState screenState = new JoinScreenState(AxisID.ONLY,
+      AxisType.SINGLE_AXIS);
+  private boolean debug = false;
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
     this.metaData = new JoinMetaData(this);
     createState();
+    processMgr = new JoinProcessManager(this, state);
     initializeUIParameters(paramFileName, axisID);
     if (!paramFileName.equals("") && loadedParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);
@@ -417,10 +431,6 @@ public final class JoinManager extends BaseManager {
   protected void createComScriptManager() {
   }
 
-  protected void createProcessManager() {
-    processMgr = new JoinProcessManager(this);
-  }
-
   protected void createProcessTrack() {
   }
 
@@ -434,10 +444,10 @@ public final class JoinManager extends BaseManager {
     openProcessingPanel();
     if (joinDialog == null) {
       if (loadedParamFile) {
-        joinDialog = new JoinDialog(this, propertyUserDir, metaData);
+        joinDialog = new JoinDialog(this, propertyUserDir, metaData, state);
       }
       else {
-        joinDialog = new JoinDialog(this, metaData);
+        joinDialog = new JoinDialog(this, metaData, state);
       }
     }
     if (loadedParamFile) {
@@ -472,8 +482,13 @@ public final class JoinManager extends BaseManager {
       loadedParamFile = true;
     }
     joinDialog.getMetaData(metaData);
+    joinDialog.getScreenState(screenState);
     state.setDoneMode(joinDialog.getMode());
     saveStorables(AxisID.ONLY);
+  }
+
+  public JoinScreenState getScreenState() {
+    return screenState;
   }
 
   protected void createMainPanel() {
@@ -488,6 +503,36 @@ public final class JoinManager extends BaseManager {
     try {
       imodManager.setBinningXY(imodKey, binning);
       imodManager.open(imodKey, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
+  }
+
+  public void setDebug(boolean debug) {
+    super.setDebug(debug);
+    this.debug = debug;
+  }
+
+  public void imodOpen(String imodKey, int binning, String modelName,
+      Run3dmodMenuOptions menuOptions) {
+    if (debug) {
+      System.err.println("imodOpen:modelName=" + modelName);
+    }
+    try {
+      imodManager.setBinningXY(imodKey, binning);
+      imodManager.open(imodKey, modelName, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -525,6 +570,58 @@ public final class JoinManager extends BaseManager {
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
+  }
+
+  public void imodOpen(String imodKey, String model,
+      Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(imodKey, AxisID.ONLY, model, true, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
+  }
+
+  public void imodOpen(String imodKey) {
+    try {
+      imodManager.open(imodKey, AxisID.ONLY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
+  }
+
+  public boolean isImodOpen(String imodKey) {
+    try {
+      return imodManager.isOpen(imodKey);
+    }
+    catch (AxisTypeException e) {
+      uiHarness.openMessageDialog(e.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+      return false;
     }
   }
 
@@ -703,19 +800,31 @@ public final class JoinManager extends BaseManager {
    * @param processName
    * @param processDetails
    */
-  public void postProcess(String commandName,
-      ProcessDetails processDetails) {
-    if (processDetails != null) {
-    if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
-      StartJoinParam param = newStartJoinParam();
-      param.setRotate(true);
-      param.setTotalRows(processDetails
-          .getIntValue(MakejoincomParam.Fields.TOTAL_ROWS));
-      param.setRotationAnglesList(processDetails
-          .getHashtable(MakejoincomParam.Fields.ROTATION_ANGLES_LIST));
+  public void postProcess(String commandName, ProcessDetails processDetails) {
+    if (commandName.equals(ProcessName.MAKEJOINCOM.toString())) {
+      if (processDetails != null) {
+        if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
+          StartJoinParam param = newStartJoinParam();
+          param.setRotate(true);
+          param.setTotalRows(processDetails
+              .getIntValue(MakejoincomParam.Fields.TOTAL_ROWS));
+          param.setRotationAnglesList(processDetails
+              .getHashtable(MakejoincomParam.Fields.ROTATION_ANGLES_LIST));
+        }
+      }
+      joinDialog.setInverted();
     }
+    else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
+      try {
+        joinDialog.setXfjointomoResult();
+      }
+      catch (LogFile.ReadException e) {
+        e.printStackTrace();
+        uiHarness.openMessageDialog("Unable to read "
+            + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(),
+            "Read Error");
+      }
     }
-    joinDialog.setInverted();
   }
 
   /**
@@ -770,7 +879,7 @@ public final class JoinManager extends BaseManager {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(this,
-        XfalignParam.INITIAL_MODE);
+        XfalignParam.Mode.INITIAL);
     try {
       threadNameA = processMgr.xfalign(xfalignParam);
     }
@@ -789,7 +898,7 @@ public final class JoinManager extends BaseManager {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
-    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.REFINE_MODE);
+    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.Mode.REFINE);
     if (!copyMostRecentXfFile(JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT)) {
       return;
     }
@@ -960,28 +1069,142 @@ public final class JoinManager extends BaseManager {
     joinDialog.enableMidas();
   }
 
-  public void runFinishjoin(int mode, String buttonText) {
+  public void xfjointomo() {
+    XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial().is());
+    joinDialog.getParameters(xfjointomoParam);
+    try {
+      threadNameA = processMgr.xfjointomo(xfjointomoParam);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog("Can't run "
+          + ProcessName.XFJOINTOMO.toString() + "\n" + except.getMessage(),
+          "SystemProcessException", AxisID.ONLY);
+      return;
+    }
+    mainPanel.startProgressBar(ProcessName.XFJOINTOMO.toString(), AxisID.ONLY,
+        ProcessName.XFJOINTOMO);
+  }
+
+  private void remapmodel() {
+    RemapmodelParam param = new RemapmodelParam(this);
+    try {
+      threadNameA = processMgr.remapmodel(param);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog("Can't run " + RemapmodelParam.COMMAND_NAME
+          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+      return;
+    }
+    mainPanel.startProgressBar(RemapmodelParam.COMMAND_NAME, AxisID.ONLY,
+        ProcessName.REMAPMODEL);
+  }
+
+  public void xfmodel(String inputFile, String outputFile) {
+    XfmodelParam param = new XfmodelParam(this);
+    param.setInputFile(inputFile);
+    param.setOutputFile(outputFile);
+    xfmodel(param);
+  }
+
+  private void xfmodel() {
+    xfmodel(new XfmodelParam(this));
+  }
+
+  private void xfmodel(XfmodelParam param) {
+    if (debug) {
+      System.err.println("xfmodel:gapExist="+state.isGapsExist());
+    }
+    if (state.isGapsExist()) {
+      setNextProcess(AxisID.ONLY, ProcessName.REMAPMODEL.toString());
+    }
+    try {
+      threadNameA = processMgr.xfmodel(param);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog("Can't run " + XfmodelParam.COMMAND_NAME
+          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+      return;
+    }
+    mainPanel.startProgressBar(XfmodelParam.COMMAND_NAME, AxisID.ONLY,
+        ProcessName.XFMODEL);
+  }
+
+  private void xftoxg() {
+    setNextProcess(AxisID.ONLY, ProcessName.XFMODEL.toString());
+    XftoxgParam param = new XftoxgParam(this);
+    try {
+      threadNameA = processMgr.xftoxg(param);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog("Can't run " + XftoxgParam.COMMAND_NAME
+          + "\n" + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+      return;
+    }
+    mainPanel.startProgressBar(XftoxgParam.COMMAND_NAME, AxisID.ONLY,
+        ProcessName.XFTOXG);
+  }
+
+  public void updateJoinDialogDisplay() {
+    joinDialog.updateDisplay();
+  }
+
+  /**
+   * Runs finishjoin in the mode specified.  If the mode is SUPPRESS_EXECUTION
+   * then finishjoin is not executed, and only used for placing data into
+   * JoinState.
+   * @param mode
+   * @param buttonText
+   */
+  public void finishjoin(FinishjoinParam.Mode mode, String buttonText) {
+    try {
+      if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION
+          && imodManager.isOpen(ImodManager.TRANSFORMED_MODEL)) {
+        uiHarness.openMessageDialog("Please close "
+            + DatasetFiles.getRefineAlignedModelFileName(this), "Close File");
+        return;
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
-    FinishjoinParam finishjoinParam = new FinishjoinParam(this, mode);
+    FinishjoinParam param = new FinishjoinParam(this, mode);
     if (!copyMostRecentXfFile(buttonText)) {
       return;
     }
     if (!joinDialog.validateFinishjoin()) {
       return;
     }
-    try {
-      threadNameA = processMgr.finishjoin(finishjoinParam);
+    if (mode == FinishjoinParam.Mode.REJOIN
+        || mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
+      setNextProcess(AxisID.ONLY, ProcessName.XFTOXG.toString());
     }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog("Can't run " + buttonText + "\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
-      return;
+    if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
+      setLastProcess(AxisID.ONLY, ImodManager.TRANSFORMED_MODEL);
+      processMgr.saveFinishjoinState(param);
+      startNextProcess(AxisID.ONLY, null);
     }
-    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,
-        ProcessName.FINISHJOIN);
+    else {
+      try {
+        threadNameA = processMgr.finishjoin(param);
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        uiHarness.openMessageDialog("Can't run " + buttonText + "\n"
+            + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+        return;
+      }
+      mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,
+          ProcessName.FINISHJOIN);
+    }
   }
 
   private boolean updateMetaDataFromJoinDialog(AxisID axisID) {
@@ -1008,8 +1231,8 @@ public final class JoinManager extends BaseManager {
   }
 
   public void setSize(String sizeInXString, String sizeInYString) {
-    EtomoNumber sizeInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber sizeInX = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
     sizeInX.set(sizeInXString);
     joinDialog.setSizeInX(sizeInX);
     sizeInY.set(sizeInYString);
@@ -1079,9 +1302,23 @@ public final class JoinManager extends BaseManager {
    */
   protected void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay) {
+    if (debug) {
+      System.err.println("startNextProcess:axisID="+axisID+",nextProcess="+nextProcess);
+    }
     if (nextProcess.equals("startjoin")) {
       startjoin();
-      return;
+    }
+    else if (nextProcess.equals(ProcessName.XFTOXG.toString())) {
+      xftoxg();
+    }
+    else if (nextProcess.equals(ProcessName.XFMODEL.toString())) {
+      xfmodel();
+    }
+    else if (nextProcess.equals(ProcessName.REMAPMODEL.toString())) {
+      remapmodel();
+    }
+    else if (nextProcess.equals(ImodManager.TRANSFORMED_MODEL)) {
+      imodOpen(ImodManager.TRANSFORMED_MODEL);
     }
   }
 
@@ -1108,7 +1345,7 @@ public final class JoinManager extends BaseManager {
     state = new JoinState(this);
   }
 
-  public JoinState getState() {
+  public ConstJoinState getState() {
     return state;
   }
 
@@ -1154,10 +1391,11 @@ public final class JoinManager extends BaseManager {
   }
 
   protected final Storable[] getStorables(int offset) {
-    Storable[] storable = new Storable[2 + offset];
+    Storable[] storable = new Storable[3 + offset];
     int index = offset;
     storable[index++] = metaData;
-    storable[index] = state;
+    storable[index++] = state;
+    storable[index] = screenState;
     return storable;
   }
 
