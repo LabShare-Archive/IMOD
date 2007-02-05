@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
@@ -30,11 +31,6 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 
   public static final String GOTO_LABEL = "doblend";
   public static final String COMMAND_NAME = "blendmont";
-  public static final int XCORR_MODE = -1;
-  public static final int PREBLEND_MODE = -2;
-  public static final int BLEND_MODE = -3;
-  public static final int UNDISTORT_MODE = -4;
-  public static final int WHOLE_TOMOGRAM_SAMPLE_MODE = -5;
   public static final int LINEAR_INTERPOLATION_ORDER = 1;
   public static final String OUTPUT_FILE_EXTENSION = ".ali";
   public static final String DISTORTION_CORRECTED_STACK_EXTENSION = ".dcst";
@@ -49,15 +45,17 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   private ScriptParameter interpolationOrder;
   private EtomoBoolean2 justUndistort;
   private String imageOutputFile;
-  private int mode = XCORR_MODE;
+  private Mode mode = Mode.XCORR;
   private ScriptParameter binByFactor;
   private final ApplicationManager manager;
 
-  public BlendmontParam(ApplicationManager manager, String datasetName, AxisID axisID) {
-    this(manager, datasetName, axisID, XCORR_MODE);
+  public BlendmontParam(ApplicationManager manager, String datasetName,
+      AxisID axisID) {
+    this(manager, datasetName, axisID, Mode.XCORR);
   }
 
-  public BlendmontParam(ApplicationManager manager, String datasetName, AxisID axisID, int mode) {
+  public BlendmontParam(ApplicationManager manager, String datasetName,
+      AxisID axisID, Mode mode) {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
@@ -66,11 +64,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     readInXcorrs.setDisplayAsInteger(true);
     oldEdgeFunctions = new EtomoBoolean2("OldEdgeFunctions");
     oldEdgeFunctions.setDisplayAsInteger(true);
-    interpolationOrder = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    interpolationOrder = new ScriptParameter(EtomoNumber.Type.INTEGER,
         "InterpolationOrder");
     justUndistort = new EtomoBoolean2("JustUndistort");
     imageOutputFile = null;
-    binByFactor = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "BinByFactor");
+    binByFactor = new ScriptParameter(EtomoNumber.Type.INTEGER, "BinByFactor");
     // Only explcitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script  
     binByFactor.setDefault(1);
@@ -110,11 +108,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   public void initializeDefaults() {
   }
 
-  public void setMode(int mode) {
+  public void setMode(Mode mode) {
     this.mode = mode;
   }
 
-  public int getMode() {
+  public Mode getMode() {
     return mode;
   }
 
@@ -125,8 +123,8 @@ public class BlendmontParam implements CommandParam, CommandDetails {
    */
   public boolean setBlendmontState() {
     //TEMP
-    System.err.println("setBlendmontState:mode="+mode);
-    if (mode == UNDISTORT_MODE) {
+    System.err.println("setBlendmontState:mode=" + mode);
+    if (mode == Mode.UNDISTORT) {
       imageOutputFile = datasetName + axisID.getExtension()
           + DISTORTION_CORRECTED_STACK_EXTENSION;
       justUndistort.set(true);
@@ -134,41 +132,34 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     }
     else {
       justUndistort.set(false);
-      if (mode == XCORR_MODE) {
+      if (mode == Mode.XCORR) {
         imageOutputFile = datasetName + axisID.getExtension()
-        + BLENDMONT_STACK_EXTENSION;
+            + BLENDMONT_STACK_EXTENSION;
       }
-      else if (mode == PREBLEND_MODE) {
-        imageOutputFile = datasetName + axisID.getExtension()
-        + ".preali";
+      else if (mode == Mode.PREBLEND) {
+        imageOutputFile = datasetName + axisID.getExtension() + ".preali";
       }
-      else if (mode == BLEND_MODE || mode == WHOLE_TOMOGRAM_SAMPLE_MODE) {
-        imageOutputFile = datasetName + axisID.getExtension()
-        + ".ali";
+      else if (mode == Mode.BLEND || mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
+        imageOutputFile = datasetName + axisID.getExtension() + ".ali";
       }
     }
-    File ecdFile = new File(manager
-        .getPropertyUserDir(), datasetName + axisID.getExtension()
-        + ".ecd");
-    File xefFile = new File(manager
-        .getPropertyUserDir(), datasetName + axisID.getExtension()
-        + ".xef");
-    File yefFile = new File(manager
-        .getPropertyUserDir(), datasetName + axisID.getExtension()
-        + ".yef");
-    File stackFile = new File(manager
-        .getPropertyUserDir(), datasetName + axisID.getExtension()
-        + ".st");
-    File blendFile = new File(manager
-        .getPropertyUserDir(), datasetName + axisID.getExtension()
-        + BLENDMONT_STACK_EXTENSION);
+    File ecdFile = new File(manager.getPropertyUserDir(), datasetName
+        + axisID.getExtension() + ".ecd");
+    File xefFile = new File(manager.getPropertyUserDir(), datasetName
+        + axisID.getExtension() + ".xef");
+    File yefFile = new File(manager.getPropertyUserDir(), datasetName
+        + axisID.getExtension() + ".yef");
+    File stackFile = new File(manager.getPropertyUserDir(), datasetName
+        + axisID.getExtension() + ".st");
+    File blendFile = new File(manager.getPropertyUserDir(), datasetName
+        + axisID.getExtension() + BLENDMONT_STACK_EXTENSION);
     //Read in xcorr output if it exists.  Turn on for preblend and blend.
-    readInXcorrs.set(mode == PREBLEND_MODE || mode == BLEND_MODE
-        || mode == WHOLE_TOMOGRAM_SAMPLE_MODE || ecdFile.exists());
+    readInXcorrs.set(mode == Mode.PREBLEND || mode == Mode.BLEND
+        || mode == Mode.WHOLE_TOMOGRAM_SAMPLE || ecdFile.exists());
     //Use existing edge functions, if they are up to date and valid.  Turn on for blend.
     oldEdgeFunctions
-        .set(mode == BLEND_MODE
-            || mode == WHOLE_TOMOGRAM_SAMPLE_MODE
+        .set(mode == Mode.BLEND
+            || mode == Mode.WHOLE_TOMOGRAM_SAMPLE
             || (manager.getState().getInvalidEdgeFunctions(axisID).getInt() != EtomoState.TRUE_VALUE
                 && xefFile.exists()
                 && yefFile.exists()
@@ -185,39 +176,39 @@ public class BlendmontParam implements CommandParam, CommandDetails {
       return true;
     }
   }
-  
+
   public String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
   public String getCommandLine() {
     return getCommand();
   }
-  
+
   public String getCommand() {
     return getProcessName().getComscript(axisID);
   }
-  
+
   public String[] getCommandArray() {
     return getProcessName().getComscriptArray(axisID);
   }
-  
-  public int getCommandMode() {
+
+  public CommandMode getCommandMode() {
     return mode;
   }
-  
+
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), imageOutputFile);
   }
-  
+
   public String getImageOutputFile() {
     return imageOutputFile;
   }
-  
+
   public int getIntValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     if (field == Fields.OLD_EDGE_FUNCTIONS) {
       return oldEdgeFunctions.is();
@@ -225,33 +216,47 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public AxisID getAxisID() {
     return axisID;
   }
 
-  public static ProcessName getProcessName(int mode) {
-    switch (mode) {
-    case PREBLEND_MODE:
+  public static ProcessName getProcessName(Mode mode) {
+    if (mode == Mode.PREBLEND) {
       return ProcessName.PREBLEND;
-    case BLEND_MODE:
-      return ProcessName.BLEND;
-    case UNDISTORT_MODE:
-      return ProcessName.UNDISTORT;
-    case XCORR_MODE:
-      return ProcessName.XCORR;
-    case WHOLE_TOMOGRAM_SAMPLE_MODE:
-      return ProcessName.BLEND;
-    default:
-      throw new IllegalArgumentException("mode=" + mode);
     }
+    if (mode == Mode.BLEND) {
+      return ProcessName.BLEND;
+    }
+    if (mode == Mode.UNDISTORT) {
+      return ProcessName.UNDISTORT;
+    }
+    if (mode == Mode.XCORR) {
+      return ProcessName.XCORR;
+    }
+    if (mode==Mode.WHOLE_TOMOGRAM_SAMPLE) {
+      return ProcessName.BLEND;
+    }
+    throw new IllegalArgumentException("mode=" + mode);
   }
 
   public ProcessName getProcessName() {
@@ -277,21 +282,35 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     }
   }
 
-public final void setBinByFactor(int binByFactor) {
+  public final void setBinByFactor(int binByFactor) {
     this.binByFactor.set(binByFactor);
-  }  public final ConstEtomoNumber getBinByFactor() {
+  }
+
+  public final ConstEtomoNumber getBinByFactor() {
     return binByFactor;
   }
-  
+
   public static final class Fields implements etomo.comscript.Fields {
     private Fields() {
     }
-    
+
     public static final Fields OLD_EDGE_FUNCTIONS = new Fields();
+  }
+
+  public final static class Mode implements CommandMode {
+    public static final Mode XCORR = new Mode();
+    public static final Mode PREBLEND = new Mode();
+    public static final Mode BLEND = new Mode();
+    public static final Mode UNDISTORT = new Mode();
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/06/05 16:04:56  sueh
+ * <p> bug# 766 In ProcessName:  Changed getCommand() and getCommandArray() to
+ * <p> getComscript... because the fuctions are specialized for comscripts.
+ * <p>
  * <p> Revision 1.20  2006/05/22 22:35:02  sueh
  * <p> bug# 577 Added getCommand().
  * <p>

@@ -23,22 +23,19 @@ public class ArchiveorigParam implements Command {
   public static  final String  rcsid =  "$Id$";
   
   public static final String COMMAND_NAME = "archiveorig";
-  public static final int AXIS_A_MODE = -1;
-  public static final int AXIS_B_MODE = -2;
-  public static final int AXIS_ONLY_MODE = -3;
   
   private String[] commandArray;
-  private int mode = AXIS_ONLY_MODE;
+  private Mode mode = Mode.AXIS_ONLY;
   private File outputFile;
   private final BaseManager manager;
   
   public ArchiveorigParam(BaseManager manager, AxisID axisID) {
     this.manager = manager;
     if (axisID == AxisID.FIRST) {
-      mode = AXIS_A_MODE;
+      mode = Mode.AXIS_A;
     }
     else if (axisID == AxisID.SECOND) {
-      mode = AXIS_B_MODE;
+      mode = Mode.AXIS_B;
     }
     File stack = Utilities.getFile(manager, false, axisID, ".st", "");
     commandArray = new String[] { "tcsh", "-f",
@@ -69,7 +66,7 @@ public class ArchiveorigParam implements Command {
     return buffer.toString();
   }
   
-  public int getCommandMode() {
+  public CommandMode getCommandMode() {
     return mode;
   }
   
@@ -80,9 +77,18 @@ public class ArchiveorigParam implements Command {
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
+  
+  public final static class Mode implements CommandMode {
+    public static final Mode AXIS_A = new Mode();
+    public static final Mode AXIS_B = new Mode();
+    public static final Mode AXIS_ONLY = new Mode();
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2006/06/07 17:45:09  sueh
+* <p> bug# 766 Running archiveorig with tcsh for windows
+* <p>
 * <p> Revision 1.8  2006/05/22 22:34:45  sueh
 * <p> bug# 577 Added getCommand().
 * <p>
