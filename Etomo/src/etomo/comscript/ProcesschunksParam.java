@@ -65,8 +65,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return ProcessName.PROCESSCHUNKS.toString();
   }
 
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
 
   public File getCommandOutputFile() {
@@ -322,6 +322,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/12/02 04:32:45  sueh
+ * <p> bug# 944 Added get/setProcessName
+ * <p>
  * <p> Revision 1.18  2006/07/20 23:17:24  sueh
  * <p> bug# 885 Added isValid().  BuildCommand():  handling
  * <p> InvalidMountRuleException.

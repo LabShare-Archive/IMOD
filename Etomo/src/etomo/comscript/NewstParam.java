@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/03/22 21:28:42  sueh
+ * <p> bug# 803 Added DATA_MODE_OPTION and
+ * <p> FLOAT_DENSITIES_OPTION.
+ * <p>
  * <p> Revision 3.13  2006/03/22 17:53:26  sueh
  * <p> bug# 803 In updatecomScriptCommand() changed -mode to -mo, since
  * <p> that is what copytomocoms is using.
@@ -551,7 +555,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     this.useTransformLines = useTransformLines;
   }
   
-  public void setCommandMode(int commandMode) {
+  public void setCommandMode(Mode commandMode) {
     this.commandMode = commandMode;
   }
 }
