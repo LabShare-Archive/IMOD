@@ -29,7 +29,7 @@ public class ExtractmagradParam {
   private final AxisID axisID;
   private final BaseManager manager;
   
-  private final EtomoNumber rotationAngle = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+  private final EtomoNumber rotationAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
 
   private String gradientTable = null;
   private String[] commandArray = null;
@@ -77,7 +77,7 @@ public class ExtractmagradParam {
         DatasetFiles.getStackName(manager, axisID), axisID);
     if (header.getXPixelSpacing() == 1) {
       if (this.pixelSize == null) {
-        this.pixelSize = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+        this.pixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       }
       this.pixelSize.set(pixelSize);
     }
@@ -85,6 +85,9 @@ public class ExtractmagradParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/03/20 17:51:11  sueh
+* <p> bug# 835 Added getName (a convenience function) to managers.
+* <p>
 * <p> Revision 1.2  2005/10/28 18:48:16  sueh
 * <p> bug# 725 Passing pixel size when header pixel size is 1.
 * <p>
