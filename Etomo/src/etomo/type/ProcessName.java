@@ -15,6 +15,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2006/10/24 23:24:08  sueh
+ * <p> $bug# 947
+ * <p> $
  * <p> $Revision 1.9  2006/06/05 16:04:17  sueh
  * <p> $bug# 766 Added the rest of the non-comscript processes.  Changed
  * <p> $getCommand() and getCommandArray() to getComscript... because the fuctions
@@ -91,6 +94,10 @@ public class ProcessName {
   private static final String extracttilts = "extracttilts";
   private static final String extractpieces = "extractpieces";
   private static final String xfalign = "xfalign";
+  private static final String xfjointomo = "xfjointomo";
+  private static final String xftoxg = "xftoxg";
+  private static final String xfmodel = "xfmodel";
+  private static final String remapmodel = "remapmodel";
 
   private final String name;
 
@@ -136,6 +143,10 @@ public class ProcessName {
   public static final ProcessName EXTRACTTILTS = new ProcessName(extracttilts);
   public static final ProcessName EXTRACTPIECES = new ProcessName(extractpieces);
   public static final ProcessName XFALIGN = new ProcessName(xfalign);
+  public static final ProcessName XFJOINTOMO = new ProcessName(xfjointomo);
+  public static final ProcessName XFTOXG = new ProcessName(xftoxg);
+  public static final ProcessName XFMODEL = new ProcessName(xfmodel);
+  public static final ProcessName REMAPMODEL = new ProcessName(remapmodel);
 
   /**
    * Returns a string representation of the object.
@@ -272,6 +283,18 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(xfalign) == 0) {
       return XFALIGN;
+    }
+    if (name.compareToIgnoreCase(xfjointomo) == 0) {
+      return XFJOINTOMO;
+    }
+    if (name.compareToIgnoreCase(xftoxg) == 0) {
+      return XFTOXG;
+    }
+    if (name.compareToIgnoreCase(xfmodel) == 0) {
+      return XFMODEL;
+    }
+    if (name.compareToIgnoreCase(remapmodel) == 0) {
+      return REMAPMODEL;
     }
     return null;
   }
