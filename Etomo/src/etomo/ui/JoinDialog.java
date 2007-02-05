@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -15,7 +16,6 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -24,16 +24,21 @@ import javax.swing.event.ChangeListener;
 
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
+import etomo.comscript.XfjointomoParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
+import etomo.storage.ModelFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
+import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.Transform;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
@@ -48,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.39  2006/11/15 21:06:34  sueh
+ * <p> bug# 872 In action(), using ParameterStore to save meta data.
+ * <p>
  * <p> Revision 1.38  2006/11/07 22:43:36  sueh
  * <p> bug# 954 Adding tooltip to the second label in the spinners.
  * <p>
@@ -352,12 +360,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> bug# 520 added create panel functions
  * <p> </p>
  */
-public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
+public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
-
-  public static final int SETUP_TAB = 0;
-  public static final int ALIGN_TAB = 1;
-  public static final int JOIN_TAB = 2;
 
   public static final int SETUP_MODE = -1;
   public static final int SAMPLE_NOT_PRODUCED_MODE = -2;
@@ -370,14 +374,12 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String WORKING_DIRECTORY_TEXT = "Working directory";
   public static final String GET_MAX_SIZE_TEXT = "Get Max Size and Shift";
   public static final String TRIAL_JOIN_TEXT = "Trial Join";
+  public static final String REJOIN_TEXT = "Rejoin";
 
-  static final String OPEN_BINNED_BY = "Open binned by ";
+  private static final String REFINE_JOIN_TEXT = "Refine Join";
 
   private static final String OPEN_IN_3DMOD = "Open in 3dmod";
-  private static final String IN_X_AND_Y = "in X and Y";
 
-  private static ImageIcon iconFolder = new ImageIcon(ClassLoader
-      .getSystemResource("images/openFile.gif"));
   private static Dimension dimSpinner = UIParameters.INSTANCE
       .getSpinnerDimension();
 
@@ -387,15 +389,16 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private SectionTablePanel pnlSectionTable;
   private SpacedPanel pnlAlign;
   private SpacedPanel pnlJoin;
-  private SpacedPanel setupPanel1;
   private SpacedPanel setupPanel2;
   private SpacedPanel alignPanel1;
   private SpacedPanel alignPanel2;
   private SpacedPanel pnlXfalign;
   private SpacedPanel pnlFinishJoin;
   private SpacedPanel pnlMidasLimit = new SpacedPanel();
+  private final SpacedPanel pnlModel = new SpacedPanel(true);
+  private final JPanel pnlRejoinTab = new JPanel();
 
-  private JButton btnWorkingDir;
+  private FileTextField ftfWorkingDir;
   private MultiLineButton btnMakeSamples;
   private Run3dmodButton btnOpenSample;
   private Run3dmodButton btnOpenSampleAverages;
@@ -406,14 +409,12 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private MultiLineButton btnRevertToEmpty;
   private MultiLineButton btnGetMaxSize;
   private MultiLineButton btnTrialJoin;
-  private Run3dmodButton btnOpenTrialIn3dmod;
+  private BinnedXY3dmodButton b3bOpenTrialIn3dmod;
   private MultiLineButton btnGetSubarea;
   private MultiLineButton btnFinishJoin;
-  private Run3dmodButton btnOpenIn3dmod;
   private MultiLineButton btnChangeSetup;
   private MultiLineButton btnRevertToLastSetup;
 
-  private LabeledTextField ltfWorkingDir;
   private LabeledTextField ltfRootName;
   private LabeledTextField ltfSigmaLowFrequency;
   private LabeledTextField ltfCutoffHighFrequency;
@@ -425,40 +426,71 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private LabeledTextField ltfMidasLimit = new LabeledTextField(
       "Squeeze samples to ");
   private JLabel lblMidasLimit = new JLabel("pixels if bigger.");
-  private RadioButton rbFullLinearTransformation;
-  private RadioButton rbRotationTranslationMagnification;
-  private RadioButton rbRotationTranslation;
-  private CheckBox cbUseAlignmentRefSection;
-  private JSpinner spinAlignmentRefSection;
+  private final TransformChooser tcAlign = new TransformChooser();
+  private CheckBoxSpinner cbsAlignmentRefSection;
   private LabeledSpinner spinDensityRefSection;
   private LabeledSpinner spinTrialBinning;
-  private LabeledSpinner spinOpenBinnedBy;
-  private LabeledSpinner spinOpenTrialBinnedBy;
   private LabeledSpinner spinUseEveryNSlices;
 
   //state
   private int numSections = 0;
-  private int curTab = SETUP_TAB;
+  private Tab curTab = Tab.SETUP;
   private String invalidReason = null;
 
   private JoinActionListener joinActionListener = new JoinActionListener(this);
   private WorkingDirActionListener workingDirActionListener = new WorkingDirActionListener(
       this);
-  private UseAlignmentRefSectionActionListener useAlignmentRefSectionActionListener = new UseAlignmentRefSectionActionListener(
-      this);
-
   private final AxisID axisID;
-  private final JoinManager joinManager;
+  private final JoinManager manager;
 
   private int defaultXSize = 0;
   private int defaultYSize = 0;
+
+  private final CheckBox cbRefineWithTrial = new CheckBox("Refine with trial");
+  private final MultiLineButton btnRefineJoin = new MultiLineButton(
+      REFINE_JOIN_TEXT);
+  private final Run3dmodButton btnMakeRefiningModel = new Run3dmodButton(
+      "Make Refining Model", this);
+  private final MultiLineButton btnXfjointomo = new MultiLineButton(
+      "Find Transformations");
+
+  private final BoundaryTable boundaryTable;
+  private boolean refiningJoin = false;
+  private SpacedPanel pnlTransformations = null;
+  private final TransformChooser tcModel = new TransformChooser();
+  private final LabeledTextField ltfBoundariesToAnalyze = new LabeledTextField(
+      "Boundaries to analyze: ");
+  private final LabeledTextField ltfObjectsToInclude = new LabeledTextField(
+      "Objects to include: ");
+  private final LabeledTextField ltfGapStart = new LabeledTextField("Start: ");
+  private final LabeledTextField ltfGapEnd = new LabeledTextField("End: ");
+  private final LabeledTextField ltfGapInc = new LabeledTextField("Increment: ");
+  private final LabeledTextField ltfPointsToFitMin = new LabeledTextField(
+      "Min: ");
+  private final LabeledTextField ltfPointsToFitMax = new LabeledTextField(
+      "Max: ");
+  private JPanel pnlTables = null;
+  private final MultiLineButton btnRejoin = new MultiLineButton(REJOIN_TEXT);
+  private JPanel pnlRejoin = null;
+  private final FileTextField ftfModelFile = new FileTextField("Model file: ");
+  private final CheckBox cbGap = new CheckBox("Try gaps: ");
+  private BinnedXY3dmodButton b3bOpenIn3dmod;
+  private BinnedXY3dmodButton b3bOpenRejoin;
+  private LabeledTextField ltfTransformedModel;
+  private final MultiLineButton btnTransformModel = new MultiLineButton(
+      "Transform Model");
+  private final JoinState state;
+  private BinnedXY3dmodButton b3bOpenRejoinWithModel;
+  private final MultiLineButton btnTransformAndViewModel = new MultiLineButton(
+      "Transform & View Model");
 
   /**
    * Create JoinDialog without an .ejf file
    * @param joinManager
    */
-  public JoinDialog(JoinManager joinManager, ConstJoinMetaData metaData) {
-    this(joinManager, null, metaData);
+  public JoinDialog(JoinManager manager, ConstJoinMetaData metaData,
+      JoinState state) {
+    this(manager, null, metaData, state);
   }
 
   /**
@@ -467,14 +499,21 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * @param joinManager
    * @param workingDirName
    */
-  public JoinDialog(JoinManager joinManager, String workingDirName,
-      ConstJoinMetaData metaData) {
+  public JoinDialog(JoinManager manager, String workingDirName,
+      ConstJoinMetaData metaData, JoinState state) {
+    this.state = state;
     axisID = AxisID.ONLY;
-    this.joinManager = joinManager;
+    this.manager = manager;
+    boundaryTable = new BoundaryTable(manager, this);
+    b3bOpenRejoin = new BinnedXY3dmodButton("Open Rejoin in 3dmod", this);
+    b3bOpenRejoinWithModel = new BinnedXY3dmodButton(
+        "Open Rejoin with Transformed Model", this);
+    setRefiningJoin();
     createRootPanel(workingDirName);
-    UIHarness.INSTANCE.pack(axisID, joinManager);
+    UIHarness.INSTANCE.pack(axisID, manager);
     addListeners();
     setMetaData(metaData);
+    setScreenState(manager.getScreenState());
     init();
     setToolTipText();
   }
@@ -484,21 +523,14 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   protected String paramString() {
-    return "ltfWorkingDir=" + ltfWorkingDir + ",ltfRootName=" + ltfRootName
-        + ",\nltfSigmaLowFrequency=" + ltfSigmaLowFrequency
-        + ",\nltfCutoffHighFrequency=" + ltfCutoffHighFrequency
-        + ",\nltfSigmaHighFrequency=" + ltfSigmaHighFrequency + ",ltfSizeInX="
-        + ltfSizeInX + ",\nltfSizeInY=" + ltfSizeInY + ",ltfShiftInX="
-        + ltfShiftInX + ",\nltfShiftInY=" + ltfShiftInY + ",ltfMidasLimit="
-        + ltfMidasLimit + ",\nrbFullLinearTransformation="
-        + rbFullLinearTransformation + ",\nrbRotationTranslationMagnification="
-        + rbRotationTranslationMagnification + ",\nrbRotationTranslation="
-        + rbRotationTranslation + ",\ncbUseAlignmentRefSection="
-        + cbUseAlignmentRefSection + ",\nspinAlignmentRefSection="
-        + spinAlignmentRefSection + ",\nspinDensityRefSection="
-        + spinDensityRefSection + ",\nspinTrialBinning=" + spinTrialBinning
-        + ",\nspinOpenBinnedBy=" + spinOpenBinnedBy + ",spinOpenTrialBinnedBy"
-        + spinOpenTrialBinnedBy + ",\nspinUseEveryNSlices="
+    return "ltfRootName=" + ltfRootName + ",\nltfSigmaLowFrequency="
+        + ltfSigmaLowFrequency + ",\nltfCutoffHighFrequency="
+        + ltfCutoffHighFrequency + ",\nltfSigmaHighFrequency="
+        + ltfSigmaHighFrequency + ",ltfSizeInX=" + ltfSizeInX
+        + ",\nltfSizeInY=" + ltfSizeInY + ",ltfShiftInX=" + ltfShiftInX
+        + ",\nltfShiftInY=" + ltfShiftInY + ",ltfMidasLimit=" + ltfMidasLimit
+        + ",\nspinDensityRefSection=" + spinDensityRefSection
+        + ",\nspinTrialBinning=" + spinTrialBinning + ",\nspinUseEveryNSlices="
         + spinUseEveryNSlices + ",\nnumSections" + numSections + ",curTab="
         + curTab + ",invalidReason" + invalidReason + ",\naxisID=" + axisID
         + "," + super.toString();
@@ -518,7 +550,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     tabPane.addMouseListener(new GenericMouseAdapter(this));
     TabChangeListener tabChangeListener = new TabChangeListener(this);
     tabPane.addChangeListener(tabChangeListener);
-    btnWorkingDir.addActionListener(workingDirActionListener);
+    ftfWorkingDir.addActionListener(workingDirActionListener);
     btnChangeSetup.addActionListener(joinActionListener);
     btnRevertToLastSetup.addActionListener(joinActionListener);
     btnMakeSamples.addActionListener(joinActionListener);
@@ -529,14 +561,22 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnRefineAutoAlignment.addActionListener(joinActionListener);
     btnRevertToMidas.addActionListener(joinActionListener);
     btnRevertToEmpty.addActionListener(joinActionListener);
-    cbUseAlignmentRefSection
-        .addActionListener(useAlignmentRefSectionActionListener);
     btnGetMaxSize.addActionListener(joinActionListener);
     btnFinishJoin.addActionListener(joinActionListener);
-    btnOpenIn3dmod.addActionListener(joinActionListener);
+    b3bOpenIn3dmod.addActionListener(joinActionListener);
     btnTrialJoin.addActionListener(joinActionListener);
-    btnOpenTrialIn3dmod.addActionListener(joinActionListener);
+    b3bOpenTrialIn3dmod.addActionListener(joinActionListener);
     btnGetSubarea.addActionListener(joinActionListener);
+    btnRefineJoin.addActionListener(joinActionListener);
+    btnMakeRefiningModel.addActionListener(joinActionListener);
+    btnXfjointomo.addActionListener(joinActionListener);
+    btnTransformAndViewModel.addActionListener(joinActionListener);
+    btnRejoin.addActionListener(joinActionListener);
+    ftfModelFile.addActionListener(new ModelFileActionListener(this));
+    cbGap.addActionListener(joinActionListener);
+    b3bOpenRejoin.addActionListener(joinActionListener);
+    b3bOpenRejoinWithModel.addActionListener(joinActionListener);
+    btnTransformModel.addActionListener(joinActionListener);
   }
 
   /**
@@ -555,22 +595,61 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     tabPane.addTab("Align", pnlAlign.getContainer());
     createJoinPanel();
     tabPane.addTab("Join", pnlJoin.getContainer());
-    addPanelComponents(SETUP_TAB);
+    tabPane.addTab("Model", pnlModel.getContainer());
+    tabPane.addTab("Rejoin", pnlRejoinTab);
+    addPanelComponents(Tab.SETUP);
+    updateDisplay();
+  }
+
+  public void updateDisplay() {
+    //must be refining join to have access to model and rejoin tabs
+    tabPane.setEnabledAt(Tab.MODEL.getIndex(), refiningJoin);
+    tabPane.setEnabledAt(Tab.REJOIN.getIndex(), refiningJoin);
+    //control gap text fields with checkbox
+    boolean enable = cbGap.isSelected();
+    ltfGapStart.setEnabled(enable);
+    ltfGapEnd.setEnabled(enable);
+    ltfGapInc.setEnabled(enable);
+    //.join file must exist before it can be opened
+    enable = DatasetFiles.getJoinFile(false, manager).exists();
+    b3bOpenRejoinWithModel.setEnabled(enable);
+    b3bOpenRejoin.setEnabled(enable);
+    //Need boundary list to transform model
+    enable = !state.isRefineStartListEmpty();
+    btnRejoin.setEnabled(enable);
+    btnTransformModel.setEnabled(enable);
+    //Can't only refine if a join exists
+    //A trial join is only refinable if it was created with all slices
+    boolean trialJoinRefinable = DatasetFiles.getJoinFile(true, manager)
+        .exists()
+        && state.getJoinTrialUseEveryNSlices().equals(1);
+    cbRefineWithTrial.setEnabled(trialJoinRefinable);
+    if (!trialJoinRefinable) {
+      cbRefineWithTrial.setSelected(false);
+    }
+    btnRefineJoin.setEnabled(DatasetFiles.getJoinFile(false, manager).exists()
+        || trialJoinRefinable);
   }
 
   /**
    * Add components to the current tab
    * @param tab
    */
-  private void addPanelComponents(int tab) {
-    if (tab == SETUP_TAB) {
+  private void addPanelComponents(Tab tab) {
+    if (tab == Tab.SETUP) {
       addSetupPanelComponents();
     }
-    else if (tab == ALIGN_TAB) {
+    else if (tab == Tab.ALIGN) {
       addAlignPanelComponents();
     }
-    else if (tab == JOIN_TAB) {
+    else if (tab == Tab.JOIN) {
       addJoinPanelComponents();
+    }
+    else if (tab == Tab.MODEL) {
+      addModelPanelComponents();
+    }
+    else if (tab == Tab.REJOIN) {
+      addRejoinPanelComponents();
     }
   }
 
@@ -588,10 +667,10 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return;
     }
     int index = 0;
-    EtomoNumber estXMin = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    EtomoNumber estYMin = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    EtomoNumber estXMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    EtomoNumber estYMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber estXMin = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    EtomoNumber estYMin = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    EtomoNumber estXMax = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    EtomoNumber estYMax = new EtomoNumber(EtomoNumber.Type.INTEGER);
     while (index < size) {
       if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates
           .get(index++))) {
@@ -612,8 +691,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     int min;
     int max;
-    ConstJoinMetaData metaData = joinManager.getConstMetaData();
-    JoinState state = joinManager.getState();
+    ConstJoinMetaData metaData = manager.getConstMetaData();
     if (!estXMin.isNull() && !estXMax.isNull()) {
       min = metaData.getCoordinate(estXMin, state);
       max = metaData.getCoordinate(estXMax, state);
@@ -628,37 +706,55 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
 
-  private void removePanelComponents(int tab) {
-    if (tab == SETUP_TAB) {
+  private void removePanelComponents(Tab tab) {
+    if (tab == Tab.SETUP) {
       pnlSetup.removeAll();
     }
-    else if (tab == ALIGN_TAB) {
+    else if (tab == Tab.ALIGN) {
       pnlAlign.removeAll();
     }
-    else if (tab == JOIN_TAB) {
+    else if (tab == Tab.JOIN) {
       pnlJoin.removeAll();
+    }
+    else if (tab == Tab.MODEL) {
+      pnlModel.removeAll();
+    }
+    else if (tab == Tab.REJOIN) {
+      pnlRejoinTab.removeAll();
     }
   }
 
   final boolean isSetupTab() {
-    return curTab == SETUP_TAB;
+    return curTab == Tab.SETUP;
   }
 
   final boolean isAlignTab() {
-    return curTab == ALIGN_TAB;
+    return curTab == Tab.ALIGN;
   }
 
   final boolean isJoinTab() {
-    return curTab == JOIN_TAB;
+    return curTab == Tab.JOIN;
+  }
+
+  final boolean isRejoinTab() {
+    return curTab == Tab.REJOIN;
+  }
+
+  Tab getTab() {
+    return curTab;
+  }
+
+  int getSectionTableSize() {
+    return pnlSectionTable.getRowsSize();
   }
 
   final void changeTab(ChangeEvent event) {
-    int prevTab = curTab;
+    Tab prevTab = curTab;
     removePanelComponents(prevTab);
-    curTab = tabPane.getSelectedIndex();
+    curTab = Tab.getInstance(tabPane.getSelectedIndex());
     synchronize(prevTab);
     addPanelComponents(curTab);
-    UIHarness.INSTANCE.pack(joinManager);
+    UIHarness.INSTANCE.pack(manager);
   }
 
   public void setInverted() {
@@ -667,13 +763,11 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   public final void setMode(int mode) {
     if (mode == SETUP_MODE) {
-      ltfWorkingDir.setEditable(true);
-      btnWorkingDir.setEnabled(true);
+      ftfWorkingDir.setEnabled(true);
       ltfRootName.setEditable(true);
     }
     else {
-      ltfWorkingDir.setEditable(false);
-      btnWorkingDir.setEnabled(false);
+      ftfWorkingDir.setEnabled(false);
       ltfRootName.setEditable(false);
     }
     switch (mode) {
@@ -716,27 +810,19 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void setRevertState(boolean enableRevert) {
     btnRevertToLastSetup.setEnabled(enableRevert);
-    joinManager.getState().setRevertState(enableRevert);
+    state.setRevertState(enableRevert);
   }
 
   private void createSetupPanel(String workingDirName) {
     pnlSetup = new SpacedPanel();
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     //first component
-    setupPanel1 = new SpacedPanel();
-    setupPanel1.setBoxLayout(BoxLayout.X_AXIS);
-    ltfWorkingDir = new LabeledTextField(WORKING_DIRECTORY_TEXT + ": ");
-    ltfWorkingDir.setText(workingDirName);
-    setupPanel1.add(ltfWorkingDir);
-    btnWorkingDir = new JButton(iconFolder);
-    btnWorkingDir.setPreferredSize(FixedDim.folderButton);
-    btnWorkingDir.setMaximumSize(FixedDim.folderButton);
-    //btnWorkingDir.addActionListener(workingDirActionListener);
-    setupPanel1.add(btnWorkingDir);
+    ftfWorkingDir = new FileTextField(WORKING_DIRECTORY_TEXT + ": ");
+    ftfWorkingDir.setText(workingDirName);
     //second component
     ltfRootName = new LabeledTextField("Root name for output file: ");
     //third component    
-    pnlSectionTable = new SectionTablePanel(this, joinManager);
+    pnlSectionTable = new SectionTablePanel(this, manager, state);
     //midas limit panel
     pnlMidasLimit.setBoxLayout(BoxLayout.X_AXIS);
     pnlMidasLimit.add(ltfMidasLimit.getContainer());
@@ -766,7 +852,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   private void addSetupPanelComponents() {
-    pnlSetup.add(setupPanel1);
+    pnlSetup.add(ftfWorkingDir.getContainer());
     pnlSetup.add(ltfRootName);
     pnlSetup.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
@@ -803,18 +889,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfSigmaHighFrequency = new LabeledTextField(
         "Sigma for high-frequency filter: ");
     pnlXfalign.add(ltfSigmaHighFrequency);
-    ButtonGroup bgSearchFor = new ButtonGroup();
-    rbFullLinearTransformation = new RadioButton("Full linear transformation");
-    rbRotationTranslationMagnification = new RadioButton(
-        "Rotation/translation/magnification");
-    rbRotationTranslation = new RadioButton("Rotation/translation");
-    bgSearchFor.add(rbFullLinearTransformation);
-    bgSearchFor.add(rbRotationTranslationMagnification);
-    bgSearchFor.add(rbRotationTranslation);
-    pnlXfalign.add(new JLabel("Search For:"));
-    pnlXfalign.add(rbFullLinearTransformation);
-    pnlXfalign.add(rbRotationTranslationMagnification);
-    pnlXfalign.add(rbRotationTranslation);
+    pnlXfalign.add(tcAlign.getContainer());
     //fourth component
     alignPanel2 = new SpacedPanel();
     alignPanel2.setBoxLayout(BoxLayout.X_AXIS);
@@ -851,6 +926,100 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlAlign.add(alignPanel2);
   }
 
+  private void createModelPanel() {
+    //create model panel only once
+    if (pnlTransformations != null) {
+      return;
+    }
+    //construct panels
+    pnlTransformations = new SpacedPanel();
+    SpacedPanel pnlGapStartEndInc = new SpacedPanel();
+    SpacedPanel pnlPointsToFit = new SpacedPanel();
+    //initialize
+    btnRefineJoin.setSize();
+    //build panels
+    pnlModel.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlModel.alignComponentsX(Component.CENTER_ALIGNMENT);
+    //transformations panel
+    pnlTransformations.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlTransformations.setBorder(new EtchedBorder("Transformations")
+        .getBorder());
+    tcModel.includeTranslation();
+    pnlTransformations.add(tcModel.getContainer());
+    pnlTransformations.add(ltfBoundariesToAnalyze.getContainer());
+    pnlTransformations.add(ltfObjectsToInclude.getContainer());
+    pnlTransformations.add(pnlGapStartEndInc);
+    pnlTransformations.add(pnlPointsToFit);
+    pnlTransformations.add(btnXfjointomo);
+    pnlTransformations.add(btnTransformAndViewModel);
+    //gap panel
+    pnlGapStartEndInc.setBoxLayout(BoxLayout.X_AXIS);
+    pnlGapStartEndInc.add(cbGap);
+    pnlGapStartEndInc.add(ltfGapStart);
+    pnlGapStartEndInc.add(ltfGapEnd);
+    pnlGapStartEndInc.add(ltfGapInc.getContainer());
+    //points to fit panel
+    pnlPointsToFit.setBoxLayout(BoxLayout.X_AXIS);
+    pnlPointsToFit.add(new JLabel("Points to fit: "));
+    pnlPointsToFit.add(ltfPointsToFitMin);
+    pnlPointsToFit.add(ltfPointsToFitMax);
+  }
+
+  private void addModelPanelComponents() {
+    createModelPanel();
+    pnlModel.add(btnMakeRefiningModel);
+    pnlModel.add(boundaryTable.getContainer());
+    boundaryTable.display();
+    pnlModel.add(pnlTransformations);
+  }
+
+  private void addRejoinPanelComponents() {
+    createRejoinPanel();
+    pnlRejoinTab.add(pnlTables);
+    pnlTables.add(pnlSectionTable.getContainer());
+    pnlSectionTable.displayCurTab();
+    pnlTables.add(boundaryTable.getContainer());
+    boundaryTable.display();
+    pnlRejoinTab.add(pnlRejoin);
+  }
+
+  private void createRejoinPanel() {
+    if (pnlTables != null) {
+      return;
+    }
+    pnlRejoinTab.setLayout(new BoxLayout(pnlRejoinTab, BoxLayout.Y_AXIS));
+    pnlTables = new JPanel();
+    pnlTables.setLayout(new BoxLayout(pnlTables, BoxLayout.X_AXIS));
+    pnlRejoin = new JPanel();
+    pnlRejoin.setLayout(new BoxLayout(pnlRejoin, BoxLayout.Y_AXIS));
+    JPanel pnlRejoinButtons = new JPanel();
+    pnlRejoinButtons
+        .setLayout(new BoxLayout(pnlRejoinButtons, BoxLayout.X_AXIS));
+    pnlRejoinButtons.setBorder(new EtchedBorder("Final Rejoin").getBorder());
+    pnlRejoinButtons.add(Box.createHorizontalGlue());
+    pnlRejoinButtons.add(btnRejoin.getComponent());
+    btnRejoin.setSize();
+    pnlRejoinButtons.add(b3bOpenRejoin.getContainer());
+    pnlRejoin.add(pnlRejoinButtons);
+    SpacedPanel pnlTransformModel = new SpacedPanel();
+    pnlTransformModel.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlTransformModel
+        .setBorder(new EtchedBorder("Transform Model").getBorder());
+    pnlTransformModel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlTransformModel.add(ftfModelFile.getContainer());
+    ltfTransformedModel = new LabeledTextField("Output file: ");
+    pnlTransformModel.add(ltfTransformedModel.getContainer());
+    JPanel pnlTransformModelButtons = new JPanel();
+    pnlTransformModelButtons.setLayout(new BoxLayout(pnlTransformModelButtons,
+        BoxLayout.X_AXIS));
+    pnlTransformModelButtons.add(Box.createHorizontalGlue());
+    btnTransformModel.setSize();
+    pnlTransformModelButtons.add(btnTransformModel.getComponent());
+    pnlTransformModelButtons.add(b3bOpenRejoinWithModel.getContainer());
+    pnlTransformModel.add(pnlTransformModelButtons);
+    pnlRejoin.add(pnlTransformModel.getContainer());
+  }
+
   private void createJoinPanel() {
     pnlJoin = new SpacedPanel();
     pnlJoin.setBoxLayout(BoxLayout.X_AXIS);
@@ -872,19 +1041,13 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.setBorder(BorderFactory.createEtchedBorder());
     pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
-    JPanel finishJoinPanel1 = new JPanel();
-    finishJoinPanel1
-        .setLayout(new BoxLayout(finishJoinPanel1, BoxLayout.X_AXIS));
-    cbUseAlignmentRefSection = new CheckBox("Reference section for alignment: ");
-    //cbUseAlignmentRefSection.addActionListener(useAlignmentRefSectionActionListener);
-    finishJoinPanel1.add(cbUseAlignmentRefSection);
+    cbsAlignmentRefSection = new CheckBoxSpinner(
+        "Reference section for alignment: ");
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
-    spinAlignmentRefSection = new JSpinner();
-    spinAlignmentRefSection.setModel(spinnerModel);
-    spinAlignmentRefSection.setMaximumSize(dimSpinner);
-    finishJoinPanel1.add(spinAlignmentRefSection);
-    pnlFinishJoin.add(finishJoinPanel1);
+    cbsAlignmentRefSection.setModel(spinnerModel);
+    cbsAlignmentRefSection.setMaximumSize(dimSpinner);
+    pnlFinishJoin.add(cbsAlignmentRefSection.getContainer());
     //second component
     btnGetMaxSize = new MultiLineButton(GET_MAX_SIZE_TEXT);
     pnlFinishJoin.add(btnGetMaxSize);
@@ -908,22 +1071,21 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     createTrialJoinPanel();
     //sixth component
     btnFinishJoin = new MultiLineButton(FINISH_JOIN_TEXT);
-    //btnFinishJoin.addActionListener(joinActionListener);
     pnlFinishJoin.add(btnFinishJoin);
     //seventh component
-    spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinOpenBinnedBy = new LabeledSpinner(OPEN_BINNED_BY, spinnerModel);
-    btnOpenIn3dmod = new Run3dmodButton(OPEN_IN_3DMOD, this);
-    //btnOpenIn3dmod.addActionListener(joinActionListener);
-    pnlFinishJoin.add(createOpen3dmodPanel(spinOpenBinnedBy,
-        "The binning to use when opening the joined tomogram in 3dmod.",
-        btnOpenIn3dmod));
+    b3bOpenIn3dmod = new BinnedXY3dmodButton(OPEN_IN_3DMOD, this);
+    b3bOpenIn3dmod
+        .setSpinnerTooltip("The binning to use when opening the joined tomogram in 3dmod.");
+    pnlFinishJoin.add(b3bOpenIn3dmod.getContainer());
+    //eight component
+    pnlFinishJoin.add(cbRefineWithTrial);
+    pnlFinishJoin.add(btnRefineJoin);
   }
 
   private void createTrialJoinPanel() {
     SpacedPanel pnlTrialJoin = new SpacedPanel();
     pnlTrialJoin.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlTrialJoin.setBorder(new EtchedBorder("Trial Join").getBorder());
+    pnlTrialJoin.setBorder(new EtchedBorder(TRIAL_JOIN_TEXT).getBorder());
     pnlTrialJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
     SpacedPanel trialJoinPanel1 = new SpacedPanel();
@@ -945,39 +1107,18 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnTrialJoin = new MultiLineButton(TRIAL_JOIN_TEXT);
     pnlTrialJoin.add(btnTrialJoin);
     //fourth component
-    btnOpenTrialIn3dmod = new Run3dmodButton("Open Trial in 3dmod", this);
-    spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinOpenTrialBinnedBy = new LabeledSpinner(OPEN_BINNED_BY, spinnerModel);
-    pnlTrialJoin.add(createOpen3dmodPanel(spinOpenTrialBinnedBy,
-        "The binning to use when opening the trial joined tomogram in 3dmod.",
-        btnOpenTrialIn3dmod));
+    b3bOpenTrialIn3dmod = new BinnedXY3dmodButton("Open Trial in 3dmod", this);
+    b3bOpenTrialIn3dmod
+        .setSpinnerTooltip("The binning to use when opening the trial joined tomogram in 3dmod.");
+    pnlTrialJoin.add(b3bOpenTrialIn3dmod.getContainer());
     //fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
     pnlTrialJoin.add(btnGetSubarea);
     pnlFinishJoin.add(pnlTrialJoin);
   }
 
-  SpacedPanel createOpen3dmodPanel(LabeledSpinner spinner,
-      String spinnerTooltip, MultiLineButton button) {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    SpacedPanel open3dmodPanel = new SpacedPanel();
-    open3dmodPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    open3dmodPanel.setBorder(BorderFactory.createEtchedBorder());
-    //spinner panel
-    SpacedPanel spinnerPanel = new SpacedPanel();
-    spinnerPanel.setBoxLayout(BoxLayout.X_AXIS);
-    spinner.setTextMaxmimumSize(dimSpinner);
-    spinnerPanel.add(spinner);
-    String tooltip = tooltipFormatter.setText(spinnerTooltip).format();
-    spinner.setToolTipText(tooltip);
-    JLabel label = new JLabel(IN_X_AND_Y);
-    label.setToolTipText(tooltip);
-    spinnerPanel.add(label);
-    open3dmodPanel.add(spinnerPanel);
-    //add button
-    open3dmodPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    open3dmodPanel.add(button);
-    return open3dmodPanel;
+  void msgRowChange() {
+    boundaryTable.msgRowChange();
   }
 
   /**
@@ -988,17 +1129,17 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   void setNumSections(int numSections) {
     this.numSections = numSections;
     //density matching (setup)
-    EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.Type.INTEGER);
     spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDisplayValue(1);
     SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     //alignment (join)
-    spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
+    spinnerValue.set((Integer) cbsAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1,
         numSections < 1 ? 1 : numSections, 1);
-    spinAlignmentRefSection.setModel(spinnerModel);
+    cbsAlignmentRefSection.setModel(spinnerModel);
     //every n sections (join)
     int zMax = pnlSectionTable.getZMax();
     if (zMax == 0) {
@@ -1027,7 +1168,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   final void defaultSizeInXY() {
     //update size in X and Y defaults
-    ConstJoinMetaData metaData = joinManager.getConstMetaData();
+    ConstJoinMetaData metaData = manager.getConstMetaData();
     int xMax = pnlSectionTable.getXMax();
     int yMax = pnlSectionTable.getYMax();
     if (xMax == defaultXSize && yMax == defaultYSize) {
@@ -1040,19 +1181,19 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   public ConstEtomoNumber getSizeInY() {
-    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
     sizeInY.set(ltfSizeInY.getText());
     return sizeInY;
   }
 
   public ConstEtomoNumber getShiftInX() {
-    EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.Type.INTEGER);
     shiftInX.set(ltfShiftInX.getText());
     return shiftInX;
   }
 
   public ConstEtomoNumber getShiftInY() {
-    EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.Type.INTEGER);
     shiftInY.set(ltfShiftInY.getText());
     return shiftInY;
   }
@@ -1084,6 +1225,22 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     return pnlSectionTable.getMode();
   }
 
+  public void getParameters(XfjointomoParam param) {
+    param.setTransform(tcModel.get());
+    param.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
+    param.setObjectsToInclude(ltfObjectsToInclude.getText());
+    param.setPointsToFit(ltfPointsToFitMin.getText(), ltfPointsToFitMax
+        .getText());
+    if (cbGap.isSelected()) {
+      param.setGapStartEndInc(ltfGapStart.getText(), ltfGapEnd.getText(),
+          ltfGapInc.getText());
+    }
+  }
+
+  public void setXfjointomoResult() throws LogFile.ReadException {
+    boundaryTable.setXfjointomoResult();
+  }
+
   public boolean getMetaData(JoinMetaData metaData) {
     synchronize();
     metaData.setRootName(ltfRootName.getText());
@@ -1091,14 +1248,9 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
     metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
     metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
-    metaData.setFullLinearTransformation(rbFullLinearTransformation
-        .isSelected());
-    metaData
-        .setRotationTranslationMagnification(rbRotationTranslationMagnification
-            .isSelected());
-    metaData.setRotationTranslation(rbRotationTranslation.isSelected());
-    metaData.setUseAlignmentRefSection(cbUseAlignmentRefSection.isSelected());
-    metaData.setAlignmentRefSection(spinAlignmentRefSection.getValue());
+    metaData.setAlignTransform(tcAlign.get());
+    metaData.setUseAlignmentRefSection(cbsAlignmentRefSection.isSelected());
+    metaData.setAlignmentRefSection(cbsAlignmentRefSection.getValue());
     metaData.setSizeInX(ltfSizeInX.getText());
     metaData.setSizeInY(ltfSizeInY.getText());
     metaData.setShiftInX(ltfShiftInX.getText());
@@ -1106,7 +1258,26 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
     metaData.setTrialBinning(spinTrialBinning.getValue());
     metaData.setMidasLimit(ltfMidasLimit.getText());
+    metaData.setModelTransform(tcModel.get());
+    metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText());
+    metaData.setObjectsToInclude(ltfObjectsToInclude.getText());
+    metaData.setGap(cbGap.isSelected());
+    metaData.setGapStart(ltfGapStart.getText());
+    metaData.setGapEnd(ltfGapEnd.getText());
+    metaData.setGapInc(ltfGapInc.getText());
+    metaData.setPointsToFitMin(ltfPointsToFitMin.getText());
+    metaData.setPointsToFitMax(ltfPointsToFitMax.getText());
+    boundaryTable.getMetaData();
     return pnlSectionTable.getMetaData(metaData);
+  }
+
+  SectionTablePanel getSectionTable() {
+    return pnlSectionTable;
+  }
+
+  public void getScreenState(JoinScreenState screenState) {
+    screenState.setRefineWithTrial(cbRefineWithTrial.isSelected());
+    boundaryTable.getScreenState();
   }
 
   public void setMetaData(ConstJoinMetaData metaData) {
@@ -1116,14 +1287,9 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfCutoffHighFrequency
         .setText(metaData.getCutoffHighFrequency().toString());
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
-    rbFullLinearTransformation.setSelected(metaData
-        .isFullLinearTransformation());
-    rbRotationTranslationMagnification.setSelected(metaData
-        .isRotationTranslationMagnification());
-    rbRotationTranslation.setSelected(metaData.isRotationTranslation());
-    cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
-    useAlignmentRefSectionAction();
-    spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection()
+    tcAlign.set(metaData.getAlignTransform());
+    cbsAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
+    cbsAlignmentRefSection.setValue(metaData.getAlignmentRefSection()
         .getNumber());
     ltfShiftInX.setText(metaData.getShiftInX().toString());
     ltfShiftInY.setText(metaData.getShiftInY().toString());
@@ -1133,6 +1299,22 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlSectionTable.setMetaData(metaData);
     ltfSizeInX.setText(metaData.getSizeInX().toString());
     ltfSizeInY.setText(metaData.getSizeInY().toString());
+    tcModel.set(metaData.getModelTransform());
+    ltfBoundariesToAnalyze.setText(metaData.getBoundariesToAnalyze());
+    ltfObjectsToInclude.setText(metaData.getObjectsToInclude());
+    cbGap.setSelected(metaData.getGap().is());
+    updateDisplay();
+    ltfGapStart.setText(metaData.getGapStart());
+    ltfGapEnd.setText(metaData.getGapEnd());
+    ltfGapInc.setText(metaData.getGapInc());
+    ltfPointsToFitMin.setText(metaData.getPointsToFitMin());
+    ltfPointsToFitMax.setText(metaData.getPointsToFitMax());
+  }
+
+  public void setScreenState(JoinScreenState screenState) {
+    if (cbRefineWithTrial.isEnabled()) {
+      cbRefineWithTrial.setSelected(screenState.getRefineWithTrial().is());
+    }
   }
 
   public Container getContainer() {
@@ -1148,16 +1330,16 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   public String getWorkingDirName() {
-    return ltfWorkingDir.getText();
+    return ftfWorkingDir.getText();
   }
 
   public File getWorkingDir() {
-    String workingDirName = ltfWorkingDir.getText();
+    String workingDirName = ftfWorkingDir.getText();
     if (workingDirName == null || workingDirName.length() == 0
         || workingDirName.matches("\\s+")) {
       return null;
     }
-    return new File(ltfWorkingDir.getText());
+    return new File(ftfWorkingDir.getText());
   }
 
   public String getRootName() {
@@ -1197,23 +1379,15 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         ltfSigmaHighFrequency.getText())) {
       return false;
     }
-    if (rbFullLinearTransformation.isSelected() != metaData
-        .isFullLinearTransformation()) {
+    if (tcAlign.get() != metaData.getAlignTransform()) {
       return false;
     }
-    if (rbRotationTranslationMagnification.isSelected() != metaData
-        .isRotationTranslationMagnification()) {
-      return false;
-    }
-    if (rbRotationTranslation.isSelected() != metaData.isRotationTranslation()) {
-      return false;
-    }
-    if (cbUseAlignmentRefSection.isSelected() != metaData
+    if (cbsAlignmentRefSection.isSelected() != metaData
         .isUseAlignmentRefSection()) {
       return false;
     }
     if (!metaData.getAlignmentRefSection().equals(
-        (Number) spinAlignmentRefSection.getValue())) {
+        (Number) cbsAlignmentRefSection.getValue())) {
       return false;
     }
     if (!metaData.getSizeInX().equals(ltfSizeInX.getText())) {
@@ -1276,28 +1450,36 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     String[] logFileLabel;
     String[] logFile;
     ContextPopup contextPopup;
-    switch (curTab) {
-    case SETUP_TAB:
+    if (curTab == Tab.SETUP) {
       manPagelabel = new String[] { "3dmod" };
       manPage = new String[] { "3dmod.html" };
       logFileLabel = new String[] { "startjoin" };
       logFile = new String[] { "startjoin.log" };
       contextPopup = new ContextPopup(rootPanel, mouseEvent, "Setup",
           ContextPopup.JOIN_GUIDE, manPagelabel, manPage, logFileLabel,
-          logFile, joinManager, axisID);
-      break;
-    case ALIGN_TAB:
+          logFile, manager, axisID);
+    }
+    else if (curTab == Tab.ALIGN) {
       manPagelabel = new String[] { "Xfalign", "Midas", "3dmod" };
       manPage = new String[] { "xfalign.html", "midas.html", "3dmod.html" };
       contextPopup = new ContextPopup(rootPanel, mouseEvent, "Align",
-          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, joinManager, axisID);
-      break;
-    case JOIN_TAB:
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, manager, axisID);
+    }
+    else if (curTab == Tab.JOIN) {
       manPagelabel = new String[] { "Finishjoin", "3dmod" };
       manPage = new String[] { "finishjoin.html", "3dmod.html" };
       contextPopup = new ContextPopup(rootPanel, mouseEvent, "Joining",
-          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, joinManager, axisID);
-      break;
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, manager, axisID);
+    }
+    else if (curTab == Tab.MODEL) {
+      manPagelabel = new String[] { "Xfjointomo", "3dmod" };
+      manPage = new String[] { "xfjointomo.html", "3dmod.html" };
+      logFile = new String[1];
+      logFileLabel = new String[] { "xfjointomo" };
+      logFile = new String[] { "xfjointomo.log" };
+      contextPopup = new ContextPopup(rootPanel, mouseEvent, "Joining",
+          ContextPopup.JOIN_GUIDE, manPagelabel, manPage, logFileLabel,
+          logFile, manager, axisID);
     }
   }
 
@@ -1308,46 +1490,44 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   protected void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnMakeSamples.getActionCommand())) {
-      joinManager.makejoincom();
+      manager.makejoincom();
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      joinManager.xfalignInitial();
+      manager.xfalignInitial();
     }
     else if (command.equals(btnMidas.getActionCommand())) {
-      joinManager.midasSample();
+      manager.midasSample();
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      joinManager.xfalignRefine();
+      manager.xfalignRefine();
     }
     else if (command.equals(btnRevertToMidas.getActionCommand())) {
-      joinManager.revertXfFileToMidas();
+      manager.revertXfFileToMidas();
     }
     else if (command.equals(btnRevertToEmpty.getActionCommand())) {
-      joinManager.revertXfFileToEmpty();
+      manager.revertXfFileToEmpty();
     }
     else if (command.equals(btnFinishJoin.getActionCommand())) {
-      joinManager.runFinishjoin(FinishjoinParam.FINISH_JOIN_MODE,
-          FINISH_JOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT);
     }
     else if (command.equals(btnGetMaxSize.getActionCommand())) {
-      joinManager.runFinishjoin(FinishjoinParam.MAX_SIZE_MODE,
-          GET_MAX_SIZE_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT);
     }
     else if (command.equals(btnTrialJoin.getActionCommand())) {
-      joinManager.runFinishjoin(FinishjoinParam.TRIAL_MODE, TRIAL_JOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT);
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
-      setSizeAndShift(joinManager.imodGetRubberbandCoordinates(
+      setSizeAndShift(manager.imodGetRubberbandCoordinates(
           ImodManager.TRIAL_JOIN_KEY, AxisID.ONLY));
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
-      JoinMetaData metaData = joinManager.getJoinMetaData();
+      JoinMetaData metaData = manager.getJoinMetaData();
       getMetaData(metaData);
       try {
-        joinManager.getParameterStore().save(metaData);
+        manager.getParameterStore().save(metaData);
       }
       catch (LogFile.FileException e) {
         UIHarness.INSTANCE.openMessageDialog("Unable to save JoinMetaData.\n"
@@ -1360,19 +1540,145 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
-      ConstJoinMetaData metaData = joinManager.getConstMetaData();
-      if (!joinManager.getState().isSampleProduced()) {
+      ConstJoinMetaData metaData = manager.getConstMetaData();
+      if (!state.isSampleProduced()) {
         throw new IllegalStateException(
             "sample produced is false but Revert to Last Setup is enabled");
       }
       pnlSectionTable.deleteSections();
-      setMetaData(joinManager.getConstMetaData());
-      joinManager.getState().revert();
+      setMetaData(manager.getConstMetaData());
+      state.revert();
       setMode(SAMPLE_PRODUCED_MODE);
+    }
+    else if (command.equals(btnRefineJoin.getActionCommand())) {
+      startRefine();
+    }
+    else if (command.equals(btnXfjointomo.getActionCommand())) {
+      manager.xfjointomo();
+    }
+    else if (command.equals(btnRejoin.getActionCommand())) {
+      manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT);
+    }
+    else if (command.equals(cbGap.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (command.equals(btnTransformModel.getActionCommand())) {
+      manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText());
+    }
+    else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
+      manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT);
     }
     else if (!run3dmod(command, new Run3dmodMenuOptions())) {
       throw new IllegalStateException("Unknown command " + command);
     }
+  }
+
+  private void setRefineDataHighlight(boolean highlight) {
+    ltfSizeInX.setHighlight(highlight);
+    ltfSizeInY.setHighlight(highlight);
+    ltfShiftInX.setHighlight(highlight);
+    ltfShiftInY.setHighlight(highlight);
+    cbsAlignmentRefSection.setHighlight(highlight);
+    pnlSectionTable.setJoinFinalStartHighlight(highlight);
+    pnlSectionTable.setJoinFinalEndHighlight(highlight);
+    btnGetSubarea.setHighlight(highlight);
+    btnGetMaxSize.setHighlight(highlight);
+    if (cbRefineWithTrial.isSelected()) {
+      spinTrialBinning.setHighlight(highlight);
+      spinUseEveryNSlices.setHighlight(highlight);
+    }
+  }
+
+  /**
+   * Copy the join or trial join file to _modeled.join.  Also try to make sure
+   * that the data about the join or trial join file is accurate.
+   */
+  private void startRefine() {
+    boolean useTrial = cbRefineWithTrial.isSelected();
+    String joinFileName = DatasetFiles.getJoinFileName(useTrial, manager);
+    String buttonName = useTrial ? TRIAL_JOIN_TEXT : FINISH_JOIN_TEXT;
+    //make sure the file to be moved exists
+    if (!DatasetFiles.getJoinFile(useTrial, manager).exists()) {
+      UIHarness.INSTANCE.openMessageDialog(joinFileName
+          + " does not exist.  Press " + buttonName + " to create it.",
+          "Failed File Move");
+      return;
+    }
+    //Make sure that there is data available about the .join file which will be
+    //used in the refine.  If there is not, ask for the user's assurance that
+    //data on the screen corresponds to the .join file.
+    boolean convertVersion = false;
+    if (!state.isJoinVersionGe(useTrial, JoinState.MIN_REFINE_VERSION)) {
+      setRefineDataHighlight(true);
+      convertVersion = UIHarness.INSTANCE
+          .openYesNoDialog(
+              "IMPORTANT!!  Information about the "
+                  + joinFileName
+                  + " file has not been saved.\nRefine cannot proceed without complete information on the join file.  If the highlighted data on the screen has NOT been changed since the "
+                  + joinFileName
+                  + " file was created, press Yes.  Otherwise press no and then press "
+                  + buttonName + " to recreate the file.", AxisID.ONLY);
+      setRefineDataHighlight(false);
+      if (!convertVersion) {
+        return;
+      }
+    }
+    //The _modeled.join file already exists and there is a model that may be
+    //associated with it.  Warn the user before overwriting it.
+    if (DatasetFiles.getModeledJoinFile(manager).exists()
+        && DatasetFiles.getRefineModelFile(manager).exists()) {
+      if (!UIHarness.INSTANCE.openYesNoDialog(
+          "The modeled join file and the refine model already exist.\n"
+              + "Press Yes to overwrite the modeled join file.  "
+              + "IMPORTANT:  "
+              + "If the binning of the modeled join file will be different, "
+              + "you must open the model with the new modeled join file and "
+              + "save it at least once.", AxisID.ONLY)) {
+        return;
+      }
+    }
+    String imodKey;
+    if (useTrial) {
+      imodKey = ImodManager.TRIAL_JOIN_KEY;
+    }
+    else {
+      imodKey = ImodManager.JOIN_KEY;
+    }
+    if (manager.isImodOpen(imodKey)) {
+      UIHarness.INSTANCE.openMessageDialog("Please close the " + joinFileName
+          + " file in 3dmod.  This file will be moved to "
+          + DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod");
+      return;
+    }
+    try {
+      //move the join file (or trial join) to the _modeled.join file
+      LogFile.getInstance(manager.getPropertyUserDir(), joinFileName).move(
+          LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+              .getModeledJoinFileName(manager)));
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("Unable to move join file.\n"
+          + e.getMessage(), "Failed File Move");
+      return;
+    }
+    //convertVersion is true when the .ejf file is an older version and the user
+    //wishes to use screen values to convert it.
+    if (convertVersion) {
+      if (!pnlSectionTable.getMetaData(manager.getJoinMetaData())) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unable to proceed.  Screen data is invalid.", "Data Error");
+        return;
+      }
+      state.setJoinVersion1_0(useTrial, manager.getJoinMetaData());
+    }
+    refiningJoin = true;
+    state.setRefineTrial(useTrial);
+    updateDisplay();
+  }
+
+  private void setRefiningJoin() {
+    refiningJoin = DatasetFiles.getModeledJoinFile(manager).exists();
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
@@ -1381,22 +1687,38 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private boolean run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnOpenSample.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, menuOptions);
+      manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, menuOptions);
       return true;
     }
     if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, menuOptions);
+      manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, menuOptions);
       return true;
     }
-    if (command.equals(btnOpenIn3dmod.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.JOIN_KEY, ((Integer) spinOpenBinnedBy
-          .getValue()).intValue(), menuOptions);
-      return true;
-    }
-    if (command.equals(btnOpenTrialIn3dmod.getActionCommand())) {
-      joinManager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          ((Integer) this.spinOpenTrialBinnedBy.getValue()).intValue(),
+    if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getInt(),
           menuOptions);
+      return true;
+    }
+    if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
+      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+          b3bOpenTrialIn3dmod.getInt(), menuOptions);
+      return true;
+    }
+    if (command.equals(btnMakeRefiningModel.getActionCommand())) {
+      manager.imodOpen(ImodManager.MODELED_JOIN_KEY, DatasetFiles
+          .getRefineModelFileName(manager), menuOptions);
+      return true;
+    }
+    if (command.equals(b3bOpenRejoin.getActionCommand())) {
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getInt(),
+          DatasetFiles.getRefineAlignedModelFileName(manager), menuOptions);
+      return true;
+    }
+    if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
+      manager.setDebug(true);
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getInt(),
+          ltfTransformedModel.getText(), menuOptions);
+      manager.setDebug(false);
       return true;
     }
     return false;
@@ -1404,7 +1726,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   protected void workingDirAction() {
     //  Open up the file chooser in the current working directory
-    JFileChooser chooser = new JFileChooser(new File(joinManager
+    JFileChooser chooser = new JFileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1412,7 +1734,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File workingDir = chooser.getSelectedFile();
       try {
-        ltfWorkingDir.setText(workingDir.getAbsolutePath());
+        ftfWorkingDir.setText(workingDir.getAbsolutePath());
       }
       catch (Exception excep) {
         excep.printStackTrace();
@@ -1420,15 +1742,30 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
 
-  protected void useAlignmentRefSectionAction() {
-    spinAlignmentRefSection.setEnabled(cbUseAlignmentRefSection.isSelected());
+  protected void modelFileAction() {
+    //  Open up the file chooser in the current working directory
+    JFileChooser chooser = new JFileChooser(new File(manager
+        .getPropertyUserDir()));
+    ModelFileFilter modelFilter = new ModelFileFilter();
+    chooser.setFileFilter(modelFilter);
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    int returnVal = chooser.showOpenDialog(ftfModelFile.getContainer());
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File modelFile = chooser.getSelectedFile();
+      try {
+        ftfModelFile.setText(modelFile.getAbsolutePath());
+      }
+      catch (Exception excep) {
+        excep.printStackTrace();
+      }
+    }
   }
 
   /**
    * synchronize when changing tabs
    * @param prevTab
    */
-  final void synchronize(int prevTab) {
+  final void synchronize(Tab prevTab) {
     pnlSectionTable.synchronize(prevTab, curTab);
   }
 
@@ -1436,7 +1773,7 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * synchronize when saving to the .ejf file
    */
   final void synchronize() {
-    pnlSectionTable.synchronize(curTab, -1);
+    pnlSectionTable.synchronize(curTab, null);
   }
 
   private void setToolTipText() {
@@ -1445,8 +1782,8 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     String toolTip = tooltipFormatter.setText(
         "Enter the directory where you wish to place the joined tomogram.")
         .format();
-    ltfWorkingDir.setToolTipText(toolTip);
-    btnWorkingDir.setToolTipText(toolTip);
+    ftfWorkingDir.setToolTipText(toolTip);
+    ftfWorkingDir.setToolTipText(toolTip);
     ltfRootName.setToolTipText(tooltipFormatter.setText(
         "Enter the root name for the joined tomogram.").format());
     toolTip = tooltipFormatter
@@ -1486,16 +1823,6 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             .setText(
                 "Sigma of gaussian for filtering out high frequencies before searching for transformation.")
             .format());
-    rbFullLinearTransformation
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Use rotation, translation, magnification, and stretching to align images.")
-            .format());
-    rbRotationTranslationMagnification.setToolTipText(tooltipFormatter.setText(
-        "Use translation, rotation, and magnification  to align images.")
-        .format());
-    rbRotationTranslation.setToolTipText(tooltipFormatter.setText(
-        "Use translation and rotation  to align images.").format());
     btnInitialAutoAlignment
         .setToolTipText(tooltipFormatter
             .setText(
@@ -1518,13 +1845,13 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             .format());
     btnRevertToEmpty.setToolTipText(tooltipFormatter.setText(
         "Use to remove all transformations.").format());
-    cbUseAlignmentRefSection
-        .setToolTipText(tooltipFormatter
+    cbsAlignmentRefSection
+        .setCheckBoxToolTipText(tooltipFormatter
             .setText(
                 "Make a section the reference for alignment.  This means that the chosen section will not be transformed, and the other sections will be transformed into alignment with it.")
             .format());
-    spinAlignmentRefSection
-        .setToolTipText(tooltipFormatter
+    cbsAlignmentRefSection
+        .setSpinnerToolTipText(tooltipFormatter
             .setText(
                 "Choose a section to be the reference for alignment.  This means that it will not be transformed, and the other sections will be transformed into alignment with it.")
             .format());
@@ -1553,8 +1880,8 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             .format());
     btnTrialJoin.setToolTipText(tooltipFormatter.setText(
         "Press to make a trial version of the joined tomogram.").format());
-    btnOpenTrialIn3dmod.setToolTipText(tooltipFormatter.setText(
-        "Press to open the trial joined tomogram.").format());
+    b3bOpenTrialIn3dmod
+        .setButtonTooltip("Press to open the trial joined tomogram.");
     btnGetSubarea
         .setToolTipText(tooltipFormatter
             .setText(
@@ -1562,8 +1889,8 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             .format());
     btnFinishJoin.setToolTipText(tooltipFormatter.setText(
         "Press to make the joined tomogram.").format());
-    btnOpenIn3dmod.setToolTipText(tooltipFormatter.setText(
-        "Press to open the joined tomogram in 3dmod.").format());
+    b3bOpenIn3dmod
+        .setButtonTooltip("Press to open the joined tomogram in 3dmod.");
   }
 
   //
@@ -1595,16 +1922,16 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
 
-  class UseAlignmentRefSectionActionListener implements ActionListener {
+  private class ModelFileActionListener implements ActionListener {
 
-    JoinDialog adaptee;
+    private JoinDialog adaptee;
 
-    UseAlignmentRefSectionActionListener(JoinDialog adaptee) {
+    private ModelFileActionListener(JoinDialog adaptee) {
       this.adaptee = adaptee;
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.useAlignmentRefSectionAction();
+      adaptee.modelFileAction();
     }
   }
 
@@ -1620,6 +1947,186 @@ public class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
     public void stateChanged(ChangeEvent event) {
       adaptee.changeTab(event);
+    }
+  }
+
+  static final class Tab {
+    private static final int SETUP_INDEX = 0;
+    private static final int ALIGN_INDEX = 1;
+    private static final int JOIN_INDEX = 2;
+    private static final int MODEL_INDEX = 3;
+    private static final int REJOIN_INDEX = 4;
+
+    static final Tab SETUP = new Tab(SETUP_INDEX);
+    static final Tab ALIGN = new Tab(ALIGN_INDEX);
+    static final Tab JOIN = new Tab(JOIN_INDEX);
+    static final Tab MODEL = new Tab(MODEL_INDEX);
+    static final Tab REJOIN = new Tab(REJOIN_INDEX);
+
+    private final int index;
+
+    private Tab(int index) {
+      this.index = index;
+    }
+
+    int getIndex() {
+      return index;
+    }
+
+    /**
+     * Get the tab associated with the index.  Default: SETUP
+     * @param index
+     * @return
+     */
+    static Tab getInstance(int index) {
+      switch (index) {
+      case SETUP_INDEX:
+        return SETUP;
+      case ALIGN_INDEX:
+        return ALIGN;
+      case JOIN_INDEX:
+        return JOIN;
+      case MODEL_INDEX:
+        return MODEL;
+      case REJOIN_INDEX:
+        return REJOIN;
+      default:
+        return SETUP;
+      }
+    }
+  }
+
+  private static final class TransformChooser {
+    private final RadioButton rbFullLinearTransformation = new RadioButton(
+        "Full linear transformation");
+    private final RadioButton rbRotationTranslationMagnification = new RadioButton(
+        "Rotation/translation/magnification");
+    private final RadioButton rbRotationTranslation = new RadioButton(
+        "Rotation/translation");
+    private final RadioButton rbTranslation = new RadioButton("Translation");
+
+    private JPanel pnlTranslationChooser = null;
+    private boolean includeTranslation = false;
+
+    Container getContainer() {
+      if (pnlTranslationChooser == null) {
+        TooltipFormatter tooltipFormatter = new TooltipFormatter();
+        pnlTranslationChooser = new JPanel();
+        pnlTranslationChooser.setLayout(new BoxLayout(pnlTranslationChooser,
+            BoxLayout.Y_AXIS));
+        pnlTranslationChooser.add(new JLabel("Search For:"));
+        ButtonGroup group = new ButtonGroup();
+        group.add(rbFullLinearTransformation);
+        group.add(rbRotationTranslationMagnification);
+        group.add(rbRotationTranslation);
+        pnlTranslationChooser.add(rbFullLinearTransformation);
+        pnlTranslationChooser.add(rbRotationTranslationMagnification);
+        pnlTranslationChooser.add(rbRotationTranslation);
+        //set default
+        set(null);
+        rbFullLinearTransformation
+            .setToolTipText(tooltipFormatter
+                .setText(
+                    "Use rotation, translation, magnification, and stretching to align images.")
+                .format());
+        rbRotationTranslationMagnification
+            .setToolTipText(tooltipFormatter
+                .setText(
+                    "Use translation, rotation, and magnification to align images.")
+                .format());
+        rbRotationTranslation.setToolTipText(tooltipFormatter.setText(
+            "Use translation and rotation to align images.").format());
+        if (includeTranslation) {
+          group.add(rbTranslation);
+          pnlTranslationChooser.add(rbTranslation);
+          rbTranslation.setToolTipText(tooltipFormatter.setText(
+              "Use translation to align images.").format());
+        }
+      }
+      return pnlTranslationChooser;
+    }
+
+    Transform get() {
+      if (rbFullLinearTransformation.isSelected()) {
+        return Transform.FULL_LINEAR_TRANSFORMATION;
+      }
+      if (rbRotationTranslationMagnification.isSelected()) {
+        return Transform.ROTATION_TRANSLATION_MAGNIFICATION;
+      }
+      if (rbRotationTranslation.isSelected()) {
+        return Transform.ROTATION_TRANSLATION;
+      }
+      if (rbTranslation.isSelected()) {
+        return Transform.TRANSLATION;
+      }
+      return JoinMetaData.TRANSFORM_DEFAULT;
+    }
+
+    void set(Transform transform) {
+      if (transform == null) {
+        transform = JoinMetaData.TRANSFORM_DEFAULT;
+      }
+      if (transform == Transform.FULL_LINEAR_TRANSFORMATION) {
+        rbFullLinearTransformation.setSelected(true);
+      }
+      else if (transform == Transform.ROTATION_TRANSLATION_MAGNIFICATION) {
+        rbRotationTranslationMagnification.setSelected(true);
+      }
+      else if (transform == Transform.ROTATION_TRANSLATION) {
+        rbRotationTranslation.setSelected(true);
+      }
+      else if (transform == Transform.TRANSLATION) {
+        rbTranslation.setSelected(true);
+      }
+    }
+
+    void includeTranslation() {
+      includeTranslation = true;
+    }
+  }
+
+  private final class FileTextField {
+    private final JButton button = new JButton(new ImageIcon(ClassLoader
+        .getSystemResource("images/openFile.gif")));
+    private final LabeledTextField field;
+    private JPanel panel = null;
+
+    private FileTextField(String label) {
+      field = new LabeledTextField(label);
+    }
+
+    Container getContainer() {
+      if (panel == null) {
+        panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        panel.add(field.getContainer());
+        panel.add(button);
+        button.setPreferredSize(FixedDim.folderButton);
+        button.setMaximumSize(FixedDim.folderButton);
+      }
+      return panel;
+    }
+
+    void addActionListener(ActionListener actionListener) {
+      button.addActionListener(actionListener);
+    }
+
+    void setEnabled(boolean enabled) {
+      field.setEditable(enabled);
+      button.setEnabled(enabled);
+    }
+
+    void setText(String text) {
+      field.setText(text);
+    }
+
+    String getText() {
+      return field.getText();
+    }
+
+    void setToolTipText(String tooltip) {
+      field.setToolTipText(tooltip);
+      button.setToolTipText(tooltip);
     }
   }
 }
