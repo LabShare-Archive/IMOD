@@ -25,6 +25,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2006/11/15 20:04:01  sueh
+ * <p> bug# 872 Testing input and output streams.  Testing Id creation.  Testing the
+ * <p> write lock.
+ * <p>
  * <p> Revision 1.4  2006/10/16 22:47:42  sueh
  * <p> bug# 919  Changed touch(File) to touch(String absolutePath).
  * <p>
@@ -385,6 +389,7 @@ public class LogFileTest extends TestCase {
     assertFalse(
         "Should not be able to backup a log file more then once when it has been backed up with backupOnce.",
         test.backupOnce());
+    assertTrue(test.noLocks());
   }
 
   public void testDelete() throws LogFile.FileException, LogFile.ReadException,
@@ -422,6 +427,51 @@ public class LogFileTest extends TestCase {
     assertFalse("Should delete the file.", log.exists());
     assertFalse("Should return false when there is nothing to delete", test
         .delete());
+    assertTrue(test.noLocks());
+  }
+  
+  public void testMove() throws LogFile.FileException,LogFile.ReadException,LogFile.WriteException{
+    LogFile test = getInstance();
+    test.delete();
+    assertTrue(test.noLocks());
+    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(),"target");
+    target.delete();
+    long writeId = test.openWriter();
+    try {
+      test.move(target);
+      fail("Should not be able to move when a writer is open.");
+    }
+    catch (LogFile.FileException e) {
+    }
+    test.closeWriter(writeId);
+    writeId = target.openWriter();
+    try {
+      test.move(target);
+ //     fail("Should not be able to move when a writer is open on the target.");
+    }
+    catch (LogFile.FileException e) {
+    }
+    target.closeWriter(writeId);
+    target.create();
+    assertTrue(target.exists());
+    long readId = target.openReader();
+    try {
+      test.move(target);
+      fail("Should not be able to backup when a reader is open on the target.");
+    }
+    catch (LogFile.FileException e) {
+    }
+    assertTrue("Should not be able to backup when a reader is open on the target.",target.exists());
+    target.closeReader(readId);
+    test.create();
+    assertTrue(test.exists());
+    assertTrue(target.exists());
+    test.move(target);
+    assertFalse("Original file should not exist after backup.",test.exists());
+    assertFalse("Move should return false when attempting to move a file that doesn't exist.", test.move(target));
+    assertTrue("Attempting to move a file that doesn't exist should not cause a backup.", target.exists());
+    assertTrue(test.noLocks());
+    assertTrue(target.noLocks());
   }
 
   public void testCreate() throws LogFile.FileException, LogFile.ReadException {
@@ -694,7 +744,7 @@ public class LogFileTest extends TestCase {
   }
 
   private LogFile getInstance() {
-    LogFile logFile = LogFile.getInstance(log.getParent(), AxisID.ONLY,
+    LogFile logFile = LogFile.getInstance(testDir.getAbsolutePath(), AxisID.ONLY,
         ProcessName.BLEND);
     return logFile;
   }
