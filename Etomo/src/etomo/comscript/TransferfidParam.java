@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2006/06/14 21:18:34  sueh
+ * <p> bug# 873 Added mirrorInX.
+ * <p>
  * <p> Revision 3.11  2006/05/22 22:42:40  sueh
  * <p> bug# 577 Placed the command in an ArrayList rather then a String.
  * <p>
@@ -153,10 +156,10 @@ public final class TransferfidParam implements Storable {
   private final EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
   private final EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
   //null => both, -1 => -90, 1=> +90  
-  private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SearchDirection"); 
-  private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewA");
-  private final EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.LONG_TYPE, "CenterViewB");
-  private final ScriptParameter numberViews = new ScriptParameter(EtomoNumber.INTEGER_TYPE, "NumberViews");
+  private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER, "SearchDirection"); 
+  private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.Type.LONG, "CenterViewA");
+  private final EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.Type.LONG, "CenterViewB");
+  private final ScriptParameter numberViews = new ScriptParameter(EtomoNumber.Type.INTEGER, "NumberViews");
   private final EtomoBoolean2 mirrorInX = new EtomoBoolean2("MirrorInX");
 
   private ConstMetaData metaData = null;

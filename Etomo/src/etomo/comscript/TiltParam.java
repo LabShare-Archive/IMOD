@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2006/09/19 22:00:07  sueh
+ * <p> bug# 920 Added Storables, an object for storing variables that don't going into the
+ * <p> the .com file.  Storables can be added to MetaData or another storable type
+ * <p> without creating an instance of TiltParam.  Moved fiducialess to Storables.
+ * <p>
  * <p> Revision 3.20  2006/09/13 23:22:01  sueh
  * <p> bug# 920, bug# 926 Remoing local file and z factor file when fiducialess is true.
  * <p>
@@ -550,7 +555,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
    * @return
    */
   public ConstEtomoNumber setImageBinned() {
-    EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.Type.LONG);
     currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinning(manager,
         axisID, ".ali", true));
     if (!currentBinning.isNull()) {

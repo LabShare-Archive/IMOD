@@ -2,6 +2,8 @@ package etomo.comscript;
 
 import java.util.ArrayList;
 
+import etomo.type.EtomoNumber;
+
 /**
 * <p>Description: </p>
 * 
@@ -16,6 +18,9 @@ import java.util.ArrayList;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2005/01/25 21:42:30  sueh
+* <p> Removed EtomoNumber.displayDefault.
+* <p>
 * <p> Revision 1.2  2004/12/03 20:21:10  sueh
 * <p> bug# 556 Support older versions of volcombine.com.  Check for an
 * <p> incorrect set name and set "valid = false" instead of throw an exception.
@@ -27,8 +32,8 @@ import java.util.ArrayList;
 public class SetParam extends ConstSetParam implements CommandParam {
   public static final String rcsid = "$Id$";
 
-  public SetParam(String expectedName, int etomoNumberType) {
-    super(expectedName, etomoNumberType);
+  public SetParam(String expectedName, EtomoNumber.Type type) {
+    super(expectedName, type);
   }
 
   /* (non-Javadoc)
