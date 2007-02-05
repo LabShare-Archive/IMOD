@@ -40,7 +40,7 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public void run() {
     if (blendmont) {
       BlendmontProcessMonitor blendmontMonitor = new BlendmontProcessMonitor(
-          applicationManager, axisID, BlendmontParam.XCORR_MODE);
+          applicationManager, axisID, BlendmontParam.Mode.XCORR);
       blendmontMonitor.setLastProcess(false);
       Thread blendmontThread = new Thread(blendmontMonitor);
       blendmontThread.start();
@@ -112,6 +112,9 @@ public class XcorrProcessWatcher implements ProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.16  2006/09/25 16:36:37  sueh
+ * <p> bug# 931 Added empty function msgLogFileRenamed().
+ * <p>
  * <p> Revision 3.15  2005/11/19 02:41:44  sueh
  * <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
  * <p> ProcessMonitor because they are potentially valid things to do for any
