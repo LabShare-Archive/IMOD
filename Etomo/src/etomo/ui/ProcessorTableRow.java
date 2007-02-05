@@ -113,7 +113,7 @@ final class ProcessorTableRow implements Storable {
     }
     else if (cellCPUsSelected != null) {
       props.setProperty(group + STORE_CPUS_SELECTED, String
-          .valueOf(((SpinnerCell) cellCPUsSelected).getValue()));
+          .valueOf(((SpinnerCell) cellCPUsSelected).getIntValue()));
     }
   }
 
@@ -156,7 +156,7 @@ final class ProcessorTableRow implements Storable {
     }
     cellCPUType.setEnabled(false);
     if (numCpus > 1) {
-      cellCPUsSelected = new SpinnerCell(0, numCpus);
+      cellCPUsSelected = SpinnerCell.getIntInstance(0, numCpus);
       SpinnerCell spinnerCell = (SpinnerCell) cellCPUsSelected;
       spinnerCell.addChangeListener(new ProcessorTableRowChangeListener(this));
       spinnerCell.setValue(DEFAULT_CPUS_SELECTED);
@@ -321,7 +321,7 @@ final class ProcessorTableRow implements Storable {
       return 0;
     }
     if (cellCPUsSelected instanceof SpinnerCell) {
-      return ((SpinnerCell) cellCPUsSelected).getValue();
+      return ((SpinnerCell) cellCPUsSelected).getIntValue();
     }
     int cpusSelected = ((FieldCell) cellCPUsSelected).getIntValue();
     if (cpusSelected == EtomoNumber.INTEGER_NULL_VALUE) {
@@ -489,6 +489,11 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2006/11/29 00:22:13  sueh
+ * <p> bug# 934 Added the parameter String failureReason to clearFailureReason(), so
+ * <p> that it won't delete a failure reason by another processes.  Changed
+ * <p> setSelectedError() to set a warning instead of an error.
+ * <p>
  * <p> Revision 1.23  2006/11/18 00:50:01  sueh
  * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
  * <p>
