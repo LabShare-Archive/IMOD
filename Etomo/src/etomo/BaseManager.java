@@ -87,7 +87,7 @@ public abstract class BaseManager {
   protected String propertyUserDir = null;//working directory for this manager
 
   //private static variables
-  private static boolean debug = false;
+  private boolean debug = false;
   private boolean exiting = false;
   private boolean initialized = false;
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
@@ -99,8 +99,6 @@ public abstract class BaseManager {
   private ParameterStore parameterStore = null;
 
   protected abstract void createComScriptManager();
-
-  protected abstract void createProcessManager();
 
   protected abstract void createMainPanel();
 
@@ -152,7 +150,6 @@ public abstract class BaseManager {
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
     createProcessTrack();
-    createProcessManager();
     createComScriptManager();
     //  Initialize the program settings
     debug = EtomoDirector.getInstance().isDebug();
@@ -657,21 +654,24 @@ public abstract class BaseManager {
     if (processName != null) {
       updateDialog(processName, axisID);
     }
-    //  Start the next process if one exists and the exit value was equal zero
-    if (isNextProcessSet(axisID) && endState != ProcessEndState.KILLED
+    //Try to start the next process if the process succeeded, or if
+    //forceNextProcess is true (unless the user killed the process, it makes the
+    //nextProcess execute even when the current process failed).
+    if (endState != ProcessEndState.KILLED
         && (exitValue == 0 || forceNextProcess)) {
-      sendMsgSecondaryProcess(processResultDisplay);
-      startNextProcess(axisID, processResultDisplay);
-    }
-    else {
-      if (failed) {
-        sendMsgProcessFailed(processResultDisplay);
-      }
-      else {
+      if (!startNextProcess(axisID, processResultDisplay)) {
         sendMsgProcessSucceeded(processResultDisplay);
         processSucceeded(axisID, processName);
       }
+    }
+    else {
+      //If the process failed or was killed, get rid of the nextProcess and the
+      //lastProcess, so they can't be executed by mistake.
       resetNextProcess(axisID);
+      resetLastProcess(axisID);
+      if (failed) {
+        sendMsgProcessFailed(processResultDisplay);
+      }
     }
   }
 
@@ -719,14 +719,8 @@ public abstract class BaseManager {
    */
   protected final void processDone(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    //  Start the next process if one exists and the exit value was equal zero
-    if (isNextProcessSet(axisID)) {
-      sendMsgSecondaryProcess(processResultDisplay);
-      startNextProcess(axisID, processResultDisplay);
-    }
-    else {
+    if (!startNextProcess(axisID, processResultDisplay)) {
       sendMsgProcessSucceeded(processResultDisplay);
-      resetNextProcess(axisID);
     }
   }
 
@@ -798,14 +792,32 @@ public abstract class BaseManager {
   }
 
   /**
-   * Keep final.
+   * Keep final.  If nextProcess is not set, but lastProcess is set, then it
+   * sets nextProcess to lastProcess and resets lastProcess.  Then, if
+   * nextProcess is set, it sends a message to processResultDisplay and starts
+   * the next process.  This function resets nextProcess.
    * @param axisID
+   * @param processResultDisplay
+   * @return true if a next process is run.
    */
-  protected final void startNextProcess(AxisID axisID,
+  protected final boolean startNextProcess(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    String nextProcess = getNextProcess(axisID);
-    resetNextProcess(axisID);
-    startNextProcess(axisID, nextProcess, processResultDisplay);
+    if (debug) {
+      System.err.println("startNextProcess:nextProcess="
+          + getNextProcess(axisID) + ",lastProcess=" + getLastProcess(axisID));
+    }
+    if (!isNextProcessSet(axisID) && isLastProcessSet(axisID)) {
+      setNextProcess(axisID, getLastProcess(axisID));
+      resetLastProcess(axisID);
+    }
+    if (isNextProcessSet(axisID)) {
+      sendMsgSecondaryProcess(processResultDisplay);
+      String nextProcess = getNextProcess(axisID);
+      resetNextProcess(axisID);
+      startNextProcess(axisID, nextProcess, processResultDisplay);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -814,10 +826,6 @@ public abstract class BaseManager {
    * @param nextProcess
    */
   protected final void setNextProcess(AxisID axisID, String nextProcess) {
-    if (debug) {
-      System.err.println("setNextProcess:axisID=" + axisID + ",nextProcess="
-          + nextProcess);
-    }
     if (axisID == AxisID.SECOND) {
       nextProcessB = nextProcess;
 
@@ -832,9 +840,6 @@ public abstract class BaseManager {
    * @param axisID
    */
   private final void resetNextProcess(AxisID axisID) {
-    if (debug) {
-      System.err.println("resetNextProcess:axisID=" + axisID);
-    }
     if (axisID == AxisID.SECOND) {
       nextProcessB = "";
     }
@@ -850,19 +855,17 @@ public abstract class BaseManager {
     return nextProcessA;
   }
 
+  public void setDebug(boolean debug) {
+    this.debug = debug;
+  }
+
   private final boolean isNextProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (!nextProcessB.equals("") || processDialogTypeB != null) {
-        if (debug) {
-          System.err.println("nextProcessB=" + nextProcessB);
-        }
         return true;
       }
     }
     else if (!nextProcessA.equals("") || processDialogTypeA != null) {
-      if (debug) {
-        System.err.println("nextProcessA=" + nextProcessA);
-      }
       return true;
     }
     return false;
@@ -899,6 +902,9 @@ public abstract class BaseManager {
    * @param lastProcess
    */
   protected final void setLastProcess(AxisID axisID, String lastProcess) {
+    if (debug) {
+      System.err.println("setLastProcess:lastProcess=" + lastProcess);
+    }
     if (axisID == AxisID.SECOND) {
       lastProcessB = lastProcess;
     }
@@ -911,7 +917,7 @@ public abstract class BaseManager {
    * Keep final.
    * @param axisID
    */
-  protected final void resetLastProcess(AxisID axisID) {
+  private final void resetLastProcess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       lastProcessB = "";
     }
@@ -920,14 +926,14 @@ public abstract class BaseManager {
     }
   }
 
-  protected final String getLastProcess(AxisID axisID) {
+  private final String getLastProcess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return lastProcessB;
     }
     return lastProcessA;
   }
 
-  protected final boolean isLastProcessSet(AxisID axisID) {
+  private final boolean isLastProcessSet(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !lastProcessB.equals("");
     }
@@ -940,7 +946,7 @@ public abstract class BaseManager {
     getProcessManager().startGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
-  
+
   public final void endGetLoadAverage(LoadAverageDisplay display,
       String computer) {
     LoadAverageParam param = LoadAverageParam.getInstance(computer);
@@ -1071,6 +1077,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.72  2006/11/28 22:47:02  sueh
+ * <p> bug# 934 Changed BaseManager.stop() to endThreads().  Added a command to
+ * <p> end main panel threads, which are load averages.  These threads are shared
+ * <p> between managers, so they will only end if any other manager is using them.
+ * <p>
  * <p> Revision 1.71  2006/11/16 23:13:42  sueh
  * <p> bug# 872 Removed print statement
  * <p>
