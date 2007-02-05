@@ -21,6 +21,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2006/09/19 22:34:02  sueh
+ * <p> bug# 920 Added first and second axisPrepends for storing axis-level values.
+ * <p> Added TiltParam.Storables for A and B.
+ * <p>
  * <p> Revision 3.30  2006/05/16 21:32:00  sueh
  * <p> bug# 856 Removed unused function getCombineParams.
  * <p>
@@ -197,12 +201,8 @@ public class MetaData extends ConstMetaData {
     resetToDefault();
   }
 
-  public void setRevisionNumber(String revNumber) {
-    revisionNumber = revNumber;
-  }
-
   protected void resetToDefault() {
-    revisionNumber = "";
+    revisionNumber.reset();
     distortionFile = "";
     magGradientFile = "";
     binning = 1;
@@ -520,7 +520,8 @@ public class MetaData extends ConstMetaData {
     axisType = AxisType.fromString(props.getProperty(group + "AxisType",
         "Not Set"));
     setAxisPrepends();
-    revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
+    revisionNumber.load(props, prepend);
+    //= props.getProperty(group + "RevisionNumber", "1.0");
 
     // Make this true for now until the variable is present in all of the
     // data files so as to not break existing files
