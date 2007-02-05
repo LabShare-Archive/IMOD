@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2006/11/07 22:44:13  sueh
+ * <p> bug# 954 Added tooltip to label.
+ * <p>
  * <p> Revision 1.13  2006/04/25 19:15:21  sueh
  * <p> bug# 787 Added UITestField, an enum style class which contains the
  * <p> fields found in uitestaxis.adoc files.
@@ -75,6 +78,7 @@ import java.awt.Dimension;
 import java.awt.event.MouseListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -90,11 +94,8 @@ public class LabeledSpinner {
   public static final String rcsid = "$Id$";
 
   private JPanel panel = new JPanel();
-
   private JLabel label = new JLabel();
-
   private JSpinner spinner = new JSpinner();
-
 
   /**
    * @param spinner
@@ -105,8 +106,8 @@ public class LabeledSpinner {
     spinner.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestField.SPINNER.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name
-          + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     //set label
     label.setText(spinLabel);
@@ -130,7 +131,7 @@ public class LabeledSpinner {
   public void setModel(SpinnerModel model) {
     spinner.setModel(model);
   }
-  
+
   public Container getContainer() {
     return panel;
   }
@@ -138,7 +139,7 @@ public class LabeledSpinner {
   public String getLabel() {
     return label.getText();
   }
-  
+
   public Number getValue() {
     return (Number) spinner.getValue();
   }
@@ -146,12 +147,12 @@ public class LabeledSpinner {
   public void setValue(Object value) {
     spinner.setValue(value);
   }
-  
+
   public void setValue(ConstEtomoNumber value) {
     spinner.setValue(value.getNumber());
   }
 
-  public void setValue(int value){
+  public void setValue(int value) {
     spinner.setValue(new Integer(value));
   }
 
@@ -166,6 +167,20 @@ public class LabeledSpinner {
 
   public void setVisible(boolean isVisible) {
     panel.setVisible(isVisible);
+  }
+
+  void setHighlight(boolean highlight) {
+    JFormattedTextField textField = getTextField();
+    if (highlight) {
+      textField.setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
+    }
+    else {
+      textField.setBackground(UIUtilities.BACKGROUND);
+    }
+  }
+  
+  private final JFormattedTextField getTextField() {
+    return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
   }
 
   /**
@@ -203,7 +218,7 @@ public class LabeledSpinner {
   public Dimension getLabelPreferredSize() {
     return label.getPreferredSize();
   }
-  
+
   public void setAlignmentX(float alignment) {
     panel.setAlignmentX(alignment);
   }
@@ -211,6 +226,7 @@ public class LabeledSpinner {
   public void setToolTipText(String toolTipText) {
     panel.setToolTipText(toolTipText);
     spinner.setToolTipText(toolTipText);
+    getTextField().setToolTipText(toolTipText);
     label.setToolTipText(toolTipText);
   }
 
@@ -219,5 +235,5 @@ public class LabeledSpinner {
     label.addMouseListener(listener);
     spinner.addMouseListener(listener);
   }
-  
+
 }

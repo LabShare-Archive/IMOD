@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2006/05/19 19:47:37  sueh
+ * <p> bug# 866 Added setText(ConstEtomoNumber)
+ * <p>
  * <p> Revision 3.18  2006/05/16 21:36:20  sueh
  * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
  * <p> see what the name is.
@@ -181,6 +184,15 @@ public class LabeledTextField {
       return true;
     }
     return false;
+  }
+  
+  void setHighlight(boolean highlight) {
+    if (highlight) {
+      textField.setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
+    }
+    else {
+      textField.setBackground(UIUtilities.BACKGROUND);
+    }
   }
 
   public Container getContainer() {

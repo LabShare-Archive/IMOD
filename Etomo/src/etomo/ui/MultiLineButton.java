@@ -16,6 +16,7 @@ import etomo.type.ProcessResultDisplayState;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -42,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2006/07/26 16:40:45  sueh
+ * <p> bug# 868 Added msg(ProcessResult)
+ * <p>
  * <p> Revision 3.23  2006/07/20 17:20:36  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -158,6 +162,8 @@ class MultiLineButton implements ProcessResultDisplay {
   private DialogType dialogType = null;
   private String stateKey = null;
   private boolean manualName = false;
+  private Color buttonForeground = null;
+  private Color buttonHighlightForeground = null;
 
   MultiLineButton() {
     this(null, false, null);
@@ -194,7 +200,23 @@ class MultiLineButton implements ProcessResultDisplay {
     init();
     processResultDisplayState = new ProcessResultDisplayState(this);
   }
-  
+
+  void setHighlight(boolean highlight) {
+    if (buttonForeground == null) {
+      buttonForeground = button.getForeground();
+      //creating a readable foreground highlight color
+      buttonHighlightForeground = UIUtilities.subtractColor(
+          UIUtilities.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(UIUtilities
+              .subtractColor(new Color(255, 255, 255), buttonForeground), 2));
+    }
+    if (highlight) {
+      button.setForeground(buttonHighlightForeground);
+    }
+    else {
+      button.setForeground(buttonForeground);
+    }
+  }
+
   static final MultiLineButton getToggleButtonInstance() {
     return new MultiLineButton(null, true, null);
   }
@@ -273,7 +295,7 @@ class MultiLineButton implements ProcessResultDisplay {
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-  
+
   protected final AbstractButton getButton() {
     return button;
   }
@@ -469,7 +491,7 @@ class MultiLineButton implements ProcessResultDisplay {
   public void msgProcessStarting() {
     processResultDisplayState.msgProcessStarting();
   }
-  
+
   public void msg(ProcessResult processResult) {
     processResultDisplayState.msg(processResult);
   }
