@@ -20,6 +20,10 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2006/09/19 22:33:41  sueh
+ * <p> bug# 920 Fixed getInstance(EtomoBoolean2, String, Properties, String).
+ * <p> Props.getProperty was passing the wrong key.
+ * <p>
  * <p> Revision 1.16  2006/09/13 23:37:14  sueh
  * <p> bug# 920 Added static equals(EtomoBoolean2, EtomoBoolean2) to handle
  * <p> optional instances.  Fixed getInstance(EtomoBoolean2, String, Properties, String)
@@ -88,7 +92,7 @@ import etomo.comscript.InvalidParameterException;
  * <p>
  * <p> Revision 1.1  2005/01/13 19:03:01  sueh
  * <p> Inherits EtomoNumber to create a boolean which does not allow nulls and
- * <p> can't read/write itself  to/from .edf and .com files.
+ * <p> can read/write itself  to/from .edf and .com files.
  * <p> </p>
  */
 public class EtomoBoolean2 extends ScriptParameter {
@@ -112,25 +116,25 @@ public class EtomoBoolean2 extends ScriptParameter {
   private boolean displayAsInteger = false;
 
   public EtomoBoolean2() {
-    super(EtomoNumber.INTEGER_TYPE);
+    super(EtomoNumber.Type.INTEGER);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
   }
 
   public EtomoBoolean2(String name) {
-    super(EtomoNumber.INTEGER_TYPE, name);
+    super(EtomoNumber.Type.INTEGER, name);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
   }
 
   public EtomoBoolean2(String name, HashMap requiredMap) {
-    super(EtomoNumber.INTEGER_TYPE, name, requiredMap);
+    super(EtomoNumber.Type.INTEGER, name, requiredMap);
     setValidValues(new int[] { falseValue, trueValue });
     setDisplayValue(falseValue);
   }
 
   public EtomoBoolean2(String name, int onValue, int offValue) {
-    super(EtomoNumber.INTEGER_TYPE, name);
+    super(EtomoNumber.Type.INTEGER, name);
     trueValue = onValue;
     falseValue = offValue;
     falseString = null;
@@ -142,13 +146,36 @@ public class EtomoBoolean2 extends ScriptParameter {
   }
 
   public static void store(EtomoBoolean2 instance, Properties props,
-      String prepend, String key) {
+      String prepend, String name) {
     if (instance == null) {
-      props.remove(prepend + "." + key);
+      props.remove(prepend + "." + name);
     }
     else {
       instance.store(props, prepend);
     }
+  }
+  
+  /**
+   * Attempt to get the property specified by prepend and name.  If it doesn't
+   * exist, return null.  If it does, set it in instance (create instance
+   * if it doesn't exist).
+   * @param etomoBoolean2
+   * @param name
+   * @param props
+   * @param prepend
+   * @return etomoBoolean2
+   */
+  public static EtomoBoolean2 load(EtomoBoolean2 instance,
+      String name, Properties props, String prepend) {
+    String value = props.getProperty(prepend + '.' + name);
+    if (value == null) {
+      return null;
+    }
+    if (instance == null) {
+      instance = new EtomoBoolean2(name);
+    }
+    instance.set(value);
+    return instance;
   }
 
   public static boolean equals(EtomoBoolean2 instance1, EtomoBoolean2 instance2) {
@@ -159,6 +186,28 @@ public class EtomoBoolean2 extends ScriptParameter {
       return false;
     }
     return instance1.equals(instance2);
+  }
+  
+  public static EtomoBoolean2 set(EtomoBoolean2 instance, ConstEtomoNumber value, String name) {
+    if (instance == null && value != null) {
+      instance = new EtomoBoolean2(name);
+    }
+    if (instance == null) {
+      return null;
+    }
+    instance.set(value);
+    return instance;
+  }
+  
+  public static EtomoBoolean2 set(EtomoBoolean2 instance, boolean value, String name) {
+    if (instance == null) {
+      instance = new EtomoBoolean2(name);
+    }
+    if (instance == null) {
+      return null;
+    }
+    instance.set(value);
+    return instance;
   }
 
   /**
@@ -196,6 +245,16 @@ public class EtomoBoolean2 extends ScriptParameter {
     }
     instance.set(value);
     return instance;
+  }
+  
+  /**
+   * Override isNull() to prevent EtomoBoolean2 from being null.  Checks the
+   * display value, which is always set, when checking for null.  So it never
+   * tests as null.  This could be overriden by setting the display value to
+   * null.
+   */
+  public boolean isNull() {
+    return isNull(getValue());
   }
 
   /**
