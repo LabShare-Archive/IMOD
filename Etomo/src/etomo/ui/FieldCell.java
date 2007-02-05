@@ -5,6 +5,7 @@ import java.awt.Component;
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
 /**
@@ -21,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2006/03/21 19:38:00  sueh
+ * <p> bug# 807 Add the ability to set and retrieve a range of integers.  Added
+ * <p> range, endValue, getEndValue(), setRangeValue().
+ * <p>
  * <p> Revision 1.10  2005/12/14 20:55:14  sueh
  * <p> bug# 784 Added setToolTipText().
  * <p>
@@ -126,6 +131,10 @@ final class FieldCell extends InputCell {
     setValue(value, false);
   }
   
+  void setValue(ConstEtomoNumber value) {
+    setValue(value.toString(), false);
+  }
+  
   void setRangeValue(int start, int end) {
     endValue = end;
     setValue(new Integer(start).toString() + " - " + new Integer(end).toString(), true);
@@ -167,6 +176,15 @@ final class FieldCell extends InputCell {
     }
   }
   
+  float getFloatValue() {
+    try {
+      return Float.parseFloat(textField.getText());
+    }
+    catch (NumberFormatException e) {
+      return EtomoNumber.FLOAT_NULL_VALUE;
+    }
+  }
+  
   long getLongValue() {
     try {
       return new Long(textField.getText()).longValue();
@@ -197,6 +215,7 @@ final class FieldCell extends InputCell {
   }
   
   void setToolTipText(String toolTipText) {
-    textField.setToolTipText(toolTipText);
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    textField.setToolTipText(tooltipFormatter.setText(toolTipText).format());
   }
 }
