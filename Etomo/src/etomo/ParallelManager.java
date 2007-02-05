@@ -62,6 +62,7 @@ public final class ParallelManager extends BaseManager {
     super();
     this.metaData = new ParallelMetaData();
     createState();
+    processMgr = new ParallelProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
     if (!EtomoDirector.getInstance().isHeadless()) {
       openProcessingPanel();
@@ -86,10 +87,6 @@ public final class ParallelManager extends BaseManager {
 
   protected void createMainPanel() {
     mainPanel = new MainParallelPanel(this);
-  }
-
-  protected void createProcessManager() {
-    processMgr = new ParallelProcessManager(this);
   }
 
   protected void createProcessTrack() {
@@ -270,6 +267,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/11/28 22:48:48  sueh
+ * <p> bug# 934 Changed BaseManager.stop() to endThreads().
+ * <p>
  * <p> Revision 1.8  2006/11/15 18:49:00  sueh
  * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
  * <p> save param file function call save().  getStorables always gets all the storables

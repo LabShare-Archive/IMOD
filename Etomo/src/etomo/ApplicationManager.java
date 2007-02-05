@@ -168,6 +168,7 @@ public final class ApplicationManager extends BaseManager {
     super();
     this.metaData = new MetaData(this);
     createState();
+    processMgr = new ProcessManager(this);
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
@@ -855,14 +856,14 @@ public final class ApplicationManager extends BaseManager {
 
   public void deleteOriginalStack(Command archiveorigParam, String[] output) {
     AxisID axisID;
-    int mode = archiveorigParam.getCommandMode();
-    if (mode == ArchiveorigParam.AXIS_A_MODE) {
+    ArchiveorigParam.Mode mode = (ArchiveorigParam.Mode)archiveorigParam.getCommandMode();
+    if (mode == ArchiveorigParam.Mode.AXIS_A) {
       axisID = AxisID.FIRST;
     }
-    else if (mode == ArchiveorigParam.AXIS_B_MODE) {
+    else if (mode == ArchiveorigParam.Mode.AXIS_B) {
       axisID = AxisID.SECOND;
     }
-    else if (mode == ArchiveorigParam.AXIS_ONLY_MODE) {
+    else if (mode == ArchiveorigParam.Mode.AXIS_ONLY) {
       axisID = AxisID.ONLY;
     }
     else {
@@ -991,7 +992,7 @@ public final class ApplicationManager extends BaseManager {
     String[] xrayStackArchives = userDir.list(new XrayStackArchiveFilter());
     int fileNumber = 0;
     if (xrayStackArchives != null) {
-      EtomoNumber newFileNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+      EtomoNumber newFileNumber = new EtomoNumber(EtomoNumber.Type.INTEGER);
       for (int i = 0; i < xrayStackArchives.length; i++) {
         newFileNumber.set(xrayStackArchives[i].substring(xrayStackArchives[i]
             .lastIndexOf('.') + 1));
@@ -1343,13 +1344,6 @@ public final class ApplicationManager extends BaseManager {
 
   private final void extractmagrad(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    if (isLastProcessSet(axisID)) {
-      setNextProcess(axisID, getLastProcess(axisID));
-      resetLastProcess(axisID);
-    }
-    // else {
-    // resetNextProcess(axisID);
-    // }
     String magGradientFileName = metaData.getMagGradientFile();
     if (magGradientFileName == null || magGradientFileName.matches("\\s*+")) {
       startNextProcess(axisID, processResultDisplay);
@@ -1418,7 +1412,7 @@ public final class ApplicationManager extends BaseManager {
     BlendmontParam blendmontParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
       blendmontParam = updatePreblendCom(axisID);
-      processName = BlendmontParam.getProcessName(BlendmontParam.PREBLEND_MODE);
+      processName = BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND);
     }
     else {
       if (!updatePrenewstCom(axisID)) {
@@ -1584,7 +1578,7 @@ public final class ApplicationManager extends BaseManager {
   private void updateUndistortCom(AxisID axisID) {
     BlendmontParam blendmontParam = comScriptMgr
         .getBlendmontParamFromTiltxcorr(axisID);
-    blendmontParam.setMode(BlendmontParam.UNDISTORT_MODE);
+    blendmontParam.setMode(BlendmontParam.Mode.UNDISTORT);
     blendmontParam.setBlendmontState();
     comScriptMgr.saveXcorrToUndistort(blendmontParam, axisID);
   }
@@ -4054,7 +4048,7 @@ public final class ApplicationManager extends BaseManager {
     comScriptMgr.loadVolcombine();
     //try to load reduction factor
     ConstSetParam setParam = comScriptMgr.getSetParamFromVolcombine(
-        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.FLOAT_TYPE);
+        SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
     tomogramCombinationDialog.setReductionFactorParams(setParam);
     tomogramCombinationDialog.enableReductionFactor(setParam != null
         && setParam.isValid());
@@ -4116,7 +4110,7 @@ public final class ApplicationManager extends BaseManager {
     try {
       //Make sure the reduction factor set command is available in volcombine.com
       SetParam setParam = comScriptMgr.getSetParamFromVolcombine(
-          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.FLOAT_TYPE);
+          SetParam.COMBINEFFT_REDUCTION_FACTOR_NAME, EtomoNumber.Type.FLOAT);
       boolean setParamIsValid = setParam != null && setParam.isValid();
       tomogramCombinationDialog.enableReductionFactor(setParamIsValid);
       tomogramCombinationDialog.getReductionFactorParam(setParam);
@@ -5183,10 +5177,6 @@ public final class ApplicationManager extends BaseManager {
     comScriptMgr = new ComScriptManager(this);
   }
 
-  protected void createProcessManager() {
-    processMgr = new ProcessManager(this);
-  }
-
   protected void createMainPanel() {
     mainPanel = new MainTomogramPanel(this);
   }
@@ -5431,6 +5421,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.274  2006/11/28 22:45:23  sueh
+ * <p> bug# 934 Changed BaseManager.stop() to endThreads().
+ * <p>
  * <p> Revision 3.273  2006/11/15 18:14:38  sueh
  * <p> bug# 872 Changed getParamFileStorableArray to getStorables.  Letting the base
  * <p> save param file function call save().  getStorables always gets all the storables
