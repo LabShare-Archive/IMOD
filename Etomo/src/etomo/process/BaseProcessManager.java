@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.54  2006/12/02 04:33:52  sueh
+ * <p> bug# 944 In processchunks, use ProcesschunksVolcombineMonitor if the param
+ * <p> was created for volcombine.
+ * <p>
  * <p> Revision 1.53  2006/12/01 00:54:40  sueh
  * <p> bug# 937 In processchunks, don't have to set process in monitor because its
  * <p> being passed to the kill function.
@@ -1334,6 +1338,30 @@ public abstract class BaseProcessManager {
         new TomosnapshotParam(manager, axisID), axisID,
         ProcessName.TOMOSNAPSHOT);
     return backgroundProcess.getName();
+  }
+  
+  protected void writeLogFile(BackgroundProcess process, AxisID axisID, String fileName) {
+    LogFile logFile = null;
+    long writeId = LogFile.NO_ID;
+    try {
+      //  Write the standard output to a the log file
+      String[] stdOutput = process.getStdOutput();
+      logFile = LogFile.getInstance(manager.getPropertyUserDir(),
+          fileName);
+      writeId = logFile.openWriter();
+      if (stdOutput != null) {
+        for (int i = 0; i < stdOutput.length; i++) {
+          logFile.write(stdOutput[i], writeId);
+          logFile.newLine(writeId);
+        }
+      }
+      logFile.closeWriter(writeId);
+    }
+    catch (LogFile.WriteException except) {
+      logFile.closeWriter(writeId);
+      uiHarness.openMessageDialog(except.getMessage(), "log File Write Error",
+          axisID);
+    }
   }
 
   protected void postProcess(BackgroundProcess process) {
