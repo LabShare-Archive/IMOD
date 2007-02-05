@@ -9,6 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.type.EtomoNumber;
+
 /**
  * <p>Description: </p>
  * 
@@ -27,15 +29,20 @@ class HeaderCell {
 
   private static final ColorUIResource background = new ColorUIResource(204,
       204, 204);
-  private static final ColorUIResource greyout = InputCell.subtract(
-      InputCell.background, background);
-  private static final ColorUIResource warningBackground = InputCell.subtract(
-      InputCell.warningBackground, greyout);
+  private static final ColorUIResource greyout = UIUtilities.subtractColor(
+      UIUtilities.BACKGROUND, background);
+  private static final ColorUIResource warningBackground = UIUtilities
+      .subtractColor(UIUtilities.WARNING_BACKGROUND, greyout);
 
   private JButton cell;
   private JPanel jpanelContainer = null;
   private String text = "";
   private final boolean controlColor;
+  private String pad = "";
+
+  public String toString() {
+    return text;
+  }
 
   HeaderCell() {
     this(null, -1, true);
@@ -64,7 +71,7 @@ class HeaderCell {
       cell = new JButton();
     }
     else {
-      cell = new JButton("<html><b>" + text + "</b>");
+      cell = new JButton(formatText());
     }
     cell.setBorder(BorderFactory.createEtchedBorder());
     cell.setEnabled(false);
@@ -119,13 +126,17 @@ class HeaderCell {
     return text;
   }
 
+  int getInt() {
+    return new EtomoNumber().set(text).getInt();
+  }
+
   void setText(String text) {
     this.text = text;
-    cell.setText("<html><b>" + text + "</b>");
+    cell.setText(formatText());
   }
 
   final void setText() {
-    this.text = "";
+    text = "";
     setText("");
   }
 
@@ -138,11 +149,27 @@ class HeaderCell {
   }
 
   final void setToolTipText(String toolTipText) {
-    cell.setToolTipText(toolTipText);
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    cell.setToolTipText(tooltipFormatter.setText(toolTipText).format());
+  }
+
+  final void pad() {
+    if (text==null) {
+      return;
+    }
+    pad = " ";
+    cell.setText(formatText());
+  }
+
+  private String formatText() {
+    return "<html><b>" + text + pad + "</b>";
   }
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.13  2006/10/17 20:19:18  sueh
+ * * <p> bug# 919  Adding setWarning().  Changing boolean fixedColor to controlColor.
+ * * <p>
  * * <p> Revision 1.12  2006/06/29 20:06:57  sueh
  * * <p> bug# 880 Added HeaderCell(int).
  * * <p>
