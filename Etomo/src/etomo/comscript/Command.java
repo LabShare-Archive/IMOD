@@ -20,7 +20,7 @@ import etomo.type.AxisID;
 public interface Command {
   public static  final String  rcsid =  "$Id$";
   
-  public int getCommandMode();
+  public CommandMode getCommandMode();
   public File getCommandOutputFile();
   public String getCommandName();
   public String getCommandLine();
@@ -30,6 +30,9 @@ public interface Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2006/05/22 22:35:33  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.9  2006/05/11 19:38:30  sueh
 * <p> bug# 838 Add CommandDetails, which extends Command and
 * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
