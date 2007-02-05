@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2006/10/25 21:23:23  sueh
+ * <p> bug# 951  newPatchVectorCCCModel:  opening in 3dmodv.
+ * <p>
  * <p> Revision 3.48  2006/10/16 22:37:58  sueh
  * <p> bug# 933 Don't reopen log unless the 3dmod is open.
  * <p>
@@ -460,6 +463,8 @@ public class ImodManager {
   public static final String SQUEEZED_VOLUME_KEY = new String("SqueezedVolume");
   public static final String PATCH_VECTOR_CCC_MODEL_KEY = new String(
       "patch vector ccc model");
+  public static final String MODELED_JOIN_KEY = new String("modeled join");
+  public static final String TRANSFORMED_MODEL = new String("transformed model");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -484,6 +489,8 @@ public class ImodManager {
   private static final String trialJoinKey = TRIAL_JOIN_KEY;
   private static final String squeezedVolumeKey = SQUEEZED_VOLUME_KEY;
   private static final String patchVectorCCCModelKey = PATCH_VECTOR_CCC_MODEL_KEY;
+  private static final String modeledJoinKey = MODELED_JOIN_KEY;
+  private static final String transformedModelKey = TRANSFORMED_MODEL;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -536,7 +543,7 @@ public class ImodManager {
   public void setMetaData(ConstJoinMetaData metaData) {
     metaDataSet = true;
     axisType = metaData.getAxisType();
-    datasetName = metaData.getRootName();
+    datasetName = metaData.getName();
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
     }
@@ -600,6 +607,13 @@ public class ImodManager {
     //openCombinedTomogram
   }
 
+  public void open(String key, String model, Run3dmodMenuOptions menuOptions)
+      throws AxisTypeException, SystemProcessException, IOException {
+    open(key, null, model, menuOptions);
+    //used for:
+    //openCombinedTomogram
+  }
+
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException, IOException {
     open(key, axisID, null, menuOptions);
@@ -612,6 +626,11 @@ public class ImodManager {
   public void open(String key, AxisID axisID, String model)
       throws AxisTypeException, SystemProcessException, IOException {
     open(key, axisID, model, new Run3dmodMenuOptions());
+  }
+
+  public void open(String key, AxisID axisID) throws AxisTypeException,
+      SystemProcessException, IOException {
+    open(key, axisID, null, new Run3dmodMenuOptions());
   }
 
   public void open(String key, AxisID axisID, String model,
@@ -1167,12 +1186,18 @@ public class ImodManager {
     if (key.equals(TRIAL_JOIN_KEY)) {
       return newTrialJoin();
     }
+    if (key.equals(MODELED_JOIN_KEY)) {
+      return newModeledJoin();
+    }
     if (key.equals(SQUEEZED_VOLUME_KEY)) {
       return newSqueezedVolume();
     }
     if (key.equals(PATCH_VECTOR_CCC_MODEL_KEY)
         && axisType == AxisType.DUAL_AXIS) {
       return newPatchVectorCCCModel();
+    }
+    if (key.equals(TRANSFORMED_MODEL)) {
+      return newTransformedModel();
     }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -1316,7 +1341,15 @@ public class ImodManager {
 
   protected ImodState newPatchVectorCCCModel() {
     ImodState imodState = new ImodState(manager,
-        DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODV, AxisID.ONLY);
+        DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODV, AxisID.ONLY,
+        ImodProcess.WindowOpenOption.IMODV_OBJECTS);
+    imodState.setNoMenuOptions(true);
+    return imodState;
+  }
+
+  protected ImodState newTransformedModel() {
+    ImodState imodState = new ImodState(manager, DatasetFiles
+        .getRefineAlignedModelFileName(manager), ImodState.MODV, AxisID.ONLY);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
@@ -1391,12 +1424,20 @@ public class ImodManager {
     return imodState;
   }
 
-  protected ImodState newRotTomogram(File file) {
+  private ImodState newRotTomogram(File file) {
     ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
     return imodState;
   }
 
-  protected ImodState newTrialJoin() {
+  private ImodState newModeledJoin() {
+    ImodState imodState = new ImodState(manager, datasetName + "_modeled.join",
+        AxisID.ONLY);
+    imodState.setInitialMode(ImodState.MODEL_MODE);
+    imodState.setOpenContours(true);
+    return imodState;
+  }
+
+  private ImodState newTrialJoin() {
     ImodState imodState = new ImodState(manager, datasetName + "_trial.join",
         AxisID.ONLY);
     return imodState;
@@ -1409,7 +1450,7 @@ public class ImodManager {
     return imodState;
   }
 
-  protected boolean isPerAxis(String key) {
+  private boolean isPerAxis(String key) {
     if (key.equals(COMBINED_TOMOGRAM_KEY) || key.equals(PATCH_VECTOR_MODEL_KEY)
         || key.equals(MATCH_CHECK_KEY) || key.equals(TRIMMED_VOLUME_KEY)) {
       return false;
@@ -1417,7 +1458,7 @@ public class ImodManager {
     return true;
   }
 
-  protected boolean isDualAxisOnly(String key) {
+  private boolean isDualAxisOnly(String key) {
     if (key.equals(COMBINED_TOMOGRAM_KEY) || key.equals(PATCH_VECTOR_MODEL_KEY)
         || key.equals(MATCH_CHECK_KEY)) {
       return true;

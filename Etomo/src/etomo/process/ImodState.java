@@ -175,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.39  2006/09/19 22:22:23  sueh
+ * <p> $bug# 928 Open the imodv objects window when opening a patch vector model.
+ * <p> $
  * <p> $Revision 1.38  2006/08/11 23:49:35  sueh
  * <p> $bug# 816 Added reopenLog().
  * <p> $
@@ -447,7 +450,22 @@ public final class ImodState {
     this.datasetName = datasetName;
     process = new ImodProcess(manager, datasetName, axisID);
     setModelViewType(modelViewType);
-    process.addWindowOpenOption(ImodProcess.WindowOpenOption.IMODV_OBJECTS);
+    reset();
+  }
+  
+  /**
+   * Use this constructor to create an instance of ImodProcess using
+   * ImodProcess(String dataset) and set either model view or imodv, and open a
+   * 3dmod window.
+   */
+  ImodState(BaseManager manager, String datasetName, int modelViewType,
+      AxisID axisID, ImodProcess.WindowOpenOption option) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.datasetName = datasetName;
+    process = new ImodProcess(manager, datasetName, axisID);
+    setModelViewType(modelViewType);
+    process.addWindowOpenOption(option);
     reset();
   }
 
