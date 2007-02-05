@@ -3,6 +3,7 @@ package etomo.util;
 import java.io.File;
 
 import etomo.BaseManager;
+import etomo.JoinManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
@@ -29,7 +30,7 @@ public final class DatasetFiles {
   public static final String COMSCRIPT_EXT = ".com";
   public static final String TOMO_EXT = ".rec";
   private static final String STACK_EXT = ".st";
-  private static final String MODEL_EXT = ".mod";
+  public static final String MODEL_EXT = ".mod";
   private static final String PATCH_VECTOR_STRING = "patch_vector";
   public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING
       + MODEL_EXT;
@@ -45,6 +46,10 @@ public final class DatasetFiles {
   public static final String VOLCOMBINE_FINISH_LOG = ProcessName.VOLCOMBINE
       .toString()
       + "-finish" + LOG_EXT;
+  public static final String JOIN_EXT = ".join";
+  public static final String REFINE_NAME = "_refine";
+  public static final String XFJOINTOMO_LOG = "xfjointomo"+LOG_EXT;
+  private static final String XG_EXT = ".xg";
 
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -202,6 +207,58 @@ public final class DatasetFiles {
         axisID));
   }
 
+  public static String getJoinFileName(boolean trial, BaseManager manager) {
+    return manager.getBaseMetaData().getName()
+        + (trial ? "_trial" : "") + JOIN_EXT;
+  }
+
+  public static File getJoinFile(boolean trial, BaseManager manager) {
+    return new File(manager.getPropertyUserDir(), getJoinFileName(trial,
+        manager));
+  }
+  
+  public static String getRefineXfFileName(BaseManager manager) {
+    return manager.getBaseMetaData().getName()+REFINE_NAME+".xf";
+  }
+  
+  public static String getRefineXgFileName(BaseManager manager) {
+    return manager.getBaseMetaData().getName()+REFINE_NAME+XG_EXT;
+  }
+  
+  public static File getRefineXgFile(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(),getRefineXgFileName(manager));
+  }
+
+  public static String getRefineJoinXgFileName(BaseManager manager) {
+    return manager.getBaseMetaData().getName()+REFINE_NAME+"join"+XG_EXT;
+  }
+  
+  public static String getModeledJoinFileName(BaseManager manager) {
+    return manager.getBaseMetaData().getName() + "_modeled" + JOIN_EXT;
+  }
+
+  public static File getModeledJoinFile(JoinManager manager) {
+    return new File(manager.getPropertyUserDir(),
+        getModeledJoinFileName(manager));
+  }
+
+  public static String getRefineModelFileName(BaseManager manager) {
+    return manager.getBaseMetaData().getName() + REFINE_NAME + MODEL_EXT;
+  }
+  
+  public static String getRefineAlignedModelFileName(BaseManager manager) {
+    return manager.getBaseMetaData().getName() + REFINE_NAME + ".alimod";
+  }
+  
+  public static File getRefineAlignedModelFile(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(),getRefineAlignedModelFileName(manager));
+  }
+
+  public static File getRefineModelFile(JoinManager manager) {
+    return new File(manager.getPropertyUserDir(),
+        getRefineModelFileName(manager));
+  }
+
   public static String getMagGradientName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -326,6 +383,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2006/12/02 04:59:55  sueh
+ * <p> bug# 944 Add constants for volcombine-start.log and volcombine-finish.log.
+ * <p>
  * <p> Revision 1.28  2006/10/13 22:31:25  sueh
  * <p> bug# 919 Deleted getJoinInfo().  Added getJoinInfoName().
  * <p>
