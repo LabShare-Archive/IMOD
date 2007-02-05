@@ -18,6 +18,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2005/12/14 01:28:07  sueh
+ * <p> bug# 782 Updated toString().
+ * <p>
  * <p> Revision 1.3  2005/05/17 19:15:31  sueh
  * <p> bug# 663 Allowing isValid() to be called from the base class.
  * <p>
@@ -46,7 +49,8 @@ public abstract class BaseMetaData implements Storable {
   protected static final String revisionNumberString = "RevisionNumber";
   protected static String fileExtension;
 
-  protected String revisionNumber;
+  //revisionNumber should be set only by load()
+  protected EtomoVersion revisionNumber = EtomoVersion.getInstance(revisionNumberString);
   protected AxisType axisType = AxisType.NOT_SET;
   protected String invalidReason = "";
 
@@ -76,7 +80,7 @@ public abstract class BaseMetaData implements Storable {
     store(props, "");
   }
 
-  public String getRevisionNumber() {
+  public EtomoVersion getRevisionNumber() {
     return revisionNumber;
   }
 
