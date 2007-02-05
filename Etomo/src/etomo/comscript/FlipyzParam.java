@@ -6,6 +6,8 @@ import java.util.Hashtable;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 
 /**
 * <p>Description: </p>
@@ -21,6 +23,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2006/05/22 22:39:05  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.10  2006/05/11 19:43:29  sueh
 * <p> bug# 838 Add CommandDetails, which extends Command and
 * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -158,6 +163,10 @@ public class FlipyzParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -166,7 +175,15 @@ public class FlipyzParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
   
-  public int getCommandMode() {
-    return 0;
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public CommandMode getCommandMode() {
+    return null;
   }
 }
