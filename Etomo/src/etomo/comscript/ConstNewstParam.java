@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 
 /**
  * <p>Description: </p>
@@ -20,6 +22,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2006/05/22 22:35:44  sueh
+ * <p> bug# 577 Added getCommand().
+ * <p>
  * <p> Revision 3.16  2006/05/11 19:39:07  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -121,11 +126,6 @@ import etomo.type.AxisID;
 
 public class ConstNewstParam implements CommandDetails {
   public static final String rcsid = "$Id$";
-
-  //command modes
-  public static final int WHOLE_TOMOGRAM_SAMPLE_MODE = -1;
-  public static final int FULL_ALIGNED_STACK_MODE = -2;
-
   //data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
@@ -163,7 +163,7 @@ public class ConstNewstParam implements CommandDetails {
   protected FortranInputString testLimits;
   protected String parameterFile;
   protected boolean fiducialessAlignment;
-  protected int commandMode;
+  protected Mode commandMode;
   protected String magGradientFile;
 
   private AxisID axisID;
@@ -433,7 +433,7 @@ public class ConstNewstParam implements CommandDetails {
     return array;
   }
 
-  public int getCommandMode() {
+  public CommandMode getCommandMode() {
     return commandMode;
   }
 
@@ -454,8 +454,20 @@ public class ConstNewstParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
+  
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   
@@ -469,5 +481,10 @@ public class ConstNewstParam implements CommandDetails {
 
     public static final Fields FIDUCIALESS_ALIGNMENT = new Fields();
     public static final Fields BINNING = new Fields();
+  }
+  
+  public static final class Mode implements CommandMode{
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode();
+    public static final Mode FULL_ALIGNED_STACK = new Mode();
   }
 }
