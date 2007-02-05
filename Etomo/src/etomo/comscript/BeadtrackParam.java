@@ -25,6 +25,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2006/01/12 17:00:47  sueh
+ * <p> bug# 798 Moved the autodoc classes to etomo.storage.
+ * <p>
  * <p> Revision 3.12  2005/08/27 21:07:11  sueh
  * <p> bug# 532 Changed Autodoc.get() to getInstance().
  * <p>
@@ -198,7 +201,7 @@ public class BeadtrackParam extends OldBeadtrackParam
 
     HashMap requiredMap = getRequiredMap();
     skipViews = new StringList(SKIP_VIEW_LIST_KEY);
-    rotationAngle = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         IMAGE_ROTATION_KEY, requiredMap);
     additionalViewGroups.setKey(ADDITIONAL_VIEW_GROUPS_KEY);
 
@@ -207,46 +210,46 @@ public class BeadtrackParam extends OldBeadtrackParam
     tiltAngleSpec.setTiltAngleFilenameKey("TiltFile", "tiltfile");
     tiltAngleSpec.setTiltAnglesKey("TiltAngles", "angles");
 
-    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         TILT_ANGLE_GROUP_PARAMS_KEY, requiredMap);
-    magDefaultGrouping = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    magDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MAGNIFICATION_GROUP_PARAMS_KEY, requiredMap);
-    minViewsForTiltalign = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    minViewsForTiltalign = new ScriptParameter(EtomoNumber.Type.INTEGER,
         N_MIN_VIEWS_KEY, requiredMap);
-    centroidRadius = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    centroidRadius = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         CENTROID_RADIUS_KEY, requiredMap);
     lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY, requiredMap);
-    maxGapSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE, MAX_GAP_KEY,
+    maxGapSize = new ScriptParameter(EtomoNumber.Type.INTEGER, MAX_GAP_KEY,
         requiredMap);
-    minTiltRangeToFindAxis = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    minTiltRangeToFindAxis = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         MIN_TILT_RANGE_TO_FIND_AXIS_KEY, requiredMap);
-    minTiltRangeToFindAngles = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    minTiltRangeToFindAngles = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         MIN_TILT_RANGE_TO_FIND_ANGLES_KEY, requiredMap);
-    maxBeadsToAverage = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    maxBeadsToAverage = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MAX_FIDUCIALS_AVG_KEY, requiredMap);
     rescueAttemptParams.setIntegerType(1, false);
-    distanceRescueCriterion = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    distanceRescueCriterion = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         MIN_RESCUE_DISTANCE_KEY, requiredMap);
-    postFitRescueResidual = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    postFitRescueResidual = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         RESIDUAL_DISTANCE_LIMIT_KEY, requiredMap);
-    densityRelaxationPostFit = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    densityRelaxationPostFit = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         DENSITY_RELAXATION_POST_FIT_KEY, requiredMap);
-    maxRescueDistance = new ScriptParameter(EtomoNumber.DOUBLE_TYPE,
+    maxRescueDistance = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         MAX_RESCUE_DISTANCE_KEY, requiredMap);
     deletionParams.setIntegerType(1, false);
 
     localAreaTracking = new EtomoBoolean2(LOCAL_AREA_TRACKING_KEY, requiredMap);
     localAreaTracking.setDisplayAsInteger(true);
 
-    localAreaTargetSize = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    localAreaTargetSize = new ScriptParameter(EtomoNumber.Type.INTEGER,
         LOCAL_AREA_TARGET_SIZE_KEY, requiredMap);
-    minBeadsInArea = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    minBeadsInArea = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MIN_BEADS_IN_AREA_KEY, requiredMap);
-    minOverlapBeads = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    minOverlapBeads = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MIN_OVERLAP_BEADS_KEY, requiredMap);
-    maxViewsInAlign = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    maxViewsInAlign = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MAX_VIEWS_IN_ALIGN_KEY, requiredMap);
-    roundsOfTracking = new ScriptParameter(EtomoNumber.INTEGER_TYPE,
+    roundsOfTracking = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROUNDS_OF_TRACKING_KEY, requiredMap);
   }
   

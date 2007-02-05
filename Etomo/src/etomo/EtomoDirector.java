@@ -991,7 +991,7 @@ public class EtomoDirector {
       //check it before complaining about having too little memory available
       //SGI seems to go very low on the available memory, but its fine as long
       //as long as it does't get near the java memory limit.
-      javaMemoryLimit = new EtomoNumber(EtomoNumber.LONG_TYPE);
+      javaMemoryLimit = new EtomoNumber(EtomoNumber.Type.LONG);
       String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(
           originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
       if (sJavaMemoryLimit != null) {
@@ -1096,6 +1096,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.55  2006/11/28 22:48:21  sueh
+ * <p> bug# 934 In exitProgram() calling
+ * <p> IntermittentBackgroundProcess.endRestartThread().
+ * <p>
  * <p> Revision 1.54  2006/11/16 23:15:36  sueh
  * <p> bug# 882 isMemoryAvailable:  checking available memory plus used memory against JAVA_MEM_LIM before checking for enough available memory.
  * <p>
