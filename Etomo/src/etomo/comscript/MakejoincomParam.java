@@ -8,6 +8,7 @@ import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinState;
@@ -36,6 +37,10 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/10/17 20:02:21  sueh
+ * <p> bug# 939  Simplify genOptions() using ConstEtomoNumber.getDouble(boolean
+ * <p> defaultIfNull).
+ * <p>
  * <p> Revision 1.20  2006/05/22 22:39:16  sueh
  * <p> bug# 577 Added getCommand().
  * <p>
@@ -167,6 +172,7 @@ public final class MakejoincomParam implements CommandDetails {
 
   private static final int commandSize = 3;
   private static final String commandName = "makejoincom";
+  private static final boolean debug = true;
 
   private final ConstJoinMetaData metaData;
   private final JoinState state;
@@ -191,9 +197,17 @@ public final class MakejoincomParam implements CommandDetails {
     commandArray[2] = BaseManager.getIMODBinPath() + commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
-      //System.out.print(((String) options.get(i)) + " ");
     }
-    //System.out.println();
+    if (debug) {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < commandArray.length; i++) {
+        buffer.append(commandArray[i]);
+        if (i < commandArray.length - 1) {
+          buffer.append(' ');
+        }
+      }
+      System.err.println(buffer.toString());
+    }
   }
 
   public AxisID getAxisID() {
@@ -242,7 +256,17 @@ public final class MakejoincomParam implements CommandDetails {
           }
           Integer hashKey = new Integer(i);
           rotationAnglesList.put(hashKey, rotationAngles);
-
+          //The rotation file does not exist or the angles have changed.
+          //Add the -rot option to run rotatevol and save the angles.
+          options.add("-rot");
+          StringBuffer buffer = new StringBuffer();
+          buffer.append(rotationAngleX.getDouble(true));
+          buffer.append(",");
+          buffer.append(rotationAngleY.getDouble(true));
+          buffer.append(",");
+          buffer.append(rotationAngleZ.getDouble(true));
+          options.add(buffer.toString());
+          options.add("-maxxysize");
           //Get the .rot file
           String rotFileName = section.getName();
           int extIndex = rotFileName.lastIndexOf('.');
@@ -263,19 +287,6 @@ public final class MakejoincomParam implements CommandDetails {
             //Use the existing .rot file, since the angles haven't changed.
             options.add("-already");
           }
-          else {
-            //The rotation file does not exist or the angles have changed.
-            //Add the -rot option to run rotatevol and save the angles.
-            options.add("-rot");
-            StringBuffer buffer = new StringBuffer();
-            buffer.append(rotationAngleX.getDouble(true));
-            buffer.append(",");
-            buffer.append(rotationAngleY.getDouble(true));
-            buffer.append(",");
-            buffer.append(rotationAngleZ.getDouble(true));
-            options.add(buffer.toString());
-            options.add("-maxxysize");
-          }
         }
         options.add(section.getAbsolutePath());
       }
@@ -291,10 +302,10 @@ public final class MakejoincomParam implements CommandDetails {
     ConstEtomoNumber number = metaData.getMidasLimit();
     options.add("-midaslim");
     options.add(metaData.getMidasLimit().toString());
-    options.add(metaData.getRootName());
+    options.add(metaData.getName());
     return options;
   }
-  
+
   public String getCommand() {
     return commandName;
   }
@@ -322,10 +333,22 @@ public final class MakejoincomParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     if (field == Fields.ROTATE) {
       return rotate;
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -336,8 +359,8 @@ public final class MakejoincomParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
 
   public File getCommandOutputFile() {
