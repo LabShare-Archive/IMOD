@@ -100,11 +100,15 @@ final class CheckBoxCell extends InputCell {
   }
   
   void setToolTipText(String toolTipText) {
-    checkBox.setToolTipText(toolTipText);
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    checkBox.setToolTipText(tooltipFormatter.setText(toolTipText).format());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/10/16 22:50:31  sueh
+ * <p> bug# 919  Added setToolTipText().
+ * <p>
  * <p> Revision 1.6  2005/11/04 00:53:39  sueh
  * <p> fixed file comment
  * <p>
