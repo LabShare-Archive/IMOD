@@ -10,7 +10,22 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>DisplayValue verses defaultValue:</p>
+ * 
+ * <p>The display value is the value returned when the instance is null.  Use
+ * the display value to prevent an instance from returning the null value or a
+ * blank string.  The display value does not affect the result of the isNull()
+ * function.<p>
+ * 
+ * <p>The default value is just an extra value that ConstEtomoNumber can store.
+ * "Get" functions with the parameter "boolean defaultIfNull" are convenience
+ * functions which return the default value when the instance is null.  Use the
+ * default value as a way to store the default of the instance in one place.</p>
+ * 
+ * <p>ScriptParameter uses the default value to decide whether an instance needs
+ * to be placed in a script.</p>
+ * 
+ * <p>Copyright: Copyright (c) 2002 - 2006</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -21,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2006/11/15 20:43:19  sueh
+ * <p> bug# 872 Fixed bug - store and remove are not handling a null prepend.
+ * <p>
  * <p> Revision 1.42  2006/10/17 20:04:25  sueh
  * <p> bug# 939  Added defaultValue, getDouble(boolean), getValue(boolean),
  * <p> isDefault(Number), setDefault(int), and useDefaultAsDisplayValue().  Placed the
@@ -234,14 +252,9 @@ import etomo.util.Utilities;
 public abstract class ConstEtomoNumber implements Storable {
   public static final String rcsid = "$Id$";
 
-  public static final int DOUBLE_TYPE = -1;
-  public static final int FLOAT_TYPE = -2;
-  public static final int INTEGER_TYPE = -3;//default
-  public static final int LONG_TYPE = -4;
-
   //null values
   private static final double DOUBLE_NULL_VALUE = Double.NaN;
-  private static final float FLOAT_NULL_VALUE = Float.NaN;
+  public static final float FLOAT_NULL_VALUE = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   public static final long LONG_NULL_VALUE = Long.MIN_VALUE;
   //null for types not currently supported
@@ -249,7 +262,7 @@ public abstract class ConstEtomoNumber implements Storable {
   private static final byte byteNullValue = Byte.MIN_VALUE;
 
   //type
-  protected final int type;//defaults to integer, can't be changed once it is set
+  protected final Type type;//defaults to integer, can't be changed once it is set
   //name and description
   protected final String name;//defaults to Object.toString(), can't be changed once it is set
   protected String description;//optional, defaults to name
@@ -269,7 +282,6 @@ public abstract class ConstEtomoNumber implements Storable {
   protected Vector validValues = null;//optional
   //number below validFloor are invalid
   private Number validFloor;//optional, defaults to newNumber()
-  //default - only used when defaultIfNull is true
   protected Number defaultValue;
 
   //internal validation result
@@ -281,7 +293,7 @@ public abstract class ConstEtomoNumber implements Storable {
    *
    */
   protected ConstEtomoNumber() {
-    type = INTEGER_TYPE;
+    type = Type.INTEGER;
     name = super.toString();
     description = name;
     initialize();
@@ -292,20 +304,20 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param name the name of the instance
    */
   protected ConstEtomoNumber(String name) {
-    type = INTEGER_TYPE;
+    type = Type.INTEGER;
     this.name = name;
     description = name;
     initialize();
   }
 
-  protected ConstEtomoNumber(int type) {
+  protected ConstEtomoNumber(Type type) {
     this.type = type;
     name = super.toString();
     description = name;
     initialize();
   }
 
-  protected ConstEtomoNumber(int type, String name) {
+  protected ConstEtomoNumber(Type type, String name) {
     this.type = type;
     this.name = name;
     description = name;
@@ -319,7 +331,7 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   protected ConstEtomoNumber(ConstEtomoNumber instance) {
     if (instance == null) {
-      type = INTEGER_TYPE;
+      type = Type.INTEGER;
       name = super.toString();
       description = name;
       initialize();
@@ -630,22 +642,22 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("defaultValue cannot be null.");
     }
     //Type should be either double, float, integer, or long.
-    if (type != DOUBLE_TYPE && type != FLOAT_TYPE && type != INTEGER_TYPE
-        && type != LONG_TYPE) {
+    if (type != Type.DOUBLE && type != Type.FLOAT && type != Type.INTEGER
+        && type != Type.LONG) {
       throw new IllegalStateException("type is not valid.  type=" + type);
     }
     //Type constants must be unique.
-    if (DOUBLE_TYPE == FLOAT_TYPE || DOUBLE_TYPE == INTEGER_TYPE
-        || DOUBLE_TYPE == LONG_TYPE || FLOAT_TYPE == INTEGER_TYPE
-        || FLOAT_TYPE == LONG_TYPE || INTEGER_TYPE == LONG_TYPE) {
+    if (Type.DOUBLE == Type.FLOAT || Type.DOUBLE == Type.INTEGER
+        || Type.DOUBLE == Type.LONG || Type.FLOAT == Type.INTEGER
+        || Type.FLOAT == Type.LONG || Type.INTEGER == Type.LONG) {
       throw new IllegalStateException(
-          "Type constants are the same.\nDOUBLE_TYPE=" + DOUBLE_TYPE
-              + ",FLOAT_TYPE=" + FLOAT_TYPE + ",INTEGER_TYPE=" + INTEGER_TYPE
-              + ",LONG_TYPE=" + LONG_TYPE);
+          "Type constants are the same.\nDOUBLE_TYPE=" + Type.DOUBLE
+              + ",FLOAT_TYPE=" + Type.FLOAT + ",INTEGER_TYPE=" + Type.INTEGER
+              + ",LONG_TYPE=" + Type.LONG);
     }
     //All members of type Number must be created with the current type
     //The type should be set only once.
-    if (type == DOUBLE_TYPE) {
+    if (type == Type.DOUBLE) {
       if (!(currentValue instanceof Double)) {
         throw new IllegalStateException(
             "currentValue doesn't match the current type.  currentValue.getClass()="
@@ -677,7 +689,7 @@ public abstract class ConstEtomoNumber implements Storable {
                 + defaultValue.getClass() + ",type=" + type);
       }
     }
-    if (type == FLOAT_TYPE) {
+    if (type == Type.FLOAT) {
       if (!(currentValue instanceof Float)) {
         throw new IllegalStateException(
             "currentValue doesn't match the current type.  currentValue.getClass()="
@@ -709,7 +721,7 @@ public abstract class ConstEtomoNumber implements Storable {
                 + defaultValue.getClass() + ",type=" + type);
       }
     }
-    if (type == INTEGER_TYPE) {
+    if (type == Type.INTEGER) {
       if (!(currentValue instanceof Integer)) {
         throw new IllegalStateException(
             "currentValue doesn't match the current type.  currentValue.getClass()="
@@ -741,7 +753,7 @@ public abstract class ConstEtomoNumber implements Storable {
                 + defaultValue.getClass() + ",type=" + type);
       }
     }
-    if (type == LONG_TYPE) {
+    if (type == Type.LONG) {
       if (!(currentValue instanceof Long)) {
         throw new IllegalStateException(
             "currentValue doesn't match the current type.  currentValue.getClass()="
@@ -828,9 +840,9 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Set the value will be used if the user does not set a value or there is no
-   * value to load.  Also used in reset().
-   * @param resetValue
+   * Set the value will be returned if the user does not set a value or there is no
+   * value to load.
+   * @param displayValue
    * @return
    */
   public ConstEtomoNumber setDisplayValue(int displayValue) {
@@ -1007,6 +1019,20 @@ public abstract class ConstEtomoNumber implements Storable {
     this.defaultValue = newNumber(defaultValue);
     return this;
   }
+  
+  public ConstEtomoNumber setDefault(boolean defaultValue) {
+    this.defaultValue = newNumber(defaultValue);
+    return this;
+  }
+  
+  /**
+   * Returns true if currentValue is not null and is equal to defaultValue.
+   * This function is not effected by displayValue.
+   * @return
+   */
+  public boolean isDefault() {
+    return isDefault(currentValue);
+  }
 
   /**
    * Returns true if defaultValue is not null and getValue() is equal to
@@ -1044,6 +1070,10 @@ public abstract class ConstEtomoNumber implements Storable {
     return gt(getValue(), newNumber(value));
   }
 
+  public boolean lt(int value) {
+    return lt(getValue(), newNumber(value));
+  }
+
   public boolean gt(ConstEtomoNumber etomoNumber) {
     if (etomoNumber == null) {
       return false;
@@ -1064,7 +1094,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public boolean isNull() {
-    return isNull(getValue());
+    return isNull(currentValue);
   }
 
   public boolean equals(Number value) {
@@ -1080,7 +1110,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public final boolean isInt() {
-    return type == INTEGER_TYPE;
+    return type == Type.INTEGER;
   }
 
   private void initialize() {
@@ -1154,18 +1184,19 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   protected Number newNumber() {
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return new Double(DOUBLE_NULL_VALUE);
-    case FLOAT_TYPE:
-      return new Float(FLOAT_NULL_VALUE);
-    case INTEGER_TYPE:
-      return new Integer(INTEGER_NULL_VALUE);
-    case LONG_TYPE:
-      return new Long(LONG_NULL_VALUE);
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return new Float(FLOAT_NULL_VALUE);
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(INTEGER_NULL_VALUE);
+    }
+    if (type == Type.LONG) {
+      return new Long(LONG_NULL_VALUE);
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   /**
@@ -1181,18 +1212,19 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(value)) {
       return newNumber();
     }
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return new Double(value.doubleValue());
-    case FLOAT_TYPE:
-      return new Float(value.floatValue());
-    case INTEGER_TYPE:
-      return new Integer(value.intValue());
-    case LONG_TYPE:
-      return new Long(value.longValue());
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return new Float(value.floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(value.intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(value.longValue());
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   /**
@@ -1206,18 +1238,19 @@ public abstract class ConstEtomoNumber implements Storable {
       return newNumber();
     }
     try {
-      switch (type) {
-      case DOUBLE_TYPE:
+      if (type == Type.DOUBLE) {
         return new Double(value);
-      case FLOAT_TYPE:
-        return new Float(value);
-      case INTEGER_TYPE:
-        return new Integer(value);
-      case LONG_TYPE:
-        return new Long(value);
-      default:
-        throw new IllegalStateException("type=" + type);
       }
+      if (type == Type.FLOAT) {
+        return new Float(value);
+      }
+      if (type == Type.INTEGER) {
+        return new Integer(value);
+      }
+      if (type == Type.LONG) {
+        return new Long(value);
+      }
+      throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
       e.printStackTrace();
@@ -1231,18 +1264,19 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(value)) {
       return newNumber();
     }
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return new Double(new Integer(value).doubleValue());
-    case FLOAT_TYPE:
-      return new Float(new Integer(value).floatValue());
-    case INTEGER_TYPE:
-      return new Integer(value);
-    case LONG_TYPE:
-      return new Long(new Integer(value).longValue());
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return new Float(new Integer(value).floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(value);
+    }
+    if (type == Type.LONG) {
+      return new Long(new Integer(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected Number newNumber(boolean value) {
@@ -1257,18 +1291,19 @@ public abstract class ConstEtomoNumber implements Storable {
     if (Double.isNaN(value)) {
       return newNumber();
     }
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return new Double(value);
-    case FLOAT_TYPE:
-      return new Float(new Double(value).floatValue());
-    case INTEGER_TYPE:
-      return new Integer(new Double(value).intValue());
-    case LONG_TYPE:
-      return new Long(new Double(value).longValue());
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return new Float(new Double(value).floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(new Double(value).intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(new Double(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected Number newNumber(float value) {
@@ -1276,18 +1311,19 @@ public abstract class ConstEtomoNumber implements Storable {
     if (Double.isNaN(value)) {
       return newNumber();
     }
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return new Double(new Float(value).doubleValue());
-    case FLOAT_TYPE:
-      return new Float(value);
-    case INTEGER_TYPE:
-      return new Integer(new Float(value).intValue());
-    case LONG_TYPE:
-      return new Long(new Float(value).longValue());
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return new Float(value);
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(new Float(value).intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(new Float(value).longValue());
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected Number newNumber(long value) {
@@ -1295,18 +1331,19 @@ public abstract class ConstEtomoNumber implements Storable {
     if (value == LONG_NULL_VALUE) {
       return newNumber();
     }
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return new Double(new Long(value).doubleValue());
-    case FLOAT_TYPE:
-      return new Float(new Long(value).floatValue());
-    case INTEGER_TYPE:
-      return new Integer(new Long(value).intValue());
-    case LONG_TYPE:
-      return new Long(value);
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return new Float(new Long(value).floatValue());
+    }
+    if (type == Type.INTEGER) {
+      return new Integer(new Long(value).intValue());
+    }
+    if (type == Type.LONG) {
+      return new Long(value);
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected boolean isNull(Number value) {
@@ -1342,18 +1379,19 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     validateInputType(number);
     validateInputType(compValue);
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return number.doubleValue() > compValue.doubleValue();
-    case FLOAT_TYPE:
-      return number.floatValue() > compValue.floatValue();
-    case INTEGER_TYPE:
-      return number.intValue() > compValue.intValue();
-    case LONG_TYPE:
-      return number.longValue() > compValue.longValue();
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return number.floatValue() > compValue.floatValue();
+    }
+    if (type == Type.INTEGER) {
+      return number.intValue() > compValue.intValue();
+    }
+    if (type == Type.LONG) {
+      return number.longValue() > compValue.longValue();
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected boolean ge(Number number, Number compValue) {
@@ -1362,18 +1400,19 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     validateInputType(number);
     validateInputType(compValue);
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return number.doubleValue() >= compValue.doubleValue();
-    case FLOAT_TYPE:
-      return number.floatValue() >= compValue.floatValue();
-    case INTEGER_TYPE:
-      return number.intValue() >= compValue.intValue();
-    case LONG_TYPE:
-      return number.longValue() >= compValue.longValue();
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return number.floatValue() >= compValue.floatValue();
+    }
+    if (type == Type.INTEGER) {
+      return number.intValue() >= compValue.intValue();
+    }
+    if (type == Type.LONG) {
+      return number.longValue() >= compValue.longValue();
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected boolean lt(Number number, Number compValue) {
@@ -1382,18 +1421,19 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     validateInputType(number);
     validateInputType(compValue);
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return number.doubleValue() < compValue.doubleValue();
-    case FLOAT_TYPE:
-      return number.floatValue() < compValue.floatValue();
-    case INTEGER_TYPE:
-      return number.intValue() < compValue.intValue();
-    case LONG_TYPE:
-      return number.longValue() < compValue.longValue();
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return number.floatValue() < compValue.floatValue();
+    }
+    if (type == Type.INTEGER) {
+      return number.intValue() < compValue.intValue();
+    }
+    if (type == Type.LONG) {
+      return number.longValue() < compValue.longValue();
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   protected boolean equals(Number number, Number compValue) {
@@ -1405,18 +1445,19 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     validateInputType(number);
     validateInputType(compValue);
-    switch (type) {
-    case DOUBLE_TYPE:
+    if (type == Type.DOUBLE) {
       return number.doubleValue() == compValue.doubleValue();
-    case FLOAT_TYPE:
-      return number.floatValue() == compValue.floatValue();
-    case INTEGER_TYPE:
-      return number.intValue() == compValue.intValue();
-    case LONG_TYPE:
-      return number.longValue() == compValue.longValue();
-    default:
-      throw new IllegalStateException("type=" + type);
     }
+    if (type == Type.FLOAT) {
+      return number.floatValue() == compValue.floatValue();
+    }
+    if (type == Type.INTEGER) {
+      return number.intValue() == compValue.intValue();
+    }
+    if (type == Type.LONG) {
+      return number.longValue() == compValue.longValue();
+    }
+    throw new IllegalStateException("type=" + type);
   }
 
   /**
@@ -1424,7 +1465,7 @@ public abstract class ConstEtomoNumber implements Storable {
    *
    */
   private void validateReturnTypeInteger() {
-    if (type != INTEGER_TYPE) {
+    if (type != Type.INTEGER) {
       throw new IllegalStateException(
           "Cannot place a float, long or double into an integer.");
     }
@@ -1435,14 +1476,14 @@ public abstract class ConstEtomoNumber implements Storable {
    *
    */
   private void validateReturnTypeLong() {
-    if (type != INTEGER_TYPE && type != LONG_TYPE) {
+    if (type != Type.INTEGER && type != Type.LONG) {
       throw new IllegalStateException(
           "Cannot place a float or double into a long.");
     }
   }
 
   private void validateReturnTypeFloat() {
-    if (type != INTEGER_TYPE && type != FLOAT_TYPE) {
+    if (type != Type.INTEGER && type != Type.FLOAT) {
       throw new IllegalStateException(
           "Cannot place a long or double into a float.");
     }
@@ -1460,16 +1501,16 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param input
    */
   private void validateInputType(Number input) {
-    if (input instanceof Double && type != DOUBLE_TYPE) {
+    if (input instanceof Double && type != Type.DOUBLE) {
       throw new IllegalStateException(
           "Cannot place a Double into anything but a Double.  Type=" + type);
     }
-    if (input instanceof Float && type != DOUBLE_TYPE && type != FLOAT_TYPE) {
+    if (input instanceof Float && type != Type.DOUBLE && type != Type.FLOAT) {
       throw new IllegalStateException(
           "Cannot place a Float into anything but a Double or a Float.  Type="
               + type);
     }
-    if (input instanceof Long && type != DOUBLE_TYPE && type != LONG_TYPE) {
+    if (input instanceof Long && type !=Type. DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
           "Cannot place a Long into anything but a Double or a Long.  Type="
               + type);
@@ -1489,7 +1530,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param input
    */
   private void validateInputType(float input) {
-    if (type != FLOAT_TYPE && type != DOUBLE_TYPE) {
+    if (type != Type.FLOAT && type != Type.DOUBLE) {
       throw new IllegalStateException(
           "Cannot place a float into anything but a Double or Float.  Type="
               + type);
@@ -1501,7 +1542,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param input
    */
   private void validateInputType(double input) {
-    if (type != DOUBLE_TYPE) {
+    if (type != Type.DOUBLE) {
       throw new IllegalStateException(
           "Cannot place a double into anything but a Double.  Type=" + type);
     }
@@ -1512,14 +1553,14 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param input
    */
   private void validateInputType(long input) {
-    if (type != DOUBLE_TYPE && type != LONG_TYPE) {
+    if (type != Type.DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
           "Cannot place a long into anything but a Double or Long.  Type="
               + type);
     }
   }
 
-  int getType() {
+  Type getType() {
     return type;
   }
 
@@ -1576,6 +1617,17 @@ public abstract class ConstEtomoNumber implements Storable {
             .toString().equals(original.invalidReason.toString()))) {
       throw new IllegalStateException("Incorrect copy: this="
           + this.classInfoString() + ",original=" + original.classInfoString());
+    }
+  }
+
+  public static final class Type {
+    public static final Type DOUBLE = new Type();
+    public static final Type FLOAT = new Type();
+    public static final Type INTEGER = new Type();
+    public static final Type LONG = new Type();
+    
+    public static Type getDefault() {
+      return INTEGER;
     }
   }
 }

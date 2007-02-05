@@ -70,7 +70,7 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public void testConstEtomoNumber() {
     EtomoNumber test = new EtomoNumber();
-    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
+    assertEquals(test.getType(), EtomoNumber.Type.INTEGER);
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
     test.internalTest();
@@ -87,7 +87,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   public void testConstEtomoNumber_String() {
     String name = "name";
     EtomoNumber test = new EtomoNumber(name);
-    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
+    assertEquals(test.getType(), EtomoNumber.Type.INTEGER);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
@@ -95,20 +95,20 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public void testConstEtomoNumber_int() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
-    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    assertEquals(test.getType(), EtomoNumber.Type.INTEGER);
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
-    assertEquals(test.getType(), EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
+    assertEquals(test.getType(), EtomoNumber.Type.LONG);
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
-    assertEquals(test.getType(), EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    assertEquals(test.getType(), EtomoNumber.Type.FLOAT);
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
-    assertEquals(test.getType(), EtomoNumber.DOUBLE_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    assertEquals(test.getType(), EtomoNumber.Type.DOUBLE);
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
     test.internalTest();
@@ -116,23 +116,23 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public void testConstEtomoNumber_int_String() {
     String name = "name";
-    EtomoNumber test = new EtomoNumber(EtomoNumber.INTEGER_TYPE, name);
-    assertEquals(test.getType(), EtomoNumber.INTEGER_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.INTEGER, name);
+    assertEquals(test.getType(), EtomoNumber.Type.INTEGER);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE, name);
-    assertEquals(test.getType(), EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG, name);
+    assertEquals(test.getType(), EtomoNumber.Type.LONG);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE, name);
-    assertEquals(test.getType(), EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT, name);
+    assertEquals(test.getType(), EtomoNumber.Type.FLOAT);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, name);
-    assertEquals(test.getType(), EtomoNumber.DOUBLE_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.DOUBLE, name);
+    assertEquals(test.getType(), EtomoNumber.Type.DOUBLE);
     assertTrue(name.equals(test.getName()));
     assertTrue(test.getName().equals(test.getDescription()));
     assertTrue(test.isValid());
@@ -143,7 +143,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     //test null parameter
     EtomoNumber test = null;
     EtomoNumber copy = new EtomoNumber(test);
-    assertEquals(copy.getType(), EtomoNumber.INTEGER_TYPE);
+    assertEquals(copy.getType(), EtomoNumber.Type.INTEGER);
     assertTrue(copy.getName().equals(copy.getDescription()));
     assertTrue(copy.isValid());
     copy.internalTest();
@@ -208,7 +208,7 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public void testGetDisplayInteger() {
     int displayValue = 1;
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     test.setDisplayValue(displayValue);
     try {
       test.getDisplayInteger();
@@ -344,7 +344,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public final void testSetCeiling_int() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.LONG);
     //test: validateFloorAndCeiling() was called
     test.setFloor(bigInteger);
     try {
@@ -362,7 +362,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public final void testSetFloor_int() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     //test: validateFloorAndCeiling() was called
     test.setCeiling(smallInteger);
     try {
@@ -429,7 +429,7 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public void testSetDisplayValue_double() {
     double testValue = 1;
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     test.setDisplayValue(testValue);
     assertTrue(testValue == test.getDouble());
     assertTrue(String.valueOf(testValue).equals(test.toString()));
@@ -442,7 +442,7 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public void testSetDisplayValue_long() {
     long testValue = 1;
-    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.LONG);
     test.setDisplayValue(testValue);
     assertTrue(testValue == test.getLong());
     assertTrue(String.valueOf(testValue).equals(test.toString()));
@@ -457,7 +457,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   public final void testValidateReturnTypeInteger() {
     int displayValue = 2;
     //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     ///test corruption prevention
     try {
       test.getDisplayInteger();
@@ -467,7 +467,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     ///test corruption prevention
     try {
       test.getDisplayInteger();
@@ -477,12 +477,12 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     ///test no exception thrown
     test.getDisplayInteger();
     test.internalTest();
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test corruption prevention
     try {
       test.getDisplayInteger();
@@ -512,7 +512,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public final void testValidateFloorAndCeiling() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     //test: floor > ceiling throws IllegalStateException
     test.setFloor(bigInteger);
     try {
@@ -529,7 +529,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public final void testSetNullIsValid_boolean() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.LONG);
     //test: setNullIsValid sets invalidReason
     test.setNullIsValid(false);
     assertFalse(test.isValid());
@@ -567,7 +567,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public final void testSetValidFloor_int() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     test.set(smallInteger);
     test.setValidFloor(bigInteger);
     assertFalse(test.isValid());
@@ -668,7 +668,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.set(1);
     test.getInt();
     //float should fail
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     test.set(1);
     try {
       test.getInt();
@@ -678,7 +678,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     test.internalTest();
     //long should fail
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     test.set(1);
     try {
       test.getInt();
@@ -688,7 +688,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     }
     test.internalTest();
     //double should fail
-    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     test.set(1);
     try {
       test.getInt();
@@ -750,10 +750,10 @@ public final class ConstEtomoNumberTest extends TestCase {
   public final void testGetLong() {
     EtomoNumber test = new EtomoNumber();
     test.getLong();
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     test.getLong();
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     try {
       test.getLong();
       fail("getLong() should fail when the type is float");
@@ -761,7 +761,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     catch (IllegalStateException e) {
     }
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     try {
       test.getLong();
       fail("getLong() should fail when the type is double");
@@ -775,13 +775,13 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     test.getDouble();
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     test.getDouble();
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     test.getDouble();
     test.internalTest();
-    test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     test.getDouble();
     test.internalTest();
   }
@@ -799,12 +799,13 @@ public final class ConstEtomoNumberTest extends TestCase {
       test.equals(d);
       fail("Cannot compare incompatible types");
     }
-    catch (IllegalStateException e) {}
+    catch (IllegalStateException e) {
+    }
     Integer i = new Integer(9);
     //this is an unfortunate side-effect of storing things in Number
     assertTrue("Values should be equal", test.equals(i));
     test.set(4);
-    assertFalse("Values should be unequal",test.equals(i));
+    assertFalse("Values should be unequal", test.equals(i));
   }
 
   //TODO
@@ -868,19 +869,19 @@ public final class ConstEtomoNumberTest extends TestCase {
   public final void testNewNumber() {
     //test: returns null value
     ///double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     assertTrue(new Double(test.newNumber().doubleValue()).isNaN());
     test.internalTest();
     ///float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     assertTrue(new Float(test.newNumber().floatValue()).isNaN());
     test.internalTest();
     ///integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     assertTrue(test.newNumber().intValue() == EtomoNumber.INTEGER_NULL_VALUE);
     test.internalTest();
     ///long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     assertTrue(test.newNumber().longValue() == EtomoNumber.LONG_NULL_VALUE);
     test.internalTest();
   }
@@ -891,7 +892,7 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public final void testNewNumber_Number() {
     //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     ///test: null returns null value
     assertTrue(new Double(test.newNumber(null).doubleValue()).isNaN());
     ///test: convert Double to Double
@@ -904,7 +905,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.newNumber(new Long(bigLong)).doubleValue() == bigLong);
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     ///test: null returns null value
     assertTrue(new Float(test.newNumber(null).floatValue()).isNaN());
     ///test: validateInputType(Number) is being called
@@ -921,7 +922,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     ///test: convert Long to Float - see testValidateInputType_Number
     test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     ///test: null returns null value
     assertTrue(test.newNumber(null).intValue() == EtomoNumber.INTEGER_NULL_VALUE);
     ///test: convert Double to Integer - see testValidateInputType_Number
@@ -931,7 +932,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     ///test: convert Long to Integer - see testValidateInputType_Number
     test.internalTest();
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test: null returns null value
     assertTrue(test.newNumber(null).longValue() == EtomoNumber.LONG_NULL_VALUE);
     ///test: convert Double to Long - see testValidateInputType_Number
@@ -978,25 +979,25 @@ public final class ConstEtomoNumberTest extends TestCase {
     //test: validateInputType(int) is called - nothing to do
     //test: convert int to Number
     ///double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     assertTrue(test.newNumber(smallInteger).doubleValue() == smallInteger);
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     assertTrue(test.newNumber(smallInteger).floatValue() == smallInteger);
     test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     assertTrue(test.newNumber(smallInteger).intValue() == smallInteger);
     test.internalTest();
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     assertTrue(test.newNumber(smallInteger).longValue() == smallInteger);
     test.internalTest();
   }
 
   public final void testNewNumber_boolean() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     assertTrue(test.newNumber(true).doubleValue() == 1);
     assertTrue(test.newNumber(false).doubleValue() == 0);
     test.internalTest();
@@ -1013,11 +1014,11 @@ public final class ConstEtomoNumberTest extends TestCase {
   public final void testNewNumber_double() {
     //double
     ///test: convert double to Double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     assertTrue(test.newNumber(smallDouble).doubleValue() == smallDouble);
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     ///test:  - validateInputType(double) is being called
     try {
       test.newNumber(smallDouble);
@@ -1039,11 +1040,11 @@ public final class ConstEtomoNumberTest extends TestCase {
   public final void testNewNumber_long() {
     //double
     ///test: convert long to Double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     assertTrue(test.newNumber(smallLong).doubleValue() == smallLong);
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     ///test:  - validateInputType(long) is being called
     try {
       test.newNumber(smallLong);
@@ -1055,14 +1056,14 @@ public final class ConstEtomoNumberTest extends TestCase {
     //integer
     ///test: convert long to Integer - see testValidateInputType_long
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test: convert long to Long
     assertTrue(test.newNumber(smallLong).longValue() == smallLong);
     test.internalTest();
   }
 
   public final void testIsNull_Number() {
-    EtomoNumber test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.LONG);
     //test: null
     ///test: NaN is always null
     assertTrue(test.isNull(new Double(Double.NaN)));
@@ -1097,29 +1098,53 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
   }
 
+  public final void testIsNull() {
+    EtomoNumber test = new EtomoNumber();
+    assertTrue("A newly created instance should always be null.", test.isNull());
+    test.setDisplayValue(0);
+    assertTrue("The display value should not affect isNull().", test.isNull());
+    test.set(EtomoNumber.INTEGER_NULL_VALUE);
+    assertTrue(
+        "IsNull() should return true after the NULL_VALUE for the current Type is set.",
+        test.isNull());
+    test.set(1);
+    assertFalse(
+        "IsNull() should return false after a non-null number has been set.",
+        test.isNull());
+    test.reset();
+    assertTrue(
+        "IsNull() should return true after a reset() is called, even when display value is set.",
+        test.isNull());
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
+    test.set(EtomoNumber.INTEGER_NULL_VALUE);
+    assertFalse(
+        "IsNull() should return false after a NULL_VALUE for another Type is set.  Otherwise the full range of values would not be valid.",
+        test.isNull());
+  }
+
   public final void testIsNull_int() {
     //test: the int null value is always null when its type is int
     ///double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
     test.internalTest();
     ///float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
     test.internalTest();
     ///long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
     test.internalTest();
     ///integer
-    test = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
     assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
     test.internalTest();
   }
 
   public final void testGt_Number_Number() {
     //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     ///test: gt() is equivalent to ">"
     assertTrue(test.gt(new Double(bigDouble), new Double(smallDouble)));
     assertFalse(test.gt(new Double(bigDouble), new Double(bigDouble)));
@@ -1138,7 +1163,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     ///test: validateInputType(Number) is being called against the first
     ////parameter
     try {
@@ -1165,7 +1190,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test: gt() is equivalent to ">"
     assertTrue(test.gt(new Long(bigLong), new Long(smallLong)));
     assertFalse(test.gt(new Long(bigLong), new Long(bigLong)));
@@ -1176,7 +1201,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test: gt() is equivalent to ">"
     assertTrue(test.gt(new Integer(bigInteger), new Integer(smallInteger)));
     assertFalse(test.gt(new Integer(smallInteger), new Integer(smallInteger)));
@@ -1191,7 +1216,7 @@ public final class ConstEtomoNumberTest extends TestCase {
 
   public final void testLt_Number_Number() {
     //double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.DOUBLE_TYPE);
+    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     ///test: lt() is equivalent to "<"
     assertFalse(test.lt(new Double(bigDouble), new Double(smallDouble)));
     assertFalse(test.lt(new Double(bigDouble), new Double(bigDouble)));
@@ -1210,7 +1235,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     //float
-    test = new EtomoNumber(EtomoNumber.FLOAT_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
     ///test: validateInputType(Number) is being called against the first
     ////parameter
     try {
@@ -1237,7 +1262,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     //long
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test: lt() is equivalent to "<"
     assertFalse(test.lt(new Long(bigLong), new Long(smallLong)));
     assertFalse(test.lt(new Long(bigLong), new Long(bigLong)));
@@ -1248,7 +1273,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue(test.lt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     //integer
-    test = new EtomoNumber(EtomoNumber.LONG_TYPE);
+    test = new EtomoNumber(EtomoNumber.Type.LONG);
     ///test: lt() is equivalent to "<"
     assertFalse(test.lt(new Integer(bigInteger), new Integer(smallInteger)));
     assertFalse(test.lt(new Integer(smallInteger), new Integer(smallInteger)));
@@ -1367,6 +1392,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2006/11/30 17:25:37  sueh
+ * <p> bug# 692 Added tests for equals(Number)
+ * <p>
  * <p> Revision 1.41  2006/11/15 20:44:47  sueh
  * <p> bug# 872 testStore_Properties:  throw LogFile exceptions because properties is
  * <p> using LogFile.

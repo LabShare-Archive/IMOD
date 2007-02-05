@@ -51,23 +51,23 @@ public final class TomopitchLog {
   private final AxisID axisID;
 
   private final EtomoNumber angleOffsetOriginal = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber angleOffsetAdded = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber angleOffsetTotal = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber axisZShiftOriginal = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber axisZShiftAdded = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber axisZShiftTotal = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber xAxisTiltOriginal = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber xAxisTiltAdded = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber xAxisTiltTotal = new EtomoNumber(
-      EtomoNumber.DOUBLE_TYPE);
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber thickness = new EtomoNumber();
 
   private File logFile = null;
@@ -195,5 +195,8 @@ public final class TomopitchLog {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/05/11 19:56:28  sueh
+ * <p> bug# 838 Parses the tomopitch log file.
+ * <p> </p>
  */
