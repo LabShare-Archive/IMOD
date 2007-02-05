@@ -27,12 +27,8 @@ abstract class InputCell {
   private static boolean colorInitialized = false;
   protected static ColorUIResource foreground = null;
   protected static ColorUIResource notInUseForeground = null;
-  static final ColorUIResource background = new ColorUIResource(255, 255, 255);
   private static ColorUIResource disabledBackground = null;
-  private static ColorUIResource highlightedBackground = null;
-  private static ColorUIResource disabledhighlightedBackground = null;
-  static final ColorUIResource warningBackground = new ColorUIResource(255,
-      255, 204);
+  private static ColorUIResource disabledhighlightBackground = null;
   private static ColorUIResource disabledWarningBackground = null;
   private static ColorUIResource errorBackground = null;
   private static ColorUIResource disabledErrorBackground = null;
@@ -40,7 +36,7 @@ abstract class InputCell {
 
   protected boolean inUse = true;
   protected boolean enabled = true;
-  private boolean highlighted = false;
+  private boolean highlight = false;
   private boolean warning = false;
   private boolean error = false;
   private Font plainFont = null;
@@ -93,8 +89,8 @@ abstract class InputCell {
     setBackground();
   }
 
-  final void setHighlighted(boolean highlighted) {
-    this.highlighted = highlighted;
+  final void setHighlight(boolean highlight) {
+    this.highlight = highlight;
     setBackground();
   }
 
@@ -104,17 +100,17 @@ abstract class InputCell {
   }
 
   final protected void setBackground() {
-    if (highlighted) {
+    if (highlight) {
       if (enabled) {
-        setBackground(highlightedBackground);
+        setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
       }
       else {
-        setBackground(disabledhighlightedBackground);
+        setBackground(disabledhighlightBackground);
       }
     }
     else if (warning) {
       if (enabled) {
-        setBackground(warningBackground);
+        setBackground(UIUtilities.WARNING_BACKGROUND);
       }
       else {
         setBackground(disabledWarningBackground);
@@ -129,7 +125,7 @@ abstract class InputCell {
       }
     }
     else if (enabled) {
-      setBackground(background);
+      setBackground(UIUtilities.BACKGROUND);
     }
     else {
       setBackground(disabledBackground);
@@ -154,6 +150,11 @@ abstract class InputCell {
     setWarning(warning);
     setToolTipText(tooltip);
   }
+  
+  final void setError(boolean error, String tooltip) {
+    setError(error);
+    setToolTipText(tooltip);
+  }
 
   final void setError(boolean error) {
     //if switching from warning to error, turn off warning first
@@ -163,13 +164,6 @@ abstract class InputCell {
     }
     this.error = error;
     setBackground();
-  }
-
-  final static ColorUIResource subtract(ColorUIResource color,
-      ColorUIResource subtractColor) {
-    return new ColorUIResource(color.getRed() - subtractColor.getRed(), color
-        .getGreen()
-        - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
   }
 
   private final static ColorUIResource add(ColorUIResource color,
@@ -187,16 +181,21 @@ abstract class InputCell {
     ColorUIResource greyout = new ColorUIResource(25, 25, 25);
     foreground = new ColorUIResource(0, 0, 0);
     notInUseForeground = new ColorUIResource(102, 102, 102);
-    disabledBackground = subtract(background, greyout);
-    highlightedBackground = new ColorUIResource(204, 255, 255);
-    disabledhighlightedBackground = subtract(highlightedBackground, greyout);
-    disabledWarningBackground = subtract(warningBackground, greyout);
+    disabledBackground = UIUtilities.subtractColor(UIUtilities.BACKGROUND, greyout);
+    disabledhighlightBackground = UIUtilities.subtractColor(UIUtilities.HIGHLIGHT_BACKGROUND, greyout);
+    disabledWarningBackground = UIUtilities.subtractColor(UIUtilities.WARNING_BACKGROUND, greyout);
     errorBackground = new ColorUIResource(255, 204, 204);
-    disabledErrorBackground = subtract(errorBackground, greyout);
+    disabledErrorBackground = UIUtilities.subtractColor(errorBackground, greyout);
   }
+  
+  
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/10/17 20:20:22  sueh
+ * <p> bug# 919  Made background and warningBackground static and available to
+ * <p> package.  Made subtract available to package.
+ * <p>
  * <p> Revision 1.4  2006/10/16 22:51:16  sueh
  * <p> bug# 919  Added abstract setToolTipText().
  * <p>
