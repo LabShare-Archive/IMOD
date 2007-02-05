@@ -21,6 +21,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2006/06/21 15:48:39  sueh
+ * <p> bug# 581 Added setCurrentStdInput() so that etomo can communicate with
+ * <p> imodqtassist via stdin.
+ * <p>
  * <p> Revision 3.8  2006/05/22 22:48:26  sueh
  * <p> bug# 577 Removed constructors which accepted a String command.
  * <p>
@@ -108,7 +112,7 @@ public class InteractiveSystemProgram implements Runnable {
 
   private BaseProcessManager processManager = null;
   private String threadName = null;
-  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.LONG_TYPE, "");
+  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.Type.LONG, "");
   private final BaseManager manager;
   
   /**
