@@ -5,139 +5,289 @@ import java.util.Properties;
 import etomo.storage.Storable;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
-public class EtomoVersion implements Storable {
-  public static  final String  rcsid =  "$Id$";
-  
-  private static final String defaultName = "Version";
-  String sections[] = null;
-  String name;
-  
-  public EtomoVersion() {
-    name = defaultName;
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.1  2005/01/10 23:49:41  sueh
+ * <p> bug# 578 A class to parse and compare version numbers.
+ * <p> </p>
+ */
+public final class EtomoVersion implements ConstEtomoVersion, Storable {
+  public static final String rcsid = "$Id$";
+
+  public static final String DEFAULT_KEY = "Version";
+  private String sectionList[] = null;
+  private String key;
+  private boolean debug = false;
+
+  public static EtomoVersion getDefaultInstance() {
+    return new EtomoVersion();
   }
   
-  public EtomoVersion(String version) {
-    set(version);
-    name = defaultName;
+  public static EtomoVersion getDefaultInstance(String version) {
+    EtomoVersion instance = new EtomoVersion();
+    instance.set(version);
+    return instance;
   }
   
-  EtomoVersion set(String version) {
-    if (version == null || version.matches("\\s*")) {
-      sections = null;
-      return this;
-    }
-    String[] strings = version.trim().split("\\.");
-    if (strings == null || strings.length == 0) {
-      sections = null;
-      return this;
-    }
-    sections = new String[strings.length];
-    for (int i = 0; i < sections.length; i++) {
-      sections[i] = strings[i].trim();
-    }
-    return this;
+  public static EtomoVersion getInstance(String key) {
+    EtomoVersion instance = new EtomoVersion();
+    instance.key = key;
+    return instance;
   }
   
-  public EtomoVersion set(EtomoVersion that) {
-    if (that.isNull()) {
-      sections = null;
-    }
-    else {
-      sections = new String[that.sections.length];
-      for (int i = 0; i < sections.length; i++) {
-        sections[i] = that.sections[i];
-      }
-    }
-    return this;
+  public static EtomoVersion getInstance(String key, String version) {
+    EtomoVersion instance = getInstance(key);
+    instance.set(version);
+    return instance;
   }
   
-  public boolean earlierOrEqualTo(EtomoVersion that) {
-    if (isNull() || that.isNull()) {
-      return false;
-    }
-    for (int i = 0; i < Math.min(sections.length, that.sections.length); i++) {
-      //this instance is later
-      if (sections[i].compareToIgnoreCase(that.sections[i]) > 0) {
-        return false;
-      }
-      //this instance is earlier
-      if (sections[i].compareToIgnoreCase(that.sections[i]) < 0) {
-        return true;
-      }
-    }
-    //So far they are equal
-    //If this instance is shorter then it must be earlier or equal to the other
-    if (sections.length < that.sections.length) {
+  public String getKey() {
+    return key;
+  }
+  
+  public void setDebug(boolean debug) {
+    this.debug=debug;
+  }
+  
+  private EtomoVersion() {
+    key = DEFAULT_KEY;
+  }
+
+  private boolean equals(EtomoVersion version) {
+    //treat null as the earliest version
+    if ((version == null||version.isNull())&&isNull()) {
       return true;
     }
-    //This instance must be longer
-    //It must be all blanks or zeros to be equal to the other
-    for (int i = that.sections.length; i < sections.length; i++) {
-      if (that.sections[i] != null || !that.sections[i].matches("\\s*")) {
-        //test for zero
-        try {
-          if (Integer.parseInt(that.sections[i]) != 0) {
-            return false;
-          }
-        }
-        catch (NumberFormatException e) {
-          return false;
-        }
+    if (version == null||version.isNull()||isNull()) {
+      return false;
+    }
+    if (sectionList.length!=version.sectionList.length) {
+      return false;
+    }
+    for (int i = 0;i<sectionList.length;i++) {
+      if (!sectionList[i].equals(version.sectionList[i])) {
         return false;
       }
     }
     return true;
   }
   
+  /**
+   * @param version
+   * @return true if this is less then version
+   */
+  public boolean lt(EtomoVersion version) {
+    //treat null as the earliest version
+    if (isNull()&&(version != null&&!version.isNull())) {
+      return true;
+    }
+    if (version == null||version.isNull()||isNull()) {
+      return false;
+    }
+    int length = Math.min(sectionList.length,version.sectionList.length);
+    //loop until a section is not equal then corresponding version section
+    for (int i=0;i<length;i++) {
+      if(sectionList[i].compareTo(version.sectionList[i])>0) {
+        return false;
+      }
+      if(sectionList[i].compareTo(version.sectionList[i])<0) {
+        return true;
+      }
+    }
+    //equal so far - shorter one is less then
+    if (sectionList.length<version.sectionList.length) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * @param version
+   * @return true if this is less then or equal to version
+   */
+  public boolean le(EtomoVersion version) {
+    //treat null as the earliest version
+    if (isNull()) {
+      return true;
+    }
+    if (version == null||version.isNull()) {
+      return false;
+    }
+    int length = Math.min(sectionList.length,version.sectionList.length);
+    //loop until a section is not equal then corresponding version section
+    for (int i=0;i<length;i++) {
+      if(sectionList[i].compareTo(version.sectionList[i])>0) {
+        return false;
+      }
+      if(sectionList[i].compareTo(version.sectionList[i])<0) {
+        return true;
+      }
+    }
+    //equal so far - shorter one is less then
+    if (sectionList.length<=version.sectionList.length) {
+      return true;
+    }
+    return false;
+  }
+  
+  public boolean gt(EtomoVersion version) {
+    //treat null as the earliest version
+    if ((version == null||version.isNull())&&!isNull()) {
+      return true;
+    }
+    if (version == null||version.isNull()||isNull()) {
+      return false;
+    }
+    int length = Math.min(sectionList.length,version.sectionList.length);
+    //loop until a section is not equal then corresponding version section
+    for (int i=0;i<length;i++) {
+      if(sectionList[i].compareTo(version.sectionList[i])>0) {
+        return true;
+      }
+      if(sectionList[i].compareTo(version.sectionList[i])<0) {
+        return false;
+      }
+    }
+    //equal so far - longer one is greater then
+    if (sectionList.length>version.sectionList.length) {
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * @param version
+   * @return true if this is greater then or equal to version
+   */
+  public boolean ge(EtomoVersion version) {
+    //treat null as the earliest version
+    if (version == null||version.isNull()) {
+      return true;
+    }
+    if (isNull()) {
+      return false;
+    }
+    int length = Math.min(sectionList.length,version.sectionList.length);
+    //loop until a section is not equal then corresponding version section
+    for (int i=0;i<length;i++) {
+      if(sectionList[i].compareTo(version.sectionList[i])>0) {
+        return true;
+      }
+      if(sectionList[i].compareTo(version.sectionList[i])<0) {
+        return false;
+      }
+    }
+    //equal so far - longer one is greater then
+    if (sectionList.length>=version.sectionList.length) {
+      return true;
+    }
+    return false;
+  }
+  
+  public boolean ge(ConstEtomoVersion version) {
+    return ge((EtomoVersion) version);
+  }
+
   public String toString() {
     if (isNull()) {
       return "";
     }
-    StringBuffer buffer = new StringBuffer(sections[0]);
-    for (int i = 1; i < sections.length; i++) {
-      buffer.append("." + sections[i]);
+    StringBuffer buffer = new StringBuffer(sectionList[0]);
+    for (int i = 1; i < sectionList.length; i++) {
+      buffer.append("." + sectionList[i]);
     }
     return buffer.toString();
   }
-  
+
   public void store(Properties props) {
-    props.setProperty(name, toString());
+    if (isNull()) {
+      props.remove(key);
+    }
+    else {
+      props.setProperty(key, toString());
+    }
   }
 
   public void store(Properties props, String prepend) {
-    props.setProperty(prepend + "." + name, toString());
+    if (debug) {
+      System.err.println("store:prepend="+prepend+",key="+key+",toString()="+toString());
+    }
+    if (isNull()) {
+      if (debug) {
+        System.err.println("isNull");
+      }
+      props.remove(prepend + '.' + key);
+    }
+    else {
+      props.setProperty(prepend + "." + key, toString());
+    }
+    if (debug) {
+      System.err.println("props:"+props.getProperty(prepend + "." + key));
+    }
   }
-  
-  
-  public void load(Properties props) {
-    set(props.getProperty(name));
-  }
-  public void load(Properties props, String prepend) {
-    set(props.getProperty(prepend + "." + name));
-  }
-  
 
-  
   boolean isNull() {
-    if (sections == null || sections.length == 0) {
+    if (sectionList == null || sectionList.length == 0) {
       return true;
     }
     return false;
   }
 
+  /**
+   * Split the parameter version into a list by ".".  Ignore any empty sections.
+   * @param version
+   */
+  public void set(String version) {
+    if (version == null || version.matches("\\s*")) {
+      sectionList = null;
+      return;
+    }
+    String[] stringList = version.trim().split("\\.");
+    if (stringList == null || stringList.length == 0) {
+      sectionList = null;
+    }
+    sectionList = new String[stringList.length];
+    for (int i = 0; i < sectionList.length; i++) {
+      String section = stringList[i].trim();
+      //Ignore empty sections
+      if (section != null && !section.equals("") && !section.matches("\\s+")) {
+        sectionList[i] = stringList[i].trim();
+      }
+    }
+  }
 
+  public void set(EtomoVersion that) {
+    if (that.isNull()) {
+      sectionList = null;
+    }
+    else {
+      sectionList = new String[that.sectionList.length];
+      for (int i = 0; i < sectionList.length; i++) {
+        sectionList[i] = that.sectionList[i];
+      }
+    }
+  }
+
+  public void load(Properties props) {
+    set(props.getProperty(key));
+  }
+
+  public void load(Properties props, String prepend) {
+    set(props.getProperty(prepend + "." + key));
+  }
+
+  public void reset() {
+    sectionList = null;
+  }
 }
