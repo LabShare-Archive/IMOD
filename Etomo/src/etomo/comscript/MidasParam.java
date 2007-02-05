@@ -25,6 +25,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2006/05/22 22:39:27  sueh
+* <p> bug# 577 Added getCommand().
+* <p>
 * <p> Revision 1.10  2006/05/11 19:44:50  sueh
 * <p> bug# 838 Add CommandDetails, which extends Command and
 * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
@@ -111,7 +114,7 @@ public class MidasParam implements Command {
     metaData = manager.getConstMetaData();
     this.axisID = axisID;
     workingDir = manager.getPropertyUserDir();
-    rootName = metaData.getRootName();
+    rootName = metaData.getName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
     ArrayList options = genOptions();
@@ -177,8 +180,8 @@ public class MidasParam implements Command {
     return outputFile;
   }
   
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
   
   public static String getName() {
