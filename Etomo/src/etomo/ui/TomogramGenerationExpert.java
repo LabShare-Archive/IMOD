@@ -243,7 +243,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
     getBlendParams(blendParam);
-    blendParam.setMode(BlendmontParam.BLEND_MODE);
+    blendParam.setMode(BlendmontParam.Mode.BLEND);
     blendParam.setBlendmontState();
     comScriptMgr.saveBlend(blendParam, axisID);
     return blendParam;
@@ -270,7 +270,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       // Make sure the size output is removed, it was only there for a
       // copytomocoms template
       newstParam.setSizeToOutputInXandY("/");
-      newstParam.setCommandMode(NewstParam.FULL_ALIGNED_STACK_MODE);
+      newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       newstParam.setFiducialessAlignment(metaData
           .isFiducialessAlignment(axisID));
       getNewstParams(newstParam);
@@ -1029,6 +1029,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2006/12/02 04:59:21  sueh
+ * <p> bug# 944 Added get/setProcessName ProcesschunksParam so the process
+ * <p> being run can be identified.
+ * <p>
  * <p> Revision 1.8  2006/11/15 21:35:49  sueh
  * <p> bug# 872 Changed saveIntermediateParamFile to saveStorables.
  * <p>

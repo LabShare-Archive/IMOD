@@ -586,7 +586,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     try {
       // Make sure the size output is removed, it was only there as a 
       // copytomocoms template
-      newstParam.setCommandMode(NewstParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
+      newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
       newstParam.setSizeToOutputInXandY("/");
     }
     catch (FortranInputSyntaxException e) {
@@ -613,7 +613,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     metaData.setWholeTomogramSample(axisID, dialog.isWholeTomogram());
     BlendmontParam blendmontParam = comScriptMgr.getBlendParam(axisID);
     getParameters(blendmontParam);
-    blendmontParam.setMode(BlendmontParam.WHOLE_TOMOGRAM_SAMPLE_MODE);
+    blendmontParam.setMode(BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
     blendmontParam.setBlendmontState();
     comScriptMgr.saveBlend(blendmontParam, axisID);
     return blendmontParam;
@@ -916,6 +916,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2006/11/15 21:36:00  sueh
+ * <p> bug# 872 Changed saveIntermediateParamFile to saveStorables.
+ * <p>
  * <p> Revision 1.15  2006/10/25 22:12:54  sueh
  * <p> bug# 952  fiducialessAction():  when unchecking fidless, update tilt.com from the
  * <p> screen version of z shift and tilt angle offset.
