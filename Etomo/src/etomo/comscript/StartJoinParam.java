@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Hashtable;
 
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.ProcessName;
 
 /**
@@ -23,6 +25,7 @@ public class StartJoinParam implements CommandDetails {
   public static  final String  rcsid =  "$Id$";
   
   private static final ProcessName PROCESS_NAME = ProcessName.STARTJOIN;
+  private static final boolean debug=true;
   
   private final AxisID axisID;
   
@@ -51,7 +54,11 @@ public class StartJoinParam implements CommandDetails {
   }
   
   public String getCommand() {
-    return PROCESS_NAME.getComscript(axisID);
+    String command=PROCESS_NAME.getComscript(axisID);
+    if (debug) {
+      System.err.println(command);
+    }
+    return command;
   }
   
   public AxisID getAxisID() {
@@ -73,7 +80,19 @@ public class StartJoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
   public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   
@@ -92,8 +111,8 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
   
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
   
   public File getCommandOutputFile() {
@@ -111,6 +130,10 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2006/06/05 16:16:50  sueh
+* <p> bug# 766 In ProcessName:  Changed getCommand() and getCommandArray() to
+* <p> getComscript... because the fuctions are specialized for comscripts.
+* <p>
 * <p> Revision 1.3  2006/05/22 22:40:37  sueh
 * <p> bug# 577 Added getCommand().
 * <p>

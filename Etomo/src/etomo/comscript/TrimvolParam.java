@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2006/10/20 21:42:24  sueh
+ * <p> bug# 946  Make rotateX the default reorientation method.
+ * <p>
  * <p> Revision 3.21  2006/08/16 18:49:27  sueh
  * <p> bug# 912, bug# 915 Converted scale x and y min and max to an XYParam.
  * <p> No longer converting scale imod coords to index coords.  Added a version.
@@ -152,6 +155,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
 import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
@@ -733,8 +737,20 @@ public class TrimvolParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
+  
+  public String getString(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public double getDoubleValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -770,8 +786,8 @@ public class TrimvolParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
 
   public File getCommandOutputFile() {
