@@ -17,8 +17,6 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 
@@ -30,6 +28,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
+import etomo.type.JoinState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SectionTableRowData;
 import etomo.util.InvalidParameterException;
@@ -51,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2006/11/15 21:32:09  sueh
+ * <p> bug# 950 Don't call defaultSizeInXY during synchronize.
+ * <p>
  * <p> Revision 1.34  2006/11/07 23:01:24  sueh
  * <p> bug# 954 Adding tooltip to the second label in the spinners.  Adding Z order and
  * <p> invert table tooltips.
@@ -426,20 +428,20 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private final JoinManager manager;
   private final JoinDialog joinDialog;
 
-  private LabeledSpinner spinBinning;
-  private Run3dmodButton btnOpen3dmod;
-  private SpacedPanel pnlImod;
+  private BinnedXY3dmodButton b3bOpen3dmod;
 
   private int mode = JoinDialog.SETUP_MODE;
   private boolean flipping = false;
+  private final JoinState state;
 
   /**
    * Creates the panel and table.
    *
    */
-  SectionTablePanel(JoinDialog joinDialog, JoinManager manager) {
+  SectionTablePanel(JoinDialog joinDialog, JoinManager manager,JoinState state) {
     this.joinDialog = joinDialog;
     this.manager = manager;
+    this.state=state;
     //create root panel
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(BorderFactory.createEtchedBorder());
@@ -469,6 +471,11 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   final boolean isJoinTab() {
     return joinDialog.isJoinTab();
   }
+  
+  final boolean isRejoinTab() {
+    return joinDialog.isRejoinTab();
+  }
+  
 
   private void addRootPanelComponents() {
     if (isJoinTab()) {
@@ -493,7 +500,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     else if (isAlignTab()) {
       addAlignTablePanelComponents();
     }
-    else if (isJoinTab()) {
+    else if (isJoinTab()||isRejoinTab()) {
       addJoinTablePanelComponents();
     }
   }
@@ -508,15 +515,16 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     //First row
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
-    constraints.weighty = 2.0;
+    constraints.weighty = 0.2;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
     header1ZOrder.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    constraints.weightx = 1.0;
+    constraints.weightx = 0.2;
     header1SetupSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
     button1ExpandSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 4;
     header1Sample.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
@@ -524,19 +532,24 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1Rotation.add(pnlTable, layout, constraints);
     //second row
-    constraints.weighty = 1.0;
+    constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header2ZOrder.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.2;
     header2SetupSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     header2SampleBottom.add(pnlTable, layout, constraints);
     header2SampleTop.add(pnlTable, layout, constraints);
     header2SetupFinal.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2Rotation.add(pnlTable, layout, constraints);
     //Third row
+    constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header3ZOrder.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.2;
     header3SetupSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     header3SampleBottomStart.add(pnlTable, layout, constraints);
     header3SampleBottomEnd.add(pnlTable, layout, constraints);
@@ -559,15 +572,16 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     //First row
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
-    constraints.weighty = 2.0;
+    constraints.weighty = 0.2;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     header1ZOrder.add(pnlTable, layout, constraints);
-    constraints.weightx = 1.0;
+    constraints.weightx = 0.2;
     header1SetupSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
     constraints.gridwidth = 1;
     button1ExpandSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     header1SlicesInSample.add(pnlTable, layout, constraints);
     header1CurrentChunk.add(pnlTable, layout, constraints);
@@ -575,11 +589,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1CurrentSection.add(pnlTable, layout, constraints);
     //second row
-    constraints.weighty = 1.0;
+    constraints.weightx = 0.0;
     constraints.gridwidth = 1;
     header2ZOrder.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.2;
     constraints.gridwidth = 2;
     header2SetupSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     header2SlicesInSample.add(pnlTable, layout, constraints);
     header2CurrentChunk.add(pnlTable, layout, constraints);
@@ -592,33 +608,38 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     //Header
     //First row
     constraints.weightx = 0.0;
-    constraints.weighty = 2.0;
+    constraints.weighty = 0.2;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
     header1ZOrder.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    constraints.weightx = 1.0;
+    constraints.weightx = 0.2;
     header1JoinSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
     button1ExpandSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1JoinFinal.add(pnlTable, layout, constraints);
     if (hasRotatedSection()) {
       //Second row
-      constraints.weighty = 1.0;
+      constraints.weightx = 0.0;
       constraints.gridwidth = 2;
       header2ZOrder.add(pnlTable, layout, constraints);
+      constraints.weightx = 0.2;
       constraints.gridwidth = 2;
       header2JoinSections.add(pnlTable, layout, constraints);
+      constraints.weightx = 0.1;
       constraints.gridwidth = GridBagConstraints.REMAINDER;
       header2JoinFinal.add(pnlTable, layout, constraints);
       header3JoinSections.setText("Orientation");
     }
     //Third row
-    constraints.weighty = 1.0;
+    constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header3ZOrder.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.2;
     header3JoinSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 1;
     header3JoinFinalStart.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -658,12 +679,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
     //third component
-    btnOpen3dmod = new Run3dmodButton("Open in 3dmod", this);
-    btnOpen3dmod.addActionListener(sectionTableActionListener);
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
-    pnlImod = joinDialog.createOpen3dmodPanel(spinBinning,
-        "The binning to use when opening a section in 3dmod.", btnOpen3dmod);
+    b3bOpen3dmod = new BinnedXY3dmodButton("Open in 3dmod", this);
+    b3bOpen3dmod.addActionListener(sectionTableActionListener);
+    b3bOpen3dmod.setSpinnerTooltip("The binning to use when opening a section in 3dmod.");
     //fourth component
     pnlButtonsComponent4.setBoxLayout(BoxLayout.Y_AXIS);
     btnGetAngles.setSize(true);
@@ -680,7 +698,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       pnlButtons.add(pnlButtonsComponent2);
     }
     if (!isAlignTab()) {
-      pnlButtons.add(pnlImod);
+      pnlButtons.add(b3bOpen3dmod.getContainer());
     }
     if (isSetupTab()) {
       pnlButtons.add(pnlButtonsComponent4);
@@ -804,6 +822,18 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       ((SectionTableRow) rows.get(i)).setMode(mode);
     }
   }
+  
+  void setJoinFinalStartHighlight(boolean highlight) {
+    for (int i=0;i<rows.size();i++) {
+      ((SectionTableRow)rows.get(i)).setJoinFinalStartHighlight(highlight);
+    }
+  }
+  
+  void setJoinFinalEndHighlight(boolean highlight) {
+    for (int i=0;i<rows.size();i++) {
+      ((SectionTableRow)rows.get(i)).setJoinFinalEndHighlight(highlight);
+    }
+  }
 
   /**
    * Enable row level buttons based on the current highlight
@@ -813,7 +843,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     int rowsSize = 0;
     rowsSize = rows.size();
     if (rowsSize == 0) {
-      btnOpen3dmod.setEnabled(false);
+      b3bOpen3dmod.setEnabled(false);
       button1ExpandSections.setEnabled(false);
       if (mode != JoinDialog.SAMPLE_PRODUCED_MODE) {
         btnMoveSectionUp.setEnabled(false);
@@ -823,7 +853,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       }
       return;
     }
-    btnOpen3dmod.setEnabled(highlightedRowIndex > -1);
+    b3bOpen3dmod.setEnabled(highlightedRowIndex > -1);
     button1ExpandSections.setEnabled(true);
     if (mode != JoinDialog.SAMPLE_PRODUCED_MODE) {
       btnMoveSectionUp.setEnabled(highlightedRowIndex > 0);
@@ -921,9 +951,10 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     rows.add(rowIndex, rowMoveDown);
     addRowsToTable(rowIndex - 1);
     renumberTable(rowIndex - 1);
-    manager.getState().moveRowUp(rowIndex);
+    state.moveRowUp(rowIndex);
     configureRows();
     enableRowButtons(rowIndex - 1);
+    joinDialog.msgRowChange();
     repaint();
   }
 
@@ -950,9 +981,10 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     rows.add(rowIndex + 1, rowMoveDown);
     addRowsToTable(rowIndex);
     renumberTable(rowIndex);
-    manager.getState().moveRowDown(rowIndex);
+    state.moveRowDown(rowIndex);
     configureRows();
     enableRowButtons(rowIndex + 1);
+    joinDialog.msgRowChange();
     repaint();
   }
 
@@ -1080,6 +1112,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     int tableSize = rows.size();
     configureRows();
     joinDialog.setNumSections(tableSize);
+    joinDialog.msgRowChange();
     repaint();
   }
 
@@ -1101,10 +1134,11 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     row.remove();
     row.removeImod();
     renumberTable(rowIndex);
-    manager.getState().deleteRow(rowIndex);
+    state.deleteRow(rowIndex);
     configureRows();
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
+    joinDialog.msgRowChange();
     repaint();
   }
 
@@ -1123,18 +1157,18 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * rotation angles.
    * 
    */
-  private void imodSection() {
+  private void imodSection(Run3dmodMenuOptions menuOptions) {
     int rowIndex = getHighlightedRowIndex();
     if (rowIndex == -1) {
       return;
     }
-    int binning = ((Integer) this.spinBinning.getValue()).intValue();
+    int binning = b3bOpen3dmod.getInt();
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
     if (isSetupTab()) {
-      row.imodOpenSetupSectionFile(binning);
+      row.imodOpenSetupSectionFile(binning, menuOptions);
     }
     else {
-      row.imodOpenJoinSectionFile(binning);
+      row.imodOpenJoinSectionFile(binning, menuOptions);
     }
   }
 
@@ -1178,6 +1212,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     addRowsToTable(0);
     configureRows();
     enableRowButtons(getHighlightedRowIndex());
+    joinDialog.msgRowChange();
     repaint();
   }
 
@@ -1306,6 +1341,10 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return zMax;
   }
 
+  int getRowsSize() {
+    return rows.size();
+  }
+
   /**
    * Add a JComponent to the table.
    * @param cell
@@ -1359,12 +1398,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
 
   public final void run3dmod(Run3dmodButton button,
       Run3dmodMenuOptions menuOptions) {
+    System.out.println("run3dmod:menuOptions="+menuOptions);
     run3dmod(button.getActionCommand(), menuOptions);
   }
 
   private final void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnOpen3dmod.getActionCommand())) {
-      imodSection();
+    if (command.equals(b3bOpen3dmod.getActionCommand())) {
+      imodSection(menuOptions);
     }
   }
 
@@ -1403,13 +1443,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * @param prevTab
    * @param curTab
    */
-  final void synchronize(int prevTab, int curTab) {
+  final void synchronize(JoinDialog.Tab prevTab, JoinDialog.Tab curTab) {
     if (rows.size() == 0) {
       return;
     }
     //synchronize setup columns to join columns when the user gets to the join
-    //tab
-    if (curTab == JoinDialog.JOIN_TAB) {
+    //tab or the model tab
+    if (curTab == JoinDialog.Tab.JOIN ||curTab == JoinDialog.Tab.REJOIN|| curTab == JoinDialog.Tab.MODEL) {
       for (int i = 0; i < rows.size(); i++) {
         ((SectionTableRow) rows.get(i)).synchronizeSetupToJoin();
       }
@@ -1417,7 +1457,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     //synchronize join columns to setup columns when the users leaves the join
     //tab
-    else if (prevTab == JoinDialog.JOIN_TAB) {
+    else if (prevTab == JoinDialog.Tab.JOIN||prevTab == JoinDialog.Tab.REJOIN) {
       for (int i = 0; i < rows.size(); i++) {
         ((SectionTableRow) rows.get(i)).synchronizeJoinToSetup();
       }
@@ -1554,13 +1594,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
         "The rotation in Y of each section.").format());
     header3RotationZ.setToolTipText(tooltipFormatter.setText(
         "The rotation in Z of each section.").format());
-    btnOpen3dmod.setToolTipText(tooltipFormatter.setText(
-        "Press to open a section in 3dmod.").format());
+    b3bOpen3dmod.setButtonTooltip("Press to open a section in 3dmod.");
     tooltip = tooltipFormatter.setText("Order of the sections in Z.").format();
     header1ZOrder.setToolTipText(tooltip);
     header2ZOrder.setToolTipText(tooltip);
     header3ZOrder.setToolTipText(tooltip);
-    btnInvertTable.setToolTipText(tooltipFormatter.setText("Reverse the order of the sections in the table.").format());
+    btnInvertTable.setToolTipText(tooltipFormatter.setText(
+        "Reverse the order of the sections in the table.").format());
   }
 
   //
