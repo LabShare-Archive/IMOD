@@ -10,11 +10,18 @@ import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
+import etomo.comscript.RemapmodelParam;
 import etomo.comscript.StartJoinParam;
 import etomo.comscript.XfalignParam;
+import etomo.comscript.XfjointomoParam;
+import etomo.comscript.XfmodelParam;
+import etomo.comscript.XftoxgParam;
+import etomo.storage.LogFile;
+import etomo.storage.XfjointomoLog;
 import etomo.type.AxisID;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -30,6 +37,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.21  2006/10/16 22:42:15  sueh
+ * <p> bug# 933  PostProcessing(BackgroundProcess):  moved makejoincom post
+ * <p> processing to JoinManager.
+ * <p>
  * <p> Revision 1.20  2006/08/02 22:24:00  sueh
  * <p> bug# 769 Added empty functions errorProcess and postProcess.
  * <p>
@@ -166,11 +177,13 @@ public class JoinProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
 
   private static final String startjoinComscriptName = "startjoin.com";
-  JoinManager joinManager;
+  private final JoinState state;
+  JoinManager manager;
 
-  public JoinProcessManager(JoinManager joinMgr) {
+  public JoinProcessManager(JoinManager joinMgr, JoinState state) {
     super(joinMgr);
-    joinManager = joinMgr;
+    manager = joinMgr;
+    this.state = state;
   }
 
   /**
@@ -183,6 +196,34 @@ public class JoinProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
 
+  public String remapmodel(RemapmodelParam param) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
+        AxisID.ONLY, ProcessName.REMAPMODEL);
+    return backgroundProcess.getName();
+  }
+
+  public String xfmodel(XfmodelParam param) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
+        AxisID.ONLY, ProcessName.XFMODEL);
+    return backgroundProcess.getName();
+  }
+
+  public String xftoxg(XftoxgParam param) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
+        AxisID.ONLY, ProcessName.XFTOXG);
+    return backgroundProcess.getName();
+  }
+
+  /**
+   * Run the post process functionality for finishjoin without running the
+   * process.
+   * @param finishjoinParam
+   */
+  public void saveFinishjoinState(FinishjoinParam finishjoinParam) {
+    postProcess(new BackgroundProcess(manager, finishjoinParam, this,
+        AxisID.ONLY, ProcessName.FINISHJOIN));
+  }
+
   /**
    * Run finishjoin
    */
@@ -190,6 +231,15 @@ public class JoinProcessManager extends BaseProcessManager {
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         finishjoinParam, AxisID.ONLY, ProcessName.FINISHJOIN);
+    return backgroundProcess.getName();
+  }
+
+  public String xfjointomo(XfjointomoParam xfjointomoParam)
+      throws SystemProcessException {
+    XfjointomoLog.getInstance(manager).reset();
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        xfjointomoParam.getCommandArray(), AxisID.ONLY, null,
+        ProcessName.XFJOINTOMO);
     return backgroundProcess.getName();
   }
 
@@ -236,10 +286,9 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     ProcessDetails processDetails = process.getProcessDetails();
     if (commandName.equals(startjoinComscriptName)) {
-      joinManager.getState().setSampleProduced(true);
-      joinManager.setMode();
+      state.setSampleProduced(true);
+      manager.setMode();
       if (processDetails.getBooleanValue(StartJoinParam.Fields.ROTATE)) {
-        JoinState state = joinManager.getState();
         state.setTotalRows(processDetails
             .getIntValue(StartJoinParam.Fields.TOTAL_ROWS));
         state.setRotationAnglesList(processDetails
@@ -263,21 +312,22 @@ public class JoinProcessManager extends BaseProcessManager {
       if (command == null) {
         return;
       }
-      joinManager.addSection(command.getCommandOutputFile());
+      manager.addSection(command.getCommandOutputFile());
     }
     else if (commandName.equals(XfalignParam.getName())) {
       if (command == null) {
         return;
       }
-      joinManager.copyXfFile(command.getCommandOutputFile());
-      joinManager.enableMidas();
+      manager.copyXfFile(command.getCommandOutputFile());
+      manager.enableMidas();
     }
     else if (commandName.equals(FinishjoinParam.getName())) {
       if (command == null) {
         return;
       }
-      int mode = command.getCommandMode();
-      if (mode == FinishjoinParam.MAX_SIZE_MODE) {
+      FinishjoinParam.Mode mode = (FinishjoinParam.Mode) command
+          .getCommandMode();
+      if (mode == FinishjoinParam.Mode.MAX_SIZE) {
         String[] stdOutput = process.getStdOutput();
         if (stdOutput != null) {
           for (int i = 0; i < stdOutput.length; i++) {
@@ -285,12 +335,12 @@ public class JoinProcessManager extends BaseProcessManager {
             String[] lineArray;
             if (line.indexOf(FinishjoinParam.SIZE_TAG) != -1) {
               lineArray = line.split("\\s+");
-              joinManager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
+              manager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
                   lineArray[FinishjoinParam.SIZE_IN_Y_INDEX]);
             }
             else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
               lineArray = line.split("\\s+");
-              joinManager.setShift(FinishjoinParam
+              manager.setShift(FinishjoinParam
                   .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
                   FinishjoinParam
                       .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
@@ -299,25 +349,62 @@ public class JoinProcessManager extends BaseProcessManager {
         }
         return;
       }
-      if (mode == FinishjoinParam.TRIAL_MODE) {
-        if (processDetails == null) {
-          return;
+      else if (mode == FinishjoinParam.Mode.TRIAL
+          || mode == FinishjoinParam.Mode.FINISH_JOIN) {
+        if (processDetails != null) {
+          boolean trial = mode == FinishjoinParam.Mode.TRIAL;
+          state.setJoinAlignmentRefSection(true, processDetails
+              .getEtomoNumber(FinishjoinParam.Fields.ALIGNMENT_REF_SECTION));
+          state.setJoinSizeInX(trial, processDetails
+              .getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_X));
+          state.setJoinSizeInY(trial, processDetails
+              .getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_Y));
+          state.setJoinShiftInX(trial, processDetails
+              .getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_X));
+          state.setJoinShiftInY(trial, processDetails
+              .getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_Y));
+          state.setJoinStartList(trial, processDetails
+              .getIntKeyList(FinishjoinParam.Fields.JOIN_START_LIST));
+          state.setJoinEndList(trial, processDetails
+              .getIntKeyList(FinishjoinParam.Fields.JOIN_END_LIST));
+          state.setCurrentJoinVersion(trial);
+          if (mode == FinishjoinParam.Mode.TRIAL) {
+            state.setJoinTrialBinning(processDetails
+                .getEtomoNumber(FinishjoinParam.Fields.BINNING));
+            state.setJoinTrialUseEveryNSlices(processDetails
+                .getEtomoNumber(FinishjoinParam.Fields.USE_EVERY_N_SLICES));
+          }
         }
-        JoinState state = joinManager.getState();
-        state.setTrialBinning(processDetails
-            .getIntValue(FinishjoinParam.Fields.BINNING));
-        state.setTrialSizeInX(processDetails
-            .getIntValue(FinishjoinParam.Fields.SIZE_IN_X));
-        state.setTrialSizeInY(processDetails
-            .getIntValue(FinishjoinParam.Fields.SIZE_IN_Y));
-        state.setTrialShiftInX(processDetails
-            .getIntValue(FinishjoinParam.Fields.SHIFT_IN_X));
-        state.setTrialShiftInY(processDetails
-            .getIntValue(FinishjoinParam.Fields.SHIFT_IN_Y));
+        manager.updateJoinDialogDisplay();
+      }
+      else if (mode == FinishjoinParam.Mode.REJOIN
+          || mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
+        state.setRefineStartList(processDetails
+            .getIntKeyList(FinishjoinParam.Fields.REFINE_START_LIST));
+        state.setRefineEndList(processDetails
+            .getIntKeyList(FinishjoinParam.Fields.REFINE_END_LIST));
+        manager.updateJoinDialogDisplay();
       }
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
-      joinManager.postProcess(commandName, processDetails);
+      manager.postProcess(commandName, processDetails);
+    }
+    else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
+      writeLogFile(process, process.getAxisID(),DatasetFiles.getLogName(manager, process.getAxisID(),process.getProcessName()));
+      try {
+        state.setGapsExist(XfjointomoLog.getInstance(manager).gapsExist());
+      }
+      catch (LogFile.ReadException e) {
+        e.printStackTrace();
+        //if not sure whether gaps exist, run remapmodel
+        state.setGapsExist(true);
+      }
+      manager.postProcess(commandName, process.getProcessDetails());
+      manager.updateJoinDialogDisplay();
+    }
+    else if (commandName.equals(XfmodelParam.COMMAND_NAME)) {
+      state.setXfModelOutputFile(processDetails
+          .getString(XfmodelParam.Fields.OUTPUT_FILE));
     }
   }
 
@@ -327,11 +414,11 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(XfalignParam.getName())) {
-      joinManager.enableMidas();
+      manager.enableMidas();
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
-      joinManager.getState().setSampleProduced(false);
-      joinManager.setMode();
+      state.setSampleProduced(false);
+      manager.setMode();
     }
     else if (commandName.equals(FlipyzParam.getName())) {
       Command command = process.getCommand();
@@ -343,7 +430,10 @@ public class JoinProcessManager extends BaseProcessManager {
       if (outputFile != null) {
         outputFile.delete();
       }
-      joinManager.abortAddSection();
+      manager.abortAddSection();
+    }
+    else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
+      writeLogFile(process, process.getAxisID(),DatasetFiles.getLogName(manager, process.getAxisID(),process.getProcessName()));
     }
   }
 
@@ -353,8 +443,8 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(startjoinComscriptName)) {
-      joinManager.getState().setSampleProduced(false);
-      joinManager.setMode();
+      state.setSampleProduced(false);
+      manager.setMode();
     }
   }
 
@@ -373,13 +463,13 @@ public class JoinProcessManager extends BaseProcessManager {
           && outputFile.exists()
           && outputFile.lastModified() > program.getOutputFileLastModified()
               .getLong()) {
-        joinManager.copyXfFile(outputFile);
+        manager.copyXfFile(outputFile);
       }
     }
   }
 
   protected BaseManager getManager() {
-    return joinManager;
+    return manager;
   }
 
   protected void errorProcess(ReconnectProcess script) {

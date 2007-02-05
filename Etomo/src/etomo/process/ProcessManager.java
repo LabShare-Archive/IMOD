@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.114  2006/11/15 19:59:35  sueh
+ * bug# 872 Changed getParamFileStorableArray to getStorables in the managers.
+ *
  * Revision 3.113  2006/10/16 22:43:41  sueh
  * bug# 933  Moved the code in msgAlignPostProcess to postProcess.  Only doing
  * align post process (reopening log) when the Computer Alignment button was
@@ -989,10 +992,10 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Create the required tiltalign command
     String command = BlendmontParam.getProcessName(
-        BlendmontParam.UNDISTORT_MODE).getComscript(axisID);
+        BlendmontParam.Mode.UNDISTORT).getComscript(axisID);
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
-        appManager, axisID, BlendmontParam.UNDISTORT_MODE);
+        appManager, axisID, BlendmontParam.Mode.UNDISTORT);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
@@ -1031,7 +1034,7 @@ public class ProcessManager extends BaseProcessManager {
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
-        appManager, axisID, BlendmontParam.PREBLEND_MODE);
+        appManager, axisID, BlendmontParam.Mode.PREBLEND);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
@@ -1510,7 +1513,7 @@ public class ProcessManager extends BaseProcessManager {
    * Run splitcombine
    */
   public String splitcombine(ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException{
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new SplitcombineParam().getCommand(), AxisID.ONLY,
         processResultDisplay, ProcessName.SPLITCOMBINE);
@@ -1570,8 +1573,8 @@ public class ProcessManager extends BaseProcessManager {
    * Run the imod2patch command, don't save meta data because it doesn't change
    * for this command
    */
-  public void modelToPatch(AxisID axisID) throws 
-      SystemProcessException, LogFile.FileException {
+  public void modelToPatch(AxisID axisID) throws SystemProcessException,
+      LogFile.FileException {
     LogFile patchOut = LogFile.getInstance(appManager.getPropertyUserDir(),
         DatasetFiles.PATCH_OUT);
     patchOut.backup();
@@ -1729,38 +1732,12 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @param process
    */
-  private void handleTransferfidMessage(BackgroundProcess process, AxisID axisID) {
-    LogFile logFile = null;
-    long writeId = LogFile.NO_ID;
-    try {
-      //  Write the standard output to a the log file
-      String[] stdOutput = process.getStdOutput();
-      logFile = LogFile.getInstance(appManager.getPropertyUserDir(),
-          DatasetFiles.TRANSFER_FID_LOG);
-      writeId = logFile.openWriter();
-      //BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(appManager
-      //    .getPropertyUserDir()
-      //    + "/transferfid.log"));
-
-      if (stdOutput != null) {
-        for (int i = 0; i < stdOutput.length; i++) {
-          logFile.write(stdOutput[i], writeId);
-          logFile.newLine(writeId);
-        }
-      }
-      logFile.closeWriter(writeId);
-
-      //  Show a log file window to the user
-      TextPageWindow logFileWindow = new TextPageWindow();
-      logFileWindow.setVisible(logFileWindow.setFile(appManager
-          .getPropertyUserDir()
-          + File.separator + DatasetFiles.TRANSFER_FID_LOG));
-    }
-    catch (LogFile.WriteException except) {
-      logFile.closeWriter(writeId);
-      uiHarness.openMessageDialog(except.getMessage(), "Transferfid log error",
-          axisID);
-    }
+  private void showTransferfidLogFile(AxisID axisID) {
+    //  Show a log file window to the user
+    TextPageWindow logFileWindow = new TextPageWindow();
+    logFileWindow.setVisible(logFileWindow.setFile(appManager
+        .getPropertyUserDir()
+        + File.separator + DatasetFiles.TRANSFER_FID_LOG));
   }
 
   private void printPsOutput(AxisID axisID) {
@@ -1793,7 +1770,7 @@ public class ProcessManager extends BaseProcessManager {
     systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
     long logWriteId = LogFile.NO_ID;
     if (logFile != null) {
-      logFile.openForWriting();
+      logWriteId = logFile.openForWriting();
     }
     systemProgram.run();
     if (logFile != null) {
@@ -1852,13 +1829,14 @@ public class ProcessManager extends BaseProcessManager {
           .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
       state.setAlignAngleOffset(axisID, processDetails
           .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
-      appManager.postProcess(axisID, processName, processDetails, script.getProcessResultDisplay());
+      appManager.postProcess(axisID, processName, processDetails, script
+          .getProcessResultDisplay());
     }
     else if (processName == ProcessName.TOMOPITCH) {
       appManager.setTomopitchOutput(axisID);
     }
     else if (processName == ProcessName.NEWST) {
-      if (commandDetails.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
+      if (commandDetails.getCommandMode() == NewstParam.Mode.FULL_ALIGNED_STACK) {
         appManager.getState().setNewstFiducialessAlignment(
             axisID,
             commandDetails
@@ -1877,7 +1855,8 @@ public class ProcessManager extends BaseProcessManager {
     }
     else if (processName == ProcessName.TILT
         || processName == ProcessName.SAMPLE) {
-      appManager.postProcess(script.getAxisID(), processName, processDetails,null);
+      appManager.postProcess(script.getAxisID(), processName, processDetails,
+          null);
     }
     else if (processName == ProcessName.TRACK) {
       File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
@@ -1910,8 +1889,8 @@ public class ProcessManager extends BaseProcessManager {
   private void setInvalidEdgeFunctions(Command command, boolean succeeded) {
     if (appManager.getConstMetaData().getViewType() == ViewType.MONTAGE
         && command.getCommandName().equals(BlendmontParam.COMMAND_NAME)
-        && (command.getCommandMode() == BlendmontParam.XCORR_MODE || command
-            .getCommandMode() == BlendmontParam.PREBLEND_MODE)) {
+        && (command.getCommandMode() == BlendmontParam.Mode.XCORR || command
+            .getCommandMode() == BlendmontParam.Mode.PREBLEND)) {
       appManager.getState().setInvalidEdgeFunctions(command.getAxisID(),
           !succeeded);
     }
@@ -1920,7 +1899,8 @@ public class ProcessManager extends BaseProcessManager {
   protected void postProcess(BackgroundProcess process) {
     super.postProcess(process);
     if (process.getCommandLine().equals(transferfidCommandLine)) {
-      handleTransferfidMessage(process, process.getAxisID());
+      writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
+      showTransferfidLogFile(process.getAxisID());
       appManager.getState().setSeedingDone(process.getAxisID(), true);
     }
     else {
@@ -1949,7 +1929,8 @@ public class ProcessManager extends BaseProcessManager {
 
   protected void errorProcess(BackgroundProcess process) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
-      handleTransferfidMessage(process, process.getAxisID());
+      writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
+      showTransferfidLogFile(process.getAxisID());
     }
   }
 
