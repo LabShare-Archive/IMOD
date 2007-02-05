@@ -20,6 +20,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2006/05/16 21:35:17  sueh
+* <p> bug# 856 Changing the name whenever the label is changed so that its easy to
+* <p> see what the name is.
+* <p>
 * <p> Revision 1.6  2006/04/25 19:12:23  sueh
 * <p> bug# 787 Added UITestField, an enum style class which contains the
 * <p> fields found in uitestaxis.adoc files.
@@ -64,32 +68,13 @@ final class CheckBox extends JCheckBox {
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-  /**
-  public CheckBox() {
-    super();
-  }
-  public CheckBox(String text, boolean selected) {
-    super(text, selected);
-  }
-  public CheckBox(Action a) {
-    super(a);
-  }
-  public CheckBox(Icon icon) {
-    super(icon);
-  }
-  public CheckBox(Icon icon, boolean selected) {
-    super(icon, selected);
-  }
-  public CheckBox(String text, Icon icon) {
-    super(text, icon);
-  }
-  public CheckBox(String text, Icon icon, boolean selected) {
-    super(text, icon, selected);
-  }
-*/
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2006/05/16 21:35:17  sueh
+* <p> bug# 856 Changing the name whenever the label is changed so that its easy to
+* <p> see what the name is.
+* <p>
 * <p> Revision 1.6  2006/04/25 19:12:23  sueh
 * <p> bug# 787 Added UITestField, an enum style class which contains the
 * <p> fields found in uitestaxis.adoc files.
