@@ -21,6 +21,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2006/06/05 16:05:24  sueh
+ * <p> bug# 766 In ProcessName:  Changed getCommand() and getCommandArray() to
+ * <p> getComscript... because the fuctions are specialized for comscripts.
+ * <p>
  * <p> Revision 3.16  2006/05/22 22:36:55  sueh
  * <p> bug# 577 Changed getCommand() to conform with the Command interface.
  * <p>
@@ -294,8 +298,8 @@ public class ConstTiltxcorrParam implements ConstCommandParam, Command {
     return processName.getComscriptArray(axisID);
   }
   
-  public int getCommandMode() {
-    return 0;
+  public CommandMode getCommandMode() {
+    return null;
   }
   
   public File getCommandOutputFile() {
