@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2007/02/05 23:10:02  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.43  2006/11/15 20:43:19  sueh
  * <p> bug# 872 Fixed bug - store and remove are not handling a null prepend.
  * <p>
@@ -1261,9 +1264,6 @@ public abstract class ConstEtomoNumber implements Storable {
 
   protected Number newNumber(int value) {
     validateInputType(value);
-    if (isNull(value)) {
-      return newNumber();
-    }
     if (type == Type.DOUBLE) {
       return new Double(new Integer(value).doubleValue());
     }
