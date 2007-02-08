@@ -20,6 +20,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/02/05 23:27:58  sueh
+ * <p> bug# 962 Added Model and Rejoin fields.
+ * <p>
  * <p> Revision 1.7  2005/12/14 01:28:58  sueh
  * <p> bug# 782 Added toString().
  * <p>
@@ -129,6 +132,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     shiftInX.reset();
     shiftInY.reset();
     trialBinning.reset();
+    rejoinTrialBinning.reset();
     gap.reset();
     boundaryRowStartList.reset();
     boundaryRowEndList.reset();
@@ -178,6 +182,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     shiftInY.load(props, prepend);
     useEveryNSlices.load(props, prepend);
     trialBinning.load(props, prepend);
+    rejoinTrialBinning.load(props, prepend);
     midasLimit.load(props, prepend);
 
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
@@ -198,6 +203,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     }
     boundaryRowStartList.load(props,prepend);
     boundaryRowEndList.load(props,prepend);
+    rejoinUseEveryNSlices.load(props, prepend);
   }
 
   private void loadVersion1_0(Properties props, String prepend) {
@@ -229,9 +235,17 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setUseEveryNSlices(Object useEveryNSlices) {
     this.useEveryNSlices.set((Integer) useEveryNSlices);
   }
+  
+  public void setRejoinUseEveryNSlices(Object rejoinUseEveryNSlices) {
+    this.rejoinUseEveryNSlices.set((Integer) rejoinUseEveryNSlices);
+  }
 
   public void setTrialBinning(Object trialBinning) {
     this.trialBinning.set((Integer) trialBinning);
+  }
+  
+  public void setRejoinTrialBinning(Object rejoinTrialBinning) {
+    this.rejoinTrialBinning.set((Integer) rejoinTrialBinning);
   }
   
   public void setGap(boolean gap) {

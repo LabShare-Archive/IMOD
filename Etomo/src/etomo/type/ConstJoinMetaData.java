@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/02/05 23:24:16  sueh
+ * <p> bug# 962 Added Model and Rejoin fields.
+ * <p>
  * <p> Revision 1.10  2005/12/14 01:28:27  sueh
  * <p> bug# 782 Updated toString().
  * <p>
@@ -194,6 +197,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
       EtomoNumber.Type.INTEGER, "UseEveryNSlices");
   protected final ScriptParameter trialBinning = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "TrialBinning");
+  protected final ScriptParameter rejoinTrialBinning = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "RejoinTrialBinning");
   protected final EtomoNumber midasLimit = new EtomoNumber("MidasLimit");
   protected final EtomoBoolean2 gap = new EtomoBoolean2("Gap");
   protected final EtomoNumber gapStart = new EtomoNumber("GapStart");
@@ -203,6 +208,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected final EtomoNumber pointsToFitMax=new EtomoNumber("PointsToFitMax");
   protected final IntKeyList boundaryRowStartList=IntKeyList.getNumericInstance("BoundaryRow"+'.'+"StartList");
   protected final IntKeyList boundaryRowEndList=IntKeyList.getNumericInstance("BoundaryRow"+'.'+"EndList");
+  protected EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "RejoinUseEveryNSlices");
 
   public abstract void load(Properties props);
 
@@ -214,6 +221,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     densityRefSection.setDefault(1).useDefaultAsDisplayValue();
     alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
     trialBinning.setDefault(1).useDefaultAsDisplayValue();
+    rejoinTrialBinning.setDefault(1).useDefaultAsDisplayValue();
     shiftInX.setDefault(0).useDefaultAsDisplayValue();
     shiftInY.setDefault(0).useDefaultAsDisplayValue();
     sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
@@ -310,6 +318,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     shiftInY.store(props, prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
+    rejoinTrialBinning.store(props, prepend);
     gap.store(props, prepend);
     midasLimit.store(props, prepend);
     if (sectionTableData != null) {
@@ -319,6 +328,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     }
     boundaryRowStartList.store(props,prepend);
     boundaryRowEndList.store(props,prepend);
+    rejoinUseEveryNSlices.store(props, prepend);
   }
 
   public void removeSectionTableData(Properties props, String prepend) {
@@ -467,6 +477,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useEveryNSlices;
   }
   
+  public ConstEtomoNumber getRejoinUseEveryNSlices() {
+    return rejoinUseEveryNSlices;
+  }
+  
   public ConstEtomoNumber getGap() {
     return gap;
   }
@@ -477,6 +491,14 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public ScriptParameter getTrialBinningParameter() {
     return trialBinning;
+  }
+  
+  public ConstEtomoNumber getRejoinTrialBinning() {
+    return rejoinTrialBinning;
+  }
+
+  public ScriptParameter getRejoinTrialBinningParameter() {
+    return rejoinTrialBinning;
   }
 
   public String getMetaDataFileName() {
