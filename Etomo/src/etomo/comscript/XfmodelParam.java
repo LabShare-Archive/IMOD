@@ -13,6 +13,7 @@ import etomo.type.ConstJoinState;
 import etomo.type.EtomoNumber;
 import etomo.type.IntKeyList;
 import etomo.type.ProcessName;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
@@ -28,7 +29,10 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 22:50:01  sueh
+ * <p> bug# 962 Xfmodel parameter object.
+ * <p> </p>
  */
 public final class XfmodelParam implements CommandDetails {
   public static final String rcsid = "$Id$";
@@ -98,6 +102,36 @@ public final class XfmodelParam implements CommandDetails {
       options.add(outputFile);
     }
     return options;
+  }
+
+  public boolean isValid() {
+    File inFile = null;
+    if (inputFile == null) {
+      inFile = DatasetFiles.getRefineModelFile(manager);
+    }
+    else {
+      inFile = new File(inputFile);
+      if (!inFile.isAbsolute()) {
+        inFile = new File(manager.getPropertyUserDir(), inputFile);
+      }
+    }
+    File outFile = null;
+    if (outputFile == null) {
+      outFile = DatasetFiles.getRefineAlignedModelFile(manager);
+    }
+    else {
+      outFile = new File(outputFile);
+      if (!outFile.isAbsolute()) {
+        outFile = new File(manager.getPropertyUserDir(), outputFile);
+      }
+    }
+    if (inFile.equals(outFile)) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Cannot overwrite xfmodel input file, " + inFile
+              + " with output file, " + outFile + ".", "XfmodelParam Error");
+      return false;
+    }
+    return true;
   }
 
   public void setInputFile(String inputFile) {

@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2007/02/05 21:27:36  sueh
+ * <p> bug# 962 Add remapmodel, xfjointomo, xfmodel, and xftoxg.
+ * <p>
  * <p> Revision 1.48  2006/11/28 22:48:38  sueh
  * <p> bug# 934 Changed BaseManager.stop() to endThreads().
  * <p>
@@ -1105,7 +1108,9 @@ public final class JoinManager extends BaseManager {
     XfmodelParam param = new XfmodelParam(this);
     param.setInputFile(inputFile);
     param.setOutputFile(outputFile);
+    if (param.isValid()) {
     xfmodel(param);
+    }
   }
 
   private void xfmodel() {
