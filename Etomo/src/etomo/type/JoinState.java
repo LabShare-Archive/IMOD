@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/02/05 23:29:07  sueh
+ * <p> bug# 962 Added finishjoin state fields.
+ * <p>
  * <p> Revision 1.5  2006/04/06 20:12:55  sueh
  * <p> bug# 808 Added rotationAnglesList, a sparsely populated array.  Added
  * <p> functionality to delete and move a row.  Added revert functionality.
@@ -419,9 +422,6 @@ public final class JoinState implements ConstJoinState, BaseState {
   }
   
   public boolean isRefineStartListEmpty() {
-    if (debug) {
-      System.err.println("isRefineStartListEmpty="+refineStartList.isEmpty());
-    }
     return refineStartList.isEmpty();
   }
 
