@@ -53,6 +53,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.40  2007/02/05 23:39:03  sueh
+ * <p> bug# 962 Added model and rejoin tabs.
+ * <p>
  * <p> Revision 1.39  2006/11/15 21:06:34  sueh
  * <p> bug# 872 In action(), using ParameterStore to save meta data.
  * <p>
@@ -375,6 +378,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final String GET_MAX_SIZE_TEXT = "Get Max Size and Shift";
   public static final String TRIAL_JOIN_TEXT = "Trial Join";
   public static final String REJOIN_TEXT = "Rejoin";
+  public static final String TRIAL_REJOIN_TEXT = "Trial Rejoin";
 
   private static final String REFINE_JOIN_TEXT = "Refine Join";
 
@@ -430,7 +434,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private CheckBoxSpinner cbsAlignmentRefSection;
   private LabeledSpinner spinDensityRefSection;
   private LabeledSpinner spinTrialBinning;
+  private LabeledSpinner spinRejoinTrialBinning;
   private LabeledSpinner spinUseEveryNSlices;
+  private LabeledSpinner spinRejoinUseEveryNSlices;
 
   //state
   private int numSections = 0;
@@ -471,11 +477,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       "Max: ");
   private JPanel pnlTables = null;
   private final MultiLineButton btnRejoin = new MultiLineButton(REJOIN_TEXT);
+  private final MultiLineButton btnTrialRejoin = new MultiLineButton(
+      TRIAL_REJOIN_TEXT);
   private JPanel pnlRejoin = null;
   private final FileTextField ftfModelFile = new FileTextField("Model file: ");
   private final CheckBox cbGap = new CheckBox("Try gaps: ");
   private BinnedXY3dmodButton b3bOpenIn3dmod;
   private BinnedXY3dmodButton b3bOpenRejoin;
+  private BinnedXY3dmodButton b3bOpenTrialRejoin;
   private LabeledTextField ltfTransformedModel;
   private final MultiLineButton btnTransformModel = new MultiLineButton(
       "Transform Model");
@@ -508,6 +517,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     b3bOpenRejoin = new BinnedXY3dmodButton("Open Rejoin in 3dmod", this);
     b3bOpenRejoinWithModel = new BinnedXY3dmodButton(
         "Open Rejoin with Transformed Model", this);
+    b3bOpenTrialRejoin = new BinnedXY3dmodButton("Open Trial Rejoin in 3dmod",
+        this);
     setRefiningJoin();
     createRootPanel(workingDirName);
     UIHarness.INSTANCE.pack(axisID, manager);
@@ -572,9 +583,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnXfjointomo.addActionListener(joinActionListener);
     btnTransformAndViewModel.addActionListener(joinActionListener);
     btnRejoin.addActionListener(joinActionListener);
+    btnTrialRejoin.addActionListener(joinActionListener);
     ftfModelFile.addActionListener(new ModelFileActionListener(this));
     cbGap.addActionListener(joinActionListener);
     b3bOpenRejoin.addActionListener(joinActionListener);
+    b3bOpenTrialRejoin.addActionListener(joinActionListener);
     b3bOpenRejoinWithModel.addActionListener(joinActionListener);
     btnTransformModel.addActionListener(joinActionListener);
   }
@@ -595,7 +608,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     tabPane.addTab("Align", pnlAlign.getContainer());
     createJoinPanel();
     tabPane.addTab("Join", pnlJoin.getContainer());
+    createModelPanel();
     tabPane.addTab("Model", pnlModel.getContainer());
+    createRejoinPanel();
     tabPane.addTab("Rejoin", pnlRejoinTab);
     addPanelComponents(Tab.SETUP);
     updateDisplay();
@@ -616,7 +631,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     b3bOpenRejoin.setEnabled(enable);
     //Need boundary list to transform model
     enable = !state.isRefineStartListEmpty();
-    btnRejoin.setEnabled(enable);
     btnTransformModel.setEnabled(enable);
     //Can't only refine if a join exists
     //A trial join is only refinable if it was created with all slices
@@ -992,6 +1006,40 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTables.setLayout(new BoxLayout(pnlTables, BoxLayout.X_AXIS));
     pnlRejoin = new JPanel();
     pnlRejoin.setLayout(new BoxLayout(pnlRejoin, BoxLayout.Y_AXIS));
+    //use every spinner
+    SpacedPanel pnlUseEvery = new SpacedPanel();
+    pnlUseEvery.setBoxLayout(BoxLayout.X_AXIS);
+    int zMax = pnlSectionTable.getZMax();
+    SpinnerModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
+        : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
+    spinRejoinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
+    spinRejoinUseEveryNSlices.setTextMaxmimumSize(dimSpinner);
+    pnlUseEvery.add(spinRejoinUseEveryNSlices);
+    pnlUseEvery.add(new JLabel("slices"));
+    //trial rejoin button
+    SpacedPanel pnlTrialRejoinButton = new SpacedPanel();
+    pnlTrialRejoinButton.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlTrialRejoinButton.setBorder(BorderFactory.createEtchedBorder());
+    pnlTrialRejoinButton.add(pnlUseEvery.getContainer());
+    spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    spinRejoinTrialBinning = new LabeledSpinner("Binning in X and Y: ",
+        spinnerModel);
+    spinRejoinTrialBinning.setTextMaxmimumSize(dimSpinner);
+    pnlTrialRejoinButton.add(spinRejoinTrialBinning.getContainer());
+    btnTrialRejoin.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnTrialRejoin.setSize();
+    pnlTrialRejoinButton.add(btnTrialRejoin);
+    //trial rejoin buttons
+    JPanel pnlTrialRejoinButtons = new JPanel();
+    pnlTrialRejoinButtons.setLayout(new BoxLayout(pnlTrialRejoinButtons,
+        BoxLayout.X_AXIS));
+    pnlTrialRejoinButtons.setBorder(new EtchedBorder("Trial Rejoin")
+        .getBorder());
+    pnlTrialRejoinButtons.add(Box.createHorizontalGlue());
+    pnlTrialRejoinButtons.add(pnlTrialRejoinButton.getContainer());
+    pnlTrialRejoinButtons.add(b3bOpenTrialRejoin.getContainer());
+    pnlRejoin.add(pnlTrialRejoinButtons);
+    //rejoin buttons
     JPanel pnlRejoinButtons = new JPanel();
     pnlRejoinButtons
         .setLayout(new BoxLayout(pnlRejoinButtons, BoxLayout.X_AXIS));
@@ -1001,6 +1049,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnRejoin.setSize();
     pnlRejoinButtons.add(b3bOpenRejoin.getContainer());
     pnlRejoin.add(pnlRejoinButtons);
+    //transform model
     SpacedPanel pnlTransformModel = new SpacedPanel();
     pnlTransformModel.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTransformModel
@@ -1009,6 +1058,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTransformModel.add(ftfModelFile.getContainer());
     ltfTransformedModel = new LabeledTextField("Output file: ");
     pnlTransformModel.add(ltfTransformedModel.getContainer());
+    //transform model buttons
     JPanel pnlTransformModelButtons = new JPanel();
     pnlTransformModelButtons.setLayout(new BoxLayout(pnlTransformModelButtons,
         BoxLayout.X_AXIS));
@@ -1153,6 +1203,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1,
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
+    spinnerValue.set((Integer) spinRejoinUseEveryNSlices.getValue());
+    spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1,
+        zMax < 1 ? 1 : zMax, 1);
+    spinRejoinUseEveryNSlices.setModel(spinnerModel);
     defaultSizeInXY();
   }
 
@@ -1256,6 +1310,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     metaData.setShiftInX(ltfShiftInX.getText());
     metaData.setShiftInY(ltfShiftInY.getText());
     metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
+    metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
     metaData.setTrialBinning(spinTrialBinning.getValue());
     metaData.setMidasLimit(ltfMidasLimit.getText());
     metaData.setModelTransform(tcModel.get());
@@ -1267,6 +1322,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     metaData.setGapInc(ltfGapInc.getText());
     metaData.setPointsToFitMin(ltfPointsToFitMin.getText());
     metaData.setPointsToFitMax(ltfPointsToFitMax.getText());
+    metaData.setRejoinTrialBinning(spinRejoinTrialBinning.getValue());
     boundaryTable.getMetaData();
     return pnlSectionTable.getMetaData(metaData);
   }
@@ -1294,6 +1350,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfShiftInX.setText(metaData.getShiftInX().toString());
     ltfShiftInY.setText(metaData.getShiftInY().toString());
     spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices().getNumber());
+    spinRejoinUseEveryNSlices.setValue(metaData.getRejoinUseEveryNSlices()
+        .getNumber());
     spinTrialBinning.setValue(metaData.getTrialBinning().getNumber());
     ltfMidasLimit.setText(metaData.getMidasLimit().toString());
     pnlSectionTable.setMetaData(metaData);
@@ -1309,6 +1367,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfGapInc.setText(metaData.getGapInc());
     ltfPointsToFitMin.setText(metaData.getPointsToFitMin());
     ltfPointsToFitMax.setText(metaData.getPointsToFitMax());
+    spinRejoinTrialBinning.setValue(metaData.getRejoinTrialBinning()
+        .getNumber());
   }
 
   public void setScreenState(JoinScreenState screenState) {
@@ -1404,6 +1464,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     if (!metaData.getUseEveryNSlices().equals(
         (Number) spinUseEveryNSlices.getValue())) {
+      return false;
+    }
+    if (!metaData.getRejoinUseEveryNSlices().equals(
+        (Number) spinRejoinUseEveryNSlices.getValue())) {
       return false;
     }
     if (!metaData.getTrialBinning()
@@ -1559,6 +1623,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     else if (command.equals(btnRejoin.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT);
     }
+    else if (command.equals(btnTrialRejoin.getActionCommand())) {
+      manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT);
+    }
     else if (command.equals(cbGap.getActionCommand())) {
       updateDisplay();
     }
@@ -1711,6 +1778,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     if (command.equals(b3bOpenRejoin.getActionCommand())) {
       manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getInt(),
+          DatasetFiles.getRefineAlignedModelFileName(manager), menuOptions);
+      return true;
+    }
+    if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
+      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin.getInt(),
           DatasetFiles.getRefineAlignedModelFileName(manager), menuOptions);
       return true;
     }
