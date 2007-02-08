@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/02/05 21:52:53  sueh
+ * <p> bug# 962 Added genRejoinOptions.
+ * <p>
  * <p> Revision 1.21  2006/10/25 14:59:08  sueh
  * <p> bug# 949 Temporarily printing the finishjoin command.
  * <p>
@@ -186,7 +189,7 @@ public final class FinishjoinParam implements CommandDetails {
     outputFile = new File(manager.getPropertyUserDir(), rootName
         + DatasetFiles.JOIN_EXT);
     ArrayList options;
-    if (mode == Mode.REJOIN || mode == Mode.SUPPRESS_EXECUTION) {
+    if (mode == Mode.REJOIN || mode == Mode.SUPPRESS_EXECUTION||mode==Mode.TRIAL_REJOIN) {
       options = genRejoinOptions();
     }
     else {
@@ -411,6 +414,19 @@ public final class FinishjoinParam implements CommandDetails {
       options.add(Integer.toString(state.getJoinShiftInX(trial).getInt() * -1)
           + "," + Integer.toString(state.getJoinShiftInY(trial).getInt() * -1));
     }
+    if (mode == Mode.TRIAL_REJOIN) {
+      ConstJoinMetaData metaData = manager.getConstMetaData();
+      options.add("-t");
+      EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(metaData
+          .getRejoinUseEveryNSlices());
+      options.add(rejoinUseEveryNSlices.toString());
+      ScriptParameter rejoinBinning = new ScriptParameter(metaData
+          .getRejoinTrialBinningParameter());
+      if (rejoinBinning.isUseInScript()) {
+        options.add("-b");
+        options.add(rejoinBinning.toString());
+      }
+    }
     options.add("-gaps");
     options.add("-xform");
     options.add(DatasetFiles.getRefineJoinXgFileName(manager));
@@ -486,6 +502,7 @@ public final class FinishjoinParam implements CommandDetails {
     public static final Mode MAX_SIZE = new Mode("MaxSize");
     public static final Mode TRIAL = new Mode("Trial");
     public static final Mode REJOIN = new Mode("Rejoin");
+    public static final Mode TRIAL_REJOIN = new Mode("TrialRejoin");
     public static final Mode SUPPRESS_EXECUTION = new Mode("SuppressExecution");
 
     private final String key;
