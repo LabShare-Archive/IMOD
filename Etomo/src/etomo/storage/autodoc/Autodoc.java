@@ -95,6 +95,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   public static final String UITEST_AXIS = "uitest_axis";
   public static final String DENS_MATCH = "densmatch";
   public static final String CORR_SEARCH_3D = "corrsearch3d";
+  public static final String XFJOINTOMO="xfjointomo";
 
   private static Autodoc TILTXCORR_INSTANCE = null;
   private static Autodoc TEST_INSTANCE = null;
@@ -108,6 +109,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private static Autodoc CPU_INSTANCE = null;
   private static Autodoc DENS_MATCH_INSTANCE = null;
   private static Autodoc CORR_SEARCH_3D_INSTANCE = null;
+  private static Autodoc XFJOINTOMO_INSTANCE=null;
 
   private static HashMap UITEST_AXIS_MAP = null;
 
@@ -236,6 +238,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     else if (name.equals(CORR_SEARCH_3D)) {
       CORR_SEARCH_3D_INSTANCE = null;
     }
+    else if (name.equals(XFJOINTOMO)) {
+      XFJOINTOMO_INSTANCE = null;
+    }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
@@ -295,6 +300,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     if (name.equals(CORR_SEARCH_3D)) {
       return CORR_SEARCH_3D_INSTANCE;
+    }
+    if (name.equals(XFJOINTOMO)) {
+      return XFJOINTOMO_INSTANCE;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
@@ -661,6 +669,10 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.8  2006/11/16 23:38:16  sueh
+ *<p> $bug# 872 Changed setDir_test to setTestDir.  Changed getTestAutodocDir to
+ *<p> $getTestDir.
+ *<p> $
  *<p> $Revision 1.7  2006/09/13 23:30:50  sueh
  *<p> $bug# 921 Adding corrsearch3d.adoc.
  *<p> $
