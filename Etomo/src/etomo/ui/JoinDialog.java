@@ -5,6 +5,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -29,9 +31,11 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
 import etomo.storage.ModelFileFilter;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
@@ -53,6 +57,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.41  2007/02/08 02:05:55  sueh
+ * <p> bug# 962 Added trial rejoin and removed a bug which made enabling the rejoin
+ * <p> button dependent on running the optional view-tranformed-model button.
+ * <p>
  * <p> Revision 1.40  2007/02/05 23:39:03  sueh
  * <p> bug# 962 Added model and rejoin tabs.
  * <p>
@@ -1125,7 +1133,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //seventh component
     b3bOpenIn3dmod = new BinnedXY3dmodButton(OPEN_IN_3DMOD, this);
     b3bOpenIn3dmod
-        .setSpinnerTooltip("The binning to use when opening the joined tomogram in 3dmod.");
+        .setSpinnerToolTipText("The binning to use when opening the joined tomogram in 3dmod.");
     pnlFinishJoin.add(b3bOpenIn3dmod.getContainer());
     //eight component
     pnlFinishJoin.add(cbRefineWithTrial);
@@ -1159,7 +1167,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //fourth component
     b3bOpenTrialIn3dmod = new BinnedXY3dmodButton("Open Trial in 3dmod", this);
     b3bOpenTrialIn3dmod
-        .setSpinnerTooltip("The binning to use when opening the trial joined tomogram in 3dmod.");
+        .setSpinnerToolTipText("The binning to use when opening the trial joined tomogram in 3dmod.");
     pnlTrialJoin.add(b3bOpenTrialIn3dmod.getContainer());
     //fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
@@ -1849,120 +1857,121 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   private void setToolTipText() {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    String toolTip = tooltipFormatter.setText(
-        "Enter the directory where you wish to place the joined tomogram.")
-        .format();
-    ftfWorkingDir.setToolTipText(toolTip);
-    ftfWorkingDir.setToolTipText(toolTip);
-    ltfRootName.setToolTipText(tooltipFormatter.setText(
-        "Enter the root name for the joined tomogram.").format());
-    toolTip = tooltipFormatter
-        .setText(
-            "The size to which samples will be squeezed if they are bigger (default 1024).")
-        .format();
-    ltfMidasLimit.setToolTipText(toolTip);
-    lblMidasLimit.setToolTipText(toolTip);
+    String text = "Enter the directory where you wish to place the joined tomogram.";
+    ftfWorkingDir.setToolTipText(text);
+    ftfWorkingDir.setToolTipText(text);
+    ltfRootName.setToolTipText("Enter the root name for the joined tomogram.");
+    text = "The size to which samples will be squeezed if they are bigger (default 1024).";
+    ltfMidasLimit.setToolTipText(text);
+    lblMidasLimit.setToolTipText(TooltipFormatter.INSTANCE.format(text));
     spinDensityRefSection
-        .setToolTipText(tooltipFormatter.setText(
-            "Select a section to use as a reference for density scaling.")
-            .format());
-    btnChangeSetup.setToolTipText(tooltipFormatter.setText(
-        "Press to redo an existing sample.").format());
-    btnRevertToLastSetup.setToolTipText(tooltipFormatter.setText(
-        "Press to go back to the existing sample.").format());
-    btnMakeSamples.setToolTipText(tooltipFormatter.setText(
-        "Press to make a sample.").format());
-    btnOpenSampleAverages.setToolTipText(tooltipFormatter.setText(
-        "Press to the sample averages file in 3dmod.").format());
-    btnOpenSample.setToolTipText(tooltipFormatter.setText(
-        "Press to the sample file in 3dmod.").format());
-    btnOpenSample.setToolTipText(tooltipFormatter.setText(
-        "Press to the sample file in 3dmod.").format());
+        .setToolTipText("Select a section to use as a reference for density scaling.");
+    btnChangeSetup.setToolTipText("Press to redo an existing sample.");
+    btnRevertToLastSetup
+        .setToolTipText("Press to go back to the existing sample.");
+    btnMakeSamples.setToolTipText("Press to make a sample.");
+    btnOpenSampleAverages
+        .setToolTipText("Press to the sample averages file in 3dmod.");
+    btnOpenSample.setToolTipText("Press to the sample file in 3dmod.");
+    btnOpenSample.setToolTipText("Press to the sample file in 3dmod.");
     ltfSigmaLowFrequency
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Sigma of an inverted gaussian for filtering out low frequencies before searching for transformation.")
-            .format());
+        .setToolTipText("Sigma of an inverted gaussian for filtering out low frequencies before searching for transformation.");
     ltfCutoffHighFrequency
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Starting radius of a gaussian for filtering out high frequencies before searching for transformation.")
-            .format());
+        .setToolTipText("Starting radius of a gaussian for filtering out high frequencies before searching for transformation.");
     ltfSigmaHighFrequency
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Sigma of gaussian for filtering out high frequencies before searching for transformation.")
-            .format());
+        .setToolTipText("Sigma of gaussian for filtering out high frequencies before searching for transformation.");
     btnInitialAutoAlignment
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "OPTIONAL:  Run xfalign.  Find preliminary translational alignments with tiltxcorr rather then using an existing .xf file.")
-            .format());
+        .setToolTipText("OPTIONAL:  Run xfalign.  Find preliminary translational alignments with tiltxcorr rather then using an existing .xf file.");
     btnMidas
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Open Midas to check the output of the auto alignment and to make transformations by hand.")
-            .format());
+        .setToolTipText("Open Midas to check the output of the auto alignment and to make transformations by hand.");
     btnRefineAutoAlignment
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "OPTIONAL:  Run xfalign using preliminary alignments created by the most recent use of Midas or xfalign.")
-            .format());
+        .setToolTipText("OPTIONAL:  Run xfalign using preliminary alignments created by the most recent use of Midas or xfalign.");
     btnRevertToMidas
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Use to ignore xfalign changes.  Returns transformations to the state created by the most recent save done in Midas.")
-            .format());
-    btnRevertToEmpty.setToolTipText(tooltipFormatter.setText(
-        "Use to remove all transformations.").format());
+        .setToolTipText("Use to ignore xfalign changes.  Returns transformations to the state created by the most recent save done in Midas.");
+    btnRevertToEmpty.setToolTipText("Use to remove all transformations.");
     cbsAlignmentRefSection
-        .setCheckBoxToolTipText(tooltipFormatter
-            .setText(
-                "Make a section the reference for alignment.  This means that the chosen section will not be transformed, and the other sections will be transformed into alignment with it.")
-            .format());
+        .setCheckBoxToolTipText("Make a section the reference for alignment.  This means that the chosen section will not be transformed, and the other sections will be transformed into alignment with it.");
     cbsAlignmentRefSection
-        .setSpinnerToolTipText(tooltipFormatter
-            .setText(
-                "Choose a section to be the reference for alignment.  This means that it will not be transformed, and the other sections will be transformed into alignment with it.")
-            .format());
+        .setSpinnerToolTipText("Choose a section to be the reference for alignment.  This means that it will not be transformed, and the other sections will be transformed into alignment with it.");
     btnGetMaxSize
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Compute the maximum size and offsets needed to contain the transformed images from all of the sections, given the current transformations.")
-            .format());
-    ltfSizeInX.setToolTipText(tooltipFormatter.setText(
-        "The size in X parameter for the trial and final joined tomograms.")
-        .format());
-    ltfSizeInY.setToolTipText(tooltipFormatter.setText(
-        "The size in Y parameter for the trial and final joined tomograms.")
-        .format());
-    ltfShiftInX.setToolTipText(tooltipFormatter.setText(
-        "The X offset parameter for the trial and final joined tomograms.")
-        .format());
-    ltfShiftInY.setToolTipText(tooltipFormatter.setText(
-        "The Y offset parameter for the trial and final joined tomograms.")
-        .format());
-    spinUseEveryNSlices.setToolTipText(tooltipFormatter.setText(
-        "Slices to use when creating the trial joined tomogram.").format());
-    spinTrialBinning
-        .setToolTipText(tooltipFormatter.setText(
-            "The binning to use when creating the trial joined tomogram.")
-            .format());
-    btnTrialJoin.setToolTipText(tooltipFormatter.setText(
-        "Press to make a trial version of the joined tomogram.").format());
+        .setToolTipText("Compute the maximum size and offsets needed to contain the transformed images from all of the sections, given the current transformations.");
+    ltfSizeInX
+        .setToolTipText("The size in X parameter for the trial and final joined tomograms.");
+    ltfSizeInY
+        .setToolTipText("The size in Y parameter for the trial and final joined tomograms.");
+    ltfShiftInX
+        .setToolTipText("The X offset parameter for the trial and final joined tomograms.");
+    ltfShiftInY
+        .setToolTipText("The Y offset parameter for the trial and final joined tomograms.");
+    text = "Slices to use when creating the trial joined tomogram.";
+    spinUseEveryNSlices.setToolTipText(text);
+    spinRejoinUseEveryNSlices.setToolTipText(text);
+    text = "The binning to use when creating the trial joined tomogram.";
+    spinTrialBinning.setToolTipText(text);
+    spinRejoinTrialBinning.setToolTipText(text);
+    btnTrialJoin
+        .setToolTipText("Press to make a trial version of the joined tomogram.");
     b3bOpenTrialIn3dmod
-        .setButtonTooltip("Press to open the trial joined tomogram.");
+        .setButtonToolTipText("Press to open the trial joined tomogram.");
     btnGetSubarea
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Press to get maximum size and shift from the trail joined tomogram using the rubber band functionality in 3dmod.")
-            .format());
-    btnFinishJoin.setToolTipText(tooltipFormatter.setText(
-        "Press to make the joined tomogram.").format());
+        .setToolTipText("Press to get maximum size and shift from the trail joined tomogram using the rubber band functionality in 3dmod.");
+    btnFinishJoin.setToolTipText("Press to make the joined tomogram.");
     b3bOpenIn3dmod
-        .setButtonTooltip("Press to open the joined tomogram in 3dmod.");
+        .setButtonToolTipText("Press to open the joined tomogram in 3dmod.");
+    cbRefineWithTrial
+        .setToolTipText("Check to make the refining model using the trial join.");
+    btnRefineJoin
+        .setToolTipText("Press to refine the serial section join using a refining model.");
+    btnMakeRefiningModel.setToolTipText("Press to create the refining model.");
+    Autodoc autodoc = null;
+    try {
+      autodoc = Autodoc.getInstance(Autodoc.XFJOINTOMO, AxisID.ONLY);
+      ltfBoundariesToAnalyze.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XfjointomoParam.BOUNDARIES_TO_ANALYZE_KEY));
+      ltfObjectsToInclude.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          XfjointomoParam.OBJECTS_TO_INCLUDE));
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    cbGap
+        .setToolTipText("Check to allow the the final start and end values to change when the join is recreated.  "
+            + "Uncheck keep the existing final start and end values");
+    if (autodoc != null) {
+      text = EtomoAutodoc
+          .getTooltip(autodoc, XfjointomoParam.GAP_START_END_INC);
+      if (text != null) {
+        ltfGapStart.setToolTipText(text);
+        ltfGapEnd.setToolTipText(text);
+        ltfGapInc.setToolTipText(text);
+      }
+      text = EtomoAutodoc.getTooltip(autodoc, XfjointomoParam.POINTS_TO_FIT);
+      if (text != null) {
+        ltfPointsToFitMin.setToolTipText(text);
+        ltfPointsToFitMax.setToolTipText(text);
+      }
+    }
+    btnXfjointomo
+        .setToolTipText("Press to run xfjointomo, "
+            + "which computes transforms for aligning tomograms of serial sections from features modeled on an initial joined tomogram.");
+    btnTransformAndViewModel
+        .setToolTipText("Press to apply tranformations to the refining model and view the result.");
+    btnRejoin
+        .setToolTipText("Press to make the joined tomogram using the adjusted end and start values.");
+    btnTrialRejoin
+        .setToolTipText("Press to make a trial version of the joined tomogram using the adjusted end and start values.");
+    ftfModelFile.setToolTipText("The model to transform.");
+    ltfTransformedModel.setToolTipText("The transformed model.");
+    btnTransformModel.setToolTipText("Press to transform the model");
+    b3bOpenRejoinWithModel
+        .setButtonToolTipText("Press to open the joined tomogram with the transformed model.");
+    b3bOpenTrialRejoin
+        .setButtonToolTipText("Press to open the trial joined tomogram with the transformed refining model.");
+    b3bOpenRejoin
+        .setButtonToolTipText("Press to open the joined tomogram with the transformed refining model.");
   }
 
   //
@@ -2082,7 +2091,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
     Container getContainer() {
       if (pnlTranslationChooser == null) {
-        TooltipFormatter tooltipFormatter = new TooltipFormatter();
         pnlTranslationChooser = new JPanel();
         pnlTranslationChooser.setLayout(new BoxLayout(pnlTranslationChooser,
             BoxLayout.Y_AXIS));
@@ -2097,22 +2105,15 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         //set default
         set(null);
         rbFullLinearTransformation
-            .setToolTipText(tooltipFormatter
-                .setText(
-                    "Use rotation, translation, magnification, and stretching to align images.")
-                .format());
+            .setToolTipText("Use rotation, translation, magnification, and stretching to align images.");
         rbRotationTranslationMagnification
-            .setToolTipText(tooltipFormatter
-                .setText(
-                    "Use translation, rotation, and magnification to align images.")
-                .format());
-        rbRotationTranslation.setToolTipText(tooltipFormatter.setText(
-            "Use translation and rotation to align images.").format());
+            .setToolTipText("Use translation, rotation, and magnification to align images.");
+        rbRotationTranslation
+            .setToolTipText("Use translation and rotation to align images.");
         if (includeTranslation) {
           group.add(rbTranslation);
           pnlTranslationChooser.add(rbTranslation);
-          rbTranslation.setToolTipText(tooltipFormatter.setText(
-              "Use translation to align images.").format());
+          rbTranslation.setToolTipText("Use translation to align images.");
         }
       }
       return pnlTranslationChooser;
@@ -2196,9 +2197,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return field.getText();
     }
 
-    void setToolTipText(String tooltip) {
-      field.setToolTipText(tooltip);
-      button.setToolTipText(tooltip);
+    void setToolTipText(String text) {
+      field.setToolTipText(text);
+      button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
     }
   }
 }
