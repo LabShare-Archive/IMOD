@@ -23,11 +23,19 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 22:49:36  sueh
+ * <p> bug# 962 Xfjointomo parameter object.
+ * <p> </p>
  */
 public final class XfjointomoParam {
   public static final String rcsid = "$Id$";
 
+  public static final String BOUNDARIES_TO_ANALYZE_KEY="BoundariesToAnalyze";
+  public static final String OBJECTS_TO_INCLUDE="ObjectsToInclude";
+  public static final String GAP_START_END_INC="GapStartEndInc";
+  public static final String POINTS_TO_FIT="PointsToFit";
+  
   static final String COMMAND_NAME = ProcessName.XFJOINTOMO.toString();
   
   private static final boolean debug = true;
@@ -155,19 +163,19 @@ public final class XfjointomoParam {
       command.add("-MagRotTrans");
     }
     if (!isNull(boundariesToAnalyze)) {
-      command.add("-BoundariesToAnalyze");
+      command.add("-"+BOUNDARIES_TO_ANALYZE_KEY);
       command.add(boundariesToAnalyze);
     }
     if (!isNull(pointsToFit)) {
-      command.add("-PointsToFit");
+      command.add("-"+POINTS_TO_FIT);
       command.add(pointsToFit);
     }
     if (!isNull(gapStartEndInc)) {
-      command.add("-GapStartEndInc");
+      command.add("-"+GAP_START_END_INC);
       command.add(gapStartEndInc);
     }
     if (!isNull(objectsToInclude)) {
-      command.add("-ObjectsToInclude");
+      command.add("-"+OBJECTS_TO_INCLUDE);
       command.add(objectsToInclude);
     }
     return command;
