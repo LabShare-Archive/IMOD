@@ -85,9 +85,9 @@ class HeaderCell {
     }
   }
 
-  final void setWarning(boolean warning, String tooltip) {
+  final void setWarning(boolean warning, String toolTipText) {
     setWarning(warning);
-    setToolTipText(tooltip);
+    setToolTipText(toolTipText);
   }
 
   final void setWarning(boolean warning) {
@@ -148,9 +148,8 @@ class HeaderCell {
     return cell.getWidth();
   }
 
-  final void setToolTipText(String toolTipText) {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    cell.setToolTipText(tooltipFormatter.setText(toolTipText).format());
+  final void setToolTipText(String text) {
+    cell.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
   final void pad() {
@@ -167,6 +166,9 @@ class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.14  2007/02/05 23:37:05  sueh
+ * * <p> bug# 962 Added getInt().
+ * * <p>
  * * <p> Revision 1.13  2006/10/17 20:19:18  sueh
  * * <p> bug# 919  Adding setWarning().  Changing boolean fixedColor to controlColor.
  * * <p>

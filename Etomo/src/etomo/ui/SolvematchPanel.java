@@ -42,6 +42,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2006/09/13 23:55:24  sueh
+ * <p> bug# 921 Added center shift limit
+ * <p>
  * <p> Revision 3.26  2006/09/05 17:41:10  sueh
  * <p> bug# 917 Moved Restart Combine button to solvematch panel.
  * <p>
@@ -357,7 +360,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
-  
+
   void setAdvanced(boolean state) {
     header.setAdvanced(state);
   }
@@ -630,9 +633,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
    * Initialize the tooltip text
    */
   private void setToolTipText() {
-    String text;
     Section section;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
       autodoc = Autodoc.getInstance(Autodoc.SOLVEMATCH, AxisID.ONLY);
@@ -645,57 +646,41 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     }
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         SolvematchParam.SURFACE_OR_USE_MODELS);
-
-    cbUseCorrespondingPoints.setToolTipText(tooltipFormatter.setText(
-        "Check to use the points in A and B in the transferfid log file.  "
-            + "Leave unchecked to use transferfid.coord.").format());
-
+    cbUseCorrespondingPoints
+        .setToolTipText("Check to use the points in A and B in the transferfid log file.  "
+            + "Leave unchecked to use transferfid.coord.");
     if (section != null) {
-      rbBothSides.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(section, SolvematchParam.BOTH_SIDES_OPTION))
-          .format());
-      rbOneSide.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(section, SolvematchParam.ONE_SIDE_OPTION))
-          .format());
-      rbOneSideInverted.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(section,
-              SolvematchParam.ONE_SIDE_INVERTED_OPTION)).format());
-      rbUseModel.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(section, SolvematchParam.USE_MODEL_OPTION))
-          .format());
-      rbUseModelOnly.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(section,
-              SolvematchParam.USE_MODEL_ONLY_OPTION)).format());
+      rbBothSides.setToolTipText(EtomoAutodoc.getTooltip(section,
+          SolvematchParam.BOTH_SIDES_OPTION));
+      rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(section,
+          SolvematchParam.ONE_SIDE_OPTION));
+      rbOneSideInverted.setToolTipText(EtomoAutodoc.getTooltip(section,
+          SolvematchParam.ONE_SIDE_INVERTED_OPTION));
+      rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(section,
+          SolvematchParam.USE_MODEL_OPTION));
+      rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(section,
+          SolvematchParam.USE_MODEL_ONLY_OPTION));
       if (initialPanel) {
-        text = "Restart the combine operation from the beginning with the parameters "
-            + "specified here.";
-        btnRestart.setToolTipText(tooltipFormatter.setText(text).format());
+        btnRestart
+            .setToolTipText("Restart the combine operation from the beginning with the parameters "
+                + "specified here.");
       }
     }
-
-    text = "Use binning by 2 when opening matching models to allow the two 3dmods "
-        + "to fit into the computer's memory.";
-    cbBinBy2.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Create models of corresponding points.";
-    btnImodMatchModels.setToolTipText(tooltipFormatter.setText(text).format());
-
-    ltfFiducialMatchListA.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc
-            .getTooltip(autodoc, SolvematchParam.TO_CORRESPONDENCE_LIST))
-        .format());
-    ltfFiducialMatchListB.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            SolvematchParam.FROM_CORRESPONDENCE_LIST)).format());
-    ltfUseList.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, SolvematchParam.USE_POINTS)).format());
+    cbBinBy2
+        .setToolTipText("Use binning by 2 when opening matching models to allow the two 3dmods "
+            + "to fit into the computer's memory.");
+    btnImodMatchModels.setToolTipText("Create models of corresponding points.");
+    ltfFiducialMatchListA.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        SolvematchParam.TO_CORRESPONDENCE_LIST));
+    ltfFiducialMatchListB.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        SolvematchParam.FROM_CORRESPONDENCE_LIST));
+    ltfUseList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        SolvematchParam.USE_POINTS));
     if (initialPanel) {
-      ltfResidulThreshold.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(autodoc, SolvematchParam.MAXIMUM_RESIDUAL))
-          .format());
-      ltfCenterShiftLimit.setToolTipText(tooltipFormatter.setText(
-          EtomoAutodoc.getTooltip(autodoc,
-              SolvematchParam.CENTER_SHIFT_LIMIT_KEY)).format());
+      ltfResidulThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          SolvematchParam.MAXIMUM_RESIDUAL));
+      ltfCenterShiftLimit.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          SolvematchParam.CENTER_SHIFT_LIMIT_KEY));
     }
   }
 }

@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2006/08/08 21:16:47  sueh
+ * <p> bug# 438 Correct compact display.
+ * <p>
  * <p> Revision 1.24  2006/07/31 21:46:50  sueh
  * <p> bug# 438 Fixing the size of the axis buttons.  Stacking the axis buttons for a
  * <p> compact display
@@ -570,52 +573,36 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    bothAxisTooltip = tooltipFormatter.setText("See Axis A and B.").format();
-    axisATooltip = tooltipFormatter.setText("See Axis A only.").format();
-    axisBTooltip = tooltipFormatter.setText("See Axis B only.").format();
-
-    text = "Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
-        + " CCD rows from the raw projection stack.";
-    procCtlPreProc.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Open the Coarse Alignment panel to generate a coarsely aligned "
-        + "stack using cross correlation and to fix coarse alignment problems "
-        + "with Midas.";
-    procCtlCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Open the Fiducial Model Generation panel to create a fiducial "
-        + "model to be used in the fine alignment step.";
+    bothAxisTooltip = TooltipFormatter.INSTANCE.format("See Axis A and B.");
+    axisATooltip = TooltipFormatter.INSTANCE.format("See Axis A only.");
+    axisBTooltip = TooltipFormatter.INSTANCE.format("See Axis B only.");
+    procCtlPreProc
+        .setToolTipText("Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
+            + " CCD rows from the raw projection stack.");
+    procCtlCoarseAlign
+        .setToolTipText("Open the Coarse Alignment panel to generate a coarsely aligned "
+            + "stack using cross correlation and to fix coarse alignment problems "
+            + "with Midas.");
     procCtlFiducialModel
-        .setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Open the Fine Alignment panel to use the generated fiducial model to "
-        + "sub-pixel align the project sequence.";
+        .setToolTipText("Open the Fiducial Model Generation panel to create a fiducial "
+            + "model to be used in the fine alignment step.");
     procCtlFineAlignment
-        .setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Open the Tomogram Position panel to optimally adjust the 3D location "
-        + "and size of the reconstruction volume.";
-    procCtlTomogramPositioning.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Open the Tomogram Generation panel to generate the final aligned "
-        + "stack and calcuate the tomographic reconstruction.";
-    procCtlTomogramGeneration.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Open the Tomogram Combination panel to combine the tomograms generated "
-        + "from the A and B axes into a single dual axis reconstruction.";
-    procCtlTomogramCombination.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Open the Post Processing panel to trim the final reconstruction to size"
-        + " and squeeze the final reconstruction volume.";
-    procCtlPostProcessing.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Open the Clean Up panel to delete the intermediate files.";
-    procCtlCleanUp.setToolTipText(tooltipFormatter.setText(text).format());
+        .setToolTipText("Open the Fine Alignment panel to use the generated fiducial model to "
+            + "sub-pixel align the project sequence.");
+    procCtlTomogramPositioning
+        .setToolTipText("Open the Tomogram Position panel to optimally adjust the 3D location "
+            + "and size of the reconstruction volume.");
+    procCtlTomogramGeneration
+        .setToolTipText("Open the Tomogram Generation panel to generate the final aligned "
+            + "stack and calcuate the tomographic reconstruction.");
+    procCtlTomogramCombination
+        .setToolTipText("Open the Tomogram Combination panel to combine the tomograms generated "
+            + "from the A and B axes into a single dual axis reconstruction.");
+    procCtlPostProcessing
+        .setToolTipText("Open the Post Processing panel to trim the final reconstruction to size"
+            + " and squeeze the final reconstruction volume.");
+    procCtlCleanUp
+        .setToolTipText("Open the Clean Up panel to delete the intermediate files.");
   }
 
   /**

@@ -118,9 +118,8 @@ class SpinnerCell extends InputCell {
     spinner.removeChangeListener(changeListener);
   }
 
-  void setToolTipText(String toolTipText) {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    String tooltip = tooltipFormatter.setText(toolTipText).format();
+  void setToolTipText(String text) {
+    String tooltip = TooltipFormatter.INSTANCE.format(text);
     spinner.setToolTipText(tooltip);
     getTextField().setToolTipText(tooltip);
   }
@@ -186,6 +185,10 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/02/05 23:45:23  sueh
+ * <p> bug# 962 Added getIntInstance, getIntValue, getLongInstance, getLongValue,
+ * <p> getStringValue, and removeChangeListener.
+ * <p>
  * <p> Revision 1.7  2006/10/16 22:53:13  sueh
  * <p> bug# 919  Added setToolTipText().
  * <p>

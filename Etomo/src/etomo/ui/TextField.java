@@ -37,7 +37,14 @@ final class TextField extends JTextField {
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
+  
+  public void setToolTipText(String text) {
+    super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/09/13 23:58:14  sueh
+ * <p> bug# 924 Added TextField:  extends JTextField and automatically names itself.
+ * <p> </p>
  */

@@ -14,28 +14,28 @@ import etomo.type.AxisType;
 import etomo.type.DialogType;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class CleanUpDialog extends ProcessDialog implements ContextMenu {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private CleanupPanel cleanupPanel;
   private MultiLineButton btnArchiveStack = new MultiLineButton();
   private JLabel archiveInfoA = new JLabel();
   private JLabel archiveInfoB = new JLabel();
-  
+
   private AxisType axisType;
-  
+
   public CleanUpDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.CLEAN_UP);
     this.axisType = appMgr.getBaseMetaData().getAxisType();
@@ -67,7 +67,6 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
 
-
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
@@ -76,14 +75,14 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     setToolTipText();
     updateAdvanced();
   }
-  
+
   public final void updateArchiveDisplay(boolean originalStacksExist) {
     if (btnArchiveStack == null) {
       return;
     }
     btnArchiveStack.setEnabled(originalStacksExist);
   }
-  
+
   /**
    * Set the status of the archive information labels.
    */
@@ -127,7 +126,8 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    new ContextPopup(rootPanel, mouseEvent, "Cleaning Up", ContextPopup.TOMO_GUIDE, applicationManager, axisID);
+    new ContextPopup(rootPanel, mouseEvent, "Cleaning Up",
+        ContextPopup.TOMO_GUIDE, applicationManager, axisID);
   }
 
   /**
@@ -136,34 +136,31 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
   private void updateAdvanced() {
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   protected void done() {
     applicationManager.doneCleanUp();
     setDisplayed(false);
   }
-  
+
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnArchiveStack.getText())) {
       applicationManager.archiveOriginalStack();
     }
   }
-  
+
   /**
    * Initialize the tooltip text
    */
-   private void setToolTipText() {
-     String text;
-     TooltipFormatter tooltipFormatter = new TooltipFormatter();
+  private void setToolTipText() {
+    btnArchiveStack
+        .setToolTipText("Run archiveorig.  Archiveorig creates a _xray.st.gz file, which"
+            + " contains the difference between the .st file and the _orig.st "
+            + " file.  If archiveorig succeeds, then you can delete the _orig.st "
+            + "file.  To restore _orig.st, go to the directory containing the "
+            + "_xray.st.gz file and run \"archiveorig -r\" on the .st file.");
+  }
 
-     text = "Run archiveorig.  Archiveorig creates a _xray.st.gz file, which" +
-         " contains the difference between the .st file and the _orig.st " +
-         " file.  If archiveorig succeeds, then you can delete the _orig.st " +
-         "file.  To restore _orig.st, go to the directory containing the " +
-         "_xray.st.gz file and run \"archiveorig -r\" on the .st file.";
-     btnArchiveStack.setToolTipText(tooltipFormatter.setText(text).format());
-   }
-  
   /*
    *  
    */
@@ -179,10 +176,14 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     }
   }
 
-
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/06/30 20:00:37  sueh
+ * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
+ * <p> which is called by the button action functions and saveAction() in
+ * <p> ProcessDialog.  Removed the button action function overides.
+ * <p>
  * <p> Revision 1.10  2006/06/21 15:50:25  sueh
  * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
  * <p> be run.
@@ -223,4 +224,4 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
  * <p> bug# 621 Moved the clean up panel in post processing to a separate
  * <p> dialog.
  * <p> </p>
-*/ 
+ */

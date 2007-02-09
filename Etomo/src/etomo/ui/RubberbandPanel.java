@@ -137,21 +137,14 @@ public final class RubberbandPanel {
 
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    ltfXMin.setToolTipText(tooltipFormatter.setText(strings.xMinTooltip)
-        .format());
-    ltfXMax.setToolTipText(tooltipFormatter.setText(strings.xMaxTooltip)
-        .format());
-    ltfYMin.setToolTipText(tooltipFormatter.setText(strings.yMinTooltip)
-        .format());
-    ltfYMax.setToolTipText(tooltipFormatter.setText(strings.yMaxTooltip)
-        .format());
-    btnRubberband.setToolTipText(tooltipFormatter.setText(
-        "After pressing the " + strings.buttonLabel + " button, "
-            + "press shift-B in the ZaP window.  "
-            + "Create a rubberband around the contrast range.  "
-            + "Then press this button to retrieve X and Y coordinates.")
-        .format());
+    ltfXMin.setToolTipText(strings.xMinTooltip);
+    ltfXMax.setToolTipText(strings.xMaxTooltip);
+    ltfYMin.setToolTipText(strings.yMinTooltip);
+    ltfYMax.setToolTipText(strings.yMaxTooltip);
+    btnRubberband.setToolTipText("After pressing the " + strings.buttonLabel
+        + " button, " + "press shift-B in the ZaP window.  "
+        + "Create a rubberband around the contrast range.  "
+        + "Then press this button to retrieve X and Y coordinates.");
   }
 
   private static final class RubberbandActionListener implements ActionListener {
@@ -199,6 +192,9 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/08/16 22:41:46  sueh
+ * <p> bug# 912 Make panel less flexible
+ * <p>
  * <p> Revision 1.2  2006/08/16 18:51:56  sueh
  * <p> bug# 912 Making panel generic so it can be used for all places where a
  * <p> rubberband is used.

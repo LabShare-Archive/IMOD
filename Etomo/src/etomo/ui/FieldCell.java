@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/02/05 23:36:06  sueh
+ * <p> bug# 962 Added getFloatValue and setValue(ConstEtomoNumber).
+ * <p>
  * <p> Revision 1.11  2006/03/21 19:38:00  sueh
  * <p> bug# 807 Add the ability to set and retrieve a range of integers.  Added
  * <p> range, endValue, getEndValue(), setRangeValue().
@@ -214,8 +217,7 @@ final class FieldCell extends InputCell {
     return textField.getBorder().getBorderInsets(textField).right;
   }
   
-  void setToolTipText(String toolTipText) {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    textField.setToolTipText(tooltipFormatter.setText(toolTipText).format());
+  void setToolTipText(String text) {
+    textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 }

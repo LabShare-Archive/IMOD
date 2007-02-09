@@ -26,6 +26,9 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2006/01/03 23:58:37  sueh
+ * <p> bug# 675 Converted JRadioButton's toRadioButton.
+ * <p>
  * <p> Revision 3.2  2004/08/03 18:51:27  sueh
  * <p> bug# 519 removing rangeMax
  * <p>
@@ -59,38 +62,36 @@ import etomo.ui.TooltipFormatter;
  * <p> </p>
  */
 public class TiltAngleDialogPanel {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private JPanel panelTiltAngleSource = new JPanel();
 
-  private RadioButton rbTiltAngleExtract =
-    new RadioButton("Extract tilt angles from data");
+  private RadioButton rbTiltAngleExtract = new RadioButton(
+      "Extract tilt angles from data");
 
   private JPanel panelTiltAngleSpecify = new JPanel();
-  private RadioButton rbTiltAngleSpecify =
-    new RadioButton("Specify the starting angle and step (degrees)");
-  private LabeledTextField ltfAngleMin =
-    new LabeledTextField("Starting angle:");
+  private RadioButton rbTiltAngleSpecify = new RadioButton(
+      "Specify the starting angle and step (degrees)");
+  private LabeledTextField ltfAngleMin = new LabeledTextField("Starting angle:");
   private LabeledTextField ltfAngleStep = new LabeledTextField("Increment:");
 
-  private RadioButton rbTiltAngleFile =
-    new RadioButton("Tilt angles in existing rawtlt file");
+  private RadioButton rbTiltAngleFile = new RadioButton(
+      "Tilt angles in existing rawtlt file");
 
   private ButtonGroup bgTiltAngleSource = new ButtonGroup();
 
   TiltAngleDialogPanel() {
 
     panelTiltAngleSpecify.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panelTiltAngleSpecify.setLayout(
-      new BoxLayout(panelTiltAngleSpecify, BoxLayout.X_AXIS));
+    panelTiltAngleSpecify.setLayout(new BoxLayout(panelTiltAngleSpecify,
+        BoxLayout.X_AXIS));
     panelTiltAngleSpecify.add(ltfAngleMin.getContainer());
     panelTiltAngleSpecify.add(Box.createRigidArea(FixedDim.x10_y0));
     panelTiltAngleSpecify.add(ltfAngleStep.getContainer());
     panelTiltAngleSpecify.add(Box.createHorizontalGlue());
 
-    panelTiltAngleSource.setLayout(
-      new BoxLayout(panelTiltAngleSource, BoxLayout.Y_AXIS));
+    panelTiltAngleSource.setLayout(new BoxLayout(panelTiltAngleSource,
+        BoxLayout.Y_AXIS));
     panelTiltAngleSource.add(rbTiltAngleExtract);
     panelTiltAngleSource.add(rbTiltAngleSpecify);
     panelTiltAngleSource.add(panelTiltAngleSpecify);
@@ -105,8 +106,8 @@ public class TiltAngleDialogPanel {
     bgTiltAngleSource.add(rbTiltAngleSpecify);
     bgTiltAngleSource.add(rbTiltAngleFile);
 
-    TiltAngleDialogListener tiltAlignRadioButtonListener =
-      new TiltAngleDialogListener(this);
+    TiltAngleDialogListener tiltAlignRadioButtonListener = new TiltAngleDialogListener(
+        this);
     rbTiltAngleExtract.addActionListener(tiltAlignRadioButtonListener);
     rbTiltAngleFile.addActionListener(tiltAlignRadioButtonListener);
     rbTiltAngleSpecify.addActionListener(tiltAlignRadioButtonListener);
@@ -179,33 +180,25 @@ public class TiltAngleDialogPanel {
   }
 
   void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Specify the source of the view tilt angles";
-    panelTiltAngleSource.setToolTipText(
-      tooltipFormatter.setText(text).format());
-    text =
-      "Select the Extract option if the extended header of the "
-        + "raw data stack contains the angles";
-    rbTiltAngleExtract.setToolTipText(tooltipFormatter.setText(text).format());
-    text =
-      "Select the Specify option if you wish to manually "
-        + "specify the tilt angles in the edit boxes below";
-    rbTiltAngleSpecify.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Starting tilt angle of the series";
-    ltfAngleMin.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Tilt increment between views";
-    ltfAngleStep.setToolTipText(tooltipFormatter.setText(text).format());
-    text =
-      "Select the File option if the tilt angles already exist "
-        + "in a *.rawtlt file";
-    rbTiltAngleFile.setToolTipText(tooltipFormatter.setText(text).format());
+    panelTiltAngleSource.setToolTipText(TooltipFormatter.INSTANCE
+        .format("Specify the source of the view tilt angles"));
+    rbTiltAngleExtract
+        .setToolTipText("Select the Extract option if the extended header of the "
+            + "raw data stack contains the angles");
+    rbTiltAngleSpecify
+        .setToolTipText("Select the Specify option if you wish to manually "
+            + "specify the tilt angles in the edit boxes below");
+    ltfAngleMin.setToolTipText("Starting tilt angle of the series");
+    ltfAngleStep.setToolTipText("Tilt increment between views");
+    rbTiltAngleFile
+        .setToolTipText("Select the File option if the tilt angles already exist "
+            + "in a *.rawtlt file");
   }
 
   //  Set the state of the text fields depending upon the radio button state
   void setRadioButtonState(ActionEvent event) {
-    enableTiltAngleSpecifyFields(
-      event.getActionCommand().equals(rbTiltAngleSpecify.getText()));
+    enableTiltAngleSpecifyFields(event.getActionCommand().equals(
+        rbTiltAngleSpecify.getText()));
   }
 
   void enableTiltAngleSpecifyFields(boolean enable) {

@@ -42,6 +42,10 @@ final class RadioButton extends JRadioButton {
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
+  
+  public void setToolTipText(String text) {
+    super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
 
   /*
    public RadioButton() {
@@ -82,6 +86,10 @@ final class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/05/16 21:36:30  sueh
+ * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
+ * <p> see what the name is.
+ * <p>
  * <p> Revision 1.6  2006/04/25 19:19:47  sueh
  * <p> bug# 787 Added UITestField, an enum style class which contains the
  * <p> fields found in uitestaxis.adoc files.

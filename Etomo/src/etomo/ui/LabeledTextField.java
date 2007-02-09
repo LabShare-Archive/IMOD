@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2007/02/05 23:39:48  sueh
+ * <p> bug# 962 Added setHighlight.
+ * <p>
  * <p> Revision 3.19  2006/05/19 19:47:37  sueh
  * <p> bug# 866 Added setText(ConstEtomoNumber)
  * <p>
@@ -302,9 +305,10 @@ public class LabeledTextField {
     panel.setAlignmentX(alignment);
   }
 
-  public void setToolTipText(String toolTipText) {
-    panel.setToolTipText(toolTipText);
-    textField.setToolTipText(toolTipText);
+  public void setToolTipText(String text) {
+    String tooltip = TooltipFormatter.INSTANCE.format(text);
+    panel.setToolTipText(tooltip);
+    textField.setToolTipText(tooltip);
   }
 
   public void addMouseListener(MouseListener listener) {

@@ -34,6 +34,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2006/07/05 23:25:15  sueh
+ * <p> Get fine alignment fix fiducials to set the right mode.
+ * <p>
  * <p> Revision 3.22  2006/07/04 20:41:18  sueh
  * <p> bug# 898 Don't remove action listeners unless the done dialog function
  * <p> succeeds.
@@ -423,8 +426,10 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, null, ImodProcess.RESIDUAL_MODE);
-    } else if (command.equals(btnViewResiduals.getActionCommand())) {
+      applicationManager.imodFixFiducials(axisID, menuOptions, null,
+          ImodProcess.RESIDUAL_MODE);
+    }
+    else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, menuOptions);
     }
   }
@@ -434,9 +439,11 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     String command = event.getActionCommand();
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment);
-    } else if (command.equals(btnView3DModel.getActionCommand())) {
+    }
+    else if (command.equals(btnView3DModel.getActionCommand())) {
       applicationManager.imodView3DModel(axisID);
-    } else {
+    }
+    else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
@@ -460,17 +467,11 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
    */
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Run Tiltalign with current parameters.";
-    btnComputeAlignment.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View fiducial model on the image stack in 3dmod.";
-    btnImod.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View model of solved 3D locations of fiducial points in 3dmodv.";
-    btnView3DModel.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Show model of residual vectors (exaggerated 10x) on the image stack.";
-    btnViewResiduals.setToolTipText(tooltipFormatter.setText(text).format());
+    btnComputeAlignment.setToolTipText("Run Tiltalign with current parameters.");
+    btnImod.setToolTipText("View fiducial model on the image stack in 3dmod.");
+    btnView3DModel
+        .setToolTipText("View model of solved 3D locations of fiducial points in 3dmodv.");
+    btnViewResiduals
+        .setToolTipText("Show model of residual vectors (exaggerated 10x) on the image stack.");
   }
 }

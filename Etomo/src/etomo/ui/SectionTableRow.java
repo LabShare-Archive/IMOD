@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/02/05 23:43:42  sueh
+ * <p> bug# 962 Added rejoin display.
+ * <p>
  * <p> Revision 1.24  2006/10/17 20:21:16  sueh
  * <p> bug# 919  setInverted():  Removing setWarning call from referenceSection and
  * <p> currentSection.  Adding setWarning call to rowNumber.
@@ -574,7 +577,7 @@ public final class SectionTableRow {
     joinFinalStart.setEnabled(true);
     joinFinalEnd.setEnabled(true);
   }
-  
+
   private void addRejoin(JPanel panel) {
     addJoin(panel);
     joinFinalStart.setEnabled(false);
@@ -913,12 +916,14 @@ public final class SectionTableRow {
     }
   }
 
-  final void imodOpenSetupSectionFile(int binning,Run3dmodMenuOptions menuOptions) {
+  final void imodOpenSetupSectionFile(int binning,
+      Run3dmodMenuOptions menuOptions) {
     imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, data
         .getSetupSection(), binning, menuOptions);
   }
 
-  final void imodOpenJoinSectionFile(int binning,Run3dmodMenuOptions menuOptions) {
+  final void imodOpenJoinSectionFile(int binning,
+      Run3dmodMenuOptions menuOptions) {
     File joinSection = data.getJoinSection();
     if (DatasetFiles.isRotatedTomogram(joinSection)) {
       imodRotIndex = manager.imodOpen(ImodManager.ROT_TOMOGRAM_KEY,
@@ -959,11 +964,8 @@ public final class SectionTableRow {
   }
 
   private void setToolTipText() {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    highlighterButton.setToolTipText(tooltipFormatter.setText(
-        "Press to select the section.").format());
-    currentChunk.setToolTipText(tooltipFormatter.setText(
-        "The number of the chunk in Midas.").format());
+    highlighterButton.setToolTipText("Press to select the section.");
+    currentChunk.setToolTipText("The number of the chunk in Midas.");
   }
 
   /**

@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/02/05 23:39:32  sueh
+ * <p> bug# 962 Added setHighlight.
+ * <p>
  * <p> Revision 1.14  2006/11/07 22:44:13  sueh
  * <p> bug# 954 Added tooltip to label.
  * <p>
@@ -223,11 +226,12 @@ public class LabeledSpinner {
     panel.setAlignmentX(alignment);
   }
 
-  public void setToolTipText(String toolTipText) {
-    panel.setToolTipText(toolTipText);
-    spinner.setToolTipText(toolTipText);
-    getTextField().setToolTipText(toolTipText);
-    label.setToolTipText(toolTipText);
+  public void setToolTipText(String text) {
+    String tooltip=TooltipFormatter.INSTANCE.format(text);
+    panel.setToolTipText(tooltip);
+    spinner.setToolTipText(tooltip);
+    getTextField().setToolTipText(tooltip);
+    label.setToolTipText(tooltip);
   }
 
   public void addMouseListener(MouseListener listener) {

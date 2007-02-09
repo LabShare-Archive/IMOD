@@ -24,7 +24,10 @@ import javax.swing.SpinnerNumberModel;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:33:17  sueh
+ * <p> bug# 962 Composite display class containing a spinner and a button.
+ * <p> </p>
  */
 final class BinnedXY3dmodButton {
   public static final String rcsid = "$Id$";
@@ -66,14 +69,13 @@ final class BinnedXY3dmodButton {
     return panel;
   }
 
-  void setSpinnerTooltip(String tooltip) {
-    tooltip = new TooltipFormatter().setText(tooltip).format();
-    spinner.setToolTipText(tooltip);
-    label.setToolTipText(tooltip);
+  void setSpinnerToolTipText(String text) {
+    spinner.setToolTipText(text);
+    label.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  void setButtonTooltip(String tooltip) {
-    button.setToolTipText(new TooltipFormatter().setText(tooltip).format());
+  void setButtonToolTipText(String text) {
+    button.setToolTipText(text);
   }
 
   void addActionListener(ActionListener actionListener) {

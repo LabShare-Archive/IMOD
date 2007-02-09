@@ -48,7 +48,6 @@ final class ProcessorTableRow implements Storable {
   private final FieldCell cellOS = new FieldCell();
   private final CheckBoxCell cellComputer = new CheckBoxCell();
   private final FieldCell cellCPUType = new FieldCell();
-  private final TooltipFormatter tooltipFormatter = new TooltipFormatter();
 
   private ProcessorTable table = null;
   private InputCell cellCPUsSelected = null;
@@ -268,9 +267,8 @@ final class ProcessorTableRow implements Storable {
     cellComputer.setSelected(false);
     setSelected(false);
     cellFailureReason.setValue(reason);
-    cellFailureReason.setToolTipText(tooltipFormatter.setText(
-        "This computer was dropped from the current distributed process.")
-        .format());
+    cellFailureReason
+        .setToolTipText("This computer was dropped from the current distributed process.");
   }
 
   private void setSelected(boolean selected) {
@@ -399,8 +397,8 @@ final class ProcessorTableRow implements Storable {
     }
     setSelectedError();
     cellFailureReason.setValue(reason);
-    cellFailureReason.setToolTipText(tooltipFormatter.setText(
-        "Unable to get the " + loadName + " for this computer.").format());
+    cellFailureReason.setToolTipText("Unable to get the " + loadName
+        + " for this computer.");
   }
 
   final void clearFailureReason(String failureReason) {
@@ -489,6 +487,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2007/02/05 23:42:05  sueh
+ * <p> bug# 962 Added SpinnerCell.getInstance.
+ * <p>
  * <p> Revision 1.24  2006/11/29 00:22:13  sueh
  * <p> bug# 934 Added the parameter String failureReason to clearFailureReason(), so
  * <p> that it won't delete a failure reason by another processes.  Changed

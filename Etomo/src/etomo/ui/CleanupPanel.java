@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.13  2006/07/05 23:25:45  sueh
+ * Get rid of multiple error messages when files are deleted.
+ *
  * Revision 3.12  2005/11/14 21:40:04  sueh
  * bug# 762 Made buttonAction() protected.
  *
@@ -139,20 +142,19 @@ import etomo.util.Utilities;
  * Generation>Code Template
  */
 public class CleanupPanel {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
   ApplicationManager applicationManager;
 
   private JPanel pnlCleanup = new JPanel();
-  private JLabel instructions =
-    new JLabel("Select files to be deleted then press the \"Delete Selected\" button. Ctrl-A selects all displayed files.");
+  private JLabel instructions = new JLabel(
+      "Select files to be deleted then press the \"Delete Selected\" button. Ctrl-A selects all displayed files.");
 
   JFileChooser fileChooser;
   IntermediateFileFilter intermediateFileFilter;
   BackupFileFilter backupFileFilter;
   private JPanel pnlButton = new JPanel();
-  MultiLineButton btnDelete = new MultiLineButton("<html><b>Delete Selected</b>");
-  MultiLineButton btnRescanDir = new MultiLineButton("<html><b>Rescan Directory</b>");
+  MultiLineButton btnDelete = new MultiLineButton("Delete Selected");
+  MultiLineButton btnRescanDir = new MultiLineButton("Rescan Directory");
 
   public CleanupPanel(ApplicationManager appMgr) {
     applicationManager = appMgr;
@@ -163,11 +165,11 @@ public class CleanupPanel {
 
     //  Create the filechooser
     String datasetName = applicationManager.getMetaData().getDatasetName();
-    intermediateFileFilter =
-      new IntermediateFileFilter(datasetName);
+    intermediateFileFilter = new IntermediateFileFilter(datasetName);
     File trimmedTomogram = new File(applicationManager.getPropertyUserDir(),
         datasetName + ".rec");
-    intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram.exists());
+    intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram
+        .exists());
     backupFileFilter = new BackupFileFilter();
 
     fileChooser = new JFileChooser();
@@ -227,11 +229,13 @@ public class CleanupPanel {
     fileChooser.rescanCurrentDirectory();
     fileChooser.setSelectedFile(new File(""));
     if (!deletedAll) {
-      StringBuffer message = new StringBuffer("Unable to delete file(s).  "+"Check file permissions.");
+      StringBuffer message = new StringBuffer("Unable to delete file(s).  "
+          + "Check file permissions.");
       if (Utilities.isWindowsOS()) {
         message.append("\nIf the files are open in 3dmod, close 3dmod.");
       }
-      UIHarness.INSTANCE.openMessageDialog(message.toString(), "Unable to delete intermediate file", AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(message.toString(),
+          "Unable to delete intermediate file", AxisID.ONLY);
     }
   }
 
@@ -261,23 +265,16 @@ public class CleanupPanel {
       listenee.buttonAction(event);
     }
   }
+
   /**
-  * Initialize the tooltip text
-  */
+   * Initialize the tooltip text
+   */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = "The list of files in this text box will be deleted.";
-    fileChooser.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Select the type of files to show in the file selection box.";
-
-    text = "Delete the files listed in the \"File name\" text box.";
-    btnDelete.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text =
-      "Read the directory again to update the list in the file selection box.";
-    btnRescanDir.setToolTipText(tooltipFormatter.setText(text).format());
+    fileChooser.setToolTipText(TooltipFormatter.INSTANCE
+        .format("The list of files in this text box will be deleted."));
+    btnDelete
+        .setToolTipText("Delete the files listed in the \"File name\" text box.");
+    btnRescanDir
+        .setToolTipText("Read the directory again to update the list in the file selection box.");
   }
 }

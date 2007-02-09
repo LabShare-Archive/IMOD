@@ -122,9 +122,11 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     //rootPanel
     rootPanel.add(header.getContainer());
     rootPanel.add(bodyPanel.getContainer());
-    ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE
+        .getFourDigitWidth());
     ltfChunksFinished.setEditable(false);
-    ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE
+        .getFourDigitWidth());
     ltfCPUsSelected.setEditable(false);
     processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(false);
@@ -142,7 +144,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   public final void start() {
     processorTable.startGetLoadAverage(this);
   }
-  
+
   public final void end() {
     processorTable.endGetLoadAverage(this);
   }
@@ -154,7 +156,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   final void startGetLoadAverage(String computer) {
     manager.startGetLoadAverage(this, computer);
   }
-  
+
   final void endGetLoadAverage(String computer) {
     if (loadAverageMonitor != null) {
       manager.endGetLoadAverage(this, computer);
@@ -178,7 +180,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
       int users, String usersTooltip) {
     processorTable.setLoadAverage(computer, load1, load5, users, usersTooltip);
   }
-  
+
   public final void setCPUUsage(String computer, double cpuUsage) {
     processorTable.setCPUUsage(computer, cpuUsage);
   }
@@ -264,7 +266,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     if (autodoc == null) {
       System.err
-          .println("Unable to display the rows of the processor table./nMissing $"+EnvironmentVariable.CALIB_DIR+"/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
+          .println("Unable to display the rows of the processor table./nMissing $"
+              + EnvironmentVariable.CALIB_DIR
+              + "/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
     }
     return autodoc;
   }
@@ -445,28 +449,17 @@ public final class ParallelPanel implements ParallelProgressDisplay,
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    ltfCPUsSelected.setToolTipText(tooltipFormatter.setText(
-        "Must be at least 1.").format());
+    ltfCPUsSelected.setToolTipText("Must be at least 1.");
     lsNice
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Lower the value to run the processes at a higher priority.  Raise the value to run at a lower priority.")
-            .format());
-    btnPause.setToolTipText(tooltipFormatter.setText(
-        "Finishes the processes that are currently running and then stops.")
-        .format());
-    btnPause.setToolTipText(tooltipFormatter.setText(
-        "Finishes the processes that are currently running and then stops.")
-        .format());
+        .setToolTipText("Lower the value to run the processes at a higher priority.  Raise the value to run at a lower priority.");
+    btnPause
+        .setToolTipText("Finishes the processes that are currently running and then stops.");
+    btnPause
+        .setToolTipText("Finishes the processes that are currently running and then stops.");
     btnResume
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Starts the process but does not redo the chunks that are already completed.")
-            .format());
-    btnSaveDefaults.setToolTipText(tooltipFormatter.setText(
-        "Saves the computers and number of CPUs selected.").format());
+        .setToolTipText("Starts the process but does not redo the chunks that are already completed.");
+    btnSaveDefaults
+        .setToolTipText("Saves the computers and number of CPUs selected.");
   }
 
   private final class ParallelPanelActionListener implements ActionListener {
@@ -483,6 +476,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2006/11/29 00:20:25  sueh
+ * <p> bug# 934 Added end() to notify the load average threads when the manager exits.
+ * <p>
  * <p> Revision 1.40  2006/11/18 00:49:24  sueh
  * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
  * <p>

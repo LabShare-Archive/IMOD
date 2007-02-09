@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2006/10/20 21:48:13  sueh
+ * <p> bug# 946  Adding a warning to the reorientation box.
+ * <p>
  * <p> Revision 3.20  2006/08/16 22:42:26  sueh
  * <p> bug# 912 Rubberband panel border label is no longer optional.
  * <p>
@@ -314,9 +317,10 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     SpacedPanel pnlReorientation = new SpacedPanel();
     pnlReorientation.setBoxLayout(BoxLayout.X_AXIS);
-    pnlReorientationChoices
-        .setLayout(new BoxLayout(pnlReorientationChoices, BoxLayout.Y_AXIS));
-    pnlReorientationChoices.setBorder(new EtchedBorder("Reorientation:").getBorder());
+    pnlReorientationChoices.setLayout(new BoxLayout(pnlReorientationChoices,
+        BoxLayout.Y_AXIS));
+    pnlReorientationChoices.setBorder(new EtchedBorder("Reorientation:")
+        .getBorder());
     pnlReorientationChoices.setAlignmentX(Component.RIGHT_ALIGNMENT);
     bgReorientation.add(rbNone);
     bgReorientation.add(rbSwapYZ);
@@ -330,8 +334,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlReorientation.add(pnlReorientationChoices);
     //reorientation warning panel
     JPanel pnlReorientationWarning = new JPanel();
-    pnlReorientationWarning
-    .setLayout(new BoxLayout(pnlReorientationWarning, BoxLayout.Y_AXIS));
+    pnlReorientationWarning.setLayout(new BoxLayout(pnlReorientationWarning,
+        BoxLayout.Y_AXIS));
     pnlReorientationWarning.add(lWarning1);
     pnlReorientationWarning.add(lWarning2);
     pnlReorientationWarning.add(lWarning3);
@@ -582,87 +586,52 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
    * Initialize the tooltip text
    */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = "The X coordinate on the left side to retain in the volume.";
-    ltfXMin.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "The X coordinate on the right side to retain in the volume.";
-    ltfXMax.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "The lower Y coordinate to retain in the volume.";
-    ltfYMin.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "The upper Y coordinate to retain in the volume.";
-    ltfYMax.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "The bottom Z slice to retain in the volume.";
-    ltfZMin.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "The top Z slice to retain in the volume.";
-    ltfZMax.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Scale densities to bytes with extreme densities truncated.";
-    cbConvertToBytes.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Set the scaling to match the contrast in a 3dmod display.";
-    rbScaleFixed.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Enter the black contrast slider setting (0-254) that gives the desired "
-        + "contrast.";
-    ltfFixedScaleMin.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Enter the white contrast slider setting (1-255) that gives the desired "
-        + "contrast.";
-    ltfFixedScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Set the scaling based on the range of contrast in a subset of sections and XY volume.  "
-        + "Exclude areas with extreme densities that can be truncated (gold "
-        + "particles).";
-    rbScaleSection.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Minimum Z section of the subset to analyze for contrast range.";
-    ltfSectionScaleMin.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Maximum Z section of the subset to analyze for contrast range.";
-    ltfSectionScaleMax.setToolTipText(tooltipFormatter.setText(text).format());
-
-    pnlReorientationChoices.setToolTipText(tooltipFormatter.setText(
-        "If the output volume is not reoriented, "
-            + "the file will need to be flipped when loaded into 3dmod.")
-        .format());
-
-    rbNone.setToolTipText(tooltipFormatter.setText(
-        "Do not change the orientation of the output volume.  "
-            + "The file will need to be flipped when loaded into 3dmod.")
-        .format());
-
-    text = "Flip Y and Z in the output volume so that the file does not need to be "
-        + "flipped when loaded into 3dmod.";
-    rbSwapYZ.setToolTipText(tooltipFormatter.setText(text).format());
-
+    ltfXMin
+        .setToolTipText("The X coordinate on the left side to retain in the volume.");
+    ltfXMax
+        .setToolTipText("The X coordinate on the right side to retain in the volume.");
+    ltfYMin.setToolTipText("The lower Y coordinate to retain in the volume.");
+    ltfYMax.setToolTipText("The upper Y coordinate to retain in the volume.");
+    ltfZMin.setToolTipText("The bottom Z slice to retain in the volume.");
+    ltfZMax.setToolTipText("The top Z slice to retain in the volume.");
+    cbConvertToBytes
+        .setToolTipText("Scale densities to bytes with extreme densities truncated.");
+    rbScaleFixed
+        .setToolTipText("Set the scaling to match the contrast in a 3dmod display.");
+    ltfFixedScaleMin
+        .setToolTipText("Enter the black contrast slider setting (0-254) that gives the desired "
+            + "contrast.");
+    ltfFixedScaleMax
+        .setToolTipText("Enter the white contrast slider setting (1-255) that gives the desired "
+            + "contrast.");
+    rbScaleSection
+        .setToolTipText("Set the scaling based on the range of contrast in a subset of sections and XY volume.  "
+            + "Exclude areas with extreme densities that can be truncated (gold "
+            + "particles).");
+    ltfSectionScaleMin
+        .setToolTipText("Minimum Z section of the subset to analyze for contrast range.");
+    ltfSectionScaleMax
+        .setToolTipText("Maximum Z section of the subset to analyze for contrast range.");
+    pnlReorientationChoices
+        .setToolTipText("If the output volume is not reoriented, "
+            + "the file will need to be flipped when loaded into 3dmod.");
+    rbNone
+        .setToolTipText("Do not change the orientation of the output volume.  "
+            + "The file will need to be flipped when loaded into 3dmod.");
+    rbSwapYZ
+        .setToolTipText("Flip Y and Z in the output volume so that the file does not need to be "
+            + "flipped when loaded into 3dmod.");
     rbRotateX
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Rotate the output volume by -90 degrees around the X axis, "
-                    + "by first creating a temporary trimmed volume with newstack then running \"clip rotx\" on this volume to create the final output file.  "
-                    + "The slices will look the same as with the -yz option but rotating instead of flipping will preserve the handedness of structures.")
-            .format());
-
-    text = "View the original, untrimmed volume in 3dmod.";
-    btnImodFull.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "After pressing the 3dmod Full Volume button, press shift-B in the "
-        + "ZaP window.  Create a rubberband around the volume range.  Then "
-        + "press this button to retrieve X and Y coordinates.";
-    this.btnGetCoordinates.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Trim the original volume with the parameters given above.";
-    btnTrimvol.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View the trimmed volume.";
-    btnImodTrim.setToolTipText(tooltipFormatter.setText(text).format());
+        .setToolTipText("Rotate the output volume by -90 degrees around the X axis, "
+            + "by first creating a temporary trimmed volume with newstack then running \"clip rotx\" on this volume to create the final output file.  "
+            + "The slices will look the same as with the -yz option but rotating instead of flipping will preserve the handedness of structures.");
+    btnImodFull.setToolTipText("View the original, untrimmed volume in 3dmod.");
+    btnGetCoordinates
+        .setToolTipText("After pressing the 3dmod Full Volume button, press shift-B in the "
+            + "ZaP window.  Create a rubberband around the volume range.  Then "
+            + "press this button to retrieve X and Y coordinates.");
+    btnTrimvol
+        .setToolTipText("Trim the original volume with the parameters given above.");
+    btnImodTrim.setToolTipText("View the trimmed volume.");
   }
 }

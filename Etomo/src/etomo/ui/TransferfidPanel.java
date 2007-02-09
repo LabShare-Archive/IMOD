@@ -70,7 +70,7 @@ public final class TransferfidPanel implements Expandable {
         dialogType);
     setup();
   }
-  
+
   /**
    * Update the header with the current advanced state
    */
@@ -95,8 +95,8 @@ public final class TransferfidPanel implements Expandable {
   }
 
   private void setup() {
-    panelTransferfidBody
-        .setLayout(new BoxLayout(panelTransferfidBody, BoxLayout.Y_AXIS));
+    panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody,
+        BoxLayout.Y_AXIS));
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfidBody.add(cbRunMidas);
 
@@ -130,7 +130,8 @@ public final class TransferfidPanel implements Expandable {
       panelTransferfidBody.add(buttonTransferfid.getComponent());
       panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
     }
-    panelTransferfid.setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
+    panelTransferfid
+        .setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(BorderFactory.createEtchedBorder());
     panelTransferfid.add(header.getContainer());
     panelTransferfid.add(panelTransferfidBody);
@@ -175,7 +176,7 @@ public final class TransferfidPanel implements Expandable {
     }
     header.setButtonStates(screenState);
   }
-  
+
   public void getParameters(BaseScreenState screenState) {
     header.getButtonStates(screenState);
   }
@@ -244,43 +245,35 @@ public final class TransferfidPanel implements Expandable {
 
   //  ToolTip string setup
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = "Run Midas to adjust initial alignment manually.";
-    cbRunMidas.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View from A around which to search for the best pair of views.";
-    ltfCenterViewA.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View from B around which to search for the best pair of views.";
-    ltfCenterViewB.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Number of views from each axis to consider in searching for best pair.";
-    ltfNumberViews.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Try both +90 and -90 degree rotations in searching for best pair of "
-        + "views.";
-    rbSearchBoth.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Try only +90 degree rotations in searching for best pair of views.";
-    rbSearchPlus90.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Try only -90 degree rotations in searching for best pair of views.";
-    rbSearchMinus90.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Run Transferfid to make a seed model for this axis from fiducial model for "
-        + "the other axis.";
-    buttonTransferfid.setToolTipText(tooltipFormatter.setText(text).format());
-
-    cbMirrorInX.setToolTipText(tooltipFormatter.setText(
-        "Mirror one image around the X axis before rotating by 90 degrees.")
-        .format());
+    cbRunMidas
+        .setToolTipText("Run Midas to adjust initial alignment manually.");
+    ltfCenterViewA
+        .setToolTipText("View from A around which to search for the best pair of views.");
+    ltfCenterViewB
+        .setToolTipText("View from B around which to search for the best pair of views.");
+    ltfNumberViews
+        .setToolTipText("Number of views from each axis to consider in searching for best pair.");
+    rbSearchBoth
+        .setToolTipText("Try both +90 and -90 degree rotations in searching for best pair of "
+            + "views.");
+    rbSearchPlus90
+        .setToolTipText("Try only +90 degree rotations in searching for best pair of views.");
+    rbSearchMinus90
+        .setToolTipText("Try only -90 degree rotations in searching for best pair of views.");
+    buttonTransferfid
+        .setToolTipText("Run Transferfid to make a seed model for this axis from fiducial model for "
+            + "the other axis.");
+    cbMirrorInX
+        .setToolTipText("Mirror one image around the X axis before rotating by 90 degrees.");
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.12  2006/07/04 18:48:01  sueh
+ * <p> bug# 893 Added updateAdvanced(boolean) to change the header when the
+ * <p> advanced button is pressed.
+ * <p>
  * <p> Revision 3.11  2006/06/16 15:27:07  sueh
  * <p> bug# 734 Added open/close and adv/basic buttons.
  * <p>

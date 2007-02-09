@@ -22,6 +22,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2006/07/31 21:44:56  sueh
+ * <p> bug# 438 Making a compact version of the process control button
+ * <p>
  * <p> Revision 3.4  2006/04/25 19:18:59  sueh
  * <p> bug# 787 Changed the "name" member variable to "command".
  * <p>
@@ -174,7 +177,8 @@ public class ProcessControlPanel {
   }
 
   void setToolTipText(String text) {
-    panelRoot.setToolTipText(text);
-    buttonRun.setToolTipText(text);
+    String tooltip = TooltipFormatter.INSTANCE.format(text);
+    panelRoot.setToolTipText(tooltip);
+    buttonRun.setToolTipText(tooltip);
   }
 }

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2006/11/07 22:34:29  sueh
+ * <p> bug# 954 Completing tooltips for XMinAndMax and YMinAndMax.
+ * <p>
  * <p> Revision 3.21  2006/07/04 18:47:23  sueh
  * <p> bug# 893 Added updateAdvanced(boolean) to change the headers when the
  * <p> advanced button is pressed.
@@ -197,10 +200,12 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   private final CrossCorrelationActionListener actionListener;
   private final PanelHeader header;
 
-  public CrossCorrelationPanel(ApplicationManager applicationManager, AxisID id, DialogType dialogType) {
+  public CrossCorrelationPanel(ApplicationManager applicationManager,
+      AxisID id, DialogType dialogType) {
     axisID = id;
     this.applicationManager = applicationManager;
-    header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this, dialogType);
+    header = PanelHeader
+        .getAdvancedBasicInstance("Tiltxcorr", this, dialogType);
     btnCrossCorrelate = (MultiLineButton) applicationManager
         .getProcessResultDisplayFactory(axisID).getCrossCorrelate();
 
@@ -240,7 +245,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     UIUtilities.alignComponentsX(pnlAdvanced, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
 
-    pnlCrossCorrelation.setLayout(new BoxLayout(pnlCrossCorrelation, BoxLayout.Y_AXIS));
+    pnlCrossCorrelation.setLayout(new BoxLayout(pnlCrossCorrelation,
+        BoxLayout.Y_AXIS));
     pnlCrossCorrelation.setBorder(BorderFactory.createEtchedBorder());
     pnlCrossCorrelation.add(header.getContainer());
     pnlCrossCorrelation.add(pnlBody);
@@ -258,14 +264,14 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   void done() {
     btnCrossCorrelate.removeActionListener(actionListener);
   }
-  
+
   /**
    * Update the header with the current advanced state
    */
   void updateAdvanced(boolean isAdvanced) {
     header.setAdvanced(isAdvanced);
   }
-  
+
   void setAdvanced(boolean state) {
     pnlAdvanced.setVisible(state);
   }
@@ -275,7 +281,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
       pnlBody.setVisible(button.isExpanded());
     }
     else if (header.equalsAdvancedBasic(button)) {
-       setAdvanced(button.isExpanded());
+      setAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -319,7 +325,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
         .getButtonState(btnCrossCorrelate.getButtonStateKey()));
     header.setButtonStates(screenState);
   }
-  
+
   public void getParameters(BaseScreenState screenState) {
     header.getButtonStates(screenState);
   }
@@ -431,7 +437,6 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
    */
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
 
     try {
@@ -444,79 +449,42 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
     catch (IOException except) {
       except.printStackTrace();
     }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "TestOutput");
-    if (text != null) {
-      ltfTestOutput.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-    text = EtomoAutodoc.getTooltip(autodoc, "FilterSigma1");
-    if (text != null) {
-      ltfFilterSigma1.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-    text = EtomoAutodoc.getTooltip(autodoc, "FilterRadius2");
-    if (text != null) {
-      ltfFilterRadius2.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-    text = EtomoAutodoc.getTooltip(autodoc, "FilterSigma2");
-    if (text != null) {
-      ltfFilterSigma2.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-    text = EtomoAutodoc.getTooltip(autodoc, "BordersInXandY");
-    if (text != null) {
-      ltfTrim.setToolTipText(tooltipFormatter.setText(text).format());
-    }
+    ltfTestOutput
+        .setToolTipText(EtomoAutodoc.getTooltip(autodoc, "TestOutput"));
+    ltfFilterSigma1.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "FilterSigma1"));
+    ltfFilterRadius2.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "FilterRadius2"));
+    ltfFilterSigma2.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "FilterSigma2"));
+    ltfTrim.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "BordersInXandY"));
     text = EtomoAutodoc.getTooltip(autodoc, "XMinAndMax");
     if (text != null) {
-      text = tooltipFormatter.setText(text).format();
       pnlXMinAndMax.setToolTipText(text);
       ltfXMin.setToolTipText(text);
       ltfXMax.setToolTipText(text);
     }
     text = EtomoAutodoc.getTooltip(autodoc, "YMinAndMax");
     if (text != null) {
-      text = tooltipFormatter.setText(text).format();
       pnlYMinAndMax.setToolTipText(text);
       ltfYMin.setToolTipText(text);
       ltfYMax.setToolTipText(text);
     }
-    text = EtomoAutodoc.getTooltip(autodoc, "PadsInXandY");
-    if (text != null) {
-      ltfPadPercent.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "TapersInXandY");
-    if (text != null) {
-      ltfTaperPercent.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "CumulativeCorrelation");
-    if (text != null) {
-      cbCumulativeCorrelation.setToolTipText(tooltipFormatter.setText(text)
-          .format());
-    }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "AbsoluteCosineStretch");
-    if (text != null) {
-      cbAbsoluteCosineStretch.setToolTipText(tooltipFormatter.setText(text)
-          .format());
-    }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "NoCosineStretch");
-    if (text != null) {
-      cbNoCosineStretch.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "StartingEndingViews");
-    if (text != null) {
-      ltfViewRange.setToolTipText(tooltipFormatter.setText(text).format());
-    }
-
-    text = EtomoAutodoc.getTooltip(autodoc, "ExcludeCentralPeak");
-    if (text != null) {
-      cbExcludeCentralPeak.setToolTipText(tooltipFormatter.setText(text)
-          .format());
-    }
-    text = "Find alignment transformations between successive images by cross-correlation.";
-    btnCrossCorrelate.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfPadPercent.setToolTipText(EtomoAutodoc
+        .getTooltip(autodoc, "PadsInXandY"));
+    ltfTaperPercent.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "TapersInXandY"));
+    cbCumulativeCorrelation.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "CumulativeCorrelation"));
+    cbAbsoluteCosineStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "AbsoluteCosineStretch"));
+    cbNoCosineStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "NoCosineStretch"));
+    ltfViewRange.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "StartingEndingViews"));
+    cbExcludeCentralPeak.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        "ExcludeCentralPeak"));
+    btnCrossCorrelate
+        .setToolTipText("Find alignment transformations between successive images by cross-correlation.");
   }
 }

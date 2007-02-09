@@ -213,8 +213,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
       ConstEtomoNumber sampleFiducialess = state.getSampleFiducialess(axisID);
-      if ((sampleFiducialess == null || !sampleFiducialess.is()) && dialog.isTomopitchButton()
-          && dialog.isAlignButtonEnabled() && !dialog.isAlignButton()) {
+      if ((sampleFiducialess == null || !sampleFiducialess.is())
+          && dialog.isTomopitchButton() && dialog.isAlignButtonEnabled()
+          && !dialog.isAlignButton()) {
         if (!UIHarness.INSTANCE
             .openYesNoWarningDialog(
                 "Final alignment is not done or is out of date.\nReally leave Tomogram Positioning?",
@@ -466,7 +467,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     return tiltalignParam;
   }
-  
+
   /**
    * updates z shift and tilt angle offset
    */
@@ -685,14 +686,14 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setXAxisTiltEnabled(enable);
     dialog.setThicknessEnabled(enable);
   }
-  
+
   private void getTiltAngleOffset(TiltParam tiltParam) {
     if (dialog == null) {
       return;
     }
     tiltParam.setTiltAngleOffset(dialog.getTiltAngleOffset());
   }
-  
+
   private void getZShift(TiltParam tiltParam) {
     if (dialog == null) {
       return;
@@ -886,8 +887,6 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    String text;
     dialog.setAngleOffsetEnabled(!fiducialess);
     dialog.setTiltAxisZShiftEnabled(!fiducialess);
     dialog.setAlignButtonEnabled(!fiducialess);
@@ -899,14 +898,14 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog.isWholeTomogram()) {
       dialog.setBinningEnabled(true);
       dialog.setSampleButton("Create Whole Tomogram");
-      dialog.setSampleButtonToolTip(tooltipFormatter.setText(
-          "Create whole tomogram for drawing positioning model.").format());
+      dialog
+          .setSampleButtonToolTip("Create whole tomogram for drawing positioning model.");
     }
     else {
       dialog.setBinningEnabled(false);
       dialog.setSampleButton("Create Sample Tomograms");
-      dialog.setSampleButtonToolTip(tooltipFormatter.setText(
-          TomogramPositioningDialog.SAMPLE_TOMOGRAMS_TOOLTIP).format());
+      dialog
+          .setSampleButtonToolTip(TomogramPositioningDialog.SAMPLE_TOMOGRAMS_TOOLTIP);
     }
   }
 
@@ -916,6 +915,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/02/05 23:46:14  sueh
+ * <p> bug# 962 Moved comscript mode info to inner class.
+ * <p>
  * <p> Revision 1.16  2006/11/15 21:36:00  sueh
  * <p> bug# 872 Changed saveIntermediateParamFile to saveStorables.
  * <p>

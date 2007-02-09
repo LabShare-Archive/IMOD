@@ -59,6 +59,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.100  2006/11/17 00:49:47  sueh
+ * bug# 954 Added tooltip for extra exclude list.
+ *
  * Revision 3.99  2006/11/07 23:10:44  sueh
  * bug# 954 Added tooltips
  *
@@ -1730,8 +1733,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
 
     try {
@@ -1743,150 +1744,125 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     catch (IOException except) {
       except.printStackTrace();
     }
-
-    cbParallelProcess.setToolTipText(tooltipFormatter.setText(
-        "Check to distribute the tilt process across multiple computers.")
-        .format());
-    text = "Make aligned stack with linear instead of cubic interpolation to "
-        + "reduce noise.";
-    cbUseLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-    text = "Generate the complete aligned stack for input into the tilt process."
-        + "  This runs the newst.com script.";
-    btnNewst.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Open the complete aligned stack in 3dmod";
-    btn3dmodFull.setToolTipText(tooltipFormatter.setText(text).format());
+    cbParallelProcess
+        .setToolTipText("Check to distribute the tilt process across multiple computers.");
+    cbUseLinearInterpolation
+        .setToolTipText("Make aligned stack with linear instead of cubic interpolation to "
+            + "reduce noise.");
+    btnNewst
+        .setToolTipText("Generate the complete aligned stack for input into the tilt process."
+            + "  This runs the newst.com script.");
+    btn3dmodFull.setToolTipText("Open the complete aligned stack in 3dmod");
     if (autodoc != null) {
-      text = EtomoAutodoc.getTooltip(autodoc, "StartingAndEndingZ");
+      ltfStartingAndEndingZ.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          "StartingAndEndingZ"));
+      ltfLowPassRadiusSigma.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          "LowPassRadiusSigma"));
+      String text = EtomoAutodoc.getTooltip(autodoc, "MtfFile");
       if (text != null) {
-        ltfStartingAndEndingZ.setToolTipText(tooltipFormatter.setText(text)
-            .format());
-      }
-      text = EtomoAutodoc.getTooltip(autodoc, "LowPassRadiusSigma");
-      if (text != null) {
-        ltfLowPassRadiusSigma.setToolTipText(tooltipFormatter.setText(text)
-            .format());
-      }
-      text = EtomoAutodoc.getTooltip(autodoc, "MtfFile");
-      if (text != null) {
-        text = tooltipFormatter.setText(text).format();
-        ltfMtfFile.setToolTipText(tooltipFormatter.setText(text).format());
+        ltfMtfFile.setToolTipText(text);
         btnMtfFile.setToolTipText(text);
       }
-      text = EtomoAutodoc.getTooltip(autodoc, "MaximumInverse");
-      if (text != null) {
-        ltfMaximumInverse.setToolTipText(tooltipFormatter.setText(text)
-            .format());
-      }
-      text = EtomoAutodoc.getTooltip(autodoc, "InverseRolloffRadiusSigma");
-      if (text != null) {
-        ltfInverseRolloffRadiusSigma.setToolTipText(tooltipFormatter.setText(
-            text).format());
-      }
+      ltfMaximumInverse.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          "MaximumInverse"));
+      ltfInverseRolloffRadiusSigma.setToolTipText(EtomoAutodoc.getTooltip(
+          autodoc, "InverseRolloffRadiusSigma"));
     }
-    text = "Run mtffilter on the full aligned stack.";
-    btnFilter.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "View the results of running mtffilter on the full aligned stack.";
-    btnViewFilter.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Use the results of running mtffilter as the new full aligned stack.";
-    btnUseFilter.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Thickness, in pixels, along the z-axis of the reconstructed volume.";
-    ltfTomoThickness.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The first slice in the Y dimension to include in the reconstructed "
-        + " volume.  Slices are numbered from 0, a last slice must also "
-        + "be specified.";
-    ltfSliceStart.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The last slice in the Y dimension to include in the reconstructed "
-        + " volume.  Slices are numbered from 0, a first slice must also "
-        + "be specified.";
-    ltfSliceStop.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Step between slices in the Y dimension.  A first and last slice must "
-        + "also be entered. Default is 1.";
-    ltfSliceIncr.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "This entry specifies the width of the output image; the default is the "
-        + "width of the input image.";
-    ltfTomoWidth.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to shift the reconstructed slices in X before output.  A "
-        + "positive value will shift the slice to the right, and the "
-        + "output will contain the left part of the whole potentially "
-        + "reconstructable area.";
-    ltfXShift.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to shift the reconstructed slices in Z before output.  A "
-        + "positive value will shift the slice upward.";
-    ltfZShift.setToolTipText(tooltipFormatter.setText(text).format());
-    ltfXAxisTilt.setToolTipText(tooltipFormatter.setText(X_AXIS_TILT_TOOLTIP)
-        .format());
-    text = "Offset in degrees to apply to the tilt angles; a positive offset will "
-        + "rotate the reconstructed slices counterclockwise.";
-    ltfTiltAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The spatial frequency at which to switch from the R-weighted radial "
-        + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
-        + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.";
-    ltfRadialMax.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The sigma value of a Gaussian which determines how fast the radial "
-        + "filter falls off at spatial frequencies above the cutoff frequency."
-        + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
-        + "cutoff and a falloff must be entered ";
-    ltfRadialFallOff.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to add to reconstructed density values before multiplying by"
-        + " the scale factor and outputting the values.";
-    ltfDensityOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Amount to multiply reconstructed density values by, after adding the "
-        + "offset value.";
-    ltfDensityScale.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "This parameter allows one to generate a reconstruction using the "
-        + "logarithm of the densities in the input file, with the value "
-        + "specified added before taking the logarithm.  If no parameter is "
-        + "specified the logarithm of the input data is not taken.";
-    ltfLogOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Select this checkbox to use local alignments.  You must have "
-        + "created the local alignments in the Fine Alignment step";
-    cbUseLocalAlignment.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Compute the tomogram from the full aligned stack.  This runs "
-        + "the tilt.com script.";
-    btnTilt.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "View the reconstructed volume in 3dmod.";
-    btn3dmodTomogram.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Current name of trial tomogram, which will be generated, viewed, or"
+    btnFilter.setToolTipText("Run mtffilter on the full aligned stack.");
+    btnViewFilter
+        .setToolTipText("View the results of running mtffilter on the full aligned stack.");
+    btnUseFilter
+        .setToolTipText("Use the results of running mtffilter as the new full aligned stack.");
+    ltfTomoThickness
+        .setToolTipText("Thickness, in pixels, along the z-axis of the reconstructed volume.");
+    ltfSliceStart
+        .setToolTipText("The first slice in the Y dimension to include in the reconstructed "
+            + " volume.  Slices are numbered from 0, a last slice must also "
+            + "be specified.");
+    ltfSliceStop
+        .setToolTipText("The last slice in the Y dimension to include in the reconstructed "
+            + " volume.  Slices are numbered from 0, a first slice must also "
+            + "be specified.");
+    ltfSliceIncr
+        .setToolTipText("Step between slices in the Y dimension.  A first and last slice must "
+            + "also be entered. Default is 1.");
+    ltfTomoWidth
+        .setToolTipText("This entry specifies the width of the output image; the default is the "
+            + "width of the input image.");
+    ltfXShift
+        .setToolTipText("Amount to shift the reconstructed slices in X before output.  A "
+            + "positive value will shift the slice to the right, and the "
+            + "output will contain the left part of the whole potentially "
+            + "reconstructable area.");
+    ltfZShift
+        .setToolTipText("Amount to shift the reconstructed slices in Z before output.  A "
+            + "positive value will shift the slice upward.");
+    ltfXAxisTilt.setToolTipText(X_AXIS_TILT_TOOLTIP);
+    ltfTiltAngleOffset
+        .setToolTipText("Offset in degrees to apply to the tilt angles; a positive offset will "
+            + "rotate the reconstructed slices counterclockwise.");
+    ltfRadialMax
+        .setToolTipText("The spatial frequency at which to switch from the R-weighted radial "
+            + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
+            + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.");
+    ltfRadialFallOff
+        .setToolTipText("The sigma value of a Gaussian which determines how fast the radial "
+            + "filter falls off at spatial frequencies above the cutoff frequency."
+            + "  Frequency is in cycles/pixel and ranges from 0-0.5.  Both a "
+            + "cutoff and a falloff must be entered ");
+    ltfDensityOffset
+        .setToolTipText("Amount to add to reconstructed density values before multiplying by"
+            + " the scale factor and outputting the values.");
+    ltfDensityScale
+        .setToolTipText("Amount to multiply reconstructed density values by, after adding the "
+            + "offset value.");
+    ltfLogOffset
+        .setToolTipText("This parameter allows one to generate a reconstruction using the "
+            + "logarithm of the densities in the input file, with the value "
+            + "specified added before taking the logarithm.  If no parameter is "
+            + "specified the logarithm of the input data is not taken.");
+    cbUseLocalAlignment
+        .setToolTipText("Select this checkbox to use local alignments.  You must have "
+            + "created the local alignments in the Fine Alignment step");
+    btnTilt
+        .setToolTipText("Compute the tomogram from the full aligned stack.  This runs "
+            + "the tilt.com script.");
+    btn3dmodTomogram.setToolTipText("View the reconstructed volume in 3dmod.");
+    String text = "Current name of trial tomogram, which will be generated, viewed, or"
         + " used by the buttons below.";
-    lblTrialTomogramName
-        .setToolTipText(tooltipFormatter.setText(text).format());
-    cmboTrialTomogramName.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-    text = "Compute a trial tomogram with the current parameters, using the "
-        + "filename in the \" Trial tomogram filename \" box.";
-    btnTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "View the trial tomogram whose name is shown in \"Trial "
-        + "tomogram filename\" box.";
-    btn3dmodTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Rename the trial tomogram whose name is shown in the \"Trial "
-        + "tomogram filename\" box to be the final tomogram.";
-    btnUseTrial.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Delete the aligned stack for this axis.  Once the "
-        + "tomogram is calculated this intermediate file is not used and can be "
-        + "" + "deleted to free up disk space.";
-    btnDeleteStack.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Use cross-correlation alignment only.";
-    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Rotation angle of tilt axis for generating aligned stack from "
-        + "cross-correlation alignment only.";
-    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Set the binning for the aligned image stack and tomogram.  With a "
-        + "binned tomogram, all of the thickness, position, and size parameters"
-        + " below are still entered in unbinned pixels.";
-    spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
+    lblTrialTomogramName.setToolTipText(text);
+    cmboTrialTomogramName
+        .setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    btnTrial
+        .setToolTipText("Compute a trial tomogram with the current parameters, using the "
+            + "filename in the \" Trial tomogram filename \" box.");
+    btn3dmodTrial
+        .setToolTipText("View the trial tomogram whose name is shown in \"Trial "
+            + "tomogram filename\" box.");
+    btnUseTrial
+        .setToolTipText("Rename the trial tomogram whose name is shown in the \"Trial "
+            + "tomogram filename\" box to be the final tomogram.");
+    btnDeleteStack
+        .setToolTipText("Delete the aligned stack for this axis.  Once the "
+            + "tomogram is calculated this intermediate file is not used and can be "
+            + "" + "deleted to free up disk space.");
+    cbFiducialess.setToolTipText("Use cross-correlation alignment only.");
+    ltfRotation
+        .setToolTipText("Rotation angle of tilt axis for generating aligned stack from "
+            + "cross-correlation alignment only.");
+    spinBinning
+        .setToolTipText("Set the binning for the aligned image stack and tomogram.  With a "
+            + "binned tomogram, all of the thickness, position, and size parameters"
+            + " below are still entered in unbinned pixels.");
     cbUseZFactors
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Use the file containing factors for adjusting the backprojection position "
-                    + "in each image as a function of Z height in the output slice (.zfac file).  "
-                    + "These factors are necessary when input images have been transformed to "
-                    + "correct for an apparent specimen stretch.  "
-                    + "If this box is not checked, "
-                    + "Z factors in a local alignment file will not be applied.")
-            .format());
-    ltfExtraExcludeList.setToolTipText(tooltipFormatter.setText(
-        "List of views to exclude from the reconstruction, in addition to the ones"
-            + "excluded from fine alignment.").format());
+        .setToolTipText("Use the file containing factors for adjusting the backprojection position "
+            + "in each image as a function of Z height in the output slice (.zfac file).  "
+            + "These factors are necessary when input images have been transformed to "
+            + "correct for an apparent specimen stretch.  "
+            + "If this box is not checked, "
+            + "Z factors in a local alignment file will not be applied.");
+    ltfExtraExcludeList
+        .setToolTipText("List of views to exclude from the reconstruction, in addition to the ones"
+            + "excluded from fine alignment.");
   }
 }

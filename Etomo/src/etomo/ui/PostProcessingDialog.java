@@ -241,9 +241,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
   protected void done() {
     if (applicationManager.donePostProcessing()) {
-    btnSqueezeVolume.removeActionListener(actionListener);
-    trimvolPanel.done();
-    setDisplayed(false);}
+      btnSqueezeVolume.removeActionListener(actionListener);
+      trimvolPanel.done();
+      setDisplayed(false);
+    }
   }
 
   class PostProcessingDialogActionListener implements ActionListener {
@@ -259,32 +260,23 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = "Factor to squeeze by in X and Y.";
-    ltfReductionFactorXY
-        .setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Factor to squeeze by in Z.";
-    ltfReductionFactorZ.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Use linear instead of quadratic interpolation for transforming the "
-        + "volume with Matchvol.";
-    cbLinearInterpolation.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    text = "Squeeze the trimmed volume by the given factors.";
-    btnSqueezeVolume.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View the squeezed volume.";
-    btnImodSqueezedVolume.setToolTipText(tooltipFormatter.setText(text)
-        .format());
+    ltfReductionFactorXY.setToolTipText("Factor to squeeze by in X and Y.");
+    ltfReductionFactorZ.setToolTipText("Factor to squeeze by in Z.");
+    cbLinearInterpolation
+        .setToolTipText("Use linear instead of quadratic interpolation for transforming the "
+            + "volume with Matchvol.");
+    btnSqueezeVolume
+        .setToolTipText("Squeeze the trimmed volume by the given factors.");
+    btnImodSqueezedVolume.setToolTipText("View the squeezed volume.");
   }
 
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2006/08/14 18:34:02  sueh
+ * <p> bug# 890 Returning a success/failure boolean from getTrimvolParams.  Passing
+ * <p> axisID to TrimvoPanel constructor.
+ * <p>
  * <p> Revision 3.29  2006/07/04 20:41:51  sueh
  * <p> bug# 898 Don't remove action listeners unless the done dialog function
  * <p> succeeds.

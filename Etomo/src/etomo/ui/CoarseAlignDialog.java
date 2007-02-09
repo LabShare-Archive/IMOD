@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2006/07/28 19:45:32  sueh
+ * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
+ * <p>
  * <p> Revision 3.40  2006/07/20 17:19:48  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -365,7 +368,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements
             applicationManager.getPropertyUserDir(),
             applicationManager.getMetaData().getDatasetName(), axisID).exists()) {
       btnFixEdgesMidas.setEnabled(false);
-    } else {
+    }
+    else {
       btnFixEdgesMidas.setEnabled(true);
     }
   }
@@ -473,7 +477,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements
       alignManpage = "blendmont";
       alignLogfileLabel = "Preblend";
       alignLogfile = "preblend";
-    } else {
+    }
+    else {
       alignManpageLabel = "Newstack";
       alignManpage = "newstack";
       alignLogfileLabel = "Prenewst";
@@ -497,22 +502,16 @@ public final class CoarseAlignDialog extends ProcessDialog implements
    */
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Use 3dmod to view the coarsely aligned images.";
-    btnImod.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Enable or disable the processing flow using cross-correlation alignment only.";
-    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Use Midas to adjust bad alignments.";
-    btnMidas.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Initial rotation angle of tilt axis when viewing images in Midas.";
-    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
+    btnImod.setToolTipText("Use 3dmod to view the coarsely aligned images.");
+    cbFiducialess
+        .setToolTipText("Enable or disable the processing flow using cross-correlation alignment only.");
+    btnMidas.setToolTipText("Use Midas to adjust bad alignments.");
+    ltfRotation
+        .setToolTipText("Initial rotation angle of tilt axis when viewing images in Midas.");
     btnDistortionCorrectedStack
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Create a stack to use in Midas that incorporates the corrections from the image distortion field file and/or the magnification gradients file.")
-            .format());
-    btnFixEdgesMidas.setToolTipText(tooltipFormatter.setText(
-        "Use Midas to adjust the alignment of the montage frames.").format());
+        .setToolTipText("Create a stack to use in Midas that incorporates the corrections from the image distortion field file and/or the magnification gradients file.");
+    btnFixEdgesMidas
+        .setToolTipText("Use Midas to adjust the alignment of the montage frames.");
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
@@ -533,12 +532,15 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     String command = event.getActionCommand();
     if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID, btnMidas);
-    } else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
+    }
+    else if (command.equals(btnFixEdgesMidas.getActionCommand())) {
       applicationManager.midasFixEdges(axisID, btnFixEdgesMidas);
-    } else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
+    }
+    else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
       applicationManager.makeDistortionCorrectedStack(axisID,
           btnDistortionCorrectedStack);
-    } else {
+    }
+    else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }

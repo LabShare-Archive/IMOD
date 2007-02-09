@@ -860,93 +860,68 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+    ltfDataset
+        .setToolTipText("Enter the name of view data file(s). You can also select the view data file by pressing the folder button.");
+    btnDataset
+        .setToolTipText("This button will open a file chooser dialog box allowing you to select the view data file.");
+    ltfBackupDirectory
+        .setToolTipText("Enter the name of the directory where you want the small data files .com and .log files to be backed up.  You can use the folder button on the right to create a new directory to store the backups.");
+    btnBackupDirectory
+        .setToolTipText("This button will open a file chooser dialog box allowing you to select and/or create the backup directory.");
+    btnScanHeader
+        .setToolTipText("Attempt to extract pixel size and tilt axis rotation angle from data stack.");
 
-    text = "Enter the name of view data file(s). You can also select the view data file by pressing the folder button.";
-    ltfDataset.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "This button will open a file chooser dialog box allowing you to select the view data file.";
-    btnDataset.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Enter the name of the directory where you want the small data files .com and .log files to be backed up.  You can use the folder button on the right to create a new directory to store the backups.";
-    ltfBackupDirectory.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "This button will open a file chooser dialog box allowing you to select and/or create the backup directory.";
-    btnBackupDirectory.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Attempt to extract pixel size and tilt axis rotation angle from data stack.";
-    btnScanHeader.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "This radio button selector will choose whether the data consists of one or two tilt axis.";
-    pnlAxisType.setToolTipText(tooltipFormatter.setText(text).format());
-    rbSingleAxis.setToolTipText(tooltipFormatter.setText(text).format());
-    rbDualAxis.setToolTipText(tooltipFormatter.setText(text).format());
-    btnDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
+    String text = "This radio button selector will choose whether the data consists of one or two tilt axis.";
+    pnlAxisType.setToolTipText(text);
+    rbSingleAxis.setToolTipText(text);
+    rbDualAxis.setToolTipText(text);
+    btnDistortionFile.setToolTipText(text);
 
     text = "This radio button selector will choose whether the data consists of a single frame per view or multiple frames per view (montaged).";
-    pnlViewType.setToolTipText(tooltipFormatter.setText(text).format());
-    rbSingleView.setToolTipText(tooltipFormatter.setText(text).format());
-    rbMontage.setToolTipText(tooltipFormatter.setText(text).format());
+    pnlViewType.setToolTipText(text);
+    rbSingleView.setToolTipText(text);
+    rbMontage.setToolTipText(text);
 
-    text = "Enter the view image pixel size in nanometers here.";
-    ltfPixelSize.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Enter the fiducial size in nanometers here.";
-    ltfFiducialDiameter.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Enter the view image rotation in degrees. This is the rotation (CCW positive) from the Y-axis (the tilt axis after the views are aligned) to the suspected tilt axis in the unaligned views.";
-    ltfImageRotation.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfPixelSize
+        .setToolTipText("Enter the view image pixel size in nanometers here.");
+    ltfFiducialDiameter
+        .setToolTipText("Enter the fiducial size in nanometers here.");
+    ltfImageRotation
+        .setToolTipText("Enter the view image rotation in degrees. This is the rotation (CCW positive) from the Y-axis (the tilt axis after the views are aligned) to the suspected tilt axis in the unaligned views.");
 
     text = "OPTIONAL: If you wish to correct for image distortion, enter the name of the appropriate image distortion file in this field and the CCD camera binning in the following spin control.";
-    ltfDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
-    btnDistortionFile.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfDistortionFile.setToolTipText(text);
+    btnDistortionFile.setToolTipText(text);
 
-    text = "Specify the binning in the CCD camera when the raw image stack was acquired.";
-    spnBinning.setToolTipText(tooltipFormatter.setText(text).format());
+    spnBinning
+        .setToolTipText("Specify the binning in the CCD camera when the raw image stack was acquired.");
 
     tiltAnglesA.setToolTipText();
     tiltAnglesB.setToolTipText();
 
     text = "Enter the view images to <b>exclude</b> from the processing of this axis.  Ranges are allowed, separate ranges by commas.  For example to exclude the first four and last four images of a 60 view stack enter 1-4,57-60.";
-    ltfExcludeListA.setToolTipText(tooltipFormatter.setText(text).format());
-    ltfExcludeListB.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfExcludeListA.setToolTipText(text);
+    ltfExcludeListB.setToolTipText(text);
 
-    text = "This button will setup the processing for existing command scripts.  <b>Be sure that parameters entered match the existing command scripts.";
-    btnPostpone.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "This button will create a new set of command scripts overwriting any of the same name in the specified working directory.  Be sure to save the data file after creating the command script if you wish to keep the results.";
-    btnExecute.setToolTipText(tooltipFormatter.setText(text).format());
+    btnPostpone
+        .setToolTipText("This button will setup the processing for existing command scripts.  <b>Be sure that parameters entered match the existing command scripts.");
+    btnExecute
+        .setToolTipText("This button will create a new set of command scripts overwriting any of the same name in the specified working directory.  Be sure to save the data file after creating the command script if you wish to keep the results.");
 
     cbParallelProcess
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Sets the default for parallel processing (distributing processes across multiple computers).")
-            .format());
-
-    text = tooltipFormatter
-        .setText(
-            "OPTIONAL:  A file with magnification gradients to be applied for each image.")
-        .format();
+        .setToolTipText("Sets the default for parallel processing (distributing processes across multiple computers).");
+    text = "OPTIONAL:  A file with magnification gradients to be applied for each image.";
     ltfMagGradientFile.setToolTipText(text);
     btnMagGradientFile.setToolTipText(text);
 
-    spnBinning.setToolTipText(tooltipFormatter.setText(
-        "Binning at which images were acquired on CCD camera.").format());
-    btnViewRawStackA.setToolTipText(tooltipFormatter.setText(
-        "View the current raw image stack.").format());
-    btnViewRawStackB.setToolTipText(tooltipFormatter.setText(
-        "View the current raw image stack.").format());
+    spnBinning
+        .setToolTipText("Binning at which images were acquired on CCD camera.");
+    btnViewRawStackA.setToolTipText("View the current raw image stack.");
+    btnViewRawStackB.setToolTipText("View the current raw image stack.");
     cbAdjustedFocusA
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.")
-            .format());
+        .setToolTipText("Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.");
     cbAdjustedFocusB
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.")
-            .format());
+        .setToolTipText("Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.");
   }
 
   //  Button action listener classes
@@ -1094,6 +1069,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.54  2006/11/07 23:09:00  sueh
+ * <p> bug# 954 Added tooltips
+ * <p>
  * <p> Revision 3.53  2006/09/21 16:41:08  sueh
  * <p> bug# 680 Changed MRCHeader.x/y/zPixelSize to EtomoNumber.
  * <p>

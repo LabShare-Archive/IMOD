@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2006/09/13 23:47:23  sueh
+ * <p> bug# 921 Added setMatchMode(); use it to set the text in lOutputSizeYInfo.
+ * <p>
  * <p> Revision 3.31  2006/09/05 17:40:23  sueh
  * <p> bug# 917 Moved Restart Combine button to solvematch panel.  Created a panel
  * <p> for matchvol1.  Moved Restart Matchvol1 button to matchvol1 panel.
@@ -505,21 +508,13 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    //text = "View the two volumes that are used for assessing whether Matchshifts "
-    //    + "found the correct shifts between the volumes.";
-    //btnMatchcheck.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Thickness to make initial matching volume, which may need to be "
+    String text = "Thickness to make initial matching volume, which may need to be "
         + "thicker than the final matching volume to contain all the material needed for "
         + "patch correlations.";
-    ltfOutputSizeY.setToolTipText(tooltipFormatter.setText(text).format());
-    lOutputSizeYInfo.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Resume and make first matching volume, despite a small displacement "
-        + "between the match check volumes";
-    btnMatchvolRestart.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfOutputSizeY.setToolTipText(text);
+    lOutputSizeYInfo.setToolTipText(text);
+    btnMatchvolRestart
+        .setToolTipText("Resume and make first matching volume, despite a small displacement "
+            + "between the match check volumes");
   }
 }

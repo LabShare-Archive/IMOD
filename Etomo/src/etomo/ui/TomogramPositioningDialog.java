@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2007/02/05 23:45:57  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 3.54  2006/10/26 23:58:19  sueh
  * <p> bug# 953 added/updated tooltips
  * <p>
@@ -789,60 +792,46 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Thickness of sample slices.  Make this much larger than expected section"
-        + " thickness to see borders of section.";
-    ltfSampleThickness.setToolTipText(tooltipFormatter.setText(text).format());
-    text = SAMPLE_TOMOGRAMS_TOOLTIP;
-    btnSample.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Open samples in 3dmod to make a model with lines along top and bottom "
-        + "edges of the section in each sample.";
-    btnCreateBoundary.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Run tomopitch.  This will compute the positioning values and adjust the totals shown here.";
-    btnTomopitch.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "The total offset is sum of the original offset and the additional offset from tomopitch.";
-    cpAngleOffset.setToolTipText(tooltipFormatter.setText(text).format());
-    cpXAxisTilt.setToolTipText(tooltipFormatter.setText(
-        TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP).format());
-    text = "The total shift is the sum of the original shift and the"
-+"additional shift from tomopitch.";
-    cpTiltAxisZShift.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Run tiltalign with these final offset parameters.";
-    btnAlign.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Generate an entire tomogram instead of 3 samples and draw boundary "
-        + "lines in this tomogram.";
-    cbWholeTomogram.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Set the binning for the whole tomogram to be used for positioning."
-        + "  With a binned tomogram, the tomopitch output and entries for "
-        + "offset and thickness will still be in unbinned pixels.";
-    spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Use cross-correlation alignment only.";
-    cbFiducialess.setToolTipText(tooltipFormatter.setText(text).format());
-    text = "Rotation angle of tilt axis for generating aligned stack from "
-        + "cross-correlation alignment only.";
-    ltfRotation.setToolTipText(tooltipFormatter.setText(text).format());
+    ltfSampleThickness
+        .setToolTipText("Thickness of sample slices.  Make this much larger than expected section"
+            + " thickness to see borders of section.");
+    btnSample.setToolTipText(SAMPLE_TOMOGRAMS_TOOLTIP);
+    btnCreateBoundary
+        .setToolTipText("Open samples in 3dmod to make a model with lines along top and bottom "
+            + "edges of the section in each sample.");
+    btnTomopitch
+        .setToolTipText("Run tomopitch.  This will compute the positioning values and adjust the totals shown here.");
+    cpAngleOffset
+        .setToolTipText("The total offset is sum of the original offset and the additional offset from tomopitch.");
+    cpXAxisTilt.setToolTipText(TomogramGenerationDialog.X_AXIS_TILT_TOOLTIP);
+    cpTiltAxisZShift
+        .setToolTipText("The total shift is the sum of the original shift and the"
+            + "additional shift from tomopitch.");
+    btnAlign
+        .setToolTipText("Run tiltalign with these final offset parameters.");
+    cbWholeTomogram
+        .setToolTipText("Generate an entire tomogram instead of 3 samples and draw boundary "
+            + "lines in this tomogram.");
+    spinBinning
+        .setToolTipText("Set the binning for the whole tomogram to be used for positioning."
+            + "  With a binned tomogram, the tomopitch output and entries for "
+            + "offset and thickness will still be in unbinned pixels.");
+    cbFiducialess.setToolTipText("Use cross-correlation alignment only.");
+    ltfRotation
+        .setToolTipText("Rotation angle of tilt axis for generating aligned stack from "
+            + "cross-correlation alignment only.");
     ltfExtraThickness
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Extra thickness to be added to the top and bottom of the final tomogram.")
-            .format());
-    ltfThickness.setToolTipText(tooltipFormatter.setText(
-        "The thickness of the final tomogram.").format());
+        .setToolTipText("Extra thickness to be added to the top and bottom of the final tomogram.");
+    ltfThickness.setToolTipText("The thickness of the final tomogram.");
     cpTiltAngleOffset
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Tilt parameter:  the spatial frequency at which to switch from the R-weighted radial "
-                    + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
-                    + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.")
-            .format());
+        .setToolTipText("Tilt parameter:  the spatial frequency at which to switch from the R-weighted radial "
+            + "filter to a Gaussian falloff.  Frequency is in cycles/pixel and "
+            + "ranges from 0-0.5.  Both a cutoff and a falloff must be entered.");
     cpZShift
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Tilt parameter:  amount to shift the reconstructed slices in Z before output.  A "
-                    + "positive value will shift the slice upward.  Do not use this option"
-                    + " if you have fiducials and the tomogram is part of a dual-axis "
-                    + "series.").format());
+        .setToolTipText("Tilt parameter:  amount to shift the reconstructed slices in Z before output.  A "
+            + "positive value will shift the slice upward.  Do not use this option"
+            + " if you have fiducials and the tomogram is part of a dual-axis "
+            + "series.");
   }
 
   public static final class CalcPanel {

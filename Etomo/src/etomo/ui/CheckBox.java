@@ -20,6 +20,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2007/02/05 23:34:30  sueh
+* <p> bug# 962 Removed commented out functions.
+* <p>
 * <p> Revision 1.7  2006/05/16 21:35:17  sueh
 * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
 * <p> see what the name is.
@@ -68,9 +71,16 @@ final class CheckBox extends JCheckBox {
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
+  
+  public void setToolTipText(String text) {
+    super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2007/02/05 23:34:30  sueh
+* <p> bug# 962 Removed commented out functions.
+* <p>
 * <p> Revision 1.7  2006/05/16 21:35:17  sueh
 * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
 * <p> see what the name is.

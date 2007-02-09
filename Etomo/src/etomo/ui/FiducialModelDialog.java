@@ -31,6 +31,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2006/07/31 16:36:32  sueh
+ * <p> bug# 902 changed "View Fiducial Model" label to "View Seed Model"
+ * <p>
  * <p> Revision 3.33  2006/07/19 20:12:47  sueh
  * <p> bug# 902 Added updateDisplay() to change the label of btnSeed when seeding is
  * <p> done.
@@ -449,14 +452,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
    * Tooltip string initialization
    */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = "Open new or existing seed model in 3dmod.";
-    btnSeed.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Load fiducial model into 3dmod.";
-    btnFixModel.setToolTipText(tooltipFormatter.setText(text).format());
+    btnSeed.setToolTipText("Open new or existing seed model in 3dmod.");
+    btnFixModel.setToolTipText("Load fiducial model into 3dmod.");
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {

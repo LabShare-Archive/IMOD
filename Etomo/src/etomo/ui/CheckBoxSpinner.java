@@ -24,7 +24,10 @@ import javax.swing.SpinnerModel;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:35:33  sueh
+ * <p> bug# 962 A composite ui class containing a checkbox and a spinner.
+ * <p> </p>
  */
 
 final class CheckBoxSpinner {
@@ -110,12 +113,12 @@ final class CheckBoxSpinner {
     UIUtilities.highlightJTextComponents(highlight, panel);
   }
 
-  void setCheckBoxToolTipText(String tooltip) {
-    checkBox.setToolTipText(tooltip);
+  void setCheckBoxToolTipText(String text) {
+    checkBox.setToolTipText(text);
   }
 
-  void setSpinnerToolTipText(String tooltip) {
-    spinner.setToolTipText(tooltip);
+  void setSpinnerToolTipText(String text) {
+    spinner.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
   private class CheckBoxSpinnerActionListener implements ActionListener {

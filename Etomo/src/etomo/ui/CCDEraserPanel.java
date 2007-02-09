@@ -426,7 +426,6 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
    */
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
       autodoc = Autodoc.getInstance(Autodoc.CCDERASER, axisID);
@@ -438,89 +437,60 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       except.printStackTrace();
     }
 
-    ltfInputImage.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.INPUT_FILE_KEY))
-        .format());
-    ltfOutputImage.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.OUTPUT_FILE_KEY))
-        .format());
-    cbXrayReplacement.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.FIND_PEAKS_KEY))
-        .format());
-    ltfPeakCriterion.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.PEAK_CRITERION_KEY))
-        .format());
-    ltfDiffCriterion.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.DIFF_CRITERION_KEY))
-        .format());
-    ltfGrowCriterion.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.GROW_CRITERION_KEY))
-        .format());
-    ltfScanCriterion.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.SCAN_CRITERION_KEY))
-        .format());
-    ltfMaximumRadius.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.MAXIMUM_RADIUS_KEY))
-        .format());
-    ltfAnnulusWidth.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.ANNULUS_WIDTH_KEY))
-        .format());
-    ltfScanRegionSize.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.X_Y_SCAN_SIZE_KEY))
-        .format());
-    ltfEdgeExclusion.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            CCDEraserParam.EDGE_EXCLUSION_WIDTH_KEY)).format());
-    ltfLocalReplacementList.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.LINE_OBJECTS_KEY))
-        .format());
-
-    text = "Use a manually created model to specify regions and lines to replace.";
-    cbManualReplacement.setToolTipText(tooltipFormatter.setText(text).format());
-
-    ltfGlobalReplacementList.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc
-            .getTooltip(autodoc, CCDEraserParam.ALL_SECTION_OBJECTS_KEY))
-        .format());
-    ltfBorderPixels.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.BORDER_SIZE_KEY))
-        .format());
-    ltfPolynomialOrder.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.POLYNOMIAL_ORDER_KEY))
-        .format());
-
-    text = "Include pixels adjacent to the patch being replaced in the pixels "
-        + "being fit.";
-    cbIncludeAdjacentPoints.setToolTipText(tooltipFormatter.setText(text)
-        .format());
-
-    btnFindXRays.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, CCDEraserParam.TRIAL_MODE_KEY))
-        .format());
-
-    text = "View the x-ray model on the raw stack in 3dmod.";
-    btnViewXRayModel.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Create a manual replacement model using 3dmod.";
-    btnCreateModel.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Run ccderaser, erasing the raw stack and writing the modified stack "
-        + "to the output file specified (the default is *_fixed.st).  "
+    ltfInputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.INPUT_FILE_KEY));
+    ltfOutputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.OUTPUT_FILE_KEY));
+    cbXrayReplacement.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.FIND_PEAKS_KEY));
+    ltfPeakCriterion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.PEAK_CRITERION_KEY));
+    ltfDiffCriterion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.DIFF_CRITERION_KEY));
+    ltfGrowCriterion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.GROW_CRITERION_KEY));
+    ltfScanCriterion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.SCAN_CRITERION_KEY));
+    ltfMaximumRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.MAXIMUM_RADIUS_KEY));
+    ltfAnnulusWidth.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.ANNULUS_WIDTH_KEY));
+    ltfScanRegionSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.X_Y_SCAN_SIZE_KEY));
+    ltfEdgeExclusion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.EDGE_EXCLUSION_WIDTH_KEY));
+    ltfLocalReplacementList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.LINE_OBJECTS_KEY));
+    cbManualReplacement
+        .setToolTipText("Use a manually created model to specify regions and lines to replace.");
+    ltfGlobalReplacementList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.ALL_SECTION_OBJECTS_KEY));
+    ltfBorderPixels.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.BORDER_SIZE_KEY));
+    ltfPolynomialOrder.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.POLYNOMIAL_ORDER_KEY));
+    cbIncludeAdjacentPoints
+        .setToolTipText("Include pixels adjacent to the patch being replaced in the pixels "
+            + "being fit.");
+    btnFindXRays.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.TRIAL_MODE_KEY));
+    btnViewXRayModel
+        .setToolTipText("View the x-ray model on the raw stack in 3dmod.");
+    btnCreateModel
+        .setToolTipText("Create a manual replacement model using 3dmod.");
+    btnErase
+        .setToolTipText("Run ccderaser, erasing the raw stack and writing the modified stack "
+            + "to the output file specified (the default is *_fixed.st).  "
+            + "NOTE: subsequent processing uses the "
+            + "raw stack filename, therefore for ccderaser to have an effect on "
+            + "your data you must commit the raw stack when you are satisfied with"
+            + " your ccderaser output stack.");
+    btnViewErased.setToolTipText("View the erased stack in 3dmod.");
+    btnReplaceRawStack.setToolTipText("Use the raw stack with the output from ccderaser.  "
         + "NOTE: subsequent processing uses the "
         + "raw stack filename, therefore for ccderaser to have an effect on "
         + "your data you must commit the raw stack when you are satisfied with"
-        + " your ccderaser output stack.";
-    btnErase.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "View the erased stack in 3dmod.";
-    btnViewErased.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Use the raw stack with the output from ccderaser.  "
-        + "NOTE: subsequent processing uses the "
-        + "raw stack filename, therefore for ccderaser to have an effect on "
-        + "your data you must commit the raw stack when you are satisfied with"
-        + " your ccderaser output stack.";
-    btnReplaceRawStack.setToolTipText(tooltipFormatter.setText(text).format());
+        + " your ccderaser output stack.");
   }
 
   //  Action listener
@@ -540,6 +510,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.20  2006/07/20 17:19:39  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 3.19  2006/06/21 15:50:08  sueh
  * <p> bug# 581 Passing axis to ContextPopup, so that imodqtassist can be run.
  * <p>

@@ -36,6 +36,9 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2006/07/19 15:33:01  sueh
+ * <p> bug# 903 Take the use fid as seed button out of advanced.
+ * <p>
  * <p> Revision 3.14  2006/07/04 18:46:29  sueh
  * <p> bug# 893 Added updateAdvanced(boolean) to change headers when the
  * <p> advanced button is pressed.
@@ -210,7 +213,8 @@ public final class BeadtrackPanel implements Expandable {
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
    */
-  public BeadtrackPanel(ApplicationManager manager, AxisID id, DialogType dialogType) {
+  public BeadtrackPanel(ApplicationManager manager, AxisID id,
+      DialogType dialogType) {
     this.manager = manager;
     axisID = id;
     btnTrack = (MultiLineButton) manager.getProcessResultDisplayFactory(axisID)
@@ -298,18 +302,18 @@ public final class BeadtrackPanel implements Expandable {
     panelBeadtrack.setBorder(BorderFactory.createEtchedBorder());
     panelBeadtrack.add(header.getContainer());
     panelBeadtrack.add(panelBeadtrackBody);
-    
+
     setToolTipText();
     cbLocalAreaTracking.addActionListener(actionListener);
     btnTrack.addActionListener(actionListener);
     btnUseModel.addActionListener(actionListener);
   }
-  
-  public static ProcessResultDisplay getTrackFiducialsDisplay(DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(TRACK_LABEL,
-        dialogType);
+
+  public static ProcessResultDisplay getTrackFiducialsDisplay(
+      DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance(TRACK_LABEL, dialogType);
   }
-  
+
   /**
    * Update the header with the current advanced state
    */
@@ -583,7 +587,7 @@ public final class BeadtrackPanel implements Expandable {
     ltfMinOverlapBeads.setVisible(state);
     ltfRoundsOfTracking.setVisible(state);
   }
-  
+
   public void done() {
     btnTrack.removeActionListener(actionListener);
   }
@@ -591,7 +595,6 @@ public final class BeadtrackPanel implements Expandable {
   //  ToolTip string setup
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
     Autodoc autodoc = null;
     try {
       autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, axisID);
@@ -605,108 +608,73 @@ public final class BeadtrackPanel implements Expandable {
     if (autodoc == null) {
       return;
     }
-    ltfViewSkipList.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.SKIP_VIEW_LIST_KEY))
-        .format());
-    ltfAdditionalViewSets.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.ADDITIONAL_VIEW_GROUPS_KEY)).format());
-    ltfTiltAngleGroupSize.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.TILT_ANGLE_GROUP_PARAMS_KEY)).format());
-    ltfTiltAngleGroups.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.TILT_ANGLE_GROUPS_KEY))
-        .format());
-    ltfMagnificationGroupSize.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.MAGNIFICATION_GROUP_PARAMS_KEY)).format());
-    ltfMagnificationGroups.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.MAGNIFICATION_GROUPS_KEY)).format());
-    ltfNMinViews.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.N_MIN_VIEWS_KEY))
-        .format());
-    ltfCentroidRadius.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.CENTROID_RADIUS_KEY))
-        .format());
-    cbLightBeads.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.LIGHT_BEADS_KEY))
-        .format());
-    cbFillGaps.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.FILL_GAPS_KEY))
-        .format());
-    ltfMaxGap.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAX_GAP_KEY)).format());
-    ltfMinTiltRangeToFindAxis.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.MIN_TILT_RANGE_TO_FIND_AXIS_KEY)).format());
-    ltfMinTiltRangeToFindAngle.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.MIN_TILT_RANGE_TO_FIND_ANGLES_KEY)).format());
-    ltfSearchBoxPixels.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.SEARCH_BOX_PIXELS_KEY))
-        .format());
-    ltfMaxFiducialsAvg.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MAX_FIDUCIALS_AVG_KEY))
-        .format());
-    ltfFiducialExtrapolationParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.FIDUCIAL_EXTRAPOLATION_PARAMS_KEY)).format());
-    ltfRescueAttemptParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.RESCUE_ATTEMPT_PARAMS_KEY)).format());
-    ltfMinRescueDistance.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc
-            .getTooltip(autodoc, BeadtrackParam.MIN_RESCUE_DISTANCE_KEY))
-        .format());
-    ltfRescueRelaxtionParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.RESCUE_RELAXATION_PARAMS_KEY)).format());
-    ltfResidualDistanceLimit.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.RESIDUAL_DISTANCE_LIMIT_KEY)).format());
-    ltfDensityRelaxationPostFit.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.DENSITY_RELAXATION_POST_FIT_KEY)).format());
-    ltfMaxRescueDistance.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc
-            .getTooltip(autodoc, BeadtrackParam.MAX_RESCUE_DISTANCE_KEY))
-        .format());
-    ltfMeanResidChangeLimits.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.MEAN_RESID_CHANGE_LIMITS_KEY)).format());
-    ltfDeletionParams.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.DELETION_PARAMS_KEY))
-        .format());
+    ltfViewSkipList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.SKIP_VIEW_LIST_KEY));
+    ltfAdditionalViewSets.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.ADDITIONAL_VIEW_GROUPS_KEY));
+    ltfTiltAngleGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.TILT_ANGLE_GROUP_PARAMS_KEY));
+    ltfTiltAngleGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.TILT_ANGLE_GROUPS_KEY));
+    ltfMagnificationGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MAGNIFICATION_GROUP_PARAMS_KEY));
+    ltfMagnificationGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MAGNIFICATION_GROUPS_KEY));
+    ltfNMinViews.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.N_MIN_VIEWS_KEY));
+    ltfCentroidRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.CENTROID_RADIUS_KEY));
+    cbLightBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.LIGHT_BEADS_KEY));
+    cbFillGaps.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.FILL_GAPS_KEY));
+    ltfMaxGap.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MAX_GAP_KEY));
+    ltfMinTiltRangeToFindAxis.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MIN_TILT_RANGE_TO_FIND_AXIS_KEY));
+    ltfMinTiltRangeToFindAngle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MIN_TILT_RANGE_TO_FIND_ANGLES_KEY));
+    ltfSearchBoxPixels.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.SEARCH_BOX_PIXELS_KEY));
+    ltfMaxFiducialsAvg.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MAX_FIDUCIALS_AVG_KEY));
+    ltfFiducialExtrapolationParams.setToolTipText(EtomoAutodoc.getTooltip(
+        autodoc, BeadtrackParam.FIDUCIAL_EXTRAPOLATION_PARAMS_KEY));
+    ltfRescueAttemptParams.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.RESCUE_ATTEMPT_PARAMS_KEY));
+    ltfMinRescueDistance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MIN_RESCUE_DISTANCE_KEY));
+    ltfRescueRelaxtionParams.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.RESCUE_RELAXATION_PARAMS_KEY));
+    ltfResidualDistanceLimit.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.RESIDUAL_DISTANCE_LIMIT_KEY));
+    ltfDensityRelaxationPostFit.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.DENSITY_RELAXATION_POST_FIT_KEY));
+    ltfMaxRescueDistance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MAX_RESCUE_DISTANCE_KEY));
+    ltfMeanResidChangeLimits.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MEAN_RESID_CHANGE_LIMITS_KEY));
+    ltfDeletionParams.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.DELETION_PARAMS_KEY));
 
-    cbLocalAreaTracking.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc
-            .getTooltip(autodoc, BeadtrackParam.LOCAL_AREA_TRACKING_KEY))
-        .format());
-    ltfLocalAreaTargetSize.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc,
-            BeadtrackParam.LOCAL_AREA_TARGET_SIZE_KEY)).format());
-    ltfMinBeadsInArea.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_BEADS_IN_AREA_KEY))
-        .format());
-    ltfMinOverlapBeads.setToolTipText(tooltipFormatter.setText(
-        EtomoAutodoc.getTooltip(autodoc, BeadtrackParam.MIN_OVERLAP_BEADS_KEY))
-        .format());
-    ltfMaxViewsInAlign.setToolTipText(tooltipFormatter
-        .setText(
-            EtomoAutodoc.getTooltip(autodoc,
-                BeadtrackParam.MAX_VIEWS_IN_ALIGN_KEY)).format());
-    ltfRoundsOfTracking.setToolTipText(tooltipFormatter
-        .setText(
-            EtomoAutodoc.getTooltip(autodoc,
-                BeadtrackParam.ROUNDS_OF_TRACKING_KEY)).format());
-    text = "Run Beadtrack to produce fiducial model from seed model.";
-    btnTrack.setToolTipText(tooltipFormatter.setText(text).format());
-
-    text = "Turn the output of Beadtrack (fiducial model) into a new seed model.  "
-        + "Your original seed model will be moved into an _orig.seed file."
-        + "To use the new seed model, press Track Fiducial Seed Model.";
-    btnUseModel.setToolTipText(tooltipFormatter.setText(text).format());
+    cbLocalAreaTracking.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.LOCAL_AREA_TRACKING_KEY));
+    ltfLocalAreaTargetSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.LOCAL_AREA_TARGET_SIZE_KEY));
+    ltfMinBeadsInArea.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MIN_BEADS_IN_AREA_KEY));
+    ltfMinOverlapBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MIN_OVERLAP_BEADS_KEY));
+    ltfMaxViewsInAlign.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.MAX_VIEWS_IN_ALIGN_KEY));
+    ltfRoundsOfTracking.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.ROUNDS_OF_TRACKING_KEY));
+    btnTrack
+        .setToolTipText("Run Beadtrack to produce fiducial model from seed model.");
+    btnUseModel
+        .setToolTipText("Turn the output of Beadtrack (fiducial model) into a new seed model.  "
+            + "Your original seed model will be moved into an _orig.seed file."
+            + "To use the new seed model, press Track Fiducial Seed Model.");
   }
 
   private class BeadtrackPanelActionListener implements ActionListener {

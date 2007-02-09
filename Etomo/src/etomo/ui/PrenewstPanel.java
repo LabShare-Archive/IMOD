@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2006/07/20 17:20:46  sueh
+ * <p> bug# 848 Made UIParameters a singleton.
+ * <p>
  * <p> Revision 1.20  2006/07/04 18:47:52  sueh
  * <p> bug# 893 Added updateAdvanced(boolean) to change the header when the
  * <p> advanced button is pressed.
@@ -125,7 +128,8 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
   private final ActionListener actionListener;
   private final PanelHeader header;
 
-  public PrenewstPanel(ApplicationManager applicationManager, AxisID id, DialogType dialogType) {
+  public PrenewstPanel(ApplicationManager applicationManager, AxisID id,
+      DialogType dialogType) {
     axisID = id;
     this.applicationManager = applicationManager;
     btnCoarseAlign = (MultiLineButton) applicationManager
@@ -138,16 +142,19 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
     SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
         integerModel);
-    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning
+        .setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
     //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  spinBinning.setEnabled(false);
     //}
     UIUtilities.addWithYSpace(pnlBody, spinBinning.getContainer());
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      header = PanelHeader.getAdvancedBasicInstance("Blendmont", this, dialogType);
+      header = PanelHeader.getAdvancedBasicInstance("Blendmont", this,
+          dialogType);
     }
     else {
-      header = PanelHeader.getAdvancedBasicInstance("Newstack", this, dialogType);
+      header = PanelHeader.getAdvancedBasicInstance("Newstack", this,
+          dialogType);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbByteModeToOutput);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbMeanFloatDensities);
     }
@@ -169,24 +176,24 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
     pnlPrenewst.addMouseListener(mouseAdapter);
     setToolTipText();
   }
-  
+
   public void expand(ExpandButton button) {
     if (header.equalsOpenClose(button)) {
       pnlBody.setVisible(button.isExpanded());
     }
     else if (header.equalsAdvancedBasic(button)) {
-       setAdvanced(button.isExpanded());
+      setAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   /**
    * Update the header with the current advanced state
    */
   void updateAdvanced(boolean isAdvanced) {
     header.setAdvanced(isAdvanced);
   }
-  
+
   void setAdvanced(boolean state) {
     spinBinning.setVisible(state);
     cbByteModeToOutput.setVisible(state);
@@ -226,7 +233,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
         .getButtonStateKey()));
     header.setButtonStates(screenState);
   }
-  
+
   public void getParameters(BaseScreenState screenState) {
     header.getButtonStates(screenState);
   }
@@ -286,34 +293,28 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
    * Tooltip string initialization
    */
   private void setToolTipText() {
-    String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-    text = "Binning for the image stack used to generate and fix the fiducial model.";
-    spinBinning.setToolTipText(tooltipFormatter.setText(text).format());
+    spinBinning
+        .setToolTipText("Binning for the image stack used to generate and fix the fiducial model.");
     cbByteModeToOutput
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Set the storage mode of the output file to bytes.  When unchecked the storage mode is the same as that of the first input file.  This option should be turned off when the dynamic range is still too poor after X ray removal.  Command:  "
-                    + ConstNewstParam.DATA_MODE_OPTION
-                    + " "
-                    + ConstNewstParam.DATA_MODE_BYTE).format());
+        .setToolTipText("Set the storage mode of the output file to bytes.  When unchecked the storage mode is the same as that of the first input file.  This option should be turned off when the dynamic range is still too poor after X ray removal.  Command:  "
+            + ConstNewstParam.DATA_MODE_OPTION
+            + " "
+            + ConstNewstParam.DATA_MODE_BYTE);
     cbMeanFloatDensities
-        .setToolTipText(tooltipFormatter
-            .setText(
-                "Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  Command:  "
-                    + ConstNewstParam.FLOAT_DENSITIES_OPTION
-                    + " "
-                    + ConstNewstParam.FLOAT_DENSITIES_MEAN).format());
-    text = "Use transformations to produce stack of aligned images.";
-    btnCoarseAlign.setToolTipText(tooltipFormatter.setText(text).format());
+        .setToolTipText("Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  Command:  "
+            + ConstNewstParam.FLOAT_DENSITIES_OPTION
+            + " "
+            + ConstNewstParam.FLOAT_DENSITIES_MEAN);
+    btnCoarseAlign
+        .setToolTipText("Use transformations to produce stack of aligned images.");
   }
-  
+
   void buttonAction(ActionEvent event) {
     if (event.getActionCommand().equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign);
     }
   }
-  
+
   class PrenewstPanelActionListener implements ActionListener {
     PrenewstPanel adaptee;
 

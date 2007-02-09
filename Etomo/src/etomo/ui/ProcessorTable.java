@@ -602,14 +602,14 @@ public final class ProcessorTable implements Storable {
           .getComputer());
     }
   }
-  
+
   final void endGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
       return;
     }
     for (int i = 0; i < rows.size(); i++) {
-      display.endGetLoadAverage(((ProcessorTableRow) rows.get(i))
-          .getComputer());
+      display
+          .endGetLoadAverage(((ProcessorTableRow) rows.get(i)).getComputer());
     }
   }
 
@@ -628,8 +628,8 @@ public final class ProcessorTable implements Storable {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer))
-        .setLoadAverage(load1, load5, users, usersTooltip);
+    ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5,
+        users, usersTooltip);
   }
 
   final void setCPUUsage(String computer, double cpuUsage) {
@@ -718,78 +718,64 @@ public final class ProcessorTable implements Storable {
 
   private void setToolTipText() {
     String text;
-    TooltipFormatter tooltipFormatter = new TooltipFormatter();
-
-    text = tooltipFormatter.setText(
-        "Select computers to use for parallel processing.").format();
+    text = "Select computers to use for parallel processing.";
     header1Computer.setToolTipText(text);
     header2Computer.setToolTipText(text);
-    text = tooltipFormatter.setText(
-        "Select the number of CPUs to use for each computer.").format();
+    text = "Select the number of CPUs to use for each computer.";
     header1NumberCPUs.setToolTipText(text);
     header2NumberCPUsUsed.setToolTipText(text);
     if (numberColumn) {
-      header2NumberCPUsMax.setToolTipText(tooltipFormatter.setText(
-          "The maximum number of CPUs available on each computer.").format());
+      header2NumberCPUsMax
+          .setToolTipText("The maximum number of CPUs available on each computer.");
     }
     if (Utilities.isWindowsOS()) {
-      header1CPUUsage.setToolTipText(tooltipFormatter.setText(
-          "The CPU usage (0 to number of CPUs) averaged over one second.")
-          .format());
+      header1CPUUsage
+          .setToolTipText("The CPU usage (0 to number of CPUs) averaged over one second.");
     }
     else {
-      header1Load.setToolTipText(tooltipFormatter.setText(
-          "Represents how busy each computer is.").format());
-      header2Load1.setToolTipText(tooltipFormatter.setText(
-          "The load averaged over one minute.").format());
-      header2Load5.setToolTipText(tooltipFormatter.setText(
-          "The load averaged over five minutes.").format());
-      text = tooltipFormatter.setText(
-          "The number of users logged into the computer.").format();
+      header1Load.setToolTipText("Represents how busy each computer is.");
+      header2Load1.setToolTipText("The load averaged over one minute.");
+      header2Load5.setToolTipText("The load averaged over five minutes.");
+      text = "The number of users logged into the computer.";
       header1Users.setToolTipText(text);
       header2Users.setToolTipText(text);
     }
-    text = tooltipFormatter.setText(
-        "The number of times processes failed on each computer.").format();
+    text = "The number of times processes failed on each computer.";
     header1Restarts.setToolTipText(text);
     header2Restarts.setToolTipText(text);
-    text = tooltipFormatter
-        .setText(
-            "The number of processes each computer completed for a distributed process.")
-        .format();
+    text = "The number of processes each computer completed for a distributed process.";
     header1Finished.setToolTipText(text);
     header2Finished.setToolTipText(text);
     if (header1CPUType != null) {
-      text = tooltipFormatter.setText("The CPU type of each computer.")
-          .format();
+      text = "The CPU type of each computer.";
       header1CPUType.setToolTipText(text);
       header2CPUType.setToolTipText(text);
     }
     if (header1Speed != null) {
-      text = tooltipFormatter.setText("The speed of each computer.").format();
+      text = "The speed of each computer.";
       header1Speed.setToolTipText(text);
       header2Speed.setToolTipText(text);
     }
     if (header1RAM != null) {
-      text = tooltipFormatter.setText("The amount of RAM in each computer.")
-          .format();
+      text = "The amount of RAM in each computer.";
       header1RAM.setToolTipText(text);
       header2RAM.setToolTipText(text);
     }
     if (header1OS != null) {
-      text = tooltipFormatter.setText("The operating system of each computer.")
-          .format();
+      text = "The operating system of each computer.";
       header1OS.setToolTipText(text);
       header2OS.setToolTipText(text);
     }
-    text = tooltipFormatter.setText(
-        "Reason for a failure by the load average or a process").format();
+    text = "Reason for a failure by the load average or a process";
     header1Failure.setToolTipText(text);
     header2Failure.setToolTipText(text);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2007/02/05 23:40:45  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.36  2006/11/29 00:20:49  sueh
  * <p> bug# 934 Added endGetLoadAverage().  Does the same thing as
  * <p> stopGetLoadAverage(), but also removes the monitor.  Uses when a manager

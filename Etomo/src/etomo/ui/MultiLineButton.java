@@ -43,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2007/02/05 23:40:00  sueh
+ * <p> bug# 962 Added setHighlight.
+ * <p>
  * <p> Revision 3.24  2006/07/26 16:40:45  sueh
  * <p> bug# 868 Added msg(ProcessResult)
  * <p>
@@ -366,8 +369,8 @@ class MultiLineButton implements ProcessResultDisplay {
     button.setBorder(border);
   }
 
-  final void setToolTipText(String toolTip) {
-    button.setToolTipText(toolTip);
+  final void setToolTipText(String text) {
+    button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
   final Dimension getPreferredSize() {
