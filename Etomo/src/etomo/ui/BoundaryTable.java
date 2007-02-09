@@ -29,7 +29,10 @@ import etomo.type.JoinScreenState;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:34:00  sueh
+ * <p> bug# 962 Class representing the boundary table.
+ * <p> </p>
  */
 final class BoundaryTable {
   public static final String rcsid = "$Id$";
@@ -59,11 +62,8 @@ final class BoundaryTable {
   private final HeaderCell header2AdjustedEnd = new HeaderCell();
   private final HeaderCell header2AdjustedStart = new HeaderCell();
   //third row
-  private final HeaderCell header3Boundaries = new HeaderCell();
   private final HeaderCell header3Sections = new HeaderCell();
   private final HeaderCell header3BestGap = new HeaderCell();
-  private final HeaderCell header3MeanError = new HeaderCell();
-  private final HeaderCell header3MaxError = new HeaderCell();
   private final HeaderCell header3OriginalEnd = new HeaderCell("End");
   private final HeaderCell header3OriginalStart = new HeaderCell("Start");
   private final HeaderCell header3AdjustedEnd = new HeaderCell("End");
@@ -80,7 +80,7 @@ final class BoundaryTable {
   BoundaryTable(JoinManager manager, JoinDialog joinDialog) {
     this.manager = manager;
     screenState = manager.getScreenState();
-    metaData=manager.getJoinMetaData();
+    metaData = manager.getJoinMetaData();
     parent = joinDialog;
     //construct panels
     SpacedPanel pnlBorder = new SpacedPanel();
@@ -98,10 +98,85 @@ final class BoundaryTable {
     header1BestGap.pad();
     header3OriginalEnd.pad();
     header3OriginalStart.pad();
+    setToolTipText();
   }
 
   void setXfjointomoResult() throws LogFile.ReadException {
     rowList.setXfjointomoResult(manager);
+  }
+
+  /**
+   * Updates and displays the table as necessary.  Does nothing if the tab has
+   * not changed and rowChange is false.
+   */
+  void display() {
+    JoinDialog.Tab oldTab = tab;
+    tab = parent.getTab();
+    if (oldTab == tab && !rowChange) {
+      return;
+    }
+    rowList.removeDisplay();
+    pnlTable.removeAll();
+    addHeader();
+    addRows();
+    manager.getMainPanel().repaint();
+  }
+
+  /**
+   * Causes the rows in the table to be deleted and recreated when the table is
+   * displayed.
+   */
+  void msgRowChange() {
+    rowChange = true;
+    //when addRows() is called, it will load from screenState and metaData, so
+    //they need to be empty if they are out of date.
+    BoundaryRow.resetScreenState(screenState);
+    BoundaryRow.resetMetaData(metaData);
+  }
+
+  void getScreenState() {
+    BoundaryRow.resetScreenState(screenState);
+    rowList.getScreenState(screenState);
+  }
+
+  void getMetaData() {
+    BoundaryRow.resetMetaData(metaData);
+    rowList.getMetaData(metaData);
+  }
+
+  Container getContainer() {
+    return rootPanel;
+  }
+
+  private void setToolTipText() {
+    String text = "Boundaries between sections.";
+    header1Boundaries.setToolTipText(text);
+    header2Boundaries.setToolTipText(text);
+    text="The pairs of sections which define each boundary.";
+    header1Sections.setToolTipText(text);
+    header2Sections.setToolTipText(text);
+    header3Sections.setToolTipText(text);
+    text = "Describes how the final start and end values will change when the join is recreated, "
+        + "with a positive gap adding slices and a negative gap removing slices at the corresponding boundary.";
+    header1BestGap.setToolTipText(text);
+    header2BestGap.setToolTipText(text);
+    header3BestGap.setToolTipText(text);
+    header1Error
+        .setToolTipText("Deviations between transformed points extrapolated from above and below the corresponding boundary.");
+    header2MeanError.setToolTipText("Mean deviations.");
+    header2MaxError.setToolTipText("Maximum deviations.");
+    text ="End and start values used to create the original join.";
+    header1Original.setToolTipText(text);
+    header2OriginalEnd.setToolTipText(text);
+    header2OriginalStart.setToolTipText(text);
+    header3OriginalEnd.setToolTipText("End values used to create the original join.");
+    header3OriginalStart.setToolTipText("Start values used to create the original join.");
+    text="End and start values which will be used to create the new join.";
+    header1Adjusted.setToolTipText(text);
+    header2AdjustedEnd.setToolTipText(text);
+    header2AdjustedStart.setToolTipText(text);
+    header3AdjustedEnd.setToolTipText("End values which will be used to create the new join.");
+    header3AdjustedStart.setToolTipText("Start values which will be used to create the new join.");
   }
 
   private void addHeader() {
@@ -178,49 +253,6 @@ final class BoundaryTable {
   }
 
   /**
-   * Updates and displays the table as necessary.  Does nothing if the tab has
-   * not changed and rowChange is false.
-   */
-  void display() {
-    JoinDialog.Tab oldTab = tab;
-    tab = parent.getTab();
-    if (oldTab == tab && !rowChange) {
-      return;
-    }
-    rowList.removeDisplay();
-    pnlTable.removeAll();
-    addHeader();
-    addRows();
-    manager.getMainPanel().repaint();
-  }
-
-  /**
-   * Causes the rows in the table to be deleted and recreated when the table is
-   * displayed.
-   */
-  void msgRowChange() {
-    rowChange = true;
-    //when addRows() is called, it will load from screenState and metaData, so
-    //they need to be empty if they are out of date.
-    BoundaryRow.resetScreenState(screenState);
-    BoundaryRow.resetMetaData(metaData);
-  }
-
-  void getScreenState() {
-    BoundaryRow.resetScreenState(screenState);
-    rowList.getScreenState(screenState);
-  }
-  
-  void getMetaData() {
-    BoundaryRow.resetMetaData(metaData);
-    rowList.getMetaData(metaData);
-  }
-
-  Container getContainer() {
-    return rootPanel;
-  }
-
-  /**
    * Displays the rows.  Updates the rows when rowChange is true.
    */
   private void addRows() {
@@ -228,7 +260,8 @@ final class BoundaryTable {
       rowChange = false;
       rowList.clear();
       parent.getSectionTable().getMetaData(metaData);
-      rowList.add(parent.getSectionTableSize(), metaData, screenState, pnlTable, layout, constraints);
+      rowList.add(parent.getSectionTableSize(), metaData, screenState,
+          pnlTable, layout, constraints);
     }
     rowList.display(tab);
   }
@@ -283,19 +316,11 @@ final class BoundaryTable {
         get(i).getScreenState(screenState);
       }
     }
-    
+
     void getMetaData(JoinMetaData metaData) {
       for (int i = 0; i < list.size(); i++) {
         get(i).getMetaData(metaData);
       }
-    }
-
-    /**
-     * @param index
-     * @return an element of the list
-     */
-    private BoundaryRow get(int index) {
-      return (BoundaryRow) list.get(index);
     }
 
     /**
@@ -307,13 +332,20 @@ final class BoundaryTable {
      * @param layout
      * @param constraints
      */
-    void add(int size, ConstJoinMetaData metaData,
-        JoinScreenState screenState,
+    void add(int size, ConstJoinMetaData metaData, JoinScreenState screenState,
         JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
       for (int i = 1; i < size; i++) {
-        list.add(new BoundaryRow(i, metaData, screenState, panel,
-            layout, constraints));
+        list.add(new BoundaryRow(i, metaData, screenState, panel, layout,
+            constraints));
       }
+    }
+
+    /**
+     * @param index
+     * @return an element of the list
+     */
+    private BoundaryRow get(int index) {
+      return (BoundaryRow) list.get(index);
     }
   }
 }
