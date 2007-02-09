@@ -13,6 +13,10 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2005/02/15 20:42:05  sueh
+ * <p> bug# 602 Added convert(), which converts from a string formatted with '\n'
+ * <p> to an html string.
+ * <p>
  * <p> Revision 3.3  2005/02/11 16:46:40  sueh
  * <p> bug# 600 Getting tooltips using EtomoAutodoc instead of TooltipFormatter.
  * <p>
@@ -38,48 +42,25 @@ package etomo.ui;
  */
 
 public class TooltipFormatter {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
-  private int nColumns = 60;
-  private String rawString = "";
+  public static final TooltipFormatter INSTANCE = new TooltipFormatter();
 
-  /**
-   * Default constructor 
-   *
-   */
-  public TooltipFormatter() {
-  }
-
-  /**
-   * Raw string argument constructor 
-   * @param str
-   */
-  public TooltipFormatter(String str) {
-    rawString = str;
-  }
-
-  /**
-   * Set the raw text string
-   * @param str
-   * @return
-   */
-  public TooltipFormatter setText(String str) {
-    rawString = str;
-    return this;
-  }
+  private static final int N_COLUMNS = 60;
 
   /**
    * Format the rawString into an HTML string appropriate for tooltips
    * @return the HTML formatted string
    */
-  public String format() {
-    if (rawString == null) {return null;}
+  public String format(String rawString) {
+    if (rawString == null) {
+      return null;
+    }
     StringBuffer htmlFormat = new StringBuffer("<html>");
     boolean splitting = true;
     int idxStart = 0;
     while (splitting) {
-      int idxSearch = idxStart + nColumns;
+      int idxSearch = idxStart + N_COLUMNS;
       // Are we past the end of the string
       if (idxSearch >= rawString.length() - 1) {
         htmlFormat.append(rawString.substring(idxStart));
@@ -90,43 +71,46 @@ public class TooltipFormatter {
         int idxStop = subString.lastIndexOf(' ');
         //  All one word!
         if (idxStop < 0) {
-          idxStop = nColumns;
+          idxStop = N_COLUMNS;
         }
         else {
-          htmlFormat.append(
-            rawString.substring(idxStart, idxStart + idxStop) + "<br>");
+          htmlFormat.append(rawString.substring(idxStart, idxStart + idxStop)
+              + "<br>");
           idxStart = idxStart + idxStop + 1;
         }
       }
     }
     return htmlFormat.toString();
   }
-  
+
   /**
    * converts from a string formatted with '\n' to an html string.  Doesn't
-   * current handle indents.  Wraps at nColumns.
+   * currently handle indents.  Wraps at N_COLUMNS.
    * @return
    */
-  public String convert() {
-    if (rawString == null) {return null;}
-    StringBuffer htmlFormat = new StringBuffer("<html>");
-    int lineIndex = 0;
-    for (int i = 0; i < rawString.length(); i++) {
-      char currentChar = rawString.charAt(i);
-      if (currentChar == '\n') {
-        htmlFormat.append("<br>");
-        lineIndex = 0;
-      }
-      else {
-        htmlFormat.append(currentChar);
-        lineIndex++;
-      }
-      if (lineIndex == nColumns) {
-        htmlFormat.append("<br>");
-        lineIndex = 0;
-      }   
-    }    
-    return htmlFormat.toString();
+  /*
+   public String convert(String rawString) {
+   if (rawString == null) {return null;}
+   StringBuffer htmlFormat = new StringBuffer("<html>");
+   int lineIndex = 0;
+   for (int i = 0; i < rawString.length(); i++) {
+   char currentChar = rawString.charAt(i);
+   if (currentChar == '\n') {
+   htmlFormat.append("<br>");
+   lineIndex = 0;
+   }
+   else {
+   htmlFormat.append(currentChar);
+   lineIndex++;
+   }
+   if (lineIndex == N_COLUMNS) {
+   htmlFormat.append("<br>");
+   lineIndex = 0;
+   }   
+   }    
+   return htmlFormat.toString();
+   }*/
+
+  private TooltipFormatter() {
   }
-  
 }
