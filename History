@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/07: Changed Newstack to provide better fractional pixel origin values when
+data are binned and the output size is a specified size.
+
+2/9/07: Etomo has a new interface for refining the alignment of joined 
+tomograms.
+
 2/2/07: Fixed bug in binvol when specifying input file with -input.
 
 1/31/07: Added option to Xfmodel to specify a scaling of the shifts so it can
