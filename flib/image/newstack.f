@@ -90,13 +90,14 @@ c
       integer*4 iybase,iy1,iy2,lnu,maxin,ibbase,numScaleFacs,numXfLines
       real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
       integer*4 needyst,needynd,nmove,noff,nload,nyload,nych,npix,ibchunk
-      integer*4 ixcen,iycen,ix1,ix2,istart,nbcopy,nbclear,ifLinear
+      integer*4 ix1,ix2,istart,nbcopy,nbclear,ifLinear
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
       integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
       integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
+      integer*4 ixOriginOff,iyOriginOff
       real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
       real*8 dsum,dsumsq,tsum,tsumsq
       real*4 cosd, sind
@@ -875,8 +876,27 @@ c             a positive change is needed to indicate origin inside image
 c             
             call irtdel(1, delt)
             call irtorg(1, xorig, yorig, zorig)
-            call ialorg(2, xorig - delt(1) * ixOffset,
-     &          yorig - delt(1) * iyOffset, zorig)
+	    if (iBinning .gt. 1) then
+	      ixOriginOff = -ixOffset
+	      iyOriginOff = -iyOffset
+	      if ((nx3 .ne. nxbin .or. ny3 .ne. nybin) .and. ifxform.eq.0) then
+c
+c		  If output size is being set from the input and binning, the
+c		  origin offset is all set, but otherwise we need to adjust
+c		  for the difference between unbinned pixels to left of image 
+c		  in output versus pixels to left in an input image that is
+c		  bigger by the binning factor.  But this only works if
+c                 there is no transformation
+c
+		ixOriginOff = iBinning * (nx3 / 2 - nxbin / 2) - ixOffset -
+     &		    (nx3 * iBinning - nx) / 2
+		iyOriginOff = iBinning * (ny3 / 2 - nybin / 2) - iyOffset -
+     &		    (ny3 * iBinning - ny) / 2
+	      endif
+              print *,ixOffset, ixOriginOff
+	      call ialorg(2, xorig + delt(1) * ixOriginOff,
+     &		  yorig + delt(1) * iyOriginOff, zorig)
+	    endif
 c             
 c             7/7/00 CER: remove the encodes
 c             
@@ -1300,11 +1320,10 @@ c
 c               otherwise repack array into output space nx3 by ny3, with
 c               offset as specified, using the special repack routine
 c               
-              IXCEN = NXbin/2 + XCEN(isec)
-              IX1 = IXCEN - (NX3/2)
+              IX1 = nxbin / 2 - NX3 / 2 + nint(xcen(isec))
               IX2 = IX1 + NX3 - 1
 C               
-              IYbase = NYbin/2 + YCEN(isec) - (NY3/2)
+              IYbase = NYbin / 2 - ny3 / 2 + nint(YCEN(isec))
               IY1 = IYbase+lineOutSt(ichunk)-loadyst
               iy2 = iy1+nych-1
 c               
@@ -1853,6 +1872,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.43  2006/12/20 05:30:03  mast
+c       Added options for blank output sections and for sections at an increment
+c
 c       Revision 3.42  2006/09/28 21:26:30  mast
 c       Changes to work with huge images
 c
