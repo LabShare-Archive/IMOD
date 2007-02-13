@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/07: IMOD_3-10-2
 2/12/07: Changed Newstack to provide better fractional pixel origin values when
 data are binned and the output size is a specified size.
 
