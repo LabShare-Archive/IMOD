@@ -329,7 +329,7 @@ dist : ALWAYS
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
-	\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
+	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."
 	$(ARC) $(ARCHIVE) $(ARCNAME); $(COMPRESS) $(ARCHIVE)
@@ -343,7 +343,7 @@ dist : ALWAYS
 #
 src : configure cleansrc csrc fsrc etomosrc
 	if [ -e $(ARCDIR)_src/$(ARCDIR)_src/ ] ; then /bin/rm -rf $(ARCDIR)_src/$(ARCDIR)_src/ ; fi
-	\find $(ARCDIR)_src -depth -name CVS -exec /bin/rm -rf {} \;
+	-\find $(ARCDIR)_src -depth -name CVS -exec /bin/rm -rf {} \;
 	tar cf $(ARCNAME)_src.tar $(ARCNAME)_src 
 	$(COMPRESS) $(ARCNAME)_src.tar
 
@@ -436,6 +436,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.63  2006/10/06 21:25:51  mast
+#  Forgot a quote
+#
 #  Revision 3.62  2006/10/06 21:14:08  mast
 #  Strip ctrl-r from pwd output for new cygwin bash bug
 #
