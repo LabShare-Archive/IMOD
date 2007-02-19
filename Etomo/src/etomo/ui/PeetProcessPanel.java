@@ -19,7 +19,10 @@ import etomo.type.AxisID;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/19 22:03:37  sueh
+* <p> bug# 964 Process panel for PEET interface.
+* <p> </p>
 */
 public class PeetProcessPanel extends AxisProcessPanel {
   public static  final String  rcsid =  "$Id$";
@@ -47,5 +50,10 @@ public class PeetProcessPanel extends AxisProcessPanel {
     panelProcessSelect.setBackground(color);
     //axisButtonPanel.setBackground(color);
     progressPanel.setBackground(color);
+  }
+  
+  protected void createProcessControlPanel() {
+    super.createProcessControlPanel();
+    showBothAxis();
   }
 }
