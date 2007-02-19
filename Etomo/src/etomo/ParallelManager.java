@@ -92,7 +92,7 @@ public final class ParallelManager extends BaseManager {
   protected void createProcessTrack() {
   }
 
-  protected void createState() {
+  private void createState() {
   }
 
   public BaseMetaData getBaseMetaData() {
@@ -128,10 +128,6 @@ public final class ParallelManager extends BaseManager {
   }
 
   protected void getProcessTrack(Storable[] storable, int index) {
-  }
-
-  public boolean isNewManager() {
-    return true;
   }
 
   public void kill(AxisID axisID) {
@@ -267,6 +263,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/02/05 21:27:59  sueh
+ * <p> bug# 962 Creating process manager later.
+ * <p>
  * <p> Revision 1.9  2006/11/28 22:48:48  sueh
  * <p> bug# 934 Changed BaseManager.stop() to endThreads().
  * <p>

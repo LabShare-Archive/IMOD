@@ -130,9 +130,6 @@ public abstract class BaseManager {
 
   public abstract boolean canChangeParamFileName();
 
-  //FIXME needs to be public?
-  public abstract boolean isNewManager();
-
   public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
@@ -156,7 +153,6 @@ public abstract class BaseManager {
     headless = EtomoDirector.getInstance().isHeadless();
     if (!headless) {
       createMainPanel();
-      //mainFrame = EtomoDirector.getInstance().getMainFrame();
     }
     imodManager = new ImodManager(this);
     initProgram();
@@ -1077,6 +1073,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.73  2007/02/05 21:25:59  sueh
+ * <p> bug# 692  In processDone, run startNextProcess even if the process is empty,
+ * <p> so that last process can be automatically placed in process.
+ * <p>
  * <p> Revision 1.72  2006/11/28 22:47:02  sueh
  * <p> bug# 934 Changed BaseManager.stop() to endThreads().  Added a command to
  * <p> end main panel threads, which are load averages.  These threads are shared

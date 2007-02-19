@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2007/02/08 02:23:40  sueh
+ * <p> bug# 962 Preventing xfmodel input file and output file from being the same.
+ * <p>
  * <p> Revision 1.49  2007/02/05 21:27:36  sueh
  * <p> bug# 962 Add remapmodel, xfjointomo, xfmodel, and xftoxg.
  * <p>
@@ -425,10 +428,6 @@ public final class JoinManager extends BaseManager {
     return "joinDialog=" + joinDialog + ",metaData=" + metaData
         + ",\nprocessMgr=" + processMgr + ",state=" + state + ",\nsuper["
         + super.paramString() + "]";
-  }
-
-  public boolean isNewManager() {
-    return true;
   }
 
   protected void createComScriptManager() {
