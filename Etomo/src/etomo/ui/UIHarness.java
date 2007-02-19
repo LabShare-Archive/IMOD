@@ -371,6 +371,12 @@ public final class UIHarness {
     }
   }
   
+  public void setEnabledNewPeetMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewPeetMenuItem(enable);
+    }
+  }
+  
   public void addWindow(BaseManager manager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.addWindow(manager, managerKey);
@@ -516,6 +522,10 @@ public final class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.23  2006/06/06 18:14:59  sueh
+* <p> bug# 766 Add a logging option, which always writes popup messages to the
+* <p> error, and also pops them up.
+* <p>
 * <p> Revision 1.22  2006/04/25 19:37:07  sueh
 * <p> bug# 787 Added testDone to EtomoDirector so that Etomo can exit
 * <p> without popups when the UITest package fails or asks Etomo to exit.
