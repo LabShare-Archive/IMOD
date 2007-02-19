@@ -11,6 +11,7 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisType;
 
 /**
@@ -38,6 +39,7 @@ public class EtomoMenu {
       KeyEvent.VK_N);
   private JMenuItem menuFileNewJoin = new JMenuItem("New Join", KeyEvent.VK_J);
   private JMenuItem menuFileNewParallel = new JMenuItem("New Parallel Process", KeyEvent.VK_P);
+  private JMenuItem menuFileNewPeet = new JMenuItem("New PEET", KeyEvent.VK_E);
   private JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
   private JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
   private JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
@@ -93,6 +95,7 @@ public class EtomoMenu {
     menuFileNewTomogram.addActionListener(fileActionListener);
     menuFileNewJoin.addActionListener(fileActionListener);
     menuFileNewParallel.addActionListener(fileActionListener);
+    menuFileNewPeet.addActionListener(fileActionListener);
     menuFileOpen.addActionListener(fileActionListener);
     menuFileSave.addActionListener(fileActionListener);
     menuFileSaveAs.addActionListener(fileActionListener);
@@ -122,6 +125,10 @@ public class EtomoMenu {
     menuFile.add(menuFileNewTomogram);
     menuFile.add(menuFileNewJoin);
     menuFile.add(menuFileNewParallel);
+    //temp bug# 964
+    if (EtomoDirector.getInstance().isNewstuff()) {
+    menuFile.add(menuFileNewPeet);}
+    
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
     menuFile.add(menuFileSaveAs);
@@ -207,6 +214,7 @@ public class EtomoMenu {
     menuFileNewTomogram.setEnabled(mainFrameMenu.menuFileNewTomogram.isEnabled());
     menuFileNewJoin.setEnabled(mainFrameMenu.menuFileNewJoin.isEnabled());
     menuFileNewParallel.setEnabled(mainFrameMenu.menuFileNewParallel.isEnabled());
+    menuFileNewPeet.setEnabled(mainFrameMenu.menuFileNewPeet.isEnabled());
     menuFileSaveAs.setEnabled(mainFrameMenu.menuFileSaveAs.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
     menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
@@ -267,6 +275,10 @@ public class EtomoMenu {
     menuFileNewParallel.setEnabled(enable);
   }
   
+  void setEnabledFileNewPeet(boolean enable) {
+    menuFileNewPeet.setEnabled(enable);
+  }
+  
   final boolean equalsFileNewTomogram(ActionEvent event) {
     return equals(menuFileNewTomogram, event);
   }
@@ -277,6 +289,10 @@ public class EtomoMenu {
   
   final boolean equalsFileNewParallel(ActionEvent event) {
     return equals(menuFileNewParallel, event);
+  }
+  
+  final boolean equalsFileNewPeet(ActionEvent event) {
+    return equals(menuFileNewPeet, event);
   }
 
   final boolean equalsFileOpen(ActionEvent event) {
@@ -413,6 +429,9 @@ public class EtomoMenu {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2006/03/20 18:02:27  sueh
+* <p> bug# 835 Added menu option to create a new ParallelManager.
+* <p>
 * <p> Revision 1.6  2005/12/09 20:30:19  sueh
 * <p> bug# 776 Added menuFileTomosnapshot.
 * <p>
