@@ -35,6 +35,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.35  2006/11/29 00:19:49  sueh
+ * <p> bug# 934 Added endThreads() to notify the load average threads when the
+ * <p> manager exits.
+ * <p>
  * <p> Revision 1.34  2006/10/24 22:34:34  sueh
  * <p> bug# 947
  * <p>
@@ -267,9 +271,9 @@ public abstract class MainPanel extends JPanel {
 
   protected abstract void addAxisPanelB();
 
-  protected abstract boolean AxisPanelAIsNull();
+  protected abstract boolean isAxisPanelANull();
 
-  protected abstract boolean AxisPanelBIsNull();
+  protected abstract boolean isAxisPanelBNull();
 
   protected abstract boolean hideAxisPanelA();
 

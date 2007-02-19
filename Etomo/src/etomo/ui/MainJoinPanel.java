@@ -25,6 +25,9 @@ import etomo.type.BaseMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2006/03/20 18:03:23  sueh
+* <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+* <p>
 * <p> Revision 1.9  2005/09/21 16:38:57  sueh
 * <p> bug# 532 Added empty implementation of setState(), which is required by
 * <p> MainPanel.
@@ -159,11 +162,11 @@ public class MainJoinPanel extends MainPanel {
     scrollB.add(axisPanelB.getContainer());
   }
   
-  protected boolean AxisPanelAIsNull() {
+  protected boolean isAxisPanelANull() {
     return axisPanelA == null;
   }
   
-  protected boolean AxisPanelBIsNull() {
+  protected boolean isAxisPanelBNull() {
     return axisPanelB == null;
   }
   

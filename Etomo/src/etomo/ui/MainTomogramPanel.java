@@ -27,6 +27,9 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.19  2006/07/26 16:40:28  sueh
+* <p> bug# 868 Made setState() public
+* <p>
 * <p> Revision 1.18  2006/03/20 18:04:38  sueh
 * <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
 * <p>
@@ -384,11 +387,11 @@ public class MainTomogramPanel extends MainPanel {
     scrollB.add(axisPanelB.getContainer());
   }
   
-  protected boolean AxisPanelAIsNull() {
+  protected boolean isAxisPanelANull() {
     return axisPanelA == null;
   }
   
-  protected boolean AxisPanelBIsNull() {
+  protected boolean isAxisPanelBNull() {
     return axisPanelB == null;
   }
   

@@ -21,7 +21,10 @@ import etomo.type.BaseMetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 18:04:25  sueh
+* <p> bug# 835 Added a main panel for ParallelManager.
+* <p> </p>
 */
 public final class MainParallelPanel extends MainPanel {
   public static  final String  rcsid =  "$Id$";
@@ -42,11 +45,11 @@ public final class MainParallelPanel extends MainPanel {
   protected void addAxisPanelB() {
   }
   
-  protected boolean AxisPanelAIsNull() {
+  protected boolean isAxisPanelANull() {
     return axisPanelA == null;
   }
   
-  protected boolean AxisPanelBIsNull() {
+  protected boolean isAxisPanelBNull() {
     return true;
   }
   
@@ -107,5 +110,8 @@ public final class MainParallelPanel extends MainPanel {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 18:04:25  sueh
+* <p> bug# 835 Added a main panel for ParallelManager.
+* <p> </p>
 */
