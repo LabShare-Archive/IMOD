@@ -4,7 +4,7 @@ O        = $(OBJEXT)
 # 7/16/00 CER add dtrigs to library search
 
 TAOBJS = tiltalign.$(O) input_model.$(O) input_vars.$(O) find_surfaces.$(O) \
- solve_xyzd.$(O) funct.$(O) metro.$(O) map_vars.$(O)
+ solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O)
 
 PROG = tiltalign$(BINEXT)
 
