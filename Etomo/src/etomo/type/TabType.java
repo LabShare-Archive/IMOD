@@ -18,10 +18,15 @@ public final class TabType {
   public static final TabType RECON = new TabType();
   public static final TabType JOIN = new TabType();
   public static final TabType PARALLEL = new TabType();
+  public static final TabType PEET = new TabType();
   
   private TabType() {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 18:00:26  sueh
+* <p> bug# 835 Type of manager (ApplicationManager, JoinManager, or
+* <p> ParallelManager).
+* <p> </p>
 */
