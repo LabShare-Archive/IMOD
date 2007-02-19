@@ -125,6 +125,10 @@ abstract class EtomoFrame extends JFrame {
     if (menu.equalsFileNewParallel(event)) {
       EtomoDirector.getInstance().openParallel(true, axisID);
     }
+    
+    if (menu.equalsFileNewPeet(event)) {
+      EtomoDirector.getInstance().openPeet(true, axisID);
+    }
 
     if (menu.equalsFileOpen(event)) {
       File dataFile = openDataFileDialog();
@@ -335,6 +339,14 @@ abstract class EtomoFrame extends JFrame {
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
       getOtherFrame().menu.setEnabledFileNewParallel(enable);
+    }
+  }
+  
+  void setEnabledNewPeetMenuItem(boolean enable) {
+    menu.setEnabledFileNewPeet(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledFileNewPeet(enable);
     }
   }
 
@@ -832,6 +844,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2006/11/15 20:53:19  sueh
+ * <p> bug# 872 In menuFileAction():  call currentManager.saveParamFile() instead of
+ * <p> save().  SaveParamFile now calls save().
+ * <p>
  * <p> Revision 1.27  2006/07/21 19:02:15  sueh
  * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
  * <p> FixedDim to UIParameters.
