@@ -4,7 +4,7 @@ include ../configure
 
 O        = $(OBJEXT)
 BDOBJS = beadtrack.$(O) proc_model.$(O) proc_vars.$(O) solve_xyzd.$(O)\
- funct.$(O) metro.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O)
+ funct.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O)
 
 PROG = beadtrack$(BINEXT)
 
@@ -24,9 +24,6 @@ tracksubs.$(O):   $(INCDIR)/smallmodel.inc  $(INCDIR)/statsize.inc
 funct.$(O):       $(INCDIR)/alivar.inc
 proc_vars.$(O):   $(INCDIR)/alivar.inc tltcntrl.inc
 tiltali.$(O):     $(INCDIR)/alivar.inc tltcntrl.inc
-
-metro.$(O):       ../tiltalign/metro.f
-	$(FC) $(FFLAGS) -c -o metro.$(O) ../tiltalign/metro.f
 
 solve_xyzd.$(O):  ../tiltalign/solve_xyzd.f
 	$(FC) $(FFLAGS) -c -o solve_xyzd.$(O) ../tiltalign/solve_xyzd.f
