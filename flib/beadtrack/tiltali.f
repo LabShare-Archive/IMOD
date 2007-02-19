@@ -1,10 +1,9 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       
 c       $Log$
+c       Revision 3.7  2006/06/29 04:53:31  mast
+c       Set up to use small model
+c
 c       Revision 3.6  2006/01/26 05:50:04  mast
 c       Made it restart on too many cycle error also
 c
@@ -38,6 +37,7 @@ c
 c       
       real*4 var(maxvar),grad(maxmetro),h(maxmetro*(maxmetro+3))
       real*4 erlist(100),varsave(maxvar)
+      external funct
       logical firsttime
       double precision error
       common /functfirst/ firsttime
@@ -198,8 +198,8 @@ c           WRITE(6,70)FINIT
 c           70	    FORMAT(/' Variable Metric minimization',T50,
 c	    &	    'Initial F:',T67,E14.7)
 C	    
-          CALL METRO (nvarsrch,var,F,Grad,facm * trialScale(metroLoop),
-     &        .0000001, eps,-NCYCLE,IER, H,KOUNT)
+          CALL METRO(nvarsrch,var,funct,F,Grad,facm * trialScale(metroLoop),
+     &        eps,-NCYCLE,IER, H,KOUNT)
           metroLoop = metroLoop +1
           if (ier .ne. 0) then
             if (metroLoop .le. maxMetroTrials) then
