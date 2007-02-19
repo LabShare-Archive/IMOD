@@ -18,6 +18,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2006/04/07 23:32:18  sueh
+ * <p> bug# 846 Changing the background colors for java 1.5.
+ * <p>
  * <p> Revision 1.2  2006/04/06 23:33:58  sueh
  * <p> bug# 844 Added colors for the join and the generic parallel processing
  * <p> windows.
@@ -34,6 +37,7 @@ public final class Colors {
   private static Color backgroundB = null;
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
+  private static Color backgroundPeet = null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
@@ -62,6 +66,13 @@ public final class Colors {
     }
     return backgroundParallel;
   }
+  
+  static Color getBackgroundPeet() {
+    if (backgroundPeet == null) {
+      backgroundPeet = getBackground(204, 153, 204);
+    }
+    return backgroundPeet;
+  }
 
   private static Color getBackground(int r, int g, int b) {
     int change = 0;
@@ -74,6 +85,9 @@ public final class Colors {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/04/07 23:32:18  sueh
+ * <p> bug# 846 Changing the background colors for java 1.5.
+ * <p>
  * <p> Revision 1.2  2006/04/06 23:33:58  sueh
  * <p> bug# 844 Added colors for the join and the generic parallel processing
  * <p> windows.
