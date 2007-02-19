@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2006/10/19 16:19:12  sueh
+ * <p> bug# 438 Changed compact label for Fiducial Model to "Track".
+ * <p>
  * <p> Revision 1.8  2006/07/31 21:42:13  sueh
  * <p> bug# 438 Added getCompactLabel
  * <p>
@@ -67,6 +70,10 @@ public final class DialogType {
 
   public static final int TOTAL_PARALLEL = parallelIndex + 1;
   
+  private static final int peetIndex = 0;
+
+  public static final int TOTAL_PEET = peetIndex + 1;
+  
   private static final String SETUP_RECON_NAME = "SetupRecon";
   private static final String PRE_PROCESSING_NAME = "PreProc";
   private static final String COARSE_ALIGNMENT_NAME = "CoarseAlign";
@@ -78,6 +85,7 @@ public final class DialogType {
   private static final String POST_PROCESSING_NAME = "PostProc";
   private static final String CLEAN_UP_NAME = "CleanUp";
   private static final String PARALLEL_NAME = "Parallel";
+  private static final String PEET_NAME = "Peet";
 
   private final String name;
   private final int index;
@@ -129,6 +137,8 @@ public final class DialogType {
   public static final DialogType CLEAN_UP = new DialogType(TabType.RECON, cleanUpIndex);
   
   public static final DialogType PARALLEL = new DialogType(TabType.PARALLEL, parallelIndex);
+  
+  public static final DialogType PEET = new DialogType(TabType.PEET, peetIndex);
 
   private String toString(TabType tabType, int index) {
     if (tabType == TabType.RECON) {
@@ -159,6 +169,12 @@ public final class DialogType {
       switch (index) {
       case parallelIndex:
         return "Parallel";
+      }
+    }
+    else if (tabType == TabType.PEET) {
+      switch (index) {
+      case peetIndex:
+        return "PEET";
       }
     }
     return "";
@@ -199,7 +215,13 @@ public final class DialogType {
     else if (tabType == TabType.PARALLEL) {
       switch (index) {
       case parallelIndex:
-        return PARALLEL_NAME;
+        return "Para";
+      }
+    }
+    else if (tabType == TabType.PEET) {
+      switch (index) {
+      case peetIndex:
+        return "PEET";
       }
     }
     return "";
@@ -241,6 +263,12 @@ public final class DialogType {
       switch (index) {
       case parallelIndex:
         return PARALLEL_NAME;
+      }
+    }
+    else if (tabType == TabType.PEET) {
+      switch (index) {
+      case peetIndex:
+        return PEET_NAME;
       }
     }
     return "";
@@ -294,6 +322,9 @@ public final class DialogType {
     }
     if (storableName.equals(PARALLEL_NAME)) {
       return PARALLEL;
+    }
+    if (storableName.equals(PEET_NAME)) {
+      return PEET;
     }
     return null;
   }
