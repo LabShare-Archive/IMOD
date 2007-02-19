@@ -227,6 +227,39 @@ tooltip =
 manpage = Solve for a single pair of parameters describing a stretch along
 an axis that occurs during projection of all images.
 
+[Field = BeamTiltOption]
+short =
+type = I
+usage = Type of beam tilt solution: 0 for none, 1 to include in fit, 2 to 
+search
+tooltip = 
+manpage = Type of solution for non-perpendicularity between tilt axis and beam
+axis, referred to as beam tilt:
+^  0 for beam tilt fixed at the initial value,
+^  1 to include beam tilt as a variable in the minimization procedure,
+^  2 to perform the minimization at a series of fixed beam tilt values and
+search for the value that gives the smallest error.
+^Because some variables can covary with the beam tilt to give nearly equivalent
+solutions, the second option for finding the beam tilt gives more reliable
+results.  Some combinations of variable simply cannot be solved for, in
+particular the stretch variables and rotation together with beam tilt; either
+omit the stretch variables or solve for a single rotation angle.  Note that
+only the component of the beam tilt around the X axis is solved for; the
+component around the Y axis is indistinguishable from a change in tilt angle.
+When the beam tilt is non-zero, either as a result of a search or because a
+fixed value was entered, its effect is expressed as a varying tilt around the
+X axis and a modification of the tilt angles and in-plane image rotations.
+Thus, a file of X-tilt angles should be output when beam tilt is included in
+the solution.
+
+[Field = InitialBeamTilt]
+short =
+type = F
+usage = Initial value of beam tilt when solving for it, or fixed value when not
+tooltip = 
+manpage = The entry provides either an initial value for the beam tilt, when
+it is being solved for, or a fixed value when it is not.
+
 [Field = RotOption]
 short = 
 type = I
@@ -785,12 +818,27 @@ tooltip =
 manpage = 
 
 [Field = NumberOfLocalPatchesXandY]
-`short = 
+short = 
 type = IP
 usage = Number of local patches in X and Y for local solutions
 tooltip = Number of overlapping local areas to use in the X and Y directions.
 manpage = Number of local patches in X and in Y in which to obtain a solution
-from the fiducials located in that patch
+from the fiducials located in that patch.  If this option is entered,
+overlapping patches will be set up that fill the image area.
+
+[Field = TargetPatchSizeXandY]
+short = 
+type = IP
+usage = Target minimum size for local patches in X and Y 
+tooltip = Target for the minimum size of local areas in the X and Y directions.
+manpage = Target for the size of local patches in X and Y in which to obtain a
+solution from the fiducials located in that patch.  The number of patches will
+be set so that patches smaller or up to 5% larger than this size and
+overlapping by a fixed amount will fill the range occupied by fiducials (not
+the image area).  The patches on the edges should not have to expand as much
+as when the patch centers are set up to fill the image area.  If this option
+is entered, NumberOfLocalPatchesXandY must not be entered, and
+MinSizeOrOverlapXandY must specify an overlap instead of a size.
 
 [Field = MinSizeOrOverlapXandY]
 short = 
@@ -800,7 +848,8 @@ overlap (if < 1)
 tooltip = Minimum size of patches in pixels, or minimum fractional overlap 
 between patches, in the X and Y directions.
 manpage = Either the minimum size of each patch in X and Y (enter values > 1)
-or the minimum fractional overlap between patches (values < 1)
+or the minimum fractional overlap between patches (values < 1).  The default
+is an overlap of 0.5.
 
 [Field = MinFidsTotalAndEachSurface]
 short = 
