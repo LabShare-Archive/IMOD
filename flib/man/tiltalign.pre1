@@ -91,19 +91,27 @@ DDEESSCCRRIIPPTTIIOONN
   method for grouping this variable.  (Linear mapping does not always work
   properly.)
   
+  The size of groups when automapping will also be adjusted to provide more
+  grouping when some views have only one or two points.  Specifically, views
+  with fewer than 3 points will not be counted toward the total number of
+  views to be included in a group.  This feature is most important with the
+  local alignments described next, where there may be relatively few points in
+  a local area.
+
   The program can embark on local alignments after obtaining the standard
   global solution with all of the fiducials.  The program divides the image
-  area into a regular array of overlapping subareas.  Fiducials whose X and Y
-  coordinates fall within a subarea are included in the computations for that
-  subarea.  A subarea is expanded if necessary to include a certain minimum
-  number of fiducials.  The program then seeks a solution for the subset of
-  fiducials that is, for all variables, "incremental" to the global solution;
-  that is, it solves for variables that are added to the parameters from the
-  global solution.  This method allows a dramatic reduction in the number of
-  variables to be solved for, mostly because rotation and magnification can
-  be mapped to a much smaller number of variables than in the global
-  solution.  The usual need for each view to have its own rotation and
-  magnification variable is already accommodated in the global solution.
+  area, or the area occupied by fiducials, into a regular array of overlapping
+  subareas.  Fiducials whose X and Y coordinates fall within a subarea are
+  included in the computations for that subarea.  A subarea is expanded about
+  its center, if necessary, to include a certain minimum number of fiducials.
+  The program then seeks a solution for the subset of fiducials that is, for
+  all variables, "incremental" to the global solution; that is, it solves for
+  variables that are added to the parameters from the global solution.  This
+  method allows a dramatic reduction in the number of variables to be solved
+  for, mostly because rotation and magnification can be mapped to a much
+  smaller number of variables than in the global solution.  The usual need for
+  each view to have its own rotation and magnification variable is already
+  accommodated in the global solution.
   
   One option in the local alignment is whether to solve for the X-Y-Z
   coordinates of the subset of fiducials, or to fix them at their values from
@@ -114,6 +122,31 @@ DDEESSCCRRIIPPTTIIOONN
   avoids distortions in the resulting reconstruction that could be difficult
   to account for when trying to combine reconstructions from tilts around two
   axes.
+
+  The program implements the following model for the imaging of the specimen
+  in each individual view:
+  1) The specimen itself changes by 
+    a) an isotropic size change (magnification variable); 
+    b) additional thinning in the Z dimension (compression variable); and 
+    c) linear stretch along one axis in the specimen plane, implemented by
+       variables representing stretch along the X axis and skew between the X
+       and Y axes;
+  2) The specimen is tilted slightly around the X axis (X tilt variable)
+  3) The specimen is tilted around the X axis by the negative of the beam tilt,
+     if any (one variable for all views)
+  4) The specimen is tilted around the Y axis (tilt variable)
+  5) The specimen is tilted back around the X axis by the beam tilt, if any 
+  6) The projected image may stretch along one axis (two variables for all
+     views)
+  7) The projected image rotates in the plane of the camera (rotation
+     variable)
+  8) The image shifts on the camera
+
+  Only a subset of this complete model can be solved for in any given case.
+  In particular, thinning cannot be solved for together with tilt angle and
+  stretch along the X axis; it is very difficult to solve for X axis tilt
+  together with rotation angle; and it is almost impossible to solve for beam
+  tilt together with rotation and skew.
 
 INPUTS TO THE PROGRAM
   
@@ -353,7 +386,8 @@ SEQUENTIAL INPUTS
       alignment.
   
   Number of local patches in X and in Y in which to obtain a solution
-      from the fiducials located in that patch
+      from the fiducials located in that patch.  These patches will be 
+      aranged so as to cover the whole image area.
   
   Either the minimum size of each patch in X and Y (enter values > 1)
       or the minimum fractional overlap between patches (values < 1)
