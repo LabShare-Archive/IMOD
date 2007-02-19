@@ -18,11 +18,13 @@ import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
+import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.EtomoNumber;
 import etomo.type.ParallelMetaData;
+import etomo.type.PeetMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
@@ -180,6 +182,9 @@ public class EtomoDirector {
         }
         else if (paramFileName.endsWith(".epp")) {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
+        }
+        else if (paramFileName.endsWith(".epe")) {
+          managerKey=openPeet(paramFileName,false,AxisID.ONLY);
         }
         if (i == 0) {
           saveKey = managerKey;
@@ -408,6 +413,11 @@ public class EtomoDirector {
     closeDefaultWindow(axisID);
     return openParallel(ParallelMetaData.NEW_TITLE, makeCurrent, axisID);
   }
+  
+  public UniqueKey openPeet(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openPeet(PeetMetaData.NEW_TITLE, makeCurrent, axisID);
+  }
 
   private UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent,
       AxisID axisID) {
@@ -423,6 +433,15 @@ public class EtomoDirector {
       return openParallel(makeCurrent, axisID);
     }
     return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent,
+        axisID);
+  }
+  
+  private UniqueKey openPeet(File etomoPeetFile, boolean makeCurrent,
+      AxisID axisID) {
+    if (etomoPeetFile == null) {
+      return openPeet(makeCurrent, axisID);
+    }
+    return openPeet(etomoPeetFile.getAbsolutePath(), makeCurrent,
         axisID);
   }
 
@@ -450,6 +469,20 @@ public class EtomoDirector {
     }
     else {
       manager = new ParallelManager(parallelFileName);
+    }
+    return setManager(manager, makeCurrent);
+  }
+  
+  private UniqueKey openPeet(String peetFileName, boolean makeCurrent,
+      AxisID axisID) {
+    PeetManager manager;
+    if (peetFileName == null
+        || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
+      manager = new PeetManager();
+      uiHarness.setEnabledNewPeetMenuItem(false);
+    }
+    else {
+      manager = new PeetManager(peetFileName);
     }
     return setManager(manager, makeCurrent);
   }
@@ -507,6 +540,10 @@ public class EtomoDirector {
     if (parallelFileFilter.accept(dataFile)) {
       return openParallel(dataFile, makeCurrent, axisID);
     }
+    PeetFileFilter peetFileFilter = new PeetFileFilter();
+    if (peetFileFilter.accept(dataFile)) {
+      return openPeet(dataFile, makeCurrent, axisID);
+    }
     String[] message = { "Unknown file type " + dataFile.getName() + ".",
         "Open this file as an " + etomoFileFilter.getDescription() + "?" };
     if (uiHarness.openYesNoDialog(message, axisID)) {
@@ -556,6 +593,9 @@ public class EtomoDirector {
     }
     if (currentManagerKey.getName().equals(ParallelMetaData.NEW_TITLE)) {
       uiHarness.setEnabledNewParallelMenuItem(true);
+    }
+    if (currentManagerKey.getName().equals(PeetMetaData.NEW_TITLE)) {
+      uiHarness.setEnabledNewPeetMenuItem(true);
     }
   }
 
@@ -1096,6 +1136,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.56  2007/02/05 21:26:38  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
  * <p> Revision 1.55  2006/11/28 22:48:21  sueh
  * <p> bug# 934 In exitProgram() calling
  * <p> IntermittentBackgroundProcess.endRestartThread().
