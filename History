@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/19/07: Tiltalign modified to solve for a beam tilt angle
+(non-perpendicularity of beam and tilt axis) and to express it as tilts around
+the X axis and modifications of tilt angle and rotation, so that this can be
+incorporated into the reconstruction.  Added an option to specify the size of
+local areas instead of the number, in which case local areas will cover the
+area occupied by fiducials instead of the image area.  Made local fits skip
+views with no points and make groups larger when views have fewer than 3
+points.
+
 2/12/07: IMOD_3-10-2
 2/12/07: Changed Newstack to provide better fractional pixel origin values when
 data are binned and the output size is a specified size.
