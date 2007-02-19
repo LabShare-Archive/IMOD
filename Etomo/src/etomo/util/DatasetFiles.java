@@ -26,6 +26,7 @@ public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
+  public static final String PEET_DATA_FILE_EXT = ".epe";
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
   public static final String TOMO_EXT = ".rec";
@@ -383,6 +384,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2007/02/05 23:46:51  sueh
+ * <p> bug# 962 Added join model and rejoin file info.
+ * <p>
  * <p> Revision 1.29  2006/12/02 04:59:55  sueh
  * <p> bug# 944 Add constants for volcombine-start.log and volcombine-finish.log.
  * <p>
