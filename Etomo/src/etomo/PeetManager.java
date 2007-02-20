@@ -32,7 +32,10 @@ import etomo.ui.PeetDialog;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/19 21:50:49  sueh
+ * <p> bug# 964 Manager for the PEET interface.
+ * <p> </p>
  */
 public class PeetManager extends BaseManager {
   public static final String rcsid = "$Id$";
@@ -83,6 +86,30 @@ public class PeetManager extends BaseManager {
 
   public void touch(String absolutePath) {
     processMgr.touch(absolutePath);
+  }
+  
+  /**
+   * Tries to set propertyUserDir.  Returns true able to set propertyUserDir.
+   * If propertyUserDir is already set, returns true.  Returns false if unable
+   * to set propertyUserDir.  Updates the peet dialog display if propertyUserDir
+   * is set.
+   * @return
+   */
+  public boolean setName() {
+    if (propertyUserDir!=null) {
+      return true;
+    }
+    if (peetDialog==null) {
+      return false;
+    }
+    peetDialog.getParameters(metaData);
+    if (!metaData.isValid()) {
+      return false;
+    }
+    setPropertyUserDir(peetDialog.getDirectory());
+    boolean propertyUserDirSet=propertyUserDir!=null;
+    peetDialog.updateDisplay(propertyUserDirSet);
+    return propertyUserDirSet;
   }
 
   protected void updateDialog(ProcessName processName, AxisID axisID) {
@@ -163,7 +190,7 @@ public class PeetManager extends BaseManager {
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
     if (paramFile != null && metaData.isValid()) {
       peetDialog.setParameters(metaData);
-      peetDialog.updateDisplay();
+      peetDialog.updateDisplay(propertyUserDir!=null);
     }
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
