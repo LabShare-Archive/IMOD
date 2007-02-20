@@ -17,7 +17,10 @@ import etomo.util.DatasetFiles;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/19 21:59:45  sueh
+* <p> bug# 964 Meta data for the PEET interface.
+* <p> </p>
 */
 public class PeetMetaData extends BaseMetaData{
   public static  final String  rcsid =  "$Id$";
@@ -40,6 +43,10 @@ public class PeetMetaData extends BaseMetaData{
       return NEW_TITLE;
     }
     return rootName;
+  }
+  
+  public void setName(String name) {
+    rootName=name;
   }
   
   public boolean isValid() {
