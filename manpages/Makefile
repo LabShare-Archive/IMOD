@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2006/02/10 14:54:20  mast
+#  Added dependency onproglist.h
+#
 #  Revision 3.2  2003/10/24 04:11:46  mast
 #  Changes for Windows/Intel compiler
 #
@@ -34,6 +37,8 @@ install : mantohtml autodoc2man
 	\mv *.1 $(INSTDIR)/man/cat1
 	$(CP) *.5 $(INSTDIR)/man/cat5
 	\mv *.html $(INSTDIR)/html/man
+	echo 'User-agent: *' > $(INSTDIR)/html/man/robots.txt
+	echo 'Disallow: /' >> $(INSTDIR)/html/man/robots.txt
 
 autodoc2man : autodoc2man.$(O) ../libimod/parse_params.$(O)
 	$(CC) $(CFLAGS) -o autodoc2man autodoc2man.$(O) \
