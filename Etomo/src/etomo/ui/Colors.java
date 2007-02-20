@@ -18,6 +18,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/02/19 22:00:41  sueh
+ * <p> bug# 964 Added background color for PEET interface.
+ * <p>
  * <p> Revision 1.3  2006/04/07 23:32:18  sueh
  * <p> bug# 846 Changing the background colors for java 1.5.
  * <p>
@@ -41,35 +44,35 @@ public final class Colors {
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
-      backgroundA = getBackground(153, 179, 204);
+      backgroundA = getBackground(153, 179, 204);//saphire
     }
     return backgroundA;
   }
   
   static Color getBackgroundB() {
     if (backgroundB == null) {
-      backgroundB = getBackground(153, 204, 179);
+      backgroundB = getBackground(153, 204, 179);//jade
     }
     return backgroundB;
   }
   
   static Color getBackgroundJoin() {
     if (backgroundJoin == null) {
-      backgroundJoin = getBackground(179, 153, 204);
+      backgroundJoin = getBackground(179, 153, 204);//violet
     }
     return backgroundJoin;
   }
   
   static Color getBackgroundParallel() {
     if (backgroundParallel == null) {
-      backgroundParallel = getBackground(204, 153, 179);
+      backgroundParallel = getBackground(166, 204, 153);//lime
     }
     return backgroundParallel;
   }
   
   static Color getBackgroundPeet() {
     if (backgroundPeet == null) {
-      backgroundPeet = getBackground(204, 153, 204);
+      backgroundPeet = getBackground(166,153,204);//purple
     }
     return backgroundPeet;
   }
@@ -85,6 +88,9 @@ public final class Colors {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/02/19 22:00:41  sueh
+ * <p> bug# 964 Added background color for PEET interface.
+ * <p>
  * <p> Revision 1.3  2006/04/07 23:32:18  sueh
  * <p> bug# 846 Changing the background colors for java 1.5.
  * <p>
