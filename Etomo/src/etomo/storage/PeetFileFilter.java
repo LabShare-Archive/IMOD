@@ -17,9 +17,12 @@ import etomo.util.DatasetFiles;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/19 21:53:53  sueh
+* <p> bug# 964 File filter for PEET interface files (.epe).
+* <p> </p>
 */
-public class PeetFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+public class PeetFileFilter extends DataFileFilter {
   public static  final String  rcsid =  "$Id$";
   
   /**
@@ -39,6 +42,6 @@ public class PeetFileFilter extends javax.swing.filechooser.FileFilter implement
   }
 
   public String getDescription() {
-    return "PEET data file (" + DatasetFiles.PEET_DATA_FILE_EXT + ")";
+    return "PEET data file";
   }
 }
