@@ -381,9 +381,21 @@ public final class DatasetFiles {
   public static String getParallelDataFileName(String rootName) {
     return rootName + PARALLEL_DATA_FILE_EXT;
   }
+  
+  public static String getRootName(File paramFile) {
+    String rootFileName=paramFile.getName();
+    int extensionIndex=rootFileName.indexOf('.');
+    if (extensionIndex==-1) {
+      return rootFileName;
+    }
+    return rootFileName.substring(0,extensionIndex);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2007/02/19 22:04:30  sueh
+ * <p> bug# 964 Added PEET interface data file extension (.epe).
+ * <p>
  * <p> Revision 1.30  2007/02/05 23:46:51  sueh
  * <p> bug# 962 Added join model and rejoin file info.
  * <p>
