@@ -2145,9 +2145,7 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Call BaseManager.exitProgram(). Call saveDialog. Return the value of
    * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
-   * all unrecognized Exceptions and Errors and return true. This function
-   * should be called exitManager, since individual managers are closed
-   * inpendently of the program.
+   * all unrecognized Exceptions and Errors and return true.
    */
   public boolean exitProgram(AxisID axisID) {
     try {
@@ -5421,6 +5419,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.275  2007/02/05 21:24:23  sueh
+ * <p> bug# 962 Creating process manager later.
+ * <p>
  * <p> Revision 3.274  2006/11/28 22:45:23  sueh
  * <p> bug# 934 Changed BaseManager.stop() to endThreads().
  * <p>
