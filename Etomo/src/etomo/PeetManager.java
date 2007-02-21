@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/02/21 04:16:53  sueh
+ * <p> bug# 964 Initializing parameters when the param file is chosen.
+ * <p>
  * <p> Revision 1.2  2007/02/20 20:34:50  sueh
  * <p> bug# 964 Added setName to set propertyUserDir and update the display.
  * <p>
@@ -136,6 +139,26 @@ public class PeetManager extends BaseManager {
     }
     peetDialog.updateDisplay(true);
     return true;
+  }
+  
+  /**
+   * Call BaseManager.exitProgram(). Call savePeetDialog. Return the value of
+   * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
+   * all unrecognized Exceptions and Errors and return true.
+   */
+  public boolean exitProgram(AxisID axisID) {
+    try {
+      if (super.exitProgram(axisID)) {
+        endThreads();
+        saveParamFile();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
+    }
   }
   
   public void save() throws LogFile.FileException, LogFile.WriteException {
