@@ -10,9 +10,11 @@ import etomo.PeetManager;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.type.AxisID;
-import etomo.type.BaseMetaData;
+import etomo.type.ConstPeetMetaData;
+import etomo.type.ConstPeetScreenState;
 import etomo.type.DialogType;
 import etomo.type.PeetMetaData;
+import etomo.type.PeetScreenState;
 
 /**
  * <p>Description: </p>
@@ -28,6 +30,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/20 20:36:46  sueh
+ * <p> bug# 964 Started the setup panel.
+ * <p>
  * <p> Revision 1.1  2007/02/19 22:03:19  sueh
  * <p> bug# 964 Dialog for PEET interface.
  * <p> </p>
@@ -58,12 +63,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     volumeTable = new VolumeTable(manager);
   }
 
-  public void setParameters(BaseMetaData metaData) {
-  }
-
-  public void updateDisplay(boolean propertyUserDirSet) {
-    ltfDirectory.setEnabled(propertyUserDirSet);
-    ltfOutput.setEnabled(propertyUserDirSet);
+  public void updateDisplay(boolean paramFileSet) {
+    ltfDirectory.setEditable(!paramFileSet);
+    ltfOutput.setEditable(!paramFileSet);
   }
 
   public Container getContainer() {
@@ -74,14 +76,26 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   public DialogType getDialogType() {
     return DIALOG_TYPE;
   }
-
+  
   public void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(ltfOutput.getText());
   }
   
+  public void getParameters(PeetScreenState screenState) {
+    setupHeader.getState(screenState.getPeetSetupHeaderState());
+  }
+  
+  public void setParameters(ConstPeetScreenState screenState) {
+    setupHeader.setState(screenState.getPeetSetupHeaderState());
+  }  
+  
   public void getParameters(PeetMetaData metaData) {
     metaData.setName(ltfOutput.getText());
+  }
+  
+  public void setParameters(ConstPeetMetaData metaData) {
+    ltfOutput.setText(metaData.getName());
   }
 
   public final boolean usingParallelProcessing() {
@@ -99,6 +113,14 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   
   public String getDirectory() {
     return ltfDirectory.getText();
+  }
+  
+  public void setDirectory(String directory) {
+    ltfDirectory.setText(directory);
+  }
+  
+  public void setOutput(String output) {
+    ltfOutput.setText(output);
   }
 
   private void create() {
