@@ -30,6 +30,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/02/21 04:24:32  sueh
+ * <p> bug# 964 Setting Output and Directory when Save As is called.  Disabling edit
+ * <p> for Output and Directory when the paramFile is set.
+ * <p>
  * <p> Revision 1.2  2007/02/20 20:36:46  sueh
  * <p> bug# 964 Started the setup panel.
  * <p>
@@ -49,18 +53,19 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       DIRECTORY_LABEL + ": ");
   private final LabeledTextField ltfOutput = new LabeledTextField(OUTPUT_LABEL
       + ": ");
-  private final JPanel pnlSetup = new JPanel();
+  private final SpacedPanel pnlSetup = new SpacedPanel();
   private final JPanel pnlSetupBody = new JPanel();
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
+  private final PanelHeader setupHeader;
   private JPanel rootPanel = null;
-  private PanelHeader setupHeader = null;
 
   public PeetDialog(PeetManager manager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     volumeTable = new VolumeTable(manager);
+    setupHeader = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
   }
 
   public void updateDisplay(boolean paramFileSet) {
@@ -133,14 +138,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlSetupBody.add(ltfOutput.getContainer());
     pnlSetupBody.add(volumeTable.getComponent());
     //setup header
-    pnlSetup.setLayout(new BoxLayout(pnlSetup, BoxLayout.Y_AXIS));
+    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
-    setupHeader = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
     pnlSetup.add(setupHeader.getContainer());
     pnlSetup.add(pnlSetupBody);
     //root
     rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.add(pnlSetup);
+    rootPanel.add(pnlSetup.getContainer());
   }
 }
