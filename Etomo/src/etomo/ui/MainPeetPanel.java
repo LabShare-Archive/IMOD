@@ -5,6 +5,7 @@ import java.io.File;
 import etomo.BaseManager;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
+import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
 
@@ -21,7 +22,10 @@ import etomo.type.BaseMetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/19 22:02:49  sueh
+* <p> bug# 964 Main panel for PEET interface.
+* <p> </p>
 */
 public final class MainPeetPanel extends MainPanel {
   public static  final String  rcsid =  "$Id$";
@@ -67,7 +71,7 @@ public final class MainPeetPanel extends MainPanel {
   }
   
   protected DataFileFilter getDataFileFilter() {
-    return null;
+    return new PeetFileFilter();
   }
   
   protected boolean hideAxisPanelA() {
