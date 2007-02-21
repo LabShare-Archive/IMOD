@@ -141,21 +141,21 @@ abstract class EtomoFrame extends JFrame {
         if (currentManager.saveParamFile()) {
           return;
         }
-        //Don't allow the user to do the equivalent of a Save As without checking.
+        //Don't allow the user to do the equivalent of a Save As if Save As isn't available.
         if (!currentManager.canChangeParamFileName()) {
-          openMessageDialog(
+          UIHarness.INSTANCE.openMessageDialog(
               "Please set the name of dataset or the join before saving",
               "Cannot Save");
           return;
         }
         //Do a Save As
-        if (getTestParamFilename()) {
+        if (getParamFilename()) {
           currentManager.saveParamFile();
         }
       }
 
       if (menu.equalsFileSaveAs(event)) {
-        if (getTestParamFilename()) {
+        if (getParamFilename()) {
           currentManager.saveParamFile();
         }
       }
@@ -699,10 +699,10 @@ abstract class EtomoFrame extends JFrame {
   }
 
   /**
-   * Open a file chooser to get an .edf or .ejf file.
-   * @return
+   * Open a file chooser to get an .edf, .ejf, .epp, or .epe file.
+   * @return true if succeeded
    */
-  private boolean getTestParamFilename() {
+  private boolean getParamFilename() {
     //  Open up the file chooser in current working directory
     File workingDir = new File(currentManager.getPropertyUserDir());
     JFileChooser chooser = new JFileChooser(workingDir);
@@ -723,7 +723,7 @@ abstract class EtomoFrame extends JFrame {
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return false;
     }
-    // If the file does not already have an extension appended then add an edf
+    // If the file does not already have an extension appended then add the
     // extension
     File dataFile = chooser.getSelectedFile();
     String fileName = chooser.getSelectedFile().getName();
@@ -788,7 +788,6 @@ abstract class EtomoFrame extends JFrame {
         .getProperty("user.dir")));
     DataFileFilter fileFilter = new DataFileFilter();
     chooser.setFileFilter(fileFilter);
-
     chooser.setDialogTitle("Open " + fileFilter.getDescription());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -844,6 +843,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2007/02/19 22:01:10  sueh
+ * <p> bug# 964 Handling new PEET event.
+ * <p>
  * <p> Revision 1.28  2006/11/15 20:53:19  sueh
  * <p> bug# 872 In menuFileAction():  call currentManager.saveParamFile() instead of
  * <p> save().  SaveParamFile now calls save().
