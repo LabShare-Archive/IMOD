@@ -19,6 +19,9 @@ import etomo.util.DatasetFiles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2007/02/21 04:21:02  sueh
+* <p> bug# 964 Added validations.
+* <p>
 * <p> Revision 1.2  2007/02/20 20:35:50  sueh
 * <p> bug# 964 Added setName, to set the root name.
 * <p>
@@ -69,7 +72,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData{
     if (rootName == null||rootName.matches("\\s*")) {
       return "Missing root name.";
     }
-    if (rootName.charAt(File.pathSeparatorChar)!=-1||rootName.charAt(File.separatorChar)!=-1) {
+    if (rootName.indexOf(File.pathSeparatorChar)!=-1||rootName.indexOf(File.separatorChar)!=-1) {
       return "Invalid root name, "+rootName+".";
     }
     return null;
