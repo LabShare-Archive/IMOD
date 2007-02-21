@@ -16,8 +16,10 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 */
-public class PanelHeaderState implements Storable {
+public class PanelHeaderState implements Storable,ConstPanelHeaderState {
   public static  final String  rcsid =  "$Id$";
+  
+  static final String KEY = "Header";
   
   private static final String OPEN_CLOSE_NAME = "OpenClose";
   private static final String ADVANCED_BASIC_NAME = "AdvancedBasic";
@@ -95,5 +97,8 @@ public class PanelHeaderState implements Storable {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/09/27 23:21:50  sueh
+* <p> bug# 532 A class used by PanelHeader to save its state.
+* <p> </p>
 */
