@@ -33,6 +33,7 @@ public final class ParallelMetaData extends BaseMetaData {
   public ParallelMetaData() {
     super();
     axisType = AxisType.SINGLE_AXIS;
+    fileExtension = DatasetFiles.PARALLEL_DATA_FILE_EXT;
   }
 
   public String toString() {
@@ -113,6 +114,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/04/10 19:02:57  sueh
+ * <p> buG# 835 enabling "New Parallel Process" when processchunks is run.
+ * <p>
  * <p> Revision 1.1  2006/03/20 17:58:24  sueh
  * <p> bug# 835 Meta data for ParallelManager.
  * <p> </p>
