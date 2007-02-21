@@ -69,7 +69,6 @@ public abstract class BaseManager {
   protected final ImodManager imodManager;
   //  This object controls the reading and writing of David's com scripts
   protected ComScriptManager comScriptMgr = null;
-  //FIXME paramFile may not have to be visible
   protected File paramFile = null;
   //FIXME homeDirectory may not have to be visible
   protected String homeDirectory;
@@ -201,20 +200,43 @@ public abstract class BaseManager {
   }
 
   public String setPropertyUserDir(String propertyUserDir) {
+    //avoid empty strings
+    if (propertyUserDir.matches("\\s*")) {
+      propertyUserDir = null;
+    }
     String oldPropertyUserDir = this.propertyUserDir;
     this.propertyUserDir = propertyUserDir;
     return oldPropertyUserDir;
   }
 
-  protected void initializeUIParameters(String paramFileName, AxisID axisID) {
+  protected void initializeUIParameters(File dataFile, AxisID axisID) {
     if (!headless) {
-      // Open the etomo data file if one was found on the command line
-      if (!paramFileName.equals("")) {
-        File etomoDataFile = new File(paramFileName);
-        loadedParamFile = loadTestParamFile(etomoDataFile, axisID);
+      if (dataFile != null) {
+        loadedParamFile = loadParamFile(dataFile, axisID);
       }
     }
     initialized = true;
+  }
+
+  protected void initializeUIParameters(String paramFileName, AxisID axisID) {
+    if (paramFileName==null||paramFileName.equals("")) {
+      initializeUIParameters((File) null, axisID);
+    }
+    else {
+      initializeUIParameters(new File(paramFileName), axisID);
+    }
+  }
+
+  protected void initializeUIParameters(String directory, String rootName,
+      String extension, AxisID axisID) {
+    if (directory == null || directory.matches("\\s*") || rootName == null
+        || rootName.matches("\\s*") || extension == null
+        || extension.matches("\\s*")) {
+      return;
+    }
+    else {
+      initializeUIParameters(new File(directory, rootName + extension), axisID);
+    }
   }
 
   /**
@@ -294,12 +316,12 @@ public abstract class BaseManager {
   }
 
   /**
-   * A message asking the ApplicationManager to save the test parameter
+   * A message asking the ApplicationManager to save the parameter
    * information to a file.
    */
   public final boolean saveParamFile() throws LogFile.FileException,
       LogFile.WriteException {
-    if (parameterStore == null) {
+    if (getParameterStore() == null) {
       return false;
     }
     if (!EtomoDirector.getInstance().isMemoryAvailable()) {
@@ -536,10 +558,10 @@ public abstract class BaseManager {
 
   /**
    * A message asking the ApplicationManager to load in the information from the
-   * test parameter file.
+   * parameter file.
    * @param paramFile the File object specifiying the data parameter file.
    */
-  protected boolean loadTestParamFile(File paramFile, AxisID axisID) {
+  protected boolean loadParamFile(File paramFile, AxisID axisID) {
     FileInputStream processDataStream;
     // Set the current working directory for the application, this is the
     // path to the EDF or EJF file.  The working directory is defined by the current
@@ -1073,6 +1095,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.74  2007/02/19 21:48:49  sueh
+ * <p> bug# 964 Removed isNewManager() because it is only used by Application
+ * <p> Manager.
+ * <p>
  * <p> Revision 1.73  2007/02/05 21:25:59  sueh
  * <p> bug# 692  In processDone, run startNextProcess even if the process is empty,
  * <p> so that last process can be automatically placed in process.

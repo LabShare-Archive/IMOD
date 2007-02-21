@@ -5,6 +5,7 @@ import java.io.File;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
+import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -13,11 +14,13 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.PeetMetaData;
+import etomo.type.PeetScreenState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
 import etomo.ui.PeetDialog;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -33,6 +36,9 @@ import etomo.ui.PeetDialog;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/20 20:34:50  sueh
+ * <p> bug# 964 Added setName to set propertyUserDir and update the display.
+ * <p>
  * <p> Revision 1.1  2007/02/19 21:50:49  sueh
  * <p> bug# 964 Manager for the PEET interface.
  * <p> </p>
@@ -41,15 +47,15 @@ public class PeetManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
-  private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
+  private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final PeetMetaData metaData;
   private final PeetProcessManager processMgr;
-  private MainPeetPanel mainPanel;
   private PeetDialog peetDialog = null;
+  private MainPeetPanel mainPanel;
 
   public boolean canChangeParamFileName() {
-    return false;
+    return !loadedParamFile;
   }
 
   public boolean canSnapshot() {
@@ -81,35 +87,61 @@ public class PeetManager extends BaseManager {
   }
 
   public void setParamFile(File paramFile) {
-    this.paramFile = paramFile;
+    if (!paramFile.exists()) {
+      touch(paramFile.getAbsolutePath());
+    }
+    initializeUIParameters(paramFile, AXIS_ID);
+    if (loadedParamFile) {
+      String rootName = DatasetFiles.getRootName(paramFile);
+      metaData.setName(rootName);
+      if (peetDialog != null) {
+        peetDialog.setDirectory(paramFile.getParent());
+        peetDialog.setOutput(rootName);
+        peetDialog.updateDisplay(true);
+      }
+    }
   }
 
   public void touch(String absolutePath) {
     processMgr.touch(absolutePath);
+    try {
+      Thread.sleep(15);
+    }
+    catch (InterruptedException e) {
+    }
   }
-  
+
   /**
-   * Tries to set propertyUserDir.  Returns true able to set propertyUserDir.
-   * If propertyUserDir is already set, returns true.  Returns false if unable
-   * to set propertyUserDir.  Updates the peet dialog display if propertyUserDir
-   * is set.
+   * Tries to set paramFile.  Returns true if able to set paramFile.
+   * If paramFile is already set, returns true.  Returns false if unable
+   * to set paramFile.  Updates the peet dialog display if paramFile
+   * was set successfully.
    * @return
    */
-  public boolean setName() {
-    if (propertyUserDir!=null) {
+  public boolean setParamFile() {
+    if (loadedParamFile) {
       return true;
     }
-    if (peetDialog==null) {
+    if (peetDialog == null) {
       return false;
     }
     peetDialog.getParameters(metaData);
     if (!metaData.isValid()) {
       return false;
     }
-    setPropertyUserDir(peetDialog.getDirectory());
-    boolean propertyUserDirSet=propertyUserDir!=null;
-    peetDialog.updateDisplay(propertyUserDirSet);
-    return propertyUserDirSet;
+    initializeUIParameters(peetDialog.getDirectory(), metaData.getName(),
+        DatasetFiles.PEET_DATA_FILE_EXT, AXIS_ID);
+    if (!loadedParamFile) {
+      return false;
+    }
+    peetDialog.updateDisplay(true);
+    return true;
+  }
+  
+  public void save() throws LogFile.FileException, LogFile.WriteException {
+    super.save();
+    mainPanel.done();
+    savePeetDialog();
   }
 
   protected void updateDialog(ProcessName processName, AxisID axisID) {
@@ -183,6 +215,10 @@ public class PeetManager extends BaseManager {
     setPanel();
   }
 
+  /**
+   * Create (if necessary) and show the peet dialog.  Update data if the param
+   * file has been set.
+   */
   private void openPeetDialog() {
     if (peetDialog == null) {
       peetDialog = new PeetDialog(this, AXIS_ID);
@@ -190,14 +226,24 @@ public class PeetManager extends BaseManager {
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
     if (paramFile != null && metaData.isValid()) {
       peetDialog.setParameters(metaData);
-      peetDialog.updateDisplay(propertyUserDir!=null);
+      peetDialog.setParameters(screenState);
+      peetDialog.setDirectory(propertyUserDir);
+      peetDialog.updateDisplay(loadedParamFile);
     }
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
-  
-  private void savePeetlDialog() {
+
+  private void savePeetDialog() {
     if (peetDialog == null) {
       return;
     }
+    if (paramFile == null) {
+      if (!setParamFile()) {
+        return;
+      }
+    }
+    peetDialog.getParameters(metaData);
+    peetDialog.getParameters(screenState);
+    saveStorables(AXIS_ID);
   }
 }
