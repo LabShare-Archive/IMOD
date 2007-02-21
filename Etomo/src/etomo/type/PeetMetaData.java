@@ -1,5 +1,6 @@
 package etomo.type;
 
+import java.io.File;
 import java.util.Properties;
 
 import etomo.util.DatasetFiles;
@@ -18,11 +19,14 @@ import etomo.util.DatasetFiles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/02/20 20:35:50  sueh
+* <p> bug# 964 Added setName, to set the root name.
+* <p>
 * <p> Revision 1.1  2007/02/19 21:59:45  sueh
 * <p> bug# 964 Meta data for the PEET interface.
 * <p> </p>
 */
-public class PeetMetaData extends BaseMetaData{
+public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData{
   public static  final String  rcsid =  "$Id$";
   
   public static final String NEW_TITLE = "PEET";
@@ -30,6 +34,10 @@ public class PeetMetaData extends BaseMetaData{
   private static final String ROOT_NAME_KEY = "RootName";
   private static final String GROUP_KEY = "Peet";
   private String rootName = null;
+  
+  public PeetMetaData() {
+    fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
+  }
   
   public String getMetaDataFileName() {
     if (rootName == null) {
@@ -58,8 +66,11 @@ public class PeetMetaData extends BaseMetaData{
    * @return error message if invalid
    */
   public String validate() {
-    if (rootName == null) {
+    if (rootName == null||rootName.matches("\\s*")) {
       return "Missing root name.";
+    }
+    if (rootName.charAt(File.pathSeparatorChar)!=-1||rootName.charAt(File.separatorChar)!=-1) {
+      return "Invalid root name, "+rootName+".";
     }
     return null;
   }
