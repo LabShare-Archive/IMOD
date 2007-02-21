@@ -26,7 +26,10 @@ import etomo.PeetManager;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/20 20:37:32  sueh
+ * <p> bug# 964 A list of tomograms for the PEET interface.
+ * <p> </p>
  */
 final class VolumeTable {
   public static final String rcsid = "$Id$";
@@ -74,7 +77,7 @@ final class VolumeTable {
   }
 
   private void addTomogram() {
-    if (!manager.setName()) {
+    if (!manager.setParamFile()) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.OUTPUT_LABEL
           + " fields before adding tomograms.", "Entry Error");
