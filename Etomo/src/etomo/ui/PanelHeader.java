@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
 import etomo.type.BaseScreenState;
+import etomo.type.ConstPanelHeaderState;
 import etomo.type.DialogType;
 import etomo.type.PanelHeaderState;
 
@@ -184,7 +185,7 @@ final class PanelHeader implements Expandable {
    * button for which there is a valid state.
    * @param state
    */
-  public void setState(PanelHeaderState state) {
+  public void setState(ConstPanelHeaderState state) {
     if (state == null) {
       return;
     }
@@ -235,6 +236,10 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2006/06/16 15:26:40  sueh
+ * <p> bug# 834 Added setButtonStates(BaseScreenState, boolean) to set the states
+ * <p> with open/close defaulting to closed.
+ * <p>
  * <p> Revision 1.21  2006/04/28 21:00:35  sueh
  * <p> bug# 787 Removed the member variable title, which was not used.
  * <p> ExpandButton:  Moved type information (which kind of expander) and
