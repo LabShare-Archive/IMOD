@@ -16,6 +16,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2007/02/05 23:05:55  sueh
+ * <p> bug# 962 Added debug member variable.
+ * <p>
  * <p> Revision 3.5  2006/11/15 20:37:48  sueh
  * <p> bug# 872 Rewrote class to retain a Properties member variable as a
  * <p> representation of the data file.  Backing up the data file the first time it is saved
@@ -106,10 +109,6 @@ public final class ParameterStore {
    */
   public void storeProperties() throws LogFile.FileException,
       LogFile.WriteException {
-    if (debug) {
-      System.err.println("storeProperties:JoinState.Join.Version="
-          + properties.getProperty("JoinState.Join.Version"));
-    }
     dataFile.backupOnce();
     if (!dataFile.exists()) {
       dataFile.create();
