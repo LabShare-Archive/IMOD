@@ -1,9 +1,13 @@
 package etomo.ui;
 
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import etomo.PeetManager;
@@ -30,6 +34,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/02/21 22:30:22  sueh
+ * <p> bug# 964 Fixing null pointer exception which occurred when loading the .epe file.
+ * <p>
  * <p> Revision 1.3  2007/02/21 04:24:32  sueh
  * <p> bug# 964 Setting Output and Directory when Save As is called.  Disabling edit
  * <p> for Output and Directory when the paramFile is set.
@@ -49,12 +56,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   static final String OUTPUT_LABEL = "Output";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
-  private final LabeledTextField ltfDirectory = new LabeledTextField(
+  private final FileTextField ftfDirectory = new FileTextField(
       DIRECTORY_LABEL + ": ");
   private final LabeledTextField ltfOutput = new LabeledTextField(OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetup = new SpacedPanel();
-  private final JPanel pnlSetupBody = new JPanel();
+  private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
@@ -69,7 +76,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void updateDisplay(boolean paramFileSet) {
-    ltfDirectory.setEditable(!paramFileSet);
+    ftfDirectory.setEnabled(!paramFileSet);
     ltfOutput.setEditable(!paramFileSet);
   }
 
@@ -117,15 +124,26 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
   
   public String getDirectory() {
-    return ltfDirectory.getText();
+    return ftfDirectory.getText();
   }
   
   public void setDirectory(String directory) {
-    ltfDirectory.setText(directory);
+    ftfDirectory.setText(directory);
   }
   
   public void setOutput(String output) {
     ltfOutput.setText(output);
+  }
+  
+  void directoryAction() {
+    JFileChooser chooser = new JFileChooser(new File(manager
+        .getPropertyUserDir()));
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      ftfDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
+    }
   }
 
   private void create() {
@@ -133,10 +151,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       return;
     }
     //setup
-    pnlSetupBody.setLayout(new BoxLayout(pnlSetupBody, BoxLayout.Y_AXIS));
-    pnlSetupBody.add(ltfDirectory.getContainer());
+    pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetupBody.add(ftfDirectory.getContainer());
     pnlSetupBody.add(ltfOutput.getContainer());
-    pnlSetupBody.add(volumeTable.getComponent());
+    pnlSetupBody.add(volumeTable.getContainer());
     //setup header
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
@@ -146,5 +164,19 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlSetup.getContainer());
+    //actions
+    ftfDirectory.addActionListener(new DirectoryActionListener(this));
+  }
+  
+  private class DirectoryActionListener implements ActionListener {
+    private PeetDialog peetDialog;
+
+    private DirectoryActionListener(PeetDialog peetDialog) {
+      this.peetDialog = peetDialog;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      peetDialog.directoryAction();
+    }
   }
 }
