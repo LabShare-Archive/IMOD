@@ -184,7 +184,7 @@ public class EtomoDirector {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
         }
         else if (paramFileName.endsWith(".epe")) {
-          managerKey=openPeet(paramFileName,false,AxisID.ONLY);
+          managerKey = openPeet(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
           saveKey = managerKey;
@@ -413,7 +413,7 @@ public class EtomoDirector {
     closeDefaultWindow(axisID);
     return openParallel(ParallelMetaData.NEW_TITLE, makeCurrent, axisID);
   }
-  
+
   public UniqueKey openPeet(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
     return openPeet(PeetMetaData.NEW_TITLE, makeCurrent, axisID);
@@ -435,14 +435,13 @@ public class EtomoDirector {
     return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent,
         axisID);
   }
-  
+
   private UniqueKey openPeet(File etomoPeetFile, boolean makeCurrent,
       AxisID axisID) {
     if (etomoPeetFile == null) {
       return openPeet(makeCurrent, axisID);
     }
-    return openPeet(etomoPeetFile.getAbsolutePath(), makeCurrent,
-        axisID);
+    return openPeet(etomoPeetFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
   private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent,
@@ -472,12 +471,11 @@ public class EtomoDirector {
     }
     return setManager(manager, makeCurrent);
   }
-  
+
   private UniqueKey openPeet(String peetFileName, boolean makeCurrent,
       AxisID axisID) {
     PeetManager manager;
-    if (peetFileName == null
-        || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
+    if (peetFileName == null || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
       manager = new PeetManager();
       uiHarness.setEnabledNewPeetMenuItem(false);
     }
@@ -540,9 +538,12 @@ public class EtomoDirector {
     if (parallelFileFilter.accept(dataFile)) {
       return openParallel(dataFile, makeCurrent, axisID);
     }
-    PeetFileFilter peetFileFilter = new PeetFileFilter();
-    if (peetFileFilter.accept(dataFile)) {
-      return openPeet(dataFile, makeCurrent, axisID);
+    //TEMP 964
+    if (newstuff) {
+      PeetFileFilter peetFileFilter = new PeetFileFilter();
+      if (peetFileFilter.accept(dataFile)) {
+        return openPeet(dataFile, makeCurrent, axisID);
+      }
     }
     String[] message = { "Unknown file type " + dataFile.getName() + ".",
         "Open this file as an " + etomoFileFilter.getDescription() + "?" };
@@ -1136,6 +1137,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.57  2007/02/19 21:49:18  sueh
+ * <p> bug# 964 Added PEET manager.
+ * <p>
  * <p> Revision 1.56  2007/02/05 21:26:38  sueh
  * <p> bug# 962  Put EtomoNumber type info into an inner class.
  * <p>
