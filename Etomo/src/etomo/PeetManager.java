@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/02/21 22:29:04  sueh
+ * <p> bug# 964 Getting save on exit to work.
+ * <p>
  * <p> Revision 1.3  2007/02/21 04:16:53  sueh
  * <p> bug# 964 Initializing parameters when the param file is chosen.
  * <p>
@@ -132,15 +135,19 @@ public class PeetManager extends BaseManager {
     if (!metaData.isValid()) {
       return false;
     }
-    initializeUIParameters(peetDialog.getDirectory(), metaData.getName(),
-        DatasetFiles.PEET_DATA_FILE_EXT, AXIS_ID);
+    File paramFile = new File(peetDialog.getDirectory(), metaData.getName()
+        + DatasetFiles.PEET_DATA_FILE_EXT);
+    if (!paramFile.exists()) {
+      touch(paramFile.getAbsolutePath());
+    }
+    initializeUIParameters(paramFile, AXIS_ID);
     if (!loadedParamFile) {
       return false;
     }
     peetDialog.updateDisplay(true);
     return true;
   }
-  
+
   /**
    * Call BaseManager.exitProgram(). Call savePeetDialog. Return the value of
    * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
@@ -160,7 +167,7 @@ public class PeetManager extends BaseManager {
       return true;
     }
   }
-  
+
   public void save() throws LogFile.FileException, LogFile.WriteException {
     super.save();
     mainPanel.done();
