@@ -35,6 +35,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   //stopped:  true when the run() is not executing.  Set at the end of the run
   //program.  Also set externally to stop the run() program.
   private boolean stopped = true;
+  private boolean allowRestarts = false;
 
   public LoadAverageMonitor(LoadAverageDisplay display) {
     this.display = display;
@@ -215,7 +216,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       display.msgLoadAverageFailed(key, FAILURE_REASON);
       ProgramState program = (ProgramState) programs.get(key);
       program.fail();
-      program.restart();
+      if (allowRestarts) {
+        program.restart();
+      }
     }
   }
 
@@ -314,6 +317,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2006/11/29 00:02:10  sueh
+ * <p> bug# 934 Added stopped and functions isMonitoring, stop, and stopMonitoring.
+ * <p>
  * <p> Revision 1.18  2006/11/18 00:49:02  sueh
  * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
  * <p>
