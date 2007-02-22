@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/22/07: Fixed a problem in Etomo - Parallel Processing that may have affected
+some bash users with .cshrc files.  The local load average was always failing.
+
 2/19/07: Tiltalign modified to solve for a beam tilt angle
 (non-perpendicularity of beam and tilt axis) and to express it as tilts around
 the X axis and modifications of tilt angle and rotation, so that this can be
