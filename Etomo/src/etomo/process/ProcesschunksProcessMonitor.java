@@ -153,7 +153,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     boolean failed = false;
     while ((line = processOutput.readLine(processOutputReadId)) != null) {
       line = line.trim();
-      //System.out.println(line);
+      System.err.println(line);
       //get the first pid
       if (pid == null && line.startsWith("Shell PID:")) {
         String[] array = line.split("\\s+");
@@ -464,6 +464,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2006/12/02 04:38:06  sueh
+ * <p> bug# 944 Made this class a parent of ProcesschunksVolcombineMonitor.
+ * <p>
  * <p> Revision 1.26  2006/12/01 00:58:06  sueh
  * <p> bug# 937 Don't have to set process in monitor because its being passed to the
  * <p> kill function.  Made endMonitor public so that the process could stop the monitor.
