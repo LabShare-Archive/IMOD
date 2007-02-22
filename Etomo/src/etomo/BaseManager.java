@@ -227,18 +227,6 @@ public abstract class BaseManager {
     }
   }
 
-  protected void initializeUIParameters(String directory, String rootName,
-      String extension, AxisID axisID) {
-    if (directory == null || directory.matches("\\s*") || rootName == null
-        || rootName.matches("\\s*") || extension == null
-        || extension.matches("\\s*")) {
-      return;
-    }
-    else {
-      initializeUIParameters(new File(directory, rootName + extension), axisID);
-    }
-  }
-
   /**
    * Save etomo to parametersState by asking the child manager for a list of
    * storable objects.  This is used when storable objects may have been
@@ -960,21 +948,21 @@ public abstract class BaseManager {
 
   public final void startGetLoadAverage(LoadAverageDisplay display,
       String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer,this);
     getProcessManager().startGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
 
   public final void endGetLoadAverage(LoadAverageDisplay display,
       String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer,this);
     getProcessManager().endGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
 
   public final void stopGetLoadAverage(LoadAverageDisplay display,
       String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer,this);
     getProcessManager().stopGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
@@ -1095,6 +1083,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.75  2007/02/21 04:16:39  sueh
+ * <p> bug# 964 Initializing parameters when the param file is chosen.
+ * <p>
  * <p> Revision 1.74  2007/02/19 21:48:49  sueh
  * <p> bug# 964 Removed isNewManager() because it is only used by Application
  * <p> Manager.
