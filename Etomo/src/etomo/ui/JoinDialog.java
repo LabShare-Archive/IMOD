@@ -13,8 +13,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,6 +55,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.42  2007/02/09 00:50:04  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.  Added tooltips for model and rejoin tabs.
+ * <p>
  * <p> Revision 1.41  2007/02/08 02:05:55  sueh
  * <p> bug# 962 Added trial rejoin and removed a bug which made enabling the rejoin
  * <p> button dependent on running the optional view-tranformed-model button.
@@ -2155,51 +2157,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
     void includeTranslation() {
       includeTranslation = true;
-    }
-  }
-
-  private final class FileTextField {
-    private final JButton button = new JButton(new ImageIcon(ClassLoader
-        .getSystemResource("images/openFile.gif")));
-    private final LabeledTextField field;
-    private JPanel panel = null;
-
-    private FileTextField(String label) {
-      field = new LabeledTextField(label);
-    }
-
-    Container getContainer() {
-      if (panel == null) {
-        panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        panel.add(field.getContainer());
-        panel.add(button);
-        button.setPreferredSize(FixedDim.folderButton);
-        button.setMaximumSize(FixedDim.folderButton);
-      }
-      return panel;
-    }
-
-    void addActionListener(ActionListener actionListener) {
-      button.addActionListener(actionListener);
-    }
-
-    void setEnabled(boolean enabled) {
-      field.setEditable(enabled);
-      button.setEnabled(enabled);
-    }
-
-    void setText(String text) {
-      field.setText(text);
-    }
-
-    String getText() {
-      return field.getText();
-    }
-
-    void setToolTipText(String text) {
-      field.setToolTipText(text);
-      button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
     }
   }
 }
