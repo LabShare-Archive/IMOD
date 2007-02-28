@@ -14,7 +14,7 @@ c       [IFORM], which can be {F} for formatted or {U} for unformatted.  These
 c       arguments can be all lower case or all upper case.  For a new file, it
 c       renames an existing file to FNAME~.
 c       ^  It prints a statement that the file was opened.  This statement
-c       can be disabled with {call dopenHush(.false.)}.
+c       can be disabled with {call dopenHush(.true.)}.
 c       !
       SUBROUTINE DOPEN(IUNIT,FNAME,ITYPE,IFORM)
       implicit none
@@ -101,6 +101,9 @@ C       23/6/00 remove READONLY... not supproted by g77 CER
 c       
 c       
 c       $Log$
+c       Revision 3.6  2007/02/28 23:23:56  mast
+c       Cleaned up - got sick of sorting through obsolete options
+c
 c       Revision 3.5  2006/08/21 16:50:48  mast
 c       Abbreviated annoying output to 1 line and 1 blank line
 c
