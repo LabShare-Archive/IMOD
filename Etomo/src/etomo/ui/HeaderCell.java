@@ -1,12 +1,17 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.border.Border;
 import javax.swing.plaf.ColorUIResource;
 
 import etomo.type.EtomoNumber;
@@ -24,17 +29,17 @@ import etomo.type.EtomoNumber;
  * 
  * @version $Revision$
  */
-class HeaderCell {
+final class HeaderCell {
   public static final String rcsid = "$Id$";
 
   private static final ColorUIResource background = new ColorUIResource(204,
       204, 204);
-  private static final ColorUIResource greyout = UIUtilities.subtractColor(
-      UIUtilities.BACKGROUND, background);
-  private static final ColorUIResource warningBackground = UIUtilities
-      .subtractColor(UIUtilities.WARNING_BACKGROUND, greyout);
+  private static final ColorUIResource greyout = Colors.subtractColor(
+      Colors.BACKGROUND, background);
+  private static final ColorUIResource warningBackground = Colors
+      .subtractColor(Colors.WARNING_BACKGROUND, greyout);
 
-  private JButton cell;
+  private AbstractButton cell;
   private JPanel jpanelContainer = null;
   private String text = "";
   private final boolean controlColor;
@@ -45,52 +50,39 @@ class HeaderCell {
   }
 
   HeaderCell() {
-    this(null, -1, true);
+    this(null, -1, true, false);
   }
 
   HeaderCell(String text) {
-    this(text, -1, true);
+    this(text, -1, true, false);
   }
 
   HeaderCell(String text, boolean controlColor) {
-    this(text, -1, controlColor);
+    this(text, -1, controlColor, false);
   }
 
   HeaderCell(int width) {
-    this(null, width, true);
+    this(null, width, true, false);
   }
 
   HeaderCell(String text, int width) {
-    this(text, width, true);
+    this(text, width, true, false);
   }
 
-  private HeaderCell(String text, int width, boolean controlColor) {
-    this.text = text;
-    this.controlColor = controlColor;
-    if (text == null) {
-      cell = new JButton();
-    }
-    else {
-      cell = new JButton(formatText());
-    }
-    cell.setBorder(BorderFactory.createEtchedBorder());
-    cell.setEnabled(false);
-    if (width > 0) {
-      Dimension size = cell.getPreferredSize();
-      size.width = width;
-      cell.setPreferredSize(size);
-    }
-    if (controlColor) {
-      cell.setBackground(background);
-    }
+  static HeaderCell getToggleInstance(String text, int width) {
+    return new HeaderCell(text, width, false, true);
   }
 
-  final void setWarning(boolean warning, String toolTipText) {
+  Component getComponent() {
+    return cell;
+  }
+
+  void setWarning(boolean warning, String toolTipText) {
     setWarning(warning);
     setToolTipText(toolTipText);
   }
 
-  final void setWarning(boolean warning) {
+  void setWarning(boolean warning) {
     //Can't change the color if not controlling color
     if (!controlColor) {
       return;
@@ -105,6 +97,22 @@ class HeaderCell {
 
   void setBorderPainted(boolean borderPainted) {
     cell.setBorderPainted(borderPainted);
+  }
+
+  void setEnabled(boolean enable) {
+    cell.setEnabled(enable);
+  }
+
+  void setBorder(Border border) {
+    cell.setBorder(border);
+  }
+
+  void setSelected(boolean selected) {
+    cell.setSelected(selected);
+  }
+
+  void addActionListener(ActionListener actionListener) {
+    cell.addActionListener(actionListener);
   }
 
   HeaderCell add(JPanel panel, GridBagLayout layout,
@@ -135,29 +143,65 @@ class HeaderCell {
     cell.setText(formatText());
   }
 
-  final void setText() {
+  void setText() {
     text = "";
     setText("");
   }
 
-  final int getHeight() {
+  boolean isSelected() {
+    return cell.isSelected();
+  }
+
+  int getHeight() {
     return cell.getHeight() + cell.getBorder().getBorderInsets(cell).bottom - 1;
   }
 
-  final int getWidth() {
+  int getWidth() {
     return cell.getWidth();
   }
 
-  final void setToolTipText(String text) {
+  void setToolTipText(String text) {
     cell.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  final void pad() {
-    if (text==null) {
+  void pad() {
+    if (text == null) {
       return;
     }
     pad = " ";
     cell.setText(formatText());
+  }
+
+  private HeaderCell(String text, int width, boolean controlColor,
+      boolean toggle) {
+    this.text = text;
+    this.controlColor = controlColor;
+    if (text == null) {
+      if (toggle) {
+        cell = new JToggleButton();
+      }
+      else {
+        cell = new JButton();
+      }
+    }
+    else {
+      if (toggle) {
+        cell = new JToggleButton(formatText());
+      }
+      else {
+        cell = new JButton(formatText());
+      }
+    }
+    cell.setBorder(BorderFactory.createEtchedBorder());
+    cell.setEnabled(false);
+    if (width > 0) {
+      Dimension size = cell.getPreferredSize();
+      size.width = width;
+      cell.setSize(size);
+    }
+    if (controlColor) {
+      cell.setBackground(background);
+    }
   }
 
   private String formatText() {
@@ -166,6 +210,10 @@ class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.15  2007/02/09 00:49:31  sueh
+ * * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * * <p> classes.
+ * * <p>
  * * <p> Revision 1.14  2007/02/05 23:37:05  sueh
  * * <p> bug# 962 Added getInt().
  * * <p>
