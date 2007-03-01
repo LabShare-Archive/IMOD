@@ -136,12 +136,12 @@ class SpinnerCell extends InputCell {
   protected final void setForeground() {
     JFormattedTextField textField = getTextField();
     if (inUse) {
-      textField.setForeground(foreground);
-      textField.setDisabledTextColor(foreground);
+      textField.setForeground(Colors.CELL_FOREGROUND);
+      textField.setDisabledTextColor(Colors.CELL_FOREGROUND);
     }
     else {
-      textField.setForeground(notInUseForeground);
-      textField.setDisabledTextColor(notInUseForeground);
+      textField.setForeground(Colors.CELL_NOT_IN_USE_FOREGROUND);
+      textField.setDisabledTextColor(Colors.CELL_NOT_IN_USE_FOREGROUND);
     }
   }
 
@@ -151,9 +151,6 @@ class SpinnerCell extends InputCell {
     disabledValue = new EtomoNumber();
     savedValue = new EtomoNumber();
     spinner = new JSpinner(new SpinnerNumberModel(min, min, max, 1));
-    setBackground();
-    setFont();
-    setForeground();
     spinner.setBorder(BorderFactory.createEtchedBorder());
     getTextField().setHorizontalAlignment(JTextField.LEFT);
   }
@@ -165,11 +162,11 @@ class SpinnerCell extends InputCell {
     savedValue = new EtomoNumber(EtomoNumber.Type.LONG);
     spinner = new JSpinner(new SpinnerNumberModel(new Long(min), new Long(min),
         new Long(max), new Long(1)));
-    setBackground();
-    setFont();
-    setForeground();
     spinner.setBorder(BorderFactory.createEtchedBorder());
     getTextField().setHorizontalAlignment(JTextField.LEFT);
+    setBackground();
+    setForeground();
+    setFont();
   }
 
   private final JFormattedTextField getTextField() {
@@ -185,6 +182,10 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/02/09 00:53:24  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.8  2007/02/05 23:45:23  sueh
  * <p> bug# 962 Added getIntInstance, getIntValue, getLongInstance, getLongValue,
  * <p> getStringValue, and removeChangeListener.
