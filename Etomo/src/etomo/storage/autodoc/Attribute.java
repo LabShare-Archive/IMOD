@@ -19,6 +19,9 @@ import etomo.ui.Token;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.4  2006/06/14 21:19:33  sueh
+* <p> $bug# 852 Added isBase() and isAttribute()
+* <p> $
 * <p> $Revision 1.3  2006/06/14 00:13:27  sueh
 * <p> $bug# 852 Added function isGlobal so that it is possible to tell whether an attribute
 * <p> $is global or part of a section.
@@ -85,10 +88,17 @@ public final class Attribute extends WriteOnlyAttributeMap {
     key = name.getKey();
   }
   
+  /**
+   * Global attributes are not in sections
+   */
   boolean isGlobal() {
     return parent.isGlobal();
   }
   
+  /**
+   * First attribute in name value pair - parent is a section or an autodoc
+   * @return
+   */
   boolean isBase() {
     return !parent.isAttribute();
   }
