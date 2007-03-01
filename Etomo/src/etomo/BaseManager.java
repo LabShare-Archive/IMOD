@@ -97,25 +97,25 @@ public abstract class BaseManager {
   private DialogType currentDialogTypeB = null;
   private ParameterStore parameterStore = null;
 
-  protected abstract void createComScriptManager();
+  abstract void createComScriptManager();
 
-  protected abstract void createMainPanel();
+  abstract void createMainPanel();
 
-  protected abstract void createProcessTrack();
+  abstract void createProcessTrack();
 
-  protected abstract void updateDialog(ProcessName processName, AxisID axisID);
+  abstract void updateDialog(ProcessName processName, AxisID axisID);
 
-  protected abstract void setMetaData(ImodManager imodManager);
+  abstract void setMetaData(ImodManager imodManager);
 
   public abstract BaseMetaData getBaseMetaData();
 
   public abstract MainPanel getMainPanel();
 
-  protected abstract void getProcessTrack(Storable[] storable, int index);
+  abstract void getProcessTrack(Storable[] storable, int index);
 
-  protected abstract BaseProcessTrack getProcessTrack();
+  abstract BaseProcessTrack getProcessTrack();
 
-  protected abstract BaseState getBaseState();
+  abstract BaseState getBaseState();
 
   public abstract void kill(AxisID axisID);
 
@@ -123,7 +123,7 @@ public abstract class BaseManager {
 
   public abstract void touch(String absolutePath);
 
-  protected abstract BaseProcessManager getProcessManager();
+  abstract BaseProcessManager getProcessManager();
 
   public abstract BaseScreenState getBaseScreenState(AxisID axisID);
 
@@ -133,13 +133,12 @@ public abstract class BaseManager {
 
   public abstract boolean canSnapshot();
 
-  protected abstract void processSucceeded(AxisID axisID,
-      ProcessName processName);
+  abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
-  protected abstract void startNextProcess(AxisID axisID, String nextProcess,
+  abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay);
 
-  protected abstract Storable[] getStorables(int offset);
+  abstract Storable[] getStorables(int offset);
 
   public abstract String getName();
 
@@ -161,7 +160,7 @@ public abstract class BaseManager {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
-  protected String paramString() {
+  String paramString() {
     return "headless=" + headless + ",uiHarness=" + uiHarness + ",userConfig="
         + userConfig + ",\nloadedParamFile=" + loadedParamFile
         + ",imodManager=" + imodManager + ",\ncomScriptMgr=" + comScriptMgr
@@ -209,7 +208,7 @@ public abstract class BaseManager {
     return oldPropertyUserDir;
   }
 
-  protected void initializeUIParameters(File dataFile, AxisID axisID) {
+  void initializeUIParameters(File dataFile, AxisID axisID) {
     if (!headless) {
       if (dataFile != null) {
         loadedParamFile = loadParamFile(dataFile, axisID);
@@ -218,8 +217,8 @@ public abstract class BaseManager {
     initialized = true;
   }
 
-  protected void initializeUIParameters(String paramFileName, AxisID axisID) {
-    if (paramFileName==null||paramFileName.equals("")) {
+  void initializeUIParameters(String paramFileName, AxisID axisID) {
+    if (paramFileName == null || paramFileName.equals("")) {
       initializeUIParameters((File) null, axisID);
     }
     else {
@@ -294,7 +293,7 @@ public abstract class BaseManager {
    * and exit).
    * @throws IOException
    */
-  protected void save() throws LogFile.FileException, LogFile.WriteException {
+  void save() throws LogFile.FileException, LogFile.WriteException {
     if (parameterStore == null) {
       return;
     }
@@ -339,11 +338,10 @@ public abstract class BaseManager {
     if (paramFile == null) {
       return null;
     }
-    if (parameterStore != null) {
-      return parameterStore;
-    }
-    //synchronize to prevent more then one parameter store from being created
-    synchronized (this) {
+    synchronized (paramFile) {
+      if (parameterStore != null) {
+        return parameterStore;
+      }
       if (parameterStore != null) {
         return parameterStore;
       }
@@ -504,7 +502,7 @@ public abstract class BaseManager {
     return results;
   }
 
-  protected void setPanel() {
+  void setPanel() {
     uiHarness.pack(this);
     //  Resize to the users preferrred window dimensions
     getMainPanel().setSize(
@@ -549,7 +547,7 @@ public abstract class BaseManager {
    * parameter file.
    * @param paramFile the File object specifiying the data parameter file.
    */
-  protected boolean loadParamFile(File paramFile, AxisID axisID) {
+  boolean loadParamFile(File paramFile, AxisID axisID) {
     FileInputStream processDataStream;
     // Set the current working directory for the application, this is the
     // path to the EDF or EJF file.  The working directory is defined by the current
@@ -594,7 +592,7 @@ public abstract class BaseManager {
     return true;
   }
 
-  protected void backupFile(File file, AxisID axisID) {
+  void backupFile(File file, AxisID axisID) {
     if (file != null && file.exists()) {
       File backupFile = new File(file.getAbsolutePath() + "~");
       try {
@@ -723,46 +721,42 @@ public abstract class BaseManager {
    * @param axisID
    * @param processResultDisplay
    */
-  protected final void processDone(AxisID axisID,
+  final void processDone(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     if (!startNextProcess(axisID, processResultDisplay)) {
       sendMsgProcessSucceeded(processResultDisplay);
     }
   }
 
-  protected void sendMsgProcessStarting(
-      ProcessResultDisplay processResultDisplay) {
+  void sendMsgProcessStarting(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
     }
     processResultDisplay.msgProcessStarting();
   }
 
-  protected void sendMsgProcessFailedToStart(
-      ProcessResultDisplay processResultDisplay) {
+  void sendMsgProcessFailedToStart(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
     }
     processResultDisplay.msgProcessFailedToStart();
   }
 
-  protected void sendMsgProcessSucceeded(
-      ProcessResultDisplay processResultDisplay) {
+  void sendMsgProcessSucceeded(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
     }
     processResultDisplay.msgProcessSucceeded();
   }
 
-  protected void sendMsgProcessFailed(ProcessResultDisplay processResultDisplay) {
+  void sendMsgProcessFailed(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
     }
     processResultDisplay.msgProcessFailed();
   }
 
-  protected void sendMsgSecondaryProcess(
-      ProcessResultDisplay processResultDisplay) {
+  void sendMsgSecondaryProcess(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
     }
@@ -790,7 +784,7 @@ public abstract class BaseManager {
    * @param axisID
    * @return
    */
-  protected DialogType getCurrentDialogType(AxisID axisID) {
+  DialogType getCurrentDialogType(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return currentDialogTypeB;
     }
@@ -806,7 +800,7 @@ public abstract class BaseManager {
    * @param processResultDisplay
    * @return true if a next process is run.
    */
-  protected final boolean startNextProcess(AxisID axisID,
+  final boolean startNextProcess(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     if (debug) {
       System.err.println("startNextProcess:nextProcess="
@@ -831,7 +825,7 @@ public abstract class BaseManager {
    * @param axisID
    * @param nextProcess
    */
-  protected final void setNextProcess(AxisID axisID, String nextProcess) {
+  final void setNextProcess(AxisID axisID, String nextProcess) {
     if (axisID == AxisID.SECOND) {
       nextProcessB = nextProcess;
 
@@ -907,7 +901,7 @@ public abstract class BaseManager {
    * @param axisID
    * @param lastProcess
    */
-  protected final void setLastProcess(AxisID axisID, String lastProcess) {
+  final void setLastProcess(AxisID axisID, String lastProcess) {
     if (debug) {
       System.err.println("setLastProcess:lastProcess=" + lastProcess);
     }
@@ -948,21 +942,21 @@ public abstract class BaseManager {
 
   public final void startGetLoadAverage(LoadAverageDisplay display,
       String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer,this);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer, this);
     getProcessManager().startGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
 
   public final void endGetLoadAverage(LoadAverageDisplay display,
       String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer,this);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer, this);
     getProcessManager().endGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
 
   public final void stopGetLoadAverage(LoadAverageDisplay display,
       String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer,this);
+    LoadAverageParam param = LoadAverageParam.getInstance(computer, this);
     getProcessManager().stopGetLoadAverage(param,
         display.getLoadAverageMonitor());
   }
@@ -1004,7 +998,7 @@ public abstract class BaseManager {
    * @param axisID
    *            The axis of the thread to be mapped
    */
-  protected void setThreadName(String name, AxisID axisID) {
+  void setThreadName(String name, AxisID axisID) {
     if (name == null) {
       name = "none";
     }
@@ -1083,6 +1077,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.76  2007/02/22 20:31:30  sueh
+ * <p> bug# 966 Getting the shell environment variable in LoadAverageParam.
+ * <p>
  * <p> Revision 1.75  2007/02/21 04:16:39  sueh
  * <p> bug# 964 Initializing parameters when the param file is chosen.
  * <p>

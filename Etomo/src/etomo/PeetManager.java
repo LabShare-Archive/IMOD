@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/02/22 20:33:46  sueh
+ * <p> bug# 964 In setParamFile(), creating the param file if it doesn't exist.
+ * <p>
  * <p> Revision 1.4  2007/02/21 22:29:04  sueh
  * <p> bug# 964 Getting save on exit to work.
  * <p>
@@ -111,7 +114,7 @@ public class PeetManager extends BaseManager {
   public void touch(String absolutePath) {
     processMgr.touch(absolutePath);
     try {
-      Thread.sleep(15);
+      Thread.sleep(20);
     }
     catch (InterruptedException e) {
     }
@@ -131,7 +134,7 @@ public class PeetManager extends BaseManager {
     if (peetDialog == null) {
       return false;
     }
-    peetDialog.getParameters(metaData);
+    peetDialog.initialize(metaData);
     if (!metaData.isValid()) {
       return false;
     }
@@ -174,45 +177,45 @@ public class PeetManager extends BaseManager {
     savePeetDialog();
   }
 
-  protected void updateDialog(ProcessName processName, AxisID axisID) {
+  void updateDialog(ProcessName processName, AxisID axisID) {
   }
 
-  protected void startNextProcess(AxisID axisID, String nextProcess,
+  void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay) {
   }
 
-  protected void setMetaData(ImodManager imodManager) {
+  void setMetaData(ImodManager imodManager) {
   }
 
-  protected void processSucceeded(AxisID axisID, ProcessName processName) {
+  void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
-  protected BaseState getBaseState() {
+  BaseState getBaseState() {
     return null;
   }
 
-  protected void createProcessTrack() {
+  void createProcessTrack() {
   }
 
-  protected void createMainPanel() {
+  void createMainPanel() {
     mainPanel = new MainPeetPanel(this);
   }
 
-  protected void createComScriptManager() {
+  void createComScriptManager() {
   }
 
-  protected BaseProcessManager getProcessManager() {
+  BaseProcessManager getProcessManager() {
     return processMgr;
   }
 
-  protected BaseProcessTrack getProcessTrack() {
+  BaseProcessTrack getProcessTrack() {
     return null;
   }
 
-  protected void getProcessTrack(Storable[] storable, int index) {
+  void getProcessTrack(Storable[] storable, int index) {
   }
 
-  protected final Storable[] getStorables(int offset) {
+  final Storable[] getStorables(int offset) {
     Storable[] storables = new Storable[2 + offset];
     int index = offset;
     storables[index++] = metaData;
@@ -251,7 +254,7 @@ public class PeetManager extends BaseManager {
    */
   private void openPeetDialog() {
     if (peetDialog == null) {
-      peetDialog = new PeetDialog(this, AXIS_ID);
+      peetDialog =  PeetDialog.getInstance(this, AXIS_ID);
     }
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
     if (paramFile != null && metaData.isValid()) {
@@ -272,7 +275,6 @@ public class PeetManager extends BaseManager {
         return;
       }
     }
-    peetDialog.getParameters(metaData);
     peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
   }
