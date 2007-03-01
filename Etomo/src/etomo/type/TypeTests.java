@@ -19,6 +19,10 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2006/11/15 20:50:10  sueh
+ * <p> bug# 872 Changed the test order to put the classes with fewer dependencies
+ * <p> first.
+ * <p>
  * <p> Revision 3.8  2006/01/26 22:00:03  sueh
  * <p> bug# 401 Turn ProcessResultDisplay into an interface.  Place the
  * <p> functionality into ProcessResultDisplayState.  This allows a greater
@@ -60,6 +64,7 @@ public class TypeTests {
     suite.addTestSuite(ConstMetaDataTest.class);
     suite.addTestSuite(ProcessResultDisplayStateTest.class);
     suite.addTestSuite(MetaDataTest.class);
+    suite.addTestSuite(AxisIDTest.class);
     //$JUnit-END$
     return suite;
   }
