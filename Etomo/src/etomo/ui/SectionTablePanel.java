@@ -17,7 +17,6 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 
 import etomo.JoinManager;
@@ -50,6 +49,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2007/02/09 00:52:35  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.36  2007/02/05 23:43:18  sueh
  * <p> bug# 962 Switched to BinnedXY3dmodButton instead of a spinner and a button.
  * <p>
@@ -338,7 +341,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public class SectionTablePanel implements ContextMenu, Expandable,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer,Highlightable {
   public static final String rcsid = "$Id$";
 
   private static final Dimension buttonDimension = UIParameters.INSTANCE
@@ -729,27 +732,6 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return rows.size();
   }
 
-  /**
-   * Informs this panel that a row is highlighting.  Only one row may be
-   * highlighted at once, so it turns off highlighting on all the other rows.
-   * @param rowNumber
-   */
-  void msgHighlighting(int rowIndex, boolean highlightTurnedOn) {
-    int highlightedRowIndex;
-    if (highlightTurnedOn) {
-      highlightedRowIndex = rowIndex;
-      for (int i = 0; i < rows.size(); i++) {
-        if (i != rowIndex) {
-          ((SectionTableRow) rows.get(i)).setHighlight(false);
-        }
-      }
-    }
-    else {
-      highlightedRowIndex = -1;
-    }
-    setMode();
-  }
-
   private int getHighlightedRowIndex() {
     for (int i = 0; i < rows.size(); i++) {
       if (((SectionTableRow) rows.get(i)).isHighlighted()) {
@@ -783,6 +765,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
                   + "push the \"Change Setup\" button and then push the \"Invert Table\" button.",
               "Join Warning");
     }
+  }
+  
+  /**
+   * Respond to highlight request
+   */
+  public void highlight(boolean highlight) {
+    setMode();
   }
 
   /**
@@ -1348,15 +1337,6 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return rows.size();
   }
 
-  /**
-   * Add a JComponent to the table.
-   * @param cell
-   */
-  public final void addCell(Component cell) {
-    layout.setConstraints(cell, constraints);
-    pnlTable.add(cell);
-  }
-
   public final void removeCell(Component cell) {
     pnlTable.remove(cell);
   }
@@ -1367,22 +1347,6 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    */
   private final void repaint() {
     manager.getMainPanel().repaint();
-  }
-
-  /**
-   * Create a multi line toggle button.  Set the border to raised bevel to make
-   * it 3D.  Set its preferred width.
-   * @param value
-   * @param width
-   * @return button created
-   */
-  MultiLineButton createToggleButton(String text, int width) {
-    MultiLineButton button = MultiLineButton.getToggleButtonInstance(text);
-    button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-    Dimension size = button.getPreferredSize();
-    size.width = width;
-    button.setSize(size);
-    return button;
   }
 
   /**

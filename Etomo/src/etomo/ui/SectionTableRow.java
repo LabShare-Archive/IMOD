@@ -2,8 +2,6 @@ package etomo.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.JPanel;
@@ -33,6 +31,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/02/09 00:52:45  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.25  2007/02/05 23:43:42  sueh
  * <p> bug# 962 Added rejoin display.
  * <p>
@@ -209,7 +211,7 @@ import etomo.util.DatasetFiles;
  * <p> fields.  Can expand the section field
  * <p> </p>
  */
-public final class SectionTableRow {
+public final class SectionTableRow implements Highlightable{
   public static final String rcsid = "$Id$";
 
   static final String INVERTED_WARNING = "The handedness of structures will change in inverted sections.";
@@ -231,12 +233,10 @@ public final class SectionTableRow {
   private final FieldCell rotationAngleX = new FieldCell();
   private final FieldCell rotationAngleY = new FieldCell();
   private final FieldCell rotationAngleZ = new FieldCell();
-  private final SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
-      this);
 
   private final JoinManager manager;
   private final SectionTablePanel table;
-  private final MultiLineButton highlighterButton;
+  private final HighlighterButton highlighterButton;
 
   private SectionTableRowData data;
   private final HeaderCell rowNumber = new HeaderCell(
@@ -276,10 +276,8 @@ public final class SectionTableRow {
     this.manager = manager;
     this.table = table;
     this.sectionExpanded = sectionExpanded;
-    highlighterButton = table.createToggleButton("=>",
-        (int) (40 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+    highlighterButton=new HighlighterButton(this,table);
     //configure
-    highlighterButton.addActionListener(actionListener);
     setupSection.setEnabled(false);
     joinSection.setEnabled(false);
     slicesInSample.setEnabled(false);
@@ -333,7 +331,7 @@ public final class SectionTableRow {
 
   void remove() {
     rowNumber.remove();
-    table.removeCell(highlighterButton.getComponent());
+    highlighterButton.remove();
     setupSection.remove();
     sampleBottomStart.remove();
     sampleBottomEnd.remove();
@@ -372,7 +370,7 @@ public final class SectionTableRow {
 
   private void setCellHighlight(boolean highlight, InputCell cell) {
     //avoid turning off highlighting in a highlighted row
-    if (!highlight && highlighterButton.isSelected()) {
+    if (!highlight && highlighterButton.isHighlighted()) {
       return;
     }
     cell.setHighlight(highlight);
@@ -521,7 +519,7 @@ public final class SectionTableRow {
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
-    table.addCell(highlighterButton.getComponent());
+    highlighterButton.add(panel, layout, constraints);
     constraints.weightx = 0.2;
     constraints.gridwidth = 2;
     setupSection.add(panel, layout, constraints);
@@ -565,7 +563,7 @@ public final class SectionTableRow {
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
-    table.addCell(highlighterButton.getComponent());
+    highlighterButton.add(panel, layout, constraints);
     constraints.weightx = 0.2;
     constraints.gridwidth = 2;
     joinSection.add(panel, layout, constraints);
@@ -786,26 +784,11 @@ public final class SectionTableRow {
   }
 
   /**
-   * Toggle the highlighter button based on the highlighted parameter.
-   * Change the foreground and background for all the fields in the row.  Do
-   * nothing of the highlighter button matches the highlight parameter.
-   * @param highlighted
-   */
-  void setHighlight(boolean highlight) {
-    if (highlight == highlighterButton.isSelected()) {
-      return;
-    }
-    highlighterButton.setSelected(highlight);
-    highlight();
-  }
-
-  /**
    * Change the foreground and background for all the fields in the row based
    * on whether the highlighter button is selected.
    *
    */
-  private void highlight() {
-    boolean highlight = highlighterButton.isSelected();
+  public void highlight(boolean highlight) {
     setupSection.setHighlight(highlight);
     joinSection.setHighlight(highlight);
     sampleBottomStart.setHighlight(highlight);
@@ -822,13 +805,8 @@ public final class SectionTableRow {
     rotationAngleZ.setHighlight(highlight);
   }
 
-  private void highlighterButtonAction() {
-    table.msgHighlighting(data.getRowIndex(), highlighterButton.isSelected());
-    highlight();
-  }
-
   boolean isHighlighted() {
-    return highlighterButton.isSelected();
+    return highlighterButton.isHighlighted();
   }
 
   File getSetupSectionFile() {
@@ -904,18 +882,6 @@ public final class SectionTableRow {
     return data.equalsSample(thatData);
   }
 
-  /**
-   * Handle button actions
-   * @param event
-   */
-  protected void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
-
-    if (command.equals(highlighterButton.getActionCommand())) {
-      highlighterButtonAction();
-    }
-  }
-
   final void imodOpenSetupSectionFile(int binning,
       Run3dmodMenuOptions menuOptions) {
     imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, data
@@ -966,21 +932,5 @@ public final class SectionTableRow {
   private void setToolTipText() {
     highlighterButton.setToolTipText("Press to select the section.");
     currentChunk.setToolTipText("The number of the chunk in Midas.");
-  }
-
-  /**
-   *  Action listener for SectionTableRow
-   */
-  class SectionTableRowActionListener implements ActionListener {
-
-    SectionTableRow adaptee;
-
-    SectionTableRowActionListener(SectionTableRow adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
-    }
   }
 }
