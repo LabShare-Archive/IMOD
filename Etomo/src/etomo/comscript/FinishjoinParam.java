@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2007/02/08 02:01:13  sueh
+ * <p> bug# 962 Added TRIAL_REJOIN functionality.
+ * <p>
  * <p> Revision 1.22  2007/02/05 21:52:53  sueh
  * <p> bug# 962 Added genRejoinOptions.
  * <p>
@@ -372,8 +375,8 @@ public final class FinishjoinParam implements CommandDetails {
     options.add(rootName);
     ArrayList sectionData = metaData.getSectionTableData();
     int sectionDataSize = sectionData.size();
-    joinStartList = new IntKeyList();
-    joinEndList = new IntKeyList();
+    joinStartList =  IntKeyList.getStringInstance();
+    joinEndList =  IntKeyList.getStringInstance();
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       joinStartList.put(i, data.getJoinFinalStart());
@@ -443,15 +446,15 @@ public final class FinishjoinParam implements CommandDetails {
     //Make sure that lists are valid
     int numRows = startListWalker.size();
     //Build the refine start and end list, so it can be sent to the join state
-    refineStartList = IntKeyList.getNumericInstance();
-    refineEndList = IntKeyList.getNumericInstance();
+    refineStartList = IntKeyList.getNumberInstance();
+    refineEndList = IntKeyList.getNumberInstance();
     if (numRows >= 2 && numRows == endListWalker.size()
         && numRows == gapStartListWalker.size() + 1
         && numRows == gapEndListWalker.size() + 1) {
       //Add the first first and end pair.  Start comes from join final start and
       //end comes from the boundary table
-      ConstEtomoNumber start = startListWalker.nextNumeric();
-      ConstEtomoNumber end = gapEndListWalker.nextNumeric();
+      ConstEtomoNumber start = startListWalker.nextEtomoNumber();
+      ConstEtomoNumber end = gapEndListWalker.nextEtomoNumber();
       options.add(start + "," + end);
       //set the first key (first row index) from the join start list.  Then add
       //the rows in order, incrementing the key by 1 each time
@@ -463,16 +466,16 @@ public final class FinishjoinParam implements CommandDetails {
       //while look should end when gapEndListWalker runs out of values (its ahead
       //of gapStartListWalker by 1).
       while (gapEndListWalker.hasNext()) {
-        start = gapStartListWalker.nextNumeric();
-        end = gapEndListWalker.nextNumeric();
+        start = gapStartListWalker.nextEtomoNumber();
+        end = gapEndListWalker.nextEtomoNumber();
         options.add(start + "," + end);
         refineStartList.put(start);
         refineEndList.put(end);
       }
       //The last start and end:  start comes from the boundary table and end comes from
       //join final end.
-      start = gapStartListWalker.nextNumeric();
-      end = endListWalker.getLastNumeric();
+      start = gapStartListWalker.nextEtomoNumber();
+      end = endListWalker.nextEtomoNumber();
       options.add(start + "," + end);
       refineStartList.put(start);
       refineEndList.put(end);
