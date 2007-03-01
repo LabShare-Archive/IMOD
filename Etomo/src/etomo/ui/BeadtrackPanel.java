@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
@@ -36,6 +37,10 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2007/02/09 00:44:07  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.15  2006/07/19 15:33:01  sueh
  * <p> bug# 903 Take the use fid as seed button out of advanced.
  * <p>
@@ -603,6 +608,9 @@ public final class BeadtrackPanel implements Expandable {
       except.printStackTrace();
     }
     catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException except) {
       except.printStackTrace();
     }
     if (autodoc == null) {

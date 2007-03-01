@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -436,7 +437,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     catch (IOException except) {
       except.printStackTrace();
     }
-
+    catch (LogFile.ReadException except) {
+      except.printStackTrace();
+    }
     ltfInputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         CCDEraserParam.INPUT_FILE_KEY));
     ltfOutputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -510,6 +513,10 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2007/02/09 00:47:31  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.20  2006/07/20 17:19:39  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>

@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2007/02/09 00:48:42  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.22  2006/11/07 22:34:29  sueh
  * <p> bug# 954 Completing tooltips for XMinAndMax and YMinAndMax.
  * <p>
@@ -148,6 +152,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltxcorrParam;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
@@ -447,6 +452,9 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
       except.printStackTrace();
     }
     catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException except) {
       except.printStackTrace();
     }
     ltfTestOutput
