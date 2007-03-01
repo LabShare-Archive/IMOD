@@ -25,6 +25,7 @@ import etomo.type.ProcessName;
 public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
+  public static final String MATLAB_PARAM_FILE_EXT=".prm";
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String PEET_DATA_FILE_EXT = ".epe";
   public static final String ROTATED_TOMO_EXT = ".rot";
@@ -393,6 +394,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2007/02/21 04:25:58  sueh
+ * <p> bug# 964 Added getRootName() to strip off the extension of a file name and
+ * <p> return the root.
+ * <p>
  * <p> Revision 1.31  2007/02/19 22:04:30  sueh
  * <p> bug# 964 Added PEET interface data file extension (.epe).
  * <p>
