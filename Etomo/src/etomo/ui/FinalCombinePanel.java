@@ -23,6 +23,7 @@ import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.process.ImodManager;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -58,6 +59,10 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.58  2007/02/09 00:49:20  sueh
+ * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * classes.
+ *
  * Revision 3.57  2006/12/02 04:59:12  sueh
  * bug# 944 Added get/setProcessName ProcesschunksParam so the process
  * being run can be identified.
@@ -1300,6 +1305,10 @@ private void setToolTipText() {
     }
     catch (IOException except) {
       except.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      return;
     }
     ltfXPatchSize.setToolTipText("Size of correlation patches in X.");
     ltfYPatchSize.setToolTipText("Size of correlation patches in Y.");

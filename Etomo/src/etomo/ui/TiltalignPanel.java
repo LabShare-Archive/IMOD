@@ -18,6 +18,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
@@ -1432,6 +1433,9 @@ public class TiltalignPanel {
     catch (IOException except) {
       except.printStackTrace();
     }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
     // General tab
     ltfExcludeList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.EXCLUDE_LIST_KEY));
@@ -1574,6 +1578,10 @@ public class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.37  2007/02/09 00:53:43  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.36  2006/08/22 22:45:20  sueh
  * <p> bug# 913 Added single rot option
  * <p>

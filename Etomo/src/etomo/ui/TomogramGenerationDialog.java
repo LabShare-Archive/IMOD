@@ -26,6 +26,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
+import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
@@ -59,6 +60,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.101  2007/02/09 00:54:03  sueh
+ * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * classes.
+ *
  * Revision 3.100  2006/11/17 00:49:47  sueh
  * bug# 954 Added tooltip for extra exclude list.
  *
@@ -1743,6 +1748,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
     catch (IOException except) {
       except.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
     }
     cbParallelProcess
         .setToolTipText("Check to distribute the tilt process across multiple computers.");

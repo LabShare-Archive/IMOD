@@ -18,6 +18,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
@@ -264,6 +265,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     catch (IOException except) {
       except.printStackTrace();
     }
+    catch (LogFile.ReadException except) {
+      except.printStackTrace();
+    }
     if (autodoc == null) {
       System.err
           .println("Unable to display the rows of the processor table./nMissing $"
@@ -476,6 +480,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2007/02/09 00:51:04  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.41  2006/11/29 00:20:25  sueh
  * <p> bug# 934 Added end() to notify the load average threads when the manager exits.
  * <p>

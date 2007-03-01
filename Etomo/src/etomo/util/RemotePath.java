@@ -7,6 +7,7 @@ import java.util.Vector;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -367,6 +368,10 @@ public final class RemotePath {
       e.printStackTrace();
       return;
     }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      return;
+    }
     if (autodoc == null) {
       return;
     }
@@ -663,6 +668,10 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/07/20 23:15:11  sueh
+ * <p> bug# 885 GetRemotePath():  throw an InvalidMountRuleException if the mount
+ * <p> name hasn't been replaced in the remote path.
+ * <p>
  * <p> Revision 1.7  2006/05/22 22:52:40  sueh
  * <p> bug# 577 Placed commands in a String[] rather then a String.
  * <p>

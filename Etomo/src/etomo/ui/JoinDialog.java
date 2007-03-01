@@ -55,6 +55,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.43  2007/02/22 20:37:54  sueh
+ * <p> bug# 964 Moved FileTextField from JoinDialog to the etomo.ui package so that it
+ * <p> can be shared.
+ * <p>
  * <p> Revision 1.42  2007/02/09 00:50:04  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.  Added tooltips for model and rejoin tabs.
@@ -1938,6 +1942,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     catch (IOException e) {
       e.printStackTrace();
+    }
+    catch (LogFile.ReadException except) {
+      except.printStackTrace();
     }
     cbGap
         .setToolTipText("Check to allow the the final start and end values to change when the join is recreated.  "

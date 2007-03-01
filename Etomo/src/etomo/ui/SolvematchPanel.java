@@ -18,6 +18,7 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
@@ -42,6 +43,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2007/02/09 00:53:14  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.27  2006/09/13 23:55:24  sueh
  * <p> bug# 921 Added center shift limit
  * <p>
@@ -642,6 +647,9 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
       except.printStackTrace();
     }
     catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException except) {
       except.printStackTrace();
     }
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,

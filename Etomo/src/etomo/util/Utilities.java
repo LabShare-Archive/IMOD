@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.51  2006/10/24 23:35:40  sueh
+ * <p> $bug# 947, bug# 948
+ * <p> $
  * <p> $Revision 3.50  2006/08/18 23:26:31  sueh
  * <p> $bug# 852 convertLabelToName:  keeping the leading dash
  * <p> $
@@ -244,6 +247,7 @@ import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.ui.Token;
@@ -1030,6 +1034,10 @@ public class Utilities {
       e.printStackTrace();
       return label;
     }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      return label;
+    }
     //Remove unnecessary symbols and strings from the label.
     boolean ignoreParen = false;
     boolean ignoreBracket = false;
@@ -1092,6 +1100,10 @@ public class Utilities {
     catch (IOException e) {
       e.printStackTrace();
       return name;
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      return label;
     }
     //Convert interior whitespace to a single dash
     while (token != null && !token.is(Token.Type.EOF)

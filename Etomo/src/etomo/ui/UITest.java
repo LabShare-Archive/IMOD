@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import etomo.EtomoDirector;
 import etomo.JfcUnitTests;
 import etomo.process.SystemProgram;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.AdocCommand;
 import etomo.storage.autodoc.AdocCommandFactory;
 import etomo.storage.autodoc.AdocCommandReader;
@@ -88,7 +89,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * run all the tests in uitest.adoc
    * @throws IOException
    */
-  public void test() throws IOException {
+  public void test() throws IOException,LogFile.ReadException {
     String testName = EnvironmentVariable.INSTANCE.getValue(null,
         "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
@@ -221,7 +222,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private void processSection() throws FileNotFoundException, IOException {
+  private void processSection() throws FileNotFoundException, IOException,LogFile.ReadException {
     UITestTestCommand command = (UITestTestCommand) reader.nextCommand(null,
         this);
     while (!command.isEmpty()) {
@@ -394,7 +395,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   private void setAutodoc(UITestTestCommand command)
-      throws FileNotFoundException, IOException {
+      throws FileNotFoundException, IOException,LogFile.ReadException {
     String value = command.getValue();
     assertNotNull(null, "Unknown name/value pair format: " + command, value);
     setVariable(command);
@@ -623,6 +624,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2006/10/24 23:34:49  sueh
+ * <p> bug# 948 Changed filedir to datadir.  Removed testdir.
+ * <p>
  * <p> Revision 1.20  2006/10/11 10:12:33  sueh
  * <p> bug# 938 Making ThreadGroup independent of UITest, so that it does not require
  * <p> JfcUnit to compile.

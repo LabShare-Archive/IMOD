@@ -8,6 +8,7 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
@@ -124,7 +125,7 @@ public class RemotePathTest extends TestCase {
   private final void writeNewFile(String testDirName, int ruleStartNumber,
       boolean globalRules, boolean sectionRules, boolean section,
       boolean computerName, boolean fullSectionName, boolean useMountName,
-      boolean remoteSection) throws IOException {
+      boolean remoteSection) throws IOException,LogFile.ReadException {
     int ruleNumber = ruleStartNumber;
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
     if (bufferedWriter == null) {
@@ -199,7 +200,7 @@ public class RemotePathTest extends TestCase {
    */
   private final void writeNewFile(String testDirName, boolean globalRules,
       boolean sectionRules, boolean section, boolean computerName,
-      boolean fullSectionName, boolean useMountName) throws IOException {
+      boolean fullSectionName, boolean useMountName) throws IOException,LogFile.ReadException {
     writeNewFile(testDirName, 1, globalRules, sectionRules, section,
         computerName, fullSectionName, useMountName, false);
   }
@@ -213,7 +214,7 @@ public class RemotePathTest extends TestCase {
    * @throws IOException
    */
   private final void writeNewOverrideFile(String testDirName)
-      throws IOException {
+      throws IOException,LogFile.ReadException {
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
     if (bufferedWriter == null) {
       return;
@@ -239,7 +240,7 @@ public class RemotePathTest extends TestCase {
    * @throws IOException
    * @param testDirName
    */
-  private final void writeNewBadFile(String testDirName) throws IOException {
+  private final void writeNewBadFile(String testDirName) throws IOException,LogFile.ReadException {
     BufferedWriter bufferedWriter = setUpTestFile(testDirName);
     if (bufferedWriter == null) {
       return;
@@ -459,7 +460,7 @@ public class RemotePathTest extends TestCase {
    * @throws IOException
    */
   private final BufferedWriter setUpTestFile(String testDirName)
-      throws IOException {
+      throws IOException,LogFile.ReadException {
     File testDir = setUpTestDirectory(testDirName);
     String savedRcsid;
     try {
@@ -502,7 +503,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath only loads rules once
    */
   public final void test_getRemotePath_onlyLoadRulesOnce() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -558,7 +559,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath does not throw an exception when no rules in autodoc
    */
   public final void test_getRemotePath_noRules() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -573,7 +574,7 @@ public class RemotePathTest extends TestCase {
    */
   public final void test_getRemotePath_unknownPath()
       throws InvalidParameterException, SystemProcessException, IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -605,7 +606,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_globalRules() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -624,7 +625,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns remote path when local path is found
    */
   public final void test_getRemotePath_globalRulesNoSection()
-      throws IOException, InvalidMountRuleException {
+      throws IOException, InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -741,7 +742,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_sectionRules() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -760,7 +761,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_sectionRulesFullHostName()
-      throws IOException, InvalidMountRuleException {
+      throws IOException, InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -781,7 +782,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath returns section name as mount name
    */
   public final void test_getRemotePath_globalAndSectionRules()
-      throws IOException, InvalidMountRuleException {
+      throws IOException, InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -803,7 +804,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_localHost() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException ,LogFile.ReadException{
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -825,7 +826,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_localHostWithoutMountName()
-      throws IOException, InvalidMountRuleException {
+      throws IOException, InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -846,7 +847,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_fullSectionName() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -866,7 +867,7 @@ public class RemotePathTest extends TestCase {
    * getRemotePath tests local rules before global rules
    */
   public final void test_getRemotePath_mountName() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -881,7 +882,7 @@ public class RemotePathTest extends TestCase {
    * bad mount rules are not loaded
    */
   public final void test_getRemotePath_badRules() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -894,7 +895,7 @@ public class RemotePathTest extends TestCase {
    * a global mount rule can be overridden by a section-level mount rule
    */
   public final void test_getRemotePath_overrideMountRule() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -912,7 +913,7 @@ public class RemotePathTest extends TestCase {
    * mount rule numbers must start from 1 in each area
    */
   public final void test_getRemotePath_ruleNumbers() throws IOException,
-      InvalidMountRuleException {
+      InvalidMountRuleException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -944,7 +945,7 @@ public class RemotePathTest extends TestCase {
    * @throws IOException
    */
   public final void test_isLocalSection_missingLocalSection()
-      throws IOException {
+      throws IOException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -965,7 +966,7 @@ public class RemotePathTest extends TestCase {
    * only returns true if the section is local
    * @throws IOException
    */
-  public final void test_isLocalSection_hostName() throws IOException {
+  public final void test_isLocalSection_hostName() throws IOException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -984,7 +985,7 @@ public class RemotePathTest extends TestCase {
    * must match the section name exactly
    * @throws IOException
    */
-  public final void test_isLocalSection_strippedHostName() throws IOException {
+  public final void test_isLocalSection_strippedHostName() throws IOException,LogFile.ReadException {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -998,6 +999,10 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2006/11/16 23:43:47  sueh
+ * <p> bug# 872 Changed Autodoc.setDir_test to setTestDir.  Changed
+ * <p> Autodoc.getTestAutodocDir to getTestDir.
+ * <p>
  * <p> Revision 1.31  2006/07/21 00:41:34  sueh
  * <p> bug# 885 fixed the test
  * <p>
