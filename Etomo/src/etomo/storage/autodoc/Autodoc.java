@@ -1,6 +1,7 @@
 package etomo.storage.autodoc;
 
 import etomo.storage.AutodocFilter;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.ui.Token;
 import etomo.util.DatasetFiles;
@@ -95,7 +96,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   public static final String UITEST_AXIS = "uitest_axis";
   public static final String DENS_MATCH = "densmatch";
   public static final String CORR_SEARCH_3D = "corrsearch3d";
-  public static final String XFJOINTOMO="xfjointomo";
+  public static final String XFJOINTOMO = "xfjointomo";
 
   private static Autodoc TILTXCORR_INSTANCE = null;
   private static Autodoc TEST_INSTANCE = null;
@@ -109,7 +110,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private static Autodoc CPU_INSTANCE = null;
   private static Autodoc DENS_MATCH_INSTANCE = null;
   private static Autodoc CORR_SEARCH_3D_INSTANCE = null;
-  private static Autodoc XFJOINTOMO_INSTANCE=null;
+  private static Autodoc XFJOINTOMO_INSTANCE = null;
 
   private static HashMap UITEST_AXIS_MAP = null;
 
@@ -117,7 +118,10 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private static boolean test = false;
   private static boolean internalTest = false;
 
-  private File autodocFile = null;
+  private final boolean mutable;
+  private final boolean allowAltComment;
+
+  private LogFile autodocFile = null;
   private AutodocParser parser = null;
 
   //data
@@ -126,14 +130,32 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private HashMap sectionMap = null;
   private Vector nameValuePairList = null;
 
-  //Cache of sets of data.  Hold on to sets of data requested by other
-  //objects.  Autodocs are never refreshed so the set will remain valid.
-  //And, like the autodoc itself, the set will probably be requested more
-  //then once.
-  private HashMap attributeValuesCache = null;
+  private Autodoc() {
+    mutable = false;
+    allowAltComment = false;
+  }
+
+  private Autodoc(boolean mutable, boolean allowAltComment) {
+    this.mutable = mutable;
+    this.allowAltComment = allowAltComment;
+  }
+
+  public static Autodoc getMatlabInstance(File file) throws IOException,LogFile.ReadException{
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(true, true);
+    try {
+    autodoc.initialize(file);
+    return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
 
   public static Autodoc getInstance(String name, AxisID axisID)
-      throws FileNotFoundException, IOException {
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -147,7 +169,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   }
 
   public static Autodoc getInstance(String fileName, String name, AxisID axisID)
-      throws FileNotFoundException, IOException {
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -173,7 +195,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    */
   public static Autodoc getUITestAxisInstance_test(File directory,
       String autodocFileName, AxisID axisID) throws FileNotFoundException,
-      IOException {
+      IOException,LogFile.ReadException {
     if (!test) {
       throw new IllegalStateException("Not in test mode");
     }
@@ -190,7 +212,8 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       return autodoc;
     }
     autodoc = new Autodoc();
-    autodoc.initializeUITestAxis(autodocFile, axisID);
+
+    autodoc.initializeUITestAxis(LogFile.getInstance(autodocFile), axisID);
     return autodoc;
   }
 
@@ -253,7 +276,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     Autodoc autodoc = (Autodoc) UITEST_AXIS_MAP.get(autodocFile);
     return autodoc;
   }
-  
+
   private static Autodoc getExistingAutodoc(String fileName, String name) {
     if (name.equals(UITEST_AXIS)) {
       if (UITEST_AXIS_MAP == null) {
@@ -307,9 +330,6 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
-  private Autodoc() {
-  }
-
   /**
    * for test
    * @param testDirAbsolutePath
@@ -329,7 +349,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return autodocFile.getName();
   }
 
-  File getAutodocFile() {
+  LogFile getAutodocFile() {
     return autodocFile;
   }
 
@@ -353,7 +373,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   boolean isGlobal() {
     return true;
   }
-  
+
   boolean isAttribute() {
     return false;
   }
@@ -376,12 +396,26 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     if (attrib == null) {
       return;
     }
-    NameValuePair pair = new NameValuePair(attrib, attrib
+    NameValuePair pair = NameValuePair.getNameValuePairInstance(attrib, attrib
         .getValueToken(valueIndex));
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
     }
     nameValuePairList.add(pair);
+  }
+
+  void addComment(Token comment) {
+    if (nameValuePairList == null) {
+      nameValuePairList = new Vector();
+    }
+    nameValuePairList.add(NameValuePair.getCommentInstance(comment));
+  }
+
+  void addEmptyLine() {
+    if (nameValuePairList == null) {
+      nameValuePairList = new Vector();
+    }
+    nameValuePairList.add(NameValuePair.getEmptyLineInstance());
   }
 
   public NameValuePairLocation getNameValuePairLocation() {
@@ -458,15 +492,6 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       return null;
     }
     HashMap attributeValues = null;
-    //See if an attributeValues with this sectionType and attributeName has
-    //already been created.
-    String cacheKey = sectionType + attributeName;
-    if (attributeValuesCache != null) {
-      attributeValues = (HashMap) attributeValuesCache.get(cacheKey);
-      if (attributeValues != null) {
-        return attributeValues;
-      }
-    }
     //Create attributeValues
     attributeValues = new HashMap();
     SectionLocation sectionLocation = getSectionLocation(sectionType);
@@ -483,11 +508,6 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       //Go to next section
       section = nextSection(sectionLocation);
     }
-    //Cache attributeValues.
-    if (attributeValuesCache == null) {
-      attributeValuesCache = new HashMap();
-    }
-    attributeValuesCache.put(cacheKey, attributeValues);
     return attributeValues;
   }
 
@@ -513,7 +533,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * @param axisID
    * @param envVariable
    */
-  private File setAutodocFile(String name, AxisID axisID, String envVariable) {
+  private LogFile setAutodocFile(String name, AxisID axisID, String envVariable) {
     File dir = getTestDir();
     if (dir != null) {
       return getAutodocFile(dir, name);
@@ -544,7 +564,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return null;
   }
 
-  private File getAutodocFile(File autodocDir, String autodocName) {
+  private LogFile getAutodocFile(File autodocDir, String autodocName) {
     File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
     if (!file.exists()) {
       System.err.println("Warning:  the autodoc file," + file.getAbsolutePath()
@@ -561,7 +581,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
           + file.getAbsolutePath() + ".");
       return null;
     }
-    return file;
+    return LogFile.getInstance(file);
   }
 
   private File getTestDir() {
@@ -602,8 +622,8 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return dir;
   }
 
-  private void initializeUITestAxis(File autodocFile, AxisID axisID)
-      throws FileNotFoundException, IOException {
+  private void initializeUITestAxis(LogFile autodocFile, AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     this.autodocFile = autodocFile;
     if (UITEST_AXIS_MAP == null) {
       UITEST_AXIS_MAP = new HashMap();
@@ -613,7 +633,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   }
 
   private void initialize(String name, AxisID axisID)
-      throws FileNotFoundException, IOException {
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     if (name.equals(CPU)) {
       initialize(name, axisID, EnvironmentVariable.CALIB_DIR);
     }
@@ -637,14 +657,14 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   }
 
   private void initialize(String name, AxisID axisID, String envVariable)
-      throws FileNotFoundException, IOException {
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     if (autodocFile == null) {
       autodocFile = setAutodocFile(name, axisID, envVariable);
     }
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this);
+    parser = new AutodocParser(this, false, false);
     if (internalTest) {
       //parser.testStreamTokenizer(false);
       //parser.testStreamTokenizer(true);
@@ -666,9 +686,20 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       //print();
     }
   }
+
+  private void initialize(File file) throws FileNotFoundException, IOException,
+      LogFile.ReadException {
+    autodocFile = LogFile.getInstance(file);
+    parser = new AutodocParser(this, mutable, allowAltComment);
+    parser.initialize();
+    parser.parse();
+  }
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.9  2007/02/09 00:42:37  sueh
+ *<p> $bug# 962 Added xfjointomo autodoc.
+ *<p> $
  *<p> $Revision 1.8  2006/11/16 23:38:16  sueh
  *<p> $bug# 872 Changed setDir_test to setTestDir.  Changed getTestAutodocDir to
  *<p> $getTestDir.
