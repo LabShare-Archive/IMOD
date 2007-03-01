@@ -66,6 +66,13 @@ package etomo.ui;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2006/06/14 00:40:43  sueh
+ * <p> $bug# 852 Removed INDENT from Token, using WHITESPACE instead.  Added
+ * <p> $active, which automatically turned off for BREAK tokens.  It is turned on by the
+ * <p> $parser, when it finds that the BREAK token is in the right place.  Rewrote
+ * <p> $getFormattedValues to handle these changes.  Changed the int type to an inner
+ * <p> $Type claass.
+ * <p> $
  * <p> $Revision 1.10  2006/05/01 21:19:02  sueh
  * <p> $bug# 854
  * <p> $
@@ -109,23 +116,20 @@ package etomo.ui;
  */
 public final class Token {
   public static final String rcsid = "$$Id$$";
-  
+
   private Type type = Type.NULL;
   private String value = null;
   private String key = null;
 
   private Token next = null;
   private Token previous = null;
-  private boolean active = true;
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
   protected String paramString() {
-    return "type=" + type + ",value=" + value /*+ ",key="
-     + key + ",\nnext=" + next + ",\nprevious="
-     + previous + ",\n" + super.toString()*/;
+    return "type=" + type + ",value=" + value;
   }
 
   /**
@@ -202,40 +206,12 @@ public final class Token {
   public String getFormattedValues(boolean format) {
     Token token = this;
     StringBuffer buffer = new StringBuffer();
-    boolean breakFound = false;
     while (token != null) {
-      //treat inactive BREAK tokens as regular characters; they have no effect on the format
-      if (token.is(Type.BREAK) && token.active) {
-        //use break only when formatting
-        if (format) {
-          buffer.append("\n");
-          breakFound = true;
-        }
-      }
-      else if (token.is(Type.WHITESPACE)) {
-        if (token.next != null && token.next.is(Type.BREAK)
-            && token.next.active) {
-          //ignore whitespace preceding break whether formatting or not
-        }
-        else if (breakFound) {
-          breakFound = false;
-          //use whitespace after break only when formatting
-          if (format) {
-            buffer.append(token.value);
-          }
-        }
-        else {
-          buffer.append(token.value);
-        }
+      if (token.value == null) {
+        buffer.append(' ');
       }
       else {
-        breakFound = false;
-        if (token.value == null) {
-          buffer.append(' ');
-        }
-        else {
-          buffer.append(token.value);
-        }
+        buffer.append(token.value);
       }
       token = token.next;
     }
@@ -345,7 +321,6 @@ public final class Token {
    */
   public void reset() {
     type = Type.NULL;
-    active = true;
     value = null;
     key = null;
   }
@@ -356,7 +331,6 @@ public final class Token {
    */
   public void copy(Token token) {
     type = token.type;
-    active = token.active;
     if (token.value == null) {
       value = null;
       key = null;
@@ -427,13 +401,6 @@ public final class Token {
 
   private void setType(Type type) {
     this.type = type;
-    if (type == Type.BREAK) {
-      active = false;
-    }
-  }
-  
-  public void setActive(boolean active) {
-    this.active = active;
   }
 
   /**
@@ -543,7 +510,7 @@ public final class Token {
     next = null;
     return list;
   }
-  
+
   public static final class Type {
     public static final Type NULL = new Type();
     public static final Type EOF = new Type();
@@ -558,10 +525,9 @@ public final class Token {
     public static final Type DELIMITER = new Type();
     public static final Type WORD = new Type();
     public static final Type KEYWORD = new Type();
-    public static final Type BREAK = new Type();
-    
+
     public String toString() {
-   
+
       if (this == NULL) {
         return "NULL";
       }
@@ -600,9 +566,6 @@ public final class Token {
       }
       else if (this == KEYWORD) {
         return "KEYWORD";
-      }
-      else if (this == BREAK) {
-        return "BREAK";
       }
       return "UNKNOWN";
     }
