@@ -125,7 +125,7 @@ abstract class EtomoFrame extends JFrame {
     if (menu.equalsFileNewParallel(event)) {
       EtomoDirector.getInstance().openParallel(true, axisID);
     }
-    
+
     if (menu.equalsFileNewPeet(event)) {
       EtomoDirector.getInstance().openPeet(true, axisID);
     }
@@ -341,7 +341,7 @@ abstract class EtomoFrame extends JFrame {
       getOtherFrame().menu.setEnabledFileNewParallel(enable);
     }
   }
-  
+
   void setEnabledNewPeetMenuItem(boolean enable) {
     menu.setEnabledFileNewPeet(enable);
     EtomoFrame otherFrame = getOtherFrame();
@@ -714,9 +714,11 @@ abstract class EtomoFrame extends JFrame {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(fileFilter);
     if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, currentManager.getBaseMetaData()
-          .getMetaDataFileName());
-      chooser.setSelectedFile(defaultFile);
+      String metaDataFileName = currentManager.getBaseMetaData()
+          .getMetaDataFileName();
+      if (metaDataFileName != null) {
+        chooser.setSelectedFile(new File(workingDir, metaDataFileName));
+      }
     }
     int returnVal = chooser.showSaveDialog(this);
 
@@ -843,6 +845,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2007/02/21 04:21:53  sueh
+ * <p> bug# 964 Using UIHarness to pop up dialog.
+ * <p>
  * <p> Revision 1.29  2007/02/19 22:01:10  sueh
  * <p> bug# 964 Handling new PEET event.
  * <p>
