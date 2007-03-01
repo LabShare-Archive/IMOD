@@ -1,6 +1,5 @@
 package etomo.storage.autodoc;
 
-import java.io.File;
 //import java.io.FileReader;
 //import java.lang.IllegalArgumentException;
 import java.io.IOException;
@@ -9,6 +8,7 @@ import java.lang.IllegalStateException;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
@@ -45,7 +45,8 @@ import etomo.ui.Token;
  * CLOSE => ]
  * SEPARATOR => .
  * BREAK => ^ (formatting character - ignored except in valueline at startline)
- * COMMENT => #
+ * COMMENT => # (and % when defined)
+ * 
  * 
  * Other Tokens:
  * EOL => end of line
@@ -73,6 +74,7 @@ import etomo.ui.Token;
  * | => or
  * & => and
  * ^ => beginning of the line
+ * ! => not
  * 
  * Preprocessor flags:
  * DelimiterInLine
@@ -81,24 +83,23 @@ import etomo.ui.Token;
  * 
  * Autodoc => { emptyLine | comment | pair | section } EOF
  * 
- * section => startLineDelimiter OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
+ * section => !emptyLine DelimiterInLine OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
  *            { emptyLine | comment | pair | subsection }
  *            
  * 
- * sectionHeader => -WHITESPACE- sectionType -WHITESPACE- DELIMITER -WHITESPACE-
- *                  sectionName -WHITESPACE-
+ * sectionHeader => sectionType -WHITESPACE- DELIMITER -WHITESPACE- sectionName -WHITESPACE-
  *                  
  * sectionType => ( WORD | KEYWORD )
  * 
  * sectionName = [ \CLOSE & WHITESPACE & EOL & EOF\ ]
  *               
- * subsection => startLineDelimiter OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
+ * subsection => !emptyLine DelimiterInLine OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
  *               { emptyLine | comment | pair }
- *               -subsectionClose-
+ *               subsectionClose
  *               
- * subsectionClose -> startLine OPEN OPEN CLOSE CLOSE
+ * subsectionClose -> !emptyLine !DelimiterInLine OPEN OPEN -WHITESPACE- CLOSE CLOSE (EOL | EOF )
  *               
- * pair => startLineDelimiter name -WHITESPACE- DELIMITER -WHITESPACE- value
+ * pair => !emptyLine !DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
  *         
  * name => attribute { SEPARATOR attribute }
  *         
@@ -106,22 +107,13 @@ import etomo.ui.Token;
  * 
  * value => { \EOL & EOF\ } ( EOL | EOF ) { valueline }  
  *  
- * valueLine => startLineDelimiter !emptyLine !comment -indent- 
- *              { \DELIMITER & EOL & EOF\ } ( EOL | EOF )
- *          
- * indent => startLine BREAK -WHITESPACE-
- * 
- * These elements are not saved:
+ * valueLine =>  !emptyLine !DelimiterInLine !comment { \DELIMITER & EOL & EOF\ } ( EOL | EOF )
  *               
- * comment => startline COMMENT { \EOL\ } ( EOL | EOF )
+ * comment => !emptyLine COMMENT { \EOL\ } ( EOL | EOF )
  * 
- * emptyLine => emptyline => startLine ( EOL | EOF )
+ * emptyLine => ^ -WHITESPACE- ( EOL | EOF )
  * 
- * startLineDelimiter => (DelimiterInLine == true) startLine
- * 
- * startLineWithOutDelimiter => (DelimiterInLine == false) startLine
- * 
- * startLine => ^ -WHITESPACE-
+ * !emptyLine => ^ -WHITESPACE- ( \EOL & EOF\ )
  *
  *
  * Non-embedded EOL and WHITESPACE are stripped from values.
@@ -154,6 +146,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.6  2006/06/22 22:08:09  sueh
+ * <p> $bug# 852 Added subsection(), subsectionClose(), lookAhead(), and
+ * <p> $lookAheadAhead().
+ * <p> $
  * <p> $Revision 1.5  2006/06/14 21:22:06  sueh
  * <p> $bug# 852 Moving the call the processMetaData() to value().  Passing the first
  * <p> $line of the value to processMetaData to handle DelimiterKeyValue.
@@ -219,9 +215,10 @@ import etomo.ui.Token;
 final class AutodocParser {
   public static final String rcsid = "$$Id$$";
 
+  private final boolean mutable;
+
   private AutodocTokenizer tokenizer;
   private String name = null;
-  private File file = null;
   private final Vector line = new Vector();
   private int tokenIndex = 0;
   private Autodoc autodoc = null;
@@ -250,17 +247,17 @@ final class AutodocParser {
   private boolean versionFound = false;
   private boolean pipFound = false;
 
-  AutodocParser(Autodoc autodoc) {
+  AutodocParser(Autodoc autodoc, boolean mutable, boolean allowAltComment) {
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
-    file = autodoc.getAutodocFile();
-    tokenizer = new AutodocTokenizer(file);
+    this.mutable = mutable;
+    tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment);
   }
 
-  void initialize() throws FileNotFoundException, IOException {
+  void initialize() throws FileNotFoundException, IOException,LogFile.ReadException {
     tokenizer.initialize();
   }
 
@@ -291,15 +288,8 @@ final class AutodocParser {
     parsed = true;
     nextToken();
     while (!token.is(Token.Type.EOF)) {
-      if (emptyLine()) {
-      }
-      else if (comment()) {
-      }
-      else if (section()) {
-      }
-      else if (pair(autodoc)) {
-      }
-      else {
+      if (!emptyLine(autodoc) && !comment(autodoc) && !section()
+          && !pair(autodoc)) {
         reportError("Unknown statement.");
       }
     }
@@ -307,96 +297,57 @@ final class AutodocParser {
   }
 
   /** 
-   * emptyLine => emptyLine => startLine ( EOL | EOF )
+   * emptyLine => ^ -WHITESPACE- ( EOL | EOF )
    * 
-   * @return
+   * !emptyLine => ^ -WHITESPACE-
+   * 
+   * Eats up an empty line, starting from the beginning of the line.  Writes the
+   * empty line to the autodoc, section, or subsection is in.
+   * @return true if line is empty, false if line is not empty
    * @throws IOException
    */
-  private boolean emptyLine() throws IOException {
-    if (!startLine()
-        || (!matchToken(Token.Type.EOL) && !matchToken(Token.Type.EOF))) {
-      //not an empty line
+  private boolean emptyLine(WriteOnlyNameValuePairList list) throws IOException {
+    if (!isBeginningOfLine()) {
+      //empty lines must start at the beginning of the line
       return false;
     }
-    testStartFunction("emptyline");
-    testEndFunction("emptyline", true);
-    return true;
-  }
-
-  /**
-   * startLineDelimiter => (DelimiterInLine == true) startLine
-   * 
-   * runs startLine if the delimiter is there, otherwise returns false
-   */
-  private boolean startLineDelimiter() throws IOException {
-    if (!delimiterInLine) {
-      //delimiter is missing, so fail start line
-      return false;
+    //Eat up the whitespace.  This helps identify the empty line.  But if its not
+    //an empty line, it gets rid of the white space at the beginning of the line
+    while (matchToken(Token.Type.WHITESPACE)) {
     }
-    return startLine();
-  }
-
-  /**
-   * startLineWithOutDelimiter => (DelimiterInLine == false) startLine
-   * 
-   * runs startLine if the delimiter is there, otherwise returns false
-   */
-  private boolean startLineWithOutDelimiter() throws IOException {
-    if (delimiterInLine) {
-      //delimiter is missing, so fail start line
-      return false;
-    }
-    return startLine();
-  }
-
-  /**
-
-   * 
-   * startLine => ^ -WHITESPACE-
-   * 
-   * @return true if the token is the first token on the line, or the first
-   * token except for whitespace.
-   * StartLine will eat only the first whitespace of the line.
-   * StartLine can be called more then once per line.
-   * StartLine does not print a test line.
-   * @throws IOException
-   */
-  private boolean startLine() throws IOException {
-    if (prevToken == null || prevToken.is(Token.Type.EOL)) {
-      //start of line - first whitespace may not have been eaten
-      //eat up the optional whitespace at the start of the line
-      if (test) {
-        printTestLine();
-      }
-      matchToken(Token.Type.WHITESPACE);
+    if (token.is(Token.Type.EOL) || token.is(Token.Type.EOF)) {
+      testStartFunction("emptyline");
+      //found empty line
+      list.addEmptyLine();
+      nextToken();
+      testEndFunction("emptyline", true);
       return true;
     }
-    if ((prevPrevToken == null || prevPrevToken.is(Token.Type.EOL))
-        && prevToken.is(Token.Type.WHITESPACE)) {
-      //start of line - whitespace was eaten by a previous call to startLine()
-      return true;
-    }
-    //not start of line
     return false;
   }
 
   /**
-   * comment => startLine COMMENT { \EOL\ } EOL
+   * comment => !emptyLine COMMENT { \EOL\ } ( EOL | EOF )
    * 
    * Parses a comment.
    * @return true if comment found
    * @throws IOException
    */
-  private boolean comment() throws IOException {
-    if (!startLine() || !matchToken(Token.Type.COMMENT)) {
+  private boolean comment(WriteOnlyNameValuePairList list) throws IOException {
+    if (emptyLine(list) || !matchToken(Token.Type.COMMENT)) {
       //not a comment
       return false;
     }
     testStartFunction("comment");
+    //comments can be made of multiple tokens, so use a link list
+    LinkList comment = new LinkList(token);
     //eat up comment line
     while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
+      //add the token to the value link list
+      comment.append(token);
       nextToken();
     }
+    list.addComment(comment.getList());
     //eat up the EOL
     matchToken(Token.Type.EOL);
     testEndFunction("comment", true);
@@ -404,16 +355,15 @@ final class AutodocParser {
   }
 
   /**
-   * section => startLineDelimiter OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF )
-   *            { emptyline | comment | pair | subsection }
+   * section => !emptyLine DelimiterInLine OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
+   *            { emptyLine | comment | pair | subsection }
    *            
    * Parses a section.
    * @return true if section found
    * @throws IOException
    */
   private boolean section() throws IOException {
-    Section section = null;
-    if (!startLineDelimiter()) {
+    if (emptyLine(autodoc) || !delimiterInLine) {
       //not a section
       return false;
     }
@@ -423,6 +373,7 @@ final class AutodocParser {
     }
     testStartFunction("section");
     //save the new section in the autodoc
+    Section section = null;
     section = sectionHeader(autodoc);
     if (section == null) {
       //bad section
@@ -446,9 +397,9 @@ final class AutodocParser {
     }
     while (!token.is(Token.Type.EOF)) {
       //look for elements in the section
-      if (emptyLine()) {
+      if (emptyLine(section)) {
       }
-      else if (comment()) {
+      else if (comment(section)) {
       }
       else if (subsection(section)) {
       }
@@ -466,23 +417,18 @@ final class AutodocParser {
   }
 
   /**
-   * subsection => startLineDelimiter OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
+   * subsection => !emptyLine DelimiterInLine OPEN OPEN sectionHeader CLOSE CLOSE ( EOL | EOF )
    *               { emptyLine | comment | pair }
-   *               -subsectionClose-
+   *               subsectionClose
    * Parses a subsection
    * @return
    * @throws IOException
    */
-  private boolean subsection(Section section)
-      throws IOException {
-    WriteOnlyAttributeMap subsection = null;
-    if (!startLineDelimiter()) {
-      //not a section
-      return false;
-    }
+  private boolean subsection(Section section) throws IOException {
     //use look ahead because this could be a section
-    if (!token.is(Token.Type.OPEN) || !lookAhead().is(Token.Type.OPEN)) {
-      //not a section
+    if (emptyLine(section) || !delimiterInLine || !token.is(Token.Type.OPEN)
+        || !lookAhead().is(Token.Type.OPEN)) {
+      //not a subsection
       return false;
     }
     testStartFunction("subsection");
@@ -490,6 +436,7 @@ final class AutodocParser {
     nextToken();
     nextToken();
     //save the new subsection in the section
+    WriteOnlyNameValuePairList subsection = null;
     subsection = sectionHeader(section);
     if (subsection == null) {
       //bad subsection
@@ -510,41 +457,59 @@ final class AutodocParser {
       testEndFunction("subsection", false);
       return false;
     }
-    while (!token.is(Token.Type.EOF) && !subsectionClose()) {
+    while (!subsectionClose(subsection)) {
       //look for elements in the subsection
-      if (emptyLine()) {
+      if (emptyLine(subsection)) {
       }
-      else if (comment()) {
+      else if (comment(subsection)) {
       }
       else if (pair(subsection)) {
       }
       else {
-        //end of subsection
-        testEndFunction("subsection", true);
-        return true;
+        //subsection must close
+        reportError("A subsection must end with a subsection close.");
+        testEndFunction("subsection", false);
       }
     }
-    //empty subsection
+    //end subsection
     testEndFunction("subsection", true);
     return true;
   }
 
   /**
-   * subsectionClose -> startLine OPEN OPEN CLOSE CLOSE
+   ** subsectionClose -> !emptyLine !DelimiterInLine OPEN OPEN -WHITESPACE- CLOSE CLOSE (EOL | EOF )
    * @return
    */
-  private boolean subsectionClose() throws IOException {
-    //use look ahead because this could be a section or a subsection
-    if (!token.is(Token.Type.OPEN) || !lookAhead().is(Token.Type.OPEN)
-        || !lookAheadAhead().is(Token.Type.CLOSE)) {
+  private boolean subsectionClose(WriteOnlyNameValuePairList subsection)
+      throws IOException {
+    if (emptyLine(subsection) || delimiterInLine || !token.is(Token.Type.OPEN)) {
       //not a subsectionClose
       return false;
     }
     testStartFunction("subsectionClose");
-    //its a subsectionClose so eat up OPEN OPEN CLOSE
+    //its a subsectionClose so eat up OPEN
     nextToken();
+    //eat up second OPEN
+    if (!matchToken(Token.Type.OPEN)) {
+      //bad subsection
+      reportError("A subsection close must have the format \""
+          + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("subsectionClose", false);
+      return false;
+    }
     nextToken();
+    //eat up first CLOSE
+    if (!matchToken(Token.Type.CLOSE)) {
+      //bad subsection
+      reportError("A subsection close must have the format \""
+          + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      testEndFunction("subsectionClose", false);
+      return false;
+    }
     nextToken();
+    //eat up second CLOSE
     if (!matchToken(Token.Type.CLOSE)) {
       //bad subsection
       reportError("A subsection close must have the format \""
@@ -572,13 +537,13 @@ final class AutodocParser {
   }
 
   /**
-   * sectionHeader => -WHITESPACE- sectionType -WHITESPACE- DELIMITER -WHITESPACE-
-   *                  sectionName -WHITESPACE-
+   * sectionHeader => sectionType -WHITESPACE- DELIMITER -WHITESPACE- sectionName -WHITESPACE-
    * 
    * @return a Section if sectionHeader found, otherwise return null
    * @throws IOException
    */
-  private Section sectionHeader(WriteOnlyNameValuePairList nameValuePairList) throws IOException {
+  private Section sectionHeader(WriteOnlyNameValuePairList nameValuePairList)
+      throws IOException {
     testStartFunction("sectionHeader");
     matchToken(Token.Type.WHITESPACE);
     //get the section type
@@ -654,18 +619,19 @@ final class AutodocParser {
   }
 
   /**
-   * pair => startLineDelimiter name -WHITESPACE- DELIMITER -WHITESPACE- value
+   * pair => !emptyLine !DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
    *         
    * Adds an attribute tree to the attribute map.
    * @throws IOException
    */
-  private boolean pair(WriteOnlyAttributeMap attributeMap) throws IOException {
-    if (!startLineDelimiter() || token.is(Token.Type.OPEN)) {
+  private boolean pair(WriteOnlyNameValuePairList list) throws IOException {
+    if (emptyLine(list) || !delimiterInLine
+        || (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD))) {
       //not a pair
       return false;
     }
     testStartFunction("pair");
-    Attribute leafAttribute = name(attributeMap);
+    Attribute leafAttribute = name(list);
     if (leafAttribute == null) {
       //bad pair
       testEndFunction("pair", false);
@@ -679,7 +645,7 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     //attach the value to the last attribute
-    value(leafAttribute);
+    value(list, leafAttribute);
     testEndFunction("pair", true);
     return true;
   }
@@ -689,9 +655,9 @@ final class AutodocParser {
    * 
    * @throws IOException
    */
-  private Attribute name(WriteOnlyAttributeMap attributeMap) throws IOException {
+  private Attribute name(WriteOnlyNameValuePairList list) throws IOException {
     testStartFunction("name");
-    Attribute attributeTree = attribute(attributeMap);
+    Attribute attributeTree = attribute(list);
     if (attributeTree == null) {
       //bad name
       reportError("Missing attribute.");
@@ -738,7 +704,8 @@ final class AutodocParser {
    * sets the value in the attribute, if the value exists
    * @throws IOException
    */
-  private void value(Attribute attribute) throws IOException {
+  private void value(WriteOnlyNameValuePairList parent, Attribute attribute)
+      throws IOException {
     testStartFunction("value");
     //values can be made of multiple tokens, so use a link list
     LinkList value = new LinkList(token);
@@ -751,12 +718,14 @@ final class AutodocParser {
     //delimiter reassignment, it must be done now, or the following pair will be
     //mistaken for part of this value.
     processMetaData(attribute, value.getList());
-    value.append(token);
-    nextToken();
-    //look for value lines
-    while (!error && valueLine(value)) {
+    //grab the EOL in case the value continues in the value line
+    if (token.is(Token.Type.EOL)) {
+      value.append(token);
     }
-    //Strip non-embedded EOL, EOF, and WHITESPACE
+    nextToken();
+    while (!error && valueLine(parent, value)) {
+    }
+    //Strip non-embedded EOL, EOF, and WHITESPACE at the start and end of the value
     while (value.size() > 0
         && (value.isFirstElement(Token.Type.WHITESPACE)
             || value.isFirstElement(Token.Type.EOL) || value
@@ -775,63 +744,40 @@ final class AutodocParser {
   }
 
   /**
-   * valueLine => startLine !emptyLine !comment -indent-
-   *              { \DELIMITER & EOL & EOF\ } ( EOL | EOF )
+   * valueLine =>  !emptyLine !DelimiterInLine !comment { \DELIMITER & EOL & EOF\ } ( EOL | EOF )
    *              
    * Adds to the end of a value link list
    * returns the new end of the link list
    * @throws IOException
    */
-  private boolean valueLine(LinkList value) throws IOException {
-    if (!startLineWithOutDelimiter() || token.is(Token.Type.EOL)
-        || token.is(Token.Type.EOF) || token.is(Token.Type.COMMENT)) {
+  private boolean valueLine(WriteOnlyNameValuePairList parent, LinkList value)
+      throws IOException {
+    if (emptyLine(parent) || delimiterInLine || token.is(Token.Type.COMMENT)
+        || token.is(Token.Type.EOL) || token.is(Token.Type.EOF)) {
       //not a value line
       return false;
     }
     testStartFunction("valueLine");
-    //add the option indent to the value link list
-    indent(value);
     while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)) {
       //add the token to the value link list
       value.append(token);
       nextToken();
     }
-    if (token.is(Token.Type.DELIMITER)) {
+    if (token.is(Token.Type.DELIMITER)) {//really bad error - preprocessor is wrong
       //bad value line
       reportError("A value line cannot contain the delimiter string (\""
           + tokenizer.getDelimiterString() + "\").");
       testEndFunction("valueLine", false);
       return false;
     }
-    value.append(token);
+    //grab the EOL in case another value line follows
+    if (token.is(Token.Type.EOL)) {
+      value.append(token);
+    }
     nextToken();
     testEndFunction("valueLine", true);
     return true;
-  }
-
-  /**
-   * indent => startLine BREAK -WHITESPACE-
-   * 
-   * looks for the BREAK token at the start of the line
-   * @throws IOException
-   */
-  private void indent(LinkList value) throws IOException {
-    if (!startLine() || !matchToken(Token.Type.BREAK)) {
-      //not an indent
-      return;
-    }
-    testStartFunction("indent");
-    //activate BREAK so it can be used in formatting as a new line character
-    prevToken.setActive(true);
-    //add the break character to the value link list
-    value.append(prevToken);
-    if (matchToken(Token.Type.WHITESPACE)) {
-      //white space was matched - this is the indentation
-      value.append(prevToken);
-    }
-    testEndFunction("indent", true);
-    return;
   }
 
   private void reportError(String message) throws IOException {
@@ -887,6 +833,8 @@ final class AutodocParser {
    */
   private void nextToken() throws IOException {
     if (token != null && token.is(Token.Type.EOF)) {
+      //It may try nextToken() a few times at the end of file before it figures
+      //out that its done, but that's OK
       return;
     }
     if (line == null || tokenIndex == line.size()) {
@@ -902,6 +850,10 @@ final class AutodocParser {
           + delimiterInLine);
     }
   }
+  
+  boolean isBeginningOfLine() {
+    return tokenIndex==1;
+  }
 
   /**
    * Look ahead to the next token.  Only looks to the end of the line - cannot
@@ -915,22 +867,6 @@ final class AutodocParser {
       return token;
     }
     return (Token) line.get(tokenIndex);
-  }
-
-  /**
-   * Look ahead to the token after the next token.  Only looks to the end of the
-   * line - cannot look at the next line.  NextToken() should be run at least
-   * once for this to work.
-   * @return
-   */
-  private Token lookAheadAhead() {
-    Token lookAheadToken = lookAhead();
-    if (line == null || lookAheadToken == null
-        || lookAheadToken.is(Token.Type.EOL)
-        || lookAheadToken.is(Token.Type.EOF)) {
-      return lookAheadToken;
-    }
-    return (Token) line.get(tokenIndex + 1);
   }
 
   /**
@@ -979,19 +915,19 @@ final class AutodocParser {
     }
   }
 
-  void testStreamTokenizer(boolean tokens) throws IOException {
+  void testStreamTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
     tokenizer.testStreamTokenizer(tokens);
   }
 
-  void testPrimativeTokenizer(boolean tokens) throws IOException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
     tokenizer.testPrimativeTokenizer(tokens);
   }
 
-  void testAutodocTokenizer(boolean tokens) throws IOException {
+  void testAutodocTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
     tokenizer.test(tokens);
   }
 
-  void testPreprocessor(boolean tokens) throws IOException {
+  void testPreprocessor(boolean tokens) throws IOException,LogFile.ReadException {
     if (tokens) {
       System.err.println("(type,value):delimiterInLine");
     }
@@ -1015,7 +951,7 @@ final class AutodocParser {
    * @param tokens: display tokens rather then text
    * @throws IOException
    */
-  void test(boolean tokens) throws IOException {
+  void test(boolean tokens) throws IOException,LogFile.ReadException {
     test = true;
     testWithTokens = tokens;
     initialize();
@@ -1029,7 +965,7 @@ final class AutodocParser {
    *                 first error.
    * @throws IOException
    */
-  void test(boolean tokens, boolean details) throws IOException {
+  void test(boolean tokens, boolean details) throws IOException,LogFile.ReadException {
     detailedTest = true;
     test(tokens);
   }
