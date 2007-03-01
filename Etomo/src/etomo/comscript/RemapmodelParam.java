@@ -24,7 +24,10 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 22:42:41  sueh
+ * <p> bug# 962 Remapmodel parameter object.
+ * <p> </p>
  */
 public final class RemapmodelParam implements Command {
   public static final String rcsid = "$Id$";
@@ -84,8 +87,8 @@ public final class RemapmodelParam implements Command {
     }
     StringBuffer buffer = new StringBuffer();
     while (startListWalker.hasNext()) {
-      buffer.append(startListWalker.nextNumeric() + ","
-          + endListWalker.nextNumeric());
+      buffer.append(startListWalker.nextEtomoNumber() + ","
+          + endListWalker.nextEtomoNumber());
       if (startListWalker.hasNext()) {
         buffer.append(',');
       }

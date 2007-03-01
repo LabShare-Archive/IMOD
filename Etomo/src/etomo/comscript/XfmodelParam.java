@@ -30,6 +30,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/08 02:23:56  sueh
+ * <p> bug# 962 Preventing xfmodel input file and output file from being the same.
+ * <p>
  * <p> Revision 1.1  2007/02/05 22:50:01  sueh
  * <p> bug# 962 Xfmodel parameter object.
  * <p> </p>
@@ -75,8 +78,8 @@ public final class XfmodelParam implements CommandDetails {
     if (startListWalker.size() == endListWalker.size()) {
       StringBuffer buffer = new StringBuffer();
       while (startListWalker.hasNext()) {
-        long start = startListWalker.nextNumeric().getLong();
-        long end = endListWalker.nextNumeric().getLong();
+        long start = startListWalker.nextEtomoNumber().getLong();
+        long end = endListWalker.nextEtomoNumber().getLong();
         if (end >= start) {
           buffer.append(String.valueOf(end - start + 1));
         }

@@ -24,6 +24,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/09 00:42:16  sueh
+ * <p> bug# 962 Moved some of the parameter name to public constants, so they can
+ * <p> be used as keys for autodoc.
+ * <p>
  * <p> Revision 1.1  2007/02/05 22:49:36  sueh
  * <p> bug# 962 Xfjointomo parameter object.
  * <p> </p>
@@ -128,8 +132,8 @@ public final class XfjointomoParam {
     //check for valid lists
     if (startListWalker.size() == endListWalker.size()) {
       while (startListWalker.hasNext()) {
-        ConstEtomoNumber start = startListWalker.nextNumeric();
-        ConstEtomoNumber end = endListWalker.nextNumeric();
+        ConstEtomoNumber start = startListWalker.nextEtomoNumber();
+        ConstEtomoNumber end = endListWalker.nextEtomoNumber();
         if (start.gt(end)) {
           sizesOfSections.append(start.getLong() - end.getLong() + 1);
         }
