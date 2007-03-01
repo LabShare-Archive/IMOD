@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2007/02/09 00:50:32  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.20  2007/02/05 23:39:48  sueh
  * <p> bug# 962 Added setHighlight.
  * <p>
@@ -191,10 +195,10 @@ public class LabeledTextField {
   
   void setHighlight(boolean highlight) {
     if (highlight) {
-      textField.setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
+      textField.setBackground(Colors.HIGHLIGHT_BACKGROUND);
     }
     else {
-      textField.setBackground(UIUtilities.BACKGROUND);
+      textField.setBackground(Colors.BACKGROUND);
     }
   }
 

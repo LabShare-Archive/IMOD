@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/02/09 00:50:18  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.15  2007/02/05 23:39:32  sueh
  * <p> bug# 962 Added setHighlight.
  * <p>
@@ -175,10 +179,10 @@ public class LabeledSpinner {
   void setHighlight(boolean highlight) {
     JFormattedTextField textField = getTextField();
     if (highlight) {
-      textField.setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
+      textField.setBackground(Colors.HIGHLIGHT_BACKGROUND);
     }
     else {
-      textField.setBackground(UIUtilities.BACKGROUND);
+      textField.setBackground(Colors.BACKGROUND);
     }
   }
   
