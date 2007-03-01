@@ -32,11 +32,11 @@ final class CheckBoxCell extends InputCell {
 
   CheckBoxCell() {
     super();
+    checkBox.setBorderPainted(true);
+    checkBox.setBorder(BorderFactory.createEtchedBorder());
     setBackground();
     setForeground();
     setFont();
-    checkBox.setBorderPainted(true);
-    checkBox.setBorder(BorderFactory.createEtchedBorder());
   }
 
   protected final Component getComponent() {
@@ -76,14 +76,14 @@ final class CheckBoxCell extends InputCell {
   }
 
   protected final void setForeground() {
-    checkBox.setForeground(foreground);
+    checkBox.setForeground(Colors.CELL_FOREGROUND);
     if (inUse) {
-      checkBox.setForeground(foreground);
-      setHtmlLabel(foreground);
+      checkBox.setForeground(Colors.CELL_FOREGROUND);
+      setHtmlLabel(Colors.CELL_FOREGROUND);
     }
     else {
-      checkBox.setForeground(notInUseForeground);
-      setHtmlLabel(notInUseForeground);
+      checkBox.setForeground(Colors.CELL_NOT_IN_USE_FOREGROUND);
+      setHtmlLabel(Colors.CELL_NOT_IN_USE_FOREGROUND);
     }
   }
   
@@ -105,6 +105,10 @@ final class CheckBoxCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/02/09 00:47:49  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.8  2007/02/05 23:34:51  sueh
  * <p> bug# 962 Improved tooltip setting.
  * <p>

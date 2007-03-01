@@ -25,6 +25,10 @@ import javax.swing.SpinnerModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/09 00:47:57  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.1  2007/02/05 23:35:33  sueh
  * <p> bug# 962 A composite ui class containing a checkbox and a spinner.
  * <p> </p>
@@ -99,9 +103,9 @@ final class CheckBoxSpinner {
     if (panelBackground == null) {
       panelBackground = panel.getBackground();
       //greying out the highlight color to match the panel's original color
-      panelHighlightBackground = UIUtilities.subtractColor(
-          UIUtilities.HIGHLIGHT_BACKGROUND, UIUtilities.subtractColor(
-              UIUtilities.BACKGROUND, panelBackground));
+      panelHighlightBackground = Colors.subtractColor(
+          Colors.HIGHLIGHT_BACKGROUND, Colors.subtractColor(
+              Colors.BACKGROUND, panelBackground));
     }
     if (highlight) {
       checkBox.setBackground(panelHighlightBackground);
