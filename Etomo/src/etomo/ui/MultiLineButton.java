@@ -43,6 +43,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2007/02/09 00:50:44  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.25  2007/02/05 23:40:00  sueh
  * <p> bug# 962 Added setHighlight.
  * <p>
@@ -175,8 +179,12 @@ class MultiLineButton implements ProcessResultDisplay {
   MultiLineButton(String label) {
     this(label, false, null);
   }
+  
+  int getWidth() {
+    return button.getWidth();
+  }
 
-  protected MultiLineButton(String label, boolean toggleButton) {
+  MultiLineButton(String label, boolean toggleButton) {
     this(label, toggleButton, null);
   }
 
@@ -187,7 +195,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param toggleButton
    * @param dialogType
    */
-  protected MultiLineButton(String label, boolean toggleButton,
+  MultiLineButton(String label, boolean toggleButton,
       DialogType dialogType) {
     this.toggleButton = toggleButton;
     this.dialogType = dialogType;
@@ -208,8 +216,8 @@ class MultiLineButton implements ProcessResultDisplay {
     if (buttonForeground == null) {
       buttonForeground = button.getForeground();
       //creating a readable foreground highlight color
-      buttonHighlightForeground = UIUtilities.subtractColor(
-          UIUtilities.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(UIUtilities
+      buttonHighlightForeground = Colors.subtractColor(
+          Colors.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(Colors
               .subtractColor(new Color(255, 255, 255), buttonForeground), 2));
     }
     if (highlight) {
@@ -263,7 +271,7 @@ class MultiLineButton implements ProcessResultDisplay {
     setSelected(state);
   }
 
-  protected final void setOriginalProcessResultDisplayState(boolean state) {
+  final void setOriginalProcessResultDisplayState(boolean state) {
     processResultDisplayState.setOriginalState(state);
   }
 
@@ -299,7 +307,7 @@ class MultiLineButton implements ProcessResultDisplay {
     }
   }
 
-  protected final AbstractButton getButton() {
+  final AbstractButton getButton() {
     return button;
   }
 
@@ -312,7 +320,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param stateKey
    * @return
    */
-  protected final void setStateKey(String stateKey) {
+  final void setStateKey(String stateKey) {
     this.stateKey = stateKey;
   }
 
@@ -321,7 +329,7 @@ class MultiLineButton implements ProcessResultDisplay {
     button.setForeground(isEnabled ? enabledTextColor : disabledTextColor);
   }
 
-  protected final boolean isToggleButton() {
+  final boolean isToggleButton() {
     return toggleButton;
   }
 
@@ -367,6 +375,18 @@ class MultiLineButton implements ProcessResultDisplay {
 
   final void setBorder(Border border) {
     button.setBorder(border);
+  }
+  
+  final void setBorderPainted(boolean borderPainted) {
+    button.setBorderPainted(borderPainted);
+  }
+  
+  final int getHeight() {
+    return button.getHeight();
+  }
+  
+  final Border getBorder() {
+    return button.getBorder();
   }
 
   final void setToolTipText(String text) {
@@ -418,6 +438,10 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setSize(Dimension size) {
     button.setPreferredSize(size);
     button.setMaximumSize(size);
+  }
+  
+  final void setBackground(ColorUIResource background) {
+    button.setBackground(background);
   }
 
   public final void setProcessDone(boolean done) {
