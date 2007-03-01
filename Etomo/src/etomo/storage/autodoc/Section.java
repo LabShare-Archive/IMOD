@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2006/06/21 17:40:20  sueh
+ * <p> $bug# 852 Returning Section from addSection().
+ * <p> $
  * <p> $Revision 1.7  2006/06/16 17:48:25  sueh
  * <p> $bug# 852 Added addSection().
  * <p> $
@@ -190,7 +193,7 @@ public final class Section extends WriteOnlyNameValuePairList implements
     if (attrib == null) {
       return;
     }
-    NameValuePair pair = new NameValuePair(attrib, attrib
+    NameValuePair pair =  NameValuePair.getNameValuePairInstance(attrib, attrib
         .getValueToken(valueIndex));
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
@@ -204,8 +207,22 @@ public final class Section extends WriteOnlyNameValuePairList implements
     }
     Section section = new Section(type, name);
     section.subsection = true;
-    nameValuePairList.add(new NameValuePair(section));
+    nameValuePairList.add( NameValuePair.getSubsectionInstance(section));
     return section;
+  }
+  
+  void addComment(Token comment) {
+    if (nameValuePairList == null) {
+      nameValuePairList = new Vector();
+    }
+    nameValuePairList.add( NameValuePair.getCommentInstance(comment));
+  }
+  
+  void addEmptyLine() {
+    if (nameValuePairList == null) {
+      nameValuePairList = new Vector();
+    }
+    nameValuePairList.add( NameValuePair.getEmptyLineInstance());
   }
 
   public NameValuePairLocation getNameValuePairLocation() {

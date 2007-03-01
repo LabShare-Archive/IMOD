@@ -20,9 +20,14 @@ abstract class WriteOnlyNameValuePairList extends WriteOnlyAttributeMap {
   
   abstract void addNameValuePair(Attribute attrib, int valueIndex);
   abstract Section addSection(Token type, Token name);
+  abstract void addEmptyLine();
+  abstract void addComment(Token comment);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/06/22 22:08:30  sueh
+* <p> bug# 852 Added addSection().
+* <p>
 * <p> Revision 1.1  2006/01/12 17:03:56  sueh
 * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
 * <p>
