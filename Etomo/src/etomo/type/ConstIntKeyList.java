@@ -12,15 +12,18 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/05 23:23:04  sueh
+* <p> bug# 962 Const interface for IntKeyList.
+* <p> </p>
 */
 public interface ConstIntKeyList {
   public static  final String  rcsid =  "$Id$";
   
   public int getFirstKey();
   public int getLastKey();
-  public String get(int key);
-  public ConstEtomoNumber getNumeric(int key);
+  public String getString(int key);
+  public ConstEtomoNumber getEtomoNumber(int key);
   public boolean containsKey(int key);
   public int size();
 }

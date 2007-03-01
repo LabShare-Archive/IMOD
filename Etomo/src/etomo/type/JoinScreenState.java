@@ -15,16 +15,19 @@ import java.util.Properties;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:28:28  sueh
+ * <p> bug# 962 Screen state fields for join.
+ * <p> </p>
  */
 
 public class JoinScreenState extends BaseScreenState {
   public static final String rcsid = "$Id$";
 
   private final EtomoBoolean2 refineWithTrial = new EtomoBoolean2("RefineWithTrial");
-  private final IntKeyList bestGapList = new IntKeyList("BestGap");
-  private final IntKeyList meanErrorList = new IntKeyList("MeanError");
-  private final IntKeyList maxErrorList = new IntKeyList("MaxError");
+  private final IntKeyList bestGapList =  IntKeyList.getStringInstance("BestGap");
+  private final IntKeyList meanErrorList =  IntKeyList.getStringInstance("MeanError");
+  private final IntKeyList maxErrorList =  IntKeyList.getStringInstance("MaxError");
 
   public JoinScreenState(AxisID axisID, AxisType axisType) {
     super(axisID, axisType);
@@ -65,7 +68,7 @@ public class JoinScreenState extends BaseScreenState {
   }
 
   public String getBestGap(int key) {
-    return bestGapList.get(key);
+    return bestGapList.getString(key);
   }
   
   public void resetMeanError() {
@@ -80,7 +83,7 @@ public class JoinScreenState extends BaseScreenState {
     if (meanErrorList == null) {
       return null;
     }
-    return meanErrorList.get(key);
+    return meanErrorList.getString(key);
   }
 
   public void resetMaxError() {
@@ -92,6 +95,6 @@ public class JoinScreenState extends BaseScreenState {
   }
 
   public String getMaxError(int key) {
-    return maxErrorList.get(key);
+    return maxErrorList.getString(key);
   }
 }

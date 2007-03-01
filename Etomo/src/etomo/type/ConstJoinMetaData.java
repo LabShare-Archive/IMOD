@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/02/08 02:02:39  sueh
+ * <p> bug# 962 Added rejoinTrialBinning and rejoinUseEveryNSlices.
+ * <p>
  * <p> Revision 1.11  2007/02/05 23:24:16  sueh
  * <p> bug# 962 Added Model and Rejoin fields.
  * <p>
@@ -206,8 +209,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected final EtomoNumber gapInc= new EtomoNumber("GapInc");
   protected final EtomoNumber pointsToFitMin=new EtomoNumber("PointsToFitMin");
   protected final EtomoNumber pointsToFitMax=new EtomoNumber("PointsToFitMax");
-  protected final IntKeyList boundaryRowStartList=IntKeyList.getNumericInstance("BoundaryRow"+'.'+"StartList");
-  protected final IntKeyList boundaryRowEndList=IntKeyList.getNumericInstance("BoundaryRow"+'.'+"EndList");
+  protected final IntKeyList boundaryRowStartList=IntKeyList.getNumberInstance("BoundaryRow"+'.'+"StartList");
+  protected final IntKeyList boundaryRowEndList=IntKeyList.getNumberInstance("BoundaryRow"+'.'+"EndList");
   protected EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(
       EtomoNumber.Type.INTEGER, "RejoinUseEveryNSlices");
 
@@ -466,7 +469,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
   
   public ConstEtomoNumber getBoundaryRowEnd(int key) {
-    return boundaryRowEndList.getNumeric(key);
+    return boundaryRowEndList.getEtomoNumber(key);
   }
   
   public void setBoundaryRowEnd(int key, String end) {

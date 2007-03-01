@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/02/08 02:03:32  sueh
+ * <p> bug# 962 removed unnecessary print.
+ * <p>
  * <p> Revision 1.6  2007/02/05 23:29:07  sueh
  * <p> bug# 962 Added finishjoin state fields.
  * <p>
@@ -91,9 +94,9 @@ public final class JoinState implements ConstJoinState, BaseState {
   private final EtomoVersion joinVersion = EtomoVersion.getInstance(JOIN_KEY
       + '.' + EtomoVersion.DEFAULT_KEY);
   private final IntKeyList joinStartList = IntKeyList
-      .getNumericInstance(JOIN_KEY + '.' + START_LIST_KEY);
-  private final IntKeyList joinEndList = IntKeyList.getNumericInstance(JOIN_KEY
-      + '.' + END_LIST_KEY);
+      .getNumberInstance(JOIN_KEY + '.' + START_LIST_KEY,EtomoNumber.Type.LONG);
+  private final IntKeyList joinEndList = IntKeyList.getNumberInstance(JOIN_KEY
+      + '.' + END_LIST_KEY,EtomoNumber.Type.LONG);
   private final EtomoNumber joinAlignmentRefSection = new EtomoNumber(JOIN_KEY
       + '.' + ALIGNMENT_REF_SECTION_KEY);
   private final ScriptParameter joinShiftInX = new ScriptParameter(JOIN_KEY
@@ -108,9 +111,9 @@ public final class JoinState implements ConstJoinState, BaseState {
   private final EtomoVersion joinTrialVersion = EtomoVersion
       .getInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + EtomoVersion.DEFAULT_KEY);
   private final IntKeyList joinTrialStartList = IntKeyList
-      .getNumericInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + START_LIST_KEY);
+      .getNumberInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + START_LIST_KEY,EtomoNumber.Type.LONG);
   private final IntKeyList joinTrialEndList = IntKeyList
-      .getNumericInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + END_LIST_KEY);
+      .getNumberInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + END_LIST_KEY,EtomoNumber.Type.LONG);
   private final EtomoNumber joinTrialAlignmentRefSection = new EtomoNumber(
       JOIN_KEY + '.' + TRIAL_KEY + '.' + ALIGNMENT_REF_SECTION_KEY);
   private final ScriptParameter joinTrialShiftInX = new ScriptParameter(
@@ -124,9 +127,9 @@ public final class JoinState implements ConstJoinState, BaseState {
   private final EtomoNumber joinTrialBinning = new EtomoNumber(JOIN_KEY + '.'
       + TRIAL_KEY + '.' + "Binning");
   private final IntKeyList refineStartList = IntKeyList
-      .getNumericInstance(REFINE_KEY + '.' + START_LIST_KEY);
+      .getNumberInstance(REFINE_KEY + '.' + START_LIST_KEY,EtomoNumber.Type.LONG);
   private final IntKeyList refineEndList = IntKeyList
-      .getNumericInstance(REFINE_KEY + '.' + END_LIST_KEY);
+      .getNumberInstance(REFINE_KEY + '.' + END_LIST_KEY,EtomoNumber.Type.LONG);
   private String xfModelOutputFile=null;
   private boolean debug = false;
   private final EtomoNumber joinTrialUseEveryNSlices = new EtomoNumber(JOIN_KEY + '.' + TRIAL_KEY + '.' + "UseEveryNSlices");
