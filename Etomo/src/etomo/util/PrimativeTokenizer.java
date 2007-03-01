@@ -10,87 +10,93 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
-* <p>Description:
-* Creates the following primative tokens: EOL, EOF, ALPHANUM (the largest
-* possible alphanumeric string), SYMBOL (a character matching one of the
-* following: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~).  Everything else is called
-* WHITESPACE and returned as the largest possible string.
-* 
-* To Use:
-* construct with a file.
-* call initialize().
-* call next() to get the next token, until the end of file is reached.
-* 
-* Testing:
-* Do not call initialize() when testing.
-* Call test() to test this class.
-* Call testStreamTokenizer() to test the StreamTokenizer.
-* 
-* 
-* Possible Upgrades:
-* The StreamTokenizer could be initialized differently and/or the set of symbols
-* could be overridden.
-* 
-* New functions:
-* initialize(StreamTokenizer)
-* initialize(StreamTokenizer, String symbols)
-* initialize(String symbols)
-* 
-* </p>
-*
-* <p>Copyright: Copyright 2002 - 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-*
-* @author $$Author$$
-*
-* @version $$Revision$$
-*
-* <p> $$Log$
-* <p> $Revision 1.2  2006/05/01 21:22:20  sueh
-* <p> $bug# 854
-* <p> $
-* <p> $Revision 1.1  2006/04/06 20:34:40  sueh
-* <p> $Moved PrimativeTokenizer to util.
-* <p> $
-* <p> $Revision 1.5  2006/01/12 17:18:26  sueh
-* <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
-* <p> $
-* <p> $Revision 1.4  2006/01/11 22:25:28  sueh
-* <p> $bug# 675 Added the ability to tokenize a String.
-* <p> $
-* <p> $Revision 1.3  2003/12/31 01:29:48  sueh
-* <p> $bug# 372 added doc
-* <p> $
-* <p> $Revision 1.2  2003/12/23 21:34:17  sueh
-* <p> $bug# 372 Reformatting.  Fixing test function.
-* <p> $
-* <p> $Revision 1.1  2003/12/22 23:50:52  sueh
-* <p> $bug# 372 creates primative tokens
-* <p> $$ </p>
-*/
+ * <p>Description:
+ * Creates the following primative tokens: EOL, EOF, ALPHANUM (the largest
+ * possible alphanumeric string), SYMBOL (a character matching one of the
+ * following: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~).  Everything else is called
+ * WHITESPACE and returned as the largest possible string.
+ * 
+ * To Use:
+ * construct with a file.
+ * call initialize().
+ * call next() to get the next token, until the end of file is reached.
+ * 
+ * Testing:
+ * Do not call initialize() when testing.
+ * Call test() to test this class.
+ * Call testStreamTokenizer() to test the StreamTokenizer.
+ * 
+ * 
+ * Possible Upgrades:
+ * The StreamTokenizer could be initialized differently and/or the set of symbols
+ * could be overridden.
+ * 
+ * New functions:
+ * initialize(StreamTokenizer)
+ * initialize(StreamTokenizer, String symbols)
+ * initialize(String symbols)
+ * 
+ * </p>
+ *
+ * <p>Copyright: Copyright 2002 - 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ *
+ * @author $$Author$$
+ *
+ * @version $$Revision$$
+ *
+ * <p> $$Log$
+ * <p> $Revision 1.3  2006/06/14 00:45:24  sueh
+ * <p> $bug# 852 Renamed Token.set(Token) copy() to make it clear that it is doing a
+ * <p> $deep copy.
+ * <p> $
+ * <p> $Revision 1.2  2006/05/01 21:22:20  sueh
+ * <p> $bug# 854
+ * <p> $
+ * <p> $Revision 1.1  2006/04/06 20:34:40  sueh
+ * <p> $Moved PrimativeTokenizer to util.
+ * <p> $
+ * <p> $Revision 1.5  2006/01/12 17:18:26  sueh
+ * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ * <p> $
+ * <p> $Revision 1.4  2006/01/11 22:25:28  sueh
+ * <p> $bug# 675 Added the ability to tokenize a String.
+ * <p> $
+ * <p> $Revision 1.3  2003/12/31 01:29:48  sueh
+ * <p> $bug# 372 added doc
+ * <p> $
+ * <p> $Revision 1.2  2003/12/23 21:34:17  sueh
+ * <p> $bug# 372 Reformatting.  Fixing test function.
+ * <p> $
+ * <p> $Revision 1.1  2003/12/22 23:50:52  sueh
+ * <p> $bug# 372 creates primative tokens
+ * <p> $$ </p>
+ */
 public class PrimativeTokenizer {
-  public static final String rcsid =
-    "$$Id$$";
+  public static final String rcsid = "$$Id$$";
 
-  private File file = null;
+  private LogFile file = null;
+  private long readId = LogFile.NO_ID;
   private String string = null;
   private StreamTokenizer tokenizer = null;
-  private String symbols =
-    new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
+  private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
   Token token = new Token();
   boolean nextTokenFound = false;
   Token nextToken = new Token();
+  private Reader reader = null;
+  private boolean fileClosed = false;
 
-  public PrimativeTokenizer(File file) {
+  public PrimativeTokenizer(LogFile file) {
     this.file = file;
   }
-  
+
   PrimativeTokenizer(String string) {
     this.string = string;
   }
@@ -108,15 +114,18 @@ public class PrimativeTokenizer {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public void initialize() throws FileNotFoundException, IOException {
+  public void initialize() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     initializeStreamTokenizer();
-    tokenizer.nextToken();
+    nextToken();
   }
 
-  private void initializeStreamTokenizer() throws FileNotFoundException {
-    Reader reader = null;
+  private void initializeStreamTokenizer() throws FileNotFoundException,
+      LogFile.ReadException {
     if (file != null) {
-      reader = new FileReader(file);
+      File readingFile = new File(file.getAbsolutePath());
+      readId = file.openForReading();
+      reader = new FileReader(readingFile);
     }
     else if (string != null) {
       reader = new StringReader(string);
@@ -135,7 +144,9 @@ public class PrimativeTokenizer {
    * @throws IOException
    */
   public Token next() throws IOException {
-    //System.out.println("in Primative.next");
+    if (fileClosed) {
+      return token;
+    }
     boolean found = false;
     token.reset();
     boolean whitespaceFound = false;
@@ -146,12 +157,15 @@ public class PrimativeTokenizer {
       token.copy(nextToken);
       nextToken.reset();
       nextTokenFound = false;
-      tokenizer.nextToken();
+      nextToken();
     }
     while (!found) {
       if (tokenizer.ttype == StreamTokenizer.TT_EOF) {
         token.set(Token.Type.EOF);
         found = true;
+        if (file != null) {
+          closeFile();
+        }
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
         token.set(Token.Type.EOL);
@@ -185,12 +199,12 @@ public class PrimativeTokenizer {
         }
       }
       if (!nextTokenFound) {
-        tokenizer.nextToken();
+        nextToken();
       }
     }
     return token;
   }
-  
+
   public final String getSymbols() {
     return symbols;
   }
@@ -200,7 +214,7 @@ public class PrimativeTokenizer {
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void test(boolean tokens) throws IOException {
+  public void test(boolean tokens) throws IOException, LogFile.ReadException {
     initialize();
     Token token;
     do {
@@ -214,8 +228,10 @@ public class PrimativeTokenizer {
       else if (!token.is(Token.Type.EOF)) {
         System.out.print(token.getValue());
       }
+    } while (!token.is(Token.Type.EOF));
+    if (file != null) {
+      closeFile();
     }
-    while (!token.is(Token.Type.EOF));
   }
 
   /**
@@ -223,27 +239,20 @@ public class PrimativeTokenizer {
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void testStreamTokenizer(boolean tokens) throws IOException {
+  public void testStreamTokenizer(boolean tokens) throws IOException,
+      LogFile.ReadException {
     initializeStreamTokenizer();
     if (tokens) {
-      System.out.println(
-        "TT_EOL="
-          + StreamTokenizer.TT_EOL
-          + ",TT_WORD="
-          + StreamTokenizer.TT_WORD
-          + ",TT_NUMBER="
-          + StreamTokenizer.TT_NUMBER);
+      System.out
+          .println("TT_EOL=" + StreamTokenizer.TT_EOL + ",TT_WORD="
+              + StreamTokenizer.TT_WORD + ",TT_NUMBER="
+              + StreamTokenizer.TT_NUMBER);
     }
     do {
-      tokenizer.nextToken();
+      nextToken();
       if (tokens) {
-        System.out.println(
-          "ttype="
-            + tokenizer.ttype
-            + ",sval="
-            + tokenizer.sval
-            + ",nval="
-            + tokenizer.nval);
+        System.out.println("ttype=" + tokenizer.ttype + ",sval="
+            + tokenizer.sval + ",nval=" + tokenizer.nval);
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
         System.out.println();
@@ -257,8 +266,25 @@ public class PrimativeTokenizer {
         }
       }
 
+    } while (tokenizer.ttype != StreamTokenizer.TT_EOF);
+    if (file != null) {
+      closeFile();
     }
-    while (tokenizer.ttype != StreamTokenizer.TT_EOF);
   }
 
+  private void nextToken() throws IOException {
+    if (file != null && fileClosed) {
+      return;
+    }
+    tokenizer.nextToken();
+  }
+
+  private void closeFile() throws IOException {
+    if (file != null) {
+      fileClosed = true;
+      reader.close();
+      file.closeForReading(readId);
+      readId = LogFile.NO_ID;
+    }
+  }
 }
