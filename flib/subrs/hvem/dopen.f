@@ -24,7 +24,7 @@ c       !
       CHARACTER*11 FORMAT
       CHARACTER*120 FULLNAM
       integer*4 ierr,iunit
-      integer*4 imodBackupFile
+      integer*4 imodBackupFile,lnblnk
       logical*4 hush
       common /hushcom/hush
       data hush /.false./
@@ -101,6 +101,9 @@ C       23/6/00 remove READONLY... not supproted by g77 CER
 c       
 c       
 c       $Log$
+c       Revision 3.7  2007/02/28 23:25:10  mast
+c       Fixed documentation on new dopenHush
+c
 c       Revision 3.6  2007/02/28 23:23:56  mast
 c       Cleaned up - got sick of sorting through obsolete options
 c
