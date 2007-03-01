@@ -1,12 +1,10 @@
 package etomo.storage.autodoc;
 
-import java.io.File;
-//import java.io.StreamTokenizer;
-//import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
@@ -30,16 +28,16 @@ import etomo.util.PrimativeTokenizer;
  *
  * Current token characters and strings:
  * COMMENT:  #
+ * ALT_COMMENT:  %
  * SEPARATOR:  .
  * OPEN:  [
  * CLOSE:  ]
  * Default DELIMITER:  =
- * BREAK:  ^
  * Keywords:  Version, Pip, KeyValueDelimiter
  * 
  * Tokenizing Rules:
  * 
- * Currently the COMMENT, SEPARATOR, OPEN, CLOSE, and BREAK symbols must be single
+ * Currently the COMMENT, SEPARATOR, OPEN, CLOSE, and symbols must be single
  * character.
  * 
  * The delimiter may contain multiple characters.  It may not contain symbols
@@ -68,6 +66,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2006/06/14 21:24:16  sueh
+ * <p> $bug# 852 Fixed findDelimiter():  was creating it with a char, which is interpretated
+ * <p> $as int size.
+ * <p> $
  * <p> $Revision 1.4  2006/06/14 00:32:28  sueh
  * <p> $bug# 852 Added some comments.  Simplified findDelimiter().
  * <p> $
@@ -108,21 +110,22 @@ public final class AutodocTokenizer {
 
   //special characters
   public static final char COMMENT_CHAR = '#';
+  public static final char ALT_COMMENT_CHAR='%';
   public static final char SEPARATOR_CHAR = '.';
   public static final char OPEN_CHAR = '[';
   public static final char CLOSE_CHAR = ']';
-  public static final char BREAK_CHAR = '^';
   public static final String DEFAULT_DELIMITER = "=";
   //keywords - keywords may not contain special characters
   public static final String VERSION_KEYWORD = "Version";
   public static final String PIP_KEYWORD = "Pip";
   public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
+  
+  private final boolean allowAltComment;
+  private final StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
+      + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR);
 
   private String delimiterString = DEFAULT_DELIMITER;
-  private StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
-      + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR + BREAK_CHAR);
   private PrimativeTokenizer primativeTokenizer = null;
-  private File file = null;
   private Token primativeToken = null;
   private Token autodocToken = null;
   private Token token = new Token();
@@ -130,12 +133,15 @@ public final class AutodocTokenizer {
   private boolean useNextToken = false;
   private StringBuffer wordBuffer = null;
 
-  AutodocTokenizer(File file) {
-    this.file = file;
+  AutodocTokenizer(LogFile file,boolean allowAltComment) {
+    this.allowAltComment=allowAltComment;
     primativeTokenizer = new PrimativeTokenizer(file);
+    if (allowAltComment) {
+      restrictedSymbols.append(ALT_COMMENT_CHAR);
+    }
   }
 
-  void initialize() throws FileNotFoundException, IOException {
+  void initialize() throws FileNotFoundException, IOException,LogFile.ReadException {
     primativeTokenizer.initialize();
   }
 
@@ -177,7 +183,7 @@ public final class AutodocTokenizer {
     return autodocToken;
   }
 
-  void test(boolean tokens) throws IOException {
+  void test(boolean tokens) throws IOException,LogFile.ReadException {
     initialize();
     Token token = null;
     do {
@@ -194,11 +200,11 @@ public final class AutodocTokenizer {
     } while (!token.is(Token.Type.EOF));
   }
 
-  void testPrimativeTokenizer(boolean tokens) throws IOException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
     primativeTokenizer.test(tokens);
   }
 
-  void testStreamTokenizer(boolean tokens) throws IOException {
+  void testStreamTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
     primativeTokenizer.testStreamTokenizer(tokens);
   }
 
@@ -248,6 +254,9 @@ public final class AutodocTokenizer {
     else if (primativeToken.equals(Token.Type.SYMBOL, COMMENT_CHAR)) {
       token.set(Token.Type.COMMENT, COMMENT_CHAR);
     }
+    else if (allowAltComment&&primativeToken.equals(Token.Type.SYMBOL, ALT_COMMENT_CHAR)) {
+      token.set(Token.Type.COMMENT, ALT_COMMENT_CHAR);
+    }
     else if (primativeToken.equals(Token.Type.SYMBOL, SEPARATOR_CHAR)) {
       token.set(Token.Type.SEPARATOR, SEPARATOR_CHAR);
     }
@@ -256,9 +265,6 @@ public final class AutodocTokenizer {
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, CLOSE_CHAR)) {
       token.set(Token.Type.CLOSE, CLOSE_CHAR);
-    }
-    else if (primativeToken.equals(Token.Type.SYMBOL, BREAK_CHAR)) {
-      token.set(Token.Type.BREAK, BREAK_CHAR);
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, delimiterString)) {
       //Found a one character DELIMITER.

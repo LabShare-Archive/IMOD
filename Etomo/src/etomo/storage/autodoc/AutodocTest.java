@@ -3,6 +3,7 @@ package etomo.storage.autodoc;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
 import junit.framework.TestCase;
@@ -61,7 +62,7 @@ public class AutodocTest extends TestCase {
    }
    */
   
-  public void testBeadtrack() throws FileNotFoundException, IOException {
+  public void testBeadtrack() throws FileNotFoundException, IOException,LogFile.ReadException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -70,43 +71,46 @@ public class AutodocTest extends TestCase {
     assertFalse(autodoc.isError());
   }
 
-  public void testCcderaser() throws FileNotFoundException, IOException {
+  public void testCcderaser() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.CCDERASER, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testCombineFft() throws FileNotFoundException, IOException {
+  public void testCombineFft() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testDensmatch() throws FileNotFoundException, IOException {
+  public void testDensmatch() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.DENS_MATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testMtfFilter() throws FileNotFoundException, IOException {
+  public void testMtfFilter() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.MTF_FILTER, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testSolvematch() throws FileNotFoundException, IOException {
+  public void testSolvematch() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.SOLVEMATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testTiltalign() throws FileNotFoundException, IOException {
+  public void testTiltalign() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.TILTALIGN, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testTiltxcorr() throws FileNotFoundException, IOException {
+  public void testTiltxcorr() throws FileNotFoundException, IOException,LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.TILTXCORR, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/11/18 01:16:36  sueh
+ * <p> bug# 956 Temporarily not running problem tests on Windows.
+ * <p>
  * <p> Revision 1.7  2006/11/16 23:42:46  sueh
  * <p> bug# 872 Set autodoc test dir to null to avoid changes made by previous test
  * <p> classes.
