@@ -64,11 +64,12 @@ final class SpacedTextField {
     yAxisPanel.add(Box.createRigidArea(FixedDim.x0_y5));
   }
   
-  final void setToolTipText(String toolTipText) {
-    textField.setToolTipText(toolTipText);
-    label.setToolTipText(toolTipText);
-    fieldPanel.setToolTipText(toolTipText);
-    yAxisPanel.setToolTipText(toolTipText);
+  final void setToolTipText(String text) {
+    String tooltip= TooltipFormatter.INSTANCE.format(text);
+    textField.setToolTipText(tooltip);
+    label.setToolTipText(tooltip);
+    fieldPanel.setToolTipText(tooltip);
+    yAxisPanel.setToolTipText(tooltip);
   }
   
   final Container getContainer() {
@@ -133,6 +134,9 @@ final class SpacedTextField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/09/13 23:56:29  sueh
+* <p> bug# 920 Added setText(ConstEtomoNumber)
+* <p>
 * <p> Revision 1.2  2006/04/25 19:21:25  sueh
 * <p> bug# 787 Named the text field.
 * <p>
