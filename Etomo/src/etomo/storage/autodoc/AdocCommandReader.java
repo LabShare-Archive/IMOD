@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 
 /**
@@ -261,6 +262,10 @@ public final class AdocCommandReader {
         e.printStackTrace();
         return;
       }
+      catch (LogFile.ReadException e) {
+        e.printStackTrace();
+        return;
+      }
     }
   }
 
@@ -322,6 +327,9 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/08/30 16:50:13  sueh
+ * <p> bug# 852 Printing the function calls in verbose mode
+ * <p>
  * <p> Revision 1.4  2006/08/18 23:14:01  sueh
  * <p> bug# 852 callFunction:  throw an exception when the function isn't found
  * <p>

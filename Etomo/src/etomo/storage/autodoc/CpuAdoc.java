@@ -3,6 +3,7 @@ package etomo.storage.autodoc;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
 import etomo.util.EnvironmentVariable;
@@ -46,6 +47,9 @@ public class CpuAdoc {
       catch (IOException e) {
         e.printStackTrace();
       }
+      catch (LogFile.ReadException e) {
+        e.printStackTrace();
+      }
       if (autodoc == null) {
         System.err.println("Missing $"+EnvironmentVariable.CALIB_DIR+"/cpu.adoc file.\n"
             + "Parallel processing cannot be used.\n"
@@ -76,6 +80,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/07/21 22:11:49  sueh
+ * <p> bug# 901 Getting the calibration directory environment variable name from
+ * <p> EnvironmentVariable.
+ * <p>
  * <p> Revision 1.2  2006/06/30 17:02:15  sueh
  * <p> Improved warning about missing cpu.adoc.
  * <p>

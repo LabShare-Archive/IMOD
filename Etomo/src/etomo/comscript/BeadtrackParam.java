@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -25,6 +26,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2007/02/05 21:31:34  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
  * <p> Revision 3.13  2006/01/12 17:00:47  sueh
  * <p> bug# 798 Moved the autodoc classes to etomo.storage.
  * <p>
@@ -312,6 +316,9 @@ public class BeadtrackParam extends OldBeadtrackParam
       except.printStackTrace();
     }
     catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException except) {
       except.printStackTrace();
     }
     if (autodoc == null) {
