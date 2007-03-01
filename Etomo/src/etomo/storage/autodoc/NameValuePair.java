@@ -22,12 +22,33 @@ public final class NameValuePair {
   public static final String rcsid = "$Id$";
 
   private final Vector names = new Vector();
-  private final Token value; //may be null
-
+  
+  private  Token value=null;
+  private boolean isPair=true;
   private boolean isSection = false;
+  private boolean isComment=false;
+  private boolean isEmptyLine=false;
+  
   private Section section = null;
+  private Token comment=null;
+  
+  static NameValuePair getNameValuePairInstance(Attribute attrib, Token value) {
+    return new NameValuePair(attrib, value);
+  }
+  
+  static NameValuePair getSubsectionInstance(Section subsection) {
+    return new NameValuePair(subsection);
+  }
+  
+  static NameValuePair getCommentInstance(Token comment) {
+    return new NameValuePair(comment);
+  }
+  
+  static NameValuePair getEmptyLineInstance() {
+    return new NameValuePair();
+  }
 
-  NameValuePair(Attribute attrib, Token value) {
+  private NameValuePair(Attribute attrib, Token value) {
     this.value = value;
     //set names
     ArrayList list = new ArrayList();
@@ -45,16 +66,25 @@ public final class NameValuePair {
       names.add(list.get(i));
     }
   }
-  
-  boolean isSection() {
-    return isSection;
-  }
 
-  NameValuePair(Section section) {
+  private NameValuePair(Section section) {
     names.add(section.getTypeToken());
     value = section.getNameToken();
     isSection = true;
     this.section = section;
+  }
+  
+  private NameValuePair(Token comment){
+    isComment=true;
+    this.comment=comment;
+  }
+  
+  private NameValuePair(){
+    isEmptyLine=true;
+  }
+  
+  boolean isSection() {
+    return isSection;
   }
 
   public int levels() {
@@ -109,6 +139,9 @@ public final class NameValuePair {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/06/27 22:32:19  sueh
+ * <p> bug# 852 Added isSection().
+ * <p>
  * <p> Revision 1.2  2006/06/15 18:46:56  sueh
  * <p> bug# 852 Added NameValuePair(Section), so sub-sections can be stored in
  * <p> order.
