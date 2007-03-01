@@ -34,6 +34,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/02/22 20:38:40  sueh
+ * <p> bug# 964 Added a button to the Directory field.
+ * <p>
  * <p> Revision 1.4  2007/02/21 22:30:22  sueh
  * <p> bug# 964 Fixing null pointer exception which occurred when loading the .epe file.
  * <p>
@@ -56,32 +59,29 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   static final String OUTPUT_LABEL = "Output";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
-  private final FileTextField ftfDirectory = new FileTextField(
-      DIRECTORY_LABEL + ": ");
-  private final LabeledTextField ltfOutput = new LabeledTextField(OUTPUT_LABEL
-      + ": ");
-  private final SpacedPanel pnlSetup = new SpacedPanel();
-  private final SpacedPanel pnlSetupBody = new SpacedPanel();
+  private final JPanel rootPanel= new JPanel();
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
-  private final PanelHeader setupHeader;
-  private JPanel rootPanel = null;
 
-  public PeetDialog(PeetManager manager, AxisID axisID) {
-    this.manager = manager;
-    this.axisID = axisID;
-    volumeTable = new VolumeTable(manager);
-    setupHeader = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
+  private final PanelHeader setupHeader;
+  private final FileTextField ftfDirectory= new FileTextField(
+      DIRECTORY_LABEL + ": ");
+  private final LabeledTextField ltfOutput= new LabeledTextField(OUTPUT_LABEL
+      + ": ");
+  private final SpacedPanel pnlSetup= new SpacedPanel();
+  private final SpacedPanel pnlSetupBody= new SpacedPanel();
+  
+  public static PeetDialog getInstance(final PeetManager manager, final AxisID axisID) {
+    return new PeetDialog(manager,axisID);
   }
 
-  public void updateDisplay(boolean paramFileSet) {
+  public void updateDisplay(final boolean paramFileSet) {
     ftfDirectory.setEnabled(!paramFileSet);
     ltfOutput.setEditable(!paramFileSet);
   }
 
   public Container getContainer() {
-    create();
     return rootPanel;
   }
 
@@ -89,32 +89,32 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     return DIALOG_TYPE;
   }
   
-  public void getParameters(ParallelParam param) {
+  public void getParameters(final ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(ltfOutput.getText());
   }
   
-  public void getParameters(PeetScreenState screenState) {
+  public void getParameters(final PeetScreenState screenState) {
     setupHeader.getState(screenState.getPeetSetupHeaderState());
   }
   
-  public void setParameters(ConstPeetScreenState screenState) {
+  public void setParameters(final ConstPeetScreenState screenState) {
     setupHeader.setState(screenState.getPeetSetupHeaderState());
-  }  
-  
-  public void getParameters(PeetMetaData metaData) {
-    metaData.setName(ltfOutput.getText());
   }
   
-  public void setParameters(ConstPeetMetaData metaData) {
+  public void setParameters(final ConstPeetMetaData metaData) {
     ltfOutput.setText(metaData.getName());
   }
+  
+  public void initialize(final PeetMetaData metaData) {
+    metaData.setName(ltfOutput.getText());
+  }
 
-  public final boolean usingParallelProcessing() {
+  public boolean usingParallelProcessing() {
     return true;
   }
 
-  public void expand(ExpandButton button) {
+  public void expand(final ExpandButton button) {
     if (setupHeader != null) {
       if (setupHeader.equalsOpenClose(button)) {
         pnlSetupBody.setVisible(button.isExpanded());
@@ -127,11 +127,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     return ftfDirectory.getText();
   }
   
-  public void setDirectory(String directory) {
+  public void setDirectory(final String directory) {
     ftfDirectory.setText(directory);
   }
   
-  public void setOutput(String output) {
+  public void setOutput(final String output) {
     ltfOutput.setText(output);
   }
   
@@ -145,11 +145,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       ftfDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
     }
   }
-
-  private void create() {
-    if (rootPanel != null) {
-      return;
-    }
+  
+  private PeetDialog(final PeetManager manager, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+    //construnction
+    volumeTable= VolumeTable.getInstance(manager);
+    setupHeader = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
     //setup
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.add(ftfDirectory.getContainer());
@@ -161,8 +163,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlSetup.add(setupHeader.getContainer());
     pnlSetup.add(pnlSetupBody);
     //root
-    rootPanel = new JPanel();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
     rootPanel.add(pnlSetup.getContainer());
     //actions
     ftfDirectory.addActionListener(new DirectoryActionListener(this));
@@ -171,11 +173,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private class DirectoryActionListener implements ActionListener {
     private PeetDialog peetDialog;
 
-    private DirectoryActionListener(PeetDialog peetDialog) {
+    private DirectoryActionListener(final PeetDialog peetDialog) {
       this.peetDialog = peetDialog;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       peetDialog.directoryAction();
     }
   }
