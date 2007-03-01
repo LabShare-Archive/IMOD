@@ -56,11 +56,11 @@ public final class LogFile {
   public static final long NO_WAIT_LIMIT = -1;
   private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease inform the software developer.";
 
-  private static Hashtable logFileHashTable = null;
-  private static ReaderList readerList = null;
+  private static final Hashtable logFileHashTable = new Hashtable();
 
   private final Lock lock = new Lock();
-
+  private ReadingTokenList readerList = ReadingTokenList.getReaderInstance();
+  private ReadingTokenList readingTokenList = ReadingTokenList.getReadingTokenInstance();
   private final String fileAbsolutePath;
 
   private File file = null;
@@ -116,8 +116,7 @@ public final class LogFile {
    * For testing.  Removes all instances of LogFile.
    */
   synchronized static void reset() {
-    logFileHashTable = null;
-    readerList = null;
+    logFileHashTable.clear();
   }
 
   /**
@@ -139,9 +138,6 @@ public final class LogFile {
     }
     //create the instance
     logFile = new LogFile(file);
-    if (logFileHashTable == null) {
-      logFileHashTable = new Hashtable();
-    }
     //save the instance
     logFileHashTable.put(key, logFile);
     return logFile;
@@ -689,10 +685,35 @@ public final class LogFile {
       throw new ReadException(this, e);
     }
     createFile();
-    String idKey = ReaderList.makeKey(file, readId);
-    createReaderList();
+    String idKey = ReadingTokenList.makeKey(readId);
     try {
-      readerList.openReader(idKey, file);
+      readerList.openReadingToken(idKey, file);
+    }
+    catch (FileNotFoundException e) {
+      try {
+        lock.unlock(LockType.READ, readId);
+      }
+      catch (LockException e0) {
+        e0.printStackTrace();
+      }
+      throw new ReadException(this, readId, e);
+    }
+    return readId;
+  }
+  
+  public synchronized long openForReading() throws ReadException {
+    long readId = NO_ID;
+    try {
+      readId = lock.lock(LockType.READ);
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+      throw new ReadException(this, e);
+    }
+    createFile();
+    String idKey = ReadingTokenList.makeKey(readId);
+    try {
+      readingTokenList.openReadingToken(idKey, file);
     }
     catch (FileNotFoundException e) {
       try {
@@ -711,9 +732,28 @@ public final class LogFile {
     try {
       lock.assertUnlockable(LockType.READ, readId);
       createFile();
-      createReaderList();
-      Reader reader = readerList.get(ReaderList.makeKey(file, readId));
-      reader.close();
+      ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList.makeKey(readId));
+      readingToken.close();
+      lock.unlock(LockType.READ, readId);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+  
+  public synchronized boolean closeForReading(long readId) {
+    //close the reading token before unlocking
+    try {
+      lock.assertUnlockable(LockType.READ, readId);
+      createFile();
+      ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList.makeKey(readId));
+      readingToken.close();
       lock.unlock(LockType.READ, readId);
     }
     catch (IOException e) {
@@ -732,9 +772,8 @@ public final class LogFile {
       throw new ReadException(this, readId);
     }
     createFile();
-    createReaderList();
     try {
-      return readerList.get(ReaderList.makeKey(file, readId)).readLine();
+      return readerList.getReader(ReadingTokenList.makeKey(readId)).readLine();
     }
     catch (IOException e) {
       throw new ReadException(this, readId, e);
@@ -813,13 +852,6 @@ public final class LogFile {
       return;
     }
     file = new File(fileAbsolutePath);
-  }
-
-  private void createReaderList() {
-    if (readerList != null) {
-      return;
-    }
-    readerList = new ReaderList();
   }
 
   private void createBackupFile() {
@@ -1185,32 +1217,47 @@ public final class LogFile {
     }
   }
 
-  private static final class ReaderList {
-    private final HashMap hashMap;
-    private final ArrayList arrayList;
-
-    ReaderList() {
-      hashMap = new HashMap();
-      arrayList = new ArrayList();
+  private static final class ReadingTokenList {
+    private final HashMap hashMap= new HashMap();
+    private final ArrayList arrayList= new ArrayList();
+    private final boolean storeReaders;
+    
+    static ReadingTokenList getReadingTokenInstance() {
+      return new ReadingTokenList(false);
+    }
+    
+    static ReadingTokenList getReaderInstance() {
+      return new ReadingTokenList(true);
     }
 
-    static String makeKey(File file, long id) {
-      return file.getAbsolutePath() + String.valueOf(id);
+    private ReadingTokenList(boolean storeReaders) {
+      this.storeReaders=storeReaders;
     }
 
-    synchronized Reader get(String key) {
-      return (Reader) hashMap.get(key);
+    static String makeKey(long id) {
+      return String.valueOf(id);
+    }
+    
+    synchronized ReadingToken getReadingToken(String key) {
+      return (ReadingToken) hashMap.get(key);
+    }
+    
+    synchronized Reader getReader(String key) {
+      if (!storeReaders) {
+        return null;
+      }
+      return (Reader)getReadingToken(key);
     }
 
-    synchronized void openReader(String currentKey, File file)
+    synchronized void openReadingToken(String currentKey, File file)
         throws FileNotFoundException {
-      Reader reader;
+      ReadingToken readingToken;
       for (int i = 0; i < arrayList.size(); i++) {
-        reader = (Reader) arrayList.get(i);
-        if (!reader.isOpen()) {
+        readingToken = (ReadingToken) arrayList.get(i);
+        if (!readingToken.isOpen()) {
           //open the reader to get exclusive access to it
           try {
-            reader.open();
+            readingToken.open();
           }
           catch (FileNotFoundException e) {
             throw new FileNotFoundException(e.getMessage() + "\ncurrentKey="
@@ -1219,37 +1266,62 @@ public final class LogFile {
           //Found a closed reader, so reuse it
           //get the old key from the reader and rekey the reader in the hash map
           //with the current key
-          String oldKey = reader.getKey();
+          String oldKey = readingToken.getKey();
           hashMap.remove(oldKey);
-          reader.setKey(currentKey);
-          hashMap.put(currentKey, reader);
+          readingToken.setKey(currentKey);
+          hashMap.put(currentKey, readingToken);
 
         }
       }
       //Can't find a closed reader, so create a new one
-      reader = new Reader(file);
+      readingToken = newReadingToken(file);
       //open the reader to get exclusive access to it
-      reader.open();
+      readingToken.open();
       //store the current key in the reader and store it in the array list and
       //hash map
-      reader.setKey(currentKey);
-      hashMap.put(currentKey, reader);
-      arrayList.add(reader);
+      readingToken.setKey(currentKey);
+      hashMap.put(currentKey, readingToken);
+      arrayList.add(readingToken);
+    }
+    
+    private ReadingToken newReadingToken(File file) {
+      if (storeReaders) {
+        return new Reader(file);
+      }
+      return new ReadingToken();
+    }
+  }
+  
+  private static class ReadingToken{
+    private boolean open = true;
+    private String key = null;
+    
+    void open() throws FileNotFoundException{
+      open = true;
+    }
+    
+    void close() throws IOException {
+      open = false;
+    }
+    
+    boolean isOpen() {
+      return open;
+    }
+    
+    void setKey(String key) {
+      this.key = key;
     }
 
-    synchronized Reader getReader(String key) {
-      return (Reader) hashMap.get(key);
+    String getKey() {
+      return key;
     }
   }
 
-  private static final class Reader {
-    private boolean open = true;
-
+  private static final class Reader extends ReadingToken{
     private final File file;
 
     private FileReader fileReader = null;
     private BufferedReader bufferedReader = null;
-    private String key = null;
 
     Reader(File file) {
       this.file = file;
@@ -1262,7 +1334,7 @@ public final class LogFile {
       if (bufferedReader == null) {
         bufferedReader = new BufferedReader(fileReader);
       }
-      open = true;
+      super.open();
     }
 
     void close() throws IOException {
@@ -1272,28 +1344,19 @@ public final class LogFile {
       if (bufferedReader != null) {
         bufferedReader.close();
       }
-      open = false;
+      super.close();
     }
 
     String readLine() throws IOException {
       return bufferedReader.readLine();
     }
-
-    boolean isOpen() {
-      return open;
-    }
-
-    void setKey(String key) {
-      this.key = key;
-    }
-
-    String getKey() {
-      return key;
-    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/02/05 23:04:25  sueh
+ * <p> bug# 962 Added move.
+ * <p>
  * <p> Revision 1.8  2006/11/15 20:03:13  sueh
  * <p> bug# 872 Added backupOnce, input stream and output stream management,
  * <p> create, load(), and store().
