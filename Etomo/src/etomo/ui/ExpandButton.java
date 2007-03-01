@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/04/28 20:58:35  sueh
+ * <p> bug# 787 Moved type information (which kind of expander) and strings
+ * <p> associated with the type to a static inner class:  Type.
+ * <p>
  * <p> Revision 1.12  2006/03/28 17:02:24  sueh
  * <p> bug# 437 Overrode getButtonState() and setButtonState because state
  * <p> in an expand button is associated with expanded/not expanded instead of
@@ -162,7 +166,7 @@ final class ExpandButton extends MultiLineButton {
    * unless manualName is true.
    * @param label
    */
-  final void setName(String label) {
+  void setName(String label) {
     String name = Utilities.convertLabelToName(label) + "-"
         + type.getExpandedState();
     getButton().setName(name);
@@ -206,7 +210,7 @@ final class ExpandButton extends MultiLineButton {
     return isExpanded();
   }
 
-  final void setButtonState(boolean state) {
+  void setButtonState(boolean state) {
     setOriginalProcessResultDisplayState(state);
     setExpanded(state);
   }
@@ -239,7 +243,7 @@ final class ExpandButton extends MultiLineButton {
    * @param that
    * @return
    */
-  public boolean equals(ExpandButton that) {
+  boolean equals(ExpandButton that) {
     return equals((Object) that);
   }
 
@@ -248,7 +252,7 @@ final class ExpandButton extends MultiLineButton {
    * value of the button isn't changed.  To allows the screen to be initialized.
    * @param expanded
    */
-  public void setExpanded(boolean expanded) {
+  void setExpanded(boolean expanded) {
     //prevent buttonAction from ignoring an unchanged button value
     if (this.expanded == expanded) {
       this.expanded = !expanded;
@@ -262,7 +266,7 @@ final class ExpandButton extends MultiLineButton {
    * expanded.  Calls the Expandable.expand(ExpandButton) when finished setting
    * the expand state.
    */
-  protected void buttonAction() {
+  void buttonAction() {
     expanded = !expanded;
     super.setText(type.getSymbol(expanded));
     setToolTipText(type.getToolTip(expanded));
