@@ -22,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/02/09 00:49:04  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.12  2007/02/05 23:36:06  sueh
  * <p> bug# 962 Added getFloatValue and setValue(ConstEtomoNumber).
  * <p>
@@ -81,19 +85,33 @@ import etomo.type.EtomoNumber;
 final class FieldCell extends InputCell {
   public static final String rcsid = "$Id$";
 
-  private final JTextField textField = new JTextField();
-  
+  private final JTextField textField;
   private String hiddenValue = null;
   private boolean hideValue = false;
   private boolean range = false;
   private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
-
-  FieldCell() {
-    super();
+  private String contractedValue = null;
+  private String expandedValue = null;
+  
+  FieldCell(){
+    //construction
+    textField = new JTextField();
+    //field
+    textField.setBorder(BorderFactory.createEtchedBorder());
+    //color
     setBackground();
     setForeground();
     setFont();
-    textField.setBorder(BorderFactory.createEtchedBorder());
+  }
+
+  /**
+   * Sets contracted value and expanded value.  Does not need to call init().
+   * @param contractedValue
+   * @param expandedValue
+   */
+  void setExpandableValues(String contractedValue, String expandedValue) {
+    this.contractedValue = contractedValue;
+    this.expandedValue = expandedValue;
   }
 
   void setHideValue(boolean hideValue) {
@@ -112,16 +130,16 @@ final class FieldCell extends InputCell {
       textField.setText(hiddenValue);
     }
   }
-  
+
   boolean isEmpty() {
     String value = textField.getText();
     return value == null || value.matches("\\s*");
   }
 
-  protected final Component getComponent() {
+  final Component getComponent() {
     return textField;
   }
-  
+
   private void setValue(String value, boolean range) {
     this.range = range;
     hiddenValue = value;
@@ -133,16 +151,17 @@ final class FieldCell extends InputCell {
   void setValue(String value) {
     setValue(value, false);
   }
-  
+
   void setValue(ConstEtomoNumber value) {
     setValue(value.toString(), false);
   }
-  
+
   void setRangeValue(int start, int end) {
     endValue = end;
-    setValue(new Integer(start).toString() + " - " + new Integer(end).toString(), true);
+    setValue(new Integer(start).toString() + " - "
+        + new Integer(end).toString(), true);
   }
-  
+
   void setValue() {
     setValue("", false);
   }
@@ -154,11 +173,11 @@ final class FieldCell extends InputCell {
   void setValue(double value) {
     setValue(new Double(value).toString(), false);
   }
-  
+
   void setValue(long value) {
     setValue(new Long(value).toString(), false);
   }
-  
+
   int getEndValue() {
     if (!range) {
       throw new IllegalStateException("range not in use");
@@ -169,7 +188,7 @@ final class FieldCell extends InputCell {
   String getValue() {
     return textField.getText();
   }
-  
+
   int getIntValue() {
     try {
       return Integer.parseInt(textField.getText());
@@ -178,7 +197,7 @@ final class FieldCell extends InputCell {
       return EtomoNumber.INTEGER_NULL_VALUE;
     }
   }
-  
+
   float getFloatValue() {
     try {
       return Float.parseFloat(textField.getText());
@@ -187,8 +206,9 @@ final class FieldCell extends InputCell {
       return EtomoNumber.FLOAT_NULL_VALUE;
     }
   }
-  
+
   long getLongValue() {
+
     try {
       return new Long(textField.getText()).longValue();
     }
@@ -197,27 +217,43 @@ final class FieldCell extends InputCell {
     }
   }
 
-  protected void setForeground() {
+  void setForeground() {
     if (inUse) {
-      textField.setForeground(foreground);
-      textField.setDisabledTextColor(foreground);
+      textField.setForeground(Colors.CELL_FOREGROUND);
+      textField.setDisabledTextColor(Colors.CELL_FOREGROUND);
     }
     else {
-      textField.setForeground(notInUseForeground);
-      textField.setDisabledTextColor(notInUseForeground);
+      textField.setForeground(Colors.CELL_NOT_IN_USE_FOREGROUND);
+      textField.setDisabledTextColor(Colors.CELL_NOT_IN_USE_FOREGROUND);
     }
   }
-  
+
   int getWidth() {
     return textField.getWidth();
-        //+ textField.getBorder().getBorderInsets(textField).right / 2;
   }
-  
+
   int getRightBorder() {
     return textField.getBorder().getBorderInsets(textField).right;
   }
-  
+
   void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  void expand(boolean expanded) {
+    if (expanded && expandedValue != null) {
+      setValue(expandedValue);
+    }
+    else if (!expanded && contractedValue != null) {
+      setValue(contractedValue);
+    }
+  }
+
+  String getContractedValue() {
+    return contractedValue;
+  }
+
+  String getExpandedValue() {
+    return expandedValue;
   }
 }

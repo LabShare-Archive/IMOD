@@ -9,7 +9,9 @@ import javax.swing.JPanel;
 import javax.swing.plaf.ColorUIResource;
 
 /**
- * <p>Description: </p>
+ * <p>Description:  Uses lazy construction.  The inheritor should add the
+ * following calls to its 
+ * constructor or initializer:  setBackground, setForeground(), setFont()
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -24,16 +26,6 @@ import javax.swing.plaf.ColorUIResource;
 abstract class InputCell {
   public static final String rcsid = "$Id$";
 
-  private static boolean colorInitialized = false;
-  protected static ColorUIResource foreground = null;
-  protected static ColorUIResource notInUseForeground = null;
-  private static ColorUIResource disabledBackground = null;
-  private static ColorUIResource disabledhighlightBackground = null;
-  private static ColorUIResource disabledWarningBackground = null;
-  private static ColorUIResource errorBackground = null;
-  private static ColorUIResource disabledErrorBackground = null;
-  private static ColorUIResource headerBackground = null;
-
   protected boolean inUse = true;
   protected boolean enabled = true;
   private boolean highlight = false;
@@ -42,32 +34,15 @@ abstract class InputCell {
   private Font plainFont = null;
   private Font italicFont = null;
   private JPanel jpanelContainer = null;
+  private boolean initialized = false;
 
-  abstract protected Component getComponent();
+  abstract Component getComponent();
 
-  abstract protected void setForeground();
+  abstract void setForeground();
 
   abstract int getWidth();
 
   abstract void setToolTipText(String toolTipText);
-
-  /**
-   * constructor should not call any overridable or abstract function
-   * or any function that calls overridable or abstract functions.
-   * The inheritor should add the following calls to its constructor:
-   *  setBackground();
-   *  setForeground();
-   *  setFont();
-   */
-  InputCell() {
-    initializeColor();
-  }
-
-  final protected void setFont() {
-    plainFont = getComponent().getFont();
-    italicFont = new Font(plainFont.getFontName(), Font.ITALIC, plainFont
-        .getSize());
-  }
 
   final void add(JPanel panel, GridBagLayout layout,
       GridBagConstraints constraints) {
@@ -99,43 +74,6 @@ abstract class InputCell {
     setForeground();
   }
 
-  final protected void setBackground() {
-    if (highlight) {
-      if (enabled) {
-        setBackground(UIUtilities.HIGHLIGHT_BACKGROUND);
-      }
-      else {
-        setBackground(disabledhighlightBackground);
-      }
-    }
-    else if (warning) {
-      if (enabled) {
-        setBackground(UIUtilities.WARNING_BACKGROUND);
-      }
-      else {
-        setBackground(disabledWarningBackground);
-      }
-    }
-    else if (error) {
-      if (enabled) {
-        setBackground(errorBackground);
-      }
-      else {
-        setBackground(disabledErrorBackground);
-      }
-    }
-    else if (enabled) {
-      setBackground(UIUtilities.BACKGROUND);
-    }
-    else {
-      setBackground(disabledBackground);
-    }
-  }
-
-  protected void setBackground(ColorUIResource color) {
-    getComponent().setBackground(color);
-  }
-
   final void setWarning(boolean warning) {
     //if switching from error to warning, turn off error first
     if (warning && error) {
@@ -150,7 +88,7 @@ abstract class InputCell {
     setWarning(warning);
     setToolTipText(tooltip);
   }
-  
+
   final void setError(boolean error, String tooltip) {
     setError(error);
     setToolTipText(tooltip);
@@ -166,32 +104,54 @@ abstract class InputCell {
     setBackground();
   }
 
-  private final static ColorUIResource add(ColorUIResource color,
-      ColorUIResource subtractColor) {
-    return new ColorUIResource(color.getRed() + subtractColor.getRed(), color
-        .getGreen()
-        + subtractColor.getGreen(), color.getBlue() + subtractColor.getBlue());
+  void setBackground() {
+    if (highlight) {
+      if (enabled) {
+        setBackground(Colors.HIGHLIGHT_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.getCellDisabledhighlightBackground());
+      }
+    }
+    else if (warning) {
+      if (enabled) {
+        setBackground(Colors.WARNING_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.getCellDisabledWarningBackground());
+      }
+    }
+    else if (error) {
+      if (enabled) {
+        setBackground(Colors.CELL_ERROR_BACKGROUND);
+      }
+      else {
+        setBackground(Colors.getCellDisabledErrorBackground());
+      }
+    }
+    else if (enabled) {
+      setBackground(Colors.BACKGROUND);
+    }
+    else {
+      setBackground(Colors.getCellDisabledBackground());
+    }
   }
 
-  private final static void initializeColor() {
-    if (colorInitialized) {
-      return;
-    }
-    colorInitialized = true;
-    ColorUIResource greyout = new ColorUIResource(25, 25, 25);
-    foreground = new ColorUIResource(0, 0, 0);
-    notInUseForeground = new ColorUIResource(102, 102, 102);
-    disabledBackground = UIUtilities.subtractColor(UIUtilities.BACKGROUND, greyout);
-    disabledhighlightBackground = UIUtilities.subtractColor(UIUtilities.HIGHLIGHT_BACKGROUND, greyout);
-    disabledWarningBackground = UIUtilities.subtractColor(UIUtilities.WARNING_BACKGROUND, greyout);
-    errorBackground = new ColorUIResource(255, 204, 204);
-    disabledErrorBackground = UIUtilities.subtractColor(errorBackground, greyout);
+  void setFont() {
+    plainFont = getComponent().getFont();
+    italicFont = new Font(plainFont.getFontName(), Font.ITALIC, plainFont
+        .getSize());
   }
-  
-  
+
+  private void setBackground(ColorUIResource color) {
+    getComponent().setBackground(color);
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/02/05 23:38:41  sueh
+ * <p> bug# 962 Moved color info to UIUtilities.
+ * <p>
  * <p> Revision 1.5  2006/10/17 20:20:22  sueh
  * <p> bug# 919  Made background and warningBackground static and available to
  * <p> package.  Made subtract available to package.
