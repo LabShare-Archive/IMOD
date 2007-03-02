@@ -44,7 +44,7 @@ c
       integer*4 indvert(limcont),nvert(limcont)
       real*4 xvertb(limvert),yvertb(limvert),zcontb(limcont)
       integer*4 indvertb(limcont),nvertb(limcont)
-      character*80 filea,fileb,filout,modelfile,tempfile,xffile,bmodel
+      character*160 filea,fileb,filout,modelfile,tempfile,xffile,bmodel
       real*4 dxpat(limpat),dypat(limpat),dzpat(limpat),directErr(limpat)
       integer*4 ifdone(limpat),ixSeq(limpat),iySeq(limpat),izSeq(limpat)
       integer*4 idirSeq(limpat)
@@ -1817,6 +1817,10 @@ c
 
 
 c       $Log$
+c       Revision 3.14  2006/08/21 16:49:22  mast
+c       Changed initial offset to volume offset and provided for a separate
+c       initial offset
+c
 c       Revision 3.13  2006/08/18 14:34:53  mast
 c       Eliminated double declaration of indpat
 c
