@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/2/07: Increased string size from 80 to 160 in Corrsearch3d.
+
 1/24/07: IMOD_3-9-3
 1/24/07: Fixed ancient bug that kept Remapmodel from working with significant
 sized models.
