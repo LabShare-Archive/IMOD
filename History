@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/2/07: Increased string size from 80 to 160 in Corrsearch3d (In 3.9).
+
 3/1/07: IMOD_3-10-3
 2/22/07: Fixed a problem in Etomo - Parallel Processing that may have affected
 some bash users with .cshrc files.  The local load average was always failing.
