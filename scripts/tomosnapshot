@@ -1,11 +1,7 @@
 #!/bin/csh -f
 # Collects all the small files for diagnosing problems building tomograms
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #  Log at end
 #
 
@@ -21,7 +17,8 @@ set axistype = ""
 # The file lists
 #
 set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
-fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd)
+fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd _orig.seed \
+.xtilt)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_vector_ccc.mod patch_region.mod lslrt.out \
@@ -206,6 +203,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.15  2006/11/21 19:04:00  mast
+#  Added patch_vector_ccc.mod
+#
 #  Revision 3.14  2006/06/29 15:25:55  mast
 #  Fixed bug in getting setname introduced by last change
 #
