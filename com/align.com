@@ -1,6 +1,6 @@
 # THIS IS A COMMAND FILE TO RUN TILTALIGN
 #
-####CreatedVersion#### 3.6.4
+####CreatedVersion#### 3.10.4
 #
 # To exclude views, add a line "ExcludeList view_list" with the list of views
 #
@@ -61,9 +61,9 @@ AxisZShift	0.
 LocalAlignments	0
 OutputLocalFile	g5alocal.xf
 #
-# Number of local patches to solve for in X and Y
+# Target size of local patches to solve for in X and Y
 #
-NumberOfLocalPatchesXandY	5,5
+TargetPatchSizeXandY	700,700
 MinSizeOrOverlapXandY	0.5,0.5
 #
 # Minimum fiducials total and on one surface if two surfaces
