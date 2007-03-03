@@ -16,7 +16,9 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -34,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2007/02/09 00:43:53  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.23  2006/07/05 23:25:15  sueh
  * <p> Get fine alignment fix fiducials to set the right mode.
  * <p>
@@ -278,7 +284,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     fixRootPanel(rootSize);
     btnComputeAlignment = (MultiLineButton) appMgr
         .getProcessResultDisplayFactory(axisID).getComputeAlignment();
-    pnlTiltalign = new TiltalignPanel(axisID, appMgr);
+    pnlTiltalign =  TiltalignPanel.getInstance(axisID, appMgr);
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
@@ -347,6 +353,14 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   public final void setParameters(ReconScreenState screenState) {
     btnComputeAlignment.setButtonState(screenState
         .getButtonState(btnComputeAlignment.getButtonStateKey()));
+  }
+  
+  public void setParameters(ConstMetaData metaData) {
+    pnlTiltalign.setParameters(metaData);
+  }
+  
+  public void getParameters(MetaData metaData) {
+    pnlTiltalign.getParameters(metaData);
   }
 
   public void setTiltalignParams(TiltalignParam tiltalignParam) {
