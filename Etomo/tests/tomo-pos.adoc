@@ -1,5 +1,26 @@
 Version = 1.2
 
+[function = build]
+function = create-sample-tomograms
+function = compute-z-shift-&-pitch-angles
+function = create-final-alignment
+bn.done =
+
+[function = create-sample-tomograms]
+copy.file = %{dataset}%{axis}.fid
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+bn.create-sample-tomograms =
+waitfor.process.sample = done
+
+[function = compute-z-shift-&-pitch-angles]
+copy.file = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process.tomopitch = done
+
+[function = create-final-alignment]
+bn.create-final-alignment =
+waitfor.process.align = done
+
 [function = run]
 copy.file = %{dataset}%{axis}.fid
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
