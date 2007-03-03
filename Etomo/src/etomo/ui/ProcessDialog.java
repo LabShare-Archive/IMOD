@@ -14,6 +14,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2006/07/28 19:57:24  sueh
+ * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
+ * <p> usingParallelProcessing because isParallel is too similar to a standard get
+ * <p> function.
+ * <p>
  * <p> Revision 3.25  2006/07/20 17:21:06  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -344,23 +349,23 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   private void setToolTipText() {
     String line1, line2, line3, line4;
 
-    line1 = "<html>This button will abort any changes to the parameters<br>";
+    line1 = "This button will abort any changes to the parameters ";
     line2 = "in this dialog box and return you to the main window.";
     btnCancel.setToolTipText(line1 + line2);
 
-    line1 = "<html>This button will save any changes to the parameters<br>";
-    line2 = "in this dialog box and return you to the main window<br>";
-    line3 = "without executing any of the processing.  Any parameter<br>";
+    line1 = "This button will save any changes to the parameters ";
+    line2 = "in this dialog box and return you to the main window ";
+    line3 = "without executing any of the processing.  Any parameter ";
     line4 = "changes will also be written to the com scripts.";
     btnPostpone.setToolTipText(line1 + line2 + line3 + line4);
 
-    line1 = "<html>This button will save any changes to the parameters<br>";
-    line2 = "in this dialog box and execute the specified operation<br>";
-    line3 = "on the data.  Any parameter changes will also be written<br>";
+    line1 = "This button will save any changes to the parameters ";
+    line2 = "in this dialog box and execute the specified operation ";
+    line3 = "on the data.  Any parameter changes will also be written ";
     line4 = "to the com scripts.";
     btnExecute.setToolTipText(line1 + line2 + line3 + line4);
 
-    line1 = "<html>This button will present a more detailed set of<br>";
+    line1 = "This button will present a more detailed set of ";
     line2 = "options for each of the underlying processes.";
     btnAdvanced.setToolTipText(line1 + line2);
   }
