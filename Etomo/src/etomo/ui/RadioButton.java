@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import javax.swing.JRadioButton;
+import javax.swing.JToggleButton;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -20,7 +21,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class RadioButton extends JRadioButton {
+class RadioButton extends JRadioButton {
   public static final String rcsid = "$Id$";
 
   public RadioButton(String text) {
@@ -47,45 +48,26 @@ final class RadioButton extends JRadioButton {
     super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  /*
-   public RadioButton() {
-   super();
-   }
-   
-   public RadioButton(String text, boolean selected) {
-   super(text, selected);
-   setName(UIUtilities.convertLabelToName(text));
-   }
-   
-   public RadioButton(Action a) {
-   super(a);
-   }
-   
-   public RadioButton(Icon icon) {
-   super(icon);
-   }
-   
-   public RadioButton(Icon icon, boolean selected) {
-   super(icon, selected);
-   }
-   
-   public RadioButton(String text, Icon icon) {
-   super(text, icon);
-   setName(UIUtilities.convertLabelToName(text));
-   }
-   
-   public RadioButton(String text, Icon icon, boolean selected) {
-   super(text, icon, selected);
-   setName(UIUtilities.convertLabelToName(text));
-   }
-   
-   public final void setText(String text) {
-   super.setText(text);
-   setName(UIUtilities.convertLabelToName(text));
-   }*/
+  static final class RadioButtonModel extends JToggleButton.ToggleButtonModel{
+    private final RadioButtonParent parent;
+    
+    RadioButtonModel(RadioButtonParent parent) {
+      super();
+      this.parent=parent;
+    }
+    
+    public void setSelected(boolean selected) {
+      super.setSelected(selected);
+      parent.msgSelected();
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/02/09 00:52:13  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.7  2006/05/16 21:36:30  sueh
  * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
  * <p> see what the name is.
