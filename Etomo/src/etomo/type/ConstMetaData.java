@@ -9,8 +9,10 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
+import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.storage.autodoc.Autodoc;
 
 /**
  * <p>Description: </p>
@@ -99,7 +101,8 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected EtomoBoolean2 combineVolcombineParallel = null;
   protected EtomoBoolean2 bStackProcessed = null;
   private StringBuffer message = new StringBuffer();
-  protected final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST.toString()
+  protected final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST
+      .toString()
       + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
   protected final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND
       .toString()
@@ -108,7 +111,9 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected String secondAxisPrepend = null;
   protected final TiltParam.Storables tiltParamA = new TiltParam.Storables();
   protected final TiltParam.Storables tiltParamB = new TiltParam.Storables();
-  
+  protected String targetPatchSizeXandY = "";
+  protected String numberOfLocalPatchesXandY = "";
+
   public abstract void load(Properties props);
 
   public abstract void load(Properties props, String prepend);
@@ -126,11 +131,11 @@ public abstract class ConstMetaData extends BaseMetaData {
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
     sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
   }
-  
+
   String getFirstAxisPrepend() {
     return firstAxisPrepend;
   }
-  
+
   String getSecondAxisPrepend() {
     return secondAxisPrepend;
   }
@@ -211,10 +216,23 @@ public abstract class ConstMetaData extends BaseMetaData {
     defaultParallel.store(props, prepend);
     sampleThicknessA.store(props, prepend);
     sampleThicknessB.store(props, prepend);
-    tiltParamA.store(props,group+firstAxisPrepend);
-    tiltParamB.store(props, group+secondAxisPrepend);
+    tiltParamA.store(props, group + firstAxisPrepend);
+    tiltParamB.store(props, group + secondAxisPrepend);
+    props.setProperty(group + Autodoc.TILTALIGN + "."
+        + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
+    props.setProperty(group + Autodoc.TILTALIGN + "."
+        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
+        numberOfLocalPatchesXandY);
   }
   
+  public String getTargetPatchSizeXandY() {
+    return targetPatchSizeXandY;
+  }
+
+  public String getNumberOfLocalPatchesXandY() {
+    return numberOfLocalPatchesXandY;
+  }
+
   public void getTiltParam(TiltParam tiltParam, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       tiltParam.set(tiltParamB);
@@ -723,6 +741,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.38  2007/02/05 23:24:53  sueh
+ * <p> bug# 962 Added Model and Rejoin fields.
+ * <p>
  * <p> Revision 3.37  2006/09/19 22:32:39  sueh
  * <p> bug# 920 Added first and second axisPrepends for storing axis-level values.
  * <p> Added TiltParam.Storables for A and B.

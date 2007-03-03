@@ -6,7 +6,9 @@ import java.util.Properties;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
+import etomo.storage.autodoc.Autodoc;
 
 /**
  * <p>Description: </p>
@@ -21,6 +23,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2007/02/05 23:29:47  sueh
+ * <p> bug# 962 Changed revisionNumber to an EtomoNumber, so that it is comparable.
+ * <p>
  * <p> Revision 3.31  2006/09/19 22:34:02  sueh
  * <p> bug# 920 Added first and second axisPrepends for storing axis-level values.
  * <p> Added TiltParam.Storables for A and B.
@@ -195,7 +200,7 @@ import etomo.comscript.TransferfidParam;
 
 public class MetaData extends ConstMetaData {
   public static final String rcsid = "$Id$";
-
+  
   public MetaData(ApplicationManager manager) {
     super(manager);
     resetToDefault();
@@ -225,6 +230,8 @@ public class MetaData extends ConstMetaData {
     }
     sampleThicknessA.reset();
     sampleThicknessB.reset();
+    targetPatchSizeXandY=TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
+    numberOfLocalPatchesXandY=TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
   }
 
   public void initialize() {
@@ -617,6 +624,20 @@ public class MetaData extends ConstMetaData {
     sampleThicknessB.load(props, prepend);
     tiltParamA.load(props, group + firstAxisPrepend);
     tiltParamB.load(props, group + secondAxisPrepend);
+    //use default for backward compatibility, since this new parameter may not
+    //be in any file yet
+    targetPatchSizeXandY = props.getProperty(group + Autodoc.TILTALIGN + "."
+        + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT);
+    numberOfLocalPatchesXandY = props.getProperty(group + Autodoc.TILTALIGN + "."
+        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT);
+  }
+  
+  public void setTargetPatchSizeXandY(String targetPatchSizeXandY) {
+    this.targetPatchSizeXandY=targetPatchSizeXandY;
+  }
+  
+  public void setNumberOfLocalPatchesXandY(String numberOfLocalPatchesXandY) {
+    this.numberOfLocalPatchesXandY=numberOfLocalPatchesXandY;
   }
 
   public void setTiltParam(ConstTiltParam tiltParam, AxisID axisID) {
