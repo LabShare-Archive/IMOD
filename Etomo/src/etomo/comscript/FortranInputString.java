@@ -23,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2006/09/05 17:34:24  sueh
+ * <p> bug# 917 Added option to change the default divider (',').
+ * <p>
  * <p> Revision 3.13  2006/08/25 22:51:07  sueh
  * <p> bug# 918 Added convenience functions
  * <p> updateScriptParameter(ComScriptCommand) and
@@ -88,13 +91,14 @@ public class FortranInputString {
 
   private static final char DEFAULT_DIVIDER = ',';
   
-  int nParams;
-  boolean[] isInteger;
-  double[] minimum;
-  double[] maximum;
-  Double[] value;
+  private int nParams;
+  private boolean[] isInteger;
+  private double[] minimum;
+  private double[] maximum;
+  private Double[] value;
   private String key = null;
   private char divider = DEFAULT_DIVIDER;
+  private boolean active=true;
 
   /**
    * Create a FortranInputString with nParams parameters.
@@ -181,6 +185,14 @@ public class FortranInputString {
     for (int i = 0; i < nParams; i++) {
       value[i] = new Double(Double.NEGATIVE_INFINITY);
     }
+  }
+  
+  public void setActive(boolean active) {
+    this.active=active;
+  }
+  
+  public boolean isActive() {
+    return active;
   }
 
   private void initialize(int nParams) {
@@ -501,6 +513,18 @@ public class FortranInputString {
       throw new NullPointerException("value[" + index + "]");
     }
     return value[index].isInfinite();
+  }
+  
+  /**
+   * @return false if any value is set
+   */
+  public boolean isEmpty() {
+    for (int i = 0; i < nParams; i++) {
+      if (!value[i].isInfinite()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
