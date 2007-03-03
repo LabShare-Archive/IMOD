@@ -47,6 +47,7 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String MAXIMUM_CYCLES_KEY = "MaximumCycles";
   public static final String LOCAL_ALIGNMENTS_KEY = "LocalAlignments";
   public static final String NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY = "NumberOfLocalPatchesXandY";
+  public static final String TARGET_PATCH_SIZE_X_AND_Y_KEY = "TargetPatchSizeXandY";
   public static final String MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY = "MinSizeOrOverlapXandY";
   public static final String MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY = "MinFidsTotalAndEachSurface";
   public static final String TILT_OPTION_KEY = "TiltOption";
@@ -111,6 +112,8 @@ public class ConstTiltalignParam implements CommandDetails {
   private static final int[] surfacesToAnalyzeValidValues = { 0, 1, 2 };
   private static final String commandFileName = "align";
   private static final String commandFileExtension = ".com";
+  public static final String TARGET_PATCH_SIZE_X_AND_Y_DEFAULT="700,700";
+  public static final String NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT="5,5";
   
   protected String modelFile;
   protected String imageFile;
@@ -170,6 +173,7 @@ public class ConstTiltalignParam implements CommandDetails {
   protected EtomoBoolean2 localAlignments;
   protected String outputLocalFile;
   protected FortranInputString numberOfLocalPatchesXandY;
+  protected FortranInputString targetPatchSizeXandY;
   protected FortranInputString minSizeOrOverlapXandY;
   protected FortranInputString minFidsTotalAndEachSurface;
   protected EtomoBoolean2 fixXYZCoordinates;
@@ -309,7 +313,9 @@ public class ConstTiltalignParam implements CommandDetails {
     localAlignments.reset();
     outputLocalFile = "";
     numberOfLocalPatchesXandY = new FortranInputString(2);
+    targetPatchSizeXandY=new FortranInputString(2);
     numberOfLocalPatchesXandY.setIntegerType(new boolean[] {true, true});
+    targetPatchSizeXandY.setIntegerType(new boolean[] {true, true});
     minSizeOrOverlapXandY = new FortranInputString(2);
     minFidsTotalAndEachSurface = new FortranInputString(2);
     minFidsTotalAndEachSurface.setIntegerType(new boolean[] {true, true});
@@ -620,6 +626,28 @@ public class ConstTiltalignParam implements CommandDetails {
   public String getNumberOfLocalPatchesXandY() {
     return numberOfLocalPatchesXandY.toString(true);
   }
+  
+  /**
+   * @return true if the parameter was not in the .com file
+   */
+  public boolean isTargetPatchSizeXandYEmpty() {
+    return targetPatchSizeXandY.isEmpty();
+  }
+  
+  /**
+   * @return true if the parameter was not in the .com file
+   */
+  public boolean isNumberOfLocalPatchesXandYEmpty() {
+    return numberOfLocalPatchesXandY.isEmpty();
+  }
+  
+  /**
+   * @return Returns the targetPatchSizeXandY.
+   */
+  public String getTargetPatchSizeXandY() {
+    return targetPatchSizeXandY.toString(true);
+  }
+  
   /**
    * @return Returns the outputFidXYZFile.
    */
@@ -825,6 +853,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2007/02/05 21:41:27  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
  * <p> Revision 3.27  2006/08/22 22:45:06  sueh
  * <p> bug# 913 Added single rot option
  * <p>
