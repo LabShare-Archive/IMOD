@@ -2113,6 +2113,7 @@ public final class ApplicationManager extends BaseManager {
       UIExpertUtilities.INSTANCE.upgradeOldAlignCom(this, axisID,
           tiltalignParam);
     }
+    fineAlignmentDialog.setParameters(metaData);
     fineAlignmentDialog.setTiltalignParams(tiltalignParam);
     fineAlignmentDialog.setParameters(getScreenState(axisID));
     // Create a default transferfid object to populate the alignment dialog
@@ -2667,6 +2668,7 @@ public final class ApplicationManager extends BaseManager {
     TiltalignParam tiltalignParam;
     try {
       tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
+      fineAlignmentDialog.getParameters(metaData);
       fineAlignmentDialog.getTiltalignParams(tiltalignParam);
       UIExpertUtilities.INSTANCE.rollAlignComAngles(this, axisID);
       comScriptMgr.saveAlign(tiltalignParam, axisID);
@@ -5419,6 +5421,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.276  2007/02/21 22:28:42  sueh
+ * <p> 964 Removing incorrect comment.
+ * <p>
  * <p> Revision 3.275  2007/02/05 21:24:23  sueh
  * <p> bug# 962 Creating process manager later.
  * <p>
