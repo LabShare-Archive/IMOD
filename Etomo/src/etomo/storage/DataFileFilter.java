@@ -19,6 +19,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/02/21 04:17:30  sueh
+ * <p> bug# 964 Adding PEET and parallel processing data files.
+ * <p>
  * <p> Revision 1.2  2004/11/19 23:28:24  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -52,8 +55,8 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
   public String getDescription() {
     //TEMP 964
     if (EtomoDirector.getInstance().isNewstuff()) {
-      return "Etomo data file, Join data file, Parallel Process data file, or PEET data file";
+      return "Etomo, Join, Parallel Process, or PEET data file";
     }
-    return "Etomo data file, Join data file, Parallel Process data file, or PEET data file";
+    return "Etomo, Join, or Parallel Process data file";
   }
 }
