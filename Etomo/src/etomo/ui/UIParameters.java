@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2006/08/08 19:59:06  sueh
+ * <p> bug# 531 Made the done, advanced, etc buttons smaller.
+ * <p>
  * <p> Revision 3.10  2006/07/31 21:47:11  sueh
  * <p> bug# 438 Added dimAxisButton
  * <p>
@@ -82,6 +85,7 @@ public final class UIParameters {
   private int numericWidth;
   private int sectionsWidth;
   private int integerTripletWidth;
+  private int integerDoubletWidth;
   private int fourDigitWidth = 40;
 
   private UIParameters() {
@@ -133,6 +137,10 @@ public final class UIParameters {
   int getIntegerTripletWidth() {
     return integerTripletWidth;
   }
+  
+  int getIntegerDoubletWidth() {
+    return integerDoubletWidth;
+  }
 
   int getFourDigitWidth() {
     return fourDigitWidth;
@@ -174,7 +182,8 @@ public final class UIParameters {
     dimFileChooser.setSize(400 * fontSizeAdjustment, 400 * fontSizeAdjustment);
     numericWidth = (int) (50 * fontSizeAdjustment);
     sectionsWidth = (int) (75 * fontSizeAdjustment);
-    integerTripletWidth = (int) (90 * fontSizeAdjustment);
+    integerTripletWidth = (int) (75 * fontSizeAdjustment);
+    integerDoubletWidth=(int)(50*fontSizeAdjustment);
     fourDigitWidth = (int) (40 * fontSizeAdjustment);
   }
 }
