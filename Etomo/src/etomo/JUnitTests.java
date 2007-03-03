@@ -10,6 +10,7 @@ import etomo.process.ProcessTests;
 import etomo.storage.StorageTests;
 import etomo.storage.autodoc.AutodocTests;
 import etomo.type.TypeTests;
+import etomo.ui.UITests;
 import etomo.util.UtilTests;
 
 /**
@@ -94,12 +95,25 @@ public class JUnitTests {
         suite.addTest((Test) test);
       }
     }
+    
+    testSuite = (TestSuite) UITests.suite();
+    tests = testSuite.tests();
+    while (tests.hasMoreElements()) {
+      test = tests.nextElement();
+      if (test instanceof Test) {
+        suite.addTest((Test) test);
+      }
+    }
 
     return suite;
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2006/11/15 18:48:47  sueh
+* <p> bug# 872 Changed the test order to put the classes with fewer dependencies
+* <p> first.
+* <p>
 * <p> Revision 1.6  2006/10/10 05:01:20  sueh
 * <p> bug# 931 Adding StorageTests.
 * <p>
