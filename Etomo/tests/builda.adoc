@@ -25,7 +25,7 @@ function = build
 
 [Dialog = TomoPos]
 adoc = tomo-pos.adoc
-function = run
+function = build
 
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
