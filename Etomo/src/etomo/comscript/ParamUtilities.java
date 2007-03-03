@@ -29,6 +29,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.16  2006/05/16 21:27:06  sueh
+ * <p> $bug# 856 Changed setParamIfPresent(ComScriptCommand, String, StringList)
+ * <p> $to create stringList if it is null.  Returns stringList.
+ * <p> $
  * <p> $Revision 1.15  2005/05/09 23:10:29  sueh
  * <p> $bug# 658 Reformatted.
  * <p> $
@@ -553,9 +557,12 @@ public class ParamUtilities {
    */
   public static void updateScriptParameter(ComScriptCommand scriptCommand,
     String key, FortranInputString value) {
-    
     if (key == null) {
       throw new NullPointerException();
+    }
+    if (!value.isActive()) {
+      scriptCommand.deleteKey(key);
+      return;
     }
     if (value != null && value.valuesSet() && !value.isDefault()) {
       scriptCommand.setValue(key, value.toString());
