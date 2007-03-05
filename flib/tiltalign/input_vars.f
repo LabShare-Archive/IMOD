@@ -784,7 +784,7 @@ c
         if (pipinput) then
           ierr = PipGetBoolean('ProjectionStretch', mapProjStretch)
           ierr = PipGetInteger('BeamTiltOption', ifBTSearch)
-          ierr = PipGetFloat('InitialBeamTilt', beamTilt)
+          ierr = PipGetFloat('FixedOrInitialBeamTilt', beamTilt)
           beamTilt = beamTilt * dtor
         endif
         if (mapProjStretch .gt. 0) then
@@ -1122,6 +1122,9 @@ c
 c       2/16/07: removed filetoview function that errored on nonexistent views
 
 c       $Log$
+c       Revision 3.14  2007/02/19 21:09:41  mast
+c       Changes for beam tilt and for mapping depending on # of points in view
+c
 c       Revision 3.13  2005/04/10 18:05:43  mast
 c       Eliminated global rotation variable and associated complications
 c       

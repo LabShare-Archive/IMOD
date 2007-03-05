@@ -103,7 +103,8 @@ c
      &    ':ExcludeList:LI:@:RotationAngle:F:@:SeparateGroup:LIM:@'//
      &    'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
      &    'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@:AngleOffset:F:@'//
-     &    ':ProjectionStretch:B:@:BeamTiltOption:I:@:InitialBeamTilt:F:@'//
+     &    ':ProjectionStretch:B:@:BeamTiltOption:I:@'//
+     &    ':FixedOrInitialBeamTilt:F:@'//
      &    ':RotOption:I:@:RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@'//
      &    ':RotationFixedView:I:@:LocalRotOption:I:@'//
      &    ':LocalRotDefaultGrouping:I:@:LocalRotNondefaultGroup:ITM:@'//
@@ -1507,6 +1508,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.31  2007/02/19 21:13:25  mast
+c       Changes for beam tilt solving by variable fitting and by one-dimensional
+c       search; added option of specifying target size of local areas; made
+c       local fits drop views with no points; made number of views in groups
+c       depend on the number of points in views
+c
 c       Revision 3.30  2006/07/18 00:10:20  mast
 c       Fixed formatting in errorexit and output global and local area # and
 c       local area mean and range for mean residuals
