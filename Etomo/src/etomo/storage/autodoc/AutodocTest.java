@@ -1,10 +1,17 @@
 package etomo.storage.autodoc;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.JUnitTests;
+import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.util.InvalidParameterException;
+import etomo.util.TestUtilites;
 import etomo.util.Utilities;
 import junit.framework.TestCase;
 
@@ -21,48 +28,44 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  */
-public class AutodocTest extends TestCase {
+public final class AutodocTest extends TestCase {
   public static final String rcsid = "$Id$";
-
-  public AutodocTest(String name) {
-    super(name);
-  }
-
-  protected void setUp() throws Exception {
-    super.setUp();
-    //TEMP
-    if (Utilities.isWindowsOS()) {
-      return;
-    }
-    Autodoc.setTestDir(null);
-  }
-
-  protected void tearDown() throws Exception {
-
-    super.tearDown();
-  }
-
-  /*
-   public void testUITest() throws FileNotFoundException, IOException{
-   Autodoc.setInternalTest(true);
-   Autodoc.setTest(true);
-   Autodoc autodoc = Autodoc.getInstance(Autodoc.UITEST, AxisID.ONLY);
-   assertFalse(autodoc.isError());
-   Autodoc.setTest(false);
-   Autodoc.setInternalTest(false);
-   }
-   
-   public void testUITestAxis_testa() throws FileNotFoundException, IOException{
-   Autodoc.setInternalTest(true);
-   Autodoc.setTest(true);
-   Autodoc autodoc = Autodoc.getInstance("testa", Autodoc.UITEST_AXIS, AxisID.ONLY);
-   assertFalse(autodoc.isError());
-   Autodoc.setTest(false);
-   Autodoc.setInternalTest(false);
-   }
-   */
   
-  public void testBeadtrack() throws FileNotFoundException, IOException,LogFile.ReadException {
+  private static final String TEST_DIR_NAME = "Autodoc";
+
+  private BaseManager manager;
+
+  public AutodocTest(String test) {
+    super(test);
+  }
+  
+  public void setUp() throws Exception{
+    super.setUp();
+    File testDir =new File(AutodocTests.TEST_ROOT_DIR,TEST_DIR_NAME);
+    testDir.mkdirs();
+    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
+    manager = (BaseManager) EtomoDirector.getInstance()
+        .getCurrentManager_test();
+    Autodoc.resetAbsoluteDir();
+  }
+
+  public void testCpu() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME, "cpu.adoc"));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testMatlabParamFile() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getMatlabInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME, "master.prm"),
+        false);
+    assertFalse(autodoc.isError());
+  }
+
+  public void testBeadtrack() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     //TEMP
     if (Utilities.isWindowsOS()) {
       return;
@@ -71,43 +74,53 @@ public class AutodocTest extends TestCase {
     assertFalse(autodoc.isError());
   }
 
-  public void testCcderaser() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testCcderaser() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.CCDERASER, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testCombineFft() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testCombineFft() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testDensmatch() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testDensmatch() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.DENS_MATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testMtfFilter() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testMtfFilter() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.MTF_FILTER, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testSolvematch() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testSolvematch() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.SOLVEMATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testTiltalign() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testTiltalign() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.TILTALIGN, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
-  public void testTiltxcorr() throws FileNotFoundException, IOException,LogFile.ReadException {
+  public void testTiltxcorr() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     Autodoc autodoc = Autodoc.getInstance(Autodoc.TILTXCORR, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/01 01:19:05  sueh
+ * <p> bug# 964 Added LogFile to PrimativeTokenizer.
+ * <p>
  * <p> Revision 1.8  2006/11/18 01:16:36  sueh
  * <p> bug# 956 Temporarily not running problem tests on Windows.
  * <p>
