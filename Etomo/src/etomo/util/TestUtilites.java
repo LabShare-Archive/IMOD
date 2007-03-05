@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2006/06/30 16:30:23  sueh
+ * <p> bug# 883 Added EnvironmentVariable, a class to get and store environment
+ * <p> variables.
+ * <p>
  * <p> Revision 1.12  2005/11/10 22:22:02  sueh
  * <p> bug# 748 Removed print statements.
  * <p>
@@ -103,7 +107,7 @@ public class TestUtilites {
     }
   }
 
-  public static void getVector(BaseManager manager, String testRootDirName,
+  public static File getVector(BaseManager manager, String testRootDirName,
       String testDirName, String vectorName) throws SystemProcessException,
       InvalidParameterException {
     //check vector
@@ -139,12 +143,12 @@ public class TestUtilites {
           copy.setDebug(true);
           copy.run();
           if (target.exists()) {
-            return;
+            return target;
           }
         }
       }
     }
-    checkoutVector(manager, testRootDir, testDir, target);
+    return checkoutVector(manager, testRootDir, testDir, target);
   }
 
   /**
@@ -156,7 +160,7 @@ public class TestUtilites {
    * @param dirName - Directory name with no path.
    * @param vector - File to be added to the dirName directory.
    */
-  private static void checkoutVector(BaseManager manager, File testRootDir,
+  private static File checkoutVector(BaseManager manager, File testRootDir,
       File testDir, File target) throws SystemProcessException,
       InvalidParameterException {
     //set working directory
@@ -190,7 +194,7 @@ public class TestUtilites {
       String message = cvs.getStdErrorString()
           + "\nCVSROOT="
           + EnvironmentVariable.INSTANCE.getValue(manager.getPropertyUserDir(),
-              "CVSROOT", AxisID.ONLY) + "manager.getPropertyUserDir()="
+              "CVSROOT", AxisID.ONLY) + ",manager.getPropertyUserDir()="
           + manager.getPropertyUserDir() + ",testRootDir="
           + testRootDir.getAbsolutePath() + "\ntestDir="
           + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath();
@@ -212,5 +216,6 @@ public class TestUtilites {
     }
     //reset working directory
     EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
+    return target;
   }
 }
