@@ -252,11 +252,12 @@ X axis and a modification of the tilt angles and in-plane image rotations.
 Thus, a file of X-tilt angles should be output when beam tilt is included in
 the solution.
 
-[Field = InitialBeamTilt]
+
+[Field = FixedOrInitialBeamTilt]
 short =
 type = F
 usage = Initial value of beam tilt when solving for it, or fixed value when not
-tooltip = 
+tooltip = Fixed value for beam tilt if it is not zero
 manpage = The entry provides either an initial value for the beam tilt, when
 it is being solved for, or a fixed value when it is not.
 

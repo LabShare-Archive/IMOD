@@ -16,6 +16,7 @@ OutputModelFile	g5a.3dmod
 OutputResidualFile	g5a.resid
 OutputFidXYZFile	g5afid.xyz
 OutputTiltFile	g5a.tlt
+OutputXAxisTiltFile	g5a.xtilt
 OutputTransformFile	g5a.xf
 #ExcludeList
 RotationAngle	0.0
