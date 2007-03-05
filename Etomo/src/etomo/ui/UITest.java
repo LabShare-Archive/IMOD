@@ -97,7 +97,6 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       fail("$IMOD_TEST_SECTION has not been set");
     }
     //get the uitest.adoc
-    Autodoc.setTest(true);
     Autodoc autodoc = null;
     try {
       autodoc = Autodoc.getInstance(Autodoc.UITEST, AxisID.ONLY);
@@ -406,7 +405,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         return;
       }
       axisIDB = axisID;
-      autodocB = Autodoc.getUITestAxisInstance_test(SOURCE_DIR, value,
+      autodocB = Autodoc.getInstance(SOURCE_DIR, value,
           AxisID.ONLY);
       return;
     }
@@ -414,7 +413,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       return;
     }
     axisIDA = axisID;
-    autodocA = Autodoc.getUITestAxisInstance_test(SOURCE_DIR, value,
+    autodocA = Autodoc.getInstance(SOURCE_DIR, value,
         AxisID.ONLY);
   }
 
@@ -624,6 +623,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2007/03/01 01:45:51  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.21  2006/10/24 23:34:49  sueh
  * <p> bug# 948 Changed filedir to datadir.  Removed testdir.
  * <p>

@@ -114,8 +114,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 
   private static HashMap UITEST_AXIS_MAP = null;
 
-  private static String testDir = null;
-  private static boolean test = false;
+  private static String absoluteDir = null;
   private static boolean internalTest = false;
 
   private final boolean mutable;
@@ -139,12 +138,26 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     this.mutable = mutable;
     this.allowAltComment = allowAltComment;
   }
-
-  public static Autodoc getMatlabInstance(File file) throws IOException,LogFile.ReadException{
+  
+  public static Autodoc getInstance(File file) throws IOException,LogFile.ReadException{
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true, true);
+    Autodoc autodoc = new Autodoc(false, false);
+    try {
+    autodoc.initialize(file);
+    return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
+  public static Autodoc getMatlabInstance(File file, boolean mutable) throws IOException,LogFile.ReadException{
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(mutable, true);
     try {
     autodoc.initialize(file);
     return autodoc;
@@ -193,12 +206,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getUITestAxisInstance_test(File directory,
+  public static Autodoc getInstance(File directory,
       String autodocFileName, AxisID axisID) throws FileNotFoundException,
       IOException,LogFile.ReadException {
-    if (!test) {
-      throw new IllegalStateException("Not in test mode");
-    }
     if (autodocFileName == null) {
       return null;
     }
@@ -221,10 +231,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * for testing
    * @param name
    */
-  public static void resetInstance_test(String name) {
-    if (!test) {
-      throw new IllegalStateException();
-    }
+  public static void resetInstance(String name) {
     if (name.equals(TILTXCORR)) {
       TILTXCORR_INSTANCE = null;
     }
@@ -329,20 +336,13 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
-
-  /**
-   * for test
-   * @param testDirAbsolutePath
-   */
-  public static void setTestDir(String testDirAbsolutePath) {
-    if (!test) {
-      throw new IllegalStateException();
-    }
-    testDir = testDirAbsolutePath;
+  
+  public static void resetAbsoluteDir() {
+    absoluteDir=null;
   }
 
-  public static void setTest(boolean test) {
-    Autodoc.test = test;
+  public static void setAbsoluteDir(String absoluteDir) {
+    Autodoc.absoluteDir = absoluteDir;
   }
 
   public String getName() {
@@ -534,7 +534,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * @param envVariable
    */
   private LogFile setAutodocFile(String name, AxisID axisID, String envVariable) {
-    File dir = getTestDir();
+    File dir = getAbsoluteDir();
     if (dir != null) {
       return getAutodocFile(dir, name);
     }
@@ -584,16 +584,13 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return LogFile.getInstance(file);
   }
 
-  private File getTestDir() {
-    if (!test) {
+  private File getAbsoluteDir() {
+    if (absoluteDir == null) {
       return null;
     }
-    if (testDir == null) {
-      return null;
-    }
-    File dir = new File(testDir);
+    File dir = new File(absoluteDir);
     if (!dir.isAbsolute()) {
-      throw new IllegalPathStateException(testDir + " is not an absolute path");
+      throw new IllegalPathStateException(absoluteDir + " is not an absolute path");
     }
     if (!dir.exists()) {
       throw new IllegalPathStateException(dir.getAbsolutePath()
@@ -697,6 +694,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.10  2007/03/01 01:16:12  sueh
+ *<p> $bug# 964 Added mutable boolean.  Added getMatlabInstance.
+ *<p> $
  *<p> $Revision 1.9  2007/02/09 00:42:37  sueh
  *<p> $bug# 962 Added xfjointomo autodoc.
  *<p> $

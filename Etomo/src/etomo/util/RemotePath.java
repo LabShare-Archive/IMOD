@@ -579,9 +579,9 @@ public final class RemotePath {
   }
 
   /**
-   * For testing.  Resets the instances so that mount rules can be reloaded.
+   * Resets the instances so that mount rules can be reloaded.
    */
-  final void reset_test() {
+  final void reset() {
     if (!EtomoDirector.getInstance().isTest()) {
       throw new IllegalStateException();
     }
@@ -668,6 +668,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/01 01:48:02  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.8  2006/07/20 23:15:11  sueh
  * <p> bug# 885 GetRemotePath():  throw an InvalidMountRuleException if the mount
  * <p> name hasn't been replaced in the remote path.

@@ -251,7 +251,7 @@ public final class AdocCommandReader {
     }
     else {
       try {
-        functionAutodoc = Autodoc.getUITestAxisInstance_test(
+        functionAutodoc = Autodoc.getInstance(
             functionLocationSourceDir, command.getValue(), AxisID.ONLY);
       }
       catch (FileNotFoundException e) {
@@ -327,6 +327,9 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/01 01:15:03  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.5  2006/08/30 16:50:13  sueh
  * <p> bug# 852 Printing the function calls in verbose mode
  * <p>

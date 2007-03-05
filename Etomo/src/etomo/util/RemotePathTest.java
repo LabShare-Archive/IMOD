@@ -412,10 +412,9 @@ public class RemotePathTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    Autodoc.setTest(true);
     super.setUp();
     setUpDirectory(TEST_DIR);
-    RemotePath.INSTANCE.reset_test();
+    RemotePath.INSTANCE.reset();
     getHostName();
   }
 
@@ -444,8 +443,8 @@ public class RemotePathTest extends TestCase {
   private final File setUpTestDirectory(String testDirName) throws IOException {
     File testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
-    Autodoc.setTestDir(testDir.getAbsolutePath());
-    Autodoc.resetInstance_test(RemotePath.AUTODOC);
+    Autodoc.setAbsoluteDir(testDir.getAbsolutePath());
+    Autodoc.resetInstance(RemotePath.AUTODOC);
     return testDir;
   }
 
@@ -999,6 +998,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2007/03/01 01:48:13  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.32  2006/11/16 23:43:47  sueh
  * <p> bug# 872 Changed Autodoc.setDir_test to setTestDir.  Changed
  * <p> Autodoc.getTestAutodocDir to getTestDir.
