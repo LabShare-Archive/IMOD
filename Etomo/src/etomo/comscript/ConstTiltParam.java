@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2007/02/05 21:41:49  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
  * <p> Revision 3.10  2006/09/19 21:58:39  sueh
  * <p> bug# 920 Added Storables, an object for storing variables that don't going into the
  * <p> the .com file.  Storables can be added to MetaData or another storable type
@@ -103,88 +106,89 @@ public class ConstTiltParam implements ProcessDetails {
   public static final String THICKNESS_KEY = "THICKNESS";
   public static final String X_AXIS_TILT_KEY = "XAXISTILT";
 
-  protected String inputFile;
-  protected String outputFile;
-  protected String angles;
-  protected float compressionFraction;
-  protected String compression;
-  protected int cosInterpOrder;
-  protected float cosInterpFactor;
-  protected String densityWeightParams;
-  protected String exclude;
-  protected StringList excludeList;
-  protected int fastBackProjInterpOrder;
-  protected int fullImageX;
-  protected int fullImageY;
-  protected String include;
-  protected String localAlignFile;
-  protected float localScale;
-  protected float logOffset;
+  String inputFile;
+  String outputFile;
+  String angles;
+  float compressionFraction;
+  String compression;
+  int cosInterpOrder;
+  float cosInterpFactor;
+  String densityWeightParams;
+  String exclude;
+  StringList excludeList;
+  int fastBackProjInterpOrder;
+  int fullImageX;
+  int fullImageY;
+  String include;
+  String localAlignFile;
+  float localScale;
+  float logOffset;
 
-  protected float mask;
+  float mask;
 
-  protected int mode;
+  int mode;
 
-  protected EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.FLOAT, "OFFSET");
+  EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      "OFFSET");
 
-  protected float tiltAxisOffset;
+  float tiltAxisOffset;
 
-  protected boolean parallel;
+  boolean parallel;
 
-  protected boolean perpendicular;
+  boolean perpendicular;
 
-  protected float radialBandwidth;
+  float radialBandwidth;
 
-  protected float radialFalloff;
+  float radialFalloff;
 
-  protected int nReplicate;
+  int nReplicate;
 
-  protected int incReplicate;
+  int incReplicate;
 
-  protected float scaleFLevel;
-  protected float scaleCoeff;
+  float scaleFLevel;
+  float scaleCoeff;
 
-  protected float xShift;
+  float xShift;
 
-  protected EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.FLOAT, "SHIFT");
+  EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.FLOAT, "SHIFT");
 
-  protected int idxSliceStart;
+  int idxSliceStart;
 
-  protected int idxSliceStop;
+  int idxSliceStop;
 
-  protected int incrSlice;
+  int incrSlice;
 
-  protected int idxXSubsetStart;
+  int idxXSubsetStart;
 
-  protected int idxYSubsetStart;
+  int idxYSubsetStart;
 
-  protected int thickness;
+  int thickness;
 
-  protected String tiltFile;
+  String tiltFile;
 
-  protected String title;
+  String title;
 
-  protected int width;
+  int width;
 
-  protected double xAxisTilt;
+  double xAxisTilt;
 
-  protected String xTiltFile;
-  protected int xTiltInterp;
+  String xTiltFile;
+  int xTiltInterp;
 
-  protected boolean useZFactors;
-  protected String zFactorFileName;
-  protected StringList excludeList2;
-  protected ScriptParameter imageBinned;
+  boolean useZFactors;
+  String zFactorFileName;
+  StringList excludeList2;
+  ScriptParameter imageBinned;
 
-  protected boolean loadedFromFile = false;
-  protected String datasetName;
-  protected AxisID axisID;
-  protected Storables storables = new Storables();
+  boolean loadedFromFile = false;
+  String datasetName;
+  AxisID axisID;
+  Storables storables = new Storables();
 
-  protected final ApplicationManager manager;
+  final ApplicationManager manager;
 
-  public ConstTiltParam(ApplicationManager manager, String datasetName,
-      AxisID axisID) {
+  public ConstTiltParam(final ApplicationManager manager,
+      final String datasetName, final AxisID axisID) {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
@@ -195,7 +199,7 @@ public class ConstTiltParam implements ProcessDetails {
     storables.reset();
   }
 
-  protected void reset() {
+  void reset() {
     loadedFromFile = false;
     inputFile = "";
     outputFile = "";
@@ -498,7 +502,7 @@ public class ConstTiltParam implements ProcessDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -515,11 +519,11 @@ public class ConstTiltParam implements ProcessDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -541,44 +545,44 @@ public class ConstTiltParam implements ProcessDetails {
     public static final Fields Z_SHIFT = new Fields();
     public static final Fields TILT_ANGLE_OFFSET = new Fields();
   }
-  
+
   public static final class Storables {
     private final EtomoBoolean2 fiducialess = new EtomoBoolean2("Fiducialess");
-    
+
     void reset() {
       fiducialess.reset();
     }
-    
+
     public void store(Properties props, String prepend) {
       prepend = createPrepend(prepend);
       fiducialess.store(props, prepend);
     }
-    
+
     public void load(Properties props, String prepend) {
       reset();
       prepend = createPrepend(prepend);
       fiducialess.load(props, prepend);
     }
-    
+
     public void set(ConstTiltParam.Storables storables) {
       fiducialess.set(storables.fiducialess);
     }
-    
+
     public void set(ConstTiltParam tiltParam) {
       set(tiltParam.storables);
     }
-    
+
     private static String createPrepend(String prepend) {
       if (prepend == "") {
-        return ComScriptManager.PARAM_KEY+'.'+COMMAND_NAME;
+        return ComScriptManager.PARAM_KEY + '.' + COMMAND_NAME;
       }
-      return prepend + "." + ComScriptManager.PARAM_KEY+'.'+COMMAND_NAME;
+      return prepend + "." + ComScriptManager.PARAM_KEY + '.' + COMMAND_NAME;
     }
-    
+
     protected ConstEtomoNumber getFiducialess() {
       return fiducialess;
     }
-    
+
     protected void setFiducialess(boolean fiducialess) {
       this.fiducialess.set(fiducialess);
     }
