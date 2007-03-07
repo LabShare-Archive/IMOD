@@ -183,6 +183,12 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".fid";
   }
+  
+  public static String getXTiltFileName(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + ".xtilt";
+  }
 
   public static String getJoinInfoName(BaseManager manager) {
     return manager.getName() + ".info";
@@ -394,6 +400,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2007/03/01 01:47:08  sueh
+ * <p> bug# 964 Added .prm file extension.
+ * <p>
  * <p> Revision 1.32  2007/02/21 04:25:58  sueh
  * <p> bug# 964 Added getRootName() to strip off the extension of a file name and
  * <p> return the root.
