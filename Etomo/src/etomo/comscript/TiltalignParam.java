@@ -1,8 +1,10 @@
 package etomo.comscript;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -17,14 +19,16 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  */
-public class TiltalignParam extends ConstTiltalignParam implements CommandParam {
+public final class TiltalignParam extends ConstTiltalignParam implements
+    CommandParam {
   public static final String rcsid = "$Id$";
 
   /**
    * Constructor for TiltalignParam.
    */
-  public TiltalignParam(String datasetName, AxisID axisID) {
-    super(datasetName, axisID);
+  public TiltalignParam(final BaseManager manager, final String datasetName,
+      final AxisID axisID) {
+    super(manager, datasetName, axisID);
   }
 
   /**
@@ -32,7 +36,7 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
    * @param scriptCommand the ComScriptCommand containg the tiltalign command
    * and parameters.
    */
-  public void parseComScriptCommand(ComScriptCommand scriptCommand)
+  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
       FortranInputSyntaxException {
     reset();
@@ -146,6 +150,14 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       fixXYZCoordinates.parse(scriptCommand);
       ParamUtilities.setParamIfPresent(scriptCommand, localOutputOptionsString,
           localOutputOptions);
+      beamTiltOption.parse(scriptCommand);
+      fixedOrInitialBeamTilt.parse(scriptCommand);
+      String param = scriptCommand.getValue(OUTPUT_X_AXIS_TILT_FILE_KEY);
+      if (param == null || param.matches("\\s*")) {
+        outputXAxisTiltFile = DatasetFiles.getXTiltFileName(manager, axisID);
+      }
+      else
+        outputXAxisTiltFile = param;
     }
     String invalidReason = validate();
     if (invalidReason != null && !invalidReason.matches("\\s*")) {
@@ -432,6 +444,14 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
         LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY, localXStretchNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
         LOCAL_SKEW_NONDEFAULT_GROUP_KEY, localSkewNondefaultGroup);
+    beamTiltOption.updateComScript(scriptCommand, true);
+    //Only using FixedOrInitialBeamTilt for fixed beam tilt
+    if (beamTiltOption.equals(FIXED_OPTION)
+        && !fixedOrInitialBeamTilt.isDefault()) {
+      fixedOrInitialBeamTilt.updateComScript(scriptCommand);
+    }
+    ParamUtilities.updateScriptParameter(scriptCommand,
+        OUTPUT_X_AXIS_TILT_FILE_KEY, outputXAxisTiltFile);
   }
 
   public void initializeDefaults() {
@@ -462,32 +482,44 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
   /**
    * @param imageFile The imageFile to set.
    */
-  public void setImageFile(String imageFile) {
+  public void setImageFile(final String imageFile) {
     this.imageFile = imageFile;
   }
 
-  public void setImagesAreBinned(long imagesAreBinned) {
+  public void setImagesAreBinned(final long imagesAreBinned) {
     this.imagesAreBinned.set(imagesAreBinned);
+  }
+
+  public void setBeamTiltOption(final int beamTiltOption) {
+    this.beamTiltOption.set(beamTiltOption);
+  }
+
+  public void setFixedOrInitialBeamTilt(final String fixedOrInitialBeamTilt) {
+    this.fixedOrInitialBeamTilt.set(fixedOrInitialBeamTilt);
+  }
+
+  public void resetFixedOrInitialBeamTilt() {
+    fixedOrInitialBeamTilt.reset();
   }
 
   /**
    * @param localAlignments The localAlignments to set.
    */
-  public void setLocalAlignments(boolean localAlignments) {
+  public void setLocalAlignments(final boolean localAlignments) {
     this.localAlignments.set(localAlignments);
   }
 
   /**
    * @param localMagDefaultGrouping The localMagDefaultGrouping to set.
    */
-  public void setLocalMagDefaultGrouping(String localMagDefaultGrouping) {
+  public void setLocalMagDefaultGrouping(final String localMagDefaultGrouping) {
     this.localMagDefaultGrouping.set(localMagDefaultGrouping);
   }
 
   /**
    * @param localMagNondefaultGroup The localMagNondefaultGroup to set.
    */
-  public void setLocalMagNondefaultGroup(String localMagNondefaultGroup)
+  public void setLocalMagNondefaultGroup(final String localMagNondefaultGroup)
       throws FortranInputSyntaxException {
     this.localMagNondefaultGroup = ParamUtilities.parse(
         localMagNondefaultGroup, true, nondefaultGroupSize);
@@ -917,6 +949,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2007/03/03 00:37:45  sueh
+ * <p> bug# 973 Added targetPatchSizeXandY.  Added set/isActive functions for
+ * <p> targetPatchSizeXandY and numberOfLocalPatchesXandY.
+ * <p>
  * <p> Revision 3.20  2005/06/14 21:55:01  sueh
  * <p> bug# 681 Added setFixXYZCoordinates().
  * <p>
