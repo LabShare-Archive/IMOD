@@ -66,6 +66,10 @@ package etomo.ui;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.12  2007/03/01 01:45:11  sueh
+ * <p> $bug# 964 Added ALT_COMMENT.  Removed BREAK, which should be handled
+ * <p> $at a higher level.
+ * <p> $
  * <p> $Revision 1.11  2006/06/14 00:40:43  sueh
  * <p> $bug# 852 Removed INDENT from Token, using WHITESPACE instead.  Added
  * <p> $active, which automatically turned off for BREAK tokens.  It is turned on by the
@@ -125,11 +129,7 @@ public final class Token {
   private Token previous = null;
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return "type=" + type + ",value=" + value;
+    return value;
   }
 
   /**
@@ -182,28 +182,6 @@ public final class Token {
    * @return
    */
   public String getValues() {
-    Token token = this;
-    StringBuffer buffer = new StringBuffer();
-    while (token != null) {
-      if (token.value == null) {
-        buffer.append(' ');
-      }
-      else {
-        buffer.append(token.value);
-      }
-      token = token.next;
-    }
-    return buffer.toString();
-  }
-
-  /**
-   * Returns a string containing all values in the
-   * token link list concatenated together.  Null values are converted to ' '.
-   * Formats with break and indent if format is true, otherwise ignores them.
-   * @param format
-   * @return
-   */
-  public String getFormattedValues(boolean format) {
     Token token = this;
     StringBuffer buffer = new StringBuffer();
     while (token != null) {
