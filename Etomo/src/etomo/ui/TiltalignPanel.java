@@ -110,13 +110,13 @@ final class TiltalignPanel {
 
   private final JPanel pnlLocalParameters = new JPanel();
   private final JPanel pnlLocalParametersBody = new JPanel();
-  private final JPanel pnlLocalPatches = new JPanel();
+  private final SpacedPanel pnlLocalPatches = new SpacedPanel(true);
   private final CheckBox cbLocalAlignments = new CheckBox(
       "Enable local alignments");
   private final ButtonGroup bgLocalPatches = new ButtonGroup();
-  private final RadioTextField rtfTargetPatchSizeXandY = RadioTextField.getInstance(
-      "Target patch size (x,y): ", bgLocalPatches);
-  private final RadioTextField rtfNLocalPatches =  RadioTextField.getInstance(
+  private final RadioTextField rtfTargetPatchSizeXandY = RadioTextField
+      .getInstance("Target patch size (x,y): ", bgLocalPatches);
+  private final RadioTextField rtfNLocalPatches = RadioTextField.getInstance(
       "# of local patches (x,y): ", bgLocalPatches);
   private final LabeledTextField ltfMinLocalPatchSize = new LabeledTextField(
       MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL);
@@ -243,6 +243,14 @@ final class TiltalignPanel {
   private final CheckBox cbProjectionStretch = new CheckBox(
       "Solve for single stretch during projection");
   private final ApplicationManager appMgr;
+  private final ButtonGroup bgBeamTiltOption = new ButtonGroup();
+  private final RadioButton rbNoBeamTilt = new RadioButton("No beam tilt",
+      TiltalignParam.FIXED_OPTION);
+  private final RadioTextField rtfFixedBeamTilt = RadioTextField.getInstance(
+      "Fixed beam tilt (degrees): ", bgBeamTiltOption,
+      TiltalignParam.FIXED_OPTION);
+  private final RadioButton rbSolveForBeamTilt = new RadioButton(
+      "Solve for beam tilt", TiltalignParam.BEAM_SEARCH_OPTION);
 
   private TiltalignPanel(final AxisID axis, final ApplicationManager appMgr) {
     this.appMgr = appMgr;
@@ -545,7 +553,15 @@ final class TiltalignPanel {
     ltfLocalSkewGroupSize.setText(params.getLocalSkewDefaultGrouping()
         .toString());
     ltfLocalSkewNonDefaultGroups.setText(params.getLocalSkewNondefaultGroup());
-
+    //rest of the radio buttons must be set from metadata because they both
+    //correspond to BeamTiltOption == 0
+    if (rbSolveForBeamTilt.equalsRadioValue(params.getBeamTiltOption())) {
+      rbSolveForBeamTilt.setSelected(true);
+    }
+    //Only using FixedOrInitialBeamTilt when BeamTiltOption==0
+    if (rtfFixedBeamTilt.isSelected()) {
+      rtfFixedBeamTilt.setText(params.getFixedOrInitialBeamTilt());
+    }
     //  Set the UI to match the data
     enableFields();
   }
@@ -553,6 +569,9 @@ final class TiltalignPanel {
   void getParameters(final MetaData metaData) {
     metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText());
     metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText());
+    metaData.setNoBeamTiltSelected(rbNoBeamTilt.isSelected(), axisID);
+    metaData.setFixedBeamTiltSelected(rtfFixedBeamTilt.isSelected(), axisID);
+    metaData.setFixedBeamTilt(rtfFixedBeamTilt.getText(), axisID);
   }
 
   /**
@@ -562,6 +581,10 @@ final class TiltalignPanel {
   void setParameters(final ConstMetaData metaData) {
     rtfTargetPatchSizeXandY.setText(metaData.getTargetPatchSizeXandY());
     rtfNLocalPatches.setText(metaData.getNumberOfLocalPatchesXandY());
+    rbNoBeamTilt.setSelected(metaData.getNoBeamTiltSelected(axisID).is());
+    rtfFixedBeamTilt
+        .setSelected(metaData.getFixedBeamTiltSelected(axisID).is());
+    rtfFixedBeamTilt.setText(metaData.getFixedBeamTilt(axisID));
   }
 
   /**
@@ -787,6 +810,21 @@ final class TiltalignPanel {
           .getText());
       //params needs to have other values set before it can set OutputZFactorFile
       params.setOutputZFactorFile();
+
+      if (rbNoBeamTilt.isSelected()) {
+        badParameter = rbNoBeamTilt.getText();
+        params.setBeamTiltOption(rbNoBeamTilt.getRadioValue().getInt());
+        params.resetFixedOrInitialBeamTilt();
+      }
+      else if (rtfFixedBeamTilt.isSelected()) {
+        badParameter = rtfFixedBeamTilt.getLabel();
+        params.setBeamTiltOption(rtfFixedBeamTilt.getRadioValue().getInt());
+        params.setFixedOrInitialBeamTilt(rtfFixedBeamTilt.getText());
+      }
+      else if (rbSolveForBeamTilt.isSelected()) {
+        badParameter = rbSolveForBeamTilt.getText();
+        params.setBeamTiltOption(rbSolveForBeamTilt.getRadioValue().getInt());
+      }
     }
     catch (FortranInputSyntaxException except) {
       String message = badParameter + " " + except.getMessage();
@@ -796,6 +834,15 @@ final class TiltalignPanel {
       String message = badParameter + " " + except.getMessage();
       throw new NumberFormatException(message);
     }
+  }
+
+  boolean isValid() {
+    if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
+      UIHarness.INSTANCE.openMessageDialog(rtfFixedBeamTilt.getLabel()
+          + " can not be empty when it is selected.", "Entry Error");
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -977,8 +1024,8 @@ final class TiltalignPanel {
 
     // Add the items to the group and to the panel
     for (int i = 0; i < items.length; i++) {
-      group.add(items[i]);
-      panel.add(items[i]);
+      group.add(items[i].getAbstractButton());
+      panel.add(items[i].getAbstractButton());
       items[i].setPreferredSize(radioButtonItemSize);
     }
   }
@@ -1078,11 +1125,11 @@ final class TiltalignPanel {
         .getBorder());
     cbLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLocalParameters.add(cbLocalAlignments);
-    pnlLocalPatches.setLayout(new BoxLayout(pnlLocalPatches, BoxLayout.Y_AXIS));
+    pnlLocalPatches.setBoxLayout(BoxLayout.Y_AXIS);
     pnlLocalPatches.setBorder(new EtchedBorder("Local Patches:").getBorder());
     pnlLocalPatches.add(rtfTargetPatchSizeXandY.getContainer());
     pnlLocalPatches.add(rtfNLocalPatches.getContainer());
-    createVariablePanel(pnlLocalParametersBody, pnlLocalPatches,
+    createVariablePanel(pnlLocalParametersBody, pnlLocalPatches.getContainer(),
         ltfMinLocalPatchSize, ltfMinLocalFiducials, null, null,
         cbFixXYZCoordinates, null, FixedDim.x10_y0);
     pnlLocalParameters.add(pnlLocalParametersBody);
@@ -1155,23 +1202,38 @@ final class TiltalignPanel {
         ltfSkewNonDefaultGroups, null, "Distortion Solution Type", null);
 
     //  Add the individual panes to the tab
-    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariable.add(pnlRotationSolution);
-    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariable.add(pnlTiltAngleSolution);
-    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariable.add(Box.createVerticalGlue());
     pnlGlobalVariable.add(pnlMagnificationSolution);
-    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariable.add(Box.createVerticalGlue());
     pnlGlobalVariable.add(pnlDistortionSolution);
+    pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlGlobalVariable.add(Box.createVerticalGlue());
+    //beam tilt
+    JPanel pnlBeamTilt = new JPanel();
+    pnlBeamTilt.setLayout(new BoxLayout(pnlBeamTilt, BoxLayout.Y_AXIS));
+    pnlBeamTilt.setBorder(new EtchedBorder("Beam Tilt").getBorder());
+    pnlBeamTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
+    //no beam tilt
+    bgBeamTiltOption.add(rbNoBeamTilt.getAbstractButton());
+    pnlBeamTilt.add(rbNoBeamTilt.getComponent());
+    //fixed beam tilt
+    pnlBeamTilt.add(rtfFixedBeamTilt.getContainer());
+    //solve for beam tilt
+    bgBeamTiltOption.add(rbSolveForBeamTilt.getAbstractButton());
+    pnlBeamTilt.add(rbSolveForBeamTilt.getComponent());
+    UIUtilities.alignComponentsX(pnlBeamTilt, Component.LEFT_ALIGNMENT);
+    pnlGlobalVariable.add(pnlBeamTilt);
     pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlGlobalVariable.add(Box.createVerticalGlue());
     cbProjectionStretch.setAlignmentX(Component.RIGHT_ALIGNMENT);
     pnlGlobalVariable.add(cbProjectionStretch);
-
     tabPane.addTab("Global Variables", pnlGlobalVariable);
-
   }
 
   private void createLocalSolutionTab() {
@@ -1273,7 +1335,7 @@ final class TiltalignPanel {
   }
 
   private void createVariablePanel(final JPanel panel,
-      final JPanel buttonPanel, final LabeledTextField field1,
+      final Container buttonPanel, final LabeledTextField field1,
       final LabeledTextField field2, final LabeledTextField field3,
       final LabeledTextField field4, final CheckBox checkBox,
       final String title, Dimension spacing) {
@@ -1598,6 +1660,14 @@ final class TiltalignPanel {
         TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY));
     ltfLocalSkewNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(
         autodoc, TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY));
+    rbNoBeamTilt.setToolTipText("The beam axis is perpendicular to tilt axis");
+    rtfFixedBeamTilt
+        .setRadioButtonToolTipText("Set the non-perpendicularity between tilt axis and beam axis.");
+    rtfFixedBeamTilt.setTextFieldToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        TiltalignParam.FIXED_OR_INITIAL_BEAM_TILT));
+    rbSolveForBeamTilt
+        .setToolTipText("Perform the minimization at a series of fixed beam tilt values and"
+            + " search for the value that gives the smallest error.");
   }
 
   private static final class TPActionListener implements ActionListener {
@@ -1615,6 +1685,11 @@ final class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.39  2007/03/03 01:08:03  sueh
+ * <p> bug# 973 Rearranged the local alignments box on the general tab.  Replaced the
+ * <p> number patches field with a radio button box which allows choosing between
+ * <p> number patches and target size.
+ * <p>
  * <p> Revision 3.38  2007/03/01 01:44:35  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
