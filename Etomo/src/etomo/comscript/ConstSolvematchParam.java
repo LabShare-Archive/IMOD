@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2007/02/05 21:40:39  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
  * <p> Revision 3.5  2006/09/13 23:10:02  sueh
  * <p> bug# 921 Added centerShiftLimit.
  * <p>
@@ -64,7 +67,7 @@ public class ConstSolvematchParam {
   public static final String B_FIDUCIAL_MODEL = "BFiducialModel";
   public static final String USE_POINTS = "UsePoints";
   public static final String CENTER_SHIFT_LIMIT_KEY = "CenterShiftLimit";
-  
+
   public static final int USE_MODEL_ONLY_OPTION = -2;
   public static final int ONE_SIDE_INVERTED_OPTION = -1;
   public static final int USE_MODEL_OPTION = 0;
@@ -90,8 +93,9 @@ public class ConstSolvematchParam {
   protected String aFiducialModel = null;
   protected String bFiducialModel = null;
   protected StringList usePoints = new StringList(0);
-  protected ScriptParameter centerShiftLimit = new ScriptParameter(EtomoNumber.Type.FLOAT, CENTER_SHIFT_LIMIT_KEY);
-  
+  protected ScriptParameter centerShiftLimit = new ScriptParameter(
+      EtomoNumber.Type.FLOAT, CENTER_SHIFT_LIMIT_KEY);
+
   /**
    * @return FortranInputString
    */
@@ -147,7 +151,7 @@ public class ConstSolvematchParam {
   public float getMaximumResidual() {
     return maximumResidual;
   }
-  
+
   public ConstEtomoNumber getCenterShiftLimit() {
     return centerShiftLimit;
   }
@@ -157,18 +161,18 @@ public class ConstSolvematchParam {
    */
   public FiducialMatch getSurfacesOrModel() {
     switch (surfacesOrModel) {
-      case USE_MODEL_ONLY_OPTION :
-        return FiducialMatch.USE_MODEL_ONLY;
-      case ONE_SIDE_INVERTED_OPTION :
-        return FiducialMatch.ONE_SIDE_INVERTED;
-      case USE_MODEL_OPTION :
-        return FiducialMatch.USE_MODEL;
-      case ONE_SIDE_OPTION :
-        return FiducialMatch.ONE_SIDE;
-      case BOTH_SIDES_OPTION :
-        return FiducialMatch.BOTH_SIDES;
-      default :
-        return FiducialMatch.NOT_SET;
+    case USE_MODEL_ONLY_OPTION:
+      return FiducialMatch.USE_MODEL_ONLY;
+    case ONE_SIDE_INVERTED_OPTION:
+      return FiducialMatch.ONE_SIDE_INVERTED;
+    case USE_MODEL_OPTION:
+      return FiducialMatch.USE_MODEL;
+    case ONE_SIDE_OPTION:
+      return FiducialMatch.ONE_SIDE;
+    case BOTH_SIDES_OPTION:
+      return FiducialMatch.BOTH_SIDES;
+    default:
+      return FiducialMatch.NOT_SET;
     }
   }
 
@@ -178,7 +182,7 @@ public class ConstSolvematchParam {
   public String getOutputFile() {
     return outputFile;
   }
-  
+
   public StringList getUsePoints() {
     return usePoints;
   }
