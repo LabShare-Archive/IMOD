@@ -22,30 +22,59 @@ public final class NameValuePair {
   public static final String rcsid = "$Id$";
 
   private final Vector names = new Vector();
-  
-  private  Token value=null;
-  private boolean isPair=true;
-  private boolean isSection = false;
-  private boolean isComment=false;
-  private boolean isEmptyLine=false;
-  
+
+  private Token value = null;
+  private boolean isPair = true;
+  private boolean isSubSection = false;
+  private boolean isComment = false;
+  private boolean isEmptyLine = false;
+
   private Section section = null;
-  private Token comment=null;
-  
+
   static NameValuePair getNameValuePairInstance(Attribute attrib, Token value) {
     return new NameValuePair(attrib, value);
   }
-  
+
   static NameValuePair getSubsectionInstance(Section subsection) {
     return new NameValuePair(subsection);
   }
-  
+
   static NameValuePair getCommentInstance(Token comment) {
     return new NameValuePair(comment);
   }
-  
+
   static NameValuePair getEmptyLineInstance() {
     return new NameValuePair();
+  }
+
+  void print(int level) {
+    Autodoc.printIndent(level);
+    if (isEmptyLine) {
+      System.out.println("empty-line");
+      return;
+    }
+    if (isComment) {
+      System.out.println(value.getValues());
+      return;
+    }
+    if (isSubSection) {
+      section.print(level);
+    }
+    else if (isPair) {
+      for (int i = 0; i < names.size(); i++) {
+        System.out.print(((Token) names.get(i)).getValues());
+        if (i < names.size() - 1) {
+          System.out.print('.');
+        }
+      }
+      System.out.print(" = ");
+      if (value == null) {
+        System.out.println();
+      }
+      else {
+        System.out.println(value.getValues());
+      }
+    }
   }
 
   private NameValuePair(Attribute attrib, Token value) {
@@ -70,21 +99,21 @@ public final class NameValuePair {
   private NameValuePair(Section section) {
     names.add(section.getTypeToken());
     value = section.getNameToken();
-    isSection = true;
+    isSubSection = true;
     this.section = section;
   }
-  
-  private NameValuePair(Token comment){
-    isComment=true;
-    this.comment=comment;
+
+  private NameValuePair(Token comment) {
+    isComment = true;
+    this.value = comment;
   }
-  
-  private NameValuePair(){
-    isEmptyLine=true;
+
+  private NameValuePair() {
+    isEmptyLine = true;
   }
-  
-  boolean isSection() {
-    return isSection;
+
+  boolean isSubSection() {
+    return isSubSection;
   }
 
   public int levels() {
@@ -110,7 +139,7 @@ public final class NameValuePair {
     if (value == null) {
       return null;
     }
-    return value.getFormattedValues(false);
+    return value.getValues();
   }
 
   public String getString() {
@@ -124,7 +153,7 @@ public final class NameValuePair {
     }
     buffer.append(" " + AutodocTokenizer.DEFAULT_DELIMITER + " ");
     if (value != null) {
-      buffer.append(value.getFormattedValues(false));
+      buffer.append(value.getValues());
     }
     return buffer.toString();
   }
@@ -139,6 +168,10 @@ public final class NameValuePair {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/03/01 01:20:15  sueh
+ * <p> bug# 964 Using static getInstance functions.  Added comment and empty line
+ * <p> settings.
+ * <p>
  * <p> Revision 1.3  2006/06/27 22:32:19  sueh
  * <p> bug# 852 Added isSection().
  * <p>

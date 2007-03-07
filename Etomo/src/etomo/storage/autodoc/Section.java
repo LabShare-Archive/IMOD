@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.9  2007/03/01 01:20:38  sueh
+ * <p> $bug# 964 Added addComment and addEmptyLine.
+ * <p> $
  * <p> $Revision 1.8  2006/06/21 17:40:20  sueh
  * <p> $bug# 852 Returning Section from addSection().
  * <p> $
@@ -193,7 +196,7 @@ public final class Section extends WriteOnlyNameValuePairList implements
     if (attrib == null) {
       return;
     }
-    NameValuePair pair =  NameValuePair.getNameValuePairInstance(attrib, attrib
+    NameValuePair pair = NameValuePair.getNameValuePairInstance(attrib, attrib
         .getValueToken(valueIndex));
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
@@ -207,22 +210,22 @@ public final class Section extends WriteOnlyNameValuePairList implements
     }
     Section section = new Section(type, name);
     section.subsection = true;
-    nameValuePairList.add( NameValuePair.getSubsectionInstance(section));
+    nameValuePairList.add(NameValuePair.getSubsectionInstance(section));
     return section;
   }
-  
+
   void addComment(Token comment) {
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
     }
-    nameValuePairList.add( NameValuePair.getCommentInstance(comment));
+    nameValuePairList.add(NameValuePair.getCommentInstance(comment));
   }
-  
+
   void addEmptyLine() {
     if (nameValuePairList == null) {
       nameValuePairList = new Vector();
     }
-    nameValuePairList.add( NameValuePair.getEmptyLineInstance());
+    nameValuePairList.add(NameValuePair.getEmptyLineInstance());
   }
 
   public NameValuePairLocation getNameValuePairLocation() {
@@ -243,16 +246,35 @@ public final class Section extends WriteOnlyNameValuePairList implements
     return pair;
   }
 
-  void print() {
-    Token token = null;
-    System.out.print("Section: " + key + ":(");
-    System.out.print(type.getValues());
-    System.out.print(",");
-    System.out.print(name.getValues());
-    System.out.println(")");
-    Attribute element = null;
+  void print(int level) {
+    if (level > 0) {
+      Autodoc.printIndent(level);
+      System.out.print("[");
+    }
+    else {
+      System.out.println();
+    }
+    System.out.print("[" + type.getValues() + " = " + name.getValues() + "]");
+    if (level > 0) {
+      System.out.println("]");
+    }
+    else {
+      System.out.println();
+    }
+    //name value pair list
+    Autodoc.printIndent(level);
+    System.out.println("LIST:");
+    if (nameValuePairList != null) {
+      NameValuePair nameValuePair = null;
+      for (int i = 0; i < nameValuePairList.size(); i++) {
+        nameValuePair = (NameValuePair) nameValuePairList.get(i);
+        nameValuePair.print(level);
+      }
+    }
+    Autodoc.printIndent(level);
+    System.out.println("MAP:");
     if (attributeMap != null) {
-      attributeMap.print();
+      attributeMap.print(level);
     }
   }
 }

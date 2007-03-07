@@ -66,26 +66,17 @@ final class AttributeMap {
     return attribute;
   }
 
-  void print() {
-    print(0);
-  }
-
   void print(int level) {
-    System.out.print(")");
     if (attributeMap != null) {
       Attribute attribute = null;
       Collection collection = attributeMap.values();
       Iterator iterator = collection.iterator();
       if (iterator.hasNext()) {
-        System.out.println(":");
         while (iterator.hasNext()) {
           attribute = (Attribute) iterator.next();
-          attribute.print(level + 1);
+          attribute.print(level);
         }
       }
-    }
-    else {
-      System.out.println();
     }
   }
   
@@ -94,12 +85,14 @@ final class AttributeMap {
   }
 
   protected String paramString() {
-    return "attributeMap=" + attributeMap/* + ",\nattributeList=" + attributeList
-        + ",\n" + super.toString()*/;
+    return "attributeMap=" + attributeMap;
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2006/01/12 17:01:34  sueh
+* <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+* <p>
 * <p> Revision 1.1  2006/01/11 21:53:22  sueh
 * <p> bug# 675 Replaced AttributeList with AttributeMap.  The sequential
 * <p> functionality is taken care off by a Vector of NameValuePair's.
