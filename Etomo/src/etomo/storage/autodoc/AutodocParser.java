@@ -101,9 +101,11 @@ import etomo.ui.Token;
  *               
  * pair => !emptyLine !DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
  *         
- * name => attribute { SEPARATOR attribute }
+ * name => base-attribute { SEPARATOR attribute }
  *         
- * attribute => ( WORD | KEYWORD )
+ * base-attribute => ( WORD | KEYWORD )
+ * 
+ * attribute => [ WORD | KEYWORD | COMMENT ]
  * 
  * value => { \EOL & EOF\ } ( EOL | EOF ) { valueline }  
  *  
@@ -146,6 +148,11 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2007/03/01 01:18:39  sueh
+ * <p> $bug# 964 Saving comments and empty lines in autodoc data structure.  Replaced
+ * <p> $startLine(), startLineDelimiter(), and startLineWithOutDelimiter() with emptyLine()
+ * <p> $and isBeginningOfLine().
+ * <p> $
  * <p> $Revision 1.6  2006/06/22 22:08:09  sueh
  * <p> $bug# 852 Added subsection(), subsectionClose(), lookAhead(), and
  * <p> $lookAheadAhead().
@@ -257,7 +264,8 @@ final class AutodocParser {
     tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment);
   }
 
-  void initialize() throws FileNotFoundException, IOException,LogFile.ReadException {
+  void initialize() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     tokenizer.initialize();
   }
 
@@ -651,13 +659,13 @@ final class AutodocParser {
   }
 
   /**
-   * name => attribute { SEPARATOR attribute }
+   * name => base-attribute { SEPARATOR attribute }
    * 
    * @throws IOException
    */
   private Attribute name(WriteOnlyNameValuePairList list) throws IOException {
     testStartFunction("name");
-    Attribute attributeTree = attribute(list);
+    Attribute attributeTree = baseAttribute(list);
     if (attributeTree == null) {
       //bad name
       reportError("Missing attribute.");
@@ -684,18 +692,43 @@ final class AutodocParser {
    * attributes.
    * @return attributeMap or null
    */
-  private Attribute attribute(WriteOnlyAttributeMap attributeMap)
+  private Attribute baseAttribute(WriteOnlyAttributeMap attributeMap)
       throws IOException {
-    testStartFunction("attribute");
+    testStartFunction("base-attribute");
     if (matchToken(Token.Type.WORD) || matchToken(Token.Type.KEYWORD)) {
-      //add the attribute to the map
-      testEndFunction("attribute", true);
-      //return the new attribute
+      //add the base-attribute to the map
+      testEndFunction("base-attribute", true);
+      //return the new base-attribute
       return (Attribute) attributeMap.addAttribute(prevToken);
     }
-    //did not find attribute
-    testEndFunction("attribute", false);
+    //did not find base-attribute
+    testEndFunction("base-attribute", false);
     return null;
+  }
+
+  /**
+   * attribute => [ WORD | KEYWORD | COMMENT ]
+   * 
+   * Adds attributes to an attribute map.  An attribute map is a tree of
+   * attributes.
+   * @return attributeMap or null
+   */
+  private Attribute attribute(WriteOnlyAttributeMap attributeMap)
+      throws IOException {
+    if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD)
+        && !token.is(Token.Type.COMMENT)) {
+      return null;
+    }
+    testStartFunction("attribute");
+    LinkList value = new LinkList(token);
+    while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)
+        || token.is(Token.Type.COMMENT)) {
+      value.append(token);
+      nextToken();
+    }
+    testEndFunction("attribute", true);
+    //add the attribute to the map
+    return (Attribute) attributeMap.addAttribute(value.getList());
   }
 
   /**
@@ -850,9 +883,9 @@ final class AutodocParser {
           + delimiterInLine);
     }
   }
-  
+
   boolean isBeginningOfLine() {
-    return tokenIndex==1;
+    return tokenIndex == 1;
   }
 
   /**
@@ -915,19 +948,23 @@ final class AutodocParser {
     }
   }
 
-  void testStreamTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
+  void testStreamTokenizer(boolean tokens) throws IOException,
+      LogFile.ReadException {
     tokenizer.testStreamTokenizer(tokens);
   }
 
-  void testPrimativeTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException,
+      LogFile.ReadException {
     tokenizer.testPrimativeTokenizer(tokens);
   }
 
-  void testAutodocTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
+  void testAutodocTokenizer(boolean tokens) throws IOException,
+      LogFile.ReadException {
     tokenizer.test(tokens);
   }
 
-  void testPreprocessor(boolean tokens) throws IOException,LogFile.ReadException {
+  void testPreprocessor(boolean tokens) throws IOException,
+      LogFile.ReadException {
     if (tokens) {
       System.err.println("(type,value):delimiterInLine");
     }
@@ -948,26 +985,18 @@ final class AutodocParser {
 
   /**
    * 
-   * @param tokens: display tokens rather then text
-   * @throws IOException
-   */
-  void test(boolean tokens) throws IOException,LogFile.ReadException {
-    test = true;
-    testWithTokens = tokens;
-    initialize();
-    parse();
-  }
-
-  /**
-   * 
    * @param tokens: display tokens rather then text.
    * @param details: display more information and throw an exception as the
    *                 first error.
    * @throws IOException
    */
-  void test(boolean tokens, boolean details) throws IOException,LogFile.ReadException {
-    detailedTest = true;
-    test(tokens);
+  void test(boolean tokens, boolean details) throws IOException,
+      LogFile.ReadException {
+    detailedTest = details;
+    test = true;
+    testWithTokens = tokens;
+    initialize();
+    parse();
   }
 
   private void testStartFunction(String functionName) {
@@ -1090,6 +1119,10 @@ final class AutodocParser {
 
     Token getList() {
       return list;
+    }
+    
+    public String toString() {
+      return getList().toString();
     }
   }
 }
