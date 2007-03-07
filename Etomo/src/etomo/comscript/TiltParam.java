@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2007/02/05 22:47:55  sueh
+ * <p> bug# 962 Made EtomoNumber type info an inner class.
+ * <p>
  * <p> Revision 3.21  2006/09/19 22:00:07  sueh
  * <p> bug# 920 Added Storables, an object for storing variables that don't going into the
  * <p> the .com file.  Storables can be added to MetaData or another storable type
@@ -157,12 +160,13 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.ui.UIExpertUtilities;
+import etomo.util.DatasetFiles;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Montagesize;
 
-public class TiltParam extends ConstTiltParam implements CommandParam {
+public final class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = "$Id$";
 
   public TiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
@@ -327,7 +331,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     loadedFromFile = true;
   }
-  
+
   /**
    * Update the script command with the current valus of this TiltParam
    * object
@@ -344,7 +348,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     newArg = new ComScriptInputArg();
     newArg.setArgument(outputFile);
     cmdLineArgs.add(newArg);
-    if (imageBinned.isUseInScript()) {
+    if (imageBinned.isNotNullAndNotDefault()) {
       newArg = new ComScriptInputArg();
       newArg.setArgument(imageBinned.getName() + " " + imageBinned.getLong());
       cmdLineArgs.add(newArg);
@@ -515,11 +519,19 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
       newArg.setArgument(X_AXIS_TILT_KEY + " " + String.valueOf(xAxisTilt));
       cmdLineArgs.add(newArg);
     }
-    if (!xTiltFile.equals("")) {
+    //backwards compatibility: if xTiltFile is empty, set the default xtilt file name
+    if (xTiltFile == null || xTiltFile.matches("\\s*")) {
+      xTiltFile = DatasetFiles.getXTiltFileName(manager, axisID);
+    }
+    //use xtilt file if the file exists
+    //This is backwards compatibility issue since the only good reason for the
+    //file not to exist is that the state comes from an earlier version.
+    if (new File(manager.getPropertyUserDir(), xTiltFile).exists()) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("XTILTFILE " + xTiltFile);
       cmdLineArgs.add(newArg);
     }
+
     if (xTiltInterp > Integer.MIN_VALUE) {
       newArg = new ComScriptInputArg();
       newArg.setArgument("XTILTINTERP " + String.valueOf(xTiltInterp));
@@ -566,7 +578,7 @@ public class TiltParam extends ConstTiltParam implements CommandParam {
     }
     return imageBinned;
   }
-  
+
   public void set(ConstTiltParam.Storables tiltParam) {
     storables.set(tiltParam);
   }
