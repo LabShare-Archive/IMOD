@@ -23,6 +23,9 @@ import etomo.storage.autodoc.Autodoc;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2007/03/03 01:01:02  sueh
+ * <p> bug# 973 Added targetPatchSizeXandY and numberOfLocalPatchesXandY.
+ * <p>
  * <p> Revision 3.32  2007/02/05 23:29:47  sueh
  * <p> bug# 962 Changed revisionNumber to an EtomoNumber, so that it is comparable.
  * <p>
@@ -200,7 +203,7 @@ import etomo.storage.autodoc.Autodoc;
 
 public class MetaData extends ConstMetaData {
   public static final String rcsid = "$Id$";
-  
+
   public MetaData(ApplicationManager manager) {
     super(manager);
     resetToDefault();
@@ -230,8 +233,14 @@ public class MetaData extends ConstMetaData {
     }
     sampleThicknessA.reset();
     sampleThicknessB.reset();
-    targetPatchSizeXandY=TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
-    numberOfLocalPatchesXandY=TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
+    targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
+    numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
+    noBeamTiltSelectedA.reset();
+    fixedBeamTiltSelectedA.reset();
+    fixedBeamTiltA.reset();
+    noBeamTiltSelectedB.reset();
+    fixedBeamTiltSelectedB.reset();
+    fixedBeamTiltB.reset();
   }
 
   public void initialize() {
@@ -627,17 +636,46 @@ public class MetaData extends ConstMetaData {
     //use default for backward compatibility, since this new parameter may not
     //be in any file yet
     targetPatchSizeXandY = props.getProperty(group + Autodoc.TILTALIGN + "."
-        + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT);
-    numberOfLocalPatchesXandY = props.getProperty(group + Autodoc.TILTALIGN + "."
-        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT);
+        + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
+        TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT);
+    numberOfLocalPatchesXandY = props.getProperty(group + Autodoc.TILTALIGN
+        + "." + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
+        TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT);
+    noBeamTiltSelectedA.load(props, prepend);
+    fixedBeamTiltSelectedA.load(props, prepend);
+    fixedBeamTiltA.load(props, prepend);
+    noBeamTiltSelectedB.load(props, prepend);
+    fixedBeamTiltSelectedB.load(props, prepend);
+    fixedBeamTiltB.load(props, prepend);
   }
-  
+
+  public void setNoBeamTiltSelected(boolean selected, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      noBeamTiltSelectedB.set(selected);
+    }
+    noBeamTiltSelectedA.set(selected);
+  }
+
+  public void setFixedBeamTiltSelected(boolean selected, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      fixedBeamTiltSelectedB.set(selected);
+    }
+    fixedBeamTiltSelectedA.set(selected);
+  }
+
+  public void setFixedBeamTilt(String fixedBeamTilt, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      this.fixedBeamTiltB.set(fixedBeamTilt);
+    }
+    this.fixedBeamTiltA.set(fixedBeamTilt);
+  }
+
   public void setTargetPatchSizeXandY(String targetPatchSizeXandY) {
-    this.targetPatchSizeXandY=targetPatchSizeXandY;
+    this.targetPatchSizeXandY = targetPatchSizeXandY;
   }
-  
+
   public void setNumberOfLocalPatchesXandY(String numberOfLocalPatchesXandY) {
-    this.numberOfLocalPatchesXandY=numberOfLocalPatchesXandY;
+    this.numberOfLocalPatchesXandY = numberOfLocalPatchesXandY;
   }
 
   public void setTiltParam(ConstTiltParam tiltParam, AxisID axisID) {

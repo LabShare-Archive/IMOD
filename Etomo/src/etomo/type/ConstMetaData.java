@@ -113,6 +113,26 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final TiltParam.Storables tiltParamB = new TiltParam.Storables();
   protected String targetPatchSizeXandY = "";
   protected String numberOfLocalPatchesXandY = "";
+  protected final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
+  protected final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTiltSelected");
+  protected final EtomoNumber fixedBeamTiltA = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, AxisID.FIRST.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
+  protected final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
+  protected final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTiltSelected");
+  protected final EtomoNumber fixedBeamTiltB = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, AxisID.SECOND.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
 
   public abstract void load(Properties props);
 
@@ -130,6 +150,8 @@ public abstract class ConstMetaData extends BaseMetaData {
     useZFactorsB.setDisplayValue(true);
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
     sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
+    noBeamTiltSelectedA.setDisplayValue(true);//backwards compatibility
+    noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
   }
 
   String getFirstAxisPrepend() {
@@ -223,8 +245,35 @@ public abstract class ConstMetaData extends BaseMetaData {
     props.setProperty(group + Autodoc.TILTALIGN + "."
         + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
         numberOfLocalPatchesXandY);
+    noBeamTiltSelectedA.store(props, prepend);
+    fixedBeamTiltSelectedA.store(props, prepend);
+    fixedBeamTiltA.store(props, prepend);
+    noBeamTiltSelectedB.store(props, prepend);
+    fixedBeamTiltSelectedB.store(props, prepend);
+    fixedBeamTiltB.store(props, prepend);
   }
-  
+
+  public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return noBeamTiltSelectedB;
+    }
+    return noBeamTiltSelectedA;
+  }
+
+  public ConstEtomoNumber getFixedBeamTiltSelected(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fixedBeamTiltSelectedB;
+    }
+    return fixedBeamTiltSelectedA;
+  }
+
+  public ConstEtomoNumber getFixedBeamTilt(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fixedBeamTiltB;
+    }
+    return fixedBeamTiltA;
+  }
+
   public String getTargetPatchSizeXandY() {
     return targetPatchSizeXandY;
   }
@@ -741,6 +790,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.39  2007/03/03 01:00:46  sueh
+ * <p> bug# 973 Added targetPatchSizeXandY and numberOfLocalPatchesXandY.
+ * <p>
  * <p> Revision 3.38  2007/02/05 23:24:53  sueh
  * <p> bug# 962 Added Model and Rejoin fields.
  * <p>
