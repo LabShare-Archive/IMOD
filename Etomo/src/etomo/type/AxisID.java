@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2006/06/29 16:52:53  sueh
+ * <p> bug# 888 getInstance():  if a null string is passed, return null.
+ * <p>
  * <p> Revision 3.8  2006/04/28 20:55:37  sueh
  * <p> bug# 787 Added getInstance(String).
  * <p>
@@ -64,13 +67,12 @@ package etomo.type;
  * <p> </p>
  */
 public class AxisID {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private static final String ONLY_EXT_STRING = "";
   private static final String FIRST_EXT_STRING = "a";
   private static final String SECOND_EXT_STRING = "b";
-  
+
   private final String name;
 
   private AxisID(String name) {
@@ -87,7 +89,7 @@ public class AxisID {
   public String toString() {
     return name;
   }
-  
+
   public static AxisID getInstance(String extension) {
     if (extension == null) {
       return null;
@@ -120,6 +122,7 @@ public class AxisID {
     }
     return "ERROR";
   }
+
   /**
    * Takes a string representation of an AxisID type and returns the correct
    * static object.  The string is case insensitive.  Null is returned if the
@@ -137,5 +140,5 @@ public class AxisID {
     }
 
     return null;
-  }  
+  }
 }
