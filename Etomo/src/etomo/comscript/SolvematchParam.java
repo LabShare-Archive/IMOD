@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2006/09/13 23:20:43  sueh
+ * <p> bug# 921 Added centerShiftLimit.
+ * <p>
  * <p> Revision 3.10  2006/05/23 21:02:30  sueh
  * <p> bug# 617 Changed DatasetFiles.getFiducialModel() to getFiducialModelName().
  * <p>
@@ -60,7 +63,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
     CommandParam {
 
   private static final float CENTER_SHIFT_LIMIT_DEFAULT = 10;
-  
+
   private final BaseManager manager;
 
   public SolvematchParam(BaseManager manager) {
@@ -245,15 +248,17 @@ public class SolvematchParam extends ConstSolvematchParam implements
     if (aFiducialFilename.matches("^\\s*\\S+?afid.xyz\\s*$")) {
       matchBToA = true;
       aFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.FIRST);
-      bFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.SECOND);
+      bFiducialModel = DatasetFiles
+          .getFiducialModelName(manager, AxisID.SECOND);
     }
     else if (aFiducialFilename.matches("^\\s*\\S+?bfid.xyz\\s*$")) {
       matchBToA = false;
       bFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.FIRST);
-      aFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.SECOND);
+      aFiducialModel = DatasetFiles
+          .getFiducialModelName(manager, AxisID.SECOND);
     }
   }
-  
+
   public void setUsePoints(String usePoints) {
     this.usePoints.parseString(usePoints);
   }
@@ -309,7 +314,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
   public void setMaximumResidual(String value) {
     this.maximumResidual = ParamUtilities.parseFloat(value);
   }
-  
+
   public void setCenterShiftLimit(String centerShiftLimit) {
     this.centerShiftLimit.set(centerShiftLimit);
   }
