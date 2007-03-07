@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2007/02/05 21:36:13  sueh
+ * <p> bug# 962 Put comscript mode info into an inner class.
+ * <p>
  * <p> Revision 3.48  2006/10/24 21:16:48  sueh
  * <p> bug# 947 Changed ProcessName.fromString() to getInstance().
  * <p>
@@ -788,7 +791,7 @@ public class ComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    TiltalignParam tiltalignParam = new TiltalignParam(appManager.getMetaData()
+    TiltalignParam tiltalignParam = new TiltalignParam(appManager,appManager.getMetaData()
         .getDatasetName(), axisID);
     initialize(tiltalignParam, align, "tiltalign", axisID);
     return tiltalignParam;
