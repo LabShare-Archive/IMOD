@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2007/03/03 01:22:22  sueh
+ * <p> bug# 977 Stop formating the Cancel, Postpone, Execute, and Advanced buttons
+ * <p> twice.
+ * <p>
  * <p> Revision 3.26  2006/07/28 19:57:24  sueh
  * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
  * <p> usingParallelProcessing because isParallel is too similar to a standard get
@@ -162,42 +166,32 @@ import etomo.util.Utilities;
 public abstract class ProcessDialog implements AbstractParallelDialog {
   public static final String rcsid = "$Id$";
 
-  protected ApplicationManager applicationManager;
+  final ApplicationManager applicationManager;
+  final AxisID axisID;
+  final DialogType dialogType;
+  final Dimension rootSize = new Dimension(620, 680);
+  final JPanel rootPanel = new JPanel();
+  //  Exit buttons
+  final JPanel pnlExitButtons = new JPanel();
+  final MultiLineButton btnCancel = new MultiLineButton("Cancel");
+  final MultiLineButton btnPostpone = new MultiLineButton("Postpone");
+  final MultiLineButton btnExecute = new MultiLineButton("Execute");
+  final MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
 
-  protected AxisID axisID;
-
-  protected boolean isAdvanced;
+  boolean isAdvanced;
 
   private DialogExitState exitState = DialogExitState.SAVE;
-
-  protected Dimension rootSize = new Dimension(620, 680);
-
-  protected JPanel rootPanel = new JPanel();
-
-  //  Exit buttons
-  protected JPanel pnlExitButtons = new JPanel();
-
-  protected MultiLineButton btnCancel = new MultiLineButton("Cancel");
-
-  protected MultiLineButton btnPostpone = new MultiLineButton("Postpone");
-
-  protected MultiLineButton btnExecute = new MultiLineButton("Execute");
-
-  protected MultiLineButton btnAdvanced = new MultiLineButton("Advanced");
-
-  protected final DialogType dialogType;
-
   private boolean displayed = false;
 
-  protected abstract void done();
+  abstract void done();
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
    * execute, and advanced) available for use.  The action adapters for the
    * buttons are already implemented.
    */
-  public ProcessDialog(ApplicationManager appManager, AxisID axisID,
-      DialogType dialogType) {
+  public ProcessDialog(final ApplicationManager appManager,
+      final AxisID axisID, DialogType dialogType) {
     displayed = true;
     applicationManager = appManager;
     this.axisID = axisID;
@@ -246,7 +240,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     return rootPanel;
   }
 
-  public void getParameters(ParallelParam param) {
+  public void getParameters(final ParallelParam param) {
   }
 
   public boolean usingParallelProcessing() {
@@ -267,16 +261,16 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     return isAdvanced;
   }
 
-  public void fixRootPanel(Dimension size) {
+  public void fixRootPanel(final Dimension size) {
     //    rootPanel.setMinimumSize(rootSize);
     //    rootPanel.setPreferredSize(rootSize);
     //    rootPanel.setMaximumSize(rootSize);
   }
 
-  protected void setDisplayed(boolean displayed) {
+  void setDisplayed(final boolean displayed) {
     this.displayed = displayed;
   }
-  
+
   public boolean isDisplayed() {
     return displayed;
   }
@@ -285,7 +279,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * Action to take when the cancel button is pressed, the default action is
    * to set the exitState attribute to CANCEL.
    */
-  public void buttonCancelAction(ActionEvent event) {
+  public void buttonCancelAction(final ActionEvent event) {
     Utilities.buttonTimestamp("cancel", dialogType.toString());
     exitState = DialogExitState.CANCEL;
     done();
@@ -295,7 +289,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * Action to take when the postpone button is pressed, the default action is
    * to set the exitState attribute to POSTPONE.
    */
-  public void buttonPostponeAction(ActionEvent event) {
+  public void buttonPostponeAction(final ActionEvent event) {
     Utilities.buttonTimestamp("postpone", dialogType.toString());
     exitState = DialogExitState.POSTPONE;
     done();
@@ -305,7 +299,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * Action to take when the execute button is pressed, the default action is
    * to set the exitState attribute to EXECUTE.
    */
-  public void buttonExecuteAction(ActionEvent event) {
+  public void buttonExecuteAction(final ActionEvent event) {
     Utilities.buttonTimestamp("done", dialogType.toString());
     exitState = DialogExitState.EXECUTE;
     done();
@@ -322,14 +316,14 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * toggles the the isAdvanced attribute as well as the state of the advanced
    * button.  Call this method first before checking the state of isAdvanced.
    */
-  public void buttonAdvancedAction(ActionEvent event) {
+  public void buttonAdvancedAction(final ActionEvent event) {
     setAdvanced(!isAdvanced);
   }
 
   /**
    * Set the advanced state variable and update the button text
    */
-  void setAdvanced(boolean state) {
+  void setAdvanced(final boolean state) {
     isAdvanced = state;
     if (isAdvanced) {
       btnAdvanced.setText("Basic");
@@ -375,20 +369,21 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
  *  Action adapters to bind the buttons their action functions
  */
 
-class buttonCancelActionAdapter implements java.awt.event.ActionListener {
+final class buttonCancelActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
-  buttonCancelActionAdapter(ProcessDialog adaptee) {
+  buttonCancelActionAdapter(final ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(final ActionEvent e) {
     adaptee.buttonCancelAction(e);
   }
 }
 
-class buttonPostponeActionAdapter implements java.awt.event.ActionListener {
+final class buttonPostponeActionAdapter implements
+    java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
@@ -396,16 +391,16 @@ class buttonPostponeActionAdapter implements java.awt.event.ActionListener {
     this.adaptee = adaptee;
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(final ActionEvent e) {
     adaptee.buttonPostponeAction(e);
   }
 }
 
-class buttonExecuteActionAdapter implements java.awt.event.ActionListener {
+final class buttonExecuteActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
-  buttonExecuteActionAdapter(ProcessDialog adaptee) {
+  buttonExecuteActionAdapter(final ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
 
@@ -414,15 +409,16 @@ class buttonExecuteActionAdapter implements java.awt.event.ActionListener {
   }
 }
 
-class buttonAdvancedActionAdapter implements java.awt.event.ActionListener {
+final class buttonAdvancedActionAdapter implements
+    java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 
-  buttonAdvancedActionAdapter(ProcessDialog adaptee) {
+  buttonAdvancedActionAdapter(final ProcessDialog adaptee) {
     this.adaptee = adaptee;
   }
 
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(final ActionEvent e) {
     adaptee.buttonAdvancedAction(e);
   }
 }
