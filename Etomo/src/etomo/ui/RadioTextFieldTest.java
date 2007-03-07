@@ -17,7 +17,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/03 01:06:18  sueh
+ * <p> bug# 973 Unit test for RadioTextField.
+ * <p> </p>
  */
 public final class RadioTextFieldTest extends TestCase {
   public static final String rcsid = "$Id$";
@@ -36,23 +39,23 @@ public final class RadioTextFieldTest extends TestCase {
   /*
    * Test method for 'etomo.ui.RadioTextField.getInstance(String, ButtonGroup)'
    */
-  public  void testGetInstance() {
+  public void testGetInstance() {
     assertNotNull("Instance was created", test);
     assertNotNull("Container was created", test.getContainer());
     assertEquals("Label was set", test.getLabel(), LABEL);
-    assertEquals("Text wasn't set", test.getText(),"");
+    assertEquals("Text wasn't set", test.getText(), "");
     assertFalse("Defaults to unselected", test.isSelected());
     validate();
     RadioTextField sameGroup = RadioTextField.getInstance("Same Group", group);
-    String error=sameGroup.validate();
-    assertNull(error,error);
+    String error = sameGroup.validate();
+    assertNull(error, error);
     validate();
   }
 
   /*
    * Test method for 'etomo.ui.RadioTextField.setText(String)'
    */
-  public  void testSetText() {
+  public void testSetText() {
     final String text = "test string";
     test.setText(text);
     assertEquals("Text was set", test.getText(), text);
@@ -62,7 +65,7 @@ public final class RadioTextFieldTest extends TestCase {
   /*
    * Test method for 'etomo.ui.RadioTextField.setEnabled(boolean)'
    */
-  public  void testSetEnabled() {
+  public void testSetEnabled() {
     test.setEnabled(false);
     validate();
     test.setEnabled(false);
@@ -82,11 +85,13 @@ public final class RadioTextFieldTest extends TestCase {
    */
   public void testSetSelected() {
     test.setSelected(true);
-    assertTrue("SetSelected worked",test.isSelected());
+    assertTrue("SetSelected worked", test.isSelected());
     RadioTextField sameGroup = RadioTextField.getInstance("Same Group", group);
     sameGroup.setSelected(true);
-    assertTrue("SetSelected worked with multiple buttons in the group",sameGroup.isSelected());
-    assertFalse("Only one button in the group can be selected",test.isSelected());
+    assertTrue("SetSelected worked with multiple buttons in the group",
+        sameGroup.isSelected());
+    assertFalse("Only one button in the group can be selected", test
+        .isSelected());
   }
 
   private void validate() {
