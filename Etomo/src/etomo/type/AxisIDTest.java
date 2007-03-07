@@ -14,7 +14,10 @@ import junit.framework.TestCase;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/01 01:21:07  sueh
+* <p> bug# 692 Adding tests
+* <p> </p>
 */
 public class AxisIDTest extends TestCase {
   public static  final String  rcsid =  "$Id$";
@@ -25,5 +28,11 @@ public class AxisIDTest extends TestCase {
     assertTrue("Should return FIRST when passed 'a'",AxisID.getInstance("a")==AxisID.FIRST);
     assertTrue("Should return SECOND when passed 'b'",AxisID.getInstance("b")==AxisID.SECOND);
     assertNull("Should return null when passed something it doesn't recognized",AxisID.getInstance("c"));
+  }
+  
+  public void testGetExtension() {
+    assertEquals("ONLY returns empty string",AxisID.ONLY.getExtension(),"");
+    assertEquals("FIRST returns 'a'",AxisID.FIRST.getExtension(),"a");
+    assertEquals("SECOND returns 'b'",AxisID.SECOND.getExtension(),"b");
   }
 }
