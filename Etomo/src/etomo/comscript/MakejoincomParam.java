@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/02/05 22:33:56  sueh
+ * <p> bug# 962 Fixed problem where -already was not being used with -rot.
+ * <p>
  * <p> Revision 1.21  2006/10/17 20:02:21  sueh
  * <p> bug# 939  Simplify genOptions() using ConstEtomoNumber.getDouble(boolean
  * <p> defaultIfNull).
@@ -295,7 +298,7 @@ public final class MakejoincomParam implements CommandDetails {
     options.add("rot");
     ScriptParameter densityRefSection = metaData
         .getDensityRefSectionParameter();
-    if (densityRefSection.isUseInScript()) {
+    if (densityRefSection.isNotNullAndNotDefault()) {
       options.add("-ref");
       options.add(densityRefSection.toString());
     }
@@ -347,7 +350,7 @@ public final class MakejoincomParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }

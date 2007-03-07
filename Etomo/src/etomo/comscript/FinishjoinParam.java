@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2007/03/01 01:12:14  sueh
+ * <p> bug# 964 Using getInstance functions in IntKeyList.
+ * <p>
  * <p> Revision 1.23  2007/02/08 02:01:13  sueh
  * <p> bug# 962 Added TRIAL_REJOIN functionality.
  * <p>
@@ -192,7 +195,8 @@ public final class FinishjoinParam implements CommandDetails {
     outputFile = new File(manager.getPropertyUserDir(), rootName
         + DatasetFiles.JOIN_EXT);
     ArrayList options;
-    if (mode == Mode.REJOIN || mode == Mode.SUPPRESS_EXECUTION||mode==Mode.TRIAL_REJOIN) {
+    if (mode == Mode.REJOIN || mode == Mode.SUPPRESS_EXECUTION
+        || mode == Mode.TRIAL_REJOIN) {
       options = genRejoinOptions();
     }
     else {
@@ -344,7 +348,7 @@ public final class FinishjoinParam implements CommandDetails {
     //Add optional size
     sizeInX = new ScriptParameter(metaData.getSizeInXParameter());
     sizeInY = new ScriptParameter(metaData.getSizeInYParameter());
-    if (sizeInX.isUseInScript() || sizeInY.isUseInScript()) {
+    if (sizeInX.isNotNullAndNotDefault() || sizeInY.isNotNullAndNotDefault()) {
       options.add("-s");
       //both numbers must exist
       options.add(sizeInX.toString() + "," + sizeInY.toString());
@@ -352,7 +356,7 @@ public final class FinishjoinParam implements CommandDetails {
     //Add optional offset
     shiftInX = new ScriptParameter(metaData.getShiftInXParameter());
     shiftInY = new ScriptParameter(metaData.getShiftInYParameter());
-    if (shiftInX.isUseInScript() || shiftInY.isUseInScript()) {
+    if (shiftInX.isNotNullAndNotDefault() || shiftInY.isNotNullAndNotDefault()) {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
@@ -367,7 +371,7 @@ public final class FinishjoinParam implements CommandDetails {
       useEveryNSlices = new EtomoNumber(metaData.getUseEveryNSlices());
       options.add(useEveryNSlices.toString());
       binning = new ScriptParameter(metaData.getTrialBinningParameter());
-      if (binning.isUseInScript()) {
+      if (binning.isNotNullAndNotDefault()) {
         options.add("-b");
         options.add(binning.toString());
       }
@@ -375,8 +379,8 @@ public final class FinishjoinParam implements CommandDetails {
     options.add(rootName);
     ArrayList sectionData = metaData.getSectionTableData();
     int sectionDataSize = sectionData.size();
-    joinStartList =  IntKeyList.getStringInstance();
-    joinEndList =  IntKeyList.getStringInstance();
+    joinStartList = IntKeyList.getStringInstance();
+    joinEndList = IntKeyList.getStringInstance();
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       joinStartList.put(i, data.getJoinFinalStart());
@@ -401,16 +405,16 @@ public final class FinishjoinParam implements CommandDetails {
       options.add(state.getJoinAlignmentRefSection(trial).toString());
     }
     //Add optional size
-    if (state.getJoinSizeInXParameter(trial).isUseInScript()
-        || state.getJoinSizeInYParameter(trial).isUseInScript()) {
+    if (state.getJoinSizeInXParameter(trial).isNotNullAndNotDefault()
+        || state.getJoinSizeInYParameter(trial).isNotNullAndNotDefault()) {
       options.add("-s");
       //both numbers must exist
       options.add(state.getJoinSizeInX(trial).toString() + ","
           + state.getJoinSizeInY(trial).toString());
     }
     //Add optional offset
-    if (state.getJoinShiftInXParameter(trial).isUseInScript()
-        || state.getJoinShiftInYParameter(trial).isUseInScript()) {
+    if (state.getJoinShiftInXParameter(trial).isNotNullAndNotDefault()
+        || state.getJoinShiftInYParameter(trial).isNotNullAndNotDefault()) {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
@@ -425,7 +429,7 @@ public final class FinishjoinParam implements CommandDetails {
       options.add(rejoinUseEveryNSlices.toString());
       ScriptParameter rejoinBinning = new ScriptParameter(metaData
           .getRejoinTrialBinningParameter());
-      if (rejoinBinning.isUseInScript()) {
+      if (rejoinBinning.isNotNullAndNotDefault()) {
         options.add("-b");
         options.add(rejoinBinning.toString());
       }

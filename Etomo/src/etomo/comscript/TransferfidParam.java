@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2007/02/05 22:48:20  sueh
+ * <p> bug# 962 Made EtomoNumber type info an inner class.
+ * <p>
  * <p> Revision 3.12  2006/06/14 21:18:34  sueh
  * <p> bug# 873 Added mirrorInX.
  * <p>
@@ -145,9 +148,9 @@ import etomo.util.DatasetFiles;
 
 public final class TransferfidParam implements Storable {
   public static final String rcsid = "$Id$";
-  
+
   protected static final String group = "Transferfid";
-  
+
   private String inputImageFile;
   private String outputImageFile;
   private String inputModelFile;
@@ -156,10 +159,14 @@ public final class TransferfidParam implements Storable {
   private final EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
   private final EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
   //null => both, -1 => -90, 1=> +90  
-  private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER, "SearchDirection"); 
-  private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.Type.LONG, "CenterViewA");
-  private final EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.Type.LONG, "CenterViewB");
-  private final ScriptParameter numberViews = new ScriptParameter(EtomoNumber.Type.INTEGER, "NumberViews");
+  private final EtomoNumber searchDirection = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "SearchDirection");
+  private final EtomoNumber centerViewA = new EtomoNumber(
+      EtomoNumber.Type.LONG, "CenterViewA");
+  private final EtomoNumber centerViewB = new EtomoNumber(
+      EtomoNumber.Type.LONG, "CenterViewB");
+  private final ScriptParameter numberViews = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "NumberViews");
   private final EtomoBoolean2 mirrorInX = new EtomoBoolean2("MirrorInX");
 
   private ConstMetaData metaData = null;
@@ -175,11 +182,11 @@ public final class TransferfidParam implements Storable {
       axisID = AxisID.FIRST;
     }
     groupString = group + axisID.getExtension();
-    searchDirection.setValidValues(new int[] {-1,1});
+    searchDirection.setValidValues(new int[] { -1, 1 });
     numberViews.setDisplayValue(5);
     reset();
   }
-  
+
   private void reset() {
     inputImageFile = "";
     outputImageFile = "";
@@ -189,7 +196,7 @@ public final class TransferfidParam implements Storable {
     bToA.reset();
     resetStorableFields();
   }
-  
+
   /**
    * reset fields that are loaded and stored
    *
@@ -202,22 +209,22 @@ public final class TransferfidParam implements Storable {
     numberViews.reset();
     mirrorInX.reset();
   }
-  
+
   public void initialize() {
     setCenterViewAResetValue();
     setCenterViewBResetValue();
     centerViewA.reset();
     centerViewB.reset();
   }
-  
+
   public void setMirrorInX(boolean mirrorInX) {
     this.mirrorInX.set(mirrorInX);
   }
-  
+
   public ConstEtomoNumber getMirrorInX() {
     return mirrorInX;
   }
-  
+
   private void setCenterViewAResetValue() {
     if (metaData == null) {
       metaData = manager.getConstMetaData();
@@ -231,15 +238,16 @@ public final class TransferfidParam implements Storable {
     }
     setCenterViewResetValue(centerViewB, metaData.getTiltAngleSpecB());
   }
-  
+
   private void setCenterViewResetValue(EtomoNumber centerView,
       TiltAngleSpec tiltAngleSpec) {
     if (tiltAngleSpec.getType() != TiltAngleType.RANGE) {
       return;
     }
-    centerView.setDisplayValue(Math.round(1 - tiltAngleSpec.getRangeMin() / tiltAngleSpec.getRangeStep()));
+    centerView.setDisplayValue(Math.round(1 - tiltAngleSpec.getRangeMin()
+        / tiltAngleSpec.getRangeStep()));
   }
-  
+
   /**
    * get deep copies of fields that are loaded and stored
    * @param that
@@ -252,7 +260,7 @@ public final class TransferfidParam implements Storable {
     that.numberViews.set(numberViews);
     that.mirrorInX.set(mirrorInX);
   }
-  
+
   /**
    * set deep copies of fields that are loaded and stored
    * @param that
@@ -265,11 +273,11 @@ public final class TransferfidParam implements Storable {
     numberViews.set(that.numberViews);
     mirrorInX.set(that.mirrorInX);
   }
-  
+
   public void store(Properties props) {
     store(props, "");
   }
-  
+
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     runMidas.store(props, prepend);
@@ -279,7 +287,7 @@ public final class TransferfidParam implements Storable {
     numberViews.store(props, prepend);
     mirrorInX.store(props, prepend);
   }
-  
+
   public void load(Properties props) {
     load(props, "");
   }
@@ -287,14 +295,14 @@ public final class TransferfidParam implements Storable {
   public void load(Properties props, String prepend) {
     resetStorableFields();
     prepend = createPrepend(prepend);
-    
+
     runMidas.load(props, prepend);
     searchDirection.load(props, prepend);
     centerViewA.load(props, prepend);
     centerViewB.load(props, prepend);
     numberViews.load(props, prepend);
     mirrorInX.load(props, prepend);
-  } 
+  }
 
   protected String createPrepend(String prepend) {
     if (prepend == "") {
@@ -316,7 +324,7 @@ public final class TransferfidParam implements Storable {
     command.add(ApplicationManager.getIMODBinPath() + "transferfid");
     command.add("-P");
     //StringBuffer commandLine = new StringBuffer("tcsh -f "
-   //     + ApplicationManager.getIMODBinPath() + "transferfid -P ");
+    //     + ApplicationManager.getIMODBinPath() + "transferfid -P ");
 
     if (bToA.is()) {
       command.add("-b");
@@ -351,7 +359,7 @@ public final class TransferfidParam implements Storable {
       command.add(centerViewB.toString());
     }
 
-    if (numberViews.isUseInScript()) {
+    if (numberViews.isNotNullAndNotDefault()) {
       command.add("-n");
       command.add(numberViews.toString());
     }
@@ -365,7 +373,7 @@ public final class TransferfidParam implements Storable {
       command.add("-a");
       command.add("-90");
     }
-    
+
     if (mirrorInX.is()) {
       command.add("-x");
     }
