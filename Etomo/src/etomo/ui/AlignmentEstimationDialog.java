@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2007/03/03 01:01:16  sueh
+ * <p> bug# 973 Getting/setting metadata in Fine Align dialog.
+ * <p>
  * <p> Revision 3.24  2007/02/09 00:43:53  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -284,7 +287,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     fixRootPanel(rootSize);
     btnComputeAlignment = (MultiLineButton) appMgr
         .getProcessResultDisplayFactory(axisID).getComputeAlignment();
-    pnlTiltalign =  TiltalignPanel.getInstance(axisID, appMgr);
+    pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr);
     btnExecute.setText("Done");
 
     //  Create the first tiltalign panel
@@ -317,14 +320,9 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
     //  Construct the main panel from the alignment panel and exist buttons
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    //    rootPanel.setLayout(new BorderLayout());
     JScrollPane scrollPane = new JScrollPane(pnlAlignEst);
     rootPanel.add(pnlAlignEst, BorderLayout.CENTER);
     addExitButtons();
-    //rootPanel.add(Box.createVerticalGlue());
-    //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    //rootPanel.add(pnlExitButtons, BorderLayout.SOUTH);
-    //rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the action listeners to the buttons
     actionListener = new AlignmentEstimationActionListner(this);
@@ -354,20 +352,20 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     btnComputeAlignment.setButtonState(screenState
         .getButtonState(btnComputeAlignment.getButtonStateKey()));
   }
-  
+
   public void setParameters(ConstMetaData metaData) {
     pnlTiltalign.setParameters(metaData);
   }
-  
-  public void getParameters(MetaData metaData) {
+
+  public void getParameters(final MetaData metaData) {
     pnlTiltalign.getParameters(metaData);
   }
 
-  public void setTiltalignParams(TiltalignParam tiltalignParam) {
+  public void setTiltalignParams(final TiltalignParam tiltalignParam) {
     pnlTiltalign.setParameters(tiltalignParam);
   }
 
-  public void getTiltalignParams(TiltalignParam tiltalignParam)
+  public void getTiltalignParams(final TiltalignParam tiltalignParam)
       throws FortranInputSyntaxException {
     try {
       pnlTiltalign.getParameters(tiltalignParam);
@@ -376,13 +374,16 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
       String message = "Axis: " + axisID.getExtension() + except.getMessage();
       throw new FortranInputSyntaxException(message);
     }
+  }
 
+  public boolean isValid() {
+    return pnlTiltalign.isValid();
   }
 
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
     String[] manPagelabel = { "Tiltalign", "Xfproduct", "3dmod" };
     String[] manPage = { "tiltalign.html", "xfproduct.html", "3dmod.html" };
     Vector logFileLabel = new Vector(1);
@@ -415,30 +416,32 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         logFile, applicationManager, alignCommandName, axisID);
   }
 
-  protected void done() {
+  void done() {
     if (applicationManager.doneAlignmentEstimationDialog(axisID)) {
       btnComputeAlignment.removeActionListener(actionListener);
       setDisplayed(false);
     }
   }
 
-  public void buttonAdvancedAction(ActionEvent event) {
+  public void buttonAdvancedAction(final ActionEvent event) {
     super.buttonAdvancedAction(event);
     updateAdvanced(isAdvanced);
   }
 
   //  This is a separate function so it can be called at initialization time
   //  as well as from the button action above
-  private void updateAdvanced(boolean state) {
+  private void updateAdvanced(final boolean state) {
     pnlTiltalign.setAdvanced(isAdvanced);
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+  public void run3dmod(final Run3dmodButton button,
+      final Run3dmodMenuOptions menuOptions) {
     run3dmod(button.getActionCommand(), menuOptions);
   }
 
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+  private void run3dmod(final String command,
+      final Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, menuOptions, null,
           ImodProcess.RESIDUAL_MODE);
@@ -449,7 +452,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   }
 
   //  Event handler for panel buttons
-  protected void buttonAction(ActionEvent event) {
+  void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment);
@@ -481,7 +484,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
    */
   private void setToolTipText() {
     String text;
-    btnComputeAlignment.setToolTipText("Run Tiltalign with current parameters.");
+    btnComputeAlignment
+        .setToolTipText("Run Tiltalign with current parameters.");
     btnImod.setToolTipText("View fiducial model on the image stack in 3dmod.");
     btnView3DModel
         .setToolTipText("View model of solved 3D locations of fiducial points in 3dmodv.");
