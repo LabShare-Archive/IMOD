@@ -26,6 +26,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2007/03/01 01:11:42  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 3.14  2007/02/05 21:31:34  sueh
  * <p> bug# 962  Put EtomoNumber type info into an inner class.
  * <p>
@@ -122,13 +125,11 @@ import etomo.type.ScriptParameter;
  * <p> </p>
  */
 
-public class BeadtrackParam extends OldBeadtrackParam
-  implements CommandParam {
-  public static final String rcsid =
-    "$Id$";
+public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
+  public static final String rcsid = "$Id$";
 
   //Const code
-  
+
   public static final String INPUT_FILE_KEY = "ImageFile";
   private static final String PIECE_LIST_FILE_KEY = "PieceListFile";
   public static final String SEED_MODEL_FILE_KEY = "InputSeedModel";
@@ -136,7 +137,7 @@ public class BeadtrackParam extends OldBeadtrackParam
   public static final String SKIP_VIEW_LIST_KEY = "SkipViews";
   private static final String IMAGE_ROTATION_KEY = "RotationAngle";
   public static final String ADDITIONAL_VIEW_GROUPS_KEY = "SeparateGroup";
-  public static final String TILT_ANGLE_GROUP_PARAMS_KEY = "TiltDefaultGrouping"; 
+  public static final String TILT_ANGLE_GROUP_PARAMS_KEY = "TiltDefaultGrouping";
   public static final String TILT_ANGLE_GROUPS_KEY = "TiltNondefaultGroup";
   public static final String MAGNIFICATION_GROUP_PARAMS_KEY = "MagDefaultGrouping";
   public static final String MAGNIFICATION_GROUPS_KEY = "MagNondefaultGroup";
@@ -151,23 +152,23 @@ public class BeadtrackParam extends OldBeadtrackParam
   public static final String RESCUE_RELAXATION_PARAMS_KEY = "RescueRelaxationDensityAndDistance";
   public static final String RESIDUAL_DISTANCE_LIMIT_KEY = "PostFitRescueResidual";
   public static final String MEAN_RESID_CHANGE_LIMITS_KEY = "ResidualsToAnalyzeMaxAndMin";
-  public static final String DELETION_PARAMS_KEY ="DeletionCriterionMinAndSD";
+  public static final String DELETION_PARAMS_KEY = "DeletionCriterionMinAndSD";
   public static final String DENSITY_RELAXATION_POST_FIT_KEY = "DensityRelaxationPostFit";
   public static final String MAX_RESCUE_DISTANCE_KEY = "MaxRescueDistance";
   public static final String MIN_TILT_RANGE_TO_FIND_AXIS_KEY = "MinTiltRangeToFindAxis";
   public static final String MIN_TILT_RANGE_TO_FIND_ANGLES_KEY = "MinTiltRangeToFindAngles";
   public static final String CENTROID_RADIUS_KEY = "CentroidRadius";
   public static final String LIGHT_BEADS_KEY = "LightBeads";
-  
+
   public static final String LOCAL_AREA_TRACKING_KEY = "LocalAreaTracking";
   public static final String LOCAL_AREA_TARGET_SIZE_KEY = "LocalAreaTargetSize";
   public static final String MIN_BEADS_IN_AREA_KEY = "MinBeadsInArea";
   public static final String MIN_OVERLAP_BEADS_KEY = "MinOverlapBeads";
   public static final String MAX_VIEWS_IN_ALIGN_KEY = "MaxViewsInAlign";
   public static final String ROUNDS_OF_TRACKING_KEY = "RoundsOfTracking";
-  
+
   private boolean initialized = false;
-  
+
   private StringList skipViews;//was viewSkipList
   private ScriptParameter rotationAngle;//was imageRotation
   private ScriptParameter tiltDefaultGrouping;//was tiltAngleGroupParams
@@ -183,20 +184,20 @@ public class BeadtrackParam extends OldBeadtrackParam
   private ScriptParameter postFitRescueResidual;//was residualDistanceLimit
   private ScriptParameter densityRelaxationPostFit;//was secondPassParams(0)
   private ScriptParameter maxRescueDistance;//was secondPassParams(1)
-  
+
   private EtomoBoolean2 localAreaTracking;
   private ScriptParameter localAreaTargetSize;
   private ScriptParameter minBeadsInArea;
   private ScriptParameter minOverlapBeads;
   private ScriptParameter maxViewsInAlign;
   private ScriptParameter roundsOfTracking;
-  
+
   private AxisID axisID;
-  
+
   public BeadtrackParam(AxisID axisID) {
     this.axisID = axisID;
   }
-  
+
   private void initialize() {
     if (initialized) {
       reset();
@@ -256,12 +257,12 @@ public class BeadtrackParam extends OldBeadtrackParam
     roundsOfTracking = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROUNDS_OF_TRACKING_KEY, requiredMap);
   }
-  
+
   private void reset() {
     if (!initialized) {
       initialize();
     }
-    
+
     inputFile = null;
     pieceListFile = null;
     seedModelFile = null;
@@ -270,7 +271,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     rotationAngle.reset();
     additionalViewGroups.reset();
     tiltAngleSpec.reset();
-    
+
     tiltDefaultGrouping.reset();
     tiltAngleGroups = null;
     magDefaultGrouping.reset();
@@ -284,7 +285,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     minTiltRangeToFindAngles.reset();
     searchBoxPixels.reset();
     maxBeadsToAverage.reset();
-    
+
     fiducialExtrapolationParams.set(0, 7);
     fiducialExtrapolationParams.set(1, 3);
 
@@ -294,11 +295,11 @@ public class BeadtrackParam extends OldBeadtrackParam
     postFitRescueResidual.reset();
     densityRelaxationPostFit.reset();
     maxRescueDistance.reset();
-    
+
     meanResidChangeLimits.set(0, 9);
     meanResidChangeLimits.set(1, 5);
     deletionParams.reset();
-    
+
     localAreaTracking.reset();
     localAreaTargetSize.reset();
     minBeadsInArea.reset();
@@ -306,7 +307,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     maxViewsInAlign.reset();
     roundsOfTracking.reset();
   }
-  
+
   private HashMap getRequiredMap() {
     Autodoc autodoc = null;
     try {
@@ -327,75 +328,74 @@ public class BeadtrackParam extends OldBeadtrackParam
     return autodoc.getAttributeValues(EtomoAutodoc.FIELD_SECTION_NAME,
         EtomoAutodoc.REQUIRED_ATTRIBUTE_NAME);
   }
-  
+
   public String getSkipViews() {
     return skipViews.toString();
   }
-  
+
   public ConstEtomoNumber getRotationAngle() {
     return rotationAngle;
   }
-  
+
   /**
    * @return
    */
   public ConstEtomoNumber getTiltDefaultGrouping() {
     return tiltDefaultGrouping;
   }
-  
+
   public int getMagnificationGroupSize() {
     return magDefaultGrouping.getInt();
   }
-  
+
   public ConstEtomoNumber getMinViewsForTiltalign() {
     return minViewsForTiltalign;
   }
-  
+
   public ConstEtomoNumber getCentroidRadius() {
     return centroidRadius;
   }
-  
+
   public ConstEtomoNumber getLightBeads() {
     return lightBeads;
   }
-  
+
   public ConstEtomoNumber getMaxGapSize() {
     return maxGapSize;
   }
-  
+
   public ConstEtomoNumber getMinTiltRangeToFindAxis() {
     return minTiltRangeToFindAxis;
   }
-  
+
   public ConstEtomoNumber getMinTiltRangeToFindAngles() {
     return minTiltRangeToFindAngles;
   }
-  
-  
+
   public ConstEtomoNumber getMaxBeadsToAverage() {
     return maxBeadsToAverage;
   }
-  
+
   public ConstEtomoNumber getDistanceRescueCriterion() {
     return distanceRescueCriterion;
   }
-  
+
   public ConstEtomoNumber getPostFitRescueResidual() {
     return postFitRescueResidual;
   }
-  
+
   public ConstEtomoNumber getDensityRelaxationPostFit() {
     return densityRelaxationPostFit;
   }
-  
+
   public ConstEtomoNumber getMaxRescueDistance() {
     return maxRescueDistance;
   }
-  
+
   public ConstEtomoNumber getLocalAreaTracking() {
     return localAreaTracking;
   }
-  
+
   public ConstEtomoNumber getLocalAreaTargetSize() {
     return localAreaTargetSize;
   }
@@ -403,22 +403,21 @@ public class BeadtrackParam extends OldBeadtrackParam
   public ConstEtomoNumber getMinBeadsInArea() {
     return minBeadsInArea;
   }
-  
+
   public ConstEtomoNumber getMinOverlapBeads() {
     return minOverlapBeads;
   }
-  
+
   public ConstEtomoNumber getMaxViewsInAlign() {
     return maxViewsInAlign;
   }
-  
+
   public ConstEtomoNumber getRoundsOfTracking() {
     return roundsOfTracking;
   }
-    
 
   //Non-const code
-  
+
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the beadtrack command
@@ -472,7 +471,7 @@ public class BeadtrackParam extends OldBeadtrackParam
           .getValue(MEAN_RESID_CHANGE_LIMITS_KEY));
       deletionParams
           .validateAndSet(scriptCommand.getValue(DELETION_PARAMS_KEY));
-      
+
       localAreaTracking.parse(scriptCommand);
       localAreaTargetSize.parse(scriptCommand);
       minBeadsInArea.parse(scriptCommand);
@@ -481,7 +480,7 @@ public class BeadtrackParam extends OldBeadtrackParam
       roundsOfTracking.parse(scriptCommand);
     }
   }
-  
+
   private void convertToPIP(ComScriptCommand scriptCommand)
       throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
@@ -489,7 +488,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     oldParam.parseComScriptCommand(scriptCommand);
     set(oldParam);
   }
-  
+
   public void initializeDefaults() {
     initialize();
   }
@@ -508,7 +507,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     }
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-    
+
     ParamUtilities.updateScriptParameter(scriptCommand, INPUT_FILE_KEY,
         inputFile);
     ParamUtilities.updateScriptParameter(scriptCommand, PIECE_LIST_FILE_KEY,
@@ -537,14 +536,14 @@ public class BeadtrackParam extends OldBeadtrackParam
     ParamUtilities
         .updateScriptParameter(scriptCommand, FILL_GAPS_KEY, fillGaps);
     maxGapSize.updateComScript(scriptCommand);
-    
+
     localAreaTracking.updateComScript(scriptCommand);
     localAreaTargetSize.updateComScript(scriptCommand);
     minBeadsInArea.updateComScript(scriptCommand);
     minOverlapBeads.updateComScript(scriptCommand);
     maxViewsInAlign.updateComScript(scriptCommand);
     roundsOfTracking.updateComScript(scriptCommand);
-    
+
     minTiltRangeToFindAxis.updateComScript(scriptCommand);
     minTiltRangeToFindAngles.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, SEARCH_BOX_PIXELS_KEY,
@@ -565,7 +564,7 @@ public class BeadtrackParam extends OldBeadtrackParam
     ParamUtilities.updateScriptParameter(scriptCommand, DELETION_PARAMS_KEY,
         deletionParams);
   }
-  
+
   private void set(OldConstBeadtrackParam param) {
     if (param == null) {
       throw new IllegalStateException("param is null");
@@ -590,11 +589,12 @@ public class BeadtrackParam extends OldBeadtrackParam
     if (param.magnificationGroupParams != null) {
       magDefaultGrouping.set(param.magnificationGroupParams, 0);
     }
-    
+
     if (param.magnificationGroups != null) {
       magnificationGroups = new FortranInputString[param.magnificationGroups.length];
       for (int i = 0; i < param.magnificationGroups.length; i++) {
-        magnificationGroups[i] = new FortranInputString(param.magnificationGroups[i]);
+        magnificationGroups[i] = new FortranInputString(
+            param.magnificationGroups[i]);
       }
     }
     minViewsForTiltalign.set(param.nMinViews);
@@ -633,31 +633,31 @@ public class BeadtrackParam extends OldBeadtrackParam
     if (param.deletionParams != null) {
       deletionParams.set(param.deletionParams);
     }
-    
+
     localAreaTargetSize.set(1000);
     minBeadsInArea.set(8);
     minOverlapBeads.set(5);
     roundsOfTracking.set(2);
   }
-  
+
   public void setSkipViews(String skipViews) {
     this.skipViews.parseString(skipViews);
   }
-  
+
   public ConstEtomoNumber setRotationAngle(int rotationAngle) {
     return this.rotationAngle.set(rotationAngle);
   }
-  
+
   public ConstEtomoNumber setTiltDefaultGrouping(String tiltDefaultGrouping) {
     return this.tiltDefaultGrouping.set(tiltDefaultGrouping);
   }
-  
+
   public void setTiltAngleGroups(String newTiltAngleGroups)
       throws FortranInputSyntaxException {
     tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true,
         nondefaultGroupSize);
   }
-  
+
   public ConstEtomoNumber setMagDefaultGrouping(String magnificationGroupParams) {
     return this.magDefaultGrouping.set(magnificationGroupParams);
   }
@@ -667,11 +667,11 @@ public class BeadtrackParam extends OldBeadtrackParam
     magnificationGroups = ParamUtilities.parse(newMagnificationGroups, true,
         nondefaultGroupSize);
   }
-  
+
   public ConstEtomoNumber setMinViewsForTiltalign(String minViewsForTiltalign) {
     return this.minViewsForTiltalign.set(minViewsForTiltalign);
   }
-  
+
   public ConstEtomoNumber setCentroidRadius(String centroidRadius) {
     return this.centroidRadius.set(centroidRadius);
   }
@@ -679,61 +679,63 @@ public class BeadtrackParam extends OldBeadtrackParam
   public ConstEtomoNumber setLightBeads(boolean lightBeads) {
     return this.lightBeads.set(lightBeads);
   }
-  
+
   public ConstEtomoNumber setMaxGapSize(String maxGapSize) {
     return this.maxGapSize.set(maxGapSize);
   }
-  
-  public ConstEtomoNumber setMinTiltRangeToFindAxis(String minTiltRangeToFindAxis) {
+
+  public ConstEtomoNumber setMinTiltRangeToFindAxis(
+      String minTiltRangeToFindAxis) {
     return this.minTiltRangeToFindAxis.set(minTiltRangeToFindAxis);
   }
-  
-  public ConstEtomoNumber setMinTiltRangeToFindAngles(String minTiltRangeToFindAngles) {
+
+  public ConstEtomoNumber setMinTiltRangeToFindAngles(
+      String minTiltRangeToFindAngles) {
     return this.minTiltRangeToFindAngles.set(minTiltRangeToFindAngles);
   }
-  
+
   public ConstEtomoNumber setMaxBeadsToAverage(String maxBeadsToAverage) {
     return this.maxBeadsToAverage.set(maxBeadsToAverage);
   }
-  
-  public ConstEtomoNumber setDistanceRescueCriterion(String distanceRescueCriterion) {
+
+  public ConstEtomoNumber setDistanceRescueCriterion(
+      String distanceRescueCriterion) {
     return this.distanceRescueCriterion.set(distanceRescueCriterion);
   }
-  
+
   public ConstEtomoNumber setPostFitRescueResidual(String postFitRescueResidual) {
     return this.postFitRescueResidual.set(postFitRescueResidual);
   }
-  
+
   public ConstEtomoNumber setDensityRelaxationPostFit(
       String densityRelaxationPostFit) {
     return this.densityRelaxationPostFit.set(densityRelaxationPostFit);
   }
-  
-  public ConstEtomoNumber setMaxRescueDistance(
-      String maxRescueDistance) {
+
+  public ConstEtomoNumber setMaxRescueDistance(String maxRescueDistance) {
     return this.maxRescueDistance.set(maxRescueDistance);
   }
 
   public ConstEtomoNumber setLocalAreaTracking(boolean localAreaTracking) {
     return this.localAreaTracking.set(localAreaTracking);
   }
-  
+
   public ConstEtomoNumber setLocalAreaTargetSize(String localAreaTargetSize) {
     return this.localAreaTargetSize.set(localAreaTargetSize);
   }
-  
+
   public ConstEtomoNumber setMinBeadsInArea(String minBeadsInArea) {
     return this.minBeadsInArea.set(minBeadsInArea);
   }
-  
+
   public ConstEtomoNumber setMinOverlapBeads(String minOverlapBeads) {
     return this.minOverlapBeads.set(minOverlapBeads);
   }
-  
+
   public ConstEtomoNumber setMaxViewsInAlign(String maxViewsInAlign) {
     return this.maxViewsInAlign.set(maxViewsInAlign);
   }
-  
+
   public ConstEtomoNumber setRoundsOfTracking(String roundsOfTracking) {
     return this.roundsOfTracking.set(roundsOfTracking);
   }
