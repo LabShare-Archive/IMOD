@@ -30,7 +30,7 @@ import junit.framework.TestCase;
  */
 public final class AutodocTest extends TestCase {
   public static final String rcsid = "$Id$";
-  
+
   private static final String TEST_DIR_NAME = "Autodoc";
 
   private BaseManager manager;
@@ -38,10 +38,10 @@ public final class AutodocTest extends TestCase {
   public AutodocTest(String test) {
     super(test);
   }
-  
-  public void setUp() throws Exception{
+
+  public void setUp() throws Exception {
     super.setUp();
-    File testDir =new File(AutodocTests.TEST_ROOT_DIR,TEST_DIR_NAME);
+    File testDir = new File(AutodocTests.TEST_ROOT_DIR, TEST_DIR_NAME);
     testDir.mkdirs();
     EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
     manager = (BaseManager) EtomoDirector.getInstance()
@@ -51,16 +51,27 @@ public final class AutodocTest extends TestCase {
 
   public void testCpu() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
-        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME, "cpu.adoc"));
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites
+        .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
+            TEST_DIR_NAME, "cpu.adoc"));
     assertFalse(autodoc.isError());
   }
 
   public void testMatlabParamFile() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
     Autodoc autodoc = Autodoc.getMatlabInstance(TestUtilites.getVector(manager,
-        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME, "master.prm"),
-        false);
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "master.prm"), false);
+    assertFalse(autodoc.isError());
+  }
+
+  public void testTestFile() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "fine-align.adoc"));
+    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,true,true);
+    //autodoc.printStoredData();
     assertFalse(autodoc.isError());
   }
 
@@ -118,6 +129,9 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/05 21:28:55  sueh
+ * <p> bug# 964 Added tests for cpu.adoc and master.prm.
+ * <p>
  * <p> Revision 1.9  2007/03/01 01:19:05  sueh
  * <p> bug# 964 Added LogFile to PrimativeTokenizer.
  * <p>

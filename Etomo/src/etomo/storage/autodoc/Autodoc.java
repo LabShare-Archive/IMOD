@@ -115,7 +115,6 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private static HashMap UITEST_AXIS_MAP = null;
 
   private static String absoluteDir = null;
-  private static boolean internalTest = false;
 
   private final boolean mutable;
   private final boolean allowAltComment;
@@ -138,29 +137,55 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     this.mutable = mutable;
     this.allowAltComment = allowAltComment;
   }
-  
-  public static Autodoc getInstance(File file) throws IOException,LogFile.ReadException{
+
+  public static Autodoc getInstance(File file) throws IOException,
+      LogFile.ReadException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(false, false);
     try {
-    autodoc.initialize(file);
-    return autodoc;
+      autodoc.initialize(file, true);
+      return autodoc;
     }
     catch (FileNotFoundException e) {
       return null;
     }
   }
 
-  public static Autodoc getMatlabInstance(File file, boolean mutable) throws IOException,LogFile.ReadException{
+  /**
+   * For testing initializes but doesn't parse and store data.  Call
+   * runInternalTest on the resulting instance.
+   * @param file
+   * @param storeData
+   * @return
+   * @throws IOException
+   * @throws LogFile.ReadException
+   */
+  public static Autodoc getTestInstance(File file) throws IOException,
+      LogFile.ReadException {
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(false, false);
+    try {
+      autodoc.initialize(file, false);
+      return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
+  public static Autodoc getMatlabInstance(File file, boolean mutable)
+      throws IOException, LogFile.ReadException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(mutable, true);
     try {
-    autodoc.initialize(file);
-    return autodoc;
+      autodoc.initialize(file, true);
+      return autodoc;
     }
     catch (FileNotFoundException e) {
       return null;
@@ -192,7 +217,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     autodoc = new Autodoc();
     if (name.equals(UITEST_AXIS)) {
-      autodoc.initialize(fileName, axisID, "IMOD_UITEST_SOURCE");
+      autodoc.initialize(fileName, axisID, "IMOD_UITEST_SOURCE", true);
       return autodoc;
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
@@ -206,9 +231,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getInstance(File directory,
-      String autodocFileName, AxisID axisID) throws FileNotFoundException,
-      IOException,LogFile.ReadException {
+  public static Autodoc getInstance(File directory, String autodocFileName,
+      AxisID axisID) throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     if (autodocFileName == null) {
       return null;
     }
@@ -336,9 +361,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
-  
+
   public static void resetAbsoluteDir() {
-    absoluteDir=null;
+    absoluteDir = null;
   }
 
   public static void setAbsoluteDir(String absoluteDir) {
@@ -511,19 +536,38 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return attributeValues;
   }
 
-  void print() {
+  void printStoredData() {
     System.out.println("Printing stored data:");
-    if (attributeMap != null) {
-      attributeMap.print();
+    //name value pair list
+    System.out.println("LIST:");
+    if (nameValuePairList != null) {
+      NameValuePair nameValuePair = null;
+      for (int i = 0; i < nameValuePairList.size(); i++) {
+        nameValuePair = (NameValuePair) nameValuePairList.get(i);
+        nameValuePair.print(0);
+      }
     }
-    if (sectionList == null) {
-      System.out.println("sectionList is null");
+    //attribute map
+    System.out.println("MAP:");
+    if (attributeMap != null) {
+      attributeMap.print(0);
+    }
+    //section list
+    if (sectionList != null) {
+      Section section = null;
+      for (int i = 0; i < sectionList.size(); i++) {
+        section = (Section) sectionList.get(i);
+        section.print(0);
+      }
+    }
+  }
+  
+  static void printIndent(int level) {
+    if (level == 0) {
       return;
     }
-    Section section = null;
-    for (int i = 0; i < sectionList.size(); i++) {
-      section = (Section) sectionList.get(i);
-      section.print();
+    for (int i = 0; i < level; i++) {
+      System.out.print("  ");
     }
   }
 
@@ -590,7 +634,8 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     File dir = new File(absoluteDir);
     if (!dir.isAbsolute()) {
-      throw new IllegalPathStateException(absoluteDir + " is not an absolute path");
+      throw new IllegalPathStateException(absoluteDir
+          + " is not an absolute path");
     }
     if (!dir.exists()) {
       throw new IllegalPathStateException(dir.getAbsolutePath()
@@ -626,24 +671,47 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       UITEST_AXIS_MAP = new HashMap();
     }
     UITEST_AXIS_MAP.put(autodocFile, this);
-    initialize(null, axisID, null);
+    initialize(null, axisID, null, true);
   }
 
   private void initialize(String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.ReadException {
     if (name.equals(CPU)) {
-      initialize(name, axisID, EnvironmentVariable.CALIB_DIR);
+      initialize(name, axisID, EnvironmentVariable.CALIB_DIR, true);
     }
     else if (name.equals(UITEST)) {
-      initialize(name, axisID, "IMOD_UITEST_SOURCE");
+      initialize(name, axisID, "IMOD_UITEST_SOURCE", true);
     }
     else {
-      initialize(name, axisID, null);
+      initialize(name, axisID, null, true);
     }
   }
 
-  public static void setInternalTest(boolean internalTest) {
-    Autodoc.internalTest = internalTest;
+  /**
+   * Prints parsing data instead of storing it.
+   * @param type
+   * @param showTokens
+   * @param showDetails
+   * @throws IOException
+   * @throws LogFile.ReadException
+   */
+  public void runInternalTest(InternalTestType type, boolean showTokens,
+      boolean showDetails) throws IOException, LogFile.ReadException {
+    if (type == InternalTestType.STREAM_TOKENIZER) {
+      parser.testStreamTokenizer(showTokens);
+    }
+    else if (type == InternalTestType.PRIMATIVE_TOKENIZER) {
+      parser.testPrimativeTokenizer(showTokens);
+    }
+    else if (type == InternalTestType.AUTODOC_TOKENIZER) {
+      parser.testAutodocTokenizer(showTokens);
+    }
+    else if (type == InternalTestType.PREPROCESSOR) {
+      parser.testPreprocessor(showTokens);
+    }
+    else if (type == InternalTestType.PARSER) {
+      parser.test(showTokens, showDetails);
+    }
   }
 
   boolean isError() {
@@ -653,8 +721,21 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return parser.isError();
   }
 
-  private void initialize(String name, AxisID axisID, String envVariable)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+  /**
+   * Initial and parse.  Will not parse if the storeData parameter is false.
+   * Set the storeData parameter to false to run an internal parsing test
+   * (runInternalTest).
+   * @param name
+   * @param axisID
+   * @param envVariable
+   * @param storeData
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.ReadException
+   */
+  private void initialize(String name, AxisID axisID, String envVariable,
+      boolean storeData) throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     if (autodocFile == null) {
       autodocFile = setAutodocFile(name, axisID, envVariable);
     }
@@ -662,38 +743,48 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       return;
     }
     parser = new AutodocParser(this, false, false);
-    if (internalTest) {
-      //parser.testStreamTokenizer(false);
-      //parser.testStreamTokenizer(true);
-      //parser.testPrimativeTokenizer(false);
-      //parser.testPrimativeTokenizer(true);
-      //parser.testAutodocTokenizer(false);
-      //parser.testAutodocTokenizer(true);
-      //parser.testPreprocessor(false);
-      //parser.testPreprocessor(true);
-      parser.test(false);
-      //parser.test(true);
-      //parser.test(false, true);
-      //parser.test(true, true);
-    }
-    else {
-      parser.initialize();
+    parser.initialize();
+    if (storeData) {
       parser.parse();
-      //print stored data
-      //print();
     }
   }
 
-  private void initialize(File file) throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+  /**
+   * Initial and parse.  Will not parse if the storeData parameter is false.
+   * Set the storeData parameter to false to run an internal parsing test
+   * (runInternalTest).
+   * @param file
+   * @param storeData
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.ReadException
+   */
+  private void initialize(File file, boolean storeData)
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     autodocFile = LogFile.getInstance(file);
     parser = new AutodocParser(this, mutable, allowAltComment);
     parser.initialize();
-    parser.parse();
+    if (storeData) {
+      parser.parse();
+    }
+  }
+
+  static final class InternalTestType {
+    static final InternalTestType STREAM_TOKENIZER = new InternalTestType();
+    static final InternalTestType PRIMATIVE_TOKENIZER = new InternalTestType();
+    static final InternalTestType AUTODOC_TOKENIZER = new InternalTestType();
+    static final InternalTestType PREPROCESSOR = new InternalTestType();
+    static final InternalTestType PARSER = new InternalTestType();
+
+    private InternalTestType() {
+    }
   }
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.11  2007/03/05 21:28:28  sueh
+ *<p> $bug# 964 Stop controlling autodoc instances, except for the standard ones.
+ *<p> $
  *<p> $Revision 1.10  2007/03/01 01:16:12  sueh
  *<p> $bug# 964 Added mutable boolean.  Added getMatlabInstance.
  *<p> $
