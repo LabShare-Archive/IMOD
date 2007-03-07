@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/7/07: Etomo:  Added beam tilt fields to the Fine Alignment dialog.  The .xtilt
+file will be created by align.com and will be use by tilt.com.
+
 3/5/07: Renamed option in Tiltalign to FixedOrInitialBeamTilt.
 
 3/2/07: Etomo added a tiltalign parameter to the Fine Alignment dialog,
