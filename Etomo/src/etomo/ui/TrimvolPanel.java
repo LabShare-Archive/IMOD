@@ -36,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2007/02/09 00:55:11  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.21  2006/10/20 21:48:13  sueh
  * <p> bug# 946  Adding a warning to the reorientation box.
  * <p>
@@ -268,12 +272,12 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     //  Layout the scale panel
     pnlScaleFixed.setLayout(new BoxLayout(pnlScaleFixed, BoxLayout.X_AXIS));
 
-    pnlScaleFixed.add(rbScaleFixed);
+    pnlScaleFixed.add(rbScaleFixed.getComponent());
     pnlScaleFixed.add(ltfFixedScaleMin.getContainer());
     pnlScaleFixed.add(ltfFixedScaleMax.getContainer());
 
     pnlScaleSection.setLayout(new BoxLayout(pnlScaleSection, BoxLayout.X_AXIS));
-    pnlScaleSection.add(rbScaleSection);
+    pnlScaleSection.add(rbScaleSection.getComponent());
     ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE
         .getFourDigitWidth());
     ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE
@@ -282,8 +286,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlScaleSection.add(ltfSectionScaleMax.getContainer());
 
     ButtonGroup bgScale = new ButtonGroup();
-    bgScale.add(rbScaleFixed);
-    bgScale.add(rbScaleSection);
+    bgScale.add(rbScaleFixed.getAbstractButton());
+    bgScale.add(rbScaleSection.getAbstractButton());
 
     pnlScale.setLayout(new BoxLayout(pnlScale, BoxLayout.Y_AXIS));
     pnlScale.setBorder(new EtchedBorder("Scaling").getBorder());
@@ -322,15 +326,15 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlReorientationChoices.setBorder(new EtchedBorder("Reorientation:")
         .getBorder());
     pnlReorientationChoices.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    bgReorientation.add(rbNone);
-    bgReorientation.add(rbSwapYZ);
-    bgReorientation.add(rbRotateX);
+    bgReorientation.add(rbNone.getAbstractButton());
+    bgReorientation.add(rbSwapYZ.getAbstractButton());
+    bgReorientation.add(rbRotateX.getAbstractButton());
     rbNone.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbSwapYZ.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbRotateX.setAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlReorientationChoices.add(rbNone);
-    pnlReorientationChoices.add(rbSwapYZ);
-    pnlReorientationChoices.add(rbRotateX);
+    pnlReorientationChoices.add(rbNone.getComponent());
+    pnlReorientationChoices.add(rbSwapYZ.getComponent());
+    pnlReorientationChoices.add(rbRotateX.getComponent());
     pnlReorientation.add(pnlReorientationChoices);
     //reorientation warning panel
     JPanel pnlReorientationWarning = new JPanel();

@@ -1,10 +1,18 @@
 package etomo.ui;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionListener;
+
+import javax.swing.AbstractButton;
+import javax.swing.ButtonModel;
 import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
@@ -21,41 +29,113 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-class RadioButton extends JRadioButton {
+final class RadioButton {
   public static final String rcsid = "$Id$";
 
-  public RadioButton(String text) {
-    super(text);
+  private final JRadioButton radioButton;
+  private final EtomoNumber radioValue = new EtomoNumber();
+
+  RadioButton(final String text) {
+    this(text, EtomoNumber.INTEGER_NULL_VALUE);
+  }
+
+  RadioButton(final String text, final int radioValue) {
+    radioButton = new JRadioButton(text);
+    setName(text);
+    this.radioValue.set(radioValue);
+  }
+
+  void setText(final String text) {
+    radioButton.setText(text);
     setName(text);
   }
 
-  public void setText(String text) {
-    super.setText(text);
-    setName(text);
-  }
-
-  public void setName(String text) {
+  void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(name);
+    radioButton.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
       System.out.println(UITestField.RADIO_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-  
-  public void setToolTipText(String text) {
-    super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+
+  ConstEtomoNumber getRadioValue() {
+    return radioValue;
   }
 
-  static final class RadioButtonModel extends JToggleButton.ToggleButtonModel{
+  boolean equalsRadioValue(final ConstEtomoNumber radioValue) {
+    return this.radioValue.equals(radioValue);
+  }
+
+  void setToolTipText(final String text) {
+    radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  void addActionListener(final ActionListener actionListener) {
+    radioButton.addActionListener(actionListener);
+  }
+
+  void setSelected(final boolean selected) {
+    radioButton.setSelected(selected);
+  }
+
+  boolean isSelected() {
+    return radioButton.isSelected();
+  }
+
+  AbstractButton getAbstractButton() {
+    return radioButton;
+  }
+
+  void setPreferredSize(final Dimension preferredSize) {
+    radioButton.setPreferredSize(preferredSize);
+  }
+
+  String getText() {
+    return radioButton.getText();
+  }
+
+  void setModel(final ButtonModel newModel) {
+    radioButton.setModel(newModel);
+  }
+
+  String getName() {
+    return radioButton.getName();
+  }
+
+  Component getComponent() {
+    return radioButton;
+  }
+
+  void setEnabled(final boolean enable) {
+    radioButton.setEnabled(enable);
+  }
+
+  String getActionCommand() {
+    return radioButton.getActionCommand();
+  }
+
+  boolean isEnabled() {
+    return radioButton.isEnabled();
+  }
+
+  void setAlignmentX(float alignmentX) {
+    radioButton.setAlignmentX(alignmentX);
+  }
+
+  Object[] getSelectedObjects() {
+    return radioButton.getSelectedObjects();
+  }
+
+  static final class RadioButtonModel extends JToggleButton.ToggleButtonModel {
     private final RadioButtonParent parent;
-    
+
     RadioButtonModel(RadioButtonParent parent) {
       super();
-      this.parent=parent;
+      this.parent = parent;
     }
-    
+
     public void setSelected(boolean selected) {
       super.setSelected(selected);
       parent.msgSelected();
@@ -64,6 +144,11 @@ class RadioButton extends JRadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/03 01:03:49  sueh
+ * <p> bug# 973 Added a RadioButtonModel for classes that use a radio button, and
+ * <p> want to respond to the setSelected calls that automatically turn off other buttons
+ * <p> in the group.
+ * <p>
  * <p> Revision 1.8  2007/02/09 00:52:13  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

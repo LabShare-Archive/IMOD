@@ -43,6 +43,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2007/03/01 01:43:35  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 3.28  2007/02/09 00:53:14  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -224,16 +227,16 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    bgFiducialParams.add(rbBothSides);
-    bgFiducialParams.add(rbOneSide);
-    bgFiducialParams.add(rbOneSideInverted);
-    bgFiducialParams.add(rbUseModel);
-    bgFiducialParams.add(rbUseModelOnly);
-    pnlFiducialRadio.add(rbBothSides);
-    pnlFiducialRadio.add(rbOneSide);
-    pnlFiducialRadio.add(rbOneSideInverted);
-    pnlFiducialRadio.add(rbUseModel);
-    pnlFiducialRadio.add(rbUseModelOnly);
+    bgFiducialParams.add(rbBothSides.getAbstractButton());
+    bgFiducialParams.add(rbOneSide.getAbstractButton());
+    bgFiducialParams.add(rbOneSideInverted.getAbstractButton());
+    bgFiducialParams.add(rbUseModel.getAbstractButton());
+    bgFiducialParams.add(rbUseModelOnly.getAbstractButton());
+    pnlFiducialRadio.add(rbBothSides.getComponent());
+    pnlFiducialRadio.add(rbOneSide.getComponent());
+    pnlFiducialRadio.add(rbOneSideInverted.getComponent());
+    pnlFiducialRadio.add(rbUseModel.getComponent());
+    pnlFiducialRadio.add(rbUseModelOnly.getComponent());
 
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels,
         BoxLayout.Y_AXIS));

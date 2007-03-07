@@ -231,20 +231,20 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
         (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
         (int) (80 * UIParameters.INSTANCE.getFontSizeAdjustment()));
 
-    bgAxisType.add(rbSingleAxis);
-    bgAxisType.add(rbDualAxis);
+    bgAxisType.add(rbSingleAxis.getAbstractButton());
+    bgAxisType.add(rbDualAxis.getAbstractButton());
     pnlAxisType.setLayout(new BoxLayout(pnlAxisType, BoxLayout.Y_AXIS));
     pnlAxisType.setPreferredSize(dimDataTypePref);
     pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
-    pnlAxisType.add(rbSingleAxis);
-    pnlAxisType.add(rbDualAxis);
-    bgViewType.add(rbSingleView);
-    bgViewType.add(rbMontage);
+    pnlAxisType.add(rbSingleAxis.getComponent());
+    pnlAxisType.add(rbDualAxis.getComponent());
+    bgViewType.add(rbSingleView.getAbstractButton());
+    bgViewType.add(rbMontage.getAbstractButton());
     pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
     pnlViewType.setPreferredSize(dimDataTypePref);
     pnlViewType.setBorder(new EtchedBorder("Frame Type").getBorder());
-    pnlViewType.add(rbSingleView);
-    pnlViewType.add(rbMontage);
+    pnlViewType.add(rbSingleView.getComponent());
+    pnlViewType.add(rbMontage.getComponent());
 
     //  Datatype panel
     pnlDataType.setLayout(new BoxLayout(pnlDataType, BoxLayout.X_AXIS));
@@ -1069,6 +1069,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.55  2007/02/09 00:53:04  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.54  2006/11/07 23:09:00  sueh
  * <p> bug# 954 Added tooltips
  * <p>

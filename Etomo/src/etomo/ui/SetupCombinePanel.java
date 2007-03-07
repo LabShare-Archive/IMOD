@@ -50,6 +50,10 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.47  2007/02/09 00:52:55  sueh
+ * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * classes.
+ *
  * Revision 3.46  2006/11/07 23:02:50  sueh
  * bug# 954 Added bug for  cbNoVolcombine
  *
@@ -453,15 +457,15 @@ public final class SetupCombinePanel implements ContextMenu,
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
-    bgToSelector.add(rbAtoB);
-    bgToSelector.add(rbBtoA);
+    bgToSelector.add(rbAtoB.getAbstractButton());
+    bgToSelector.add(rbBtoA.getAbstractButton());
     pnlToSelector.setBorder(BorderFactory.createEtchedBorder());
     toSelectorHeader = PanelHeader.getInstance(
         "Tomogram Matching Relationship", this, dialogType);
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
-    pnlRBToSelector.add(rbBtoA);
-    pnlRBToSelector.add(rbAtoB);
+    pnlRBToSelector.add(rbBtoA.getComponent());
+    pnlRBToSelector.add(rbAtoB.getComponent());
     pnlToSelector.add(toSelectorHeader.getContainer());
     pnlToSelector.add(pnlRBToSelector);
     pnlToSelector.add(Box.createHorizontalGlue());
@@ -476,16 +480,16 @@ public final class SetupCombinePanel implements ContextMenu,
     rbSmallPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbMediumPatch.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbLargePatch.setAlignmentX(Component.LEFT_ALIGNMENT);
-    bgPatchSize.add(rbSmallPatch);
-    bgPatchSize.add(rbMediumPatch);
-    bgPatchSize.add(rbLargePatch);
+    bgPatchSize.add(rbSmallPatch.getAbstractButton());
+    bgPatchSize.add(rbMediumPatch.getAbstractButton());
+    bgPatchSize.add(rbLargePatch.getAbstractButton());
     pnlPatchParamsBody.setLayout(new BoxLayout(pnlPatchParamsBody,
         BoxLayout.Y_AXIS));
     JPanel pnlPatchRB = new JPanel();
     pnlPatchRB.setLayout(new BoxLayout(pnlPatchRB, BoxLayout.Y_AXIS));
-    pnlPatchRB.add(rbSmallPatch);
-    pnlPatchRB.add(rbMediumPatch);
-    pnlPatchRB.add(rbLargePatch);
+    pnlPatchRB.add(rbSmallPatch.getComponent());
+    pnlPatchRB.add(rbMediumPatch.getComponent());
+    pnlPatchRB.add(rbLargePatch.getComponent());
 
     pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel,
         BoxLayout.X_AXIS));

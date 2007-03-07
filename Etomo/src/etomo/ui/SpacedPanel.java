@@ -32,6 +32,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2007/02/05 23:44:33  sueh
+* <p> bug# 962 Fixing alignment setting.
+* <p>
 * <p> Revision 1.13  2006/07/20 17:22:20  sueh
 * <p> bug# 848 Made UIParameters a singleton.
 * <p>
@@ -244,7 +247,7 @@ final class SpacedPanel {
   
   final void add(RadioButton radioButton) {
     addSpacing();
-    panel.add(radioButton);
+    panel.add(radioButton.getComponent());
     if (componentAlignmentX != null) {
       radioButton.setAlignmentX(componentAlignmentX.floatValue());
     }

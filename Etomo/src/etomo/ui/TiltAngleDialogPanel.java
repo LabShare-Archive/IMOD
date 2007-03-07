@@ -26,6 +26,10 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2007/02/09 00:53:54  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.3  2006/01/03 23:58:37  sueh
  * <p> bug# 675 Converted JRadioButton's toRadioButton.
  * <p>
@@ -92,19 +96,19 @@ public class TiltAngleDialogPanel {
 
     panelTiltAngleSource.setLayout(new BoxLayout(panelTiltAngleSource,
         BoxLayout.Y_AXIS));
-    panelTiltAngleSource.add(rbTiltAngleExtract);
-    panelTiltAngleSource.add(rbTiltAngleSpecify);
+    panelTiltAngleSource.add(rbTiltAngleExtract.getComponent());
+    panelTiltAngleSource.add(rbTiltAngleSpecify.getComponent());
     panelTiltAngleSource.add(panelTiltAngleSpecify);
 
-    panelTiltAngleSource.add(rbTiltAngleFile);
+    panelTiltAngleSource.add(rbTiltAngleFile.getComponent());
     panelTiltAngleSource.add(Box.createHorizontalGlue());
 
     //
     //  Build button group
     //
-    bgTiltAngleSource.add(rbTiltAngleExtract);
-    bgTiltAngleSource.add(rbTiltAngleSpecify);
-    bgTiltAngleSource.add(rbTiltAngleFile);
+    bgTiltAngleSource.add(rbTiltAngleExtract.getAbstractButton());
+    bgTiltAngleSource.add(rbTiltAngleSpecify.getAbstractButton());
+    bgTiltAngleSource.add(rbTiltAngleFile.getAbstractButton());
 
     TiltAngleDialogListener tiltAlignRadioButtonListener = new TiltAngleDialogListener(
         this);

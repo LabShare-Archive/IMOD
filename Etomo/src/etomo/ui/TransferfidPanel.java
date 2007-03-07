@@ -106,16 +106,16 @@ public final class TransferfidPanel implements Expandable {
     panelTransferfidBody.add(ltfCenterViewB.getContainer());
     panelTransferfidBody.add(ltfNumberViews.getContainer());
 
-    bgSearchDirection.add(rbSearchBoth);
-    bgSearchDirection.add(rbSearchPlus90);
-    bgSearchDirection.add(rbSearchMinus90);
+    bgSearchDirection.add(rbSearchBoth.getAbstractButton());
+    bgSearchDirection.add(rbSearchPlus90.getAbstractButton());
+    bgSearchDirection.add(rbSearchMinus90.getAbstractButton());
     panelSearchDirection.setLayout(new BoxLayout(panelSearchDirection,
         BoxLayout.Y_AXIS));
     panelSearchDirection.setBorder(new EtchedBorder("Search Direction")
         .getBorder());
-    panelSearchDirection.add(rbSearchBoth);
-    panelSearchDirection.add(rbSearchPlus90);
-    panelSearchDirection.add(rbSearchMinus90);
+    panelSearchDirection.add(rbSearchBoth.getComponent());
+    panelSearchDirection.add(rbSearchPlus90.getComponent());
+    panelSearchDirection.add(rbSearchMinus90.getComponent());
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
     panelTransferfidBody.add(panelSearchDirection);
     cbMirrorInX.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -270,6 +270,10 @@ public final class TransferfidPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.13  2007/02/09 00:54:58  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.12  2006/07/04 18:48:01  sueh
  * <p> bug# 893 Added updateAdvanced(boolean) to change the header when the
  * <p> advanced button is pressed.

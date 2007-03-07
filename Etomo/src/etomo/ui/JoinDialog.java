@@ -55,6 +55,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.44  2007/03/01 01:38:38  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.43  2007/02/22 20:37:54  sueh
  * <p> bug# 964 Moved FileTextField from JoinDialog to the etomo.ui package so that it
  * <p> can be shared.
@@ -2105,12 +2108,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             BoxLayout.Y_AXIS));
         pnlTranslationChooser.add(new JLabel("Search For:"));
         ButtonGroup group = new ButtonGroup();
-        group.add(rbFullLinearTransformation);
-        group.add(rbRotationTranslationMagnification);
-        group.add(rbRotationTranslation);
-        pnlTranslationChooser.add(rbFullLinearTransformation);
-        pnlTranslationChooser.add(rbRotationTranslationMagnification);
-        pnlTranslationChooser.add(rbRotationTranslation);
+        group.add(rbFullLinearTransformation.getAbstractButton());
+        group.add(rbRotationTranslationMagnification.getAbstractButton());
+        group.add(rbRotationTranslation.getAbstractButton());
+        pnlTranslationChooser.add(rbFullLinearTransformation.getComponent());
+        pnlTranslationChooser.add(rbRotationTranslationMagnification.getComponent());
+        pnlTranslationChooser.add(rbRotationTranslation.getComponent());
         //set default
         set(null);
         rbFullLinearTransformation
@@ -2120,8 +2123,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         rbRotationTranslation
             .setToolTipText("Use translation and rotation to align images.");
         if (includeTranslation) {
-          group.add(rbTranslation);
-          pnlTranslationChooser.add(rbTranslation);
+          group.add(rbTranslation.getAbstractButton());
+          pnlTranslationChooser.add(rbTranslation.getComponent());
           rbTranslation.setToolTipText("Use translation to align images.");
         }
       }
