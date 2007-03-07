@@ -790,9 +790,9 @@ public final class ApplicationManager extends BaseManager {
   }
 
   public void archiveOriginalStack() {
-      if (processMgr.inUse(AxisID.ONLY, null)) {
-        return;
-      }
+    if (processMgr.inUse(AxisID.ONLY, null)) {
+      return;
+    }
     archiveOriginalStack(null);
   }
 
@@ -856,7 +856,8 @@ public final class ApplicationManager extends BaseManager {
 
   public void deleteOriginalStack(Command archiveorigParam, String[] output) {
     AxisID axisID;
-    ArchiveorigParam.Mode mode = (ArchiveorigParam.Mode)archiveorigParam.getCommandMode();
+    ArchiveorigParam.Mode mode = (ArchiveorigParam.Mode) archiveorigParam
+        .getCommandMode();
     if (mode == ArchiveorigParam.Mode.AXIS_A) {
       axisID = AxisID.FIRST;
     }
@@ -1423,7 +1424,7 @@ public final class ApplicationManager extends BaseManager {
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-    String threadName =null;
+    String threadName = null;
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
         threadName = processMgr.preblend(blendmontParam, axisID,
@@ -2429,6 +2430,12 @@ public final class ApplicationManager extends BaseManager {
   public void fineAlignment(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
+    // Set a reference to the correct object
+    AlignmentEstimationDialog fineAlignmentDialog = (AlignmentEstimationDialog) getDialog(
+        DialogType.FINE_ALIGNMENT, axisID);
+    if (fineAlignmentDialog != null && !fineAlignmentDialog.isValid()) {
+      return;
+    }
     ConstTiltalignParam tiltalignParam = updateAlignCom(axisID);
     if (tiltalignParam == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -2650,15 +2657,9 @@ public final class ApplicationManager extends BaseManager {
    * the alignment estimation dialog. This also updates the local alignment
    * state of the appropriate tilt files.
    */
-  private ConstTiltalignParam updateAlignCom(AxisID axisID) {
-    // Set a reference to the correct object
-    AlignmentEstimationDialog fineAlignmentDialog;
-    if (axisID == AxisID.SECOND) {
-      fineAlignmentDialog = fineAlignmentDialogB;
-    }
-    else {
-      fineAlignmentDialog = fineAlignmentDialogA;
-    }
+  private ConstTiltalignParam updateAlignCom(final AxisID axisID) {
+    AlignmentEstimationDialog fineAlignmentDialog = (AlignmentEstimationDialog) getDialog(
+        DialogType.FINE_ALIGNMENT, axisID);
     if (fineAlignmentDialog == null) {
       uiHarness.openMessageDialog(
           "Can not update align?.com without an active alignment dialog",
@@ -3208,7 +3209,7 @@ public final class ApplicationManager extends BaseManager {
 
   public boolean isAxisBusy(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-      return processMgr.inUse(axisID, processResultDisplay);
+    return processMgr.inUse(axisID, processResultDisplay);
   }
 
   /**
@@ -4572,7 +4573,7 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     // Set the next process to execute when this is finished
     // nextProcess = "";
-    String threadName =null;
+    String threadName = null;
     try {
       threadName = processMgr.combine(combineComscriptState,
           processResultDisplay);
@@ -5421,6 +5422,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.277  2007/03/03 00:30:53  sueh
+ * <p> bug# 973 Getting/setting metadata in Fine Align dialog.
+ * <p>
  * <p> Revision 3.276  2007/02/21 22:28:42  sueh
  * <p> 964 Removing incorrect comment.
  * <p>
