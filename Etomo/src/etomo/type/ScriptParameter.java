@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/02/05 23:31:06  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.10  2006/10/17 20:17:42  sueh
  * <p> bug# 939  Moving defaultValue and associated functions to ConstEtomoNumber.
  * <p>
@@ -135,7 +138,23 @@ public class ScriptParameter extends EtomoNumber {
   }
 
   public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand) {
-    if (isActive() && isUseInScript()) {
+    return updateComScript(scriptCommand, false);
+  }
+
+  /**
+   * Remove currentValue from or place currentValue in the comscript command
+   * depending on whether this instance is active, null, or defaulted.  An
+   * inactive value is always removed.  If includeWhenDefaulted is false, then
+   * the value is removed when it is null or defaulted.  If includeWhenDefaulted
+   * is true, then the value is remove when it is null.
+   * @param scriptCommand
+   * @param includeWhenDefaulted
+   * @return
+   */
+  public ConstEtomoNumber updateComScript(ComScriptCommand scriptCommand,
+      boolean includeWhenDefaulted) {
+    if (isActive()
+        && ((includeWhenDefaulted && !isNull()) || (!includeWhenDefaulted && isNotNullAndNotDefault()))) {
       scriptCommand.setValue(name, toString(getValue()));
     }
     else {
@@ -145,16 +164,10 @@ public class ScriptParameter extends EtomoNumber {
   }
 
   /**
-   * Returns true if value would be placed in a script (not null and not
-   * default).
-   * When defaultValue is not null and currentValue is
-   * equal to defaultValue, isUseInScript() will return null.  Also
-   * updateComScript will remove the entry.  Most of the time comscripts should
-   * show the value, even if it is defaulted, so this is rarely used.
-   * @param defaultValue
+   * Returns true if value is null or default.
    * @return
    */
-  public boolean isUseInScript() {
+  public boolean isNotNullAndNotDefault() {
     Number value = getValue();
     if (!isNull(value) && !isDefault(value)) {
       return true;
@@ -162,7 +175,8 @@ public class ScriptParameter extends EtomoNumber {
     return false;
   }
 
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand) throws InvalidParameterException{
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
+      throws InvalidParameterException {
     return parse(scriptCommand, false);
   }
 
