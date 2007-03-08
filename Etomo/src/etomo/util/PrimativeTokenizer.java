@@ -53,6 +53,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.4  2007/03/01 01:47:50  sueh
+ * <p> $bug# 964 Using LogFile instead of file, since some autodoc will be writeable.
+ * <p> $
  * <p> $Revision 1.3  2006/06/14 00:45:24  sueh
  * <p> $bug# 852 Renamed Token.set(Token) copy() to make it clear that it is doing a
  * <p> $deep copy.
@@ -92,6 +95,7 @@ public class PrimativeTokenizer {
   Token nextToken = new Token();
   private Reader reader = null;
   private boolean fileClosed = false;
+  private int streamTokenizerNothingValue;
 
   public PrimativeTokenizer(LogFile file) {
     this.file = file;
@@ -131,6 +135,7 @@ public class PrimativeTokenizer {
       reader = new StringReader(string);
     }
     tokenizer = new StreamTokenizer(reader);
+    streamTokenizerNothingValue = tokenizer.ttype;
     tokenizer.resetSyntax();
     tokenizer.wordChars('a', 'z');
     tokenizer.wordChars('A', 'Z');
@@ -229,9 +234,6 @@ public class PrimativeTokenizer {
         System.out.print(token.getValue());
       }
     } while (!token.is(Token.Type.EOF));
-    if (file != null) {
-      closeFile();
-    }
   }
 
   /**
@@ -239,37 +241,47 @@ public class PrimativeTokenizer {
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void testStreamTokenizer(boolean tokens) throws IOException,
-      LogFile.ReadException {
+  public void testStreamTokenizer(boolean tokens, boolean details)
+      throws IOException, LogFile.ReadException {
     initializeStreamTokenizer();
-    if (tokens) {
-      System.out
-          .println("TT_EOL=" + StreamTokenizer.TT_EOL + ",TT_WORD="
-              + StreamTokenizer.TT_WORD + ",TT_NUMBER="
-              + StreamTokenizer.TT_NUMBER);
-    }
     do {
       nextToken();
       if (tokens) {
-        System.out.println("ttype=" + tokenizer.ttype + ",sval="
-            + tokenizer.sval + ",nval=" + tokenizer.nval);
-      }
-      else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
-        System.out.println();
-      }
-      else if (tokenizer.ttype != StreamTokenizer.TT_EOF) {
-        if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
-          System.out.print(tokenizer.sval);
+        System.out.print(tokenizer.toString());
+        if (details) {
+          TokenType tokenType = TokenType.getInstance(tokenizer.ttype);
+          if (tokenType == null) {
+            System.out.println(", " + ((char) tokenizer.ttype) + ",sval="
+                + tokenizer.sval + ",nval=" + tokenizer.nval);
+          }
+          else {
+            System.out.println(", " + TokenType.getInstance(tokenizer.ttype)
+                + ",sval=" + tokenizer.sval + ",nval=" + tokenizer.nval);
+          }
         }
         else {
-          System.out.print((char) tokenizer.ttype);
+          System.out.println();
         }
       }
-
-    } while (tokenizer.ttype != StreamTokenizer.TT_EOF);
+      else {
+        if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
+          System.out.println();
+        }
+        else if (tokenizer.ttype != StreamTokenizer.TT_EOF) {
+          if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
+            System.out.print(tokenizer.sval);
+          }
+          else {
+            System.out.print((char) tokenizer.ttype);
+          }
+        }
+      }
+    } while (tokenizer.ttype != StreamTokenizer.TT_EOF
+        && tokenizer.ttype != streamTokenizerNothingValue);
     if (file != null) {
       closeFile();
     }
+    System.out.println();
   }
 
   private void nextToken() throws IOException {
@@ -285,6 +297,41 @@ public class PrimativeTokenizer {
       reader.close();
       file.closeForReading(readId);
       readId = LogFile.NO_ID;
+    }
+  }
+
+  private static final class TokenType {
+    private final String name;
+
+    private static final TokenType EOF = new TokenType("TT_EOF");
+    private static final TokenType EOL = new TokenType("TT_EOL");
+    private static final TokenType NUMBER = new TokenType("TT_NUMBER");
+    private static final TokenType WORD = new TokenType("TT_WORD");
+    private static final TokenType NOTHING = new TokenType("TT_NOTHING");
+
+    private TokenType(String name) {
+      this.name = name;
+    }
+
+    private static TokenType getInstance(int ttype) {
+      switch (ttype) {
+      case StreamTokenizer.TT_EOF:
+        return EOF;
+      case StreamTokenizer.TT_EOL:
+        return EOL;
+      case StreamTokenizer.TT_NUMBER:
+        return NUMBER;
+      case StreamTokenizer.TT_WORD:
+        return WORD;
+      case -4://StreamTokenizer.TT_NOTHING
+        return NOTHING;
+      default:
+        return null;
+      }
+    }
+
+    public String toString() {
+      return name;
     }
   }
 }
