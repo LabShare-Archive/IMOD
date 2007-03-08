@@ -1,6 +1,5 @@
 package etomo.storage.autodoc;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 import etomo.ui.Token;
@@ -21,49 +20,45 @@ import etomo.ui.Token;
 public final class NameValuePair {
   public static final String rcsid = "$Id$";
 
-  private final Vector names = new Vector();
-
+  private final Vector name = new Vector();
+  private final Type type;
+  
   private Token value = null;
-  private boolean isPair = true;
-  private boolean isSubSection = false;
-  private boolean isComment = false;
-  private boolean isEmptyLine = false;
+  private Section subsection = null;
 
-  private Section section = null;
-
-  static NameValuePair getNameValuePairInstance(Attribute attrib, Token value) {
-    return new NameValuePair(attrib, value);
+  static NameValuePair getNameValuePairInstance() {
+    return new NameValuePair(Type.NAME_VALUE_PAIR);
   }
 
   static NameValuePair getSubsectionInstance(Section subsection) {
-    return new NameValuePair(subsection);
+    return new NameValuePair(Type.SUBSECTION,subsection);
   }
 
   static NameValuePair getCommentInstance(Token comment) {
-    return new NameValuePair(comment);
+    return new NameValuePair(Type.COMMENT,comment);
   }
 
   static NameValuePair getEmptyLineInstance() {
-    return new NameValuePair();
+    return new NameValuePair(Type.EMPTY_LINE);
   }
 
   void print(int level) {
     Autodoc.printIndent(level);
-    if (isEmptyLine) {
-      System.out.println("empty-line");
+    if (type==Type.EMPTY_LINE) {
+      System.out.println("<empty-line>");
       return;
     }
-    if (isComment) {
-      System.out.println(value.getValues());
+    if (type==Type.COMMENT) {
+      System.out.println("<comment> "+value.getValues());
       return;
     }
-    if (isSubSection) {
-      section.print(level);
+    if (type==Type.SUBSECTION) {
+      subsection.print(level);
     }
-    else if (isPair) {
-      for (int i = 0; i < names.size(); i++) {
-        System.out.print(((Token) names.get(i)).getValues());
-        if (i < names.size() - 1) {
+    else if (type==Type.NAME_VALUE_PAIR) {
+      for (int i = 0; i < name.size(); i++) {
+        System.out.print(((Token) name.get(i)).getValues());
+        if (i < name.size() - 1) {
           System.out.print('.');
         }
       }
@@ -77,62 +72,47 @@ public final class NameValuePair {
     }
   }
 
-  private NameValuePair(Attribute attrib, Token value) {
+  private NameValuePair(Type type) {
+    this.type=type;
+  }
+
+  private NameValuePair(Type type, Token value) {
+    this(type);
     this.value = value;
-    //set names
-    ArrayList list = new ArrayList();
-    while (attrib != null) {
-      list.add(attrib.getNameToken());
-      WriteOnlyAttributeMap parent = attrib.getParent();
-      if (parent instanceof Attribute) {
-        attrib = (Attribute) parent;
-      }
-      else {
-        attrib = null;
-      }
-    }
-    for (int i = list.size() - 1; i >= 0; i--) {
-      names.add(list.get(i));
-    }
+  }
+  
+  private NameValuePair(Type type, Section subsection) {
+    this(type);
+    name.add(subsection.getTypeToken());
+    value = subsection.getNameToken();
+    this.subsection = subsection;
   }
 
-  private NameValuePair(Section section) {
-    names.add(section.getTypeToken());
-    value = section.getNameToken();
-    isSubSection = true;
-    this.section = section;
+  public int numAttributes() {
+    return name.size();
+  }
+  
+  public void addAttribute(Token attribute) {
+    name.add(attribute);
+  }
+  
+  public void addValue(Token value) {
+    this.value=value;
   }
 
-  private NameValuePair(Token comment) {
-    isComment = true;
-    this.value = comment;
-  }
-
-  private NameValuePair() {
-    isEmptyLine = true;
-  }
-
-  boolean isSubSection() {
-    return isSubSection;
-  }
-
-  public int levels() {
-    return names.size();
-  }
-
-  public boolean equalsName(String name, int index) {
-    if (name == null || index >= names.size()) {
+  /*public boolean equalsName(String name, int index) {
+    if (name == null || index >= name.size()) {
       return false;
     }
-    String key = ((Token) names.get(index)).getKey();
+    String key = ((Token) name.get(index)).getKey();
     return key.equals(Token.convertToKey(name));
-  }
+  }*/
 
-  public String getName(int index) {
-    if (index >= names.size()) {
+  public String getAttribute(int index) {
+    if (index >= name.size()) {
       return null;
     }
-    return ((Token) names.get(index)).getValues();
+    return ((Token) name.get(index)).getValues();
   }
 
   public String getValue() {
@@ -141,15 +121,19 @@ public final class NameValuePair {
     }
     return value.getValues();
   }
+  
+  public Type getType() {
+    return type;
+  }
 
   public String getString() {
     StringBuffer buffer = new StringBuffer();
-    if (names.size() >= 1) {
-      buffer.append(((Token) names.get(0)).getValues());
+    if (name.size() >= 1) {
+      buffer.append(((Token) name.get(0)).getValues());
     }
-    for (int i = 1; i < names.size(); i++) {
+    for (int i = 1; i < name.size(); i++) {
       buffer.append(AutodocTokenizer.SEPARATOR_CHAR);
-      buffer.append(((Token) names.get(i)).getValues());
+      buffer.append(((Token) name.get(i)).getValues());
     }
     buffer.append(" " + AutodocTokenizer.DEFAULT_DELIMITER + " ");
     if (value != null) {
@@ -163,11 +147,24 @@ public final class NameValuePair {
   }
 
   protected String paramString() {
-    return "names=" + names + ",\nvalue=" + value + "," + super.toString();
+    return "name=" + name + ",\nvalue=" + value + "," + super.toString();
+  }
+  
+   static final class Type{
+     static final Type NAME_VALUE_PAIR = new Type();
+     static final Type SUBSECTION = new Type();
+     static final Type COMMENT=new Type();
+     static final Type EMPTY_LINE=new Type();
+    
+    private Type() {
+    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/03/07 21:07:05  sueh
+ * <p> bug# 964 Fixed printing.
+ * <p>
  * <p> Revision 1.4  2007/03/01 01:20:15  sueh
  * <p> bug# 964 Using static getInstance functions.  Added comment and empty line
  * <p> settings.
