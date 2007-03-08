@@ -18,13 +18,16 @@ import etomo.ui.Token;
 abstract class WriteOnlyNameValuePairList extends WriteOnlyAttributeMap {
   public static  final String  rcsid =  "$Id$";
   
-  abstract void addNameValuePair(Attribute attrib, int valueIndex);
+  abstract NameValuePair addNameValuePair();
   abstract Section addSection(Token type, Token name);
   abstract void addEmptyLine();
   abstract void addComment(Token comment);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2007/03/01 01:20:49  sueh
+* <p> bug# 964 Added addComment and addEmptyLine.
+* <p>
 * <p> Revision 1.2  2006/06/22 22:08:30  sueh
 * <p> bug# 852 Added addSection().
 * <p>

@@ -18,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2007/03/07 21:07:15  sueh
+ * <p> $bug# 964 Fixed printing.
+ * <p> $
  * <p> $Revision 1.9  2007/03/01 01:20:38  sueh
  * <p> $bug# 964 Added addComment and addEmptyLine.
  * <p> $
@@ -80,11 +83,12 @@ public final class Section extends WriteOnlyNameValuePairList implements
     ReadOnlyNameValuePairList {
   public static final String rcsid = "$$Id$$";
 
+  private final Vector nameValuePairList =new Vector();
+  
   private String key = null; //required
   private Token type = null; //required
   private Token name = null; //required
   private AttributeMap attributeMap = null;//optional
-  private Vector nameValuePairList = null;
   private boolean subsection = false;
 
   boolean isGlobal() {
@@ -192,22 +196,13 @@ public final class Section extends WriteOnlyNameValuePairList implements
     return attributeMap.getAttribute(name);
   }
 
-  void addNameValuePair(Attribute attrib, int valueIndex) {
-    if (attrib == null) {
-      return;
-    }
-    NameValuePair pair = NameValuePair.getNameValuePairInstance(attrib, attrib
-        .getValueToken(valueIndex));
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
+  NameValuePair addNameValuePair() {
+    NameValuePair pair = NameValuePair.getNameValuePairInstance();
     nameValuePairList.add(pair);
+    return pair;
   }
 
   Section addSection(Token type, Token name) {
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
     Section section = new Section(type, name);
     section.subsection = true;
     nameValuePairList.add(NameValuePair.getSubsectionInstance(section));
@@ -215,28 +210,19 @@ public final class Section extends WriteOnlyNameValuePairList implements
   }
 
   void addComment(Token comment) {
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
     nameValuePairList.add(NameValuePair.getCommentInstance(comment));
   }
 
   void addEmptyLine() {
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
     nameValuePairList.add(NameValuePair.getEmptyLineInstance());
   }
 
   public NameValuePairLocation getNameValuePairLocation() {
-    if (nameValuePairList == null) {
-      return null;
-    }
     return new NameValuePairLocation();
   }
 
   public NameValuePair nextNameValuePair(NameValuePairLocation location) {
-    if (nameValuePairList == null || location == null
+    if (location == null
         || location.isOutOfRange(nameValuePairList)) {
       return null;
     }
