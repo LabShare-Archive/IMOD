@@ -62,16 +62,138 @@ public final class AutodocTest extends TestCase {
     Autodoc autodoc = Autodoc.getMatlabInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "master.prm"), false);
+    //only use with getTestInstance
+    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
+    //only use with getInstance
+    autodoc.printStoredData();
     assertFalse(autodoc.isError());
   }
 
-  public void testTestFile() throws LogFile.ReadException, IOException,
+  public void testBuild() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
     Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
-        "fine-align.adoc"));
-    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,true,true);
+        "build.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testBuilda() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "builda.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testBuildb() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "buildb.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testFineAlign() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "fine-align.adoc", true));
+    //only use with getTestInstance
+    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
+    //only use with getInstance
     //autodoc.printStoredData();
+    assertFalse(autodoc.isError());
+  }
+
+  public void testSetupRecon() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "setup-recon.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testSimple() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "simple.adoc"));
+    //only use with getTestInstance
+    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
+    //only use with getInstance
+    //autodoc.printStoredData();
+    assertFalse(autodoc.isError());
+  }
+
+  public void testPreProc() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "pre-proc.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testPostProc() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "post-proc.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testUitest() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "uitest.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testTomoGen() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "tomo-gen.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testTomoPos() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "tomo-pos.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testCleanUp() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "clean-up.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testFidModel() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "fid-model.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testTestb() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "testb.adoc", true));
+    assertFalse(autodoc.isError());
+  }
+
+  public void testCombine() throws LogFile.ReadException, IOException,
+      SystemProcessException, InvalidParameterException {
+    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+        AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
+        "combine.adoc", true));
     assertFalse(autodoc.isError());
   }
 
@@ -129,6 +251,9 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/07 21:06:41  sueh
+ * <p> bug# 964 Fixed printing.  Made internal tests runnable from unit tests.
+ * <p>
  * <p> Revision 1.10  2007/03/05 21:28:55  sueh
  * <p> bug# 964 Added tests for cpu.adoc and master.prm.
  * <p>
