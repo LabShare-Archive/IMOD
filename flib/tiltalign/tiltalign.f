@@ -349,8 +349,8 @@ c
       enddo
 c
       if (ifBTSearch .eq. 0) then
-        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle,
-     &      fFinal, metroError)
+        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, 0,
+     &      fFinal, i, metroError)
       else
         call searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, 
      &      nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle,
@@ -1239,6 +1239,7 @@ c         real size with the defined overlap
 c        print *, allXmin, allXmax ,allYmin,allYmax
 c
         npatchx = (allXmax - allXmin - nxTarget) / (nxTarget * (1. - xpmin)) +1
+        npatchx = max(2,npatchx)
         nxpmin = (allXmax - allXmin) / (npatchx - xpmin * (npatchx - 1))
         if (nxpmin .gt. 1.05 * nxTarget) then
           npatchx = npatchx + 1
@@ -1248,6 +1249,7 @@ c
         ixspatch = allXmin + nxpmin / 2
 c
         npatchy = (allYmax - allYmin - nyTarget) / (nyTarget * (1. - ypmin)) +1
+        npatchy = max(2,npatchy)
         nypmin = (allYmax - allYmin) / (npatchy - ypmin * (npatchy - 1))
         if (nypmin .gt. 1.05 * nyTarget) then
           npatchy = npatchy + 1
@@ -1264,8 +1266,8 @@ c
 c         legacy behavior with # of patches entered: get the minimum patch 
 c         size from full size of image area
 c         
-        npatchx = max(1,npatchx)
-        npatchy = max(1,npatchy)
+        npatchx = max(2,npatchx)
+        npatchy = max(2,npatchy)
         if (xpmin.gt.1.) then
           nxpmin = xpmin
         else
@@ -1508,6 +1510,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.32  2007/03/05 22:30:43  mast
+c       Changed initial beam tilt option
+c
 c       Revision 3.31  2007/02/19 21:13:25  mast
 c       Changes for beam tilt solving by variable fitting and by one-dimensional
 c       search; added option of specifying target size of local areas; made
