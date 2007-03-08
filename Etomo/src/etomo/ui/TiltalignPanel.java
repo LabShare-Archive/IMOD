@@ -1126,7 +1126,7 @@ final class TiltalignPanel {
     cbLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLocalParameters.add(cbLocalAlignments);
     pnlLocalPatches.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlLocalPatches.setBorder(new EtchedBorder("Local Patches:").getBorder());
+    pnlLocalPatches.setBorder(new EtchedBorder("Local Patch Layout:").getBorder());
     pnlLocalPatches.add(rtfTargetPatchSizeXandY.getContainer());
     pnlLocalPatches.add(rtfNLocalPatches.getContainer());
     createVariablePanel(pnlLocalParametersBody, pnlLocalPatches.getContainer(),
@@ -1685,6 +1685,9 @@ final class TiltalignPanel {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.40  2007/03/07 21:15:16  sueh
+ * <p> bug# 981 Added rbNoBeamTilt, rtfFixedBeamTilt, and rbSolveForBeamTilt.
+ * <p>
  * <p> Revision 3.39  2007/03/03 01:08:03  sueh
  * <p> bug# 973 Rearranged the local alignments box on the general tab.  Replaced the
  * <p> number patches field with a radio button box which allows choosing between
