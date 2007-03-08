@@ -1817,7 +1817,7 @@ c       XTILTFILE card
       do i=1,nviews
         if(abs(alpha(i)).gt.1.e-5)ifalpha=2
       enddo
-      write(6,2201)
+      if (ifalpha .eq. 2) write(6,2201)
       go to 1
 c       
 c       XAXISTILT card
@@ -2857,6 +2857,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.31  2006/06/21 06:26:45  mast
+c       Removed a debugging output
+c
 c       Revision 3.30  2006/06/20 22:10:59  mast
 c       Added ability to reproject at multiple angles
 c
