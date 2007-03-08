@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.6  2007/03/01 01:19:17  sueh
+ * <p> $bug# 964 Added LogFile to PrimativeTokenizer.
+ * <p> $
  * <p> $Revision 1.5  2006/06/14 21:24:16  sueh
  * <p> $bug# 852 Fixed findDelimiter():  was creating it with a char, which is interpretated
  * <p> $as int size.
@@ -204,8 +207,8 @@ public final class AutodocTokenizer {
     primativeTokenizer.test(tokens);
   }
 
-  void testStreamTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
-    primativeTokenizer.testStreamTokenizer(tokens);
+  void testStreamTokenizer(boolean tokens,boolean details) throws IOException,LogFile.ReadException {
+    primativeTokenizer.testStreamTokenizer(tokens,details);
   }
 
   private Token findToken() throws IOException {
