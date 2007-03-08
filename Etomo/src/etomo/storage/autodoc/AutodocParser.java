@@ -148,6 +148,11 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2007/03/07 21:06:23  sueh
+ * <p> $bug# 964 Fixed printing.  Fixed attributes:  the base attribute cannot contain a
+ * <p> $comment character, but the other attributes can.  This is necessary for the
+ * <p> $uitest autodoc flavor.
+ * <p> $
  * <p> $Revision 1.7  2007/03/01 01:18:39  sueh
  * <p> $bug# 964 Saving comments and empty lines in autodoc data structure.  Replaced
  * <p> $startLine(), startLineDelimiter(), and startLineWithOutDelimiter() with emptyLine()
@@ -349,13 +354,13 @@ final class AutodocParser {
     testStartFunction("comment");
     //comments can be made of multiple tokens, so use a link list
     LinkList comment = new LinkList(token);
-    //eat up comment line
+    //found comment so save the first token in the link list
+    list.addComment(comment.getList());
+    //add tokens to the comment
     while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
-      //add the token to the value link list
       comment.append(token);
       nextToken();
     }
-    list.addComment(comment.getList());
     //eat up the EOL
     matchToken(Token.Type.EOL);
     testEndFunction("comment", true);
@@ -382,6 +387,7 @@ final class AutodocParser {
     testStartFunction("section");
     //save the new section in the autodoc
     Section section = null;
+    //sectionHeader saves the section
     section = sectionHeader(autodoc);
     if (section == null) {
       //bad section
@@ -581,6 +587,7 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     testEndFunction("sectionHeader", true);
+    //assume that this is a good section and save it now
     return nameValuePairList.addSection(type, name.getList());
   }
 
@@ -639,7 +646,8 @@ final class AutodocParser {
       return false;
     }
     testStartFunction("pair");
-    Attribute leafAttribute = name(list);
+    NameValuePair pair = list.addNameValuePair();
+    Attribute leafAttribute = name(list,pair);
     if (leafAttribute == null) {
       //bad pair
       testEndFunction("pair", false);
@@ -653,7 +661,7 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     //attach the value to the last attribute
-    value(list, leafAttribute);
+    value(list, leafAttribute,pair);
     testEndFunction("pair", true);
     return true;
   }
@@ -663,18 +671,18 @@ final class AutodocParser {
    * 
    * @throws IOException
    */
-  private Attribute name(WriteOnlyNameValuePairList list) throws IOException {
+  private Attribute name(WriteOnlyNameValuePairList list,NameValuePair pair) throws IOException {
     testStartFunction("name");
-    Attribute attributeTree = baseAttribute(list);
-    if (attributeTree == null) {
+    Attribute attribute = baseAttribute(list,pair);
+    if (attribute == null) {
       //bad name
       reportError("Missing attribute.");
       testEndFunction("name", false);
     }
     while (matchToken(Token.Type.SEPARATOR)) {
       //add the attribute to the map, point to the child attribute
-      attributeTree = attribute(attributeTree);
-      if (attributeTree == null) {
+      attribute = attribute(attribute,pair);
+      if (attribute == null) {
         //bad name
         reportError("Attribute must follow separator (\""
             + AutodocTokenizer.SEPARATOR_CHAR + "\")" + ".");
@@ -682,24 +690,27 @@ final class AutodocParser {
       }
     }
     testEndFunction("name", true);
-    return attributeTree;
+    return attribute;
   }
 
   /**
-   * attribute => ( WORD | KEYWORD )
+   * base-attribute => ( WORD | KEYWORD )
    * 
-   * Adds attributes to an attribute map.  An attribute map is a tree of
+   * Adds the base-attribute to an attribute map.  An attribute map is a tree of
    * attributes.
    * @return attributeMap or null
    */
-  private Attribute baseAttribute(WriteOnlyAttributeMap attributeMap)
+  private Attribute baseAttribute(WriteOnlyAttributeMap attributeMap,NameValuePair pair)
       throws IOException {
     testStartFunction("base-attribute");
-    if (matchToken(Token.Type.WORD) || matchToken(Token.Type.KEYWORD)) {
+    if (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)) {
       //add the base-attribute to the map
       testEndFunction("base-attribute", true);
-      //return the new base-attribute
-      return (Attribute) attributeMap.addAttribute(prevToken);
+      //add and return the new base-attribute
+      pair.addAttribute(token);
+      Attribute attribute=(Attribute) attributeMap.addAttribute(token);
+      nextToken();
+      return attribute;
     }
     //did not find base-attribute
     testEndFunction("base-attribute", false);
@@ -713,7 +724,7 @@ final class AutodocParser {
    * attributes.
    * @return attributeMap or null
    */
-  private Attribute attribute(WriteOnlyAttributeMap attributeMap)
+  private Attribute attribute(WriteOnlyAttributeMap attributeMap,NameValuePair pair)
       throws IOException {
     if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD)
         && !token.is(Token.Type.COMMENT)) {
@@ -727,8 +738,10 @@ final class AutodocParser {
       nextToken();
     }
     testEndFunction("attribute", true);
-    //add the attribute to the map
-    return (Attribute) attributeMap.addAttribute(value.getList());
+    //add and return the new attribute
+    pair.addAttribute(value.getList());
+    Attribute attribute=(Attribute) attributeMap.addAttribute(value.getList());
+    return attribute;
   }
 
   /**
@@ -737,7 +750,7 @@ final class AutodocParser {
    * sets the value in the attribute, if the value exists
    * @throws IOException
    */
-  private void value(WriteOnlyNameValuePairList parent, Attribute attribute)
+  private void value(WriteOnlyNameValuePairList parent, Attribute attribute,NameValuePair pair)
       throws IOException {
     testStartFunction("value");
     //values can be made of multiple tokens, so use a link list
@@ -771,7 +784,13 @@ final class AutodocParser {
             .isLastElement(Token.Type.EOF))) {
       value.dropLastElement();
     }
+    //must add value to attribute even if its null to act as a place holder
+    //duplicates are allowed and must be stored in the map.
     attribute.setValue(value.getList());
+    //only save the value to the name/value pair if it exists
+    if (value.size>0) {
+      pair.addValue(value.getList());
+    }
     testEndFunction("value", true);
     return;
   }
@@ -948,9 +967,9 @@ final class AutodocParser {
     }
   }
 
-  void testStreamTokenizer(boolean tokens) throws IOException,
+  void testStreamTokenizer(boolean tokens,boolean details) throws IOException,
       LogFile.ReadException {
-    tokenizer.testStreamTokenizer(tokens);
+    tokenizer.testStreamTokenizer(tokens,details);
   }
 
   void testPrimativeTokenizer(boolean tokens) throws IOException,
