@@ -143,8 +143,12 @@ public final class AdocCommandReader {
     if (pairLoc == null) {
       pairLoc = list.getNameValuePairLocation();
     }
-    //get the pair
-    NameValuePair pair = list.nextNameValuePair(pairLoc);
+    //get the pair, ignoring comments and empty lines
+    NameValuePair pair;
+    do {
+      pair = list.nextNameValuePair(pairLoc);
+    } while (pair != null
+        && (pair.getType() == NameValuePair.Type.COMMENT || pair.getType() == NameValuePair.Type.EMPTY_LINE));
     if (pair == null) {
       //if this is the end of a function section, end the function and read the
       //next command from the calling autodoc
@@ -251,8 +255,8 @@ public final class AdocCommandReader {
     }
     else {
       try {
-        functionAutodoc = Autodoc.getInstance(
-            functionLocationSourceDir, command.getValue(), AxisID.ONLY);
+        functionAutodoc = Autodoc.getInstance(functionLocationSourceDir,
+            command.getValue(), AxisID.ONLY);
       }
       catch (FileNotFoundException e) {
         e.printStackTrace();
@@ -327,6 +331,9 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/05 21:28:19  sueh
+ * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
+ * <p>
  * <p> Revision 1.6  2007/03/01 01:15:03  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
