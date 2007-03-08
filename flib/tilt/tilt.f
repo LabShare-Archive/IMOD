@@ -1846,6 +1846,8 @@ c       read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
       if(nxwarp*nywarp.gt.limwpos.or.nxwarp*nywarp*nviews.gt.limwarp)
      &    call exitError(
      &    'ARRAY SIZE INSUFFICIENT FOR LOCAL TILT ALIGNMENT DATA')
+      if (nxwarp .lt. 2 .or. nywarp .lt. 2) call exitError(
+     &    'THERE MUST BE AT LEAST TWO LOCAL ALIGNMENT AREAS IN X AND IN Y')
       indbase=0
       do ipos=1,nxwarp*nywarp
         indwarp(ipos)=indbase
@@ -2857,6 +2859,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.32  2007/03/08 20:12:26  mast
+c       Only put out message about x tilt angles from file if non-zero
+c
 c       Revision 3.31  2006/06/21 06:26:45  mast
 c       Removed a debugging output
 c
