@@ -1,11 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/8/07: Made Tiltalign put out at least two local areas in each direction and
+made Tilt insist on this.
+
+3/8/07: Compacted output from beam tilt search, and fixed output and alignlog
+so it does not show up in error output from alignlog, but in a new -b output.
+
 3/8/07: Etomo added a tiltalign parameter to the Fine Alignment dialog,
 TargetPatchSizeXandY, which can be used in preference to
 NumberOfLocalPatchesXandY.
 
-3/7/07: Etomo:  Added beam tilt fields to the Fine Alignment dialog.  The .xtilt
-file will be created by align.com and will be use by tilt.com.
+3/7/07: Etomo:  Added beam tilt fields to the Fine Alignment dialog.  The 
+.xtilt file will be created by align.com and will be use by tilt.com.
 
 3/5/07: Renamed option in Tiltalign to FixedOrInitialBeamTilt.
 
