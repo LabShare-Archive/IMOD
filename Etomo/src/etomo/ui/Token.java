@@ -66,6 +66,10 @@ package etomo.ui;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.13  2007/03/07 21:16:27  sueh
+ * <p> $bug# 964 Removed getFormattedValues(boolean) because formatting no longer
+ * <p> $done by autodoc.  Use getValues() instead.
+ * <p> $
  * <p> $Revision 1.12  2007/03/01 01:45:11  sueh
  * <p> $bug# 964 Added ALT_COMMENT.  Removed BREAK, which should be handled
  * <p> $at a higher level.
@@ -129,7 +133,7 @@ public final class Token {
   private Token previous = null;
 
   public String toString() {
-    return value;
+    return "("+type+","+value+")";
   }
 
   /**
@@ -232,7 +236,6 @@ public final class Token {
    */
   public int numberOf(char searchChar, int fromIndex) {
     if (value == null) {
-      System.out.println("valid is null");
       return 0;
     }
     boolean found = false;
