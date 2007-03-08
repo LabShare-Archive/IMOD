@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/03/05 21:30:16  sueh
+ * <p> bug# 964 Returning target file when checking out vector.
+ * <p>
  * <p> Revision 1.13  2006/06/30 16:30:23  sueh
  * <p> bug# 883 Added EnvironmentVariable, a class to get and store environment
  * <p> variables.
@@ -81,6 +84,9 @@ public class TestUtilites {
   public static final String rcsid = "$Id$";
 
   private static final String VECTOR_LOCATION = "ImodTests/EtomoTests/vectors/";
+  private static final String TESTS_LOCATION_WORKSPACE = "Etomo/tests/";
+  private static final String TESTS_LOCATION_CHECKOUT = "IMOD/"
+      + TESTS_LOCATION_WORKSPACE;
 
   /**
    * Make all of the directories on on the specified path if necessary.  If the
@@ -110,6 +116,22 @@ public class TestUtilites {
   public static File getVector(BaseManager manager, String testRootDirName,
       String testDirName, String vectorName) throws SystemProcessException,
       InvalidParameterException {
+    return getVector(manager, testRootDirName, testDirName, vectorName, false);
+  }
+
+  public static File getVector(BaseManager manager, String testRootDirName,
+      String testDirName, String vectorName, boolean fromTestsDirectory)
+      throws SystemProcessException, InvalidParameterException {
+    String checkoutLocation;
+    String workspaceLocation;
+    if (fromTestsDirectory) {
+      checkoutLocation = TESTS_LOCATION_CHECKOUT;
+      workspaceLocation = TESTS_LOCATION_WORKSPACE;
+    }
+    else {
+      checkoutLocation = VECTOR_LOCATION;
+      workspaceLocation = VECTOR_LOCATION;
+    }
     //check vector
     if (vectorName.indexOf(File.separator) != -1) {
       throw new InvalidParameterException(
@@ -122,11 +144,11 @@ public class TestUtilites {
     String homeDirName = EnvironmentVariable.INSTANCE.getValue(null, "HOME",
         AxisID.ONLY);
     if (homeDirName != null && !homeDirName.matches("\\s*+")) {
-      File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(null, "HOME",
-          AxisID.ONLY));
+      File homeDir = new File(EnvironmentVariable.INSTANCE.getValue(null,
+          "HOME", AxisID.ONLY));
       if (homeDir.exists() && homeDir.canRead()) {
-        File vector = new File(
-            new File(homeDir, "workspace/" + VECTOR_LOCATION), vectorName);
+        File vector = new File(new File(homeDir, "workspace/"
+            + workspaceLocation), vectorName);
         if (vector.exists()) {
           //delete target
           if (target.exists() && !target.delete()) {
@@ -148,7 +170,8 @@ public class TestUtilites {
         }
       }
     }
-    return checkoutVector(manager, testRootDir, testDir, target);
+    return checkoutVector(manager, testRootDir, testDir, target,
+        checkoutLocation);
   }
 
   /**
@@ -161,8 +184,8 @@ public class TestUtilites {
    * @param vector - File to be added to the dirName directory.
    */
   private static File checkoutVector(BaseManager manager, File testRootDir,
-      File testDir, File target) throws SystemProcessException,
-      InvalidParameterException {
+      File testDir, File target, String checkoutLocation)
+      throws SystemProcessException, InvalidParameterException {
     //set working directory
     String originalDirName = EtomoDirector.getInstance()
         .setCurrentPropertyUserDir(testRootDir.getAbsolutePath());
@@ -170,7 +193,8 @@ public class TestUtilites {
     if (target.exists() && !target.delete()) {
       //unable to delete - reset working directory and throw exception
       EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
-      throw new SystemProcessException("Cannot delete target: " + target.getAbsolutePath());
+      throw new SystemProcessException("Cannot delete target: "
+          + target.getAbsolutePath());
     }
     //run cvs export
     String[] cvsCommand = new String[7];
@@ -180,7 +204,7 @@ public class TestUtilites {
     cvsCommand[3] = "today";
     cvsCommand[4] = "-d";
     cvsCommand[5] = testDir.getName();
-    cvsCommand[6] = VECTOR_LOCATION + target.getName();
+    cvsCommand[6] = checkoutLocation + target.getName();
     SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(),
         cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
