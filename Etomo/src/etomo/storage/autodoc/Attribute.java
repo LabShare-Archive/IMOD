@@ -19,6 +19,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.6  2007/03/07 21:04:36  sueh
+ * <p> $bug# 964 Fixed printing.
+ * <p> $
  * <p> $Revision 1.5  2007/03/01 01:15:21  sueh
  * <p> $bug# 964 Added comments.
  * <p> $
@@ -145,7 +148,7 @@ public final class Attribute extends WriteOnlyAttributeMap {
     }
     values.add(value);
     //add the full name (name1.name2.name3...) and value to a sequential list
-    nameValuePairList.addNameValuePair(this, values.size() - 1);
+    //nameValuePairList.addNameValuePair(this, values.size() - 1);
   }
 
   public Attribute getAttribute(int name) {
@@ -163,11 +166,9 @@ public final class Attribute extends WriteOnlyAttributeMap {
   }
 
   void print(int level) {
-    if (isBase()) {
-      Autodoc.printIndent(level);
-    }
+    Autodoc.printIndent(level);
     if (values == null || values.size() == 0) {
-      System.out.print(name.getValues() + ".");
+      System.out.println(name.getValues() + ".");
     }
     else {
       System.out.print(name.getValues() + " = ");
@@ -179,8 +180,8 @@ public final class Attribute extends WriteOnlyAttributeMap {
         System.out.println(value.getValues());
       }
       if (values.size() > 1) {
-        for (int i = 0; i < values.size(); i++) {
-          Autodoc.printIndent(level + 2);
+        for (int i = 1; i < values.size(); i++) {
+          Autodoc.printIndent(level + 1);
           System.out.print(" = ");
           value = (Token) values.get(i);
           if (value == null) {
