@@ -1,29 +1,8 @@
 #! /bin/csh -f
 # To extract portions of a tiltalign log file
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.5  2005/07/01 19:21:47  mast
-#  Adapted to new ratio outputs
-#
-#  Revision 3.4  2005/05/19 05:48:30  mast
-#  Fixed (sort of) for angle output with PIP input
-#
-#  Revision 3.3  2003/06/01 05:20:53  mast
-#  Fixed problems with local alignment output by ending some selections on a
-#  blank line
-#
-#  Revision 3.2  2003/05/25 16:28:17  mast
-#  Added output of local areas and fiducial number
-#
-#  Revision 3.1  2002/05/07 01:59:06  mast
-#  Fixed problem with interpreting the log file name input, added an
-#  alternative to handle new-style SURFACE ANALYSIS output
+#  $Id$
+#  Log at end
 #
 #
 set pn = alignlog
@@ -41,6 +20,7 @@ Usage: $pn <options> [a | b | log_filename]
          -c   Coordinates: print the 3-D coordinates of the fiducials
          -r   Residuals: print large residuals
          -a   Angles: print planar fits and recommended change in angles
+         -b   Beam tilt: print F values from beam tilt search
 EOF
 exit 0
 endif
@@ -70,6 +50,8 @@ grep "to do series" $file > /dev/null
 set pipinput = $status
 grep "Ratio to variables" $file > /dev/null
 set oldratios = $status
+grep "olved beam tilt" $file > /dev/null
+set nobeamtilt = $status
 
 while ($#argv > $numarg)
     switch ($argv[1])
@@ -93,7 +75,7 @@ while ($#argv > $numarg)
             if ($oldratios) then
                 awk '/^ *Final   F/, /^  Ratio/' $file
             else
-                awk '/^ *Final   F/, /^  Ratio to/' $file
+                awk '/^.*Final   F/, /^  Ratio to/' $file
             endif
 	    grep 'Residual error' $file
 	    set output = 1
@@ -106,6 +88,10 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
+            if ($nobeamtilt == 0) then
+                grep 'Beam tilt angle is' $file
+                echo ' '
+            endif
 	    awk '/^ view.*deltilt/, /^$/' $file
 	    set output = 1
 	    shift
@@ -162,9 +148,42 @@ while ($#argv > $numarg)
 	    shift
 	    breaksw
 
+	case -b*:
+	    if ($output == 1) then
+		echo " "
+		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
+		echo " "
+	    endif
+            grep ' beam tilt =' $file
+	    set output = 1
+	    shift
+	    breaksw
+            
 	default:
 	    echo "Unknown option $argv[1]"
 	    exit 1
 
     endsw
 end
+
+#
+#  $Log$
+#  Revision 3.6  2006/10/03 23:34:48  mast
+#  Fixed selection of solution when x axis tilt is used
+#
+#  Revision 3.5  2005/07/01 19:21:47  mast
+#  Adapted to new ratio outputs
+#
+#  Revision 3.4  2005/05/19 05:48:30  mast
+#  Fixed (sort of) for angle output with PIP input
+#
+#  Revision 3.3  2003/06/01 05:20:53  mast
+#  Fixed problems with local alignment output by ending some selections on a
+#  blank line
+#
+#  Revision 3.2  2003/05/25 16:28:17  mast
+#  Added output of local areas and fiducial number
+#
+#  Revision 3.1  2002/05/07 01:59:06  mast
+#  Fixed problem with interpreting the log file name input, added an
+#  alternative to handle new-style SURFACE ANALYSIS output
