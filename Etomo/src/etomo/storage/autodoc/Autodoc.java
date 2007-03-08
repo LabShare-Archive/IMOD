@@ -126,7 +126,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   private AttributeMap attributeMap = null;
   private Vector sectionList = null;
   private HashMap sectionMap = null;
-  private Vector nameValuePairList = null;
+  private final Vector nameValuePairList = new Vector();
 
   private Autodoc() {
     mutable = false;
@@ -417,29 +417,17 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return attributeMap.getAttribute(name);
   }
 
-  void addNameValuePair(Attribute attrib, int valueIndex) {
-    if (attrib == null) {
-      return;
-    }
-    NameValuePair pair = NameValuePair.getNameValuePairInstance(attrib, attrib
-        .getValueToken(valueIndex));
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
+  NameValuePair addNameValuePair() {
+    NameValuePair pair = NameValuePair.getNameValuePairInstance();
     nameValuePairList.add(pair);
+    return pair;
   }
 
   void addComment(Token comment) {
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
     nameValuePairList.add(NameValuePair.getCommentInstance(comment));
   }
 
   void addEmptyLine() {
-    if (nameValuePairList == null) {
-      nameValuePairList = new Vector();
-    }
     nameValuePairList.add(NameValuePair.getEmptyLineInstance());
   }
 
@@ -688,7 +676,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   }
 
   /**
-   * Prints parsing data instead of storing it.
+   * Initializes parser and prints parsing data instead of storing it.
    * @param type
    * @param showTokens
    * @param showDetails
@@ -698,7 +686,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
   public void runInternalTest(InternalTestType type, boolean showTokens,
       boolean showDetails) throws IOException, LogFile.ReadException {
     if (type == InternalTestType.STREAM_TOKENIZER) {
-      parser.testStreamTokenizer(showTokens);
+      parser.testStreamTokenizer(showTokens,showDetails);
     }
     else if (type == InternalTestType.PRIMATIVE_TOKENIZER) {
       parser.testPrimativeTokenizer(showTokens);
@@ -743,8 +731,8 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       return;
     }
     parser = new AutodocParser(this, false, false);
-    parser.initialize();
     if (storeData) {
+      parser.initialize();
       parser.parse();
     }
   }
@@ -763,8 +751,8 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
       throws FileNotFoundException, IOException, LogFile.ReadException {
     autodocFile = LogFile.getInstance(file);
     parser = new AutodocParser(this, mutable, allowAltComment);
-    parser.initialize();
     if (storeData) {
+      parser.initialize();
       parser.parse();
     }
   }
@@ -782,6 +770,9 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.12  2007/03/07 21:05:24  sueh
+ *<p> $bug# 964 Fixed printing.  Made internal tests runnable from unit tests.
+ *<p> $
  *<p> $Revision 1.11  2007/03/05 21:28:28  sueh
  *<p> $bug# 964 Stop controlling autodoc instances, except for the standard ones.
  *<p> $
