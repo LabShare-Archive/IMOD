@@ -35,6 +35,10 @@ Residuals: print large residuals.
 .TP
 .B -a
 Angles: print planar fits and recommended change in angles.
+.TP
+.B -b
+Beam tilt: print F values from beam tilt search
+
 .SH EXAMPLES
 Print solutions and errors from align.log:
     alignlog -s -e
