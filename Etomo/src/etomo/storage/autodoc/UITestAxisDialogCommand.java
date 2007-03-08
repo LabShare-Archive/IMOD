@@ -62,12 +62,12 @@ public class UITestAxisDialogCommand implements AdocCommand {
     else {
       empty = false;
       string = pair.getString();
-      if (pair.levels() == 0) {
+      if (pair.numAttributes() == 0) {
         return;
       }
       int index = 0;
       //set the action
-      action = UITestAction.getInstance(pair.getName(0));
+      action = UITestAction.getInstance(pair.getAttribute(0));
       if (action == UITestAction.ADOC) {
         functionLocation = true;
       }
@@ -122,28 +122,28 @@ public class UITestAxisDialogCommand implements AdocCommand {
   }
 
   private void setField(NameValuePair pair, int index) {
-    int levels = pair.levels();
+    int levels = pair.numAttributes();
     if (index >= levels) {
       return;
     }
-    field = UITestField.getInstance(pair.getName(index++));
+    field = UITestField.getInstance(pair.getAttribute(index++));
     if (index >= levels) {
       return;
     }
     if (action == UITestAction.ASSERT && field == UITestField.FILE) {
-      test = UITestTest.getInstance(pair.getName(index++));
+      test = UITestTest.getInstance(pair.getAttribute(index++));
     }
     else if (action == UITestAction.WAIT_FOR && field == UITestField.PROCESS) {
-      processName = ProcessName.getInstance(pair.getName(index++));
+      processName = ProcessName.getInstance(pair.getAttribute(index++));
     }
     else {
-      fieldName = pair.getName(index++);
+      fieldName = pair.getAttribute(index++);
       formattedFieldName = replaceVariables(fieldName, formattedFieldName);
       if (index >= levels) {
         return;
       }
       //may end in ".enabled"
-      String name = pair.getName(index++);
+      String name = pair.getAttribute(index++);
       test = UITestTest.getInstance(name);
       if (test == UITestTest.ENABLED) {
         return;
@@ -158,7 +158,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
         return;
       }
       //may end in ".enabled"
-      test = UITestTest.getInstance(pair.getName(index));
+      test = UITestTest.getInstance(pair.getAttribute(index));
     }
   }
 
@@ -294,6 +294,9 @@ public class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2006/10/24 21:41:56  sueh
+ * <p> bug# 947 Added waitfor.process.process_name =
+ * <p>
  * <p> Revision 1.6  2006/10/10 05:20:11  sueh
  * <p> bug# 931 Added file exists functionality to UITest.
  * <p>

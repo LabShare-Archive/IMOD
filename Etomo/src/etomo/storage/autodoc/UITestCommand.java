@@ -30,11 +30,11 @@ public final class UITestCommand implements AdocCommand {
     }
     empty = false;
     string = pair.getString();
-    if (pair.levels() == 0) {
+    if (pair.numAttributes() == 0) {
       return;
     }
     //set the action
-    action = UITestAction.getInstance(pair.getName(0));
+    action = UITestAction.getInstance(pair.getAttribute(0));
     //get the value
     value = pair.getValue();
     //ignore unknown commands
@@ -84,6 +84,9 @@ public final class UITestCommand implements AdocCommand {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2006/10/24 21:45:15  sueh
+* <p> bug# 948 Removed file_dir and test_dir from global section.
+* <p>
 * <p> Revision 1.3  2006/08/28 18:24:27  sueh
 * <p> bug# 923 Changed the source attribute to filedir.  Global filedir is an absolute file
 * <p> path.

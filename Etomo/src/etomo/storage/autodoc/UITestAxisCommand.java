@@ -33,11 +33,11 @@ public final class UITestAxisCommand implements AdocCommand {
     }
     empty = false;
     string = pair.getString();
-    if (pair.levels() == 0) {
+    if (pair.numAttributes() == 0) {
       return;
     }
     //set the action
-    action = UITestAction.getInstance(pair.getName(0));
+    action = UITestAction.getInstance(pair.getAttribute(0));
     //get the value
     value = pair.getValue();
     if (action == UITestAction.TEST_FROM || action == UITestAction.WAIT_FOR) {
@@ -96,6 +96,10 @@ public final class UITestAxisCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2006/08/08 18:11:35  sueh
+ * <p> bug# 852 Adding isFunctionLocation() and isFunction().  Removing
+ * <p> isSecondaryAutodoc().
+ * <p>
  * <p> Revision 1.1  2006/06/14 00:34:12  sueh
  * <p> bug# 852 Moved classes to the autodoc package that parse an autodoc or find
  * <p> attributes specific to a type of autdoc.

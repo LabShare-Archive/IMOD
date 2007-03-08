@@ -40,41 +40,41 @@ public final class UITestTestCommand implements AdocCommand {
     }
     empty = false;
     string = pair.getString();
-    if (pair.levels() == 0) {
+    if (pair.numAttributes() == 0) {
       return;
     }
     //get the action
-    action = UITestAction.getInstance(pair.getName(0));
+    action = UITestAction.getInstance(pair.getAttribute(0));
     //get the value
     value = pair.getValue();
     if (action == UITestAction.ADOC) {
-      axisID = AxisID.getInstance(pair.getName(1));
+      axisID = AxisID.getInstance(pair.getAttribute(1));
       if (axisID == null) {
         axisID = AxisID.ONLY;
       }
       variable = new Variable("axis", axisID.getExtension());
     }
     else if (action == UITestAction.DATASET_DIR) {
-      String keepString = pair.getName(1);
+      String keepString = pair.getAttribute(1);
       if (keepString != null && keepString.equals(KEEP_STRING)) {
         keep = true;
       }
     }
     else if (action == UITestAction.SET) {
-      String name = pair.getName(1);
+      String name = pair.getAttribute(1);
       axisID = AxisID.getInstance(name);
       if (axisID == null) {
         variable = new Variable(name, value);
       }
       else {
-        variable = new Variable(pair.getName(2), value);
+        variable = new Variable(pair.getAttribute(2), value);
       }
     }
     else if (action == UITestAction.DATASET) {
       variable = new Variable(action.toString(), value);
     }
     else if (action == UITestAction.COPY) {
-      field = UITestField.getInstance(pair.getName(1));
+      field = UITestField.getInstance(pair.getAttribute(1));
     }
     //ignore unknown commands
     if (action == UITestAction.ADOC
@@ -165,6 +165,9 @@ public final class UITestTestCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/10/24 21:47:04  sueh
+ * <p> bug# 948 Changed filedir to datadir.
+ * <p>
  * <p> Revision 1.4  2006/10/10 05:21:23  sueh
  * <p> bug# 931 Fixed dataset dir functionality.
  * <p>
