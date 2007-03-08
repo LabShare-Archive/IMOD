@@ -3,6 +3,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.1  2007/02/19 21:06:00  mast
+c       Added to program
+c
 c       
 c       searchBeamTilt will perform a one-dimensional search for the beam tilt
 c       that minimizes the alignment error.
@@ -22,7 +25,7 @@ c
       integer*4 nvarsrch, ncycle,metroError, ifLocal
       real*4 btOrig,btMax, fScan(limscan), xx(limscan/2), xxsq(limscan/2)
       real*4 btMin,aa,bb,cc,xmin,scanInt
-      integer*4 idir, iter, numScan, nfit, i, iMin, istr, iend, j
+      integer*4 idir, iter, numScan, nfit, i, iMin, istr, iend, j, kount
       real*4 fnew, fmin, fAbove, btAbove, fBelow, btBelow, binStep
       real*4 dtor/0.0174532/
       logical*4 scanning
@@ -31,10 +34,12 @@ c
       btMax = 5.
       btOrig = beamTilt
       idir = 1
-      call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, fmin,
-     &    metroError)
-      write(*,101)beamTilt/dtor
-101   format(' For beam tilt =',f6.2)
+      call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle, 1, fmin,
+     &    kount, metroError)
+      print *
+      write(*,101)beamTilt/dtor, kount, fmin
+101   format(' For beam tilt =',f6.2, ', ',i4,' cycles,',T48,'final   F : ',
+     &    T65,E14.7)
 c       
 c       Restart every run at the output of this one
       do i = 1, nvarsrch
@@ -57,17 +62,17 @@ c         Take a step from current minimum
           do i = 1, nvarsrch
             var(i) = varerr(i)
           enddo
-          call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle,
-     &        fFinal, metroError)
+          call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, 1, 
+     &        fFinal, kount, metroError)
           return
         endif
 
         do i = 1, nvarsrch
           var(i) = varerr(i)
         enddo
-        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, fnew,
-     &      metroError)
-        write(*,101)beamTilt/dtor
+        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, 1, fnew,
+     &      kount, metroError)
+        write(*,101)beamTilt/dtor, kount, fnew
         iter = iter + 1
         if (fnew .gt. fmin) then
 c           
@@ -120,9 +125,9 @@ c
         do i = 1, nvarsrch
           var(i) = varerr(i)
         enddo
-        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, fnew,
-     &      metroError)
-        write(*,101)beamTilt/dtor
+        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, 1, fnew,
+     &      kount, metroError)
+        write(*,101)beamTilt/dtor, kount, fnew
         if (fnew .lt. fmin) then
 c             
 c           If new minimum, replace the old, go in most promising direction
@@ -163,9 +168,9 @@ c       Now scan from below to above, find a minimum excluding the endpoints
         do i = 1, nvarsrch
           var(i) = varerr(i)
         enddo
-        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle,
-     &      fScan(j), metroError)
-        write(*,101)beamTilt/dtor
+        call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, 1, 
+     &      fScan(j), kount, metroError)
+        write(*,101)beamTilt/dtor, kount, fScan(j)
         if (fScan(j) .lt. fmin .or. j .eq. 2) then
           fmin = fScan(j)
           btMin = beamTilt
@@ -218,9 +223,12 @@ c       Run finally at the solved beam tilt
       do i = 1, nvarsrch
         var(i) = varerr(i)
       enddo
-      call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle,
-     &    fFinal, metroError)
-      write(*,101)beamTilt/dtor
+      call runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,-ncycle, 1,
+     &    fFinal, kount, metroError)
+      print *
+      write(*,104)beamTilt/dtor, kount, fFinal
+104   format(' Solved beam tilt =',f6.2, ', ',i4,' cycles,',T48,'Final   F : ',
+     &    T65,E14.7)
       return
       end
 
@@ -235,18 +243,20 @@ c       ifLocal is nonzero if doing local alignments
 c       FACM is the metro factor or initial step size
 c       NCYCLE is the limit on the number of cycles, or the negative of the
 c       limit to suppress some output
+c       ifHush not equal to zero suppresses the Final F output
 c       fFinal is the final error measure
+c       KOUNT is the cycle count
 c       metroError is maintained with a count of total errors
 c
       subroutine runMetro(nvarsrch,var,varerr,grad,h,ifLocal,facm,ncycle,
-     &    fFinal, metroError)
+     &    ifHush, fFinal, kount, metroError)
       implicit none
       integer maxMetroTrials
       parameter (maxMetroTrials = 5)
       real*4 var(*), varerr(*), grad(*), h(*), facm, fFinal
       real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
       integer*4 nvarsrch, ncycle,metroError, ifLocal
-      integer*4 i, ier, metroLoop, kount
+      integer*4 i, ier, metroLoop, kount, ifHush
       real*4 fInit, f
       logical firsttime
       common /functfirst/ firsttime
@@ -296,7 +306,7 @@ c
 
 C       Final call to FUNCT
       CALL FUNCT(nvarsrch,var,FFINAL,Grad)
-      WRITE(6,98)FFINAL,KOUNT
+      if (ifHush .eq. 0) WRITE(6,98)FFINAL,KOUNT
 98    FORMAT(/,T48,'Final   F : ',T65,E14.7,/,' Number of cycles : ',I5)
       call flush(6)
 C-----------------------------------------------------------------------
