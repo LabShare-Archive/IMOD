@@ -248,18 +248,23 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     zapDraw(zap);
 
     /* DNM 3/8/01: add autosnapshot when movieing */
+    // 3/8/07: make it take montages too
     if (snaptype && zap->vi->zmovie && 
         zap->movieSnapCount && imcGetStarterID() == zap->ctrl) {
-      limits = NULL;
-      if (zap->rubberband) {
-        limits = limarr;
-        zapBandImageToMouse(zap, 1);
-        limarr[0] = zap->rbMouseX0 + 1;
-        limarr[1] = zap->winy - zap->rbMouseY1;
-        limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
-        limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
+      if (imcGetMontageFactor() > 1) {
+        montageSnapshot(zap);
+      } else {
+        limits = NULL;
+        if (zap->rubberband) {
+          limits = limarr;
+          zapBandImageToMouse(zap, 1);
+          limarr[0] = zap->rbMouseX0 + 1;
+          limarr[1] = zap->winy - zap->rbMouseY1;
+          limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
+          limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
+        }
+        b3dKeySnapshot("zap", snaptype - 1, snaptype % 2, limits);
       }
-      b3dKeySnapshot("zap", snaptype - 1, snaptype % 2, limits);
       zap->movieSnapCount--;
       /* When count expires, stop movie */
       if(!zap->movieSnapCount)
@@ -3829,6 +3834,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.89  2006/10/05 15:41:32  mast
+Provided for primary and second non-TIFF snapshot format
+
 Revision 4.88  2006/10/04 20:08:23  mast
 Fixed window size being too small for toolbar due to new size text
 
