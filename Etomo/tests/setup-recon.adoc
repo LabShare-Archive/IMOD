@@ -27,11 +27,9 @@ function = assert-unchanged-fields-dual
 function = done
 function = popup
 function = popup
-function = popup
-function = popup
 
 [function = test_single]
-function = test1
+function = assert-fields
 function = trigger-error
 function = dataset
 function = single
@@ -42,7 +40,6 @@ function = assert-changed-fields
 function = assert-changed-fields-single
 function = assert-unchanged-fields
 function = done
-function = popup
 function = popup
 
 # build functions
