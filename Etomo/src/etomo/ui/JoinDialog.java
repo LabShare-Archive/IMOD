@@ -55,6 +55,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.45  2007/03/07 21:11:28  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 1.44  2007/03/01 01:38:38  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
@@ -779,7 +783,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     return pnlSectionTable.getRowsSize();
   }
 
-  final void changeTab(ChangeEvent event) {
+  private final void changeTab(ChangeEvent event) {
     Tab prevTab = curTab;
     removePanelComponents(prevTab);
     curTab = Tab.getInstance(tabPane.getSelectedIndex());
