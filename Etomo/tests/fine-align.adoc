@@ -4,7 +4,30 @@ Version = 1.2
 function = set-global
 function = set-general
 function = compute-alignment
-bn.done =
+function = done
+
+[function = test]
+function = assert-general-fields
+function = assert-general-fields-advanced
+function = assert-general-local-alignments-fields-enabled
+function = assert-global-fields
+function = assert-global-fields-advanced
+function = assert-global-beam-tilt-fields-enabled
+function = compute-alignment
+function = files-exist
+function = set-global
+bn.compute-alignment =
+assert.file.exists = align%{axis}.log~
+function = set-general
+function = compute-alignment
+rb.neighboring-views =
+function = compute-alignment
+function = done
+waitfor.popup.etomo-question = Yes
+function = done
+
+# build functions
+#################
 
 [function = set-global]
 tp.general.1 = 
@@ -19,30 +42,36 @@ rb.neighboring-views =
 bn.compute-alignment =
 waitfor.process.align = done
 
+[function = done]
+bn.done =
+
+# field state functions
+#######################
+
 [function = assert-general-fields]
 tp.general.0 =
 assert.tf.list-of-views-to-exclude=
 assert.tf.separate-view-groups=
 assert.tf.threshold-for-residual-report=3.0
 assert.rb.all-views=1
-assert.rb.neighboring-views=
+assert.rb.neighboring-views=0
 assert.rb.assume-fiducials-on-1-surface-for-analysis=
 assert.rb.assume-fiducials-on-2-surfaces-for-analysis=1
 assert.tf.total-tilt-angle-offset=0.0
 assert.tf.tilt-axis-z-shift=0.0
-assert.cb.enable-local-alignments=
-assert.rb.target-patch-size=0
+assert.cb.enable-local-alignments=0
+assert.rb.target-patch-size=1
 assert.tf.target-patch-size=700,700
-assert.rb.#-of-local-patches=
+assert.rb.#-of-local-patches=0
 assert.tf.#-of-local-patches=5,5
-assert.min-#-of-fiducials=8,3
+assert.tf.min-#-of-fiducials=8,3
 # enabled
 assert.tf.list-of-views-to-exclude.enabled=1
 assert.tf.separate-view-groups.enabled=1
 assert.tf.threshold-for-residual-report.enabled=1
 assert.rb.all-views.enabled=1
 assert.rb.neighboring-views.enabled=1
-assert.rb.assume-fiducials-on-1-surfaces-for-analysis.enabled=1
+assert.rb.assume-fiducials-on-1-surface-for-analysis.enabled=1
 assert.rb.assume-fiducials-on-2-surfaces-for-analysis.enabled=1
 assert.tf.total-tilt-angle-offset.enabled=1
 assert.tf.tilt-axis-z-shift.enabled=1
@@ -51,12 +80,161 @@ assert.rb.target-patch-size.enabled=0
 assert.tf.target-patch-size.enabled=0
 assert.rb.#-of-local-patches.enabled=0
 assert.tf.#-of-local-patches.enabled=0
-assert.min-#-of-fiducials.enabled=0
+assert.tf.min-#-of-fiducials.enabled=0
 
-[function = test]
-function = assert-general-fields
-bn.compute-alignment =
-waitfor.process.align = done
+[function = assert-general-fields-advanced]
+bn.advanced =
+assert.tf.metro-factor=0.25
+assert.tf.cycle-limit=1000
+assert.tf.overlap-factor=0.5,0.5
+assert.cb.use-global-x-y-z-coordinates=0
+# enabled
+assert.tf.metro-factor.enabled=1
+assert.tf.cycle-limit.enabled=1
+assert.tf.overlap-factor.enabled=0
+assert.cb.use-global-x-y-z-coordinates.enabled=0
+bn.basic =
+
+[function = assert-general-local-alignments-fields-enabled]
+bn.advanced=
+cb.enable-local-alignments=1
+assert.rb.target-patch-size.enabled=1
+assert.tf.target-patch-size.enabled=1
+assert.rb.#-of-local-patches.enabled=1
+assert.tf.#-of-local-patches.enabled=0
+assert.tf.overlap-factor.enabled=1
+assert.tf.min-#-of-fiducials.enabled=1
+assert.cb.use-global-x-y-z-coordinates.enabled=1
+# bug# 973
+rb.#-of-local-patches=
+assert.tf.target-patch-size.enabled=0
+assert.tf.#-of-local-patches.enabled=1
+assert.tf.min-local-patch-size-or-overlap-factor=0.5,0.5
+assert.tf.min-local-patch-size-or-overlap-factor.enabled=1
+rb.target-patch-size=
+assert.tf.target-patch-size.enabled=1
+assert.tf.#-of-local-patches.enabled=0
+assert.tf.overlap-factor=0.5,0.5
+#
+cb.enable-local-alignments=0
+assert.rb.target-patch-size.enabled=0
+assert.tf.target-patch-size.enabled=0
+assert.rb.#-of-local-patches.enabled=0
+assert.tf.#-of-local-patches.enabled=0
+assert.tf.overlap-factor.enabled=0
+assert.tf.min-#-of-fiducials.enabled=0
+assert.cb.use-global-x-y-z-coordinates.enabled=0
+
+[function = assert-global-fields]
+tp.general.1 =
+assert.rb.no-rotation=0
+assert.rb.solve-for-all-rotations=1
+assert.rb.group-rotations=0
+assert.rb.one-rotation=0
+assert.tf.group-size = 5
+assert.rb.fixed-tilt-angles=0
+assert.rb.solve-for-all-except-minimum-tilt=0
+assert.rb.group-tilt-angles=1
+assert.tf.group-size.1 = 5
+assert.rb.fixed-magnification-at-10=0
+assert.rb.solve-for-all-magnifications = 1
+assert.rb.group-magnifications = 0
+assert.tf.group-size.2 = 4
+assert.rb.disabled = 1
+assert.rb.full-solution = 0
+assert.rb.skew-only = 0
+assert.tf.x-stretch-group-size = 7
+assert.tf.skew-group-size = 11
+# enabled
+assert.rb.no-rotation.enabled=1
+assert.rb.solve-for-all-rotations.enabled=1
+assert.rb.group-rotations.enabled=1
+assert.rb.one-rotation.enabled=1
+assert.tf.group-size.enabled = 0
+assert.rb.fixed-tilt-angles.enabled=1
+assert.rb.solve-for-all-except-minimum-tilt.enabled=1
+assert.rb.group-tilt-angles.enabled=1
+assert.tf.group-size.1.enabled = 1
+assert.rb.fixed-magnification-at-10.enabled=1
+assert.rb.solve-for-all-magnifications.enabled = 1
+assert.rb.group-magnifications.enabled = 1
+assert.tf.group-size.2.enabled = 0
+assert.rb.disabled.enabled = 1
+assert.rb.full-solution.enabled = 1
+assert.rb.skew-only.enabled = 1
+assert.tf.x-stretch-group-size.enabled = 0
+assert.tf.skew-group-size.enabled = 0
+tp.general.0 =
+
+[function = assert-global-fields-advanced]
+tp.general.1 =
+bn.advanced =
+assert.tf.non-default-grouping = 
+assert.tf.non-default-grouping.1 =
+assert.tf.reference-view = 1
+assert.tf.non-default-grouping.2 =  
+assert.tf.x-stretch-non-default-grouping = 
+assert.tf.skew-non-default-grouping = 
+assert.rb.no-beam-tilt = 1
+assert.rb.fixed-beam-tilt = 0
+assert.tf.fixed-beam-tilt = 
+assert.rb.solve-for-beam-tilt = 0
+assert.cb.solve-for-single-stretch-during-projection = 0
+# enabled
+assert.tf.non-default-grouping.enabled = 0
+assert.tf.non-default-grouping.1.enabled = 1
+assert.tf.reference-view.enabled = 1
+assert.tf.non-default-grouping.2.enabled = 0
+assert.tf.x-stretch-non-default-grouping.enabled = 0
+assert.tf.skew-non-default-grouping.enabled = 0
+assert.rb.no-beam-tilt.enabled = 1
+assert.rb.fixed-beam-tilt.enabled = 1
+assert.tf.fixed-beam-tilt.enabled = 0
+assert.rb.solve-for-beam-tilt.enabled = 1
+assert.cb.solve-for-single-stretch-during-projection.enabled = 1
+bn.basic =
+tp.general.0 =
+
+[function = assert-global-beam-tilt-fields-enabled]
+# bug# 981
+sleep=
+tp.general.1 =
+mb.beam-tilt.advanced = 1
+rb.full-solution =
+assert.rb.solve-for-beam-tilt.enabled = 0
+rb.group-rotations=
+assert.rb.solve-for-beam-tilt.enabled = 0
+rb.skew-only=
+assert.rb.solve-for-beam-tilt.enabled = 0
+rb.one-rotation=
+assert.rb.solve-for-beam-tilt.enabled = 1
+rb.solve-for-beam-tilt = 
+assert.rb.solve-for-all-rotations.enabled=0
+assert.rb.group-rotations.enabled=0
+rb.full-solution =
+assert.rb.solve-for-all-rotations.enabled=0
+assert.rb.group-rotations.enabled=0
+rb.disabled =
+assert.rb.solve-for-all-rotations.enabled=1
+assert.rb.group-rotations.enabled=1
+rb.solve-for-all-rotations=
+assert.rb.full-solution.enabled=0
+assert.rb.skew-only=0
+rb.group-rotations=
+assert.rb.full-solution.enabled=0
+assert.rb.skew-only=0
+rb.no-beam-tilt=
+assert.rb.full-solution.enabled=1
+assert.rb.skew-only=1
+rb.solve-for-all-rotations=
+rb.disabled =
+mb.beam-tilt.advanced = 0
+tp.general.0 =
+
+# Functionality tests
+#####################
+
+[function = files-exist]
 assert.file.exists = align%{axis}.log
 assert.file.exists = taAngles%{axis}.log
 assert.file.exists = taCoordinates%{axis}.log
@@ -65,17 +243,3 @@ assert.file.exists = taLocals%{axis}.log
 assert.file.exists = taMappings%{axis}.log
 assert.file.exists = taResiduals%{axis}.log
 assert.file.exists = taSolution%{axis}.log
-tp.general.1 = 
-rb.full-solution =
-bn.compute-alignment =
-waitfor.process.align = done
-assert.file.exists = align%{axis}.log~
-tp.general.0 =
-cb.enable-local-alignments =
-bn.compute-alignment =
-waitfor.process.align = done
-rb.neighboring-views =
-bn.compute-alignment =
-waitfor.process.align = done
-bn.done =
-waitfor.popup.etomo-question = Yes
