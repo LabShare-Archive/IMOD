@@ -164,7 +164,7 @@ public final class AutodocTest extends TestCase {
         "tomo-pos.adoc", true));
     assertFalse(autodoc.isError());
   }
-/*
+
   public void testCleanUp() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
     Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
@@ -196,7 +196,7 @@ public final class AutodocTest extends TestCase {
         "combine.adoc", true));
     assertFalse(autodoc.isError());
   }
-*/
+
   public void testBeadtrack() throws FileNotFoundException, IOException,
       LogFile.ReadException {
     //TEMP
@@ -251,6 +251,9 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/03/09 22:05:20  sueh
+ * <p> bug# 964 Hiding test that aren't working temporarily
+ * <p>
  * <p> Revision 1.12  2007/03/08 21:55:59  sueh
  * <p> bug# 964 Testing directly from the IMOD/Etomo/tests directory.  Adding more
  * <p> tests of .adoc files.
