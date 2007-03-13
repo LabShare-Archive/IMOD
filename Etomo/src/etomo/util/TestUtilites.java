@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/08 22:07:27  sueh
+ * <p> bug# 964 Allow vectors to be checked out from IMOD/Etomo/tests as well as the
+ * <p> original vector location.
+ * <p>
  * <p> Revision 1.14  2007/03/05 21:30:16  sueh
  * <p> bug# 964 Returning target file when checking out vector.
  * <p>
@@ -85,7 +89,7 @@ public class TestUtilites {
 
   private static final String VECTOR_LOCATION = "ImodTests/EtomoTests/vectors/";
   private static final String TESTS_LOCATION_WORKSPACE = "Etomo/tests/";
-  private static final String TESTS_LOCATION_CHECKOUT = "IMOD/"
+  private static final String TESTS_LOCATION_CHECKOUT = "imod/"
       + TESTS_LOCATION_WORKSPACE;
 
   /**
@@ -149,12 +153,14 @@ public class TestUtilites {
       if (homeDir.exists() && homeDir.canRead()) {
         File vector = new File(new File(homeDir, "workspace/"
             + workspaceLocation), vectorName);
+        //delete target
+        if (target.exists() && !target.delete()) {
+          throw new SystemProcessException("Cannot delete target: "
+              + target.getAbsolutePath());
+        }
+        System.out.println("vector="+vector);
+        System.out.println("target="+target);
         if (vector.exists()) {
-          //delete target
-          if (target.exists() && !target.delete()) {
-            throw new SystemProcessException("Cannot delete target: "
-                + target.getAbsolutePath());
-          }
           //copy vector to target
           String[] copyCommand = new String[3];
           copyCommand[0] = "cp";
@@ -186,6 +192,9 @@ public class TestUtilites {
   private static File checkoutVector(BaseManager manager, File testRootDir,
       File testDir, File target, String checkoutLocation)
       throws SystemProcessException, InvalidParameterException {
+    System.out.println("target="+target);
+    System.out.println("testDir="+testDir);
+    System.out.println("checkoutLocation="+checkoutLocation);
     //set working directory
     String originalDirName = EtomoDirector.getInstance()
         .setCurrentPropertyUserDir(testRootDir.getAbsolutePath());
@@ -204,7 +213,7 @@ public class TestUtilites {
     cvsCommand[3] = "today";
     cvsCommand[4] = "-d";
     cvsCommand[5] = testDir.getName();
-    cvsCommand[6] = checkoutLocation + target.getName();
+   cvsCommand[6] = checkoutLocation + target.getName();
     SystemProgram cvs = new SystemProgram(manager.getPropertyUserDir(),
         cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
