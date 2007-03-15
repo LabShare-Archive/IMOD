@@ -15,8 +15,8 @@ import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
-import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.Section;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
@@ -126,7 +126,7 @@ public final class ProcessorTable implements Storable {
       return;
     }
     //get units
-    Attribute unitsAttribute = autodoc.getAttribute("units");
+    ReadOnlyAttribute unitsAttribute = autodoc.getAttribute("units");
     //get speed units
     try {
       speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY).getValue();
@@ -773,6 +773,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2007/02/09 00:51:54  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.37  2007/02/05 23:40:45  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>

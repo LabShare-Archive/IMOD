@@ -1,7 +1,7 @@
 package etomo.type;
 
-import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.Section;
 
 /**
@@ -33,7 +33,7 @@ public class EtomoAutodoc {
       return null;
     }
     String text = null;
-    Attribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
+    ReadOnlyAttribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
     if (attribute != null) {
       text = attribute.getValue();
       if (text != null) {
@@ -91,6 +91,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/09/13 23:34:51  sueh
+ * <p> bug# 921 Preventing null pointer exception in getTooltip.
+ * <p>
  * <p> Revision 1.10  2006/04/25 18:57:00  sueh
  * <p> bug# 787 Added VAR_TAG, the variable character for autodoc variables.
  * <p>

@@ -410,7 +410,7 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
     return attributeMap.addAttribute(name);
   }
 
-  public Attribute getAttribute(String name) {
+  public ReadOnlyAttribute getAttribute(String name) {
     if (attributeMap == null) {
       return null;
     }
@@ -770,6 +770,12 @@ public final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.13  2007/03/08 21:53:12  sueh
+ *<p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
+ *<p> $Attribute.  This is necessary because the name/value pair must be placed in the
+ *<p> $autodoc or section as soon as they are found to preserve the original order of the
+ *<p> $autodoc file.
+ *<p> $
  *<p> $Revision 1.12  2007/03/07 21:05:24  sueh
  *<p> $bug# 964 Fixed printing.  Made internal tests runnable from unit tests.
  *<p> $

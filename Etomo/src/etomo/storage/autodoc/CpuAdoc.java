@@ -63,7 +63,7 @@ public class CpuAdoc {
     if (separateChunks == null) {
       separateChunks = new EtomoBoolean2();
       try {
-        Attribute attrib = getAutodoc(axisID).getAttribute("separate-chunks");
+        ReadOnlyAttribute attrib = getAutodoc(axisID).getAttribute("separate-chunks");
         if (attrib != null && !attrib.getValue().equals("0")) {
           separateChunks.set(true);
         }
@@ -80,6 +80,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/03/01 01:19:30  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.3  2006/07/21 22:11:49  sueh
  * <p> bug# 901 Getting the calibration directory environment variable name from
  * <p> EnvironmentVariable.

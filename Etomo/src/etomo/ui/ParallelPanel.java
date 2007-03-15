@@ -19,8 +19,8 @@ import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
@@ -302,9 +302,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     if (autodoc == null) {
       return maxCPUs;
     }
-    Attribute maxAttribute = autodoc.getAttribute("max");
+    ReadOnlyAttribute maxAttribute = autodoc.getAttribute("max");
     try {
-      maxAttribute.getAttribute(process).getValue(maxCPUs);
+      maxCPUs.set(maxAttribute.getAttribute(process).getValue());
     }
     catch (NullPointerException e) {
     }
@@ -480,6 +480,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2007/03/01 01:40:02  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 1.42  2007/02/09 00:51:04  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

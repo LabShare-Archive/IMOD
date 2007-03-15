@@ -18,6 +18,12 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2007/03/08 22:02:03  sueh
+ * <p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
+ * <p> $Attribute.  This is necessary because the name/value pair must be placed in the
+ * <p> $autodoc or section as soon as they are found to preserve the original order of the
+ * <p> $autodoc file.
+ * <p> $
  * <p> $Revision 1.10  2007/03/07 21:07:15  sueh
  * <p> $bug# 964 Fixed printing.
  * <p> $
@@ -189,7 +195,7 @@ public final class Section extends WriteOnlyNameValuePairList implements
     return key.hashCode();
   }
 
-  public Attribute getAttribute(String name) {
+  public ReadOnlyAttribute getAttribute(String name) {
     if (attributeMap == null) {
       return null;
     }
