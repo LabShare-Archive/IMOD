@@ -25,7 +25,7 @@ import etomo.type.ProcessName;
 public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
-  public static final String MATLAB_PARAM_FILE_EXT=".prm";
+  private static final String MATLAB_PARAM_FILE_EXT = ".prm";
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String PEET_DATA_FILE_EXT = ".epe";
   public static final String ROTATED_TOMO_EXT = ".rot";
@@ -50,7 +50,7 @@ public final class DatasetFiles {
       + "-finish" + LOG_EXT;
   public static final String JOIN_EXT = ".join";
   public static final String REFINE_NAME = "_refine";
-  public static final String XFJOINTOMO_LOG = "xfjointomo"+LOG_EXT;
+  public static final String XFJOINTOMO_LOG = "xfjointomo" + LOG_EXT;
   private static final String XG_EXT = ".xg";
 
   private static File calibrationDir = null;
@@ -183,7 +183,7 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".fid";
   }
-  
+
   public static String getXTiltFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -216,31 +216,37 @@ public final class DatasetFiles {
   }
 
   public static String getJoinFileName(boolean trial, BaseManager manager) {
-    return manager.getBaseMetaData().getName()
-        + (trial ? "_trial" : "") + JOIN_EXT;
+    return manager.getBaseMetaData().getName() + (trial ? "_trial" : "")
+        + JOIN_EXT;
   }
 
   public static File getJoinFile(boolean trial, BaseManager manager) {
     return new File(manager.getPropertyUserDir(), getJoinFileName(trial,
         manager));
   }
-  
+
+  public static File getMatlabParamFile(BaseManager manager) {
+    return new File(manager.getPropertyUserDir(), manager.getBaseMetaData()
+        .getName()
+        + MATLAB_PARAM_FILE_EXT);
+  }
+
   public static String getRefineXfFileName(BaseManager manager) {
-    return manager.getBaseMetaData().getName()+REFINE_NAME+".xf";
+    return manager.getBaseMetaData().getName() + REFINE_NAME + ".xf";
   }
-  
+
   public static String getRefineXgFileName(BaseManager manager) {
-    return manager.getBaseMetaData().getName()+REFINE_NAME+XG_EXT;
+    return manager.getBaseMetaData().getName() + REFINE_NAME + XG_EXT;
   }
-  
+
   public static File getRefineXgFile(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(),getRefineXgFileName(manager));
+    return new File(manager.getPropertyUserDir(), getRefineXgFileName(manager));
   }
 
   public static String getRefineJoinXgFileName(BaseManager manager) {
-    return manager.getBaseMetaData().getName()+REFINE_NAME+"join"+XG_EXT;
+    return manager.getBaseMetaData().getName() + REFINE_NAME + "join" + XG_EXT;
   }
-  
+
   public static String getModeledJoinFileName(BaseManager manager) {
     return manager.getBaseMetaData().getName() + "_modeled" + JOIN_EXT;
   }
@@ -253,13 +259,14 @@ public final class DatasetFiles {
   public static String getRefineModelFileName(BaseManager manager) {
     return manager.getBaseMetaData().getName() + REFINE_NAME + MODEL_EXT;
   }
-  
+
   public static String getRefineAlignedModelFileName(BaseManager manager) {
     return manager.getBaseMetaData().getName() + REFINE_NAME + ".alimod";
   }
-  
+
   public static File getRefineAlignedModelFile(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(),getRefineAlignedModelFileName(manager));
+    return new File(manager.getPropertyUserDir(),
+        getRefineAlignedModelFileName(manager));
   }
 
   public static File getRefineModelFile(JoinManager manager) {
@@ -388,18 +395,21 @@ public final class DatasetFiles {
   public static String getParallelDataFileName(String rootName) {
     return rootName + PARALLEL_DATA_FILE_EXT;
   }
-  
+
   public static String getRootName(File paramFile) {
-    String rootFileName=paramFile.getName();
-    int extensionIndex=rootFileName.indexOf('.');
-    if (extensionIndex==-1) {
+    String rootFileName = paramFile.getName();
+    int extensionIndex = rootFileName.indexOf('.');
+    if (extensionIndex == -1) {
       return rootFileName;
     }
-    return rootFileName.substring(0,extensionIndex);
+    return rootFileName.substring(0, extensionIndex);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2007/03/07 21:17:34  sueh
+ * <p> bug# 981 Added getXTiltFileName.
+ * <p>
  * <p> Revision 1.33  2007/03/01 01:47:08  sueh
  * <p> bug# 964 Added .prm file extension.
  * <p>
