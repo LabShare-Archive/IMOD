@@ -6,6 +6,7 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
 import etomo.storage.LogFile;
+import etomo.storage.MatlabParamFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -36,7 +37,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
- * <p> Revision 1.5  2007/02/22 20:33:46  sueh
+ * <p> Revision 1.6  2007/03/01 01:11:18  sueh
+ * <p> bug# 964 Removed protected modifiers.  Interpackage inheritance doesn't require
+ * <p> it.
+ * <p>
+ * <p> Revision 1.5  2007/02/22 20:33import etomo.storage.autodoc.Autodoc;:46  sueh
  * <p> bug# 964 In setParamFile(), creating the param file if it doesn't exist.
  * <p>
  * <p> Revision 1.4  2007/02/21 22:29:04  sueh
@@ -62,6 +67,7 @@ public class PeetManager extends BaseManager {
   private final PeetProcessManager processMgr;
   private PeetDialog peetDialog = null;
   private MainPeetPanel mainPanel;
+  private MatlabParamFile matlabParamFile = null;
 
   public boolean canChangeParamFileName() {
     return !loadedParamFile;
@@ -103,6 +109,7 @@ public class PeetManager extends BaseManager {
     if (loadedParamFile) {
       String rootName = DatasetFiles.getRootName(paramFile);
       metaData.setName(rootName);
+      loadMatlabAutodoc();
       if (peetDialog != null) {
         peetDialog.setDirectory(paramFile.getParent());
         peetDialog.setOutput(rootName);
@@ -147,6 +154,7 @@ public class PeetManager extends BaseManager {
     if (!loadedParamFile) {
       return false;
     }
+    loadMatlabAutodoc();
     peetDialog.updateDisplay(true);
     return true;
   }
@@ -233,11 +241,22 @@ public class PeetManager extends BaseManager {
     createState();
     processMgr = new PeetProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
+    loadMatlabAutodoc();
     if (!EtomoDirector.getInstance().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
       openPeetDialog();
     }
+  }
+
+  /**
+   * Initialize metalabParamFile.  Dependent on metaData.
+   */
+  private void loadMatlabAutodoc() {
+    if (!loadedParamFile || matlabParamFile != null || paramFile == null) {
+      return;
+    }
+    matlabParamFile = new MatlabParamFile(DatasetFiles.getMatlabParamFile(this));
   }
 
   private void createState() {
@@ -254,12 +273,17 @@ public class PeetManager extends BaseManager {
    */
   private void openPeetDialog() {
     if (peetDialog == null) {
-      peetDialog =  PeetDialog.getInstance(this, AXIS_ID);
+      peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
     if (paramFile != null && metaData.isValid()) {
       peetDialog.setParameters(metaData);
       peetDialog.setParameters(screenState);
+      if (matlabParamFile != null) {
+        //read an existing matlab param file
+        matlabParamFile.read();
+        peetDialog.setParameters(matlabParamFile);
+      }
       peetDialog.setDirectory(propertyUserDir);
       peetDialog.updateDisplay(loadedParamFile);
     }
