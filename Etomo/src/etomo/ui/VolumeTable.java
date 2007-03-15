@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.PeetManager;
+import etomo.storage.MatlabParamFile;
 import etomo.storage.ModelFileFilter;
 import etomo.storage.MotlFileFilter;
 import etomo.storage.TomogramFileFilter;
@@ -34,6 +35,9 @@ import etomo.storage.TomogramFileFilter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/03/01 01:46:48  sueh
+ * <p> bug# 964 Added highlighting, model and motl to table.
+ * <p>
  * <p> Revision 1.3  2007/02/22 20:40:00  sueh
  * <p> bug# 964 Added addRow().
  * <p>
@@ -50,32 +54,32 @@ final class VolumeTable implements Expandable, Highlightable {
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlButtons = new JPanel();
-  private final MultiLineButton btnAddTomogram = new MultiLineButton(
+  private final MultiLineButton btnAddFnVolume = new MultiLineButton(
       "Add Tomogram and Model");
-  private final MultiLineButton btnSetMotl = new MultiLineButton(
-      "Set MOTL file");
+  private final MultiLineButton btnSetInitMotl = new MultiLineButton(
+      "Set initial motive list file");
   private final HeaderCell header1Highlighter = new HeaderCell();
-  private final HeaderCell header1Tomogram = new HeaderCell("Tomogram");
-  private final HeaderCell header1Model = new HeaderCell("Model");
-  private final HeaderCell header1Motl = new HeaderCell("MOTL");
+  private final HeaderCell header1FnVolume = new HeaderCell("Tomogram");
+  private final HeaderCell header1FnModParticle = new HeaderCell("Model");
+  private final HeaderCell header1InitMotl = new HeaderCell("MOTL");
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
-  private final ExpandButton btnExpandTomogram;
-  private final ExpandButton btnExpandModel;
-  private final ExpandButton btnExpandMotl;
+  private final ExpandButton btnExpandFnVolume;
+  private final ExpandButton btnExpandFnModParticle;
+  private final ExpandButton btnExpandInitMotl;
 
   private final PeetManager manager;
 
   public void expand(final ExpandButton button) {
-    if (button == btnExpandTomogram) {
-      rowList.expandTomogram(btnExpandTomogram.isExpanded());
+    if (button == btnExpandFnVolume) {
+      rowList.expandFnVolume(btnExpandFnVolume.isExpanded());
     }
-    else if (button == btnExpandModel) {
-      rowList.expandModel(btnExpandModel.isExpanded());
+    else if (button == btnExpandFnModParticle) {
+      rowList.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     }
-    else if (button == btnExpandMotl) {
-      rowList.expandMotl(btnExpandMotl.isExpanded());
+    else if (button == btnExpandInitMotl) {
+      rowList.expandInitMotl(btnExpandInitMotl.isExpanded());
     }
     UIHarness.INSTANCE.pack(manager);
   }
@@ -91,22 +95,34 @@ final class VolumeTable implements Expandable, Highlightable {
     return rootPanel;
   }
 
-  void action(final ActionEvent event) {
+  void setParameters(final MatlabParamFile matlabParamFile) {
+    MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile.getInitMotlCode();
+    
+    for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
+      VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)), new File(
+          matlabParamFile.getFnModParticle(i)));
+      if (initMotlCode == null) {
+        row.setInitMotl(new File(matlabParamFile.getInitMotlFile(i)));
+      }
+    }
+  }
+
+  private void action(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
-    if (actionCommand.equals(btnAddTomogram.getActionCommand())) {
+    if (actionCommand.equals(btnAddFnVolume.getActionCommand())) {
       addTomogram();
     }
-    if (actionCommand.equals(btnSetMotl.getActionCommand())) {
-      setMotl();
+    if (actionCommand.equals(btnSetInitMotl.getActionCommand())) {
+      setInitMotl();
     }
   }
 
   private VolumeTable(final PeetManager manager) {
     this.manager = manager;
     //construction
-    btnExpandTomogram = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
-    btnExpandModel = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
-    btnExpandMotl = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    btnExpandFnVolume = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    btnExpandFnModParticle = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    btnExpandInitMotl = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
     //table
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
@@ -119,16 +135,16 @@ final class VolumeTable implements Expandable, Highlightable {
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     header1Highlighter.add(pnlTable, layout, constraints);
-    header1Tomogram.add(pnlTable, layout, constraints);
+    header1FnVolume.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
-    btnExpandTomogram.add(pnlTable, layout, constraints);
+    btnExpandFnVolume.add(pnlTable, layout, constraints);
     constraints.weightx = 0.1;
-    header1Model.add(pnlTable, layout, constraints);
+    header1FnModParticle.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
-    btnExpandModel.add(pnlTable, layout, constraints);
+    btnExpandFnModParticle.add(pnlTable, layout, constraints);
     constraints.weightx = 0.1;
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header1Motl.add(pnlTable, layout, constraints);
+    header1InitMotl.add(pnlTable, layout, constraints);
     //border
     SpacedPanel pnlBorder = new SpacedPanel();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
@@ -136,8 +152,8 @@ final class VolumeTable implements Expandable, Highlightable {
     pnlBorder.add(pnlTable);
     //buttons
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    btnAddTomogram.setSize();
-    pnlButtons.add(btnAddTomogram.getComponent());
+    btnAddFnVolume.setSize();
+    pnlButtons.add(btnAddFnVolume.getComponent());
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -145,8 +161,8 @@ final class VolumeTable implements Expandable, Highlightable {
     rootPanel.add(pnlButtons);
     //actions
     VTActionListener actionListener = new VTActionListener(this);
-    btnAddTomogram.addActionListener(actionListener);
-    btnSetMotl.addActionListener(actionListener);
+    btnAddFnVolume.addActionListener(actionListener);
+    btnSetInitMotl.addActionListener(actionListener);
     //update display
     updateDisplay();
   }
@@ -188,7 +204,7 @@ final class VolumeTable implements Expandable, Highlightable {
     }
   }
 
-  private void setMotl() {
+  private void setInitMotl() {
     JFileChooser chooser = new JFileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setFileFilter(new MotlFileFilter());
@@ -196,36 +212,37 @@ final class VolumeTable implements Expandable, Highlightable {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      VolumeRow row = rowList.setMotl(chooser.getSelectedFile());
+      VolumeRow row = rowList.setInitMotl(chooser.getSelectedFile());
       if (row != null) {
-        row.expandMotl(btnExpandMotl.isExpanded());
+        row.expandInitMotl(btnExpandInitMotl.isExpanded());
         UIHarness.INSTANCE.pack(manager);
       }
     }
   }
 
-  private void addRow(final File tomogram, final File model) {
-    addRow(tomogram.getName(), tomogram.getAbsolutePath(), model.getName(),
-        model.getAbsolutePath());
+  private VolumeRow addRow(final File fnVolume, final File fnModel) {
+    return addRow(fnVolume.getName(), fnVolume.getAbsolutePath(), fnModel
+        .getName(), fnModel.getAbsolutePath());
   }
 
-  private void addRow(final String contractedTomogram,
-      final String expandedTomogram, final String contractedModel,
-      final String expandedModel) {
-    VolumeRow row = rowList.add(contractedTomogram, expandedTomogram,
-        contractedModel, expandedModel, this, pnlTable, layout, constraints);
+  private VolumeRow addRow(final String contractedFnVolume,
+      final String expandedFnVolume, final String contractedFnModParticle,
+      final String expandedFnModParticle) {
+    VolumeRow row = rowList.add(contractedFnVolume, expandedFnVolume,
+        contractedFnModParticle, expandedFnModParticle, this, pnlTable, layout, constraints);
     row.display();
-    row.expandTomogram(btnExpandTomogram.isExpanded());
-    row.expandModel(btnExpandModel.isExpanded());
+    row.expandFnVolume(btnExpandFnVolume.isExpanded());
+    row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
+    return row;
   }
 
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
-    btnExpandTomogram.setEnabled(enable);
-    btnExpandModel.setEnabled(enable);
-    btnSetMotl.setEnabled(enable && rowList.isHighlighted());
+    btnExpandFnVolume.setEnabled(enable);
+    btnExpandFnModParticle.setEnabled(enable);
+    btnSetInitMotl.setEnabled(enable && rowList.isHighlighted());
   }
 
   /**
@@ -234,41 +251,41 @@ final class VolumeTable implements Expandable, Highlightable {
   private static final class RowList {
     private final List list = new ArrayList();
 
-    int size() {
+    private int size() {
       return list.size();
     }
 
-    synchronized VolumeRow add(final String contractedTomogram,
-        final String expandedTomogram, final String contractedModel,
-        final String expandedModel, final VolumeTable table,
+    private synchronized VolumeRow add(final String contractedFnVolume,
+        final String expandedFnVolume, final String contractedFnModParticle,
+        final String expandedFnModParticle, final VolumeTable table,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
-      VolumeRow row = VolumeRow.getInstance(contractedTomogram,
-          expandedTomogram, contractedModel, expandedModel, list.size(), table,
+      VolumeRow row = VolumeRow.getInstance(contractedFnVolume,
+          expandedFnVolume, contractedFnModParticle, expandedFnModParticle, list.size(), table,
           panel, layout, constraints);
       list.add(row);
       return row;
     }
 
-    void expandTomogram(final boolean expanded) {
+    private void expandFnVolume(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandTomogram(expanded);
+        ((VolumeRow) list.get(i)).expandFnVolume(expanded);
       }
     }
 
-    void expandModel(final boolean expanded) {
+    private void expandFnModParticle(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandModel(expanded);
+        ((VolumeRow) list.get(i)).expandFnModParticle(expanded);
       }
     }
 
-    void expandMotl(final boolean expanded) {
+    private void expandInitMotl(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandMotl(expanded);
+        ((VolumeRow) list.get(i)).expandInitMotl(expanded);
       }
     }
 
-    boolean isHighlighted() {
+    private boolean isHighlighted() {
       for (int i = 0; i < list.size(); i++) {
         if (((VolumeRow) list.get(i)).isHighlighted()) {
           return true;
@@ -282,26 +299,28 @@ final class VolumeTable implements Expandable, Highlightable {
      * @param motl
      * @return
      */
-    VolumeRow setMotl(final File motl) {
+    private VolumeRow setInitMotl(final File initMotl) {
       VolumeRow row = getHighlightedRow();
-      boolean changeDisplay = row.usingMotlSpinner();
+      //If the motl spinner is being displayed, then the display will have to be
+      //changed
+      boolean changeDisplay = row.usingInitMotlSpinner();
       int index = -1;
       if (row != null) {
-        index = row.setMotl(motl);
+        index = row.setInitMotl(initMotl);
         //if display changed from spinner to text field, redisplay
         if (changeDisplay) {
-          row.removeMotl();
+          row.removeInitMotl();
         }
       }
       //if display changed from spinner to text field, redisplay
       if (changeDisplay) {
-        //removed the following rows
+        //removed the rows following the current row
         for (int i = index + 1; i < list.size(); i++) {
           ((VolumeRow) list.get(i)).remove();
         }
-        //redisplay highlighted row
-        row.displayMotl();
-        //redisplay following rows
+        //redisplay the highlighted row
+        row.displayInitMotl();
+        //redisplay the rows following the current row
         for (int i = index + 1; i < list.size(); i++) {
           ((VolumeRow) list.get(i)).display();
         }
