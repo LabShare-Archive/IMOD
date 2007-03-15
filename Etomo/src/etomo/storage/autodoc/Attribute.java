@@ -2,7 +2,6 @@ package etomo.storage.autodoc;
 
 import java.util.Vector;
 
-import etomo.type.EtomoNumber;
 import etomo.ui.Token;
 
 /**
@@ -19,6 +18,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2007/03/08 21:45:14  sueh
+ * <p> $bug# 964 Save name/value pairs in the parser.  Fixing printing.
+ * <p> $
  * <p> $Revision 1.6  2007/03/07 21:04:36  sueh
  * <p> $bug# 964 Fixed printing.
  * <p> $
@@ -75,7 +77,7 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-public final class Attribute extends WriteOnlyAttributeMap {
+final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute {
   public static final String rcsid = "$$Id$$";
 
   private final WriteOnlyAttributeMap parent;
@@ -114,21 +116,21 @@ public final class Attribute extends WriteOnlyAttributeMap {
     return true;
   }
 
-  public static String getKey(Token name) {
+  static String getKey(Token name) {
     if (name == null) {
       return null;
     }
     return name.getKey();
   }
 
-  public static String getKey(String name) {
+  static String getKey(String name) {
     if (name == null) {
       return null;
     }
     return Token.convertToKey(name);
   }
 
-  public boolean equalsName(String name) {
+  boolean equalsName(String name) {
     if (name == null) {
       return false;
     }
@@ -144,11 +146,24 @@ public final class Attribute extends WriteOnlyAttributeMap {
 
   synchronized void setValue(Token value) {
     if (values == null) {
-      values = new Vector();
+      //complete construction before assigning to keep the unsynchronized
+      //functions from seeing a partially constructed instance.
+      Vector vector = new Vector();
+      values = vector;
     }
     values.add(value);
     //add the full name (name1.name2.name3...) and value to a sequential list
     //nameValuePairList.addNameValuePair(this, values.size() - 1);
+  }
+  
+  synchronized void changeValue(String newValue) {
+    if (values == null) {
+      return;
+    }
+    //can only modify the first value found
+    Token value = (Token)values.get(0);
+    value.removeListFromHead();
+    value.set(Token.Type.ONE_OR_MORE,newValue);
   }
 
   public Attribute getAttribute(int name) {
@@ -158,7 +173,7 @@ public final class Attribute extends WriteOnlyAttributeMap {
     return attributeMap.getAttribute(String.valueOf(name));
   }
 
-  public Attribute getAttribute(String name) {
+  public ReadOnlyAttribute getAttribute(String name) {
     if (attributeMap == null) {
       return null;
     }
@@ -202,19 +217,15 @@ public final class Attribute extends WriteOnlyAttributeMap {
     return parent;
   }
 
-  public Token getNameToken() {
+  Token getNameToken() {
     return name;
   }
 
-  public String getName() {
+  String getName() {
     return name.getValues();
   }
 
-  public void getValue(EtomoNumber value) {
-    value.set(getValue());
-  }
-
-  public Token getValueToken(int index) {
+  Token getValueToken(int index) {
     if (values == null) {
       return null;
     }
@@ -237,11 +248,7 @@ public final class Attribute extends WriteOnlyAttributeMap {
   }
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return /*"key=" + key +*/",name=" + name + ",\nvalues=" + values
-        + ",\nattributeMap=" + attributeMap/* + ",\n" + super.toString()*/;
+    return getClass().getName() + "[" + ",name=" + name + ",\nvalues=" + values
+    + ",\nattributeMap=" + attributeMap + "]";
   }
 }
