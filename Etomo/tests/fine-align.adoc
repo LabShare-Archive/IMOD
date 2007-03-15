@@ -24,7 +24,6 @@ rb.neighboring-views =
 function = compute-alignment
 function = done
 waitfor.popup.etomo-question = Yes
-function = done
 
 # build functions
 #################
@@ -124,6 +123,7 @@ assert.tf.#-of-local-patches.enabled=0
 assert.tf.overlap-factor.enabled=0
 assert.tf.min-#-of-fiducials.enabled=0
 assert.cb.use-global-x-y-z-coordinates.enabled=0
+bn.basic =
 
 [function = assert-global-fields]
 tp.general.1 =
@@ -197,9 +197,8 @@ tp.general.0 =
 
 [function = assert-global-beam-tilt-fields-enabled]
 # bug# 981
-sleep=
 tp.general.1 =
-mb.beam-tilt.advanced = 1
+mb.beam-tilt-advanced = 1
 rb.full-solution =
 assert.rb.solve-for-beam-tilt.enabled = 0
 rb.group-rotations=
@@ -225,10 +224,10 @@ assert.rb.full-solution.enabled=0
 assert.rb.skew-only=0
 rb.no-beam-tilt=
 assert.rb.full-solution.enabled=1
-assert.rb.skew-only=1
+assert.rb.skew-only.enabled=1
 rb.solve-for-all-rotations=
 rb.disabled =
-mb.beam-tilt.advanced = 0
+mb.beam-tilt-advanced = 0
 tp.general.0 =
 
 # Functionality tests
