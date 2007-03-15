@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import etomo.PeetManager;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.MatlabParamFile;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.ConstPeetScreenState;
@@ -34,6 +35,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/01 01:41:46  sueh
+ * <p> bug# 964 Added initialize() to sets metadata fields that are only set once.
+ * <p>
  * <p> Revision 1.5  2007/02/22 20:38:40  sueh
  * <p> bug# 964 Added a button to the Directory field.
  * <p>
@@ -104,6 +108,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   
   public void setParameters(final ConstPeetMetaData metaData) {
     ltfOutput.setText(metaData.getName());
+  }
+  
+  public void setParameters(final MatlabParamFile matlabParamFile) {
+    volumeTable.setParameters(matlabParamFile);
   }
   
   public void initialize(final PeetMetaData metaData) {
