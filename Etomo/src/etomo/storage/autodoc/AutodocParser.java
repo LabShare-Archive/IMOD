@@ -18,9 +18,9 @@ import etomo.ui.Token;
  * 
  * AutodocParser is not case sensitive.  It stores all text in the original case.
  * It retains the original whitespace, except for end of line.  It substitute one
- * space for each end of line character in a multi-line value.  Comments are not
- * stored.  Messages about syntax errors are sent to System.err.  It is extremely
- * important to keep the language definition up to date.
+ * space for each end of line character in a multi-line value.  Comments and
+ * empty lines are stored.  Messages about syntax errors are sent to System.err.
+ * It is extremely important to keep the language definition up to date.
  *
  * To Use:
  * Construct the class with an Autodoc.
@@ -68,7 +68,6 @@ import etomo.ui.Token;
  * [  1 or more  ]
  * {n  0 up to n  n}
  * (  group together  )
- * (boolean value)
  * \any token except these\
  * -optional-
  * | => or
@@ -148,6 +147,13 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.9  2007/03/08 21:55:06  sueh
+ * <p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
+ * <p> $Attribute.  This is necessary because the name/value pair must be placed in the
+ * <p> $autodoc or section as soon as they are found to preserve the original order of the
+ * <p> $autodoc file.  Also save the comment as early as possible, though this isn't such
+ * <p> $as big deal because comments are one line long.
+ * <p> $
  * <p> $Revision 1.8  2007/03/07 21:06:23  sueh
  * <p> $bug# 964 Fixed printing.  Fixed attributes:  the base attribute cannot contain a
  * <p> $comment character, but the other attributes can.  This is necessary for the
@@ -784,12 +790,16 @@ final class AutodocParser {
             .isLastElement(Token.Type.EOF))) {
       value.dropLastElement();
     }
+    //The same value instance must be saved in the attribute and the name/value
+    //pair so that, if the values in the instance are changed in the attribute,
+    //they will change in the name/value pair.
+    Token valueList = value.getList();
     //must add value to attribute even if its null to act as a place holder
     //duplicates are allowed and must be stored in the map.
-    attribute.setValue(value.getList());
+    attribute.setValue(valueList);
     //only save the value to the name/value pair if it exists
     if (value.size>0) {
-      pair.addValue(value.getList());
+      pair.addValue(valueList);
     }
     testEndFunction("value", true);
     return;
