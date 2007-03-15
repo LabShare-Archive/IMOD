@@ -8,9 +8,9 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Attribute;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.Section;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
@@ -407,7 +407,7 @@ public final class RemotePath {
       return null;
     }
     //set mount name
-    Attribute mountName = section.getAttribute(MOUNT_NAME);
+    ReadOnlyAttribute mountName = section.getAttribute(MOUNT_NAME);
     if (mountName == null) {
       if (sectionNameCanBeMountName) {
         //use section name as mount name
@@ -439,16 +439,16 @@ public final class RemotePath {
    * Loads mount rules from a mountrule attribute.
    * @param mountRules
    */
-  private final void loadMountRules(Attribute mountRules, String sectionName) {
+  private final void loadMountRules(ReadOnlyAttribute mountRules, String sectionName) {
     if (mountRules == null) {
       return;
     }
     //load the rules in order of the mountrule number
     int attributeNumber = 1;
-    Attribute numberAttribute = mountRules.getAttribute(attributeNumber);
+    ReadOnlyAttribute numberAttribute = mountRules.getAttribute(attributeNumber);
     while (numberAttribute != null) {
-      Attribute localRule = numberAttribute.getAttribute(LOCAL);
-      Attribute remoteRule = numberAttribute.getAttribute(REMOTE);
+      ReadOnlyAttribute localRule = numberAttribute.getAttribute(LOCAL);
+      ReadOnlyAttribute remoteRule = numberAttribute.getAttribute(REMOTE);
       //run valid rule check
       if (isValidRule(localRule, remoteRule, attributeNumber, sectionName)) {
         //add rule
@@ -468,7 +468,7 @@ public final class RemotePath {
    * @param sectionName
    * @return true if the rule is valid, false if it is invalid
    */
-  private final boolean isValidRule(Attribute localRule, Attribute remoteRule,
+  private final boolean isValidRule(ReadOnlyAttribute localRule, ReadOnlyAttribute remoteRule,
       int mountRuleNumber, String sectionName) {
     //create the start of the error message
     StringBuffer errorTitle = new StringBuffer("Warning:  Problem");
@@ -522,7 +522,7 @@ public final class RemotePath {
    * @param ruleType
    * @return
    */
-  private final boolean isValidRule(Attribute rule, int mountRuleNumber,
+  private final boolean isValidRule(ReadOnlyAttribute rule, int mountRuleNumber,
       String errorTitle, String ruleType) {
     //rule must exist
     if (rule == null) {
@@ -668,6 +668,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/05 21:29:40  sueh
+ * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
+ * <p>
  * <p> Revision 1.9  2007/03/01 01:48:02  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
