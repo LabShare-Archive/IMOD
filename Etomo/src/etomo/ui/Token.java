@@ -66,6 +66,9 @@ package etomo.ui;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.14  2007/03/08 22:04:37  sueh
+ * <p> $bug# 964 Improved toString function.
+ * <p> $
  * <p> $Revision 1.13  2007/03/07 21:16:27  sueh
  * <p> $bug# 964 Removed getFormattedValues(boolean) because formatting no longer
  * <p> $done by autodoc.  Use getValues() instead.
@@ -133,7 +136,7 @@ public final class Token {
   private Token previous = null;
 
   public String toString() {
-    return "("+type+","+value+")";
+    return "(" + type + "," + value + ")";
   }
 
   /**
@@ -469,6 +472,19 @@ public final class Token {
   }
 
   /**
+   * Removes the list of tokens pointed to by next from a token.  Token must be
+   * the head of the list.
+   */
+  public void removeListFromHead() {
+    if (previous != null) {
+      //error - not the head of the list
+      throw new IllegalStateException("Must be the head of the list:  this="
+          + this + ",previos=" + previous + ",next=" + next);
+    }
+    next = null;
+  }
+
+  /**
    * Drops the token from the link list.  
    * @return The previous token on the list, if it exists.  If not, returns the
    * next token on the list.
@@ -506,6 +522,7 @@ public final class Token {
     public static final Type DELIMITER = new Type();
     public static final Type WORD = new Type();
     public static final Type KEYWORD = new Type();
+    public static final Type ONE_OR_MORE = new Type();
 
     public String toString() {
 
@@ -547,6 +564,9 @@ public final class Token {
       }
       else if (this == KEYWORD) {
         return "KEYWORD";
+      }
+      else if (this == ONE_OR_MORE) {
+        return "ONE_OR_MORE";
       }
       return "UNKNOWN";
     }
