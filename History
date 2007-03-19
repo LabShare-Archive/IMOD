@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/07: Changed the way Solvematch determines the center shift so it won't get
+screwed up if the center points are all on one surface.
+
+3/9/07: Made Zap montage snapshots work when taking automatic movie snapshots.
+
 3/8/07: Made Tiltalign put out at least two local areas in each direction and
 made Tilt insist on this.
 
