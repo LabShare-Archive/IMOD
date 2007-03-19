@@ -824,7 +824,7 @@ c
             do iyl = 1, numLocalY
               ycen = ymin + targetSize / 2. + (iyl - 1) * dyLocal
               size = targetSize
-              call fillLocalData(xcen, ycen, size, localNum, pnta, pntb,
+5             call fillLocalData(xcen, ycen, size, localNum, pnta, pntb,
      &            npnta, mapab, jxyz, xr, msiz, ndat)
 c               do j = 1,ndat
 c               write(*,'(6f8.1)')(xr(i,j),i=1,3), (xr(i,j),i=5,7)
@@ -859,22 +859,33 @@ c               print *,xcen,ycen,size,ndat,devavgloc,devmaxloc
 
           if (shiftLimit .gt. 0.) then
 c           
-c             Redo the fit for the central area
-c             
+c             Get the data for the central area and transform the points by
+c             the global transformation and measure shift in the points.
+c             3/19/07: switched to this from doing a fit because the fit can
+c             screw up the shifts if there are not points on both sides
             xcen = 0.
             ycen = 0.
             size = targetSize
             call fillLocalData(xcen, ycen, size, localNum, pnta, pntb, npnta,
      &          mapab, jxyz, xr, msiz, ndat)
-            maxdrop=nint(0.1*ndat)
-            if (ndat .le. 6) maxdrop = 0
-            call solve_wo_outliers(xr,ndat,ncolfit,icolfix,maxdrop,crit,
-     &          critabs, elimmin, idrop,ndrop, aloc,dxyzloc,cenloc, devavgLoc,
-     &          devsd,devmaxLoc, ipntmax, devxyzmax)
-c            print *,'central area',size,ndat,devavgLoc,devmaxLoc
-            csdx = dxyz(1) - dxyzloc(1)
-            csdy = dxyz(2) - dxyzloc(2)
-            csdz = dxyz(3) - dxyzloc(3)
+            dxyzloc(1) = 0.
+            dxyzloc(2) = 0.
+            dxyzloc(3) = 0.
+            do ip = 1, ndat
+              do j = 1, 3
+                xr(10+j,ip) = dxyz(j)
+                do i = 1, 3
+                  xr(10+j,ip) = xr(10+j,ip) + a(j,i) * xr(i,ip)
+                enddo
+                dxyzloc(j) = dxyzloc(j) + (xr(10+j,ip) - xr(ncolfit+1+j,ip)) /
+     &              ndat
+              enddo
+c              write(*,132)(xr(j,ip),j=1,3),(xr(j,ip),j=5,7),(xr(j,ip),j=11,13)
+c132           format(9f8.1)
+            enddo
+            csdx = dxyzloc(1)
+            csdy = dxyzloc(2)
+            csdz = dxyzloc(3)
             dist = sqrt(csdx**2 + csdy**2 + csdz**2)
 c             print *,'distance',dist, csdx,csdy,csdz
             if (dist .ge. shiftLimit) then
@@ -1201,6 +1212,10 @@ c
 
 c
 c       $Log$
+c       Revision 3.16  2006/08/23 23:42:32  mast
+c       Added local fitting and center shift assessment and fixed output of
+c       list of points in B being used
+c
 c       Revision 3.15  2006/07/14 00:29:15  mast
 c       Needed to initialize matchAtOB
 c
