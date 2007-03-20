@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/03/01 01:33:21  sueh
+ * <p> bug# 964 removed unnecesary protected modifier
+ * <p>
  * <p> Revision 1.13  2006/04/28 20:58:35  sueh
  * <p> bug# 787 Moved type information (which kind of expander) and strings
  * <p> associated with the type to a static inner class:  Type.
@@ -113,6 +116,7 @@ final class ExpandButton extends MultiLineButton {
   private final Expandable container;
 
   private boolean expanded;
+  private JPanel jpanelContainer = null;
 
   static ExpandButton getInstance(Expandable container, ExpandButton.Type type) {
     if (type == null) {
@@ -234,6 +238,14 @@ final class ExpandButton extends MultiLineButton {
   void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
+    jpanelContainer = panel;
+  }
+  
+  void remove() {
+    if (jpanelContainer != null) {
+      jpanelContainer.remove(getComponent());
+      jpanelContainer = null;
+    }
   }
 
   /**
