@@ -22,6 +22,10 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/03/20 00:46:41  sueh
+ * <p> bug# 964 Removed the spinner version of Initial MOTL.  Hiding/showing the
+ * <p> Initial MOTL column.
+ * <p>
  * <p> Revision 1.4  2007/03/15 21:54:48  sueh
  * <p> bug# 964 Loading data from .prm file.  Changing the field names to match the
  * <p> .prm file format.
@@ -46,48 +50,51 @@ final class VolumeRow implements Highlightable {
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
 
-  private final FieldCell fnModParticle = new FieldCell();
-  private final FieldCell fnVolume = new FieldCell();
-  private final FieldCell initMotl = new FieldCell();
+  private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
+  private final FieldCell fnVolume = FieldCell.getExpandableInstance();
+  private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
   private final FieldCell tiltRangeStart = new FieldCell();
   private final FieldCell tiltRangeEnd = new FieldCell();
-  private final FieldCell relativeOrient = new FieldCell();
+  private final FieldCell relativeOrientX = new FieldCell();
+  private final FieldCell relativeOrientY = new FieldCell();
+  private final FieldCell relativeOrientZ = new FieldCell();
   private final HighlighterButton btnHighlighter;
 
   static VolumeRow getInstance(final String contractedFnVolume,
       final String expandedFnVolume, final String contractedFnModParticle,
-      final String expandedFnModParticle, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
+      final String expandedFnModParticle, final int index,
+      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
-    return new VolumeRow(contractedFnVolume, expandedFnVolume, contractedFnModParticle,
-        expandedFnModParticle, index, table, panel, layout, constraints);
+    return new VolumeRow(contractedFnVolume, expandedFnVolume,
+        contractedFnModParticle, expandedFnModParticle, index, table, panel,
+        layout, constraints);
   }
-  
-  private VolumeRow(final String contractedFnVolume, final String expandedFnVolume,
-      final String contractedFnModParticle, final String expandedFnModParticle,
-      final int index, final VolumeTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+
+  private VolumeRow(final String contractedFnVolume,
+      final String expandedFnVolume, final String contractedFnModParticle,
+      final String expandedFnModParticle, final int index,
+      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     this.index = index;
     this.table = table;
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
     this.fnVolume.setExpandableValues(contractedFnVolume, expandedFnVolume);
-    this.fnModParticle.setExpandableValues(contractedFnModParticle, expandedFnModParticle);
+    this.fnModParticle.setExpandableValues(contractedFnModParticle,
+        expandedFnModParticle);
     btnHighlighter = new HighlighterButton(this, table);
-    //disable fields
-    fnVolume.setEnabled(false);
-    fnModParticle.setEnabled(false);
-    initMotl.setEnabled(false);
   }
-  
+
   public void highlight(final boolean highlight) {
     fnVolume.setHighlight(highlight);
     fnModParticle.setHighlight(highlight);
-    initMotl.setHighlight(highlight);
+    initMotlFile.setHighlight(highlight);
     tiltRangeStart.setHighlight(highlight);
     tiltRangeEnd.setHighlight(highlight);
-    relativeOrient.setHighlight(highlight);
+    relativeOrientX.setHighlight(highlight);
+    relativeOrientY.setHighlight(highlight);
+    relativeOrientZ.setHighlight(highlight);
   }
 
   void display() {
@@ -99,13 +106,18 @@ final class VolumeRow implements Highlightable {
     fnVolume.add(panel, layout, constraints);
     fnModParticle.add(panel, layout, constraints);
     if (table.usingInitMotlFile()) {
-      initMotl.add(panel,layout,constraints);
+      initMotlFile.add(panel, layout, constraints);
+    }
+    if (table.usingTiltRange()) {
+      constraints.gridwidth = 1;
+      tiltRangeStart.add(panel, layout, constraints);
+      tiltRangeEnd.add(panel, layout, constraints);
     }
     constraints.gridwidth = 1;
-    tiltRangeStart.add(panel,layout,constraints);
-    tiltRangeEnd.add(panel,layout,constraints);
+    relativeOrientX.add(panel, layout, constraints);
+    relativeOrientY.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    relativeOrient.add(panel,layout,constraints);
+    relativeOrientZ.add(panel, layout, constraints);
   }
 
   void expandFnVolume(final boolean expanded) {
@@ -115,22 +127,59 @@ final class VolumeRow implements Highlightable {
   void expandFnModParticle(final boolean expanded) {
     fnModParticle.expand(expanded);
   }
-  
-  void expandInitMotl(final boolean expanded) {
-    initMotl.expand(expanded);
+
+  void expandInitMotlFile(final boolean expanded) {
+    initMotlFile.expand(expanded);
   }
 
-  int setInitMotl(File initMotl) {
-    this.initMotl.setExpandableValues(initMotl.getName(), initMotl.getAbsolutePath());
+  String getInitMotlFile() {
+    return initMotlFile.getExpandedValue();
+  }
+  
+  String getTiltRangeStart() {
+    return tiltRangeStart.getValue();
+  }
+  
+  String getTiltRangeEnd() {
+    return tiltRangeEnd.getValue();
+  }
+  
+  int setInitMotlFile(File initMotlFile) {
+    this.initMotlFile.setExpandableValues(initMotlFile.getName(), initMotlFile
+        .getAbsolutePath());
     return index;
   }
   
+  int setInitMotlFile(String initMotlFile) {
+    return setInitMotlFile(new File(initMotlFile));
+  }
+
   void setTiltRangeStart(ConstEtomoNumber tiltRangeStart) {
     this.tiltRangeStart.setValue(tiltRangeStart);
   }
   
-  void setRelativeOrient(String relativeOrient) {
-    
+  void setTiltRangeStart(String tiltRangeStart) {
+    this.tiltRangeStart.setValue(tiltRangeStart);
+  }
+
+  void setTiltRangeEnd(ConstEtomoNumber tiltRangeEnd) {
+    this.tiltRangeEnd.setValue(tiltRangeEnd);
+  }
+  
+  void setTiltRangeEnd(String tiltRangeEnd) {
+    this.tiltRangeEnd.setValue(tiltRangeEnd);
+  }
+
+  void setRelativeOrientX(String relativeOrientX) {
+    this.relativeOrientX.setValue(relativeOrientX);
+  }
+
+  void setRelativeOrientY(String relativeOrientY) {
+    this.relativeOrientY.setValue(relativeOrientY);
+  }
+
+  void setRelativeOrientZ(String relativeOrientZ) {
+    this.relativeOrientZ.setValue(relativeOrientZ);
   }
 
   boolean isHighlighted() {
@@ -141,9 +190,11 @@ final class VolumeRow implements Highlightable {
     btnHighlighter.remove();
     fnVolume.remove();
     fnModParticle.remove();
-    initMotl.remove();
+    initMotlFile.remove();
     tiltRangeStart.remove();
     tiltRangeEnd.remove();
-    relativeOrient.remove();
+    relativeOrientX.remove();
+    relativeOrientY.remove();
+    relativeOrientZ.remove();
   }
 }
