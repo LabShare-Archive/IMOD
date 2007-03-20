@@ -37,6 +37,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/20 00:45:17  sueh
+ * <p> bug# 964 Added Initial MOTL radio buttons.
+ * <p>
  * <p> Revision 1.7  2007/03/15 21:48:09  sueh
  * <p> bug# 964 Added setParameters(MatlabParamFile).
  * <p>
@@ -79,6 +82,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final LabeledTextField ltfOutput= new LabeledTextField(OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetupBody= new SpacedPanel();
+  private final CheckBox cbUseTiltRange = new CheckBox("Use tilt range");
   private final RadioButton rbInitMotlZero;
   private final RadioButton rbInitMotlZAxis;
   private final RadioButton rbInitMotlXAndZAxis;
@@ -110,6 +114,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlSetupBody.add(ftfDirectory.getContainer());
     pnlSetupBody.add(ltfOutput.getContainer());
     pnlSetupBody.add(volumeTable.getContainer());
+    pnlSetupBody.add(pnlInitMotl);
+    cbUseTiltRange.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlSetupBody.add(cbUseTiltRange);
     //setup header
     SpacedPanel pnlSetup= new SpacedPanel();
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
@@ -120,7 +127,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
     rootPanel.add(pnlSetup.getContainer());
-    rootPanel.add(pnlInitMotl);
   }
   
   public static PeetDialog getInstance(final PeetManager manager, final AxisID axisID) {
@@ -155,8 +161,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     setupHeader.setState(screenState.getPeetSetupHeaderState());
   }
   
+  public void getParameters(final PeetMetaData metaData) {
+    volumeTable.getParameters(metaData);
+  }
+  
   public void setParameters(final ConstPeetMetaData metaData) {
     ltfOutput.setText(metaData.getName());
+    volumeTable.setParameters(metaData);
   }
   
   public void setParameters(final MatlabParamFile matlabParamFile) {
@@ -174,10 +185,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (initMotlCode==MatlabParamFile.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
+    cbUseTiltRange.setSelected(matlabParamFile.isTiltRangeEmpty());
   }
   
-  public void initialize(final PeetMetaData metaData) {
-    metaData.setName(ltfOutput.getText());
+  public String getOutput() {
+    return ltfOutput.getText();
   }
 
   public boolean usingParallelProcessing() {
@@ -223,6 +235,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(rbInitMotlFiles.getActionCommand())) {
       volumeTable.setUsingInitMotlFile(true);
     }
+    else if (actionCommand.equals(cbUseTiltRange.getActionCommand())) {
+      volumeTable.setUsingTiltRange(cbUseTiltRange.isSelected());
+    }
   }
   
   private void directoryAction() {
@@ -243,6 +258,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbInitMotlZAxis.addActionListener(actionListener);
     rbInitMotlXAndZAxis.addActionListener(actionListener);
     rbInitMotlFiles.addActionListener(actionListener);
+    cbUseTiltRange.addActionListener(actionListener);
   }
   
   private class DirectoryActionListener implements ActionListener {
