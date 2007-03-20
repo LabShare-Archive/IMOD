@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/15 21:41:32  sueh
+ * <p> bug# 964 Added a MatlabParamFile member variable.
+ * <p>
  * <p> Revision 1.6  2007/03/01 01:11:18  sueh
  * <p> bug# 964 Removed protected modifiers.  Interpackage inheritance doesn't require
  * <p> it.
@@ -141,17 +144,18 @@ public class PeetManager extends BaseManager {
     if (peetDialog == null) {
       return false;
     }
-    peetDialog.initialize(metaData);
-    if (!metaData.isValid()) {
-      return false;
-    }
-    File paramFile = new File(peetDialog.getDirectory(), metaData.getName()
+    String name = peetDialog.getOutput();
+    File paramFile = new File(peetDialog.getDirectory(), name
         + DatasetFiles.PEET_DATA_FILE_EXT);
     if (!paramFile.exists()) {
       touch(paramFile.getAbsolutePath());
     }
     initializeUIParameters(paramFile, AXIS_ID);
     if (!loadedParamFile) {
+      return false;
+    }
+    metaData.setName(name);
+    if (!metaData.isValid()) {
       return false;
     }
     loadMatlabAutodoc();
@@ -299,6 +303,7 @@ public class PeetManager extends BaseManager {
         return;
       }
     }
+    peetDialog.getParameters(metaData);
     peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
   }
