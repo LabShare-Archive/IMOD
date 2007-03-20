@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
@@ -36,13 +37,24 @@ final class RadioButton {
   private final EtomoNumber radioValue = new EtomoNumber();
 
   RadioButton(final String text) {
-    this(text, EtomoNumber.INTEGER_NULL_VALUE);
+    this(text, EtomoNumber.INTEGER_NULL_VALUE,null);
+  }
+  
+  RadioButton(final String text,ButtonGroup group) {
+    this(text, EtomoNumber.INTEGER_NULL_VALUE,group);
   }
 
   RadioButton(final String text, final int radioValue) {
+    this(text, radioValue,null);
+  }
+  
+  RadioButton(final String text, final int radioValue,ButtonGroup group) {
     radioButton = new JRadioButton(text);
     setName(text);
     this.radioValue.set(radioValue);
+    if (group!=null) {
+      group.add(radioButton);
+    }
   }
 
   void setText(final String text) {
@@ -144,6 +156,10 @@ final class RadioButton {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/07 21:12:32  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 1.9  2007/03/03 01:03:49  sueh
  * <p> bug# 973 Added a RadioButtonModel for classes that use a radio button, and
  * <p> want to respond to the setSelected calls that automatically turn off other buttons
