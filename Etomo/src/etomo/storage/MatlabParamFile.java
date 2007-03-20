@@ -24,6 +24,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/20 00:43:39  sueh
+ * <p> bug# 964 Added Volume.tiltRange and Volume.relativeOrient.
+ * <p>
  * <p> Revision 1.1  2007/03/15 21:42:17  sueh
  * <p> bug# 964 A class which represents a .prm file.
  * <p> </p>
@@ -35,6 +38,7 @@ public final class MatlabParamFile {
   private final ArrayList volumeList = new ArrayList();
   private final File file;
   private InitMotlCode initMotlCode = null;
+  private boolean tiltRangeEmpty = false;
 
   public MatlabParamFile(File file) {
     this.file = file;
@@ -50,35 +54,45 @@ public final class MatlabParamFile {
             + ".", "File Error");
         return;
       }
-      String[] fnVolumeArray = getList(autodoc.getAttribute("fnVolume"));
-      String[] fnModParticleArray = getList(autodoc
+      //Parse each attributes' value.
+      String[] fnVolumeList = getList(autodoc.getAttribute("fnVolume"));
+      String[] fnModParticleList = getList(autodoc
           .getAttribute("fnModParticle"));
       String initMotl = autodoc.getAttribute("initMOTL").getValue();
       initMotlCode = InitMotlCode.getInstance(initMotl);
-      String[] initMotlArray = null;
+      String[] initMotlList = null;
       if (initMotlCode == null) {
-        initMotlArray = getList(initMotl);
+        initMotlList = getList(initMotl);
       }
-      String[][] tiltRangeArray = getListOfArrays(getList(autodoc
-          .getAttribute("tiltRange")));
-      String[][] relativeOrientArray = getListOfArrays(getList(autodoc
+      String[] tiltRangeList = getList(autodoc.getAttribute("tiltRange"));
+      String[][] tiltRangeArrayList = null;
+      //Distinguish between {} (an empty list) and {[],[]}
+      if (tiltRangeList.length == 0) {
+        //empty list
+        tiltRangeEmpty=true;
+      }
+      else {
+        //not an empty list
+        tiltRangeArrayList = getListOfArrays(tiltRangeList);
+      }
+      String[][] relativeOrientArrayList = getListOfArrays(getList(autodoc
           .getAttribute("relativeOrient")));
       //Add entries to volumeList, ignoring any entries for which there is no
       //corresponding fnVolume.
-      for (int i = 0; i < fnVolumeArray.length; i++) {
+      for (int i = 0; i < fnVolumeList.length; i++) {
         Volume volume = new Volume();
-        volume.setFnVolume(removeQuotes(fnVolumeArray[i]));
-        if (i < fnModParticleArray.length) {
-          volume.setFnModParticle(removeQuotes(fnModParticleArray[i]));
+        volume.setFnVolume(removeQuotes(fnVolumeList[i]));
+        if (i < fnModParticleList.length) {
+          volume.setFnModParticle(removeQuotes(fnModParticleList[i]));
         }
-        if (initMotlArray != null && i < initMotlArray.length) {
-          volume.setInitMotl(removeQuotes(initMotlArray[i]));
+        if (initMotlList != null && i < initMotlList.length) {
+          volume.setInitMotl(removeQuotes(initMotlList[i]));
         }
-        if (i < tiltRangeArray.length) {
-          volume.setTiltRange(tiltRangeArray[i]);
+        if (!tiltRangeEmpty&&i < tiltRangeArrayList.length) {
+          volume.setTiltRange(tiltRangeArrayList[i]);
         }
-        if (i < relativeOrientArray.length) {
-          volume.setRelativeOrient(relativeOrientArray[i]);
+        if (i < relativeOrientArrayList.length) {
+          volume.setRelativeOrient(relativeOrientArrayList[i]);
         }
         volumeList.add(volume);
       }
@@ -112,6 +126,10 @@ public final class MatlabParamFile {
   public String getInitMotlFile(int index) {
     return ((Volume) volumeList.get(index)).getInitMotl();
   }
+  
+  public boolean isTiltRangeEmpty() {
+    return tiltRangeEmpty;
+  }
 
   public ConstEtomoNumber getTiltRangeStart(int index) {
     return ((Volume) volumeList.get(index)).getTiltRangeStart();
@@ -121,8 +139,16 @@ public final class MatlabParamFile {
     return ((Volume) volumeList.get(index)).getTiltRangeEnd();
   }
 
-  public String getRelativeOrient(int index) {
-    return ((Volume) volumeList.get(index)).getRelativeOrient();
+  public String getRelativeOrientX(int index) {
+    return ((Volume) volumeList.get(index)).getRelativeOrientX();
+  }
+
+  public String getRelativeOrientY(int index) {
+    return ((Volume) volumeList.get(index)).getRelativeOrientY();
+  }
+
+  public String getRelativeOrientZ(int index) {
+    return ((Volume) volumeList.get(index)).getRelativeOrientZ();
   }
 
   /**
@@ -144,19 +170,16 @@ public final class MatlabParamFile {
    * the list in the value parameter and return it.  If there is no list, return
    * the whole value parameter.
    * @param String
-   * @return
+   * @return String array of elements of list.  Zero length array is there is no attribute, an empty value, or an empty list, "{}".
    */
   private String[] getList(String value) {
-    System.out.println("value=" + value);
     if (value == null) {
       return new String[0];
     }
     value = value.trim();
-    System.out.println("value=" + value);
     if (value.charAt(0) == '{' && value.charAt(value.length() - 1) == '}') {
       //remove "{" and "}"
       value = value.substring(1, value.length() - 1).trim();
-      System.out.println("value=" + value);
       if (value.length() == 0) {
         return new String[0];
       }
@@ -298,15 +321,16 @@ public final class MatlabParamFile {
       }
     }
 
-    private String getRelativeOrient() {
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < relativeOrient.length; i++) {
-        buffer.append(relativeOrient.toString());
-        if (i < relativeOrient.length - 1) {
-          buffer.append(DIVIDER + ' ');
-        }
-      }
-      return buffer.toString();
+    private String getRelativeOrientX() {
+      return relativeOrient[0].toString();
+    }
+
+    private String getRelativeOrientY() {
+      return relativeOrient[1].toString();
+    }
+
+    private String getRelativeOrientZ() {
+      return relativeOrient[2].toString();
     }
   }
 }
