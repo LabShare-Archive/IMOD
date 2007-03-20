@@ -22,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/03/01 01:34:18  sueh
+ * <p> bug# 964 Made InputCell colors constant and moved them to Colors.  Added
+ * <p> setExpandableValues, getContractedValue, and getExpandedValue.
+ * <p>
  * <p> Revision 1.13  2007/02/09 00:49:04  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -92,8 +96,9 @@ final class FieldCell extends InputCell {
   private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
   private String contractedValue = null;
   private String expandedValue = null;
-  
-  FieldCell(){
+  private boolean fixedValues = false;
+
+  FieldCell() {
     //construction
     textField = new JTextField();
     //field
@@ -102,6 +107,20 @@ final class FieldCell extends InputCell {
     setBackground();
     setForeground();
     setFont();
+  }
+
+  static FieldCell getExpandableInstance() {
+    FieldCell instance = new FieldCell();
+    instance.setEnabled(false);
+    instance.fixedValues = true;
+    return instance;
+  }
+
+  void setEnabled(boolean enabled) {
+    if (fixedValues && enabled) {
+      return;
+    }
+    super.setEnabled(enabled);
   }
 
   /**
