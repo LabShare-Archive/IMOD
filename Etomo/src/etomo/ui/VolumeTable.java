@@ -20,6 +20,8 @@ import etomo.storage.MatlabParamFile;
 import etomo.storage.ModelFileFilter;
 import etomo.storage.MotlFileFilter;
 import etomo.storage.TomogramFileFilter;
+import etomo.type.ConstPeetMetaData;
+import etomo.type.PeetMetaData;
 
 /**
  * <p>Description: </p>
@@ -35,6 +37,9 @@ import etomo.storage.TomogramFileFilter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/20 00:47:07  sueh
+ * <p> bug# 964 Hiding/showing the Initial MOTL column.
+ * <p>
  * <p> Revision 1.5  2007/03/15 21:55:07  sueh
  * <p> bug# 964 Loading data from .prm file.  Changing the field names to match the
  * <p> .prm file format.
@@ -63,19 +68,21 @@ final class VolumeTable implements Expandable, Highlightable {
   private final MultiLineButton btnSetInitMotlFile = new MultiLineButton(
       "Set Initial Motive List File");
   private final HeaderCell header1Highlighter = new HeaderCell();
-  private final HeaderCell header1FnVolume = new HeaderCell("Tomogram");
+  private final HeaderCell header1FnVolume = new HeaderCell("Volume");
   private final HeaderCell header1FnModParticle = new HeaderCell("Model");
-  private final HeaderCell header1InitMotlFile = new HeaderCell("MOTL");
+  private final HeaderCell header1InitMotlFile = new HeaderCell("Initial");
   private final HeaderCell header1TiltRange = new HeaderCell("Tilt Range");
   private final HeaderCell header1RelativeOrient = new HeaderCell(
       "Rel. Orient.");
   private final HeaderCell header2Highlighter = new HeaderCell();
   private final HeaderCell header2FnVolume = new HeaderCell();
   private final HeaderCell header2FnModParticle = new HeaderCell();
-  private final HeaderCell header2InitMotlFile = new HeaderCell();
+  private final HeaderCell header2InitMotlFile = new HeaderCell("MOTL");
   private final HeaderCell header2TiltRangeStart = new HeaderCell("Start");
   private final HeaderCell header2TiltRangeEnd = new HeaderCell("End");
-  private final HeaderCell header2RelativeOrient = new HeaderCell();
+  private final HeaderCell header2RelativeOrientX = new HeaderCell("X");
+  private final HeaderCell header2RelativeOrientY = new HeaderCell("Y");
+  private final HeaderCell header2RelativeOrientZ = new HeaderCell("Z");
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
@@ -86,10 +93,12 @@ final class VolumeTable implements Expandable, Highlightable {
   private final PeetDialog parent;
 
   private boolean usingInitMotlFile = false;
+  private boolean usingTiltRange = false;
+  private File lastLocation = null;
 
   private VolumeTable(final PeetManager manager, final PeetDialog parent) {
     this.manager = manager;
-    this.parent=parent;
+    this.parent = parent;
     //construction
     btnExpandFnVolume = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
     btnExpandFnModParticle = ExpandButton.getInstance(this,
@@ -124,8 +133,9 @@ final class VolumeTable implements Expandable, Highlightable {
     updateDisplay();
   }
 
-  static VolumeTable getInstance(final PeetManager manager,final PeetDialog parent) {
-    VolumeTable instance = new VolumeTable(manager,parent);
+  static VolumeTable getInstance(final PeetManager manager,
+      final PeetDialog parent) {
+    VolumeTable instance = new VolumeTable(manager, parent);
     instance.addListeners();
     return instance;
   }
@@ -151,14 +161,36 @@ final class VolumeTable implements Expandable, Highlightable {
     return usingInitMotlFile;
   }
 
+  boolean usingTiltRange() {
+    return usingTiltRange;
+  }
+
   Container getContainer() {
     return rootPanel;
+  }
+
+  void getParameters(final PeetMetaData metaData) {
+    rowList.getParameters(metaData);
+  }
+
+  void setParameters(final ConstPeetMetaData metaData) {
+    rowList.setParameters(metaData);
   }
 
   void setUsingInitMotlFile(final boolean usingInitMotlFile) {
     boolean oldUsingInitMotlFile = this.usingInitMotlFile;
     if (usingInitMotlFile != oldUsingInitMotlFile) {
       this.usingInitMotlFile = usingInitMotlFile;
+      remove();
+      display();
+      UIHarness.INSTANCE.pack(manager);
+    }
+  }
+
+  void setUsingTiltRange(final boolean usingTiltRange) {
+    boolean oldUsingTiltRange = this.usingTiltRange;
+    if (usingTiltRange != oldUsingTiltRange) {
+      this.usingTiltRange = usingTiltRange;
       remove();
       display();
       UIHarness.INSTANCE.pack(manager);
@@ -177,11 +209,18 @@ final class VolumeTable implements Expandable, Highlightable {
       VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
           new File(matlabParamFile.getFnModParticle(i)));
       if (initMotlCode == null) {
-        row.setInitMotl(new File(matlabParamFile.getInitMotlFile(i)));
+        row.setInitMotlFile(matlabParamFile.getInitMotlFile(i));
       }
-      row.setTiltRangeStart(matlabParamFile.getTiltRangeStart(i));
-      row.setRelativeOrient(matlabParamFile.getRelativeOrient(i));
+      //The tilt range will not be shown if its value is {}.
+      if (!matlabParamFile.isTiltRangeEmpty()) {
+        row.setTiltRangeStart(matlabParamFile.getTiltRangeStart(i));
+        row.setTiltRangeEnd(matlabParamFile.getTiltRangeEnd(i));
+      }
+      row.setRelativeOrientX(matlabParamFile.getRelativeOrientX(i));
+      row.setRelativeOrientY(matlabParamFile.getRelativeOrientY(i));
+      row.setRelativeOrientZ(matlabParamFile.getRelativeOrientZ(i));
     }
+    rowList.doneSettingParameters();
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
@@ -205,9 +244,11 @@ final class VolumeTable implements Expandable, Highlightable {
       constraints.weightx = 0.0;
       btnExpandInitMotlFile.add(pnlTable, layout, constraints);
     }
-    constraints.weightx = 0.1;
-    constraints.gridwidth = 2;
-    header1TiltRange.add(pnlTable, layout, constraints);
+    if (usingTiltRange) {
+      constraints.weightx = 0.1;
+      constraints.gridwidth = 2;
+      header1TiltRange.add(pnlTable, layout, constraints);
+    }
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1RelativeOrient.add(pnlTable, layout, constraints);
     //Second header row
@@ -221,11 +262,16 @@ final class VolumeTable implements Expandable, Highlightable {
     if (usingInitMotlFile) {
       header2InitMotlFile.add(pnlTable, layout, constraints);
     }
+    if (usingTiltRange) {
+      constraints.gridwidth = 1;
+      header2TiltRangeStart.add(pnlTable, layout, constraints);
+      header2TiltRangeEnd.add(pnlTable, layout, constraints);
+    }
     constraints.gridwidth = 1;
-    header2TiltRangeStart.add(pnlTable, layout, constraints);
-    header2TiltRangeEnd.add(pnlTable, layout, constraints);
+    header2RelativeOrientX.add(pnlTable, layout, constraints);
+    header2RelativeOrientY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header2RelativeOrient.add(pnlTable, layout, constraints);
+    header2RelativeOrientZ.add(pnlTable, layout, constraints);
     rowList.display();
   }
 
@@ -247,25 +293,32 @@ final class VolumeTable implements Expandable, Highlightable {
     header2InitMotlFile.remove();
     header2TiltRangeStart.remove();
     header2TiltRangeEnd.remove();
-    header2RelativeOrient.remove();
+    header2RelativeOrientX.remove();
+    header2RelativeOrientY.remove();
+    header2RelativeOrientZ.remove();
     rowList.remove();
   }
 
   private void action(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
     if (actionCommand.equals(btnAddFnVolume.getActionCommand())) {
-      addTomogram();
+      addVolume();
     }
     if (actionCommand.equals(btnSetInitMotlFile.getActionCommand())) {
       setInitMotlFile();
     }
   }
 
+  private JFileChooser getFileChooserInstance() {
+    return new JFileChooser(lastLocation == null ? new File(manager
+        .getPropertyUserDir()) : lastLocation);
+  }
+
   /**
    * Allow the user to choose a tomogram and a model.  Only works if they choose
    * both.
    */
-  private void addTomogram() {
+  private void addVolume() {
     if (!manager.setParamFile()) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
           + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.OUTPUT_LABEL
@@ -274,8 +327,7 @@ final class VolumeTable implements Expandable, Highlightable {
     }
     File tomogram = null;
     File model = null;
-    JFileChooser chooser = new JFileChooser(new File(manager
-        .getPropertyUserDir()));
+    JFileChooser chooser = getFileChooserInstance();
     chooser.setFileFilter(new TomogramFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -284,10 +336,15 @@ final class VolumeTable implements Expandable, Highlightable {
       return;
     }
     tomogram = chooser.getSelectedFile();
+    lastLocation = tomogram.getParentFile();
+    chooser = getFileChooserInstance();
     chooser.setFileFilter(new ModelFileFilter());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       model = chooser.getSelectedFile();
+      lastLocation = model.getParentFile();
     }
     if (tomogram == null || model == null) {
       UIHarness.INSTANCE.openMessageDialog(
@@ -307,8 +364,7 @@ final class VolumeTable implements Expandable, Highlightable {
           "Entry Error");
       return;
     }
-    JFileChooser chooser = new JFileChooser(new File(manager
-        .getPropertyUserDir()));
+    JFileChooser chooser = getFileChooserInstance();
     chooser.setFileFilter(new MotlFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -320,8 +376,8 @@ final class VolumeTable implements Expandable, Highlightable {
         display();
         parent.setUsingInitMotlFile();
       }
-      row.setInitMotl(chooser.getSelectedFile());
-      row.expandInitMotl(btnExpandInitMotlFile.isExpanded());
+      row.setInitMotlFile(chooser.getSelectedFile());
+      row.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
       UIHarness.INSTANCE.pack(manager);
     }
   }
@@ -355,6 +411,7 @@ final class VolumeTable implements Expandable, Highlightable {
    */
   private static final class RowList {
     private final List list = new ArrayList();
+    private ConstPeetMetaData metaData = null;
 
     private int size() {
       return list.size();
@@ -368,19 +425,52 @@ final class VolumeTable implements Expandable, Highlightable {
       VolumeRow row = VolumeRow.getInstance(contractedFnVolume,
           expandedFnVolume, contractedFnModParticle, expandedFnModParticle,
           list.size(), table, panel, layout, constraints);
+      //Metadata must be set before MatlabParamFile data.
+      //Wait until row is added, then set from metadata.
+      if (metaData != null) {
+        String initMotlFile = metaData.getInitMotlFile(list.size());
+        if (initMotlFile != null) {
+          row.setInitMotlFile(initMotlFile);
+        }
+        String tiltRangeStart = metaData.getTiltRangeStart(list.size());
+        if (tiltRangeStart != null) {
+          row.setTiltRangeStart(tiltRangeStart);
+        }
+        String tiltRangeEnd = metaData.getTiltRangeEnd(list.size());
+        if (tiltRangeEnd != null) {
+          row.setTiltRangeEnd(tiltRangeEnd);
+        }
+      }
       list.add(row);
       return row;
     }
-    
-    private void remove() {
-      for (int i =0;i<list.size();i++) {
-        ((VolumeRow)list.get(i)).remove();
+
+    private void getParameters(final PeetMetaData metaData) {
+      for (int i = 0; i < list.size(); i++) {
+        VolumeRow row = (VolumeRow) list.get(i);
+        metaData.setInitMotlFile(row.getInitMotlFile(), i);
+        metaData.setTiltRangeStart(row.getTiltRangeStart(),i);
+        metaData.setTiltRangeEnd(row.getTiltRangeEnd(),i);
       }
     }
-    
+
+    private void setParameters(final ConstPeetMetaData metaData) {
+      this.metaData = metaData;
+    }
+
+    private void doneSettingParameters() {
+      metaData = null;
+    }
+
+    private void remove() {
+      for (int i = 0; i < list.size(); i++) {
+        ((VolumeRow) list.get(i)).remove();
+      }
+    }
+
     private void display() {
-      for (int i =0;i<list.size();i++) {
-        ((VolumeRow)list.get(i)).display();
+      for (int i = 0; i < list.size(); i++) {
+        ((VolumeRow) list.get(i)).display();
       }
     }
 
@@ -398,7 +488,7 @@ final class VolumeTable implements Expandable, Highlightable {
 
     private void expandInitMotl(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandInitMotl(expanded);
+        ((VolumeRow) list.get(i)).expandInitMotlFile(expanded);
       }
     }
 
