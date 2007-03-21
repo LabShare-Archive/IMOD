@@ -147,6 +147,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2007/03/15 21:45:55  sueh
+ * <p> $bug# 964 Clarifying the code to show that the same value instance is saved to
+ * <p> $both attribute and name/value pair.
+ * <p> $
  * <p> $Revision 1.9  2007/03/08 21:55:06  sueh
  * <p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
  * <p> $Attribute.  This is necessary because the name/value pair must be placed in the
@@ -233,8 +237,6 @@ import etomo.ui.Token;
 final class AutodocParser {
   public static final String rcsid = "$$Id$$";
 
-  private final boolean mutable;
-
   private AutodocTokenizer tokenizer;
   private String name = null;
   private final Vector line = new Vector();
@@ -265,13 +267,12 @@ final class AutodocParser {
   private boolean versionFound = false;
   private boolean pipFound = false;
 
-  AutodocParser(Autodoc autodoc, boolean mutable, boolean allowAltComment) {
+  AutodocParser(Autodoc autodoc, boolean allowAltComment) {
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
-    this.mutable = mutable;
     tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment);
   }
 
