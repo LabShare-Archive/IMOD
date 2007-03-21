@@ -4,8 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.ui.UIHarness;
@@ -24,6 +25,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/03/20 23:02:27  sueh
+ * <p> bug# 964 Distinguishing between tiltRange={} and tiltRange={[],[]}.  Returning
+ * <p> relativeOrient elements separately.
+ * <p>
  * <p> Revision 1.2  2007/03/20 00:43:39  sueh
  * <p> bug# 964 Added Volume.tiltRange and Volume.relativeOrient.
  * <p>
@@ -46,9 +51,8 @@ public final class MatlabParamFile {
 
   public synchronized void read() {
     volumeList.clear();
-    Autodoc autodoc;
     try {
-      autodoc = (Autodoc.getMatlabInstance(file, false));
+      ReadOnlyAutodoc autodoc = (AutodocFactory.getMatlabInstance(file));
       if (autodoc == null) {
         UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
             + ".", "File Error");
@@ -58,6 +62,7 @@ public final class MatlabParamFile {
       String[] fnVolumeList = getList(autodoc.getAttribute("fnVolume"));
       String[] fnModParticleList = getList(autodoc
           .getAttribute("fnModParticle"));
+      //see if initMotl is using a single code
       String initMotl = autodoc.getAttribute("initMOTL").getValue();
       initMotlCode = InitMotlCode.getInstance(initMotl);
       String[] initMotlList = null;
@@ -69,7 +74,7 @@ public final class MatlabParamFile {
       //Distinguish between {} (an empty list) and {[],[]}
       if (tiltRangeList.length == 0) {
         //empty list
-        tiltRangeEmpty=true;
+        tiltRangeEmpty = true;
       }
       else {
         //not an empty list
@@ -88,7 +93,7 @@ public final class MatlabParamFile {
         if (initMotlList != null && i < initMotlList.length) {
           volume.setInitMotl(removeQuotes(initMotlList[i]));
         }
-        if (!tiltRangeEmpty&&i < tiltRangeArrayList.length) {
+        if (!tiltRangeEmpty && i < tiltRangeArrayList.length) {
           volume.setTiltRange(tiltRangeArrayList[i]);
         }
         if (i < relativeOrientArrayList.length) {
@@ -107,8 +112,30 @@ public final class MatlabParamFile {
     }
   }
 
+  public void write() {
+    try {
+      ReadOnlyAutodoc autodoc = (AutodocFactory.getMatlabInstance(file));
+      if (autodoc == null) {
+        autodoc = (AutodocFactory.getEmptyMatlabInstance(file));
+        //build(autodoc);
+      }
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
+          + ".  IOException:  " + e.getMessage(), "File Error");
+    }
+    catch (LogFile.ReadException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
+          + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
+    }
+  }
+
   public int getVolumeListSize() {
     return volumeList.size();
+  }
+
+  public Volume getVolume(int index) {
+    return (Volume) volumeList.get(index);
   }
 
   public String getFnVolume(int index) {
@@ -123,32 +150,16 @@ public final class MatlabParamFile {
     return initMotlCode;
   }
 
-  public String getInitMotlFile(int index) {
-    return ((Volume) volumeList.get(index)).getInitMotl();
+  public void setInitMotlCode(ConstEtomoNumber code) {
+    initMotlCode = InitMotlCode.getInstance(code.toString());
   }
-  
+
   public boolean isTiltRangeEmpty() {
     return tiltRangeEmpty;
   }
 
-  public ConstEtomoNumber getTiltRangeStart(int index) {
-    return ((Volume) volumeList.get(index)).getTiltRangeStart();
-  }
-
-  public ConstEtomoNumber getTiltRangeEnd(int index) {
-    return ((Volume) volumeList.get(index)).getTiltRangeEnd();
-  }
-
-  public String getRelativeOrientX(int index) {
-    return ((Volume) volumeList.get(index)).getRelativeOrientX();
-  }
-
-  public String getRelativeOrientY(int index) {
-    return ((Volume) volumeList.get(index)).getRelativeOrientY();
-  }
-
-  public String getRelativeOrientZ(int index) {
-    return ((Volume) volumeList.get(index)).getRelativeOrientZ();
+  public void setTiltRangeEmpty(boolean tiltRangeEmpty) {
+    this.tiltRangeEmpty = tiltRangeEmpty;
   }
 
   /**
@@ -246,21 +257,30 @@ public final class MatlabParamFile {
       this.code = code;
     }
 
-    private static InitMotlCode getInstance(String initMotl) {
-      if (ZERO_CODE.equals(initMotl)) {
+    private static InitMotlCode getInstance(String code) {
+      if (ZERO_CODE.equals(code)) {
         return ZERO;
       }
-      if (Z_AXIS_CODE.equals(initMotl)) {
+      if (Z_AXIS_CODE.equals(code)) {
         return Z_AXIS;
       }
-      if (X_AND_Z_AXIS_CODE.equals(initMotl)) {
+      if (X_AND_Z_AXIS_CODE.equals(code)) {
         return X_AND_Z_AXIS;
       }
       return null;
     }
+
+    public ConstEtomoNumber getCode() {
+      return code;
+    }
   }
 
-  private static final class Volume {
+  public static final class Volume {
+    private static final int TILT_RANGE_START_INDEX = 0;
+    private static final int TILT_RANGE_END_INDEX = 1;
+    private static final int RELATIVE_ORIENT_X_INDEX = 0;
+    private static final int RELATIVE_ORIENT_Y_INDEX = 1;
+    private static final int RELATIVE_ORIENT_Z_INDEX = 2;
     private String fnVolume = "";
     private String fnModParticle = "";
     private String initMotl = "";
@@ -271,28 +291,68 @@ public final class MatlabParamFile {
         new EtomoNumber(EtomoNumber.Type.FLOAT),
         new EtomoNumber(EtomoNumber.Type.FLOAT) };
 
-    private void setFnVolume(String fnVolume) {
+    public void setFnVolume(String fnVolume) {
       this.fnVolume = fnVolume;
     }
 
-    private String getFnVolume() {
+    public String getFnVolume() {
       return fnVolume;
     }
 
-    private void setFnModParticle(String fnModParticle) {
+    public void setFnModParticle(String fnModParticle) {
       this.fnModParticle = fnModParticle;
     }
 
-    private String getFnModParticle() {
+    public String getFnModParticle() {
       return fnModParticle;
     }
 
-    private void setInitMotl(String initMotl) {
+    public void setInitMotl(String initMotl) {
       this.initMotl = initMotl;
     }
 
-    private String getInitMotl() {
+    public String getInitMotl() {
       return initMotl;
+    }
+
+    public String getTiltRangeStart() {
+      return tiltRange[TILT_RANGE_START_INDEX].toString();
+    }
+
+    public void setTiltRangeStart(String tiltRangeStart) {
+      tiltRange[TILT_RANGE_START_INDEX].set(tiltRangeStart);
+    }
+
+    public String getTiltRangeEnd() {
+      return tiltRange[TILT_RANGE_END_INDEX].toString();
+    }
+
+    public void setTiltRangeEnd(String tiltRangeEnd) {
+      tiltRange[TILT_RANGE_END_INDEX].set(tiltRangeEnd);
+    }
+
+    public String getRelativeOrientX() {
+      return relativeOrient[RELATIVE_ORIENT_X_INDEX].toString();
+    }
+
+    public void setRelativeOrientX(String relativeOrientX) {
+      relativeOrient[RELATIVE_ORIENT_X_INDEX].set(relativeOrientX);
+    }
+
+    public String getRelativeOrientY() {
+      return relativeOrient[RELATIVE_ORIENT_Y_INDEX].toString();
+    }
+
+    public void setRelativeOrientY(String relativeOrientY) {
+      relativeOrient[RELATIVE_ORIENT_Y_INDEX].set(relativeOrientY);
+    }
+
+    public String getRelativeOrientZ() {
+      return relativeOrient[RELATIVE_ORIENT_Z_INDEX].toString();
+    }
+
+    public void setRelativeOrientZ(String relativeOrientZ) {
+      relativeOrient[RELATIVE_ORIENT_Z_INDEX].set(relativeOrientZ);
     }
 
     private void setTiltRange(String[] tiltRange) {
@@ -304,14 +364,6 @@ public final class MatlabParamFile {
       }
     }
 
-    private ConstEtomoNumber getTiltRangeStart() {
-      return tiltRange[0];
-    }
-
-    private ConstEtomoNumber getTiltRangeEnd() {
-      return tiltRange[1];
-    }
-
     private void setRelativeOrient(String[] relativeOrient) {
       for (int i = 0; i < this.relativeOrient.length; i++) {
         if (i >= relativeOrient.length) {
@@ -319,18 +371,6 @@ public final class MatlabParamFile {
         }
         this.relativeOrient[i].set(relativeOrient[i]);
       }
-    }
-
-    private String getRelativeOrientX() {
-      return relativeOrient[0].toString();
-    }
-
-    private String getRelativeOrientY() {
-      return relativeOrient[1].toString();
-    }
-
-    private String getRelativeOrientZ() {
-      return relativeOrient[2].toString();
     }
   }
 }
