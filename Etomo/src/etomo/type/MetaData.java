@@ -8,7 +8,6 @@ import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
-import etomo.storage.autodoc.Autodoc;
 
 /**
  * <p>Description: </p>
@@ -23,6 +22,9 @@ import etomo.storage.autodoc.Autodoc;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2007/03/07 21:09:17  sueh
+ * <p> bug# 981 Added noBeamTiltSelected, fixedBeamTiltSelected, and fixedBeamTilt.
+ * <p>
  * <p> Revision 3.33  2007/03/03 01:01:02  sueh
  * <p> bug# 973 Added targetPatchSizeXandY and numberOfLocalPatchesXandY.
  * <p>
@@ -635,11 +637,11 @@ public class MetaData extends ConstMetaData {
     tiltParamB.load(props, group + secondAxisPrepend);
     //use default for backward compatibility, since this new parameter may not
     //be in any file yet
-    targetPatchSizeXandY = props.getProperty(group + Autodoc.TILTALIGN + "."
+    targetPatchSizeXandY = props.getProperty(group +  "tiltalign."
         + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
         TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT);
-    numberOfLocalPatchesXandY = props.getProperty(group + Autodoc.TILTALIGN
-        + "." + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
+    numberOfLocalPatchesXandY = props.getProperty(group 
+        + "tiltalign." + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
         TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT);
     noBeamTiltSelectedA.load(props, prepend);
     fixedBeamTiltSelectedA.load(props, prepend);
