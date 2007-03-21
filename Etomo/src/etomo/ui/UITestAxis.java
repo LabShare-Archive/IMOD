@@ -27,12 +27,12 @@ import junit.extensions.jfcunit.finder.ComponentFinder;
 import junit.extensions.jfcunit.finder.NamedComponentFinder;
 
 import etomo.process.UncaughtException;
-import etomo.storage.autodoc.AdocCommand;
-import etomo.storage.autodoc.AdocCommandFactory;
-import etomo.storage.autodoc.AdocCommandReader;
-import etomo.storage.autodoc.Autodoc;
-import etomo.storage.autodoc.UITestAxisCommand;
-import etomo.storage.autodoc.UITestAxisDialogCommand;
+import etomo.storage.AdocCommand;
+import etomo.storage.AdocCommandFactory;
+import etomo.storage.AdocCommandReader;
+import etomo.storage.UITestAxisCommand;
+import etomo.storage.UITestAxisDialogCommand;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.ProcessEndState;
@@ -56,6 +56,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2006/10/24 23:35:04  sueh
+ * <p> bug# 947 Added waitfor.process.process_name =
+ * <p>
  * <p> Revision 1.10  2006/10/11 10:12:46  sueh
  * <p> bug# 938 Making ThreadGroup dependent on UncaughtException instead of
  * <p> UITest, so that it does not require JfcUnit to compile.
@@ -120,7 +123,7 @@ final class UITestAxis implements AdocCommandFactory {
   private static final long WAIT_SLEEP = 2000;
   private static final String TEST_FROM_ATTRIB = "testfrom";
 
-  private final Autodoc autodoc;
+  private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
   private final UITest testCase;
   private final HashSet finishedDialogs = new HashSet();
@@ -147,7 +150,7 @@ final class UITestAxis implements AdocCommandFactory {
   private boolean stopped = false;
   private UITestAxisDialogCommand command = null;
 
-  UITestAxis(UITest testCase, Autodoc autodoc, JFCTestHelper helper,
+  UITestAxis(UITest testCase, ReadOnlyAutodoc autodoc, JFCTestHelper helper,
       AxisID axisID, boolean loadedDataFile, ArrayList variables) {
     this.testCase = testCase;
     this.autodoc = autodoc;
@@ -1063,6 +1066,9 @@ final class UITestAxis implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/10/24 23:35:04  sueh
+ * <p> bug# 947 Added waitfor.process.process_name =
+ * <p>
  * <p> Revision 1.10  2006/10/11 10:12:46  sueh
  * <p> bug# 938 Making ThreadGroup dependent on UncaughtException instead of
  * <p> UITest, so that it does not require JfcUnit to compile.

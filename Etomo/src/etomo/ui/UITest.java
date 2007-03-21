@@ -8,15 +8,16 @@ import java.util.ArrayList;
 import etomo.EtomoDirector;
 import etomo.JfcUnitTests;
 import etomo.process.SystemProgram;
+import etomo.storage.AdocCommand;
+import etomo.storage.AdocCommandFactory;
+import etomo.storage.AdocCommandReader;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.AdocCommand;
-import etomo.storage.autodoc.AdocCommandFactory;
-import etomo.storage.autodoc.AdocCommandReader;
-import etomo.storage.autodoc.Autodoc;
-import etomo.storage.autodoc.NameValuePair;
-import etomo.storage.autodoc.Section;
-import etomo.storage.autodoc.UITestCommand;
-import etomo.storage.autodoc.UITestTestCommand;
+import etomo.storage.UITestCommand;
+import etomo.storage.UITestTestCommand;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlyNameValuePair;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.UITestAction;
@@ -52,8 +53,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 
   private AdocCommandReader reader = null;
   private File datasetDir = null;
-  private Autodoc autodocA = null;
-  private Autodoc autodocB = null;
+  private ReadOnlyAutodoc autodocA = null;
+  private ReadOnlyAutodoc autodocB = null;
   private JFCTestHelper helper = null;
   private EtomoDirector etomo = null;
   private long sleep = DEFAULT_SLEEP;
@@ -97,9 +98,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       fail("$IMOD_TEST_SECTION has not been set");
     }
     //get the uitest.adoc
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.UITEST, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.UITEST, AxisID.ONLY);
     }
     catch (FileNotFoundException e) {
       fail(e.getMessage());
@@ -405,7 +406,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         return;
       }
       axisIDB = axisID;
-      autodocB = Autodoc.getInstance(SOURCE_DIR, value,
+      autodocB = AutodocFactory.getInstance(SOURCE_DIR, value,
           AxisID.ONLY);
       return;
     }
@@ -413,7 +414,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       return;
     }
     axisIDA = axisID;
-    autodocA = Autodoc.getInstance(SOURCE_DIR, value,
+    autodocA = AutodocFactory.getInstance(SOURCE_DIR, value,
         AxisID.ONLY);
   }
 
@@ -512,7 +513,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @param rootDir
    * @return the directory
    */
-  private File getRelativeDir(NameValuePair pair, File rootDir, boolean makeDirs) {
+  private File getRelativeDir(ReadOnlyNameValuePair pair, File rootDir, boolean makeDirs) {
     //Get the directory name
     String dirName = pair.getValue();
     assertNotNull(null, "Unknown name/value pair format: " + pair.getString(),
@@ -533,7 +534,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @param makeDirs
    * @return
    */
-  private File getRequiredRelativeDir(Section section, File rootDir,
+  private File getRequiredRelativeDir(ReadOnlySection section, File rootDir,
       boolean makeDirs) {
     //Get the directory name
     String dirName = section.getName();
@@ -623,6 +624,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2007/03/05 21:29:27  sueh
+ * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
+ * <p>
  * <p> Revision 1.22  2007/03/01 01:45:51  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
