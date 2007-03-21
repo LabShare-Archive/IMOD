@@ -1,6 +1,6 @@
 package etomo.util;
 
-import etomo.storage.autodoc.AdocCommand;
+import etomo.storage.AdocCommand;
 
 /**
 * <p>Description: </p>
@@ -22,5 +22,9 @@ public interface CallbackClass {
 }
 /**
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/06/27 22:36:59  sueh
+* <p> bug# 852 An interface to allow selected methods on the implementing class to be
+* <p> called generically.
+* <p> </p>
 */
