@@ -37,6 +37,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/20 23:00:19  sueh
+ * <p> bug# 964 Fixed bug in setParamFile() where metadata.name was being reset
+ * <p> after it was retrieved from the screen.
+ * <p>
  * <p> Revision 1.7  2007/03/15 21:41:32  sueh
  * <p> bug# 964 Added a MatlabParamFile member variable.
  * <p>
@@ -306,5 +310,7 @@ public class PeetManager extends BaseManager {
     peetDialog.getParameters(metaData);
     peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
+    peetDialog.getParameters(matlabParamFile);
+    matlabParamFile.write();
   }
 }
