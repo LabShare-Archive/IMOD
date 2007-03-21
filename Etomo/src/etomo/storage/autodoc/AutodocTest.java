@@ -51,7 +51,7 @@ public final class AutodocTest extends TestCase {
 
   public void testCpu() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
             TEST_DIR_NAME, "cpu.adoc"));
     assertFalse(autodoc.isError());
@@ -59,11 +59,11 @@ public final class AutodocTest extends TestCase {
 
   public void testMatlabParamFile() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getMatlabInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getMatlabInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
-        "master.prm"), false);
+        "master.prm"));
     //only use with getTestInstance
-    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
+    //autodoc.runInternalTest(AutodocFactory.INSTANCE.InternalTestType.PARSER,false,false);
     //only use with getInstance
     autodoc.printStoredData();
     assertFalse(autodoc.isError());
@@ -71,7 +71,7 @@ public final class AutodocTest extends TestCase {
 
   public void testBuild() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "build.adoc", true));
     assertFalse(autodoc.isError());
@@ -79,7 +79,7 @@ public final class AutodocTest extends TestCase {
 
   public void testBuilda() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "builda.adoc", true));
     assertFalse(autodoc.isError());
@@ -87,7 +87,7 @@ public final class AutodocTest extends TestCase {
 
   public void testBuildb() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "buildb.adoc", true));
     assertFalse(autodoc.isError());
@@ -95,11 +95,11 @@ public final class AutodocTest extends TestCase {
 
   public void testFineAlign() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "fine-align.adoc", true));
     //only use with getTestInstance
-    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
+    //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     //only use with getInstance
     //autodoc.printStoredData();
     assertFalse(autodoc.isError());
@@ -107,7 +107,7 @@ public final class AutodocTest extends TestCase {
 
   public void testSetupRecon() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "setup-recon.adoc", true));
     assertFalse(autodoc.isError());
@@ -115,11 +115,11 @@ public final class AutodocTest extends TestCase {
 
   public void testSimple() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "simple.adoc"));
     //only use with getTestInstance
-    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
+    //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     //only use with getInstance
     //autodoc.printStoredData();
     assertFalse(autodoc.isError());
@@ -127,7 +127,7 @@ public final class AutodocTest extends TestCase {
 
   public void testPreProc() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "pre-proc.adoc", true));
     assertFalse(autodoc.isError());
@@ -135,7 +135,7 @@ public final class AutodocTest extends TestCase {
 
   public void testPostProc() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "post-proc.adoc", true));
     assertFalse(autodoc.isError());
@@ -143,7 +143,7 @@ public final class AutodocTest extends TestCase {
 
   public void testUitest() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "uitest.adoc", true));
     assertFalse(autodoc.isError());
@@ -151,7 +151,7 @@ public final class AutodocTest extends TestCase {
 
   public void testTomoGen() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "tomo-gen.adoc", true));
     assertFalse(autodoc.isError());
@@ -159,7 +159,7 @@ public final class AutodocTest extends TestCase {
 
   public void testTomoPos() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "tomo-pos.adoc", true));
     assertFalse(autodoc.isError());
@@ -167,7 +167,7 @@ public final class AutodocTest extends TestCase {
 
   public void testCleanUp() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "clean-up.adoc", true));
     assertFalse(autodoc.isError());
@@ -175,7 +175,7 @@ public final class AutodocTest extends TestCase {
 
   public void testFidModel() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "fid-model.adoc", true));
     assertFalse(autodoc.isError());
@@ -183,7 +183,7 @@ public final class AutodocTest extends TestCase {
 
   public void testTestb() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "testb.adoc", true));
     assertFalse(autodoc.isError());
@@ -191,7 +191,7 @@ public final class AutodocTest extends TestCase {
 
   public void testCombine() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
-    Autodoc autodoc = Autodoc.getInstance(TestUtilites.getVector(manager,
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "combine.adoc", true));
     assertFalse(autodoc.isError());
@@ -203,54 +203,57 @@ public final class AutodocTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testCcderaser() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.CCDERASER, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.CCDERASER, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testCombineFft() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.COMBINE_FFT, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testDensmatch() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.DENS_MATCH, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.DENS_MATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testMtfFilter() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.MTF_FILTER, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testSolvematch() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.SOLVEMATCH, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.SOLVEMATCH, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testTiltalign() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.TILTALIGN, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 
   public void testTiltxcorr() throws FileNotFoundException, IOException,
       LogFile.ReadException {
-    Autodoc autodoc = Autodoc.getInstance(Autodoc.TILTXCORR, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(AutodocFactory.TILTXCORR, AxisID.ONLY);
     assertFalse(autodoc.isError());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/03/13 19:41:52  sueh
+ * <p> bug# 964 Got the test autodoc tests working.
+ * <p>
  * <p> Revision 1.13  2007/03/09 22:05:20  sueh
  * <p> bug# 964 Hiding test that aren't working temporarily
  * <p>
