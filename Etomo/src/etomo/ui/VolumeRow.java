@@ -6,7 +6,9 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
-import etomo.type.ConstEtomoNumber;
+import etomo.storage.MatlabParamFile;
+import etomo.type.ConstPeetMetaData;
+import etomo.type.PeetMetaData;
 
 /**
  * <p>Description: </p>
@@ -22,6 +24,10 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/20 23:12:09  sueh
+ * <p> bug# 964 Added FieldCell.getExpandableInstance() which is disabled and cannot
+ * <p> be enabled.
+ * <p>
  * <p> Revision 1.5  2007/03/20 00:46:41  sueh
  * <p> bug# 964 Removed the spinner version of Initial MOTL.  Hiding/showing the
  * <p> Initial MOTL column.
@@ -60,29 +66,23 @@ final class VolumeRow implements Highlightable {
   private final FieldCell relativeOrientZ = new FieldCell();
   private final HighlighterButton btnHighlighter;
 
-  static VolumeRow getInstance(final String contractedFnVolume,
-      final String expandedFnVolume, final String contractedFnModParticle,
-      final String expandedFnModParticle, final int index,
-      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
-    return new VolumeRow(contractedFnVolume, expandedFnVolume,
-        contractedFnModParticle, expandedFnModParticle, index, table, panel,
-        layout, constraints);
+  static VolumeRow getInstance(final File fnVolume, final File fnModParticle,
+      final int index, final VolumeTable table, final JPanel panel,
+      final GridBagLayout layout, final GridBagConstraints constraints) {
+    return new VolumeRow(fnVolume, fnModParticle, index, table, panel, layout,
+        constraints);
   }
 
-  private VolumeRow(final String contractedFnVolume,
-      final String expandedFnVolume, final String contractedFnModParticle,
-      final String expandedFnModParticle, final int index,
-      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+  private VolumeRow(final File fnVolumeFile, final File fnModParticleFile,
+      final int index, final VolumeTable table, final JPanel panel,
+      final GridBagLayout layout, final GridBagConstraints constraints) {
     this.index = index;
     this.table = table;
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
-    this.fnVolume.setExpandableValues(contractedFnVolume, expandedFnVolume);
-    this.fnModParticle.setExpandableValues(contractedFnModParticle,
-        expandedFnModParticle);
+    setExpandableValues(fnVolume, fnVolumeFile);
+    setExpandableValues(fnModParticle, fnModParticleFile);
     btnHighlighter = new HighlighterButton(this, table);
   }
 
@@ -132,54 +132,81 @@ final class VolumeRow implements Highlightable {
     initMotlFile.expand(expanded);
   }
 
-  String getInitMotlFile() {
-    return initMotlFile.getExpandedValue();
-  }
-  
-  String getTiltRangeStart() {
-    return tiltRangeStart.getValue();
-  }
-  
-  String getTiltRangeEnd() {
-    return tiltRangeEnd.getValue();
-  }
-  
-  int setInitMotlFile(File initMotlFile) {
-    this.initMotlFile.setExpandableValues(initMotlFile.getName(), initMotlFile
-        .getAbsolutePath());
-    return index;
-  }
-  
-  int setInitMotlFile(String initMotlFile) {
-    return setInitMotlFile(new File(initMotlFile));
+  void getParameters(final PeetMetaData metaData) {
+    metaData.setInitMotlFile(initMotlFile.getExpandedValue(), index);
+    metaData.setTiltRangeStart(tiltRangeStart.getValue(), index);
+    metaData.setTiltRangeEnd(tiltRangeEnd.getValue(), index);
   }
 
-  void setTiltRangeStart(ConstEtomoNumber tiltRangeStart) {
-    this.tiltRangeStart.setValue(tiltRangeStart);
+  void setParameters(final ConstPeetMetaData metaData) {
+    if (metaData == null) {
+      return;
+    }
+    setExpandableValues(initMotlFile, metaData.getInitMotlFile(index));
+    setTiltRangeStart(metaData.getTiltRangeStart(index));
+    setTiltRangeEnd(metaData.getTiltRangeEnd(index));
   }
   
+  void getParameters(final MatlabParamFile matlabParamFile) {
+    MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
+    volume.setFnVolume(fnVolume.getValue());
+    volume.setFnModParticle(fnModParticle.getValue());
+    volume.setInitMotl(initMotlFile.getValue());
+    volume.setTiltRangeStart(tiltRangeStart.getValue());
+    volume.setTiltRangeEnd(tiltRangeEnd.getValue());
+    volume.setRelativeOrientX(relativeOrientX.getValue());
+    volume.setRelativeOrientY(relativeOrientY.getValue());
+    volume.setRelativeOrientZ(relativeOrientZ.getValue());
+  }
+
+  void setParameters(final MatlabParamFile matlabParamFile,
+      boolean useInitMotlFile, boolean useTiltRange) {
+    MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
+    if (useInitMotlFile) {
+      setExpandableValues(initMotlFile, volume.getInitMotl());
+    }
+    //The tilt range will not be shown if its value is {}.
+    if (useTiltRange) {
+      setTiltRangeStart(volume.getTiltRangeStart());
+      setTiltRangeEnd(volume.getTiltRangeEnd());
+    }
+    relativeOrientX.setValue(volume.getRelativeOrientX());
+    relativeOrientY.setValue(volume.getRelativeOrientY());
+    relativeOrientZ.setValue(volume.getRelativeOrientZ());
+  }
+
+  private void setExpandableValues(FieldCell fieldCell, String fileName) {
+    //Don't override existing values with null value.
+    if (fileName == null) {
+      return;
+    }
+    setExpandableValues(fieldCell, new File(fileName));
+  }
+
+  private void setExpandableValues(FieldCell fieldCell, File file) {
+    //Don't override existing values with null value.
+    if (file == null) {
+      return;
+    }
+    fieldCell.setExpandableValues(file.getName(), file.getAbsolutePath());
+  }
+  
+  void setInitMotlFile(File initMotlFile) {
+    setExpandableValues(this.initMotlFile,initMotlFile);
+  }
+
   void setTiltRangeStart(String tiltRangeStart) {
+    if (tiltRangeStart == null) {
+      return;
+    }
     this.tiltRangeStart.setValue(tiltRangeStart);
   }
 
-  void setTiltRangeEnd(ConstEtomoNumber tiltRangeEnd) {
-    this.tiltRangeEnd.setValue(tiltRangeEnd);
-  }
-  
   void setTiltRangeEnd(String tiltRangeEnd) {
+    if (tiltRangeEnd == null) {
+      return;
+    }
     this.tiltRangeEnd.setValue(tiltRangeEnd);
-  }
-
-  void setRelativeOrientX(String relativeOrientX) {
-    this.relativeOrientX.setValue(relativeOrientX);
-  }
-
-  void setRelativeOrientY(String relativeOrientY) {
-    this.relativeOrientY.setValue(relativeOrientY);
-  }
-
-  void setRelativeOrientZ(String relativeOrientZ) {
-    this.relativeOrientZ.setValue(relativeOrientZ);
   }
 
   boolean isHighlighted() {
