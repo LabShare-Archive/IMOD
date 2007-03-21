@@ -17,45 +17,61 @@ import etomo.ui.Token;
  * 
  * @version $Revision$
  */
-public final class NameValuePair {
+final class NameValuePair implements ReadOnlyNameValuePair {
   public static final String rcsid = "$Id$";
 
   private final Vector name = new Vector();
-  private final Type type;
-  
+  private final NameValuePairType type;
+
   private Token value = null;
   private Section subsection = null;
 
+  private NameValuePair(NameValuePairType type) {
+    this.type = type;
+  }
+
+  private NameValuePair(NameValuePairType type, Token value) {
+    this(type);
+    this.value = value;
+  }
+
+  private NameValuePair(NameValuePairType type, Section subsection) {
+    this(type);
+    name.add(subsection.getTypeToken());
+    value = subsection.getNameToken();
+    this.subsection = subsection;
+  }
+
   static NameValuePair getNameValuePairInstance() {
-    return new NameValuePair(Type.NAME_VALUE_PAIR);
+    return new NameValuePair(NameValuePairType.NAME_VALUE_PAIR);
   }
 
   static NameValuePair getSubsectionInstance(Section subsection) {
-    return new NameValuePair(Type.SUBSECTION,subsection);
+    return new NameValuePair(NameValuePairType.SUBSECTION, subsection);
   }
 
   static NameValuePair getCommentInstance(Token comment) {
-    return new NameValuePair(Type.COMMENT,comment);
+    return new NameValuePair(NameValuePairType.COMMENT, comment);
   }
 
   static NameValuePair getEmptyLineInstance() {
-    return new NameValuePair(Type.EMPTY_LINE);
+    return new NameValuePair(NameValuePairType.EMPTY_LINE);
   }
 
   void print(int level) {
     Autodoc.printIndent(level);
-    if (type==Type.EMPTY_LINE) {
+    if (type == NameValuePairType.EMPTY_LINE) {
       System.out.println("<empty-line>");
       return;
     }
-    if (type==Type.COMMENT) {
-      System.out.println("<comment> "+value.getValues());
+    if (type == NameValuePairType.COMMENT) {
+      System.out.println("<comment> " + value.getValues());
       return;
     }
-    if (type==Type.SUBSECTION) {
+    if (type == NameValuePairType.SUBSECTION) {
       subsection.print(level);
     }
-    else if (type==Type.NAME_VALUE_PAIR) {
+    else if (type == NameValuePairType.NAME_VALUE_PAIR) {
       for (int i = 0; i < name.size(); i++) {
         System.out.print(((Token) name.get(i)).getValues());
         if (i < name.size() - 1) {
@@ -72,41 +88,17 @@ public final class NameValuePair {
     }
   }
 
-  private NameValuePair(Type type) {
-    this.type=type;
-  }
-
-  private NameValuePair(Type type, Token value) {
-    this(type);
-    this.value = value;
-  }
-  
-  private NameValuePair(Type type, Section subsection) {
-    this(type);
-    name.add(subsection.getTypeToken());
-    value = subsection.getNameToken();
-    this.subsection = subsection;
-  }
-
   public int numAttributes() {
     return name.size();
   }
-  
-  public void addAttribute(Token attribute) {
+
+  void addAttribute(Token attribute) {
     name.add(attribute);
   }
-  
-  public void addValue(Token value) {
-    this.value=value;
-  }
 
-  /*public boolean equalsName(String name, int index) {
-    if (name == null || index >= name.size()) {
-      return false;
-    }
-    String key = ((Token) name.get(index)).getKey();
-    return key.equals(Token.convertToKey(name));
-  }*/
+  void addValue(Token value) {
+    this.value = value;
+  }
 
   public String getAttribute(int index) {
     if (index >= name.size()) {
@@ -121,8 +113,8 @@ public final class NameValuePair {
     }
     return value.getValues();
   }
-  
-  public Type getType() {
+
+  public NameValuePairType getNameValuePairType() {
     return type;
   }
 
@@ -149,19 +141,13 @@ public final class NameValuePair {
   protected String paramString() {
     return "name=" + name + ",\nvalue=" + value + "," + super.toString();
   }
-  
-   static final class Type{
-     static final Type NAME_VALUE_PAIR = new Type();
-     static final Type SUBSECTION = new Type();
-     static final Type COMMENT=new Type();
-     static final Type EMPTY_LINE=new Type();
-    
-    private Type() {
-    }
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/08 21:58:58  sueh
+ * <p> bug# 964 Added Type.  Building Type.NAME_VALUE_PAIR instances piecemeal
+ * <p> so that the parser can put them together.
+ * <p>
  * <p> Revision 1.5  2007/03/07 21:07:05  sueh
  * <p> bug# 964 Fixed printing.
  * <p>
