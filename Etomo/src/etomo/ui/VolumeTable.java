@@ -37,6 +37,10 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/20 23:13:36  sueh
+ * <p> bug# 964 Getting/setting metadata.  Divided RelativeOrient into X, Y, and Z
+ * <p> fields.
+ * <p>
  * <p> Revision 1.6  2007/03/20 00:47:07  sueh
  * <p> bug# 964 Hiding/showing the Initial MOTL column.
  * <p>
@@ -197,32 +201,24 @@ final class VolumeTable implements Expandable, Highlightable {
     }
   }
 
-  void setParameters(final MatlabParamFile matlabParamFile) {
+  void setParameters(final MatlabParamFile matlabParamFile,
+      boolean useInitMotlFile, boolean useTiltRange) {
     MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile
         .getInitMotlCode();
-    if (initMotlCode == null && !usingInitMotlFile) {
-      usingInitMotlFile = true;
-      remove();
-      display();
-    }
+    setUsingInitMotlFile(useInitMotlFile);
+    setUsingTiltRange(useTiltRange);
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
       VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
           new File(matlabParamFile.getFnModParticle(i)));
-      if (initMotlCode == null) {
-        row.setInitMotlFile(matlabParamFile.getInitMotlFile(i));
-      }
-      //The tilt range will not be shown if its value is {}.
-      if (!matlabParamFile.isTiltRangeEmpty()) {
-        row.setTiltRangeStart(matlabParamFile.getTiltRangeStart(i));
-        row.setTiltRangeEnd(matlabParamFile.getTiltRangeEnd(i));
-      }
-      row.setRelativeOrientX(matlabParamFile.getRelativeOrientX(i));
-      row.setRelativeOrientY(matlabParamFile.getRelativeOrientY(i));
-      row.setRelativeOrientZ(matlabParamFile.getRelativeOrientZ(i));
+      row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
     }
     rowList.doneSettingParameters();
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
+  }
+
+  void getParameters(final MatlabParamFile matlabParamFile) {
+    rowList.getParameters(matlabParamFile);
   }
 
   private void display() {
@@ -383,8 +379,7 @@ final class VolumeTable implements Expandable, Highlightable {
   }
 
   private VolumeRow addRow(final File fnVolume, final File fnModel) {
-    VolumeRow row = rowList.add(fnVolume.getName(), fnVolume.getAbsolutePath(),
-        fnModel.getName(), fnModel.getAbsolutePath(), this, pnlTable, layout,
+    VolumeRow row = rowList.add(fnVolume, fnModel, this, pnlTable, layout,
         constraints);
     row.display();
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
@@ -417,40 +412,29 @@ final class VolumeTable implements Expandable, Highlightable {
       return list.size();
     }
 
-    private synchronized VolumeRow add(final String contractedFnVolume,
-        final String expandedFnVolume, final String contractedFnModParticle,
-        final String expandedFnModParticle, final VolumeTable table,
-        final JPanel panel, final GridBagLayout layout,
-        final GridBagConstraints constraints) {
-      VolumeRow row = VolumeRow.getInstance(contractedFnVolume,
-          expandedFnVolume, contractedFnModParticle, expandedFnModParticle,
-          list.size(), table, panel, layout, constraints);
-      //Metadata must be set before MatlabParamFile data.
-      //Wait until row is added, then set from metadata.
-      if (metaData != null) {
-        String initMotlFile = metaData.getInitMotlFile(list.size());
-        if (initMotlFile != null) {
-          row.setInitMotlFile(initMotlFile);
-        }
-        String tiltRangeStart = metaData.getTiltRangeStart(list.size());
-        if (tiltRangeStart != null) {
-          row.setTiltRangeStart(tiltRangeStart);
-        }
-        String tiltRangeEnd = metaData.getTiltRangeEnd(list.size());
-        if (tiltRangeEnd != null) {
-          row.setTiltRangeEnd(tiltRangeEnd);
-        }
-      }
+    private synchronized VolumeRow add(final File fnVolume,
+        final File fnModParticle, final VolumeTable table, final JPanel panel,
+        final GridBagLayout layout, final GridBagConstraints constraints) {
+      VolumeRow row = VolumeRow.getInstance(fnVolume, fnModParticle, list
+          .size(), table, panel, layout, constraints);
       list.add(row);
+      //When this function is used to load from the .epe and .prm files,
+      //metadata must be set before MatlabParamFile data.  Wait until row is
+      //added, then set from metadata.
+      row.setParameters(metaData);
       return row;
     }
 
     private void getParameters(final PeetMetaData metaData) {
       for (int i = 0; i < list.size(); i++) {
         VolumeRow row = (VolumeRow) list.get(i);
-        metaData.setInitMotlFile(row.getInitMotlFile(), i);
-        metaData.setTiltRangeStart(row.getTiltRangeStart(),i);
-        metaData.setTiltRangeEnd(row.getTiltRangeEnd(),i);
+        row.getParameters(metaData);
+      }
+    }
+    
+    private void getParameters(final MatlabParamFile matlabParamFile) {
+      for (int i = 0; i < list.size(); i++) {
+        ((VolumeRow) list.get(i)).getParameters(matlabParamFile);
       }
     }
 
