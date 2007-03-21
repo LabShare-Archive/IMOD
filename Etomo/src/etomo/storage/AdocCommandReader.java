@@ -1,11 +1,17 @@
-package etomo.storage.autodoc;
+package etomo.storage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 
-import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.NameValuePairLocation;
+import etomo.storage.autodoc.NameValuePairType;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlyNameValuePair;
+import etomo.storage.autodoc.ReadOnlyNameValuePairList;
+import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 
 /**
@@ -24,7 +30,7 @@ import etomo.type.AxisID;
 public final class AdocCommandReader {
   public static final String rcsid = "$Id$";
 
-  private final Autodoc autodoc;
+  private final ReadOnlyAutodoc autodoc;
   private final LinkedList locationStack = new LinkedList();
   private final String autodocName;
   private final String sectionType;
@@ -37,13 +43,13 @@ public final class AdocCommandReader {
   private boolean verbose = false;
   private boolean done = false;
   private String name = null;
-  private Autodoc functionAutodoc = null;
+  private ReadOnlyAutodoc functionAutodoc = null;
   private File functionLocationSourceDir = null;
   private AxisID axisID = null;
   private String info = null;
   private boolean function = false;
 
-  public AdocCommandReader(Autodoc autodoc, String sectionType) {
+  public AdocCommandReader(ReadOnlyAutodoc autodoc, String sectionType) {
     this.autodoc = autodoc;
     this.sectionType = sectionType;
     sectionLoc = autodoc.getSectionLocation(sectionType);
@@ -144,11 +150,12 @@ public final class AdocCommandReader {
       pairLoc = list.getNameValuePairLocation();
     }
     //get the pair, ignoring comments and empty lines
-    NameValuePair pair;
+    ReadOnlyNameValuePair pair;
     do {
       pair = list.nextNameValuePair(pairLoc);
     } while (pair != null
-        && (pair.getType() == NameValuePair.Type.COMMENT || pair.getType() == NameValuePair.Type.EMPTY_LINE));
+        && (pair.getNameValuePairType() == NameValuePairType.COMMENT || pair
+            .getNameValuePairType() == NameValuePairType.EMPTY_LINE));
     if (pair == null) {
       //if this is the end of a function section, end the function and read the
       //next command from the calling autodoc
@@ -255,7 +262,7 @@ public final class AdocCommandReader {
     }
     else {
       try {
-        functionAutodoc = Autodoc.getInstance(functionLocationSourceDir,
+        functionAutodoc = AutodocFactory.getInstance(functionLocationSourceDir,
             command.getValue(), AxisID.ONLY);
       }
       catch (FileNotFoundException e) {
@@ -331,6 +338,9 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/08 21:44:14  sueh
+ * <p> bug# 964 Ignore comment and empty-line name/value pairs.
+ * <p>
  * <p> Revision 1.7  2007/03/05 21:28:19  sueh
  * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
  * <p>

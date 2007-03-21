@@ -1,4 +1,6 @@
-package etomo.storage.autodoc;
+package etomo.storage;
+
+
 /**
 * <p>Description: </p>
 * 
@@ -18,5 +20,8 @@ public interface AdocCommandFactory {
   public AdocCommand newAdocCommand();
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/04/28 20:52:21  sueh
+* <p> bug# 787 Interface for factories which create AdocCommands.
+* <p> </p>
 */
