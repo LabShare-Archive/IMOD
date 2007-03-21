@@ -18,6 +18,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.12  2007/03/15 21:46:59  sueh
+ * <p> $bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
+ * <p> $unless the Attribute needs to be modified.
+ * <p> $
  * <p> $Revision 1.11  2007/03/08 22:02:03  sueh
  * <p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
  * <p> $Attribute.  This is necessary because the name/value pair must be placed in the
@@ -85,8 +89,8 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-public final class Section extends WriteOnlyNameValuePairList implements
-    ReadOnlyNameValuePairList {
+final class Section extends WriteOnlyNameValuePairList implements
+    ReadOnlySection {
   public static final String rcsid = "$$Id$$";
 
   private final Vector nameValuePairList =new Vector();
@@ -159,21 +163,21 @@ public final class Section extends WriteOnlyNameValuePairList implements
     return attributeMap.addAttribute(name);
   }
 
-  public boolean equalsType(String type) {
+  boolean equalsType(String type) {
     if (type == null) {
       return false;
     }
     return this.type.getKey().equals(Token.convertToKey(type));
   }
 
-  public Token getTypeToken() {
+  Token getTypeToken() {
     if (type == null) {
       throw new IllegalStateException("type is required");
     }
     return type;
   }
 
-  public String getKey() {
+  String getKey() {
     return key;
   }
 
@@ -184,7 +188,7 @@ public final class Section extends WriteOnlyNameValuePairList implements
     return name.getValues();
   }
 
-  public Token getNameToken() {
+  Token getNameToken() {
     if (name == null) {
       throw new IllegalStateException("name is required");
     }
