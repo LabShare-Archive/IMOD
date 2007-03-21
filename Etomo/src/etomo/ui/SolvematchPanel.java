@@ -19,8 +19,9 @@ import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.SolvematchParam;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
-import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
@@ -43,6 +44,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2007/03/07 21:14:14  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 3.29  2007/03/01 01:43:35  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
@@ -641,10 +646,10 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
    * Initialize the tooltip text
    */
   private void setToolTipText() {
-    Section section;
-    Autodoc autodoc = null;
+    ReadOnlySection section;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.SOLVEMATCH, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.SOLVEMATCH, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

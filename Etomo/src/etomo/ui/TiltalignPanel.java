@@ -22,8 +22,9 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
-import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
@@ -1612,10 +1613,10 @@ final class TiltalignPanel implements Expandable {
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    Section section;
-    Autodoc autodoc = null;
+    ReadOnlySection section;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.TILTALIGN, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTALIGN, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1841,6 +1842,12 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.42  2007/03/09 22:09:21  sueh
+ * <p> bug# 964 Put all of beam tilt under Advance/Basic panel header.  Letting tabs
+ * <p> size themselves so that Advanced/Basic panel header won't grow too large.
+ * <p> Enabling/disabling radio buttons in rotation, distortion solution, and beam tilt
+ * <p> based on tiltalign.
+ * <p>
  * <p> Revision 3.41  2007/03/08 22:14:27  sueh
  * <p> bug# 973 Changed the title of pnlLocalPatches.
  * <p>

@@ -24,7 +24,8 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.process.ImodManager;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
@@ -59,6 +60,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.59  2007/03/01 01:34:30  sueh
+ * bug# 964 Added LogFile to Autodoc.
+ *
  * Revision 3.58  2007/02/09 00:49:20  sueh
  * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * classes.
@@ -1292,12 +1296,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    */
 private void setToolTipText() {
     String text;
-    Autodoc adocCombineFft = null;
-    Autodoc adocCorrsearch3d = null;
+    ReadOnlyAutodoc adocCombineFft = null;
+    ReadOnlyAutodoc adocCorrsearch3d = null;
 
     try {
-      adocCombineFft = Autodoc.getInstance(Autodoc.COMBINE_FFT, AxisID.ONLY);
-      adocCorrsearch3d = Autodoc.getInstance(Autodoc.CORR_SEARCH_3D,
+      adocCombineFft = AutodocFactory.getInstance(AutodocFactory.COMBINE_FFT, AxisID.ONLY);
+      adocCorrsearch3d = AutodocFactory.getInstance(AutodocFactory.CORR_SEARCH_3D,
           AxisID.ONLY);
     }
     catch (FileNotFoundException except) {

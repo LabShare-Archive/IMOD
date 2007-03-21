@@ -8,10 +8,11 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
 import etomo.ui.ProcessorTable;
@@ -249,7 +250,7 @@ public final class RemotePath {
   static final String MOUNT_RULE = "mountrule";
   static final String LOCAL = "local";
   static final String REMOTE = "remote";
-  static final String AUTODOC = Autodoc.CPU;
+  static final String AUTODOC = AutodocFactory.CPU;
   static final String MOUNT_NAME = "mountname";
   static final String MOUNT_NAME_TAG = EtomoAutodoc.VAR_TAG + MOUNT_NAME;
 
@@ -258,7 +259,7 @@ public final class RemotePath {
   private boolean mountRulesLoaded = false;
   private String mountName = null;
   private String hostName = null;
-  private Section localSection = null;
+  private ReadOnlySection localSection = null;
 
   private RemotePath() {
   }
@@ -360,9 +361,9 @@ public final class RemotePath {
     localMountRules = new Vector();
     remoteMountRules = new Vector();
 
-    Autodoc autodoc;
+    ReadOnlyAutodoc autodoc;
     try {
-      autodoc = Autodoc.getInstance(AUTODOC, axisID);
+      autodoc = AutodocFactory.getInstance(AUTODOC, axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -399,9 +400,9 @@ public final class RemotePath {
    * @param sectionName
    * @return false if section doesn't exist
    */
-  private final Section loadMountRules(Autodoc autodoc, String sectionName,
+  private final ReadOnlySection loadMountRules(ReadOnlyAutodoc autodoc, String sectionName,
       boolean sectionNameCanBeMountName) {
-    Section section = autodoc.getSection(ProcessorTable.SECTION_TYPE,
+    ReadOnlySection section = autodoc.getSection(ProcessorTable.SECTION_TYPE,
         sectionName);
     if (section == null) {
       return null;
@@ -431,7 +432,7 @@ public final class RemotePath {
    * Loads mount rules from the global attribute area of cpu.adoc.
    * @param autodoc
    */
-  private final void loadMountRules(Autodoc autodoc) {
+  private final void loadMountRules(ReadOnlyAutodoc autodoc) {
     loadMountRules(autodoc.getAttribute(MOUNT_RULE), null);
   }
 
@@ -668,6 +669,10 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/15 21:55:43  sueh
+ * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
+ * <p> unless the Attribute needs to be modified.
+ * <p>
  * <p> Revision 1.10  2007/03/05 21:29:40  sueh
  * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
  * <p>

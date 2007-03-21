@@ -28,7 +28,8 @@ import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
@@ -60,6 +61,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.102  2007/03/01 01:45:32  sueh
+ * bug# 964 Added LogFile to Autodoc.
+ *
  * Revision 3.101  2007/02/09 00:54:03  sueh
  * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * classes.
@@ -1738,10 +1742,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.getInstance(Autodoc.MTF_FILTER, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

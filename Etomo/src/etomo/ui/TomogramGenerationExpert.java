@@ -19,7 +19,7 @@ import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessState;
-import etomo.storage.autodoc.CpuAdoc;
+import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
@@ -1029,6 +1029,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/02/05 23:45:46  sueh
+ * <p> bug# 962 Moved comscript mode info to inner class.
+ * <p>
  * <p> Revision 1.9  2006/12/02 04:59:21  sueh
  * <p> bug# 944 Added get/setProcessName ProcesschunksParam so the process
  * <p> being run can be identified.

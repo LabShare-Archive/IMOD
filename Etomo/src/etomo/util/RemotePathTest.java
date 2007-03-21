@@ -9,7 +9,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.ui.ProcessorTable;
@@ -295,7 +295,7 @@ public class RemotePathTest extends TestCase {
   private final void addVersion(BufferedWriter bufferedWriter)
       throws IOException {
     bufferedWriter.write(AutodocTokenizer.VERSION_KEYWORD + ' '
-        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + Autodoc.VERSION);
+        + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + AutodocFactory.VERSION);
     bufferedWriter.newLine();
     bufferedWriter.write(RCSID + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' '
         + rcsid);
@@ -443,8 +443,8 @@ public class RemotePathTest extends TestCase {
   private final File setUpTestDirectory(String testDirName) throws IOException {
     File testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
-    Autodoc.setAbsoluteDir(testDir.getAbsolutePath());
-    Autodoc.resetInstance(RemotePath.AUTODOC);
+    AutodocFactory.setAbsoluteDir(testDir.getAbsolutePath());
+    AutodocFactory.resetInstance(RemotePath.AUTODOC);
     return testDir;
   }
 
@@ -463,7 +463,7 @@ public class RemotePathTest extends TestCase {
     File testDir = setUpTestDirectory(testDirName);
     String savedRcsid;
     try {
-      savedRcsid = Autodoc.getInstance(RemotePath.AUTODOC, AxisID.ONLY)
+      savedRcsid = AutodocFactory.getInstance(RemotePath.AUTODOC, AxisID.ONLY)
           .getAttribute(RCSID).getValue();
     }
     catch (NullPointerException e) {
@@ -998,6 +998,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2007/03/05 21:29:55  sueh
+ * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
+ * <p>
  * <p> Revision 1.33  2007/03/01 01:48:13  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>

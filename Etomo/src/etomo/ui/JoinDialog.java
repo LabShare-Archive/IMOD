@@ -29,7 +29,8 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
 import etomo.storage.ModelFileFilter;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
@@ -55,6 +56,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.46  2007/03/09 22:05:54  sueh
+ * <p> bug# 964 Reduced visibility on changeTab().
+ * <p>
  * <p> Revision 1.45  2007/03/07 21:11:28  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.
@@ -1936,9 +1940,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnRefineJoin
         .setToolTipText("Press to refine the serial section join using a refining model.");
     btnMakeRefiningModel.setToolTipText("Press to create the refining model.");
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.XFJOINTOMO, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.XFJOINTOMO, AxisID.ONLY);
       ltfBoundariesToAnalyze.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XfjointomoParam.BOUNDARIES_TO_ANALYZE_KEY));
       ltfObjectsToInclude.setToolTipText(EtomoAutodoc.getTooltip(autodoc,

@@ -30,7 +30,8 @@ import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
@@ -427,9 +428,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
    */
   private void setToolTipText() {
     String text;
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.CCDERASER, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CCDERASER, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -513,6 +514,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2007/03/01 01:27:27  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 3.21  2007/02/09 00:47:31  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

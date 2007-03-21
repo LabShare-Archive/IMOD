@@ -1,8 +1,8 @@
 package etomo.type;
 
-import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 
 /**
 * <p>Description: </p>
@@ -28,7 +28,7 @@ public class EtomoAutodoc {
   
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
 
-  public static String getTooltip(Section section) {
+  public static String getTooltip(ReadOnlySection section) {
     if (section == null) {
       return null;
     }
@@ -54,7 +54,7 @@ public class EtomoAutodoc {
     return null;
   }
 
-  public static String getTooltip(Autodoc autodoc, String fieldName) {
+  public static String getTooltip(ReadOnlyAutodoc autodoc, String fieldName) {
     if (autodoc == null) {
       return null;
     }
@@ -70,7 +70,7 @@ public class EtomoAutodoc {
     return tooltip + " (" + fieldName + ").";
   }
   
-  public static String getTooltip(Section section, String enumValueName) {
+  public static String getTooltip(ReadOnlySection section, String enumValueName) {
     try {
       String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
           .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getValue();
@@ -84,13 +84,17 @@ public class EtomoAutodoc {
     }
   }
   
-  public static String getTooltip(Section section, int enumValueName) {
+  public static String getTooltip(ReadOnlySection section, int enumValueName) {
     return getTooltip(section, Integer.toString(enumValueName));
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/03/15 21:47:14  sueh
+ * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
+ * <p> unless the Attribute needs to be modified.
+ * <p>
  * <p> Revision 1.11  2006/09/13 23:34:51  sueh
  * <p> bug# 921 Preventing null pointer exception in getTooltip.
  * <p>

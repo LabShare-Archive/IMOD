@@ -15,9 +15,9 @@ import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
-import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.storage.autodoc.Section;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
@@ -121,7 +121,7 @@ public final class ProcessorTable implements Storable {
   private final void initTable() {
     //build rows
     //get autodoc
-    Autodoc autodoc = ParallelPanel.getAutodoc(axisID);
+    ReadOnlyAutodoc autodoc = ParallelPanel.getAutodoc(axisID);
     if (autodoc == null) {
       return;
     }
@@ -141,7 +141,7 @@ public final class ProcessorTable implements Storable {
     }
     //get first section
     SectionLocation sectionLocation = autodoc.getSectionLocation(SECTION_TYPE);
-    Section computer = autodoc.nextSection(sectionLocation);
+    ReadOnlySection computer = autodoc.nextSection(sectionLocation);
     EtomoNumber number = new EtomoNumber(EtomoNumber.Type.INTEGER);
     //loop on sections
     while (computer != null) {
@@ -773,6 +773,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2007/03/15 21:48:22  sueh
+ * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
+ * <p> unless the Attribute needs to be modified.
+ * <p>
  * <p> Revision 1.38  2007/02/09 00:51:54  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

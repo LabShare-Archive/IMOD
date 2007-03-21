@@ -15,7 +15,8 @@ import etomo.ApplicationManager;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
@@ -37,6 +38,9 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2007/03/01 01:27:17  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 3.16  2007/02/09 00:44:07  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -600,9 +604,9 @@ public final class BeadtrackPanel implements Expandable {
   //  ToolTip string setup
   private void setToolTipText() {
     String text;
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2007/03/01 01:28:53  sueh
+ * <p> bug# 964 Added LogFile to Autodoc.
+ * <p>
  * <p> Revision 3.23  2007/02/09 00:48:42  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -153,7 +156,8 @@ import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltxcorrParam;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -442,10 +446,10 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
    */
   private void setToolTipText() {
     String text;
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = Autodoc.getInstance(Autodoc.TILTXCORR, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.TILTXCORR, axisID);
       //autodoc.print();
     }
     catch (FileNotFoundException except) {

@@ -12,7 +12,6 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
-import etomo.storage.autodoc.Autodoc;
 
 /**
  * <p>Description: </p>
@@ -240,9 +239,9 @@ public abstract class ConstMetaData extends BaseMetaData {
     sampleThicknessB.store(props, prepend);
     tiltParamA.store(props, group + firstAxisPrepend);
     tiltParamB.store(props, group + secondAxisPrepend);
-    props.setProperty(group + Autodoc.TILTALIGN + "."
+    props.setProperty(group + "tiltalign."
         + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
-    props.setProperty(group + Autodoc.TILTALIGN + "."
+    props.setProperty(group + "tiltalign."
         + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
         numberOfLocalPatchesXandY);
     noBeamTiltSelectedA.store(props, prepend);
@@ -790,6 +789,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.40  2007/03/07 21:09:04  sueh
+ * <p> bug# 981 Added noBeamTiltSelected, fixedBeamTiltSelected, and fixedBeamTilt.
+ * <p>
  * <p> Revision 3.39  2007/03/03 01:00:46  sueh
  * <p> bug# 973 Added targetPatchSizeXandY and numberOfLocalPatchesXandY.
  * <p>

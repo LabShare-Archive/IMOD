@@ -19,8 +19,9 @@ import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
@@ -242,7 +243,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
       return validAutodoc.is();
     }
     validAutodoc = new EtomoBoolean2();
-    Autodoc autodoc = getAutodoc(axisID);
+    ReadOnlyAutodoc autodoc = getAutodoc(axisID);
     if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)) {
       validAutodoc.set(true);
     }
@@ -254,10 +255,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
    * @param axisID
    * @return
    */
-  static final Autodoc getAutodoc(AxisID axisID) {
-    Autodoc autodoc = null;
+  static final ReadOnlyAutodoc getAutodoc(AxisID axisID) {
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.CPU, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -298,7 +299,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     //look for maxCPUs in cpu.adoc
     maxCPUs = new EtomoNumber();
-    Autodoc autodoc = getAutodoc(axisID);
+    ReadOnlyAutodoc autodoc = getAutodoc(axisID);
     if (autodoc == null) {
       return maxCPUs;
     }
@@ -480,6 +481,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2007/03/15 21:47:29  sueh
+ * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
+ * <p> unless the Attribute needs to be modified.
+ * <p>
  * <p> Revision 1.43  2007/03/01 01:40:02  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>

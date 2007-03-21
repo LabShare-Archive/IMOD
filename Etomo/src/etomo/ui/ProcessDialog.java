@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2007/03/07 21:12:21  sueh
+ * <p> bug# 981 Reduce the visibility of members to package private because the
+ * <p> inheritance of this class is in-package only.
+ * <p>
  * <p> Revision 3.27  2007/03/03 01:22:22  sueh
  * <p> bug# 977 Stop formating the Cancel, Postpone, Execute, and Advanced buttons
  * <p> twice.
@@ -156,8 +160,8 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
+import etomo.storage.UITestAxisDialogCommand;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.storage.autodoc.UITestAxisDialogCommand;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
