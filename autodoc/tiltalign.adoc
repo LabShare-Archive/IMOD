@@ -871,7 +871,8 @@ usage = Fix the X-Y-Z coordinates of the fiducials at their global values
 tooltip = 
 manpage = Fix the X-Y-Z coordinates of the fiducials at their values from the
 global solution; the default is to solve for them independently
-in each local area, 
+in each local area.  For more on the implications of this option, see the note
+above in the section on local alignments.
 
 [Field = LocalOutputOptions]
 short = 
