@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import etomo.storage.LogFile;
-import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoAutodoc;
@@ -26,6 +27,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2007/03/07 20:58:07  sueh
+ * <p> bug# 981
+ * <p>
  * <p> Revision 3.15  2007/03/01 01:11:42  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
@@ -309,9 +313,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   }
 
   private HashMap getRequiredMap() {
-    Autodoc autodoc = null;
+    ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = Autodoc.getInstance(Autodoc.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.BEADTRACK, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
