@@ -22,7 +22,11 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/21 18:14:50  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p> </p>
  */
 public final class AutodocFactory {
   public static final String rcsid = "$Id$";
@@ -40,6 +44,7 @@ public final class AutodocFactory {
   public static final String XFJOINTOMO = "xfjointomo";
   public static final String CPU = "cpu";
   public static final String UITEST = "uitest";
+  public static final String PEET_PRM = "peetprm";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -57,10 +62,12 @@ public final class AutodocFactory {
   private static Autodoc DENS_MATCH_INSTANCE = null;
   private static Autodoc CORR_SEARCH_3D_INSTANCE = null;
   private static Autodoc XFJOINTOMO_INSTANCE = null;
-  
-  private static final HashMap UITEST_AXIS_MAP =   new HashMap();
-  
-  private AutodocFactory() {}
+  private static Autodoc PEET_PRM_INSTANCE = null;
+
+  private static final HashMap UITEST_AXIS_MAP = new HashMap();
+
+  private AutodocFactory() {
+  }
 
   public static ReadOnlyAutodoc getInstance(String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.ReadException {
@@ -84,7 +91,7 @@ public final class AutodocFactory {
     return autodoc;
   }
 
-  public static ReadOnlyAutodoc getMatlabInstance(File file)
+  public static WritableAutodoc getMatlabInstance(File file)
       throws IOException, LogFile.ReadException {
     if (file == null) {
       throw new IllegalStateException("file is null");
@@ -92,6 +99,21 @@ public final class AutodocFactory {
     Autodoc autodoc = new Autodoc(true);
     try {
       autodoc.initialize(file, true);
+      return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
+  public static WritableAutodoc getEmptyMatlabInstance(File file)
+      throws IOException, LogFile.ReadException {
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(true);
+    try {
+      autodoc.initialize(file, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -136,14 +158,6 @@ public final class AutodocFactory {
     catch (FileNotFoundException e) {
       return null;
     }
-  }
-
-  public static ReadOnlyAutodoc getEmptyMatlabInstance(File file)
-      throws IOException, LogFile.ReadException {
-    if (file == null) {
-      throw new IllegalStateException("file is null");
-    }
-    return new Autodoc(true);
   }
 
   public static ReadOnlyAutodoc getInstance(String fileName, String name,
@@ -192,7 +206,7 @@ public final class AutodocFactory {
     autodoc.initializeUITestAxis(LogFile.getInstance(autodocFile), axisID);
     return autodoc;
   }
-  
+
   public static void setAbsoluteDir(String absoluteDir) {
     Autodoc.setAbsoluteDir(absoluteDir);
   }
@@ -255,6 +269,9 @@ public final class AutodocFactory {
     if (name.equals(XFJOINTOMO)) {
       return XFJOINTOMO_INSTANCE;
     }
+    if (name.equals(PEET_PRM)) {
+      return PEET_PRM_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -301,6 +318,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(XFJOINTOMO)) {
       XFJOINTOMO_INSTANCE = null;
+    }
+    else if (name.equals(PEET_PRM)) {
+      PEET_PRM_INSTANCE = null;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
