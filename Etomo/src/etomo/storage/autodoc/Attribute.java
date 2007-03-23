@@ -18,6 +18,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2007/03/15 21:43:59  sueh
+ * <p> $bug# 964 Added changeValue() which overwrites the first token with the String
+ * <p> $parameter and removes the rest of the token link list.
+ * <p> $
  * <p> $Revision 1.7  2007/03/08 21:45:14  sueh
  * <p> $bug# 964 Save name/value pairs in the parser.  Fixing printing.
  * <p> $
@@ -77,7 +81,7 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute {
+final class Attribute extends WriteOnlyAttributeMap implements WritableAttribute {
   public static final String rcsid = "$$Id$$";
 
   private final WriteOnlyAttributeMap parent;
@@ -156,7 +160,7 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
     //nameValuePairList.addNameValuePair(this, values.size() - 1);
   }
   
-  synchronized void changeValue(String newValue) {
+  public synchronized void changeValue(String newValue) {
     if (values == null) {
       return;
     }
@@ -224,14 +228,19 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
   String getName() {
     return name.getValues();
   }
-
-  Token getValueToken(int index) {
-    if (values == null) {
+  
+  public String getMultiLineValue() {
+    if (values == null || values.size() == 0) {
       return null;
     }
-    return (Token) values.get(index);
+    Token value = (Token) values.get(0);
+    if (value == null) {
+      return null;
+    }
+    return value.getMultiLineValues();
   }
-
+  
+ 
   public String getValue() {
     if (values == null || values.size() == 0) {
       return null;
@@ -241,6 +250,17 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
       return null;
     }
     return value.getValues();
+  }
+  
+  public Token getValueToken() {
+    if (values == null || values.size() == 0) {
+      return null;
+    }
+    Token value = (Token) values.get(0);
+    if (value == null) {
+      return null;
+    }
+    return value;
   }
 
   public int hashCode() {
