@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import etomo.storage.LogFile;
+
 /**
  * <p>Description:
  * A class to encapsulate a token type and value.  Provides tools for comparing
@@ -66,6 +68,15 @@ package etomo.ui;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2007/03/15 21:53:58  sueh
+ * <p> $bug# 964 Added removeListFromHead() which strips the list from the first token
+ * <p> $in the list.  This can be done before changing the token's value.  If the token
+ * <p> $needs to be changed to a string of unknown characters, call
+ * <p> $removeListFromHead() and then set the token value to the string, changing the
+ * <p> $Type to ONE_OR_MORE.  After the token type information is no longer
+ * <p> $important (after AutodocParser is complete) the link list of token is kept only
+ * <p> $because there is no point in changing it to a string.
+ * <p> $
  * <p> $Revision 1.14  2007/03/08 22:04:37  sueh
  * <p> $bug# 964 Improved toString function.
  * <p> $
@@ -201,6 +212,31 @@ public final class Token {
       token = token.next;
     }
     return buffer.toString();
+  }
+  
+  public String getMultiLineValues() {
+    Token token = this;
+    StringBuffer buffer = new StringBuffer();
+    while (token != null) {
+      if (token.type==Type.EOL) {
+        buffer.append('\n');
+      }
+      else if (token.value == null) {
+        buffer.append(' ');
+      }
+      else {
+        buffer.append(token.value);
+      }
+      token = token.next;
+    }
+    return buffer.toString();
+  }
+  
+  public void write(LogFile file, long writeId) throws LogFile.WriteException{
+    file.write(value,writeId);
+    if (next!=null) {
+      next.write(file,writeId);
+    }
   }
 
   /**
