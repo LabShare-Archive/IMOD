@@ -37,6 +37,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/21 19:46:16  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.9  2007/03/20 23:11:00  sueh
  * <p> bug# 964 Added "Use tilt range" checkbox.
  * <p>
@@ -209,7 +213,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     if (rbInitMotlXAndZAxis.isSelected()) {
       matlabParamFile.setInitMotlCode(rbInitMotlXAndZAxis.getRadioValue());
     }
-    matlabParamFile.setTiltRangeEmpty(cbUseTiltRange.isSelected());
+    matlabParamFile.setTiltRangeEmpty(!cbUseTiltRange.isSelected());
     volumeTable.getParameters(matlabParamFile);
   }
 
