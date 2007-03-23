@@ -22,9 +22,18 @@ abstract class WriteOnlyNameValuePairList extends WriteOnlyAttributeMap {
   abstract Section addSection(Token type, Token name);
   abstract void addEmptyLine();
   abstract void addComment(Token comment);
+  abstract void addDelimiterChange(Token newDelimier);
+  abstract void setCurrentDelimiter(Token newDelimiter);
+  abstract String getCurrentDelimiter();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2007/03/08 22:03:36  sueh
+* <p> bug# 964 Save name/value pairs in the parser instead of saving them from the
+* <p> Attribute.  This is necessary because the name/value pair must be placed in the
+* <p> autodoc or section as soon as they are found to preserve the original order of the
+* <p> autodoc file.
+* <p>
 * <p> Revision 1.3  2007/03/01 01:20:49  sueh
 * <p> bug# 964 Added addComment and addEmptyLine.
 * <p>
