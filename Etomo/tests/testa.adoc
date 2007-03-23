@@ -20,6 +20,7 @@ adoc = fid-model.adoc
 function = run-dual
 
 [Dialog = FineAlign]
+set.use-global-x-y-z-coordinates=1
 adoc = fine-align.adoc
 function = test
 
