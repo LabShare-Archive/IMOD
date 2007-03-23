@@ -37,6 +37,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/21 19:49:40  sueh
+ * <p> bug# 964 Removed some gets/sets and replaced them with get/setParameters.
+ * <p>
  * <p> Revision 1.7  2007/03/20 23:13:36  sueh
  * <p> bug# 964 Getting/setting metadata.  Divided RelativeOrient into X, Y, and Z
  * <p> fields.
@@ -433,6 +436,7 @@ final class VolumeTable implements Expandable, Highlightable {
     }
     
     private void getParameters(final MatlabParamFile matlabParamFile) {
+      matlabParamFile.setVolumeListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
         ((VolumeRow) list.get(i)).getParameters(matlabParamFile);
       }
