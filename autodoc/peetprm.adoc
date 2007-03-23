@@ -1,3 +1,5 @@
+Version = 1.2
+
 [Field = reference] 
 comment = reference:
 ^  * If it is a string it should specify the name of an MRC file containing the reference 		
