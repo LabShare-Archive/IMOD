@@ -13,7 +13,11 @@ package etomo.storage.autodoc;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/21 19:40:14  sueh
+* <p> bug# 964 Moved the NameValuePair.Type inner class to a separate file so that it
+* <p> could be accessed by classes outside the package.
+* <p> </p>
 */
 public final class NameValuePairType {
   public static  final String  rcsid =  "$Id$";
@@ -22,6 +26,7 @@ public final class NameValuePairType {
   public static final NameValuePairType SUBSECTION = new NameValuePairType();
   public static final NameValuePairType COMMENT=new NameValuePairType();
   public static final NameValuePairType EMPTY_LINE=new NameValuePairType();
+  public static final NameValuePairType DELIMITER_CHANGE = new NameValuePairType();
  
  private NameValuePairType() {
  }
