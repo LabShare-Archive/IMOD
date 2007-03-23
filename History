@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/23/07: Fixed bug that crashed 3dmod when model view object edit window was
+opened after creating a new object (In 3.9).
+
 3/21/07: IMOD_3-10-4
 3/19/07: Changed the way Solvematch determines the center shift so it won't get
 screwed up if the center points are all on one surface.
