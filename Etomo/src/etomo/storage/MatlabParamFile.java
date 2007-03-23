@@ -3,11 +3,20 @@ package etomo.storage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.storage.autodoc.SectionLocation;
+import etomo.storage.autodoc.WritableAttribute;
+import etomo.storage.autodoc.WritableAutodoc;
+import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.ui.UIHarness;
 
@@ -25,6 +34,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/03/21 18:11:44  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Creating Autodoc using a factory.  Made the Volume inner class public so that it
+ * <p> could be responsible for sets and gets.
+ * <p>
  * <p> Revision 1.3  2007/03/20 23:02:27  sueh
  * <p> bug# 964 Distinguishing between tiltRange={} and tiltRange={[],[]}.  Returning
  * <p> relativeOrient elements separately.
@@ -40,7 +54,22 @@ public final class MatlabParamFile {
   public static final String rcsid = "$Id$";
 
   private static final char DIVIDER = ',';
-  private final ArrayList volumeList = new ArrayList();
+  private static final char OPEN_LIST = '{';
+  private static final char CLOSE_LIST = '}';
+  private static final String OPEN_LIST_STRING = "{";//stupid java thinks chars are ints
+  private static final String CLOSE_LIST_STRING = "}";//stupid java thinks chars are ints
+  private static final char OPEN_ARRAY = '[';
+  private static final char CLOSE_ARRAY = ']';
+  private static final String OPEN_ARRAY_STRING = "[";//stupid java thinks chars are ints
+  private static final String CLOSE_ARRAY_STRING = "]";//stupid java thinks chars are ints
+  private static final char QUOTE = '\'';
+  private static final String DIVIDER_STRING = DIVIDER + " ";
+  private static final String FN_VOLUME_KEY = "fnVolume";
+  private static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
+  private static final String INIT_MOTL_KEY = "initMOTL";
+  private static final String TILT_RANGE_KEY = "tiltRange";
+  private static final String RELATIVE_ORIENT_KEY = "relativeOrient";
+  private final List volumeList = new ArrayList();
   private final File file;
   private InitMotlCode initMotlCode = null;
   private boolean tiltRangeEmpty = false;
@@ -49,6 +78,9 @@ public final class MatlabParamFile {
     this.file = file;
   }
 
+  /**
+   * Reads data from the .prm autodoc.
+   */
   public synchronized void read() {
     volumeList.clear();
     try {
@@ -58,18 +90,18 @@ public final class MatlabParamFile {
             + ".", "File Error");
         return;
       }
-      //Parse each attributes' value.
-      String[] fnVolumeList = getList(autodoc.getAttribute("fnVolume"));
+      //Parse each pair's value.
+      String[] fnVolumeList = getList(autodoc.getAttribute(FN_VOLUME_KEY));
       String[] fnModParticleList = getList(autodoc
-          .getAttribute("fnModParticle"));
+          .getAttribute(FN_MOD_PARTICLE_KEY));
       //see if initMotl is using a single code
-      String initMotl = autodoc.getAttribute("initMOTL").getValue();
+      String initMotl = autodoc.getAttribute(INIT_MOTL_KEY).getValue();
       initMotlCode = InitMotlCode.getInstance(initMotl);
       String[] initMotlList = null;
       if (initMotlCode == null) {
         initMotlList = getList(initMotl);
       }
-      String[] tiltRangeList = getList(autodoc.getAttribute("tiltRange"));
+      String[] tiltRangeList = getList(autodoc.getAttribute(TILT_RANGE_KEY));
       String[][] tiltRangeArrayList = null;
       //Distinguish between {} (an empty list) and {[],[]}
       if (tiltRangeList.length == 0) {
@@ -81,7 +113,7 @@ public final class MatlabParamFile {
         tiltRangeArrayList = getListOfArrays(tiltRangeList);
       }
       String[][] relativeOrientArrayList = getListOfArrays(getList(autodoc
-          .getAttribute("relativeOrient")));
+          .getAttribute(RELATIVE_ORIENT_KEY)));
       //Add entries to volumeList, ignoring any entries for which there is no
       //corresponding fnVolume.
       for (int i = 0; i < fnVolumeList.length; i++) {
@@ -112,13 +144,104 @@ public final class MatlabParamFile {
     }
   }
 
-  public void write() {
-    try {
-      ReadOnlyAutodoc autodoc = (AutodocFactory.getMatlabInstance(file));
-      if (autodoc == null) {
-        autodoc = (AutodocFactory.getEmptyMatlabInstance(file));
-        //build(autodoc);
+  /**
+   * Write stored data to the .prm autodoc.
+   */
+  public synchronized void write() {
+    //create ParamList instances to build the values.
+    ParamList fnVolume = new ParamList(true);
+    ParamList fnModParticle = new ParamList(true);
+    ParamList initMotlFile = null;
+    if (initMotlCode == null) {
+      initMotlFile = new ParamList(true);
+    }
+    ParamList tiltRange = new ParamList(false);
+    ParamList relativeOrient = new ParamList(false);
+    //build the values
+    for (int i = 0; i < volumeList.size(); i++) {
+      Volume volume = (Volume) volumeList.get(i);
+      fnVolume.add(volume.getFnVolume());
+      fnModParticle.add(volume.getFnModParticle());
+      if (initMotlFile != null) {
+        initMotlFile.add(volume.getInitMotl());
       }
+      String array = "";
+      if (!tiltRangeEmpty) {
+        array = buildArray(volume.getTiltRange());
+        tiltRange.add(array);
+      }
+      array = buildArray(volume.getRelativeOrient());
+      relativeOrient.add(array);
+    }
+    //Place the string representation of each value in a map.
+    //This allows the values to be passed to updateOrBuildAutodoc().
+    //When building a new .prm autodoc, this also allows the values to be
+    //accessed in the same order as the Field sections in peetprm.adoc.
+    Map valueMap = new HashMap();
+    valueMap.put(FN_VOLUME_KEY, fnVolume.toString());
+    valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.toString());
+    if (initMotlFile != null) {
+      valueMap.put(INIT_MOTL_KEY, initMotlFile.toString());
+    }
+    else {
+      valueMap.put(INIT_MOTL_KEY, initMotlCode.getCode().toString());
+    }
+    valueMap.put(TILT_RANGE_KEY, tiltRange.toString());
+    valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.toString());
+    //try to get the peetprm.adoc, which contains the comments for the .prm file
+    //in its Field sections.
+    ReadOnlyAutodoc commentAutodoc = null;
+    try {
+      commentAutodoc = AutodocFactory.getInstance(AutodocFactory.PEET_PRM,
+          AxisID.ONLY);
+    }
+    catch (IOException e) {
+      System.err.println("Problem with " + AutodocFactory.PEET_PRM
+          + ".adoc.\nIOException:  " + e.getMessage());
+    }
+    catch (LogFile.ReadException e) {
+      System.err.println("Problem with " + AutodocFactory.PEET_PRM
+          + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
+    }
+    try {
+      //try to get the existing .prm autodoc
+      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(file);
+      if (autodoc != null) {
+        //found an existing .prm autodoc - update it.
+        updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
+      }
+      else {
+        //get an empty .prm autodoc
+        autodoc = AutodocFactory.getEmptyMatlabInstance(file);
+        if (commentAutodoc == null) {
+          //The peetprm.adoc is not available.
+          //Build a new .prm autodoc with no comments
+          updateOrBuildAutodoc(valueMap, autodoc, null);
+        }
+        else {
+          //Get the Field sections from the peetprm.adoc
+          SectionLocation secLoc = commentAutodoc
+              .getSectionLocation(EtomoAutodoc.FIELD_SECTION_NAME);
+          if (secLoc == null) {
+            //There are no Field sections in the peetprm.adoc.
+            //Build a new .prm autodoc with no comments
+            updateOrBuildAutodoc(valueMap, autodoc, null);
+          }
+          else {
+            //Build a new .prm autodoc.  Use the Field sections from the
+            //peetprm.adoc to dictate the order of the name/value pairs.
+            //Also use the comments from the peetprm.adoc Field sections.
+            ReadOnlySection section = null;
+            while ((section = commentAutodoc.nextSection(secLoc)) != null) {
+              addNameValuePair(autodoc, section.getName(), (String) valueMap
+                  .get(section.getName()), section
+                  .getAttribute(EtomoAutodoc.COMMENT_KEY));
+            }
+          }
+        }
+      }
+      //write the autodoc file
+      autodoc.write();
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
@@ -128,10 +251,156 @@ public final class MatlabParamFile {
       UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
           + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
     }
+    catch (LogFile.FileException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to back up "
+          + file.getName() + ".  LogFile.FileException:  " + e.getMessage(),
+          "File Error");
+    }
+    catch (LogFile.WriteException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to write to "
+          + file.getName() + ".  LogFile.WriteException:  " + e.getMessage(),
+          "File Error");
+    }
+  }
+
+  /**
+   * Updates or adds all the attributes to autodoc.
+   * Will attempt to add comments when adding a new attribute.
+   * Addes name/value pair when it adds a new attribute.
+   * @param valueMap
+   * @param autodoc
+   * @param commentAutodoc
+   */
+  private void updateOrBuildAutodoc(Map valueMap, WritableAutodoc autodoc,
+      ReadOnlyAutodoc commentAutodoc) {
+    Map commentMap = null;
+    if (commentAutodoc != null) {
+      commentMap = commentAutodoc.getAttributeMultiLineValues(
+          EtomoAutodoc.FIELD_SECTION_NAME, EtomoAutodoc.COMMENT_KEY);
+    }
+    //write to a autodoc, constructing attributes and name/value pairs as necessary
+    //the order doesn't matter, because this is either an existing autodoc 
+    //(so new entries will end up at the bottom), or the comment autodoc (which
+    //provides the order) is not usable.
+    setAttributeValue(autodoc, FN_VOLUME_KEY, (String) valueMap
+        .get(FN_VOLUME_KEY), commentMap);
+    setAttributeValue(autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
+        .get(FN_MOD_PARTICLE_KEY), commentMap);
+    setAttributeValue(autodoc, INIT_MOTL_KEY, (String) valueMap
+        .get(INIT_MOTL_KEY), commentMap);
+    setAttributeValue(autodoc, TILT_RANGE_KEY, (String) valueMap
+        .get(TILT_RANGE_KEY), commentMap);
+    setAttributeValue(autodoc, RELATIVE_ORIENT_KEY, (String) valueMap
+        .get(RELATIVE_ORIENT_KEY), commentMap);
+  }
+
+  /**
+   * Builds an array from an array of ConstEtomoNumber [1 2]
+   * @param elementArray
+   * @return
+   */
+  private String buildArray(final ConstEtomoNumber[] elementArray) {
+    StringBuffer array = new StringBuffer();
+    array.append(OPEN_ARRAY);
+    boolean arrayEmpty = true;
+    for (int i = 0; i < elementArray.length; i++) {
+      if (i > 0) {
+        array.append(DIVIDER_STRING);
+      }
+      if (!elementArray[i].isNull()) {
+        arrayEmpty = false;
+        array.append(elementArray[i]);
+      }
+    }
+    if (arrayEmpty) {
+      return OPEN_ARRAY_STRING + CLOSE_ARRAY_STRING;
+    }
+    array.append(CLOSE_ARRAY);
+    return array.toString();
+  }
+
+  /**
+   * Gets the attribute.  If the attribute doesn't exist, it adds the attribute.
+   * Adds or changes the value of the attribute.
+   * @param autodoc
+   * @param attributeName
+   * @param attributeValue
+   */
+  private void setAttributeValue(WritableAutodoc autodoc, String attributeName,
+      String attributeValue, Map commentMap) {
+    WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
+    if (attribute == null) {
+      if (commentMap == null) {
+        //new attribute, so add attribute and name/value pair
+        addNameValuePair(autodoc, attributeName, attributeValue, (String) null);
+      }
+      else {
+        //new attribute, so add comment, attribute, and name/value pair
+        addNameValuePair(autodoc, attributeName, attributeValue,
+            (String) commentMap.get(attributeName));
+      }
+    }
+    else {
+      attribute.changeValue(attributeValue);
+    }
+  }
+
+  /**
+   * Add a new name/value pair.  Adds a new-line and comment (if comment is not
+   * null), an attribute, and a name/value pair.
+   * @param autodoc
+   * @param attributeName
+   * @param attributeValue
+   * @param commentAttribute
+   */
+  private void addNameValuePair(WritableAutodoc autodoc, String attributeName,
+      String attributeValue, ReadOnlyAttribute commentAttribute) {
+    if (attributeValue == null) {
+      return;
+    }
+    if (commentAttribute == null) {
+      addNameValuePair(autodoc, attributeName, attributeValue, (String) null);
+    }
+    else {
+      addNameValuePair(autodoc, attributeName, attributeValue, commentAttribute
+          .getMultiLineValue());
+    }
+  }
+
+  /**
+   * Add a new name/value pair.  Adds a new-line and comment (if comment is not
+   * null), an attribute, and a name/value pair.
+   * @param autodoc
+   * @param attributeName
+   * @param attributeValue
+   * @param comment
+   */
+  private void addNameValuePair(WritableAutodoc autodoc, String attributeName,
+      String attributeValue, String comment) {
+    //try to add a comment
+    if (comment != null) {
+      //theres a comment, so add an empty line first
+      autodoc.addEmptyLine();
+      //Format and add the comment
+      String[] commentArray = EtomoAutodoc.format(comment);
+      for (int i = 0; i < commentArray.length; i++) {
+        autodoc.addComment(" "+commentArray[i]);
+      }
+    }
+    //Add the attribute and name/value pair
+    autodoc.addAttributeAndNameValuePair(attributeName, attributeValue);
   }
 
   public int getVolumeListSize() {
     return volumeList.size();
+  }
+
+  public void setVolumeListSize(int size) {
+    if (volumeList.size() == 0) {
+      for (int i = 0; i < size; i++) {
+        volumeList.add(new Volume());
+      }
+    }
   }
 
   public Volume getVolume(int index) {
@@ -188,7 +457,8 @@ public final class MatlabParamFile {
       return new String[0];
     }
     value = value.trim();
-    if (value.charAt(0) == '{' && value.charAt(value.length() - 1) == '}') {
+    if (value.charAt(0) == OPEN_LIST
+        && value.charAt(value.length() - 1) == CLOSE_LIST) {
       //remove "{" and "}"
       value = value.substring(1, value.length() - 1).trim();
       if (value.length() == 0) {
@@ -213,7 +483,6 @@ public final class MatlabParamFile {
     }
     String[][] listOfArrays = new String[list.length][];
     for (int i = 0; i < list.length; i++) {
-      System.out.println("list[" + i + "]=" + list[i]);
       list[i] = list[i].trim();
       if (list[i].charAt(0) == '['
           && list[i].charAt(list[i].length() - 1) == ']') {
@@ -234,7 +503,8 @@ public final class MatlabParamFile {
 
   private String removeQuotes(String string) {
     string = string.trim();
-    if (string.charAt(0) == '\'' && string.charAt(string.length() - 1) == '\'') {
+    if (string.charAt(0) == QUOTE
+        && string.charAt(string.length() - 1) == QUOTE) {
       return string.substring(1, string.length() - 1);
     }
     return string;
@@ -355,6 +625,14 @@ public final class MatlabParamFile {
       relativeOrient[RELATIVE_ORIENT_Z_INDEX].set(relativeOrientZ);
     }
 
+    private ConstEtomoNumber[] getTiltRange() {
+      return tiltRange;
+    }
+
+    private ConstEtomoNumber[] getRelativeOrient() {
+      return relativeOrient;
+    }
+
     private void setTiltRange(String[] tiltRange) {
       for (int i = 0; i < this.tiltRange.length; i++) {
         if (i >= tiltRange.length) {
@@ -371,6 +649,45 @@ public final class MatlabParamFile {
         }
         this.relativeOrient[i].set(relativeOrient[i]);
       }
+    }
+  }
+
+  private static final class ParamList {
+    private final boolean stringList;
+    private final StringBuffer elementBuffer = new StringBuffer();
+
+    private boolean emptyList = true;
+    private int currentIndex = 0;
+
+    private ParamList(boolean stringList) {
+      this.stringList = stringList;
+    }
+
+    private void add(String element) {
+      if (currentIndex++ > 0) {
+        elementBuffer.append(DIVIDER_STRING);
+      }
+      if (element.equals("")) {
+        return;
+      }
+      emptyList = false;
+      if (stringList) {
+        elementBuffer.append(QUOTE);
+      }
+      elementBuffer.append(element);
+      if (stringList) {
+        elementBuffer.append(QUOTE);
+      }
+    }
+
+    /**
+     * Prints the required format for the .prm file - do not change
+     */
+    public String toString() {
+      if (emptyList) {
+        return OPEN_LIST_STRING + CLOSE_LIST_STRING;
+      }
+      return OPEN_LIST_STRING + elementBuffer.toString() + CLOSE_LIST_STRING;
     }
   }
 }
