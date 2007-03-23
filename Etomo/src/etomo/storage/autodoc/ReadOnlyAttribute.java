@@ -13,12 +13,17 @@ package etomo.storage.autodoc;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/15 21:46:36  sueh
+* <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
+* <p> unless the Attribute needs to be modified.
+* <p> </p>
 */
 public interface ReadOnlyAttribute {
   public static  final String  rcsid =  "$Id$";
   
   public String getValue();
+  public String getMultiLineValue();
   public ReadOnlyAttribute getAttribute(String name);
   public Attribute getAttribute(int name);
 }
