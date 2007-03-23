@@ -2,6 +2,7 @@ package etomo.storage.autodoc;
 
 import java.util.Vector;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
@@ -18,6 +19,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.13  2007/03/21 19:41:40  sueh
+ * <p> $bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> $
  * <p> $Revision 1.12  2007/03/15 21:46:59  sueh
  * <p> $bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
  * <p> $unless the Attribute needs to be modified.
@@ -93,13 +97,14 @@ final class Section extends WriteOnlyNameValuePairList implements
     ReadOnlySection {
   public static final String rcsid = "$$Id$$";
 
-  private final Vector nameValuePairList =new Vector();
-  
+  private final Vector nameValuePairList = new Vector();
+
   private String key = null; //required
   private Token type = null; //required
   private Token name = null; //required
   private AttributeMap attributeMap = null;//optional
   private boolean subsection = false;
+  private final WriteOnlyNameValuePairList parent;
 
   boolean isGlobal() {
     return false;
@@ -107,6 +112,14 @@ final class Section extends WriteOnlyNameValuePairList implements
 
   boolean isAttribute() {
     return false;
+  }
+  
+  void setCurrentDelimiter(Token newDelimiter) {
+    parent.setCurrentDelimiter(newDelimiter);
+  }
+  
+  String getCurrentDelimiter() {
+    return parent.getCurrentDelimiter();
   }
 
   public String toString() {
@@ -150,10 +163,11 @@ final class Section extends WriteOnlyNameValuePairList implements
     return Token.convertToKey(type) + Token.convertToKey(name);
   }
 
-  Section(Token type, Token name) {
+  Section(Token type, Token name,WriteOnlyNameValuePairList parent) {
     key = Section.getKey(type, name);
     this.type = type;
     this.name = name;
+    this.parent=parent;
   }
 
   WriteOnlyAttributeMap addAttribute(Token name) {
@@ -206,25 +220,54 @@ final class Section extends WriteOnlyNameValuePairList implements
     return attributeMap.getAttribute(name);
   }
 
+  void write(LogFile file, long writeId) throws LogFile.WriteException {
+    //write section header
+    file.write(AutodocTokenizer.OPEN_CHAR, writeId);
+    if (subsection) {
+      file.write(AutodocTokenizer.OPEN_CHAR, writeId);
+    }
+    type.write(file, writeId);
+    file.write(' ' + parent.getCurrentDelimiter() + ' ', writeId);
+    name.write(file, writeId);
+    file.write(AutodocTokenizer.CLOSE_CHAR, writeId);
+    if (subsection) {
+      file.write(AutodocTokenizer.CLOSE_CHAR, writeId);
+    }
+    file.newLine(writeId);
+    for (int i = 0; i < nameValuePairList.size(); i++) {
+      ((NameValuePair) nameValuePairList.get(i)).write(file, writeId);
+    }
+    //if subsection, write subsection footer
+    if (subsection) {
+      file.write(""+AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
+      + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR, writeId);
+      file.newLine(writeId);
+    }
+  }
+
   NameValuePair addNameValuePair() {
-    NameValuePair pair = NameValuePair.getNameValuePairInstance();
+    NameValuePair pair = NameValuePair.getNameValuePairInstance(this);
     nameValuePairList.add(pair);
     return pair;
   }
 
   Section addSection(Token type, Token name) {
-    Section section = new Section(type, name);
+    Section section = new Section(type, name,this);
     section.subsection = true;
-    nameValuePairList.add(NameValuePair.getSubsectionInstance(section));
+    nameValuePairList.add(NameValuePair.getSubsectionInstance(section,this));
     return section;
   }
 
   void addComment(Token comment) {
-    nameValuePairList.add(NameValuePair.getCommentInstance(comment));
+    nameValuePairList.add(NameValuePair.getCommentInstance(comment,this));
+  }
+  
+  void addDelimiterChange(Token newDelimiter) {
+    nameValuePairList.add(NameValuePair.getDelimiterChangeInstance(newDelimiter,this));
   }
 
   void addEmptyLine() {
-    nameValuePairList.add(NameValuePair.getEmptyLineInstance());
+    nameValuePairList.add(NameValuePair.getEmptyLineInstance(this));
   }
 
   public NameValuePairLocation getNameValuePairLocation() {
@@ -232,8 +275,7 @@ final class Section extends WriteOnlyNameValuePairList implements
   }
 
   public NameValuePair nextNameValuePair(NameValuePairLocation location) {
-    if (location == null
-        || location.isOutOfRange(nameValuePairList)) {
+    if (location == null || location.isOutOfRange(nameValuePairList)) {
       return null;
     }
     NameValuePair pair = (NameValuePair) nameValuePairList.get(location

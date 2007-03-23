@@ -2,6 +2,7 @@ package etomo.storage.autodoc;
 
 import java.util.Vector;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
@@ -22,44 +23,95 @@ final class NameValuePair implements ReadOnlyNameValuePair {
 
   private final Vector name = new Vector();
   private final NameValuePairType type;
+  private final WriteOnlyNameValuePairList parent;
 
   private Token value = null;
   private Section subsection = null;
 
-  private NameValuePair(NameValuePairType type) {
+  private NameValuePair(NameValuePairType type,
+      WriteOnlyNameValuePairList parent) {
     this.type = type;
+    this.parent = parent;
   }
 
-  private NameValuePair(NameValuePairType type, Token value) {
-    this(type);
+  private NameValuePair(NameValuePairType type, Token value,
+      WriteOnlyNameValuePairList parent) {
+    this(type, parent);
     this.value = value;
   }
 
-  private NameValuePair(NameValuePairType type, Section subsection) {
-    this(type);
+  private NameValuePair(NameValuePairType type, Section subsection,
+      WriteOnlyNameValuePairList parent) {
+    this(type, parent);
     name.add(subsection.getTypeToken());
     value = subsection.getNameToken();
     this.subsection = subsection;
   }
 
-  static NameValuePair getNameValuePairInstance() {
-    return new NameValuePair(NameValuePairType.NAME_VALUE_PAIR);
+  static NameValuePair getNameValuePairInstance(
+      WriteOnlyNameValuePairList parent) {
+    return new NameValuePair(NameValuePairType.NAME_VALUE_PAIR, parent);
   }
 
-  static NameValuePair getSubsectionInstance(Section subsection) {
-    return new NameValuePair(NameValuePairType.SUBSECTION, subsection);
+  static NameValuePair getSubsectionInstance(Section subsection,
+      WriteOnlyNameValuePairList parent) {
+    return new NameValuePair(NameValuePairType.SUBSECTION, subsection, parent);
   }
 
-  static NameValuePair getCommentInstance(Token comment) {
-    return new NameValuePair(NameValuePairType.COMMENT, comment);
+  static NameValuePair getDelimiterChangeInstance(Token newDelimiter,
+      WriteOnlyNameValuePairList parent) {
+    return new NameValuePair(NameValuePairType.DELIMITER_CHANGE, newDelimiter,
+        parent);
   }
 
-  static NameValuePair getEmptyLineInstance() {
-    return new NameValuePair(NameValuePairType.EMPTY_LINE);
+  static NameValuePair getCommentInstance(Token comment,
+      WriteOnlyNameValuePairList parent) {
+    return new NameValuePair(NameValuePairType.COMMENT, comment, parent);
+  }
+
+  static NameValuePair getEmptyLineInstance(WriteOnlyNameValuePairList parent) {
+    return new NameValuePair(NameValuePairType.EMPTY_LINE, parent);
+  }
+
+  void write(LogFile file, long writeId) throws LogFile.WriteException {
+    if (type == NameValuePairType.DELIMITER_CHANGE) {
+      parent.setCurrentDelimiter(value);
+      return;
+    }
+    if (type == NameValuePairType.EMPTY_LINE) {
+      file.newLine(writeId);
+      return;
+    }
+    if (type == NameValuePairType.COMMENT) {
+      file.write(AutodocTokenizer.COMMENT_CHAR, writeId);
+      value.write(file, writeId);
+      file.newLine(writeId);
+      return;
+    }
+    if (type == NameValuePairType.SUBSECTION) {
+      subsection.write(file, writeId);
+    }
+    if (type == NameValuePairType.NAME_VALUE_PAIR) {
+      for (int i = 0; i < name.size(); i++) {
+        ((Token) name.get(i)).write(file, writeId);
+        if (i < name.size() - 1) {
+          file.write(AutodocTokenizer.SEPARATOR_CHAR, writeId);
+        }
+      }
+      file.write(' '+parent.getCurrentDelimiter()+' ',writeId);
+      if (value!=null) {
+        value.write(file,writeId);
+        file.newLine(writeId);
+      }
+    }
   }
 
   void print(int level) {
     Autodoc.printIndent(level);
+    if (type == NameValuePairType.DELIMITER_CHANGE) {
+      parent.setCurrentDelimiter(value);
+      return;
+    }
     if (type == NameValuePairType.EMPTY_LINE) {
       System.out.println("<empty-line>");
       return;
@@ -70,15 +122,16 @@ final class NameValuePair implements ReadOnlyNameValuePair {
     }
     if (type == NameValuePairType.SUBSECTION) {
       subsection.print(level);
+      return;
     }
-    else if (type == NameValuePairType.NAME_VALUE_PAIR) {
+    if (type == NameValuePairType.NAME_VALUE_PAIR) {
       for (int i = 0; i < name.size(); i++) {
         System.out.print(((Token) name.get(i)).getValues());
         if (i < name.size() - 1) {
           System.out.print('.');
         }
       }
-      System.out.print(" = ");
+      System.out.print(' ' + parent.getCurrentDelimiter() + ' ');
       if (value == null) {
         System.out.println();
       }
@@ -144,6 +197,11 @@ final class NameValuePair implements ReadOnlyNameValuePair {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/21 19:39:20  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Moved the Type inner class to a separate file so that it could be accessed by
+ * <p> classes outside the package.
+ * <p>
  * <p> Revision 1.6  2007/03/08 21:58:58  sueh
  * <p> bug# 964 Added Type.  Building Type.NAME_VALUE_PAIR instances piecemeal
  * <p> so that the parser can put them together.
