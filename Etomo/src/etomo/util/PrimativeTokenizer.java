@@ -53,6 +53,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.5  2007/03/08 22:06:35  sueh
+ * <p> $bug# 964 Improved the StreamTokenizer test.  Prevent infinite loop by checking
+ * <p> $for the private StreamTokenizer.TT_NOTHING value.
+ * <p> $
  * <p> $Revision 1.4  2007/03/01 01:47:50  sueh
  * <p> $bug# 964 Using LogFile instead of file, since some autodoc will be writeable.
  * <p> $
@@ -101,7 +105,7 @@ public class PrimativeTokenizer {
     this.file = file;
   }
 
-  PrimativeTokenizer(String string) {
+  public PrimativeTokenizer(String string) {
     this.string = string;
   }
 
@@ -133,6 +137,9 @@ public class PrimativeTokenizer {
     }
     else if (string != null) {
       reader = new StringReader(string);
+    }
+    else {
+      return;
     }
     tokenizer = new StreamTokenizer(reader);
     streamTokenizerNothingValue = tokenizer.ttype;
