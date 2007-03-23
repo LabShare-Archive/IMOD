@@ -147,6 +147,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2007/03/21 18:15:41  sueh
+ * <p> $bug# 964 Removed mutable boolean.  Access-level will be controlled by the
+ * <p> $interfaces.
+ * <p> $
  * <p> $Revision 1.10  2007/03/15 21:45:55  sueh
  * <p> $bug# 964 Clarifying the code to show that the same value instance is saved to
  * <p> $both attribute and name/value pair.
@@ -770,7 +774,7 @@ final class AutodocParser {
     //Finished the first line of the value (excluding the EOL) if this is
     //delimiter reassignment, it must be done now, or the following pair will be
     //mistaken for part of this value.
-    processMetaData(attribute, value.getList());
+    processMetaData(attribute, value.getList(),parent);
     //grab the EOL in case the value continues in the value line
     if (token.is(Token.Type.EOL)) {
       value.append(token);
@@ -952,7 +956,7 @@ final class AutodocParser {
 
   //postprocessor
 
-  private void processMetaData(Attribute attribute, Token value) {
+  private void processMetaData(Attribute attribute, Token value,WriteOnlyNameValuePairList parent) {
     if (!attribute.isBase()) {
       return;
     }
@@ -969,6 +973,7 @@ final class AutodocParser {
     }
     if (name.equals(Token.Type.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
       tokenizer.setDelimiterString(value.getValues());
+      parent.addDelimiterChange(value);
     }
   }
 
