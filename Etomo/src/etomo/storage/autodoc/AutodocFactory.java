@@ -23,6 +23,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/23 20:32:07  sueh
+ * <p> bug# 964 Added PEET_PRM - an autodoc which contains Feld sections that
+ * <p> represent the fields that may be used in the PEET .prm file.
+ * <p>
  * <p> Revision 1.1  2007/03/21 18:14:50  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -98,7 +102,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true);
     try {
-      autodoc.initialize(file, true);
+      autodoc.initialize(file, true,false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -113,7 +117,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true);
     try {
-      autodoc.initialize(file, false);
+      autodoc.initialize(file, false,false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -128,7 +132,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, true);
+      autodoc.initialize(file, true,true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -152,7 +156,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, false);
+      autodoc.initialize(file, false,true);
       return autodoc;
     }
     catch (FileNotFoundException e) {

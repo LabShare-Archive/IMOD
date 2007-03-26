@@ -147,6 +147,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.12  2007/03/23 20:32:58  sueh
+ * <p> $bug# 964 Adding an entry to NameValuePairList which represents the change in
+ * <p> $delimiter.
+ * <p> $
  * <p> $Revision 1.11  2007/03/21 18:15:41  sueh
  * <p> $bug# 964 Removed mutable boolean.  Access-level will be controlled by the
  * <p> $interfaces.
@@ -270,14 +274,16 @@ final class AutodocParser {
   //Postprocessor flags
   private boolean versionFound = false;
   private boolean pipFound = false;
+  private boolean versionRequired=true;
 
-  AutodocParser(Autodoc autodoc, boolean allowAltComment) {
+  AutodocParser(Autodoc autodoc, boolean allowAltComment,boolean versionRequired) {
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
     tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment);
+    this.versionRequired=versionRequired;
   }
 
   void initialize() throws FileNotFoundException, IOException,
@@ -978,7 +984,7 @@ final class AutodocParser {
   }
 
   private void postprocess() {
-    if (!versionFound) {
+    if (!versionFound&&versionRequired) {
       System.err.println("Warning:  missing meta data - Version not found.");
     }
   }

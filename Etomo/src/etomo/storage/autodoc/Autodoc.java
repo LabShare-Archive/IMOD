@@ -527,7 +527,7 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false);
+    parser = new AutodocParser(this, false,true);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -544,10 +544,10 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  void initialize(File file, boolean storeData) throws FileNotFoundException,
+  void initialize(File file, boolean storeData,boolean versionRequired) throws FileNotFoundException,
       IOException, LogFile.ReadException {
     autodocFile = LogFile.getInstance(file);
-    parser = new AutodocParser(this, allowAltComment);
+    parser = new AutodocParser(this, allowAltComment,versionRequired);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -567,6 +567,10 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.16  2007/03/23 20:30:09  sueh
+ *<p> $bug# 964 Added addAttributeAndNameValuePair, addComment(String), write(),
+ *<p> $getWritableAttribute,getAttributeMultiLineValues.
+ *<p> $
  *<p> $Revision 1.15  2007/03/21 18:14:26  sueh
  *<p> $bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  *<p> $Added AutodocFactory to create Autodoc instances.
