@@ -62,6 +62,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.51  2007/02/19 21:49:38  sueh
+ * <p> bug# 964 Removed isNewManager() because it is only used by Application
+ * <p> Manager.
+ * <p>
  * <p> Revision 1.50  2007/02/08 02:23:40  sueh
  * <p> bug# 962 Preventing xfmodel input file and output file from being the same.
  * <p>
@@ -552,29 +556,6 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  /**
-   * Open 3dmod
-   */
-  public void imodOpen(String imodKey, Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(imodKey, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
-          + " in 3dmod ", AxisID.ONLY);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
-    }
-  }
-
   public void imodOpen(String imodKey, String model,
       Run3dmodMenuOptions menuOptions) {
     try {
@@ -625,37 +606,6 @@ public final class JoinManager extends BaseManager {
           AxisID.ONLY);
       return false;
     }
-  }
-
-  /**
-   * Open or raise a specific 3dmod to view a file with binning.
-   * Or open a new 3dmod.
-   * Return the index of the 3dmod opened or raised.
-   */
-  public int imodOpen(String imodKey, int imodIndex, File file, int binning,
-      Run3dmodMenuOptions menuOptions) {
-    try {
-      if (imodIndex == -1) {
-        imodIndex = imodManager.newImod(imodKey, file);
-      }
-      imodManager.setBinningXY(imodKey, imodIndex, binning);
-      imodManager.open(imodKey, imodIndex, file, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
-          + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
-    }
-    return imodIndex;
   }
 
   /**
