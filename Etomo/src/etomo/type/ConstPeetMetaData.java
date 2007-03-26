@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/03/20 23:03:17  sueh
+* <p> bug# 964 Added getInitMotlFile, getTiltRangeStart, and getTiltRangeEnd.
+* <p>
 * <p> Revision 1.1  2007/02/21 04:19:17  sueh
 * <p> bug# 964 Const interface for PeetMetaData.
 * <p> </p>
@@ -24,4 +27,5 @@ public interface ConstPeetMetaData {
   public String getInitMotlFile(int key);
   public String getTiltRangeStart(int key);
   public String getTiltRangeEnd(int key);
+  public AxisType getAxisType();
 }
