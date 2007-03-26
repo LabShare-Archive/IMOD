@@ -43,28 +43,28 @@ public class EtomoAutodoc {
     String text = null;
     ReadOnlyAttribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
     if (attribute != null) {
-      text = removeFormatting(attribute.getValue());
+      text = removeFormatting(attribute.getMultiLineValue());
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("usage");
     if (attribute != null) {
-      text = removeFormatting(attribute.getValue());
+      text = removeFormatting(attribute.getMultiLineValue());
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute(COMMENT_KEY);
     if (attribute != null) {
-      text = removeFormatting(attribute.getValue());
+      text = removeFormatting(attribute.getMultiLineValue());
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("manpage");
     if (attribute != null) {
-      return removeFormatting(attribute.getValue());
+      return removeFormatting(attribute.getMultiLineValue());
     }
     return null;
   }
@@ -241,6 +241,11 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/03/23 20:42:00  sueh
+ * <p> bug# 964 Added formt(String) and removingFormatting(String).
+ * <p> RemoveFormatting is necessary since the BREAK character is no longer being
+ * <p> handled by Autodoc and Token.
+ * <p>
  * <p> Revision 1.13  2007/03/21 19:43:22  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
