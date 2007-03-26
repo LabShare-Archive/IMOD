@@ -34,6 +34,12 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/03/23 20:28:00  sueh
+ * <p> bug# 964 Added the ability to write the autodoc based on the order of Field sections in another autodoc.  Also has the ability to write the autodoc without
+ * <p> referring to the other autodoc.  Can write a new autodoc.  Can also update existing attributes or add new attributes to an existing autodoc.  Tries to add
+ * <p> comments to add attributes or a new autodoc based on comment attributes from
+ * <p> the other autodoc.
+ * <p>
  * <p> Revision 1.4  2007/03/21 18:11:44  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Creating Autodoc using a factory.  Made the Volume inner class public so that it
@@ -71,11 +77,13 @@ public final class MatlabParamFile {
   private static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   private final List volumeList = new ArrayList();
   private final File file;
+  private final boolean newFile;
   private InitMotlCode initMotlCode = null;
   private boolean tiltRangeEmpty = false;
 
-  public MatlabParamFile(File file) {
+  public MatlabParamFile(File file, boolean newFile) {
     this.file = file;
+    this.newFile = newFile;
   }
 
   /**
@@ -84,11 +92,17 @@ public final class MatlabParamFile {
   public synchronized void read() {
     volumeList.clear();
     try {
-      ReadOnlyAutodoc autodoc = (AutodocFactory.getMatlabInstance(file));
-      if (autodoc == null) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
-            + ".", "File Error");
-        return;
+      ReadOnlyAutodoc autodoc = null;
+      if (newFile) {
+        autodoc = (AutodocFactory.getEmptyMatlabInstance(file));
+      }
+      else {
+        autodoc = (AutodocFactory.getMatlabInstance(file));
+        if (autodoc == null) {
+          UIHarness.INSTANCE.openMessageDialog("Unable to read "
+              + file.getName() + ".", "File Error");
+          return;
+        }
       }
       //Parse each pair's value.
       String[] fnVolumeList = getList(autodoc.getAttribute(FN_VOLUME_KEY));
@@ -184,7 +198,7 @@ public final class MatlabParamFile {
       valueMap.put(INIT_MOTL_KEY, initMotlFile.toString());
     }
     else {
-      valueMap.put(INIT_MOTL_KEY, initMotlCode.getCode().toString());
+      valueMap.put(INIT_MOTL_KEY, initMotlCode.getCodeString());
     }
     valueMap.put(TILT_RANGE_KEY, tiltRange.toString());
     valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.toString());
@@ -204,8 +218,11 @@ public final class MatlabParamFile {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      //try to get the existing .prm autodoc
-      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(file);
+      WritableAutodoc autodoc = null;
+      if (!newFile) {
+        //try to get the existing .prm autodoc, unless this is an new PEET
+        autodoc = AutodocFactory.getMatlabInstance(file);
+      }
       if (autodoc != null) {
         //found an existing .prm autodoc - update it.
         updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
@@ -307,9 +324,9 @@ public final class MatlabParamFile {
       if (i > 0) {
         array.append(DIVIDER_STRING);
       }
-      if (!elementArray[i].isNull()) {
+      if (!elementArray[i].isNull() || elementArray[i].isDefaultSet()) {
         arrayEmpty = false;
-        array.append(elementArray[i]);
+        array.append(elementArray[i].toDefaultedString());
       }
     }
     if (arrayEmpty) {
@@ -384,7 +401,7 @@ public final class MatlabParamFile {
       //Format and add the comment
       String[] commentArray = EtomoAutodoc.format(comment);
       for (int i = 0; i < commentArray.length; i++) {
-        autodoc.addComment(" "+commentArray[i]);
+        autodoc.addComment(" " + commentArray[i]);
       }
     }
     //Add the attribute and name/value pair
@@ -464,6 +481,12 @@ public final class MatlabParamFile {
       if (value.length() == 0) {
         return new String[0];
       }
+      //Handle lists of arrays (strips the inner "[" and "]" characters).
+      if (value.charAt(0) == OPEN_ARRAY
+          && value.charAt(value.length() - 1) == CLOSE_ARRAY) {
+        return value.split("\\" + CLOSE_ARRAY_STRING + "\\s*,\\s*\\"
+            + OPEN_ARRAY_STRING);
+      }
       //split into list
       return value.split("\\s*,\\s*");
     }
@@ -472,8 +495,8 @@ public final class MatlabParamFile {
 
   /**
    * Arrays are surrounded by []'s.  Array elements are separated by whitespace
-   * or ",".  Find the array in each element of the list parameter and return
-   * them.  If there is no array in a list element, use the whole element.
+   * or ",".  Find each element of each array in the list and return them.
+   * The arrays have already been stripped of some of the "[" and "]" characaters.
    * @param array
    * @return
    */
@@ -483,26 +506,43 @@ public final class MatlabParamFile {
     }
     String[][] listOfArrays = new String[list.length][];
     for (int i = 0; i < list.length; i++) {
+      //Assume that this is an array.  Some of the "[" and "]" characters
+      //have already been stripped.  Remove any "[" and "]" characters remaining.
       list[i] = list[i].trim();
-      if (list[i].charAt(0) == '['
-          && list[i].charAt(list[i].length() - 1) == ']') {
-        //remove "[" and "]"
-        list[i] = list[i].substring(1, list[i].length() - 1).trim();
-        if (list[i].length() == 0) {
-          listOfArrays[i] = new String[0];
-        }
-        //split into array
-        listOfArrays[i] = list[i].split("\\s*[\\s,]\\s*");
+      //Handle empty array:  "".
+      if (list[i].length() == 0) {
+        listOfArrays[i] = new String[0];
+        continue;
       }
-      else {
-        listOfArrays[i] = new String[] { list[i] };
+      //Remove "[".
+      if (list[i].charAt(0) == OPEN_ARRAY) {
+        list[i] = list[i].substring(1);
       }
+      //Handle empty array:  "[".
+      if (list[i].length() == 0) {
+        listOfArrays[i] = new String[0];
+        continue;
+      }
+      //Remove "]".
+      if (list[i].charAt(list[i].length() - 1) == CLOSE_ARRAY) {
+        list[i] = list[i].substring(0, list[i].length() - 1);
+      }
+      //Handle empty arrays:  "]" and "[]".
+      if (list[i].length() == 0) {
+        listOfArrays[i] = new String[0];
+        continue;
+      }
+      //Arrays may be divided by "," or by whitespace only.
+      listOfArrays[i] = list[i].split("\\s*[\\s,]\\s*");
     }
     return listOfArrays;
   }
 
   private String removeQuotes(String string) {
     string = string.trim();
+    if (string.length() == 0) {
+      return string;
+    }
     if (string.charAt(0) == QUOTE
         && string.charAt(string.length() - 1) == QUOTE) {
       return string.substring(1, string.length() - 1);
@@ -511,37 +551,58 @@ public final class MatlabParamFile {
   }
 
   public static final class InitMotlCode {
-    private static final EtomoNumber ZERO_CODE = new EtomoNumber().set(0);
-    private static final EtomoNumber Z_AXIS_CODE = new EtomoNumber().set(1);
-    private static final EtomoNumber X_AND_Z_AXIS_CODE = new EtomoNumber()
-        .set(2);
+    private static final int ZERO_CODE = 0;
+    private static final int Z_AXIS_CODE = 1;
+    private static final int X_AND_Z_AXIS_CODE = 2;
 
     public static final InitMotlCode ZERO = new InitMotlCode(ZERO_CODE);
     public static final InitMotlCode Z_AXIS = new InitMotlCode(Z_AXIS_CODE);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(
         X_AND_Z_AXIS_CODE);
 
-    private final EtomoNumber code;
+    private final int code;
 
-    private InitMotlCode(EtomoNumber code) {
+    private InitMotlCode(int code) {
       this.code = code;
     }
 
     private static InitMotlCode getInstance(String code) {
-      if (ZERO_CODE.equals(code)) {
+      EtomoNumber enCode = new EtomoNumber();
+      enCode.set(code);
+      if (enCode == null) {
+        return null;
+      }
+      if (enCode.equals(ZERO_CODE)) {
         return ZERO;
       }
-      if (Z_AXIS_CODE.equals(code)) {
+      if (enCode.equals(Z_AXIS_CODE)) {
         return Z_AXIS;
       }
-      if (X_AND_Z_AXIS_CODE.equals(code)) {
+      if (enCode.equals(X_AND_Z_AXIS_CODE)) {
         return X_AND_Z_AXIS;
       }
       return null;
     }
 
-    public ConstEtomoNumber getCode() {
+    private static InitMotlCode getInstance(int code) {
+      if (code == ZERO_CODE) {
+        return ZERO;
+      }
+      if (code == Z_AXIS_CODE) {
+        return Z_AXIS;
+      }
+      if (code == X_AND_Z_AXIS_CODE) {
+        return X_AND_Z_AXIS;
+      }
+      return null;
+    }
+
+    public int getCodeInt() {
       return code;
+    }
+
+    public String getCodeString() {
+      return new Integer(code).toString();
     }
   }
 
@@ -555,11 +616,19 @@ public final class MatlabParamFile {
     private String fnModParticle = "";
     private String initMotl = "";
     private final EtomoNumber[] tiltRange = new EtomoNumber[] {
-        new EtomoNumber(), new EtomoNumber() };
+        new EtomoNumber(EtomoNumber.Type.FLOAT),
+        new EtomoNumber(EtomoNumber.Type.FLOAT) };
     private final EtomoNumber[] relativeOrient = new EtomoNumber[] {
         new EtomoNumber(EtomoNumber.Type.FLOAT),
         new EtomoNumber(EtomoNumber.Type.FLOAT),
         new EtomoNumber(EtomoNumber.Type.FLOAT) };
+
+    private Volume() {
+      //When empty, relativeOrient should use 0.
+      relativeOrient[RELATIVE_ORIENT_X_INDEX].setDefault(0);
+      relativeOrient[RELATIVE_ORIENT_Y_INDEX].setDefault(0);
+      relativeOrient[RELATIVE_ORIENT_Z_INDEX].setDefault(0);
+    }
 
     public void setFnVolume(String fnVolume) {
       this.fnVolume = fnVolume;
@@ -599,6 +668,12 @@ public final class MatlabParamFile {
 
     public void setTiltRangeEnd(String tiltRangeEnd) {
       tiltRange[TILT_RANGE_END_INDEX].set(tiltRangeEnd);
+    }
+
+    public boolean isRelativeOrientSet() {
+      return !relativeOrient[RELATIVE_ORIENT_X_INDEX].isDefault()
+          || !relativeOrient[RELATIVE_ORIENT_Y_INDEX].isDefault()
+          || !relativeOrient[RELATIVE_ORIENT_Z_INDEX].isDefault();
     }
 
     public String getRelativeOrientX() {
