@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2007/02/06 19:47:45  sueh
+ * <p> bug# 962 Fixed failure in unit test.
+ * <p>
  * <p> Revision 1.44  2007/02/05 23:10:02  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -977,6 +980,16 @@ public abstract class ConstEtomoNumber implements Storable {
   public String toString() {
     return toString(getValue());
   }
+  
+  /**
+   * If default is set and isNull() is true, defaultValue will be returned, even
+   * if displayValue is set.  If defaultValue is not set, or isNull() is false,
+   * then it works the same as setValue().
+   * @return
+   */
+  public String toDefaultedString() {
+    return toString(getDefaultedValue());
+  }
 
   public int getInt() {
     validateReturnTypeInteger();
@@ -1013,9 +1026,15 @@ public abstract class ConstEtomoNumber implements Storable {
     return getValue().doubleValue();
   }
 
-  public double getDouble(boolean defaultIfNull) {
+  /**
+   * If default is set and isNull() is true, defaultValue will be returned, even
+   * if displayValue is set.  If defaultValue is not set, or isNull() is false,
+   * then it works the same as setValue().
+   * @return
+   */
+  public double getDefaultedDouble() {
     validateReturnTypeDouble();
-    return getValue(defaultIfNull).doubleValue();
+    return getDefaultedValue().doubleValue();
   }
 
   public ConstEtomoNumber setDefault(int defaultValue) {
@@ -1036,14 +1055,18 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean isDefault() {
     return isDefault(currentValue);
   }
+  
+  public boolean isDefaultSet() {
+    return !isNull(defaultValue);
+  }
 
   /**
-   * Returns true if defaultValue is not null and getValue() is equal to
+   * Returns true if defaultValue is not null and value is equal to
    * defaultValue.
    * @return
    */
   protected boolean isDefault(Number value) {
-    if (isNull(value) || isNull(defaultValue)) {
+    if (isNull(defaultValue)) {
       return false;
     }
     return equals(value, defaultValue);
@@ -1093,7 +1116,9 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Returns true if getValue() is null.
+   * Returns true if currentValue is null.  IsNull() does not use getValue() and
+   * ignores displayValue, so it shows whether the instance has been explicitely
+   * set.
    * @return
    */
   public boolean isNull() {
@@ -1126,32 +1151,33 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Gets the correct value.  Used with public toString(), is(), and get...().
-   * Also used with isNull() and equals().
-   * If currentValue is not null or useDisplayValue is false, return currentValue.
-   * Otherwise, if displayValue is not null, return displayValue.
-   * Otherwise, return null;
-   * @param displayDefault
+   * If the currentValue is not null, returns it.  If the currentValue is null,
+   * returns the displayValue.  So, if the displayValue is null also, it returns
+   * null.
    * @return
    */
   protected Number getValue() {
     if (!isNull(currentValue)) {
       return currentValue;
     }
-    if (!isNull(displayValue)) {
       return displayValue;
-    }
-    return currentValue;
   }
 
-  protected Number getValue(boolean defaultIfNull) {
-    if (defaultIfNull && isNull()) {
+  
+  /**
+   * If default is set and isNull() is true, defaultValue will be returned, even
+   * if displayValue is set.  If defaultValue is not set, or isNull() is false,
+   * then it works the same as setValue().
+   * @return
+   */
+  Number getDefaultedValue() {
+    if (isDefaultSet()&& isNull()) {
       return defaultValue;
     }
     return getValue();
   }
-
-  protected String toString(Number value) {
+  
+  String toString(Number value) {
     if (isNull(value)) {
       return "";
     }
@@ -1256,7 +1282,6 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
-      e.printStackTrace();
       invalidBuffer.append(value + " is not a valid number.");
       return newNumber();
     }
