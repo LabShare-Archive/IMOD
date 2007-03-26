@@ -37,6 +37,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/23 20:43:03  sueh
+ * <p> bug# 964 Fixed getParameters(MatlabParamFile):  tiltRangeEmpty was being
+ * <p> set incorrectly.
+ * <p>
  * <p> Revision 1.10  2007/03/21 19:46:16  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -78,65 +82,48 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   static final String OUTPUT_LABEL = "Output";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
-  private final JPanel rootPanel = new JPanel();
-  private final VolumeTable volumeTable;
-  private final PeetManager manager;
-  private final AxisID axisID;
 
-  private final PanelHeader setupHeader;
+  private final JPanel rootPanel = new JPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
       + ": ");
   private final LabeledTextField ltfOutput = new LabeledTextField(OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final CheckBox cbUseTiltRange = new CheckBox("Use tilt range");
+  private final JPanel pnlRunParametersBody = new JPanel();
   private final RadioButton rbInitMotlZero;
   private final RadioButton rbInitMotlZAxis;
   private final RadioButton rbInitMotlXAndZAxis;
   private final RadioButton rbInitMotlFiles;
+  private final PanelHeader setupHeader;
+  private final PanelHeader runParametersHeader;
+  private final VolumeTable volumeTable;
+  private final PeetManager manager;
+  private final AxisID axisID;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    //construnction
-    volumeTable = VolumeTable.getInstance(manager, this);
+    //setup construction
     setupHeader = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
-    //Init MOTL
-    JPanel pnlInitMotl = new JPanel();
-    pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
-    pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
-    pnlInitMotl.setAlignmentX(Component.CENTER_ALIGNMENT);
+    volumeTable = VolumeTable.getInstance(manager, this);
+    //run parameters construction
+    runParametersHeader = PanelHeader.getInstance("Run Parameters", this,
+        DIALOG_TYPE);
     ButtonGroup group = new ButtonGroup();
     rbInitMotlZero = new RadioButton("Set all rotational values to zero",
-        MatlabParamFile.InitMotlCode.ZERO.getCode().getInt(), group);
+        MatlabParamFile.InitMotlCode.ZERO.getCodeInt(), group);
     rbInitMotlZAxis = new RadioButton("Initialize Z axis",
-        MatlabParamFile.InitMotlCode.Z_AXIS.getCode().getInt(), group);
+        MatlabParamFile.InitMotlCode.Z_AXIS.getCodeInt(), group);
     rbInitMotlXAndZAxis = new RadioButton("Initialize X and Z axis",
-        MatlabParamFile.InitMotlCode.X_AND_Z_AXIS.getCode().getInt(), group);
+        MatlabParamFile.InitMotlCode.X_AND_Z_AXIS.getCodeInt(), group);
     rbInitMotlFiles = new RadioButton("Use files", group);
-    rbInitMotlZero.setSelected(true);
-    pnlInitMotl.add(rbInitMotlZero.getComponent());
-    pnlInitMotl.add(rbInitMotlZAxis.getComponent());
-    pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
-    pnlInitMotl.add(rbInitMotlFiles.getComponent());
-    //setup
-    pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlSetupBody.add(ftfDirectory.getContainer());
-    pnlSetupBody.add(ltfOutput.getContainer());
-    pnlSetupBody.add(volumeTable.getContainer());
-    pnlSetupBody.add(pnlInitMotl);
-    cbUseTiltRange.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlSetupBody.add(cbUseTiltRange);
-    //setup header
-    SpacedPanel pnlSetup = new SpacedPanel();
-    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlSetup.setBorder(BorderFactory.createEtchedBorder());
-    pnlSetup.add(setupHeader.getContainer());
-    pnlSetup.add(pnlSetupBody);
+    //construnction
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
-    rootPanel.add(pnlSetup.getContainer());
+    rootPanel.add(createSetupPanel());
+    rootPanel.add(createRunParamtersPanel());
   }
 
   public static PeetDialog getInstance(final PeetManager manager,
@@ -197,7 +184,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       rbInitMotlXAndZAxis.setSelected(true);
     }
     cbUseTiltRange.setSelected(matlabParamFile.isTiltRangeEmpty());
-    volumeTable.setParameters(matlabParamFile,initMotlCode == null,cbUseTiltRange.isSelected());
+    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
+        cbUseTiltRange.isSelected());
   }
 
   public void getParameters(final MatlabParamFile matlabParamFile) {
@@ -226,10 +214,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void expand(final ExpandButton button) {
-    if (setupHeader != null) {
-      if (setupHeader.equalsOpenClose(button)) {
-        pnlSetupBody.setVisible(button.isExpanded());
-      }
+    if (setupHeader.equalsOpenClose(button)) {
+      pnlSetupBody.setVisible(button.isExpanded());
+    }
+    else if (runParametersHeader.equalsOpenClose(button)) {
+      pnlRunParametersBody.setVisible(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, manager);
   }
@@ -250,23 +239,50 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbInitMotlFiles.setSelected(true);
   }
 
+  private Container createSetupPanel() {
+    //setup body
+    pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetupBody.add(ftfDirectory.getContainer());
+    pnlSetupBody.add(ltfOutput.getContainer());
+    pnlSetupBody.add(volumeTable.getContainer());
+    //setup header
+    SpacedPanel pnlSetup = new SpacedPanel();
+    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetup.setBorder(BorderFactory.createEtchedBorder());
+    pnlSetup.add(setupHeader.getContainer());
+    pnlSetup.add(pnlSetupBody);
+    return pnlSetup.getContainer();
+  }
+
+  private Container createRunParamtersPanel() {
+    //Init MOTL
+    JPanel pnlInitMotl = new JPanel();
+    pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
+    pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
+    pnlInitMotl.setAlignmentX(Component.CENTER_ALIGNMENT);
+    rbInitMotlZero.setSelected(true);
+    pnlInitMotl.add(rbInitMotlZero.getComponent());
+    pnlInitMotl.add(rbInitMotlZAxis.getComponent());
+    pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
+    pnlInitMotl.add(rbInitMotlFiles.getComponent());
+    //run parameters body
+    pnlRunParametersBody.setLayout(new BoxLayout(pnlRunParametersBody,
+        BoxLayout.Y_AXIS));
+    pnlRunParametersBody.add(pnlInitMotl);
+    cbUseTiltRange.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlRunParametersBody.add(cbUseTiltRange);
+    //setup header
+    JPanel pnlRunParameters = new JPanel();
+    pnlRunParameters
+        .setLayout(new BoxLayout(pnlRunParameters, BoxLayout.Y_AXIS));
+    pnlRunParameters.setBorder(BorderFactory.createEtchedBorder());
+    pnlRunParameters.add(runParametersHeader.getContainer());
+    pnlRunParameters.add(pnlRunParametersBody);
+    return pnlRunParameters;
+  }
+
   private void action(ActionEvent action) {
     String actionCommand = action.getActionCommand();
-    if (actionCommand.equals(rbInitMotlZero.getActionCommand())) {
-      volumeTable.setUsingInitMotlFile(false);
-    }
-    else if (actionCommand.equals(rbInitMotlZAxis.getActionCommand())) {
-      volumeTable.setUsingInitMotlFile(false);
-    }
-    else if (actionCommand.equals(rbInitMotlXAndZAxis.getActionCommand())) {
-      volumeTable.setUsingInitMotlFile(false);
-    }
-    else if (actionCommand.equals(rbInitMotlFiles.getActionCommand())) {
-      volumeTable.setUsingInitMotlFile(true);
-    }
-    else if (actionCommand.equals(cbUseTiltRange.getActionCommand())) {
-      volumeTable.setUsingTiltRange(cbUseTiltRange.isSelected());
-    }
   }
 
   private void directoryAction() {
@@ -283,11 +299,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private void addListeners() {
     ftfDirectory.addActionListener(new DirectoryActionListener(this));
     PDActionListener actionListener = new PDActionListener(this);
-    rbInitMotlZero.addActionListener(actionListener);
-    rbInitMotlZAxis.addActionListener(actionListener);
-    rbInitMotlXAndZAxis.addActionListener(actionListener);
-    rbInitMotlFiles.addActionListener(actionListener);
-    cbUseTiltRange.addActionListener(actionListener);
   }
 
   private class DirectoryActionListener implements ActionListener {
