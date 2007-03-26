@@ -19,6 +19,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/20 23:04:01  sueh
+ * <p> bug# 964 Added initMotlFile, and tiltRangeStart, and tiltRangeEnd.
+ * <p>
  * <p> Revision 1.5  2007/03/01 01:26:47  sueh
  * <p> bug# 964 removed unnecesary protected modifier
  * <p>
@@ -50,6 +53,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
+    axisType  = AxisType.SINGLE_AXIS;
   }
 
   public String getMetaDataFileName() {
