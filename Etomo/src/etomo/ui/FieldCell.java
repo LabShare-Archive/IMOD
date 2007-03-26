@@ -22,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/20 23:10:15  sueh
+ * <p> bug# 964 Added fixedValues, to prevent the field from being enabled.  Used by
+ * <p> getExpandableInstance().
+ * <p>
  * <p> Revision 1.14  2007/03/01 01:34:18  sueh
  * <p> bug# 964 Made InputCell colors constant and moved them to Colors.  Added
  * <p> setExpandableValues, getContractedValue, and getExpandedValue.
@@ -124,7 +128,7 @@ final class FieldCell extends InputCell {
   }
 
   /**
-   * Sets contracted value and expanded value.  Does not need to call init().
+   * Sets contracted value and expanded value.
    * @param contractedValue
    * @param expandedValue
    */
@@ -269,10 +273,16 @@ final class FieldCell extends InputCell {
   }
 
   String getContractedValue() {
+    if (contractedValue==null) {
+      return "";
+    }
     return contractedValue;
   }
 
   String getExpandedValue() {
+    if (expandedValue==null) {
+      return "";
+    }
     return expandedValue;
   }
 }
