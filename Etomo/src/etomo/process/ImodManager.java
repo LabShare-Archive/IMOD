@@ -14,6 +14,7 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
+import etomo.type.ConstPeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
 
@@ -33,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2007/02/05 22:54:44  sueh
+ * <p> bug# 962 Added modeleled join and transformed model.
+ * <p>
  * <p> Revision 3.49  2006/10/25 21:23:23  sueh
  * <p> bug# 951  newPatchVectorCCCModel:  opening in 3dmodv.
  * <p>
@@ -550,6 +554,17 @@ public class ImodManager {
     createPrivateKeys();
     loadJoinMap();
   }
+  
+  public void setMetaData(ConstPeetMetaData metaData) {
+    metaDataSet = true;
+    axisType = metaData.getAxisType();
+    datasetName = metaData.getName();
+    if (datasetName.equals("")) {
+      new IllegalStateException("DatasetName is empty.").printStackTrace();
+    }
+    createPrivateKeys();
+    loadPeetMap();
+  }
 
   public int newImod(String key) throws AxisTypeException {
     return newImod(key, null, null);
@@ -702,7 +717,7 @@ public class ImodManager {
     imodState.open(menuOptions);
   }
 
-  public void open(String key, int vectorIndex, File file,
+  public void open(String key, int vectorIndex,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
     key = getPrivateKey(key);
@@ -712,6 +727,18 @@ public class ImodManager {
           + axisType.toString() + " at index " + vectorIndex);
     }
     imodState.open(menuOptions);
+  }
+  
+  public void open(String key, int vectorIndex, String model,boolean modelMode,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, vectorIndex);
+    if (imodState == null) {
+      throw new IllegalArgumentException(key + " was not created in "
+          + axisType.toString() + " at index " + vectorIndex);
+    }
+    imodState.open(model, modelMode, menuOptions);
   }
 
   public void delete(String key, int vectorIndex) throws AxisTypeException,
@@ -1238,6 +1265,9 @@ public class ImodManager {
     imodMap.put(joinSampleAveragesKey, newVector(newJoinSampleAverages()));
     imodMap.put(joinKey, newVector(newJoin()));
     imodMap.put(trialJoinKey, newVector(newTrialJoin()));
+  }
+  
+  protected void loadPeetMap() {
   }
 
   protected void loadDualAxisMap() {
