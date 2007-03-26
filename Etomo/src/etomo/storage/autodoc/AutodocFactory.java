@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/03/26 18:36:41  sueh
+ * <p> bug# 964 Made Version optional so that it is not necessary in matlab param files.
+ * <p>
  * <p> Revision 1.2  2007/03/23 20:32:07  sueh
  * <p> bug# 964 Added PEET_PRM - an autodoc which contains Feld sections that
  * <p> represent the fields that may be used in the PEET .prm file.
@@ -71,6 +74,11 @@ public final class AutodocFactory {
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
   private AutodocFactory() {
+  }
+  
+  public static ReadOnlyAutodoc getInstance(String name)
+  throws FileNotFoundException, IOException, LogFile.ReadException {
+    return getInstance(name,AxisID.ONLY);
   }
 
   public static ReadOnlyAutodoc getInstance(String name, AxisID axisID)
