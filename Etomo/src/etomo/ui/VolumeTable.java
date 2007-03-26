@@ -37,6 +37,10 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/23 20:45:15  sueh
+ * <p> bug# 964 GetParameters(MatlabParamFile):  setting the size of volumeList before
+ * <p> running getParameters for each row.
+ * <p>
  * <p> Revision 1.8  2007/03/21 19:49:40  sueh
  * <p> bug# 964 Removed some gets/sets and replaced them with get/setParameters.
  * <p>
@@ -99,8 +103,6 @@ final class VolumeTable implements Expandable, Highlightable {
   private final PeetManager manager;
   private final PeetDialog parent;
 
-  private boolean usingInitMotlFile = false;
-  private boolean usingTiltRange = false;
   private File lastLocation = null;
 
   private VolumeTable(final PeetManager manager, final PeetDialog parent) {
@@ -164,14 +166,6 @@ final class VolumeTable implements Expandable, Highlightable {
     updateDisplay();
   }
 
-  boolean usingInitMotlFile() {
-    return usingInitMotlFile;
-  }
-
-  boolean usingTiltRange() {
-    return usingTiltRange;
-  }
-
   Container getContainer() {
     return rootPanel;
   }
@@ -184,36 +178,14 @@ final class VolumeTable implements Expandable, Highlightable {
     rowList.setParameters(metaData);
   }
 
-  void setUsingInitMotlFile(final boolean usingInitMotlFile) {
-    boolean oldUsingInitMotlFile = this.usingInitMotlFile;
-    if (usingInitMotlFile != oldUsingInitMotlFile) {
-      this.usingInitMotlFile = usingInitMotlFile;
-      remove();
-      display();
-      UIHarness.INSTANCE.pack(manager);
-    }
-  }
-
-  void setUsingTiltRange(final boolean usingTiltRange) {
-    boolean oldUsingTiltRange = this.usingTiltRange;
-    if (usingTiltRange != oldUsingTiltRange) {
-      this.usingTiltRange = usingTiltRange;
-      remove();
-      display();
-      UIHarness.INSTANCE.pack(manager);
-    }
-  }
-
   void setParameters(final MatlabParamFile matlabParamFile,
       boolean useInitMotlFile, boolean useTiltRange) {
-    MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile
-        .getInitMotlCode();
-    setUsingInitMotlFile(useInitMotlFile);
-    setUsingTiltRange(useTiltRange);
+    boolean initMotlFileIsExpanded = btnExpandInitMotlFile.isExpanded();
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
       VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
           new File(matlabParamFile.getFnModParticle(i)));
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
+      row.expandInitMotlFile(initMotlFileIsExpanded);
     }
     rowList.doneSettingParameters();
     updateDisplay();
@@ -237,17 +209,13 @@ final class VolumeTable implements Expandable, Highlightable {
     header1FnModParticle.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
     btnExpandFnModParticle.add(pnlTable, layout, constraints);
-    if (usingInitMotlFile) {
-      constraints.weightx = 0.1;
-      header1InitMotlFile.add(pnlTable, layout, constraints);
-      constraints.weightx = 0.0;
-      btnExpandInitMotlFile.add(pnlTable, layout, constraints);
-    }
-    if (usingTiltRange) {
-      constraints.weightx = 0.1;
-      constraints.gridwidth = 2;
-      header1TiltRange.add(pnlTable, layout, constraints);
-    }
+    constraints.weightx = 0.1;
+    header1InitMotlFile.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.0;
+    btnExpandInitMotlFile.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
+    constraints.gridwidth = 2;
+    header1TiltRange.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1RelativeOrient.add(pnlTable, layout, constraints);
     //Second header row
@@ -258,44 +226,16 @@ final class VolumeTable implements Expandable, Highlightable {
     constraints.gridwidth = 2;
     header2FnVolume.add(pnlTable, layout, constraints);
     header2FnModParticle.add(pnlTable, layout, constraints);
-    if (usingInitMotlFile) {
-      header2InitMotlFile.add(pnlTable, layout, constraints);
-    }
-    if (usingTiltRange) {
-      constraints.gridwidth = 1;
-      header2TiltRangeStart.add(pnlTable, layout, constraints);
-      header2TiltRangeEnd.add(pnlTable, layout, constraints);
-    }
+    header2InitMotlFile.add(pnlTable, layout, constraints);
+    constraints.gridwidth = 1;
+    header2TiltRangeStart.add(pnlTable, layout, constraints);
+    header2TiltRangeEnd.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     header2RelativeOrientX.add(pnlTable, layout, constraints);
     header2RelativeOrientY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2RelativeOrientZ.add(pnlTable, layout, constraints);
     rowList.display();
-  }
-
-  private void remove() {
-    //First header row
-    header1Highlighter.remove();
-    header1FnVolume.remove();
-    btnExpandFnVolume.remove();
-    header1FnModParticle.remove();
-    btnExpandFnModParticle.remove();
-    header1InitMotlFile.remove();
-    btnExpandInitMotlFile.remove();
-    header1TiltRange.remove();
-    header1RelativeOrient.remove();
-    //Second header row
-    header2Highlighter.remove();
-    header2FnVolume.remove();
-    header2FnModParticle.remove();
-    header2InitMotlFile.remove();
-    header2TiltRangeStart.remove();
-    header2TiltRangeEnd.remove();
-    header2RelativeOrientX.remove();
-    header2RelativeOrientY.remove();
-    header2RelativeOrientZ.remove();
-    rowList.remove();
   }
 
   private void action(final ActionEvent event) {
@@ -369,12 +309,6 @@ final class VolumeTable implements Expandable, Highlightable {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      if (!usingInitMotlFile) {
-        usingInitMotlFile = true;
-        remove();
-        display();
-        parent.setUsingInitMotlFile();
-      }
       row.setInitMotlFile(chooser.getSelectedFile());
       row.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
       UIHarness.INSTANCE.pack(manager);
@@ -434,7 +368,7 @@ final class VolumeTable implements Expandable, Highlightable {
         row.getParameters(metaData);
       }
     }
-    
+
     private void getParameters(final MatlabParamFile matlabParamFile) {
       matlabParamFile.setVolumeListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
@@ -442,18 +376,16 @@ final class VolumeTable implements Expandable, Highlightable {
       }
     }
 
+    /**
+     * Save metaData until the rows are created
+     * @param metaData
+     */
     private void setParameters(final ConstPeetMetaData metaData) {
       this.metaData = metaData;
     }
 
     private void doneSettingParameters() {
       metaData = null;
-    }
-
-    private void remove() {
-      for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).remove();
-      }
     }
 
     private void display() {

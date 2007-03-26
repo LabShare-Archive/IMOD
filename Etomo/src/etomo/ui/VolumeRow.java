@@ -24,6 +24,11 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/21 19:49:12  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.  Removed some gets/sets
+ * <p> and replaced them with get/setParameters.
+ * <p>
  * <p> Revision 1.6  2007/03/20 23:12:09  sueh
  * <p> bug# 964 Added FieldCell.getExpandableInstance() which is disabled and cannot
  * <p> be enabled.
@@ -105,15 +110,10 @@ final class VolumeRow implements Highlightable {
     constraints.gridwidth = 2;
     fnVolume.add(panel, layout, constraints);
     fnModParticle.add(panel, layout, constraints);
-    if (table.usingInitMotlFile()) {
-      initMotlFile.add(panel, layout, constraints);
-    }
-    if (table.usingTiltRange()) {
-      constraints.gridwidth = 1;
-      tiltRangeStart.add(panel, layout, constraints);
-      tiltRangeEnd.add(panel, layout, constraints);
-    }
+    initMotlFile.add(panel, layout, constraints);
     constraints.gridwidth = 1;
+    tiltRangeStart.add(panel, layout, constraints);
+    tiltRangeEnd.add(panel, layout, constraints);
     relativeOrientX.add(panel, layout, constraints);
     relativeOrientY.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -146,12 +146,12 @@ final class VolumeRow implements Highlightable {
     setTiltRangeStart(metaData.getTiltRangeStart(index));
     setTiltRangeEnd(metaData.getTiltRangeEnd(index));
   }
-  
+
   void getParameters(final MatlabParamFile matlabParamFile) {
     MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
-    volume.setFnVolume(fnVolume.getValue());
-    volume.setFnModParticle(fnModParticle.getValue());
-    volume.setInitMotl(initMotlFile.getValue());
+    volume.setFnVolume(fnVolume.getExpandedValue());
+    volume.setFnModParticle(fnModParticle.getExpandedValue());
+    volume.setInitMotl(initMotlFile.getExpandedValue());
     volume.setTiltRangeStart(tiltRangeStart.getValue());
     volume.setTiltRangeEnd(tiltRangeEnd.getValue());
     volume.setRelativeOrientX(relativeOrientX.getValue());
@@ -165,37 +165,43 @@ final class VolumeRow implements Highlightable {
     if (useInitMotlFile) {
       setExpandableValues(initMotlFile, volume.getInitMotl());
     }
-    //The tilt range will not be shown if its value is {}.
     if (useTiltRange) {
       setTiltRangeStart(volume.getTiltRangeStart());
       setTiltRangeEnd(volume.getTiltRangeEnd());
     }
-    relativeOrientX.setValue(volume.getRelativeOrientX());
-    relativeOrientY.setValue(volume.getRelativeOrientY());
-    relativeOrientZ.setValue(volume.getRelativeOrientZ());
+    if (volume.isRelativeOrientSet()) {
+      relativeOrientX.setValue(volume.getRelativeOrientX());
+      relativeOrientY.setValue(volume.getRelativeOrientY());
+      relativeOrientZ.setValue(volume.getRelativeOrientZ());
+    }
+    else {
+      relativeOrientX.setValue();
+      relativeOrientY.setValue();
+      relativeOrientZ.setValue();
+    }
   }
 
-  private void setExpandableValues(FieldCell fieldCell, String fileName) {
+  private void setExpandableValues(final FieldCell fieldCell, final String fileName) {
     //Don't override existing values with null value.
-    if (fileName == null) {
+    if (fileName == null||fileName.matches("\\s*")) {
       return;
     }
     setExpandableValues(fieldCell, new File(fileName));
   }
 
-  private void setExpandableValues(FieldCell fieldCell, File file) {
+  private void setExpandableValues(final FieldCell fieldCell, final File file) {
     //Don't override existing values with null value.
     if (file == null) {
       return;
     }
     fieldCell.setExpandableValues(file.getName(), file.getAbsolutePath());
   }
-  
+
   void setInitMotlFile(File initMotlFile) {
-    setExpandableValues(this.initMotlFile,initMotlFile);
+    setExpandableValues(this.initMotlFile, initMotlFile);
   }
 
-  void setTiltRangeStart(String tiltRangeStart) {
+  void setTiltRangeStart(final String tiltRangeStart) {
     if (tiltRangeStart == null) {
       return;
     }
@@ -211,17 +217,5 @@ final class VolumeRow implements Highlightable {
 
   boolean isHighlighted() {
     return btnHighlighter.isHighlighted();
-  }
-
-  void remove() {
-    btnHighlighter.remove();
-    fnVolume.remove();
-    fnModParticle.remove();
-    initMotlFile.remove();
-    tiltRangeStart.remove();
-    tiltRangeEnd.remove();
-    relativeOrientX.remove();
-    relativeOrientY.remove();
-    relativeOrientZ.remove();
   }
 }
