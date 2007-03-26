@@ -34,6 +34,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/26 18:35:50  sueh
+ * <p> bug# 964 Prevented MatlabParamFile from loading a .prm file unless the user asks
+ * <p> for the file to be read.  Fixed the parsing of lists of arrays.
+ * <p>
  * <p> Revision 1.5  2007/03/23 20:28:00  sueh
  * <p> bug# 964 Added the ability to write the autodoc based on the order of Field sections in another autodoc.  Also has the ability to write the autodoc without
  * <p> referring to the other autodoc.  Can write a new autodoc.  Can also update existing attributes or add new attributes to an existing autodoc.  Tries to add
@@ -59,22 +63,21 @@ import etomo.ui.UIHarness;
 public final class MatlabParamFile {
   public static final String rcsid = "$Id$";
 
+  public static final String FN_VOLUME_KEY = "fnVolume";
+  public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
+  public static final String INIT_MOTL_KEY = "initMOTL";
+  public static final String TILT_RANGE_KEY = "tiltRange";
+  public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
+  
   private static final char DIVIDER = ',';
   private static final char OPEN_LIST = '{';
   private static final char CLOSE_LIST = '}';
-  private static final String OPEN_LIST_STRING = "{";//stupid java thinks chars are ints
-  private static final String CLOSE_LIST_STRING = "}";//stupid java thinks chars are ints
   private static final char OPEN_ARRAY = '[';
   private static final char CLOSE_ARRAY = ']';
   private static final String OPEN_ARRAY_STRING = "[";//stupid java thinks chars are ints
   private static final String CLOSE_ARRAY_STRING = "]";//stupid java thinks chars are ints
   private static final char QUOTE = '\'';
   private static final String DIVIDER_STRING = DIVIDER + " ";
-  private static final String FN_VOLUME_KEY = "fnVolume";
-  private static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
-  private static final String INIT_MOTL_KEY = "initMOTL";
-  private static final String TILT_RANGE_KEY = "tiltRange";
-  private static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   private final List volumeList = new ArrayList();
   private final File file;
   private final boolean newFile;
@@ -728,6 +731,9 @@ public final class MatlabParamFile {
   }
 
   private static final class ParamList {
+    private static final String OPEN_LIST_STRING = "{";//stupid java thinks chars are ints
+    private static final String CLOSE_LIST_STRING = "}";//stupid java thinks chars are ints
+    
     private final boolean stringList;
     private final StringBuffer elementBuffer = new StringBuffer();
 
