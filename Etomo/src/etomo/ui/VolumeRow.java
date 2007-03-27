@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/27 00:07:21  sueh
+ * <p> bug# 964 Added imodVolume() to open fnVolume and fnModParticle in 3dmod.
+ * <p>
  * <p> Revision 1.8  2007/03/26 18:40:53  sueh
  * <p> bug# 964 Removed functionality that shows/hides columns.  Fixed bug in
  * <p> setting initMOTL and relativeOrient.
@@ -69,6 +72,7 @@ final class VolumeRow implements Highlightable {
   private final GridBagConstraints constraints;
   private final BaseManager manager;
 
+  private final HeaderCell number = new HeaderCell();
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
@@ -101,6 +105,7 @@ final class VolumeRow implements Highlightable {
     setExpandableValues(fnVolume, fnVolumeFile);
     setExpandableValues(fnModParticle, fnModParticleFile);
     btnHighlighter = HighlighterButton.getInstance(this, table);
+    number.setText(String.valueOf(index+1));
   }
 
   public void highlight(final boolean highlight) {
@@ -118,6 +123,7 @@ final class VolumeRow implements Highlightable {
     constraints.weightx = 0.1;
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
+    number.add(panel,layout,constraints);
     btnHighlighter.add(panel, layout, constraints);
     constraints.gridwidth = 2;
     fnVolume.add(panel, layout, constraints);

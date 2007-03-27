@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/27 00:08:08  sueh
+ * <p> bug# 964 Added btnReadTiltFile and r3bVolume (3dmod volume).
+ * <p>
  * <p> Revision 1.10  2007/03/26 18:41:52  sueh
  * <p> bug# 964 Removed functionality that shows/hides columns.  Fixed bug in
  * <p> setting initMOTL and relativeOrient.
@@ -96,14 +99,14 @@ final class VolumeTable implements Expandable, Highlightable,
   private final MultiLineButton btnReadTiltFile = new MultiLineButton(
       "Read Tilt File");
   private final Run3dmodButton r3bVolume;
-  private final HeaderCell header1Highlighter = new HeaderCell();
+  private final HeaderCell header1VolumeNumber = new HeaderCell();
   private final HeaderCell header1FnVolume = new HeaderCell("Volume");
   private final HeaderCell header1FnModParticle = new HeaderCell("Model");
   private final HeaderCell header1InitMotlFile = new HeaderCell("Initial");
   private final HeaderCell header1TiltRange = new HeaderCell("Tilt Range");
   private final HeaderCell header1RelativeOrient = new HeaderCell(
       "Rel. Orient.");
-  private final HeaderCell header2Highlighter = new HeaderCell();
+  private final HeaderCell header2VolumeNumber = new HeaderCell();
   private final HeaderCell header2FnVolume = new HeaderCell();
   private final HeaderCell header2FnModParticle = new HeaderCell();
   private final HeaderCell header2InitMotlFile = new HeaderCell("MOTL");
@@ -247,8 +250,9 @@ final class VolumeTable implements Expandable, Highlightable,
   private void display() {
     //First header row
     constraints.weightx = 0.0;
+    constraints.gridwidth = 2;
+    header1VolumeNumber.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    header1Highlighter.add(pnlTable, layout, constraints);
     constraints.weightx = 0.1;
     header1FnVolume.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
@@ -268,10 +272,9 @@ final class VolumeTable implements Expandable, Highlightable,
     header1RelativeOrient.add(pnlTable, layout, constraints);
     //Second header row
     constraints.weightx = 0.0;
-    constraints.gridwidth = 1;
-    header2Highlighter.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
     constraints.gridwidth = 2;
+    header2VolumeNumber.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
     header2FnVolume.add(pnlTable, layout, constraints);
     header2FnModParticle.add(pnlTable, layout, constraints);
     header2InitMotlFile.add(pnlTable, layout, constraints);
