@@ -5,6 +5,8 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -15,11 +17,15 @@ import javax.swing.JPanel;
 import etomo.PeetManager;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParamFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.ConstPeetScreenState;
 import etomo.type.DialogType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
 
@@ -37,6 +43,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/03/26 18:39:44  sueh
+ * <p> bug# 964 Moved InitMOTL and tilt range options to the Run Parameters windows.
+ * <p>
  * <p> Revision 1.11  2007/03/23 20:43:03  sueh
  * <p> bug# 964 Fixed getParameters(MatlabParamFile):  tiltRangeEmpty was being
  * <p> set incorrectly.
@@ -123,7 +132,38 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
     rootPanel.add(createSetupPanel());
-    rootPanel.add(createRunParamtersPanel());
+    rootPanel.add(createRunParametersPanel());
+    setTooltipText();
+  }
+
+  private void setTooltipText() {
+    ftfDirectory
+        .setToolTipText("The directory which will contain the .prm file, .epe file, other data files, intermediate files, and results.  "
+            + "Only one .epe file per directory.");
+    ltfOutput.setToolTipText("The root name for the .prm file.");
+    try {
+      ReadOnlyAutodoc autodoc = AutodocFactory
+          .getInstance(AutodocFactory.PEET_PRM);
+      String tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParamFile.INIT_MOTL_KEY);
+      rbInitMotlZero.setToolTipText(tooltip);
+      rbInitMotlXAndZAxis.setToolTipText(tooltip);
+      rbInitMotlZAxis.setToolTipText(tooltip);
+      rbInitMotlFiles.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParamFile.TILT_RANGE_KEY);
+      cbUseTiltRange.setToolTipText(tooltip);
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+
   }
 
   public static PeetDialog getInstance(final PeetManager manager,
@@ -254,7 +294,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     return pnlSetup.getContainer();
   }
 
-  private Container createRunParamtersPanel() {
+  private Container createRunParametersPanel() {
     //Init MOTL
     JPanel pnlInitMotl = new JPanel();
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
