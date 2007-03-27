@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/03/01 01:43:02  sueh
+ * <p> bug# 964 Implementing Highlighable.
+ * <p>
  * <p> Revision 1.26  2007/02/09 00:52:45  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -276,7 +279,7 @@ public final class SectionTableRow implements Highlightable{
     this.manager = manager;
     this.table = table;
     this.sectionExpanded = sectionExpanded;
-    highlighterButton=new HighlighterButton(this,table);
+    highlighterButton=HighlighterButton.getInstance(this,table);
     //configure
     setupSection.setEnabled(false);
     joinSection.setEnabled(false);
@@ -768,7 +771,7 @@ public final class SectionTableRow implements Highlightable{
     data.setRowNumber(rowNumber);
     this.rowNumber.setText(String.valueOf(rowNumber));
   }
-
+/*
   void setImodIndex(int imodIndex) {
     this.imodIndex = imodIndex;
   }
@@ -776,7 +779,7 @@ public final class SectionTableRow implements Highlightable{
   void setImodRotIndex(int imodRotIndex) {
     this.imodRotIndex = imodRotIndex;
   }
-
+*/
   void setRotationAngles(SlicerAngles slicerAngles) {
     rotationAngleX.setValue(slicerAngles.getX().toString());
     rotationAngleY.setValue(slicerAngles.getY().toString());
