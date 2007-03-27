@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/03/26 18:38:34  sueh
+ * <p> bug# 964 Prevented getContractedValue and getExpandedValue from returning null.
+ * <p>
  * <p> Revision 1.15  2007/03/20 23:10:15  sueh
  * <p> bug# 964 Added fixedValues, to prevent the field from being enabled.  Used by
  * <p> getExpandableInstance().
@@ -101,6 +104,7 @@ final class FieldCell extends InputCell {
   private String contractedValue = null;
   private String expandedValue = null;
   private boolean fixedValues = false;
+  private boolean inUse = true;
 
   FieldCell() {
     //construction
@@ -115,16 +119,25 @@ final class FieldCell extends InputCell {
 
   static FieldCell getExpandableInstance() {
     FieldCell instance = new FieldCell();
-    instance.setEnabled(false);
+    instance.setEditable(false);
     instance.fixedValues = true;
     return instance;
   }
-
+  
   void setEnabled(boolean enabled) {
-    if (fixedValues && enabled) {
+    setEditable(enabled);
+  }
+
+  void setEditable(boolean editable) {
+    if (fixedValues && editable) {
       return;
     }
-    super.setEnabled(enabled);
+    super.setEditable(editable);
+  }
+  
+  void setInUse(boolean inUse) {
+    this.inUse=inUse;
+    setForeground();
   }
 
   /**

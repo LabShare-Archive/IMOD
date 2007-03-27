@@ -29,6 +29,7 @@ final class CheckBoxCell extends InputCell {
   //label: from JCheckBox.getText().  Updated in setLabel().  Always up to date
   //because it is a read only field in JCheckBox.
   private String unformattedLabel = "";
+  private boolean enabled = true;
 
   CheckBoxCell() {
     super();
@@ -39,20 +40,23 @@ final class CheckBoxCell extends InputCell {
     setFont();
   }
 
-  protected final Component getComponent() {
+  Component getComponent() {
     return checkBox;
   }
 
-  final void setLabel(String label) {
+  void setEnabled(boolean enabled) {
+    setEditable(enabled);
+  }
+
+  void setLabel(String label) {
     unformattedLabel = label;
     setForeground();
   }
 
-  private final void setHtmlLabel(ColorUIResource color) {
-    checkBox.setText(
-        "<html><P style=\"font-weight:normal; color:rgb(" + color.getRed()
-            + "," + color.getGreen() + "," + color.getBlue() + ")\">"
-            + unformattedLabel + "</style>");
+  private void setHtmlLabel(ColorUIResource color) {
+    checkBox.setText("<html><P style=\"font-weight:normal; color:rgb("
+        + color.getRed() + "," + color.getGreen() + "," + color.getBlue()
+        + ")\">" + unformattedLabel + "</style>");
   }
 
   final String getLabel() {
@@ -66,7 +70,7 @@ final class CheckBoxCell extends InputCell {
   final boolean isSelected() {
     return checkBox.isSelected();
   }
-  
+
   final void setSelected(boolean selected) {
     checkBox.setSelected(selected);
   }
@@ -77,34 +81,31 @@ final class CheckBoxCell extends InputCell {
 
   protected final void setForeground() {
     checkBox.setForeground(Colors.CELL_FOREGROUND);
-    if (inUse) {
-      checkBox.setForeground(Colors.CELL_FOREGROUND);
-      setHtmlLabel(Colors.CELL_FOREGROUND);
-    }
-    else {
-      checkBox.setForeground(Colors.CELL_NOT_IN_USE_FOREGROUND);
-      setHtmlLabel(Colors.CELL_NOT_IN_USE_FOREGROUND);
-    }
+    setHtmlLabel(Colors.CELL_FOREGROUND);
   }
-  
+
   final int getHeight() {
-    return checkBox.getHeight() + checkBox.getBorder().getBorderInsets(checkBox).bottom - 1;
+    return checkBox.getHeight()
+        + checkBox.getBorder().getBorderInsets(checkBox).bottom - 1;
   }
-  
+
   final int getWidth() {
     return checkBox.getWidth();
   }
-  
+
   final int getLeftBorder() {
     return checkBox.getBorder().getBorderInsets(checkBox).left;
   }
-  
+
   void setToolTipText(String text) {
     checkBox.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/01 01:28:11  sueh
+ * <p> bug# 964 Made colors constant and moved them to Colors.
+ * <p>
  * <p> Revision 1.9  2007/02/09 00:47:49  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
