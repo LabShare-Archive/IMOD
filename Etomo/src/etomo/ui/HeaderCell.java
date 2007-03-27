@@ -198,6 +198,7 @@ final class HeaderCell {
       Dimension size = cell.getPreferredSize();
       size.width = width;
       cell.setSize(size);
+      cell.setPreferredSize(size);
     }
     if (controlColor) {
       cell.setBackground(background);
@@ -210,6 +211,10 @@ final class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.16  2007/03/01 01:35:21  sueh
+ * * <p> bug# 964 Changed cell to an AbstractButton.  Allowed HeaderCell to be a
+ * * <p> toggle button.
+ * * <p>
  * * <p> Revision 1.15  2007/02/09 00:49:31  sueh
  * * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * * <p> classes.
