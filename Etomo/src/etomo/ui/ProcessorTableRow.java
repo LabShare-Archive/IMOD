@@ -153,7 +153,7 @@ final class ProcessorTableRow implements Storable {
     if (cpuType != null) {
       cellCPUType.setValue(cpuType);
     }
-    cellCPUType.setEnabled(false);
+    cellCPUType.setEditable(false);
     if (numCpus > 1) {
       cellCPUsSelected = SpinnerCell.getIntInstance(0, numCpus);
       SpinnerCell spinnerCell = (SpinnerCell) cellCPUsSelected;
@@ -167,19 +167,19 @@ final class ProcessorTableRow implements Storable {
       cellCPUsSelected.setEnabled(false);
     }
     cellNumberCpus.setValue(numCpus);
-    cellNumberCpus.setEnabled(false);
-    cellLoad1.setEnabled(false);
-    cellLoad5.setEnabled(false);
-    cellUsers.setEnabled(false);
-    cellCPUUsage.setEnabled(false);
-    cellRestarts.setEnabled(false);
-    cellSuccesses.setEnabled(false);
-    cellFailureReason.setEnabled(false);
-    cellSpeed.setEnabled(false);
+    cellNumberCpus.setEditable(false);
+    cellLoad1.setEditable(false);
+    cellLoad5.setEditable(false);
+    cellUsers.setEditable(false);
+    cellCPUUsage.setEditable(false);
+    cellRestarts.setEditable(false);
+    cellSuccesses.setEditable(false);
+    cellFailureReason.setEditable(false);
+    cellSpeed.setEditable(false);
     cellSpeed.setValue(speed);
-    cellMemory.setEnabled(false);
+    cellMemory.setEditable(false);
     cellMemory.setValue(memory);
-    cellOS.setEnabled(false);
+    cellOS.setEditable(false);
     cellOS.setValue(os);
     setSelected(false);
   }
@@ -487,6 +487,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2007/02/09 00:52:03  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.25  2007/02/05 23:42:05  sueh
  * <p> bug# 962 Added SpinnerCell.getInstance.
  * <p>

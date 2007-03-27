@@ -36,7 +36,10 @@ import etomo.type.SectionTableRowData;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:33:40  sueh
+ * <p> bug# 962 Class representing a single row in the boundary table.
+ * <p> </p>
  */
 final class BoundaryRow {
   public static final String rcsid = "$Id$";
@@ -74,16 +77,16 @@ final class BoundaryRow {
     boundary.setText(firstSection);
     sections.setText(firstSection+" & "+Integer.toString(key+1));
     //bestGap
-    bestGap.setEnabled(false);
+    bestGap.setEditable(false);
     bestGap.setValue(screenState.getBestGap(key));
     //meanError
-    meanError.setEnabled(false);
+    meanError.setEditable(false);
     meanError.setValue(screenState.getMeanError(key));
     //maxError
-    maxError.setEnabled(false);
+    maxError.setEditable(false);
     maxError.setValue(screenState.getMaxError(key));
     //origEnd
-    origEnd.setEnabled(false);
+    origEnd.setEditable(false);
     SectionTableRowData data = (SectionTableRowData) metaData.getSectionTableData()
         .get(key - 1);
     origEnd.setValue(data.getJoinFinalEnd().getLong());
@@ -96,7 +99,7 @@ final class BoundaryRow {
     }
     zMaxEnd = data.getSetupZMax();
     //origStart
-    origStart.setEnabled(false);
+    origStart.setEditable(false);
     data = (SectionTableRowData) metaData.getSectionTableData().get(key);
     origStart.setValue(data.getJoinFinalStart().getLong());
     startInverted = data.getInverted().is();

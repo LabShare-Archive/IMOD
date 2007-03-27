@@ -20,6 +20,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/01 01:28:42  sueh
+ * <p> bug# 964 Made InputCell colors constant and moved them to Colors.
+ * <p>
  * <p> Revision 1.5  2007/02/20 20:36:10  sueh
  * <p> bug# 964 Improved the colors.
  * <p>
@@ -60,10 +63,10 @@ public final class Colors {
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
   private static Color backgroundPeet = null;
-  private static ColorUIResource cellDisabledBackground = null;
-  private static ColorUIResource cellDisabledhighlightBackground=null;
-  private static ColorUIResource cellDisabledWarningBackground=null;
-  private static ColorUIResource cellDisabledErrorBackground=null;
+  private static ColorUIResource cellNotEditableBackground = null;
+  private static ColorUIResource cellNotEditableHighlightBackground=null;
+  private static ColorUIResource cellNotEditableWarningBackground=null;
+  private static ColorUIResource cellNotEditableErrorBackground=null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
@@ -109,33 +112,33 @@ public final class Colors {
     return background;
   }
 
-  static ColorUIResource getCellDisabledBackground() {
-    if (cellDisabledBackground == null) {
-      cellDisabledBackground = subtractColor(
+  static ColorUIResource getCellNotEditableBackground() {
+    if (cellNotEditableBackground == null) {
+      cellNotEditableBackground = subtractColor(
           BACKGROUND, CELL_GREYOUT);
     }
-    return cellDisabledBackground;
+    return cellNotEditableBackground;
   }
   
-  static ColorUIResource getCellDisabledhighlightBackground() {
-    if (cellDisabledhighlightBackground == null) {
-      cellDisabledhighlightBackground = subtractColor(HIGHLIGHT_BACKGROUND, CELL_GREYOUT);
+  static ColorUIResource getCellNotEditableHighlightBackground() {
+    if (cellNotEditableHighlightBackground == null) {
+      cellNotEditableHighlightBackground = subtractColor(HIGHLIGHT_BACKGROUND, CELL_GREYOUT);
     }
-    return cellDisabledhighlightBackground;
+    return cellNotEditableHighlightBackground;
   }
   
-  static ColorUIResource getCellDisabledWarningBackground() {
-    if (cellDisabledWarningBackground==null) {
-      cellDisabledWarningBackground = subtractColor(WARNING_BACKGROUND, CELL_GREYOUT);
+  static ColorUIResource getCellNotEditableWarningBackground() {
+    if (cellNotEditableWarningBackground==null) {
+      cellNotEditableWarningBackground = subtractColor(WARNING_BACKGROUND, CELL_GREYOUT);
     }
-    return cellDisabledWarningBackground;
+    return cellNotEditableWarningBackground;
   }
   
-  static ColorUIResource getCellDisabledErrorBackground() {
-    if(cellDisabledErrorBackground==null) {
-      cellDisabledErrorBackground = subtractColor(CELL_ERROR_BACKGROUND, CELL_GREYOUT);
+  static ColorUIResource getCellNotEditableErrorBackground() {
+    if(cellNotEditableErrorBackground==null) {
+      cellNotEditableErrorBackground = subtractColor(CELL_ERROR_BACKGROUND, CELL_GREYOUT);
     }
-    return cellDisabledErrorBackground;
+    return cellNotEditableErrorBackground;
   }
   
   static ColorUIResource subtractColor(Color color, Color subtractColor) {
@@ -146,6 +149,9 @@ public final class Colors {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/01 01:28:42  sueh
+ * <p> bug# 964 Made InputCell colors constant and moved them to Colors.
+ * <p>
  * <p> Revision 1.5  2007/02/20 20:36:10  sueh
  * <p> bug# 964 Improved the colors.
  * <p>

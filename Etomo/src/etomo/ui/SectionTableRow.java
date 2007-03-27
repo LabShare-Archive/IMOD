@@ -31,6 +31,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2007/03/27 00:06:38  sueh
+ * <p> bug# 964 Made HighlighterButton more thread-safe.  Removed unnecessary
+ * <p> functions.
+ * <p>
  * <p> Revision 1.27  2007/03/01 01:43:02  sueh
  * <p> bug# 964 Implementing Highlighable.
  * <p>
@@ -281,11 +285,11 @@ public final class SectionTableRow implements Highlightable{
     this.sectionExpanded = sectionExpanded;
     highlighterButton=HighlighterButton.getInstance(this,table);
     //configure
-    setupSection.setEnabled(false);
-    joinSection.setEnabled(false);
-    slicesInSample.setEnabled(false);
-    referenceSection.setEnabled(false);
-    currentSection.setEnabled(false);
+    setupSection.setEditable(false);
+    joinSection.setEditable(false);
+    slicesInSample.setEditable(false);
+    referenceSection.setEditable(false);
+    currentSection.setEditable(false);
   }
 
   public String toString() {
@@ -382,24 +386,24 @@ public final class SectionTableRow implements Highlightable{
   void setMode(int mode) {
     switch (mode) {
     case JoinDialog.SAMPLE_PRODUCED_MODE:
-      sampleBottomStart.setEnabled(false);
-      sampleBottomEnd.setEnabled(false);
-      sampleTopStart.setEnabled(false);
-      sampleTopEnd.setEnabled(false);
-      rotationAngleX.setEnabled(false);
-      rotationAngleY.setEnabled(false);
-      rotationAngleZ.setEnabled(false);
+      sampleBottomStart.setEditable(false);
+      sampleBottomEnd.setEditable(false);
+      sampleTopStart.setEditable(false);
+      sampleTopEnd.setEditable(false);
+      rotationAngleX.setEditable(false);
+      rotationAngleY.setEditable(false);
+      rotationAngleZ.setEditable(false);
       return;
     case JoinDialog.SETUP_MODE:
     case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
     case JoinDialog.CHANGING_SAMPLE_MODE:
-      sampleBottomStart.setEnabled(true);
-      sampleBottomEnd.setEnabled(true);
-      sampleTopStart.setEnabled(true);
-      sampleTopEnd.setEnabled(true);
-      rotationAngleX.setEnabled(true);
-      rotationAngleY.setEnabled(true);
-      rotationAngleZ.setEnabled(true);
+      sampleBottomStart.setEditable(true);
+      sampleBottomEnd.setEditable(true);
+      sampleTopStart.setEditable(true);
+      sampleTopEnd.setEditable(true);
+      rotationAngleX.setEditable(true);
+      rotationAngleY.setEditable(true);
+      rotationAngleZ.setEditable(true);
       return;
     default:
       throw new IllegalStateException("mode=" + mode);
@@ -575,14 +579,14 @@ public final class SectionTableRow implements Highlightable{
     joinFinalStart.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     joinFinalEnd.add(panel, layout, constraints);
-    joinFinalStart.setEnabled(true);
-    joinFinalEnd.setEnabled(true);
+    joinFinalStart.setEditable(true);
+    joinFinalEnd.setEditable(true);
   }
 
   private void addRejoin(JPanel panel) {
     addJoin(panel);
-    joinFinalStart.setEnabled(false);
-    joinFinalEnd.setEnabled(false);
+    joinFinalStart.setEditable(false);
+    joinFinalEnd.setEditable(false);
   }
 
   private void displayData(int rowNumber) {
