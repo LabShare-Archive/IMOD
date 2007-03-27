@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2007/03/01 01:39:19  sueh
+ * <p> bug# 964 Moved colors from UIUtilities to Colors.
+ * <p>
  * <p> Revision 3.21  2007/02/09 00:50:32  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -284,18 +287,18 @@ public class LabeledTextField {
   /**
    * Set the absolute preferred size of the panel
    * @param size
-   */
+
   public void setPreferredSize(Dimension size) {
     panel.setPreferredSize(size);
-  }
+  }*/
 
   /**
    * Set the absolute maximum size of the panel
    * @param size
-   */
+   
   public void setMaximumSize(Dimension size) {
     panel.setMaximumSize(size);
-  }
+  }*/
 
   public Dimension getLabelPreferredSize() {
     return label.getPreferredSize();
