@@ -43,6 +43,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/03/27 00:04:39  sueh
+ * <p> bug# 964 Added setTooltipText.
+ * <p>
  * <p> Revision 1.12  2007/03/26 18:39:44  sueh
  * <p> bug# 964 Moved InitMOTL and tilt range options to the Run Parameters windows.
  * <p>
@@ -280,12 +283,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private Container createSetupPanel() {
-    //setup body
+    //body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.add(ftfDirectory.getContainer());
     pnlSetupBody.add(ltfOutput.getContainer());
     pnlSetupBody.add(volumeTable.getContainer());
-    //setup header
+    //header
     SpacedPanel pnlSetup = new SpacedPanel();
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
@@ -305,13 +308,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlInitMotl.add(rbInitMotlZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
-    //run parameters body
+    //body
     pnlRunParametersBody.setLayout(new BoxLayout(pnlRunParametersBody,
         BoxLayout.Y_AXIS));
     pnlRunParametersBody.add(pnlInitMotl);
     cbUseTiltRange.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunParametersBody.add(cbUseTiltRange);
-    //setup header
+    //header
     JPanel pnlRunParameters = new JPanel();
     pnlRunParameters
         .setLayout(new BoxLayout(pnlRunParameters, BoxLayout.Y_AXIS));
