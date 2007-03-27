@@ -6,9 +6,12 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
+import etomo.BaseManager;
+import etomo.process.ImodManager;
 import etomo.storage.MatlabParamFile;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -24,6 +27,10 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/26 18:40:53  sueh
+ * <p> bug# 964 Removed functionality that shows/hides columns.  Fixed bug in
+ * <p> setting initMOTL and relativeOrient.
+ * <p>
  * <p> Revision 1.7  2007/03/21 19:49:12  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.  Removed some gets/sets
@@ -60,6 +67,7 @@ final class VolumeRow implements Highlightable {
   private final JPanel panel;
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
+  private final BaseManager manager;
 
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
@@ -70,17 +78,21 @@ final class VolumeRow implements Highlightable {
   private final FieldCell relativeOrientY = new FieldCell();
   private final FieldCell relativeOrientZ = new FieldCell();
   private final HighlighterButton btnHighlighter;
+  private int imodIndex = -1;
 
-  static VolumeRow getInstance(final File fnVolume, final File fnModParticle,
-      final int index, final VolumeTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
-    return new VolumeRow(fnVolume, fnModParticle, index, table, panel, layout,
-        constraints);
+  static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
+      final File fnModParticle, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
+    return new VolumeRow(manager, fnVolume, fnModParticle, index, table, panel,
+        layout, constraints);
   }
 
-  private VolumeRow(final File fnVolumeFile, final File fnModParticleFile,
-      final int index, final VolumeTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+  private VolumeRow(final BaseManager manager, final File fnVolumeFile,
+      final File fnModParticleFile, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
+    this.manager = manager;
     this.index = index;
     this.table = table;
     this.panel = panel;
@@ -88,7 +100,7 @@ final class VolumeRow implements Highlightable {
     this.constraints = constraints;
     setExpandableValues(fnVolume, fnVolumeFile);
     setExpandableValues(fnModParticle, fnModParticleFile);
-    btnHighlighter = new HighlighterButton(this, table);
+    btnHighlighter = HighlighterButton.getInstance(this, table);
   }
 
   public void highlight(final boolean highlight) {
@@ -181,9 +193,15 @@ final class VolumeRow implements Highlightable {
     }
   }
 
-  private void setExpandableValues(final FieldCell fieldCell, final String fileName) {
+  void imodVolume(Run3dmodMenuOptions menuOptions) {
+    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, fnVolume
+        .getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
+  }
+
+  private void setExpandableValues(final FieldCell fieldCell,
+      final String fileName) {
     //Don't override existing values with null value.
-    if (fileName == null||fileName.matches("\\s*")) {
+    if (fileName == null || fileName.matches("\\s*")) {
       return;
     }
     setExpandableValues(fieldCell, new File(fileName));
