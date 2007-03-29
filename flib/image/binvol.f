@@ -7,6 +7,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.5  2007/02/02 18:49:33  mast
+c	  Fixed option specification for output file; it was overwriting input
+c	
 c	  Revision 3.4  2006/07/11 19:28:18  mast
 c	  Set up to write in chunks too to work on really big images
 c	
@@ -99,7 +102,8 @@ c
 	  cell(i) = iredfac(i)*nxyzs(i)*(cell(i)/mxyz(i))
 	enddo
 C
-	maxLines = nBinY * ((limit / (nx + nxs / nBinY)) / nBinY - 1)
+	maxLines = nBinY * ((limit / (nx + (nxs + nBinY - 1)/ nBinY))
+     &      / nBinY - 1)
 	IF (maxLines .lt. 1) call exitError('INPUT'
      &	    //' IMAGES TOO LARGE FOR ARRAYS WITH GIVEN BINNING FACTORS')
 	call ialsiz(3,nxyzs,nxyzst)
@@ -111,10 +115,10 @@ C
 	dmin=1.e30
         pixSum = 0.
 
-        inbase = nys * (maxLines / nBinY)
+        inbase = nxs * (maxLines / nBinY)
 	numChunks = (ny + maxLines - 1) / maxLines
         if (ifLimSet .ne. 0) print *,numChunks,' chunks, maximum lines',
-     &      maxLines
+     &      maxLines,inbase
 	do izout=0, nzs - 1
           iy = 0
           do iChunk = 1, numChunks
@@ -128,7 +132,7 @@ C
               call imposn(1,isec,iy)
               isec = isec + 1
 	      call irdsecl(1,array(inbase + 1), numLines, *99) 
-	      
+
 	      call add_into_array(array(inbase + 1),nx,numLines,
      &		  array,nxs,nReduced,iredfac)
 	    enddo
