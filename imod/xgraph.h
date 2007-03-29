@@ -3,25 +3,11 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/10 23:59:59  mast
-Seems to have gotten lost in repository
-
-Revision 1.1.2.1  2003/01/06 15:48:55  mast
-initila creation
-
-*/
 #ifndef XGRAPH_H
 #define XGRAPH_H
 
@@ -64,6 +50,7 @@ typedef struct imod_xgraph_struct
   float  mean;
   int    start;
   int    ctrl;
+  int    closing;
 } GraphStruct;
 
 
@@ -135,3 +122,19 @@ protected:
   GraphStruct *mGraph;
 };
 #endif     // XGRAPH_H
+
+/*
+$Log$
+Revision 4.2  2006/08/24 21:31:39  mast
+New stuff for width, subarea, mean value output
+
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/10 23:59:59  mast
+Seems to have gotten lost in repository
+
+Revision 1.1.2.1  2003/01/06 15:48:55  mast
+initial creation
+
+*/

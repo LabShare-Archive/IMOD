@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <limits.h>
@@ -99,6 +94,8 @@ void slicerStepZoom(SlicerStruct *ss, int dir)
 /* A new zoom value was entered in text box */
 void slicerEnteredZoom(SlicerStruct *ss, float newZoom)
 {
+  if (ss->closing)
+    return;
   ivwControlPriority(ss->vi, ss->ctrl);
   ss->zoom = newZoom;
   if (ss->zoom <= 0.01) {
@@ -199,6 +196,8 @@ static void drawThickControls(SlicerStruct *ss)
 
 void slicerImageThickness(SlicerStruct *ss, int sno)
 {
+  if (ss->closing)
+    return;
   ivwControlPriority(ss->vi, ss->ctrl);
   if (sno < 1)
     sno = 1;
@@ -210,6 +209,8 @@ void slicerImageThickness(SlicerStruct *ss, int sno)
 
 void slicerModelThickness(SlicerStruct *ss, float depth)
 {
+  if (ss->closing)
+    return;
   ivwControlPriority(ss->vi, ss->ctrl);
   if (fabs(ss->depth - 0.1) < 0.01 && fabs(depth - 1.1) < 0.01)
     depth = 1.0;
@@ -232,6 +233,7 @@ static void slicerClose_cb(ImodView *vi, void *client, int junk)
 /* The window is closing now.  Clean up */
 void slicerClosing(SlicerStruct *ss)
 {
+  ss->closing = 1;
   ivwRemoveControl(ss->vi, ss->ctrl);      
   imodDialogManager.remove((QWidget *)ss->qtWindow);
   b3dFreeCIImage(ss->image);
@@ -291,6 +293,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->mousemode = vi->imod->mousemode;
   ss->movieSnapCount = 0;
   ss->fftMode = 0;
+  ss->closing = 0;
 
   slice_trans_step(ss);
   ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
@@ -1809,6 +1812,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.39  2007/01/08 18:18:51  mast
+Fixed bug: Z coordinate from mouse point was limited by X not Z size
+
 Revision 4.38  2006/10/12 19:02:54  mast
 Added toolbar button for W function
 

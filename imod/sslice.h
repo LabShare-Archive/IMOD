@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end
-*/
 
 #ifndef SSLICE_H
 #define SSLICE_H
@@ -93,6 +89,7 @@ typedef struct Super_slicer{
   Imat  *mat;
   int   ctrl;
   int   fftMode;      /* Flag to do FFT of slice */
+  int   closing;      /* Flag for window closing */
 } SlicerStruct;     
 
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
@@ -129,6 +126,9 @@ void slicerCheckMovieLimits(SlicerStruct *ss);
 
 /*
     $Log$
+    Revision 3.11  2006/10/12 19:02:55  mast
+    Added toolbar button for W function
+
     Revision 3.10  2006/10/06 19:35:50  mast
     Added declarations for the fillin routine to be in slicer_classes
 

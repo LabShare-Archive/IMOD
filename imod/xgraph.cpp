@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <stdlib.h>
@@ -93,6 +88,7 @@ int xgraphOpen(struct ViewInfo *vi)
   xg->highres = 0;
   xg->nlines = 1;
   xg->mean = 0.;
+  xg->closing = 0;
 
   xg->dialog = new GraphWindow(xg, App->rgba, App->doublebuffer,
 			       App->qtEnableDepth, 
@@ -386,6 +382,8 @@ void GraphWindow::setToggleState(int index, int state)
 // Width change
 void GraphWindow::widthChanged(int value)
 {
+  if (mGraph->closing)
+    return;
   mGraph->nlines = value;
   xgraphDraw();
   setFocus();
@@ -423,6 +421,7 @@ void GraphWindow::externalKeyEvent ( QKeyEvent * e, int released)
 // When close event comes in, clean up and accept the event
 void GraphWindow::closeEvent ( QCloseEvent * e )
 {
+  mGraph->closing = 1;
   ivwRemoveControl(mGraph->vi, mGraph->ctrl);
   imodDialogManager.remove((QWidget *)this);
   if (mGraph->data)
@@ -1006,6 +1005,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.8  2006/08/25 14:31:51  mast
+    SGI did not like bad declaration
+
     Revision 4.7  2006/08/24 21:33:19  mast
     Added averaging over multiple lines, mean output, rubberband control
 
