@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/27 19:32:49  sueh
+ * <p> bug# 964 Number the rows.
+ * <p>
  * <p> Revision 1.9  2007/03/27 00:07:21  sueh
  * <p> bug# 964 Added imodVolume() to open fnVolume and fnModParticle in 3dmod.
  * <p>
@@ -181,7 +184,7 @@ final class VolumeRow implements Highlightable {
       boolean useInitMotlFile, boolean useTiltRange) {
     MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
     if (useInitMotlFile) {
-      setExpandableValues(initMotlFile, volume.getInitMotl());
+      setExpandableValues(initMotlFile, volume.getInitMotlString());
     }
     if (useTiltRange) {
       setTiltRangeStart(volume.getTiltRangeStart());
