@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/03/27 19:32:58  sueh
+ * <p> bug# 964 Number the rows.
+ * <p>
  * <p> Revision 1.11  2007/03/27 00:08:08  sueh
  * <p> bug# 964 Added btnReadTiltFile and r3bVolume (3dmod volume).
  * <p>
@@ -232,6 +235,10 @@ final class VolumeTable implements Expandable, Highlightable,
     rowList.getParameters(matlabParamFile);
   }
   
+  int size() {
+    return rowList.size();
+  }
+  
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(r3bVolume.getActionCommand())) {
       imodVolume(menuOptions);
@@ -390,6 +397,7 @@ final class VolumeTable implements Expandable, Highlightable,
     else {
       addRow(tomogram, model);
       updateDisplay();
+      parent.msgVolumeTableSizeChanged();
       UIHarness.INSTANCE.pack(manager);
     }
   }
