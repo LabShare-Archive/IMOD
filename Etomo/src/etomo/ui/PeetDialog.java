@@ -43,6 +43,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/03/27 19:31:26  sueh
+ * <p> bug# 964
+ * <p>
  * <p> Revision 1.13  2007/03/27 00:04:39  sueh
  * <p> bug# 964 Added setTooltipText.
  * <p>
@@ -92,6 +95,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   static final String DIRECTORY_LABEL = "Directory";
   static final String OUTPUT_LABEL = "Output";
+  static final String VOLUME_NUMBER_LABEL = "Volume #: ";
+  static final String REFERENCE_FILE_LABEL = "Reference file: ";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
 
@@ -103,6 +108,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final CheckBox cbUseTiltRange = new CheckBox("Use tilt range");
   private final JPanel pnlRunParametersBody = new JPanel();
+  private final LabeledTextField ltfParticleNumber = new LabeledTextField(
+      "Particle #: ");
+  private final FileTextField ftfReferenceFile = FileTextField
+      .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final RadioButton rbInitMotlZero;
   private final RadioButton rbInitMotlZAxis;
   private final RadioButton rbInitMotlXAndZAxis;
@@ -112,6 +121,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
+  private final RadioButton rbVolumeReference;
+  private final Spinner sVolumeNumber;
+  private final RadioButton rbVolumeFile;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -123,12 +135,16 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     runParametersHeader = PanelHeader.getInstance("Run Parameters", this,
         DIALOG_TYPE);
     ButtonGroup group = new ButtonGroup();
+    rbVolumeReference = new RadioButton(VOLUME_NUMBER_LABEL, group);
+    rbVolumeFile = new RadioButton(REFERENCE_FILE_LABEL, group);
+    sVolumeNumber = new Spinner(VOLUME_NUMBER_LABEL);
+    group = new ButtonGroup();
     rbInitMotlZero = new RadioButton("Set all rotational values to zero",
-        MatlabParamFile.InitMotlCode.ZERO.getCodeInt(), group);
+        MatlabParamFile.InitMotlCode.ZERO.intValue(), group);
     rbInitMotlZAxis = new RadioButton("Initialize Z axis",
-        MatlabParamFile.InitMotlCode.Z_AXIS.getCodeInt(), group);
+        MatlabParamFile.InitMotlCode.Z_AXIS.intValue(), group);
     rbInitMotlXAndZAxis = new RadioButton("Initialize X and Z axis",
-        MatlabParamFile.InitMotlCode.X_AND_Z_AXIS.getCodeInt(), group);
+        MatlabParamFile.InitMotlCode.X_AND_Z_AXIS.intValue(), group);
     rbInitMotlFiles = new RadioButton("Use files", group);
     //construnction
     //root
@@ -153,9 +169,16 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       rbInitMotlXAndZAxis.setToolTipText(tooltip);
       rbInitMotlZAxis.setToolTipText(tooltip);
       rbInitMotlFiles.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.TILT_RANGE_KEY);
+      tooltip = EtomoAutodoc
+          .getTooltip(autodoc, MatlabParamFile.TILT_RANGE_KEY);
       cbUseTiltRange.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc
+      .getTooltip(autodoc, MatlabParamFile.REFERENCE_KEY);
+      rbVolumeReference.setToolTipText(tooltip);
+      rbVolumeFile.setToolTipText(tooltip);
+      sVolumeNumber.setToolTipText(tooltip);
+      ltfParticleNumber.setToolTipText(tooltip);
+      ftfReferenceFile.setToolTipText(tooltip);
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -166,7 +189,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
-
   }
 
   public static PeetDialog getInstance(final PeetManager manager,
@@ -177,7 +199,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void updateDisplay(final boolean paramFileSet) {
-    ftfDirectory.setEnabled(!paramFileSet);
+    ftfDirectory.setEditable(!paramFileSet);
     ltfOutput.setEditable(!paramFileSet);
   }
 
@@ -229,6 +251,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     cbUseTiltRange.setSelected(matlabParamFile.isTiltRangeEmpty());
     volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
         cbUseTiltRange.isSelected());
+    updateDisplay();
   }
 
   public void getParameters(final MatlabParamFile matlabParamFile) {
@@ -278,6 +301,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfOutput.setText(output);
   }
 
+  void msgVolumeTableSizeChanged() {
+    updateDisplay();
+  }
+
   void setUsingInitMotlFile() {
     rbInitMotlFiles.setSelected(true);
   }
@@ -298,7 +325,25 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private Container createRunParametersPanel() {
-    //Init MOTL
+    //volume reference
+    JPanel pnlVolumeReference = new JPanel();
+    pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
+        BoxLayout.X_AXIS));
+    pnlVolumeReference.add(rbVolumeReference.getComponent());
+    pnlVolumeReference.add(sVolumeNumber.getComponent());
+    pnlVolumeReference.add(ltfParticleNumber.getContainer());
+    //volume file
+    JPanel pnlVolumeFile = new JPanel();
+    pnlVolumeFile.setLayout(new BoxLayout(pnlVolumeFile,BoxLayout.X_AXIS));
+    pnlVolumeFile.add(rbVolumeFile.getComponent());
+    pnlVolumeFile.add(ftfReferenceFile.getContainer());
+    //reference
+    JPanel pnlReference = new JPanel();
+    pnlReference.setLayout(new BoxLayout(pnlReference, BoxLayout.Y_AXIS));
+    pnlReference.setBorder(new EtchedBorder("Reference").getBorder());
+    pnlReference.add(pnlVolumeReference);
+    pnlReference.add(pnlVolumeFile);
+    //init MOTL
     JPanel pnlInitMotl = new JPanel();
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
@@ -311,6 +356,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //body
     pnlRunParametersBody.setLayout(new BoxLayout(pnlRunParametersBody,
         BoxLayout.Y_AXIS));
+    pnlRunParametersBody.add(pnlReference);
     pnlRunParametersBody.add(pnlInitMotl);
     cbUseTiltRange.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunParametersBody.add(cbUseTiltRange);
@@ -326,9 +372,33 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   private void action(ActionEvent action) {
     String actionCommand = action.getActionCommand();
+    if (actionCommand.equals(ftfDirectory.getActionCommand())) {
+      chooseDirectory();
+    }
+    else if (actionCommand.equals(rbVolumeReference.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(rbVolumeFile.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(ftfReferenceFile.getActionCommand())) {
+      chooseReferenceFile();
+    }
   }
 
-  private void directoryAction() {
+  private void updateDisplay() {
+    //reference
+    int size = volumeTable.size();
+    boolean enable = size > 0;
+    rbVolumeReference.setEnabled(enable);
+    sVolumeNumber.setEnabled(enable && rbVolumeReference.isSelected());
+    sVolumeNumber.setMax(size);
+    ltfParticleNumber.setEnabled(enable && rbVolumeReference.isSelected());
+    rbVolumeFile.setEnabled(enable);
+    ftfReferenceFile.setEnabled(enable && rbVolumeFile.isSelected());
+  }
+
+  private void chooseDirectory() {
     JFileChooser chooser = new JFileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
@@ -339,21 +409,23 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     }
   }
 
-  private void addListeners() {
-    ftfDirectory.addActionListener(new DirectoryActionListener(this));
-    PDActionListener actionListener = new PDActionListener(this);
+  private void chooseReferenceFile() {
+    JFileChooser chooser = new JFileChooser(new File(manager
+        .getPropertyUserDir()));
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      ftfReferenceFile.setText(chooser.getSelectedFile().getAbsolutePath());
+    }
   }
 
-  private class DirectoryActionListener implements ActionListener {
-    private PeetDialog peetDialog;
-
-    private DirectoryActionListener(final PeetDialog peetDialog) {
-      this.peetDialog = peetDialog;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      peetDialog.directoryAction();
-    }
+  private void addListeners() {
+    PDActionListener actionListener = new PDActionListener(this);
+    ftfDirectory.addActionListener(actionListener);
+    rbVolumeReference.addActionListener(actionListener);
+    rbVolumeFile.addActionListener(actionListener);
+    ftfReferenceFile.addActionListener(actionListener);
   }
 
   private class PDActionListener implements ActionListener {
