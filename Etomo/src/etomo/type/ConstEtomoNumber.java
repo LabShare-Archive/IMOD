@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2007/03/26 18:37:07  sueh
+ * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
+ * <p> the functionality will be remembered and used.
+ * <p>
  * <p> Revision 1.45  2007/02/06 19:47:45  sueh
  * <p> bug# 962 Fixed failure in unit test.
  * <p>
@@ -317,7 +321,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   protected ConstEtomoNumber(Type type) {
-    this.type = type;
+    if (type == null) {
+      this.type = Type.INTEGER;
+    }
+    else {
+      this.type = type;
+    }
     name = super.toString();
     description = name;
     initialize();
@@ -980,7 +989,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public String toString() {
     return toString(getValue());
   }
-  
+
   /**
    * If default is set and isNull() is true, defaultValue will be returned, even
    * if displayValue is set.  If defaultValue is not set, or isNull() is false,
@@ -1041,12 +1050,12 @@ public abstract class ConstEtomoNumber implements Storable {
     this.defaultValue = newNumber(defaultValue);
     return this;
   }
-  
+
   public ConstEtomoNumber setDefault(boolean defaultValue) {
     this.defaultValue = newNumber(defaultValue);
     return this;
   }
-  
+
   /**
    * Returns true if currentValue is not null and is equal to defaultValue.
    * This function is not effected by displayValue.
@@ -1055,7 +1064,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean isDefault() {
     return isDefault(currentValue);
   }
-  
+
   public boolean isDefaultSet() {
     return !isNull(defaultValue);
   }
@@ -1160,10 +1169,9 @@ public abstract class ConstEtomoNumber implements Storable {
     if (!isNull(currentValue)) {
       return currentValue;
     }
-      return displayValue;
+    return displayValue;
   }
 
-  
   /**
    * If default is set and isNull() is true, defaultValue will be returned, even
    * if displayValue is set.  If defaultValue is not set, or isNull() is false,
@@ -1171,12 +1179,12 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number getDefaultedValue() {
-    if (isDefaultSet()&& isNull()) {
+    if (isDefaultSet() && isNull()) {
       return defaultValue;
     }
     return getValue();
   }
-  
+
   String toString(Number value) {
     if (isNull(value)) {
       return "";
@@ -1535,7 +1543,7 @@ public abstract class ConstEtomoNumber implements Storable {
           "Cannot place a Float into anything but a Double or a Float.  Type="
               + type);
     }
-    if (input instanceof Long && type !=Type. DOUBLE && type != Type.LONG) {
+    if (input instanceof Long && type != Type.DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
           "Cannot place a Long into anything but a Double or a Long.  Type="
               + type);
@@ -1650,7 +1658,7 @@ public abstract class ConstEtomoNumber implements Storable {
     public static final Type FLOAT = new Type();
     public static final Type INTEGER = new Type();
     public static final Type LONG = new Type();
-    
+
     public static Type getDefault() {
       return INTEGER;
     }
