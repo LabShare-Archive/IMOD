@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 
 /**
  * <p>Description: </p>
@@ -20,29 +21,49 @@ import javax.swing.JButton;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/22 20:37:39  sueh
+ * <p> bug# 964 Moved FileTextField from JoinDialog to the etomo.ui package so that it
+ * <p> can be shared.
+ * <p> </p>
  */
 final class FileTextField {
   public static final String rcsid = "$Id$";
 
   private final JButton button = new JButton(new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif")));
-  private final LabeledTextField field;
-  private SpacedPanel panel = null;
+  private final SpacedPanel panel = new SpacedPanel();
+  private final TextField field;
+  
+  private JLabel label = null;
 
   FileTextField(String label) {
-    field = new LabeledTextField(label);
+    this(label,true);
+  }
+  
+  private FileTextField(String label,boolean labeled) {
+    panel.setBoxLayout(BoxLayout.X_AXIS);
+    if (labeled) {
+      this.label=new JLabel(label);
+      panel.add(this.label);
+    }
+    field = new TextField(label);
+    panel.add(field);
+    button.setActionCommand(label);
+    panel.add(button);
+    button.setPreferredSize(FixedDim.folderButton);
+    button.setMaximumSize(FixedDim.folderButton);
+  }
+  
+  static FileTextField getUnlabeledInstance(String actionCommand) {
+    return new FileTextField(actionCommand,false);
+  }
+  
+  String getActionCommand() {
+    return button.getActionCommand();
   }
 
   Container getContainer() {
-    if (panel == null) {
-      panel = new SpacedPanel();
-      panel.setBoxLayout(BoxLayout.X_AXIS);
-      panel.add(field);
-      panel.add(button);
-      button.setPreferredSize(FixedDim.folderButton);
-      button.setMaximumSize(FixedDim.folderButton);
-    }
     return panel.getContainer();
   }
 
@@ -50,8 +71,13 @@ final class FileTextField {
     button.addActionListener(actionListener);
   }
 
+  void setEditable(boolean editable) {
+    field.setEditable(editable);
+    button.setEnabled(editable);
+  }
+  
   void setEnabled(boolean enabled) {
-    field.setEditable(enabled);
+    field.setEnabled(enabled);
     button.setEnabled(enabled);
   }
 
