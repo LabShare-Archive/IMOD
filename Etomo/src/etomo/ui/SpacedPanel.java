@@ -32,6 +32,10 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.15  2007/03/07 21:14:36  sueh
+* <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+* <p> because it is getting more complicated.
+* <p>
 * <p> Revision 1.14  2007/02/05 23:44:33  sueh
 * <p> bug# 962 Fixing alignment setting.
 * <p>
@@ -230,6 +234,16 @@ final class SpacedPanel {
     panel.add(labeledTextField.getContainer());
     if (componentAlignmentX != null) {
       labeledTextField.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    xDescription.append("LabeledTextField,");
+    yDescription.append("LabeledTextField,");
+  }
+  
+  final void add(TextField textField) {
+    addSpacing();
+    panel.add(textField.getComponent());
+    if (componentAlignmentX != null) {
+      textField.setAlignmentX(componentAlignmentX.floatValue());
     }
     xDescription.append("LabeledTextField,");
     yDescription.append("LabeledTextField,");
