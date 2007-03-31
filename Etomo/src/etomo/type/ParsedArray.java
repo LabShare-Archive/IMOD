@@ -17,7 +17,10 @@ import etomo.util.PrimativeTokenizer;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/30 23:40:59  sueh
+ * <p> bug# 964 Class to parse Matlab arrays.
+ * <p> </p>
  */
 public final class ParsedArray extends ParsedElement {
   public static final String rcsid = "$Id$";
@@ -42,7 +45,7 @@ public final class ParsedArray extends ParsedElement {
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = new Integer(defaultValue);
   }
-  
+
   public ParsedArray(EtomoNumber.Type etomoNumberType, Integer defaultValue) {
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
@@ -53,17 +56,19 @@ public final class ParsedArray extends ParsedElement {
     instance.parse(attribute);
     return instance;
   }
-  
-  public void parse(ReadOnlyAttribute attribute) {}
+
+  public void parse(ReadOnlyAttribute attribute) {
+    //TODO bug# 964
+  }
 
   public String getRawString(int index) {
     return list.get(index).getRawString();
   }
-  
-  public void setRawNumber(int index,String number) {
-    ParsedNumber element = new ParsedNumber(etomoNumberType,defaultValue);
+
+  public void setRawNumber(int index, String number) {
+    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
     element.setRawNumber(number);
-    list.set(index,element);
+    list.set(index, element);
   }
 
   /**
@@ -78,44 +83,50 @@ public final class ParsedArray extends ParsedElement {
     }
   }
   
-  public boolean isEmpty() {
-    return list.size() == 0;
-  }
-  
-  Token parse(Token token, PrimativeTokenizer tokenizer) {return null;}
-  
-  int size() {
+  public int size() {
     return list.size();
   }
-  
+
+  Token parse(Token token, PrimativeTokenizer tokenizer) {
+    //TODO bug# 964
+    return null;
+  }
+
   ParsedElement getElement(int index) {
     return list.get(index);
   }
-  
+
   /**
    * Asking for a raw string from a collection returns a semi-raw string.  The
    * elements are separated by a divider in the same way a parsable string would be,
    * but the "[" and "]" are not added.
    */
   String getRawString() {
-    StringBuffer buffer= new StringBuffer();
+    StringBuffer buffer = new StringBuffer();
     boolean elementIsCollection = false;
-    for (int i = 0;i <list.size();i++) {
-      if (i>0) {
-        if (elementIsCollection) {
-          buffer.append(DIVIDER_SYMBOL+" ");
+    boolean emptyElements = list.isEmptyElements();
+    for (int i = 0; i < list.size(); i++) {
+      if (i > 0) {
+        if (emptyElements || elementIsCollection) {
+          buffer.append(DIVIDER_SYMBOL + " ");
         }
         else {
           buffer.append(" ");
         }
       }
-      buffer.append(list.get(i).getRawString());
+      ParsedElement element = list.get(i);
+      elementIsCollection = element.isCollection();
+      buffer.append(element.getRawString());
     }
     return buffer.toString();
   }
-  
+
+  boolean isCollection() {
+    return true;
+  }
+
   String getParsableString() {
-    StringBuffer buffer= new StringBuffer(OPEN_SYMBOL.toString());
+    StringBuffer buffer = new StringBuffer(OPEN_SYMBOL.toString());
     buffer.append(getRawString());
     buffer.append(CLOSE_SYMBOL);
     return buffer.toString();
