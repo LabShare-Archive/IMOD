@@ -39,6 +39,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/30 23:39:35  sueh
+ * <p> bug# 964 Modified this class to work with ParsedList and ParsedElement.
+ * <p>
  * <p> Revision 1.7  2007/03/26 23:32:26  sueh
  * <p> bug# 964 Made keys public.
  * <p>
@@ -77,29 +80,33 @@ public final class MatlabParamFile {
   public static final String INIT_MOTL_KEY = "initMOTL";
   public static final String TILT_RANGE_KEY = "tiltRange";
   public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
-  public static final String SZ_VOL_KEY="szVol";
-  public static final String FN_OUTPUT_KEY="fnOutput";
-  public static final String D_PHI_KEY="dPhi";
-  public static final String D_THETA_KEY="dTheta";
-  public static final String D_PSI_KEY="dPsi";
-  public static final String SEARCH_RADIUS_KEY="searchRadius";
-  public static final String LOW_CUTOFF_KEY="lowCutoff";
-  public static final String HI_CUTOFF_KEY="hiCutoff";
-  public static final String CC_MODE_KEY="CCMode";
-  public static final String REF_THRESHOLD_KEY="refThreshold";
-  public static final String REF_FLAG_ALL_TOM_KEY="refFlagAllTom";
-  public static final String EDGE_SHIFT_KEY="edgeShift";
-  public static final String LST_THRESHOLDS_KEY="lstThresholds";
-  public static final String LST_FLAG_ALL_TOM_KEY="lstFlagAllTom";
-  public static final String MEAN_FILL_KEY="meanFill";
-  public static final String ALIGNED_BASE_NAME_KEY="alignedBaseName";
-  public static final String DEBUG_LEVEL_KEY="debugLevel";
-  public static final String PARTICLE_PER_CPU_KEY="particlePerCPU";
+  public static final String SZ_VOL_KEY = "szVol";
+  public static final String FN_OUTPUT_KEY = "fnOutput";
+  public static final String D_PHI_KEY = "dPhi";
+  public static final String D_THETA_KEY = "dTheta";
+  public static final String D_PSI_KEY = "dPsi";
+  public static final String SEARCH_RADIUS_KEY = "searchRadius";
+  public static final String LOW_CUTOFF_KEY = "lowCutoff";
+  public static final String HI_CUTOFF_KEY = "hiCutoff";
+  public static final String CC_MODE_KEY = "CCMode";
+  public static final String REF_THRESHOLD_KEY = "refThreshold";
+  public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
+  public static final String EDGE_SHIFT_KEY = "edgeShift";
+  public static final int EDGE_SHIFT_DEFAULT = 2;
+  public static final String LST_THRESHOLDS_KEY = "lstThresholds";
+  public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
+  public static final String MEAN_FILL_KEY = "meanFill";
+  public static final boolean MEAN_FILL_DEFAULT = true;
+  public static final String ALIGNED_BASE_NAME_KEY = "alignedBaseName";
+  public static final String DEBUG_LEVEL_KEY = "debugLevel";
+  public static final int DEBUG_LEVEL_MIN = 0;
+  public static final int DEBUG_LEVEL_MAX = 3;
+  public static final int DEBUG_LEVEL_DEFAULT = 3;
+  public static final String PARTICLE_PER_CPU_KEY = "particlePerCPU";
 
   private final ParsedNumber particlePerCpu = new ParsedNumber();
   private final ParsedArray szVol = new ParsedArray();
   private final ParsedQuotedString fnOutput = new ParsedQuotedString();
-  private final ParsedNumber ccMode = new ParsedNumber();
   private final ParsedNumber refFlagAllTom = new ParsedNumber();
   private final ParsedNumber edgeShift = new ParsedNumber();
   private final ParsedArray lstThresholds = new ParsedArray();
@@ -112,6 +119,7 @@ public final class MatlabParamFile {
   private final File file;
   private final boolean newFile;
   private InitMotlCode initMotlCode = null;
+  private CCModeCode ccMode = null;
   private boolean tiltRangeEmpty = false;
   private ParsedQuotedString referenceFile = null;
   private ParsedArray reference = null;
@@ -157,7 +165,7 @@ public final class MatlabParamFile {
       //fnOutput
       fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
       //CCMode
-      ccMode.parse(autodoc.getAttribute(CC_MODE_KEY));
+      ccMode=CCModeCode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
       //refFlagAllTom
       refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
       //edgeShift
@@ -194,8 +202,10 @@ public final class MatlabParamFile {
     if (initMotlCode == null) {
       initMotlFile = ParsedList.getStringInstance();
     }
-    ParsedList tiltRange = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
-    ParsedList relativeOrient = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT,0);
+    ParsedList tiltRange = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList relativeOrient = ParsedList.getNumericInstance(
+        EtomoNumber.Type.FLOAT, 0);
     //build the values
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -301,22 +311,21 @@ public final class MatlabParamFile {
           "File Error");
     }
   }
-  
+
   private void parseVolumeLists(ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
     //relativeOrient
     ParsedList relativeOrient = ParsedList.getNumericInstance(autodoc
-        .getAttribute(RELATIVE_ORIENT_KEY), EtomoNumber.Type.FLOAT,0);
+        .getAttribute(RELATIVE_ORIENT_KEY), EtomoNumber.Type.FLOAT, 0);
     size = Math.max(size, relativeOrient.size());
     //fnVolume
     ParsedList fnVolume = ParsedList.getStringInstance(autodoc
         .getAttribute(FN_VOLUME_KEY));
     size = Math.max(size, fnVolume.size());
     //fnModParticle
-    ParsedList fnModParticle = ParsedList
-        .getStringInstance(autodoc
-            .getAttribute(FN_MOD_PARTICLE_KEY));
+    ParsedList fnModParticle = ParsedList.getStringInstance(autodoc
+        .getAttribute(FN_MOD_PARTICLE_KEY));
     size = Math.max(size, fnModParticle.size());
     //initMOTL
     ParsedList initMotlFile = null;
@@ -350,7 +359,7 @@ public final class MatlabParamFile {
       volumeList.add(volume);
     }
   }
-  
+
   private void parseIterationLists(ReadOnlyAutodoc autodoc) {
     iterationList.clear();
     int size = 0;
@@ -395,7 +404,6 @@ public final class MatlabParamFile {
       iterationList.add(iteration);
     }
   }
-
 
   /**
    * Updates or adds all the attributes to autodoc.
@@ -555,7 +563,7 @@ public final class MatlabParamFile {
     private InitMotlCode(int code) {
       this.code = code;
     }
-    
+
     public static InitMotlCode getInstance(ReadOnlyAttribute attribute) {
       if (attribute == null) {
         return null;
@@ -568,8 +576,11 @@ public final class MatlabParamFile {
       code.set(value);
       return getInstance(code);
     }
-    
+
     public static InitMotlCode getInstance(ConstEtomoNumber code) {
+      if (code == null) {
+        return null;
+      }
       if (code.equals(ZERO_CODE)) {
         return ZERO;
       }
@@ -604,14 +615,78 @@ public final class MatlabParamFile {
     }
   }
 
+  public static final class CCModeCode {
+    private static final int NORMALIZED_CODE = 0;
+    private static final int LOCAL_CODE = 1;
+
+    public static final CCModeCode NORMALIZED = new CCModeCode(NORMALIZED_CODE);
+    public static final CCModeCode LOCAL = new CCModeCode(LOCAL_CODE);
+
+    private final int code;
+
+    private CCModeCode(int code) {
+      this.code = code;
+    }
+
+    public static CCModeCode getInstance(ReadOnlyAttribute attribute) {
+      if (attribute == null) {
+        return NORMALIZED;
+      }
+      String value = attribute.getValue();
+      if (value == null) {
+        return NORMALIZED;
+      }
+      EtomoNumber code = new EtomoNumber();
+      code.set(value);
+      return getInstance(code);
+    }
+
+    public static CCModeCode getInstance(ConstEtomoNumber code) {
+      if (code == null) {
+        return NORMALIZED;
+      }
+      if (code.equals(NORMALIZED_CODE)) {
+        return NORMALIZED;
+      }
+      if (code.equals(LOCAL_CODE)) {
+        return LOCAL;
+      }
+      return NORMALIZED;
+    }
+    
+    public static CCModeCode getDefault() {
+      return getInstance((ConstEtomoNumber) null);
+    }
+
+    private static CCModeCode getInstance(int code) {
+      if (code == NORMALIZED_CODE) {
+        return NORMALIZED;
+      }
+      if (code == LOCAL_CODE) {
+        return LOCAL;
+      }
+      return NORMALIZED;
+    }
+
+    public int intValue() {
+      return code;
+    }
+
+    public String toString() {
+      return new Integer(code).toString();
+    }
+  }
+  
   public static final class Volume {
     private static final int TILT_RANGE_START_INDEX = 0;
     private static final int TILT_RANGE_END_INDEX = 1;
     private static final int RELATIVE_ORIENT_X_INDEX = 0;
     private static final int RELATIVE_ORIENT_Y_INDEX = 1;
     private static final int RELATIVE_ORIENT_Z_INDEX = 2;
-    private final ParsedArray tiltRange = new ParsedArray(EtomoNumber.Type.FLOAT);
-    private final ParsedArray relativeOrient = new ParsedArray(EtomoNumber.Type.FLOAT,0);
+    private final ParsedArray tiltRange = new ParsedArray(
+        EtomoNumber.Type.FLOAT);
+    private final ParsedArray relativeOrient = new ParsedArray(
+        EtomoNumber.Type.FLOAT, 0);
     private final ParsedQuotedString fnVolume = new ParsedQuotedString();
     private final ParsedQuotedString fnModParticle = new ParsedQuotedString();
     private final ParsedQuotedString initMotl = new ParsedQuotedString();
@@ -619,7 +694,7 @@ public final class MatlabParamFile {
     public void setFnVolume(ParsedElement fnVolume) {
       this.fnVolume.setElement(fnVolume);
     }
-    
+
     public void setFnVolume(String fnVolume) {
       this.fnVolume.setRawString(fnVolume);
     }
@@ -627,11 +702,11 @@ public final class MatlabParamFile {
     public String getFnVolumeString() {
       return fnVolume.getRawString();
     }
-    
+
     public String getFnModParticleString() {
       return fnModParticle.getRawString();
     }
-    
+
     public String getInitMotlString() {
       return initMotl.getRawString();
     }
@@ -639,7 +714,7 @@ public final class MatlabParamFile {
     public void setFnModParticle(ParsedElement fnModParticle) {
       this.fnModParticle.setElement(fnModParticle);
     }
-    
+
     public void setFnModParticle(String fnModParticle) {
       this.fnModParticle.setRawString(fnModParticle);
     }
@@ -647,7 +722,7 @@ public final class MatlabParamFile {
     public void setInitMotl(ParsedElement initMotl) {
       this.initMotl.setElement(initMotl);
     }
-    
+
     public void setInitMotl(String initMotl) {
       this.initMotl.setRawString(initMotl);
     }
@@ -657,7 +732,7 @@ public final class MatlabParamFile {
     }
 
     public void setTiltRangeStart(String tiltRangeStart) {
-      tiltRange.setRawNumber(TILT_RANGE_START_INDEX,tiltRangeStart);
+      tiltRange.setRawNumber(TILT_RANGE_START_INDEX, tiltRangeStart);
     }
 
     public String getTiltRangeEnd() {
@@ -665,11 +740,11 @@ public final class MatlabParamFile {
     }
 
     public void setTiltRangeEnd(String tiltRangeEnd) {
-      tiltRange.setRawNumber(TILT_RANGE_END_INDEX,tiltRangeEnd);
+      tiltRange.setRawNumber(TILT_RANGE_END_INDEX, tiltRangeEnd);
     }
 
     public boolean isRelativeOrientSet() {
-      return !relativeOrient.isEmpty();
+      return relativeOrient.size() > 0;
     }
 
     public String getRelativeOrientX() {
@@ -677,7 +752,7 @@ public final class MatlabParamFile {
     }
 
     public void setRelativeOrientX(String relativeOrientX) {
-      relativeOrient.setRawNumber(RELATIVE_ORIENT_X_INDEX,relativeOrientX);
+      relativeOrient.setRawNumber(RELATIVE_ORIENT_X_INDEX, relativeOrientX);
     }
 
     public String getRelativeOrientY() {
@@ -685,7 +760,7 @@ public final class MatlabParamFile {
     }
 
     public void setRelativeOrientY(String relativeOrientY) {
-      relativeOrient.setRawNumber(RELATIVE_ORIENT_Y_INDEX,relativeOrientY);
+      relativeOrient.setRawNumber(RELATIVE_ORIENT_Y_INDEX, relativeOrientY);
     }
 
     public String getRelativeOrientZ() {
@@ -693,17 +768,17 @@ public final class MatlabParamFile {
     }
 
     public void setRelativeOrientZ(String relativeOrientZ) {
-      relativeOrient.setRawNumber(RELATIVE_ORIENT_Z_INDEX,relativeOrientZ);
+      relativeOrient.setRawNumber(RELATIVE_ORIENT_Z_INDEX, relativeOrientZ);
     }
-    
+
     private ParsedQuotedString getFnVolume() {
       return fnVolume;
     }
-    
+
     private ParsedQuotedString getFnModParticle() {
       return fnModParticle;
     }
-    
+
     private ParsedQuotedString getInitMotl() {
       return initMotl;
     }
@@ -724,14 +799,27 @@ public final class MatlabParamFile {
       this.relativeOrient.setElementArray(relativeOrient);
     }
   }
-  
+
   private static final class Iteration {
-    private void setDPhi(ParsedElement dPhi) {}
-    private void setDTheta(ParsedElement dTheta) {}
-    private void setDPsi(ParsedElement dPsi) {}
-    private void setSearchRadius(ParsedElement searchRadius) {}
-    private void setLowCutoff(ParsedElement lowCutoff) {}
-    private void setHiCutoff(ParsedElement hiCutoff) {}
-    private void setRefThreshold(ParsedElement refThreshold) {}
+    private void setDPhi(ParsedElement dPhi) {
+    }
+
+    private void setDTheta(ParsedElement dTheta) {
+    }
+
+    private void setDPsi(ParsedElement dPsi) {
+    }
+
+    private void setSearchRadius(ParsedElement searchRadius) {
+    }
+
+    private void setLowCutoff(ParsedElement lowCutoff) {
+    }
+
+    private void setHiCutoff(ParsedElement hiCutoff) {
+    }
+
+    private void setRefThreshold(ParsedElement refThreshold) {
+    }
   }
 }
