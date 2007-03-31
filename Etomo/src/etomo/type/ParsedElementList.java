@@ -16,13 +16,17 @@ import java.util.Map;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/30 23:45:55  sueh
+ * <p> bug# 964 Expandable array that allows sparse population.
+ * <p> </p>
  */
 final class ParsedElementList {
   public static final String rcsid = "$Id$";
 
   private Map map = new HashMap();
   private int size = 0;
+  private boolean emptyElements = false;
 
   int size() {
     return size;
@@ -33,20 +37,30 @@ final class ParsedElementList {
   }
 
   ParsedElement get(int index) {
-    return (ParsedElement) map.get(getKey(index));
+    ParsedElement element = (ParsedElement) map.get(getKey(index));
+    if (element == null) {
+      return new EmptyParsedElement();
+    }
+    return element;
   }
-  
-  synchronized void set(int index,ParsedElement element) {
-    map.put(getKey(index),element);
+
+  boolean isEmptyElements() {
+    return emptyElements;
+  }
+
+  synchronized void set(int index, ParsedElement element) {
+    map.put(getKey(index), element);
   }
 
   synchronized void clear() {
     map.clear();
     size = 0;
+    emptyElements = false;
   }
-  
+
   synchronized void addEmptyElement() {
-    newKey();
+    add(new EmptyParsedElement());
+    emptyElements = true;
   }
 
   private Integer newKey() {
