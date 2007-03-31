@@ -18,7 +18,11 @@ import etomo.util.PrimativeTokenizer;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/30 23:48:19  sueh
+ * <p> bug# 964 Parses any string in Matlab.  Stops at special characters ({,},[,],:,,) and
+ * <p> whitespace.
+ * <p> </p>
  */
 final class ParsedString extends ParsedElement {
   public static final String rcsid = "$Id$";
@@ -42,6 +46,10 @@ final class ParsedString extends ParsedElement {
     else {
       this.string = string;
     }
+  }
+  
+  boolean isCollection() {
+    return false;
   }
 
   String getRawString() {

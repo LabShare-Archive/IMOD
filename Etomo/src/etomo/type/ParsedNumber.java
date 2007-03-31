@@ -17,7 +17,10 @@ import etomo.util.PrimativeTokenizer;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/30 23:46:45  sueh
+ * <p> bug# 964 Parses a Matlab number.
+ * <p> </p>
  */
 public final class ParsedNumber extends ParsedElement {
   public static final String rcsid = "$Id$";
@@ -40,8 +43,14 @@ public final class ParsedNumber extends ParsedElement {
     }
   }
 
-  public void parse(ReadOnlyAttribute attribute) {}
-  Token parse(Token token,PrimativeTokenizer tokenizer) {return null;}
+  public void parse(ReadOnlyAttribute attribute) {
+    //TODO bug# 964
+  }
+
+  Token parse(Token token, PrimativeTokenizer tokenizer) {
+    //TODO bug# 964
+    return null;
+  }
 
   String getRawString() {
     if (defaultValue == null) {
@@ -50,21 +59,25 @@ public final class ParsedNumber extends ParsedElement {
     return number.toDefaultedString();
   }
   
+  boolean isCollection() {
+    return false;
+  }
+
   String getParsableString() {
     return getRawString();
   }
-  
+
   void setRawNumber(String number) {
     this.number.set(number);
   }
-  
+
   ParsedElement getElement(int index) {
-    if (index==0) {
+    if (index == 0) {
       return this;
     }
     return null;
   }
-  
+
   int size() {
     return 1;
   }

@@ -16,7 +16,10 @@ import etomo.util.PrimativeTokenizer;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/30 23:42:20  sueh
+* <p> bug# 964 Abstract class to act as an interface for elements stored in ParsedElementList.
+* <p> </p>
 */
 public abstract class ParsedElement {
   public static  final String  rcsid =  "$Id$";
@@ -26,4 +29,5 @@ public abstract class ParsedElement {
   abstract ParsedElement getElement(int index);
   abstract int size();
   abstract String getParsableString();
+  abstract boolean isCollection();
 }
