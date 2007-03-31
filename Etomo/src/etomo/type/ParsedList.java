@@ -26,11 +26,14 @@ import etomo.util.PrimativeTokenizer;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/30 23:46:15  sueh
+ * <p> bug# 964 Parses a Matlab list.
+ * <p> </p>
  */
 public final class ParsedList {
   public static final String rcsid = "$Id$";
-  
+
   static final Character OPEN_SYMBOL = new Character('{');
   static final Character CLOSE_SYMBOL = new Character('}');
   static final Character DIVIDER_SYMBOL = new Character(',');
@@ -61,9 +64,10 @@ public final class ParsedList {
   public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType) {
     return new ParsedList(Type.NUMERIC, etomoNumberType);
   }
-  
-  public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType,int defaultValue) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType,defaultValue);
+
+  public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType,
+      int defaultValue) {
+    return new ParsedList(Type.NUMERIC, etomoNumberType, defaultValue);
   }
 
   public static ParsedList getNumericInstance(ReadOnlyAttribute attribute) {
@@ -78,7 +82,7 @@ public final class ParsedList {
     instance.parse(attribute);
     return instance;
   }
-  
+
   public static ParsedList getNumericInstance(ReadOnlyAttribute attribute,
       EtomoNumber.Type etomoNumberType, int defaultValue) {
     ParsedList instance = new ParsedList(Type.NUMERIC, etomoNumberType,
@@ -123,27 +127,23 @@ public final class ParsedList {
   public ParsedElement getElement(int index) {
     return list.get(index);
   }
-  
+
   public void addElement(ParsedElement element) {
     list.add(element);
   }
-  
+
   public String getParsableString() {
-    StringBuffer buffer= new StringBuffer(OPEN_SYMBOL.toString());
-    for (int i =0;i<list.size();i++) {
-      if (i>0) {
-        buffer.append(DIVIDER_SYMBOL.toString()+" ");
+    StringBuffer buffer = new StringBuffer(OPEN_SYMBOL.toString());
+    for (int i = 0; i < list.size(); i++) {
+      if (i > 0) {
+        buffer.append(DIVIDER_SYMBOL.toString() + " ");
       }
       buffer.append(list.get(i).getParsableString());
     }
     buffer.append(CLOSE_SYMBOL);
     return buffer.toString();
   }
-  
-  String getRawString(int index) {
-    return list.get(index).getRawString();
-  }
-  
+
   /**
    * Parse attribute value and set the list member variable.  May set the valid
    * member variable.
@@ -168,8 +168,7 @@ public final class ParsedList {
         token = tokenizer.next();
       }
       if (token == null
-          || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL
-              .charValue())) {
+          || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
         fail(value);
         return;
       }
@@ -179,8 +178,7 @@ public final class ParsedList {
         return;
       }
       if (token == null
-          || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL
-              .charValue())) {
+          || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
         fail(value);
         return;
       }
@@ -196,18 +194,15 @@ public final class ParsedList {
     if (token == null) {
       return null;
     }
-    while (valid
-        && token != null
-        && !token.is(Token.Type.EOL)
+    while (valid && token != null && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)
-        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL
-            .charValue())) {
+        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       try {
         if (token.is(Token.Type.WHITESPACE)) {
           token = tokenizer.next();
         }
         token = parseElement(token, tokenizer);
-        if (token.is(Token.Type.WHITESPACE)) {
+        if (token!=null&&token.is(Token.Type.WHITESPACE)) {
           token = tokenizer.next();
         }
       }
@@ -216,10 +211,8 @@ public final class ParsedList {
         fail(value);
         return token;
       }
-      if (!token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL
-          .charValue())
-          && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL
-              .charValue())) {
+      if (token==null||!token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())
+          && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
         fail(value);
       }
     }
@@ -228,8 +221,7 @@ public final class ParsedList {
 
   private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
     //end of list
-    if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL
-        .charValue())) {
+    if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       //This probably doesn't matter because its only necessary to keep track of
       //location of existing elements in a lightly populated array.  Its not really
       //necessary to track the size of the array.  But this does preserve the
@@ -241,8 +233,7 @@ public final class ParsedList {
       return token;
     }
     //found empty element
-    if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL
-        .charValue())) {
+    if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       list.addEmptyElement();
       return token;
     }
@@ -257,10 +248,9 @@ public final class ParsedList {
     else {
       element = new ParsedNumber(etomoNumberType, defaultValue);
     }
-    while (!token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL
-        .charValue())
-        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL
-            .charValue())) {
+    while (token != null
+        && !token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())
+        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       token = element.parse(token, tokenizer);
       list.add(element);
     }
