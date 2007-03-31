@@ -13,6 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.SpinnerNumberModel;
 
 import etomo.PeetManager;
 import etomo.comscript.ParallelParam;
@@ -43,6 +44,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/30 23:51:43  sueh
+ * <p> bug# 964 Added fields for the reference parameter.
+ * <p>
  * <p> Revision 1.14  2007/03/27 19:31:26  sueh
  * <p> bug# 964
  * <p>
@@ -106,34 +110,48 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final LabeledTextField ltfOutput = new LabeledTextField(OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
-  private final CheckBox cbUseTiltRange = new CheckBox("Use tilt range");
-  private final JPanel pnlRunParametersBody = new JPanel();
+  private final CheckBox cbUseTiltRange = new CheckBox(
+      "Use tilt range for missing wedge compensation");
+  private final SpacedPanel pnlRunParametersBody = new SpacedPanel();
   private final LabeledTextField ltfParticleNumber = new LabeledTextField(
       "Particle #: ");
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
+  private final LabeledTextField ltfSzVolX = new LabeledTextField(
+      "Volume size in X: ");
+  private final LabeledTextField ltfSzVolY = new LabeledTextField("Y: ");
+  private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
+  private final LabeledTextField ltfEdgeShift = new LabeledTextField(
+      "Edge shift: ");
+  private final CheckBox cbMeanFill = new CheckBox("Mean fill");
+  private final JPanel pnlCcMode = new JPanel();
+  private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
+      "Aligned base name: ");
   private final RadioButton rbInitMotlZero;
   private final RadioButton rbInitMotlZAxis;
   private final RadioButton rbInitMotlXAndZAxis;
   private final RadioButton rbInitMotlFiles;
-  private final PanelHeader setupHeader;
-  private final PanelHeader runParametersHeader;
+  private final PanelHeader phSetup;
+  private final PanelHeader phRunParameters;
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
   private final RadioButton rbVolumeReference;
   private final Spinner sVolumeNumber;
   private final RadioButton rbVolumeFile;
+  private final RadioButton rbCcModeNormalized;
+  private final RadioButton rbCcModeLocal;
+  private final LabeledSpinner lsDebugLevel;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     //setup construction
-    setupHeader = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
+    phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
     //run parameters construction
-    runParametersHeader = PanelHeader.getInstance("Run Parameters", this,
-        DIALOG_TYPE);
+    phRunParameters = PanelHeader.getAdvancedBasicInstance(
+        "Run Parameters", this, DIALOG_TYPE);
     ButtonGroup group = new ButtonGroup();
     rbVolumeReference = new RadioButton(VOLUME_NUMBER_LABEL, group);
     rbVolumeFile = new RadioButton(REFERENCE_FILE_LABEL, group);
@@ -146,12 +164,24 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbInitMotlXAndZAxis = new RadioButton("Initialize X and Z axis",
         MatlabParamFile.InitMotlCode.X_AND_Z_AXIS.intValue(), group);
     rbInitMotlFiles = new RadioButton("Use files", group);
+    group = new ButtonGroup();
+    rbCcModeNormalized = new RadioButton(
+        "Local energy normalized cross correlation",
+        MatlabParamFile.CCModeCode.NORMALIZED.intValue(), group);
+    rbCcModeLocal = new RadioButton("True local correlation coefficent",
+        MatlabParamFile.CCModeCode.LOCAL.intValue(), group);
+    lsDebugLevel = new LabeledSpinner("Debug level: ", new SpinnerNumberModel(
+        MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
+        MatlabParamFile.DEBUG_LEVEL_MAX, 1));
     //construnction
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
     rootPanel.add(createSetupPanel());
     rootPanel.add(createRunParametersPanel());
+    setDefaults();
+    updateDisplay();
+    updateAdvanceRunParameters(phRunParameters.isAdvanced());
     setTooltipText();
   }
 
@@ -172,13 +202,21 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       tooltip = EtomoAutodoc
           .getTooltip(autodoc, MatlabParamFile.TILT_RANGE_KEY);
       cbUseTiltRange.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc
-      .getTooltip(autodoc, MatlabParamFile.REFERENCE_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.REFERENCE_KEY);
       rbVolumeReference.setToolTipText(tooltip);
       rbVolumeFile.setToolTipText(tooltip);
       sVolumeNumber.setToolTipText(tooltip);
       ltfParticleNumber.setToolTipText(tooltip);
       ftfReferenceFile.setToolTipText(tooltip);
+      ltfEdgeShift.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParamFile.EDGE_SHIFT_KEY));
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.SZ_VOL_KEY);
+      ltfSzVolX.setToolTipText(tooltip);
+      ltfSzVolY.setToolTipText(tooltip);
+      ltfSzVolZ.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.CC_MODE_KEY);
+      rbCcModeNormalized.setToolTipText(tooltip);
+      rbCcModeLocal.setToolTipText(tooltip);
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -217,11 +255,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void getParameters(final PeetScreenState screenState) {
-    setupHeader.getState(screenState.getPeetSetupHeaderState());
+    phSetup.getState(screenState.getPeetSetupHeaderState());
   }
 
   public void setParameters(final ConstPeetScreenState screenState) {
-    setupHeader.setState(screenState.getPeetSetupHeaderState());
+    phSetup.setState(screenState.getPeetSetupHeaderState());
   }
 
   public void getParameters(final PeetMetaData metaData) {
@@ -280,11 +318,14 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void expand(final ExpandButton button) {
-    if (setupHeader.equalsOpenClose(button)) {
+    if (phSetup.equalsOpenClose(button)) {
       pnlSetupBody.setVisible(button.isExpanded());
     }
-    else if (runParametersHeader.equalsOpenClose(button)) {
+    else if (phRunParameters.equalsOpenClose(button)) {
       pnlRunParametersBody.setVisible(button.isExpanded());
+    }
+    else if (phRunParameters.equalsAdvancedBasic(button)) {
+      updateAdvanceRunParameters(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, manager);
   }
@@ -309,6 +350,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbInitMotlFiles.setSelected(true);
   }
 
+  private void updateAdvanceRunParameters(boolean advanced) {
+    pnlCcMode.setVisible(advanced);
+    ltfAlignedBaseName.setVisible(advanced);
+    cbMeanFill.setVisible(advanced);
+    lsDebugLevel.setVisible(advanced);
+  }
+
   private Container createSetupPanel() {
     //body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
@@ -319,9 +367,22 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     SpacedPanel pnlSetup = new SpacedPanel();
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
-    pnlSetup.add(setupHeader.getContainer());
+    pnlSetup.add(phSetup.getContainer());
     pnlSetup.add(pnlSetupBody);
     return pnlSetup.getContainer();
+  }
+
+  private void setDefaults() {
+    ltfEdgeShift.setText(MatlabParamFile.EDGE_SHIFT_DEFAULT);
+    MatlabParamFile.CCModeCode ccModeCode = MatlabParamFile.CCModeCode
+        .getDefault();
+    if (ccModeCode == MatlabParamFile.CCModeCode.NORMALIZED) {
+      rbCcModeNormalized.setSelected(true);
+    }
+    else if (ccModeCode == MatlabParamFile.CCModeCode.LOCAL) {
+      rbCcModeLocal.setSelected(true);
+    }
+    cbMeanFill.setSelected(MatlabParamFile.MEAN_FILL_DEFAULT);
   }
 
   private Container createRunParametersPanel() {
@@ -334,7 +395,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlVolumeReference.add(ltfParticleNumber.getContainer());
     //volume file
     JPanel pnlVolumeFile = new JPanel();
-    pnlVolumeFile.setLayout(new BoxLayout(pnlVolumeFile,BoxLayout.X_AXIS));
+    pnlVolumeFile.setLayout(new BoxLayout(pnlVolumeFile, BoxLayout.X_AXIS));
     pnlVolumeFile.add(rbVolumeFile.getComponent());
     pnlVolumeFile.add(ftfReferenceFile.getContainer());
     //reference
@@ -343,30 +404,44 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlReference.setBorder(new EtchedBorder("Reference").getBorder());
     pnlReference.add(pnlVolumeReference);
     pnlReference.add(pnlVolumeFile);
+    //szVol
+    JPanel pnlSzVol = new JPanel();
+    pnlSzVol.setLayout(new BoxLayout(pnlSzVol, BoxLayout.X_AXIS));
+    pnlSzVol.add(ltfSzVolX.getContainer());
+    pnlSzVol.add(ltfSzVolY.getContainer());
+    pnlSzVol.add(ltfSzVolZ.getContainer());
     //init MOTL
     JPanel pnlInitMotl = new JPanel();
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
-    pnlInitMotl.setAlignmentX(Component.CENTER_ALIGNMENT);
-    rbInitMotlZero.setSelected(true);
     pnlInitMotl.add(rbInitMotlZero.getComponent());
     pnlInitMotl.add(rbInitMotlZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
+    //CCMode
+    pnlCcMode.setLayout(new BoxLayout(pnlCcMode, BoxLayout.Y_AXIS));
+    pnlCcMode.setBorder(new EtchedBorder("Cross correlation measure")
+        .getBorder());
+    pnlCcMode.add(rbCcModeNormalized.getComponent());
+    pnlCcMode.add(rbCcModeLocal.getComponent());
     //body
-    pnlRunParametersBody.setLayout(new BoxLayout(pnlRunParametersBody,
-        BoxLayout.Y_AXIS));
+    pnlRunParametersBody.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlRunParametersBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunParametersBody.add(pnlReference);
+    pnlRunParametersBody.add(pnlSzVol);
     pnlRunParametersBody.add(pnlInitMotl);
-    cbUseTiltRange.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunParametersBody.add(cbUseTiltRange);
+    pnlRunParametersBody.add(ltfEdgeShift);
+    pnlRunParametersBody.add(pnlCcMode);
+    pnlRunParametersBody.add(cbMeanFill);
+    pnlRunParametersBody.add(lsDebugLevel);
     //header
     JPanel pnlRunParameters = new JPanel();
     pnlRunParameters
         .setLayout(new BoxLayout(pnlRunParameters, BoxLayout.Y_AXIS));
     pnlRunParameters.setBorder(BorderFactory.createEtchedBorder());
-    pnlRunParameters.add(runParametersHeader.getContainer());
-    pnlRunParameters.add(pnlRunParametersBody);
+    pnlRunParameters.add(phRunParameters.getContainer());
+    pnlRunParameters.add(pnlRunParametersBody.getContainer());
     return pnlRunParameters;
   }
 
@@ -394,8 +469,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     sVolumeNumber.setEnabled(enable && rbVolumeReference.isSelected());
     sVolumeNumber.setMax(size);
     ltfParticleNumber.setEnabled(enable && rbVolumeReference.isSelected());
-    rbVolumeFile.setEnabled(enable);
-    ftfReferenceFile.setEnabled(enable && rbVolumeFile.isSelected());
+    ftfReferenceFile.setEnabled(rbVolumeFile.isSelected());
   }
 
   private void chooseDirectory() {
