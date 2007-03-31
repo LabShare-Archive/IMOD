@@ -168,8 +168,8 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
   Icont *cont, *econt;
   int co,eco, nextz, iz, nextiz, i, j, k, indmin, needmat, matsize, zpass;
   float *sepmat;
-  float minsep, xlap, ylap;
-  int inside = 0;
+  float minsep, xlap, ylap, singleSep;
+  int indSingle, inside = 0;
 
   if (obj->flags & IMOD_OBJFLAG_OUT)
     inside = 1;
@@ -242,14 +242,35 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
 
       for (;;) {
         
-        /* Loop: find pair with minimum separation and mesh them */
+        /* Loop: find pair with minimum separation and mesh them; keep track
+         of a minimum for pairs including single points and pairs not */
         minsep = 1.e30;
-        for (i = 0; i < needmat; i++)
-          if (sepmat[i] >= 0. && sepmat[i] < minsep) {
-            minsep = sepmat[i];
-            indmin = i;
+        singleSep = 1.e30;
+        for (i = 0; i < needmat; i++) {
+          if (sepmat[i] >= 0) {
+            co = contatz[iz][i % numatz[iz]];
+            eco = contatz[nextiz][i / numatz[iz]];
+            if (obj->cont[co].psize == 1 || obj->cont[eco].psize == 1) {
+              if (sepmat[i] < singleSep) {
+                singleSep = sepmat[i];
+                indSingle = i;
+              }
+            } else {
+              if (sepmat[i] >= 0. && sepmat[i] < minsep) {
+                minsep = sepmat[i];
+                indmin = i;
+              }
+            }
           }
+        }
         
+        /* If only a single was found, use it.  This allows stray single 
+           point to be rejected unless it logically pairs up with something */
+        if (minsep > 1.e20 && singleSep < 1.e20) {
+          indmin = indSingle;
+          minsep = singleSep;
+        }
+
         /* Done if no more pairs available */
         if (minsep > 1.e20)
           break;
@@ -2877,6 +2898,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.3  2006/11/05 01:00:32  mast
+Added time to tube meshes
+
 Revision 1.2  2006/10/31 15:35:06  mast
 Propagated properties into fill point when breaking a contour in/out
 
