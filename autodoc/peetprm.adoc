@@ -61,11 +61,13 @@ comment = dPhi, dTheta, dPsi:
 comment = searchRadius:  The number of pixels to search in each dimension.
 
 [Field = lowCutoff]
-comment = lowCutoff, hiCutoff:
+KeyValueDelimiter = ==
+comment == lowCutoff, hiCutoff:
 ^The frequency domain cutoff parameters for prefiltering the particles and
 ^reference lowCutoff =< 0 prevents low frequency filtering, hiCutoff >= 0.866
 ^prevents high frequency filtering.  An optional second parameter defines the
 ^transition width.
+KeyValueDelimiter == =
 
 [Field = hiCutoff]
 
