@@ -39,6 +39,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/04/02 16:01:48  sueh
+ * <p> bug# 964 Added defaults and min/max for spinners.
+ * <p>
  * <p> Revision 1.9  2007/03/31 02:50:35  sueh
  * <p> bug# 964 Added Default values and CCModeCode.
  * <p>
@@ -81,6 +84,7 @@ public final class MatlabParamFile {
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
+  public static final InitMotlCode INIT_MOTL_DEFAULT = InitMotlCode.ZERO;
   public static final String TILT_RANGE_KEY = "tiltRange";
   public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   public static final String SZ_VOL_KEY = "szVol";
