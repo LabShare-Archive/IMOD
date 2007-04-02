@@ -44,7 +44,7 @@ final class CheckBoxCell extends InputCell {
     return checkBox;
   }
 
-  void setEnabled(boolean enabled) {
+  public void setEnabled(boolean enabled) {
     setEditable(enabled);
   }
 
@@ -103,6 +103,9 @@ final class CheckBoxCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/27 19:30:37  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.  Added setEnabled().
+ * <p>
  * <p> Revision 1.10  2007/03/01 01:28:11  sueh
  * <p> bug# 964 Made colors constant and moved them to Colors.
  * <p>
