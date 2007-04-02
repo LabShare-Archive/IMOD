@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2007/03/27 19:32:07  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
  * <p> Revision 1.28  2007/03/27 00:06:38  sueh
  * <p> bug# 964 Made HighlighterButton more thread-safe.  Removed unnecessary
  * <p> functions.
@@ -218,28 +221,28 @@ import etomo.util.DatasetFiles;
  * <p> fields.  Can expand the section field
  * <p> </p>
  */
-public final class SectionTableRow implements Highlightable{
+public final class SectionTableRow implements Highlightable {
   public static final String rcsid = "$Id$";
 
   static final String INVERTED_WARNING = "The handedness of structures will change in inverted sections.";
 
-  private final FieldCell setupSection = new FieldCell();
-  private final FieldCell joinSection = new FieldCell();
-  private final FieldCell sampleBottomStart = new FieldCell();
-  private final FieldCell sampleBottomEnd = new FieldCell();
-  private final FieldCell sampleTopStart = new FieldCell();
-  private final FieldCell sampleTopEnd = new FieldCell();
-  private final FieldCell slicesInSample = new FieldCell();
+  private final FieldCell setupSection = FieldCell.getIneditableInstance();
+  private final FieldCell joinSection = FieldCell.getIneditableInstance();
+  private final FieldCell sampleBottomStart = FieldCell.getEditableInstance();
+  private final FieldCell sampleBottomEnd = FieldCell.getEditableInstance();
+  private final FieldCell sampleTopStart = FieldCell.getEditableInstance();
+  private final FieldCell sampleTopEnd = FieldCell.getEditableInstance();
+  private final FieldCell slicesInSample = FieldCell.getIneditableInstance();
   private final HeaderCell currentChunk = new HeaderCell();
-  private final FieldCell referenceSection = new FieldCell();
-  private final FieldCell currentSection = new FieldCell();
-  private final FieldCell setupFinalStart = new FieldCell();
-  private final FieldCell setupFinalEnd = new FieldCell();
-  private final FieldCell joinFinalStart = new FieldCell();
-  private final FieldCell joinFinalEnd = new FieldCell();
-  private final FieldCell rotationAngleX = new FieldCell();
-  private final FieldCell rotationAngleY = new FieldCell();
-  private final FieldCell rotationAngleZ = new FieldCell();
+  private final FieldCell referenceSection = FieldCell.getIneditableInstance();
+  private final FieldCell currentSection = FieldCell.getIneditableInstance();
+  private final FieldCell setupFinalStart = FieldCell.getEditableInstance();
+  private final FieldCell setupFinalEnd = FieldCell.getEditableInstance();
+  private final FieldCell joinFinalStart = FieldCell.getEditableInstance();
+  private final FieldCell joinFinalEnd = FieldCell.getEditableInstance();
+  private final FieldCell rotationAngleX = FieldCell.getEditableInstance();
+  private final FieldCell rotationAngleY = FieldCell.getEditableInstance();
+  private final FieldCell rotationAngleZ = FieldCell.getEditableInstance();
 
   private final JoinManager manager;
   private final SectionTablePanel table;
@@ -283,13 +286,7 @@ public final class SectionTableRow implements Highlightable{
     this.manager = manager;
     this.table = table;
     this.sectionExpanded = sectionExpanded;
-    highlighterButton=HighlighterButton.getInstance(this,table);
-    //configure
-    setupSection.setEditable(false);
-    joinSection.setEditable(false);
-    slicesInSample.setEditable(false);
-    referenceSection.setEditable(false);
-    currentSection.setEditable(false);
+    highlighterButton = HighlighterButton.getInstance(this, table);
   }
 
   public String toString() {
@@ -775,15 +772,16 @@ public final class SectionTableRow implements Highlightable{
     data.setRowNumber(rowNumber);
     this.rowNumber.setText(String.valueOf(rowNumber));
   }
-/*
-  void setImodIndex(int imodIndex) {
-    this.imodIndex = imodIndex;
-  }
 
-  void setImodRotIndex(int imodRotIndex) {
-    this.imodRotIndex = imodRotIndex;
-  }
-*/
+  /*
+   void setImodIndex(int imodIndex) {
+   this.imodIndex = imodIndex;
+   }
+
+   void setImodRotIndex(int imodRotIndex) {
+   this.imodRotIndex = imodRotIndex;
+   }
+   */
   void setRotationAngles(SlicerAngles slicerAngles) {
     rotationAngleX.setValue(slicerAngles.getX().toString());
     rotationAngleY.setValue(slicerAngles.getY().toString());

@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/03/27 19:30:59  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.  Added setEnabled().
+ * <p>
  * <p> Revision 1.16  2007/03/26 18:38:34  sueh
  * <p> bug# 964 Prevented getContractedValue and getExpandedValue from returning null.
  * <p>
@@ -97,6 +100,7 @@ final class FieldCell extends InputCell {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
+  private final boolean editable;
   private String hiddenValue = null;
   private boolean hideValue = false;
   private boolean range = false;
@@ -106,7 +110,8 @@ final class FieldCell extends InputCell {
   private boolean fixedValues = false;
   private boolean inUse = true;
 
-  FieldCell() {
+  private FieldCell(boolean editable) {
+    this.editable=editable;
     //construction
     textField = new JTextField();
     //field
@@ -116,27 +121,48 @@ final class FieldCell extends InputCell {
     setForeground();
     setFont();
   }
+  
+  static FieldCell getEditableInstance() {
+    return new FieldCell(true);
+  }
+  
+  static FieldCell getIneditableInstance() {
+    FieldCell instance =  new FieldCell(false);
+    instance.setEditable(false);
+    return instance;
+  }
 
   static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell();
+    FieldCell instance = new FieldCell(false);
     instance.setEditable(false);
     instance.fixedValues = true;
     return instance;
   }
-  
-  void setEnabled(boolean enabled) {
-    setEditable(enabled);
+
+  public void setEnabled(boolean enable) {
+    setEditable(enable);
+    if (enable) {
+      setForeground();
+    }
+    else {
+      textField.setForeground(Colors.CELL_DISABLED_FOREGROUND);
+      textField.setDisabledTextColor(Colors.CELL_DISABLED_FOREGROUND);
+    }
   }
 
   void setEditable(boolean editable) {
+    //if this is not an editable instance, it can't be made editable
+    if (!this.editable &&editable) {
+      return;
+    }
     if (fixedValues && editable) {
       return;
     }
     super.setEditable(editable);
   }
-  
+
   void setInUse(boolean inUse) {
-    this.inUse=inUse;
+    this.inUse = inUse;
     setForeground();
   }
 
@@ -286,14 +312,14 @@ final class FieldCell extends InputCell {
   }
 
   String getContractedValue() {
-    if (contractedValue==null) {
+    if (contractedValue == null) {
       return "";
     }
     return contractedValue;
   }
 
   String getExpandedValue() {
-    if (expandedValue==null) {
+    if (expandedValue == null) {
       return "";
     }
     return expandedValue;

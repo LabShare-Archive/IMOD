@@ -18,22 +18,25 @@ import javax.swing.JPanel;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/04/02 16:02:49  sueh
+ * <p> bug# 964 A row of the iteration table, which contain per iteration PEET data.
+ * <p> </p>
  */
 final class IterationRow implements Highlightable{
   public static final String rcsid = "$Id$";
 
   private final HeaderCell number = new HeaderCell();
-  private final FieldCell dPhiStart = new FieldCell();
-  private final FieldCell dPhiIncrement = new FieldCell();
-  private final FieldCell dThetaStart = new FieldCell();
-  private final FieldCell dThetaIncrement = new FieldCell();
-  private final FieldCell dPsiStart = new FieldCell();
-  private final FieldCell dPsiIncrement = new FieldCell();
-  private final FieldCell searchRadius = new FieldCell();
-  private final FieldCell hiCutoff=new FieldCell();
-  private final FieldCell hiCutoffSigma=new FieldCell();
-  private final FieldCell refThreshold = new FieldCell();
+  private final FieldCell dPhiStart =  FieldCell.getEditableInstance();
+  private final FieldCell dPhiIncrement =  FieldCell.getEditableInstance();
+  private final FieldCell dThetaStart = FieldCell.getEditableInstance();
+  private final FieldCell dThetaIncrement =  FieldCell.getEditableInstance();
+  private final FieldCell dPsiStart =  FieldCell.getEditableInstance();
+  private final FieldCell dPsiIncrement =  FieldCell.getEditableInstance();
+  private final FieldCell searchRadius =  FieldCell.getEditableInstance();
+  private final FieldCell hiCutoff= FieldCell.getEditableInstance();
+  private final FieldCell hiCutoffSigma= FieldCell.getEditableInstance();
+  private final FieldCell refThreshold =  FieldCell.getEditableInstance();
   
   private final int index;
   private final JPanel panel;

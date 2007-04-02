@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/02 16:04:16  sueh
+ * <p> bug# 964 Not weighting the number and highlight buttons, so they will stay small.
+ * <p>
  * <p> Revision 1.11  2007/03/30 23:55:18  sueh
  * <p> bug# 964 Changes to accomodate parsing improvements in MatlabParamFile
  * <p>
@@ -82,11 +85,11 @@ final class VolumeRow implements Highlightable {
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
-  private final FieldCell tiltRangeStart = new FieldCell();
-  private final FieldCell tiltRangeEnd = new FieldCell();
-  private final FieldCell relativeOrientX = new FieldCell();
-  private final FieldCell relativeOrientY = new FieldCell();
-  private final FieldCell relativeOrientZ = new FieldCell();
+  private final FieldCell tiltRangeStart = FieldCell.getEditableInstance();
+  private final FieldCell tiltRangeEnd = FieldCell.getEditableInstance();
+  private final FieldCell relativeOrientX = FieldCell.getEditableInstance();
+  private final FieldCell relativeOrientY = FieldCell.getEditableInstance();
+  private final FieldCell relativeOrientZ = FieldCell.getEditableInstance();
   private final HighlighterButton btnHighlighter;
   private int imodIndex = -1;
 
@@ -204,6 +207,15 @@ final class VolumeRow implements Highlightable {
       relativeOrientY.setValue();
       relativeOrientZ.setValue();
     }
+  }
+
+  void registerInitMotlFileColumn(Column column) {
+    column.add(initMotlFile);
+  }
+
+  void registerTiltRangeColumn(Column column) {
+    column.add(tiltRangeStart);
+    column.add(tiltRangeEnd);
   }
 
   void imodVolume(Run3dmodMenuOptions menuOptions) {
