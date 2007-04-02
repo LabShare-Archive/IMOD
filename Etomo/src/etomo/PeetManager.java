@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/26 23:30:39  sueh
+ * <p> bug# 964 Setting metadata in ImodManager.
+ * <p>
  * <p> Revision 1.10  2007/03/26 18:33:32  sueh
  * <p> bug# 964 Prevent MatlabParamFile from loading a .prm file unless the user asks
  * <p> for the file to be read.
@@ -127,7 +130,7 @@ public class PeetManager extends BaseManager {
       loadMatlabAutodoc(false);
       if (peetDialog != null) {
         peetDialog.setDirectory(paramFile.getParent());
-        peetDialog.setOutput(rootName);
+        peetDialog.setFnOutput(rootName);
         peetDialog.updateDisplay(true);
       }
     }
@@ -156,7 +159,7 @@ public class PeetManager extends BaseManager {
     if (peetDialog == null) {
       return false;
     }
-    String name = peetDialog.getOutput();
+    String name = peetDialog.getFnOutput();
     File paramFile = new File(peetDialog.getDirectory(), name
         + DatasetFiles.PEET_DATA_FILE_EXT);
     if (!paramFile.exists()) {
