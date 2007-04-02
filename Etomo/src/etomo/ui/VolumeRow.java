@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/30 23:55:18  sueh
+ * <p> bug# 964 Changes to accomodate parsing improvements in MatlabParamFile
+ * <p>
  * <p> Revision 1.10  2007/03/27 19:32:49  sueh
  * <p> bug# 964 Number the rows.
  * <p>
@@ -108,7 +111,7 @@ final class VolumeRow implements Highlightable {
     setExpandableValues(fnVolume, fnVolumeFile);
     setExpandableValues(fnModParticle, fnModParticleFile);
     btnHighlighter = HighlighterButton.getInstance(this, table);
-    number.setText(String.valueOf(index+1));
+    number.setText(String.valueOf(index + 1));
   }
 
   public void highlight(final boolean highlight) {
@@ -123,11 +126,12 @@ final class VolumeRow implements Highlightable {
   }
 
   void display() {
-    constraints.weightx = 0.1;
+    constraints.weightx = 0.0;
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
-    number.add(panel,layout,constraints);
+    number.add(panel, layout, constraints);
     btnHighlighter.add(panel, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 2;
     fnVolume.add(panel, layout, constraints);
     fnModParticle.add(panel, layout, constraints);
