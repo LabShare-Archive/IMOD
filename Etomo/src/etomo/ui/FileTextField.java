@@ -22,6 +22,10 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/30 23:49:23  sueh
+ * <p> bug# 964 Added an option to create an unlabeled version of class.  The unlabeled
+ * <p> version is still named.
+ * <p>
  * <p> Revision 1.1  2007/02/22 20:37:39  sueh
  * <p> bug# 964 Moved FileTextField from JoinDialog to the etomo.ui package so that it
  * <p> can be shared.
@@ -34,17 +38,17 @@ final class FileTextField {
       .getSystemResource("images/openFile.gif")));
   private final SpacedPanel panel = new SpacedPanel();
   private final TextField field;
-  
+
   private JLabel label = null;
 
   FileTextField(String label) {
-    this(label,true);
+    this(label, true);
   }
-  
-  private FileTextField(String label,boolean labeled) {
+
+  private FileTextField(String label, boolean labeled) {
     panel.setBoxLayout(BoxLayout.X_AXIS);
     if (labeled) {
-      this.label=new JLabel(label);
+      this.label = new JLabel(label);
       panel.add(this.label);
     }
     field = new TextField(label);
@@ -54,11 +58,18 @@ final class FileTextField {
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
   }
-  
+
   static FileTextField getUnlabeledInstance(String actionCommand) {
-    return new FileTextField(actionCommand,false);
+    return new FileTextField(actionCommand, false);
   }
-  
+
+  /**
+   * The action command is the label passed into the constructor, whether or not a
+   * label is displayed.  If the label is shared with another field that uses the
+   * same action listener, then you will not know which field responded to an action.
+   * Use different action listeners when the label is share between fields.
+   * @return
+   */
   String getActionCommand() {
     return button.getActionCommand();
   }
@@ -75,7 +86,7 @@ final class FileTextField {
     field.setEditable(editable);
     button.setEnabled(editable);
   }
-  
+
   void setEnabled(boolean enabled) {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
