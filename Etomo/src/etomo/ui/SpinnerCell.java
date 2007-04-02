@@ -56,7 +56,7 @@ class SpinnerCell extends InputCell {
   /**
    * disable - the buttons shouldn't work
    */
-  void setEnabled(boolean enabled) {
+  public void setEnabled(boolean enabled) {
     this.enabled=enabled;
     getComponent().setEnabled(enabled);
     if (!disabledValue.isNull()) {
@@ -181,6 +181,9 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/27 19:32:23  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
  * <p> Revision 1.10  2007/03/01 01:44:26  sueh
  * <p> bug# 964 Moved colors from InputCell to Colors.
  * <p>

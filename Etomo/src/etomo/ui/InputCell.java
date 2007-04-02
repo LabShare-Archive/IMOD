@@ -23,7 +23,7 @@ import javax.swing.plaf.ColorUIResource;
  * 
  * @version $Revision$
  */
-abstract class InputCell {
+abstract class InputCell implements Cell{
   public static final String rcsid = "$Id$";
 
   private boolean editable = true;
@@ -39,7 +39,7 @@ abstract class InputCell {
 
   abstract int getWidth();
   
-  abstract void setEnabled(boolean enabled);
+  public abstract void setEnabled(boolean enabled);
 
   abstract void setToolTipText(String toolTipText);
 
@@ -143,6 +143,9 @@ abstract class InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/27 19:31:11  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
  * <p> Revision 1.7  2007/03/01 01:38:21  sueh
  * <p> bug# 964 Made InputCell colors constant and moved them to Colors.  Added
  * <p> setExpandableValues, getContractedValue, and getExpandedValue.

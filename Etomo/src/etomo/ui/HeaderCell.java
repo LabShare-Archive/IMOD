@@ -29,7 +29,7 @@ import etomo.type.EtomoNumber;
  * 
  * @version $Revision$
  */
-final class HeaderCell {
+final class HeaderCell implements Cell{
   public static final String rcsid = "$Id$";
 
   private static final ColorUIResource background = new ColorUIResource(204,
@@ -99,8 +99,18 @@ final class HeaderCell {
     cell.setBorderPainted(borderPainted);
   }
 
-  void setEnabled(boolean enable) {
-    cell.setEnabled(enable);
+  public void setEnabled(boolean enable) {
+    if (controlColor) {
+      if (enable) {
+        cell.setForeground(Colors.FOREGROUND);
+      }
+      else {
+        cell.setForeground(Colors.CELL_DISABLED_FOREGROUND);
+      }
+    }
+    else {//push button
+      cell.setEnabled(enable);
+    }
   }
 
   void setBorder(Border border) {
@@ -211,6 +221,9 @@ final class HeaderCell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.17  2007/03/27 00:02:45  sueh
+ * * <p> bug# 964 Using a setPreferredSize() call to get the sizing to work.
+ * * <p>
  * * <p> Revision 1.16  2007/03/01 01:35:21  sueh
  * * <p> bug# 964 Changed cell to an AbstractButton.  Allowed HeaderCell to be a
  * * <p> toggle button.
