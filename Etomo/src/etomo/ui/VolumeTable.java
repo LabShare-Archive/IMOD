@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/03/30 23:56:09  sueh
+ * <p> bug# 964 Informing PeetDialog when the number of rows changes.
+ * <p>
  * <p> Revision 1.12  2007/03/27 19:32:58  sueh
  * <p> bug# 964 Number the rows.
  * <p>
@@ -94,7 +97,6 @@ final class VolumeTable implements Expandable, Highlightable,
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
-  private final JPanel pnlButtons = new JPanel();
   private final MultiLineButton btnAddFnVolume = new MultiLineButton(
       "Add Volume and Model");
   private final MultiLineButton btnSetInitMotlFile = new MultiLineButton(
@@ -149,7 +151,6 @@ final class VolumeTable implements Expandable, Highlightable,
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     constraints.fill = GridBagConstraints.BOTH;
     constraints.anchor = GridBagConstraints.CENTER;
-    constraints.weighty = 0.0;
     constraints.gridheight = 1;
     display();
     //border
@@ -158,6 +159,7 @@ final class VolumeTable implements Expandable, Highlightable,
     pnlBorder.setBorder(new EtchedBorder("Boundary Table").getBorder());
     pnlBorder.add(pnlTable);
     //buttons
+    JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     btnAddFnVolume.setSize();
     pnlButtons.add(btnAddFnVolume.getComponent());
@@ -255,6 +257,7 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   private void display() {
+    constraints.weighty = 0.0;
     //First header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
@@ -467,9 +470,6 @@ final class VolumeTable implements Expandable, Highlightable,
     r3bVolume.addActionListener(actionListener);
   }
 
-  /**
-   * Uses lazy construction.
-   */
   private static final class RowList {
     private final List list = new ArrayList();
     private ConstPeetMetaData metaData = null;
