@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/04/02 21:52:40  sueh
+ * <p> bug# 964 Rearranged fields.
+ * <p>
  * <p> Revision 1.17  2007/04/02 16:03:29  sueh
  * <p> bug# 964 Added Run panel.
  * <p>
@@ -126,7 +129,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
-      "Volume size in X: ");
+  "Particle volume size in X: ");
   private final LabeledTextField ltfSzVolY = new LabeledTextField("Y: ");
   private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
   private final LabeledTextField ltfEdgeShift = new LabeledTextField(
