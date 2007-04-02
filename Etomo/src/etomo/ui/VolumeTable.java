@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/04/02 16:04:54  sueh
+ * <p> bug# 964 Made pnlButtons local.
+ * <p>
  * <p> Revision 1.13  2007/03/30 23:56:09  sueh
  * <p> bug# 964 Informing PeetDialog when the number of rows changes.
  * <p>
@@ -128,6 +131,8 @@ final class VolumeTable implements Expandable, Highlightable,
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
+  private final Column initMotlFileColumn = new Column();
+  private final Column tiltRangeColumn = new Column();
   private final ExpandButton btnExpandFnVolume;
   private final ExpandButton btnExpandFnModParticle;
   private final ExpandButton btnExpandInitMotlFile;
@@ -135,6 +140,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private final PeetDialog parent;
 
   private File lastLocation = null;
+  private boolean useInitMotlFile = true;
 
   private VolumeTable(final PeetManager manager, final PeetDialog parent) {
     this.manager = manager;
@@ -146,35 +152,7 @@ final class VolumeTable implements Expandable, Highlightable,
     btnExpandInitMotlFile = ExpandButton.getInstance(this,
         ExpandButton.Type.MORE);
     r3bVolume = new Run3dmodButton("Open in 3dmod", this);
-    //table
-    pnlTable.setLayout(layout);
-    pnlTable.setBorder(LineBorder.createBlackLineBorder());
-    constraints.fill = GridBagConstraints.BOTH;
-    constraints.anchor = GridBagConstraints.CENTER;
-    constraints.gridheight = 1;
-    display();
-    //border
-    SpacedPanel pnlBorder = new SpacedPanel();
-    pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlBorder.setBorder(new EtchedBorder("Boundary Table").getBorder());
-    pnlBorder.add(pnlTable);
-    //buttons
-    JPanel pnlButtons = new JPanel();
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    btnAddFnVolume.setSize();
-    pnlButtons.add(btnAddFnVolume.getComponent());
-    btnSetInitMotlFile.setSize();
-    pnlButtons.add(btnSetInitMotlFile.getComponent());
-    btnReadTiltFile.setSize();
-    pnlButtons.add(btnReadTiltFile.getComponent());
-    r3bVolume.setSize();
-    pnlButtons.add(r3bVolume.getComponent());
-    //root
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.setBorder(BorderFactory.createEtchedBorder());
-    rootPanel.add(pnlBorder.getContainer());
-    rootPanel.add(pnlButtons);
-    //update display
+    createTable();
     updateDisplay();
     setToolTipText();
   }
@@ -236,17 +214,61 @@ final class VolumeTable implements Expandable, Highlightable,
   void getParameters(final MatlabParamFile matlabParamFile) {
     rowList.getParameters(matlabParamFile);
   }
-  
+
   int size() {
     return rowList.size();
   }
-  
+
+  void updateDisplay(boolean useInitMotlFile, boolean useTiltRange) {
+    this.useInitMotlFile = useInitMotlFile;
+    initMotlFileColumn.setEnabled(useInitMotlFile);
+    tiltRangeColumn.setEnabled(useTiltRange);
+    updateDisplay();
+  }
+
+  private void createTable() {
+    //columns
+    initMotlFileColumn.add(header1InitMotlFile);
+    initMotlFileColumn.add(header2InitMotlFile);
+    tiltRangeColumn.add(header1TiltRange);
+    tiltRangeColumn.add(header2TiltRangeStart);
+    tiltRangeColumn.add(header2TiltRangeEnd);
+    //table
+    pnlTable.setLayout(layout);
+    pnlTable.setBorder(LineBorder.createBlackLineBorder());
+    constraints.fill = GridBagConstraints.BOTH;
+    constraints.anchor = GridBagConstraints.CENTER;
+    constraints.gridheight = 1;
+    display();
+    //border
+    SpacedPanel pnlBorder = new SpacedPanel();
+    pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlBorder.setBorder(new EtchedBorder("Volume Table").getBorder());
+    pnlBorder.add(pnlTable);
+    //buttons
+    JPanel pnlButtons = new JPanel();
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+    btnAddFnVolume.setSize();
+    pnlButtons.add(btnAddFnVolume.getComponent());
+    btnSetInitMotlFile.setSize();
+    pnlButtons.add(btnSetInitMotlFile.getComponent());
+    btnReadTiltFile.setSize();
+    pnlButtons.add(btnReadTiltFile.getComponent());
+    r3bVolume.setSize();
+    pnlButtons.add(r3bVolume.getComponent());
+    //root
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setBorder(BorderFactory.createEtchedBorder());
+    rootPanel.add(pnlBorder.getContainer());
+    rootPanel.add(pnlButtons);
+  }
+
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(r3bVolume.getActionCommand())) {
       imodVolume(menuOptions);
     }
   }
-  
+
   private void imodVolume(Run3dmodMenuOptions menuOptions) {
     VolumeRow row = rowList.getHighlightedRow();
     if (row == null) {
@@ -445,7 +467,7 @@ final class VolumeTable implements Expandable, Highlightable,
 
   private VolumeRow addRow(final File fnVolume, final File fnModel) {
     VolumeRow row = rowList.add(manager, fnVolume, fnModel, this, pnlTable,
-        layout, constraints);
+        layout, constraints, initMotlFileColumn, tiltRangeColumn);
     row.display();
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
@@ -457,7 +479,8 @@ final class VolumeTable implements Expandable, Highlightable,
     btnExpandFnVolume.setEnabled(enable);
     btnExpandFnModParticle.setEnabled(enable);
     btnExpandInitMotlFile.setEnabled(enable);
-    btnSetInitMotlFile.setEnabled(enable && rowList.isHighlighted());
+    btnSetInitMotlFile.setEnabled(enable && rowList.isHighlighted()
+        && useInitMotlFile);
     btnReadTiltFile.setEnabled(enable && rowList.isHighlighted());
     r3bVolume.setEnabled(enable && rowList.isHighlighted());
   }
@@ -481,10 +504,13 @@ final class VolumeTable implements Expandable, Highlightable,
     private synchronized VolumeRow add(final BaseManager manager,
         final File fnVolume, final File fnModParticle, final VolumeTable table,
         final JPanel panel, final GridBagLayout layout,
-        final GridBagConstraints constraints) {
+        final GridBagConstraints constraints, Column initMotlFileColumn,
+        Column tiltRangeColumn) {
       VolumeRow row = VolumeRow.getInstance(manager, fnVolume, fnModParticle,
           list.size(), table, panel, layout, constraints);
       list.add(row);
+      row.registerInitMotlFileColumn(initMotlFileColumn);
+      row.registerTiltRangeColumn(tiltRangeColumn);
       //When this function is used to load from the .epe and .prm files,
       //metadata must be set before MatlabParamFile data.  Wait until row is
       //added, then set from metadata.

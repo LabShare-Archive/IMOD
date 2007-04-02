@@ -35,7 +35,10 @@ import etomo.type.EtomoAutodoc;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/04/02 16:03:05  sueh
+ * <p> bug# 964 Contains per iteration PEET data.
+ * <p> </p>
  */
 final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
@@ -53,15 +56,15 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2DPhi = new HeaderCell("Phi");
   private final HeaderCell header2DTheta = new HeaderCell("Theta");
   private final HeaderCell header2DPsi = new HeaderCell("Psi");
-  private final HeaderCell header3DPhiStart = new HeaderCell("Start",
+  private final HeaderCell header3DPhiStart = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPhiIncrement = new HeaderCell("Incr.",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaStart = new HeaderCell("Start",
+  private final HeaderCell header3DThetaStart = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaIncrement = new HeaderCell("Incr.",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiStart = new HeaderCell("Start",
+  private final HeaderCell header3DPsiStart = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell("Incr.",
       UIParameters.INSTANCE.getNumericWidth());
