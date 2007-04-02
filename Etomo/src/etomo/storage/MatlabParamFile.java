@@ -39,6 +39,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/31 02:50:35  sueh
+ * <p> bug# 964 Added Default values and CCModeCode.
+ * <p>
  * <p> Revision 1.8  2007/03/30 23:39:35  sueh
  * <p> bug# 964 Modified this class to work with ParsedList and ParsedElement.
  * <p>
@@ -87,6 +90,7 @@ public final class MatlabParamFile {
   public static final String D_PSI_KEY = "dPsi";
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
+  public static final int LOW_CUTOFF_DEFAULT = 0;
   public static final String HI_CUTOFF_KEY = "hiCutoff";
   public static final String CC_MODE_KEY = "CCMode";
   public static final String REF_THRESHOLD_KEY = "refThreshold";
@@ -103,6 +107,9 @@ public final class MatlabParamFile {
   public static final int DEBUG_LEVEL_MAX = 3;
   public static final int DEBUG_LEVEL_DEFAULT = 3;
   public static final String PARTICLE_PER_CPU_KEY = "particlePerCPU";
+  public static final int PARTICLE_PER_CPU_MIN = 1;
+  public static final int PARTICLE_PER_CPU_MAX = 20;
+  public static final int PARTICLE_PER_CPU_DEFAULT = 5;
 
   private final ParsedNumber particlePerCpu = new ParsedNumber();
   private final ParsedArray szVol = new ParsedArray();
