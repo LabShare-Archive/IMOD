@@ -3,13 +3,12 @@
  * June 2005 - Tor Mohling
  */
 /* 
-   $Author$
-   
-   $Date$
-   
-   $Revision$
+   $Id$
    
    $Log$
+   Revision 1.4  2006/10/04 15:27:28  mast
+   Added conditional declaration of the init function to work in Python 2.2
+
    Revision 1.3  2006/10/03 14:42:22  mast
    Fixed PipGetInOutFile if no string returned, and added to method table
 
@@ -619,7 +618,7 @@ static PyMethodDef pipmethods[] = {
   { "PipGetInteger",         pip_PipGetInteger,         METH_VARARGS },
   { "PipGetTwoIntegers",     pip_PipGetTwoIntegers,     METH_VARARGS },
   { "PipGetThreeIntegers",   pip_PipGetThreeIntegers,   METH_VARARGS },
-  { "PiPGetIntegerArray",    pip_PipGetIntegerArray,    METH_VARARGS },
+  { "PipGetIntegerArray",    pip_PipGetIntegerArray,    METH_VARARGS },
   { "PipGetFloat",           pip_PipGetFloat,           METH_VARARGS },
   { "PipGetTwoFloats",       pip_PipGetTwoFloats,       METH_VARARGS },
   { "PipGetThreeFloats",     pip_PipGetThreeFloats,     METH_VARARGS },
