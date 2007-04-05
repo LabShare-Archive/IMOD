@@ -38,6 +38,17 @@ int AdocGetThreeFloats(char *collName, int sectInd, char *key, float *val1,
                        float *val2, float *val3);
 int AdocGetFloatArray(char *collName, int sectInd, char *key, float *array,
                       int *numToGet, int arraySize);
+int AdocSetInteger(char *typeName, int sectInd, char *key, int ival);
+int AdocSetTwoIntegers(char *typeName, int sectInd, char *key, int ival1, 
+                       int ival2);
+int AdocSetThreeIntegers(char *typeName, int sectInd, char *key, int ival1,
+                         int ival2, int ival3);
+int AdocSetFloat(char *typeName, int sectInd, char *key, float val);
+int AdocSetTwoFloats(char *typeName, int sectInd, char *key, float val1, 
+                     float val2);
+int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
+                       float val2, float val3);
+
 #ifdef __cplusplus
 }
 #endif
@@ -45,6 +56,9 @@ int AdocGetFloatArray(char *collName, int sectInd, char *key, float *array,
 
 /*
   $Log$
+  Revision 3.2  2006/10/17 18:01:26  mast
+  Gettingthe Id string right
+
   Revision 3.1  2006/10/17 18:00:32  mast
   Added to package
 

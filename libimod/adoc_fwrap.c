@@ -36,6 +36,12 @@
 #define adocgettwofloats ADOCGETTWOFLOATS
 #define adocgetthreefloats ADOCGETTHREEFLOATS
 #define adocgetfloatarray ADOCGETFLOATARRAY
+#define adocsetinteger ADOCSETINTEGER
+#define adocsettwointegers ADOCSETTWOINTEGERS
+#define adocsetthreeintegers ADOCSETTHREEINTEGERS
+#define adocsetfloat ADOCSETFLOAT
+#define adocsettwofloats ADOCSETTWOFLOATS
+#define adocsetthreefloats ADOCSETTHREEFLOATS
 #else
 #define adocread adocread_
 #define adocnew adocnew_
@@ -56,6 +62,12 @@
 #define adocgettwofloats adocgettwofloats_
 #define adocgetthreefloats adocgetthreefloats_
 #define adocgetfloatarray adocgetfloatarray_
+#define adocsetinteger adocsetinteger_
+#define adocsettwointegers adocsettwointegers_
+#define adocsetthreeintegers adocsetthreeintegers_
+#define adocsetfloat adocsetfloat_
+#define adocsettwofloats adocsettwofloats_
+#define adocsetthreefloats adocsetthreefloats_
 #endif
 
 static int twof2cstr(char *collName, char *key, int collSize, int keySize, 
@@ -130,8 +142,86 @@ int adocsetkeyvalue(char *collName, int *sectInd, char *key, char *value,
   free(kStr);
   free(vStr);
   return err;
-
 }
+
+int adocsetinteger(char *collName, int *sectInd, char *key, int *ival,
+                   int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetInteger(cStr, *sectInd - 1, kStr, *ival);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
+int adocsettwointegers(char *collName, int *sectInd, char *key, int *ival1,
+                       int *ival2, int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetTwoIntegers(cStr, *sectInd - 1, kStr, *ival1, *ival2);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
+int adocsetthreeintegers(char *collName, int *sectInd, char *key, int *ival1,
+                         int *ival2, int *ival3, int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetThreeIntegers(cStr, *sectInd - 1, kStr, *ival1, *ival2, *ival3);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
+int adocsetfloat(char *collName, int *sectInd, char *key, float *val,
+                 int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetFloat(cStr, *sectInd - 1, kStr, *val);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
+int adocsettwofloats(char *collName, int *sectInd, char *key, float *val1,
+                     float *val2, int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetTwoFloats(cStr, *sectInd - 1, kStr, *val1, *val2);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
+int adocsetthreefloats(char *collName, int *sectInd, char *key, float *val1,
+                       float *val2, float *val3, int collSize, int keySize)
+{
+  char *cStr, *kStr;
+  int err;
+  if (twof2cstr(collName, key, collSize, keySize, &cStr, &kStr))
+    return -1;
+  err = AdocSetThreeFloats(cStr, *sectInd - 1, kStr, *val1, *val2, *val3);
+  free(cStr);
+  free(kStr);
+  return err;
+}
+
 
 int adocdeletekeyvalue(char *collName, int *sectInd, char *key, int collSize, 
                        int keySize)
@@ -328,4 +418,7 @@ static char *adocf2cstr(char *str, int strSize)
 
 /*
   $Log$
+  Revision 3.1  2006/10/17 18:14:52  mast
+  Added to package
+
 */
