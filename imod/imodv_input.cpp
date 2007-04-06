@@ -545,12 +545,9 @@ static void imodv_light_move(ImodvApp *a)
       imodvFinishChgUnit();
       firstMove = 0;
     }
-    /*        a->lightx += 10 * (mx - a->lmx);
-              a->lighty += 10 * (my - a->lmy);
-              light_move(&(a->lightx), &(a->lighty));
-    */
-    light_moveby(10 * (mx - a->lmx),
-                 10 * (my - a->lmy));
+    
+    // 4/3/07: remove factor of 10 so sensitivity can be less
+    light_moveby(mx - a->lmx, my - a->lmy);
   }
   imodvDraw(a);
   return;
@@ -1111,6 +1108,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.22  2006/10/05 15:41:32  mast
+    Provided for primary and second non-TIFF snapshot format
+
     Revision 4.21  2006/09/12 15:47:19  mast
     Handled contour member renames
 
