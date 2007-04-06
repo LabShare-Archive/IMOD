@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/6/07: Increased range of light movement in model view and made rate of
+movement fairly uniform across range of angles.
+
 3/28/07: Fixed bug in binvol for (large?) images with ny < nx.
 
 3/28/07: Fixed crashes of 3dmod when focus is in a toolbar edit box in slicer,
