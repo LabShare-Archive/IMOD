@@ -323,9 +323,9 @@ type = IP
 usage = Width in X and Y across which to blend overlaps
 tooltip = 
 manpage = Width in X and Y across which to blend overlaps.  The default is:
-80% of the overlap zone width for overlap width less than 63,
-50 pixels for overlap width between 63 and 100, or
-50% of the overlap width for overlap width greater than 100.
+^  80% of the overlap zone width for overlap width less than 63,
+^  50 pixels for overlap width between 63 and 100, or
+^  50% of the overlap width for overlap width greater than 100.
 
 [Field = BoxSizeShortAndLong]
 short = boxsize
@@ -358,6 +358,56 @@ manpage = Borders at the edge of the overlap zone in the short and long
 directions which will be excluded when finding edge functions.  The default
 size is 5 pixels in each direction for frame sizes up to 1024 pixels,
 increasing proportional to the maximum dimension of the frame above 1024.
+
+[Field = GoodEdgeLowAndHighZ]
+short = goodedge
+type = IP
+usage = Default lower and upper Z limits for where edge functions are good
+tooltip = 
+manpage = Default lower and upper Z limits for where edge functions are good
+(numbered from 0).
+Beyond these limits, the edge functions will be taken from the last good Z 
+value.  If this option is entered, these limits will applied to all edges
+except ones specified with onegood.
+
+[Field = OneGoodEdgeLimits]
+short = onegood
+type = IAM
+usage = specification of an edge and Z limits within which its edge functions 
+are good
+tooltip = 
+manpage = This options specifies lower and upper Z limits for a specific edge;
+beyond these limits the edge functions will be taken from the last good Z
+value.  Five values are expected: number of frame below the edge in X and Y
+(numbered from 1), 1 for an edge in X or 2 for an edge in Y, lower and upper Z
+limits (numbered from 0).
+
+[Field = ParallelMode]
+short = parallel
+type = IP
+usage = Mode for setting up or running parallel blend and max sections
+tooltip = 
+manpage = Mode for setting up or running a parallel blend.  The possibilities 
+for the first value are:
+^   > 0: The program will check for the legality of blending in parallel and
+output subset section lists for running with the given number of target
+chunks.  The second value should be the maximum number of sections to put in
+each chunk.
+^  -1: The program will create and write the header for a common output file
+to be written directly by multiple blends.  The second value is irrelevant.
+^  -2: The program will write the given subset of sections directly to a
+common output file.  The second value is irrelevant.
+^  -3: The program will take the SubsetToDo as the SectionsToDo and write
+these sections to a new file; multiple files will need to be stacked
+afterwards.  The second value is irrelevant.
+
+[Field = SubsetToDo]
+short = subset
+type = LI
+usage = Subset of sections to do in parallel blend
+tooltip = 
+manpage = List of subset of sections to blend when running multiple blends in
+parallel.  This option is ignored unless ParallelMode is -1 or -2.
 
 [SectionHeader = XCOptions]
 usage = CROSS-CORRELATION CONTROL OPTIONS 
