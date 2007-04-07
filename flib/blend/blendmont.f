@@ -35,7 +35,7 @@ c
       integer nbytes_recl_item,limneg
       include 'recl_bytes.inc'
       include 'blend.inc'
-      character*120 filnam,edgenam
+      character*160 filnam,edgenam,plOutfile, outFile
       character*80 rootname
       character*80 concat
       character*4 edgeext(2)/'.xef','.yef'/
@@ -71,8 +71,8 @@ c
 c       
       integer*4 iblend(2)			!blending width in x and y
       integer*4 indoneedge(2),indedge4(3,2),nedgetmp(5,2)
-      integer*4 listz(limsect),izwant(limsect)
-      logical skipxforms,undistortOnly
+      integer*4 listz(limsect),izwant(limsect), izAllWant(limsect)
+      logical skipxforms,undistortOnly,xcWriteOut
       character dat*9, tim*8
       real*4 edgefrac(2),title(20),distout(2),edgefrac4(3,2)
       real*4 edgefracx,edgefracy
@@ -82,7 +82,7 @@ c
       logical edgedone(limedge,2),multineg(limsect),active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
-      logical xcorrDebug,verySloppy
+      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete
       real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
       real*4 edgedispx(limedge,2),edgedispy(limedge,2)
       real*4 aftermean(2),aftermax(2)
@@ -91,10 +91,10 @@ c
 c       the former rotrans structures
       real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),rnet(6)
       integer*4 modepow(0:15)/8,15,8,0,0,0,15,0,0,9,10,11,12,13,14,15/
-      integer*4  minxwant, maxxwant
-      integer*4  minywant, maxywant
+      integer*4  minxwant, maxxwant, modeParallel, nzAllWant, numOut, numChunks
+      integer*4  minywant, maxywant, maxSects, numExtra
 c       
-      character*120 idfFile, magGradFile
+      character*160 idfFile, magGradFile
       integer*4 inputBinning,idfNx, idfNy, idfBinning
       real*4 pixelIdf, binRatio
 c       
@@ -104,7 +104,7 @@ c
       integer*4 nxtotwant,nytotwant,newxpieces,newypieces,ifoldedge
       integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
       integer*4 newminypiece,ifwant,nglist,ierr,nxfrmpneg,nyfrmpneg
-      real*4 dmin,dmax,outmin,outmax,definmin
+      real*4 dmin,dmax,outmin,outmax,definmin,pixelTot
       real*4 definmax,curinmin,curinmax,pixscale,pixadd
       real*8 tsum,cursum,grandsum,rnsum
       integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
@@ -132,7 +132,7 @@ c
       integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
       real*4 x4,y4,dx4,dy4,f34,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
       real*4 dmagnew,rotnew,tiltOffset
-      integer*4 iBinning, nyWrite, nlineTot,indentXC
+      integer*4 iBinning, nyWrite, nlineTot,indentXC,numZero
       integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
       integer*4 imodBackupFile
       real*4 sind,cosd,oneintrp
@@ -142,7 +142,7 @@ c
       integer*4 PipGetInteger,PipGetBoolean, PipGetThreeFloats
       integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
       integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
-      integer*4 PipGetNonOptionArg,PipGetInOutFile
+      integer*4 PipGetNonOptionArg,PipGetInOutFile,PipNumberOfEntries
 c       
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
@@ -211,6 +211,11 @@ c
       undistortOnly = .false.
       iBinning = 1
       numAngles = 0
+      numUseEdge = 0
+      izUseDefLow = -1
+      izUseDefHigh = -1
+      modeParallel = 0
+      outFile = ' '
 c       
 c       Xcorr parameters
 c       11/5/05: increased taper fraction 0.05->0.1 to protect against
@@ -237,19 +242,14 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 c       
       if (PipGetInOutFile('ImageInputFile', numNonOptArg + 1,
-     &    'Input image file', filnam) .ne. 0) call errorexit(
+     &    'Input image file', filnam) .ne. 0) call exitError(
      &    'NO INPUT IMAGE FILE SPECIFIED')
       call imopen(1,filnam,'ro')
       call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
 c       
       if (PipGetInOutFile('ImageOutputFile', numNonOptArg + 1,
-     &    'Output image file', filnam) .ne. 0) call errorexit(
+     &    'Output image file', outfile) .ne. 0) call exitError(
      &    'NO OUTPUT IMAGE FILE SPECIFIED')
-      call imopen(2,filnam,'new')
-      call itrhdr(2,1)
-      call ialnbsym(2,0)
-      call ialsymtyp(2,0,0)
-c	call ialcon(2,.false.)
 c       
       modeout=modein
       if (pipinput) then
@@ -260,9 +260,8 @@ c
         read(5,*)modeout
       endif
       if(modeout.lt.0.or.modeout.gt.15.or.
-     &    (modeout.ge.3.and.modeout.le.8.and.modeout.ne.6))call errorexit(
+     &    (modeout.ge.3.and.modeout.le.8.and.modeout.ne.6))call exitError(
      &    'bad mode value')
-      call ialmod(2,modeout)
 c       
 c       set up output range, and default input range and minimum.  If real
 c       input, use actual input range and min; otherwise use theoretical
@@ -309,7 +308,7 @@ c
       nsect=maxzpc+1-minzpc
       call fill_listz(izpclist,npclist,listz,nlistz)
       if(dogxforms)then
-        if (nlistz.gt.nglist) call errorexit(
+        if (nlistz.gt.nglist) call exitError(
      &      'More sections than g transforms')
 
         skipxforms=.false.
@@ -322,7 +321,7 @@ c
      &          //' including ones missing from file'
             skipxforms=.true.
           else
-            call errorexit('Cannot tell how transforms match up to '//
+            call exitError('Cannot tell how transforms match up to '//
      &          'sections, because of missing sections')
           endif
         endif
@@ -334,7 +333,7 @@ c
      &    nxoverlap)
       call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &    nyoverlap)
-      if(nxpieces.le.0. or. nypieces.le.0)call errorexit
+      if(nxpieces.le.0. or. nypieces.le.0)call exitError
      &    ('CHECKLIST reported 0 pieces in one direction')
 c       
       nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
@@ -375,12 +374,25 @@ c
         ierr = PipGetLogical('ShiftFromEdges', fromedge)
         ierr = PipGetLogical('ShiftFromXcorrs', xclegacy)
         ierr = PipGetLogical('ReadInXcorrs', xcreadin)
+        ierr = PipGetTwoIntegers('GoodEdgeLowAndHighZ', izUseDefLow,
+     &      izUseDefHigh)
+        ierr = PipNumberOfEntries('OneGoodEdgeLimits', numUseEdge)
+        do i = 1, numUseEdge
+          ierr = PipGetIntegerArray('OneGoodEdgeLimits', ixpclo, 5, 15)
+          ixFrmUseEdge(i) = ixpclo(1)
+          iyFrmUseEdge(i) = ixpclo(2)
+          ixyUseEdge(i) = ixpclo(3)
+          izLowUse(i) = ixpclo(4)
+          izHighUse(i) = ixpclo(5)
+        enddo
         if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin)
      &      .and. .not.undistortOnly)
-     &      call errorexit('you cannot use ShiftPieces or '//
+     &      call exitError('you cannot use ShiftPieces or '//
      &      'ReadInXcorrs with multiple negatives')
-        if (fromedge .and. xclegacy .and. .not.undistortOnly) call errorexit
+        if (fromedge .and. xclegacy .and. .not.undistortOnly) call exitError
      &      ('you cannot use both ShiftFromEdges and ShiftFromXcorrs')
+        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach) call
+     &      exitError('you cannot use good edge limits when shifting pieces')
       else
         if(anyneg)then
           print *,'There are multi-negative specifications in list file'
@@ -414,7 +426,14 @@ c
           xcreadin=ioptabs.eq.4.or.ioptabs.eq.6
         endif
       endif
-
+c       
+c       Set flag for whether to write out edge displacements
+c       write edge correlations if they are not being read in and if they are
+c       computed in their entirety
+      xcWriteOut = .not.testMode.and..not.xcreadin.and.
+     &    ((ifsloppy.eq.1.and.shifteach) .or.
+     &    (ifsloppy.eq.0.and.shifteach.and..not.fromedge))
+c
       if(ioptabs.eq.1)then
         if (pipinput) then
           ierr = PipGetTwoIntegers('FramesPerNegativeXandY',
@@ -457,16 +476,15 @@ c
 c         
       endif
 c       
-      filnam = ' '
+      plOutFile = ' '
       if (pipinput) then
-        ierr = PipGetString('PieceListOutput', filnam)
+        ierr = PipGetString('PieceListOutput', plOutFile)
       else
         write(*,'(1x,a,$)')
      &      'Name of new piece list file (Return for none): '
-        read(5,'(a)')filnam
+        read(5,'(a)')plOutFile
       endif
-      outputpl = filnam .ne. ' '
-      if (outputpl) call dopen(3,filnam,'new','f')
+      outputpl = plOutFile .ne. ' '
 c       
 c       find out center of transforms
 c       
@@ -499,6 +517,25 @@ c
         call rdlist(5,izwant,nzwant)
       endif
 c       
+c       repack list, eliminating non-existent sections and duplicates
+      ixout = 0
+      do ix = 1, nzwant
+        ierr =0
+        do i = 1, nlistz
+          if (listz(i) .eq. izwant(ix)) ierr = 1
+        enddo
+        do i = 1, ixout
+          if (izwant(i) .eq. izwant(ix)) ierr = 0
+        enddo
+        if (ierr .eq. 1) then
+          ixout = ixout + 1
+          izwant(ixout) = izwant(ix)
+        endif
+      enddo
+      nzwant  = ixout
+      if (nzwant .eq. 0) call exitError('SECTION OUTPUT LIST DOES NOT '//
+     &    'INCLUDE ANY ACTUAL SECTIONS')
+c       
       if (undistortOnly) then
 c         
 c         If undistorting, copy sizes etc.
@@ -526,6 +563,8 @@ c
         maxxwant=minxwant+nxtotpix-1
         maxywant=minywant+nytotpix-1
         if (pipinput) then
+          ierr = PipGetLogical('TestMode', testMode)
+          ierr = PipGetLogical('XcorrDebug', xcorrDebug)
           ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
           ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
           ierr = PipGetTwoIntegers('MaximumNewSizeXandY', newxframe,
@@ -533,8 +572,8 @@ c
           ierr = PipGetTwoIntegers('MinimumOverlapXandY', minxoverlap,
      &        minyoverlap)
           ierr = PipGetInteger('BinByFactor', iBinning)
-          if (iBinning .lt. 1) call errorexit('BINNING MUST BE POSITIVE')
-          if (iBinning .gt. maxbin) call errorexit('BINNING IS TOO LARGE')
+          if (iBinning .lt. 1) call exitError('BINNING MUST BE POSITIVE')
+          if (iBinning .gt. maxbin) call exitError('BINNING IS TOO LARGE')
         else
           write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
      &        ' Max Y coordinates of desired output section,'
@@ -552,7 +591,7 @@ c
           minyoverlap=max(2,minyoverlap)	!nice in wimp.  After that, let
         endif					!the user have it.
         ntrial=ntrial+1
-        if(newxframe.gt. maxlinelength) call errorexit
+        if(newxframe.gt. maxlinelength) call exitError
      &      ('output size is too large in X for arrays')
 c         
         call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
@@ -561,10 +600,10 @@ c
      &      newyoverlap,newytotpix)
 c         
         if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
-     &      call errorexit('you must specify an output piece list file'
+     &      call exitError('you must specify an output piece list file'
      &      //' to have more than one output frame')
         if (iBinning .gt. 1 .and. (newxpieces.gt.1 .or. newypieces.gt.1))
-     &      call errorexit('With binning, output must be into a '//
+     &      call exitError('With binning, output must be into a '//
      &      'single frame')
         if (pipinput) print *,'Output file:'
         write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
@@ -589,17 +628,6 @@ c
       call getBinnedSize(nxout, iBinning, nxbin, ixOffset)
       call getBinnedSize(nyout, iBinning, nybin, iyOffset)
       nzbin = 0
-      call ialsiz(2,nxyzbin,nxyzst)
-      call date(dat)
-      call time(tim)
-c       
-c       7/7/00 CER: remove the encodes
-c       
-c       encode(80,90,title) dat,tim
-      write(titlech,90) actionStr,dat,tim
-90    format( 'BLENDMONT: Montage pieces ',a, t57, a9, 2x, a8 )
-      read(titlech,'(20a4)')(title(kti),kti=1,20)
-      call iwrhdr(2,title,1,dmin,dmax,dmean)
       hxcen=nxin/2.
       hycen=nyin/2.
 c       
@@ -661,7 +689,7 @@ c
       if (pipinput .and. .not.undistortOnly) then
         ierr = PipGetBoolean('OldEdgeFunctions', ifoldedge)
         if (PipGetString('RootNameForEdges', rootname) .ne. 0) call
-     &      errorexit('NO ROOT NAME FOR EDGE FUNCTIONS SPECIFIED')
+     &      exitError('NO ROOT NAME FOR EDGE FUNCTIONS SPECIFIED')
       else if (.not.undistortOnly) then
         write(*,'(1x,a,$)')'0 for new edge files, 1 to read old ones: '
         read(5,*)ifoldedge
@@ -669,6 +697,63 @@ c
         read(5,'(a)')rootname
       endif
 c       
+c       Find out about parallel mode
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('ParallelMode', modeParallel, maxSects)
+        if (modeParallel .ne. 0) then
+          if (outputpl .or. newxpieces.gt.1 .or. newypieces.gt.1)
+     &        call exitError('PARALLEL MODE REQUIRES OUTPUT IN ONE PIECE '//
+     &        'WITH NO PIECE LIST')
+          if (undistortOnly .or. testMode .or. xcorrDebug) call exitError(
+     &        'NO PARALLEL MODE ALLOWED WITH UndistortOnly, TestMode, OR '//
+     &        'XcorrDebug')
+          if (ifoldedge .eq. 0) call exitError(
+     &        'PARALLEL MODE ALLOWED ONLY WHEN USING OLD EDGE FUNCTIONS')
+          if (xcWriteOut) call exitError('PARALLEL MODE NOT ALLOWED IF '//
+     &        'WRITING EDGE CORRELATION DISPLACEMENTS')
+          if (modeParallel .gt. 0) then
+c             
+c             Figure out lists to output
+            if (modeParallel .le. 1) call exitError('TARGET NUMBER OF '//
+     &          'CHUNKS SHOULD BE AT LEAST 2')
+            if (maxSects .lt. 1) call exitError('MAXIMUM NUMBER OF SECTIONS'//
+     &          ' SHOULD BE AT LEAST 1')
+            numChunks = min(modeParallel, nzwant)
+            numChunks = max(numChunks, nzwant / maxSects)
+            numExtra = mod(nzwant, numChunks)
+            ixout = 1
+            do i = 1, numChunks
+              numOut = nzwant / numChunks
+              if (i .le. numExtra) numOut = numOut + 1
+              write(*,'(a,$)')'SubsetToDo '
+              call wrlist(izwant(ixout), numOut)
+              ixout = ixout + numOut
+            enddo
+c             
+c             Or get subset list
+          elseif (modeParallel .lt. -1) then
+            if (PipGetString('SubsetToDo', filnam) .ne. 0) call exitError(
+     &          'SubsetToDo ENTRY REQUIRED WITH THIS PARALLEL MODE')
+c             
+c             For direct writing, save full want list as all want list
+            if (modeParallel .eq. -2) then
+              do i = 1, nzwant
+                izAllWant(i) = izwant(i)
+              enddo
+              nzAllWant = nzwant
+            endif
+c             
+c             In either case, replace the actual want list
+            call parselist(filnam, izwant, nzwant)
+          else
+c             
+c             Open output file: set Z size
+              nzbin = nzwant
+          endif
+        endif
+      endif
+c
+      edgesIncomplete = .false.
       if(ifoldedge.ne.0 .and. .not.undistortOnly)then
 c         
 c         for old files, open, get edge count and # of grids in X and Y
@@ -687,14 +772,12 @@ c
         if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))then
           call convert_longs(nedgetmp,10)
           if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
-     &        call errorexit('wrong # of edges in edge function file')
+     &        call exitError('wrong # of edges in edge function file')
           needbyteswap=1
         endif
         if (nedgetmp(4,1) .ne. nedgetmp(5,2) .or.
-     &      nedgetmp(5,1) .ne. nedgetmp(4,2)) call errorexit(
+     &      nedgetmp(5,1) .ne. nedgetmp(4,2)) call exitError(
      &      'inconsistent grid spacings between edge function files')
-        intgrid(1) = nedgetmp(4,1)
-        intgrid(2) = nedgetmp(5,1)
 c         
 c         set up record size and reopen with right record size
 c         
@@ -706,6 +789,29 @@ c
           open(iunedge(ixy),file=edgenam,status='old',
      &        form='unformatted',access='direct', recl=lenrec, err=53)
         enddo
+c         
+c         Read edge headers to set up edgedone array
+        numZero = 0
+        do ixy = 1, 2
+          do iedge = 1, nedge(ixy)
+            read(iunedge(ixy),rec=1+iedge,err=52)ixpclo(1),ixpclo(2)
+            if (needbyteswap .ne. 0) call convert_longs(ixpclo, 2)
+c            print *,'edge',ixy,iedge,ixpclo(1),ixpclo(2)
+            if (ixpclo(1) .ge. 0 .and. ixpclo(2) .ge. 0)
+     &          edgedone(iedge,ixy) = .true.
+          enddo 
+          numZero = numZero + 1
+52        continue
+        enddo
+c         
+c         If either set of edge functions is incomplete, set flag; only set
+c         the interval now if edges are complete
+        if (numZero .lt. 2) then
+          edgesIncomplete = .true.
+        else
+          intgrid(1) = nedgetmp(4,1)
+          intgrid(2) = nedgetmp(5,1)
+        endif
         go to 54
 c         
 c         8/8/03: if there is an error opening old files, just build new ones
@@ -714,12 +820,19 @@ c         a previous command file might not get run
 c         
 53      ifoldedge = 0
         if (ixy.eq.2) close(iunedge(1))
-        print *
-        print *,'WARNING: BLENDMONT - ERROR OPENING OLD EDGE ',
-     &      'FUNCTION FILE','NEW EDGE FUNCTIONS WILL BE COMPUTED'
+        write(*,'(/,a)')'WARNING: BLENDMONT - ERROR OPENING OLD EDGE '//
+     &      'FUNCTION FILE; NEW EDGE FUNCTIONS WILL BE COMPUTED'
+        do ixy = 1, 2
+          do iedge = 1, nedge(ixy)
+            edgedone(iedge,ixy) = .false.
+          enddo
+        enddo
       endif
 
-54    if(ifoldedge.eq.0 .and. .not.undistortOnly)then
+54    if (modeParallel .ne. 0 .and. (ifoldedge .eq. 0 .or. edgesIncomplete))
+     &    call exitError('PARALLEL MODE NOT ALLOWED IF EDGES FUNCTIONS '//
+     &    'ARE INCOMPLETE OR NONEXISTENT')
+      if((ifoldedge.eq.0 .or. edgesIncomplete) .and. .not.undistortOnly)then
         ifdiddle=0
 c	  write(*,'(1x,a,$)')
 c         &	      '1 to diddle with edge function parameters: '
@@ -735,6 +848,7 @@ c
           iboxsiz(ixy) = nint(iboxsiz(ixy) * gridScale)
           indent(ixy) = nint(indent(ixy) * gridScale)
           intgrid(ixy) = nint(intgrid(ixy) * gridScale)
+          lastWritten(ixy) = 0
         enddo
 c         
         if (pipinput) then
@@ -760,21 +874,30 @@ c	  print *,'box size', (iboxsiz(i), i=1,2),'  grid',(intgrid(i), i=1,2)
 c         
 c         get edge function characteristics for x and y edges
 c         
-        needbyteswap = 0
+c        print *,(iboxsiz(I),indent(i),intgrid(i),i=1,2)
         do ixy=1,2
           call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
      &        ixy,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
           if (nxgrid(ixy) .gt. ixgdim .or. nygrid(ixy) .gt. iygdim)
-     &        call errorexit(
+     &        call exitError(
      &        'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
+c          print *,ixy,nxgrid(ixy),nygrid(ixy),nedgetmp(2,ixy),nedgetmp(3,ixy)
+          if (edgesIncomplete .and. (nxgrid(ixy) .ne. nedgetmp(2,ixy) .or.
+     &        nygrid(ixy) .ne. nedgetmp(3,ixy))) call exitError('CANNOT USE'//
+     &        ' INCOMPLETE OLD EDGE FUNCTION FILE WITH CURRENT PARAMETERS')
+        enddo
+      endif
+      if(ifoldedge.eq.0  .and. .not.undistortOnly)then
+        needbyteswap = 0
 c           open file, write header record
 c           set record length to total bytes divided by system-dependent
 c           number of bytes per item
 c           
+        do ixy=1,2
           lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
           edgenam=concat(rootname,edgeext(ixy))
           ierr = imodBackupFile(edgenam)
-          if(ierr.ne.0)write(6,*)' WARNING: blendmont - error renaming',
+          if(ierr.ne.0)write(6,'(/,a)')' WARNING: BLENDMONT - error renaming'//
      &        ' existing edge function file'
           open(iunedge(ixy),file=edgenam,status='new'
      &        ,form='unformatted',access='direct',recl=lenrec)
@@ -788,17 +911,14 @@ c
         edgenam=concat(rootname,xcorrext)
         inquire(file=edgenam,exist=exist)
         if(.not.exist)then
-          print *
-          print *,'ERROR: BLENDMONT - Edge correlation file does ',
+          write(*,'(/,a,a)')'ERROR: BLENDMONT - Edge correlation file does '//
      &        'not exist: ',edgenam
           call exit(1)
         endif
         call dopen(4,edgenam,'ro','f')
         read(4,*)nedgetmp(1,1),nedgetmp(1,2)
-        if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))then
-          print *,'wrong # of edges in edge correlation file'
-          call exit(1)
-        endif
+        if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
+     &      call exitError('wrong # of edges in edge correlation file')
         read(4,*)((edgedispx(i,ixy),edgedispy(i,ixy),i=1,nedge(ixy))
      &      ,ixy=1,2)
         close(4)
@@ -823,7 +943,6 @@ c
         interpOrder = 3
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
         ierr = PipGetLogical('AdjustedFocus', focusAdjusted)
-        ierr = PipGetLogical('TestMode', testMode)
         if (PipGetString('GradientFile', filnam) .eq. 0) then
           doMagGrad = .true.
           call readMagGradients(filnam, limsect, pixelMagGrad, axisRot,
@@ -862,7 +981,7 @@ c
             enddo
           else
             if (PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot,
-     &          tiltOffset) .ne. 0) call errorexit(
+     &          tiltOffset) .ne. 0) call exitError(
      &          '-tilt or -gradient must be entered with -add')
             pixelMagGrad = pixelMagGrad * 10.
             numMagGrad = 1
@@ -887,11 +1006,11 @@ c
 c             If input binning was not specified object if it is ambiguous
 c	      
             if (nxin .le. idfNx * idfBinning / 2 .and.
-     &          nyin .le. idfNy * idfBinning / 2) call errorexit
+     &          nyin .le. idfNy * idfBinning / 2) call exitError
      &		('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &          'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
           endif
-          if (inputBinning .le. 0) call errorexit
+          if (inputBinning .le. 0) call exitError
      &        ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
           
 c           
@@ -922,7 +1041,6 @@ c
 c         
 c         Handle debug output - open files and set flags
 c         
-        ierr = PipGetLogical('XcorrDebug', xcorrDebug)
         if (xcorrDebug) then
           if (nxpieces .gt. 1) then
             edgenam = concat(rootname,'.xdbg')
@@ -937,9 +1055,9 @@ c
         endif
       endif
       doFields = undistort .or. doMagGrad
-      if (undistortOnly .and. .not. doFields) call errorexit('YOU MUST'//
+      if (undistortOnly .and. .not. doFields) call exitError('YOU MUST'//
      &    'ENTER -gradient AND/OR -distort WITH -justUndistort')
-      if (undistortOnly .and. testMode) call errorexit(
+      if (undistortOnly .and. testMode) call exitError(
      &    'YOU CANNOT ENTER BOTH -test AND -justUndistort')
 
       call PipDone()
@@ -959,9 +1077,53 @@ c
         maxload=min(maxsiz/npixin, memlim)
       endif
       if (maxload .lt. 1 .or. (.not.UndistortOnly .and. maxload .lt. 2))
-     &    call errorexit('IMAGES TOO LARGE FOR ARRAYS')
+     &    call exitError('IMAGES TOO LARGE FOR ARRAYS')
       intgrcopy(1)=intgrid(1)
       intgrcopy(2)=intgrid(2)
+c       
+c       All errors checked, exit if setting up parallel
+      if (modeParallel .gt. 0) call exit(0)
+c       
+c       Now open output files after errors have been checked, unless direct 
+c       writing in parallel mode
+      if (modeParallel .ne. -2) then
+c         
+c         Do as much of header as possible, shift origin same as in newstack
+        call imopen(2,outfile,'new')
+        call itrhdr(2,1)
+        call ialnbsym(2,0)
+        call ialsymtyp(2,0,0)
+        call ialmod(2,modeout)
+        call ialsiz(2,nxyzbin,nxyzst)
+        call irtorg(1, xorig, yorig, zorig)
+        call ialorg(2, xorig - delta(1) * ixOffset,
+     &      yorig - delta(1) * iyOffset, zorig)
+        call irtdel(1,delta)
+        cell(1)=nxbin*delta(1)*iBinning
+        cell(2)=nybin*delta(2)*iBinning
+c         
+c         Finish it and exit if setting up for direct writing
+        if (modeParallel .eq. -1) then
+          call ialsam(2,nxyzbin)
+          cell(3)=nzbin*delta(3)
+          call ialcel(2,cell)
+        endif
+c       
+        call date(dat)
+        call time(tim)
+        write(titlech,90) actionStr,dat,tim
+90      format( 'BLENDMONT: Montage pieces ',a, t57, a9, 2x, a8 )
+        call iwrhdrc(2,titlech,1,dmin,dmax,dmean)
+        if (modeParallel .eq. -1) call exit(0)
+      else
+        call imopen(2,outfile,'old')
+        call irdhdr(2,ixpclo,ixpcup,ixout,f12,f13,f23)
+        if (ixpclo(1) .ne. nxbin .or. ixpclo(2) .ne. nybin .or.
+     &      ixout .ne. modeout) call exitError(
+     &      'EXISTING OUTPUT FILE DOES NOT HAVE RIGHT SIZE OR MODE')
+      endif
+c
+      if (outputpl) call dopen(3,ploutfile,'new','f')
 c       
 c       loop on z: do everything within each section for maximum efficiency
 c       
@@ -976,15 +1138,40 @@ c
           if(izwant(iwant).eq.izsect)ifwant=1
         enddo
         if (ifwant .eq. 0 .and. (testMode .or. undistortOnly)) go to 92
-
+c         
+c         Look up actual section to write if doing direct parallel writes
+        if (ifwant .ne. 0 .and. modeParallel .eq. -2) then
+          do i = 1, nzAllWant
+            if (izAllWant(i) .eq. izsect) numOut = i - 1
+          enddo
+        endif
+c
         write(*,'(a,i4)')' working on section #',izsect
         call flush(6)
         multng=multineg(izsect+1-minzpc)
         xinlong=nxpieces .gt. nypieces
 c         
-        if(ifoldedge.eq.0 .and. .not. undistortOnly)then 
+        if(.not. undistortOnly)then 
 c           
-c           first get edge functions if haven't already:
+c           First get edge functions if haven't already
+c           Check if any edges are to be substituted on this section
+c           Do so if any use values are different from original and none are 0
+          useEdges = .false.
+          if (numUseEdge .gt. 0 .or. izUseDefLow .ge. 0) then
+            numZero = 0
+            do ixy = 1,2
+              do iedge=1,nedge(ixy)
+                if(izsect.eq. izpclist(ipiecelower(iedge,ixy))) then
+                  call findEdgeToUse(iedge, ixy, jedge)
+                  if (jedge .eq. 0) numZero = numZero + 1
+                  if (jedge .ne. iedge) useEdges = .true.
+                endif
+              enddo
+            enddo
+            if (numZero .gt. 0) useEdges = .false.
+c            print *,'numzero, useedges',numZero,useEdges
+          endif
+c           
 c           loop on short then long direction
 c           
           do iedgedir=1,2
@@ -994,38 +1181,45 @@ c             loop on all edges of that type with pieces in section that are
 c             not done yet
 c             
             do iedge=1,nedge(ixy)
-              if(izsect.eq. izpclist(ipiecelower(iedge,ixy)) .and.
-     &            .not.edgedone(iedge,ixy))then
+              if(izsect.eq. izpclist(ipiecelower(iedge,ixy))) then
+                jedge = iedge
+                if (useEdges) call findEdgeToUse(iedge, ixy, jedge)
+c                print *,'checking edge',ixy, jedge,' for edge',ixy, iedge
+                if (.not.edgedone(jedge,ixy)) then
 c                 
-c                 do cross-correlation if the sloppy flag is set and either
-c                 we are shifting each piece or the pieces are't on same neg
+c                   do cross-correlation if the sloppy flag is set and either
+c                   we are shifting each piece or the pieces are't on same neg
 c                 
-                docross=ifsloppy.ne.0.and.(shifteach.or.(
-     &              anyneg.and.neglist(ipiecelower(iedge,ixy))
-     &              .ne.neglist(ipieceupper(iedge,ixy))))
-                call doedge(iedge,ixy,edgedone,sdcrit,devcrit,
-     &              nfit, norder, nskip, docross, xcreadin, xclegacy,
-     &              edgedispx, edgedispy)
-c                 
-c                 after each one, check memory list to see if there's any
-c                 pieces with undone lower edge in orthogonal direction
-c                 
-                do imem=1,maxload
-                  ipc=izmemlist(imem)
-                  if(ipc.gt.0)then
-                    jedge=iedgelower(ipc,iyx)
-                    if(jedge.gt.0)then
-                      if(.not.edgedone(jedge,iyx))then
-                        docross=ifsloppy.ne.0.and.(shifteach.or.(
-     &                      anyneg.and.neglist(ipiecelower(jedge,iyx))
-     &                      .ne.neglist(ipieceupper(jedge,iyx))))
-                        call doedge(jedge,iyx,edgedone,sdcrit,
-     &                      devcrit,nfit, norder, nskip, docross,
-     &                      xcreadin, xclegacy, edgedispx, edgedispy)
+c                  print *,'Doing edge ', ixy, jedge
+                  docross=ifsloppy.ne.0.and.(shifteach.or.(
+     &                anyneg.and.neglist(ipiecelower(jedge,ixy))
+     &                .ne.neglist(ipieceupper(jedge,ixy))))
+                  call doedge(jedge,ixy,edgedone,sdcrit,devcrit,
+     &                nfit, norder, nskip, docross, xcreadin, xclegacy,
+     &                edgedispx, edgedispy)
+c                   
+c                   after each one, check memory list to see if there's any
+c                   pieces with undone lower edge in orthogonal direction
+c                   
+                  if (.not.useEdges) then
+                    do imem=1,maxload
+                      ipc=izmemlist(imem)
+                      if(ipc.gt.0)then
+                        jedge=iedgelower(ipc,iyx)
+                        if(jedge.gt.0)then
+                          if(.not.edgedone(jedge,iyx))then
+                            docross=ifsloppy.ne.0.and.(shifteach.or.(
+     &                          anyneg.and.neglist(ipiecelower(jedge,iyx))
+     &                          .ne.neglist(ipieceupper(jedge,iyx))))
+                            call doedge(jedge,iyx,edgedone,sdcrit,
+     &                          devcrit,nfit, norder, nskip, docross,
+     &                          xcreadin, xclegacy, edgedispx, edgedispy)
+                          endif
+                        endif
                       endif
-                    endif
+                    enddo
                   endif
-                enddo
+                endif
               endif
             enddo
           enddo
@@ -1273,18 +1467,21 @@ c
             edgehinear(ixy)=nxyzin(ixy)-1.
             do iedge=1,nedge(ixy)
               if(izpclist(ipiecelower(iedge,ixy)).eq.izsect)then
+                jedge = iedge
+                if (useEdges) call findEdgeToUse(iedge, ixy, jedge)
+c                print *,'reading header of edge',ixy,jedge,' for edge',ixy,iedge
                 if (needbyteswap.eq.0)then
-                  read(iunedge(ixy),rec=1+iedge)nxgr,nygr,(igridstr(i),
+                  read(iunedge(ixy),rec=1+jedge)nxgr,nygr,(igridstr(i),
      &                iofset(i),i=1,2)
                 else
-                  read(iunedge(ixy),rec=1+iedge)nxgr,nygr
+                  read(iunedge(ixy),rec=1+jedge)nxgr,nygr,
+     &                (igridstr(i), iofset(i),i=1,2)
                   call convert_longs(nxgr,1)
                   call convert_longs(nygr,1)
-                  read(iunedge(ixy),rec=1+iedge)idum1,idum2,
-     &                (igridstr(i), iofset(i),i=1,2)
                   call convert_longs(igridstr,2)
                   call convert_longs(iofset,2)
                 endif
+c                print *,nxgr,nygr, (igridstr(i), iofset(i),i=1,2)
                 edgehinear(ixy)=min(edgehinear(ixy),
      &              float(igridstr(ixy)))
                 edgelonear(ixy)=max(edgelonear(ixy),float
@@ -1576,7 +1773,7 @@ c
                 inonepiece=0
                 do indy=indylo,indyhi,indyhi-indylo
                   do indx=indxlo,indxhi,indxhi-indxlo
-                    call countedges(indx,indy,xg,yg)
+                    call countedges(indx,indy,xg,yg, useEdges)
                     if(numpieces.gt.0)then
                       if(inonepiece.eq.0)inonepiece=inpiece(1)
                       dofast=dofast.and. numpieces.eq.1 .and.
@@ -1634,7 +1831,7 @@ c
                   linebase=iBufferBase + 1 - newpcxll
                   do indy=indylo,indyhi
                     do indx=indxlo,indxhi
-                      call countedges(indx,indy,xg,yg)
+                      call countedges(indx,indy,xg,yg, useEdges)
 c                       
 c                       load the edges and compute edge fractions
 c                       
@@ -2436,6 +2633,7 @@ c
 c               
 c               if any pixels have been present in this frame, write line out
 c               
+              if (modeParallel .ne. -2) numOut = nzbin
               if(anypixels)then
                 do i=1,nxout*nlinesout
                   brray(i)=pixscale*brray(i)+pixadd
@@ -2447,7 +2645,7 @@ c                 Get new number of lines left in buffer; if at top of
 c                 frame, increment lines to write if there are any lines left
 c                 
                 ilineout=((iyfast-1)*ifastsiz - iyOffset) / iBinning
-                call imposn(2,nzbin,ilineout)
+                call imposn(2,numOut,ilineout)
                 ilineout = linesBuffered + nLinesOut
                 nyWrite = (ilineOut - lineOffset) / iBinning
                 linesBuffered = mod(ilineout - lineOffset, iBinning)
@@ -2479,7 +2677,7 @@ c
                   do i=1,nxout*ifastsiz
                     brray(i)=val
                   enddo
-                  call imposn(2,nzbin,0)
+                  call imposn(2,numOut,0)
                   do ifill=1,iyfast-1
                     call iwrsecl(2,brray,ifastsiz)
                   enddo
@@ -2505,29 +2703,28 @@ c
 c       
       close(3)
 c       
-c       finalize the header, shift original same as in newstack
+c       If direct parallel, output stats
+      pixelTot = (float(nxbin) * nybin) * nzbin
+      tmean = grandsum / pixelTot
+      if (modeParallel .eq. -2) then
+        write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dminout,dmaxout,
+     &      tmean, pixelTot
+      else
 c       
-      call ialsiz(2,nxyzbin,nxyzst)
-      call ialsam(2,nxyzbin)
-      call irtdel(1,delta)
-      cell(1)=nxbin*delta(1)*iBinning
-      cell(2)=nybin*delta(2)*iBinning
-      cell(3)=nzbin*delta(3)
-      call ialcel(2,cell)
-      call irtorg(1, xorig, yorig, zorig)
-      call ialorg(2, xorig - delta(1) * ixOffset,
-     &    yorig - delta(1) * iyOffset, zorig)
-
-      tmean=((grandsum/nzbin)/nxbin)/nybin
-      call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
+c         otherwise finalize the header
+c         
+        call ialsiz(2,nxyzbin,nxyzst)
+        call ialsam(2,nxyzbin)
+        cell(3)=nzbin*delta(3)
+        call ialcel(2,cell)
+        call iwrhdr(2,title,-1,dminout,dmaxout, tmean)
+      endif
       call imclose(2)
       if (undistortOnly) call exit(0)
 c       
-c       write edge correlations if they were not read in and if they were
-c       computed in their entirety
+c       write edge correlations 
 c       
-      if(.not.testMode.and..not.xcreadin.and.((ifsloppy.eq.1.and.shifteach)
-     &    .or. (ifsloppy.eq.0.and.shifteach.and..not.fromedge)))then
+      if(xcWriteOut) then
         edgenam=concat(rootname,xcorrext)
         call dopen(4,edgenam,'new','f')
         write(4,'(2i7)')nedge(1),nedge(2)
@@ -2551,18 +2748,14 @@ c
       enddo
 c       
       call exit(0)
-98    call errorexit ('reading transforms')
-      end
-
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: BLENDMONT - ',message
-      call exit(1)
+98    call exitError ('READING TRANSFORMS')
       end
 
 c       
 c       $Log$
+c       Revision 3.28  2006/08/03 17:21:39  mast
+c       Fixed to take mode 6 files
+c
 c       Revision 3.27  2006/02/27 19:48:04  mast
 c       Fixed fill mean and output mean computation for very large areas
 c
