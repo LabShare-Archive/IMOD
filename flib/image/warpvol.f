@@ -15,18 +15,15 @@ c       ROTATEVOL for rotating large volumes.
 c       
 c       See man page for more details
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end
 c
       implicit none
       include 'rotmatwarp.inc'
       integer maxloc
-      parameter (maxloc=10000)
-      real*4 cell(6),dxyzin(3)
+      parameter (maxloc=200000)
+      real*4 cell(6),dxyzin(3),trray(inpdim*inpdim*inpdim)
+      equivalence (array, trray)
       integer*4 mxyzin(3)
       real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
       real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
@@ -137,30 +134,60 @@ c
       else
         nlocy=nint(freinp(2))
         nlocz=nint(freinp(3))
+        if (ninp .eq. 9) then
+          xlocst = freinp(4)
+          ylocst = freinp(5)
+          zlocst = freinp(6)
+          dxloc = freinp(7)
+          dyloc = freinp(8)
+          dzloc = freinp(9)
+        endif
       endif
-      xlocst=1.e10
-      xlocmax=-1.e10
-      ylocst=1.e10
-      ylocmax=-1.e10
-      zlocst=1.e10
-      zlocmax=-1.e10
       nloctot=nlocx*nlocz*nlocy
       if(nloctot.gt.maxloc)call exiterror(
      &    'TOO MANY TRANSFORMATIONS TO FIT IN ARRAYS')
-
-      do l=1,nloctot
-        read(1,*)cenlocx,cenlocy,cenlocz
-        read(1,*)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
-        xlocst=min(cenlocx,xlocst)
-        ylocst=min(cenlocy,ylocst)
-        zlocst=min(cenlocz,zlocst)
-        xlocmax=max(cenlocx,xlocmax)
-        ylocmax=max(cenlocy,ylocmax)
-        zlocmax=max(cenlocz,zlocmax)
-      enddo
-      dxloc=(xlocmax-xlocst)/max(1,nlocx-1)
-      dyloc=(ylocmax-ylocst)/max(1,nlocy-1)
-      dzloc=(zlocmax-zlocst)/max(1,nlocz-1)
+      if (ninp .ne. 9) then
+c         
+c         Every position must be present, find min and max to deduce interval
+c
+        xlocst=1.e10
+        xlocmax=-1.e10
+        ylocst=1.e10
+        ylocmax=-1.e10
+        zlocst=1.e10
+        zlocmax=-1.e10
+        
+        do l=1,nloctot
+          read(1,*,err=98,end=98)cenlocx,cenlocy,cenlocz
+          read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
+          xlocst=min(cenlocx,xlocst)
+          ylocst=min(cenlocy,ylocst)
+          zlocst=min(cenlocz,zlocst)
+          xlocmax=max(cenlocx,xlocmax)
+          ylocmax=max(cenlocy,ylocmax)
+          zlocmax=max(cenlocz,zlocmax)
+        enddo
+        dxloc=(xlocmax-xlocst)/max(1,nlocx-1)
+        dyloc=(ylocmax-ylocst)/max(1,nlocy-1)
+        dzloc=(zlocmax-zlocst)/max(1,nlocz-1)
+      else
+c         
+c         Know min and interval, so read each entry, find where it goes in
+c         array and put it there, then copy into empty positions at end
+        do l=1,nloctot
+          trray(l) = 0.
+        enddo
+10      read(1,*,err=98,end=12)cenlocx,cenlocy,cenlocz
+        ix = min(nlocx, max(1, nint((cenlocx - xlocst) / dxloc + 1.)))
+        iy = min(nlocy, max(1, nint((cenlocy - ylocst) / dyloc + 1.)))
+        iz = min(nlocz, max(1, nint((cenlocz - zlocst) / dzloc + 1.)))
+        l = ix + (iy - 1) * nlocx + (iz - 1) * nlocx * nlocy
+        read(1,*,err=98,end=98)((aloc(i,j,l),j=1,3),dloc(i,l),i=1,3)
+        trray(l) = 1.
+        go to 10
+12      call fillInTransforms(aloc, dloc, trray, nlocx, nlocy, nlocz,
+     &      dxloc, dyloc, dzloc)
+      endif
       close(1)
 c       
 c       find maximum extent in input volume occupied by a back-transformed
@@ -487,7 +514,8 @@ c
         call imclose(i)
       enddo
       call exit(0)
-99    call exiterror('READING FILE')
+98    call exiterror('READING WARP FILE')
+99    call exiterror('READING IMAGE FILE')
       end
 
 
@@ -554,8 +582,61 @@ c
       return
       end
 
+c       Fills in regular array of transforms by copying from the nearest
+c       transform to each missing one.
+c
+      subroutine fillInTransforms(aloc, dloc, array, nlocx, nlocy, nlocz,
+     &    dxloc, dyloc, dzloc)
+      implicit none
+      integer*4 nlocx, nlocy, nlocz, ix, iy, iz, jx, jy, jz, minx, miny, minz
+      real*4 aloc(3,3,nlocx,nlocy,nlocz), dloc(3,nlocx,nlocy,nlocz)
+      real*4 array(nlocx,nlocy,nlocz),dxloc, dyloc, dzloc, dist, dmin
+c       
+      do iz = 1, nlocz
+        do iy = 1, nlocy
+          do ix = 1, nlocx
+            dmin = 1.e30
+            if (array(ix,iy,iz) .eq. 0) then
+c               
+c               Find closest position with transform
+              do jz = 1, nlocz
+                do jy = 1, nlocy
+                  do jx = 1, nlocx
+                    if (array(jx,jy,jz) .gt. 0) then
+                      dist = ((jx - ix) * dxloc)**2 + ((jy - iy) * dyloc)**2 +
+     &                    ((jz - iz) * dzloc)**2
+                      if (dist .lt. dmin) then
+                        dmin = dist
+                        minx = jx
+                        miny = jy
+                        minz = jz
+                      endif
+                    endif
+                  enddo
+                enddo
+              enddo
+              array(ix,iy,iz) = -1.
+c               
+c               Copy transform from closest position
+              do jx = 1, 3
+                dloc(jx,ix,iy,iz) = dloc(jx,minx,miny,minz)
+                do jy = 1,3
+                  aloc(jx,jy,ix,iy,iz) = aloc(jx,jy,minx,miny,minz)
+                enddo
+              enddo
+            endif
+          enddo
+        enddo
+      enddo
+      return
+      end
+
 c       
 c       $Log$
+c       Revision 3.10  2006/06/01 14:16:48  mast
+c       Fixed bug created by deferring opening of output file, switched to
+c       exiterror
+c
 c       Revision 3.9  2006/02/27 05:25:05  mast
 c       Defer opening output file until all errors are assessed
 c
