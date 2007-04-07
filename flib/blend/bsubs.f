@@ -18,86 +18,16 @@ c       XCORREDGE
 c       PEAKFIND
 c       FIND_BEST_SHIFTS
 c       findBestGradient
+c       findEdgeToUse
 c       IWRBINNED
 c       GETEXTRAINDENTS
 c       IBINPAK
 c       DUMPEDGE
 c       
-c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.20  2006/06/18 19:38:08  mast
-c       Changed to use new C function for amoeba
-c
-c       Revision 3.19  2006/02/27 15:20:20  mast
-c       g77 wanted find_best_shift called with an equivalenced real*8 array
-c
-c       Revision 3.18  2006/02/26 18:29:50  mast
-c       Converted to using double precision for solving shift equations and 
-c       only used as much of the array as necessary for this.
-c
-c       Revision 3.17  2006/02/26 06:04:40  mast
-c       Fixed countedges to go to the right piece when there are h transforms
-c
-c       Revision 3.16  2006/02/06 21:51:04  mast
-c       Fixed findBestGradient to solve for shifts at each trial gradient
-c
-c       Revision 3.15  2006/01/16 03:16:26  mast
-c       Changed message for implied gradients
-c       
-c       Revision 3.14  2005/11/09 05:56:47  mast
-c       Added parameters for correlation control, and edge dumping
-c       
-c       Revision 3.13  2005/08/22 16:19:59  mast
-c       Preliminary - finding gradients from displacements
-c       
-c       Revision 3.12  2005/08/22 16:15:59  mast
-c       
-c       Revision 3.11  2005/08/20 05:10:48  mast
-c       Excluded a border region from correlations with distortion
-c       corrections
-c       
-c       Revision 3.10  2005/07/24 17:33:15  mast
-c       Increased allowed overlap in xcorredge up to 600 pixels but kept
-c       arrays on stack
-c       
-c       Revision 3.9  2005/06/03 19:39:04  mast
-c       Added routine for writing binned output
-c       
-c       Revision 3.8  2005/03/18 23:38:30  mast
-c       Improved error message from read_list
-c       
-c       Revision 3.7  2005/02/28 22:13:27  mast
-c       Commented out edge vector summary
-c       
-c       Revision 3.6  2005/02/28 21:15:07  mast
-c       Changes for distortion and mag gradient correction and cubic and
-c       linear interpolation
-c       
-c       Revision 3.5  2004/09/01 20:27:38  mast
-c       Fixed bug in testing if piece list input entered
-c       
-c       Revision 3.4  2003/12/12 20:47:42  mast
-c       Moved FINDEDGEFUNC, SETGRIDCHARS, and LOCALMEAN to edgesubs.f
-c       
-c       Revision 3.3  2003/08/09 23:21:59  mast
-c       Changes for PIP input
-c       
-c       Revision 3.2  2003/06/20 20:18:48  mast
-c       Standardized error exits and increased limits for correlation area
-c       
-c       Revision 3.1  2002/08/19 04:27:43  mast
-c       Changed to use blend.inc.  Made declarations for implicit none in
-c       all routines that used the include file.  Changed DOEDGE to use
-c       ARRAY from common, and made FIND_BEST_SHIFTS get its big array as
-c       an argument then invalidate the part of the array that it uses.
-c       
-c       
+c       $Id$
+c       Log at end of file
+
+
 c       READ_LIST get the name of a piece list file, reads the file
 c       and returns the # of pieces NPCLIST, the min and max z values MINZPC
 c       and MAXZPC, the piece coordinates I[XYZ]PCLIST, the optional negative
@@ -126,7 +56,7 @@ c
 c       get file name and open file
 c       
       if (pipinput) then
-        if (PipGetString('PieceListInput', filnam) .ne. 0) call errorexit
+        if (PipGetString('PieceListInput', filnam) .ne. 0) call exitError
      &      ('NO INPUT PIECE LIST FILE SPECIFIED')
       else
         write(*,'(1x,a,$)')'name of input piece list file: '
@@ -800,6 +730,8 @@ c
           call convert_floats(ddengrbf(1,iy,indbuf),nxgr)
         enddo
       endif
+c      print *,'read all of edge',ixy,iedge,ixpclist(ipiecelower(iedge,ixy)),
+c     &    iypclist(ipiecelower(iedge,ixy)),nxgr,nygr
       nxgrbf(indbuf)=nxgr
       nygrbf(indbuf)=nygr
       intxgrbf(indbuf)=intgrcopy(ixy)
@@ -1018,7 +950,7 @@ c
         indentUse(2) = indent(2) + nint(delIndent(2))
         call setgridchars(nxyzin,noverlap,iboxsiz,indentUse,intgrid,
      &      ixy,ixdisp,iydisp,nxgr,nygr,igrstr,igrofs)
-        if (nxgr .gt. ixgdim .or. nygr .gt. iygdim) call errorexit(
+        if (nxgr .gt. ixgdim .or. nygr .gt. iygdim) call exitError(
      &      'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
         lastxdisp=ixdisp
         lastydisp=iydisp
@@ -1037,25 +969,53 @@ c
      &      iygdim,nxgr,nygr,sdcrit, devcrit,nfit(ixy),nfit(3-ixy),
      &      norder, nskip(ixy),nskip(3-ixy))
 c         
-        write(iunedge(ixy),rec=jedge+1)nxgr,nygr,(igrstr(i),igrofs(i)
-     &      ,i=1,2) ,((dxgrid(ix,iy),dygrid(ix,iy),
-     &      ddengrid(ix,iy),ix=1,nxgr),iy=1,nygr)
+c$$$        xrel = 0.
+c$$$        yrel = 0.
+c$$$        do ix = 1,nxgr
+c$$$          do iy = 1,nygr
+c$$$            costh = sqrt(dxgrid(ix,iy)**2 + dygrid(ix,iy)**2)
+c$$$            xrel = xrel + costh
+c$$$            yrel = max(yrel, costh)
+c$$$          enddo
+c$$$        enddo
+c$$$        write(*,'(1x,a,2i4,a,2f6.2)')
+c$$$     &      char(ixy+ichar('W'))//' edge, pieces'
+c$$$     &      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+c$$$     &      '  mean, max vector:',xrel/(nxgr*nygr), yrel
+        
+        if (needByteSwap .eq. 0) then
+          write(iunedge(ixy),rec=jedge+1)nxgr,nygr,(igrstr(i),igrofs(i)
+     &        ,i=1,2) ,((dxgrid(ix,iy),dygrid(ix,iy),
+     &        ddengrid(ix,iy),ix=1,nxgr),iy=1,nygr)
+        else
+c           
+c           In case there were incomplete edges, be able to write swapped
+          ixdisp = nxgr
+          iydisp = nygr
+          call convert_longs(ixdisp, 1)
+          call convert_longs(iydisp, 1)
+          call convert_longs(igrstr, 2)
+          call convert_longs(igrofs, 2)
+          do iy = 1, nygr
+            call convert_floats(dxgrid(1,iy), nxgr)
+            call convert_floats(dygrid(1,iy), nxgr)
+            call convert_floats(ddengrid(1,iy), nxgr)
+          enddo
+          write(iunedge(ixy),rec=jedge+1)ixdisp, iydisp,(igrstr(i),igrofs(i)
+     &        ,i=1,2) ,((dxgrid(ix,iy),dygrid(ix,iy),
+     &        ddengrid(ix,iy),ix=1,nxgr),iy=1,nygr)
+        endif
 c         
-c$$$      xrel = 0.
-c$$$      yrel = 0.
-c$$$      do ix = 1,nxgr
-c$$$      do iy = 1,nygr
-c$$$      costh = sqrt(dxgrid(ix,iy)**2 + dygrid(ix,iy)**2)
-c$$$      xrel = xrel + costh
-c$$$      yrel = max(yrel, costh)
-c$$$      enddo
-c$$$      enddo
-c$$$      write(*,'(1x,a,2i4,a,2f6.2)')
-c$$$      &           char(ixy+ichar('W'))//' edge, pieces'
-c$$$      &           ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-c$$$      &           '  mean, max vector:',xrel/(nxgr*nygr), yrel
-
         edgedone(jedge,ixy)=.true.
+c         
+c         Write records for any edges not done yet
+        ixdisp = -1
+        if (needByteSwap .ne. 0) call convert_longs(ixdisp, 1)
+        do ix = lastWritten(ixy) + 1, jedge - 1
+          if (.not.edgedone(ix,ixy))
+     &        write(iunedge(ixy),rec=ix+1)ixdisp, ixdisp
+        enddo
+        lastWritten(ixy) = jedge
       enddo
       return
       end
@@ -1121,7 +1081,7 @@ c       COUNTEDGES takes coordinate INDX, INDY in the output image, converts
 c       it to XG,YG with the inverse of optional g transform, and analyses
 c       the edges and pieces that the point is in, or at least near
 c       
-      subroutine countedges(indx,indy,xg,yg)
+      subroutine countedges(indx,indy,xg,yg, useEdges)
 c       
       implicit none
       integer*4 indx,indy
@@ -1129,7 +1089,7 @@ c
 c       
       include 'blend.inc'
 c       
-      logical edgeonlist,needcheck(5,2),ngframe
+      logical edgeonlist,needcheck(5,2),ngframe, useEdges
       real*4 xycur(2)
       integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm,minxframe,minyframe
       integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch
@@ -1351,6 +1311,16 @@ c
         enddo
         indinp=indinp+1
       enddo
+c       
+c       Replace edges with ones to use if called for
+      if (useEdges) then
+        do ixy = 1, 2
+          do i = 1, numedges(ixy)
+            call findEdgeToUse(inedge(i,ixy), ixy, newedge)
+            if (newedge .ne. 0) inedge(i, ixy) = newedge
+          enddo
+        enddo
+      endif
       return
       end
 
@@ -1548,7 +1518,7 @@ c       nxybord(iyx)=max(5,nint(padFrac*nxybox(iyx)))
       nytap=max(5,nint(taperFrac*nxybox(2)))
 
       if(nxybox(1)*nxybox(2).gt.maxbsiz.or.nxpad*nypad.gt.idimc)call
-     &    errorexit('Overlap too big for correlation arrays, reduce '//
+     &    exitError('Overlap too big for correlation arrays, reduce '//
      &    'padding or aspect ratio')
 c       
 c       get the first image, lower piece
@@ -1772,7 +1742,7 @@ c
      &        iedgeupper(ipc,1).gt.0.or.
      &        iedgeupper(ipc,2).gt.0)then
             nvar=nvar+1
-            if (nvar.gt.limvar .or. nvar*maxvar.gt.maxsiz / 2)call errorexit(
+            if (nvar.gt.limvar .or. nvar*maxvar.gt.maxsiz / 2)call exitError(
      &          'TOO MANY PIECES FOR ARRAYS IN FIND_BEST_SHIFTS')
             ivarpc(nvar)=ipc
             indvar(ipc)=nvar
@@ -2109,6 +2079,62 @@ c
       return
       end
 
+
+c       findEdgeToUse looks up an edge to use in place of the given edge
+c       if Z limits are defined on the edges to use.  It returns the original
+c       edge number if no limits have been set, or if no substitte edge should
+c       be used.  It returns 0 if a different Z level should be used but no
+c       edge exists at it.
+c
+      subroutine findEdgeToUse(iedge, ixy, iuse)
+      implicit none
+      integer*4 iedge, iuse, ixy, izlow, izhigh, ipclo,ixfrm,iyfrm,izuse,i
+      include 'blend.inc'
+      iuse = iedge
+      if (numUseEdge .eq. 0 .and. izUseDefLow .lt. 0) return
+c       
+c       Find frame number of piece then look up frame in the use list
+      ipclo = ipiecelower(iedge, ixy)
+      ixfrm=1+(ixpclist(ipclo)-minxpiece)/(nxin-nxoverlap)
+      iyfrm=1+(iypclist(ipclo)-minypiece)/(nyin-nyoverlap)
+      izlow = -1
+      do i = 1, numUseEdge
+        if (ixFrmUseEdge(i) .eq. ixfrm .and. iyFrmUseEdge(i) .eq. iyfrm .and.
+     &      ixy .eq. ixyUseEdge(i)) then
+          izlow = izLowUse(i)
+          izhigh = izHighUse(i)
+        endif
+      enddo
+c       
+c       If frame not found, use the default or skip out if none
+c       Then find out if there is another Z to use or not
+      if (izlow .lt. 0) then
+        if (izUseDefLow .lt. 0) return
+        izlow = izUseDefLow
+        izhigh = izUseDefHigh
+      endif
+      if (izpclist(ipclo) .lt. izlow) then
+        izuse = izlow
+      else if (izpclist(ipclo) .gt. izhigh) then
+        izuse = izhigh
+      else
+        return
+      endif
+c       
+c       Seek these coordinates on that Z with an edge above
+      do i = 1, npclist
+        if (izpclist(i) .eq. izuse .and. ixpclist(i) .eq. ixpclist(ipclo) .and.
+     &      iypclist(i) .eq. iypclist(ipclo) .and. iedgeUpper(i,ixy) .gt. 0)
+     &      then
+          iuse = iedgeUpper(i,ixy)
+          return
+        endif
+      enddo
+      iuse = 0
+      return
+      end
+
+
 c       iwrBinned writes the data in ARRAY to unit IUNIT, with binning
 c       given by IBINNING, using BRRAY as a scratch line.  The data in ARRAY
 c       are NY lines of length NX.  The output will consist of NYOUT lines
@@ -2300,3 +2326,75 @@ c
       call iwrhdr(2+ixy,title,-1,0.,255.,128.)
       return
       end
+
+c       
+c       $Log$
+c       Revision 3.21  2007/01/24 05:08:19  mast
+c       Bin starting areas for cross-correlation when bigger than 1K
+c
+c       Revision 3.20  2006/06/18 19:38:08  mast
+c       Changed to use new C function for amoeba
+c
+c       Revision 3.19  2006/02/27 15:20:20  mast
+c       g77 wanted find_best_shift called with an equivalenced real*8 array
+c
+c       Revision 3.18  2006/02/26 18:29:50  mast
+c       Converted to using double precision for solving shift equations and 
+c       only used as much of the array as necessary for this.
+c
+c       Revision 3.17  2006/02/26 06:04:40  mast
+c       Fixed countedges to go to the right piece when there are h transforms
+c
+c       Revision 3.16  2006/02/06 21:51:04  mast
+c       Fixed findBestGradient to solve for shifts at each trial gradient
+c
+c       Revision 3.15  2006/01/16 03:16:26  mast
+c       Changed message for implied gradients
+c       
+c       Revision 3.14  2005/11/09 05:56:47  mast
+c       Added parameters for correlation control, and edge dumping
+c       
+c       Revision 3.13  2005/08/22 16:19:59  mast
+c       Preliminary - finding gradients from displacements
+c       
+c       Revision 3.12  2005/08/22 16:15:59  mast
+c       
+c       Revision 3.11  2005/08/20 05:10:48  mast
+c       Excluded a border region from correlations with distortion
+c       corrections
+c       
+c       Revision 3.10  2005/07/24 17:33:15  mast
+c       Increased allowed overlap in xcorredge up to 600 pixels but kept
+c       arrays on stack
+c       
+c       Revision 3.9  2005/06/03 19:39:04  mast
+c       Added routine for writing binned output
+c       
+c       Revision 3.8  2005/03/18 23:38:30  mast
+c       Improved error message from read_list
+c       
+c       Revision 3.7  2005/02/28 22:13:27  mast
+c       Commented out edge vector summary
+c       
+c       Revision 3.6  2005/02/28 21:15:07  mast
+c       Changes for distortion and mag gradient correction and cubic and
+c       linear interpolation
+c       
+c       Revision 3.5  2004/09/01 20:27:38  mast
+c       Fixed bug in testing if piece list input entered
+c       
+c       Revision 3.4  2003/12/12 20:47:42  mast
+c       Moved FINDEDGEFUNC, SETGRIDCHARS, and LOCALMEAN to edgesubs.f
+c       
+c       Revision 3.3  2003/08/09 23:21:59  mast
+c       Changes for PIP input
+c       
+c       Revision 3.2  2003/06/20 20:18:48  mast
+c       Standardized error exits and increased limits for correlation area
+c       
+c       Revision 3.1  2002/08/19 04:27:43  mast
+c       Changed to use blend.inc.  Made declarations for implicit none in
+c       all routines that used the include file.  Changed DOEDGE to use
+c       ARRAY from common, and made FIND_BEST_SHIFTS get its big array as
+c       an argument then invalidate the part of the array that it uses.
+c       
