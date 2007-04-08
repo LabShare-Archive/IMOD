@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/8/07: Added programs Edgepatches, Stitchalign, and Tomostitch for stitching
+together adjacent tomograms.
+
+4/7/07: Increased array limits in Warpvol and Findwarp to support work with
+supermontages.
+
+4/7/07: Added options to Blendmont to support running in parallel and added a
+splitblend script to produce command files for this.
+
+4/7/07: Added options to Blendmont to specify range in Z over which an edge
+gives good edge functions, to eliminate effects of bad edge functions when
+stitching adjacent tomograms.
+
 4/6/07: Increased range of light movement in model view and made rate of
 movement fairly uniform across range of angles.
 
