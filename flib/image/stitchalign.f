@@ -43,6 +43,7 @@ c
       character*1024 listString,filename
       character*4 xoryStr
       real*4 atan2d, cosd, sind
+      integer*4 lnblnk
       external stitchfunc
 
       integer*4 AdocRead, AdocGetNumberOfSections, AdocGetThreeIntegers
@@ -2774,4 +2775,7 @@ c
 
 
 c       $Log$
+c       Revision 3.1  2007/04/08 16:13:55  mast
+c       Added to package
+c
 c
