@@ -1,0 +1,132 @@
+Version = 1.0
+Pip = 1
+
+
+[Field = InfoFile]
+short = info
+type = FN
+usage = Name of supermontage information file
+tooltip =
+manpage = Name of autodoc-type file with information about the supermontage.
+If this option is not entered, the first non-option argument will be taken as
+the name of the info file.
+
+[Field = ZvaluesToDo]
+short = zvalues
+type = LI
+usage = List of Z values to analyze
+tooltip =
+manpage = List of Z values at which to run the analysis (comma-separated
+ranges allowed).  The default is to do all Z values.
+
+[Field = RotationInXYplane]
+short = rotation
+type = F
+usage = Angle to rotate in X/Y plane
+tooltip =
+manpage = Angle to rotate all volumes in the X/Y plane.	 If this option is not
+entered, the program will find the angle that brings the centers of the
+aligned volumes onto a rectangular grid.  Enter an angle or zero to override
+this behavior.
+
+[Field = SizeOfOutputFramesXandY]
+short = size
+type = IP
+usage = Size in X and Y of transformed files to be created by Warpvol
+tooltip =
+manpage = Size in X and Y of transformed files to be created by Matchvol or
+Warpvol.  The default is the size of the largest input volume.
+
+[Field = FindMagnification]
+short = mag
+type = B
+usage = Find overall magnification factors
+tooltip =
+manpage =
+
+[Field = FindStretch]
+short = stretch
+type = B
+usage = Find in-plane stretch parameters
+tooltip =
+manpage = Find in-plane stretch parameters, which are expressed as size change
+and rotation of the Y axis relative to the X axis.
+
+[Field = FindThinning]
+short = thinning
+type = B
+usage = Find thinning factors
+tooltip =
+manpage = Find thinning factors, factors by which to change the thickness of
+the volumes.
+
+[Field = FindAngles]
+short = angles
+type = IT
+usage = Values indicating whether to find rotations around X, Y, and Z
+tooltip =
+manpage = Values or 1 or 0 indicating whether to find rotations around X, Y,
+and Z, respectively.  The default is 1,1,1, so this option would be used to
+turn off solutions for some angles.
+
+[Field = MetroFactor]
+short = metro
+type = F
+usage = Initial step size in minimization; default 0.24
+tooltip =
+manpage = Initial step size or "metro factor" in the minimization procedure;
+the default is 0.24.  Vary this value slightly if a minimization fails.
+
+[Field = XRunStartEnd]
+short = xrun
+type = IP
+usage = Starting and ending volumes in X to analyze
+tooltip =
+manpage = Starting and ending volumes in X to analyze, numbered from 1.	 The
+default is to do all volumes in X.
+
+[Field = YRunStartEnd]
+short = yrun
+type = IP
+usage = Starting and ending volumes in Y to analyze
+tooltip =
+manpage = Starting and ending volumes in Y to analyze, numbered from 1.	 The
+default is to do all volumes in Y.
+
+[Field = VectorSpacingFactor]
+short = spacing
+type = F
+usage = Factor by which to change spacing of vectors for warping fields
+tooltip =
+manpage = This factor makes the spacing of the vectors put out in the
+warping fields for each volume be less than the spacing of the patch vectors
+measured in the overlap zones.  The default is 0.7, which makes the density
+of warping vectors be about three times higher than the density of the patch
+vectors.
+
+[Field = AllTogether]
+short = all
+type = B
+usage = Analyze all volumes in a single minimization procedure
+tooltip =
+manpage = Analyze all volumes in a single minimization procedure.  The default
+is to get a solution for each pair of overlapping volumes and resolve the
+results into a single solution.	 When parameters are searched for all volumes
+togther, the results are poor, probably due to multiple minima.
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
