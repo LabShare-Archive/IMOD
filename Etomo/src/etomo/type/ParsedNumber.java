@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.io.IOException;
+
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
@@ -18,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/31 02:56:48  sueh
+ * <p> bug# 964 Added isCollection().
+ * <p>
  * <p> Revision 1.1  2007/03/30 23:46:45  sueh
  * <p> bug# 964 Parses a Matlab number.
  * <p> </p>
@@ -25,40 +30,102 @@ import etomo.util.PrimativeTokenizer;
 public final class ParsedNumber extends ParsedElement {
   public static final String rcsid = "$Id$";
 
-  private final EtomoNumber number;
+  private final EtomoNumber rawNumber;
 
   private EtomoNumber.Type etomoNumberType = null;
   private Integer defaultValue = null;
+  private boolean valid = true;
+
+  private static final StringBuffer SYMBOL_STRING = new StringBuffer(
+      ParsedList.OPEN_SYMBOL.toString() + ParsedList.CLOSE_SYMBOL.toString()
+          + ParsedList.DIVIDER_SYMBOL.toString()
+          + ParsedArray.OPEN_SYMBOL.toString()
+          + ParsedArray.CLOSE_SYMBOL.toString()
+          + ParsedArray.DIVIDER_SYMBOL.toString()
+          + ParsedArrayDescriptor.DIVIDER_SYMBOL.toString());
 
   public ParsedNumber() {
     this(null, null);
   }
 
+  public ParsedNumber(EtomoNumber.Type etomoNumberType) {
+    this(etomoNumberType, null);
+  }
+
   ParsedNumber(EtomoNumber.Type etomoNumberType, Integer defaultValue) {
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
-    number = new EtomoNumber(etomoNumberType);
+    rawNumber = new EtomoNumber(etomoNumberType);
     if (defaultValue != null) {
-      number.setDefault(defaultValue.intValue());
+      rawNumber.setDefault(defaultValue.intValue());
     }
   }
 
   public void parse(ReadOnlyAttribute attribute) {
-    //TODO bug# 964
+    rawNumber.reset();
+    valid = true;
+    if (attribute == null) {
+      return;
+    }
+    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
+    StringBuffer buffer = new StringBuffer();
+    Token token = null;
+    try {
+      token = tokenizer.next();
+      parse(token, tokenizer);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
+
+  public String toString() {
+    return "[rawNumber:" + rawNumber + "]";
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
-    //TODO bug# 964
-    return null;
+    rawNumber.reset();
+    valid = true;
+    if (token == null) {
+      return null;
+    }
+    boolean dividerFound = true;
+    //Loop until whitespace, EOL, EOF, or a recognized symbol is found; that
+    //should be the end of the number.
+    StringBuffer buffer = new StringBuffer();
+    while (valid
+        && token != null
+        && !token.is(Token.Type.WHITESPACE)
+        && !token.is(Token.Type.EOL)
+        && !token.is(Token.Type.EOF)
+        && !(token.is(Token.Type.SYMBOL) && SYMBOL_STRING.toString().indexOf(
+            token.getChar()) != -1)) {
+      //build the number
+      buffer.append(token.getValue());
+      try {
+        token = tokenizer.next();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        fail();
+      }
+    }
+    rawNumber.set(buffer.toString());
+    return token;
   }
 
   String getRawString() {
     if (defaultValue == null) {
-      return number.toString();
+      return rawNumber.toString();
     }
-    return number.toDefaultedString();
+    return rawNumber.toDefaultedString();
   }
-  
+
+  ConstEtomoNumber getRawNumber() {
+    return rawNumber;
+  }
+
   boolean isCollection() {
     return false;
   }
@@ -68,7 +135,11 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   void setRawNumber(String number) {
-    this.number.set(number);
+    this.rawNumber.set(number);
+  }
+
+  public void setElement(ParsedElement element) {
+    rawNumber.set(element.getRawString());
   }
 
   ParsedElement getElement(int index) {
@@ -80,5 +151,13 @@ public final class ParsedNumber extends ParsedElement {
 
   int size() {
     return 1;
+  }
+
+  void fail() {
+    valid = false;
+  }
+
+  boolean isEmpty() {
+    return rawNumber.isNull();
   }
 }
