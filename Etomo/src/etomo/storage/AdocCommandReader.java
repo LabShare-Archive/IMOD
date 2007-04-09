@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.NameValuePairLocation;
-import etomo.storage.autodoc.NameValuePairType;
+import etomo.storage.autodoc.Statement;
+import etomo.storage.autodoc.StatementLocation;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.storage.autodoc.ReadOnlyNameValuePair;
-import etomo.storage.autodoc.ReadOnlyNameValuePairList;
+import etomo.storage.autodoc.ReadOnlyStatement;
+import etomo.storage.autodoc.ReadOnlyStatementList;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 
@@ -35,9 +35,9 @@ public final class AdocCommandReader {
   private final String autodocName;
   private final String sectionType;
 
-  private ReadOnlyNameValuePairList list = null;
+  private ReadOnlyStatementList list = null;
   private SectionLocation sectionLoc = null;
-  private NameValuePairLocation pairLoc = null;
+  private StatementLocation statementLoc = null;
   private boolean readingSections = false;
   private boolean readingCommands = false;
   private boolean verbose = false;
@@ -145,18 +145,18 @@ public final class AdocCommandReader {
     if (list == null) {
       return command;
     }
-    //if starting a list, get the pair location
-    if (pairLoc == null) {
-      pairLoc = list.getNameValuePairLocation();
+    //if starting a list, get the statement location
+    if (statementLoc == null) {
+      statementLoc = list.getStatementLocation();
     }
-    //get the pair, ignoring comments and empty lines
-    ReadOnlyNameValuePair pair;
+    //get the statement, ignoring comments and empty lines
+    ReadOnlyStatement statement;
     do {
-      pair = list.nextNameValuePair(pairLoc);
-    } while (pair != null
-        && (pair.getNameValuePairType() == NameValuePairType.COMMENT || pair
-            .getNameValuePairType() == NameValuePairType.EMPTY_LINE));
-    if (pair == null) {
+      statement = list.nextStatement(statementLoc);
+    } while (statement != null
+        && (statement.getType() == Statement.Type.COMMENT || statement
+            .getType() == Statement.Type.EMPTY_LINE));
+    if (statement == null) {
       //if this is the end of a function section, end the function and read the
       //next command from the calling autodoc
       if (function) {
@@ -166,10 +166,10 @@ public final class AdocCommandReader {
       return command;
     }
     if (verbose) {
-      System.err.println(axisID.toString() + ": " + pair.getString());
+      System.err.println(axisID.toString() + ": " + statement.getString());
     }
-    //place the pair in command
-    command.set(pair);
+    //place the statement in command
+    command.set(statement);
     if (command.isFunctionLocation()) {
       //if the function location command (adoc) is found, change the function
       //autodoc and get the next command
@@ -205,7 +205,7 @@ public final class AdocCommandReader {
 
   private void setSection() {
     readingSections = true;
-    pairLoc = null;
+    statementLoc = null;
     name = null;
     readingCommands = false;
     if (list == null) {
@@ -237,7 +237,7 @@ public final class AdocCommandReader {
       throw new IllegalStateException("command=" + command);
     }
     //push old location
-    Location location = new Location(list, sectionLoc, pairLoc, function);
+    Location location = new Location(list, sectionLoc, statementLoc, function);
     locationStack.addLast(location);
     //set values from the current autodoc
     list = functionAutodoc.getSection(command.getAction().toString(), command
@@ -247,7 +247,7 @@ public final class AdocCommandReader {
           + ":missing section:" + command.toString());
     }
     sectionLoc = null;
-    pairLoc = null;
+    statementLoc = null;
     function = true;
     setInfo();
     if (verbose) {
@@ -295,26 +295,26 @@ public final class AdocCommandReader {
     }
     list = location.getList();
     sectionLoc = location.getSectionLoc();
-    pairLoc = location.getPairLoc();
+    statementLoc = location.getStatementLoc();
     function = location.isFunction();
     setInfo();
   }
 
   private static final class Location {
-    private final ReadOnlyNameValuePairList list;
+    private final ReadOnlyStatementList list;
     private final SectionLocation sectionLoc;
-    private final NameValuePairLocation pairLoc;
+    private final StatementLocation statementLoc;
     private final boolean function;
 
-    Location(ReadOnlyNameValuePairList list, SectionLocation sectionLoc,
-        NameValuePairLocation pairLoc, boolean function) {
+    Location(ReadOnlyStatementList list, SectionLocation sectionLoc,
+        StatementLocation statementLoc, boolean function) {
       this.list = list;
       this.sectionLoc = sectionLoc;
-      this.pairLoc = pairLoc;
+      this.statementLoc = statementLoc;
       this.function = function;
     }
 
-    ReadOnlyNameValuePairList getList() {
+    ReadOnlyStatementList getList() {
       return list;
     }
 
@@ -322,8 +322,8 @@ public final class AdocCommandReader {
       return sectionLoc;
     }
 
-    NameValuePairLocation getPairLoc() {
-      return pairLoc;
+    StatementLocation getStatementLoc() {
+      return statementLoc;
     }
 
     boolean isFunction() {
@@ -332,12 +332,16 @@ public final class AdocCommandReader {
 
     public String toString() {
       return "list=" + list.getName() + ",\nsectionLoc=" + sectionLoc
-          + ",\npairLoc=" + pairLoc;
+          + ",\nstatementLoc=" + statementLoc;
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2007/03/21 18:10:21  sueh
+ * <p> bug# 964 Moved AdocCommand classes out of the autodoc package because
+ * <p> they not part of the autodoc.
+ * <p>
  * <p> Revision 1.8  2007/03/08 21:44:14  sueh
  * <p> bug# 964 Ignore comment and empty-line name/value pairs.
  * <p>
