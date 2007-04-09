@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.io.IOException;
+
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
@@ -17,6 +19,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/31 02:54:24  sueh
+ * <p> bug# 964 Added isCollection().
+ * <p>
  * <p> Revision 1.1  2007/03/30 23:41:13  sueh
  * <p> bug# 964 Class to parse Matlab array descriptors.
  * <p> </p>
@@ -27,37 +32,95 @@ final class ParsedArrayDescriptor extends ParsedElement {
 
   static final Character DIVIDER_SYMBOL = new Character(':');
 
-  private final ParsedElementList list = new ParsedElementList();
+  private final ParsedElementList descriptor = new ParsedElementList();
+
+  private EtomoNumber.Type etomoNumberType = null;
+  private Integer defaultValue = null;
+  private boolean valid = true;
+
+  ParsedArrayDescriptor(EtomoNumber.Type etomoNumberType, Integer defaultValue) {
+    this.etomoNumberType = etomoNumberType;
+    this.defaultValue = defaultValue;
+  }
+
+  public String toString() {
+    return "[descriptor:" + descriptor + "]";
+  }
 
   int size() {
-    return list.size();
+    return descriptor.size();
+  }
+
+  void fail() {
+    valid = false;
+  }
+
+  boolean isEmpty() {
+    return size() == 0;
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
-    //TODO bug# 964
-    return null;
+    descriptor.clear();
+    valid = true;
+    if (token == null) {
+      return null;
+    }
+    boolean dividerFound = true;
+    //loop until a divider isn't found, this should be the end of the list
+    while (dividerFound && valid) {
+      try {
+        //parse an element.
+        token = parseElement(token, tokenizer);
+        //whitespace is not allowed in a file descriptor and it may be used as
+        //an array divider, so it shouldn't be removed
+        dividerFound = false;
+        //if the divider symbol is found, continue parsing elements
+        if (token != null
+            && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
+          dividerFound = true;
+          token = tokenizer.next();
+        }
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        fail();
+      }
+    }
+    return token;
   }
 
   ParsedElement getElement(int index) {
-    return list.get(index);
+    return descriptor.get(index);
   }
 
   String getRawString() {
     StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < list.size(); i++) {
+    for (int i = 0; i < descriptor.size(); i++) {
       if (i > 0) {
         buffer.append(DIVIDER_SYMBOL.charValue());
       }
-      buffer.append(list.get(i).getRawString());
+      buffer.append(descriptor.get(i).getRawString());
     }
     return buffer.toString();
   }
-  
+
+  ConstEtomoNumber getRawNumber() {
+    return descriptor.get(0).getRawNumber();
+  }
+
   boolean isCollection() {
     return true;
   }
 
   String getParsableString() {
     return getRawString();
+  }
+
+  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
+    //parse a number
+    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
+    token = element.parse(token, tokenizer);
+    descriptor.add(element);
+    return token;
   }
 }
