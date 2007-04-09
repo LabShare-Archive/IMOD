@@ -12,10 +12,13 @@ package etomo.storage.autodoc;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/23 20:37:00  sueh
+* <p> bug# 964 An interface which can be used to modify an attribute.
+* <p> </p>
 */
 public interface WritableAttribute extends ReadOnlyAttribute{
   public static  final String  rcsid =  "$Id$";
   
-  public void changeValue(String newValue);
+  public void setValue(String newValue);
 }
