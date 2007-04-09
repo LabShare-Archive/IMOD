@@ -133,6 +133,8 @@ public abstract class BaseManager {
   public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
+  
+  public abstract boolean setParamFile();
 
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
@@ -309,6 +311,7 @@ public abstract class BaseManager {
    */
   public final boolean saveParamFile() throws LogFile.FileException,
       LogFile.WriteException {
+    setParamFile();
     if (getParameterStore() == null) {
       return false;
     }
@@ -1163,6 +1166,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.78  2007/03/26 23:30:04  sueh
+ * <p> bug# 964 Moved some of the imodOpen functions to the parent class to be shared.
+ * <p>
  * <p> Revision 1.77  2007/03/01 01:09:27  sueh
  * <p> bug# 964 Removed protected modifiers.  Interpackage inheritance doesn't require
  * <p> it.
