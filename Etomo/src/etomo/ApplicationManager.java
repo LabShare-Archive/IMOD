@@ -189,6 +189,10 @@ public final class ApplicationManager extends BaseManager {
       }
     }
   }
+  
+  public boolean setParamFile() {
+    return loadedParamFile;
+  }
 
   /**
    * Initialize advancedA and advancedB, which remember the advanced state of
@@ -5422,6 +5426,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.278  2007/03/07 20:52:03  sueh
+ * <p> bug# Validate beam tilt fields in the fine alignment dialog in fineAlignment().
+ * <p>
  * <p> Revision 3.277  2007/03/03 00:30:53  sueh
  * <p> bug# 973 Getting/setting metadata in Fine Align dialog.
  * <p>
