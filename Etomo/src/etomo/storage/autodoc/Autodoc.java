@@ -76,7 +76,7 @@ import java.util.Vector;
  *
  */
 
-final class Autodoc extends WriteOnlyNameValuePairList implements
+final class Autodoc extends WriteOnlyStatementList implements
     WritableAutodoc {
   public static final String rcsid = "$$Id$$";
 
@@ -92,10 +92,10 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
   private AutodocParser parser = null;
 
   //data
-  private final AttributeMap attributeMap;
+  private final AttributeList attributeMap;
   private final Vector sectionList = new Vector();
   private final HashMap sectionMap = new HashMap();
-  private final Vector nameValuePairList = new Vector();
+  private final Vector statementList = new Vector();
   private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
 
   Autodoc() {
@@ -104,7 +104,7 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
 
   Autodoc(boolean allowAltComment) {
     this.allowAltComment = allowAltComment;
-    attributeMap = new AttributeMap(this, this);
+    attributeMap = new AttributeList(this/*, this*/);
   }
 
   static void resetAbsoluteDir() {
@@ -152,15 +152,15 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     return currentDelimiter;
   }
 
-  WriteOnlyAttributeMap addAttribute(Token name) {
+  WriteOnlyAttributeList addAttribute(Token name) {
     return attributeMap.addAttribute(name);
   }
 
   public void write() throws LogFile.FileException, LogFile.WriteException {
     autodocFile.backup();
     long writeId = autodocFile.openWriter();
-    for (int i = 0; i < nameValuePairList.size(); i++) {
-      ((NameValuePair) nameValuePairList.get(i)).write(autodocFile, writeId);
+    for (int i = 0; i < statementList.size(); i++) {
+      ((Statement) statementList.get(i)).write(autodocFile, writeId);
     }
     for (int j = 0; j < sectionList.size(); j++) {
       ((Section) sectionList.get(j)).write(autodocFile, writeId);
@@ -168,21 +168,23 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     autodocFile.closeWriter(writeId);
   }
 
-  public void addAttributeAndNameValuePair(String name,
+  /**
+   * add a name/value pair with a name containing one attribute
+   */
+  public void addNameValuePair(String name,
       String value) {
     //add attribute
     Token nameToken = new Token();
-    nameToken.set(Token.Type.ONE_OR_MORE, name);
+    nameToken.set(Token.Type.ANYTHING, name);
     attributeMap.addAttribute(nameToken);
     //add value to attribute
     Attribute attribute = attributeMap.getAttribute(name);
     Token valueToken = new Token();
-    valueToken.set(Token.Type.ONE_OR_MORE, value);
-    attribute.setValue(valueToken);
+    valueToken.set(Token.Type.ANYTHING, value);
     //add name/value pair
     NameValuePair pair = addNameValuePair();
-    //add name and value to pair
-    pair.addAttribute(nameToken);
+    //add attribute and value to pair
+    pair.addAttribute(attribute);
     pair.addValue(valueToken);
   }
 
@@ -195,46 +197,46 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
   }
 
   NameValuePair addNameValuePair() {
-    NameValuePair pair = NameValuePair.getNameValuePairInstance(this);
-    nameValuePairList.add(pair);
+    NameValuePair pair = new NameValuePair(this);
+    statementList.add(pair);
     return pair;
   }
 
   public void addComment(Token comment) {
-    nameValuePairList.add(NameValuePair.getCommentInstance(comment, this));
+    statementList.add(new Comment(comment, this));
   }
   
   public void addComment(String comment) {
     Token token = new Token();
-    token.set(Token.Type.ONE_OR_MORE,comment);
+    token.set(Token.Type.ANYTHING,comment);
     addComment(token);
   }
 
   void addDelimiterChange(Token newDelimiter) {
-    nameValuePairList.add(NameValuePair.getDelimiterChangeInstance(
+    statementList.add(NameValuePair.getDelimiterChangeInstance(
         newDelimiter, this));
   }
-
+  
   public void addEmptyLine() {
-    nameValuePairList.add(NameValuePair.getEmptyLineInstance(this));
+    statementList.add(new EmptyLine(this));
   }
 
-  public NameValuePairLocation getNameValuePairLocation() {
-    if (nameValuePairList == null) {
+  public StatementLocation getStatementLocation() {
+    if (statementList == null) {
       return null;
     }
-    return new NameValuePairLocation();
+    return new StatementLocation();
   }
 
-  public NameValuePair nextNameValuePair(NameValuePairLocation location) {
-    if (nameValuePairList == null || location == null
-        || location.isOutOfRange(nameValuePairList)) {
+  public Statement nextStatement(StatementLocation location) {
+    if (statementList == null || location == null
+        || location.isOutOfRange(statementList)) {
       return null;
     }
-    NameValuePair pair = (NameValuePair) nameValuePairList.get(location
+    Statement statement = (Statement) statementList.get(location
         .getIndex());
     location.increment();
-    return pair;
+    return statement;
   }
 
   public ReadOnlySection getSection(String type, String name) {
@@ -329,11 +331,11 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     System.out.println("Printing stored data:");
     //name value pair list
     System.out.println("LIST:");
-    if (nameValuePairList != null) {
-      NameValuePair nameValuePair = null;
-      for (int i = 0; i < nameValuePairList.size(); i++) {
-        nameValuePair = (NameValuePair) nameValuePairList.get(i);
-        nameValuePair.print(0);
+    if (statementList != null) {
+      Statement statement = null;
+      for (int i = 0; i < statementList.size(); i++) {
+        statement = (Statement) statementList.get(i);
+        statement.print(0);
       }
     }
     //attribute map
@@ -567,6 +569,9 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.17  2007/03/26 18:36:27  sueh
+ *<p> $bug# 964 Made Version optional so that it is not necessary in matlab param files.
+ *<p> $
  *<p> $Revision 1.16  2007/03/23 20:30:09  sueh
  *<p> $bug# 964 Added addAttributeAndNameValuePair, addComment(String), write(),
  *<p> $getWritableAttribute,getAttributeMultiLineValues.
