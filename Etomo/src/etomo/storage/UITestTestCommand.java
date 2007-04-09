@@ -1,7 +1,7 @@
 package etomo.storage;
 
 import etomo.storage.AdocCommand;
-import etomo.storage.autodoc.ReadOnlyNameValuePair;
+import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.type.AxisID;
 import etomo.type.UITestAction;
 import etomo.type.UITestField;
@@ -35,48 +35,48 @@ public final class UITestTestCommand implements AdocCommand {
   private boolean keep = false;
   private Variable variable = null;
 
-  public void set(ReadOnlyNameValuePair pair) {
+  public void set(ReadOnlyStatement statement) {
     reset();
-    if (pair == null) {
+    if (statement == null) {
       return;
     }
     empty = false;
-    string = pair.getString();
-    if (pair.numAttributes() == 0) {
+    string = statement.getString();
+    if (statement.sizeLeftSide() == 0) {
       return;
     }
     //get the action
-    action = UITestAction.getInstance(pair.getAttribute(0));
+    action = UITestAction.getInstance(statement.getLeftSide(0));
     //get the value
-    value = pair.getValue();
+    value = statement.getRightSide();
     if (action == UITestAction.ADOC) {
-      axisID = AxisID.getInstance(pair.getAttribute(1));
+      axisID = AxisID.getInstance(statement.getLeftSide(1));
       if (axisID == null) {
         axisID = AxisID.ONLY;
       }
       variable = new Variable("axis", axisID.getExtension());
     }
     else if (action == UITestAction.DATASET_DIR) {
-      String keepString = pair.getAttribute(1);
+      String keepString = statement.getLeftSide(1);
       if (keepString != null && keepString.equals(KEEP_STRING)) {
         keep = true;
       }
     }
     else if (action == UITestAction.SET) {
-      String name = pair.getAttribute(1);
+      String name = statement.getLeftSide(1);
       axisID = AxisID.getInstance(name);
       if (axisID == null) {
         variable = new Variable(name, value);
       }
       else {
-        variable = new Variable(pair.getAttribute(2), value);
+        variable = new Variable(statement.getLeftSide(2), value);
       }
     }
     else if (action == UITestAction.DATASET) {
       variable = new Variable(action.toString(), value);
     }
     else if (action == UITestAction.COPY) {
-      field = UITestField.getInstance(pair.getAttribute(1));
+      field = UITestField.getInstance(statement.getLeftSide(1));
     }
     //ignore unknown commands
     if (action == UITestAction.ADOC
@@ -167,6 +167,11 @@ public final class UITestTestCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2007/03/21 18:13:14  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Creating Autodoc using a factory.  Moved AdocCommand classes out of the
+ * <p> autodoc package because they not part of the autodoc.
+ * <p>
  * <p> Revision 1.6  2007/03/08 22:03:24  sueh
  * <p> bug# 964 In NameValuePair, change the wording:  a name is made of 1 or more
  * <p> attributes.

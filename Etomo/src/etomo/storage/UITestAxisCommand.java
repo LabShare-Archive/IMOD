@@ -1,6 +1,6 @@
 package etomo.storage;
 
-import etomo.storage.autodoc.ReadOnlyNameValuePair;
+import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.type.DialogType;
 import etomo.type.UITestAction;
 
@@ -27,20 +27,20 @@ public final class UITestAxisCommand implements AdocCommand {
   private boolean empty = true;
   private boolean known = false;
 
-  public void set(ReadOnlyNameValuePair pair) {
+  public void set(ReadOnlyStatement statement) {
     reset();
-    if (pair == null) {
+    if (statement == null) {
       return;
     }
     empty = false;
-    string = pair.getString();
-    if (pair.numAttributes() == 0) {
+    string = statement.getString();
+    if (statement.sizeLeftSide() == 0) {
       return;
     }
     //set the action
-    action = UITestAction.getInstance(pair.getAttribute(0));
+    action = UITestAction.getInstance(statement.getLeftSide(0));
     //get the value
-    value = pair.getValue();
+    value = statement.getRightSide();
     if (action == UITestAction.TEST_FROM || action == UITestAction.WAIT_FOR) {
       dialogType = DialogType.getInstance(value);
     }
@@ -97,6 +97,11 @@ public final class UITestAxisCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2007/03/21 18:12:35  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Creating Autodoc using a factory.  Moved AdocCommand classes out of the
+ * <p> autodoc package because they not part of the autodoc.
+ * <p>
  * <p> Revision 1.3  2007/03/08 22:02:42  sueh
  * <p> bug# 964 In NameValuePair, change the wording:  a name is made of 1 or more
  * <p> attributes.
