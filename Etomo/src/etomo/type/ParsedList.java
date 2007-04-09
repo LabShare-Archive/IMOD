@@ -27,6 +27,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/31 02:56:33  sueh
+ * <p> bug# 964 Removed getRawString(int) because it is not in use.
+ * <p>
  * <p> Revision 1.1  2007/03/30 23:46:15  sueh
  * <p> bug# 964 Parses a Matlab list.
  * <p> </p>
@@ -123,6 +126,10 @@ public final class ParsedList {
   public int size() {
     return list.size();
   }
+  
+  public String toString() {
+    return "[list:"+list+"]";
+  }
 
   public ParsedElement getElement(int index) {
     return list.get(index);
@@ -152,12 +159,11 @@ public final class ParsedList {
    */
   private void parse(ReadOnlyAttribute attribute) {
     list.clear();
+    valid = true;
     if (attribute == null) {
       return;
     }
-    String value = attribute.getValue();
-    PrimativeTokenizer tokenizer = createTokenizer(value);
-    StringBuffer buffer = new StringBuffer();
+    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
     Token token = null;
     try {
       token = tokenizer.next();
@@ -169,51 +175,80 @@ public final class ParsedList {
       }
       if (token == null
           || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        fail(value);
+        valid = false;
         return;
       }
       token = tokenizer.next();
-      token = parseList(token, tokenizer, value);
+      //remove any whitespace before the first element
+      if (token != null && token.is(Token.Type.WHITESPACE)) {
+        token = tokenizer.next();
+      }
+      token = parseList(token, tokenizer);
       if (!valid) {
         return;
       }
+      if (token != null && token.is(Token.Type.WHITESPACE)) {
+        token = tokenizer.next();
+      }
+      //if the close symbol wasn't found, fail
       if (token == null
           || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail(value);
+        valid = false;
         return;
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(value);
+      valid = false;
     }
   }
+  
+  private PrimativeTokenizer createTokenizer(String value) {
+    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    try {
+      tokenizer.initialize();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      valid = false;
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      valid = false;
+    }
+    return tokenizer;
+  }
 
-  private Token parseList(Token token, PrimativeTokenizer tokenizer,
-      String value) {
+  private Token parseList(Token token, PrimativeTokenizer tokenizer) {
     if (token == null) {
       return null;
     }
-    while (valid && token != null && !token.is(Token.Type.EOL)
-        && !token.is(Token.Type.EOF)
-        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
+    boolean dividerFound = true;
+    //loop until a divider isn't found, this should be the end of the list
+    while (dividerFound && valid) {
       try {
-        if (token.is(Token.Type.WHITESPACE)) {
+        //parse an element.
+        token = parseElement(token, tokenizer);
+        //remove any whitespace
+        if (token != null && token.is(Token.Type.WHITESPACE)) {
           token = tokenizer.next();
         }
-        token = parseElement(token, tokenizer);
-        if (token!=null&&token.is(Token.Type.WHITESPACE)) {
+        dividerFound = false;
+        //if the divider symbol is found, continue parsing elements
+        if (token != null
+            && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
+          dividerFound = true;
           token = tokenizer.next();
+          //remove whitespace after divider
+          if (token != null && token.is(Token.Type.WHITESPACE)) {
+            token = tokenizer.next();
+          }
         }
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail(value);
+        valid = false;
         return token;
-      }
-      if (token==null||!token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())
-          && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail(value);
       }
     }
     return token;
@@ -223,8 +258,8 @@ public final class ParsedList {
     //end of list
     if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       //This probably doesn't matter because its only necessary to keep track of
-      //location of existing elements in a lightly populated array.  Its not really
-      //necessary to track the size of the array.  But this does preserve the
+      //location of existing elements in a lightly populated list.  Its not really
+      //necessary to track the size of the list.  But this does preserve the
       //the original string:
       //{} means no elements, {,} means two elements.  {'tomo',,} means three elements
       if (list.size() > 0) {
@@ -237,7 +272,7 @@ public final class ParsedList {
       list.addEmptyElement();
       return token;
     }
-    //find element
+    //may have found an element
     ParsedElement element;
     if (type == Type.STRING) {
       element = new ParsedQuotedString();
@@ -248,39 +283,10 @@ public final class ParsedList {
     else {
       element = new ParsedNumber(etomoNumberType, defaultValue);
     }
-    while (token != null
-        && !token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())
-        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-      token = element.parse(token, tokenizer);
-      list.add(element);
-    }
+    //parse the token
+    token = element.parse(token, tokenizer);
+    list.add(element);
     return token;
-  }
-
-  private void fail(String value) {
-    valid = false;
-    ParsedString string = new ParsedString();
-    string.setRawString(value);
-    list.add(string);
-  }
-
-  private PrimativeTokenizer createTokenizer(String value) {
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
-    StringBuffer buffer = new StringBuffer();
-    Token token = null;
-    boolean firstToken = true;
-    try {
-      tokenizer.initialize();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      fail(value);
-    }
-    catch (LogFile.ReadException e) {
-      e.printStackTrace();
-      fail(value);
-    }
-    return tokenizer;
   }
 
   private static final class Type {
