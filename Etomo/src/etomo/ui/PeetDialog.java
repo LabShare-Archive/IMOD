@@ -110,7 +110,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   static final String DIRECTORY_LABEL = "Directory";
   static final String OUTPUT_LABEL = "Root name for output";
-  static final String VOLUME_NUMBER_LABEL = "Volume #: ";
+  static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
   static final String REFERENCE_FILE_LABEL = "Reference file: ";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
@@ -118,18 +118,18 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final JPanel rootPanel = new JPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
       + ": ");
-  private final LabeledTextField ltfFnOutput = new LabeledTextField(OUTPUT_LABEL
-      + ": ");
+  private final LabeledTextField ltfFnOutput = new LabeledTextField(
+      OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final CheckBox cbTiltRange = new CheckBox(
       "Use tilt range for missing wedge compensation");
   private final SpacedPanel pnlRunParametersBody = new SpacedPanel();
-  private final LabeledTextField ltfParticleNumber = new LabeledTextField(
+  private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
       "Particle #: ");
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
-  "Particle volume size in X: ");
+      "Particle volume size in X: ");
   private final LabeledTextField ltfSzVolY = new LabeledTextField("Y: ");
   private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
   private final LabeledTextField ltfEdgeShift = new LabeledTextField(
@@ -165,9 +165,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
-  private final RadioButton rbVolumeReference;
-  private final Spinner sVolumeNumber;
-  private final RadioButton rbVolumeFile;
+  private final RadioButton rbReferenceVolume;
+  private final Spinner sReferenceVolume;
+  private final RadioButton rbReferenceFile;
   private final RadioButton rbCcModeNormalized;
   private final RadioButton rbCcModeLocal;
   private final LabeledSpinner lsDebugLevel;
@@ -183,9 +183,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     phRunParameters = PanelHeader.getAdvancedBasicInstance("Run Parameters",
         this, DIALOG_TYPE);
     ButtonGroup group = new ButtonGroup();
-    rbVolumeReference = new RadioButton(VOLUME_NUMBER_LABEL, group);
-    rbVolumeFile = new RadioButton(REFERENCE_FILE_LABEL, group);
-    sVolumeNumber = new Spinner(VOLUME_NUMBER_LABEL);
+    rbReferenceVolume = new RadioButton(REFERENCE_VOLUME_LABEL, group);
+    rbReferenceFile = new RadioButton(REFERENCE_FILE_LABEL, group);
+    sReferenceVolume = new Spinner(REFERENCE_VOLUME_LABEL);
     group = new ButtonGroup();
     rbInitMotlZero = new RadioButton("Set all rotational values to zero",
         MatlabParamFile.InitMotlCode.ZERO.intValue(), group);
@@ -226,7 +226,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ftfDirectory
         .setToolTipText("The directory which will contain the .prm file, .epe file, other data files, intermediate files, and results.  "
             + "Only one .epe file per directory.");
-    ltfFnOutput.setToolTipText("The root name for the .prm file.");
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
           .getInstance(AutodocFactory.PEET_PRM);
@@ -240,10 +239,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           .getTooltip(autodoc, MatlabParamFile.TILT_RANGE_KEY);
       cbTiltRange.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.REFERENCE_KEY);
-      rbVolumeReference.setToolTipText(tooltip);
-      rbVolumeFile.setToolTipText(tooltip);
-      sVolumeNumber.setToolTipText(tooltip);
-      ltfParticleNumber.setToolTipText(tooltip);
+      rbReferenceVolume.setToolTipText(tooltip);
+      rbReferenceFile.setToolTipText(tooltip);
+      sReferenceVolume.setToolTipText(tooltip);
+      ltfReferenceParticle.setToolTipText(tooltip);
       ftfReferenceFile.setToolTipText(tooltip);
       ltfEdgeShift.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParamFile.EDGE_SHIFT_KEY));
@@ -280,6 +279,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       tooltip = EtomoAutodoc.getTooltip(autodoc,
           MatlabParamFile.ALIGNED_BASE_NAME_KEY);
       ltfAlignedBaseName.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParamFile.FN_OUTPUT_KEY);
+      ltfFnOutput.setToolTipText(tooltip);
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -327,14 +329,47 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   public void getParameters(final PeetMetaData metaData) {
     volumeTable.getParameters(metaData);
+    metaData.setReferenceVolume(sReferenceVolume.getValue());
+    metaData.setReferenceParticle(ltfReferenceParticle.getText());
+    metaData.setReferenceFile(ftfReferenceFile.getText());
   }
 
+  /**
+   * Set parameters from metaData and then overwrite them with parameters from
+   * MatlabParamFile.  This allows inactive data to appear on the screen but
+   * allows MatlabParamFile's active data to override active metaData.  So if
+   * the user changes the .prm file, the active data on the screen will be
+   * correct.
+   * @param metaData
+   */
   public void setParameters(final ConstPeetMetaData metaData) {
     ltfFnOutput.setText(metaData.getName());
     volumeTable.setParameters(metaData);
+    rbReferenceFile.setSelected(true);
+    ftfReferenceFile.setText(metaData.getReferenceFile());
+    rbReferenceVolume.setSelected(true);
+    sReferenceVolume.setValue(metaData.getReferenceVolume());
+    ltfReferenceParticle.setText(metaData.getReferenceParticle());
   }
 
+  /**
+   * Load data from MatlabParamFile.  Load only active data after the meta data
+   * has been loaded.  Do not load fnOutput.  This value cannot be modified after
+   * the dataset has been created.
+   * @param matlabParamFile
+   */
   public void setParameters(final MatlabParamFile matlabParamFile) {
+    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
+        cbTiltRange.isSelected());
+    if (matlabParamFile.useReferenceFile()) {
+      rbReferenceFile.setSelected(true);
+      ftfReferenceFile.setText(matlabParamFile.getReferenceFile());
+    }
+    else {
+      rbReferenceVolume.setSelected(true);
+      sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
+      ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
+    }
     MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile
         .getInitMotlCode();
     if (initMotlCode == null) {
@@ -349,13 +384,20 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (initMotlCode == MatlabParamFile.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
-    cbTiltRange.setSelected(matlabParamFile.isTiltRangeEmpty());
-    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
-        cbTiltRange.isSelected());
+    cbTiltRange.setSelected(matlabParamFile.useTiltRange());
     updateDisplay();
   }
 
   public void getParameters(final MatlabParamFile matlabParamFile) {
+    matlabParamFile.setFnOutput(ltfFnOutput.getText());
+    volumeTable.getParameters(matlabParamFile);
+    if (rbReferenceVolume.isSelected()) {
+      matlabParamFile.setReferenceVolume(sReferenceVolume.getValue());
+      matlabParamFile.setReferenceParticle(ltfReferenceParticle.getText());
+    }
+    else if (rbReferenceFile.isSelected()) {
+      matlabParamFile.setReferenceFile(ftfReferenceFile.getText());
+    }
     if (rbInitMotlFiles.isSelected()) {
       matlabParamFile.setInitMotlCode(rbInitMotlFiles.getRadioValue());
     }
@@ -369,7 +411,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       matlabParamFile.setInitMotlCode(rbInitMotlXAndZAxis.getRadioValue());
     }
     matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
-    volumeTable.getParameters(matlabParamFile);
   }
 
   public String getFnOutput() {
@@ -466,13 +507,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
         BoxLayout.X_AXIS));
-    pnlVolumeReference.add(rbVolumeReference.getComponent());
-    pnlVolumeReference.add(sVolumeNumber.getComponent());
-    pnlVolumeReference.add(ltfParticleNumber.getContainer());
+    pnlVolumeReference.add(rbReferenceVolume.getComponent());
+    pnlVolumeReference.add(sReferenceVolume.getComponent());
+    pnlVolumeReference.add(ltfReferenceParticle.getContainer());
     //volume file
     JPanel pnlVolumeFile = new JPanel();
     pnlVolumeFile.setLayout(new BoxLayout(pnlVolumeFile, BoxLayout.X_AXIS));
-    pnlVolumeFile.add(rbVolumeFile.getComponent());
+    pnlVolumeFile.add(rbReferenceFile.getComponent());
     pnlVolumeFile.add(ftfReferenceFile.getContainer());
     //reference
     JPanel pnlReference = new JPanel();
@@ -496,7 +537,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
     //tiltRange and edgeShift
     JPanel pnlTiltRange = new JPanel();
-    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange,BoxLayout.X_AXIS));
+    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
     pnlTiltRange.add(cbTiltRange);
     pnlTiltRange.add(Box.createRigidArea(FixedDim.x40_y0));
     ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
@@ -510,13 +551,14 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlCcMode.add(rbCcModeLocal.getComponent());
     //advanced right panel
     JPanel pnlAdvancedRight = new JPanel();
-    pnlAdvancedRight.setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
+    pnlAdvancedRight
+        .setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
     pnlAdvancedRight.add(cbMeanFill);
     pnlAdvancedRight.add(ltfAlignedBaseName.getContainer());
     pnlAdvancedRight.add(ltfLowCutoff.getContainer());
     pnlAdvancedRight.add(lsDebugLevel.getContainer());
     //advanced panel
-    pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced,BoxLayout.X_AXIS));
+    pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.X_AXIS));
     pnlAdvanced.add(pnlCcMode);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlAdvanced.add(pnlAdvancedRight);
@@ -542,7 +584,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //lstThresholds
     SpacedPanel pnlLstThresholds = new SpacedPanel();
     pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
-    pnlLstThresholds.setBorder(new EtchedBorder("Number of Particles in Averages").getBorder());
+    pnlLstThresholds.setBorder(new EtchedBorder(
+        "Number of Particles in Averages").getBorder());
     pnlLstThresholds.add(ltfLstThresholdsStart.getContainer());
     pnlLstThresholds.add(ltfLstThresholdsIncrement.getContainer());
     pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
@@ -583,10 +626,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(rbInitMotlFiles.getActionCommand())) {
       updateDisplay();
     }
-    else if (actionCommand.equals(rbVolumeReference.getActionCommand())) {
+    else if (actionCommand.equals(rbReferenceVolume.getActionCommand())) {
       updateDisplay();
     }
-    else if (actionCommand.equals(rbVolumeFile.getActionCommand())) {
+    else if (actionCommand.equals(rbReferenceFile.getActionCommand())) {
       updateDisplay();
     }
     else if (actionCommand.equals(cbTiltRange.getActionCommand())) {
@@ -604,12 +647,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //reference
     int size = volumeTable.size();
     boolean enable = size > 1;
-    rbVolumeReference.setEnabled(enable);
-    sVolumeNumber.setEnabled(enable && rbVolumeReference.isSelected());
-    sVolumeNumber.setMax(size);
-    ltfParticleNumber.setEnabled(enable && rbVolumeReference.isSelected());
-    ftfReferenceFile.setEnabled(rbVolumeFile.isSelected());
-    volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),cbTiltRange.isSelected());
+    rbReferenceVolume.setEnabled(enable);
+    sReferenceVolume.setEnabled(enable && rbReferenceVolume.isSelected());
+    sReferenceVolume.setMax(size);
+    ltfReferenceParticle.setEnabled(enable && rbReferenceVolume.isSelected());
+    ftfReferenceFile.setEnabled(rbReferenceFile.isSelected());
+    volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), cbTiltRange
+        .isSelected());
   }
 
   private void chooseDirectory() {
@@ -641,8 +685,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbInitMotlZAxis.addActionListener(actionListener);
     rbInitMotlXAndZAxis.addActionListener(actionListener);
     rbInitMotlFiles.addActionListener(actionListener);
-    rbVolumeReference.addActionListener(actionListener);
-    rbVolumeFile.addActionListener(actionListener);
+    rbReferenceVolume.addActionListener(actionListener);
+    rbReferenceFile.addActionListener(actionListener);
     ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
     cbTiltRange.addActionListener(actionListener);
   }
