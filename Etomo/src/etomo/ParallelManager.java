@@ -70,6 +70,10 @@ public final class ParallelManager extends BaseManager {
       openParallelDialog();
     }
   }
+  
+  public boolean setParamFile() {
+    return loadedParamFile;
+  }
 
   public boolean canChangeParamFileName() {
     return false;
@@ -216,7 +220,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     if (paramFile == null) {
-      if (!setParamFile()) {
+      if (!setNewParamFile()) {
         return;
       }
       parallelDialog.updateDisplay(false);
@@ -239,7 +243,10 @@ public final class ParallelManager extends BaseManager {
     processchunks(axisID, param, processResultDisplay);
   }
 
-  private boolean setParamFile() {
+  private boolean setNewParamFile() {
+    if (loadedParamFile) {
+      return true;
+    }
     //set paramFile and propertyUserDir
     propertyUserDir = parallelDialog.getWorkingDir().getAbsolutePath();
     System.err.println("propertyUserDir: " + propertyUserDir);
@@ -263,6 +270,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/02/19 21:50:10  sueh
+ * <p> bug# 964 Removed isNewManager() because it is only used by Application
+ * <p> Manager.
+ * <p>
  * <p> Revision 1.10  2007/02/05 21:27:59  sueh
  * <p> bug# 962 Creating process manager later.
  * <p>

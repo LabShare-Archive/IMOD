@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2007/03/26 23:30:18  sueh
+ * <p> bug# 964 Moved some of the imodOpen functions to the parent class to be shared.
+ * <p>
  * <p> Revision 1.51  2007/02/19 21:49:38  sueh
  * <p> bug# 964 Removed isNewManager() because it is only used by Application
  * <p> Manager.
@@ -422,6 +425,10 @@ public final class JoinManager extends BaseManager {
       openJoinDialog();
       setMode();
     }
+  }
+  
+  public boolean setParamFile() {
+    return loadedParamFile;
   }
 
   public String toString() {
