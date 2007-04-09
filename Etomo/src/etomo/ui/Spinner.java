@@ -7,6 +7,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
@@ -23,13 +24,16 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/30 23:53:15  sueh
+ * <p> bug# 964 A self-naming unlabeled spinner.
+ * <p> </p>
  */
 final class Spinner {
   public static final String rcsid = "$Id$";
-  
-  private SpinnerNumberModel model = new SpinnerNumberModel(1,1,1,1);
-  private JSpinner spinner=new JSpinner(model);
+
+  private SpinnerNumberModel model = new SpinnerNumberModel(1, 1, 1, 1);
+  private JSpinner spinner = new JSpinner(model);
 
   Spinner(String label) {
     String name = Utilities.convertLabelToName(label);
@@ -40,20 +44,33 @@ final class Spinner {
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
-  
+
+  void setToolTipText(String text) {
+    spinner.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
   Component getComponent() {
     return spinner;
   }
-  
+
   void setEnabled(boolean enabled) {
     spinner.setEnabled(enabled);
   }
-  
+
   void setMax(int max) {
     model.setMaximum(new Integer(max));
   }
-  
-  public void setToolTipText(String text) {
-    spinner.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+
+  void setValue(ConstEtomoNumber value) {
+    if (value.isNull()) {
+      spinner.setValue((Integer) model.getMinimum());
+    }
+    else {
+      spinner.setValue(value.getNumber());
+    }
+  }
+
+  Number getValue() {
+    return (Number) spinner.getValue();
   }
 }
