@@ -8,6 +8,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
+import etomo.type.ConstEtomoNumber;
+
 /**
  * <p>Description: </p>
  * 
@@ -22,6 +24,9 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/02 16:02:15  sueh
+ * <p> bug# 964 Commented getActionCommand
+ * <p>
  * <p> Revision 1.2  2007/03/30 23:49:23  sueh
  * <p> bug# 964 Added an option to create an unlabeled version of class.  The unlabeled
  * <p> version is still named.
@@ -90,6 +95,10 @@ final class FileTextField {
   void setEnabled(boolean enabled) {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
+  }
+  
+  void setText(ConstEtomoNumber number) {
+    field.setText(number.toString());
   }
 
   void setText(String text) {
