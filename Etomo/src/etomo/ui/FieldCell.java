@@ -22,6 +22,11 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/04/02 21:49:28  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
  * <p> Revision 1.17  2007/03/27 19:30:59  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.  Added setEnabled().
  * <p>
@@ -161,9 +166,15 @@ final class FieldCell extends InputCell {
     super.setEditable(editable);
   }
 
-  void setInUse(boolean inUse) {
+  void setInUse(final boolean inUse) {
     this.inUse = inUse;
     setForeground();
+  }
+  
+  void clearExpandableValues() {
+    contractedValue = null;
+    expandedValue = null;
+    setValue();
   }
 
   /**
@@ -171,12 +182,12 @@ final class FieldCell extends InputCell {
    * @param contractedValue
    * @param expandedValue
    */
-  void setExpandableValues(String contractedValue, String expandedValue) {
+  void setExpandableValues(final String contractedValue, final String expandedValue) {
     this.contractedValue = contractedValue;
     this.expandedValue = expandedValue;
   }
 
-  void setHideValue(boolean hideValue) {
+  void setHideValue(final boolean hideValue) {
     if (this.hideValue == hideValue) {
       return;
     }
@@ -198,7 +209,7 @@ final class FieldCell extends InputCell {
     return value == null || value.matches("\\s*");
   }
 
-  final Component getComponent() {
+  Component getComponent() {
     return textField;
   }
 
