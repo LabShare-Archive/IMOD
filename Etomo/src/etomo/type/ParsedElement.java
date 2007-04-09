@@ -1,5 +1,8 @@
 package etomo.type;
 
+import java.io.IOException;
+
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
@@ -17,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/03/31 02:54:34  sueh
+* <p> bug# 964 Added isCollection().
+* <p>
 * <p> Revision 1.1  2007/03/30 23:42:20  sueh
 * <p> bug# 964 Abstract class to act as an interface for elements stored in ParsedElementList.
 * <p> </p>
@@ -30,4 +36,23 @@ public abstract class ParsedElement {
   abstract int size();
   abstract String getParsableString();
   abstract boolean isCollection();
+  abstract ConstEtomoNumber getRawNumber();
+  abstract boolean isEmpty();
+  abstract void fail();
+  
+  final PrimativeTokenizer createTokenizer(String value) {
+    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    try {
+      tokenizer.initialize();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      fail();
+    }
+    return tokenizer;
+  }
 }
