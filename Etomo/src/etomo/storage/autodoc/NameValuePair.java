@@ -18,167 +18,65 @@ import etomo.ui.Token;
  * 
  * @version $Revision$
  */
-final class NameValuePair implements ReadOnlyNameValuePair {
+final class NameValuePair extends Statement {
   public static final String rcsid = "$Id$";
 
+  private static final Type TYPE = Statement.Type.NAME_VALUE_PAIR;
+
+  /**
+   * The name is made of attributes
+   */
   private final Vector name = new Vector();
-  private final NameValuePairType type;
-  private final WriteOnlyNameValuePairList parent;
+  private final WriteOnlyStatementList parent;
 
   private Token value = null;
-  private Section subsection = null;
+  private Token newDelimiter = null;
 
-  private NameValuePair(NameValuePairType type,
-      WriteOnlyNameValuePairList parent) {
-    this.type = type;
+  public NameValuePair(WriteOnlyStatementList parent) {
     this.parent = parent;
   }
 
-  private NameValuePair(NameValuePairType type, Token value,
-      WriteOnlyNameValuePairList parent) {
-    this(type, parent);
-    this.value = value;
-  }
-
-  private NameValuePair(NameValuePairType type, Section subsection,
-      WriteOnlyNameValuePairList parent) {
-    this(type, parent);
-    name.add(subsection.getTypeToken());
-    value = subsection.getNameToken();
-    this.subsection = subsection;
-  }
-
-  static NameValuePair getNameValuePairInstance(
-      WriteOnlyNameValuePairList parent) {
-    return new NameValuePair(NameValuePairType.NAME_VALUE_PAIR, parent);
-  }
-
-  static NameValuePair getSubsectionInstance(Section subsection,
-      WriteOnlyNameValuePairList parent) {
-    return new NameValuePair(NameValuePairType.SUBSECTION, subsection, parent);
-  }
-
   static NameValuePair getDelimiterChangeInstance(Token newDelimiter,
-      WriteOnlyNameValuePairList parent) {
-    return new NameValuePair(NameValuePairType.DELIMITER_CHANGE, newDelimiter,
-        parent);
+      WriteOnlyStatementList parent) {
+    NameValuePair pair = new NameValuePair(parent);
+    pair.newDelimiter = newDelimiter;
+    return pair;
   }
-
-  static NameValuePair getCommentInstance(Token comment,
-      WriteOnlyNameValuePairList parent) {
-    return new NameValuePair(NameValuePairType.COMMENT, comment, parent);
+  
+  public Statement.Type getType(){
+    return TYPE;
   }
-
-  static NameValuePair getEmptyLineInstance(WriteOnlyNameValuePairList parent) {
-    return new NameValuePair(NameValuePairType.EMPTY_LINE, parent);
-  }
-
-  void write(LogFile file, long writeId) throws LogFile.WriteException {
-    if (type == NameValuePairType.DELIMITER_CHANGE) {
-      parent.setCurrentDelimiter(value);
-      return;
-    }
-    if (type == NameValuePairType.EMPTY_LINE) {
-      file.newLine(writeId);
-      return;
-    }
-    if (type == NameValuePairType.COMMENT) {
-      file.write(AutodocTokenizer.COMMENT_CHAR, writeId);
-      value.write(file, writeId);
-      file.newLine(writeId);
-      return;
-    }
-    if (type == NameValuePairType.SUBSECTION) {
-      subsection.write(file, writeId);
-    }
-    if (type == NameValuePairType.NAME_VALUE_PAIR) {
-      for (int i = 0; i < name.size(); i++) {
-        ((Token) name.get(i)).write(file, writeId);
-        if (i < name.size() - 1) {
-          file.write(AutodocTokenizer.SEPARATOR_CHAR, writeId);
-        }
-      }
-      file.write(' '+parent.getCurrentDelimiter()+' ',writeId);
-      if (value!=null) {
-        value.write(file,writeId);
-        file.newLine(writeId);
-      }
-    }
-  }
-
-  void print(int level) {
-    Autodoc.printIndent(level);
-    if (type == NameValuePairType.DELIMITER_CHANGE) {
-      parent.setCurrentDelimiter(value);
-      return;
-    }
-    if (type == NameValuePairType.EMPTY_LINE) {
-      System.out.println("<empty-line>");
-      return;
-    }
-    if (type == NameValuePairType.COMMENT) {
-      System.out.println("<comment> " + value.getValues());
-      return;
-    }
-    if (type == NameValuePairType.SUBSECTION) {
-      subsection.print(level);
-      return;
-    }
-    if (type == NameValuePairType.NAME_VALUE_PAIR) {
-      for (int i = 0; i < name.size(); i++) {
-        System.out.print(((Token) name.get(i)).getValues());
-        if (i < name.size() - 1) {
-          System.out.print('.');
-        }
-      }
-      System.out.print(' ' + parent.getCurrentDelimiter() + ' ');
-      if (value == null) {
-        System.out.println();
-      }
-      else {
-        System.out.println(value.getValues());
-      }
-    }
-  }
-
-  public int numAttributes() {
+  
+  public int sizeLeftSide() {
     return name.size();
   }
-
-  void addAttribute(Token attribute) {
-    name.add(attribute);
-  }
-
-  void addValue(Token value) {
-    this.value = value;
-  }
-
-  public String getAttribute(int index) {
-    if (index >= name.size()) {
+  
+  public String getLeftSide(int index) {
+    if (index <0||index>=name.size()) {
       return null;
     }
-    return ((Token) name.get(index)).getValues();
+    return ((Attribute)name.get(index)).getName();
   }
-
-  public String getValue() {
-    if (value == null) {
+  
+  public String getRightSide() {
+    if (value==null) {
       return null;
     }
     return value.getValues();
   }
-
-  public NameValuePairType getNameValuePairType() {
-    return type;
-  }
-
+  
+  /**
+   * Get something equivalent to the original statement.  No gaurenteed to be
+   * exactly the same
+   */
   public String getString() {
     StringBuffer buffer = new StringBuffer();
     if (name.size() >= 1) {
-      buffer.append(((Token) name.get(0)).getValues());
+      buffer.append(((Attribute) name.get(0)).getName());
     }
     for (int i = 1; i < name.size(); i++) {
       buffer.append(AutodocTokenizer.SEPARATOR_CHAR);
-      buffer.append(((Token) name.get(i)).getValues());
+      buffer.append(((Attribute) name.get(i)).getName());
     }
     buffer.append(" " + AutodocTokenizer.DEFAULT_DELIMITER + " ");
     if (value != null) {
@@ -194,9 +92,84 @@ final class NameValuePair implements ReadOnlyNameValuePair {
   protected String paramString() {
     return "name=" + name + ",\nvalue=" + value + "," + super.toString();
   }
+
+  void write(LogFile file, long writeId) throws LogFile.WriteException {
+    for (int i = 0; i < name.size(); i++) {
+      ((Attribute) name.get(i)).write(file, writeId);
+      if (i < name.size() - 1) {
+        file.write(AutodocTokenizer.SEPARATOR_CHAR, writeId);
+      }
+    }
+    file.write(' ' + parent.getCurrentDelimiter() + ' ', writeId);
+    if (value != null) {
+      value.write(file, writeId);
+      file.newLine(writeId);
+    }
+    if (newDelimiter != null) {
+      parent.setCurrentDelimiter(newDelimiter);
+    }
+  }
+
+  void print(int level) {
+    Autodoc.printIndent(level);
+    for (int i = 0; i < name.size(); i++) {
+      System.out.print(((Token) name.get(i)).getValues());
+      if (i < name.size() - 1) {
+        System.out.print('.');
+      }
+    }
+    System.out.print(' ' + parent.getCurrentDelimiter() + ' ');
+    if (value == null) {
+      System.out.println();
+    }
+    else {
+      System.out.println(value.getValues());
+    }
+    if (newDelimiter != null) {
+      parent.setCurrentDelimiter(newDelimiter);
+      return;
+    }
+  }
+
+  /**
+   * each attribute is added as it is found
+   * @param attribute
+   */
+  void addAttribute(Attribute attribute) {
+    name.add(attribute);
+  }
+
+  /**
+   * The value is added after all the attributes are added.  This name/value pair
+   * to the last attribute added.
+   * @param value
+   */
+  void addValue(Token value) {
+    this.value = value;
+    ((Attribute) name.get(name.size() - 1)).addNameValuePair(this);
+  }
+
+  void setValue(Token value) {
+    this.value = value;
+  }
+
+  public String getValue() {
+    if (value == null) {
+      return null;
+    }
+    return value.getValues();
+  }
+
+  public Token getTokenValue() {
+    return value;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/23 20:33:57  sueh
+ * <p> bug# 964 Adding a Type which represents the change in delimiter.  Added write(),
+ * <p> to write out an autodoc to a file.
+ * <p>
  * <p> Revision 1.7  2007/03/21 19:39:20  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Moved the Type inner class to a separate file so that it could be accessed by
