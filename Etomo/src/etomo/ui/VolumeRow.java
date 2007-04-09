@@ -27,6 +27,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/04/02 21:53:47  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
  * <p> Revision 1.12  2007/04/02 16:04:16  sueh
  * <p> bug# 964 Not weighting the number and highlight buttons, so they will stay small.
  * <p>
@@ -197,16 +202,13 @@ final class VolumeRow implements Highlightable {
       setTiltRangeStart(volume.getTiltRangeStart());
       setTiltRangeEnd(volume.getTiltRangeEnd());
     }
-    if (volume.isRelativeOrientSet()) {
-      relativeOrientX.setValue(volume.getRelativeOrientX());
-      relativeOrientY.setValue(volume.getRelativeOrientY());
-      relativeOrientZ.setValue(volume.getRelativeOrientZ());
-    }
-    else {
-      relativeOrientX.setValue();
-      relativeOrientY.setValue();
-      relativeOrientZ.setValue();
-    }
+    relativeOrientX.setValue(volume.getRelativeOrientX());
+    relativeOrientY.setValue(volume.getRelativeOrientY());
+    relativeOrientZ.setValue(volume.getRelativeOrientZ());
+  }
+
+  void clearInitMotlFile() {
+    initMotlFile.clearExpandableValues();
   }
 
   void registerInitMotlFileColumn(Column column) {
