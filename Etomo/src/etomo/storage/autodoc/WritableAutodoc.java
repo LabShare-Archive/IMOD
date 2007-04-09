@@ -16,16 +16,23 @@ import etomo.ui.Token;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/23 20:37:14  sueh
+ * <p> bug# 964 An interface which can be used to modify an autodoc.
+ * <p> </p>
  */
 public interface WritableAutodoc extends ReadOnlyAutodoc {
   public static final String rcsid = "$Id$";
 
-  public void addAttributeAndNameValuePair(String name,
-      String value);
+  public void addNameValuePair(String name, String value);
+
   public WritableAttribute getWritableAttribute(String name);
+
   public void write() throws LogFile.FileException, LogFile.WriteException;
+
   public void addComment(Token comment);
+
   public void addEmptyLine();
+
   public void addComment(String comment);
 }
