@@ -47,6 +47,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/04/02 21:53:58  sueh
+ * <p> bug# 964 Disabling initMotlFile column and button when PeetDialog.rbInitMotlFile
+ * <p> is not selected.  Disabling tiltRange column when PeetDialog.cbTiltRange is not
+ * <p> selected.
+ * <p>
  * <p> Revision 1.14  2007/04/02 16:04:54  sueh
  * <p> bug# 964 Made pnlButtons local.
  * <p>
@@ -141,6 +146,7 @@ final class VolumeTable implements Expandable, Highlightable,
 
   private File lastLocation = null;
   private boolean useInitMotlFile = true;
+  private boolean useTiltRange = true;
 
   private VolumeTable(final PeetManager manager, final PeetDialog parent) {
     this.manager = manager;
@@ -221,6 +227,7 @@ final class VolumeTable implements Expandable, Highlightable,
 
   void updateDisplay(boolean useInitMotlFile, boolean useTiltRange) {
     this.useInitMotlFile = useInitMotlFile;
+    this.useTiltRange = useTiltRange;
     initMotlFileColumn.setEnabled(useInitMotlFile);
     tiltRangeColumn.setEnabled(useTiltRange);
     updateDisplay();
@@ -326,10 +333,10 @@ final class VolumeTable implements Expandable, Highlightable,
     if (actionCommand.equals(btnAddFnVolume.getActionCommand())) {
       addVolume();
     }
-    if (actionCommand.equals(btnSetInitMotlFile.getActionCommand())) {
+    else if (actionCommand.equals(btnSetInitMotlFile.getActionCommand())) {
       setInitMotlFile();
     }
-    if (actionCommand.equals(btnReadTiltFile.getActionCommand())) {
+    else if (actionCommand.equals(btnReadTiltFile.getActionCommand())) {
       openTiltFile();
     }
     else {
@@ -440,7 +447,9 @@ final class VolumeTable implements Expandable, Highlightable,
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      row.setInitMotlFile(chooser.getSelectedFile());
+      File initMotlFile = chooser.getSelectedFile();
+      row.setInitMotlFile(initMotlFile);
+      lastLocation = initMotlFile.getParentFile();
       row.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
       UIHarness.INSTANCE.pack(manager);
     }
@@ -459,7 +468,9 @@ final class VolumeTable implements Expandable, Highlightable,
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      TiltFile tiltFile = new TiltFile(chooser.getSelectedFile());
+      File file = chooser.getSelectedFile();
+      lastLocation = file.getParentFile();
+      TiltFile tiltFile = new TiltFile(file);
       row.setTiltRangeStart(tiltFile.getStartAngle().toString());
       row.setTiltRangeEnd(tiltFile.getEndAngle().toString());
     }
@@ -481,7 +492,8 @@ final class VolumeTable implements Expandable, Highlightable,
     btnExpandInitMotlFile.setEnabled(enable);
     btnSetInitMotlFile.setEnabled(enable && rowList.isHighlighted()
         && useInitMotlFile);
-    btnReadTiltFile.setEnabled(enable && rowList.isHighlighted());
+    btnReadTiltFile.setEnabled(enable && rowList.isHighlighted()
+        && useTiltRange);
     r3bVolume.setEnabled(enable && rowList.isHighlighted());
   }
 
