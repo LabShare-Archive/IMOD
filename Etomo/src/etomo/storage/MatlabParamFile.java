@@ -39,6 +39,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/09 20:01:09  sueh
+ * <p> bug# 964 Added support for reference.  Reorganized writing functionality.
+ * <p>
  * <p> Revision 1.11  2007/04/02 21:41:45  sueh
  * <p> bug# 964 Added INIT_MOTL_DEFAULT.
  * <p>
@@ -93,6 +96,9 @@ public final class MatlabParamFile {
   public static final String TILT_RANGE_KEY = "tiltRange";
   public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   public static final String SZ_VOL_KEY = "szVol";
+  public static final int SZ_VOL_X_INDEX = 0;
+  public static final int SZ_VOL_Y_INDEX = 1;
+  public static final int SZ_VOL_Z_INDEX = 2;
   public static final String FN_OUTPUT_KEY = "fnOutput";
   public static final String D_PHI_KEY = "dPhi";
   public static final String D_THETA_KEY = "dTheta";
@@ -317,6 +323,30 @@ public final class MatlabParamFile {
   public ConstEtomoNumber getReferenceVolume() {
     return reference.getRawNumber(REFERENCE_VOLUME_INDEX);
   }
+  
+  public void setSzVolX(String szVolX) {
+    szVol.setRawNumber(SZ_VOL_X_INDEX,szVolX);
+  }
+  
+  public void setSzVolY(String szVolY) {
+    szVol.setRawNumber(SZ_VOL_Y_INDEX,szVolY);
+  }
+  
+  public void setSzVolZ(String szVolZ) {
+    szVol.setRawNumber(SZ_VOL_Z_INDEX,szVolZ);
+  }
+  
+  public String getSzVolX() {
+    return szVol.getRawString(SZ_VOL_X_INDEX);
+  }
+  
+  public String getSzVolY() {
+    return szVol.getRawString(SZ_VOL_Y_INDEX);
+  }
+  
+  public String getSzVolZ() {
+    return szVol.getRawString(SZ_VOL_Z_INDEX);
+  }
 
   public String getReferenceFile() {
     return referenceFile.getRawString();
@@ -502,6 +532,7 @@ public final class MatlabParamFile {
       valueMap.put(REFERENCE_KEY, reference.getParsableString());
     }
     valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
+    valueMap.put(SZ_VOL_KEY, szVol.getParsableString());
   }
 
   /**
@@ -589,6 +620,8 @@ public final class MatlabParamFile {
         .get(REFERENCE_KEY), commentMap);
     setAttributeValue(autodoc, FN_OUTPUT_KEY, (String) valueMap
         .get(FN_OUTPUT_KEY), commentMap);
+    setAttributeValue(autodoc, SZ_VOL_KEY, (String) valueMap
+        .get(SZ_VOL_KEY), commentMap);
   }
 
   /**
