@@ -16,11 +16,15 @@ import java.util.HashMap;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/23 20:36:11  sueh
+ * <p> bug# 964 Added getAttributeMultiLineValues, to get a hash map of value strings
+ * <p> which retains EOL information.
+ * <p>
  * <p> Revision 1.1  2007/03/21 19:40:37  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> </p>
  */
-public interface ReadOnlyAutodoc extends ReadOnlyNameValuePairList {
+public interface ReadOnlyAutodoc extends ReadOnlyStatementList {
   public static final String rcsid = "$Id$";
 
   public HashMap getAttributeValues(String sectionType, String attributeName);

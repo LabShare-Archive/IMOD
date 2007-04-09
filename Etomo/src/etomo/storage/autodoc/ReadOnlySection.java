@@ -12,10 +12,13 @@ package etomo.storage.autodoc;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/21 19:41:12  sueh
+* <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+* <p> </p>
 */
 
-public interface ReadOnlySection extends ReadOnlyNameValuePairList{
+public interface ReadOnlySection extends ReadOnlyStatementList{
   public static  final String  rcsid =  "$Id$";
   
   public ReadOnlyAttribute getAttribute(String name);

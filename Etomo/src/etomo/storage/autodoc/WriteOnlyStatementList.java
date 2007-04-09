@@ -15,7 +15,7 @@ import etomo.ui.Token;
 * 
 * @version $Revision$
 */
-abstract class WriteOnlyNameValuePairList extends WriteOnlyAttributeMap {
+abstract class WriteOnlyStatementList extends WriteOnlyAttributeList {
   public static  final String  rcsid =  "$Id$";
   
   abstract NameValuePair addNameValuePair();
@@ -28,6 +28,9 @@ abstract class WriteOnlyNameValuePairList extends WriteOnlyAttributeMap {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2007/03/23 20:40:33  sueh
+* <p> bug# 964 Adding a Type which represents the change in delimiter.
+* <p>
 * <p> Revision 1.4  2007/03/08 22:03:36  sueh
 * <p> bug# 964 Save name/value pairs in the parser instead of saving them from the
 * <p> Attribute.  This is necessary because the name/value pair must be placed in the
