@@ -39,6 +39,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/04/02 21:41:45  sueh
+ * <p> bug# 964 Added INIT_MOTL_DEFAULT.
+ * <p>
  * <p> Revision 1.10  2007/04/02 16:01:48  sueh
  * <p> bug# 964 Added defaults and min/max for spinners.
  * <p>
@@ -81,6 +84,8 @@ public final class MatlabParamFile {
   public static final String rcsid = "$Id$";
 
   public static final String REFERENCE_KEY = "reference";
+  public static final int REFERENCE_VOLUME_INDEX = 0;
+  public static final int REFERENCE_PARTICLE_INDEX = 1;
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
@@ -127,13 +132,14 @@ public final class MatlabParamFile {
   private final ParsedNumber debugLevel = new ParsedNumber();
   private final List volumeList = new ArrayList();
   private final List iterationList = new ArrayList();
+  private final ParsedQuotedString referenceFile = new ParsedQuotedString();
+  private final ParsedArray reference = new ParsedArray();
   private final File file;
   private final boolean newFile;
   private InitMotlCode initMotlCode = null;
   private CCModeCode ccMode = null;
   private boolean tiltRangeEmpty = false;
-  private ParsedQuotedString referenceFile = null;
-  private ParsedArray reference = null;
+  private boolean useReferenceFile = false;
 
   public MatlabParamFile(File file, boolean newFile) {
     this.file = file;
@@ -157,40 +163,7 @@ public final class MatlabParamFile {
           return;
         }
       }
-      //parse lists
-      parseVolumeLists(autodoc);
-      parseIterationLists(autodoc);
-      //Parse other values
-      //reference
-      ReadOnlyAttribute attribute = autodoc.getAttribute(REFERENCE_KEY);
-      if (ParsedQuotedString.isQuotedString(attribute)) {
-        referenceFile = ParsedQuotedString.getInstance(attribute);
-      }
-      else {
-        reference = ParsedArray.getInstance(attribute);
-      }
-      //particlePerCPU
-      particlePerCpu.parse(autodoc.getAttribute(PARTICLE_PER_CPU_KEY));
-      //szVol
-      szVol.parse(autodoc.getAttribute(SZ_VOL_KEY));
-      //fnOutput
-      fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
-      //CCMode
-      ccMode=CCModeCode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
-      //refFlagAllTom
-      refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
-      //edgeShift
-      edgeShift.parse(autodoc.getAttribute(EDGE_SHIFT_KEY));
-      //lstThresholds
-      lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
-      //lstFlagAllTom
-      lstFlagAllTom.parse(autodoc.getAttribute(LST_FLAG_ALL_TOM_KEY));
-      //meanFill
-      meanFill.parse(autodoc.getAttribute(MEAN_FILL_KEY));
-      //alignedBaseName
-      alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
-      //debugLevel
-      debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
+      parseData(autodoc);
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
@@ -206,45 +179,12 @@ public final class MatlabParamFile {
    * Write stored data to the .prm autodoc.
    */
   public synchronized void write() {
-    //create ParsedList instances to build the values to be written.
-    ParsedList fnVolume = ParsedList.getStringInstance();
-    ParsedList fnModParticle = ParsedList.getStringInstance();
-    ParsedList initMotlFile = null;
-    if (initMotlCode == null) {
-      initMotlFile = ParsedList.getStringInstance();
-    }
-    ParsedList tiltRange = ParsedList
-        .getNumericInstance(EtomoNumber.Type.FLOAT);
-    ParsedList relativeOrient = ParsedList.getNumericInstance(
-        EtomoNumber.Type.FLOAT, 0);
-    //build the values
-    for (int i = 0; i < volumeList.size(); i++) {
-      Volume volume = (Volume) volumeList.get(i);
-      fnVolume.addElement(volume.getFnVolume());
-      fnModParticle.addElement(volume.getFnModParticle());
-      if (initMotlFile != null) {
-        initMotlFile.addElement(volume.getInitMotl());
-      }
-      if (!tiltRangeEmpty) {
-        tiltRange.addElement(volume.getTiltRange());
-      }
-      relativeOrient.addElement(volume.getRelativeOrient());
-    }
     //Place the string representation of each value in a map.
     //This allows the values to be passed to updateOrBuildAutodoc().
     //When building a new .prm autodoc, this also allows the values to be
     //accessed in the same order as the Field sections in peetprm.adoc.
     Map valueMap = new HashMap();
-    valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
-    valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
-    if (initMotlFile != null) {
-      valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
-    }
-    else {
-      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
-    }
-    valueMap.put(TILT_RANGE_KEY, tiltRange.getParsableString());
-    valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.getParsableString());
+    buildParsableValues(valueMap);
     //try to get the peetprm.adoc, which contains the comments for the .prm file
     //in its Field sections.
     ReadOnlyAutodoc commentAutodoc = null;
@@ -323,7 +263,134 @@ public final class MatlabParamFile {
     }
   }
 
-  private void parseVolumeLists(ReadOnlyAutodoc autodoc) {
+  public Volume getVolume(final int index) {
+    Volume volume;
+    if (index==volumeList.size()) {
+      volume=new Volume();
+      volumeList.add(volume);
+      return volume;
+    }
+    return (Volume) volumeList.get(index);
+  }
+
+  public String getFnVolume(final int index) {
+    return ((Volume) volumeList.get(index)).getFnVolumeString();
+  }
+
+  public String getFnModParticle(final int index) {
+    return ((Volume) volumeList.get(index)).getFnModParticleString();
+  }
+
+  public InitMotlCode getInitMotlCode() {
+    return initMotlCode;
+  }
+
+  public void setInitMotlCode(final ConstEtomoNumber code) {
+    initMotlCode = InitMotlCode.getInstance(code);
+  }
+
+  public void setFnOutput(final String fnOutput) {
+    this.fnOutput.setRawString(fnOutput);
+  }
+
+  public boolean useTiltRange() {
+    return !tiltRangeEmpty;
+  }
+
+  public boolean useReferenceFile() {
+    return useReferenceFile;
+  }
+
+  public void setTiltRangeEmpty(final boolean tiltRangeEmpty) {
+    this.tiltRangeEmpty = tiltRangeEmpty;
+  }
+
+  public void setReferenceVolume(final Number referenceVolume) {
+    useReferenceFile = false;
+    reference.setRawNumber(REFERENCE_VOLUME_INDEX, referenceVolume.toString());
+  }
+
+  public String getReferenceParticle() {
+    return reference.getRawString(REFERENCE_PARTICLE_INDEX);
+  }
+
+  public ConstEtomoNumber getReferenceVolume() {
+    return reference.getRawNumber(REFERENCE_VOLUME_INDEX);
+  }
+
+  public String getReferenceFile() {
+    return referenceFile.getRawString();
+  }
+
+  public void setReferenceParticle(final String referenceParticle) {
+    useReferenceFile = false;
+    reference.setRawNumber(REFERENCE_PARTICLE_INDEX, referenceParticle
+        .toString());
+  }
+
+  public void setReferenceFile(final String referenceFile) {
+    useReferenceFile = true;
+    this.referenceFile.setRawString(referenceFile);
+  }
+
+  public int getVolumeListSize() {
+    return volumeList.size();
+  }
+
+  public void setVolumeListSize(final int size) {
+    if (volumeList.size() == 0) {
+      for (int i = 0; i < size; i++) {
+        volumeList.add(new Volume());
+      }
+    }
+  }
+
+  /**
+   * Called by read().  Parses data from the the file.
+   * @param autodoc
+   */
+  private void parseData(final ReadOnlyAutodoc autodoc) {
+    parseVolumeData(autodoc);
+    parseIterationData(autodoc);
+    //reference
+    ReadOnlyAttribute attribute = autodoc.getAttribute(REFERENCE_KEY);
+    if (ParsedQuotedString.isQuotedString(attribute)) {
+      useReferenceFile = true;
+      referenceFile.parse(attribute);
+    }
+    else {
+      useReferenceFile = false;
+      reference.parse(attribute);
+    }
+    //particlePerCPU
+    particlePerCpu.parse(autodoc.getAttribute(PARTICLE_PER_CPU_KEY));
+    //szVol
+    szVol.parse(autodoc.getAttribute(SZ_VOL_KEY));
+    //fnOutput
+    fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
+    //CCMode
+    ccMode = CCModeCode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
+    //refFlagAllTom
+    refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
+    //edgeShift
+    edgeShift.parse(autodoc.getAttribute(EDGE_SHIFT_KEY));
+    //lstThresholds
+    lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
+    //lstFlagAllTom
+    lstFlagAllTom.parse(autodoc.getAttribute(LST_FLAG_ALL_TOM_KEY));
+    //meanFill
+    meanFill.parse(autodoc.getAttribute(MEAN_FILL_KEY));
+    //alignedBaseName
+    alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
+    //debugLevel
+    debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
+  }
+
+  /**
+   * Parses data from the the file.
+   * @param autodoc
+   */
+  private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
     //relativeOrient
@@ -371,7 +438,11 @@ public final class MatlabParamFile {
     }
   }
 
-  private void parseIterationLists(ReadOnlyAutodoc autodoc) {
+  /**
+   * Parses data from the the file.
+   * @param autodoc
+   */
+  private void parseIterationData(final ReadOnlyAutodoc autodoc) {
     iterationList.clear();
     int size = 0;
     //dPhi
@@ -417,15 +488,81 @@ public final class MatlabParamFile {
   }
 
   /**
-   * Updates or adds all the attributes to autodoc.
+   * Called by write().  Places parsable strings (string that will be written to
+   * the file) into a Map in preparation for writing.
+   * @param valueMap
+   */
+  private void buildParsableValues(final Map valueMap) {
+    buildParsableVolumeValues(valueMap);
+    buildParsableIterationValues(valueMap);
+    if (useReferenceFile) {
+      valueMap.put(REFERENCE_KEY, referenceFile.getParsableString());
+    }
+    else {
+      valueMap.put(REFERENCE_KEY, reference.getParsableString());
+    }
+    valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
+  }
+
+  /**
+   * Places parsable strings (string that will be written to
+   * the file) into a Map in preparation for writing.
+   * @param valueMap
+   */
+  private void buildParsableVolumeValues(final Map valueMap) {
+    ParsedList fnVolume = ParsedList.getStringInstance();
+    ParsedList fnModParticle = ParsedList.getStringInstance();
+    ParsedList initMotlFile = null;
+    if (initMotlCode == null) {
+      initMotlFile = ParsedList.getStringInstance();
+    }
+    ParsedList tiltRange = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList relativeOrient = ParsedList.getNumericInstance(
+        EtomoNumber.Type.FLOAT, 0);
+    //build the values
+    for (int i = 0; i < volumeList.size(); i++) {
+      Volume volume = (Volume) volumeList.get(i);
+      fnVolume.addElement(volume.getFnVolume());
+      fnModParticle.addElement(volume.getFnModParticle());
+      if (initMotlFile != null) {
+        initMotlFile.addElement(volume.getInitMotl());
+      }
+      if (!tiltRangeEmpty) {
+        tiltRange.addElement(volume.getTiltRange());
+      }
+      relativeOrient.addElement(volume.getRelativeOrient());
+    }
+    valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
+    valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
+    if (initMotlFile != null) {
+      valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
+    }
+    else {
+      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
+    }
+    valueMap.put(TILT_RANGE_KEY, tiltRange.getParsableString());
+    valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.getParsableString());
+  }
+
+  /**
+   * Places parsable strings (string that will be written to
+   * the file) into a Map in preparation for writing.
+   * @param valueMap
+   */
+  private void buildParsableIterationValues(final Map valueMap) {
+  }
+
+  /**
+   * Called by write().  Updates or adds all the attributes to autodoc.
    * Will attempt to add comments when adding a new attribute.
    * Addes name/value pair when it adds a new attribute.
    * @param valueMap
    * @param autodoc
    * @param commentAutodoc
    */
-  private void updateOrBuildAutodoc(Map valueMap, WritableAutodoc autodoc,
-      ReadOnlyAutodoc commentAutodoc) {
+  private void updateOrBuildAutodoc(final Map valueMap,
+      final WritableAutodoc autodoc, final ReadOnlyAutodoc commentAutodoc) {
     Map commentMap = null;
     if (commentAutodoc != null) {
       commentMap = commentAutodoc.getAttributeMultiLineValues(
@@ -435,6 +572,33 @@ public final class MatlabParamFile {
     //the order doesn't matter, because this is either an existing autodoc 
     //(so new entries will end up at the bottom), or the comment autodoc (which
     //provides the order) is not usable.
+    setAttributeValues(valueMap, autodoc, commentMap);
+  }
+
+  /**
+   * Adds or changes the value of an attribute in the file.
+   * @param valueMap
+   * @param autodoc
+   * @param commentMap
+   */
+  private void setAttributeValues(final Map valueMap,
+      final WritableAutodoc autodoc, final Map commentMap) {
+    setVolumeAttributeValues(valueMap, autodoc, commentMap);
+    setIterationAttributeValues(valueMap, autodoc, commentMap);
+    setAttributeValue(autodoc, REFERENCE_KEY, (String) valueMap
+        .get(REFERENCE_KEY), commentMap);
+    setAttributeValue(autodoc, FN_OUTPUT_KEY, (String) valueMap
+        .get(FN_OUTPUT_KEY), commentMap);
+  }
+
+  /**
+   * Adds or changes the value of an attribute in the file.
+   * @param valueMap
+   * @param autodoc
+   * @param commentMap
+   */
+  private void setVolumeAttributeValues(final Map valueMap,
+      final WritableAutodoc autodoc, final Map commentMap) {
     setAttributeValue(autodoc, FN_VOLUME_KEY, (String) valueMap
         .get(FN_VOLUME_KEY), commentMap);
     setAttributeValue(autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
@@ -448,14 +612,25 @@ public final class MatlabParamFile {
   }
 
   /**
+   * Adds or changes the value of an attribute in the file.
+   * @param valueMap
+   * @param autodoc
+   * @param commentMap
+   */
+  private void setIterationAttributeValues(final Map valueMap,
+      final WritableAutodoc autodoc, final Map commentMap) {
+  }
+
+  /**
    * Gets the attribute.  If the attribute doesn't exist, it adds the attribute.
    * Adds or changes the value of the attribute.
    * @param autodoc
    * @param attributeName
    * @param attributeValue
    */
-  private void setAttributeValue(WritableAutodoc autodoc, String attributeName,
-      String attributeValue, Map commentMap) {
+  private void setAttributeValue(final WritableAutodoc autodoc,
+      final String attributeName, final String attributeValue,
+      final Map commentMap) {
     WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
     if (attribute == null) {
       if (commentMap == null) {
@@ -469,7 +644,7 @@ public final class MatlabParamFile {
       }
     }
     else {
-      attribute.changeValue(attributeValue);
+      attribute.setValue(attributeValue);
     }
   }
 
@@ -481,8 +656,9 @@ public final class MatlabParamFile {
    * @param attributeValue
    * @param commentAttribute
    */
-  private void addNameValuePair(WritableAutodoc autodoc, String attributeName,
-      String attributeValue, ReadOnlyAttribute commentAttribute) {
+  private void addNameValuePair(final WritableAutodoc autodoc,
+      final String attributeName, final String attributeValue,
+      final ReadOnlyAttribute commentAttribute) {
     if (attributeValue == null) {
       return;
     }
@@ -503,8 +679,8 @@ public final class MatlabParamFile {
    * @param attributeValue
    * @param comment
    */
-  private void addNameValuePair(WritableAutodoc autodoc, String attributeName,
-      String attributeValue, String comment) {
+  private void addNameValuePair(final WritableAutodoc autodoc,
+      final String attributeName, String attributeValue, String comment) {
     //try to add a comment
     if (comment != null) {
       //theres a comment, so add an empty line first
@@ -516,47 +692,7 @@ public final class MatlabParamFile {
       }
     }
     //Add the attribute and name/value pair
-    autodoc.addAttributeAndNameValuePair(attributeName, attributeValue);
-  }
-
-  public int getVolumeListSize() {
-    return volumeList.size();
-  }
-
-  public void setVolumeListSize(int size) {
-    if (volumeList.size() == 0) {
-      for (int i = 0; i < size; i++) {
-        volumeList.add(new Volume());
-      }
-    }
-  }
-
-  public Volume getVolume(int index) {
-    return (Volume) volumeList.get(index);
-  }
-
-  public String getFnVolume(int index) {
-    return ((Volume) volumeList.get(index)).getFnVolumeString();
-  }
-
-  public String getFnModParticle(int index) {
-    return ((Volume) volumeList.get(index)).getFnModParticleString();
-  }
-
-  public InitMotlCode getInitMotlCode() {
-    return initMotlCode;
-  }
-
-  public void setInitMotlCode(ConstEtomoNumber code) {
-    initMotlCode = InitMotlCode.getInstance(code);
-  }
-
-  public boolean isTiltRangeEmpty() {
-    return tiltRangeEmpty;
-  }
-
-  public void setTiltRangeEmpty(boolean tiltRangeEmpty) {
-    this.tiltRangeEmpty = tiltRangeEmpty;
+    autodoc.addNameValuePair(attributeName, attributeValue);
   }
 
   public static final class InitMotlCode {
@@ -571,11 +707,11 @@ public final class MatlabParamFile {
 
     private final int code;
 
-    private InitMotlCode(int code) {
+    private InitMotlCode(final int code) {
       this.code = code;
     }
 
-    public static InitMotlCode getInstance(ReadOnlyAttribute attribute) {
+    public static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
       if (attribute == null) {
         return null;
       }
@@ -588,7 +724,7 @@ public final class MatlabParamFile {
       return getInstance(code);
     }
 
-    public static InitMotlCode getInstance(ConstEtomoNumber code) {
+    public static InitMotlCode getInstance(final ConstEtomoNumber code) {
       if (code == null) {
         return null;
       }
@@ -604,7 +740,7 @@ public final class MatlabParamFile {
       return null;
     }
 
-    private static InitMotlCode getInstance(int code) {
+    private static InitMotlCode getInstance(final int code) {
       if (code == ZERO_CODE) {
         return ZERO;
       }
@@ -635,11 +771,11 @@ public final class MatlabParamFile {
 
     private final int code;
 
-    private CCModeCode(int code) {
+    private CCModeCode(final int code) {
       this.code = code;
     }
 
-    public static CCModeCode getInstance(ReadOnlyAttribute attribute) {
+    public static CCModeCode getInstance(final ReadOnlyAttribute attribute) {
       if (attribute == null) {
         return NORMALIZED;
       }
@@ -652,7 +788,7 @@ public final class MatlabParamFile {
       return getInstance(code);
     }
 
-    public static CCModeCode getInstance(ConstEtomoNumber code) {
+    public static CCModeCode getInstance(final ConstEtomoNumber code) {
       if (code == null) {
         return NORMALIZED;
       }
@@ -664,12 +800,12 @@ public final class MatlabParamFile {
       }
       return NORMALIZED;
     }
-    
+
     public static CCModeCode getDefault() {
       return getInstance((ConstEtomoNumber) null);
     }
 
-    private static CCModeCode getInstance(int code) {
+    private static CCModeCode getInstance(final int code) {
       if (code == NORMALIZED_CODE) {
         return NORMALIZED;
       }
@@ -687,7 +823,7 @@ public final class MatlabParamFile {
       return new Integer(code).toString();
     }
   }
-  
+
   public static final class Volume {
     private static final int TILT_RANGE_START_INDEX = 0;
     private static final int TILT_RANGE_END_INDEX = 1;
@@ -702,11 +838,11 @@ public final class MatlabParamFile {
     private final ParsedQuotedString fnModParticle = new ParsedQuotedString();
     private final ParsedQuotedString initMotl = new ParsedQuotedString();
 
-    public void setFnVolume(ParsedElement fnVolume) {
+    public void setFnVolume(final ParsedElement fnVolume) {
       this.fnVolume.setElement(fnVolume);
     }
 
-    public void setFnVolume(String fnVolume) {
+    public void setFnVolume(final String fnVolume) {
       this.fnVolume.setRawString(fnVolume);
     }
 
@@ -722,19 +858,19 @@ public final class MatlabParamFile {
       return initMotl.getRawString();
     }
 
-    public void setFnModParticle(ParsedElement fnModParticle) {
+    public void setFnModParticle(final ParsedElement fnModParticle) {
       this.fnModParticle.setElement(fnModParticle);
     }
 
-    public void setFnModParticle(String fnModParticle) {
+    public void setFnModParticle(final String fnModParticle) {
       this.fnModParticle.setRawString(fnModParticle);
     }
 
-    public void setInitMotl(ParsedElement initMotl) {
+    public void setInitMotl(final ParsedElement initMotl) {
       this.initMotl.setElement(initMotl);
     }
 
-    public void setInitMotl(String initMotl) {
+    public void setInitMotl(final String initMotl) {
       this.initMotl.setRawString(initMotl);
     }
 
@@ -742,7 +878,7 @@ public final class MatlabParamFile {
       return tiltRange.getRawString(TILT_RANGE_START_INDEX);
     }
 
-    public void setTiltRangeStart(String tiltRangeStart) {
+    public void setTiltRangeStart(final String tiltRangeStart) {
       tiltRange.setRawNumber(TILT_RANGE_START_INDEX, tiltRangeStart);
     }
 
@@ -754,15 +890,11 @@ public final class MatlabParamFile {
       tiltRange.setRawNumber(TILT_RANGE_END_INDEX, tiltRangeEnd);
     }
 
-    public boolean isRelativeOrientSet() {
-      return relativeOrient.size() > 0;
-    }
-
     public String getRelativeOrientX() {
       return relativeOrient.getRawString(RELATIVE_ORIENT_X_INDEX);
     }
 
-    public void setRelativeOrientX(String relativeOrientX) {
+    public void setRelativeOrientX(final String relativeOrientX) {
       relativeOrient.setRawNumber(RELATIVE_ORIENT_X_INDEX, relativeOrientX);
     }
 
@@ -770,7 +902,7 @@ public final class MatlabParamFile {
       return relativeOrient.getRawString(RELATIVE_ORIENT_Y_INDEX);
     }
 
-    public void setRelativeOrientY(String relativeOrientY) {
+    public void setRelativeOrientY(final String relativeOrientY) {
       relativeOrient.setRawNumber(RELATIVE_ORIENT_Y_INDEX, relativeOrientY);
     }
 
@@ -778,7 +910,7 @@ public final class MatlabParamFile {
       return relativeOrient.getRawString(RELATIVE_ORIENT_Z_INDEX);
     }
 
-    public void setRelativeOrientZ(String relativeOrientZ) {
+    public void setRelativeOrientZ(final String relativeOrientZ) {
       relativeOrient.setRawNumber(RELATIVE_ORIENT_Z_INDEX, relativeOrientZ);
     }
 
@@ -802,35 +934,51 @@ public final class MatlabParamFile {
       return relativeOrient;
     }
 
-    private void setTiltRange(ParsedElement tiltRange) {
+    private void setTiltRange(final ParsedElement tiltRange) {
       this.tiltRange.setElementArray(tiltRange);
     }
 
-    private void setRelativeOrient(ParsedElement relativeOrient) {
+    private void setRelativeOrient(final ParsedElement relativeOrient) {
       this.relativeOrient.setElementArray(relativeOrient);
     }
   }
 
   private static final class Iteration {
-    private void setDPhi(ParsedElement dPhi) {
+    private final ParsedArray dPhi = new ParsedArray(EtomoNumber.Type.FLOAT);
+    private final ParsedArray dTheta = new ParsedArray(EtomoNumber.Type.FLOAT);
+    private final ParsedArray dPsi = new ParsedArray(EtomoNumber.Type.FLOAT);
+    private final ParsedNumber searchRadius = new ParsedNumber();
+    private ParsedElement lowCutoff = null;
+    private ParsedElement hiCutoff = null;
+    private final ParsedNumber refThreshold = new ParsedNumber(
+        EtomoNumber.Type.FLOAT);
+
+    private void setDPhi(final ParsedElement dPhi) {
+      this.dPhi.setElementArray(dPhi);
     }
 
-    private void setDTheta(ParsedElement dTheta) {
+    private void setDTheta(final ParsedElement dTheta) {
+      this.dTheta.setElementArray(dTheta);
     }
 
-    private void setDPsi(ParsedElement dPsi) {
+    private void setDPsi(final ParsedElement dPsi) {
+      this.dPsi.setElementArray(dPsi);
     }
 
-    private void setSearchRadius(ParsedElement searchRadius) {
+    private void setSearchRadius(final ParsedElement searchRadius) {
+      this.searchRadius.setElement(searchRadius);
     }
 
-    private void setLowCutoff(ParsedElement lowCutoff) {
+    private void setLowCutoff(final ParsedElement lowCutoff) {
+      this.lowCutoff = lowCutoff;
     }
 
-    private void setHiCutoff(ParsedElement hiCutoff) {
+    private void setHiCutoff(final ParsedElement hiCutoff) {
+      this.hiCutoff = hiCutoff;
     }
 
-    private void setRefThreshold(ParsedElement refThreshold) {
+    private void setRefThreshold(final ParsedElement refThreshold) {
+      this.refThreshold.setElement(refThreshold);
     }
   }
 }
