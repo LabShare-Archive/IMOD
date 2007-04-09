@@ -68,6 +68,11 @@ import etomo.storage.LogFile;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.16  2007/03/23 20:44:00  sueh
+ * <p> $bug# 964 Added getMultiLineValues(), to convert a link list of tokens into a string
+ * <p> $which retains EOL information.  Added write(), which writes the token to an
+ * <p> $autodoc file.
+ * <p> $
  * <p> $Revision 1.15  2007/03/15 21:53:58  sueh
  * <p> $bug# 964 Added removeListFromHead() which strips the list from the first token
  * <p> $in the list.  This can be done before changing the token's value.  If the token
@@ -145,9 +150,10 @@ public final class Token {
 
   private Token next = null;
   private Token previous = null;
+  private boolean debug = false;
 
   public String toString() {
-    return "(" + type + "," + value + ")";
+    return type + " " + value;
   }
 
   /**
@@ -165,7 +171,6 @@ public final class Token {
   }
 
   public Token() {
-
   }
 
   /**
@@ -213,12 +218,12 @@ public final class Token {
     }
     return buffer.toString();
   }
-  
+
   public String getMultiLineValues() {
     Token token = this;
     StringBuffer buffer = new StringBuffer();
     while (token != null) {
-      if (token.type==Type.EOL) {
+      if (token.type == Type.EOL) {
         buffer.append('\n');
       }
       else if (token.value == null) {
@@ -231,11 +236,11 @@ public final class Token {
     }
     return buffer.toString();
   }
-  
-  public void write(LogFile file, long writeId) throws LogFile.WriteException{
-    file.write(value,writeId);
-    if (next!=null) {
-      next.write(file,writeId);
+
+  public void write(LogFile file, long writeId) throws LogFile.WriteException {
+    file.write(value, writeId);
+    if (next != null) {
+      next.write(file, writeId);
     }
   }
 
@@ -447,6 +452,10 @@ public final class Token {
     return this.type == type && equals(value);
   }
 
+  public void setDebug(boolean debug) {
+    this.debug = debug;
+  }
+
   /**
    * @return true if the type and key of this token are the same as the type and
    * getKey(value).
@@ -558,7 +567,7 @@ public final class Token {
     public static final Type DELIMITER = new Type();
     public static final Type WORD = new Type();
     public static final Type KEYWORD = new Type();
-    public static final Type ONE_OR_MORE = new Type();
+    public static final Type ANYTHING = new Type();
 
     public String toString() {
 
@@ -601,7 +610,7 @@ public final class Token {
       else if (this == KEYWORD) {
         return "KEYWORD";
       }
-      else if (this == ONE_OR_MORE) {
+      else if (this == ANYTHING) {
         return "ONE_OR_MORE";
       }
       return "UNKNOWN";
