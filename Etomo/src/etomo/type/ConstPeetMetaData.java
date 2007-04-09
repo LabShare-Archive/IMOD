@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2007/03/26 23:34:40  sueh
+* <p> bug# 964 Added getAxisType.
+* <p>
 * <p> Revision 1.2  2007/03/20 23:03:17  sueh
 * <p> bug# 964 Added getInitMotlFile, getTiltRangeStart, and getTiltRangeEnd.
 * <p>
@@ -28,4 +31,7 @@ public interface ConstPeetMetaData {
   public String getTiltRangeStart(int key);
   public String getTiltRangeEnd(int key);
   public AxisType getAxisType();
+  public String getReferenceFile();
+  public ConstEtomoNumber getReferenceParticle();
+  public ConstEtomoNumber getReferenceVolume();
 }
