@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2007/04/09 21:20:23  sueh
+ * <p> bug# 964 Fixed the names of the reference fields.
+ * <p>
  * <p> Revision 1.18  2007/04/02 21:52:40  sueh
  * <p> bug# 964 Rearranged fields.
  * <p>
@@ -129,7 +132,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
-      "Particle volume size in X: ");
+      "Particle volume in X: ");
   private final LabeledTextField ltfSzVolY = new LabeledTextField("Y: ");
   private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
   private final LabeledTextField ltfEdgeShift = new LabeledTextField(
@@ -385,6 +388,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       rbInitMotlXAndZAxis.setSelected(true);
     }
     cbTiltRange.setSelected(matlabParamFile.useTiltRange());
+    ltfSzVolX.setText(matlabParamFile.getSzVolX());
+    ltfSzVolY.setText(matlabParamFile.getSzVolY());
+    ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
     updateDisplay();
   }
 
@@ -411,6 +417,19 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       matlabParamFile.setInitMotlCode(rbInitMotlXAndZAxis.getRadioValue());
     }
     matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
+    //copy X value to Y and Z, if Y and Z are blank
+    String szVolX = ltfSzVolX.getText();
+    if (!szVolX.equals("")) {
+      if (ltfSzVolY.equals("")) {
+        ltfSzVolY.setText(szVolX);
+      }
+      if (ltfSzVolZ.equals("")) {
+        ltfSzVolZ.setText(szVolX);
+      }
+    }
+    matlabParamFile.setSzVolX(ltfSzVolX.getText());
+    matlabParamFile.setSzVolY(ltfSzVolY.getText());
+    matlabParamFile.setSzVolZ(ltfSzVolZ.getText());
   }
 
   public String getFnOutput() {
