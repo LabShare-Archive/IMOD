@@ -53,6 +53,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2007/04/09 21:26:07  sueh
+ * <p> $bug# 964 Made class final.
+ * <p> $
  * <p> $Revision 1.6  2007/03/23 20:45:55  sueh
  * <p> $bug# 964 In initializeStreamTokenizer:  handling NullPointerException.
  * <p> $
@@ -143,7 +146,7 @@ public final class PrimativeTokenizer {
       reader = new StringReader(string);
     }
     else {
-      return;
+      reader = new StringReader("");
     }
     tokenizer = new StreamTokenizer(reader);
     streamTokenizerNothingValue = tokenizer.ttype;
