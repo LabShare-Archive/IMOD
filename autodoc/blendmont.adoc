@@ -382,6 +382,18 @@ value.  Five values are expected: number of frame below the edge in X and Y
 (numbered from 1), 1 for an edge in X or 2 for an edge in Y, lower and upper Z
 limits (numbered from 0).
 
+[Field = ExcludeFillFromEdges]
+short = exclude
+type = B
+usage = Exclude areas filled with constant values from edge functions
+tooltip = 
+manpage = With this option on, the program will detect image areas near an
+overlap zone that consist of uniform values and exclude these areas when
+computing the edge function.  In addition, in areas along an edge where one
+piece consists of uniform values and the other has actual image data, it will
+use the actual data across the whole edge instead of transitioning to the
+uniform data.
+
 [Field = ParallelMode]
 short = parallel
 type = IP
