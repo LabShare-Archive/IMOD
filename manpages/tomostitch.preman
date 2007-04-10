@@ -72,6 +72,20 @@ INSERT OPTION TEXT HERE
 .B -StandardInput
 Read parameter entries from standard input
 
+.SH FILES
+When Findwarp(1) is run, several files are produced for each piece:
+  piecename.warpxf     has the warping transforms
+  piecename_res.patch  is a file with the patch vectors and residuals
+  piecename_res.mod    is a model made from these patches
+.br
+When Warpvol(1) is run, it produces files named "piecename.warped".
+.br
+When the warped volumes are stacked, the output files are
+  section_name.st      the stacked volumes
+  section_name.pl      the piece list
+.br
+The output file from blending is "section_name.bl"
+
 .SH AUTHOR
 .nf
 David Mastronarde
@@ -87,5 +101,8 @@ Cygwin Python installed, you need either to invoke the program with
 .br
 or run the command file with a Python interpreter by either giving the
 extension ".pcm" or using the "-p" option to subm.
+.P
+Email bug reports to mast@colorado.edu.
+ion ".pcm" or using the "-p" option to subm.
 .P
 Email bug reports to mast@colorado.edu.
