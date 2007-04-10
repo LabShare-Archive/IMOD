@@ -7,6 +7,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.1  2007/04/08 16:32:20  mast
+# Added to package
+#
 
 # FUNCTIONS
 
@@ -23,7 +26,7 @@ def changeExtension(name, newext):
 import os, sys, os.path, signal
 
 progname = 'tomostitch'
-prefix = 'ERROR: ' + progname + ' -'
+prefix = 'ERROR: ' + progname + ' - '
 
 #
 # Setup runtime environment
@@ -68,7 +71,7 @@ options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
            "onegood:OneGoodEdgeLimits:IAM:", "width:BlendingWidthXandY:IP:",
            "boxsize:BoxSizeShortAndLong:IP:"]
 
-(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 2, \
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
         1, 0)
 infofile = PipGetInOutFile('InfoFile', 0)
 if not infofile:
@@ -213,7 +216,7 @@ if dofind:
     for y in range(yrunStart, yrunEnd + 1):
         for x in range(xrunStart, xrunEnd + 1):
             ind = pieceMap[x - xmin + xdim * (y - ymin)]
-            if ind > 0:
+            if ind >= 0:
                 if not (pieces[ind].has_key(kVectors) and \
                         pieces[ind].has_key(kMatxf)):
                     print '%s Frame %d %d is missing an initial transform or '\
@@ -257,7 +260,7 @@ if dowarp:
     for y in range(yrunStart, yrunEnd + 1):
         for x in range(xrunStart, xrunEnd + 1):
             ind = pieceMap[x - xmin + xdim * (y - ymin)]
-            if ind > 0:
+            if ind >= 0:
                 if not pieces[ind].has_key(kMatxf):
                     print '%s No initial transform has been computed for ' \
                           'frame %d %d' % (prefix, x, y)
@@ -293,7 +296,7 @@ if dostack:
     for y in range(yrunStart, yrunEnd + 1):
         for x in range(xrunStart, xrunEnd + 1):
             ind = pieceMap[x - xmin + xdim * (y - ymin)]
-            if ind > 0:
+            if ind >= 0:
                 if not pieces[ind].has_key(kMatxf):
                     print '%s No initial transform has been computed for ' \
                           'frame %d %d' % (prefix, x, y)
@@ -390,7 +393,8 @@ if doblend:
              'RootNameForEdges\t' + slicename,
              'OldEdgeFunctions\t%d' % oldedges,
              'StartingAndEndingX\t' + xstnd,
-             'StartingAndEndingY\t' + ystnd]
+             'StartingAndEndingY\t' + ystnd,
+             'ExcludeFillFromEdges\t1']
     if binFactor > 1:
         input.append('BinByFactor\t %d' % binFactor)
     if goodLowZ >= 0 and goodHiZ >=0:
