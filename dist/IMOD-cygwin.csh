@@ -1,4 +1,4 @@
-# IMOD 3.8.26
+# IMOD 3.10.5
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -51,3 +51,6 @@ alias subm 'submfg \!* &'
 alias imod 3dmodbg
 alias 3dmod 3dmodbg
 alias imodv 3dmodv
+alias edgepatches 'runpyscript edgepatches'
+alias tomostitch 'runpyscript tomostitch'
+alias vmstopy 'runpyscript vmstopy'
