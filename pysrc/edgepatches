@@ -7,6 +7,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.1  2007/04/08 16:30:13  mast
+# Added to package
+#
 
 # FUNCTIONS
 
@@ -254,7 +257,7 @@ def composeName(root, x, y, z, noz, under):
 import os, sys, os.path, signal
 
 progname = 'edgepatches'
-prefix = 'ERROR: ' + progname + ' -'
+prefix = 'ERROR: ' + progname + ' - '
 
 #
 # Setup runtime environment
@@ -500,17 +503,17 @@ for z in zlist:
 
     # Add a Section section with name and z value
     for slice in slices:
-        if slice[kZvalue] == z:
+        if int(slice[kZvalue]) == z:
             break
     else:
         slice = {}
         slices.append(slice)
         if predata[kNoZvals]:
-            slice[name] = rootname + '_' + str(z)
-            slice[kZvalue] = str(z)
-        else:
-            slice[name] = rootname
+            slice['name'] = rootname
             slice[kZvalue] = '0'
+        else:
+            slice['name'] = rootname + '_' + str(z)
+            slice[kZvalue] = str(z)
             
         
 
