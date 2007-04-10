@@ -26,7 +26,9 @@ DDEESSCCRRIIPPTTIIOONN
   system, the reconstructions end up being staggered from one another by the
   rotation of the tilt axis to the vertical, and this rotation will correct
   for the staggering.  If the value found is not appropriate, there is an
-  option to supply a specific value instead.
+  option to supply a specific value instead.  In addition, if the angle
+  between the pieces is not related to this tilt axis effect, you might want
+  to prevent rotation entirely.
 
   The next step is to compute a set of single transformations, one per volume,
   that best aligns the volumes.  The parameters available for alignment are
@@ -82,6 +84,11 @@ INSERT OPTION TEXT HERE
 
   -StandardInput
      Read parameter entries from standard input.
+
+FFIILLEESS
+  Stitchalign produces two files for each volume included in the analysis:
+    piecename.matxf    File with single linear transformation
+    piecename.patch    File with patch vectors for computing a warping
 
 HHIISSTTOORRYY
   Written by David Mastronarde, April 2007
