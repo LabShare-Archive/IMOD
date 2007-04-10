@@ -11,6 +11,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2005/08/22 16:17:56  mast
+c	  Bad message in last checkin
+c	
 c	  Revision 3.2  2005/08/22 16:15:59  mast
 c	  Prevented negative extents when distortion limits size of field
 c	
@@ -157,11 +160,11 @@ c	  the grid in the lower frame in IGRIDSTR, and the offset to the
 c	  corresponding place in the upper frame in IOFSET.
 c
 	subroutine setgridchars(nxy,noverlap,iboxsiz,indent,intgrid,
-     &	    ixy,ixdispl,iydispl,nxgrid,nygrid,igridstr,iofset)
+     &	    ixy,ixdispl,iydispl,limitLo,limitHi,nxgrid,nygrid,igridstr,iofset)
 c
 	integer*4 nxy(*),noverlap(*),igridstr(*),iofset(*) !indexed by x-y
 	integer*4 iboxsiz(*),indent(*),intgrid(*) !indexed by short-long
-	integer*4 ngrid(2),idispl(2),len(2),jndent(2)
+	integer*4 ngrid(2),idispl(2),len(2),jndent(2),limlen(2)
 c	  
 c	  12/98 change -i[xy]displ to +i[xy]displ
 	if(ixy.eq.1)then
@@ -176,20 +179,29 @@ c
 c	  get length of overlap in short direction: limit to standard length
 c
 	len(ixy)=min(noverlap(ixy),nxy(ixy)-idispl(ixy))
+        limlen(ixy) = len(ixy)
 c	  length of overlap in long direction: reduce by displacement
 	len(iyx)=nxy(iyx)-abs(idispl(iyx))
+        limlen(iyx) = len(iyx)
+c         
+c         Get limited length for getting extent if limitHi is nonzero
+	if (limitHi .ne. 0) limlen(iyx) = max(iboxsiz(iyx),
+     &      (limitHi + 1 - limitLo) - abs(idispl(iyx)))
+c        print *,limitLo, limitHi, limlen(iyx)
 c
 c	  calculate extent usable within box, # gridpoints, indent to 1st point
 c	  but keep extent from getting negative
 c
 	isl=ixy					!index to short-long variables
 	do i=1,2
-	  indentUse = min(indent(isl), (len(i)-iboxsiz(isl)) / 2)
-	  nextent=len(i)-iboxsiz(isl)- 2 * indentUse
+	  indentUse = min(indent(isl), (limlen(i)-iboxsiz(isl)) / 2)
+	  nextent=limlen(i)-iboxsiz(isl)- 2 * indentUse
 	  ngrid(i)=1+nextent/intgrid(isl)
 	  jndent(i)=indentUse + (iboxsiz(isl)+mod(nextent,intgrid(isl)))/2
 	  isl=iyx
 	enddo
+        if (limitHi .ne. 0 .and. limitHi .ge. limitLo)
+     &      jndent(iyx) = jndent(iyx) + limitLo
 c
 c	  calculate coordinates of grid within each frame
 c	  
