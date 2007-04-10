@@ -1,7 +1,7 @@
       integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc,maxbin
       integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
-      integer maxbsiz,idimc,maxPcNear, maxDistNear,maxUseEdge
-      parameter (maxsiz=2600*2600*12)		!# of pixels
+      integer maxbsiz,idimc,maxPcNear, maxDistNear,maxUseEdge,limsecpc
+      parameter (maxsiz=100*1000000)		!# of pixels
       parameter (limvar=3000)                   !# of variables for shift fits
 c       
 c       Needed size for idimc now determined by maximum unpadded size after
@@ -19,11 +19,14 @@ c
       common /bigarr/ array,brray,xcray,xdray
 c       
       parameter (limxypc=100,limnpc=100000,limedge=100000,limsect=1000)
+      parameter (limsecpc=limxypc*limxypc)
       integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout
       integer*4 nxyzbin(3),nxbin,nybin,nzbin
       integer*4 noverlap(2),nedge(2),nxoverlap,nyoverlap
       integer*4 ixpclist(limnpc),iypclist(limnpc) !piece coords in x,y
       integer*4 izpclist(limnpc),neglist(limnpc) !section #, negative #
+      integer*4 limDataLo(limsecpc,2,2),limDataHi(limsecpc,2,2)
+      integer*4 limDataInd(limnpc)
       integer*4 iedgelower(limnpc,2),iedgeupper(limnpc,2)
       integer*4 ipiecelower(limedge,2),ipieceupper(limedge,2)
       integer*4 indent(2)			!minimum indent short & long
@@ -45,7 +48,8 @@ c
      &    izpclist,neglist,iedgelower, iedgeupper ,ipiecelower,
      &    ipieceupper,indent,intgrid,iboxsiz, edgelonear,edgehinear,
      &    izUseDefLow, izUseDefHigh, numUseEdge, ixyUseEdge, ixFrmUseEdge,
-     &    iyFrmUseEdge, izLowUse, izHighUse, lastWritten
+     &    iyFrmUseEdge, izLowUse, izHighUse, lastWritten, limDataLo, limDataHi,
+     &    limDataInd
 c       
       integer*4 inpiece(5)			!piece # of pieces point in
       integer*4 inedge(5,2)			!edge # of edges point is in
@@ -54,13 +58,14 @@ c
       integer*4 inedlower(5,2),inedupper(5,2)	!list index of piece be&ab edge
       integer*4 mappiece(limxypc,limxypc)	!map of pieces in this section
       logical dogxforms,multng                  !if doing g's, if negs in sect
+      logical limitData                         !if limiting data in X/Y
       real*4 hxcen,hycen			!coord of center of input frame
       real*4 gxcen,gycen			!coord of output image center
       real*4 ginv(2,3),hinv(2,3,limnpc)         !inverse of g and h xforms
       integer*4 numpieces
       integer*4 numPcNear, idxPcNear(maxPcNear), idyPcNear(maxPcNear)
       common /edgcnt/ inpiece,inedge,numedges,xinpiece,yinpiece,
-     &    inedlower, inedupper,mappiece,dogxforms,multng,numpieces,
+     &    inedlower, inedupper,mappiece,dogxforms,multng,limitData,numpieces,
      &    hxcen,hycen, gxcen,gycen, ginv,hinv
 c       
       parameter (memlim=256)
