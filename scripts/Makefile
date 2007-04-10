@@ -21,12 +21,15 @@ install:  $(CMDWRAPPERS)
 	$(CP) $(SCRIPTS) $(INSTBINDIR)
 
 cmdwrappers:
-	./copywrappers $(INSTBINDIR) tcshwrapper.cmd $(SCRIPTS)
+	./copywrappers $(INSTBINDIR) . $(SCRIPTS)
 
 clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.20  2007/04/08 16:47:05  mast
+#  Added splitblend
+#
 #  Revision 3.19  2006/09/26 22:19:06  mast
 #  Python stuff
 #
