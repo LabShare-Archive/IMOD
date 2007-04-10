@@ -106,7 +106,6 @@ c       Get various options
       ierr = PipGetTwoIntegers('XRunStartEnd', ixpstr, ixpend)
       ierr = PipGetTwoIntegers('YRunStartEnd', iypstr, iypend)
       ierr = PipGetLogical('AllTogether', allTogether)
-      pairwise = .not.allTogether
       ierr = PipGetFloat('VectorSpacingFactor', sampleFactor)
       ifMaxSize = PipGetTwoIntegers('SizeOfOutputFramesXandY', nxout, nyout)
 c       
@@ -248,6 +247,7 @@ c         Check that each volume is connected - just quit if not
           endif
         enddo
         print *,numVols,' piece volumes and', numEdge, ' edges found'
+        pairwise = .not.allTogether .and. numVols .gt. 2
 c
 c         find the rotation angle unless it was set
         if (ifFindRot .ne. 0) then
@@ -2775,6 +2775,9 @@ c
 
 
 c       $Log$
+c       Revision 3.2  2007/04/08 23:11:23  mast
+c       Declared lnblnk
+c
 c       Revision 3.1  2007/04/08 16:13:55  mast
 c       Added to package
 c
