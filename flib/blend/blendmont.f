@@ -147,16 +147,15 @@ c
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
       integer numOptions
-      parameter (numOptions = 50)
+      parameter (numOptions = 55)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
      &    'imout:ImageOutputFile:FN:@plout:PieceListOutput:FN:@'//
      &    'rootname:RootNameForEdges:CH:@mode:ModeToOutput:I:@'//
      &    'float:FloatToRange:B:@xform:TransformFile:FN:@'//
-     &    'center:TransformCenterXandY:FP:@'//
-     &    'order:InterpolationOrder:I:@distort:DistortionField:FN:@'//
-     &    'imagebinned:ImagesAreBinned:I:@'//
+     &    'center:TransformCenterXandY:FP:@order:InterpolationOrder:I:@'//
+     &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
      &    'addgrad:AddToGradient:FP:@tiltfile:TiltFile:FN:@'//
      &    'offset:OffsetTilts:F:@geometry:TiltGeometry:FT:@'//
@@ -164,23 +163,22 @@ c
      &    'sloppy:SloppyMontage:B:@very:VerySloppyMontage:B:@'//
      &    'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
      &    'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
-     &    'sections:SectionsToDo:LI:@'//
-     &    'xminmax:StartingAndEndingX:IP:@'//
+     &    'sections:SectionsToDo:LI:@xminmax:StartingAndEndingX:IP:@'//
      &    'yminmax:StartingAndEndingY:IP:@bin:BinByFactor:I:@'//
      &    'maxsize:MaximumNewSizeXandY:IP:@'//
-     &    'minoverlap:MinimumOverlapXandY:IP:@'//
-     &    'oldedge:OldEdgeFunctions:B:@'//
+     &    'minoverlap:MinimumOverlapXandY:IP:@oldedge:OldEdgeFunctions:B:@'//
      &    'perneg:FramesPerNegativeXandY:IP:@'//
      &    'missing:MissingFromFirstNegativeXandY:IP:@'//
-     &    'width:BlendingWidthXandY:IP:@'//
-     &    'boxsize:BoxSizeShortAndLong:IP:@'//
-     &    'grid:GridSpacingShortAndLong:IP:@'//
-     &    'indents:IndentShortAndLong:IP:@'//
-     &    'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@'//
-     &    'taper:TaperFraction:F:@extra:ExtraXcorrWidth:F:@'//
-     &    'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
-     &    'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
-     &    'xcdbg:XcorrDebug:B:@param:ParameterFile:PF:@help:usage:B:'
+     &    'width:BlendingWidthXandY:IP:@boxsize:BoxSizeShortAndLong:IP:@'//
+     &    'grid:GridSpacingShortAndLong:IP:@indents:IndentShortAndLong:IP:@'//
+     &    'goodedge:GoodEdgeLowAndHighZ:IP:@onegood:OneGoodEdgeLimits:IAM:@'//
+     &    'exclude:ExcludeFillFromEdges:B:@parallel:ParallelMode:IP:@'//
+     &    'subset:SubsetToDo:LI:@aspect:AspectRatioForXcorr:F:@'//
+     &    'pad:PadFraction:F:@taper:TaperFraction:F:@'//
+     &    'extra:ExtraXcorrWidth:F:@radius1:FilterRadius1:F:@'//
+     &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@'//
+     &    'sigma2:FilterSigma2:F:@xcdbg:XcorrDebug:B:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       initialization of elements in common
 c       
@@ -209,6 +207,7 @@ c
       interpOrder = 2
       testMode = .false.
       undistortOnly = .false.
+      limitData = .false.
       iBinning = 1
       numAngles = 0
       numUseEdge = 0
@@ -565,6 +564,7 @@ c
         if (pipinput) then
           ierr = PipGetLogical('TestMode', testMode)
           ierr = PipGetLogical('XcorrDebug', xcorrDebug)
+          ierr = PipGetLogical('ExcludeFillFromEdges', limitData)
           ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
           ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
           ierr = PipGetTwoIntegers('MaximumNewSizeXandY', newxframe,
@@ -646,10 +646,11 @@ c
         irray(1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap),
      &      1+(iypclist(ipc)-minypiece)/(nyin-nyoverlap),
      &      izpclist(ipc)+1-minzpc)=ipc
-        iedgelower(ipc,1)=0
-        iedgeupper(ipc,1)=0
-        iedgelower(ipc,2)=0
-        iedgeupper(ipc,2)=0
+        do i = 1, 2
+          iedgelower(ipc,i)=0
+          iedgeupper(ipc,i)=0
+          limDataInd(ipc) = -1
+        enddo
       enddo
 c       
 c       look at all the edges in turn, add to list if pieces on both sides
@@ -877,7 +878,7 @@ c
 c        print *,(iboxsiz(I),indent(i),intgrid(i),i=1,2)
         do ixy=1,2
           call setgridchars(nxyzin,noverlap,iboxsiz,indent,intgrid,
-     &        ixy,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
+     &        ixy,0,0,0,0,nxgrid(ixy),nygrid(ixy),igridstr,iofset)
           if (nxgrid(ixy) .gt. ixgdim .or. nygrid(ixy) .gt. iygdim)
      &        call exitError(
      &        'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
@@ -1151,6 +1152,30 @@ c
         multng=multineg(izsect+1-minzpc)
         xinlong=nxpieces .gt. nypieces
 c         
+c         make a map of pieces in this section and set up index to data limits
+c         
+        do iyfrm=1,nypieces
+          do ixfrm=1,nxpieces
+            mappiece(ixfrm,iyfrm)=0
+          enddo
+        enddo
+        ipclo = 0
+        do ipc=1,npclist
+          if(izpclist(ipc).eq.izsect)then
+            ixfrm=1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap)
+            iyfrm=1+(iypclist(ipc)-minypiece)/(nyin-nyoverlap)
+            mappiece(ixfrm,iyfrm)=ipc
+            ipclo = ipclo + 1
+            limDataInd(ipc) = ipclo
+            do i = 1, 2
+              limDataLo(ipclo,i,1) = -1
+              limDataLo(ipclo,i,2) = -1
+              limDataHi(ipclo,i,1) = -1
+              limDataHi(ipclo,i,2) = -1
+            enddo
+          endif
+        enddo
+C
         if(.not. undistortOnly)then 
 c           
 c           First get edge functions if haven't already
@@ -1224,21 +1249,6 @@ c
             enddo
           enddo
         endif
-c         
-c         make a map of pieces in this sections
-c         
-        do iyfrm=1,nypieces
-          do ixfrm=1,nxpieces
-            mappiece(ixfrm,iyfrm)=0
-          enddo
-        enddo
-        do ipc=1,npclist
-          if(izpclist(ipc).eq.izsect)then
-            ixfrm=1+(ixpclist(ipc)-minxpiece)/(nxin-nxoverlap)
-            iyfrm=1+(iypclist(ipc)-minypiece)/(nyin-nyoverlap)
-            mappiece(ixfrm,iyfrm)=ipc
-          endif
-        enddo
 c         
 c         now if doing multinegatives, need to solve for h transforms
 c         
@@ -2753,6 +2763,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.29  2007/04/07 21:30:32  mast
+c       Implemented ability to use edge functions from a limited range of Z
+c       values, and to have incomplete edge function files, as long as pieces
+c       are not being shifted.  Implemented options to support parallel
+c       blending either to chunks or direcly to an output file.
+c
 c       Revision 3.28  2006/08/03 17:21:39  mast
 c       Fixed to take mode 6 files
 c
