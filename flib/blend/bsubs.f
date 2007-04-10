@@ -19,6 +19,7 @@ c       PEAKFIND
 c       FIND_BEST_SHIFTS
 c       findBestGradient
 c       findEdgeToUse
+c       getDataLimits
 c       IWRBINNED
 c       GETEXTRAINDENTS
 c       IBINPAK
@@ -774,7 +775,7 @@ c
       integer*4 lastxdisp,lastydisp,idiff,jedge,nxgr,nygr,ix,iy,indentXcorr
       real*4 xdisp,ydisp,theta,dxedge,dyedge,dxmid,dymid,xdispl,ydispl
       real*4 costh,sinth,xrel,yrel,thetamid,delIndent(2)
-      integer*4 memlow,memup,indentUse(2)
+      integer*4 memlow,memup,indentUse(2), limitLo, limitHi, limitLo2, limitHi2
       real*4 cosd,sind
 c       
 c       make list of edges to be done
@@ -948,18 +949,31 @@ c         &           '  extra indents:',delIndent(1),delIndent(2)
 c         
         indentUse(1) = indent(1) + nint(delIndent(1))
         indentUse(2) = indent(2) + nint(delIndent(2))
+c         
+c         Determine data limits for edge in long dimension if flag set
+        limitLo = 0
+        limitHi = 0
+        if (limitData) then
+          call getDataLimits(ipiecelower(jedge,ixy), 3-ixy, 2, limitLo,
+     &        limitHi)
+          call getDataLimits(ipieceupper(jedge,ixy), 3-ixy, 1, limitLo2,
+     &        limitHi2)
+          limitLo = max(limitLo, limitLo2)
+          limitHi = min(limitHi, limitHi2)
+        endif
+c          
         call setgridchars(nxyzin,noverlap,iboxsiz,indentUse,intgrid,
-     &      ixy,ixdisp,iydisp,nxgr,nygr,igrstr,igrofs)
+     &      ixy,ixdisp,iydisp,limitLo,limitHi,nxgr,nygr,igrstr,igrofs)
         if (nxgr .gt. ixgdim .or. nygr .gt. iygdim) call exitError(
      &      'TOO MANY GRID POINTS FOR ARRAYS, TRY INCREASING GridSpacing')
         lastxdisp=ixdisp
         lastydisp=iydisp
 c         
-c         write(*,'(1x,a,2i4,a,2i4,a,2i5,a,2i4)')
-c         &           char(ixy+ichar('W'))//' edge, pieces'
-c         &           ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-c         &           '  ngrid:',nxgr,nygr,'  start lower:',igrstr,
-c         &           '  upper:',igrofs
+c        write(*,'(1x,a,2i4,a,2i4,a,2i5,a,2i4)')
+c     &      char(ixy+ichar('W'))//' edge, pieces'
+c     &      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+c     &      '  ngrid:',nxgr,nygr,'  start lower:',igrstr,
+c     &      '  upper:',igrofs
         call findedgefunc(array(indlow),array(indup),nxin,nyin,
      &      igrstr(1),igrstr(2),igrofs(1),igrofs(2),nxgr,nygr,
      &      intxgrid,intygrid,iboxsiz(ixy),iboxsiz(3-ixy),intscan,
@@ -1089,11 +1103,12 @@ c
 c       
       include 'blend.inc'
 c       
-      logical edgeonlist,needcheck(5,2),ngframe, useEdges
+      logical edgeonlist,needcheck(5,2),ngframe, useEdges, inLimit(2)
       real*4 xycur(2)
-      integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm,minxframe,minyframe
-      integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch
+      integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm,minxframe,minyframe, limitLo
+      integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch, limitHi
       real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,xttmp,dist
+      logical b3dxor
 c       
       numpieces=0
       numedges(1)=0
@@ -1311,6 +1326,32 @@ c
         enddo
         indinp=indinp+1
       enddo
+c       
+c       If there are two pieces and the limit flag is set, find out if one
+c       should be thrown away
+      if (limitData .and. numPieces .eq. 2) then
+        ixy = 1
+        if (numedges(2) .gt. 0) ixy = 2
+        do i = 1, 2
+          iflo = 1
+c           
+c           if the piece is lower, get the limits on upper side
+          if (inPiece(i) .eq. inedlower(1, ixy)) iflo = 2
+          call getDataLimits(inpiece(i), 3-ixy, iflo, limitLo, limitHi)
+          inLimit(i) = (ixy .eq. 1 .and. yinPiece(i) .ge. limitLo .and.
+     &        yinPiece(i) .le. limitHi) .or. (ixy .eq. 2 .and.
+     &        xinPiece(i) .ge. limitLo .and. xinPiece(i) .le. limitHi)
+        enddo
+        if (b3dxor(inLimit(1), inLimit(2))) then
+          numPieces = 1
+          numEdges(ixy) = 0
+          if (inLimit(2)) then
+            xinPiece(1) = xinPiece(2)
+            yinPiece(1) = yinPiece(2)
+            inPiece(1) = inPiece(2)
+          endif
+        endif
+      endif
 c       
 c       Replace edges with ones to use if called for
       if (useEdges) then
@@ -2135,6 +2176,105 @@ c       Seek these coordinates on that Z with an edge above
       end
 
 
+c       getDataLimits returns the limits of actual data (as opposed to gray
+c       fill data) in the dimension given by IXY (1 for X, 2 for Y) and for
+c       an edge on the side given by LOHI (1 for lower edge, 2 for upper edge).
+c       It returns coordinates numbered from 0 in limitLo and limitHi, looking
+c       them up in the limDataLo and limDataHi arrays or finding the values and
+c       storing them in those arrays when done.
+c
+      subroutine getDataLimits(ipc, ixy, lohi, limitLo, limitHi)
+      implicit none
+      include 'blend.inc'
+      integer*4 ipc, ixy, limitLo, limitHi, ind, incPix, incLine, numPix, line
+      integer*4 lineEnd,lineStart,idir,i, lineBase, lineGood, maxSame,numSame
+      integer*4 limInd, lohi, iPixStr, iPixEnd
+      real*4 value
+c       
+      limInd = limDataInd(ipc)
+      if (limInd .le. 0) then
+        limitLo = 0
+        limitHi = nxin - 1
+        if (ixy .eq. 2) limitHi = nyin - 1
+        return
+      endif
+      if (limDataLo(limInd, ixy, lohi) .ge. 0 .and.
+     &    limDataHi(limInd, ixy, lohi) .ge. 0) then
+        limitLo = limDataLo(limInd, ixy, lohi)
+        limitHi = limDataHi(limInd, ixy, lohi)
+        return
+      endif
+      call shuffler(ipc, ind)
+      
+      lineEnd = 0
+      if (ixy .eq. 1) then
+        incPix = nxin
+        incLine = 1
+        numPix = min(nyin, (3 * nyoverlap) / 2)
+        iPixEnd = nyin - 1
+        lineStart = nxin - 1
+      else
+        incPix = 1
+        incLine = nxin
+        numPix = min(nxin, (3 * nxoverlap) / 2)
+        iPixEnd = nxin - 1
+        lineStart = nyin - 1
+      endif
+      if (lohi .eq. 1) then
+        iPixStr = 0
+        iPixEnd = numPix - 1
+      else
+        iPixStr = iPixEnd + 1 - numPix
+      endif
+      maxSame = numPix / 4
+c      print *,ipc,ixy,lohi, iPixStr, iPixEnd, LineStart,incPix, incLine
+      do idir = -1,1,2
+c         
+c         First find out if first line has a common value
+        i = iPixStr + 1
+        lineBase = ind + lineStart * incLine
+        value = array(lineBase + iPixStr * incPix)
+        do while (i .le. iPixEnd .and. array(lineBase + i * incPix) .eq. value)
+          i = i + 1
+        enddo
+        if (i .le. iPixEnd) then
+          lineGood = lineStart
+        else
+c         
+c           If it made it to the end, next search for line with less than 
+c           maximum number of pixels at this value
+          lineGood = -1
+          line = lineStart + idir
+          do while (lineGood .lt. 0 .and. idir * (line - lineEnd) .lt. 0)
+            i = iPixStr
+            numSame = 0
+            lineBase = ind + line * incLine
+            do while (i .le. iPixEnd .and. numSame .lt. maxSame)
+              if (array(lineBase + i * incPix) .eq. value) numSame = numSame +1
+              i = i + 1
+            enddo
+            if (numSame .lt. maxSame) lineGood = line
+            line = line + idir
+          enddo
+        endif
+c         
+c         If go to end, set it to next to last line, then save limit
+        if (lineGood .lt. 0) lineGood = lineEnd - idir
+        
+        if (idir .eq. -1) then
+          limitHi = lineGood
+        else
+          limitLo = lineGood
+        endif
+        lineEnd = lineStart
+        lineStart = 0
+      enddo
+      limDataLo(limInd, ixy, lohi) = limitLo
+      limDataHi(limInd, ixy, lohi) = limitHi
+      return
+      end
+
+
 c       iwrBinned writes the data in ARRAY to unit IUNIT, with binning
 c       given by IBINNING, using BRRAY as a scratch line.  The data in ARRAY
 c       are NY lines of length NX.  The output will consist of NYOUT lines
@@ -2329,6 +2469,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.22  2007/04/07 21:31:01  mast
+c       Added functions for using edges from other Z values
+c
 c       Revision 3.21  2007/01/24 05:08:19  mast
 c       Bin starting areas for cross-correlation when bigger than 1K
 c
