@@ -12,8 +12,10 @@ import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.storage.autodoc.SectionLocation;
+import etomo.storage.autodoc.Statement;
 import etomo.storage.autodoc.WritableAttribute;
 import etomo.storage.autodoc.WritableAutodoc;
+import etomo.storage.autodoc.WritableStatement;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoAutodoc;
@@ -39,6 +41,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/04/09 21:59:33  sueh
+ * <p> bug# 964 Added gets and sets and index constants for szVol.
+ * <p>
  * <p> Revision 1.12  2007/04/09 20:01:09  sueh
  * <p> bug# 964 Added support for reference.  Reorganized writing functionality.
  * <p>
@@ -141,11 +146,11 @@ public final class MatlabParamFile {
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
   private final ParsedArray reference = new ParsedArray();
   private final File file;
-  private final boolean newFile;
   private InitMotlCode initMotlCode = null;
   private CCModeCode ccMode = null;
   private boolean tiltRangeEmpty = false;
   private boolean useReferenceFile = false;
+  private boolean newFile;
 
   public MatlabParamFile(File file, boolean newFile) {
     this.file = file;
@@ -248,6 +253,8 @@ public final class MatlabParamFile {
       }
       //write the autodoc file
       autodoc.write();
+      //the file is written, so it is no longer new
+      newFile=false;
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
@@ -271,8 +278,8 @@ public final class MatlabParamFile {
 
   public Volume getVolume(final int index) {
     Volume volume;
-    if (index==volumeList.size()) {
-      volume=new Volume();
+    if (index == volumeList.size()) {
+      volume = new Volume();
       volumeList.add(volume);
       return volume;
     }
@@ -323,27 +330,39 @@ public final class MatlabParamFile {
   public ConstEtomoNumber getReferenceVolume() {
     return reference.getRawNumber(REFERENCE_VOLUME_INDEX);
   }
-  
+
+  public void setEdgeShift(String edgeShift) {
+    this.edgeShift.setRawNumber(edgeShift);
+  }
+
+  public void clearEdgeShift() {
+    edgeShift.clear();
+  }
+
+  public String getEdgeShift() {
+    return edgeShift.getRawString();
+  }
+
   public void setSzVolX(String szVolX) {
-    szVol.setRawNumber(SZ_VOL_X_INDEX,szVolX);
+    szVol.setRawNumber(SZ_VOL_X_INDEX, szVolX);
   }
-  
+
   public void setSzVolY(String szVolY) {
-    szVol.setRawNumber(SZ_VOL_Y_INDEX,szVolY);
+    szVol.setRawNumber(SZ_VOL_Y_INDEX, szVolY);
   }
-  
+
   public void setSzVolZ(String szVolZ) {
-    szVol.setRawNumber(SZ_VOL_Z_INDEX,szVolZ);
+    szVol.setRawNumber(SZ_VOL_Z_INDEX, szVolZ);
   }
-  
+
   public String getSzVolX() {
     return szVol.getRawString(SZ_VOL_X_INDEX);
   }
-  
+
   public String getSzVolY() {
     return szVol.getRawString(SZ_VOL_Y_INDEX);
   }
-  
+
   public String getSzVolZ() {
     return szVol.getRawString(SZ_VOL_Z_INDEX);
   }
@@ -532,7 +551,20 @@ public final class MatlabParamFile {
       valueMap.put(REFERENCE_KEY, reference.getParsableString());
     }
     valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
+    //copy szVol X value to Y and Z when Y and/or Z is empty
+    ConstEtomoNumber szVolX = szVol.getRawNumber();
+    if (!szVolX.isNull()) {
+      if (szVol.getRawNumber(SZ_VOL_Y_INDEX).isNull()) {
+        szVol.setRawNumber(SZ_VOL_Y_INDEX, szVolX.toString());
+      }
+      if (szVol.getRawNumber(SZ_VOL_Z_INDEX).isNull()) {
+        szVol.setRawNumber(SZ_VOL_Z_INDEX, szVolX.toString());
+      }
+    }
     valueMap.put(SZ_VOL_KEY, szVol.getParsableString());
+    if (!tiltRangeEmpty) {
+      valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
+    }
   }
 
   /**
@@ -585,9 +617,9 @@ public final class MatlabParamFile {
   }
 
   /**
-   * Called by write().  Updates or adds all the attributes to autodoc.
-   * Will attempt to add comments when adding a new attribute.
-   * Addes name/value pair when it adds a new attribute.
+   * Called by write().  Updates or adds all the name/value pair to autodoc.
+   * Will attempt to add comments when adding a new name/value pair.
+   * Adds attributes when it adds a new name/value pair.
    * @param valueMap
    * @param autodoc
    * @param commentAutodoc
@@ -599,58 +631,65 @@ public final class MatlabParamFile {
       commentMap = commentAutodoc.getAttributeMultiLineValues(
           EtomoAutodoc.FIELD_SECTION_NAME, EtomoAutodoc.COMMENT_KEY);
     }
-    //write to a autodoc, constructing attributes and name/value pairs as necessary
+    //write to a autodoc, name/value pairs as necessary
     //the order doesn't matter, because this is either an existing autodoc 
     //(so new entries will end up at the bottom), or the comment autodoc (which
     //provides the order) is not usable.
-    setAttributeValues(valueMap, autodoc, commentMap);
+    setNameValuePairValues(valueMap, autodoc, commentMap);
   }
 
   /**
-   * Adds or changes the value of an attribute in the file.
+   * Adds or changes the value of an name/valueu pair in the file.
    * @param valueMap
    * @param autodoc
    * @param commentMap
    */
-  private void setAttributeValues(final Map valueMap,
+  private void setNameValuePairValues(final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
-    setVolumeAttributeValues(valueMap, autodoc, commentMap);
-    setIterationAttributeValues(valueMap, autodoc, commentMap);
-    setAttributeValue(autodoc, REFERENCE_KEY, (String) valueMap
+    setVolumeNameValuePairValues(valueMap, autodoc, commentMap);
+    setIterationNameValuePairValues(valueMap, autodoc, commentMap);
+    setNameValuePairValue(autodoc, REFERENCE_KEY, (String) valueMap
         .get(REFERENCE_KEY), commentMap);
-    setAttributeValue(autodoc, FN_OUTPUT_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, FN_OUTPUT_KEY, (String) valueMap
         .get(FN_OUTPUT_KEY), commentMap);
-    setAttributeValue(autodoc, SZ_VOL_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, SZ_VOL_KEY, (String) valueMap
         .get(SZ_VOL_KEY), commentMap);
+    if (tiltRangeEmpty) {
+      removeNameValuePair(autodoc, EDGE_SHIFT_KEY);
+    }
+    else {
+      setNameValuePairValue(autodoc, EDGE_SHIFT_KEY, (String) valueMap
+          .get(EDGE_SHIFT_KEY), commentMap);
+    }
   }
 
   /**
-   * Adds or changes the value of an attribute in the file.
+   * Adds or changes the value of an name/value pair in the file.
    * @param valueMap
    * @param autodoc
    * @param commentMap
    */
-  private void setVolumeAttributeValues(final Map valueMap,
+  private void setVolumeNameValuePairValues(final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
-    setAttributeValue(autodoc, FN_VOLUME_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, FN_VOLUME_KEY, (String) valueMap
         .get(FN_VOLUME_KEY), commentMap);
-    setAttributeValue(autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
         .get(FN_MOD_PARTICLE_KEY), commentMap);
-    setAttributeValue(autodoc, INIT_MOTL_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, INIT_MOTL_KEY, (String) valueMap
         .get(INIT_MOTL_KEY), commentMap);
-    setAttributeValue(autodoc, TILT_RANGE_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, TILT_RANGE_KEY, (String) valueMap
         .get(TILT_RANGE_KEY), commentMap);
-    setAttributeValue(autodoc, RELATIVE_ORIENT_KEY, (String) valueMap
+    setNameValuePairValue(autodoc, RELATIVE_ORIENT_KEY, (String) valueMap
         .get(RELATIVE_ORIENT_KEY), commentMap);
   }
 
   /**
-   * Adds or changes the value of an attribute in the file.
+   * Adds or changes the value of an name/value pair in the file.
    * @param valueMap
    * @param autodoc
    * @param commentMap
    */
-  private void setIterationAttributeValues(final Map valueMap,
+  private void setIterationNameValuePairValues(final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
   }
 
@@ -661,23 +700,21 @@ public final class MatlabParamFile {
    * @param attributeName
    * @param attributeValue
    */
-  private void setAttributeValue(final WritableAutodoc autodoc,
-      final String attributeName, final String attributeValue,
-      final Map commentMap) {
-    WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
+  private void setNameValuePairValue(final WritableAutodoc autodoc,
+      final String name, final String value, final Map commentMap) {
+    WritableAttribute attribute = autodoc.getWritableAttribute(name);
     if (attribute == null) {
       if (commentMap == null) {
         //new attribute, so add attribute and name/value pair
-        addNameValuePair(autodoc, attributeName, attributeValue, (String) null);
+        addNameValuePair(autodoc, name, value, (String) null);
       }
       else {
         //new attribute, so add comment, attribute, and name/value pair
-        addNameValuePair(autodoc, attributeName, attributeValue,
-            (String) commentMap.get(attributeName));
+        addNameValuePair(autodoc, name, value, (String) commentMap.get(name));
       }
     }
     else {
-      attribute.setValue(attributeValue);
+      attribute.setValue(value);
     }
   }
 
@@ -690,17 +727,32 @@ public final class MatlabParamFile {
    * @param commentAttribute
    */
   private void addNameValuePair(final WritableAutodoc autodoc,
-      final String attributeName, final String attributeValue,
+      final String name, final String value,
       final ReadOnlyAttribute commentAttribute) {
-    if (attributeValue == null) {
+    if (value == null) {
       return;
     }
     if (commentAttribute == null) {
-      addNameValuePair(autodoc, attributeName, attributeValue, (String) null);
+      addNameValuePair(autodoc, name, value, (String) null);
     }
     else {
-      addNameValuePair(autodoc, attributeName, attributeValue, commentAttribute
+      addNameValuePair(autodoc, name, value, commentAttribute
           .getMultiLineValue());
+    }
+  }
+
+  private void removeNameValuePair(final WritableAutodoc autodoc,
+      final String name) {
+    WritableStatement previousStatement = autodoc.removeNameValuePair(name);
+    //remove the associated comments
+    while (previousStatement != null
+        && previousStatement.getType() == Statement.Type.COMMENT) {
+      previousStatement = autodoc.removeStatement(previousStatement);
+    }
+    //remove the associated empty line
+    if (previousStatement != null
+        && previousStatement.getType() == Statement.Type.EMPTY_LINE) {
+      autodoc.removeStatement(previousStatement);
     }
   }
 
