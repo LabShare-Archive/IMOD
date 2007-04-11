@@ -32,39 +32,34 @@ final class NameValuePair extends Statement {
   private Token value = null;
   private Token newDelimiter = null;
 
-  public NameValuePair(WriteOnlyStatementList parent) {
+  public NameValuePair(WriteOnlyStatementList parent,
+      Statement previousStatement) {
+    super(previousStatement);
     this.parent = parent;
   }
 
-  static NameValuePair getDelimiterChangeInstance(Token newDelimiter,
-      WriteOnlyStatementList parent) {
-    NameValuePair pair = new NameValuePair(parent);
-    pair.newDelimiter = newDelimiter;
-    return pair;
-  }
-  
-  public Statement.Type getType(){
+  public Statement.Type getType() {
     return TYPE;
   }
-  
+
   public int sizeLeftSide() {
     return name.size();
   }
-  
+
   public String getLeftSide(int index) {
-    if (index <0||index>=name.size()) {
+    if (index < 0 || index >= name.size()) {
       return null;
     }
-    return ((Attribute)name.get(index)).getName();
+    return ((Attribute) name.get(index)).getName();
   }
-  
+
   public String getRightSide() {
-    if (value==null) {
+    if (value == null) {
       return null;
     }
     return value.getValues();
   }
-  
+
   /**
    * Get something equivalent to the original statement.  No gaurenteed to be
    * exactly the same
@@ -85,12 +80,25 @@ final class NameValuePair extends Statement {
     return buffer.toString();
   }
 
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
+  void setDelimiterChange(Token newDelimiter) {
+    this.newDelimiter = newDelimiter;
   }
-
-  protected String paramString() {
-    return "name=" + name + ",\nvalue=" + value + "," + super.toString();
+  
+  /**
+   * Remove an occurrence from each attribute in the name.  Remove this instance
+   * from the last attribute.  Remove the instance from the Statement link list.
+   * @return Statement.previous
+   */
+  WritableStatement remove() {
+    Attribute attribute;
+    for (int i =0;i<name.size();i++) {
+      attribute = (Attribute)name.get(i);
+      attribute.remove();
+      if (i==name.size()-1) {
+        attribute.removeNameValuePair(this);
+      }
+    }
+    return super.remove();
   }
 
   void write(LogFile file, long writeId) throws LogFile.WriteException {
@@ -113,7 +121,7 @@ final class NameValuePair extends Statement {
   void print(int level) {
     Autodoc.printIndent(level);
     for (int i = 0; i < name.size(); i++) {
-      System.out.print(((Token) name.get(i)).getValues());
+      System.out.print(((Attribute) name.get(i)).getValue());
       if (i < name.size() - 1) {
         System.out.print('.');
       }
@@ -166,6 +174,14 @@ final class NameValuePair extends Statement {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/04/09 20:33:37  sueh
+ * <p> bug# 964 Change NameValuePair to an abstract class called Statement and
+ * <p> child classes representing name/value pair, comment, empty line, and
+ * <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+ * <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p> Saving Attribute instance in name instead of strings so as not to create
+ * <p> duplications.
+ * <p>
  * <p> Revision 1.8  2007/03/23 20:33:57  sueh
  * <p> bug# 964 Adding a Type which represents the change in delimiter.  Added write(),
  * <p> to write out an autodoc to a file.
