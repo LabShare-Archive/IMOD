@@ -11,8 +11,9 @@ import java.awt.geom.IllegalPathStateException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.List;
 
 /**
  * <p>Description:  Data storage for an autodoc file.
@@ -73,11 +74,11 @@ import java.util.Vector;
  * @author $$Author$$
  *
  * @version $$Revision$$
+ * 
+ * @notthreadsafe
  *
  */
-
-final class Autodoc extends WriteOnlyStatementList implements
-    WritableAutodoc {
+final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   public static final String rcsid = "$$Id$$";
 
   private static final String AUTODOC_DIR = "AUTODOC_DIR";
@@ -92,11 +93,12 @@ final class Autodoc extends WriteOnlyStatementList implements
   private AutodocParser parser = null;
 
   //data
-  private final AttributeList attributeMap;
-  private final Vector sectionList = new Vector();
+  private final List sectionList = new ArrayList();
   private final HashMap sectionMap = new HashMap();
-  private final Vector statementList = new Vector();
+  private final List statementList = new ArrayList();
+  private final AttributeList attributeList;
   private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
+  private boolean debug = false;
 
   Autodoc() {
     this(false);
@@ -104,7 +106,7 @@ final class Autodoc extends WriteOnlyStatementList implements
 
   Autodoc(boolean allowAltComment) {
     this.allowAltComment = allowAltComment;
-    attributeMap = new AttributeList(this/*, this*/);
+    attributeList = new AttributeList(this);
   }
 
   static void resetAbsoluteDir() {
@@ -117,6 +119,10 @@ final class Autodoc extends WriteOnlyStatementList implements
 
   public String getName() {
     return autodocFile.getName();
+  }
+  
+  public void setDebug(boolean debug) {
+    this.debug=debug;
   }
 
   LogFile getAutodocFile() {
@@ -153,7 +159,7 @@ final class Autodoc extends WriteOnlyStatementList implements
   }
 
   WriteOnlyAttributeList addAttribute(Token name) {
-    return attributeMap.addAttribute(name);
+    return attributeList.addAttribute(name);
   }
 
   public void write() throws LogFile.FileException, LogFile.WriteException {
@@ -171,14 +177,13 @@ final class Autodoc extends WriteOnlyStatementList implements
   /**
    * add a name/value pair with a name containing one attribute
    */
-  public void addNameValuePair(String name,
-      String value) {
+  public void addNameValuePair(String name, String value) {
     //add attribute
     Token nameToken = new Token();
     nameToken.set(Token.Type.ANYTHING, name);
-    attributeMap.addAttribute(nameToken);
+    attributeList.addAttribute(nameToken);
     //add value to attribute
-    Attribute attribute = attributeMap.getAttribute(name);
+    Attribute attribute = attributeList.getAttribute(name);
     Token valueToken = new Token();
     valueToken.set(Token.Type.ANYTHING, value);
     //add name/value pair
@@ -188,37 +193,57 @@ final class Autodoc extends WriteOnlyStatementList implements
     pair.addValue(valueToken);
   }
 
+  /**
+   * Removes a simple (single attribute) name/value pair.  Removes the occurrance
+   * of the attribute in the name/value pair.
+   * @Return the previous statement in statementList
+   */
+  public WritableStatement removeNameValuePair(String name) {
+    Attribute attribute = attributeList.getAttribute(name);
+    if (attribute == null) {
+      //unable to find an attribute with this name
+      return null;
+    }
+    NameValuePair pair = attribute.getNameValuePair();
+    statementList.remove(pair);
+    return pair.remove();
+  }
+
+  /**
+   * Removes a statement.
+   * @Return the previous statement in statementList
+   */
+  public WritableStatement removeStatement(WritableStatement statement) {
+    statementList.remove(statement);
+    return statement.remove();
+  }
+
   public ReadOnlyAttribute getAttribute(String name) {
-    return attributeMap.getAttribute(name);
+    return attributeList.getAttribute(name);
   }
 
   public WritableAttribute getWritableAttribute(String name) {
-    return attributeMap.getAttribute(name);
+    return attributeList.getAttribute(name);
   }
 
   NameValuePair addNameValuePair() {
-    NameValuePair pair = new NameValuePair(this);
+    NameValuePair pair = new NameValuePair(this, getMostRecentStatement());
     statementList.add(pair);
     return pair;
   }
 
   public void addComment(Token comment) {
-    statementList.add(new Comment(comment, this));
+    statementList.add(new Comment(comment, this, getMostRecentStatement()));
   }
-  
+
   public void addComment(String comment) {
     Token token = new Token();
-    token.set(Token.Type.ANYTHING,comment);
+    token.set(Token.Type.ANYTHING, comment);
     addComment(token);
   }
 
-  void addDelimiterChange(Token newDelimiter) {
-    statementList.add(NameValuePair.getDelimiterChangeInstance(
-        newDelimiter, this));
-  }
-  
   public void addEmptyLine() {
-    statementList.add(new EmptyLine(this));
+    statementList.add(new EmptyLine(this, getMostRecentStatement()));
   }
 
   public StatementLocation getStatementLocation() {
@@ -229,12 +254,10 @@ final class Autodoc extends WriteOnlyStatementList implements
   }
 
   public Statement nextStatement(StatementLocation location) {
-    if (statementList == null || location == null
-        || location.isOutOfRange(statementList)) {
+    if (location == null || location.isOutOfRange(statementList)) {
       return null;
     }
-    Statement statement = (Statement) statementList.get(location
-        .getIndex());
+    Statement statement = (Statement) statementList.get(location.getIndex());
     location.increment();
     return statement;
   }
@@ -277,15 +300,21 @@ final class Autodoc extends WriteOnlyStatementList implements
     }
     return null;
   }
-  
+
   public HashMap getAttributeValues(String sectionType, String attributeName) {
-    return getAttributeValues( sectionType,  attributeName,
-         false);
+    return getAttributeValues(sectionType, attributeName, false);
+  }
+
+  public HashMap getAttributeMultiLineValues(String sectionType,
+      String attributeName) {
+    return getAttributeValues(sectionType, attributeName, true);
   }
   
-  public HashMap getAttributeMultiLineValues(String sectionType, String attributeName) {
-    return getAttributeValues( sectionType,  attributeName,
-         true);
+  private Statement getMostRecentStatement() {
+    if (statementList.size() == 0) {
+      return null;
+    }
+    return (Statement) statementList.get(statementList.size() - 1);
   }
 
   /**
@@ -326,6 +355,10 @@ final class Autodoc extends WriteOnlyStatementList implements
     }
     return attributeValues;
   }
+  
+  public void printStatementList() {
+    System.out.println("statementList="+statementList);
+  }
 
   public void printStoredData() {
     System.out.println("Printing stored data:");
@@ -339,15 +372,12 @@ final class Autodoc extends WriteOnlyStatementList implements
       }
     }
     //attribute map
-    System.out.println("MAP:");
-    attributeMap.print(0);
+    System.out.println("Attributes:");
+    attributeList.print(0);
     //section list
-    if (sectionList != null) {
-      Section section = null;
-      for (int i = 0; i < sectionList.size(); i++) {
-        section = (Section) sectionList.get(i);
-        section.print(0);
-      }
+    for (int i = 0; i < sectionList.size(); i++) {
+      Section section = (Section) sectionList.get(i);
+      section.print(0);
     }
   }
 
@@ -529,7 +559,7 @@ final class Autodoc extends WriteOnlyStatementList implements
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false,true);
+    parser = new AutodocParser(this, false, true);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -546,10 +576,10 @@ final class Autodoc extends WriteOnlyStatementList implements
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  void initialize(File file, boolean storeData,boolean versionRequired) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+  void initialize(File file, boolean storeData, boolean versionRequired)
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     autodocFile = LogFile.getInstance(file);
-    parser = new AutodocParser(this, allowAltComment,versionRequired);
+    parser = new AutodocParser(this, allowAltComment, versionRequired);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -569,6 +599,16 @@ final class Autodoc extends WriteOnlyStatementList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.18  2007/04/09 20:18:48  sueh
+ *<p> $bug# 964 Moved the value to the associated name/value pair.  Changed
+ *<p> $the Vector member variable from values to nameValuePairList.  Associated the
+ *<p> $last attribute in each name/value pair with the name value pair.  This is the
+ *<p> $attribute which used to contain the value.  The name/value pair also contained
+ *<p> $the value; so it was duplicated.  This made it difficult to add a value to an
+ *<p> $existing attribute.  GetValue() gets the value from the associated name/value
+ *<p> $pair.  Also removed the old nameValuePairList member variable, because it
+ *<p> $wasn't being used for anything.
+ *<p> $
  *<p> $Revision 1.17  2007/03/26 18:36:27  sueh
  *<p> $bug# 964 Made Version optional so that it is not necessary in matlab param files.
  *<p> $
