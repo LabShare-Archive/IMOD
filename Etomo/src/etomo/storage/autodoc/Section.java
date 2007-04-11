@@ -1,6 +1,7 @@
 package etomo.storage.autodoc;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.storage.LogFile;
 import etomo.ui.Token;
@@ -17,8 +18,20 @@ import etomo.ui.Token;
  * @author $$Author$$
  *
  * @version $$Revision$$
+ * 
+ * @notthreadsafe
+ * 
+ * @notthreadsafe
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2007/04/09 20:50:23  sueh
+ * <p> $bug# 964 Changed NameValuePair to an abstract class called Statement and
+ * <p> $child classes representing name/value pair, comment, empty line, and
+ * <p> $subsection.  Made delimiter change an attribute of the name/value pair class.
+ * <p> $Added ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p> $Saving Attribute instance in name instead of strings so as not to create
+ * <p> $duplications.
+ * <p> $
  * <p> $Revision 1.14  2007/03/23 20:36:30  sueh
  * <p> $bug# 964 Adding a Type which represents the change in delimiter.  Added write(),
  * <p> $to write out an autodoc to a file.
@@ -97,42 +110,29 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-final class Section extends WriteOnlyStatementList implements
-    ReadOnlySection {
+final class Section extends WriteOnlyStatementList implements ReadOnlySection {
   public static final String rcsid = "$$Id$$";
 
-  private final Vector statementList = new Vector();
+  private final List statementList = new ArrayList();
+  private final String key;
+  private final Token type;
+  private final Token name;
+  private final AttributeList attributeList;
 
-  private String key = null; //required
-  private Token type = null; //required
-  private Token name = null; //required
-  private AttributeList attributeMap = null;//optional
   private boolean subsection = false;
   private final WriteOnlyStatementList parent;
 
-  boolean isGlobal() {
-    return false;
-  }
-
-  boolean isAttribute() {
-    return false;
-  }
-  
-  void setCurrentDelimiter(Token newDelimiter) {
-    parent.setCurrentDelimiter(newDelimiter);
-  }
-  
-  String getCurrentDelimiter() {
-    return parent.getCurrentDelimiter();
+  Section(Token type, Token name, WriteOnlyStatementList parent) {
+    key = Section.getKey(type, name);
+    this.type = type;
+    this.name = name;
+    this.parent = parent;
+    attributeList = new AttributeList(this);
   }
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return "key=" + key + ",type=" + type + ",name=" + name
-        + ",\nattributeMap=" + attributeMap + ",\n" + super.toString();
+    return getClass().getName() + "[key=" + key + ",type=" + type + ",name="
+        + name + ",\nattributeList=" + attributeList + "]";
   }
 
   public String getString() {
@@ -166,19 +166,45 @@ final class Section extends WriteOnlyStatementList implements
     }
     return Token.convertToKey(type) + Token.convertToKey(name);
   }
+  
+  public StatementLocation getStatementLocation() {
+    return new StatementLocation();
+  }
 
-  Section(Token type, Token name,WriteOnlyStatementList parent) {
-    key = Section.getKey(type, name);
-    this.type = type;
-    this.name = name;
-    this.parent=parent;
+  public Statement nextStatement(StatementLocation location) {
+    if (location == null || location.isOutOfRange(statementList)) {
+      return null;
+    }
+    Statement statement = (Statement) statementList.get(location.getIndex());
+    location.increment();
+    return statement;
+  }
+  
+  public String getName() {
+    if (name == null) {
+      throw new IllegalStateException("name is required");
+    }
+    return name.getValues();
+  }
+
+  boolean isGlobal() {
+    return false;
+  }
+
+  boolean isAttribute() {
+    return false;
+  }
+
+  void setCurrentDelimiter(Token newDelimiter) {
+    parent.setCurrentDelimiter(newDelimiter);
+  }
+
+  String getCurrentDelimiter() {
+    return parent.getCurrentDelimiter();
   }
 
   WriteOnlyAttributeList addAttribute(Token name) {
-    if (attributeMap == null) {
-      attributeMap = new AttributeList(this/*, this*/);
-    }
-    return attributeMap.addAttribute(name);
+    return attributeList.addAttribute(name);
   }
 
   boolean equalsType(String type) {
@@ -199,13 +225,6 @@ final class Section extends WriteOnlyStatementList implements
     return key;
   }
 
-  public String getName() {
-    if (name == null) {
-      throw new IllegalStateException("name is required");
-    }
-    return name.getValues();
-  }
-
   Token getNameToken() {
     if (name == null) {
       throw new IllegalStateException("name is required");
@@ -218,10 +237,7 @@ final class Section extends WriteOnlyStatementList implements
   }
 
   public ReadOnlyAttribute getAttribute(String name) {
-    if (attributeMap == null) {
-      return null;
-    }
-    return attributeMap.getAttribute(name);
+    return attributeList.getAttribute(name);
   }
 
   void write(LogFile file, long writeId) throws LogFile.WriteException {
@@ -243,14 +259,14 @@ final class Section extends WriteOnlyStatementList implements
     }
     //if subsection, write subsection footer
     if (subsection) {
-      file.write(""+AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
-      + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR, writeId);
+      file.write("" + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
+          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR, writeId);
       file.newLine(writeId);
     }
   }
 
   NameValuePair addNameValuePair() {
-    NameValuePair pair = new NameValuePair(this);
+    NameValuePair pair = new NameValuePair(this, getMostRecentStatement());
     statementList.add(pair);
     return pair;
   }
@@ -259,36 +275,18 @@ final class Section extends WriteOnlyStatementList implements
    * Adds a subsection to a section.
    */
   Section addSection(Token type, Token name) {
-    Section section = new Section(type, name,this);
+    Section section = new Section(type, name, this);
     section.subsection = true;
-    statementList.add(new Subsection(section,this));
+    statementList.add(new Subsection(section, this, getMostRecentStatement()));
     return section;
   }
 
   void addComment(Token comment) {
-    statementList.add(new Comment(comment,this));
-  }
-  
-  void addDelimiterChange(Token newDelimiter) {
-    statementList.add(NameValuePair.getDelimiterChangeInstance(newDelimiter,this));
+    statementList.add(new Comment(comment, this, getMostRecentStatement()));
   }
 
   void addEmptyLine() {
-    statementList.add(new EmptyLine(this));
-  }
-
-  public StatementLocation getStatementLocation() {
-    return new StatementLocation();
-  }
-
-  public Statement nextStatement(StatementLocation location) {
-    if (location == null || location.isOutOfRange(statementList)) {
-      return null;
-    }
-    Statement statement = (Statement) statementList.get(location
-        .getIndex());
-    location.increment();
-    return statement;
+    statementList.add(new EmptyLine(this, getMostRecentStatement()));
   }
 
   void print(int level) {
@@ -308,18 +306,20 @@ final class Section extends WriteOnlyStatementList implements
     }
     //name value pair list
     Autodoc.printIndent(level);
-    System.out.println("LIST:");
-    if (statementList != null) {
-      Statement statement = null;
-      for (int i = 0; i < statementList.size(); i++) {
-        statement = (Statement) statementList.get(i);
-        statement.print(level);
-      }
+    System.out.println("Statements:");
+    for (int i = 0; i < statementList.size(); i++) {
+      Statement statement = (Statement) statementList.get(i);
+      statement.print(level);
     }
     Autodoc.printIndent(level);
-    System.out.println("MAP:");
-    if (attributeMap != null) {
-      attributeMap.print(level);
+    System.out.println("Attributes:");
+    attributeList.print(level);
+  }
+
+  private Statement getMostRecentStatement() {
+    if (statementList.size() == 0) {
+      return null;
     }
+    return (Statement) statementList.get(statementList.size() - 1);
   }
 }

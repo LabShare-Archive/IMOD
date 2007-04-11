@@ -15,7 +15,13 @@ import etomo.storage.LogFile;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/04/09 20:32:28  sueh
+ * <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
+ * <p> child classes representing name/value pair, comment, empty line, and
+ * <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+ * <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p> </p>
  */
 final class EmptyLine extends Statement {
   public static final String rcsid = "$Id$";
@@ -24,7 +30,8 @@ final class EmptyLine extends Statement {
   
   private final WriteOnlyStatementList parent;
   
-  EmptyLine(WriteOnlyStatementList parent){
+  EmptyLine(WriteOnlyStatementList parent,Statement previousStatement){
+    super(previousStatement);
     this.parent=parent;
   }
   
