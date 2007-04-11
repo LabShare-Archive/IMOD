@@ -1,6 +1,6 @@
 package etomo.storage.autodoc;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 * <p>Description: </p>
@@ -35,7 +35,7 @@ public final class StatementLocation {
     index++;
   }
   
-  boolean isOutOfRange(Vector list) {
+  boolean isOutOfRange(List list) {
     if (list == null) {
       return true;
     }
@@ -48,6 +48,14 @@ public final class StatementLocation {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2007/04/09 20:50:57  sueh
+* <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
+* <p> child classes representing name/value pair, comment, empty line, and
+* <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+* <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+* <p> Saving Attribute instance in name instead of strings so as not to create
+* <p> duplications.
+* <p>
 * <p> Revision 1.2  2006/04/25 18:54:42  sueh
 * <p> bug# 787 Added toString().
 * <p>
