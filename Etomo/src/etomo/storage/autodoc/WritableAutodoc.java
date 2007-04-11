@@ -17,6 +17,11 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/09 20:56:40  sueh
+ * <p> bug# 964 Changed addAttributeAndNameValuePair to addNameValuePair, since
+ * <p> a name/value pair can't exist without Attributes; so the creation of the Attribute is
+ * <p> implied.
+ * <p>
  * <p> Revision 1.1  2007/03/23 20:37:14  sueh
  * <p> bug# 964 An interface which can be used to modify an autodoc.
  * <p> </p>
@@ -35,4 +40,8 @@ public interface WritableAutodoc extends ReadOnlyAutodoc {
   public void addEmptyLine();
 
   public void addComment(String comment);
+  public WritableStatement removeNameValuePair(String name);
+  public WritableStatement removeStatement(WritableStatement statement);
+  public void setDebug(boolean debug);
+  public void printStatementList();
 }
