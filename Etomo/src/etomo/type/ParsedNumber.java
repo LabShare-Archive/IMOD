@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 21:10:01  sueh
+ * <p> bug# 964 Added parsing.
+ * <p>
  * <p> Revision 1.2  2007/03/31 02:56:48  sueh
  * <p> bug# 964 Added isCollection().
  * <p>
@@ -83,6 +86,29 @@ public final class ParsedNumber extends ParsedElement {
   public String toString() {
     return "[rawNumber:" + rawNumber + "]";
   }
+  
+  public String getRawString() {
+    if (defaultValue == null) {
+      return rawNumber.toString();
+    }
+    return rawNumber.toDefaultedString();
+  }
+  
+  public void clear() {
+    rawNumber.reset();
+  }
+  
+  public String getParsableString() {
+    return getRawString();
+  }
+
+  public void setRawNumber(String number) {
+    rawNumber.set(number);
+  }
+
+  public void setElement(ParsedElement element) {
+    rawNumber.set(element.getRawString());
+  }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
     rawNumber.reset();
@@ -115,31 +141,12 @@ public final class ParsedNumber extends ParsedElement {
     return token;
   }
 
-  String getRawString() {
-    if (defaultValue == null) {
-      return rawNumber.toString();
-    }
-    return rawNumber.toDefaultedString();
-  }
-
   ConstEtomoNumber getRawNumber() {
     return rawNumber;
   }
-
+  
   boolean isCollection() {
     return false;
-  }
-
-  String getParsableString() {
-    return getRawString();
-  }
-
-  void setRawNumber(String number) {
-    this.rawNumber.set(number);
-  }
-
-  public void setElement(ParsedElement element) {
-    rawNumber.set(element.getRawString());
   }
 
   ParsedElement getElement(int index) {
