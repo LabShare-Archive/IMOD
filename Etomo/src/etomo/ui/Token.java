@@ -68,6 +68,9 @@ import etomo.storage.LogFile;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.17  2007/04/09 21:23:03  sueh
+ * <p> $bug# 964 Added boolean debug.
+ * <p> $
  * <p> $Revision 1.16  2007/03/23 20:44:00  sueh
  * <p> $bug# 964 Added getMultiLineValues(), to convert a link list of tokens into a string
  * <p> $which retains EOL information.  Added write(), which writes the token to an
@@ -611,7 +614,7 @@ public final class Token {
         return "KEYWORD";
       }
       else if (this == ANYTHING) {
-        return "ONE_OR_MORE";
+        return "ANYTHING";
       }
       return "UNKNOWN";
     }
