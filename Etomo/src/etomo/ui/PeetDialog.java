@@ -45,6 +45,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2007/04/09 22:00:21  sueh
+ * <p> bug# 964 Getting and setting szVol from MatlabParamFile.  Filling in Y and Z from
+ * <p> X when they are empty.
+ * <p>
  * <p> Revision 1.20  2007/04/09 21:20:23  sueh
  * <p> bug# 964 Fixed the names of the reference fields.
  * <p>
@@ -335,6 +339,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     metaData.setReferenceVolume(sReferenceVolume.getValue());
     metaData.setReferenceParticle(ltfReferenceParticle.getText());
     metaData.setReferenceFile(ftfReferenceFile.getText());
+    metaData.setEdgeShift(ltfEdgeShift.getText());
   }
 
   /**
@@ -353,6 +358,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbReferenceVolume.setSelected(true);
     sReferenceVolume.setValue(metaData.getReferenceVolume());
     ltfReferenceParticle.setText(metaData.getReferenceParticle());
+    ltfEdgeShift.setText(metaData.getEdgeShift());
   }
 
   /**
@@ -388,6 +394,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       rbInitMotlXAndZAxis.setSelected(true);
     }
     cbTiltRange.setSelected(matlabParamFile.useTiltRange());
+    if (cbTiltRange.isSelected()) {
+      ltfEdgeShift.setText(matlabParamFile.getEdgeShift());
+    }
     ltfSzVolX.setText(matlabParamFile.getSzVolX());
     ltfSzVolY.setText(matlabParamFile.getSzVolY());
     ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
@@ -417,15 +426,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       matlabParamFile.setInitMotlCode(rbInitMotlXAndZAxis.getRadioValue());
     }
     matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
-    //copy X value to Y and Z, if Y and Z are blank
-    String szVolX = ltfSzVolX.getText();
-    if (!szVolX.equals("")) {
-      if (ltfSzVolY.equals("")) {
-        ltfSzVolY.setText(szVolX);
-      }
-      if (ltfSzVolZ.equals("")) {
-        ltfSzVolZ.setText(szVolX);
-      }
+    if (ltfEdgeShift.isEnabled()) {
+      matlabParamFile.setEdgeShift(ltfEdgeShift.getText());
     }
     matlabParamFile.setSzVolX(ltfSzVolX.getText());
     matlabParamFile.setSzVolY(ltfSzVolY.getText());
