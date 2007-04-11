@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/11/07: IMOD_3-10-5 (Etomo unstable)
+4/11/07: Added option to Imod2vrml to output separate point/normal list for
+every polygon (an attempt to avoid holes in some viewers.)
+
+4/9/07: Added option to Blendmont to make it exclude gray fill areas from
+edge function analysis.
+
 4/8/07: Added programs Edgepatches, Stitchalign, and Tomostitch for stitching
 together adjacent tomograms.
 
