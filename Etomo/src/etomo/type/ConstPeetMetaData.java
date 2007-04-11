@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2007/04/09 20:58:25  sueh
+* <p> bug# 964 Added support for reference.
+* <p>
 * <p> Revision 1.3  2007/03/26 23:34:40  sueh
 * <p> bug# 964 Added getAxisType.
 * <p>
@@ -34,4 +37,5 @@ public interface ConstPeetMetaData {
   public String getReferenceFile();
   public ConstEtomoNumber getReferenceParticle();
   public ConstEtomoNumber getReferenceVolume();
+  public String getEdgeShift();
 }
