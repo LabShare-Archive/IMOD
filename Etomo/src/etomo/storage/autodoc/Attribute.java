@@ -19,6 +19,16 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2007/04/09 20:15:46  sueh
+ * <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
+ * <p> $the Vector member variable from values to nameValuePairList.  Associated the
+ * <p> $last attribute in each name/value pair with the name value pair.  This is the
+ * <p> $attribute which used to contain the value.  The name/value pair also contained
+ * <p> $the value; so it was duplicated.  This made it difficult to add a value to an
+ * <p> $existing attribute.  GetValue() gets the value from the associated name/value
+ * <p> $pair.  Also removed the old nameValuePairList member variable, because it
+ * <p> $wasn't being used for anything.
+ * <p> $
  * <p> $Revision 1.9  2007/03/23 20:28:58  sueh
  * <p> $bug# 964 Added getMultiLineValue().
  * <p> $
@@ -85,13 +95,19 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-final class Attribute extends WriteOnlyAttributeList implements WritableAttribute {
+final class Attribute extends WriteOnlyAttributeList implements
+    WritableAttribute {
   public static final String rcsid = "$$Id$$";
 
   private final WriteOnlyAttributeList parent;
-  //private final WriteOnlyNameValuePairList nameValuePairList;
   private final Token name;
   private final String key;
+
+  /**
+   * An attribute can occur more then once.  When occurrences is less then 1,
+   * this attribute no longer exists.
+   */
+  private int occurrences = 1;
 
   /**
    * nameValuePairList will be instantiated if the attribute is the last attribute
@@ -106,7 +122,7 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   private AttributeList children = null;
 
   Attribute(WriteOnlyAttributeList parent,
-      /*WriteOnlyNameValuePairList nameValuePairList,*/ Token name) {
+  /*WriteOnlyNameValuePairList nameValuePairList,*/Token name) {
     this.parent = parent;
     //this.nameValuePairList = nameValuePairList;
     this.name = name;
@@ -132,6 +148,18 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     return true;
   }
 
+  void add() {
+    occurrences++;
+  }
+
+  void remove() {
+    occurrences--;
+  }
+
+  boolean exists() {
+    return occurrences >= 1;
+  }
+
   static String getKey(Token name) {
     if (name == null) {
       return null;
@@ -146,13 +174,14 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     return Token.convertToKey(name);
   }
 
-  boolean equalsName(String name) {
-    if (name == null) {
-      return false;
-    }
-    return key.equals(Token.convertToKey(name));
-  }
-
+  /*
+   boolean equalsName(String name) {
+   if (name == null) {
+   return false;
+   }
+   return key.equals(Token.convertToKey(name));
+   }
+   */
   WriteOnlyAttributeList addAttribute(Token name) {
     if (children == null) {
       children = new AttributeList(this/*, nameValuePairList*/);
@@ -169,7 +198,7 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     }
     nameValuePairList.add(nameValuePair);
   }
-  
+
   public synchronized void setValue(String newValue) {
     if (nameValuePairList == null) {
       //This attribute is never the last attribute in a name/value pair.
@@ -179,9 +208,9 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
       return;
     }
     //current we can only modify the first name/value pair found
-    NameValuePair nameValuePair = (NameValuePair)nameValuePairList.get(0);
+    NameValuePair nameValuePair = (NameValuePair) nameValuePairList.get(0);
     Token value = new Token();
-    value.set(Token.Type.ANYTHING,newValue);
+    value.set(Token.Type.ANYTHING, newValue);
     nameValuePair.setValue(value);
   }
 
@@ -198,35 +227,41 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     }
     return children.getAttribute(name);
   }
-  
+
   public void write(LogFile file, long writeId) throws LogFile.WriteException {
+    if (!exists()) {
+      return;
+    }
     name.write(file, writeId);
   }
 
   void print(int level) {
-    Autodoc.printIndent(level);
-    if (nameValuePairList == null || nameValuePairList.size() == 0) {
-      System.out.println(name.getValues() + ".");
-    }
-    else {
-      System.out.print(name.getValues() + " = ");
-      Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
-      if (value == null) {
-        System.out.println("null");
+    if (exists()) {
+      Autodoc.printIndent(level);
+      if (nameValuePairList == null || nameValuePairList.size() == 0) {
+        System.out.println(name.getValues() + ".");
       }
       else {
-        System.out.println(value.getValues());
-      }
-      if (nameValuePairList.size() > 1) {
-        for (int i = 1; i < nameValuePairList.size(); i++) {
-          Autodoc.printIndent(level + 1);
-          System.out.print(" = ");
-          value = ((NameValuePair) nameValuePairList.get(i)).getTokenValue();
-          if (value == null) {
-            System.out.println("null");
-          }
-          else {
-            System.out.println(value.getValues());
+        System.out.print(name.getValues() + " = ");
+        Token value = ((NameValuePair) nameValuePairList.get(0))
+            .getTokenValue();
+        if (value == null) {
+          System.out.println("null");
+        }
+        else {
+          System.out.println(value.getValues());
+        }
+        if (nameValuePairList.size() > 1) {
+          for (int i = 1; i < nameValuePairList.size(); i++) {
+            Autodoc.printIndent(level + 1);
+            System.out.print(" = ");
+            value = ((NameValuePair) nameValuePairList.get(i)).getTokenValue();
+            if (value == null) {
+              System.out.println("null");
+            }
+            else {
+              System.out.println(value.getValues());
+            }
           }
         }
       }
@@ -247,7 +282,7 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   String getName() {
     return name.getValues();
   }
-  
+
   public String getMultiLineValue() {
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
@@ -258,8 +293,10 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     }
     return value.getMultiLineValues();
   }
-  
- 
+
+  /**
+   * Gets the value from the first nameValuePair in the nameValuePairList.
+   */
   public String getValue() {
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
@@ -270,7 +307,21 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     }
     return value.getValues();
   }
-  
+
+  void removeNameValuePair(NameValuePair pair) {
+    nameValuePairList.remove(pair);
+  }
+
+  /**
+   * Gets the first nameValuePair in the nameValuePairList.
+   */
+  NameValuePair getNameValuePair() {
+    if (nameValuePairList == null || nameValuePairList.size() == 0) {
+      return null;
+    }
+    return (NameValuePair) nameValuePairList.get(0);
+  }
+
   public Token getValueToken() {
     if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
@@ -287,7 +338,7 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   }
 
   public String toString() {
-    return getClass().getName() + "[" + ",name=" + name
-    + ",\nchildren=" + children + "]";
+    return getClass().getName() + "[" + ",name=" + name + ",\nchildren="
+        + children + "]";
   }
 }
