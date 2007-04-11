@@ -7,6 +7,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2007/04/10 22:39:49  mast
+# Fixed bugs dealing with section (slice) names and Z values
+#
 # Revision 1.1  2007/04/08 16:30:13  mast
 # Added to package
 #
@@ -135,6 +138,17 @@ def findEdgeShifts(lower, upper, edge):
         if isinstance(line, str) or len(line) < 3:
             print '%s Cannot find shift in output of clip on edge %s' %\
                   (prefix, edge['name'])
+            files should give shift of B coordinates
+        print "Correlating subvolumes to find 3D shift"
+        clipcom = 'clip corr -3d -n 0 %s %s %s' % (tmpvol1, tmpvol2, tmpcor)
+        clipout = runcmd(clipcom, None)
+        for line in clipout:
+            if line.startswith('('):
+                line = re.sub('^.*\((.*)\).*', '\\1', line).strip().split(',')
+                break
+        if isinstance(line, str) or len(line) < 3:
+            print '%s Cannot find shift in output of clip on edge %s' %\
+                  (prefix, edge['name'])
             sys.exit(1)
         for i in [0, 1, 2]:
             edge[kShift][i] = intshift[i] + float(line[i])
@@ -168,12 +182,17 @@ def findPatches(lower, upper, edge):
     mins = [0, 0, 0]
     maxes = [0, 0, 0]
     numpat = [0, 0, 0]
-    
+
+    # Heirarchy for Z limits is the option entry, then the entry for the lower
+    # piece, then an entry for the edge
     mins[2] = max(0, borderZ)
     maxes[2] = lower[kSize][2] - 1 - mins[2]
     if lower.has_key(kZlimit):
         mins[2] = max(0, lower[kZlimit][0] - 1)
         maxes[2] = min(lower[kSize][2] - 1, lower[kZlimit][1] - 1)
+    if edge.has_key(kZlimit):
+        mins[2] = max(0, edge[kZlimit][0] - 1)
+        maxes[2] = min(lower[kSize][2] - 1, edge[kZlimit][1] - 1)
     if maxes[2] - mins[2] < 0.5 * sizes[2]:
         print '%s Z limits (%d and %d) too narrow for patch Z size (%d) for' \
               ' edge %s' % (prefix, mins[2] + 1, maxes[2] + 1, sizes[2], \
@@ -404,7 +423,7 @@ if infoExists:
     if addingxy:
         for z in range(addZlo, addZhi + 1):
             if z in zlist:
-               print '%s Z value %d is iz list from existing file and in' +\
+               print '%s Z value %d is in Z list from existing file and in' +\
                'list to add' % (prefix, x)
                sys.exit(1)
 
