@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/04/09 21:11:33  sueh
+ * <p> bug# 964 Added support for reference.
+ * <p>
  * <p> Revision 1.7  2007/03/26 23:35:39  sueh
  * <p> bug# 964 Setting axisType.
  * <p>
@@ -64,6 +67,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".Particle");
   private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY
       + ".File");
+  private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -122,6 +126,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceVolume.load(props, prepend);
     referenceParticle.load(props, prepend);
     referenceFile.load(props,prepend);
+    edgeShift.load(props,prepend);
   }
 
   public void store(Properties props, String prepend) {
@@ -134,6 +139,15 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceVolume.store(props, prepend);
     referenceParticle.store(props, prepend);
     referenceFile.store(props,  prepend);
+    edgeShift.store(props,prepend);
+  }
+  
+  public String getEdgeShift() {
+    return edgeShift.toString();
+  }
+  
+  public void setEdgeShift(String edgeShift) {
+    this.edgeShift.set(edgeShift);
   }
 
   public String getInitMotlFile(int key) {
