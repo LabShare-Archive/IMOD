@@ -76,7 +76,11 @@ Read parameter entries from standard input
 When Findwarp(1) is run, several files are produced for each piece:
   piecename.warpxf     has the warping transforms
   piecename_res.patch  is a file with the patch vectors and residuals
-  piecename_res.mod    is a model made from these patches
+  piecename_res.mod    is made from these patches with patch2imod -s 5
+.br
+To edit the patches, edit "piecename_res.mod" and replace the original patch
+file with
+  imod2patch  piecename_res.mod  piecename.patch
 .br
 When Warpvol(1) is run, it produces files named "piecename.warped".
 .br
