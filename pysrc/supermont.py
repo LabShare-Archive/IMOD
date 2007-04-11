@@ -7,6 +7,9 @@
 #  $Id$
 #
 #  $Log$
+#  Revision 1.1  2007/04/08 16:23:57  mast
+#  Added to package
+#
 
 import re, sys, imodpy
 
@@ -34,7 +37,7 @@ kXstacked = 'xStacked'
 kYstacked = 'yStacked'
 kGoodlim = 'goodLimits'
 
-smpref = "ERROR: readMontInfo -"
+smpref = "ERROR: readMontInfo - "
 
 def setSMErrorPrefix(prefix):
     global smpref
@@ -146,7 +149,7 @@ def readMontInfo(filename, predata, slices, pieces, edges):
                     edge[key] = convertValues(line, value,3, float, False)
                 elif key == kLower:
                     edge[key] = convertValues(line, value, 3, int, False)
-                elif key == kGoodlim:
+                elif key == kGoodlim or key == kZlimit:
                     edge[key] = convertValues(line, value, 2, int, False)
                 else:
                     edge[key] = value
@@ -205,6 +208,8 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
                 pass
             elif key == kFrame or key == kSize:
                 print >> out, '%s = %d %d %d' % (key, val[0], val[1], val[2])
+            elif key == kZlimit:
+                print >> out, '%s = %d %d' % (key, val[0], val[1])
             else:
                 print >> out, '%s = %s' % (key, val)
 
@@ -220,6 +225,8 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
                 print >> out, '%s = %d %d %d' % (key, val[0], val[1], val[2])
             elif key == kShift:
                 print >> out, '%s = %f %f %f' % (key, val[0], val[1], val[2])
+            elif key == kZlimit:
+                print >> out, '%s = %d %d' % (key, val[0], val[1])
             else:
                 print >> out, '%s = %s' % (key, val)
 
