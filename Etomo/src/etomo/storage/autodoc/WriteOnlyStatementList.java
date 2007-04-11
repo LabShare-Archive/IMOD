@@ -22,12 +22,19 @@ abstract class WriteOnlyStatementList extends WriteOnlyAttributeList {
   abstract Section addSection(Token type, Token name);
   abstract void addEmptyLine();
   abstract void addComment(Token comment);
-  abstract void addDelimiterChange(Token newDelimier);
   abstract void setCurrentDelimiter(Token newDelimiter);
   abstract String getCurrentDelimiter();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2007/04/09 20:57:32  sueh
+* <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
+* <p> child classes representing name/value pair, comment, empty line, and
+* <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+* <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+* <p> Saving Attribute instance in name instead of strings so as not to create
+* <p> duplications.
+* <p>
 * <p> Revision 1.5  2007/03/23 20:40:33  sueh
 * <p> bug# 964 Adding a Type which represents the change in delimiter.
 * <p>
