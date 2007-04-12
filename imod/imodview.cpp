@@ -1873,6 +1873,8 @@ int ivwLoadImage(ImodView *vi)
     vi->xUnbinSize = vi->xsize;
     vi->yUnbinSize = vi->ysize;
     vi->zUnbinSize = vi->zsize;
+    if (vi->nt > 1)
+      ivwSetTime(vi, 1);
 
     wprint("Image size %d x %d, %d sections.\n",
            vi->xsize, vi->ysize, vi->zsize);
@@ -2545,6 +2547,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.53  2006/10/02 15:33:13  mast
+Fixed for > 2 Gpixel image
+
 Revision 4.52  2006/09/28 21:17:28  mast
 Changes to test for impossible slice sizes and handle slices >2-4Gpixel
 
