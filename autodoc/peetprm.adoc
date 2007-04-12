@@ -104,6 +104,8 @@ comment = lstThresholds:
 ^volume file name is fnOutout_AvgVol_navg_thresh_iteration.mrc.
 
 [Field = lstFlagAllTom]
+
+[Field = meanFill]
 comment = meanFill:
 ^If any particles are partially out of the volume fill with the mean of the
 ^existant data (default: 0).
