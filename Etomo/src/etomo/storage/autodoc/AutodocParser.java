@@ -147,6 +147,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2007/04/11 22:00:38  sueh
+ * <p> $bug# 964 Fixed a bug in emptyLine() where the EOF was being treated as an
+ * <p> $empty line.
+ * <p> $
  * <p> $Revision 1.14  2007/04/09 20:31:48  sueh
  * <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
  * <p> $the Vector member variable from values to nameValuePairList.  Associated the
@@ -289,8 +293,16 @@ final class AutodocParser {
   private boolean pipFound = false;
   private boolean versionRequired = true;
 
+  private boolean debug = false;
+
   AutodocParser(Autodoc autodoc, boolean allowAltComment,
       boolean versionRequired) {
+    this(autodoc, allowAltComment, versionRequired, false);
+  }
+
+  AutodocParser(Autodoc autodoc, boolean allowAltComment,
+      boolean versionRequired, boolean debug) {
+    this.debug = debug;
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
@@ -415,6 +427,7 @@ final class AutodocParser {
       //not a section
       return false;
     }
+    test = false;
     testStartFunction("section");
     //save the new section in the autodoc
     Section section = null;
@@ -797,6 +810,7 @@ final class AutodocParser {
     //delimiter reassignment, it must be set now, or the following pair will be
     //mistaken for part of this value.
     if (isDelimiterChange(attribute)) {
+      tokenizer.setDelimiterString(valueLinkList.getHead().getValues());
       pair.setDelimiterChange(valueLinkList.getHead());
     }
     //grab the EOL in case the value continues in the value line
@@ -931,7 +945,7 @@ final class AutodocParser {
     tokenIndex++;
     if (detailedTest) {
       System.err.println(tokenIndex + ":" + token + ",delimiterInLine="
-          + delimiterInLine);
+          + delimiterInLine+":"+tokenizer.getDelimiterString());
     }
   }
 
@@ -993,6 +1007,11 @@ final class AutodocParser {
   private boolean isDelimiterChange(Attribute attribute) {
     if (attribute.getNameToken().equals(Token.Type.KEYWORD,
         AutodocTokenizer.DELIMITER_KEYWORD)) {
+      if (debug) {
+        System.out.println("delimiter found");
+        test = true;
+        detailedTest = true;
+      }
       return true;
     }
     return false;
