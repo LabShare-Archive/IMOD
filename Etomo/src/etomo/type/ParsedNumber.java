@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/11 22:17:36  sueh
+ * <p> bug# 964 Made functions required by MatlabParamFile public.
+ * <p>
  * <p> Revision 1.3  2007/04/09 21:10:01  sueh
  * <p> bug# 964 Added parsing.
  * <p>
@@ -87,6 +90,13 @@ public final class ParsedNumber extends ParsedElement {
     return "[rawNumber:" + rawNumber + "]";
   }
   
+  public boolean getRawBoolean() {
+    if (defaultValue == null) {
+      return rawNumber.is();
+    }
+    return rawNumber.getDefaultedBoolean();
+  }
+  
   public String getRawString() {
     if (defaultValue == null) {
       return rawNumber.toString();
@@ -102,8 +112,12 @@ public final class ParsedNumber extends ParsedElement {
     return getRawString();
   }
 
-  public void setRawNumber(String number) {
+  public void setRawString(String number) {
     rawNumber.set(number);
+  }
+  
+  public void setRawString(boolean bool) {
+    rawNumber.set(bool);
   }
 
   public void setElement(ParsedElement element) {
