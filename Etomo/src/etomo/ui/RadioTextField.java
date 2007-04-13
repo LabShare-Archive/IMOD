@@ -10,6 +10,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EnumeratedType;
 
 /**
  * <p>Description: </p>
@@ -25,6 +26,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/03/30 23:52:28  sueh
+ * <p> bug# 964 Switched from JTextField to etomo.ui.TextField, which names itself.
+ * <p>
  * <p> Revision 1.2  2007/03/07 21:13:18  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.  Added radioValue - a way to assign an
@@ -35,7 +39,7 @@ import etomo.type.ConstEtomoNumber;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonParent {
+final class RadioTextField implements RadioButtonInterface {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
@@ -62,15 +66,16 @@ final class RadioTextField implements RadioButtonParent {
    * @return
    */
   static RadioTextField getInstance(final String label,
-      final ButtonGroup group, int radioValue) {
-    RadioTextField radioTextField = new RadioTextField(label, group, radioValue);
+      final ButtonGroup group, EnumeratedType enumeratedType) {
+    RadioTextField radioTextField = new RadioTextField(label, group,
+        enumeratedType);
     radioTextField.addListeners();
     return radioTextField;
   }
 
   private RadioTextField(final String label, final ButtonGroup group) {
     radioButton = new RadioButton(label);
-    textField=new TextField(label);
+    textField = new TextField(label);
     init(group);
   }
 
@@ -80,9 +85,9 @@ final class RadioTextField implements RadioButtonParent {
    * @param group
    */
   private RadioTextField(final String label, final ButtonGroup group,
-      int radioValue) {
-    radioButton = new RadioButton(label, radioValue);
-    textField=new TextField(label);
+      EnumeratedType enumeratedType) {
+    radioButton = new RadioButton(label, enumeratedType);
+    textField = new TextField(label);
     init(group);
   }
 
@@ -125,8 +130,8 @@ final class RadioTextField implements RadioButtonParent {
     return text;
   }
 
-  ConstEtomoNumber getRadioValue() {
-    return radioButton.getRadioValue();
+  public EnumeratedType getEnumeratedType() {
+    return radioButton.getEnumeratedType();
   }
 
   boolean isSelected() {
@@ -150,11 +155,11 @@ final class RadioTextField implements RadioButtonParent {
     radioButton.setToolTipText(text);
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
-  
+
   void setRadioButtonToolTipText(final String text) {
     radioButton.setToolTipText(text);
   }
-  
+
   void setTextFieldToolTipText(final String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
