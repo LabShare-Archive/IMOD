@@ -23,6 +23,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/03/26 23:33:52  sueh
+ * <p> bug# 964 Added getInstance(String name) which opens an n'ton autodoc with
+ * <p> AxisID.ONLY.
+ * <p>
  * <p> Revision 1.3  2007/03/26 18:36:41  sueh
  * <p> bug# 964 Made Version optional so that it is not necessary in matlab param files.
  * <p>
@@ -75,10 +79,10 @@ public final class AutodocFactory {
 
   private AutodocFactory() {
   }
-  
+
   public static ReadOnlyAutodoc getInstance(String name)
-  throws FileNotFoundException, IOException, LogFile.ReadException {
-    return getInstance(name,AxisID.ONLY);
+      throws FileNotFoundException, IOException, LogFile.ReadException {
+    return getInstance(name, AxisID.ONLY);
   }
 
   public static ReadOnlyAutodoc getInstance(String name, AxisID axisID)
@@ -103,6 +107,29 @@ public final class AutodocFactory {
     return autodoc;
   }
 
+  public static ReadOnlyAutodoc getDebugInstance(String name, AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.ReadException {
+    if (name == null) {
+      throw new IllegalStateException("name is null");
+    }
+    Autodoc autodoc = getExistingAutodoc(name);
+    if (autodoc != null) {
+      return autodoc;
+    }
+    autodoc = new Autodoc();
+    autodoc.setDebug(true);
+    if (name.equals(UITEST)) {
+      autodoc.initializeUITest(name, axisID);
+    }
+    if (name.equals(CPU)) {
+      autodoc.initializeCpu(name, axisID);
+    }
+    else {
+      autodoc.initialize(name, axisID);
+    }
+    return autodoc;
+  }
+
   public static WritableAutodoc getMatlabInstance(File file)
       throws IOException, LogFile.ReadException {
     if (file == null) {
@@ -110,7 +137,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true);
     try {
-      autodoc.initialize(file, true,false);
+      autodoc.initialize(file, true, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -125,7 +152,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true);
     try {
-      autodoc.initialize(file, false,false);
+      autodoc.initialize(file, false, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -140,7 +167,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, true,true);
+      autodoc.initialize(file, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -164,7 +191,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, false,true);
+      autodoc.initialize(file, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
