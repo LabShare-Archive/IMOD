@@ -19,6 +19,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 21:00:29  sueh
+ * <p> bug# 964 Added parsing.
+ * <p>
  * <p> Revision 1.2  2007/03/31 02:54:24  sueh
  * <p> bug# 964 Added isCollection().
  * <p>
@@ -93,7 +96,7 @@ final class ParsedArrayDescriptor extends ParsedElement {
     return descriptor.get(index);
   }
 
-  String getRawString() {
+  public String getRawString() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < descriptor.size(); i++) {
       if (i > 0) {
@@ -102,6 +105,30 @@ final class ParsedArrayDescriptor extends ParsedElement {
       buffer.append(descriptor.get(i).getRawString());
     }
     return buffer.toString();
+  }
+  
+  /**
+   * input is a collection, since it is not indexed, so it is a semi-raw string
+   * - it has :'s
+   */
+  public void setRawString(String input) {
+    descriptor.clear();
+    valid = true;
+    if (input == null) {
+      return;
+    }
+    PrimativeTokenizer tokenizer = createTokenizer(input);
+    StringBuffer buffer = new StringBuffer();
+    Token token = null;
+    try {
+      token = tokenizer.next();
+      parse(token, tokenizer);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      valid = false;
+    }
+    parse(token,tokenizer);
   }
 
   ConstEtomoNumber getRawNumber() {
