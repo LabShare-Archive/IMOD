@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 20:59:35  sueh
+ * <p> bug# 964 Added missing tokenizer.next() call to parseArray.
+ * <p>
  * <p> Revision 1.2  2007/03/31 02:54:01  sueh
  * <p> bug# 964 In getRawString(), using a "," when some of the elements are empty -
  * <p> so that the location of the existing elements isn't lost.  Using ParsedElement.isCollection()
@@ -114,7 +117,7 @@ public final class ParsedArray extends ParsedElement {
 
   public void setRawNumber(int index, String number) {
     ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
-    element.setRawNumber(number);
+    element.setRawString(number);
     array.set(index, element);
   }
 
@@ -186,7 +189,7 @@ public final class ParsedArray extends ParsedElement {
    * elements are separated by a divider in the same way a parsable string would be,
    * but the "[" and "]" are not added.
    */
-  String getRawString() {
+  public String getRawString() {
     StringBuffer buffer = new StringBuffer();
     //only use spaces as dividers when there are no empty elements and no array
     //descriptors
@@ -215,6 +218,30 @@ public final class ParsedArray extends ParsedElement {
       return "";
     }
     return buffer.toString();
+  }
+  
+  /**
+   * input is a collection, since it is not indexed, so it is a semi-raw string
+   * - it has commas
+   */
+  public void setRawString(String input) {
+    array.clear();
+    valid = true;
+    if (input == null) {
+      return;
+    }
+    PrimativeTokenizer tokenizer = createTokenizer(input);
+    StringBuffer buffer = new StringBuffer();
+    Token token = null;
+    try {
+      token = tokenizer.next();
+      parse(token, tokenizer);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      valid = false;
+    }
+    parseArray(token,tokenizer);
   }
   
   /**
