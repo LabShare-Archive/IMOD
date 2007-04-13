@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/04/11 22:22:06  sueh
+ * <p> bug# 964 Saving edgeShift to meta data and MatlabParamFile.
+ * <p>
  * <p> Revision 1.21  2007/04/09 22:00:21  sueh
  * <p> bug# 964 Getting and setting szVol from MatlabParamFile.  Filling in Y and Z from
  * <p> X when they are empty.
@@ -161,22 +164,37 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final SpacedPanel pnlRunBody = new SpacedPanel(true);
   private final MultiLineButton btnRun = new MultiLineButton("Run");
   private final JPanel pnlAdvanced = new JPanel();
+  private final ButtonGroup bgReference = new ButtonGroup();
+  private final RadioButton rbReferenceVolume = new RadioButton(
+      REFERENCE_VOLUME_LABEL, bgReference);
+  private final Spinner sReferenceVolume = new Spinner(REFERENCE_VOLUME_LABEL);
+  private final RadioButton rbReferenceFile = new RadioButton(
+      REFERENCE_FILE_LABEL, bgReference);
   private final LabeledSpinner lsParticlePerCPU;
   private final IterationTable iterationTable;
-  private final RadioButton rbInitMotlZero;
-  private final RadioButton rbInitMotlZAxis;
-  private final RadioButton rbInitMotlXAndZAxis;
-  private final RadioButton rbInitMotlFiles;
+  private final ButtonGroup bgInitMotl = new ButtonGroup();
+  private final RadioButton rbInitMotlZero = new RadioButton(
+      "Set all rotational values to zero", MatlabParamFile.InitMotlCode.ZERO,
+      bgInitMotl);
+  private final RadioButton rbInitMotlZAxis = new RadioButton(
+      "Initialize Z axis", MatlabParamFile.InitMotlCode.Z_AXIS, bgInitMotl);
+  private final RadioButton rbInitMotlXAndZAxis = new RadioButton(
+      "Initialize X and Z axis", MatlabParamFile.InitMotlCode.X_AND_Z_AXIS,
+      bgInitMotl);
+  private final RadioButton rbInitMotlFiles = new RadioButton("Use files",
+      bgInitMotl);
   private final PanelHeader phSetup;
   private final PanelHeader phRunParameters;
   private final VolumeTable volumeTable;
   private final PeetManager manager;
   private final AxisID axisID;
-  private final RadioButton rbReferenceVolume;
-  private final Spinner sReferenceVolume;
-  private final RadioButton rbReferenceFile;
-  private final RadioButton rbCcModeNormalized;
-  private final RadioButton rbCcModeLocal;
+  private final ButtonGroup bgCcMode = new ButtonGroup();
+  private final RadioButton rbCcModeNormalized = new RadioButton(
+      "Local energy normalized cross correlation",
+      MatlabParamFile.CCMode.NORMALIZED, bgCcMode);
+  private final RadioButton rbCcModeLocal = new RadioButton(
+      "True local correlation coefficent", MatlabParamFile.CCMode.LOCAL,
+      bgCcMode);
   private final LabeledSpinner lsDebugLevel;
   private final PanelHeader phRun;
 
@@ -189,24 +207,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //run parameters construction
     phRunParameters = PanelHeader.getAdvancedBasicInstance("Run Parameters",
         this, DIALOG_TYPE);
-    ButtonGroup group = new ButtonGroup();
-    rbReferenceVolume = new RadioButton(REFERENCE_VOLUME_LABEL, group);
-    rbReferenceFile = new RadioButton(REFERENCE_FILE_LABEL, group);
-    sReferenceVolume = new Spinner(REFERENCE_VOLUME_LABEL);
-    group = new ButtonGroup();
-    rbInitMotlZero = new RadioButton("Set all rotational values to zero",
-        MatlabParamFile.InitMotlCode.ZERO.intValue(), group);
-    rbInitMotlZAxis = new RadioButton("Initialize Z axis",
-        MatlabParamFile.InitMotlCode.Z_AXIS.intValue(), group);
-    rbInitMotlXAndZAxis = new RadioButton("Initialize X and Z axis",
-        MatlabParamFile.InitMotlCode.X_AND_Z_AXIS.intValue(), group);
-    rbInitMotlFiles = new RadioButton("Use files", group);
-    group = new ButtonGroup();
-    rbCcModeNormalized = new RadioButton(
-        "Local energy normalized cross correlation",
-        MatlabParamFile.CCModeCode.NORMALIZED.intValue(), group);
-    rbCcModeLocal = new RadioButton("True local correlation coefficent",
-        MatlabParamFile.CCModeCode.LOCAL.intValue(), group);
     lsDebugLevel = new LabeledSpinner("Debug level: ", new SpinnerNumberModel(
         MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
         MatlabParamFile.DEBUG_LEVEL_MAX, 1));
@@ -286,8 +286,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       tooltip = EtomoAutodoc.getTooltip(autodoc,
           MatlabParamFile.ALIGNED_BASE_NAME_KEY);
       ltfAlignedBaseName.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.FN_OUTPUT_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.FN_OUTPUT_KEY);
       ltfFnOutput.setToolTipText(tooltip);
     }
     catch (FileNotFoundException e) {
@@ -400,6 +399,16 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfSzVolX.setText(matlabParamFile.getSzVolX());
     ltfSzVolY.setText(matlabParamFile.getSzVolY());
     ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
+    MatlabParamFile.CCMode ccMode = matlabParamFile.getCcMode();
+    if (ccMode == MatlabParamFile.CCMode.NORMALIZED) {
+      rbCcModeNormalized.setSelected(true);
+    }
+    else if (ccMode == MatlabParamFile.CCMode.LOCAL) {
+      rbCcModeLocal.setSelected(true);
+    }
+    cbMeanFill.setSelected(matlabParamFile.isMeanFill());
+    ltfAlignedBaseName.setText(matlabParamFile.getAlignedBaseName());
+    ltfLowCutoff.setText(matlabParamFile.getLowCutoff());
     updateDisplay();
   }
 
@@ -413,18 +422,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (rbReferenceFile.isSelected()) {
       matlabParamFile.setReferenceFile(ftfReferenceFile.getText());
     }
-    if (rbInitMotlFiles.isSelected()) {
-      matlabParamFile.setInitMotlCode(rbInitMotlFiles.getRadioValue());
-    }
-    if (rbInitMotlZero.isSelected()) {
-      matlabParamFile.setInitMotlCode(rbInitMotlZero.getRadioValue());
-    }
-    if (rbInitMotlZAxis.isSelected()) {
-      matlabParamFile.setInitMotlCode(rbInitMotlZAxis.getRadioValue());
-    }
-    if (rbInitMotlXAndZAxis.isSelected()) {
-      matlabParamFile.setInitMotlCode(rbInitMotlXAndZAxis.getRadioValue());
-    }
+    matlabParamFile.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
+        .getSelection()).getEnumeratedType());
     matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
     if (ltfEdgeShift.isEnabled()) {
       matlabParamFile.setEdgeShift(ltfEdgeShift.getText());
@@ -432,6 +431,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     matlabParamFile.setSzVolX(ltfSzVolX.getText());
     matlabParamFile.setSzVolY(ltfSzVolY.getText());
     matlabParamFile.setSzVolZ(ltfSzVolZ.getText());
+    matlabParamFile.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
+        .getSelection()).getEnumeratedType());
+    matlabParamFile.setMeanFill(cbMeanFill.isSelected());
+    matlabParamFile.setAlignedBaseName(ltfAlignedBaseName.getText());
+    matlabParamFile.setLowCutoff(ltfLowCutoff.getText());
   }
 
   public String getFnOutput() {
@@ -483,27 +487,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private void setDefaults() {
-    if (MatlabParamFile.INIT_MOTL_DEFAULT == MatlabParamFile.InitMotlCode.ZERO) {
-      rbInitMotlZero.setSelected(true);
-    }
-    else if (MatlabParamFile.INIT_MOTL_DEFAULT == MatlabParamFile.InitMotlCode.Z_AXIS) {
-      rbInitMotlZAxis.setSelected(true);
-    }
-    else if (MatlabParamFile.INIT_MOTL_DEFAULT == MatlabParamFile.InitMotlCode.X_AND_Z_AXIS) {
-      rbInitMotlXAndZAxis.setSelected(true);
-    }
-    else if (MatlabParamFile.INIT_MOTL_DEFAULT == null) {
-      rbInitMotlFiles.setSelected(true);
-    }
     ltfEdgeShift.setText(MatlabParamFile.EDGE_SHIFT_DEFAULT);
-    MatlabParamFile.CCModeCode ccModeCode = MatlabParamFile.CCModeCode
-        .getDefault();
-    if (ccModeCode == MatlabParamFile.CCModeCode.NORMALIZED) {
-      rbCcModeNormalized.setSelected(true);
-    }
-    else if (ccModeCode == MatlabParamFile.CCModeCode.LOCAL) {
-      rbCcModeLocal.setSelected(true);
-    }
     cbMeanFill.setSelected(MatlabParamFile.MEAN_FILL_DEFAULT);
     ltfLowCutoff.setText(MatlabParamFile.LOW_CUTOFF_DEFAULT);
   }
