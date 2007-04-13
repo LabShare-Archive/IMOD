@@ -18,6 +18,7 @@ import etomo.storage.autodoc.WritableAutodoc;
 import etomo.storage.autodoc.WritableStatement;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
@@ -41,6 +42,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/04/11 21:43:07  sueh
+ * <p> bug# 964 Moved logic for szVol (copy X to Y and Z when Y and/or Z don't have
+ * <p> values) from PeetDialog to MatlabParamFile.  Added removeNameValuePair to
+ * <p> remove edgeShift from the file when tiltRange is not in use.
+ * <p>
  * <p> Revision 1.13  2007/04/09 21:59:33  sueh
  * <p> bug# 964 Added gets and sets and index constants for szVol.
  * <p>
@@ -97,7 +103,6 @@ public final class MatlabParamFile {
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
-  public static final InitMotlCode INIT_MOTL_DEFAULT = InitMotlCode.ZERO;
   public static final String TILT_RANGE_KEY = "tiltRange";
   public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   public static final String SZ_VOL_KEY = "szVol";
@@ -107,11 +112,14 @@ public final class MatlabParamFile {
   public static final String FN_OUTPUT_KEY = "fnOutput";
   public static final String D_PHI_KEY = "dPhi";
   public static final String D_THETA_KEY = "dTheta";
+  public static final String D_THETA_ALT_TOOLTIP_KEY = D_PHI_KEY;
   public static final String D_PSI_KEY = "dPsi";
+  public static final String D_PSI_ALT_TOOLTIP_KEY = D_PHI_KEY;
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
-  public static final int LOW_CUTOFF_DEFAULT = 0;
+  public static final String LOW_CUTOFF_DEFAULT = "0";
   public static final String HI_CUTOFF_KEY = "hiCutoff";
+  public static final String HI_CUTOFF_ALT_TOOLTIP_KEY = LOW_CUTOFF_KEY;
   public static final String CC_MODE_KEY = "CCMode";
   public static final String REF_THRESHOLD_KEY = "refThreshold";
   public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
@@ -145,9 +153,10 @@ public final class MatlabParamFile {
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
   private final ParsedArray reference = new ParsedArray();
+  private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private final File file;
   private InitMotlCode initMotlCode = null;
-  private CCModeCode ccMode = null;
+  private CCMode ccMode = null;
   private boolean tiltRangeEmpty = false;
   private boolean useReferenceFile = false;
   private boolean newFile;
@@ -254,7 +263,7 @@ public final class MatlabParamFile {
       //write the autodoc file
       autodoc.write();
       //the file is written, so it is no longer new
-      newFile=false;
+      newFile = false;
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
@@ -298,8 +307,16 @@ public final class MatlabParamFile {
     return initMotlCode;
   }
 
-  public void setInitMotlCode(final ConstEtomoNumber code) {
-    initMotlCode = InitMotlCode.getInstance(code);
+  public CCMode getCcMode() {
+    return ccMode;
+  }
+
+  public void setInitMotlCode(EnumeratedType enumeratedType) {
+    initMotlCode = (InitMotlCode) enumeratedType;
+  }
+
+  public void setCcMode(EnumeratedType enumeratedType) {
+    ccMode = (CCMode) enumeratedType;
   }
 
   public void setFnOutput(final String fnOutput) {
@@ -318,6 +335,22 @@ public final class MatlabParamFile {
     this.tiltRangeEmpty = tiltRangeEmpty;
   }
 
+  public void setMeanFill(final boolean meanFill) {
+    this.meanFill.setRawString(meanFill);
+  }
+
+  public boolean isMeanFill() {
+    return meanFill.getRawBoolean();
+  }
+
+  public String getAlignedBaseName() {
+    return alignedBaseName.getRawString();
+  }
+
+  public void setAlignedBaseName(String alignedBaseName) {
+    this.alignedBaseName.setRawString(alignedBaseName);
+  }
+
   public void setReferenceVolume(final Number referenceVolume) {
     useReferenceFile = false;
     reference.setRawNumber(REFERENCE_VOLUME_INDEX, referenceVolume.toString());
@@ -332,7 +365,7 @@ public final class MatlabParamFile {
   }
 
   public void setEdgeShift(String edgeShift) {
-    this.edgeShift.setRawNumber(edgeShift);
+    this.edgeShift.setRawString(edgeShift);
   }
 
   public void clearEdgeShift() {
@@ -353,6 +386,31 @@ public final class MatlabParamFile {
 
   public void setSzVolZ(String szVolZ) {
     szVol.setRawNumber(SZ_VOL_Z_INDEX, szVolZ);
+  }
+
+  /**
+   * LowCutoff is an iteration value, but it is only set once, so get the value
+   * at the first index
+   * @return
+   */
+  public String getLowCutoff() {
+    if (iterationList.size() == 0) {
+      return lowCutoff;
+    }
+    return ((Iteration) iterationList.get(0)).getLowCutoffString();
+  }
+
+  /**
+   * LowCutoff is only set once, so it is placed in all the Iteration instances
+   * If the Iteration instances haven't been created yet, it should be add to them
+   * from lowCutoff when they are.
+   * @param input
+   */
+  public void setLowCutoff(String input) {
+    lowCutoff = input;
+    for (int i = 0; i < iterationList.size(); i++) {
+      ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff);
+    }
   }
 
   public String getSzVolX() {
@@ -418,7 +476,7 @@ public final class MatlabParamFile {
     //fnOutput
     fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
     //CCMode
-    ccMode = CCModeCode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
+    ccMode = CCMode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
     //refFlagAllTom
     refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
     //edgeShift
@@ -512,8 +570,7 @@ public final class MatlabParamFile {
     size = Math.max(size, searchRadius.size());
     //lowCutoff
     ParsedList lowCutoff = ParsedList.getNumericInstance(autodoc
-        .getAttribute(LOW_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
-    size = Math.max(size, lowCutoff.size());
+        .getAttribute(HI_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
     //hiCutoff
     ParsedList hiCutoff = ParsedList.getNumericInstance(autodoc
         .getAttribute(HI_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
@@ -523,15 +580,15 @@ public final class MatlabParamFile {
         .getAttribute(REF_THRESHOLD_KEY), EtomoNumber.Type.FLOAT);
     size = Math.max(size, refThreshold.size());
     //add elements to iterationList
-    for (int j = 0; j < size; j++) {
+    for (int i = 0; i < size; i++) {
       Iteration iteration = new Iteration();
-      iteration.setDPhi(dPhi.getElement(j));
-      iteration.setDTheta(dTheta.getElement(j));
-      iteration.setDPsi(dPsi.getElement(j));
-      iteration.setSearchRadius(searchRadius.getElement(j));
-      iteration.setLowCutoff(lowCutoff.getElement(j));
-      iteration.setHiCutoff(hiCutoff.getElement(j));
-      iteration.setRefThreshold(refThreshold.getElement(j));
+      iteration.setDPhi(dPhi.getElement(i));
+      iteration.setDTheta(dTheta.getElement(i));
+      iteration.setDPsi(dPsi.getElement(i));
+      iteration.setSearchRadius(searchRadius.getElement(i));
+      iteration.setLowCutoff(lowCutoff.getElement(i));
+      iteration.setHiCutoff(hiCutoff.getElement(i));
+      iteration.setRefThreshold(refThreshold.getElement(i));
       iterationList.add(iteration);
     }
   }
@@ -565,6 +622,12 @@ public final class MatlabParamFile {
     if (!tiltRangeEmpty) {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
+    valueMap.put(CC_MODE_KEY, ccMode.toString());
+    if (initMotlCode != null) {
+      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
+    }
+    valueMap.put(MEAN_FILL_KEY, meanFill.getParsableString());
+    valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
   }
 
   /**
@@ -583,12 +646,12 @@ public final class MatlabParamFile {
         .getNumericInstance(EtomoNumber.Type.FLOAT);
     ParsedList relativeOrient = ParsedList.getNumericInstance(
         EtomoNumber.Type.FLOAT, 0);
-    //build the values
+    //build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
       fnVolume.addElement(volume.getFnVolume());
       fnModParticle.addElement(volume.getFnModParticle());
-      if (initMotlFile != null) {
+      if (initMotlCode == null) {
         initMotlFile.addElement(volume.getInitMotl());
       }
       if (!tiltRangeEmpty) {
@@ -598,11 +661,8 @@ public final class MatlabParamFile {
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
-    if (initMotlFile != null) {
+    if (initMotlCode == null) {
       valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
-    }
-    else {
-      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
     valueMap.put(TILT_RANGE_KEY, tiltRange.getParsableString());
     valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.getParsableString());
@@ -614,6 +674,13 @@ public final class MatlabParamFile {
    * @param valueMap
    */
   private void buildParsableIterationValues(final Map valueMap) {
+    ParsedList lowCutoff = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    //build the lists
+    for (int i = 0; i < iterationList.size(); i++) {
+      Iteration iteration = (Iteration) iterationList.get(i);
+      lowCutoff.addElement(iteration.getLowCutoff());
+    }
+    valueMap.put(LOW_CUTOFF_KEY, lowCutoff.getParsableString());
   }
 
   /**
@@ -661,6 +728,12 @@ public final class MatlabParamFile {
       setNameValuePairValue(autodoc, EDGE_SHIFT_KEY, (String) valueMap
           .get(EDGE_SHIFT_KEY), commentMap);
     }
+    setNameValuePairValue(autodoc, CC_MODE_KEY, (String) valueMap
+        .get(CC_MODE_KEY), commentMap);
+    setNameValuePairValue(autodoc, MEAN_FILL_KEY, (String) valueMap
+        .get(MEAN_FILL_KEY), commentMap);
+    setNameValuePairValue(autodoc, ALIGNED_BASE_NAME_KEY, (String) valueMap
+        .get(ALIGNED_BASE_NAME_KEY), commentMap);
   }
 
   /**
@@ -691,6 +764,8 @@ public final class MatlabParamFile {
    */
   private void setIterationNameValuePairValues(final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
+    setNameValuePairValue(autodoc, LOW_CUTOFF_KEY, (String) valueMap
+        .get(LOW_CUTOFF_KEY), commentMap);
   }
 
   /**
@@ -780,87 +855,77 @@ public final class MatlabParamFile {
     autodoc.addNameValuePair(attributeName, attributeValue);
   }
 
-  public static final class InitMotlCode {
-    private static final int ZERO_CODE = 0;
-    private static final int Z_AXIS_CODE = 1;
-    private static final int X_AND_Z_AXIS_CODE = 2;
+  public static final class InitMotlCode implements EnumeratedType {
+    private static final EtomoNumber ZERO_VALUE = new EtomoNumber().set(0);
+    private static final EtomoNumber Z_AXIS_VALUE = new EtomoNumber().set(1);
+    private static final EtomoNumber X_AND_Z_AXIS_VALUE = new EtomoNumber()
+        .set(2);
 
-    public static final InitMotlCode ZERO = new InitMotlCode(ZERO_CODE);
-    public static final InitMotlCode Z_AXIS = new InitMotlCode(Z_AXIS_CODE);
+    public static final InitMotlCode ZERO = new InitMotlCode(ZERO_VALUE);
+    public static final InitMotlCode Z_AXIS = new InitMotlCode(Z_AXIS_VALUE);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(
-        X_AND_Z_AXIS_CODE);
+        X_AND_Z_AXIS_VALUE);
 
-    private final int code;
+    private final EtomoNumber value;
 
-    private InitMotlCode(final int code) {
-      this.code = code;
-    }
-
-    public static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
-      if (attribute == null) {
-        return null;
-      }
-      String value = attribute.getValue();
-      if (value == null) {
-        return null;
-      }
-      EtomoNumber code = new EtomoNumber();
-      code.set(value);
-      return getInstance(code);
-    }
-
-    public static InitMotlCode getInstance(final ConstEtomoNumber code) {
-      if (code == null) {
-        return null;
-      }
-      if (code.equals(ZERO_CODE)) {
-        return ZERO;
-      }
-      if (code.equals(Z_AXIS_CODE)) {
-        return Z_AXIS;
-      }
-      if (code.equals(X_AND_Z_AXIS_CODE)) {
-        return X_AND_Z_AXIS;
-      }
-      return null;
-    }
-
-    private static InitMotlCode getInstance(final int code) {
-      if (code == ZERO_CODE) {
-        return ZERO;
-      }
-      if (code == Z_AXIS_CODE) {
-        return Z_AXIS;
-      }
-      if (code == X_AND_Z_AXIS_CODE) {
-        return X_AND_Z_AXIS;
-      }
-      return null;
-    }
-
-    public int intValue() {
-      return code;
+    private InitMotlCode(final EtomoNumber value) {
+      this.value = value;
     }
 
     public String toString() {
-      return new Integer(code).toString();
+      return value.toString();
+    }
+
+    public boolean isDefault() {
+      if (this == ZERO) {
+        return true;
+      }
+      return false;
+    }
+
+    private static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
+      if (attribute == null) {
+        return ZERO;
+      }
+      String value = attribute.getValue();
+      if (value == null) {
+        return ZERO;
+      }
+      if (ZERO_VALUE.equals(value)) {
+        return ZERO;
+      }
+      if (Z_AXIS_VALUE.equals(value)) {
+        return Z_AXIS;
+      }
+      if (X_AND_Z_AXIS_VALUE.equals(value)) {
+        return X_AND_Z_AXIS;
+      }
+      return ZERO;
     }
   }
 
-  public static final class CCModeCode {
-    private static final int NORMALIZED_CODE = 0;
-    private static final int LOCAL_CODE = 1;
+  public static final class CCMode implements EnumeratedType {
+    private static final EtomoNumber NORMALIZED_VALUE = new EtomoNumber()
+        .set(0);
+    private static final EtomoNumber LOCAL_VALUE = new EtomoNumber().set(1);
 
-    public static final CCModeCode NORMALIZED = new CCModeCode(NORMALIZED_CODE);
-    public static final CCModeCode LOCAL = new CCModeCode(LOCAL_CODE);
+    public static final CCMode NORMALIZED = new CCMode(NORMALIZED_VALUE);
+    public static final CCMode LOCAL = new CCMode(LOCAL_VALUE);
 
-    private final int code;
+    private final ConstEtomoNumber value;
 
-    private CCModeCode(final int code) {
-      this.code = code;
+    private CCMode(final ConstEtomoNumber value) {
+      this.value = value;
     }
 
-    public static CCModeCode getInstance(final ReadOnlyAttribute attribute) {
+    public boolean isDefault() {
+      if (this == NORMALIZED) {
+        return true;
+      }
+      return false;
+    }
+
+    private static CCMode getInstance(final ReadOnlyAttribute attribute) {
       if (attribute == null) {
         return NORMALIZED;
       }
@@ -868,44 +933,17 @@ public final class MatlabParamFile {
       if (value == null) {
         return NORMALIZED;
       }
-      EtomoNumber code = new EtomoNumber();
-      code.set(value);
-      return getInstance(code);
-    }
-
-    public static CCModeCode getInstance(final ConstEtomoNumber code) {
-      if (code == null) {
+      if (NORMALIZED_VALUE.equals(value)) {
         return NORMALIZED;
       }
-      if (code.equals(NORMALIZED_CODE)) {
-        return NORMALIZED;
-      }
-      if (code.equals(LOCAL_CODE)) {
+      if (LOCAL_VALUE.equals(value)) {
         return LOCAL;
       }
       return NORMALIZED;
-    }
-
-    public static CCModeCode getDefault() {
-      return getInstance((ConstEtomoNumber) null);
-    }
-
-    private static CCModeCode getInstance(final int code) {
-      if (code == NORMALIZED_CODE) {
-        return NORMALIZED;
-      }
-      if (code == LOCAL_CODE) {
-        return LOCAL;
-      }
-      return NORMALIZED;
-    }
-
-    public int intValue() {
-      return code;
     }
 
     public String toString() {
-      return new Integer(code).toString();
+      return value.toString();
     }
   }
 
@@ -1054,8 +1092,32 @@ public final class MatlabParamFile {
       this.searchRadius.setElement(searchRadius);
     }
 
-    private void setLowCutoff(final ParsedElement lowCutoff) {
-      this.lowCutoff = lowCutoff;
+    private void setLowCutoff(final ParsedElement input) {
+      lowCutoff = input;
+    }
+
+    private void setLowCutoff(final String input) {
+      //find out whether input is a number or an array
+      EtomoNumber test = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      test.set(input);
+      if (input == null || input.matches("\\s*") || !test.isNull()) {
+        lowCutoff = new ParsedNumber(EtomoNumber.Type.FLOAT);
+      }
+      else {
+        lowCutoff = new ParsedArray(EtomoNumber.Type.FLOAT);
+      }
+      lowCutoff.setRawString(input);
+    }
+    
+    private ParsedElement getLowCutoff() {
+      return lowCutoff;
+    }
+
+    private String getLowCutoffString() {
+      if (lowCutoff == null) {
+        return LOW_CUTOFF_DEFAULT;
+      }
+      return lowCutoff.getRawString();
     }
 
     private void setHiCutoff(final ParsedElement hiCutoff) {
