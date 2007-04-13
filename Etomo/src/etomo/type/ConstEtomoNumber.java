@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2007/03/30 23:40:34  sueh
+ * <p> bug# 964 Made ConstEtomoNumber(Type) work correctly when parameter is null.
+ * <p>
  * <p> Revision 1.46  2007/03/26 18:37:07  sueh
  * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
  * <p> the functionality will be remembered and used.
@@ -1183,6 +1186,15 @@ public abstract class ConstEtomoNumber implements Storable {
       return defaultValue;
     }
     return getValue();
+  }
+  
+  
+  public boolean getDefaultedBoolean() {
+    Number value = getDefaultedValue();
+    if (isNull(value) || equals(value,newNumber(0))) {
+      return false;
+    }
+    return true;
   }
 
   String toString(Number value) {
