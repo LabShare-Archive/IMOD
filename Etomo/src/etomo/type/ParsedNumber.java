@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/04/13 20:27:50  sueh
+ * <p> bug# 964 Added getRawBoolean.  Changed setRawNumber to setRawString to
+ * <p> standardize function names.
+ * <p>
  * <p> Revision 1.4  2007/04/11 22:17:36  sueh
  * <p> bug# 964 Made functions required by MatlabParamFile public.
  * <p>
@@ -91,16 +95,14 @@ public final class ParsedNumber extends ParsedElement {
   }
   
   public boolean getRawBoolean() {
-    if (defaultValue == null) {
-      return rawNumber.is();
-    }
     return rawNumber.getDefaultedBoolean();
   }
   
+  public Number getRawNumber() {
+    return rawNumber.getDefaultedNumber();
+  }
+  
   public String getRawString() {
-    if (defaultValue == null) {
-      return rawNumber.toString();
-    }
     return rawNumber.toDefaultedString();
   }
   
@@ -154,10 +156,6 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.set(buffer.toString());
     return token;
   }
-
-  ConstEtomoNumber getRawNumber() {
-    return rawNumber;
-  }
   
   boolean isCollection() {
     return false;
@@ -178,7 +176,7 @@ public final class ParsedNumber extends ParsedElement {
     valid = false;
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return rawNumber.isNull();
   }
 }

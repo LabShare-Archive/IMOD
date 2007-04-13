@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2007/04/13 20:15:56  sueh
+* <p> bug# 964 Added setRawString(String).
+* <p>
 * <p> Revision 1.3  2007/04/09 21:01:33  sueh
 * <p> bug# 964 Placed createTokenizer(String) in the parent class, since it is used
 * <p> everywhere.
@@ -35,15 +38,15 @@ public abstract class ParsedElement {
   public static  final String  rcsid =  "$Id$";
   
   public abstract String getRawString();
+  public abstract Number getRawNumber();
+  public abstract boolean isEmpty();
+  public abstract void setRawString(String number);
+  abstract void fail();
   abstract Token parse(Token token, PrimativeTokenizer tokenizer);
   abstract ParsedElement getElement(int index);
   abstract int size();
   abstract String getParsableString();
   abstract boolean isCollection();
-  abstract ConstEtomoNumber getRawNumber();
-  abstract boolean isEmpty();
-  abstract void fail();
-  public abstract void setRawString(String number);
   
   final PrimativeTokenizer createTokenizer(String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);

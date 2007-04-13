@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/13 20:31:50  sueh
+ * <p> bug# 964 Changed functionality:  An empty string should return ''.  This works with the requirements for alignedBaseName.
+ * <p>
  * <p> Revision 1.3  2007/04/09 21:10:23  sueh
  * <p> bug# 964 Added parsing from a tokenizer.
  * <p>
@@ -90,10 +93,10 @@ public final class ParsedQuotedString extends ParsedElement {
     return rawString;
   }
 
-  public ConstEtomoNumber getRawNumber() {
-    EtomoNumber number = new EtomoNumber();
-    number.set(rawString);
-    return number;
+  public Number getRawNumber() {
+    EtomoNumber etomoNumber = new EtomoNumber();
+    etomoNumber.set(rawString);
+    return etomoNumber.getNumber();
   }
 
   public String getParsableString() {
@@ -168,7 +171,7 @@ public final class ParsedQuotedString extends ParsedElement {
     valid = false;
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return rawString == null || rawString.equals("");
   }
 

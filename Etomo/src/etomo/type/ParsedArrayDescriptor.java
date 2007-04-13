@@ -19,6 +19,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/13 20:14:25  sueh
+ * <p> bug# 964 Added setRawString(String), which parses a list of numbers separated
+ * <p> by :'s.
+ * <p>
  * <p> Revision 1.3  2007/04/09 21:00:29  sueh
  * <p> bug# 964 Added parsing.
  * <p>
@@ -58,7 +62,7 @@ final class ParsedArrayDescriptor extends ParsedElement {
     valid = false;
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return size() == 0;
   }
 
@@ -131,7 +135,7 @@ final class ParsedArrayDescriptor extends ParsedElement {
     parse(token,tokenizer);
   }
 
-  ConstEtomoNumber getRawNumber() {
+  public Number getRawNumber() {
     return descriptor.get(0).getRawNumber();
   }
 

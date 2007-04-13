@@ -42,6 +42,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/04/13 18:41:59  sueh
+ * <p> bug# 964 Writing ccMode, meanFill, and lowCutoff
+ * <p>
  * <p> Revision 1.14  2007/04/11 21:43:07  sueh
  * <p> bug# 964 Moved logic for szVol (copy X to Y and Z when Y and/or Z don't have
  * <p> values) from PeetDialog to MatlabParamFile.  Added removeNameValuePair to
@@ -360,8 +363,8 @@ public final class MatlabParamFile {
     return reference.getRawString(REFERENCE_PARTICLE_INDEX);
   }
 
-  public ConstEtomoNumber getReferenceVolume() {
-    return reference.getRawNumber(REFERENCE_VOLUME_INDEX);
+  public ParsedElement getReferenceVolume() {
+    return reference.getElement(REFERENCE_VOLUME_INDEX);
   }
 
   public void setEdgeShift(String edgeShift) {
@@ -411,6 +414,14 @@ public final class MatlabParamFile {
     for (int i = 0; i < iterationList.size(); i++) {
       ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff);
     }
+  }
+  
+  public void setDebugLevel(Number input) {
+    debugLevel.setRawString(input.toString());
+  }
+  
+  public Number getDebugLevel() {
+    return debugLevel.getRawNumber();
   }
 
   public String getSzVolX() {
@@ -609,12 +620,12 @@ public final class MatlabParamFile {
     }
     valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
     //copy szVol X value to Y and Z when Y and/or Z is empty
-    ConstEtomoNumber szVolX = szVol.getRawNumber();
-    if (!szVolX.isNull()) {
-      if (szVol.getRawNumber(SZ_VOL_Y_INDEX).isNull()) {
+    ParsedElement szVolX = szVol.getElement(0);
+    if (!szVolX.isEmpty()) {
+      if (szVol.isEmpty(SZ_VOL_Y_INDEX)) {
         szVol.setRawNumber(SZ_VOL_Y_INDEX, szVolX.toString());
       }
-      if (szVol.getRawNumber(SZ_VOL_Z_INDEX).isNull()) {
+      if (szVol.isEmpty(SZ_VOL_Z_INDEX)) {
         szVol.setRawNumber(SZ_VOL_Z_INDEX, szVolX.toString());
       }
     }
@@ -628,6 +639,7 @@ public final class MatlabParamFile {
     }
     valueMap.put(MEAN_FILL_KEY, meanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
+    valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
   }
 
   /**
@@ -734,6 +746,8 @@ public final class MatlabParamFile {
         .get(MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(autodoc, ALIGNED_BASE_NAME_KEY, (String) valueMap
         .get(ALIGNED_BASE_NAME_KEY), commentMap);
+    setNameValuePairValue(autodoc, DEBUG_LEVEL_KEY, (String) valueMap
+        .get(DEBUG_LEVEL_KEY), commentMap);
   }
 
   /**

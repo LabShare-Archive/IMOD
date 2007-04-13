@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/13 20:14:05  sueh
+ * <p> bug# 964 Added setRawString(String), which parses a list of numbers separated
+ * <p> by whitespace or commas.
+ * <p>
  * <p> Revision 1.3  2007/04/09 20:59:35  sueh
  * <p> bug# 964 Added missing tokenizer.next() call to parseArray.
  * <p>
@@ -106,13 +110,13 @@ public final class ParsedArray extends ParsedElement {
   public String getRawString(int index) {
     return array.get(index).getRawString();
   }
-
-  public ConstEtomoNumber getRawNumber(int index) {
-    return array.get(index).getRawNumber();
+  
+  public Number getRawNumber() {
+    return array.get(0).getRawNumber();
   }
 
-  public ConstEtomoNumber getRawNumber() {
-    return getRawNumber(0);
+  public boolean isEmpty(int index) {
+    return array.get(index).isEmpty();
   }
 
   public void setRawNumber(int index, String number) {
@@ -137,7 +141,7 @@ public final class ParsedArray extends ParsedElement {
     return array.size();
   }
 
-  ParsedElement getElement(int index) {
+  public ParsedElement getElement(int index) {
     return array.get(index);
   }
   
@@ -248,7 +252,7 @@ public final class ParsedArray extends ParsedElement {
    * @return true if the size of the list is null.  Empty elements in the list
    * do not affect this result
    */
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return size()==0;
   }
 

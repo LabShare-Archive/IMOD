@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/13 20:16:30  sueh
+ * <p> bug# 964 Made getRawString public.
+ * <p>
  * <p> Revision 1.3  2007/04/09 21:09:03  sueh
  * <p> bug# 964 Fixed a bug where the size was incorrect.  Made EmptyParsedElement
  * <p> a private inner class, so that null would not have to be returned.
@@ -117,8 +120,8 @@ final class ParsedElementList {
     public void setRawString(String input) {
     }
 
-    ConstEtomoNumber getRawNumber() {
-      return new EtomoNumber();
+    public Number getRawNumber() {
+      return new EtomoNumber().getNumber();
     }
 
     Token parse(Token token, PrimativeTokenizer tokenizer) {
@@ -134,7 +137,7 @@ final class ParsedElementList {
       return 0;
     }
 
-    boolean isEmpty() {
+    public boolean isEmpty() {
       return true;
     }
 
