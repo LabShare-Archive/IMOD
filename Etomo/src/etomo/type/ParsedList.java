@@ -27,6 +27,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 21:09:46  sueh
+ * <p> bug# 964 Added missing tokenizer.next() call to parseList.
+ * <p>
  * <p> Revision 1.2  2007/03/31 02:56:33  sueh
  * <p> bug# 964 Removed getRawString(int) because it is not in use.
  * <p>
@@ -134,6 +137,10 @@ public final class ParsedList {
   public ParsedElement getElement(int index) {
     return list.get(index);
   }
+  
+  public String getRawString(int index) {
+    return list.get(index).getRawString();
+  }
 
   public void addElement(ParsedElement element) {
     list.add(element);
@@ -157,7 +164,7 @@ public final class ParsedList {
    * @param attribute
    * @param etomoNumberType
    */
-  private void parse(ReadOnlyAttribute attribute) {
+  public void parse(ReadOnlyAttribute attribute) {
     list.clear();
     valid = true;
     if (attribute == null) {
