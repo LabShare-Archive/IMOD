@@ -33,8 +33,12 @@ public class EtomoAutodoc {
   public static final int REQUIRED_TRUE_VALUE = 1;
   public static final char VAR_TAG = '%';
   public static final char NEW_LINE_CHAR = '^';
-
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
+  
+  private static boolean debug = false;
+  
+  private EtomoAutodoc() {
+  }
 
   public static String getTooltip(ReadOnlySection section) {
     if (section == null) {
@@ -110,7 +114,7 @@ public class EtomoAutodoc {
       return null;
     }
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
-    StringBuffer tooltip = new StringBuffer(128);
+    StringBuffer tooltip = new StringBuffer();
     boolean removeIndentFormatting = false;
     boolean startOfLine = true;
     Token token = null;
@@ -237,10 +241,17 @@ public class EtomoAutodoc {
   public static String getTooltip(ReadOnlySection section, int enumValueName) {
     return getTooltip(section, Integer.toString(enumValueName));
   }
+  
+  public static void setDebug(boolean debug) {
+    EtomoAutodoc.debug = debug;
+  }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/26 23:35:21  sueh
+ * <p> bug# 964 Using getMultiLineValue so formatting can be removed.
+ * <p>
  * <p> Revision 1.14  2007/03/23 20:42:00  sueh
  * <p> bug# 964 Added formt(String) and removingFormatting(String).
  * <p> RemoveFormatting is necessary since the BREAK character is no longer being
