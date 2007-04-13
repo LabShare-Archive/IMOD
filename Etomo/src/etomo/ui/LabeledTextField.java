@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2007/03/27 00:04:07  sueh
+ * <p> bug# 964 Removed unused functions.
+ * <p>
  * <p> Revision 3.22  2007/03/01 01:39:19  sueh
  * <p> bug# 964 Moved colors from UIUtilities to Colors.
  * <p>
@@ -140,6 +143,7 @@ public class LabeledTextField {
   private JPanel panel = new JPanel();
   private JLabel label = new JLabel();
   private JTextField textField = new JTextField();
+  private boolean debug = false;
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
@@ -266,6 +270,10 @@ public class LabeledTextField {
 
   public void setEditable(boolean editable) {
     textField.setEditable(editable);
+  }
+  
+  public void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
   public void addKeyListener(KeyListener listener) {

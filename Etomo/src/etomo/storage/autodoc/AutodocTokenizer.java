@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2007/03/08 21:57:14  sueh
+ * <p> $bug# 964 Improved the StreamTokenizer test.
+ * <p> $
  * <p> $Revision 1.6  2007/03/01 01:19:17  sueh
  * <p> $bug# 964 Added LogFile to PrimativeTokenizer.
  * <p> $
@@ -135,6 +138,7 @@ public final class AutodocTokenizer {
   private Token nextToken = new Token();
   private boolean useNextToken = false;
   private StringBuffer wordBuffer = null;
+  private boolean debug = false;
 
   AutodocTokenizer(LogFile file,boolean allowAltComment) {
     this.allowAltComment=allowAltComment;
@@ -142,6 +146,10 @@ public final class AutodocTokenizer {
     if (allowAltComment) {
       restrictedSymbols.append(ALT_COMMENT_CHAR);
     }
+  }
+  
+  void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
   void initialize() throws FileNotFoundException, IOException,LogFile.ReadException {

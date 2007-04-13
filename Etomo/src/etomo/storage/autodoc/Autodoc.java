@@ -559,7 +559,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false, true);
+    parser = new AutodocParser(this, false, true,debug);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -599,6 +599,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.19  2007/04/11 21:59:21  sueh
+ *<p> $bug# 964 Added removeNameValuePair(String name):  removes a name/value pair with a simple (one-attribute) name.  Added removeStatement(WritableStatement):  removes the passed-in Statement.
+ *<p> $
  *<p> $Revision 1.18  2007/04/09 20:18:48  sueh
  *<p> $bug# 964 Moved the value to the associated name/value pair.  Changed
  *<p> $the Vector member variable from values to nameValuePairList.  Associated the
