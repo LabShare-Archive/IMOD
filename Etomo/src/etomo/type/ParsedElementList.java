@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 21:09:03  sueh
+ * <p> bug# 964 Fixed a bug where the size was incorrect.  Made EmptyParsedElement
+ * <p> a private inner class, so that null would not have to be returned.
+ * <p>
  * <p> Revision 1.2  2007/03/31 02:55:30  sueh
  * <p> bug# 964 Added boolean emptyElements to remember that empty elements where
  * <p> added.  Adding EmptyParsedElement instead of nothing when adding empty elements.
@@ -106,8 +110,11 @@ final class ParsedElementList {
       return "[empty]";
     }
 
-    String getRawString() {
+    public String getRawString() {
       return "";
+    }
+    
+    public void setRawString(String input) {
     }
 
     ConstEtomoNumber getRawNumber() {
