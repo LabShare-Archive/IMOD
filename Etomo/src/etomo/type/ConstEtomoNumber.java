@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2007/04/13 19:52:46  sueh
+ * <p> bug# 964 Added getDefaultedBoolean
+ * <p>
  * <p> Revision 1.47  2007/03/30 23:40:34  sueh
  * <p> bug# 964 Made ConstEtomoNumber(Type) work correctly when parameter is null.
  * <p>
@@ -1188,6 +1191,9 @@ public abstract class ConstEtomoNumber implements Storable {
     return getValue();
   }
   
+  public Number getDefaultedNumber() {
+    return newNumber(getDefaultedValue());
+  }
   
   public boolean getDefaultedBoolean() {
     Number value = getDefaultedValue();
