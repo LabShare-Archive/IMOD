@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 21:10:23  sueh
+ * <p> bug# 964 Added parsing from a tokenizer.
+ * <p>
  * <p> Revision 1.2  2007/03/31 02:59:36  sueh
  * <p> bug# 964 Added isCollection().
  * <p>
@@ -94,9 +97,6 @@ public final class ParsedQuotedString extends ParsedElement {
   }
 
   public String getParsableString() {
-    if (rawString.equals("")) {
-      return "";
-    }
     StringBuffer buffer = new StringBuffer(OPEN_SYMBOL.toString());
     buffer.append(getRawString());
     buffer.append(CLOSE_SYMBOL.toString());
