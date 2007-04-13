@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2007/04/09 21:01:33  sueh
+* <p> bug# 964 Placed createTokenizer(String) in the parent class, since it is used
+* <p> everywhere.
+* <p>
 * <p> Revision 1.2  2007/03/31 02:54:34  sueh
 * <p> bug# 964 Added isCollection().
 * <p>
@@ -30,7 +34,7 @@ import etomo.util.PrimativeTokenizer;
 public abstract class ParsedElement {
   public static  final String  rcsid =  "$Id$";
   
-  abstract String getRawString();
+  public abstract String getRawString();
   abstract Token parse(Token token, PrimativeTokenizer tokenizer);
   abstract ParsedElement getElement(int index);
   abstract int size();
@@ -39,6 +43,7 @@ public abstract class ParsedElement {
   abstract ConstEtomoNumber getRawNumber();
   abstract boolean isEmpty();
   abstract void fail();
+  public abstract void setRawString(String number);
   
   final PrimativeTokenizer createTokenizer(String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
