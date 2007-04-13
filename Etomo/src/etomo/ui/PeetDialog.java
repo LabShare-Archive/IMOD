@@ -45,6 +45,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2007/04/13 18:50:24  sueh
+ * <p> bug# 964 Saving/retrieving ccMode, meanFill, and lowCutoff to/from
+ * <p> MatlabParamFile.  Adding EnumerationTypes directly to associated radio buttons.
+ * <p>
  * <p> Revision 1.22  2007/04/11 22:22:06  sueh
  * <p> bug# 964 Saving edgeShift to meta data and MatlabParamFile.
  * <p>
@@ -409,6 +413,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     cbMeanFill.setSelected(matlabParamFile.isMeanFill());
     ltfAlignedBaseName.setText(matlabParamFile.getAlignedBaseName());
     ltfLowCutoff.setText(matlabParamFile.getLowCutoff());
+    lsDebugLevel.setValue(matlabParamFile.getDebugLevel());
     updateDisplay();
   }
 
@@ -436,6 +441,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     matlabParamFile.setMeanFill(cbMeanFill.isSelected());
     matlabParamFile.setAlignedBaseName(ltfAlignedBaseName.getText());
     matlabParamFile.setLowCutoff(ltfLowCutoff.getText());
+    matlabParamFile.setDebugLevel(lsDebugLevel.getValue());
   }
 
   public String getFnOutput() {
