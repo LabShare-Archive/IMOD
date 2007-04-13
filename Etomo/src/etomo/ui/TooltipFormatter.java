@@ -13,6 +13,9 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2007/02/09 00:54:47  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton.
+ * <p>
  * <p> Revision 3.4  2005/02/15 20:42:05  sueh
  * <p> bug# 602 Added convert(), which converts from a string formatted with '\n'
  * <p> to an html string.
@@ -45,8 +48,9 @@ public class TooltipFormatter {
   public static final String rcsid = "$Id$";
 
   public static final TooltipFormatter INSTANCE = new TooltipFormatter();
-
   private static final int N_COLUMNS = 60;
+
+  private boolean debug = false;
 
   /**
    * Format the rawString into an HTML string appropriate for tooltips
@@ -63,7 +67,7 @@ public class TooltipFormatter {
       int idxSearch = idxStart + N_COLUMNS;
       // Are we past the end of the string
       if (idxSearch >= rawString.length() - 1) {
-        htmlFormat.append(rawString.substring(idxStart));
+        htmlFormat.append(convertToHtml(rawString.substring(idxStart)));
         splitting = false;
       }
       else {
@@ -74,13 +78,36 @@ public class TooltipFormatter {
           idxStop = N_COLUMNS;
         }
         else {
-          htmlFormat.append(rawString.substring(idxStart, idxStart + idxStop)
+          htmlFormat.append(convertToHtml(rawString.substring(idxStart, idxStart + idxStop))
               + "<br>");
           idxStart = idxStart + idxStop + 1;
         }
       }
     }
     return htmlFormat.toString();
+  }
+
+  private String convertToHtml(String rawString) {
+    StringBuffer buffer = new StringBuffer(rawString);
+    int ltIndex = rawString.length();
+    int gtIndex = rawString.length();
+    while (ltIndex >= 0 || gtIndex >= 0) {
+      ltIndex = buffer.lastIndexOf("<", ltIndex - 1);
+      if (ltIndex != -1) {
+        buffer.deleteCharAt(ltIndex);
+        buffer.insert(ltIndex, "<html>&lt");
+      }
+      gtIndex = buffer.lastIndexOf(">", gtIndex - 1);
+      if (gtIndex != -1) {
+        buffer.deleteCharAt(gtIndex);
+        buffer.insert(gtIndex, "<html>&gt");
+      }
+    }
+    return buffer.toString();
+  }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
   /**
