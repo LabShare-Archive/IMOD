@@ -237,7 +237,7 @@ public final class UIHarness {
   }
   
   public void pack(BaseManager manager) {
-    if (isHead()) {
+    if (isHead()&& manager !=null) {
       manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack();
@@ -528,6 +528,9 @@ public final class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.25  2007/03/31 03:03:10  sueh
+* <p> bug# 964 Enabling/disabling Duplicate Peet menu item.
+* <p>
 * <p> Revision 1.24  2007/02/19 22:04:03  sueh
 * <p> bug# 964 Added setEnabledNewPeetMenuItem.
 * <p>
