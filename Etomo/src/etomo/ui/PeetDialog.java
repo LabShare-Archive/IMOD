@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2007/04/13 21:52:33  sueh
+ * <p> bug# 964 Saving/retrieving debugLevel to/from MatlabParamFile.
+ * <p>
  * <p> Revision 1.23  2007/04/13 18:50:24  sueh
  * <p> bug# 964 Saving/retrieving ccMode, meanFill, and lowCutoff to/from
  * <p> MatlabParamFile.  Adding EnumerationTypes directly to associated radio buttons.
@@ -124,8 +127,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   static final String DIRECTORY_LABEL = "Directory";
   static final String OUTPUT_LABEL = "Root name for output";
-  static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
-  static final String REFERENCE_FILE_LABEL = "Reference file: ";
+
+  private static final String REFERENCE_PARTICLE_LABEL = "Particle #: ";
+  private static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
+  private static final String REFERENCE_FILE_LABEL = "Reference file: ";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
 
@@ -139,11 +144,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Use tilt range for missing wedge compensation");
   private final SpacedPanel pnlRunParametersBody = new SpacedPanel();
   private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
-      "Particle #: ");
+      REFERENCE_PARTICLE_LABEL);
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
-      "Particle volume in X: ");
+      "Particle volume X: ");
   private final LabeledTextField ltfSzVolY = new LabeledTextField("Y: ");
   private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
   private final LabeledTextField ltfEdgeShift = new LabeledTextField(
@@ -171,7 +176,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioButton rbReferenceVolume = new RadioButton(
       REFERENCE_VOLUME_LABEL, bgReference);
-  private final Spinner sReferenceVolume = new Spinner(REFERENCE_VOLUME_LABEL);
+  private final Spinner sReferenceVolume = new Spinner(REFERENCE_VOLUME_LABEL
+      + ": ");
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL, bgReference);
   private final LabeledSpinner lsParticlePerCPU;
@@ -199,7 +205,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final RadioButton rbCcModeLocal = new RadioButton(
       "True local correlation coefficent", MatlabParamFile.CCMode.LOCAL,
       bgCcMode);
-  private final LabeledSpinner lsDebugLevel;
+  private final LabeledSpinner lsDebugLevel = new LabeledSpinner(
+      "Debug level: ", new SpinnerNumberModel(
+          MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
+          MatlabParamFile.DEBUG_LEVEL_MAX, 1));
   private final PanelHeader phRun;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
@@ -211,9 +220,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //run parameters construction
     phRunParameters = PanelHeader.getAdvancedBasicInstance("Run Parameters",
         this, DIALOG_TYPE);
-    lsDebugLevel = new LabeledSpinner("Debug level: ", new SpinnerNumberModel(
-        MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
-        MatlabParamFile.DEBUG_LEVEL_MAX, 1));
     //run construction
     phRun = PanelHeader.getInstance("Run", this, DIALOG_TYPE);
     iterationTable = IterationTable.getInstance(manager);
@@ -231,6 +237,205 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     updateDisplay();
     updateAdvanceRunParameters(phRunParameters.isAdvanced());
     setTooltipText();
+  }
+
+  public static PeetDialog getInstance(final PeetManager manager,
+      final AxisID axisID) {
+    PeetDialog instance = new PeetDialog(manager, axisID);
+    instance.addListeners();
+    return instance;
+  }
+
+  public void updateDisplay(final boolean paramFileSet) {
+    ftfDirectory.setEditable(!paramFileSet);
+    ltfFnOutput.setEditable(!paramFileSet);
+  }
+
+  public Container getContainer() {
+    return rootPanel;
+  }
+
+  public DialogType getDialogType() {
+    return DIALOG_TYPE;
+  }
+
+  public void getParameters(final ParallelParam param) {
+    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
+    processchunksParam.setRootName(ltfFnOutput.getText());
+  }
+
+  public void getParameters(final PeetScreenState screenState) {
+    phSetup.getState(screenState.getPeetSetupHeaderState());
+    phRunParameters.getState(screenState.getPeetRunParametersHeaderState());
+    phRun.getState(screenState.getPeetRunHeaderState());
+  }
+
+  public void setParameters(final ConstPeetScreenState screenState) {
+    phSetup.setState(screenState.getPeetSetupHeaderState());
+    phRunParameters.setState(screenState.getPeetRunParametersHeaderState());
+    phRun.setState(screenState.getPeetRunHeaderState());
+  }
+
+  public void getParameters(final PeetMetaData metaData) {
+    volumeTable.getParameters(metaData);
+    metaData.setReferenceVolume(sReferenceVolume.getValue());
+    metaData.setReferenceParticle(ltfReferenceParticle.getText());
+    metaData.setReferenceFile(ftfReferenceFile.getText());
+    metaData.setEdgeShift(ltfEdgeShift.getText());
+  }
+
+  /**
+   * Set parameters from metaData and then overwrite them with parameters from
+   * MatlabParamFile.  This allows inactive data to appear on the screen but
+   * allows MatlabParamFile's active data to override active metaData.  So if
+   * the user changes the .prm file, the active data on the screen will be
+   * correct.
+   * @param metaData
+   */
+  public void setParameters(final ConstPeetMetaData metaData) {
+    ltfFnOutput.setText(metaData.getName());
+    volumeTable.setParameters(metaData);
+    rbReferenceFile.setSelected(true);
+    ftfReferenceFile.setText(metaData.getReferenceFile());
+    rbReferenceVolume.setSelected(true);
+    sReferenceVolume.setValue(metaData.getReferenceVolume());
+    ltfReferenceParticle.setText(metaData.getReferenceParticle());
+    ltfEdgeShift.setText(metaData.getEdgeShift());
+  }
+
+  /**
+   * Load data from MatlabParamFile.  Load only active data after the meta data
+   * has been loaded.  Do not load fnOutput.  This value cannot be modified after
+   * the dataset has been created.
+   * @param matlabParamFile
+   */
+  public void setParameters(final MatlabParamFile matlabParamFile) {
+    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
+        cbTiltRange.isSelected());
+    iterationTable.setParameters(matlabParamFile);
+    if (matlabParamFile.useReferenceFile()) {
+      rbReferenceFile.setSelected(true);
+      ftfReferenceFile.setText(matlabParamFile.getReferenceFile());
+    }
+    else {
+      rbReferenceVolume.setSelected(true);
+      sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
+      ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
+    }
+    MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile
+        .getInitMotlCode();
+    if (initMotlCode == null) {
+      rbInitMotlFiles.setSelected(true);
+    }
+    else if (initMotlCode == MatlabParamFile.InitMotlCode.ZERO) {
+      rbInitMotlZero.setSelected(true);
+    }
+    else if (initMotlCode == MatlabParamFile.InitMotlCode.Z_AXIS) {
+      rbInitMotlZAxis.setSelected(true);
+    }
+    else if (initMotlCode == MatlabParamFile.InitMotlCode.X_AND_Z_AXIS) {
+      rbInitMotlXAndZAxis.setSelected(true);
+    }
+    cbTiltRange.setSelected(matlabParamFile.useTiltRange());
+    if (cbTiltRange.isSelected()) {
+      ltfEdgeShift.setText(matlabParamFile.getEdgeShift());
+    }
+    ltfSzVolX.setText(matlabParamFile.getSzVolX());
+    ltfSzVolY.setText(matlabParamFile.getSzVolY());
+    ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
+    MatlabParamFile.CCMode ccMode = matlabParamFile.getCcMode();
+    if (ccMode == MatlabParamFile.CCMode.NORMALIZED) {
+      rbCcModeNormalized.setSelected(true);
+    }
+    else if (ccMode == MatlabParamFile.CCMode.LOCAL) {
+      rbCcModeLocal.setSelected(true);
+    }
+    cbMeanFill.setSelected(matlabParamFile.isMeanFill());
+    ltfAlignedBaseName.setText(matlabParamFile.getAlignedBaseName());
+    ltfLowCutoff.setText(matlabParamFile.getLowCutoff());
+    lsDebugLevel.setValue(matlabParamFile.getDebugLevel());
+    ltfLstThresholdsStart.setText(matlabParamFile.getLstThresholdsStart());
+    ltfLstThresholdsIncrement.setText(matlabParamFile.getLstThresholdsIncrement());
+    ltfLstThresholdsEnd.setText(matlabParamFile.getLstThresholdsEnd());
+    ltfLstThresholdsAdditional.setText(matlabParamFile.getLstThresholdsAdditional());
+    updateDisplay();
+  }
+
+  public void getParameters(final MatlabParamFile matlabParamFile) {
+    matlabParamFile.clear();
+    volumeTable.getParameters(matlabParamFile);
+    iterationTable.getParameters(matlabParamFile);
+    matlabParamFile.setFnOutput(ltfFnOutput.getText());
+    if (rbReferenceVolume.isSelected()) {
+      matlabParamFile.setReferenceVolume(sReferenceVolume.getValue());
+      matlabParamFile.setReferenceParticle(ltfReferenceParticle.getText());
+    }
+    else if (rbReferenceFile.isSelected()) {
+      matlabParamFile.setReferenceFile(ftfReferenceFile.getText());
+    }
+    matlabParamFile.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
+        .getSelection()).getEnumeratedType());
+    matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
+    if (ltfEdgeShift.isEnabled()) {
+      matlabParamFile.setEdgeShift(ltfEdgeShift.getText());
+    }
+    matlabParamFile.setSzVolX(ltfSzVolX.getText());
+    matlabParamFile.setSzVolY(ltfSzVolY.getText());
+    matlabParamFile.setSzVolZ(ltfSzVolZ.getText());
+    matlabParamFile.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
+        .getSelection()).getEnumeratedType());
+    matlabParamFile.setMeanFill(cbMeanFill.isSelected());
+    matlabParamFile.setAlignedBaseName(ltfAlignedBaseName.getText());
+    matlabParamFile.setLowCutoff(ltfLowCutoff.getText());
+    matlabParamFile.setDebugLevel(lsDebugLevel.getValue());
+    matlabParamFile.setLstThresholdsStart(ltfLstThresholdsStart.getText());
+    matlabParamFile.setLstThresholdsIncrement(ltfLstThresholdsIncrement.getText());
+    matlabParamFile.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
+    matlabParamFile.setLstThresholdsAdditional(ltfLstThresholdsAdditional.getText());
+  }
+
+  public String getFnOutput() {
+    return ltfFnOutput.getText();
+  }
+
+  public boolean usingParallelProcessing() {
+    return true;
+  }
+
+  public void expand(final ExpandButton button) {
+    if (phSetup.equalsOpenClose(button)) {
+      pnlSetupBody.setVisible(button.isExpanded());
+    }
+    else if (phRunParameters.equalsOpenClose(button)) {
+      pnlRunParametersBody.setVisible(button.isExpanded());
+    }
+    else if (phRunParameters.equalsAdvancedBasic(button)) {
+      updateAdvanceRunParameters(button.isExpanded());
+    }
+    else if (phRun.equalsOpenClose(button)) {
+      pnlRunBody.setVisible(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+
+  public String getDirectory() {
+    return ftfDirectory.getText();
+  }
+
+  public void setDirectory(final String directory) {
+    ftfDirectory.setText(directory);
+  }
+
+  public void setFnOutput(final String output) {
+    ltfFnOutput.setText(output);
+  }
+
+  void msgVolumeTableSizeChanged() {
+    updateDisplay();
+  }
+
+  void setUsingInitMotlFile() {
+    rbInitMotlFiles.setSelected(true);
   }
 
   private void setTooltipText() {
@@ -302,190 +507,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
-  }
-
-  public static PeetDialog getInstance(final PeetManager manager,
-      final AxisID axisID) {
-    PeetDialog instance = new PeetDialog(manager, axisID);
-    instance.addListeners();
-    return instance;
-  }
-
-  public void updateDisplay(final boolean paramFileSet) {
-    ftfDirectory.setEditable(!paramFileSet);
-    ltfFnOutput.setEditable(!paramFileSet);
-  }
-
-  public Container getContainer() {
-    return rootPanel;
-  }
-
-  public DialogType getDialogType() {
-    return DIALOG_TYPE;
-  }
-
-  public void getParameters(final ParallelParam param) {
-    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setRootName(ltfFnOutput.getText());
-  }
-
-  public void getParameters(final PeetScreenState screenState) {
-    phSetup.getState(screenState.getPeetSetupHeaderState());
-  }
-
-  public void setParameters(final ConstPeetScreenState screenState) {
-    phSetup.setState(screenState.getPeetSetupHeaderState());
-  }
-
-  public void getParameters(final PeetMetaData metaData) {
-    volumeTable.getParameters(metaData);
-    metaData.setReferenceVolume(sReferenceVolume.getValue());
-    metaData.setReferenceParticle(ltfReferenceParticle.getText());
-    metaData.setReferenceFile(ftfReferenceFile.getText());
-    metaData.setEdgeShift(ltfEdgeShift.getText());
-  }
-
-  /**
-   * Set parameters from metaData and then overwrite them with parameters from
-   * MatlabParamFile.  This allows inactive data to appear on the screen but
-   * allows MatlabParamFile's active data to override active metaData.  So if
-   * the user changes the .prm file, the active data on the screen will be
-   * correct.
-   * @param metaData
-   */
-  public void setParameters(final ConstPeetMetaData metaData) {
-    ltfFnOutput.setText(metaData.getName());
-    volumeTable.setParameters(metaData);
-    rbReferenceFile.setSelected(true);
-    ftfReferenceFile.setText(metaData.getReferenceFile());
-    rbReferenceVolume.setSelected(true);
-    sReferenceVolume.setValue(metaData.getReferenceVolume());
-    ltfReferenceParticle.setText(metaData.getReferenceParticle());
-    ltfEdgeShift.setText(metaData.getEdgeShift());
-  }
-
-  /**
-   * Load data from MatlabParamFile.  Load only active data after the meta data
-   * has been loaded.  Do not load fnOutput.  This value cannot be modified after
-   * the dataset has been created.
-   * @param matlabParamFile
-   */
-  public void setParameters(final MatlabParamFile matlabParamFile) {
-    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
-        cbTiltRange.isSelected());
-    if (matlabParamFile.useReferenceFile()) {
-      rbReferenceFile.setSelected(true);
-      ftfReferenceFile.setText(matlabParamFile.getReferenceFile());
-    }
-    else {
-      rbReferenceVolume.setSelected(true);
-      sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
-      ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
-    }
-    MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile
-        .getInitMotlCode();
-    if (initMotlCode == null) {
-      rbInitMotlFiles.setSelected(true);
-    }
-    else if (initMotlCode == MatlabParamFile.InitMotlCode.ZERO) {
-      rbInitMotlZero.setSelected(true);
-    }
-    else if (initMotlCode == MatlabParamFile.InitMotlCode.Z_AXIS) {
-      rbInitMotlZAxis.setSelected(true);
-    }
-    else if (initMotlCode == MatlabParamFile.InitMotlCode.X_AND_Z_AXIS) {
-      rbInitMotlXAndZAxis.setSelected(true);
-    }
-    cbTiltRange.setSelected(matlabParamFile.useTiltRange());
-    if (cbTiltRange.isSelected()) {
-      ltfEdgeShift.setText(matlabParamFile.getEdgeShift());
-    }
-    ltfSzVolX.setText(matlabParamFile.getSzVolX());
-    ltfSzVolY.setText(matlabParamFile.getSzVolY());
-    ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
-    MatlabParamFile.CCMode ccMode = matlabParamFile.getCcMode();
-    if (ccMode == MatlabParamFile.CCMode.NORMALIZED) {
-      rbCcModeNormalized.setSelected(true);
-    }
-    else if (ccMode == MatlabParamFile.CCMode.LOCAL) {
-      rbCcModeLocal.setSelected(true);
-    }
-    cbMeanFill.setSelected(matlabParamFile.isMeanFill());
-    ltfAlignedBaseName.setText(matlabParamFile.getAlignedBaseName());
-    ltfLowCutoff.setText(matlabParamFile.getLowCutoff());
-    lsDebugLevel.setValue(matlabParamFile.getDebugLevel());
-    updateDisplay();
-  }
-
-  public void getParameters(final MatlabParamFile matlabParamFile) {
-    matlabParamFile.setFnOutput(ltfFnOutput.getText());
-    volumeTable.getParameters(matlabParamFile);
-    if (rbReferenceVolume.isSelected()) {
-      matlabParamFile.setReferenceVolume(sReferenceVolume.getValue());
-      matlabParamFile.setReferenceParticle(ltfReferenceParticle.getText());
-    }
-    else if (rbReferenceFile.isSelected()) {
-      matlabParamFile.setReferenceFile(ftfReferenceFile.getText());
-    }
-    matlabParamFile.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
-        .getSelection()).getEnumeratedType());
-    matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
-    if (ltfEdgeShift.isEnabled()) {
-      matlabParamFile.setEdgeShift(ltfEdgeShift.getText());
-    }
-    matlabParamFile.setSzVolX(ltfSzVolX.getText());
-    matlabParamFile.setSzVolY(ltfSzVolY.getText());
-    matlabParamFile.setSzVolZ(ltfSzVolZ.getText());
-    matlabParamFile.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
-        .getSelection()).getEnumeratedType());
-    matlabParamFile.setMeanFill(cbMeanFill.isSelected());
-    matlabParamFile.setAlignedBaseName(ltfAlignedBaseName.getText());
-    matlabParamFile.setLowCutoff(ltfLowCutoff.getText());
-    matlabParamFile.setDebugLevel(lsDebugLevel.getValue());
-  }
-
-  public String getFnOutput() {
-    return ltfFnOutput.getText();
-  }
-
-  public boolean usingParallelProcessing() {
-    return true;
-  }
-
-  public void expand(final ExpandButton button) {
-    if (phSetup.equalsOpenClose(button)) {
-      pnlSetupBody.setVisible(button.isExpanded());
-    }
-    else if (phRunParameters.equalsOpenClose(button)) {
-      pnlRunParametersBody.setVisible(button.isExpanded());
-    }
-    else if (phRunParameters.equalsAdvancedBasic(button)) {
-      updateAdvanceRunParameters(button.isExpanded());
-    }
-    else if (phRun.equalsOpenClose(button)) {
-      pnlRunBody.setVisible(button.isExpanded());
-    }
-    UIHarness.INSTANCE.pack(axisID, manager);
-  }
-
-  public String getDirectory() {
-    return ftfDirectory.getText();
-  }
-
-  public void setDirectory(final String directory) {
-    ftfDirectory.setText(directory);
-  }
-
-  public void setFnOutput(final String output) {
-    ltfFnOutput.setText(output);
-  }
-
-  void msgVolumeTableSizeChanged() {
-    updateDisplay();
-  }
-
-  void setUsingInitMotlFile() {
-    rbInitMotlFiles.setSelected(true);
   }
 
   private void updateAdvanceRunParameters(boolean advanced) {
