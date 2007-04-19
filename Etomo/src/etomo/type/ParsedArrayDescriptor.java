@@ -19,6 +19,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/04/13 21:51:03  sueh
+ * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
+ * <p> must be returned with a getDefaulted... function to be accurate.
+ * <p> GetReferenceVolume is returning ParsedElement instead.
+ * <p>
  * <p> Revision 1.4  2007/04/13 20:14:25  sueh
  * <p> bug# 964 Added setRawString(String), which parses a list of numbers separated
  * <p> by :'s.
@@ -34,7 +39,7 @@ import etomo.util.PrimativeTokenizer;
  * <p> </p>
  */
 
-final class ParsedArrayDescriptor extends ParsedElement {
+public final class ParsedArrayDescriptor extends ParsedElement {
   public static final String rcsid = "$Id$";
 
   static final Character DIVIDER_SYMBOL = new Character(':');
@@ -45,16 +50,41 @@ final class ParsedArrayDescriptor extends ParsedElement {
   private Integer defaultValue = null;
   private boolean valid = true;
 
+  /**
+   * When compact is true, only place non-empty elements in the parsable string.
+   */
+  private boolean compact = false;
+  private boolean debug = false;
+
+  public ParsedArrayDescriptor(EtomoNumber.Type etomoNumberType) {
+    this(etomoNumberType, null);
+  }
+
+  public static ParsedArrayDescriptor getCompactInstance(
+      EtomoNumber.Type etomoNumberType) {
+    ParsedArrayDescriptor instance = new ParsedArrayDescriptor(etomoNumberType);
+    instance.compact = true;
+    return instance;
+  }
+
   ParsedArrayDescriptor(EtomoNumber.Type etomoNumberType, Integer defaultValue) {
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
+  }
+
+  public static ParsedArrayDescriptor getCompactInstance(
+      EtomoNumber.Type etomoNumberType, Integer defaultValue) {
+    ParsedArrayDescriptor instance = new ParsedArrayDescriptor(etomoNumberType,
+        defaultValue);
+    instance.compact = true;
+    return instance;
   }
 
   public String toString() {
     return "[descriptor:" + descriptor + "]";
   }
 
-  int size() {
+  public int size() {
     return descriptor.size();
   }
 
@@ -64,6 +94,92 @@ final class ParsedArrayDescriptor extends ParsedElement {
 
   public boolean isEmpty() {
     return size() == 0;
+  }
+
+  public ParsedElement getElement(int index) {
+    return descriptor.get(index);
+  }
+
+  public String getRawString() {
+    return getString(false);
+  }
+
+  /**
+   * Clear the array member variable, and add each element of the ParsedElement
+   * to the array.
+   * @param ParsedElement
+   */
+  public void setElement(ParsedElement elementArray) {
+    descriptor.clear();
+    for (int i = 0; i < elementArray.size(); i++) {
+      descriptor.add(elementArray.getElement(i));
+    }
+  }
+
+  public void setRawString(int index, String string) {
+    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
+    element.setRawString(string);
+    descriptor.set(index, element);
+  }
+
+  public void setRawString(int index, float number) {
+    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
+    element.setRawString(number);
+    descriptor.set(index, element);
+  }
+
+  public void moveElement(int fromIndex, int toIndex) {
+    descriptor.move(fromIndex, toIndex);
+  }
+
+  /**
+   * input is a collection, since it is not indexed, so it is a semi-raw string
+   * - it has :'s
+   */
+  public void setRawString(String input) {
+    descriptor.clear();
+    valid = true;
+    if (input == null) {
+      return;
+    }
+    PrimativeTokenizer tokenizer = createTokenizer(input);
+    StringBuffer buffer = new StringBuffer();
+    Token token = null;
+    try {
+      token = tokenizer.next();
+      parse(token, tokenizer);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      valid = false;
+    }
+  }
+
+  public Number getRawNumber() {
+    return descriptor.get(0).getRawNumber();
+  }
+
+  public Number getRawNumber(int index) {
+    return descriptor.get(index).getRawNumber();
+  }
+
+  public String getRawString(int index) {
+    return descriptor.get(index).getRawString();
+  }
+
+  public EtomoNumber.Type getEtomoNumberType() {
+    return etomoNumberType;
+  }
+
+  public Integer getDefaultValue() {
+    return defaultValue;
+  }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
+    for (int i = 0; i < descriptor.size(); i++) {
+      descriptor.get(i).setDebug(debug);
+    }
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
@@ -96,55 +212,38 @@ final class ParsedArrayDescriptor extends ParsedElement {
     return token;
   }
 
-  ParsedElement getElement(int index) {
-    return descriptor.get(index);
-  }
-
-  public String getRawString() {
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < descriptor.size(); i++) {
-      if (i > 0) {
-        buffer.append(DIVIDER_SYMBOL.charValue());
-      }
-      buffer.append(descriptor.get(i).getRawString());
-    }
-    return buffer.toString();
-  }
-  
-  /**
-   * input is a collection, since it is not indexed, so it is a semi-raw string
-   * - it has :'s
-   */
-  public void setRawString(String input) {
-    descriptor.clear();
-    valid = true;
-    if (input == null) {
-      return;
-    }
-    PrimativeTokenizer tokenizer = createTokenizer(input);
-    StringBuffer buffer = new StringBuffer();
-    Token token = null;
-    try {
-      token = tokenizer.next();
-      parse(token, tokenizer);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      valid = false;
-    }
-    parse(token,tokenizer);
-  }
-
-  public Number getRawNumber() {
-    return descriptor.get(0).getRawNumber();
-  }
-
   boolean isCollection() {
     return true;
   }
 
   String getParsableString() {
-    return getRawString();
+    return getString(true);
+  }
+
+  /**
+   * return the elements of the collection separated by :'s.  If compact is
+   * true and a parsable string is being created, exclude empty elements.
+   * @param parsable - true when creating a parsable string
+   */
+  private String getString(boolean parsable) {
+    StringBuffer buffer = new StringBuffer();
+    boolean emptyString = true;
+    for (int i = 0; i < descriptor.size(); i++) {
+      ParsedElement element = descriptor.get(i);
+      if (!(compact && parsable) || !element.isEmpty()) {
+        if (!emptyString) {
+          buffer.append(DIVIDER_SYMBOL.charValue());
+        }
+        emptyString = false;
+        if (parsable) {
+          buffer.append(descriptor.get(i).getParsableString());
+        }
+        else {
+          buffer.append(descriptor.get(i).getRawString());
+        }
+      }
+    }
+    return buffer.toString();
   }
 
   private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
