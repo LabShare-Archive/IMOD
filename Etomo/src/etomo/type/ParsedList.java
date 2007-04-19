@@ -27,6 +27,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/13 20:19:21  sueh
+ * <p> bug# 964 Added getRawString(int).
+ * <p>
  * <p> Revision 1.3  2007/04/09 21:09:46  sueh
  * <p> bug# 964 Added missing tokenizer.next() call to parseList.
  * <p>
@@ -50,6 +53,8 @@ public final class ParsedList {
   private EtomoNumber.Type etomoNumberType = null;
   private Integer defaultValue = null;
   private boolean valid = true;
+  private boolean flexibleSyntax = false;
+  private boolean debug = false;
 
   private ParsedList(Type type) {
     this.type = type;
@@ -65,6 +70,10 @@ public final class ParsedList {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = new Integer(defaultValue);
+  }
+
+  public static ParsedList getNumericInstance() {
+    return new ParsedList(Type.NUMERIC, null);
   }
 
   public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType) {
@@ -93,6 +102,14 @@ public final class ParsedList {
       EtomoNumber.Type etomoNumberType, int defaultValue) {
     ParsedList instance = new ParsedList(Type.NUMERIC, etomoNumberType,
         defaultValue);
+    instance.parse(attribute);
+    return instance;
+  }
+
+  public static ParsedList getFlexibleNumericInstance(
+      ReadOnlyAttribute attribute, EtomoNumber.Type etomoNumberType) {
+    ParsedList instance = new ParsedList(Type.NUMERIC, etomoNumberType);
+    instance.flexibleSyntax = true;
     instance.parse(attribute);
     return instance;
   }
@@ -129,21 +146,28 @@ public final class ParsedList {
   public int size() {
     return list.size();
   }
-  
+
   public String toString() {
-    return "[list:"+list+"]";
+    return "[list:" + list + "]";
   }
 
   public ParsedElement getElement(int index) {
     return list.get(index);
   }
-  
+
   public String getRawString(int index) {
     return list.get(index).getRawString();
   }
 
   public void addElement(ParsedElement element) {
     list.add(element);
+  }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
+    for (int i = 0; i < list.size(); i++) {
+      list.get(i).setDebug(debug);
+    }
   }
 
   public String getParsableString() {
@@ -209,7 +233,7 @@ public final class ParsedList {
       valid = false;
     }
   }
-  
+
   private PrimativeTokenizer createTokenizer(String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
     try {
@@ -283,6 +307,12 @@ public final class ParsedList {
     ParsedElement element;
     if (type == Type.STRING) {
       element = new ParsedQuotedString();
+    }
+    else if (flexibleSyntax) {
+      //when flexibleSyntax is true, numeric elements are always ParsedArrays
+      //because they can be parsed and written to look like ParsedNumbers when
+      //they are empty or contain only one number
+      element = ParsedArray.getFlexibleInstance(etomoNumberType, defaultValue);
     }
     else if (ParsedArray.isArray(token)) {
       element = new ParsedArray(etomoNumberType, defaultValue);
