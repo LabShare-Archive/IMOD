@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2007/04/13 21:48:36  sueh
+ * <p> bug# 964 Added getDefaultedNumber().
+ * <p>
  * <p> Revision 1.48  2007/04/13 19:52:46  sueh
  * <p> bug# 964 Added getDefaultedBoolean
  * <p>
@@ -539,6 +542,15 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   public boolean isValid(String errorTitle, String description, AxisID axisID) {
     return isValid(true, errorTitle, description, axisID);
+  }
+  
+  public boolean isValid(String errorTitle, String description) {
+    return isValid(true, errorTitle, description, AxisID.ONLY);
+  }
+
+  public boolean isValid(boolean displayErrorMessage, String errorTitle,
+      String description) {
+    return isValid(displayErrorMessage, errorTitle, description, AxisID.ONLY);
   }
 
   /**
@@ -1178,6 +1190,10 @@ public abstract class ConstEtomoNumber implements Storable {
     return displayValue;
   }
 
+  public boolean isDefaultedNull() {
+    return isNull(getDefaultedValue());
+  }
+
   /**
    * If default is set and isNull() is true, defaultValue will be returned, even
    * if displayValue is set.  If defaultValue is not set, or isNull() is false,
@@ -1190,14 +1206,14 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return getValue();
   }
-  
+
   public Number getDefaultedNumber() {
     return newNumber(getDefaultedValue());
   }
-  
+
   public boolean getDefaultedBoolean() {
     Number value = getDefaultedValue();
-    if (isNull(value) || equals(value,newNumber(0))) {
+    if (isNull(value) || equals(value, newNumber(0))) {
       return false;
     }
     return true;
@@ -1308,7 +1324,10 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
-      invalidBuffer.append(value + " is not a valid number.");
+      invalidBuffer.append(value + " is not a valid number.  ");
+      if (type == Type.INTEGER || type == Type.LONG) {
+        invalidBuffer.append("Only a whole number is allowed.  ");
+      }
       return newNumber();
     }
   }
