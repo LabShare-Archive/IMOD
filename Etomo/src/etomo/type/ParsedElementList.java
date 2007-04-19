@@ -20,6 +20,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/04/13 21:51:25  sueh
+ * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
+ * <p> must be returned with a getDefaulted... function to be accurate.
+ * <p> GetReferenceVolume is returning ParsedElement instead.
+ * <p>
  * <p> Revision 1.4  2007/04/13 20:16:30  sueh
  * <p> bug# 964 Made getRawString public.
  * <p>
@@ -60,7 +65,7 @@ final class ParsedElementList {
   ParsedElement get(int index) {
     ParsedElement element = (ParsedElement) map.get(getKey(index));
     if (element == null) {
-      return new EmptyParsedElement();
+      return EmptyParsedElement.INSTANCE;
     }
     return element;
   }
@@ -81,7 +86,7 @@ final class ParsedElementList {
     }
     //if index is ahead of size
     else if (index > size) {
-      size += index;
+      size = index + 1;
     }
   }
 
@@ -94,6 +99,15 @@ final class ParsedElementList {
     size++;
   }
 
+  synchronized void move(int fromIndex, int toIndex) {
+    ParsedElement element = remove(fromIndex);
+    set(toIndex, element);
+  }
+
+  public ParsedElement remove(int index) {
+    return (ParsedElement) map.remove(getKey(index));
+  }
+
   private Integer getKey(int key) {
     return new Integer(key);
   }
@@ -103,12 +117,17 @@ final class ParsedElementList {
    * EmptyParsedElement isn't available outside of ParsedElementList, but it
    * extends ParsedElement and behaves like an empty ParsedElement that is not a
    * collection.
+   * @singleton
+   * @immutable
    */
-  private static final class EmptyParsedElement extends ParsedElement {
+  static final class EmptyParsedElement extends ParsedElement {
     public static final String rcsid = "$Id$";
 
-    boolean valid = true;
-    
+    static final EmptyParsedElement INSTANCE = new EmptyParsedElement();
+
+    private EmptyParsedElement() {
+    }
+
     public String toString() {
       return "[empty]";
     }
@@ -117,20 +136,35 @@ final class ParsedElementList {
       return "";
     }
     
+    public String getRawString(int index) {
+      return "";
+    }
+
     public void setRawString(String input) {
+    }
+    
+    public  void setRawString(int index,String string) {
     }
 
     public Number getRawNumber() {
       return new EtomoNumber().getNumber();
     }
 
-    Token parse(Token token, PrimativeTokenizer tokenizer) {
-      valid=true;
-      return null;
+    public void setDebug(boolean debug) {
     }
 
-    ParsedElement getElement(int index) {
+    public void moveElement(int fromIndex, int toIndex) {
+    }
+
+    public ParsedElement getElement(int index) {
       return this;
+    }
+
+    public void setRawString(int index, float number) {
+    }
+
+    Token parse(Token token, PrimativeTokenizer tokenizer) {
+      return null;
     }
 
     int size() {
@@ -148,9 +182,8 @@ final class ParsedElementList {
     boolean isCollection() {
       return false;
     }
-    
+
     void fail() {
-      valid = false;
     }
   }
 }
