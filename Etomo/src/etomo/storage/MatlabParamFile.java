@@ -42,6 +42,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/04/13 21:47:11  sueh
+ * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
+ * <p> must be returned with a getDefaulted... function to be accurate.
+ * <p> GetReferenceVolume is returning ParsedElement instead.
+ * <p>
  * <p> Revision 1.15  2007/04/13 18:41:59  sueh
  * <p> bug# 964 Writing ccMode, meanFill, and lowCutoff
  * <p>
@@ -129,6 +134,11 @@ public final class MatlabParamFile {
   public static final String EDGE_SHIFT_KEY = "edgeShift";
   public static final int EDGE_SHIFT_DEFAULT = 2;
   public static final String LST_THRESHOLDS_KEY = "lstThresholds";
+  public static final int LST_THRESHOLDS_DESCRIPTOR_INDEX = 0;
+  public static final int LST_THRESHOLDS_ADDITIONAL_INDEX = 1;
+  public static final int LST_THRESHOLDS_START_INDEX = 0;
+  public static final int LST_THRESHOLDS_INCREMENT_INDEX = 1;
+  public static final int LST_THRESHOLDS_END_INDEX = 2;
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
   public static final String MEAN_FILL_KEY = "meanFill";
   public static final boolean MEAN_FILL_DEFAULT = true;
@@ -156,10 +166,10 @@ public final class MatlabParamFile {
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
   private final ParsedArray reference = new ParsedArray();
-  private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private final File file;
-  private InitMotlCode initMotlCode = null;
-  private CCMode ccMode = null;
+  private String lowCutoff = LOW_CUTOFF_DEFAULT;
+  private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
+  private CCMode ccMode = CCMode.DEFAULT;
   private boolean tiltRangeEmpty = false;
   private boolean useReferenceFile = false;
   private boolean newFile;
@@ -173,18 +183,18 @@ public final class MatlabParamFile {
    * Reads data from the .prm autodoc.
    */
   public synchronized void read() {
+    clear();
+    //if newFile is on, either there is no file, or the user doesn't want to read it
+    if (newFile) {
+      return;
+    }
     try {
       ReadOnlyAutodoc autodoc = null;
-      if (newFile) {
-        autodoc = (AutodocFactory.getEmptyMatlabInstance(file));
-      }
-      else {
-        autodoc = (AutodocFactory.getMatlabInstance(file));
-        if (autodoc == null) {
-          UIHarness.INSTANCE.openMessageDialog("Unable to read "
-              + file.getName() + ".", "File Error");
-          return;
-        }
+      autodoc = (AutodocFactory.getMatlabInstance(file));
+      if (autodoc == null) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
+            + ".", "File Error");
+        return;
       }
       parseData(autodoc);
     }
@@ -224,46 +234,35 @@ public final class MatlabParamFile {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      WritableAutodoc autodoc = null;
-      if (!newFile) {
-        //try to get the existing .prm autodoc, unless this is an new PEET
-        autodoc = AutodocFactory.getMatlabInstance(file);
-      }
-      if (autodoc != null) {
-        //found an existing .prm autodoc - update it.
-        updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
+      //get an empty .prm autodoc
+      WritableAutodoc autodoc = AutodocFactory.getEmptyMatlabInstance(file);
+      if (commentAutodoc == null) {
+        //The peetprm.adoc is not available.
+        //Build a new .prm autodoc with no comments
+        updateOrBuildAutodoc(valueMap, autodoc, null);
       }
       else {
-        //get an empty .prm autodoc
-        autodoc = AutodocFactory.getEmptyMatlabInstance(file);
-        if (commentAutodoc == null) {
-          //The peetprm.adoc is not available.
+        //Get the Field sections from the peetprm.adoc
+        SectionLocation secLoc = commentAutodoc
+            .getSectionLocation(EtomoAutodoc.FIELD_SECTION_NAME);
+        if (secLoc == null) {
+          //There are no Field sections in the peetprm.adoc.
           //Build a new .prm autodoc with no comments
           updateOrBuildAutodoc(valueMap, autodoc, null);
         }
         else {
-          //Get the Field sections from the peetprm.adoc
-          SectionLocation secLoc = commentAutodoc
-              .getSectionLocation(EtomoAutodoc.FIELD_SECTION_NAME);
-          if (secLoc == null) {
-            //There are no Field sections in the peetprm.adoc.
-            //Build a new .prm autodoc with no comments
-            updateOrBuildAutodoc(valueMap, autodoc, null);
-          }
-          else {
-            //Build a new .prm autodoc.  Use the Field sections from the
-            //peetprm.adoc to dictate the order of the name/value pairs.
-            //Also use the comments from the peetprm.adoc Field sections.
-            ReadOnlySection section = null;
-            while ((section = commentAutodoc.nextSection(secLoc)) != null) {
-              addNameValuePair(autodoc, section.getName(), (String) valueMap
-                  .get(section.getName()), section
-                  .getAttribute(EtomoAutodoc.COMMENT_KEY));
-            }
+          //Build a new .prm autodoc.  Use the Field sections from the
+          //peetprm.adoc to dictate the order of the name/value pairs.
+          //Also use the comments from the peetprm.adoc Field sections.
+          ReadOnlySection section = null;
+          while ((section = commentAutodoc.nextSection(secLoc)) != null) {
+            addNameValuePair(autodoc, section.getName(), (String) valueMap
+                .get(section.getName()), section
+                .getAttribute(EtomoAutodoc.COMMENT_KEY));
           }
         }
       }
-      //write the autodoc file
+      //write the autodoc file (the backup is done by autodoc)
       autodoc.write();
       //the file is written, so it is no longer new
       newFile = false;
@@ -296,6 +295,17 @@ public final class MatlabParamFile {
       return volume;
     }
     return (Volume) volumeList.get(index);
+  }
+
+  public Iteration getIteration(final int index) {
+    Iteration iteration;
+    if (index == iterationList.size()) {
+      iteration = new Iteration();
+      iteration.setLowCutoff(lowCutoff);
+      iterationList.add(iteration);
+      return iteration;
+    }
+    return (Iteration) iterationList.get(index);
   }
 
   public String getFnVolume(final int index) {
@@ -356,7 +366,7 @@ public final class MatlabParamFile {
 
   public void setReferenceVolume(final Number referenceVolume) {
     useReferenceFile = false;
-    reference.setRawNumber(REFERENCE_VOLUME_INDEX, referenceVolume.toString());
+    reference.setRawString(REFERENCE_VOLUME_INDEX, referenceVolume.toString());
   }
 
   public String getReferenceParticle() {
@@ -371,6 +381,28 @@ public final class MatlabParamFile {
     this.edgeShift.setRawString(edgeShift);
   }
 
+  public void clear() {
+    particlePerCpu.clear();
+    szVol.clear();
+    fnOutput.clear();
+    refFlagAllTom.clear();
+    edgeShift.clear();
+    lstThresholds.clear();
+    lstFlagAllTom.clear();
+    meanFill.clear();
+    alignedBaseName.clear();
+    debugLevel.clear();
+    volumeList.clear();
+    iterationList.clear();
+    referenceFile.clear();
+    reference.clear();
+    lowCutoff = LOW_CUTOFF_DEFAULT;
+    initMotlCode = InitMotlCode.DEFAULT;
+    ccMode = CCMode.DEFAULT;
+    tiltRangeEmpty = false;
+    useReferenceFile = false;
+  }
+
   public void clearEdgeShift() {
     edgeShift.clear();
   }
@@ -380,15 +412,15 @@ public final class MatlabParamFile {
   }
 
   public void setSzVolX(String szVolX) {
-    szVol.setRawNumber(SZ_VOL_X_INDEX, szVolX);
+    szVol.setRawString(SZ_VOL_X_INDEX, szVolX);
   }
 
   public void setSzVolY(String szVolY) {
-    szVol.setRawNumber(SZ_VOL_Y_INDEX, szVolY);
+    szVol.setRawString(SZ_VOL_Y_INDEX, szVolY);
   }
 
   public void setSzVolZ(String szVolZ) {
-    szVol.setRawNumber(SZ_VOL_Z_INDEX, szVolZ);
+    szVol.setRawString(SZ_VOL_Z_INDEX, szVolZ);
   }
 
   /**
@@ -415,11 +447,11 @@ public final class MatlabParamFile {
       ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff);
     }
   }
-  
+
   public void setDebugLevel(Number input) {
     debugLevel.setRawString(input.toString());
   }
-  
+
   public Number getDebugLevel() {
     return debugLevel.getRawNumber();
   }
@@ -442,7 +474,7 @@ public final class MatlabParamFile {
 
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
-    reference.setRawNumber(REFERENCE_PARTICLE_INDEX, referenceParticle
+    reference.setRawString(REFERENCE_PARTICLE_INDEX, referenceParticle
         .toString());
   }
 
@@ -455,12 +487,79 @@ public final class MatlabParamFile {
     return volumeList.size();
   }
 
+  public int getIterationListSize() {
+    return iterationList.size();
+  }
+
   public void setVolumeListSize(final int size) {
-    if (volumeList.size() == 0) {
-      for (int i = 0; i < size; i++) {
-        volumeList.add(new Volume());
-      }
+    for (int i = volumeList.size(); i < size; i++) {
+      volumeList.add(new Volume());
     }
+  }
+
+  public void setIterationListSize(final int size) {
+    for (int i = iterationList.size(); i < size; i++) {
+      Iteration iteration = new Iteration();
+      iteration.setLowCutoff(lowCutoff);
+      iterationList.add(iteration);
+    }
+  }
+
+  public void setLstThresholdsStart(String input) {
+    lstThresholds.setRawString(LST_THRESHOLDS_DESCRIPTOR_INDEX,
+        LST_THRESHOLDS_START_INDEX, input);
+  }
+
+  public void setLstThresholdsIncrement(String input) {
+    lstThresholds.setRawString(LST_THRESHOLDS_DESCRIPTOR_INDEX,
+        LST_THRESHOLDS_INCREMENT_INDEX, input);
+  }
+
+  public void setLstThresholdsEnd(String input) {
+    lstThresholds.setRawString(LST_THRESHOLDS_DESCRIPTOR_INDEX,
+        LST_THRESHOLDS_END_INDEX, input);
+  }
+
+  public void setLstThresholdsAdditional(String input) {
+    lstThresholds.setRawStrings(LST_THRESHOLDS_ADDITIONAL_INDEX, input);
+  }
+
+  /**
+   * Find the descriptor and return the first value from it.  The descriptor is
+   * optional, so we can't blindly take the value from the first element.
+   * @return
+   */
+  public String getLstThresholdsStart() {
+    ParsedElement descriptor = lstThresholds.getDescriptor();
+    return descriptor.getRawString(LST_THRESHOLDS_START_INDEX);
+  }
+
+  /**
+   * Find the descriptor and return the second value from it.  The descriptor is
+   * optional, so we can't blindly take the value from the first element.
+   * @return
+   */
+  public String getLstThresholdsIncrement() {
+    ParsedElement descriptor = lstThresholds.getDescriptor();
+    return descriptor.getRawString(LST_THRESHOLDS_INCREMENT_INDEX);
+  }
+
+  /**
+   * Find the descriptor and return the third value from it.  The descriptor is
+   * optional, so we can't blindly take the value from the first element.
+   * @return
+   */
+  public String getLstThresholdsEnd() {
+    ParsedElement descriptor = lstThresholds.getDescriptor();
+    return descriptor.getRawString(LST_THRESHOLDS_END_INDEX);
+  }
+
+  /**
+   * Find all the numbers after the descriptor and return their values
+   * @return
+   */
+  public String getLstThresholdsAdditional() {
+    return lstThresholds.getRawStrings(lstThresholds.getDescriptorIndex() + 1);
   }
 
   /**
@@ -580,10 +679,10 @@ public final class MatlabParamFile {
         .getAttribute(SEARCH_RADIUS_KEY));
     size = Math.max(size, searchRadius.size());
     //lowCutoff
-    ParsedList lowCutoff = ParsedList.getNumericInstance(autodoc
-        .getAttribute(HI_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList lowCutoff = ParsedList.getFlexibleNumericInstance(autodoc
+        .getAttribute(LOW_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
     //hiCutoff
-    ParsedList hiCutoff = ParsedList.getNumericInstance(autodoc
+    ParsedList hiCutoff = ParsedList.getFlexibleNumericInstance(autodoc
         .getAttribute(HI_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
     size = Math.max(size, hiCutoff.size());
     //refThreshold
@@ -623,10 +722,10 @@ public final class MatlabParamFile {
     ParsedElement szVolX = szVol.getElement(0);
     if (!szVolX.isEmpty()) {
       if (szVol.isEmpty(SZ_VOL_Y_INDEX)) {
-        szVol.setRawNumber(SZ_VOL_Y_INDEX, szVolX.toString());
+        szVol.setRawString(SZ_VOL_Y_INDEX, szVolX.toString());
       }
       if (szVol.isEmpty(SZ_VOL_Z_INDEX)) {
-        szVol.setRawNumber(SZ_VOL_Z_INDEX, szVolX.toString());
+        szVol.setRawString(SZ_VOL_Z_INDEX, szVolX.toString());
       }
     }
     valueMap.put(SZ_VOL_KEY, szVol.getParsableString());
@@ -640,6 +739,7 @@ public final class MatlabParamFile {
     valueMap.put(MEAN_FILL_KEY, meanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
+    valueMap.put(LST_THRESHOLDS_KEY, lstThresholds.getParsableString());
   }
 
   /**
@@ -686,13 +786,33 @@ public final class MatlabParamFile {
    * @param valueMap
    */
   private void buildParsableIterationValues(final Map valueMap) {
-    ParsedList lowCutoff = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dPhi = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dTheta = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dPsi = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList searchRadius = ParsedList.getNumericInstance();
+    ParsedList lowCutoff = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList hiCutoff = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList refThreshold = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
     //build the lists
     for (int i = 0; i < iterationList.size(); i++) {
       Iteration iteration = (Iteration) iterationList.get(i);
+      dPhi.addElement(iteration.getDPhi());
+      dTheta.addElement(iteration.getDTheta());
+      dPsi.addElement(iteration.getDPsi());
+      searchRadius.addElement(iteration.getSearchRadius());
       lowCutoff.addElement(iteration.getLowCutoff());
+      hiCutoff.addElement(iteration.getHiCutoff());
+      refThreshold.addElement(iteration.getRefThreshold());
     }
+    valueMap.put(D_PHI_KEY, dPhi.getParsableString());
+    valueMap.put(D_THETA_KEY, dTheta.getParsableString());
+    valueMap.put(D_PSI_KEY, dPsi.getParsableString());
+    valueMap.put(SEARCH_RADIUS_KEY, searchRadius.getParsableString());
     valueMap.put(LOW_CUTOFF_KEY, lowCutoff.getParsableString());
+    valueMap.put(HI_CUTOFF_KEY, hiCutoff.getParsableString());
+    valueMap.put(REF_THRESHOLD_KEY, refThreshold.getParsableString());
   }
 
   /**
@@ -748,6 +868,8 @@ public final class MatlabParamFile {
         .get(ALIGNED_BASE_NAME_KEY), commentMap);
     setNameValuePairValue(autodoc, DEBUG_LEVEL_KEY, (String) valueMap
         .get(DEBUG_LEVEL_KEY), commentMap);
+    setNameValuePairValue(autodoc, LST_THRESHOLDS_KEY, (String) valueMap
+        .get(LST_THRESHOLDS_KEY), commentMap);
   }
 
   /**
@@ -778,8 +900,20 @@ public final class MatlabParamFile {
    */
   private void setIterationNameValuePairValues(final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
+    setNameValuePairValue(autodoc, D_PHI_KEY, (String) valueMap.get(D_PHI_KEY),
+        commentMap);
+    setNameValuePairValue(autodoc, D_THETA_KEY, (String) valueMap
+        .get(D_THETA_KEY), commentMap);
+    setNameValuePairValue(autodoc, D_PSI_KEY, (String) valueMap.get(D_PSI_KEY),
+        commentMap);
+    setNameValuePairValue(autodoc, SEARCH_RADIUS_KEY, (String) valueMap
+        .get(SEARCH_RADIUS_KEY), commentMap);
     setNameValuePairValue(autodoc, LOW_CUTOFF_KEY, (String) valueMap
         .get(LOW_CUTOFF_KEY), commentMap);
+    setNameValuePairValue(autodoc, HI_CUTOFF_KEY, (String) valueMap
+        .get(HI_CUTOFF_KEY), commentMap);
+    setNameValuePairValue(autodoc, REF_THRESHOLD_KEY, (String) valueMap
+        .get(REF_THRESHOLD_KEY), commentMap);
   }
 
   /**
@@ -879,6 +1013,7 @@ public final class MatlabParamFile {
     public static final InitMotlCode Z_AXIS = new InitMotlCode(Z_AXIS_VALUE);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(
         X_AND_Z_AXIS_VALUE);
+    public static final InitMotlCode DEFAULT = ZERO;
 
     private final EtomoNumber value;
 
@@ -891,7 +1026,7 @@ public final class MatlabParamFile {
     }
 
     public boolean isDefault() {
-      if (this == ZERO) {
+      if (this == DEFAULT) {
         return true;
       }
       return false;
@@ -899,11 +1034,11 @@ public final class MatlabParamFile {
 
     private static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
       if (attribute == null) {
-        return ZERO;
+        return DEFAULT;
       }
       String value = attribute.getValue();
       if (value == null) {
-        return ZERO;
+        return DEFAULT;
       }
       if (ZERO_VALUE.equals(value)) {
         return ZERO;
@@ -914,7 +1049,7 @@ public final class MatlabParamFile {
       if (X_AND_Z_AXIS_VALUE.equals(value)) {
         return X_AND_Z_AXIS;
       }
-      return ZERO;
+      return DEFAULT;
     }
   }
 
@@ -925,6 +1060,7 @@ public final class MatlabParamFile {
 
     public static final CCMode NORMALIZED = new CCMode(NORMALIZED_VALUE);
     public static final CCMode LOCAL = new CCMode(LOCAL_VALUE);
+    public static final CCMode DEFAULT = NORMALIZED;
 
     private final ConstEtomoNumber value;
 
@@ -933,7 +1069,7 @@ public final class MatlabParamFile {
     }
 
     public boolean isDefault() {
-      if (this == NORMALIZED) {
+      if (this == DEFAULT) {
         return true;
       }
       return false;
@@ -941,11 +1077,11 @@ public final class MatlabParamFile {
 
     private static CCMode getInstance(final ReadOnlyAttribute attribute) {
       if (attribute == null) {
-        return NORMALIZED;
+        return DEFAULT;
       }
       String value = attribute.getValue();
       if (value == null) {
-        return NORMALIZED;
+        return DEFAULT;
       }
       if (NORMALIZED_VALUE.equals(value)) {
         return NORMALIZED;
@@ -953,7 +1089,7 @@ public final class MatlabParamFile {
       if (LOCAL_VALUE.equals(value)) {
         return LOCAL;
       }
-      return NORMALIZED;
+      return DEFAULT;
     }
 
     public String toString() {
@@ -1016,7 +1152,7 @@ public final class MatlabParamFile {
     }
 
     public void setTiltRangeStart(final String tiltRangeStart) {
-      tiltRange.setRawNumber(TILT_RANGE_START_INDEX, tiltRangeStart);
+      tiltRange.setRawString(TILT_RANGE_START_INDEX, tiltRangeStart);
     }
 
     public String getTiltRangeEnd() {
@@ -1024,7 +1160,7 @@ public final class MatlabParamFile {
     }
 
     public void setTiltRangeEnd(String tiltRangeEnd) {
-      tiltRange.setRawNumber(TILT_RANGE_END_INDEX, tiltRangeEnd);
+      tiltRange.setRawString(TILT_RANGE_END_INDEX, tiltRangeEnd);
     }
 
     public String getRelativeOrientX() {
@@ -1032,7 +1168,7 @@ public final class MatlabParamFile {
     }
 
     public void setRelativeOrientX(final String relativeOrientX) {
-      relativeOrient.setRawNumber(RELATIVE_ORIENT_X_INDEX, relativeOrientX);
+      relativeOrient.setRawString(RELATIVE_ORIENT_X_INDEX, relativeOrientX);
     }
 
     public String getRelativeOrientY() {
@@ -1040,7 +1176,7 @@ public final class MatlabParamFile {
     }
 
     public void setRelativeOrientY(final String relativeOrientY) {
-      relativeOrient.setRawNumber(RELATIVE_ORIENT_Y_INDEX, relativeOrientY);
+      relativeOrient.setRawString(RELATIVE_ORIENT_Y_INDEX, relativeOrientY);
     }
 
     public String getRelativeOrientZ() {
@@ -1048,7 +1184,7 @@ public final class MatlabParamFile {
     }
 
     public void setRelativeOrientZ(final String relativeOrientZ) {
-      relativeOrient.setRawNumber(RELATIVE_ORIENT_Z_INDEX, relativeOrientZ);
+      relativeOrient.setRawString(RELATIVE_ORIENT_Z_INDEX, relativeOrientZ);
     }
 
     private ParsedQuotedString getFnVolume() {
@@ -1072,74 +1208,240 @@ public final class MatlabParamFile {
     }
 
     private void setTiltRange(final ParsedElement tiltRange) {
-      this.tiltRange.setElementArray(tiltRange);
+      this.tiltRange.setElement(tiltRange);
     }
 
     private void setRelativeOrient(final ParsedElement relativeOrient) {
-      this.relativeOrient.setElementArray(relativeOrient);
+      this.relativeOrient.setElement(relativeOrient);
     }
   }
 
-  private static final class Iteration {
-    private final ParsedArray dPhi = new ParsedArray(EtomoNumber.Type.FLOAT);
-    private final ParsedArray dTheta = new ParsedArray(EtomoNumber.Type.FLOAT);
-    private final ParsedArray dPsi = new ParsedArray(EtomoNumber.Type.FLOAT);
+  public static final class Iteration {
+    private static final int SEARCH_SPACE_DESCRIPTOR_INDEX = 0;
+    private static final int SEARCH_SPACE_START_INDEX = 0;
+    private static final int SEARCH_SPACE_INCREMENT_INDEX = 1;
+    private static final int SEARCH_SPACE_END_INDEX = 2;
+    private static final int HI_CUTOFF_CUTOFF_INDEX = 0;
+    private static final int HI_CUTOFF_SIGMA_INDEX = 1;
+
     private final ParsedNumber searchRadius = new ParsedNumber();
-    private ParsedElement lowCutoff = null;
-    private ParsedElement hiCutoff = null;
+    private final ParsedArray lowCutoff = ParsedArray
+        .getFlexibleInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedArray hiCutoff = ParsedArray
+        .getFlexibleInstance(EtomoNumber.Type.FLOAT);
     private final ParsedNumber refThreshold = new ParsedNumber(
         EtomoNumber.Type.FLOAT);
 
-    private void setDPhi(final ParsedElement dPhi) {
-      this.dPhi.setElementArray(dPhi);
+    //search spaces
+    private final ParsedArray dPhi = ParsedArray
+        .getCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedArray dTheta = ParsedArray
+        .getCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedArray dPsi = ParsedArray
+        .getCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+
+    public void setDPhiStart(final String input) {
+      dPhi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX, input);
     }
 
-    private void setDTheta(final ParsedElement dTheta) {
-      this.dTheta.setElementArray(dTheta);
+    public void setDThetaStart(final String input) {
+      dTheta.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX, input);
     }
 
-    private void setDPsi(final ParsedElement dPsi) {
-      this.dPsi.setElementArray(dPsi);
+    public void setDPsiStart(final String input) {
+      dPsi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX, input);
+    }
+
+    public void setDPhiIncrement(final String input) {
+      dPhi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_INCREMENT_INDEX, input);
+    }
+
+    public void setDThetaIncrement(final String input) {
+      dTheta.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_INCREMENT_INDEX, input);
+    }
+
+    public void setDPsiIncrement(final String input) {
+      dPsi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_INCREMENT_INDEX, input);
+    }
+
+    public void setSearchRadius(final String input) {
+      this.searchRadius.setRawString(input);
+    }
+
+    public String getDPhiStart() {
+      return dPhi.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX);
+    }
+
+    public String getDThetaStart() {
+      return dTheta.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX);
+    }
+
+    public String getDPsiStart() {
+      return dPsi.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX);
+    }
+
+    public void setHiCutoffCutoff(String input) {
+      hiCutoff.setRawString(HI_CUTOFF_CUTOFF_INDEX, input);
+    }
+
+    public void setHiCutoffSigma(String input) {
+      hiCutoff.setRawString(HI_CUTOFF_SIGMA_INDEX, input);
+    }
+
+    public void setRefThreshold(String input) {
+      refThreshold.setRawString(input);
+    }
+
+    /**
+     * assume that the current format is start:inc:end even if inc is empty
+     * @return inc
+     */
+    public String getDPhiIncrement() {
+      return dPhi.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_INCREMENT_INDEX);
+    }
+
+    /**
+     * assume that the current format is start:inc:end even if inc is empty
+     * @return inc
+     */
+    public String getDThetaIncrement() {
+      return dTheta.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_INCREMENT_INDEX);
+    }
+
+    /**
+     * assume that the current format is start:inc:end even if inc is empty
+     * @return inc
+     */
+    public String getDPsiIncrement() {
+      return dPsi.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_INCREMENT_INDEX);
+    }
+
+    public String getSearchRadiusString() {
+      return searchRadius.getRawString();
+    }
+
+    public String getHiCutoffCutoff() {
+      return hiCutoff.getRawString(HI_CUTOFF_CUTOFF_INDEX);
+    }
+
+    public String getHiCutoffSigma() {
+      return hiCutoff.getRawString(HI_CUTOFF_SIGMA_INDEX);
+    }
+
+    public String getRefThresholdString() {
+      return refThreshold.getRawString();
+    }
+
+    private void setDPhi(final ParsedElement input) {
+      dPhi.setElement(input);
+      moveSearchSpaceEndValue(dPhi);
+    }
+
+    private void setDTheta(final ParsedElement input) {
+      dTheta.setElement(input);
+      moveSearchSpaceEndValue(dTheta);
+    }
+
+    private void setDPsi(final ParsedElement input) {
+      dPsi.setElement(input);
+      moveSearchSpaceEndValue(dPsi);
+    }
+
+    private ParsedElement getDPhi() {
+      addSearchSpaceEndValue(dPhi);
+      return dPhi;
+    }
+
+    private ParsedElement getDTheta() {
+      addSearchSpaceEndValue(dTheta);
+      return dTheta;
+    }
+
+    private ParsedElement getDPsi() {
+      addSearchSpaceEndValue(dPsi);
+      return dPsi;
     }
 
     private void setSearchRadius(final ParsedElement searchRadius) {
       this.searchRadius.setElement(searchRadius);
     }
 
+    private ParsedElement getSearchRadius() {
+      return searchRadius;
+    }
+
     private void setLowCutoff(final ParsedElement input) {
-      lowCutoff = input;
+      lowCutoff.setElement(input);
+    }
+
+    private void setHiCutoff(final ParsedElement input) {
+      hiCutoff.setElement(input);
     }
 
     private void setLowCutoff(final String input) {
-      //find out whether input is a number or an array
-      EtomoNumber test = new EtomoNumber(EtomoNumber.Type.FLOAT);
-      test.set(input);
-      if (input == null || input.matches("\\s*") || !test.isNull()) {
-        lowCutoff = new ParsedNumber(EtomoNumber.Type.FLOAT);
-      }
-      else {
-        lowCutoff = new ParsedArray(EtomoNumber.Type.FLOAT);
-      }
       lowCutoff.setRawString(input);
     }
-    
+
     private ParsedElement getLowCutoff() {
       return lowCutoff;
     }
 
+    private ParsedElement getHiCutoff() {
+      return hiCutoff;
+    }
+
     private String getLowCutoffString() {
-      if (lowCutoff == null) {
+      if (lowCutoff.isEmpty()) {
         return LOW_CUTOFF_DEFAULT;
       }
       return lowCutoff.getRawString();
     }
 
-    private void setHiCutoff(final ParsedElement hiCutoff) {
-      this.hiCutoff = hiCutoff;
+    private ParsedElement getRefThreshold() {
+      return refThreshold;
     }
 
     private void setRefThreshold(final ParsedElement refThreshold) {
       this.refThreshold.setElement(refThreshold);
+    }
+
+    /**
+     * Convert the array descriptor format start:end to start:inc:end, with an
+     * empty inc.
+     * @param array
+     */
+    private void moveSearchSpaceEndValue(ParsedArray array) {
+      if (array.getElement(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_END_INDEX).isEmpty()) {
+        //assume that the end value is in the increment value location
+        array.moveElement(SEARCH_SPACE_DESCRIPTOR_INDEX,
+            SEARCH_SPACE_INCREMENT_INDEX, SEARCH_SPACE_END_INDEX);
+      }
+    }
+
+    /**
+     * The end value is always -1 times the start value.
+     * @param array
+     */
+    private void addSearchSpaceEndValue(ParsedArray array) {
+      ParsedElement start = array.getElement(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_START_INDEX);
+      if (!start.isEmpty()) {
+        array.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
+            SEARCH_SPACE_END_INDEX, start.getRawNumber().floatValue() * -1);
+      }
     }
   }
 }
