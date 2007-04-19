@@ -20,6 +20,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/04/13 21:51:53  sueh
+ * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
+ * <p> must be returned with a getDefaulted... function to be accurate.
+ * <p> GetReferenceVolume is returning ParsedElement instead.
+ * <p>
  * <p> Revision 1.4  2007/04/13 20:31:50  sueh
  * <p> bug# 964 Changed functionality:  An empty string should return ''.  This works with the requirements for alignedBaseName.
  * <p>
@@ -41,6 +46,7 @@ public final class ParsedQuotedString extends ParsedElement {
 
   private String rawString = "";
   private boolean valid = true;
+  private boolean debug = false;
 
   public ParsedQuotedString() {
   }
@@ -92,6 +98,20 @@ public final class ParsedQuotedString extends ParsedElement {
   public String getRawString() {
     return rawString;
   }
+  
+  public String getRawString(int index) {
+    if (index == 0) {
+      return rawString;
+    }
+    return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
+  }
+  
+  public void setRawString (int index ,String string){
+    if (index!=0) {
+      return;
+    }
+    rawString=string;
+  }
 
   public Number getRawNumber() {
     EtomoNumber etomoNumber = new EtomoNumber();
@@ -116,6 +136,27 @@ public final class ParsedQuotedString extends ParsedElement {
 
   public String toString() {
     return "[rawString:" + rawString + "]";
+  }
+  
+  public void moveElement(int fromIndex, int toIndex) {
+  }
+  
+  public void clear() {
+    rawString = "";
+  }
+  
+  public ParsedElement getElement(int index) {
+    if (index == 0) {
+      return this;
+    }
+    return ParsedElementList.EmptyParsedElement.INSTANCE;
+  }
+  
+  public void setRawString(int index,float number) {
+    if (index>0) {
+      return;
+    }
+    rawString=String.valueOf(number);
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
@@ -155,12 +196,9 @@ public final class ParsedQuotedString extends ParsedElement {
   boolean isCollection() {
     return false;
   }
-
-  ParsedElement getElement(int index) {
-    if (index == 0) {
-      return this;
-    }
-    return null;
+  
+  void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
   int size() {
