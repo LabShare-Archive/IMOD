@@ -36,13 +36,18 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/02 21:52:06  sueh
+ * <p> bug# 964 Disabling initMotlFile column and button when PeetDialog.rbInitMotlFile
+ * <p> is not selected.  Disabling tiltRange column when PeetDialog.cbTiltRange is not
+ * <p> selected.
+ * <p>
  * <p> Revision 1.1  2007/04/02 16:03:05  sueh
  * <p> bug# 964 Contains per iteration PEET data.
  * <p> </p>
  */
 final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
-
+  
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
@@ -105,6 +110,31 @@ final class IterationTable implements Highlightable {
 
   Container getContainer() {
     return rootPanel;
+  }
+  
+  void getParameters(final MatlabParamFile matlabParamFile) {
+    rowList.getParameters(matlabParamFile);
+  }
+  
+  void setParameters(final MatlabParamFile matlabParamFile) {
+    //overwrite existing rows
+    int rowListSize = rowList.size();
+    for (int i = 0;i<rowListSize;i++) {
+      rowList.getRow(i).setParameters(matlabParamFile);
+    }
+    //add new rows
+    for (int j = rowListSize; j < matlabParamFile.getIterationListSize(); j++) {
+      IterationRow row = addRow();
+      row.setParameters(matlabParamFile);
+    }
+    updateDisplay();
+    UIHarness.INSTANCE.pack(manager);
+  }
+  
+  private IterationRow addRow() {
+    IterationRow row = rowList.add(this, pnlTable, layout, constraints);
+    row.display();
+    return row;
   }
 
   private void setToolTipText() {
@@ -270,13 +300,21 @@ final class IterationTable implements Highlightable {
   private static final class RowList {
     private final List list = new ArrayList();
 
-    private synchronized void add(final Highlightable parent,
+    private synchronized IterationRow add(final Highlightable parent,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
       int index = list.size();
       IterationRow row = new IterationRow(index, parent, panel, layout,
           constraints);
       list.add(row);
+      return row;
+    }
+    
+    private void getParameters(final MatlabParamFile matlabParamFile) {
+      matlabParamFile.setIterationListSize(list.size());
+      for (int i = 0; i < list.size(); i++) {
+        ((IterationRow) list.get(i)).getParameters(matlabParamFile);
+      }
     }
 
     private synchronized void copy(IterationRow row,
@@ -287,11 +325,19 @@ final class IterationTable implements Highlightable {
       list.add(copy);
       copy.display();
     }
+    
+    private int size() {
+      return list.size();
+    }
 
     private void display() {
       for (int i = 0; i < list.size(); i++) {
         ((IterationRow) list.get(i)).display();
       }
+    }
+    
+    private IterationRow getRow(int index) {
+      return (IterationRow) list.get(index);
     }
 
     private IterationRow getHighlightedRow() {
