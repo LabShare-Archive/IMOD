@@ -5,6 +5,8 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
 
+import etomo.storage.MatlabParamFile;
+
 /**
  * <p>Description: </p>
  * 
@@ -19,6 +21,11 @@ import javax.swing.JPanel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/02 21:50:05  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
  * <p> Revision 1.1  2007/04/02 16:02:49  sueh
  * <p> bug# 964 A row of the iteration table, which contain per iteration PEET data.
  * <p> </p>
@@ -34,7 +41,7 @@ final class IterationRow implements Highlightable{
   private final FieldCell dPsiStart =  FieldCell.getEditableInstance();
   private final FieldCell dPsiIncrement =  FieldCell.getEditableInstance();
   private final FieldCell searchRadius =  FieldCell.getEditableInstance();
-  private final FieldCell hiCutoff= FieldCell.getEditableInstance();
+  private final FieldCell hiCutoffCutoff= FieldCell.getEditableInstance();
   private final FieldCell hiCutoffSigma= FieldCell.getEditableInstance();
   private final FieldCell refThreshold =  FieldCell.getEditableInstance();
   
@@ -71,7 +78,7 @@ final class IterationRow implements Highlightable{
     dPsiStart.setValue(iterationRow.dPsiStart.getValue());
     dPsiIncrement.setValue(iterationRow.dPsiIncrement.getValue());
     searchRadius.setValue(iterationRow.searchRadius.getValue());
-    hiCutoff.setValue(iterationRow.hiCutoff.getValue());
+    hiCutoffCutoff.setValue(iterationRow.hiCutoffCutoff.getValue());
     hiCutoffSigma.setValue(iterationRow.hiCutoffSigma.getValue());
     refThreshold.setValue(iterationRow.refThreshold.getValue());
   }
@@ -84,9 +91,37 @@ final class IterationRow implements Highlightable{
     dPsiStart.setHighlight(highlight);
     dPsiIncrement.setHighlight(highlight);
     searchRadius.setHighlight(highlight);
-    hiCutoff.setHighlight(highlight);
+    hiCutoffCutoff.setHighlight(highlight);
     hiCutoffSigma.setHighlight(highlight);
     refThreshold.setHighlight(highlight);
+  }
+  
+  void getParameters(final MatlabParamFile matlabParamFile) {
+    MatlabParamFile.Iteration iteration = matlabParamFile.getIteration(index);
+    iteration.setDPhiStart(dPhiStart.getValue());
+    iteration.setDPhiIncrement(dPhiIncrement.getValue());
+    iteration.setDThetaStart(dThetaStart.getValue());
+    iteration.setDThetaIncrement(dThetaIncrement.getValue());
+    iteration.setDPsiStart(dPsiStart.getValue());
+    iteration.setDPsiIncrement(dPsiIncrement.getValue());
+    iteration.setSearchRadius(searchRadius.getValue());
+    iteration.setHiCutoffCutoff(hiCutoffCutoff.getValue());
+    iteration.setHiCutoffSigma(hiCutoffSigma.getValue());
+    iteration.setRefThreshold(refThreshold.getValue());
+  }
+  
+  void setParameters(final MatlabParamFile matlabParamFile) {
+    MatlabParamFile.Iteration iteration = matlabParamFile.getIteration(index);
+    dPhiStart.setValue(iteration.getDPhiStart());
+    dPhiIncrement.setValue(iteration.getDPhiIncrement());
+    dThetaStart.setValue(iteration.getDThetaStart());
+    dThetaIncrement.setValue(iteration.getDThetaIncrement());
+    dPsiStart.setValue(iteration.getDPsiStart());
+    dPsiIncrement.setValue(iteration.getDPsiIncrement());
+    searchRadius.setValue(iteration.getSearchRadiusString());
+    hiCutoffCutoff.setValue(iteration.getHiCutoffCutoff());
+    hiCutoffSigma.setValue(iteration.getHiCutoffSigma());
+    refThreshold.setValue(iteration.getRefThresholdString());
   }
   
   boolean isHighlighted() {
@@ -107,7 +142,7 @@ final class IterationRow implements Highlightable{
     dPsiStart.add(panel,layout,constraints);
     dPsiIncrement.add(panel,layout,constraints);
     searchRadius.add(panel,layout,constraints);
-    hiCutoff.add(panel,layout,constraints);
+    hiCutoffCutoff.add(panel,layout,constraints);
     hiCutoffSigma.add(panel,layout,constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     refThreshold.add(panel,layout,constraints);
