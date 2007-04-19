@@ -20,6 +20,11 @@ import etomo.util.PrimativeTokenizer;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2007/04/13 21:51:17  sueh
+* <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
+* <p> must be returned with a getDefaulted... function to be accurate.
+* <p> GetReferenceVolume is returning ParsedElement instead.
+* <p>
 * <p> Revision 1.4  2007/04/13 20:15:56  sueh
 * <p> bug# 964 Added setRawString(String).
 * <p>
@@ -41,12 +46,17 @@ public abstract class ParsedElement {
   public abstract Number getRawNumber();
   public abstract boolean isEmpty();
   public abstract void setRawString(String number);
+  public abstract ParsedElement getElement(int index);
+  public abstract void moveElement(int fromIndex, int toIndex);
+  public abstract void setRawString(int index,float number);
+  public abstract void setRawString(int index,String string);
+  public abstract String getRawString(int index);
   abstract void fail();
   abstract Token parse(Token token, PrimativeTokenizer tokenizer);
-  abstract ParsedElement getElement(int index);
   abstract int size();
   abstract String getParsableString();
   abstract boolean isCollection();
+  abstract void setDebug(boolean debug);
   
   final PrimativeTokenizer createTokenizer(String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
