@@ -20,6 +20,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/04/13 21:51:43  sueh
+ * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
+ * <p> must be returned with a getDefaulted... function to be accurate.
+ * <p> GetReferenceVolume is returning ParsedElement instead.
+ * <p>
  * <p> Revision 1.5  2007/04/13 20:27:50  sueh
  * <p> bug# 964 Added getRawBoolean.  Changed setRawNumber to setRawString to
  * <p> standardize function names.
@@ -45,6 +50,7 @@ public final class ParsedNumber extends ParsedElement {
   private EtomoNumber.Type etomoNumberType = null;
   private Integer defaultValue = null;
   private boolean valid = true;
+  private boolean debug = false;
 
   private static final StringBuffer SYMBOL_STRING = new StringBuffer(
       ParsedList.OPEN_SYMBOL.toString() + ParsedList.CLOSE_SYMBOL.toString()
@@ -110,12 +116,59 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.reset();
   }
   
+  /**
+   * return the raw number.  If the type is floating point or double, return it
+   * as an int or long if there is no decimal value
+   */
   public String getParsableString() {
-    return getRawString();
+    if (rawNumber.isDefaultedNull()) {
+      return "";
+    }
+    Number number = rawNumber.getDefaultedNumber();
+    if (etomoNumberType ==EtomoNumber.Type.FLOAT) {
+      float floatNumber = number.floatValue();
+      if (Math.round(floatNumber)==floatNumber) {
+        return new Integer(number.intValue()).toString();
+      }
+    }
+    else if (etomoNumberType ==EtomoNumber.Type.DOUBLE) {
+      double doubleNumber = number.doubleValue();
+      if (Math.round(doubleNumber)==doubleNumber) {
+        return new Long(number.longValue()).toString();
+      }
+    }
+    return number.toString();
   }
-
+  
   public void setRawString(String number) {
     rawNumber.set(number);
+    valid = rawNumber.isValid();
+  }
+
+  public void setRawString(String number, String fieldDescription) {
+    rawNumber.set(number);
+    valid = rawNumber.isValid();
+    if (fieldDescription !=null) {
+      rawNumber.isValid("Entry Error",fieldDescription);
+    }
+  }
+  
+  public void setRawString(float number) {
+    rawNumber.set(number);
+  }
+  
+  public void setRawString(int index,float number) {
+    if (index!=0) {
+      return;
+    }
+    rawNumber.set(number);
+  }
+  
+  public void setRawString (int index ,String string){
+    if (index!=0) {
+      return;
+    }
+    setRawString(string);
   }
   
   public void setRawString(boolean bool) {
@@ -124,6 +177,33 @@ public final class ParsedNumber extends ParsedElement {
 
   public void setElement(ParsedElement element) {
     rawNumber.set(element.getRawString());
+  }
+  
+  public boolean isEmpty() {
+    return rawNumber.isNull();
+  }
+  
+  public void moveElement(int fromIndex, int toIndex) {
+  }
+  
+  /**
+   * When an index is passed, treat ParsedNumber as an array of 1
+   */
+  public ParsedElement getElement(int index) {
+    if (index == 0) {
+      return this;
+    }
+    return ParsedElementList.EmptyParsedElement.INSTANCE;
+  }
+  
+  /**
+   * When an index is passed, treat ParsedNumber as an array of 1
+   */
+  public String getRawString(int index) {
+    if (index == 0) {
+      return getRawString();
+    }
+    return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
@@ -160,12 +240,9 @@ public final class ParsedNumber extends ParsedElement {
   boolean isCollection() {
     return false;
   }
-
-  ParsedElement getElement(int index) {
-    if (index == 0) {
-      return this;
-    }
-    return null;
+  
+  void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
   int size() {
@@ -174,9 +251,5 @@ public final class ParsedNumber extends ParsedElement {
 
   void fail() {
     valid = false;
-  }
-
-  public boolean isEmpty() {
-    return rawNumber.isNull();
   }
 }
