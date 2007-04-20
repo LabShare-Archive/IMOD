@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/02 21:41:04  sueh
+ * <p> bug# 964 Change PeetDialog.ltfOutput to lftFnOutput.
+ * <p>
  * <p> Revision 1.11  2007/03/26 23:30:39  sueh
  * <p> bug# 964 Setting metadata in ImodManager.
  * <p>
@@ -160,6 +163,9 @@ public class PeetManager extends BaseManager {
       return false;
     }
     String name = peetDialog.getFnOutput();
+    if (name == null || name.matches("\\s*")) {
+      return false;
+    }
     File paramFile = new File(peetDialog.getDirectory(), name
         + DatasetFiles.PEET_DATA_FILE_EXT);
     if (!paramFile.exists()) {
@@ -171,6 +177,9 @@ public class PeetManager extends BaseManager {
     }
     metaData.setName(name);
     if (!metaData.isValid()) {
+      uiHarness.openMessageDialog(
+          "Invalid data, unable to proceed.  Please exit and restart Etomo",
+          "Fatal Error");
       return false;
     }
     imodManager.setMetaData(metaData);
