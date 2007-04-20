@@ -20,6 +20,13 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/04/19 21:41:39  sueh
+ * <p> bug# 964 Added support for flexible syntax, where the string in the .prm file can
+ * <p> be either an array or a number.  Instead of handling this in MatlabParamFile,
+ * <p> will always store in the array, but the string that is writen to the .prm file will look
+ * <p> like a number if flexibleSyntax is turned on.  Added a way to write to an array
+ * <p> descriptor inside of an array (setRawString(int,int,String).
+ * <p>
  * <p> Revision 1.5  2007/04/13 21:50:51  sueh
  * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
  * <p> must be returned with a getDefaulted... function to be accurate.
@@ -126,11 +133,9 @@ public final class ParsedArray extends ParsedElement {
       return;
     }
     PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
-    StringBuffer buffer = new StringBuffer();
-    Token token = null;
+    tokenizer.setDebug(debug);
     try {
-      token = tokenizer.next();
-      parse(token, tokenizer);
+      parse(tokenizer.next(), tokenizer);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -156,9 +161,9 @@ public final class ParsedArray extends ParsedElement {
     }
     array.get(arrayIndex).setRawString(descriptorIndex, string);
   }
-  
+
   public ParsedElement getDescriptor() {
-    for (int i= 0;i<array.size();i++) {
+    for (int i = 0; i < array.size(); i++) {
       ParsedElement element = array.get(i);
       if (element.isCollection()) {
         return element;
@@ -166,9 +171,9 @@ public final class ParsedArray extends ParsedElement {
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE;
   }
-  
+
   public int getDescriptorIndex() {
-    for (int i= 0;i<array.size();i++) {
+    for (int i = 0; i < array.size(); i++) {
       ParsedElement element = array.get(i);
       if (element.isCollection()) {
         return i;
@@ -176,7 +181,7 @@ public final class ParsedArray extends ParsedElement {
     }
     return -1;
   }
-  
+
   public void clear() {
     array.clear();
   }
@@ -200,12 +205,7 @@ public final class ParsedArray extends ParsedElement {
   }
 
   public void setRawString(int index, String string) {
-    array.remove(index);
-    if (string == null) {
-      return;
-    }
     PrimativeTokenizer tokenizer = createTokenizer(string);
-    StringBuffer buffer = new StringBuffer();
     try {
       parseElement(tokenizer.next(), tokenizer, index);
     }
@@ -240,9 +240,6 @@ public final class ParsedArray extends ParsedElement {
   }
 
   public void setElement(int index, ParsedElement element) {
-    if (debug) {
-      System.out.println("index=" + index + ",element=" + element);
-    }
     array.set(index, element);
   }
 
@@ -284,14 +281,14 @@ public final class ParsedArray extends ParsedElement {
           valid = false;
           return token;
         }
-        //parse this as a number because it is a number and flexibleSyntax is on
+        //Parse this as a number because it is a number and flexibleSyntax is on.
         ParsedNumber number = new ParsedNumber(etomoNumberType, defaultValue);
         token = number.parse(token, tokenizer);
         setElement(0, number);
         return token;
       }
       token = tokenizer.next();
-      //remove any whitespace before the first element
+      //Remove any whitespace before the first element.
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
@@ -379,34 +376,39 @@ public final class ParsedArray extends ParsedElement {
     StringBuffer buffer = new StringBuffer();
     //only use spaces as dividers when there are no empty elements and no array
     //descriptors
-    boolean elementIsCollection = false;
-    boolean emptyElement = false;
+    boolean firstElementIsCollection = false;
     boolean empty = true;//set to false when a non-empty element is found
-    boolean usingDividerSymbol = false;
+    boolean useSpaceAsDivider = parsable;
     for (int i = startIndex; i < array.size(); i++) {
-      if (i > startIndex) {
-        //use the divider symbol if this is a raw string or there are missing
-        //elements or collection elements
-        if (usingDividerSymbol || !parsable || emptyElement || elementIsCollection) {
-          buffer.append(DIVIDER_SYMBOL + " ");
-          usingDividerSymbol = true;
-        }
-        else {
-          buffer.append(" ");
-        }
-      }
       ParsedElement element = array.get(i);
-      elementIsCollection = element.isCollection();
-      emptyElement = element.isEmpty();
-      if (!emptyElement) {
+      if (i > startIndex) {
+        buffer.append(DIVIDER_SYMBOL + " ");
+      }
+      else {
+        firstElementIsCollection = element.isCollection();
+      }
+      //Found out if the array contains only empty elements
+      if (empty && !element.isEmpty()) {
         empty = false;
       }
-      //Turn off compatibleWithParsedNumber if there
-      //are multiple non-empty elements or 1 or more collection elements.
-      if (compatibleWithParsedNumber != null && compatibleWithParsedNumber.is()) {
-        if (elementIsCollection || (i > 0 && !emptyElement)) {
-          compatibleWithParsedNumber.set(false);
+      //Use the divider symbol when creating a raw strings or a parsable string
+      //that contains empty elements or collections.
+      if (useSpaceAsDivider && (element.isEmpty() || element.isCollection())) {
+        useSpaceAsDivider = false;
+      }
+      //remove DIVIDER_SYMBOLs if useSpaceAsDivider is true
+      if (useSpaceAsDivider) {
+        int dividerIndex = buffer.indexOf(DIVIDER_SYMBOL.toString());
+        while (dividerIndex != -1) {
+          buffer.deleteCharAt(dividerIndex);
+          dividerIndex = buffer.indexOf(DIVIDER_SYMBOL.toString());
         }
+      }
+      //Turn off compatibleWithParsedNumber if there are multiple elements or if
+      //the element is a collection
+      if (compatibleWithParsedNumber != null
+          && (array.size() > 1 || firstElementIsCollection)) {
+        compatibleWithParsedNumber.set(false);
       }
       if (parsable) {
         buffer.append(element.getParsableString());
@@ -526,7 +528,10 @@ public final class ParsedArray extends ParsedElement {
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       try {
         //parse an element
-        token = parseElement(token, tokenizer, index++);
+        token = parseElement(token, tokenizer, index);
+        if (index != -1) {
+          index++;
+        }
         //whitespace may be used as a divider, but it may not always be the divider -
         //it could just be whitespace at the end of the array or whitespace
         //before the divider
@@ -592,24 +597,27 @@ public final class ParsedArray extends ParsedElement {
     else {
       descriptor = new ParsedArrayDescriptor(etomoNumberType, defaultValue);
     }
+    descriptor.setDebug(debug);
     token = descriptor.parse(token, tokenizer);
     if (descriptor.size() == 0) {
       //There's nothing there, so its an empty element
       array.addEmptyElement();
     }
-    ParsedElement element;
-    if (descriptor.size() == 1) {
-      //If there is only one number, then there was no ":" and its really a ParsedNumber.
-      element = descriptor.getElement(0);
-    }
     else {
-      element = descriptor;
-    }
-    if (index == -1) {
-      array.add(element);
-    }
-    else {
-      array.set(index, element);
+      ParsedElement element;
+      if (descriptor.size() == 1) {
+        //If there is only one number, then there was no ":" and its really a ParsedNumber.
+        element = descriptor.getElement(0);
+      }
+      else {
+        element = descriptor;
+      }
+      if (index == -1) {
+        array.add(element);
+      }
+      else {
+        array.set(index, element);
+      }
     }
     return token;
   }
