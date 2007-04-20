@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/04/19 22:05:13  sueh
+ * <p> bug# 964 Added support for ltfThresholds.
+ * <p>
  * <p> Revision 1.24  2007/04/13 21:52:33  sueh
  * <p> bug# 964 Saving/retrieving debugLevel to/from MatlabParamFile.
  * <p>
@@ -180,7 +183,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       + ": ");
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL, bgReference);
-  private final LabeledSpinner lsParticlePerCPU;
+  private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner("Particles per CPU: ",
+      new SpinnerNumberModel(MatlabParamFile.PARTICLE_PER_CPU_DEFAULT,
+          MatlabParamFile.PARTICLE_PER_CPU_MIN,
+          MatlabParamFile.PARTICLE_PER_CPU_MAX, 1));
   private final IterationTable iterationTable;
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
@@ -223,10 +229,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //run construction
     phRun = PanelHeader.getInstance("Run", this, DIALOG_TYPE);
     iterationTable = IterationTable.getInstance(manager);
-    lsParticlePerCPU = new LabeledSpinner("Particles per CPU: ",
-        new SpinnerNumberModel(MatlabParamFile.PARTICLE_PER_CPU_DEFAULT,
-            MatlabParamFile.PARTICLE_PER_CPU_MIN,
-            MatlabParamFile.PARTICLE_PER_CPU_MAX, 1));
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
@@ -358,6 +360,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfLstThresholdsIncrement.setText(matlabParamFile.getLstThresholdsIncrement());
     ltfLstThresholdsEnd.setText(matlabParamFile.getLstThresholdsEnd());
     ltfLstThresholdsAdditional.setText(matlabParamFile.getLstThresholdsAdditional());
+    cbRefFlagAllTom.setSelected(matlabParamFile.isRefFlagAllTom());
+    cbLstFlagAllTom.setSelected(matlabParamFile.isLstFlagAllTom());
+    lsParticlePerCPU.setValue(matlabParamFile.getParticlePerCPU());
     updateDisplay();
   }
 
@@ -392,6 +397,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     matlabParamFile.setLstThresholdsIncrement(ltfLstThresholdsIncrement.getText());
     matlabParamFile.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
     matlabParamFile.setLstThresholdsAdditional(ltfLstThresholdsAdditional.getText());
+    matlabParamFile.setRefFlagAllTom(cbRefFlagAllTom.isSelected());
+    matlabParamFile.setLstFlagAllTom(cbLstFlagAllTom.isSelected());
+    matlabParamFile.setParticlePerCPU(lsParticlePerCPU.getValue());
   }
 
   public String getFnOutput() {

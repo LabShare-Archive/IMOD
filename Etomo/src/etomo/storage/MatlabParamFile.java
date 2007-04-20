@@ -42,6 +42,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/04/19 21:37:05  sueh
+ * <p> bug# 964 Added support for lstThresholds.  Added clear().  Simplified read so that
+ * <p> is doesn't parse an empty autodoc.  Simplified write so that it doesn't read the
+ * <p> existing file before writing.
+ * <p>
  * <p> Revision 1.16  2007/04/13 21:47:11  sueh
  * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
  * <p> must be returned with a getDefaulted... function to be accurate.
@@ -149,7 +154,7 @@ public final class MatlabParamFile {
   public static final int DEBUG_LEVEL_DEFAULT = 3;
   public static final String PARTICLE_PER_CPU_KEY = "particlePerCPU";
   public static final int PARTICLE_PER_CPU_MIN = 1;
-  public static final int PARTICLE_PER_CPU_MAX = 20;
+  public static final int PARTICLE_PER_CPU_MAX = 50;
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
 
   private final ParsedNumber particlePerCpu = new ParsedNumber();
@@ -351,11 +356,27 @@ public final class MatlabParamFile {
   public void setMeanFill(final boolean meanFill) {
     this.meanFill.setRawString(meanFill);
   }
+  
+  public void setRefFlagAllTom(final boolean input) {
+    refFlagAllTom.setRawString(input);
+  }
+  
+  public void setLstFlagAllTom(final boolean input) {
+    lstFlagAllTom.setRawString(input);
+  }
 
   public boolean isMeanFill() {
     return meanFill.getRawBoolean();
   }
 
+  public boolean isRefFlagAllTom() {
+    return refFlagAllTom.getRawBoolean();
+  }
+  
+  public boolean isLstFlagAllTom() {
+    return lstFlagAllTom.getRawBoolean();
+  }
+  
   public String getAlignedBaseName() {
     return alignedBaseName.getRawString();
   }
@@ -451,9 +472,17 @@ public final class MatlabParamFile {
   public void setDebugLevel(Number input) {
     debugLevel.setRawString(input.toString());
   }
+  
+  public void setParticlePerCPU(Number input) {
+    particlePerCpu.setRawString(input.toString());
+  }
 
   public Number getDebugLevel() {
     return debugLevel.getRawNumber();
+  }
+  
+  public Number getParticlePerCPU() {
+    return particlePerCpu.getRawNumber();
   }
 
   public String getSzVolX() {
@@ -475,7 +504,7 @@ public final class MatlabParamFile {
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
     reference.setRawString(REFERENCE_PARTICLE_INDEX, referenceParticle
-        .toString());
+        );
   }
 
   public void setReferenceFile(final String referenceFile) {
@@ -626,6 +655,7 @@ public final class MatlabParamFile {
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
+      initMotlCode=null;
       initMotlFile = ParsedList.getStringInstance(attribute);
       size = Math.max(size, initMotlFile.size());
     }
@@ -719,13 +749,13 @@ public final class MatlabParamFile {
     }
     valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
     //copy szVol X value to Y and Z when Y and/or Z is empty
-    ParsedElement szVolX = szVol.getElement(0);
+    ParsedElement szVolX = szVol.getElement(SZ_VOL_X_INDEX);
     if (!szVolX.isEmpty()) {
       if (szVol.isEmpty(SZ_VOL_Y_INDEX)) {
-        szVol.setRawString(SZ_VOL_Y_INDEX, szVolX.toString());
+        szVol.setRawString(SZ_VOL_Y_INDEX, szVolX.getRawString());
       }
       if (szVol.isEmpty(SZ_VOL_Z_INDEX)) {
-        szVol.setRawString(SZ_VOL_Z_INDEX, szVolX.toString());
+        szVol.setRawString(SZ_VOL_Z_INDEX, szVolX.getRawString());
       }
     }
     valueMap.put(SZ_VOL_KEY, szVol.getParsableString());
@@ -740,6 +770,9 @@ public final class MatlabParamFile {
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
     valueMap.put(LST_THRESHOLDS_KEY, lstThresholds.getParsableString());
+    valueMap.put(REF_FLAG_ALL_TOM_KEY, refFlagAllTom.getParsableString());
+    valueMap.put(LST_FLAG_ALL_TOM_KEY, lstFlagAllTom.getParsableString());
+    valueMap.put(PARTICLE_PER_CPU_KEY, particlePerCpu.getParsableString());
   }
 
   /**
@@ -870,6 +903,12 @@ public final class MatlabParamFile {
         .get(DEBUG_LEVEL_KEY), commentMap);
     setNameValuePairValue(autodoc, LST_THRESHOLDS_KEY, (String) valueMap
         .get(LST_THRESHOLDS_KEY), commentMap);
+    setNameValuePairValue(autodoc, REF_FLAG_ALL_TOM_KEY, (String) valueMap
+        .get(REF_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(autodoc, LST_FLAG_ALL_TOM_KEY, (String) valueMap
+        .get(LST_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(autodoc, PARTICLE_PER_CPU_KEY, (String) valueMap
+        .get(PARTICLE_PER_CPU_KEY), commentMap);
   }
 
   /**
@@ -1037,6 +1076,7 @@ public final class MatlabParamFile {
         return DEFAULT;
       }
       String value = attribute.getValue();
+      System.out.println("value="+value);
       if (value == null) {
         return DEFAULT;
       }
