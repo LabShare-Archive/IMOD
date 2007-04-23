@@ -32,6 +32,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/03/07 21:01:24  sueh
+ * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
+ * <p> clarity.
+ * <p>
  * <p> Revision 1.24  2007/03/01 01:12:14  sueh
  * <p> bug# 964 Using getInstance functions in IntKeyList.
  * <p>
@@ -168,7 +172,7 @@ public final class FinishjoinParam implements CommandDetails {
   public static final int OFFSET_IN_Y_INDEX = 5;
 
   private static final String COMMAND_NAME = "finishjoin";
-  private static final boolean debug = true;
+  private final int debug;
   private String[] commandArray;
   private String rootName;
   private File outputFile;
@@ -189,6 +193,11 @@ public final class FinishjoinParam implements CommandDetails {
   private IntKeyList refineEndList = null;
 
   public FinishjoinParam(JoinManager manager, Mode mode) {
+    this(manager, mode, 1);
+  }
+
+  public FinishjoinParam(JoinManager manager, Mode mode, int debug) {
+    this.debug = debug;
     this.manager = manager;
     this.mode = mode;
     rootName = manager.getBaseMetaData().getName();
@@ -202,22 +211,25 @@ public final class FinishjoinParam implements CommandDetails {
     else {
       options = genOptions();
     }
-    if (mode != Mode.SUPPRESS_EXECUTION) {
-      commandArray = new String[options.size() + 1];
-      commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
-      for (int i = 0; i < options.size(); i++) {
-        commandArray[i + 1] = (String) options.get(i);
+    if (mode == Mode.SUPPRESS_EXECUTION) {
+      if (debug >= 1) {
+        System.err.print("SUPPRESS_EXECUTION:");
       }
-      if (debug) {
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < commandArray.length; i++) {
-          buffer.append(commandArray[i]);
-          if (i < commandArray.length - 1) {
-            buffer.append(' ');
-          }
+    }
+    commandArray = new String[options.size() + 1];
+    commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+    for (int i = 0; i < options.size(); i++) {
+      commandArray[i + 1] = (String) options.get(i);
+    }
+    if (debug >= 1) {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < commandArray.length; i++) {
+        buffer.append(commandArray[i]);
+        if (i < commandArray.length - 1) {
+          buffer.append(' ');
         }
-        System.err.println(buffer.toString());
       }
+      System.err.println(buffer.toString());
     }
   }
 
@@ -477,9 +489,9 @@ public final class FinishjoinParam implements CommandDetails {
         refineEndList.put(end);
       }
       //The last start and end:  start comes from the boundary table and end comes from
-      //join final end.
+      //the last join final end.
       start = gapStartListWalker.nextEtomoNumber();
-      end = endListWalker.nextEtomoNumber();
+      end = endListWalker.getLastEtomoNumber();
       options.add(start + "," + end);
       refineStartList.put(start);
       refineEndList.put(end);
