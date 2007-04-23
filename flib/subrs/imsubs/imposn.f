@@ -22,8 +22,9 @@ c
         lrecspi(j)=nsection*ncrs(2,j)-line
         return
       endif
-      if(mode(j).lt.8)then                      !if regular modes
-        NBYTES = NB(MODE(J) + 1)
+      if(mode(j).lt.8 .or. mode(j) .eq. 16)then !if regular modes
+        nbytes = 3
+        if(mode(j).lt.8) NBYTES = NB(MODE(J) + 1)
         call qseek(j, 1 + nbhdr + nbsym(j), line + 1, nsection,
      &      ncrs(1,j) * nbytes, ncrs(2,j))
       else                              !if bit modes, seek to start of section
