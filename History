@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/23/07: Fixed ability of Fortran programs to read header of mode 16 files (In 
+3.9).
+
 4/11/07: IMOD_3-10-5 (Etomo unstable)
 4/11/07: Added option to Imod2vrml to output separate point/normal list for
 every polygon (an attempt to avoid holes in some viewers.)
