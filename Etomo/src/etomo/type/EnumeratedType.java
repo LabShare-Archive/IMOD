@@ -1,4 +1,4 @@
-package etomo.storage.autodoc;
+package etomo.type;
 /**
 * <p>Description: </p>
 * 
@@ -14,12 +14,8 @@ package etomo.storage.autodoc;
 * 
 * <p> $Log$ </p>
 */
-public interface ReadOnlyNameValuePair {
+public interface EnumeratedType {
   public static  final String  rcsid =  "$Id$";
   
-  public NameValuePairType getNameValuePairType();
-  public String getString();
-  public int numAttributes();
-  public String getAttribute(int index);
-  public String getValue();
+  public boolean isDefault();
 }

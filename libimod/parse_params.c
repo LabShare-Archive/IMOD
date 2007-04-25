@@ -716,7 +716,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
                 typeDescriptions[j]);
     /* else
        fprintf(out, "   (%s entry, no value expected)", typeDescriptions[j]);*/
-    } else if (outputManpage == -2)
+    } else if (outputManpage == -2 || outputManpage >= 2)
       continue;
 
     fprintf(out, "\n");
@@ -1737,6 +1737,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.25  2006/11/22 18:54:29  mast
+Eliminate a warning in VC6
+
 Revision 3.24  2006/10/17 18:15:11  mast
 Made the line reading function able to pass comments and blank lines back
 

@@ -49,6 +49,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2007/03/01 01:42:49  sueh
+ * <p> bug# 964 Implementing Highlighable.
+ * <p>
  * <p> Revision 1.37  2007/02/09 00:52:35  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -1365,7 +1368,6 @@ public class SectionTablePanel implements ContextMenu, Expandable,
 
   public final void run3dmod(Run3dmodButton button,
       Run3dmodMenuOptions menuOptions) {
-    System.out.println("run3dmod:menuOptions=" + menuOptions);
     run3dmod(button.getActionCommand(), menuOptions);
   }
 

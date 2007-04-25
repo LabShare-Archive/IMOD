@@ -12,7 +12,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
- archiveorig imodkillgroup collectmmm sampletilt runpyscript\
+ archiveorig imodkillgroup collectmmm sampletilt splitblend runpyscript\
  $(GENERATED_SCRIPTS)
 
 all:
@@ -21,12 +21,18 @@ install:  $(CMDWRAPPERS)
 	$(CP) $(SCRIPTS) $(INSTBINDIR)
 
 cmdwrappers:
-	./copywrappers $(INSTBINDIR) tcshwrapper.cmd $(SCRIPTS)
+	./copywrappers $(INSTBINDIR) . $(SCRIPTS)
 
 clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.20  2007/04/08 16:47:05  mast
+#  Added splitblend
+#
+#  Revision 3.19  2006/09/26 22:19:06  mast
+#  Python stuff
+#
 #  Revision 3.18  2006/09/18 23:50:50  mast
 #  Added sampletilt
 #

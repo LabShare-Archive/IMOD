@@ -1,41 +1,6 @@
-#  $Author$
+#  $Id$
+#  Log at end
 #
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.10  2005/11/25 18:50:19  mast
-#  Made vmstocsh nonoptimized due to 64-bit Intel compiler bug
-#
-#  Revision 3.9  2005/05/12 05:07:40  mast
-#  Use strip variable
-#
-#  Revision 3.8  2005/04/16 15:35:13  mast
-#  Added numericdiff
-#
-#  Revision 3.7  2004/10/28 22:22:40  mast
-#  Added binvol
-#
-#  Revision 3.6  2004/10/28 21:14:36  mast
-#  Added maxjoinsize
-#
-#  Revision 3.5  2004/10/24 20:44:10  mast
-#  Added dependecies on ftbuf.inc
-#
-#  Revision 3.4  2004/03/30 18:53:13  mast
-#  Added mtffilter
-#
-#  Revision 3.3  2004/03/22 05:40:15  mast
-#  Added extractmagrad
-#
-#  Revision 3.2  2003/10/24 02:30:57  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.1  2003/10/10 20:46:01  mast
-#  Changed rotatevol, matchvol, warpvol to use common include and subroutines
-#
-
 include ../configure
 
 O        = $(OBJEXT)
@@ -52,7 +17,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
  xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
- binvol$(E) numericdiff$(E)
+ binvol$(E) numericdiff$(E) stitchalign$(E)
 
 LIBS = $(FORTCLIBS)
 
@@ -178,6 +143,9 @@ rotmont$(E): rotmont.$(O)
 subimage$(E): subimage.$(O)
 	$(FC) -o subimage subimage.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
+stitchalign$(E): stitchalign.$(O)
+	$(FC) -o stitchalign stitchalign.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
 subimanova$(E): subimanova.$(O)
 	$(FC) -o subimanova subimanova.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -234,6 +202,42 @@ rotatevol.$(O): rotmatwarp.inc
 matchvol.$(O): rotmatwarp.inc
 warpvol.$(O): rotmatwarp.inc
 rotmatwarpsubs.$(O): rotmatwarp.inc
+stitchalign.$(O): stitchvars.inc
 giantfft.$(O): $(INCDIR)/ftbuf.inc
 enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
+
+#  $Log$
+#  Revision 3.11  2006/06/22 01:09:45  mast
+#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
+#
+#  Revision 3.10  2005/11/25 18:50:19  mast
+#  Made vmstocsh nonoptimized due to 64-bit Intel compiler bug
+#
+#  Revision 3.9  2005/05/12 05:07:40  mast
+#  Use strip variable
+#
+#  Revision 3.8  2005/04/16 15:35:13  mast
+#  Added numericdiff
+#
+#  Revision 3.7  2004/10/28 22:22:40  mast
+#  Added binvol
+#
+#  Revision 3.6  2004/10/28 21:14:36  mast
+#  Added maxjoinsize
+#
+#  Revision 3.5  2004/10/24 20:44:10  mast
+#  Added dependecies on ftbuf.inc
+#
+#  Revision 3.4  2004/03/30 18:53:13  mast
+#  Added mtffilter
+#
+#  Revision 3.3  2004/03/22 05:40:15  mast
+#  Added extractmagrad
+#
+#  Revision 3.2  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
+#  Revision 3.1  2003/10/10 20:46:01  mast
+#  Changed rotatevol, matchvol, warpvol to use common include and subroutines
+#

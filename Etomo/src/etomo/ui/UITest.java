@@ -16,7 +16,7 @@ import etomo.storage.UITestCommand;
 import etomo.storage.UITestTestCommand;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.storage.autodoc.ReadOnlyNameValuePair;
+import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -513,9 +513,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @param rootDir
    * @return the directory
    */
-  private File getRelativeDir(ReadOnlyNameValuePair pair, File rootDir, boolean makeDirs) {
+  private File getRelativeDir(ReadOnlyStatement pair, File rootDir, boolean makeDirs) {
     //Get the directory name
-    String dirName = pair.getValue();
+    String dirName = pair.getRightSide();
     assertNotNull(null, "Unknown name/value pair format: " + pair.getString(),
         dirName);
     //make the directories
@@ -624,6 +624,11 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2007/03/21 19:48:12  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.  Moved AdocCommand
+ * <p> classes out of the autodoc package.
+ * <p>
  * <p> Revision 1.23  2007/03/05 21:29:27  sueh
  * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
  * <p>

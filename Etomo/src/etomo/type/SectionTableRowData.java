@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2006/11/03 21:34:17  sueh
+ * <p> bug# 955 Change the order of join final start and end, if necessary
+ * <p>
  * <p> Revision 1.14  2006/10/17 20:18:07  sueh
  * <p> bug# 939  Remoing print statements.
  * <p>
@@ -304,8 +307,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return converted z
    */
   private final long convertToRotatedZ(ConstEtomoNumber z) {
-    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
-        * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
+    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
+        * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
     }
@@ -334,8 +337,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return converted z
    */
   private final long convertFromRotatedZ(ConstEtomoNumber z) {
-    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDouble(true)))
-        * Math.cos(Math.toRadians(rotationAngleY.getDouble(true)));
+    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
+        * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
     }

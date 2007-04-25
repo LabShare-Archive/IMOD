@@ -86,7 +86,7 @@ bn.advanced =
 assert.tf.metro-factor=0.25
 assert.tf.cycle-limit=1000
 assert.tf.overlap-factor=0.5,0.5
-assert.cb.use-global-x-y-z-coordinates=0
+#assert.cb.use-global-x-y-z-coordinates=%{use-global-x-y-z-coordinates}
 # enabled
 assert.tf.metro-factor.enabled=1
 assert.tf.cycle-limit.enabled=1

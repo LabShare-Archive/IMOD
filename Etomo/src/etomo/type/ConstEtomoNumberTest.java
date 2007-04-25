@@ -203,7 +203,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.setDefault(defaultValue);
     copy = new EtomoNumber(test);
     copy.internalTestDeepCopy(test);
-    assertTrue(defaultValue == copy.getDouble(true));
+    assertTrue(defaultValue == copy.getDefaultedDouble());
   }
 
   public void testGetDisplayInteger() {
@@ -1301,17 +1301,17 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     int defaultValue = 1;
     assertTrue("DefaultValue is null when not set.",
-        test.getDouble(true) == EtomoNumber.INTEGER_NULL_VALUE);
+        test.getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
     test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
     assertTrue("Setting defaultValue to null is the same as not setting it.",
-        test.getDouble(true) == EtomoNumber.INTEGER_NULL_VALUE);
+        test.getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
     test.setDefault(defaultValue);
     assertTrue("setDefault sets defaultValue.",
-        test.getDouble(true) == defaultValue);
+        test.getDefaultedDouble() == defaultValue);
     test.internalTest();
     test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
     assertTrue("Setting defaultValue to null is the same as unsetting it.",
-        test.getDouble(true) == EtomoNumber.INTEGER_NULL_VALUE);
+        test.getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
     test.internalTest();
   }
 
@@ -1354,44 +1354,41 @@ public final class ConstEtomoNumberTest extends TestCase {
         test.getDisplayInteger(), defaultValue);
   }
 
-  public void testGetValue_boolean() {
+  public void testGetDefaultedValue() {
     EtomoNumber test = new EtomoNumber();
     assertEquals(
-        "When default value isn't set, the result of getValue(boolean) should be the same as that of getValue().",
-        test.getValue(false).intValue(), test.getValue().intValue());
+        "When default value isn't set, the result of getDefaultedValue() should be the same as that of getValue().",
+        test.getDefaultedValue().intValue(), test.getValue().intValue());
+    test.setDisplayValue(2);
     assertEquals(
-        "When default value isn't set, the result of getValue(boolean) should be the same as that of getValue().",
-        test.getValue(true).intValue(), test.getValue().intValue());
+        "When default value isn't set, the result of getDefaultedValue() should be the same as that of getValue().",
+        test.getDefaultedValue().intValue(), test.getValue().intValue());
+    test.set(3);
+    assertEquals(
+        "When default value isn't set, the result of getDefaultedValue() should be the same as that of getValue().",
+        test.getDefaultedValue().intValue(), test.getValue().intValue());
+    test = new EtomoNumber();
     int defaultValue = 1;
-    assertEquals(
-        "When default value is set, the result of getValue(false) should be the same as that of getValue().",
-        test.getValue(false).intValue(), test.getValue().intValue());
     test.setDefault(defaultValue);
     assertEquals(
-        "When default value is set, the result of getValue(true) should be defaultValue.",
-        test.getValue(true).intValue(), defaultValue);
-  }
-
-  public void testGetDouble_boolean() {
-    EtomoNumber test = new EtomoNumber();
-    assertTrue(
-        "When default value isn't set, the result of getDouble(boolean) should be the same as that of getDouble().",
-        test.getDouble(false) == test.getDouble());
-    assertTrue(
-        "When default value isn't set, the result of getDouble(boolean) should be the same as that of getDouble().",
-        test.getDouble(true) == test.getDouble());
-    int defaultValue = 1;
-    assertTrue(
-        "When default value is set, the result of getDouble(false) should be the same as that of getDouble().",
-        test.getDouble(false) == test.getDouble());
-    test.setDefault(defaultValue);
-    assertTrue(
-        "When default value is set, the result of getDouble(true) should be defaultValue.",
-        test.getDouble(true) == defaultValue);
+        "When default value is set, the result of getDefaultedValue() should be defaultValue.",
+        test.getDefaultedValue().intValue(), defaultValue);
+    test.setDisplayValue(2);
+    assertEquals(
+        "When default value and display value are both set, the result of getDefaultedValue() should be defaultValue.",
+        test.getDefaultedValue().intValue(), defaultValue);
+    int currentValue = 3;
+    test.set(currentValue);
+    assertEquals(
+        "When current value, default value and display value are all set, the result of getDefaultedValue() should be currentValue.",
+        test.getDefaultedValue().intValue(), currentValue);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2007/02/05 23:09:04  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.42  2006/11/30 17:25:37  sueh
  * <p> bug# 692 Added tests for equals(Number)
  * <p>

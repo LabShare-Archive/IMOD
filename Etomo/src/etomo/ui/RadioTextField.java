@@ -8,9 +8,9 @@ import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EnumeratedType;
 
 /**
  * <p>Description: </p>
@@ -26,17 +26,25 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/03/30 23:52:28  sueh
+ * <p> bug# 964 Switched from JTextField to etomo.ui.TextField, which names itself.
+ * <p>
+ * <p> Revision 1.2  2007/03/07 21:13:18  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.  Added radioValue - a way to assign an
+ * <p> integer value to each radio button in a group.
+ * <p>
  * <p> Revision 1.1  2007/03/03 01:05:57  sueh
  * <p> bug# 973 Class combining a RadioButton and JTextField.  Turns off the
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonParent {
+final class RadioTextField implements RadioButtonInterface {
   public static final String rcsid = "$Id$";
 
-  private final JTextField textField = new JTextField();
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
+  private final TextField textField;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -58,14 +66,16 @@ final class RadioTextField implements RadioButtonParent {
    * @return
    */
   static RadioTextField getInstance(final String label,
-      final ButtonGroup group, int radioValue) {
-    RadioTextField radioTextField = new RadioTextField(label, group, radioValue);
+      final ButtonGroup group, EnumeratedType enumeratedType) {
+    RadioTextField radioTextField = new RadioTextField(label, group,
+        enumeratedType);
     radioTextField.addListeners();
     return radioTextField;
   }
 
   private RadioTextField(final String label, final ButtonGroup group) {
     radioButton = new RadioButton(label);
+    textField = new TextField(label);
     init(group);
   }
 
@@ -75,26 +85,25 @@ final class RadioTextField implements RadioButtonParent {
    * @param group
    */
   private RadioTextField(final String label, final ButtonGroup group,
-      int radioValue) {
-    radioButton = new RadioButton(label, radioValue);
+      EnumeratedType enumeratedType) {
+    radioButton = new RadioButton(label, enumeratedType);
+    textField = new TextField(label);
     init(group);
   }
 
   private void init(final ButtonGroup group) {
     radioButton.setModel(new RadioButton.RadioButtonModel(this));
-    textField.setName(radioButton.getName());
     group.add(radioButton.getAbstractButton());
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
     rootPanel.add(radioButton.getComponent());
-    rootPanel.add(textField);
+    rootPanel.add(textField.getComponent());
     setTextFieldEnabled();
   }
 
   void setTextPreferredWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
-    textField.setPreferredSize(prefSize);
-    textField.setMaximumSize(prefSize);
+    textField.setSize(prefSize);
   }
 
   Container getContainer() {
@@ -121,8 +130,8 @@ final class RadioTextField implements RadioButtonParent {
     return text;
   }
 
-  ConstEtomoNumber getRadioValue() {
-    return radioButton.getRadioValue();
+  public EnumeratedType getEnumeratedType() {
+    return radioButton.getEnumeratedType();
   }
 
   boolean isSelected() {
@@ -146,11 +155,11 @@ final class RadioTextField implements RadioButtonParent {
     radioButton.setToolTipText(text);
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
-  
+
   void setRadioButtonToolTipText(final String text) {
     radioButton.setToolTipText(text);
   }
-  
+
   void setTextFieldToolTipText(final String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }

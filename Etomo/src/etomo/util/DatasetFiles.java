@@ -395,6 +395,10 @@ public final class DatasetFiles {
   public static String getParallelDataFileName(String rootName) {
     return rootName + PARALLEL_DATA_FILE_EXT;
   }
+  
+  public static String getPeetDataFileName(String rootName) {
+    return rootName + PEET_DATA_FILE_EXT;
+  }
 
   public static String getRootName(File paramFile) {
     String rootFileName = paramFile.getName();
@@ -407,6 +411,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2007/03/15 21:55:30  sueh
+ * <p> bug# 964 Added getMatlabParamFile.
+ * <p>
  * <p> Revision 1.34  2007/03/07 21:17:34  sueh
  * <p> bug# 981 Added getXTiltFileName.
  * <p>

@@ -14,8 +14,8 @@ package etomo.ui;
 * 
 * <p> $Log$ </p>
 */
-interface RadioButtonParent {
+interface Cell {
   public static  final String  rcsid =  "$Id$";
   
-  void msgSelected();
+  public void setEnabled(boolean enable);
 }

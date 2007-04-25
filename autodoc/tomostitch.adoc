@@ -1,0 +1,211 @@
+Version = 1.0
+Pip = 1
+
+[Field = InfoFile]
+short = info
+type = FN
+usage = Name of supermontage info file
+tooltip =
+manpage = Name of a supermontage info file containing all the data about the
+frames and sections.  If this option is not entered, the first non-option
+argument will be taken as the name of the info file.
+
+[Field = XRunStartEnd]
+short = xrun
+type = IP
+usage = Starting and ending frame number in X to include in operations
+tooltip =
+manpage = Starting and ending frame number in X to include in operations.  The
+default is to include all frames in X.
+
+[Field = YRunStartEnd]
+short = yrun
+type = IP
+usage = Starting and ending frame number in Y to include in operations
+tooltip =
+manpage = Starting and ending frame number in Y to include in operations.  The
+default is to include all frames in Y.
+
+[Field = ZRun]
+short = zrun
+type = IP
+usage = Z value to perform operations on
+tooltip =
+manpage = Z value to perform operations on.  This entry is not needed if there
+is only one section described in the info file. 
+
+[Field = ThicknessToOutput]
+short = thickness
+type = I
+usage = Thickness of output volume
+tooltip =
+manpage = Thickness to make output volume.  All frames will be transformed to
+this thickness.  The default is the largest thickness of any input volume.
+
+[Field = DensityReferenceFrame]
+short = density
+type = IPM
+usage = Frame number in X and Y of reference volume for density matching
+tooltip =
+manpage = Frame number in X and Y (numbered from one) of the volume to serve as
+reference for density matching.  The default is to use the first one.
+
+[Field = FindWarping]
+short = find
+type = B
+usage = Run Findwarp on the warping vector fields from Stitchalign
+tooltip =
+manpage = Run Findwarp(1) on the warping vector fields from Stitchalign(1).
+The default is to do all operations if no individual operations are selected
+by -find, -warp, -stack, or -blend, but run only the specified operations if
+any of these options are entered.
+
+[Field = WarpVolumes]
+short = warp
+type = B
+usage = Run Warpvol on the pieces
+tooltip =
+manpage =
+
+[Field = StackVolumes]
+short = stack
+type = B
+usage = Run Densmatch and Newstack on the pieces and produce piece list
+tooltip =
+manpage =
+
+[Field = BlendVolumes]
+short = blend
+type = B
+usage =  Run Blendmont on warped and stacked pieces
+tooltip =
+manpage =
+
+[SectionHeader = BLOptions]
+usage = OPTIONS FOR RUNNING FINDWARP OR WARPVOL
+manpage = OPTIONS FOR RUNNING FINDWARP OR WARPVOL
+[Field = TargetMeanResidual]
+short = target
+type = FA
+usage = Target mean residuals to achieve in Warpvol (default 0.1,0.2,0.3)
+tooltip = 
+manpage = One or more mean residual values to try to reach when Warpvol(1)
+searches for the best warping.  Multiple values should be entered in increasing
+order.  Warpvol(1) will try to find a warping with the largest number of
+included patches that gives a mean residual below the first value; then it
+tries again with the second value, etc.
+
+[Field = MeasuredRatioMinAndMax]
+short = measured
+type = FP
+usage = Min and max ratio of measurements to unknowns for fits in Warpvol
+tooltip = 
+manpage = The minimum and maximum ratio of measurements to unknowns to be
+allowed in the fits in Warpvol(1).  The defaults are 4 and 12, divided by the
+cube of the vector spacing factor used when running Stitchalign(1).  The
+actual value used will be reported by the program.
+
+[Field = DiscountIfZeroVectors]
+short = discount
+type = F
+usage = Do not count local fits with more than this fraction of vectors zero
+tooltip = 
+manpage = This option is supplied to Findwarp(1) with a default value of 0.5
+to prevent misleading averages when analyzing the warping fields, which
+contain mostly zero vectors.  Fits with the number of zero vectors bigger than
+the given fraction of the total vectors will be excluded from the averages.
+
+[Field = TemporaryDirectory]
+short = tempdir
+long = TemporaryDirectory
+type = CH
+usage = Directory to use for temporary files in Warpvol
+tooltip = 
+manpage = Directory to use for temporary files when runnning Warpvol(1).  The
+default is that the temporary files will be placed in the current directory.
+
+[SectionHeader = BLOptions]
+usage = OPTIONS FOR RUNNING BLENDMONT
+manpage = OPTIONS FOR RUNNING BLENDMONT
+[Field = StartingAndEndingX]
+short = xminmax
+type = IP
+usage = Minimum and maximum X index coordinates to output in Blendmont
+tooltip = 
+manpage = Minimum and maximum X index coordinates to output in Blendmont(1)
+(numbered from 0).  The default is to output the entire image.
+
+[Field = StartingAndEndingY]
+short = yminmax
+type = IP
+usage = Minimum and maximum Y index coordinates to output in Blendmont
+tooltip = 
+manpage = Minimum and maximum Y index coordinates to output in Blendmont.
+
+[Field = BinByFactor]
+short = bin
+long = BinByFactor
+type = I
+usage = Use binning to reduce blended images in size by the given factor
+tooltip = 
+manpage = Use binning to reduce blended images in size by the given factor.
+Binning is applied to the data just before output, so the starting and ending
+X and Y coordinates to output should be specified in unbinned pixels.
+
+[Field = OldEdgeFunctions]
+short = oldedge
+type = B
+usage = Use existing edge functions in blendmont
+tooltip = 
+manpage = Use existing edge functions, if they exist, rather than computing new
+ones in Blendmont(1).
+
+[Field = GoodEdgeLowAndHighZ]
+short = goodedge
+type = IP
+usage = Default lower and upper Z limits for where edge functions are good
+tooltip = 
+manpage = Default lower and upper Z limits for where edge functions in
+Blendmont(1) are good.  Beyond these limits, the edge functions will be taken
+from the last good Z value.  If this option is entered, these limits will
+applied to all edges except ones that have Z limit entries in the info file.
+Unlike in Blendmont(1), these Z values are numbered from 1 for convenience.
+
+[Field = OneGoodEdgeLimits]
+short = onegood
+type = IAM
+usage = Specification of an edge and Z limits within which its edge functions 
+are good
+tooltip = 
+manpage = This options specifies lower and upper Z limits for a specific edge;
+beyond these limits the edge functions will be taken from the last good Z
+value.  Five values are expected: number of frame below the edge in X and Y,
+1 for an edge in X or 2 for an edge in Y, lower and upper Z
+limits.  Note that the frame numbers are the fixed numbers in the supermontage
+(numbered from 1), not the frame numbers within the blend, which might be
+lower if a subset of frames is being blended.  Also note that unlike in
+Blendmont(1), the Z values are numbered from 1.
+
+[Field = BlendingWidthXandY]
+short = width
+type = IP
+usage = Width in X and Y across which to blend overlaps in Blendmont
+tooltip = 
+manpage = Width in X and Y across which to blend overlaps in Blendmont(1).  
+The default is:
+^  80% of the overlap zone width for overlap width less than 63,
+^  50 pixels for overlap width between 63 and 100, or
+^  50% of the overlap width for overlap width greater than 100.
+
+[Field = BoxSizeShortAndLong]
+short = boxsize
+type = IP
+usage = Size of box for finding edge functions in short and long directions
+tooltip = 
+manpage = Size of box for finding edge functions in short and long directions
+in Blendmont(1).  The short direction is across an overlap zone, the long
+direction is along it.  The default size is 10 pixels in the short direction
+for frame sizes up to 1024 pixels, increasing proportional to the maximum
+dimension of the frame above 1024.  The default in the long direction is 1.5
+times the size in the short direction.
+

@@ -25,7 +25,12 @@ import javax.swing.border.BevelBorder;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/01 01:38:00  sueh
+ * <p> bug# 964 Wraps a toggle HeaderCell button.  When pressed in runs the highlight
+ * <p> function in parent and group.  Also tells the other highlighter buttons with the
+ * <p> same group to turn off their highlight.
+ * <p> </p>
  */
 final class HighlighterButton {
   public static final String rcsid = "$Id$";
@@ -34,48 +39,56 @@ final class HighlighterButton {
 
   private final Highlightable parent;
   private final Highlightable group;
-  
-  //fields initialized once in init()
-  private boolean initialized = false;
-  private HeaderCell cell;
+  private final HeaderCell cell;
 
   /**
    * Lazy constructor
    * @param parent
    * @param group
    */
-  HighlighterButton(Highlightable parent, Highlightable group) {
+  private HighlighterButton(final Highlightable parent, final Highlightable group) {
     this.parent = parent;
     this.group = group;
+    //group
+    if (group != null) {
+      groupLists.put(group, this);
+    }
+    //button
+    cell = HeaderCell.getToggleInstance("=>", (int) (40 * UIParameters.INSTANCE
+        .getFontSizeAdjustment()));
+    cell.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+    cell.setEnabled(true);
+    cell.addActionListener(new HBActionListener(this));
+    setToolTipText();
+  }
+  
+  static HighlighterButton getInstance(final Highlightable parent, final Highlightable group) {
+    HighlighterButton instance = new HighlighterButton(parent,group);
+    instance.addListeners();
+    return instance;
   }
 
   boolean isHighlighted() {
-    init();
     return cell.isSelected();
   }
 
   int getWidth() {
-    init();
     return cell.getWidth();
   }
 
-  void setToolTipText(String text) {
-    init();
+  void setToolTipText(final String text) {
     cell.setToolTipText(text);
   }
 
-  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
-    init();
+  void add(final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
     cell.add(panel, layout, constraints);
   }
 
   void remove() {
-    init();
     cell.remove();
   }
 
   void action() {
-    init();
     boolean highlight = cell.isSelected();
     parent.highlight(highlight);
     if (group == null) {
@@ -100,32 +113,18 @@ final class HighlighterButton {
     }
   }
 
-  protected final Component getComponent() {
-    init();
+  final Component getComponent() {
     return cell.getComponent();
   }
 
-  protected void setForeground() {
+  void setForeground() {
   }
-
-  private void init() {
-    if (initialized) {
-      return;
-    }
-    initialized = true;
-    //group
-    if (group != null) {
-      groupLists.put(group, this);
-    }
-    //button
-    cell = HeaderCell.getToggleInstance("=>", (int) (40 * UIParameters.INSTANCE
-        .getFontSizeAdjustment()));
-    cell.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-    cell.setEnabled(true);
-    //Dimension size = button.getPreferredSize();
-    //size.width = (int) (40 * UIParameters.INSTANCE.getFontSizeAdjustment());
-    //cell.setSize(size);
-    //action
+  
+  private void setToolTipText() {
+    cell.setToolTipText("Press to highlight row.");
+  }
+  
+  private void addListeners() {
     cell.addActionListener(new HBActionListener(this));
   }
 
@@ -137,7 +136,7 @@ final class HighlighterButton {
   private static final class HBActionListener implements ActionListener {
     private final HighlighterButton highlighterButton;
 
-    HBActionListener(HighlighterButton highlighterButton) {
+    HBActionListener(final HighlighterButton highlighterButton) {
       this.highlighterButton = highlighterButton;
     }
 
@@ -147,12 +146,9 @@ final class HighlighterButton {
   }
 
   private static final class HashedLists {
-    //fields initialized once in init()
-    private boolean initialized = false;
-    private Hashtable hash = new Hashtable();
+    private final Hashtable hash = new Hashtable();
 
-    void put(Object groupKey, HighlighterButton element) {
-      init();
+    void put(final Object groupKey, final HighlighterButton element) {
       ArrayList list = (ArrayList) hash.get(groupKey);
       if (list == null) {
         list = new ArrayList();
@@ -164,17 +160,8 @@ final class HighlighterButton {
       }
     }
 
-    ArrayList get(Object groupKey) {
-      init();
+    ArrayList get(final Object groupKey) {
       return (ArrayList) hash.get(groupKey);
-    }
-
-    private void init() {
-      if (initialized) {
-        return;
-      }
-      initialized = true;
-      hash = new Hashtable();
     }
   }
 }

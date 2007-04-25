@@ -17,6 +17,9 @@ c
 c       $Revision$
 c
 c       $Log$
+c       Revision 1.11  2006/03/07 16:06:38  mast
+c       Switched to new model of stretch transformation
+c
 c       Revision 1.10  2006/03/04 00:55:11  mast
 c       Added edge function shift to upper piece position as indicated by
 c       latest equations, added option to get coverage image, and fixed
@@ -356,7 +359,7 @@ c
             enddo
 
             call setgridchars(nxyz, noverlap, iboxXY, indentXY, intgridXY,
-     &          ixy, ixydispl(1), ixydispl(2), nxGrid(iPair), 
+     &          ixy, ixydispl(1), ixydispl(2), 0, 0, nxGrid(iPair), 
      &          nyGrid(iPair), iGridStrt(1, iPair), iGridOfs(1, iPair))
 c             print *,'Grid start',iGridStrt(1, iPair), iGridStrt(2, iPair),
 c             &       '  offset', iGridOfs(1, iPair), iGridOfs(2, iPair)

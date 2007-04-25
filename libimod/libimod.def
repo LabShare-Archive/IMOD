@@ -20,6 +20,7 @@ EXPORTS
 	imodReadAscii
 	cmapReadConvert
 	parselist
+	ADOCSETINTEGER
 	imodObjectCleanSurf
 	imodUnits
 	imodContourFlatten
@@ -216,6 +217,7 @@ EXPORTS
 	cmapConvertRamp
 	PUTOBJCOLOR
 	imodPutFloats
+	ADOCSETTHREEINTEGERS
 	AdocGetTwoIntegers
 	istoreCopyContSurfItems
 	ADOCGETINTEGER
@@ -232,7 +234,9 @@ EXPORTS
 	imodGetInt
 	GETIMODSCAT
 	setExitPrefix
+	AdocSetThreeIntegers
 	imodPutShort
+	AdocSetTwoIntegers
 	imodel_contour_centroid
 	PipNumberOfEntries
 	IMODPARTIALMODE
@@ -274,6 +278,7 @@ EXPORTS
 	imeshCopySkipList
 	imodObjectGet
 	exitError
+	AdocSetFloat
 	c2fString
 	PipExitOnError
 	imod_to_wmod
@@ -291,6 +296,7 @@ EXPORTS
 	istoreClearRange
 	imodMatPrint
 	PipMemoryError
+	ADOCSETTHREEFLOATS
 	imodel_contour_invert
 	imodGetFloat
 	PIPPRINTHELP
@@ -311,6 +317,7 @@ EXPORTS
 	imodPointGetNext
 	PipGetTwoIntegers
 	imodel_contour_sortx
+	ADOCSETTWOFLOATS
 	imodObjectGetBBox
 	imodInsertPoint
 	imodel_dist
@@ -342,6 +349,7 @@ EXPORTS
 	imodViewWrite
 	imodTransFromRefImage
 	imodMeshGetVert
+	AdocSetThreeFloats
 	imodContourDup
 	imodPlaneSetPN
 	GETIMODCLIP
@@ -461,10 +469,12 @@ EXPORTS
 	imodViewUse
 	imodContourGetPoints
 	AdocAddSection
+	ADOCSETTWOINTEGERS
 	NEWIMOD
 	ilistQuantum
 	imeshParamsNew
 	imodObjectSetValue
+	AdocSetTwoFloats
 	imodContourNearest
 	ADOCREAD
 	imodContourSwap
@@ -504,10 +514,12 @@ EXPORTS
 	b3dFseek
 	imodContourClear
 	imodVersion
+	AdocSetInteger
 	ADOCSETCURRENT
 	ADOCGETTWOFLOATS
 	AdocGetInteger
 	imodPointDistance
+	ADOCSETFLOAT
 	imodPlaneInit
 	imodGetBytes
 	substr

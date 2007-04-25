@@ -147,6 +147,18 @@ probability for a patch to be evaluated as an outlier (default 0.01), and
 a criterion probability for a patch to be eliminated regardless of the
 distribution of extreme values (default 0.002).
 
+[Field = DiscountIfZeroVectors]
+short = discount
+type = F
+usage = Do not count local fits with more than this fraction of vectors zero
+tooltip = 
+manpage = Use this option to ignore local fits that have many zero vectors when
+computing the average mean residual and the average maximum residual.  This
+will prevent misleading averages when analyzing the warping fields used to
+align adjacent volumes for stitching.  Fits with the number of zero vectors
+bigger than the given fraction of the total vectors will be excluded from the
+averages.
+
 [Field = ParameterFile]
 short = param
 type = PF

@@ -60,7 +60,8 @@ public final class LogFile {
 
   private final Lock lock = new Lock();
   private ReadingTokenList readerList = ReadingTokenList.getReaderInstance();
-  private ReadingTokenList readingTokenList = ReadingTokenList.getReadingTokenInstance();
+  private ReadingTokenList readingTokenList = ReadingTokenList
+      .getReadingTokenInstance();
   private final String fileAbsolutePath;
 
   private File file = null;
@@ -377,7 +378,7 @@ public final class LogFile {
       return false;
     }
     try {
-    target.backup();
+      target.backup();
     }
     catch (FileException backupException) {
       //unable to backup
@@ -389,7 +390,7 @@ public final class LogFile {
         //move.
         e.printStackTrace();
       }
-      
+
       throw backupException;
     }
     //need to get a file lock on the target for this operation
@@ -700,7 +701,7 @@ public final class LogFile {
     }
     return readId;
   }
-  
+
   public synchronized long openForReading() throws ReadException {
     long readId = NO_ID;
     try {
@@ -732,7 +733,8 @@ public final class LogFile {
     try {
       lock.assertUnlockable(LockType.READ, readId);
       createFile();
-      ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList.makeKey(readId));
+      ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList
+          .makeKey(readId));
       readingToken.close();
       lock.unlock(LockType.READ, readId);
     }
@@ -746,13 +748,14 @@ public final class LogFile {
     }
     return true;
   }
-  
+
   public synchronized boolean closeForReading(long readId) {
     //close the reading token before unlocking
     try {
       lock.assertUnlockable(LockType.READ, readId);
       createFile();
-      ReadingToken readingToken = readingTokenList.getReadingToken(ReadingTokenList.makeKey(readId));
+      ReadingToken readingToken = readingTokenList
+          .getReadingToken(ReadingTokenList.makeKey(readId));
       readingToken.close();
       lock.unlock(LockType.READ, readId);
     }
@@ -813,6 +816,18 @@ public final class LogFile {
     }
     try {
       bufferedWriter.write(string);
+    }
+    catch (IOException e) {
+      throw new WriteException(this, writeId, e);
+    }
+  }
+
+  public synchronized void write(char ch, long writeId) throws WriteException {
+    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
+      throw new WriteException(this, writeId);
+    }
+    try {
+      bufferedWriter.write(ch);
     }
     catch (IOException e) {
       throw new WriteException(this, writeId, e);
@@ -1218,35 +1233,35 @@ public final class LogFile {
   }
 
   private static final class ReadingTokenList {
-    private final HashMap hashMap= new HashMap();
-    private final ArrayList arrayList= new ArrayList();
+    private final HashMap hashMap = new HashMap();
+    private final ArrayList arrayList = new ArrayList();
     private final boolean storeReaders;
-    
+
     static ReadingTokenList getReadingTokenInstance() {
       return new ReadingTokenList(false);
     }
-    
+
     static ReadingTokenList getReaderInstance() {
       return new ReadingTokenList(true);
     }
 
     private ReadingTokenList(boolean storeReaders) {
-      this.storeReaders=storeReaders;
+      this.storeReaders = storeReaders;
     }
 
     static String makeKey(long id) {
       return String.valueOf(id);
     }
-    
+
     synchronized ReadingToken getReadingToken(String key) {
       return (ReadingToken) hashMap.get(key);
     }
-    
+
     synchronized Reader getReader(String key) {
       if (!storeReaders) {
         return null;
       }
-      return (Reader)getReadingToken(key);
+      return (Reader) getReadingToken(key);
     }
 
     synchronized void openReadingToken(String currentKey, File file)
@@ -1283,7 +1298,7 @@ public final class LogFile {
       hashMap.put(currentKey, readingToken);
       arrayList.add(readingToken);
     }
-    
+
     private ReadingToken newReadingToken(File file) {
       if (storeReaders) {
         return new Reader(file);
@@ -1291,23 +1306,23 @@ public final class LogFile {
       return new ReadingToken();
     }
   }
-  
-  private static class ReadingToken{
+
+  private static class ReadingToken {
     private boolean open = true;
     private String key = null;
-    
-    void open() throws FileNotFoundException{
+
+    void open() throws FileNotFoundException {
       open = true;
     }
-    
+
     void close() throws IOException {
       open = false;
     }
-    
+
     boolean isOpen() {
       return open;
     }
-    
+
     void setKey(String key) {
       this.key = key;
     }
@@ -1317,7 +1332,7 @@ public final class LogFile {
     }
   }
 
-  private static final class Reader extends ReadingToken{
+  private static final class Reader extends ReadingToken {
     private final File file;
 
     private FileReader fileReader = null;
@@ -1354,6 +1369,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/03/01 01:14:23  sueh
+ * <p> bug# 964 Added openForReading and closeForReading.  Made reader list non-
+ * <p> static for simplicity.
+ * <p>
  * <p> Revision 1.9  2007/02/05 23:04:25  sueh
  * <p> bug# 962 Added move.
  * <p>

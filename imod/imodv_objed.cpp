@@ -59,7 +59,7 @@ Log at end of file
  */
 
 /*  returns the current object being edited by objed. */
-static Iobj *objedObject(void) { return(Imodv->obj); }
+static Iobj *objedObject(void);
 
 /* returns the current model being used for object editing. */
 static Imod *objedModel(void) { return(Imodv->imod); }
@@ -2270,6 +2270,15 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /************************* internal utility functions. ***********************/
 /*****************************************************************************/
 
+static Iobj *objedObject(void) 
+{
+  // Make sure the object number is legal and refresh the object address
+  if (Imodv->ob > (Imodv->imod->objsize - 1))
+    Imodv->ob = B3DMAX(0, Imodv->imod->objsize - 1);
+  Imodv->obj = &(Imodv->imod->obj[Imodv->ob]);
+  return Imodv->obj;
+}
+
 static void setObjFlag(int flag, int state)
 {
   int m, mst, mnd, ob;
@@ -2366,6 +2375,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.27  2006/09/13 23:49:45  mast
+Renamed remesh to meshing
+
 Revision 4.26  2006/09/13 05:37:15  mast
 Fixed setting of nowarn flag on duplicate object for meshing
 

@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #ifndef XZAP_H
 #define XZAP_H
@@ -128,6 +124,9 @@ void zapPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.22  2006/09/17 18:15:59  mast
+Changes to provide mouse position to pixelview
+
 Revision 3.21  2006/08/24 21:28:50  mast
 Added flag that rubberband changed
 

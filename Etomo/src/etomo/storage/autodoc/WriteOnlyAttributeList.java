@@ -15,15 +15,18 @@ import etomo.ui.Token;
 * 
 * @version $Revision$
 */
-abstract class WriteOnlyAttributeMap {
+abstract class WriteOnlyAttributeList {
   public static final String rcsid = "$Id$";
   
-  abstract WriteOnlyAttributeMap addAttribute(Token name);
+  abstract WriteOnlyAttributeList addAttribute(Token name);
   abstract boolean isGlobal();
   abstract boolean isAttribute();  
 }
 /**
 * <p> $Log$
+* <p> Revision 1.3  2006/06/14 21:24:59  sueh
+* <p> bug# 852 Added isAttribute().
+* <p>
 * <p> Revision 1.2  2006/06/14 00:35:06  sueh
 * <p> bug# 852 Added function isGlobal so that it is possible to tell whether an attribute
 * <p> is global or part of a section.

@@ -15,13 +15,20 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/21 04:21:20  sueh
+* <p> bug# 964 Screen state for PEET interface.
+* <p> </p>
 */
 public final class PeetScreenState extends BaseScreenState implements ConstPeetScreenState {
   public static  final String  rcsid =  "$Id$";
   
   private final PanelHeaderState peetSetupHeaderState = new PanelHeaderState(
       DialogType.PEET.getStorableName()+".Setup."+PanelHeaderState.KEY);
+  private final PanelHeaderState peetRunParametersHeaderState = new PanelHeaderState(
+      DialogType.PEET.getStorableName()+".RunParameters."+PanelHeaderState.KEY);
+  private final PanelHeaderState peetRunHeaderState = new PanelHeaderState(
+      DialogType.PEET.getStorableName()+".Run."+PanelHeaderState.KEY);
   
   public PeetScreenState(AxisID axisID, AxisType axisType) {
     super(axisID,axisType);
@@ -31,6 +38,14 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
     return peetSetupHeaderState;
   }
   
+  public PanelHeaderState getPeetRunParametersHeaderState() {
+    return peetRunParametersHeaderState;
+  }
+  
+  public PanelHeaderState getPeetRunHeaderState() {
+    return peetRunHeaderState;
+  }
+
   public void load(Properties props) {
     load(props, "");
   }
@@ -39,6 +54,8 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
     super.load(props,prepend);
     prepend=getPrepend(prepend);
     peetSetupHeaderState.load(props,prepend);
+    peetRunParametersHeaderState.load(props,prepend);
+    peetRunHeaderState.load(props,prepend);
   }
   
   public void store(Properties props) {
@@ -49,5 +66,7 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
     super.store(props,prepend);
     prepend=getPrepend(prepend);
     peetSetupHeaderState.store(props,prepend);
+    peetRunParametersHeaderState.store(props,prepend);
+    peetRunHeaderState.store(props,prepend);
   }
 }

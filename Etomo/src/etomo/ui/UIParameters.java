@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2007/03/03 01:08:25  sueh
+ * <p> bug# 973 Added integerDoubletWidth.
+ * <p>
  * <p> Revision 3.11  2006/08/08 19:59:06  sueh
  * <p> bug# 531 Made the done, advanced, etc buttons smaller.
  * <p>
@@ -86,6 +89,7 @@ public final class UIParameters {
   private int sectionsWidth;
   private int integerTripletWidth;
   private int integerDoubletWidth;
+  private int integerWidth;
   private int fourDigitWidth = 40;
 
   private UIParameters() {
@@ -141,6 +145,10 @@ public final class UIParameters {
   int getIntegerDoubletWidth() {
     return integerDoubletWidth;
   }
+  
+  int getIntegerWidth() {
+    return integerWidth;
+  }
 
   int getFourDigitWidth() {
     return fourDigitWidth;
@@ -184,6 +192,7 @@ public final class UIParameters {
     sectionsWidth = (int) (75 * fontSizeAdjustment);
     integerTripletWidth = (int) (75 * fontSizeAdjustment);
     integerDoubletWidth=(int)(50*fontSizeAdjustment);
+    integerWidth=(int)(30*fontSizeAdjustment);
     fourDigitWidth = (int) (40 * fontSizeAdjustment);
   }
 }

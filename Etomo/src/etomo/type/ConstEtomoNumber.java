@@ -36,6 +36,22 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2007/04/13 21:48:36  sueh
+ * <p> bug# 964 Added getDefaultedNumber().
+ * <p>
+ * <p> Revision 1.48  2007/04/13 19:52:46  sueh
+ * <p> bug# 964 Added getDefaultedBoolean
+ * <p>
+ * <p> Revision 1.47  2007/03/30 23:40:34  sueh
+ * <p> bug# 964 Made ConstEtomoNumber(Type) work correctly when parameter is null.
+ * <p>
+ * <p> Revision 1.46  2007/03/26 18:37:07  sueh
+ * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
+ * <p> the functionality will be remembered and used.
+ * <p>
+ * <p> Revision 1.45  2007/02/06 19:47:45  sueh
+ * <p> bug# 962 Fixed failure in unit test.
+ * <p>
  * <p> Revision 1.44  2007/02/05 23:10:02  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -314,7 +330,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   protected ConstEtomoNumber(Type type) {
-    this.type = type;
+    if (type == null) {
+      this.type = Type.INTEGER;
+    }
+    else {
+      this.type = type;
+    }
     name = super.toString();
     description = name;
     initialize();
@@ -521,6 +542,15 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   public boolean isValid(String errorTitle, String description, AxisID axisID) {
     return isValid(true, errorTitle, description, axisID);
+  }
+  
+  public boolean isValid(String errorTitle, String description) {
+    return isValid(true, errorTitle, description, AxisID.ONLY);
+  }
+
+  public boolean isValid(boolean displayErrorMessage, String errorTitle,
+      String description) {
+    return isValid(displayErrorMessage, errorTitle, description, AxisID.ONLY);
   }
 
   /**
@@ -978,6 +1008,16 @@ public abstract class ConstEtomoNumber implements Storable {
     return toString(getValue());
   }
 
+  /**
+   * If default is set and isNull() is true, defaultValue will be returned, even
+   * if displayValue is set.  If defaultValue is not set, or isNull() is false,
+   * then it works the same as setValue().
+   * @return
+   */
+  public String toDefaultedString() {
+    return toString(getDefaultedValue());
+  }
+
   public int getInt() {
     validateReturnTypeInteger();
     return getValue().intValue();
@@ -1013,21 +1053,27 @@ public abstract class ConstEtomoNumber implements Storable {
     return getValue().doubleValue();
   }
 
-  public double getDouble(boolean defaultIfNull) {
+  /**
+   * If default is set and isNull() is true, defaultValue will be returned, even
+   * if displayValue is set.  If defaultValue is not set, or isNull() is false,
+   * then it works the same as setValue().
+   * @return
+   */
+  public double getDefaultedDouble() {
     validateReturnTypeDouble();
-    return getValue(defaultIfNull).doubleValue();
+    return getDefaultedValue().doubleValue();
   }
 
   public ConstEtomoNumber setDefault(int defaultValue) {
     this.defaultValue = newNumber(defaultValue);
     return this;
   }
-  
+
   public ConstEtomoNumber setDefault(boolean defaultValue) {
     this.defaultValue = newNumber(defaultValue);
     return this;
   }
-  
+
   /**
    * Returns true if currentValue is not null and is equal to defaultValue.
    * This function is not effected by displayValue.
@@ -1037,13 +1083,17 @@ public abstract class ConstEtomoNumber implements Storable {
     return isDefault(currentValue);
   }
 
+  public boolean isDefaultSet() {
+    return !isNull(defaultValue);
+  }
+
   /**
-   * Returns true if defaultValue is not null and getValue() is equal to
+   * Returns true if defaultValue is not null and value is equal to
    * defaultValue.
    * @return
    */
   protected boolean isDefault(Number value) {
-    if (isNull(value) || isNull(defaultValue)) {
+    if (isNull(defaultValue)) {
       return false;
     }
     return equals(value, defaultValue);
@@ -1093,7 +1143,9 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Returns true if getValue() is null.
+   * Returns true if currentValue is null.  IsNull() does not use getValue() and
+   * ignores displayValue, so it shows whether the instance has been explicitely
+   * set.
    * @return
    */
   public boolean isNull() {
@@ -1126,32 +1178,48 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
-   * Gets the correct value.  Used with public toString(), is(), and get...().
-   * Also used with isNull() and equals().
-   * If currentValue is not null or useDisplayValue is false, return currentValue.
-   * Otherwise, if displayValue is not null, return displayValue.
-   * Otherwise, return null;
-   * @param displayDefault
+   * If the currentValue is not null, returns it.  If the currentValue is null,
+   * returns the displayValue.  So, if the displayValue is null also, it returns
+   * null.
    * @return
    */
   protected Number getValue() {
     if (!isNull(currentValue)) {
       return currentValue;
     }
-    if (!isNull(displayValue)) {
-      return displayValue;
-    }
-    return currentValue;
+    return displayValue;
   }
 
-  protected Number getValue(boolean defaultIfNull) {
-    if (defaultIfNull && isNull()) {
+  public boolean isDefaultedNull() {
+    return isNull(getDefaultedValue());
+  }
+
+  /**
+   * If default is set and isNull() is true, defaultValue will be returned, even
+   * if displayValue is set.  If defaultValue is not set, or isNull() is false,
+   * then it works the same as setValue().
+   * @return
+   */
+  Number getDefaultedValue() {
+    if (isDefaultSet() && isNull()) {
       return defaultValue;
     }
     return getValue();
   }
 
-  protected String toString(Number value) {
+  public Number getDefaultedNumber() {
+    return newNumber(getDefaultedValue());
+  }
+
+  public boolean getDefaultedBoolean() {
+    Number value = getDefaultedValue();
+    if (isNull(value) || equals(value, newNumber(0))) {
+      return false;
+    }
+    return true;
+  }
+
+  String toString(Number value) {
     if (isNull(value)) {
       return "";
     }
@@ -1256,8 +1324,10 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
-      e.printStackTrace();
-      invalidBuffer.append(value + " is not a valid number.");
+      invalidBuffer.append(value + " is not a valid number.  ");
+      if (type == Type.INTEGER || type == Type.LONG) {
+        invalidBuffer.append("Only a whole number is allowed.  ");
+      }
       return newNumber();
     }
   }
@@ -1510,7 +1580,7 @@ public abstract class ConstEtomoNumber implements Storable {
           "Cannot place a Float into anything but a Double or a Float.  Type="
               + type);
     }
-    if (input instanceof Long && type !=Type. DOUBLE && type != Type.LONG) {
+    if (input instanceof Long && type != Type.DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
           "Cannot place a Long into anything but a Double or a Long.  Type="
               + type);
@@ -1625,7 +1695,7 @@ public abstract class ConstEtomoNumber implements Storable {
     public static final Type FLOAT = new Type();
     public static final Type INTEGER = new Type();
     public static final Type LONG = new Type();
-    
+
     public static Type getDefault() {
       return INTEGER;
     }

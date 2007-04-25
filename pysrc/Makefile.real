@@ -9,13 +9,19 @@ include ../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.2  2007/04/08 16:32:45  mast
+#  Added supermontage programs
+#
+#  Revision 1.1  2006/10/03 18:54:47  mast
+#  Allow for dummy Makefile
+#
 #  Revision 1.1  2006/09/26 23:02:48  mast
 #  Added to package
 #
 #
 
-SCRIPTS = vmstopy
-MODULES = imodpy.py pysed.py
+SCRIPTS = vmstopy tomostitch edgepatches
+MODULES = imodpy.py pysed.py supermont.py
 
 all:
 	cd pip; $(MAKE) $@
@@ -27,7 +33,7 @@ install:	all $(CMDWRAPPERS)
 	$(CP) $(MODULES) $(INSTDIR)/pylib
 
 cmdwrappers:
-	../scripts/copywrappers $(INSTBINDIR) pywrapper.cmd $(SCRIPTS)
+	../scripts/copywrappers $(INSTBINDIR) . $(SCRIPTS)
 
 clean:
 	cd pip; $(MAKE) $@

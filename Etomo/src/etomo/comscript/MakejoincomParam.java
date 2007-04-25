@@ -37,6 +37,10 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2007/03/07 21:01:35  sueh
+ * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
+ * <p> clarity.
+ * <p>
  * <p> Revision 1.22  2007/02/05 22:33:56  sueh
  * <p> bug# 962 Fixed problem where -already was not being used with -rot.
  * <p>
@@ -263,11 +267,11 @@ public final class MakejoincomParam implements CommandDetails {
           //Add the -rot option to run rotatevol and save the angles.
           options.add("-rot");
           StringBuffer buffer = new StringBuffer();
-          buffer.append(rotationAngleX.getDouble(true));
+          buffer.append(rotationAngleX.getDefaultedDouble());
           buffer.append(",");
-          buffer.append(rotationAngleY.getDouble(true));
+          buffer.append(rotationAngleY.getDefaultedDouble());
           buffer.append(",");
-          buffer.append(rotationAngleZ.getDouble(true));
+          buffer.append(rotationAngleZ.getDefaultedDouble());
           options.add(buffer.toString());
           options.add("-maxxysize");
           //Get the .rot file

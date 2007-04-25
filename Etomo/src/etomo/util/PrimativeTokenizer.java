@@ -53,6 +53,16 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.7  2007/04/09 21:26:07  sueh
+ * <p> $bug# 964 Made class final.
+ * <p> $
+ * <p> $Revision 1.6  2007/03/23 20:45:55  sueh
+ * <p> $bug# 964 In initializeStreamTokenizer:  handling NullPointerException.
+ * <p> $
+ * <p> $Revision 1.5  2007/03/08 22:06:35  sueh
+ * <p> $bug# 964 Improved the StreamTokenizer test.  Prevent infinite loop by checking
+ * <p> $for the private StreamTokenizer.TT_NOTHING value.
+ * <p> $
  * <p> $Revision 1.4  2007/03/01 01:47:50  sueh
  * <p> $bug# 964 Using LogFile instead of file, since some autodoc will be writeable.
  * <p> $
@@ -82,7 +92,7 @@ import etomo.ui.Token;
  * <p> $bug# 372 creates primative tokens
  * <p> $$ </p>
  */
-public class PrimativeTokenizer {
+public final class PrimativeTokenizer {
   public static final String rcsid = "$$Id$$";
 
   private LogFile file = null;
@@ -90,25 +100,26 @@ public class PrimativeTokenizer {
   private String string = null;
   private StreamTokenizer tokenizer = null;
   private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
-  Token token = new Token();
-  boolean nextTokenFound = false;
-  Token nextToken = new Token();
+  private Token token = new Token();
+  private boolean nextTokenFound = false;
+  private Token nextToken = new Token();
   private Reader reader = null;
   private boolean fileClosed = false;
   private int streamTokenizerNothingValue;
+  private boolean debug = false;
 
   public PrimativeTokenizer(LogFile file) {
     this.file = file;
   }
 
-  PrimativeTokenizer(String string) {
+  public PrimativeTokenizer(String string) {
     this.string = string;
   }
 
   /**
    * @return the current token
    */
-  public final Token getToken() {
+  public Token getToken() {
     return token;
   }
 
@@ -133,6 +144,9 @@ public class PrimativeTokenizer {
     }
     else if (string != null) {
       reader = new StringReader(string);
+    }
+    else {
+      reader = new StringReader("");
     }
     tokenizer = new StreamTokenizer(reader);
     streamTokenizerNothingValue = tokenizer.ttype;
@@ -207,11 +221,18 @@ public class PrimativeTokenizer {
         nextToken();
       }
     }
+    if (debug) {
+      System.out.println("token=" + token);
+    }
     return token;
   }
 
-  public final String getSymbols() {
+  public String getSymbols() {
     return symbols;
+  }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
   }
 
   /**

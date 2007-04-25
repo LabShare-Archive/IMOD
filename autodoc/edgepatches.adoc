@@ -1,0 +1,186 @@
+Version = 1.0
+Pip = 1
+
+[Field = InfoFile]
+short = info
+type = FN
+usage = Name of supermontage info file to be created or edited
+tooltip =
+manpage = Name of a supermontage info file in which all data about the files
+will be stored.  If the file exists, it will be read in when the program
+starts, and renamed to filename~ before writing a new version when the program
+exits.  If this option is not entered, the first non-option argument will be
+taken as the name of the info file.
+
+[Field = NoZValues]
+short = noz
+type = B
+usage = Search for and create names without Z values
+tooltip =
+manpage = Search for and create names without Z values and assume the Z value
+is zero.  This option cannot be used when adding a supermontage to an existing
+one, or when specifying a z range with -zadd.
+
+[Field = RootName]
+short = root
+type = CH
+usage = Rootname for existing files and ones to be created
+tooltip =
+manpage = Rootname for existing files and ones to be created.  
+Existing files need not be named according to the conventions if they are
+already listed in the info file.
+
+[Field = OverlapInXandY]
+short = overlap
+type = IP
+usage = Nominal overlap between adjacent volumes in X and Y
+tooltip =
+manpage = Nominal overlap between adjacent volumes in X and Y.  This only
+needs to be a rough approximation.  This entry is required when adding a
+supermontage or the first time a manually prepared info file is read.
+
+[Field = UnderscoreXYZ]
+short = underscore
+type = B
+usage = Use underscores between x, y, and z in composing names
+tooltip =
+manpage = Use underscores between x, y, and z in composing names for files
+being searched for and created.
+
+[Field = ExtensionOnVolumes]
+short = ext
+type = CH
+usage = Extension on filenames when searching for volumes (default .rec)
+tooltip =
+manpage = Extension on filenames when searching for volumes, including the
+period.  There may be characters before the true extension, such as if all
+files are named "binned.rec".  The default is .rec.
+
+[Field = AddMontageXandY]
+short = xyadd
+type = IP
+usage = Add a supermontage with the given number of frames in X and Y
+tooltip =
+manpage = Add a supermontage with the given number of frames in X and Y.  The
+program will search for pieces by rootname and frame number in X and Y.
+
+[Field = AddMontageZRange]
+short = zadd
+type = IP
+usage = Starting and ending Z values to search for when adding a supermontage
+tooltip =
+manpage = Starting and ending Z values to search for when adding a
+supermontage.  If this 
+
+[Field = RunAll]
+short = all
+type = B
+usage = Analyze overlap zones for all frames
+tooltip =
+manpage = Analyze overlap zones for all frames.  No analysis will be done
+unless this option or one or more of -xrun, -yrun, or -zrun are entered.
+
+[Field = XRunStartEnd]
+short = xrun
+type = IP
+usage = Starting and ending frame number in X for overlap zones to analyze
+tooltip =
+manpage =
+
+[Field = YRunStartEnd]
+short = yrun
+type = IP
+usage = Starting and ending frame number in Y for overlap zones to analyze
+tooltip =
+manpage =
+
+[Field = ZRunStartEnd]
+short = zrun
+type = IP
+usage = Starting and ending Z value for overlap zones to analyze
+tooltip =
+manpage =
+
+[Field = SkipDone]
+short = skip
+type = B
+usage = Skip any overlap zones that were already analyzed
+tooltip =
+manpage = Skip any overlap zones that were already analyzed.  The default is
+to use any shifts that were found previously but to rerun patch correlations.
+
+[Field = RedoShifts]
+short = redo
+type = B
+usage = Recompute the shifts between frames if already done
+tooltip =
+manpage = Recompute the shifts between frames for any that were already done.
+
+[Field = PatchSizeXYZ]
+short = size
+type = IT
+usage = Size in X, Y, Z of patches to correlate (default 100,100,50)
+tooltip =
+manpage = Size in X, Y, and Z of patches to correlate.  The default is 100 x
+100 x 50.
+
+[Field = IntervalsShortLongZ]
+short = intervals
+type = IT
+usage = Interval between patches in short, long, and Z dimension (default 
+80,120,50)
+tooltip =
+manpage = Interval between patches in the short, long, and Z dimensions of
+overlap zones.  The program will use these intervals to determine how many
+patches to specify when running corrserach3d(1).  The defaults are 80,120,50.
+
+[Field = ForceNumberInZ]
+short = force
+type = I
+usage = Set the number of patches in Z to the given value
+tooltip =
+manpage = Set the number of patches in Z to the given value, regardless of
+the interval between them.
+
+[Field = BordersInXYandZ]
+short = borders
+type = IP
+usage = Borders in X/Y and in Z for region to do patches in (default 50,10)
+tooltip =
+manpage = Borders in X/Y and in Z for region in which to do patch
+correlations.  These borders are distances from the edge of each image file,
+and thus define borders in the overlap zone.  The border is X and Y is
+redundant to limiting the region with a patch region model.  The border in Z
+is a default value that will be overriden by a Zlimits entry for an individual
+piece.  The default is 50,10.
+
+[Field = DefaultRegionModel]
+short = model
+type = FN
+usage = Patch region model to use for an overlap zone if one is not found
+tooltip =
+manpage = Patch region model to use for an overlap zone if one is not found
+when initially setting up the Edge entries in the info file.  This option will
+have an effect only when adding a supermontage or processing a manually
+prepared info file for the first time.
+
+[Field = KernelSigma]
+short = kernel
+type = F
+usage = Sigma in pixels for real-space smoothing with 3D Gaussian kernel
+tooltip =
+manpage = Sigma for real-space smoothing with 3D Gaussian kernel (in pixels).
+Patches will be smoothed before correlating with 3x3x3 kernel (for sigma <
+1.5) or a 5x5x5 kernel (sigma >= 1.5) whose coefficients are
+proportional to a Gaussian with the given sigma centered on the central
+pixel.
+
+[Field = LongFraction]
+short = long
+type = F
+usage = Fraction of long dimension of the overlap zone to use for finding shift
+tooltip =
+manpage = Fraction of long dimension of the overlap zone to use for 
+finding the X/Y shift between the projections of the two pieces.  The default
+is 0.5.
+

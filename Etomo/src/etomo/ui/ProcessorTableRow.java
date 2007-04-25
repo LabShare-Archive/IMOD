@@ -35,19 +35,19 @@ final class ProcessorTableRow implements Storable {
   private static final String STORE_CPUS_SELECTED = "CPUsSelected";
   private static final int DEFAULT_CPUS_SELECTED = 1;
 
-  private final FieldCell cellNumberCpus = new FieldCell();
-  private final FieldCell cellLoad1 = new FieldCell();
-  private final FieldCell cellLoad5 = new FieldCell();
-  private final FieldCell cellUsers = new FieldCell();
-  private final FieldCell cellCPUUsage = new FieldCell();
-  private final FieldCell cellRestarts = new FieldCell();
-  private final FieldCell cellSuccesses = new FieldCell();
-  private final FieldCell cellFailureReason = new FieldCell();
-  private final FieldCell cellSpeed = new FieldCell();
-  private final FieldCell cellMemory = new FieldCell();
-  private final FieldCell cellOS = new FieldCell();
+  private final FieldCell cellNumberCpus = FieldCell.getIneditableInstance();
+  private final FieldCell cellLoad1 = FieldCell.getIneditableInstance();
+  private final FieldCell cellLoad5 = FieldCell.getIneditableInstance();
+  private final FieldCell cellUsers = FieldCell.getIneditableInstance();
+  private final FieldCell cellCPUUsage = FieldCell.getIneditableInstance();
+  private final FieldCell cellRestarts = FieldCell.getIneditableInstance();
+  private final FieldCell cellSuccesses = FieldCell.getIneditableInstance();
+  private final FieldCell cellFailureReason = FieldCell.getIneditableInstance();
+  private final FieldCell cellSpeed = FieldCell.getIneditableInstance();
+  private final FieldCell cellMemory = FieldCell.getIneditableInstance();
+  private final FieldCell cellOS = FieldCell.getIneditableInstance();
   private final CheckBoxCell cellComputer = new CheckBoxCell();
-  private final FieldCell cellCPUType = new FieldCell();
+  private final FieldCell cellCPUType = FieldCell.getIneditableInstance();
 
   private ProcessorTable table = null;
   private InputCell cellCPUsSelected = null;
@@ -153,7 +153,6 @@ final class ProcessorTableRow implements Storable {
     if (cpuType != null) {
       cellCPUType.setValue(cpuType);
     }
-    cellCPUType.setEnabled(false);
     if (numCpus > 1) {
       cellCPUsSelected = SpinnerCell.getIntInstance(0, numCpus);
       SpinnerCell spinnerCell = (SpinnerCell) cellCPUsSelected;
@@ -162,24 +161,13 @@ final class ProcessorTableRow implements Storable {
       spinnerCell.setDisabledValue(0);
     }
     else {
-      cellCPUsSelected = new FieldCell();
+      cellCPUsSelected = FieldCell.getIneditableInstance();
       ((FieldCell) cellCPUsSelected).setValue(1);
-      cellCPUsSelected.setEnabled(false);
     }
     cellNumberCpus.setValue(numCpus);
-    cellNumberCpus.setEnabled(false);
-    cellLoad1.setEnabled(false);
-    cellLoad5.setEnabled(false);
-    cellUsers.setEnabled(false);
-    cellCPUUsage.setEnabled(false);
-    cellRestarts.setEnabled(false);
-    cellSuccesses.setEnabled(false);
-    cellFailureReason.setEnabled(false);
-    cellSpeed.setEnabled(false);
     cellSpeed.setValue(speed);
-    cellMemory.setEnabled(false);
+    cellMemory.setEditable(false);
     cellMemory.setValue(memory);
-    cellOS.setEnabled(false);
     cellOS.setValue(os);
     setSelected(false);
   }
@@ -487,6 +475,13 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2007/03/27 19:31:56  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.26  2007/02/09 00:52:03  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.25  2007/02/05 23:42:05  sueh
  * <p> bug# 962 Added SpinnerCell.getInstance.
  * <p>

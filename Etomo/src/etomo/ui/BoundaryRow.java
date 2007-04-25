@@ -36,7 +36,13 @@ import etomo.type.SectionTableRowData;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.2  2007/03/27 19:30:06  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.1  2007/02/05 23:33:40  sueh
+ * <p> bug# 962 Class representing a single row in the boundary table.
+ * <p> </p>
  */
 final class BoundaryRow {
   public static final String rcsid = "$Id$";
@@ -45,11 +51,11 @@ final class BoundaryRow {
   private static final String EMPTY_SLICE_WARNING = "Empty slices will be added to the section.";
   private final HeaderCell boundary = new HeaderCell();
   private final HeaderCell sections = new HeaderCell();
-  private final FieldCell bestGap = new FieldCell();
-  private final FieldCell meanError = new FieldCell();
-  private final FieldCell maxError = new FieldCell();
-  private final FieldCell origEnd = new FieldCell();
-  private final FieldCell origStart = new FieldCell();
+  private final FieldCell bestGap = FieldCell.getIneditableInstance();
+  private final FieldCell meanError = FieldCell.getIneditableInstance();
+  private final FieldCell maxError = FieldCell.getIneditableInstance();
+  private final FieldCell origEnd = FieldCell.getIneditableInstance();
+  private final FieldCell origStart = FieldCell.getIneditableInstance();
   private final SpinnerCell adjustedEnd;
   private final SpinnerCell adjustedStart;
   private final int zMaxEnd;
@@ -63,8 +69,7 @@ final class BoundaryRow {
   private boolean endInverted = false;
   private boolean startInverted = false;
 
-  BoundaryRow(int key, ConstJoinMetaData metaData,
-      JoinScreenState screenState,
+  BoundaryRow(int key, ConstJoinMetaData metaData, JoinScreenState screenState,
       JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     this.panel = panel;
     this.layout = layout;
@@ -72,20 +77,16 @@ final class BoundaryRow {
     //boundary
     String firstSection = Integer.toString(key);
     boundary.setText(firstSection);
-    sections.setText(firstSection+" & "+Integer.toString(key+1));
+    sections.setText(firstSection + " & " + Integer.toString(key + 1));
     //bestGap
-    bestGap.setEnabled(false);
     bestGap.setValue(screenState.getBestGap(key));
     //meanError
-    meanError.setEnabled(false);
     meanError.setValue(screenState.getMeanError(key));
     //maxError
-    maxError.setEnabled(false);
     maxError.setValue(screenState.getMaxError(key));
     //origEnd
-    origEnd.setEnabled(false);
-    SectionTableRowData data = (SectionTableRowData) metaData.getSectionTableData()
-        .get(key - 1);
+    SectionTableRowData data = (SectionTableRowData) metaData
+        .getSectionTableData().get(key - 1);
     origEnd.setValue(data.getJoinFinalEnd().getLong());
     endInverted = data.getInverted().is();
     if (endInverted) {
@@ -96,7 +97,6 @@ final class BoundaryRow {
     }
     zMaxEnd = data.getSetupZMax();
     //origStart
-    origStart.setEnabled(false);
     data = (SectionTableRowData) metaData.getSectionTableData().get(key);
     origStart.setValue(data.getJoinFinalStart().getLong());
     startInverted = data.getInverted().is();
@@ -131,7 +131,7 @@ final class BoundaryRow {
     gap = new Gap(Math.round(bestGap.getFloatValue()), origEnd.getLongValue(),
         origStart.getLongValue(), endInverted, startInverted, zMaxEnd,
         zMaxStart);
-    if (metaData==null||metaData.isBoundaryRowEndListEmpty()) {
+    if (metaData == null || metaData.isBoundaryRowEndListEmpty()) {
       adjustedEnd.setValue(gap.getAdjustedLeft());
       adjustedStart.setValue(gap.getAdjustedRight());
     }
@@ -261,7 +261,8 @@ final class BoundaryRow {
 
   void getMetaData(JoinMetaData metaData) {
     metaData.setBoundaryRowEnd(boundary.getInt(), adjustedEnd.getStringValue());
-    metaData.setBoundaryRowStart(boundary.getInt(), adjustedStart.getStringValue());
+    metaData.setBoundaryRowStart(boundary.getInt(), adjustedStart
+        .getStringValue());
   }
 
   synchronized void adjustedEndStateChanged(ChangeEvent event) {

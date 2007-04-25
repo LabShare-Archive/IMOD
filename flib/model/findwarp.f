@@ -18,7 +18,7 @@ c
       implicit none
       include 'statsize.inc'
       integer idim,limpatch,limvert,limaxis,limtarg
-      parameter (idim=40000,limpatch=100000,limvert=100000)
+      parameter (idim=40000,limpatch=500000,limvert=500000)
       parameter (limaxis=1000, limtarg=100)
       real*4 xr(msiz,idim)
       real*4 cx(limpatch,3),dx(limpatch,3)
@@ -52,10 +52,10 @@ c
       real*4 ratmin,ratmax,fracdrop,crit,critabs,elimmin
       integer*4 ifauto,nauto,niny,ix,iy,iz,iauto
       integer*4 nlocdone,nexclxhi,nexclyhi,nexclzhi
-      integer*4 ifdiddle,nlocx,nlocy,nlocz
+      integer*4 ifdiddle,nlocx,nlocy,nlocz,numZero,numDevSum
       integer*4 induse,nlistd,ndroptot,locx,locy,locz,lx,ly,lz,ifuse
       real*4 ratio,devavmin,dist,distmin,devavsum,devmaxsum,devmaxmax
-      real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal
+      real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal, discount
       real*4 devavavg,devmaxavg,devavmax
       integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop
       integer*4 ifon,ndrop,ifflip,indpat,indloc,icolfix
@@ -73,22 +73,22 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  findwarp
 c       
       integer numOptions
-      parameter (numOptions = 18)
+      parameter (numOptions = 19)
       character*(40 * numOptions) options(1)
 
       indpat(ix,iy,iz)=ix + (iy-1)*npatx + (iz-1)*npatx*npaty
       indloc(ix,iy,iz)=ix + (iy-1)*nlocx + (iz-1)*nlocx*nlocy
 
       options(1) =
-     &    'patch:PatchFile:FN:@region:RegionModel:FN:@'//
+     &    'patch:PatchFile:FN:@output:OutputFile:FN:@region:RegionModel:FN:@'//
      &    'volume:VolumeOrSizeXYZ:FN:@initial:InitialTransformFile:FN:@'//
-     &    'output:OutputFile:FN:@residual:ResidualPatchOutput:FN:@'//
-     &    'target:TargetMeanResidual:FA:@'//
+     &    'residual:ResidualPatchOutput:FN:@target:TargetMeanResidual:FA:@'//
      &    'measured:MeasuredRatioMinAndMax:FP:@xskip:XSkipLeftAndRight:IP:@'//
      &    'yskip:YSkipLowerAndUpper:IP:@zskip:ZSkipLowerAndUpper:IP:@'//
      &    'rowcol:LocalRowsAndColumns:IP:@slabs:LocalSlabs:I:@'//
      &    'maxfrac:MaxFractionToDrop:F:@minresid:MinResidualToDrop:F:@'//
-     &    'prob:CriterionProbabilities:FP:@param:ParameterFile:PF:@'//
+     &    'prob:CriterionProbabilities:FP:@'//
+     &    'discount:DiscountIfZeroVectors:F:@param:ParameterFile:PF:@'//
      &    'help:usage:B:'
 c
       nofsx=0
@@ -106,6 +106,7 @@ c
       elimmin=0.5
       ifdoSlab=0
       resfile = ' '
+      discount = 0.
 c
       call PipReadOrParseOptions(options, numOptions, 'findwarp',
      &    'ERROR: FINDWARP - ', .true., 3, 1, 1, numOptArg,
@@ -283,6 +284,7 @@ c
         ierr = PipGetFloat('MinResidualToDrop', elimmin)
         ierr = PipGetTwoFloats('CriterionProbabilities', crit, critabs)
         ierr = PipGetString('ResidualPatchOutput', resFile)
+        ierr = PipGetFloat('DiscountIfZeroVectors', discount)
       else
         write(*,'(1x,a,$)')'0 to include all positions, or 1 to '//
      &      'exclude rows or columns of patches: '
@@ -347,10 +349,15 @@ c
         nofsy=0
         nofsz=0
       endif
+c
+c       Initialize nfit for slabs before checking on slabs
+      if (pipinput .and. ifauto .ne. 0) then
+        nfitxyz(indz) = ntotxyz(indz)
+        nfitxyzin(indz) = nfitxyz(indz)
+      endif
 c       
 c       Figure out if doing subsets of slabs but not for interactive when
 c       auto was already selected
-c
       if (pipinput .or. ifauto .eq. 0) then
         if (ntotxyz(indz).gt.2) then
           if (pipinput) then
@@ -377,16 +384,18 @@ c
         if (ifflip .ne. 0) then
           nfity = min(nfity, nytot)
           call setAutoFits(nxtot, nztot, nytot, ifdoSlab, nfity, ratmin,
-     &        ratmax, nfxauto, nfzauto, nfyauto, nauto)
+     &        ratmax, nfxauto, nfzauto, nfyauto, nauto, limpatch)
         else
           nfitz = min(nfitz, nztot)
           call setAutoFits(nxtot, nytot, nztot, ifdoSlab, nfitz, ratmin,
-     &        ratmax, nfxauto, nfyauto, nfzauto, nauto)
+     &        ratmax, nfxauto, nfyauto, nfzauto, nauto, limpatch)
         endif
-        if(nauto.eq.0)call exitError(
-     &      'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE THE'//
-     &      ' REQUIRED RATIO OF',' MEASUREMENTS TO UNKNOWNS - '//
-     &      'THERE ARE PROBABLY TOO FEW PATCHES')
+        if(nauto.eq.0)then
+          write(*,'(/,a,/,a)')'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE '//
+     &        'THE REQUIRED RATIO OF',' ERROR: MEASUREMENTS TO UNKNOWNS - '//
+     &        'THERE ARE PROBABLY TOO FEW PATCHES'
+          call exit(1)
+        endif
 c         
 c         sort the list by size of area in inverted order
 c         
@@ -614,6 +623,7 @@ c
       nlistd=0
       ndroptot=0
       nlocdone=0
+      numDevSum = 0.
       do ind = 1, npatx * npaty * npatz
         numRes(ind) = 0
         resSum(ind) = 0
@@ -625,6 +635,7 @@ c
         do locy=1,nlocy
           do locx=1,nlocx
             ndat=0
+            numZero = 0
             do i=1,3
               xyzsum(i)=0.
             enddo
@@ -665,6 +676,8 @@ c
 c                   
                   if(ifuse.gt.0)then
                     ndat=ndat+1
+                    if (dx(ind,1) .eq. 0. .and. dx(ind,2) .eq. 0 .and.
+     &                  dx(ind,3) .eq. 0) numZero = numZero + 1
                     do j=1,3
 c                       
 c                       the regression requires coordinates of second volume as
@@ -762,8 +775,12 @@ c
                 enddo
               endif
 c               
-              devavsum=devavsum+devavg
-              devmaxsum=devmaxsum+devmax
+              if (discount .eq. 0. .or. float(numZero) / ndat .le. discount)
+     &            then
+                devavsum=devavsum+devavg
+                devmaxsum=devmaxsum+devmax
+                numDevSum = numDevSum + 1
+              endif
               devavmax=max(devavmax,devavg)
               devmaxmax=max(devmaxmax,devmax)
 c               
@@ -786,7 +803,7 @@ c       check for auto control
 c       
       if(ifauto.ne.0)then
         devavavg=10000.
-        if(nlocdone.gt.0)devavavg=devavsum/nlocdone
+        if(numDevSum.gt.0)devavavg=devavsum/numDevSum
         devavmin=min(devavmin,devavavg)
         devavAuto(iauto) = devavavg
         if(devavavg.le.targetres(indTarget))then
@@ -850,13 +867,15 @@ c
       endif
 c       
       if(nlocdone.gt.0.and.nauto.eq.0)then
-        devavavg=devavsum/nlocdone
-        devmaxavg=devmaxsum/nlocdone
+        devavavg=devavsum/max(1, numDevSum)
+        devmaxavg=devmaxsum/max(1, numDevSum)
         write(*,101)devavavg,devavmax,devmaxavg,devmaxmax
 101     format('Mean residual has an average of',f8.3,
      &      ' and a maximum of',f8.3,/ ,
      &      'Max  residual has an average of',f8.3,' and a maximum of'
      &      ,f8.3)
+        if (discount .gt. 0.) write(*,'(/,a,i7,a,i7,a)')'These averages are '//
+     &      'based on',numDevSum,' of', nlocdone,' fits'
       elseif(ifauto.eq.0)then
         print *,'No locations could be solved for'
       endif
@@ -865,10 +884,10 @@ c
 
 
       subroutine setAutoFits(nxtot, nztot, nytot, ifdoy, nfity, ratmin, ratmax,
-     &    nfxauto, nfzauto, nfyauto, nauto)
+     &    nfxauto, nfzauto, nfyauto, nauto, limauto)
       implicit none
       integer*4 nxtot, nztot, nytot, ifdoy, nfity, nfxauto(*), nfzauto(*)
-      integer*4 nfyauto(*), nauto, niny,ix,iz,iy
+      integer*4 nfyauto(*), nauto, niny,ix,iz,iy,limauto
       real*4 ratmin, ratmax, ratio
       nauto = 0
       niny = nytot
@@ -883,6 +902,8 @@ c           if(aspect.lt.1.)aspect=1./aspect
      &          ratio.le.ratmax)then
 c               &                 aspect.le.aspectmax)then
               nauto = nauto + 1
+              if (nauto .gt. limauto) call exitError(
+     &            'TOO MANY POSSIBLE FITS FOR ARRAYS, REDUCE MAX RATIO')
               nfxauto(nauto) = ix
               nfzauto(nauto) = iz
               nfyauto(nauto) = iy
@@ -920,6 +941,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.13  2007/01/17 16:49:33  mast
+c       Fixed failure to initialize # of patches to exclude
+c
 c       Revision 3.12  2006/08/21 23:16:16  mast
 c       Needed to clear out filename before getting model name
 c

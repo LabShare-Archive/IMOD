@@ -2,6 +2,7 @@ package etomo.storage.autodoc;
 
 import java.util.Vector;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
@@ -18,6 +19,23 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2007/04/09 20:15:46  sueh
+ * <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
+ * <p> $the Vector member variable from values to nameValuePairList.  Associated the
+ * <p> $last attribute in each name/value pair with the name value pair.  This is the
+ * <p> $attribute which used to contain the value.  The name/value pair also contained
+ * <p> $the value; so it was duplicated.  This made it difficult to add a value to an
+ * <p> $existing attribute.  GetValue() gets the value from the associated name/value
+ * <p> $pair.  Also removed the old nameValuePairList member variable, because it
+ * <p> $wasn't being used for anything.
+ * <p> $
+ * <p> $Revision 1.9  2007/03/23 20:28:58  sueh
+ * <p> $bug# 964 Added getMultiLineValue().
+ * <p> $
+ * <p> $Revision 1.8  2007/03/15 21:43:59  sueh
+ * <p> $bug# 964 Added changeValue() which overwrites the first token with the String
+ * <p> $parameter and removes the rest of the token link list.
+ * <p> $
  * <p> $Revision 1.7  2007/03/08 21:45:14  sueh
  * <p> $bug# 964 Save name/value pairs in the parser.  Fixing printing.
  * <p> $
@@ -77,22 +95,36 @@ import etomo.ui.Token;
  * <p> $$ </p>
  */
 
-final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute {
+final class Attribute extends WriteOnlyAttributeList implements
+    WritableAttribute {
   public static final String rcsid = "$$Id$$";
 
-  private final WriteOnlyAttributeMap parent;
-  private final WriteOnlyNameValuePairList nameValuePairList;
+  private final WriteOnlyAttributeList parent;
   private final Token name;
+  private final String key;
 
-  private String key = null; //required
+  /**
+   * An attribute can occur more then once.  When occurrences is less then 1,
+   * this attribute no longer exists.
+   */
+  private int occurrences = 1;
 
-  private Vector values = null; //optional
-  private AttributeMap attributeMap = null;//optional
+  /**
+   * nameValuePairList will be instantiated if the attribute is the last attribute
+   * in the name of at least one name/value pair.  The value of the attribute is
+   * retrieved through the name/value pair.
+   */
+  private Vector nameValuePairList = null;
+  /**
+   * children will be instantiated if the attribute is the not the last attribute
+   * in the name of at least one name/value pair.
+   */
+  private AttributeList children = null;
 
-  Attribute(WriteOnlyAttributeMap parent,
-      WriteOnlyNameValuePairList nameValuePairList, Token name) {
+  Attribute(WriteOnlyAttributeList parent,
+  /*WriteOnlyNameValuePairList nameValuePairList,*/Token name) {
     this.parent = parent;
-    this.nameValuePairList = nameValuePairList;
+    //this.nameValuePairList = nameValuePairList;
     this.name = name;
     key = name.getKey();
   }
@@ -116,6 +148,18 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
     return true;
   }
 
+  void add() {
+    occurrences++;
+  }
+
+  void remove() {
+    occurrences--;
+  }
+
+  boolean exists() {
+    return occurrences >= 1;
+  }
+
   static String getKey(Token name) {
     if (name == null) {
       return null;
@@ -130,90 +174,104 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
     return Token.convertToKey(name);
   }
 
-  boolean equalsName(String name) {
-    if (name == null) {
-      return false;
+  /*
+   boolean equalsName(String name) {
+   if (name == null) {
+   return false;
+   }
+   return key.equals(Token.convertToKey(name));
+   }
+   */
+  WriteOnlyAttributeList addAttribute(Token name) {
+    if (children == null) {
+      children = new AttributeList(this/*, nameValuePairList*/);
     }
-    return key.equals(Token.convertToKey(name));
+    return children.addAttribute(name);
   }
 
-  WriteOnlyAttributeMap addAttribute(Token name) {
-    if (attributeMap == null) {
-      attributeMap = new AttributeMap(this, nameValuePairList);
-    }
-    return attributeMap.addAttribute(name);
-  }
-
-  synchronized void setValue(Token value) {
-    if (values == null) {
+  synchronized void addNameValuePair(NameValuePair nameValuePair) {
+    if (nameValuePairList == null) {
       //complete construction before assigning to keep the unsynchronized
       //functions from seeing a partially constructed instance.
       Vector vector = new Vector();
-      values = vector;
+      nameValuePairList = vector;
     }
-    values.add(value);
-    //add the full name (name1.name2.name3...) and value to a sequential list
-    //nameValuePairList.addNameValuePair(this, values.size() - 1);
+    nameValuePairList.add(nameValuePair);
   }
-  
-  synchronized void changeValue(String newValue) {
-    if (values == null) {
+
+  public synchronized void setValue(String newValue) {
+    if (nameValuePairList == null) {
+      //This attribute is never the last attribute in a name/value pair.
+      //Therefore there is no value to change
+      //To add a value to this attribute you would have to create the name/value pair
+      //where this attribute is the last attribute in the name.
       return;
     }
-    //can only modify the first value found
-    Token value = (Token)values.get(0);
-    value.removeListFromHead();
-    value.set(Token.Type.ONE_OR_MORE,newValue);
+    //current we can only modify the first name/value pair found
+    NameValuePair nameValuePair = (NameValuePair) nameValuePairList.get(0);
+    Token value = new Token();
+    value.set(Token.Type.ANYTHING, newValue);
+    nameValuePair.setValue(value);
   }
 
   public Attribute getAttribute(int name) {
-    if (attributeMap == null) {
+    if (children == null) {
       return null;
     }
-    return attributeMap.getAttribute(String.valueOf(name));
+    return children.getAttribute(String.valueOf(name));
   }
 
   public ReadOnlyAttribute getAttribute(String name) {
-    if (attributeMap == null) {
+    if (children == null) {
       return null;
     }
-    return attributeMap.getAttribute(name);
+    return children.getAttribute(name);
+  }
+
+  public void write(LogFile file, long writeId) throws LogFile.WriteException {
+    if (!exists()) {
+      return;
+    }
+    name.write(file, writeId);
   }
 
   void print(int level) {
-    Autodoc.printIndent(level);
-    if (values == null || values.size() == 0) {
-      System.out.println(name.getValues() + ".");
-    }
-    else {
-      System.out.print(name.getValues() + " = ");
-      Token value = (Token) values.get(0);
-      if (value == null) {
-        System.out.println("null");
+    if (exists()) {
+      Autodoc.printIndent(level);
+      if (nameValuePairList == null || nameValuePairList.size() == 0) {
+        System.out.println(name.getValues() + ".");
       }
       else {
-        System.out.println(value.getValues());
-      }
-      if (values.size() > 1) {
-        for (int i = 1; i < values.size(); i++) {
-          Autodoc.printIndent(level + 1);
-          System.out.print(" = ");
-          value = (Token) values.get(i);
-          if (value == null) {
-            System.out.println("null");
-          }
-          else {
-            System.out.println(value.getValues());
+        System.out.print(name.getValues() + " = ");
+        Token value = ((NameValuePair) nameValuePairList.get(0))
+            .getTokenValue();
+        if (value == null) {
+          System.out.println("null");
+        }
+        else {
+          System.out.println(value.getValues());
+        }
+        if (nameValuePairList.size() > 1) {
+          for (int i = 1; i < nameValuePairList.size(); i++) {
+            Autodoc.printIndent(level + 1);
+            System.out.print(" = ");
+            value = ((NameValuePair) nameValuePairList.get(i)).getTokenValue();
+            if (value == null) {
+              System.out.println("null");
+            }
+            else {
+              System.out.println(value.getValues());
+            }
           }
         }
       }
     }
-    if (attributeMap != null) {
-      attributeMap.print(level + 1);
+    if (children != null) {
+      children.print(level + 1);
     }
   }
 
-  WriteOnlyAttributeMap getParent() {
+  WriteOnlyAttributeList getParent() {
     return parent;
   }
 
@@ -225,22 +283,54 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
     return name.getValues();
   }
 
-  Token getValueToken(int index) {
-    if (values == null) {
+  public String getMultiLineValue() {
+    if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
     }
-    return (Token) values.get(index);
+    Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
+    if (value == null) {
+      return null;
+    }
+    return value.getMultiLineValues();
   }
 
+  /**
+   * Gets the value from the first nameValuePair in the nameValuePairList.
+   */
   public String getValue() {
-    if (values == null || values.size() == 0) {
+    if (nameValuePairList == null || nameValuePairList.size() == 0) {
       return null;
     }
-    Token value = (Token) values.get(0);
+    Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
     if (value == null) {
       return null;
     }
     return value.getValues();
+  }
+
+  void removeNameValuePair(NameValuePair pair) {
+    nameValuePairList.remove(pair);
+  }
+
+  /**
+   * Gets the first nameValuePair in the nameValuePairList.
+   */
+  NameValuePair getNameValuePair() {
+    if (nameValuePairList == null || nameValuePairList.size() == 0) {
+      return null;
+    }
+    return (NameValuePair) nameValuePairList.get(0);
+  }
+
+  public Token getValueToken() {
+    if (nameValuePairList == null || nameValuePairList.size() == 0) {
+      return null;
+    }
+    Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
+    if (value == null) {
+      return null;
+    }
+    return value;
   }
 
   public int hashCode() {
@@ -248,7 +338,7 @@ final class Attribute extends WriteOnlyAttributeMap implements ReadOnlyAttribute
   }
 
   public String toString() {
-    return getClass().getName() + "[" + ",name=" + name + ",\nvalues=" + values
-    + ",\nattributeMap=" + attributeMap + "]";
+    return getClass().getName() + "[" + ",name=" + name + ",\nchildren="
+        + children + "]";
   }
 }

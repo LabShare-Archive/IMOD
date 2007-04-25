@@ -252,13 +252,11 @@ final class TiltalignPanel implements Expandable {
       "Solve for single stretch during projection");
   private final ApplicationManager appMgr;
   private final ButtonGroup bgBeamTiltOption = new ButtonGroup();
-  private final RadioButton rbNoBeamTilt = new RadioButton("No beam tilt",
-      TiltalignParam.FIXED_OPTION);
+  private final RadioButton rbNoBeamTilt = new RadioButton("No beam tilt");
   private final RadioTextField rtfFixedBeamTilt = RadioTextField.getInstance(
-      "Fixed beam tilt (degrees): ", bgBeamTiltOption,
-      TiltalignParam.FIXED_OPTION);
+      "Fixed beam tilt (degrees): ", bgBeamTiltOption);
   private final RadioButton rbSolveForBeamTilt = new RadioButton(
-      "Solve for beam tilt", TiltalignParam.BEAM_SEARCH_OPTION);
+      "Solve for beam tilt");
   private final JPanel pnlBeamTilt = new JPanel();
   private final JPanel pnlBeamTiltBody = new JPanel();
   private final PanelHeader phBeamTilt;
@@ -412,15 +410,13 @@ final class TiltalignPanel implements Expandable {
 
   private void action(ActionEvent actionEvent) {
     String actionCommand = actionEvent.getActionCommand();
-    if (actionCommand.equals(
-        rtfTargetPatchSizeXandY.getActionCommand())) {
+    if (actionCommand.equals(rtfTargetPatchSizeXandY.getActionCommand())) {
       setMinLocalPatchSizeLabel();
     }
-    else if (actionCommand.equals(
-        rtfNLocalPatches.getActionCommand())) {
+    else if (actionCommand.equals(rtfNLocalPatches.getActionCommand())) {
       setMinLocalPatchSizeLabel();
     }
-    else if (actionCommand.equals(rbNoBeamTilt.getActionCommand())){
+    else if (actionCommand.equals(rbNoBeamTilt.getActionCommand())) {
       updateDisplay();
     }
     else if (actionCommand.equals(rtfFixedBeamTilt.getActionCommand())) {
@@ -657,7 +653,7 @@ final class TiltalignPanel implements Expandable {
     ltfLocalSkewNonDefaultGroups.setText(params.getLocalSkewNondefaultGroup());
     //rest of the radio buttons must be set from metadata because they both
     //correspond to BeamTiltOption == 0
-    if (rbSolveForBeamTilt.equalsRadioValue(params.getBeamTiltOption())) {
+    if (params.getBeamTiltOption().equals(TiltalignParam.BEAM_SEARCH_OPTION)) {
       rbSolveForBeamTilt.setSelected(true);
     }
     //Only using FixedOrInitialBeamTilt when BeamTiltOption==0
@@ -917,17 +913,17 @@ final class TiltalignPanel implements Expandable {
 
       if (rbNoBeamTilt.isSelected()) {
         badParameter = rbNoBeamTilt.getText();
-        params.setBeamTiltOption(rbNoBeamTilt.getRadioValue().getInt());
+        params.setBeamTiltOption(TiltalignParam.FIXED_OPTION);
         params.resetFixedOrInitialBeamTilt();
       }
       else if (rtfFixedBeamTilt.isSelected()) {
         badParameter = rtfFixedBeamTilt.getLabel();
-        params.setBeamTiltOption(rtfFixedBeamTilt.getRadioValue().getInt());
+        params.setBeamTiltOption(TiltalignParam.FIXED_OPTION);
         params.setFixedOrInitialBeamTilt(rtfFixedBeamTilt.getText());
       }
       else if (rbSolveForBeamTilt.isSelected()) {
         badParameter = rbSolveForBeamTilt.getText();
-        params.setBeamTiltOption(rbSolveForBeamTilt.getRadioValue().getInt());
+        params.setBeamTiltOption(TiltalignParam.BEAM_SEARCH_OPTION);
       }
     }
     catch (FortranInputSyntaxException except) {
@@ -1842,6 +1838,10 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.43  2007/03/21 19:47:03  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.42  2007/03/09 22:09:21  sueh
  * <p> bug# 964 Put all of beam tilt under Advance/Basic panel header.  Letting tabs
  * <p> size themselves so that Advanced/Basic panel header won't grow too large.

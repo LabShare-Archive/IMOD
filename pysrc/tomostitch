@@ -1,0 +1,467 @@
+#!/usr/bin/python -u
+# tomostitch - program to perform tasks in final stitching of a supermontage:
+# running findwarp, warpvol, densmatch, newstack, and blendmont
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2007/04/08 16:32:20  mast
+# Added to package
+#
+
+# FUNCTIONS
+
+def changeExtension(name, newext):
+    ind = name.rfind('.')
+    if ind < 0:
+        ind = len(name)
+    return name[0:ind] + newext
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal
+
+progname = 'tomostitch'
+prefix = 'ERROR: ' + progname + ' - '
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+    try:
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    except:
+        pass
+if os.getenv('IMOD_DIR') != None:
+    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                         os.pathsep + os.environ['PATH']
+    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+    print prefix + " IMOD_DIR is not defined!"
+    sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from supermont import *
+
+setSMErrorPrefix(prefix)
+
+# Initializations
+targets = '0.1,0.2,0.3'
+discount = 0.5
+
+# Fallbacks from ../manpages/autodoc2man 3 1 tomostitch
+options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
+           "yrun:YRunStartEnd:IP:", "zrun:ZRunStartEnd:IP:",
+           "thickness:ThicknessToOutput:I:",
+           "density:DensityReferenceFrame:IPM:", "find:FindWarping:B:",
+           "warp:WarpVolumes:B:", "stack:StackVolumes:B:",
+           "blend:BlendVolumes:B:", "target:TargetMeanResidual:FA:",
+           "measured:MeasuredRatioMinAndMax:FP:",
+           "discount:DiscountIfZeroVectors:F:",
+           "tempdir:TemporaryDirectory:CH:",
+           "xminmax:StartingAndEndingX:IP:",
+           "yminmax:StartingAndEndingY:IP:", "bin:BinByFactor:I:",
+           "oldedge:OldEdgeFunctions:B:", "goodedge:GoodEdgeLowAndHighZ:IP:",
+           "onegood:OneGoodEdgeLimits:IAM:", "width:BlendingWidthXandY:IP:",
+           "boxsize:BoxSizeShortAndLong:IP:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
+        1, 0)
+infofile = PipGetInOutFile('InfoFile', 0)
+if not infofile:
+    print prefix + " Info file name must be entered"
+    sys.exit(1)
+
+
+predata = {}
+pieces = []
+edges = []
+slices = []
+readMontInfo(infofile, predata, slices, pieces, edges)
+(xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
+
+# Get the extent in X and Y
+xrunStart, yrunStart = -10000, -10000
+xrunEnd, yrunEnd = 10000, 10000
+
+xrunStart, xrunEnd = PipGetTwoIntegers('XRunStartEnd', xrunStart, xrunEnd)
+yrunStart, yrunEnd = PipGetTwoIntegers('YRunStartEnd', yrunStart, yrunEnd)
+xrunStart = max(xrunStart, xmin)
+yrunStart = max(yrunStart, ymin)
+xrunEnd = min(xrunEnd, xmax)
+yrunEnd = min(yrunEnd, ymax)
+
+# Get the section to do in Z
+if len(zlist) > 1:
+    zrun = PipGetInteger('ZRun', 0)
+    if PipGetErrNo() == 1:
+        print prefix + " Z value to run must be specified"
+        sys.exit(1)
+
+    for z in zlist:
+        if z == zrun:
+            break
+    else:
+        print prefix + " the Z value entered is not in the info file"
+        sys.exit(1)
+else:
+    zrun = zlist[0]
+
+# Find the section data for this z
+for i in range(len(slices)):
+    if int(slices[i][kZvalue]) == zrun:
+        slice = slices[i]
+        indSlice = i
+        if not (slice.has_key(kSpacing) and slice.has_key(kOutsize) and \
+                slice.has_key(kSample)):
+            print prefix + " The info file is missing spacing, output size, " \
+                  + " or interval factor data for this section"
+            sys.exit(1)
+        xoutSize = slice[kOutsize][0]
+        youtSize = slice[kOutsize][1]
+        zoutSize = slice[kOutsize][2]
+        xSpacing = slice[kSpacing][0]
+        ySpacing = slice[kSpacing][1]
+        sampleFac = float(slice[kSample])
+        slicename = slice['name']
+        break
+else:
+    print prefix + " There is no section data for this Z in the info file"
+    sys.exit(1)
+
+# Get thickness and a bunch of other parameters
+zoutSize = PipGetInteger('ThicknessToOutput', zoutSize)
+if zoutSize < 1:
+    print prefix + " Illegal thickness value"
+    sys.exit(1)
+refFrameX, refFrameY = PipGetTwoIntegers('DensityReferenceFrame', -1, -1)
+minRatio = 4. / (sampleFac * sampleFac * sampleFac)
+maxRatio = 12. / (sampleFac * sampleFac * sampleFac)
+minRatio, maxRatio = PipGetTwoFloats('MeasuredRatioMinAndMax', minRatio, \
+                                     maxRatio)
+targets = PipGetString('TargetMeanResidual', targets)
+discount = PipGetFloat('DiscountIfZeroVectors', discount)
+tempdir = PipGetString('TemporaryDirectory', " ")
+goodLowZ, goodHiZ = PipGetTwoIntegers('GoodEdgeLowAndHighZ', -1, -1)
+blendWidthX, blendWidthY = PipGetTwoIntegers('BlendingWidthXandY', -1, -1)
+boxShort, boxLong = PipGetTwoIntegers('BoxSizeShortAndLong', -1, -1)
+binFactor = PipGetInteger('BinByFactor', 1)
+oldedges = PipGetBoolean('OldEdgeFunctions', 0)
+
+# X/Y start and end converted here to a string
+xblst, xblnd = PipGetTwoIntegers('StartingAndEndingX', 0, 0)
+if PipGetErrNo():
+    xstnd = '/'
+else:
+    xstnd = "%d %d" % (xblst, xblnd)
+yblst, yblnd = PipGetTwoIntegers('StartingAndEndingY', 0, 0)
+if PipGetErrNo():
+    ystnd = '/'
+else:
+    ystnd = "%d %d" % (yblst, yblnd)
+
+numOneGood = PipNumberOfEntries('OneGoodEdgeLimits')
+oneGoods = []
+if numOneGood:
+    for i in range(0, numOneGood):
+        oneGood = PipGetIntegerArray('OneGoodEdgeLimits', 5)
+        oneGoods.append(oneGood)
+
+
+# Find out what operations to do
+dofind = PipGetBoolean('FindWarping', 0)
+dowarp = PipGetBoolean('WarpVolumes', 0)
+doblend = PipGetBoolean('BlendVolumes', 0)
+dostack = PipGetBoolean('StackVolumes', 0)
+if not (dofind + dowarp + doblend + dostack):
+    dofind, dowarp, doblend, dostack = 1, 1, 1, 1
+if dofind and ((doblend and not (dowarp and dostack)) or \
+               (dostack and not dowarp)):
+    print prefix + 'If you run findwarp you must run each following step in ' \
+          'sequence'
+    sys.exit(1)
+if dowarp and doblend and not dostack:
+    print prefix + 'If you run Warpvol you need to stack the data before '\
+          'blending'
+    sys.exit(1)
+
+PipDone()
+
+# Build a piece map 
+xdim = xmax + 1 - xmin
+maxPieces = xdim * (ymax + 1 - ymin)
+if xdim <= 0 or maxPieces <= 0:
+    print prefix + " Illegal range of pieces to run specified"
+    sys.exit(1)
+
+pieceMap = []
+for i in range(maxPieces):
+    pieceMap.append(-1)
+for i in range(len(pieces)):
+    fxyz = pieces[i][kFrame]
+    if fxyz[2] == zrun:
+        pieceMap[fxyz[0] - xmin + xdim * (fxyz[1] - ymin)] = i
+
+# Run findwarp
+if dofind:
+    failed = []
+    print 'Running findwarp with min and max ratios of measured to unknowns' \
+              ' of: %.1f  %1.f' % (minRatio, maxRatio)
+    for y in range(yrunStart, yrunEnd + 1):
+        for x in range(xrunStart, xrunEnd + 1):
+            ind = pieceMap[x - xmin + xdim * (y - ymin)]
+            if ind >= 0:
+                if not (pieces[ind].has_key(kVectors) and \
+                        pieces[ind].has_key(kMatxf)):
+                    print '%s Frame %d %d is missing an initial transform or '\
+                          'warping vectors' % (prefix, x, y)
+                    sys.exit(1)
+                patname = pieces[ind][kVectors]
+                xfname = pieces[ind][kMatxf]
+                warpname = changeExtension(xfname, '.warpxf')
+                resname = changeExtension(xfname, '_res.patch')
+                resmod = changeExtension(xfname, '_res.mod')
+                input = ['VolumeOrSizeXYZ %d %d %d' % (xoutSize, youtSize,
+                                                       zoutSize),
+                         'TargetMeanResidual ' + targets,
+                         'DiscountIfZeroVectors %f' % discount,
+                         'MeasuredRatioMinAndMax %f %f' % (minRatio, maxRatio),
+                         'PatchFile ' + patname,
+                         'OutputFile ' + warpname,
+                         'InitialTransformFile ' + xfname,
+                         'ResidualPatchOutput ' + resname]
+                try:
+                    print '\nRunning findwarp on frame %d %d\n' % (x, y)
+                    fwout = runcmd('findwarp -StandardInput', input, 'stdout')
+
+                    print " "
+                    patchcom = 'patch2imod -n "Values are residuals" ' + \
+                               '-s 5 -f %s %s' % (resname, resmod)
+                    runcmd(patchcom, None)
+
+                except ImodpyError, errout:
+                    failed.append((x, y))
+
+    if len(failed):
+        print '\n\nTo summarize, Findwarp failed on frames:'
+        for frames in failed:
+            print '      x %d  y %d' % frames
+        print prefix + 'Findwarp did not succeed on all frames'
+        sys.exit(1)
+
+# Run warpvol
+if dowarp:
+    for y in range(yrunStart, yrunEnd + 1):
+        for x in range(xrunStart, xrunEnd + 1):
+            ind = pieceMap[x - xmin + xdim * (y - ymin)]
+            if ind >= 0:
+                if not pieces[ind].has_key(kMatxf):
+                    print '%s No initial transform has been computed for ' \
+                          'frame %d %d' % (prefix, x, y)
+                    sys.exit(1)
+                xfname = pieces[ind][kMatxf]
+                warpname = changeExtension(xfname, '.warpxf')
+                aliname = changeExtension(xfname, '.warped')
+                if not os.path.exists(warpname):
+                    print '%s No warping transform file is found for ' \
+                          'frame %d %d' % (prefix, x, y)
+                    sys.exit(1)
+                    
+                input = ['OutputSizeXYZ %d %d %d' % (xoutSize, youtSize,
+                                                     zoutSize),
+                         'InputFile ' + pieces[ind]['file'],
+                         'OutputFile ' + aliname,
+                         'TransformFile ' + warpname]
+                if tempdir != ' ':
+                    input.append('TemporaryDirectory' + tempdir)
+                try:
+                    print '\nRunning warpvol on frame %d %d\n' % (x, y)
+                    runcmd('warpvol -StandardInput', input)
+
+                except ImodpyError, errout:
+                    exitFromImodError(progname, errout)
+
+# Densmatch and stack volumes and make piece list: first check size and number
+if dostack:
+    numStack = 0
+    refNum = -1
+    aliList = []
+    plist = []
+    for y in range(yrunStart, yrunEnd + 1):
+        for x in range(xrunStart, xrunEnd + 1):
+            ind = pieceMap[x - xmin + xdim * (y - ymin)]
+            if ind >= 0:
+                if not pieces[ind].has_key(kMatxf):
+                    print '%s No initial transform has been computed for ' \
+                          'frame %d %d' % (prefix, x, y)
+                    sys.exit(1)
+                xfname = pieces[ind][kMatxf]
+                aliname = changeExtension(xfname, '.warped')
+                if not os.path.exists(aliname):
+                    print '%s No aligned volume is found for ' \
+                          'frame %d %d' % (prefix, x, y)
+                    sys.exit(1)
+                
+                try:
+                    xstmp, ystmp, zstmp = getmrcsize(aliname)
+                except ImodpyError, errout:
+                    exitFromImodError(progname, errout)
+
+                # First stack, record size and reference if not specified,
+                # otherwise check for size match
+                if not numStack:
+                    xsize = xstmp
+                    ysize = ystmp
+                    zsize = zstmp
+                    if refFrameX == -1 and refFrameY == -1:
+                        refNum = 0
+                elif xsize != xstmp or ysize != ystmp or zsize != zstmp:
+                    print prefix + 'All aligned volumes are not the same size'
+                    sys.exit(1)
+
+                aliList.append(aliname)
+                if refFrameX == x and refFrameY == y:
+                    refNum = numStack
+                numStack += 1
+
+                # Add lines to piece list array.  Start coordinates at 0
+                xcoord = (x - xrunStart) * xSpacing
+                ycoord = (y - yrunStart) * ySpacing
+                for i in range(zsize):
+                    line = '%d  %d  %d\n' % (xcoord, ycoord, i)
+                    plist.append(line)
+
+    if refNum < 0:
+        print prefix + 'The reference frame is not in the range being blended'
+        sys.exit(1)
+
+    if numStack < 2:
+        print prefix + 'There is only one frame in the given range and no ' \
+              'need to stack and blend'
+        sys.exit(1)
+
+    # Run densmatch and compose the newstack command
+    newstcom = 'newstack'
+    try:
+        for i in range(numStack):
+            newstcom += ' ' + aliList[i]
+            if i != refNum:
+                print 'Running densmatch on ' + aliList[i]
+                denscom = 'densmatch ' + aliList[refNum] + ' ' + aliList[i]
+                densout = runcmd(denscom, None)
+                for l in densout:
+                    if l.find('SD =') >= 0:
+                        print l
+
+        # Run newstack
+        newstcom += ' ' + slicename + '.st'
+        print '\nStacking the volumes into ' + slicename + '.st'
+        runcmd(newstcom, None)
+
+    except ImodpyError, errout:
+                exitFromImodError(progname, errout)
+
+    # Make the piece list file
+    try:
+        plname = slicename + '.pl'
+        makeBackupFile(plname)
+        plfile = open(plname, 'w')
+        plfile.writelines(plist)
+        plfile.close()
+    except:
+        print prefix + 'Opening or writing to piece list file ' + plname
+        sys.exit(1)
+
+    slices[indSlice][kXstacked] = [xrunStart, xrunEnd]
+    slices[indSlice][kYstacked] = [yrunStart, yrunEnd]
+
+# Now is a good time to write the info file
+if dofind or dowarp or dostack:
+    writeMontInfo(infofile, predata, slices, pieces, edges)
+
+# Blend!
+if doblend:
+    input = ['ImageInputFile\t' + slicename + '.st',
+             'PieceListInput\t' + slicename + '.pl',
+             'ImageOutputFile\t' + slicename + '.bl',
+             'RootNameForEdges\t' + slicename,
+             'OldEdgeFunctions\t%d' % oldedges,
+             'StartingAndEndingX\t' + xstnd,
+             'StartingAndEndingY\t' + ystnd,
+             'ExcludeFillFromEdges\t1']
+    if binFactor > 1:
+        input.append('BinByFactor\t %d' % binFactor)
+    if goodLowZ >= 0 and goodHiZ >=0:
+        input.append('GoodEdgeLowAndHighZ\t%d %d' % \
+                     (goodLowZ - 1, goodHiZ - 1))
+
+    # Get range of slices to look over for edge limits
+    xlo = xmin
+    xhi = xmax
+    ylo = ymin
+    yhi = ymax
+    if slices[indSlice].has_key(kXstacked):
+        xlo = slices[indSlice][kXstacked][0]
+        xhi = slices[indSlice][kXstacked][1]
+    if slices[indSlice].has_key(kYstacked):
+        ylo = slices[indSlice][kYstacked][0]
+        yhi = slices[indSlice][kYstacked][1]
+
+    # Loop on all edges
+    for edge in edges:
+        zlo = -1
+        zhi = -1
+        xpc = edge[kLower][0]
+        ypc = edge[kLower][1]
+        xory = 1
+        if edge[kXorY] == 'Y':
+            xory = 2
+        if edge[kLower][2] == zrun and xpc >= xlo and xpc <= xhi and \
+           ypc >= ylo and ypc <= yhi:
+
+            
+            # If and edge has lower piece in range and has a limit, take it
+            if edge.has_key(kGoodlim):
+                zlo = edge[kGoodlim][0]
+                zhi = edge[kGoodlim][1]
+
+            # Then search entries for overriding values for this edge
+            for i in range(numOneGood):
+                if oneGoods[i][0] == xpc and oneGoods[i][1] == ypc and \
+                   oneGoods[i][2] == xory:
+                    zlo = oneGoods[i][3]
+                    zhi = oneGoods[i][4]
+
+            # Add to input if any found
+            if zlo >= 0 and zhi >= 0:
+                input.append('OneGoodEdgeLimits\t%d %d %d %d %d' % \
+                             (xpc + 1 - xlo, ypc + 1 - ylo, xory, \
+                              zlo - 1, zhi - 1))
+
+    # Output a command file before running it
+    comlist = ['$blendmont -StandardInput\n']
+    for l in input:
+        comlist.append(l + '\n')
+    comname = 'blend_' + slicename + '.com'
+    makeBackupFile(comname)
+    try:
+        comfile = open(comname, 'w')
+        comfile.writelines(comlist)
+        comfile.close()
+        print 'Command file to run blendmont output to ' + comname
+    except:
+        print 'WARNING: unable to open or write new command file' + comname
+
+    print 'Running blendmont to build ' + slicename + '.bl'
+    try:
+        runcmd('blendmont -StandardInput', input, 'stdout')
+    except ImodpyError, errout:
+                exitFromImodError(progname, errout)
+
+sys.exit(0)

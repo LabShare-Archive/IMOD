@@ -11,8 +11,9 @@ import java.awt.geom.IllegalPathStateException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.List;
 
 /**
  * <p>Description:  Data storage for an autodoc file.
@@ -73,11 +74,11 @@ import java.util.Vector;
  * @author $$Author$$
  *
  * @version $$Revision$$
+ * 
+ * @notthreadsafe
  *
  */
-
-final class Autodoc extends WriteOnlyNameValuePairList implements
-     ReadOnlyAutodoc {
+final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   public static final String rcsid = "$$Id$$";
 
   private static final String AUTODOC_DIR = "AUTODOC_DIR";
@@ -92,10 +93,12 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
   private AutodocParser parser = null;
 
   //data
-  private AttributeMap attributeMap = null;
-  private Vector sectionList = null;
-  private HashMap sectionMap = null;
-  private final Vector nameValuePairList = new Vector();
+  private final List sectionList = new ArrayList();
+  private final HashMap sectionMap = new HashMap();
+  private final List statementList = new ArrayList();
+  private final AttributeList attributeList;
+  private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
+  private boolean debug = false;
 
   Autodoc() {
     this(false);
@@ -103,8 +106,8 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
 
   Autodoc(boolean allowAltComment) {
     this.allowAltComment = allowAltComment;
+    attributeList = new AttributeList(this);
   }
-
 
   static void resetAbsoluteDir() {
     absoluteDir = null;
@@ -117,21 +120,21 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
   public String getName() {
     return autodocFile.getName();
   }
+  
+  public void setDebug(boolean debug) {
+    this.debug=debug;
+  }
 
   LogFile getAutodocFile() {
     return autodocFile;
   }
 
   Section addSection(Token type, Token name) {
-    if (sectionList == null) {
-      sectionList = new Vector();
-      sectionMap = new HashMap();
-    }
     Section existingSection = null;
     String key = Section.getKey(type, name);
     existingSection = (Section) sectionMap.get(key);
     if (existingSection == null) {
-      Section newSection = new Section(type, name);
+      Section newSection = new Section(type, name, this);
       sectionList.add(newSection);
       sectionMap.put(newSection.getKey(), newSection);
       return newSection;
@@ -147,50 +150,116 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     return false;
   }
 
-  WriteOnlyAttributeMap addAttribute(Token name) {
-    if (attributeMap == null) {
-      attributeMap = new AttributeMap(this, this);
+  void setCurrentDelimiter(Token newDelimiter) {
+    currentDelimiter = newDelimiter.getValues();
+  }
+
+  String getCurrentDelimiter() {
+    return currentDelimiter;
+  }
+
+  WriteOnlyAttributeList addAttribute(Token name) {
+    return attributeList.addAttribute(name);
+  }
+
+  public void write() throws LogFile.FileException, LogFile.WriteException {
+    autodocFile.backup();
+    long writeId = autodocFile.openWriter();
+    for (int i = 0; i < statementList.size(); i++) {
+      ((Statement) statementList.get(i)).write(autodocFile, writeId);
     }
-    return attributeMap.addAttribute(name);
+    for (int j = 0; j < sectionList.size(); j++) {
+      ((Section) sectionList.get(j)).write(autodocFile, writeId);
+    }
+    autodocFile.closeWriter(writeId);
+  }
+
+  /**
+   * add a name/value pair with a name containing one attribute
+   */
+  public void addNameValuePair(String name, String value) {
+    //add attribute
+    Token nameToken = new Token();
+    nameToken.set(Token.Type.ANYTHING, name);
+    attributeList.addAttribute(nameToken);
+    //add value to attribute
+    Attribute attribute = attributeList.getAttribute(name);
+    Token valueToken = new Token();
+    valueToken.set(Token.Type.ANYTHING, value);
+    //add name/value pair
+    NameValuePair pair = addNameValuePair();
+    //add attribute and value to pair
+    pair.addAttribute(attribute);
+    pair.addValue(valueToken);
+  }
+
+  /**
+   * Removes a simple (single attribute) name/value pair.  Removes the occurrance
+   * of the attribute in the name/value pair.
+   * @Return the previous statement in statementList
+   */
+  public WritableStatement removeNameValuePair(String name) {
+    Attribute attribute = attributeList.getAttribute(name);
+    if (attribute == null) {
+      //unable to find an attribute with this name
+      return null;
+    }
+    NameValuePair pair = attribute.getNameValuePair();
+    statementList.remove(pair);
+    return pair.remove();
+  }
+
+  /**
+   * Removes a statement.
+   * @Return the previous statement in statementList
+   */
+  public WritableStatement removeStatement(WritableStatement statement) {
+    statementList.remove(statement);
+    return statement.remove();
   }
 
   public ReadOnlyAttribute getAttribute(String name) {
-    if (attributeMap == null) {
-      return null;
-    }
-    return attributeMap.getAttribute(name);
+    return attributeList.getAttribute(name);
+  }
+
+  public WritableAttribute getWritableAttribute(String name) {
+    return attributeList.getAttribute(name);
   }
 
   NameValuePair addNameValuePair() {
-    NameValuePair pair = NameValuePair.getNameValuePairInstance();
-    nameValuePairList.add(pair);
+    NameValuePair pair = new NameValuePair(this, getMostRecentStatement());
+    statementList.add(pair);
     return pair;
   }
 
-  void addComment(Token comment) {
-    nameValuePairList.add(NameValuePair.getCommentInstance(comment));
+  public void addComment(Token comment) {
+    statementList.add(new Comment(comment, this, getMostRecentStatement()));
   }
 
-  void addEmptyLine() {
-    nameValuePairList.add(NameValuePair.getEmptyLineInstance());
+  public void addComment(String comment) {
+    Token token = new Token();
+    token.set(Token.Type.ANYTHING, comment);
+    addComment(token);
   }
 
-  public NameValuePairLocation getNameValuePairLocation() {
-    if (nameValuePairList == null) {
+  public void addEmptyLine() {
+    statementList.add(new EmptyLine(this, getMostRecentStatement()));
+  }
+
+  public StatementLocation getStatementLocation() {
+    if (statementList == null) {
       return null;
     }
-    return new NameValuePairLocation();
+    return new StatementLocation();
   }
 
-  public NameValuePair nextNameValuePair(NameValuePairLocation location) {
-    if (nameValuePairList == null || location == null
-        || location.isOutOfRange(nameValuePairList)) {
+  public Statement nextStatement(StatementLocation location) {
+    if (location == null || location.isOutOfRange(statementList)) {
       return null;
     }
-    NameValuePair pair = (NameValuePair) nameValuePairList.get(location
-        .getIndex());
+    Statement statement = (Statement) statementList.get(location.getIndex());
     location.increment();
-    return pair;
+    return statement;
   }
 
   public ReadOnlySection getSection(String type, String name) {
@@ -207,9 +276,6 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
   }
 
   public SectionLocation getSectionLocation(String type) {
-    if (sectionList == null) {
-      return null;
-    }
     Section section = null;
     for (int i = 0; i < sectionList.size(); i++) {
       section = (Section) sectionList.get(i);
@@ -235,6 +301,22 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     return null;
   }
 
+  public HashMap getAttributeValues(String sectionType, String attributeName) {
+    return getAttributeValues(sectionType, attributeName, false);
+  }
+
+  public HashMap getAttributeMultiLineValues(String sectionType,
+      String attributeName) {
+    return getAttributeValues(sectionType, attributeName, true);
+  }
+  
+  private Statement getMostRecentStatement() {
+    if (statementList.size() == 0) {
+      return null;
+    }
+    return (Statement) statementList.get(statementList.size() - 1);
+  }
+
   /**
    * Returns a HashMap containing a list of attribute values, keyed by
    * sectionName.  The elements in each list is using section type and attribute
@@ -244,20 +326,26 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
    * @param attributeName
    * @return
    */
-  public HashMap getAttributeValues(String sectionType, String attributeName) {
-    if (sectionType == null || attributeName == null || sectionList == null) {
+  private HashMap getAttributeValues(String sectionType, String attributeName,
+      boolean multiLine) {
+    if (sectionType == null || attributeName == null) {
       return null;
     }
-    HashMap attributeValues = null;
     //Create attributeValues
-    attributeValues = new HashMap();
+    HashMap attributeValues = new HashMap();
     SectionLocation sectionLocation = getSectionLocation(sectionType);
     ReadOnlySection section = nextSection(sectionLocation);
     while (section != null) {
       try {
         String sectionName = section.getName();
-        String attributeValue = section.getAttribute(attributeName).getValue();
-        attributeValues.put(sectionName, attributeValue);
+        if (multiLine) {
+          attributeValues.put(sectionName, section.getAttribute(attributeName)
+              .getMultiLineValue());
+        }
+        else {
+          attributeValues.put(sectionName, section.getAttribute(attributeName)
+              .getValue());
+        }
       }
       catch (NullPointerException e) {
         //An attribute with attributeName doesn't exist
@@ -267,30 +355,29 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     }
     return attributeValues;
   }
+  
+  public void printStatementList() {
+    System.out.println("statementList="+statementList);
+  }
 
   public void printStoredData() {
     System.out.println("Printing stored data:");
     //name value pair list
     System.out.println("LIST:");
-    if (nameValuePairList != null) {
-      NameValuePair nameValuePair = null;
-      for (int i = 0; i < nameValuePairList.size(); i++) {
-        nameValuePair = (NameValuePair) nameValuePairList.get(i);
-        nameValuePair.print(0);
+    if (statementList != null) {
+      Statement statement = null;
+      for (int i = 0; i < statementList.size(); i++) {
+        statement = (Statement) statementList.get(i);
+        statement.print(0);
       }
     }
     //attribute map
-    System.out.println("MAP:");
-    if (attributeMap != null) {
-      attributeMap.print(0);
-    }
+    System.out.println("Attributes:");
+    attributeList.print(0);
     //section list
-    if (sectionList != null) {
-      Section section = null;
-      for (int i = 0; i < sectionList.size(); i++) {
-        section = (Section) sectionList.get(i);
-        section.print(0);
-      }
+    for (int i = 0; i < sectionList.size(); i++) {
+      Section section = (Section) sectionList.get(i);
+      section.print(0);
     }
   }
 
@@ -404,18 +491,18 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
 
   void initialize(String name, AxisID axisID) throws FileNotFoundException,
       IOException, LogFile.ReadException {
-      initialize(name, axisID, null, true);
+    initialize(name, axisID, null, true);
   }
 
   void initializeUITest(String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.ReadException {
-          initialize(name, axisID, "IMOD_UITEST_SOURCE", true);
+    initialize(name, axisID, "IMOD_UITEST_SOURCE", true);
   }
-  
-  void initializeCpu(String name, AxisID axisID)
-  throws FileNotFoundException, IOException, LogFile.ReadException {
-      initialize(name, axisID, EnvironmentVariable.CALIB_DIR, true);
-}
+
+  void initializeCpu(String name, AxisID axisID) throws FileNotFoundException,
+      IOException, LogFile.ReadException {
+    initialize(name, axisID, EnvironmentVariable.CALIB_DIR, true);
+  }
 
   /**
    * Initializes parser and prints parsing data instead of storing it.
@@ -472,7 +559,7 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false);
+    parser = new AutodocParser(this, false, true,debug);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -489,10 +576,10 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  void initialize(File file, boolean storeData) throws FileNotFoundException,
-      IOException, LogFile.ReadException {
+  void initialize(File file, boolean storeData, boolean versionRequired)
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     autodocFile = LogFile.getInstance(file);
-    parser = new AutodocParser(this, allowAltComment);
+    parser = new AutodocParser(this, allowAltComment, versionRequired);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -512,6 +599,30 @@ final class Autodoc extends WriteOnlyNameValuePairList implements
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.19  2007/04/11 21:59:21  sueh
+ *<p> $bug# 964 Added removeNameValuePair(String name):  removes a name/value pair with a simple (one-attribute) name.  Added removeStatement(WritableStatement):  removes the passed-in Statement.
+ *<p> $
+ *<p> $Revision 1.18  2007/04/09 20:18:48  sueh
+ *<p> $bug# 964 Moved the value to the associated name/value pair.  Changed
+ *<p> $the Vector member variable from values to nameValuePairList.  Associated the
+ *<p> $last attribute in each name/value pair with the name value pair.  This is the
+ *<p> $attribute which used to contain the value.  The name/value pair also contained
+ *<p> $the value; so it was duplicated.  This made it difficult to add a value to an
+ *<p> $existing attribute.  GetValue() gets the value from the associated name/value
+ *<p> $pair.  Also removed the old nameValuePairList member variable, because it
+ *<p> $wasn't being used for anything.
+ *<p> $
+ *<p> $Revision 1.17  2007/03/26 18:36:27  sueh
+ *<p> $bug# 964 Made Version optional so that it is not necessary in matlab param files.
+ *<p> $
+ *<p> $Revision 1.16  2007/03/23 20:30:09  sueh
+ *<p> $bug# 964 Added addAttributeAndNameValuePair, addComment(String), write(),
+ *<p> $getWritableAttribute,getAttributeMultiLineValues.
+ *<p> $
+ *<p> $Revision 1.15  2007/03/21 18:14:26  sueh
+ *<p> $bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ *<p> $Added AutodocFactory to create Autodoc instances.
+ *<p> $
  *<p> $Revision 1.14  2007/03/15 21:44:50  sueh
  *<p> $bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
  *<p> $unless the Attribute needs to be modified.

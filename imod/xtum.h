@@ -3,32 +3,11 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.2  2003/03/26 17:15:31  mast
-Adjust sizes for font changes
-
-Revision 4.1  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 1.1.2.3  2003/01/29 01:52:41  mast
-make gl widget public
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/10 23:42:45  mast
-initial creation
-
-
-*/
 #ifndef XTUM_H
 #define XTUM_H
 
@@ -88,6 +67,7 @@ typedef struct imod_xtum_struct
   int    bbox;
   int    fillval;
   int    ctrl;
+  int    closing;
 } TumblerStruct;
 
 
@@ -171,3 +151,26 @@ protected:
 };
 
 #endif
+
+/*
+$Log$
+Revision 4.3  2004/05/03 02:33:38  mast
+declare new functions for setting steps
+
+Revision 4.2  2003/03/26 17:15:31  mast
+Adjust sizes for font changes
+
+Revision 4.1  2003/02/10 20:41:56  mast
+Merge Qt source
+
+Revision 1.1.2.3  2003/01/29 01:52:41  mast
+make gl widget public
+
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.1  2003/01/10 23:42:45  mast
+initial creation
+
+
+*/

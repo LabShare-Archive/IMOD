@@ -61,6 +61,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.103  2007/03/21 19:47:15  sueh
+ * bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * Added AutodocFactory to create Autodoc instances.
+ *
  * Revision 3.102  2007/03/01 01:45:32  sueh
  * bug# 964 Added LogFile to Autodoc.
  *
@@ -1194,9 +1198,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   }
 
   void setAdvanced() {
-    boolean headerAdvanced = filterHeader.isAdvancedBasicExpanded();
+    boolean headerAdvanced = filterHeader.isAdvanced();
     if (headerAdvanced != isAdvanced
-        && headerAdvanced == tiltHeader.isAdvancedBasicExpanded()) {
+        && headerAdvanced == tiltHeader.isAdvanced()) {
       super.setAdvanced(headerAdvanced);
     }
   }

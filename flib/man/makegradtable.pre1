@@ -13,7 +13,7 @@ DDEESSCCRRIIPPTTIIOONN
   two kinds of data: gradients based upon analysis of montaged images at high
   tilt, and transformations that align images taken at different Z heights.
   In the one case it will read a log file from running Findgradient(1), and in
-  the other case it will read the transformation file prodiced by Xfalign(1)
+  the other case it will read the transformation file produced by Xfalign(1)
   and possibly edited in Midas(1).  These data can be smoothed and
   extrapolated as needed.  To do this, the program will transform the beam
   intensity values into: 1 / (Intensity - crossover).  Gradients are nearly

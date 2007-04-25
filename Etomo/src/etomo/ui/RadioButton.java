@@ -12,8 +12,7 @@ import javax.swing.JToggleButton;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.EtomoNumber;
+import etomo.type.EnumeratedType;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
@@ -30,30 +29,35 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class RadioButton {
+final class RadioButton implements RadioButtonInterface{
   public static final String rcsid = "$Id$";
 
   private final JRadioButton radioButton;
-  private final EtomoNumber radioValue = new EtomoNumber();
+  private final EnumeratedType enumeratedType;
 
   RadioButton(final String text) {
-    this(text, EtomoNumber.INTEGER_NULL_VALUE,null);
-  }
-  
-  RadioButton(final String text,ButtonGroup group) {
-    this(text, EtomoNumber.INTEGER_NULL_VALUE,group);
+    this(text, null, null);
   }
 
-  RadioButton(final String text, final int radioValue) {
-    this(text, radioValue,null);
+  RadioButton(final String text, ButtonGroup group) {
+    this(text, null, group);
   }
-  
-  RadioButton(final String text, final int radioValue,ButtonGroup group) {
+
+  RadioButton(final String text, final EnumeratedType enumeratedType) {
+    this(text, enumeratedType, null);
+  }
+
+  RadioButton(final String text, final EnumeratedType enumeratedType,
+      ButtonGroup group) {
     radioButton = new JRadioButton(text);
+    radioButton.setModel(new RadioButtonModel(this));
     setName(text);
-    this.radioValue.set(radioValue);
-    if (group!=null) {
+    this.enumeratedType = enumeratedType;
+    if (group != null) {
       group.add(radioButton);
+    }
+    if (enumeratedType!=null&&enumeratedType.isDefault()) {
+      radioButton.setSelected(true);
     }
   }
 
@@ -72,12 +76,8 @@ final class RadioButton {
     }
   }
 
-  ConstEtomoNumber getRadioValue() {
-    return radioValue;
-  }
-
-  boolean equalsRadioValue(final ConstEtomoNumber radioValue) {
-    return this.radioValue.equals(radioValue);
+  boolean equals(final EnumeratedType enumeratedType) {
+    return this.enumeratedType == enumeratedType;
   }
 
   void setToolTipText(final String text) {
@@ -90,6 +90,9 @@ final class RadioButton {
 
   void setSelected(final boolean selected) {
     radioButton.setSelected(selected);
+  }
+  
+  public void msgSelected() {
   }
 
   boolean isSelected() {
@@ -114,6 +117,10 @@ final class RadioButton {
 
   String getName() {
     return radioButton.getName();
+  }
+  
+  public EnumeratedType getEnumeratedType() {
+    return enumeratedType;
   }
 
   Component getComponent() {
@@ -141,21 +148,28 @@ final class RadioButton {
   }
 
   static final class RadioButtonModel extends JToggleButton.ToggleButtonModel {
-    private final RadioButtonParent parent;
+    private final RadioButtonInterface radioButton;
 
-    RadioButtonModel(RadioButtonParent parent) {
+    RadioButtonModel(RadioButtonInterface radioButton) {
       super();
-      this.parent = parent;
+      this.radioButton = radioButton;
     }
 
     public void setSelected(boolean selected) {
       super.setSelected(selected);
-      parent.msgSelected();
+      radioButton.msgSelected();
+    }
+    
+    EnumeratedType getEnumeratedType() {
+      return radioButton.getEnumeratedType();
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/20 00:45:40  sueh
+ * <p> bug# 964 Added constructors which take ButtonGroup.
+ * <p>
  * <p> Revision 1.10  2007/03/07 21:12:32  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.

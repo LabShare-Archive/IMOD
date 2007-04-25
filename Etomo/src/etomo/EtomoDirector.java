@@ -478,6 +478,7 @@ public class EtomoDirector {
     if (peetFileName == null || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
       manager = new PeetManager();
       uiHarness.setEnabledNewPeetMenuItem(false);
+      uiHarness.setEnabledDuplicatePeetMenuItem(true);
     }
     else {
       manager = new PeetManager(peetFileName);
@@ -597,6 +598,7 @@ public class EtomoDirector {
     }
     if (currentManagerKey.getName().equals(PeetMetaData.NEW_TITLE)) {
       uiHarness.setEnabledNewPeetMenuItem(true);
+      uiHarness.setEnabledDuplicatePeetMenuItem(false);
     }
   }
 
@@ -1137,6 +1139,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.58  2007/02/22 20:32:54  sueh
+ * <p> bug# 964 In initialize, putting .epe file recognition under newstuff.
+ * <p>
  * <p> Revision 1.57  2007/02/19 21:49:18  sueh
  * <p> bug# 964 Added PEET manager.
  * <p>

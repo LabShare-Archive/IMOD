@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <qcursor.h>
@@ -483,6 +478,8 @@ void zapStepZoom(ZapStruct *zap, int step)
 
 void zapEnteredZoom(ZapStruct *zap, float newZoom)
 {
+  if (!zap->popup)
+    return;
   setControlAndLimits(zap);
   zap->zoom = newZoom;
   if (zap->zoom <= 0.01)
@@ -543,6 +540,8 @@ void zapStateToggled(ZapStruct *zap, int index, int state)
 
 void zapEnteredSection(ZapStruct *zap, int sec)
 {
+  if (!zap->popup)
+    return;
   setControlAndLimits(zap);
   if (zap->lock != 2)
     zap->vi->zmouse = sec-1;
@@ -3834,6 +3833,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.90  2007/03/09 15:27:50  mast
+Added ability to autosnapshot montages
+
 Revision 4.89  2006/10/05 15:41:32  mast
 Provided for primary and second non-TIFF snapshot format
 

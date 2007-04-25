@@ -7,58 +7,42 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.5  2005/09/11 19:22:11  mast
-Changes for new style of mesh
-
-Revision 3.4  2005/02/03 17:25:09  mast
-Prevented incorrect output for empty polygons
-
-Revision 3.3  2005/01/26 22:28:40  mast
-Made all points with sizes be displayed as spheres
-
-Revision 3.2  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.1  2002/12/23 21:37:14  mast
-fixed exit status
-
-*/
 
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "imodel.h"
 
+#define VRML_REDUNDANT 1
+
 static int tablevel;
 static int lowres = 0;
 
 /* Function Prototypes */
-int imod_to_vrml(Imod *imod, FILE *fout);
+int imod_to_vrml(Imod *imod, int flags, FILE *fout);
 static void printCamera(Imod *imod, FILE *fout);
 static void printInfo(Imod *imod, FILE *fout);
 static void printLight( Imod *imod, FILE *fout);
 
-static void printObject(Imod *imod, int ob, FILE *fout);
+static void printObject(Imod *imod, int ob, int flags, FILE *fout);
 static void printContours(Imod *imod, Iobj *obj, FILE *fout);
 static void printFilledContours(Imod *imod, Iobj *obj, FILE *fout);
 static void printScatContours(Imod *imod, Iobj *obj, FILE *fout);
-static void printMesh(Imod *imod, int ob, FILE *fout);
+static void printMesh(Imod *imod, int ob, int flags, FILE *fout);
 
 static void usage(int error)
 {
   printf("\nConverts an imod model to the Virtual Reality Modeling "
          "Language format.\n");
-  printf("Usage: imod2vrml [-l] <imod model file> <output_file.wrl>\n");
+  printf("Usage: imod2vrml [-l | -s] <imod model file> <output_file.wrl>\n");
   printf("       The -l option selects low-resolution meshes, if any.\n");
+  printf("       The -s option outputs separate point/normal list for "
+         "each polygon.\n");
   exit(error);
 }
 
@@ -67,6 +51,7 @@ int main( int argc, char *argv[])
   int i;
   FILE *fout;
   Imod *imod;
+  int flags = 0;
 
   if (argc < 2) {
     imodVersion(argv[0]);
@@ -79,6 +64,10 @@ int main( int argc, char *argv[])
       switch (argv[i][1]){
       case 'l':
         lowres = 1;
+        break;
+
+      case 's':
+        flags |= VRML_REDUNDANT;
         break;
 
       default:
@@ -106,13 +95,13 @@ int main( int argc, char *argv[])
     exit(3);
   }
      
-  imod_to_vrml(imod, fout);
+  imod_to_vrml(imod, flags, fout);
 
   fclose(fout);
   exit(0);
 }
 
-int imod_to_vrml(Imod *imod, FILE *fout)
+int imod_to_vrml(Imod *imod, int flags, FILE *fout)
 {
   int ob;
 
@@ -123,7 +112,7 @@ int imod_to_vrml(Imod *imod, FILE *fout)
     printLight(imod,fout);
     printCamera(imod,fout);
     for(ob = 0; ob < imod->objsize; ob++)
-      printObject(imod, ob,fout);
+      printObject(imod, ob,flags, fout);
   }
   fprintf(fout, "}\n");
   return 0;
@@ -246,7 +235,7 @@ static void printMaterial(Iobj *obj, int *lastuse, int usefill, FILE *fout)
 }
 
 
-static void printObject(Imod *imod, int ob, FILE *fout)
+static void printObject(Imod *imod, int ob, int flags, FILE *fout)
 {
   int co;
   Iobj *obj = &imod->obj[ob];
@@ -271,7 +260,7 @@ static void printObject(Imod *imod, int ob, FILE *fout)
   
   /* Call routines for drawing various kinds of non-scattered points */
   if (iobjMesh(obj->flags))
-    printMesh(imod, ob, fout);
+    printMesh(imod, ob, flags, fout);
   else if (iobjFill(obj->flags) && iobjClose(obj->flags))
     printFilledContours(imod, obj, fout);
   else if (!iobjScat(obj->flags)) {
@@ -407,15 +396,15 @@ static void printFilledContours(Imod *imod, Iobj *obj, FILE *fout)
 
 
 
-static void printMesh(Imod *imod, int ob, FILE *fout)
+static void printMesh(Imod *imod, int ob, int flags, FILE *fout)
 {
   Iobj *obj = &imod->obj[ob];
   Imesh *mesh;
-  int me, i;
+  int me, i, j;
   float zscale = imod->zscale;
-  int *ilist;
+  int *ilist, *mapping;
   int lsize;
-  int index, ind;
+  int index, ind, poly;
   Ipoint norm;
   int lastuse = -1;
   int resol;
@@ -433,23 +422,41 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
   for(me = 0; me < obj->meshsize; me++){
     if (imeshResol(obj->mesh[me].flag) != resol)
       continue;
+    poly = 0;
     mesh = &obj->mesh[me];
     ilist = (int *)malloc(sizeof(int) * mesh->lsize);
-    lsize = 0;
-    fprintf(fout, "\tDEF Obj%dMesh%dData  Coordinate3 {\n",
-            ob, me);
-    fprintf(fout, "\t\tpoint [\n");
-    for(i = 0; i < mesh->vsize; i+=2){
-      fprintf(fout, "%.5g %.5g %.5g%c\n",
-              mesh->vert[i].x,
-              mesh->vert[i].y,
-              mesh->vert[i].z * zscale,
-              (i >= (mesh->vsize-2))?']':',');
+    if (!ilist) {
+      printf("Error allocating memory\n");
+      exit(1);
     }
-    fprintf(fout, "\t}\n");
-     
-          
-    if (iobjFill(obj->flags)) {
+    if (flags & VRML_REDUNDANT) {
+      mapping = (int *)malloc(sizeof(int) * mesh->vsize);
+      if (!mapping) {
+        printf("Error allocating memory\n");
+        exit(1);
+      }
+    }
+
+
+    /* Output coordinates unless doing redundant output */
+    lsize = 0;
+    if (!(flags & VRML_REDUNDANT) || 
+        !(iobjFill(obj->flags) || iobjLine(obj->flags))) {
+      fprintf(fout, "\tDEF Obj%dMesh%dData  Coordinate3 {\n",
+              ob, me);
+      fprintf(fout, "\t\tpoint [\n");
+      for(i = 0; i < mesh->vsize; i+=2){
+        fprintf(fout, "%.5g %.5g %.5g%c\n",
+                mesh->vert[i].x,
+                mesh->vert[i].y,
+                mesh->vert[i].z * zscale,
+                (i >= (mesh->vsize-2))?']':',');
+      }
+      fprintf(fout, "\t}\n");
+    }
+        
+    /* Output normals if doing fill and not doing redundant output */
+    if (!(flags & VRML_REDUNDANT) && iobjFill(obj->flags)) {
       fprintf(fout, "\tDEF Obj%dMesh%dNData Normal {\n",
               ob, me);
       fprintf(fout, "\t\tvector [\n");
@@ -470,6 +477,8 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
                
         if (imodMeshPolyNormFactors(mesh->list[i], &listInc, &vertBase, 
                                     &normAdd)) {
+          
+          /* Copy the indices to the new index array numbered from 0 */
           lsize = 0;
           i++;
           while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
@@ -483,6 +492,64 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
 
           if (!lsize)
             continue;
+
+          /* If doing redundant output, output the points and convert the 
+             indexes */
+          poly++;
+          if (flags & VRML_REDUNDANT) {
+            fprintf(fout, "\tDEF Obj%dMesh%dPoly%dData  Coordinate3 {\n",
+                    ob, me, poly);
+            fprintf(fout, "\t\tpoint [\n");
+
+            index = 0;
+            for (j = 0; j < mesh->vsize; j++)
+              mapping[j] = -1;
+            for (ind = 0; ind < lsize; ind++) {
+              j = 2 * ilist[ind];
+
+              /* If mapping doesn't exit yet, output the point */
+              if (mapping[j] < 0) {
+                mapping[j] = index++;
+                if (index > 1)
+                  fprintf(fout,",\n");
+                fprintf(fout, "%.5g %.5g %.5g",
+                        mesh->vert[j].x,
+                        mesh->vert[j].y,
+                        mesh->vert[j].z * zscale);
+              }
+            }
+            fprintf(fout, "]\n\t}\n");
+
+            /* If doing fill, output normals next, recreate mapping */
+            if (iobjFill(obj->flags)) {
+              fprintf(fout, "\tDEF Obj%dMesh%dPoly%dNData Normal {\n",
+                      ob, me, poly);
+              fprintf(fout, "\t\tvector [\n");
+
+              index = 0;
+              for (j = 0; j < mesh->vsize; j++)
+                mapping[j] = -1;
+              for (ind = 0; ind < lsize; ind++) {
+                j = 2 * ilist[ind];
+                if (mapping[j] < 0) {
+                  mapping[j] = index++;
+                  if (index > 1)
+                    fprintf(fout,",\n");
+                  norm = mesh->vert[j + 1];
+                  imodPointNormalize(&norm);
+                  fprintf(fout, "%.3f %.3f %.3f",
+                          norm.x, norm.y, norm.z);
+                }
+              }
+              fprintf(fout, "]\n\t}\n");
+            }
+
+            /* Then replace indexes with ones in the polygon-specific set */
+            for (ind = 0; ind < lsize; ind++) {
+              j = 2 * ilist[ind];
+              ilist[ind] = mapping[j];
+            }
+          }
 
           /* If showing surface, put out face set */
           if (iobjFill(obj->flags)){
@@ -500,6 +567,7 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
             }
             fprintf(fout,"\t}\n");
           }
+
           /* If showing lines, put out line set */
           if (iobjLine(obj->flags)){
             printMaterial(obj, &lastuse, 0, fout);
@@ -524,6 +592,31 @@ static void printMesh(Imod *imod, int ob, FILE *fout)
       fprintf(fout, "\tPointSet {\n\t\tstartIndex 0\n"
               "\t\tnumPoints -1\n\t}\n");
     }
-    if (ilist) free(ilist);
+    if (ilist) 
+      free(ilist);
+    if ((flags & VRML_REDUNDANT) && mapping)
+      free(mapping);
   }
 }
+
+/*
+$Log$
+Revision 3.6  2006/08/31 23:13:15  mast
+Changed mat1 to real names
+
+Revision 3.5  2005/09/11 19:22:11  mast
+Changes for new style of mesh
+
+Revision 3.4  2005/02/03 17:25:09  mast
+Prevented incorrect output for empty polygons
+
+Revision 3.3  2005/01/26 22:28:40  mast
+Made all points with sizes be displayed as spheres
+
+Revision 3.2  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.1  2002/12/23 21:37:14  mast
+fixed exit status
+
+*/

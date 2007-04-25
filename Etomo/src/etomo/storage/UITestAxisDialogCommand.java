@@ -2,7 +2,7 @@ package etomo.storage;
 
 import java.util.ArrayList;
 
-import etomo.storage.autodoc.ReadOnlyNameValuePair;
+import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.type.CallbackClassEnum;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
@@ -55,20 +55,20 @@ public class UITestAxisDialogCommand implements AdocCommand {
     this.variables = variables;
   }
 
-  public final void set(ReadOnlyNameValuePair pair) {
+  public final void set(ReadOnlyStatement statement) {
     reset();
-    if (pair == null) {
+    if (statement == null) {
       return;
     }
     else {
       empty = false;
-      string = pair.getString();
-      if (pair.numAttributes() == 0) {
+      string = statement.getString();
+      if (statement.sizeLeftSide() == 0) {
         return;
       }
       int index = 0;
       //set the action
-      action = UITestAction.getInstance(pair.getAttribute(0));
+      action = UITestAction.getInstance(statement.getLeftSide(0));
       if (action == UITestAction.ADOC) {
         functionLocation = true;
       }
@@ -81,10 +81,10 @@ public class UITestAxisDialogCommand implements AdocCommand {
             || action == UITestAction.COPY) {
           index++;
         }
-        setField(pair, index);
+        setField(statement, index);
       }
       //get the value
-      value = pair.getValue();
+      value = statement.getRightSide();
       formattedValue = replaceVariables(value, formattedValue);
       if (action == UITestAction.WAIT_FOR) {
         //handle waitfor = 
@@ -122,29 +122,29 @@ public class UITestAxisDialogCommand implements AdocCommand {
     System.err.println("Unknown command:  " + string);
   }
 
-  private void setField(ReadOnlyNameValuePair pair, int index) {
-    int levels = pair.numAttributes();
+  private void setField(ReadOnlyStatement statement, int index) {
+    int levels = statement.sizeLeftSide();
     if (index >= levels) {
       return;
     }
-    field = UITestField.getInstance(pair.getAttribute(index++));
+    field = UITestField.getInstance(statement.getLeftSide(index++));
     if (index >= levels) {
       return;
     }
     if (action == UITestAction.ASSERT && field == UITestField.FILE) {
-      test = UITestTest.getInstance(pair.getAttribute(index++));
+      test = UITestTest.getInstance(statement.getLeftSide(index++));
     }
     else if (action == UITestAction.WAIT_FOR && field == UITestField.PROCESS) {
-      processName = ProcessName.getInstance(pair.getAttribute(index++));
+      processName = ProcessName.getInstance(statement.getLeftSide(index++));
     }
     else {
-      fieldName = pair.getAttribute(index++);
+      fieldName = statement.getLeftSide(index++);
       formattedFieldName = replaceVariables(fieldName, formattedFieldName);
       if (index >= levels) {
         return;
       }
       //may end in ".enabled"
-      String name = pair.getAttribute(index++);
+      String name = statement.getLeftSide(index++);
       test = UITestTest.getInstance(name);
       if (test == UITestTest.ENABLED) {
         return;
@@ -159,7 +159,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
         return;
       }
       //may end in ".enabled"
-      test = UITestTest.getInstance(pair.getAttribute(index));
+      test = UITestTest.getInstance(statement.getLeftSide(index));
     }
   }
 
@@ -295,6 +295,11 @@ public class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2007/03/21 18:12:47  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Creating Autodoc using a factory.  Moved AdocCommand classes out of the
+ * <p> autodoc package because they not part of the autodoc.
+ * <p>
  * <p> Revision 1.8  2007/03/08 22:03:02  sueh
  * <p> bug# 964 In NameValuePair, change the wording:  a name is made of 1 or more
  * <p> attributes.

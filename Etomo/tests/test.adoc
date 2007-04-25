@@ -19,6 +19,7 @@ adoc = fid-model.adoc
 function = run
 
 [Dialog = FineAlign]
+set.use-global-x-y-z-coordinates=0
 adoc = fine-align.adoc
 function = test
 

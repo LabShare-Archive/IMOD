@@ -452,6 +452,80 @@ int AdocSetKeyValue(char *typeName, int sectInd, char *key, char *value)
 }
 
 /*!
+ * Sets the value of [key] to the integer [ival] in the section with index 
+ * [sectInd] in the collection of sections of type [typeName].  The section 
+ * must already exist.  Replaces an existing value if any.
+ * Returns -1 for error.
+ */
+int AdocSetInteger(char *typeName, int sectInd, char *key, int ival)
+{
+  char str[30];
+  sprintf(str, "%d", ival);
+  return(AdocSetKeyValue(typeName, sectInd, key, str));
+}
+
+/*!
+ * Like @AdocSetInteger, except that the value is set to the two integers
+ * [ival1] [ival2].
+ */
+int AdocSetTwoIntegers(char *typeName, int sectInd, char *key, int ival1, 
+                       int ival2)
+{
+  char str[60];
+  sprintf(str, "%d %d", ival1, ival2);
+  return(AdocSetKeyValue(typeName, sectInd, key, str));
+}
+
+/*!
+ * Like @AdocSetInteger, except that the value is set to the three integers
+ * [ival1] [ival2] [ival3].
+ */
+int AdocSetThreeIntegers(char *typeName, int sectInd, char *key, int ival1,
+                         int ival2, int ival3)
+{
+  char str[90];
+  sprintf(str, "%d %d %d", ival1, ival2, ival3);
+  return(AdocSetKeyValue(typeName, sectInd, key, str));
+}
+
+/*!
+ * Sets the value of [key] to the float [val] in the section with index 
+ * [sectInd] in the collection of sections of type [typeName].  The section 
+ * must already exist.  Replaces an existing value if any.
+ * Returns -1 for error.
+ */
+int AdocSetFloat(char *typeName, int sectInd, char *key, float val)
+{
+  char str[30];
+  sprintf(str, "%g", val);
+  return(AdocSetKeyValue(typeName, sectInd, key, str));
+}
+
+/*!
+ * Like @AdocSetFloat, except that the value is set to the two floats
+ * [val1] [val2].
+ */
+int AdocSetTwoFloats(char *typeName, int sectInd, char *key, float val1, 
+                     float val2)
+{
+  char str[60];
+  sprintf(str, "%g %g", val1, val2);
+  return(AdocSetKeyValue(typeName, sectInd, key, str));
+}
+
+/*!
+ * Like @AdocSetFloat, except that the value is set to the three floats
+ * [val1] [val2] [val3].
+ */
+int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
+                       float val2, float val3)
+{
+  char str[90];
+  sprintf(str, "%g %g %g", val1, val2, val3);
+  return(AdocSetKeyValue(typeName, sectInd, key, str));
+}
+
+/*!
  * Deletes the key-value pair matching [key] in the section with index
  * [sectInd] in the collection of sections of type [typeName].  Clears out
  * both the key and the value.  Returns -1 for error. 
@@ -1008,4 +1082,7 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 3.1  2006/10/17 18:15:22  mast
+  Added to package
+
 */

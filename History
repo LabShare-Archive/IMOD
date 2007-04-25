@@ -1,5 +1,39 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/23/07: Fixed ability of Fortran programs to read header of mode 16 files (In 
+3.9).
+
+4/11/07: IMOD_3-10-5 (Etomo unstable)
+4/11/07: Added option to Imod2vrml to output separate point/normal list for
+every polygon (an attempt to avoid holes in some viewers.)
+
+4/9/07: Added option to Blendmont to make it exclude gray fill areas from
+edge function analysis.
+
+4/8/07: Added programs Edgepatches, Stitchalign, and Tomostitch for stitching
+together adjacent tomograms.
+
+4/7/07: Increased array limits in Warpvol and Findwarp to support work with
+supermontages.
+
+4/7/07: Added options to Blendmont to support running in parallel and added a
+splitblend script to produce command files for this.
+
+4/7/07: Added options to Blendmont to specify range in Z over which an edge
+gives good edge functions, to eliminate effects of bad edge functions when
+stitching adjacent tomograms.
+
+4/6/07: Increased range of light movement in model view and made rate of
+movement fairly uniform across range of angles.
+
+3/28/07: Fixed bug in binvol for (large?) images with ny < nx.
+
+3/28/07: Fixed crashes of 3dmod when focus is in a toolbar edit box in slicer,
+zap, graph or tumbler window and window is closed with Escape.
+
+3/23/07: Fixed bug that crashed 3dmod when model view object edit window was
+opened after creating a new object (In 3.9).
+
 3/21/07: IMOD_3-10-4
 3/19/07: Changed the way Solvematch determines the center shift so it won't get
 screwed up if the center points are all on one surface.

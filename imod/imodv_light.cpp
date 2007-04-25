@@ -162,8 +162,10 @@ void light_moveby(int x, int y)
   int lx = (int)(Imodv->imod->view->lightx * 10.0f);
   int ly = (int)(Imodv->imod->view->lighty * 10.0f);
 
-  lx += x;
-  ly += y;
+  // 4/3/07: incoming data no longer scaled by 10 so that it can be scaled
+  // by 3 instead for greater sensitivity
+  lx += 3 * x;
+  ly += 3 * y;
   light_move(&lx, &ly);
   Imodv->imod->view->lightx = (float)lx * 0.1f;
   Imodv->imod->view->lighty = (float)ly * 0.1f;
@@ -171,16 +173,13 @@ void light_moveby(int x, int y)
 
 /* 
  *  Move the light!
- *
- * x should be the address of Imodv->lightx and
- * y should be the address of Imodv->lighty.
  */
 void light_move(int *x, int *y)
 {
   int n = 0;
   float xn,yn,zn;
   double xa, ya;
-  int lim = 899;
+  int lim = 1000;
   float lightpos[4];
   float ldist = Imodv_light_dist;
 
@@ -196,15 +195,22 @@ void light_move(int *x, int *y)
   if (*y > lim)  *y = lim;
   if (*y < -lim) *y = -lim;
 
+  /* 4/3/07: The behavior of the light by setting normals with the original
+     method (sin(xa), sin(ya)) gave very little range.  Rotating a normal by
+     angles gave huge variation in sensitivity with position.  Fitting a curve
+     to the ratios (xn/zn) found at detectable even steps in rotation gave the
+     formula used here.  Books and man pages don't help about what is going on
+     with this position. */
   xa = (double)*x * 0.1;
   ya = (double)*y * 0.1;
-  xa *= 0.017453293;
-  ya *= 0.017453293;
-
-  xn = (float)sin(xa);
-  yn = (float)sin(ya);
   zn = 1.0;
-     
+  xn = (float)(pow(10., fabs(0.011 * xa) + 0.845099) - 7.);
+  yn = (float)(pow(10., fabs(0.011 * ya) + 0.845098) - 7.);
+  if (xa < 0.)
+    xn = -xn;
+  if (ya > 0.)
+    yn = -yn;
+  //printf("angles %.1f %.1f Normal %.4f %.4f %.4f\n", xa, ya, xn, yn, zn);
   Imodv_light_position[0] = xn;
   Imodv_light_position[1] = yn;
   Imodv_light_position[2] = zn;
@@ -398,6 +404,9 @@ int imod_light_normal( struct Mod_Point *n,
 #endif /* IMODV_LIGHT_TEST_NORMAL */
 /*
 $Log$
+Revision 4.7  2006/08/31 23:22:42  mast
+Changed mat1 to real names
+
 Revision 4.6  2005/06/26 19:39:53  mast
 Changed light adjust routine to take trans value
 

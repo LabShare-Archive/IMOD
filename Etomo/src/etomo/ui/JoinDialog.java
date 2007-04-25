@@ -56,6 +56,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.47  2007/03/21 19:45:54  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.46  2007/03/09 22:05:54  sueh
  * <p> bug# 964 Reduced visibility on changeTab().
  * <p>
@@ -802,11 +806,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   public final void setMode(int mode) {
     if (mode == SETUP_MODE) {
-      ftfWorkingDir.setEnabled(true);
+      ftfWorkingDir.setEditable(true);
       ltfRootName.setEditable(true);
     }
     else {
-      ftfWorkingDir.setEnabled(false);
+      ftfWorkingDir.setEditable(false);
       ltfRootName.setEditable(false);
     }
     switch (mode) {

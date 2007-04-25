@@ -117,7 +117,7 @@ while ($#argv > 0)
 
     if ($dotime == 0 && $nice == 0) then
         if ($dopython) then
-            vmstopy $comname $rootname.log | python -u
+            runpyscript vmstopy $comname $rootname.log | python -u
             set exitstat = $status
         else
             if ($quiet) then
@@ -131,7 +131,7 @@ while ($#argv > 0)
     else
 
         if ($dopython) then
-            vmstopy $comname $rootname.log $comtmp
+            runpyscript vmstopy $comname $rootname.log $comtmp
             set exitstat = $status
             if ($exitstat == 0) then
                 set comline = ""
@@ -173,6 +173,9 @@ if ($dotime == 1 || $nice != 0) \rm -f $comtmp
 exit $exitstat
 
 #  $Log$
+#  Revision 3.12  2006/09/26 22:20:10  mast
+#  Added python support
+#
 #  Revision 3.11  2006/07/03 23:10:25  mast
 #  Added quiet mode for running from tiltalign
 #

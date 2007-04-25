@@ -1,32 +1,44 @@
 package etomo.type;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
+import etomo.ui.Token;
+import etomo.util.PrimativeTokenizer;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ */
 public class EtomoAutodoc {
-  public static final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public static final String FIELD_SECTION_NAME = "field";
   public static final String REQUIRED_ATTRIBUTE_NAME = "required";
+  public static final String COMMENT_KEY = "comment";
   public static final int REQUIRED_TRUE_VALUE = 1;
   public static final char VAR_TAG = '%';
-  
+  public static final char NEW_LINE_CHAR = '^';
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
+  
+  private static boolean debug = false;
+  
+  private EtomoAutodoc() {
+  }
 
   public static String getTooltip(ReadOnlySection section) {
     if (section == null) {
@@ -35,21 +47,28 @@ public class EtomoAutodoc {
     String text = null;
     ReadOnlyAttribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
     if (attribute != null) {
-      text = attribute.getValue();
+      text = removeFormatting(attribute.getMultiLineValue());
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("usage");
     if (attribute != null) {
-      text = attribute.getValue();
+      text = removeFormatting(attribute.getMultiLineValue());
+      if (text != null) {
+        return text;
+      }
+    }
+    attribute = section.getAttribute(COMMENT_KEY);
+    if (attribute != null) {
+      text = removeFormatting(attribute.getMultiLineValue());
       if (text != null) {
         return text;
       }
     }
     attribute = section.getAttribute("manpage");
     if (attribute != null) {
-      return attribute.getValue();
+      return removeFormatting(attribute.getMultiLineValue());
     }
     return null;
   }
@@ -58,39 +77,190 @@ public class EtomoAutodoc {
     if (autodoc == null) {
       return null;
     }
-    String tooltip = getTooltip(
-        autodoc.getSection(FIELD_SECTION_NAME, fieldName));
+    String tooltip = getTooltip(autodoc.getSection(FIELD_SECTION_NAME,
+        fieldName));
     if (tooltip == null) {
       return null;
     }
     tooltip = tooltip.trim();
     if (tooltip.endsWith(".")) {
-      return tooltip.substring(0, tooltip.length() -1) + " (" + fieldName + ").";
+      return tooltip.substring(0, tooltip.length() - 1) + " (" + fieldName
+          + ").";
     }
     return tooltip + " (" + fieldName + ").";
   }
-  
+
   public static String getTooltip(ReadOnlySection section, String enumValueName) {
     try {
-      String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
-          .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getValue();
+      String enumTooltip = section.getAttribute("enum").getAttribute(
+          enumValueName).getAttribute(TOOLTIP_ATTRIBUTE_NAME).getValue();
       if (enumTooltip == null) {
         return getTooltip(section);
       }
-      return enumTooltip;
+      return removeFormatting(enumTooltip);
     }
     catch (NullPointerException e) {
       return getTooltip(section);
     }
   }
-  
+
+  /**
+   * Removes the '^' formatting.
+   * @param value
+   * @return
+   */
+  public static String removeFormatting(String value) {
+    if (value == null) {
+      return null;
+    }
+    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    StringBuffer tooltip = new StringBuffer();
+    boolean removeIndentFormatting = false;
+    boolean startOfLine = true;
+    Token token = null;
+    try {
+      tokenizer.initialize();
+      token = tokenizer.next();
+    }
+    catch (IOException e) {
+      return value;
+    }
+    catch (LogFile.ReadException e) {
+      return value;
+    }
+    try {
+      while (value != null && !token.is(Token.Type.EOF)) {
+        //Remove indent formatting whitespace that comes after new-line formatting character.
+        if (removeIndentFormatting) {
+          removeIndentFormatting = false;
+          if (token.is(Token.Type.WHITESPACE)) {
+            token = tokenizer.next();
+            startOfLine = false;
+            continue;
+          }
+        }
+        //Remove the new-line formatting character ('^' at the beginning of the line).
+        if (startOfLine && token.equals(Token.Type.SYMBOL, NEW_LINE_CHAR)) {
+          //new-line may be followed by indent formatting that should be removed
+          removeIndentFormatting = true;
+          startOfLine = false;
+        }
+        //Convert end of line to a space.
+        else if (token.is(Token.Type.EOL)) {
+          tooltip.append(' ');
+          //signal the start of the next line, so that new-line formatting
+          //characters can be found
+          startOfLine = true;
+        }
+        else {
+          tooltip.append(token.getValue());
+          startOfLine = false;
+        }
+        token = tokenizer.next();
+      }
+    }
+    catch (IOException e) {
+      return value;
+    }
+    return tooltip.toString();
+  }
+
+  /**
+   * Uses the '^' formatting to format the value.
+   * @param value
+   * @return
+   */
+  public static String[] format(String value) {
+    if (value == null) {
+      return null;
+    }
+    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    ArrayList list = new ArrayList();
+    StringBuffer buffer = new StringBuffer(128);
+    boolean startOfLine = true;
+    boolean firstToken = true;
+    Token token = null;
+    try {
+      tokenizer.initialize();
+      token = tokenizer.next();
+    }
+    catch (IOException e) {
+      return new String[] { value };
+    }
+    catch (LogFile.ReadException e) {
+      return new String[] { value };
+    }
+    try {
+      while (token != null && !token.is(Token.Type.EOF)) {
+        if (startOfLine) {
+          startOfLine = false;
+          //Handle new-line character ('^' at the start of the line).
+          if (token.equals(Token.Type.SYMBOL, NEW_LINE_CHAR)) {
+            list.add(buffer.toString());
+            buffer = new StringBuffer(128);
+            startOfLine = false;
+            token = tokenizer.next();
+            continue;
+          }
+          else if (!firstToken){
+            //wasn't really the end of the line so convert EOL to a space.
+            buffer.append(' ');
+          }
+          else {
+            firstToken = false;
+          }
+          //still need to process the current token
+        }
+        if (token.is(Token.Type.EOL)) {
+          //Wait to convert end-of-line to a space.  If the next token is '^', then this
+          //really is the end of a line.
+          startOfLine = true;
+        }
+        else {
+          buffer.append(token.getValue());
+          startOfLine = false;
+        }
+        token = tokenizer.next();
+      }
+    }
+    catch (IOException e) {
+      return new String[] { value };
+    }
+    if (buffer.length() > 0) {
+      list.add(buffer.toString());
+    }
+    if (list.size() == 0) {
+      return new String[0];
+    }
+    if (list.size() == 1) {
+      return new String[] { (String) list.get(0) };
+    }
+    return (String[]) list.toArray(new String[list.size()]);
+  }
+
   public static String getTooltip(ReadOnlySection section, int enumValueName) {
     return getTooltip(section, Integer.toString(enumValueName));
+  }
+  
+  public static void setDebug(boolean debug) {
+    EtomoAutodoc.debug = debug;
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/26 23:35:21  sueh
+ * <p> bug# 964 Using getMultiLineValue so formatting can be removed.
+ * <p>
+ * <p> Revision 1.14  2007/03/23 20:42:00  sueh
+ * <p> bug# 964 Added formt(String) and removingFormatting(String).
+ * <p> RemoveFormatting is necessary since the BREAK character is no longer being
+ * <p> handled by Autodoc and Token.
+ * <p>
+ * <p> Revision 1.13  2007/03/21 19:43:22  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.12  2007/03/15 21:47:14  sueh
  * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
  * <p> unless the Attribute needs to be modified.

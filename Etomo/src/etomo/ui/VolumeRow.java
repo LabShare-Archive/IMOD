@@ -6,9 +6,12 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
+import etomo.BaseManager;
+import etomo.process.ImodManager;
 import etomo.storage.MatlabParamFile;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -24,6 +27,32 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/04/02 21:53:47  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
+ * <p> Revision 1.12  2007/04/02 16:04:16  sueh
+ * <p> bug# 964 Not weighting the number and highlight buttons, so they will stay small.
+ * <p>
+ * <p> Revision 1.11  2007/03/30 23:55:18  sueh
+ * <p> bug# 964 Changes to accomodate parsing improvements in MatlabParamFile
+ * <p>
+ * <p> Revision 1.10  2007/03/27 19:32:49  sueh
+ * <p> bug# 964 Number the rows.
+ * <p>
+ * <p> Revision 1.9  2007/03/27 00:07:21  sueh
+ * <p> bug# 964 Added imodVolume() to open fnVolume and fnModParticle in 3dmod.
+ * <p>
+ * <p> Revision 1.8  2007/03/26 18:40:53  sueh
+ * <p> bug# 964 Removed functionality that shows/hides columns.  Fixed bug in
+ * <p> setting initMOTL and relativeOrient.
+ * <p>
+ * <p> Revision 1.7  2007/03/21 19:49:12  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.  Removed some gets/sets
+ * <p> and replaced them with get/setParameters.
+ * <p>
  * <p> Revision 1.6  2007/03/20 23:12:09  sueh
  * <p> bug# 964 Added FieldCell.getExpandableInstance() which is disabled and cannot
  * <p> be enabled.
@@ -55,27 +84,33 @@ final class VolumeRow implements Highlightable {
   private final JPanel panel;
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
+  private final BaseManager manager;
 
+  private final HeaderCell number = new HeaderCell();
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
-  private final FieldCell tiltRangeStart = new FieldCell();
-  private final FieldCell tiltRangeEnd = new FieldCell();
-  private final FieldCell relativeOrientX = new FieldCell();
-  private final FieldCell relativeOrientY = new FieldCell();
-  private final FieldCell relativeOrientZ = new FieldCell();
+  private final FieldCell tiltRangeStart = FieldCell.getEditableInstance();
+  private final FieldCell tiltRangeEnd = FieldCell.getEditableInstance();
+  private final FieldCell relativeOrientX = FieldCell.getEditableInstance();
+  private final FieldCell relativeOrientY = FieldCell.getEditableInstance();
+  private final FieldCell relativeOrientZ = FieldCell.getEditableInstance();
   private final HighlighterButton btnHighlighter;
+  private int imodIndex = -1;
 
-  static VolumeRow getInstance(final File fnVolume, final File fnModParticle,
-      final int index, final VolumeTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
-    return new VolumeRow(fnVolume, fnModParticle, index, table, panel, layout,
-        constraints);
+  static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
+      final File fnModParticle, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
+    return new VolumeRow(manager, fnVolume, fnModParticle, index, table, panel,
+        layout, constraints);
   }
 
-  private VolumeRow(final File fnVolumeFile, final File fnModParticleFile,
-      final int index, final VolumeTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+  private VolumeRow(final BaseManager manager, final File fnVolumeFile,
+      final File fnModParticleFile, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
+    this.manager = manager;
     this.index = index;
     this.table = table;
     this.panel = panel;
@@ -83,7 +118,8 @@ final class VolumeRow implements Highlightable {
     this.constraints = constraints;
     setExpandableValues(fnVolume, fnVolumeFile);
     setExpandableValues(fnModParticle, fnModParticleFile);
-    btnHighlighter = new HighlighterButton(this, table);
+    btnHighlighter = HighlighterButton.getInstance(this, table);
+    number.setText(String.valueOf(index + 1));
   }
 
   public void highlight(final boolean highlight) {
@@ -98,22 +134,19 @@ final class VolumeRow implements Highlightable {
   }
 
   void display() {
-    constraints.weightx = 0.1;
+    constraints.weightx = 0.0;
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
+    number.add(panel, layout, constraints);
     btnHighlighter.add(panel, layout, constraints);
+    constraints.weightx = 0.1;
     constraints.gridwidth = 2;
     fnVolume.add(panel, layout, constraints);
     fnModParticle.add(panel, layout, constraints);
-    if (table.usingInitMotlFile()) {
-      initMotlFile.add(panel, layout, constraints);
-    }
-    if (table.usingTiltRange()) {
-      constraints.gridwidth = 1;
-      tiltRangeStart.add(panel, layout, constraints);
-      tiltRangeEnd.add(panel, layout, constraints);
-    }
+    initMotlFile.add(panel, layout, constraints);
     constraints.gridwidth = 1;
+    tiltRangeStart.add(panel, layout, constraints);
+    tiltRangeEnd.add(panel, layout, constraints);
     relativeOrientX.add(panel, layout, constraints);
     relativeOrientY.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -146,12 +179,12 @@ final class VolumeRow implements Highlightable {
     setTiltRangeStart(metaData.getTiltRangeStart(index));
     setTiltRangeEnd(metaData.getTiltRangeEnd(index));
   }
-  
+
   void getParameters(final MatlabParamFile matlabParamFile) {
     MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
-    volume.setFnVolume(fnVolume.getValue());
-    volume.setFnModParticle(fnModParticle.getValue());
-    volume.setInitMotl(initMotlFile.getValue());
+    volume.setFnVolume(fnVolume.getExpandedValue());
+    volume.setFnModParticle(fnModParticle.getExpandedValue());
+    volume.setInitMotl(initMotlFile.getExpandedValue());
     volume.setTiltRangeStart(tiltRangeStart.getValue());
     volume.setTiltRangeEnd(tiltRangeEnd.getValue());
     volume.setRelativeOrientX(relativeOrientX.getValue());
@@ -163,9 +196,8 @@ final class VolumeRow implements Highlightable {
       boolean useInitMotlFile, boolean useTiltRange) {
     MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
     if (useInitMotlFile) {
-      setExpandableValues(initMotlFile, volume.getInitMotl());
+      setExpandableValues(initMotlFile, volume.getInitMotlString());
     }
-    //The tilt range will not be shown if its value is {}.
     if (useTiltRange) {
       setTiltRangeStart(volume.getTiltRangeStart());
       setTiltRangeEnd(volume.getTiltRangeEnd());
@@ -175,27 +207,46 @@ final class VolumeRow implements Highlightable {
     relativeOrientZ.setValue(volume.getRelativeOrientZ());
   }
 
-  private void setExpandableValues(FieldCell fieldCell, String fileName) {
+  void clearInitMotlFile() {
+    initMotlFile.clearExpandableValues();
+  }
+
+  void registerInitMotlFileColumn(Column column) {
+    column.add(initMotlFile);
+  }
+
+  void registerTiltRangeColumn(Column column) {
+    column.add(tiltRangeStart);
+    column.add(tiltRangeEnd);
+  }
+
+  void imodVolume(Run3dmodMenuOptions menuOptions) {
+    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, fnVolume
+        .getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
+  }
+
+  private void setExpandableValues(final FieldCell fieldCell,
+      final String fileName) {
     //Don't override existing values with null value.
-    if (fileName == null) {
+    if (fileName == null || fileName.matches("\\s*")) {
       return;
     }
     setExpandableValues(fieldCell, new File(fileName));
   }
 
-  private void setExpandableValues(FieldCell fieldCell, File file) {
+  private void setExpandableValues(final FieldCell fieldCell, final File file) {
     //Don't override existing values with null value.
     if (file == null) {
       return;
     }
     fieldCell.setExpandableValues(file.getName(), file.getAbsolutePath());
   }
-  
+
   void setInitMotlFile(File initMotlFile) {
-    setExpandableValues(this.initMotlFile,initMotlFile);
+    setExpandableValues(this.initMotlFile, initMotlFile);
   }
 
-  void setTiltRangeStart(String tiltRangeStart) {
+  void setTiltRangeStart(final String tiltRangeStart) {
     if (tiltRangeStart == null) {
       return;
     }
@@ -211,17 +262,5 @@ final class VolumeRow implements Highlightable {
 
   boolean isHighlighted() {
     return btnHighlighter.isHighlighted();
-  }
-
-  void remove() {
-    btnHighlighter.remove();
-    fnVolume.remove();
-    fnModParticle.remove();
-    initMotlFile.remove();
-    tiltRangeStart.remove();
-    tiltRangeEnd.remove();
-    relativeOrientX.remove();
-    relativeOrientY.remove();
-    relativeOrientZ.remove();
   }
 }

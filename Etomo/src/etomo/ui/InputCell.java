@@ -23,11 +23,10 @@ import javax.swing.plaf.ColorUIResource;
  * 
  * @version $Revision$
  */
-abstract class InputCell {
+abstract class InputCell implements Cell{
   public static final String rcsid = "$Id$";
 
-  protected boolean inUse = true;
-  protected boolean enabled = true;
+  private boolean editable = true;
   private boolean highlight = false;
   private boolean warning = false;
   private boolean error = false;
@@ -38,9 +37,9 @@ abstract class InputCell {
 
   abstract Component getComponent();
 
-  abstract void setForeground();
-
   abstract int getWidth();
+  
+  public abstract void setEnabled(boolean enabled);
 
   abstract void setToolTipText(String toolTipText);
 
@@ -58,20 +57,15 @@ abstract class InputCell {
     }
   }
 
-  void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-    getComponent().setEnabled(enabled);
+  void setEditable(boolean editable) {
+    this.editable = editable;
+    getComponent().setEnabled(editable);
     setBackground();
   }
 
   final void setHighlight(boolean highlight) {
     this.highlight = highlight;
     setBackground();
-  }
-
-  final void setInUse(boolean inUse) {
-    this.inUse = inUse;
-    setForeground();
   }
 
   final void setWarning(boolean warning) {
@@ -106,34 +100,34 @@ abstract class InputCell {
 
   void setBackground() {
     if (highlight) {
-      if (enabled) {
+      if (editable) {
         setBackground(Colors.HIGHLIGHT_BACKGROUND);
       }
       else {
-        setBackground(Colors.getCellDisabledhighlightBackground());
+        setBackground(Colors.getCellNotEditableHighlightBackground());
       }
     }
     else if (warning) {
-      if (enabled) {
+      if (editable) {
         setBackground(Colors.WARNING_BACKGROUND);
       }
       else {
-        setBackground(Colors.getCellDisabledWarningBackground());
+        setBackground(Colors.getCellNotEditableWarningBackground());
       }
     }
     else if (error) {
-      if (enabled) {
+      if (editable) {
         setBackground(Colors.CELL_ERROR_BACKGROUND);
       }
       else {
-        setBackground(Colors.getCellDisabledErrorBackground());
+        setBackground(Colors.getCellNotEditableErrorBackground());
       }
     }
-    else if (enabled) {
+    else if (editable) {
       setBackground(Colors.BACKGROUND);
     }
     else {
-      setBackground(Colors.getCellDisabledBackground());
+      setBackground(Colors.getCellNotEditableBackground());
     }
   }
 
@@ -149,6 +143,13 @@ abstract class InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/27 19:31:11  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.7  2007/03/01 01:38:21  sueh
+ * <p> bug# 964 Made InputCell colors constant and moved them to Colors.  Added
+ * <p> setExpandableValues, getContractedValue, and getExpandedValue.
+ * <p>
  * <p> Revision 1.6  2007/02/05 23:38:41  sueh
  * <p> bug# 962 Moved color info to UIUtilities.
  * <p>

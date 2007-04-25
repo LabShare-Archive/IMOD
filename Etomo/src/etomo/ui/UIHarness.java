@@ -237,7 +237,7 @@ public final class UIHarness {
   }
   
   public void pack(BaseManager manager) {
-    if (isHead()) {
+    if (isHead()&& manager !=null) {
       manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack();
@@ -374,6 +374,12 @@ public final class UIHarness {
   public void setEnabledNewPeetMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledNewPeetMenuItem(enable);
+    }
+  }
+  
+  public void setEnabledDuplicatePeetMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledDuplicatePeetMenuItem(enable);
     }
   }
   
@@ -522,6 +528,12 @@ public final class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.25  2007/03/31 03:03:10  sueh
+* <p> bug# 964 Enabling/disabling Duplicate Peet menu item.
+* <p>
+* <p> Revision 1.24  2007/02/19 22:04:03  sueh
+* <p> bug# 964 Added setEnabledNewPeetMenuItem.
+* <p>
 * <p> Revision 1.23  2006/06/06 18:14:59  sueh
 * <p> bug# 766 Add a logging option, which always writes popup messages to the
 * <p> error, and also pops them up.

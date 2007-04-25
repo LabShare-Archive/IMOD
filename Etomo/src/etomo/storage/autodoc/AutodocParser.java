@@ -147,6 +147,31 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2007/04/11 22:00:38  sueh
+ * <p> $bug# 964 Fixed a bug in emptyLine() where the EOF was being treated as an
+ * <p> $empty line.
+ * <p> $
+ * <p> $Revision 1.14  2007/04/09 20:31:48  sueh
+ * <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
+ * <p> $the Vector member variable from values to nameValuePairList.  Associated the
+ * <p> $last attribute in each name/value pair with the name value pair.  This is the
+ * <p> $attribute which used to contain the value.  The name/value pair also contained
+ * <p> $the value; so it was duplicated.  This made it difficult to add a value to an
+ * <p> $existing attribute.  GetValue() gets the value from the associated name/value
+ * <p> $pair.  Also removed the old nameValuePairList member variable, because it
+ * <p> $wasn't being used for anything.
+ * <p> $
+ * <p> $Revision 1.13  2007/03/26 18:36:50  sueh
+ * <p> $bug# 964 Made Version optional so that it is not necessary in matlab param files.
+ * <p> $
+ * <p> $Revision 1.12  2007/03/23 20:32:58  sueh
+ * <p> $bug# 964 Adding an entry to NameValuePairList which represents the change in
+ * <p> $delimiter.
+ * <p> $
+ * <p> $Revision 1.11  2007/03/21 18:15:41  sueh
+ * <p> $bug# 964 Removed mutable boolean.  Access-level will be controlled by the
+ * <p> $interfaces.
+ * <p> $
  * <p> $Revision 1.10  2007/03/15 21:45:55  sueh
  * <p> $bug# 964 Clarifying the code to show that the same value instance is saved to
  * <p> $both attribute and name/value pair.
@@ -266,14 +291,25 @@ final class AutodocParser {
   //Postprocessor flags
   private boolean versionFound = false;
   private boolean pipFound = false;
+  private boolean versionRequired = true;
 
-  AutodocParser(Autodoc autodoc, boolean allowAltComment) {
+  private boolean debug = false;
+
+  AutodocParser(Autodoc autodoc, boolean allowAltComment,
+      boolean versionRequired) {
+    this(autodoc, allowAltComment, versionRequired, false);
+  }
+
+  AutodocParser(Autodoc autodoc, boolean allowAltComment,
+      boolean versionRequired, boolean debug) {
+    this.debug = debug;
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
     tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment);
+    this.versionRequired = versionRequired;
   }
 
   void initialize() throws FileNotFoundException, IOException,
@@ -326,7 +362,7 @@ final class AutodocParser {
    * @return true if line is empty, false if line is not empty
    * @throws IOException
    */
-  private boolean emptyLine(WriteOnlyNameValuePairList list) throws IOException {
+  private boolean emptyLine(WriteOnlyStatementList list) throws IOException {
     if (!isBeginningOfLine()) {
       //empty lines must start at the beginning of the line
       return false;
@@ -335,7 +371,7 @@ final class AutodocParser {
     //an empty line, it gets rid of the white space at the beginning of the line
     while (matchToken(Token.Type.WHITESPACE)) {
     }
-    if (token.is(Token.Type.EOL) || token.is(Token.Type.EOF)) {
+    if (token.is(Token.Type.EOL)) {
       testStartFunction("emptyline");
       //found empty line
       list.addEmptyLine();
@@ -353,19 +389,19 @@ final class AutodocParser {
    * @return true if comment found
    * @throws IOException
    */
-  private boolean comment(WriteOnlyNameValuePairList list) throws IOException {
+  private boolean comment(WriteOnlyStatementList list) throws IOException {
     if (emptyLine(list) || !matchToken(Token.Type.COMMENT)) {
       //not a comment
       return false;
     }
     testStartFunction("comment");
     //comments can be made of multiple tokens, so use a link list
-    LinkList comment = new LinkList(token);
+    LinkList commentLinkList = new LinkList(token);
     //found comment so save the first token in the link list
-    list.addComment(comment.getList());
+    list.addComment(commentLinkList.getHead());
     //add tokens to the comment
     while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
-      comment.append(token);
+      commentLinkList.append(token);
       nextToken();
     }
     //eat up the EOL
@@ -391,6 +427,7 @@ final class AutodocParser {
       //not a section
       return false;
     }
+    test = false;
     testStartFunction("section");
     //save the new section in the autodoc
     Section section = null;
@@ -457,7 +494,7 @@ final class AutodocParser {
     nextToken();
     nextToken();
     //save the new subsection in the section
-    WriteOnlyNameValuePairList subsection = null;
+    WriteOnlyStatementList subsection = null;
     subsection = sectionHeader(section);
     if (subsection == null) {
       //bad subsection
@@ -501,7 +538,7 @@ final class AutodocParser {
    ** subsectionClose -> !emptyLine !DelimiterInLine OPEN OPEN -WHITESPACE- CLOSE CLOSE (EOL | EOF )
    * @return
    */
-  private boolean subsectionClose(WriteOnlyNameValuePairList subsection)
+  private boolean subsectionClose(WriteOnlyStatementList subsection)
       throws IOException {
     if (emptyLine(subsection) || delimiterInLine || !token.is(Token.Type.OPEN)) {
       //not a subsectionClose
@@ -563,7 +600,7 @@ final class AutodocParser {
    * @return a Section if sectionHeader found, otherwise return null
    * @throws IOException
    */
-  private Section sectionHeader(WriteOnlyNameValuePairList nameValuePairList)
+  private Section sectionHeader(WriteOnlyStatementList nameValuePairList)
       throws IOException {
     testStartFunction("sectionHeader");
     matchToken(Token.Type.WHITESPACE);
@@ -585,8 +622,8 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     //get the section name
-    LinkList name = sectionName();
-    if (name.size() == 0) {
+    LinkList nameLinkList = sectionName();
+    if (nameLinkList.size() == 0) {
       //bad section header
       reportError("A section header must contain a section name.");
       testEndFunction("sectionHeader", false);
@@ -595,7 +632,7 @@ final class AutodocParser {
     matchToken(Token.Type.WHITESPACE);
     testEndFunction("sectionHeader", true);
     //assume that this is a good section and save it now
-    return nameValuePairList.addSection(type, name.getList());
+    return nameValuePairList.addSection(type, nameLinkList.getHead());
   }
 
   /**
@@ -623,21 +660,21 @@ final class AutodocParser {
   private LinkList sectionName() throws IOException {
     testStartFunction("sectionName");
     //section name may contain multiple tokens
-    LinkList name = new LinkList(token);
+    LinkList nameLinkList = new LinkList(token);
     //link the section name together
     while (!token.is(Token.Type.CLOSE) && !token.is(Token.Type.WHITESPACE)
         && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
-      name.append(token);
+      nameLinkList.append(token);
       nextToken();
     }
-    if (name.size() == 0) {
+    if (nameLinkList.size() == 0) {
       //bad section name
       reportError("Missing section name.");
       testEndFunction("sectionName", false);
       return null;
     }
     testEndFunction("sectionName", true);
-    return name;
+    return nameLinkList;
   }
 
   /**
@@ -646,7 +683,7 @@ final class AutodocParser {
    * Adds an attribute tree to the attribute map.
    * @throws IOException
    */
-  private boolean pair(WriteOnlyNameValuePairList list) throws IOException {
+  private boolean pair(WriteOnlyStatementList list) throws IOException {
     if (emptyLine(list) || !delimiterInLine
         || (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD))) {
       //not a pair
@@ -654,7 +691,7 @@ final class AutodocParser {
     }
     testStartFunction("pair");
     NameValuePair pair = list.addNameValuePair();
-    Attribute leafAttribute = name(list,pair);
+    Attribute leafAttribute = name(list, pair);
     if (leafAttribute == null) {
       //bad pair
       testEndFunction("pair", false);
@@ -668,7 +705,7 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     //attach the value to the last attribute
-    value(list, leafAttribute,pair);
+    value(list, leafAttribute, pair);
     testEndFunction("pair", true);
     return true;
   }
@@ -678,9 +715,10 @@ final class AutodocParser {
    * 
    * @throws IOException
    */
-  private Attribute name(WriteOnlyNameValuePairList list,NameValuePair pair) throws IOException {
+  private Attribute name(WriteOnlyStatementList list, NameValuePair pair)
+      throws IOException {
     testStartFunction("name");
-    Attribute attribute = baseAttribute(list,pair);
+    Attribute attribute = baseAttribute(list, pair);
     if (attribute == null) {
       //bad name
       reportError("Missing attribute.");
@@ -688,7 +726,7 @@ final class AutodocParser {
     }
     while (matchToken(Token.Type.SEPARATOR)) {
       //add the attribute to the map, point to the child attribute
-      attribute = attribute(attribute,pair);
+      attribute = attribute(attribute, pair);
       if (attribute == null) {
         //bad name
         reportError("Attribute must follow separator (\""
@@ -703,19 +741,18 @@ final class AutodocParser {
   /**
    * base-attribute => ( WORD | KEYWORD )
    * 
-   * Adds the base-attribute to an attribute map.  An attribute map is a tree of
-   * attributes.
-   * @return attributeMap or null
+   * Adds the base attribute to an attribute list and a name/value pair.
+   * @return Attribute or null
    */
-  private Attribute baseAttribute(WriteOnlyAttributeMap attributeMap,NameValuePair pair)
-      throws IOException {
+  private Attribute baseAttribute(WriteOnlyAttributeList attributeList,
+      NameValuePair pair) throws IOException {
     testStartFunction("base-attribute");
     if (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)) {
       //add the base-attribute to the map
       testEndFunction("base-attribute", true);
       //add and return the new base-attribute
-      pair.addAttribute(token);
-      Attribute attribute=(Attribute) attributeMap.addAttribute(token);
+      Attribute attribute = (Attribute) attributeList.addAttribute(token);
+      pair.addAttribute(attribute);
       nextToken();
       return attribute;
     }
@@ -727,27 +764,27 @@ final class AutodocParser {
   /**
    * attribute => [ WORD | KEYWORD | COMMENT ]
    * 
-   * Adds attributes to an attribute map.  An attribute map is a tree of
-   * attributes.
-   * @return attributeMap or null
+   * Adds attributes to an attribute list and a name/value pair.
+   * @return Attribute or null
    */
-  private Attribute attribute(WriteOnlyAttributeMap attributeMap,NameValuePair pair)
-      throws IOException {
+  private Attribute attribute(WriteOnlyAttributeList attributeList,
+      NameValuePair pair) throws IOException {
     if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD)
         && !token.is(Token.Type.COMMENT)) {
       return null;
     }
     testStartFunction("attribute");
-    LinkList value = new LinkList(token);
+    LinkList valueLinkList = new LinkList(token);
     while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)
         || token.is(Token.Type.COMMENT)) {
-      value.append(token);
+      valueLinkList.append(token);
       nextToken();
     }
     testEndFunction("attribute", true);
     //add and return the new attribute
-    pair.addAttribute(value.getList());
-    Attribute attribute=(Attribute) attributeMap.addAttribute(value.getList());
+    Attribute attribute = (Attribute) attributeList.addAttribute(valueLinkList
+        .getHead());
+    pair.addAttribute(attribute);
     return attribute;
   }
 
@@ -757,51 +794,49 @@ final class AutodocParser {
    * sets the value in the attribute, if the value exists
    * @throws IOException
    */
-  private void value(WriteOnlyNameValuePairList parent, Attribute attribute,NameValuePair pair)
-      throws IOException {
+  private void value(WriteOnlyStatementList parent, Attribute attribute,
+      NameValuePair pair) throws IOException {
     testStartFunction("value");
     //values can be made of multiple tokens, so use a link list
-    LinkList value = new LinkList(token);
+    LinkList valueLinkList = new LinkList(token);
     while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
       //add the token to the value link list
-      value.append(token);
+      valueLinkList.append(token);
       nextToken();
     }
+    //check for keywords
+    processMetaData(attribute);
     //Finished the first line of the value (excluding the EOL) if this is
-    //delimiter reassignment, it must be done now, or the following pair will be
+    //delimiter reassignment, it must be set now, or the following pair will be
     //mistaken for part of this value.
-    processMetaData(attribute, value.getList());
+    if (isDelimiterChange(attribute)) {
+      tokenizer.setDelimiterString(valueLinkList.getHead().getValues());
+      pair.setDelimiterChange(valueLinkList.getHead());
+    }
     //grab the EOL in case the value continues in the value line
     if (token.is(Token.Type.EOL)) {
-      value.append(token);
+      valueLinkList.append(token);
     }
     nextToken();
-    while (!error && valueLine(parent, value)) {
+    while (!error && valueLine(parent, valueLinkList)) {
     }
     //Strip non-embedded EOL, EOF, and WHITESPACE at the start and end of the value
-    while (value.size() > 0
-        && (value.isFirstElement(Token.Type.WHITESPACE)
-            || value.isFirstElement(Token.Type.EOL) || value
+    while (valueLinkList.size() > 0
+        && (valueLinkList.isFirstElement(Token.Type.WHITESPACE)
+            || valueLinkList.isFirstElement(Token.Type.EOL) || valueLinkList
             .isFirstElement(Token.Type.EOF))) {
-      value.dropFirstElement();
+      valueLinkList.dropFirstElement();
     }
-    while (value.size() > 0
-        && (value.isLastElement(Token.Type.WHITESPACE)
-            || value.isLastElement(Token.Type.EOL) || value
+    while (valueLinkList.size() > 0
+        && (valueLinkList.isLastElement(Token.Type.WHITESPACE)
+            || valueLinkList.isLastElement(Token.Type.EOL) || valueLinkList
             .isLastElement(Token.Type.EOF))) {
-      value.dropLastElement();
+      valueLinkList.dropLastElement();
     }
-    //The same value instance must be saved in the attribute and the name/value
-    //pair so that, if the values in the instance are changed in the attribute,
-    //they will change in the name/value pair.
-    Token valueList = value.getList();
-    //must add value to attribute even if its null to act as a place holder
-    //duplicates are allowed and must be stored in the map.
-    attribute.setValue(valueList);
-    //only save the value to the name/value pair if it exists
-    if (value.size>0) {
-      pair.addValue(valueList);
-    }
+    //Save the value to the name/value pair even if it doesn't exist.  This is
+    //how the name/value pair knows that its name is complete and can assign itself
+    //to the last attribute
+    pair.addValue(valueLinkList.getHead());
     testEndFunction("value", true);
     return;
   }
@@ -813,8 +848,8 @@ final class AutodocParser {
    * returns the new end of the link list
    * @throws IOException
    */
-  private boolean valueLine(WriteOnlyNameValuePairList parent, LinkList value)
-      throws IOException {
+  private boolean valueLine(WriteOnlyStatementList parent,
+      LinkList valueLinkList) throws IOException {
     if (emptyLine(parent) || delimiterInLine || token.is(Token.Type.COMMENT)
         || token.is(Token.Type.EOL) || token.is(Token.Type.EOF)) {
       //not a value line
@@ -824,7 +859,7 @@ final class AutodocParser {
     while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)) {
       //add the token to the value link list
-      value.append(token);
+      valueLinkList.append(token);
       nextToken();
     }
     if (token.is(Token.Type.DELIMITER)) {//really bad error - preprocessor is wrong
@@ -836,7 +871,7 @@ final class AutodocParser {
     }
     //grab the EOL in case another value line follows
     if (token.is(Token.Type.EOL)) {
-      value.append(token);
+      valueLinkList.append(token);
     }
     nextToken();
     testEndFunction("valueLine", true);
@@ -910,7 +945,7 @@ final class AutodocParser {
     tokenIndex++;
     if (detailedTest) {
       System.err.println(tokenIndex + ":" + token + ",delimiterInLine="
-          + delimiterInLine);
+          + delimiterInLine+":"+tokenizer.getDelimiterString());
     }
   }
 
@@ -952,7 +987,7 @@ final class AutodocParser {
 
   //postprocessor
 
-  private void processMetaData(Attribute attribute, Token value) {
+  private void processMetaData(Attribute attribute) {
     if (!attribute.isBase()) {
       return;
     }
@@ -967,20 +1002,30 @@ final class AutodocParser {
         return;
       }
     }
-    if (name.equals(Token.Type.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
-      tokenizer.setDelimiterString(value.getValues());
+  }
+
+  private boolean isDelimiterChange(Attribute attribute) {
+    if (attribute.getNameToken().equals(Token.Type.KEYWORD,
+        AutodocTokenizer.DELIMITER_KEYWORD)) {
+      if (debug) {
+        System.out.println("delimiter found");
+        test = true;
+        detailedTest = true;
+      }
+      return true;
     }
+    return false;
   }
 
   private void postprocess() {
-    if (!versionFound) {
+    if (!versionFound && versionRequired) {
       System.err.println("Warning:  missing meta data - Version not found.");
     }
   }
 
-  void testStreamTokenizer(boolean tokens,boolean details) throws IOException,
+  void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
       LogFile.ReadException {
-    tokenizer.testStreamTokenizer(tokens,details);
+    tokenizer.testStreamTokenizer(tokens, details);
   }
 
   void testPrimativeTokenizer(boolean tokens) throws IOException,
@@ -1079,24 +1124,24 @@ final class AutodocParser {
   }
 
   private final static class LinkList {
-    Token list;
-    Token endList;
+    Token head;
+    Token tail;
     int size;
 
     LinkList(Token start) {
-      list = start;
-      endList = list;
+      head = start;
+      tail = head;
       size = 1;
     }
 
     void append(Token token) {
-      if (endList == null) {
-        list = token;
-        endList = token;
+      if (tail == null) {
+        head = token;
+        tail = token;
         size = 1;
       }
       else {
-        endList = endList.setNext(token);
+        tail = tail.setNext(token);
         size++;
       }
     }
@@ -1106,26 +1151,26 @@ final class AutodocParser {
     }
 
     boolean isFirstElement(Token.Type compareType) {
-      if (list == null) {
+      if (head == null) {
         return false;
       }
-      return list.is(compareType);
+      return head.is(compareType);
     }
 
     boolean isLastElement(Token.Type compareType) {
-      if (endList == null) {
+      if (tail == null) {
         return false;
       }
-      return endList.is(compareType);
+      return tail.is(compareType);
     }
 
     void dropFirstElement() {
-      if (list == null) {
+      if (head == null) {
         return;
       }
-      list = list.dropFromList();
-      if (list == null) {
-        endList = null;
+      head = head.dropFromList();
+      if (head == null) {
+        tail = null;
         size = 0;
       }
       else {
@@ -1134,12 +1179,12 @@ final class AutodocParser {
     }
 
     void dropLastElement() {
-      if (endList == null) {
+      if (tail == null) {
         return;
       }
-      endList = endList.dropFromList();
-      if (endList == null) {
-        list = null;
+      tail = tail.dropFromList();
+      if (tail == null) {
+        head = null;
         size = 0;
       }
       else {
@@ -1147,12 +1192,12 @@ final class AutodocParser {
       }
     }
 
-    Token getList() {
-      return list;
+    Token getHead() {
+      return head;
     }
-    
+
     public String toString() {
-      return getList().toString();
+      return getHead().toString();
     }
   }
 }

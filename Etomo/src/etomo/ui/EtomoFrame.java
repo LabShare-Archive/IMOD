@@ -117,47 +117,62 @@ abstract class EtomoFrame extends JFrame {
     if (menu.equalsFileNewTomogram(event)) {
       EtomoDirector.getInstance().openTomogram(true, axisID);
     }
-
-    if (menu.equalsFileNewJoin(event)) {
+    else if (menu.equalsFileNewJoin(event)) {
       EtomoDirector.getInstance().openJoin(true, axisID);
     }
-
-    if (menu.equalsFileNewParallel(event)) {
+    else if (menu.equalsFileNewParallel(event)) {
       EtomoDirector.getInstance().openParallel(true, axisID);
     }
-
-    if (menu.equalsFileNewPeet(event)) {
+    else if (menu.equalsFileNewPeet(event)) {
       EtomoDirector.getInstance().openPeet(true, axisID);
     }
-
-    if (menu.equalsFileOpen(event)) {
+    else if (menu.equalsFileOpen(event)) {
       File dataFile = openDataFileDialog();
       if (dataFile != null) {
         EtomoDirector.getInstance().openManager(dataFile, true, axisID);
       }
     }
-    try {
-      if (menu.equalsFileSave(event)) {
-        if (currentManager.saveParamFile()) {
-          return;
-        }
-        //Don't allow the user to do the equivalent of a Save As if Save As isn't available.
-        if (!currentManager.canChangeParamFileName()) {
-          UIHarness.INSTANCE.openMessageDialog(
-              "Please set the name of dataset or the join before saving",
-              "Cannot Save");
-          return;
-        }
-        //Do a Save As
-        if (getParamFilename()) {
-          currentManager.saveParamFile();
-        }
+    else if (menu.equalsFileSave(event)) {
+      save(axisID);
+    }
+    else if (menu.equalsFileSaveAs(event)) {
+      saveAs(axisID);
+    }
+    else if (menu.equalsFileClose(event)) {
+      EtomoDirector.getInstance().closeCurrentManager(axisID);
+    }
+    else if (menu.equalsFileExit(event)) {
+      //  Check to see if we need to save any data
+      if (EtomoDirector.getInstance().exitProgram(axisID)) {
+        System.exit(0);
       }
+    }
+    else if (menu.equalsFileDuplicatePeet(event)) {
+      //TODO bug# 964
+    }
+    else if (menu.equalsFileImportPrm(event)) {   
+      //TODO bug# 964
+    }
+    else if (menu.equalsFileTomosnapshot(event)) {
+      currentManager.tomosnapshot(axisID);
+    }
+  }
 
-      if (menu.equalsFileSaveAs(event)) {
-        if (getParamFilename()) {
-          currentManager.saveParamFile();
-        }
+  private void save(AxisID axisID) {
+    try {
+      if (currentManager.saveParamFile()) {
+        return;
+      }
+      //Don't allow the user to do the equivalent of a Save As if Save As isn't available.
+      if (!currentManager.canChangeParamFileName()) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "Please set the name of dataset or the join before saving",
+            "Cannot Save");
+        return;
+      }
+      //Do a Save As
+      if (getParamFilename()) {
+        currentManager.saveParamFile();
       }
     }
     catch (LogFile.FileException e) {
@@ -168,19 +183,21 @@ abstract class EtomoFrame extends JFrame {
       UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
-    if (menu.equalsFileClose(event)) {
-      EtomoDirector.getInstance().closeCurrentManager(axisID);
-    }
+  }
 
-    if (menu.equalsFileExit(event)) {
-      //  Check to see if we need to save any data
-      if (EtomoDirector.getInstance().exitProgram(axisID)) {
-        System.exit(0);
+  private void saveAs(AxisID axisID) {
+    try {
+      if (getParamFilename()) {
+        currentManager.saveParamFile();
       }
     }
-
-    if (menu.equalsFileTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID);
+    catch (LogFile.FileException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to save parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
+    }
+    catch (LogFile.WriteException e) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to write parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
   }
 
@@ -347,6 +364,14 @@ abstract class EtomoFrame extends JFrame {
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
       getOtherFrame().menu.setEnabledFileNewPeet(enable);
+    }
+  }
+
+  void setEnabledDuplicatePeetMenuItem(boolean enable) {
+    menu.setEnabledFileDuplicatePeet(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledFileDuplicatePeet(enable);
     }
   }
 
@@ -845,6 +870,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2007/03/01 01:31:12  sueh
+ * <p> bug# 964 Fixed bug in getParamFilename (Save As).  Tried to fill in a default
+ * <p> selected file that might be null.
+ * <p>
  * <p> Revision 1.30  2007/02/21 04:21:53  sueh
  * <p> bug# 964 Using UIHarness to pop up dialog.
  * <p>

@@ -18,6 +18,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/02/05 23:09:42  sueh
+ * <p> bug# 962 Made revisionNumber a EtomoVersion, so it can be compared.
+ * <p>
  * <p> Revision 1.4  2005/12/14 01:28:07  sueh
  * <p> bug# 782 Updated toString().
  * <p>
@@ -46,13 +49,13 @@ import etomo.storage.Storable;
 public abstract class BaseMetaData implements Storable {
   public static final String rcsid = "$Id$";
 
-  protected static final String revisionNumberString = "RevisionNumber";
-  protected static String fileExtension;
+  static final String revisionNumberString = "RevisionNumber";
+  static String fileExtension;
 
   //revisionNumber should be set only by load()
-  protected EtomoVersion revisionNumber = EtomoVersion.getInstance(revisionNumberString);
-  protected AxisType axisType = AxisType.NOT_SET;
-  protected String invalidReason = "";
+  EtomoVersion revisionNumber = EtomoVersion.getInstance(revisionNumberString);
+  AxisType axisType = AxisType.NOT_SET;
+  String invalidReason = "";
 
   public abstract void store(Properties props, String prepend);
 
@@ -70,7 +73,7 @@ public abstract class BaseMetaData implements Storable {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
-  protected String paramString() {
+  String paramString() {
     return "fileExtension=" + fileExtension + ",revisionNumber="
         + revisionNumber + ",\naxisType=" + axisType + ",invalidReason="
         + invalidReason + "," + super.toString();

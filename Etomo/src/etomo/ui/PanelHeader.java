@@ -163,7 +163,7 @@ final class PanelHeader implements Expandable {
     btnAdvancedBasic.setExpanded(advanced);
   }
 
-  boolean isAdvancedBasicExpanded() {
+  boolean isAdvanced() {
     if (btnAdvancedBasic == null) {
       return false;
     }
@@ -243,6 +243,9 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2007/03/09 22:06:28  sueh
+ * <p> bug# 964 Added getAdvancedBasicOnlyInstance().
+ * <p>
  * <p> Revision 1.23  2007/02/21 04:23:26  sueh
  * <p> bug# 964 Changed setState(PanelHeaderState) to
  * <p> setState(ConstPanelHeaderState).

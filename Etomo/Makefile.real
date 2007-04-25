@@ -81,7 +81,7 @@ uitestinstall: uitestjarfile
 	$(CP) -pf scripts/uitest $(INSTBINDIR)
 
 cmdwrappers:
-	../scripts/copywrappers $(INSTBINDIR) scripts/bashwrapper.cmd scripts/etomo
+	../scripts/copywrappers $(INSTBINDIR) ../scripts scripts/etomo
 
 tests: testjarfile
 	java -classpath "$(TESTPATH)$(CLASS_SEPARATOR)$(TEST_JAR_FILE)" -Djava.awt.headless=true junit.textui.TestRunner etomo.JUnitTests
@@ -130,6 +130,9 @@ linecount:
 	grep "^\s*$$" src/etomo/util/*.java | wc -l
 
 # $Log$
+# Revision 2.19  2006/11/03 17:55:03  mast
+# Switched \cp back to macro for broken make in Cygwin
+#
 # Revision 2.18  2006/09/26 22:22:26  mast
 # Added bash wrapper to windows install
 #

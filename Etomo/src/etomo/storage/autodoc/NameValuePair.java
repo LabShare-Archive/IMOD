@@ -2,6 +2,7 @@ package etomo.storage.autodoc;
 
 import java.util.Vector;
 
+import etomo.storage.LogFile;
 import etomo.ui.Token;
 
 /**
@@ -17,94 +18,147 @@ import etomo.ui.Token;
  * 
  * @version $Revision$
  */
-final class NameValuePair implements ReadOnlyNameValuePair {
+final class NameValuePair extends Statement {
   public static final String rcsid = "$Id$";
 
+  private static final Type TYPE = Statement.Type.NAME_VALUE_PAIR;
+
+  /**
+   * The name is made of attributes
+   */
   private final Vector name = new Vector();
-  private final NameValuePairType type;
+  private final WriteOnlyStatementList parent;
 
   private Token value = null;
-  private Section subsection = null;
+  private Token newDelimiter = null;
 
-  private NameValuePair(NameValuePairType type) {
-    this.type = type;
+  public NameValuePair(WriteOnlyStatementList parent,
+      Statement previousStatement) {
+    super(previousStatement);
+    this.parent = parent;
   }
 
-  private NameValuePair(NameValuePairType type, Token value) {
-    this(type);
-    this.value = value;
+  public Statement.Type getType() {
+    return TYPE;
   }
 
-  private NameValuePair(NameValuePairType type, Section subsection) {
-    this(type);
-    name.add(subsection.getTypeToken());
-    value = subsection.getNameToken();
-    this.subsection = subsection;
+  public int sizeLeftSide() {
+    return name.size();
   }
 
-  static NameValuePair getNameValuePairInstance() {
-    return new NameValuePair(NameValuePairType.NAME_VALUE_PAIR);
+  public String getLeftSide(int index) {
+    if (index < 0 || index >= name.size()) {
+      return null;
+    }
+    return ((Attribute) name.get(index)).getName();
   }
 
-  static NameValuePair getSubsectionInstance(Section subsection) {
-    return new NameValuePair(NameValuePairType.SUBSECTION, subsection);
+  public String getRightSide() {
+    if (value == null) {
+      return null;
+    }
+    return value.getValues();
   }
 
-  static NameValuePair getCommentInstance(Token comment) {
-    return new NameValuePair(NameValuePairType.COMMENT, comment);
+  /**
+   * Get something equivalent to the original statement.  No gaurenteed to be
+   * exactly the same
+   */
+  public String getString() {
+    StringBuffer buffer = new StringBuffer();
+    if (name.size() >= 1) {
+      buffer.append(((Attribute) name.get(0)).getName());
+    }
+    for (int i = 1; i < name.size(); i++) {
+      buffer.append(AutodocTokenizer.SEPARATOR_CHAR);
+      buffer.append(((Attribute) name.get(i)).getName());
+    }
+    buffer.append(" " + AutodocTokenizer.DEFAULT_DELIMITER + " ");
+    if (value != null) {
+      buffer.append(value.getValues());
+    }
+    return buffer.toString();
   }
 
-  static NameValuePair getEmptyLineInstance() {
-    return new NameValuePair(NameValuePairType.EMPTY_LINE);
+  void setDelimiterChange(Token newDelimiter) {
+    this.newDelimiter = newDelimiter;
+  }
+  
+  /**
+   * Remove an occurrence from each attribute in the name.  Remove this instance
+   * from the last attribute.  Remove the instance from the Statement link list.
+   * @return Statement.previous
+   */
+  WritableStatement remove() {
+    Attribute attribute;
+    for (int i =0;i<name.size();i++) {
+      attribute = (Attribute)name.get(i);
+      attribute.remove();
+      if (i==name.size()-1) {
+        attribute.removeNameValuePair(this);
+      }
+    }
+    return super.remove();
+  }
+
+  void write(LogFile file, long writeId) throws LogFile.WriteException {
+    for (int i = 0; i < name.size(); i++) {
+      ((Attribute) name.get(i)).write(file, writeId);
+      if (i < name.size() - 1) {
+        file.write(AutodocTokenizer.SEPARATOR_CHAR, writeId);
+      }
+    }
+    file.write(' ' + parent.getCurrentDelimiter() + ' ', writeId);
+    if (value != null) {
+      value.write(file, writeId);
+      file.newLine(writeId);
+    }
+    if (newDelimiter != null) {
+      parent.setCurrentDelimiter(newDelimiter);
+    }
   }
 
   void print(int level) {
     Autodoc.printIndent(level);
-    if (type == NameValuePairType.EMPTY_LINE) {
-      System.out.println("<empty-line>");
+    for (int i = 0; i < name.size(); i++) {
+      System.out.print(((Attribute) name.get(i)).getValue());
+      if (i < name.size() - 1) {
+        System.out.print('.');
+      }
+    }
+    System.out.print(' ' + parent.getCurrentDelimiter() + ' ');
+    if (value == null) {
+      System.out.println();
+    }
+    else {
+      System.out.println(value.getValues());
+    }
+    if (newDelimiter != null) {
+      parent.setCurrentDelimiter(newDelimiter);
       return;
-    }
-    if (type == NameValuePairType.COMMENT) {
-      System.out.println("<comment> " + value.getValues());
-      return;
-    }
-    if (type == NameValuePairType.SUBSECTION) {
-      subsection.print(level);
-    }
-    else if (type == NameValuePairType.NAME_VALUE_PAIR) {
-      for (int i = 0; i < name.size(); i++) {
-        System.out.print(((Token) name.get(i)).getValues());
-        if (i < name.size() - 1) {
-          System.out.print('.');
-        }
-      }
-      System.out.print(" = ");
-      if (value == null) {
-        System.out.println();
-      }
-      else {
-        System.out.println(value.getValues());
-      }
     }
   }
 
-  public int numAttributes() {
-    return name.size();
-  }
-
-  void addAttribute(Token attribute) {
+  /**
+   * each attribute is added as it is found
+   * @param attribute
+   */
+  void addAttribute(Attribute attribute) {
     name.add(attribute);
   }
 
+  /**
+   * The value is added after all the attributes are added.  This name/value pair
+   * to the last attribute added.
+   * @param value
+   */
   void addValue(Token value) {
     this.value = value;
+    ((Attribute) name.get(name.size() - 1)).addNameValuePair(this);
   }
 
-  public String getAttribute(int index) {
-    if (index >= name.size()) {
-      return null;
-    }
-    return ((Token) name.get(index)).getValues();
+  void setValue(Token value) {
+    this.value = value;
   }
 
   public String getValue() {
@@ -114,36 +168,29 @@ final class NameValuePair implements ReadOnlyNameValuePair {
     return value.getValues();
   }
 
-  public NameValuePairType getNameValuePairType() {
-    return type;
-  }
-
-  public String getString() {
-    StringBuffer buffer = new StringBuffer();
-    if (name.size() >= 1) {
-      buffer.append(((Token) name.get(0)).getValues());
-    }
-    for (int i = 1; i < name.size(); i++) {
-      buffer.append(AutodocTokenizer.SEPARATOR_CHAR);
-      buffer.append(((Token) name.get(i)).getValues());
-    }
-    buffer.append(" " + AutodocTokenizer.DEFAULT_DELIMITER + " ");
-    if (value != null) {
-      buffer.append(value.getValues());
-    }
-    return buffer.toString();
-  }
-
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return "name=" + name + ",\nvalue=" + value + "," + super.toString();
+  public Token getTokenValue() {
+    return value;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/04/09 20:33:37  sueh
+ * <p> bug# 964 Change NameValuePair to an abstract class called Statement and
+ * <p> child classes representing name/value pair, comment, empty line, and
+ * <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+ * <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p> Saving Attribute instance in name instead of strings so as not to create
+ * <p> duplications.
+ * <p>
+ * <p> Revision 1.8  2007/03/23 20:33:57  sueh
+ * <p> bug# 964 Adding a Type which represents the change in delimiter.  Added write(),
+ * <p> to write out an autodoc to a file.
+ * <p>
+ * <p> Revision 1.7  2007/03/21 19:39:20  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Moved the Type inner class to a separate file so that it could be accessed by
+ * <p> classes outside the package.
+ * <p>
  * <p> Revision 1.6  2007/03/08 21:58:58  sueh
  * <p> bug# 964 Added Type.  Building Type.NAME_VALUE_PAIR instances piecemeal
  * <p> so that the parser can put them together.

@@ -60,6 +60,10 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.60  2007/03/21 19:45:41  sueh
+ * bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * Added AutodocFactory to create Autodoc instances.
+ *
  * Revision 3.59  2007/03/01 01:34:30  sueh
  * bug# 964 Added LogFile to Autodoc.
  *
@@ -712,10 +716,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   private final void setAdvanced() {
-    boolean headerAdvanced = patchcorrHeader.isAdvancedBasicExpanded();
+    boolean headerAdvanced = patchcorrHeader.isAdvanced();
     if (tomogramCombinationDialog.isAdvanced() != headerAdvanced
-        && headerAdvanced == matchorwarpHeader.isAdvancedBasicExpanded()
-        && headerAdvanced == volcombineHeader.isAdvancedBasicExpanded()) {
+        && headerAdvanced == matchorwarpHeader.isAdvanced()
+        && headerAdvanced == volcombineHeader.isAdvanced()) {
       tomogramCombinationDialog.setAdvanced(headerAdvanced);
     }
   }

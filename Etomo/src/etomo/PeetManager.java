@@ -37,6 +37,19 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/02 21:41:04  sueh
+ * <p> bug# 964 Change PeetDialog.ltfOutput to lftFnOutput.
+ * <p>
+ * <p> Revision 1.11  2007/03/26 23:30:39  sueh
+ * <p> bug# 964 Setting metadata in ImodManager.
+ * <p>
+ * <p> Revision 1.10  2007/03/26 18:33:32  sueh
+ * <p> bug# 964 Prevent MatlabParamFile from loading a .prm file unless the user asks
+ * <p> for the file to be read.
+ * <p>
+ * <p> Revision 1.9  2007/03/21 18:07:34  sueh
+ * <p> bug# 964 In savePeetDialog, writing to the .prm file.
+ * <p>
  * <p> Revision 1.8  2007/03/20 23:00:19  sueh
  * <p> bug# 964 Fixed bug in setParamFile() where metadata.name was being reset
  * <p> after it was retrieved from the screen.
@@ -116,10 +129,11 @@ public class PeetManager extends BaseManager {
     if (loadedParamFile) {
       String rootName = DatasetFiles.getRootName(paramFile);
       metaData.setName(rootName);
-      loadMatlabAutodoc();
+      imodManager.setMetaData(metaData);
+      loadMatlabAutodoc(false);
       if (peetDialog != null) {
         peetDialog.setDirectory(paramFile.getParent());
-        peetDialog.setOutput(rootName);
+        peetDialog.setFnOutput(rootName);
         peetDialog.updateDisplay(true);
       }
     }
@@ -148,7 +162,10 @@ public class PeetManager extends BaseManager {
     if (peetDialog == null) {
       return false;
     }
-    String name = peetDialog.getOutput();
+    String name = peetDialog.getFnOutput();
+    if (name == null || name.matches("\\s*")) {
+      return false;
+    }
     File paramFile = new File(peetDialog.getDirectory(), name
         + DatasetFiles.PEET_DATA_FILE_EXT);
     if (!paramFile.exists()) {
@@ -160,9 +177,13 @@ public class PeetManager extends BaseManager {
     }
     metaData.setName(name);
     if (!metaData.isValid()) {
+      uiHarness.openMessageDialog(
+          "Invalid data, unable to proceed.  Please exit and restart Etomo",
+          "Fatal Error");
       return false;
     }
-    loadMatlabAutodoc();
+    imodManager.setMetaData(metaData);
+    loadMatlabAutodoc(true);
     peetDialog.updateDisplay(true);
     return true;
   }
@@ -249,7 +270,9 @@ public class PeetManager extends BaseManager {
     createState();
     processMgr = new PeetProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
-    loadMatlabAutodoc();
+    if (loadedParamFile) {
+      loadMatlabAutodoc(false);
+    }
     if (!EtomoDirector.getInstance().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
@@ -260,11 +283,12 @@ public class PeetManager extends BaseManager {
   /**
    * Initialize metalabParamFile.  Dependent on metaData.
    */
-  private void loadMatlabAutodoc() {
+  private void loadMatlabAutodoc(boolean newFile) {
     if (!loadedParamFile || matlabParamFile != null || paramFile == null) {
       return;
     }
-    matlabParamFile = new MatlabParamFile(DatasetFiles.getMatlabParamFile(this));
+    matlabParamFile = new MatlabParamFile(
+        DatasetFiles.getMatlabParamFile(this), newFile);
   }
 
   private void createState() {

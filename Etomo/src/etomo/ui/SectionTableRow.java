@@ -31,6 +31,16 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2007/03/27 19:32:07  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.28  2007/03/27 00:06:38  sueh
+ * <p> bug# 964 Made HighlighterButton more thread-safe.  Removed unnecessary
+ * <p> functions.
+ * <p>
+ * <p> Revision 1.27  2007/03/01 01:43:02  sueh
+ * <p> bug# 964 Implementing Highlighable.
+ * <p>
  * <p> Revision 1.26  2007/02/09 00:52:45  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -211,28 +221,28 @@ import etomo.util.DatasetFiles;
  * <p> fields.  Can expand the section field
  * <p> </p>
  */
-public final class SectionTableRow implements Highlightable{
+public final class SectionTableRow implements Highlightable {
   public static final String rcsid = "$Id$";
 
   static final String INVERTED_WARNING = "The handedness of structures will change in inverted sections.";
 
-  private final FieldCell setupSection = new FieldCell();
-  private final FieldCell joinSection = new FieldCell();
-  private final FieldCell sampleBottomStart = new FieldCell();
-  private final FieldCell sampleBottomEnd = new FieldCell();
-  private final FieldCell sampleTopStart = new FieldCell();
-  private final FieldCell sampleTopEnd = new FieldCell();
-  private final FieldCell slicesInSample = new FieldCell();
+  private final FieldCell setupSection = FieldCell.getIneditableInstance();
+  private final FieldCell joinSection = FieldCell.getIneditableInstance();
+  private final FieldCell sampleBottomStart = FieldCell.getEditableInstance();
+  private final FieldCell sampleBottomEnd = FieldCell.getEditableInstance();
+  private final FieldCell sampleTopStart = FieldCell.getEditableInstance();
+  private final FieldCell sampleTopEnd = FieldCell.getEditableInstance();
+  private final FieldCell slicesInSample = FieldCell.getIneditableInstance();
   private final HeaderCell currentChunk = new HeaderCell();
-  private final FieldCell referenceSection = new FieldCell();
-  private final FieldCell currentSection = new FieldCell();
-  private final FieldCell setupFinalStart = new FieldCell();
-  private final FieldCell setupFinalEnd = new FieldCell();
-  private final FieldCell joinFinalStart = new FieldCell();
-  private final FieldCell joinFinalEnd = new FieldCell();
-  private final FieldCell rotationAngleX = new FieldCell();
-  private final FieldCell rotationAngleY = new FieldCell();
-  private final FieldCell rotationAngleZ = new FieldCell();
+  private final FieldCell referenceSection = FieldCell.getIneditableInstance();
+  private final FieldCell currentSection = FieldCell.getIneditableInstance();
+  private final FieldCell setupFinalStart = FieldCell.getEditableInstance();
+  private final FieldCell setupFinalEnd = FieldCell.getEditableInstance();
+  private final FieldCell joinFinalStart = FieldCell.getEditableInstance();
+  private final FieldCell joinFinalEnd = FieldCell.getEditableInstance();
+  private final FieldCell rotationAngleX = FieldCell.getEditableInstance();
+  private final FieldCell rotationAngleY = FieldCell.getEditableInstance();
+  private final FieldCell rotationAngleZ = FieldCell.getEditableInstance();
 
   private final JoinManager manager;
   private final SectionTablePanel table;
@@ -276,13 +286,7 @@ public final class SectionTableRow implements Highlightable{
     this.manager = manager;
     this.table = table;
     this.sectionExpanded = sectionExpanded;
-    highlighterButton=new HighlighterButton(this,table);
-    //configure
-    setupSection.setEnabled(false);
-    joinSection.setEnabled(false);
-    slicesInSample.setEnabled(false);
-    referenceSection.setEnabled(false);
-    currentSection.setEnabled(false);
+    highlighterButton = HighlighterButton.getInstance(this, table);
   }
 
   public String toString() {
@@ -379,24 +383,24 @@ public final class SectionTableRow implements Highlightable{
   void setMode(int mode) {
     switch (mode) {
     case JoinDialog.SAMPLE_PRODUCED_MODE:
-      sampleBottomStart.setEnabled(false);
-      sampleBottomEnd.setEnabled(false);
-      sampleTopStart.setEnabled(false);
-      sampleTopEnd.setEnabled(false);
-      rotationAngleX.setEnabled(false);
-      rotationAngleY.setEnabled(false);
-      rotationAngleZ.setEnabled(false);
+      sampleBottomStart.setEditable(false);
+      sampleBottomEnd.setEditable(false);
+      sampleTopStart.setEditable(false);
+      sampleTopEnd.setEditable(false);
+      rotationAngleX.setEditable(false);
+      rotationAngleY.setEditable(false);
+      rotationAngleZ.setEditable(false);
       return;
     case JoinDialog.SETUP_MODE:
     case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
     case JoinDialog.CHANGING_SAMPLE_MODE:
-      sampleBottomStart.setEnabled(true);
-      sampleBottomEnd.setEnabled(true);
-      sampleTopStart.setEnabled(true);
-      sampleTopEnd.setEnabled(true);
-      rotationAngleX.setEnabled(true);
-      rotationAngleY.setEnabled(true);
-      rotationAngleZ.setEnabled(true);
+      sampleBottomStart.setEditable(true);
+      sampleBottomEnd.setEditable(true);
+      sampleTopStart.setEditable(true);
+      sampleTopEnd.setEditable(true);
+      rotationAngleX.setEditable(true);
+      rotationAngleY.setEditable(true);
+      rotationAngleZ.setEditable(true);
       return;
     default:
       throw new IllegalStateException("mode=" + mode);
@@ -572,14 +576,14 @@ public final class SectionTableRow implements Highlightable{
     joinFinalStart.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     joinFinalEnd.add(panel, layout, constraints);
-    joinFinalStart.setEnabled(true);
-    joinFinalEnd.setEnabled(true);
+    joinFinalStart.setEditable(true);
+    joinFinalEnd.setEditable(true);
   }
 
   private void addRejoin(JPanel panel) {
     addJoin(panel);
-    joinFinalStart.setEnabled(false);
-    joinFinalEnd.setEnabled(false);
+    joinFinalStart.setEditable(false);
+    joinFinalEnd.setEditable(false);
   }
 
   private void displayData(int rowNumber) {
@@ -769,14 +773,15 @@ public final class SectionTableRow implements Highlightable{
     this.rowNumber.setText(String.valueOf(rowNumber));
   }
 
-  void setImodIndex(int imodIndex) {
-    this.imodIndex = imodIndex;
-  }
+  /*
+   void setImodIndex(int imodIndex) {
+   this.imodIndex = imodIndex;
+   }
 
-  void setImodRotIndex(int imodRotIndex) {
-    this.imodRotIndex = imodRotIndex;
-  }
-
+   void setImodRotIndex(int imodRotIndex) {
+   this.imodRotIndex = imodRotIndex;
+   }
+   */
   void setRotationAngles(SlicerAngles slicerAngles) {
     rotationAngleX.setValue(slicerAngles.getX().toString());
     rotationAngleY.setValue(slicerAngles.getY().toString());

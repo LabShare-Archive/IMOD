@@ -22,6 +22,21 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/04/02 21:49:28  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
+ * <p> Revision 1.17  2007/03/27 19:30:59  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.  Added setEnabled().
+ * <p>
+ * <p> Revision 1.16  2007/03/26 18:38:34  sueh
+ * <p> bug# 964 Prevented getContractedValue and getExpandedValue from returning null.
+ * <p>
+ * <p> Revision 1.15  2007/03/20 23:10:15  sueh
+ * <p> bug# 964 Added fixedValues, to prevent the field from being enabled.  Used by
+ * <p> getExpandableInstance().
+ * <p>
  * <p> Revision 1.14  2007/03/01 01:34:18  sueh
  * <p> bug# 964 Made InputCell colors constant and moved them to Colors.  Added
  * <p> setExpandableValues, getContractedValue, and getExpandedValue.
@@ -90,6 +105,7 @@ final class FieldCell extends InputCell {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
+  private final boolean editable;
   private String hiddenValue = null;
   private boolean hideValue = false;
   private boolean range = false;
@@ -97,8 +113,10 @@ final class FieldCell extends InputCell {
   private String contractedValue = null;
   private String expandedValue = null;
   private boolean fixedValues = false;
+  private boolean inUse = true;
 
-  FieldCell() {
+  private FieldCell(boolean editable) {
+    this.editable=editable;
     //construction
     textField = new JTextField();
     //field
@@ -108,32 +126,68 @@ final class FieldCell extends InputCell {
     setForeground();
     setFont();
   }
+  
+  static FieldCell getEditableInstance() {
+    return new FieldCell(true);
+  }
+  
+  static FieldCell getIneditableInstance() {
+    FieldCell instance =  new FieldCell(false);
+    instance.setEditable(false);
+    return instance;
+  }
 
   static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell();
-    instance.setEnabled(false);
+    FieldCell instance = new FieldCell(false);
+    instance.setEditable(false);
     instance.fixedValues = true;
     return instance;
   }
 
-  void setEnabled(boolean enabled) {
-    if (fixedValues && enabled) {
+  public void setEnabled(boolean enable) {
+    setEditable(enable);
+    if (enable) {
+      setForeground();
+    }
+    else {
+      textField.setForeground(Colors.CELL_DISABLED_FOREGROUND);
+      textField.setDisabledTextColor(Colors.CELL_DISABLED_FOREGROUND);
+    }
+  }
+
+  void setEditable(boolean editable) {
+    //if this is not an editable instance, it can't be made editable
+    if (!this.editable &&editable) {
       return;
     }
-    super.setEnabled(enabled);
+    if (fixedValues && editable) {
+      return;
+    }
+    super.setEditable(editable);
+  }
+
+  void setInUse(final boolean inUse) {
+    this.inUse = inUse;
+    setForeground();
+  }
+  
+  void clearExpandableValues() {
+    contractedValue = null;
+    expandedValue = null;
+    setValue();
   }
 
   /**
-   * Sets contracted value and expanded value.  Does not need to call init().
+   * Sets contracted value and expanded value.
    * @param contractedValue
    * @param expandedValue
    */
-  void setExpandableValues(String contractedValue, String expandedValue) {
+  void setExpandableValues(final String contractedValue, final String expandedValue) {
     this.contractedValue = contractedValue;
     this.expandedValue = expandedValue;
   }
 
-  void setHideValue(boolean hideValue) {
+  void setHideValue(final boolean hideValue) {
     if (this.hideValue == hideValue) {
       return;
     }
@@ -155,7 +209,7 @@ final class FieldCell extends InputCell {
     return value == null || value.matches("\\s*");
   }
 
-  final Component getComponent() {
+  Component getComponent() {
     return textField;
   }
 
@@ -269,10 +323,16 @@ final class FieldCell extends InputCell {
   }
 
   String getContractedValue() {
+    if (contractedValue == null) {
+      return "";
+    }
     return contractedValue;
   }
 
   String getExpandedValue() {
+    if (expandedValue == null) {
+      return "";
+    }
     return expandedValue;
   }
 }

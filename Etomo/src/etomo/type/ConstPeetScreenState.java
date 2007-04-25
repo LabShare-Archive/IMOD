@@ -12,10 +12,15 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/21 04:19:34  sueh
+* <p> bug# 964 Const inteface for PeetScreenState.
+* <p> </p>
 */
 public interface ConstPeetScreenState {
   public static  final String  rcsid =  "$Id$";
   
   PanelHeaderState getPeetSetupHeaderState();
+  PanelHeaderState getPeetRunParametersHeaderState();
+  PanelHeaderState getPeetRunHeaderState();
 }

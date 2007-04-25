@@ -31,6 +31,7 @@ import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
@@ -58,32 +59,32 @@ public abstract class BaseManager {
   //protected static variables
   private static boolean headless = false;
   //protected MainFrame mainFrame = null;
-  protected UIHarness uiHarness = UIHarness.INSTANCE;
-  protected static UserConfiguration userConfig = EtomoDirector.getInstance()
+  UIHarness uiHarness = UIHarness.INSTANCE;
+  static UserConfiguration userConfig = EtomoDirector.getInstance()
       .getUserConfiguration();
 
   //protected variables
-  protected boolean loadedParamFile = false;
+  boolean loadedParamFile = false;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
-  protected final ImodManager imodManager;
+  final ImodManager imodManager;
   //  This object controls the reading and writing of David's com scripts
-  protected ComScriptManager comScriptMgr = null;
-  protected File paramFile = null;
+  ComScriptManager comScriptMgr = null;
+  File paramFile = null;
   //FIXME homeDirectory may not have to be visible
-  protected String homeDirectory;
+  String homeDirectory;
   // Control variable for process execution
   private String nextProcessA = "";
   private String nextProcessB = "";
   private String lastProcessA = "";
   private String lastProcessB = "";
-  protected String threadNameA = "none";
+  String threadNameA = "none";
 
-  protected String threadNameB = "none";
+  String threadNameB = "none";
 
-  protected boolean backgroundProcessA = false;
-  protected String backgroundProcessNameA = null;
-  protected String propertyUserDir = null;//working directory for this manager
+  boolean backgroundProcessA = false;
+  String backgroundProcessNameA = null;
+  String propertyUserDir = null;//working directory for this manager
 
   //private static variables
   private boolean debug = false;
@@ -132,6 +133,8 @@ public abstract class BaseManager {
   public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
+  
+  public abstract boolean setParamFile();
 
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
@@ -308,6 +311,7 @@ public abstract class BaseManager {
    */
   public final boolean saveParamFile() throws LogFile.FileException,
       LogFile.WriteException {
+    setParamFile();
     if (getParameterStore() == null) {
       return false;
     }
@@ -532,6 +536,91 @@ public abstract class BaseManager {
    */
   public ComScriptManager getComScriptManager() {
     return comScriptMgr;
+  }
+
+  /**
+   * Open or raise a specific 3dmod to view a file with binning.
+   * Or open a new 3dmod.
+   * Return the index of the 3dmod opened or raised.
+   */
+  public int imodOpen(String imodKey, int imodIndex, File file, int binning,
+      Run3dmodMenuOptions menuOptions) {
+    try {
+      if (imodIndex == -1) {
+        imodIndex = imodManager.newImod(imodKey, file);
+      }
+      imodManager.setBinningXY(imodKey, imodIndex, binning);
+      imodManager.open(imodKey, imodIndex, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
+    return imodIndex;
+  }
+
+  /**
+   * Open or raise a specific 3dmod to view a file with a model.
+   * Or open a new 3dmod.
+   * Return the index of the 3dmod opened or raised.
+   */
+  public int imodOpen(String imodKey, int imodIndex, String absoluteFilePath,
+      String absoluteModelPath, Run3dmodMenuOptions menuOptions) {
+    File file = new File(absoluteFilePath);
+    try {
+      if (imodIndex == -1) {
+        imodIndex = imodManager.newImod(imodKey, file);
+      }
+      imodManager.open(imodKey, imodIndex, absoluteModelPath, true,menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
+    return imodIndex;
+  }
+
+  /**
+   * Open 3dmod
+   */
+  public void imodOpen(String imodKey, Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(imodKey, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", AxisID.ONLY);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
+    }
   }
 
   /**
@@ -1077,6 +1166,13 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.78  2007/03/26 23:30:04  sueh
+ * <p> bug# 964 Moved some of the imodOpen functions to the parent class to be shared.
+ * <p>
+ * <p> Revision 1.77  2007/03/01 01:09:27  sueh
+ * <p> bug# 964 Removed protected modifiers.  Interpackage inheritance doesn't require
+ * <p> it.
+ * <p>
  * <p> Revision 1.76  2007/02/22 20:31:30  sueh
  * <p> bug# 966 Getting the shell environment variable in LoadAverageParam.
  * <p>

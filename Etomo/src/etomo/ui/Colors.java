@@ -20,6 +20,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/27 19:30:49  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.6  2007/03/01 01:28:42  sueh
+ * <p> bug# 964 Made InputCell colors constant and moved them to Colors.
+ * <p>
  * <p> Revision 1.5  2007/02/20 20:36:10  sueh
  * <p> bug# 964 Improved the colors.
  * <p>
@@ -43,27 +49,31 @@ public final class Colors {
   static final ColorUIResource CELL_FOREGROUND = new ColorUIResource(0, 0, 0);
   static final ColorUIResource CELL_NOT_IN_USE_FOREGROUND = new ColorUIResource(
       102, 102, 102);
-  static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255, 204, 204);
+  static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255,
+      204, 204);
   static final ColorUIResource BACKGROUND = new ColorUIResource(255, 255, 255);
   static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255,
       255, 204);
   static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204,
       255, 255);
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
-  
+
   static final int java1_5Change = 17;//half the difference between 1.4 color and 1.5 color
 
-  private static final ColorUIResource CELL_GREYOUT = new ColorUIResource(25, 25, 25);
+  private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(25,
+      25, 25);
+  static final ColorUIResource CELL_DISABLED_FOREGROUND = new ColorUIResource(120,
+      120, 120);
 
   private static Color backgroundA = null;
   private static Color backgroundB = null;
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
   private static Color backgroundPeet = null;
-  private static ColorUIResource cellDisabledBackground = null;
-  private static ColorUIResource cellDisabledhighlightBackground=null;
-  private static ColorUIResource cellDisabledWarningBackground=null;
-  private static ColorUIResource cellDisabledErrorBackground=null;
+  private static ColorUIResource cellNotEditableBackground = null;
+  private static ColorUIResource cellNotEditableHighlightBackground = null;
+  private static ColorUIResource cellNotEditableWarningBackground = null;
+  private static ColorUIResource cellNotEditableErrorBackground = null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
@@ -109,43 +119,57 @@ public final class Colors {
     return background;
   }
 
-  static ColorUIResource getCellDisabledBackground() {
-    if (cellDisabledBackground == null) {
-      cellDisabledBackground = subtractColor(
-          BACKGROUND, CELL_GREYOUT);
+  static ColorUIResource getCellNotEditableBackground() {
+    if (cellNotEditableBackground == null) {
+      cellNotEditableBackground = subtractColor(BACKGROUND, BACKGROUND_GREYOUT);
     }
-    return cellDisabledBackground;
+    return cellNotEditableBackground;
   }
-  
-  static ColorUIResource getCellDisabledhighlightBackground() {
-    if (cellDisabledhighlightBackground == null) {
-      cellDisabledhighlightBackground = subtractColor(HIGHLIGHT_BACKGROUND, CELL_GREYOUT);
+
+  static ColorUIResource getCellNotEditableHighlightBackground() {
+    if (cellNotEditableHighlightBackground == null) {
+      cellNotEditableHighlightBackground = subtractColor(HIGHLIGHT_BACKGROUND,
+          BACKGROUND_GREYOUT);
     }
-    return cellDisabledhighlightBackground;
+    return cellNotEditableHighlightBackground;
   }
-  
-  static ColorUIResource getCellDisabledWarningBackground() {
-    if (cellDisabledWarningBackground==null) {
-      cellDisabledWarningBackground = subtractColor(WARNING_BACKGROUND, CELL_GREYOUT);
+
+  static ColorUIResource getCellNotEditableWarningBackground() {
+    if (cellNotEditableWarningBackground == null) {
+      cellNotEditableWarningBackground = subtractColor(WARNING_BACKGROUND,
+          BACKGROUND_GREYOUT);
     }
-    return cellDisabledWarningBackground;
+    return cellNotEditableWarningBackground;
   }
-  
-  static ColorUIResource getCellDisabledErrorBackground() {
-    if(cellDisabledErrorBackground==null) {
-      cellDisabledErrorBackground = subtractColor(CELL_ERROR_BACKGROUND, CELL_GREYOUT);
+
+  static ColorUIResource getCellNotEditableErrorBackground() {
+    if (cellNotEditableErrorBackground == null) {
+      cellNotEditableErrorBackground = subtractColor(CELL_ERROR_BACKGROUND,
+          BACKGROUND_GREYOUT);
     }
-    return cellDisabledErrorBackground;
+    return cellNotEditableErrorBackground;
   }
-  
+
   static ColorUIResource subtractColor(Color color, Color subtractColor) {
     return new ColorUIResource(color.getRed() - subtractColor.getRed(), color
         .getGreen()
         - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
   }
+  
+  private static ColorUIResource addColor(Color color, Color subtractColor) {
+    return new ColorUIResource(color.getRed() + subtractColor.getRed(), color
+        .getGreen()
+        + subtractColor.getGreen(), color.getBlue() + subtractColor.getBlue());
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/03/27 19:30:49  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.6  2007/03/01 01:28:42  sueh
+ * <p> bug# 964 Made InputCell colors constant and moved them to Colors.
+ * <p>
  * <p> Revision 1.5  2007/02/20 20:36:10  sueh
  * <p> bug# 964 Improved the colors.
  * <p>

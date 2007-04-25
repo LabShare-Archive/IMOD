@@ -32,6 +32,7 @@ class SpinnerCell extends InputCell {
   private final EtomoNumber savedValue;
   private JSpinner spinner = null;
   private final EtomoNumber.Type type;
+  private boolean enabled = true;
 
   public String toString() {
     return getTextField().getText();
@@ -45,15 +46,19 @@ class SpinnerCell extends InputCell {
     return new SpinnerCell(min, max);
   }
 
+  /**
+   * The buttons should still work
+   */
   void setEditable(boolean editable) {
     getTextField().setEditable(editable);
   }
 
-  void setEnabled(boolean enabled) {
-    if (this.enabled == enabled) {
-      return;
-    }
-    super.setEnabled(enabled);
+  /**
+   * disable - the buttons shouldn't work
+   */
+  public void setEnabled(boolean enabled) {
+    this.enabled=enabled;
+    getComponent().setEnabled(enabled);
     if (!disabledValue.isNull()) {
       if (enabled) {
         if (disabledValue.equals((Number) spinner.getValue())
@@ -135,14 +140,8 @@ class SpinnerCell extends InputCell {
 
   protected final void setForeground() {
     JFormattedTextField textField = getTextField();
-    if (inUse) {
       textField.setForeground(Colors.CELL_FOREGROUND);
       textField.setDisabledTextColor(Colors.CELL_FOREGROUND);
-    }
-    else {
-      textField.setForeground(Colors.CELL_NOT_IN_USE_FOREGROUND);
-      textField.setDisabledTextColor(Colors.CELL_NOT_IN_USE_FOREGROUND);
-    }
   }
 
   private SpinnerCell(int min, int max) {
@@ -182,6 +181,12 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/27 19:32:23  sueh
+ * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
+ * <p>
+ * <p> Revision 1.10  2007/03/01 01:44:26  sueh
+ * <p> bug# 964 Moved colors from InputCell to Colors.
+ * <p>
  * <p> Revision 1.9  2007/02/09 00:53:24  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <string.h>
@@ -147,6 +143,7 @@ int xtumOpen(struct ViewInfo *vi)
   xtum->alpha = 0.0;
   xtum->beta = 0.0;
   xtum->gamma = 0.0;
+  xtum->closing = 0;
      
   xtum->dialog = new TumblerWindow(xtum, App->rgba, 
                                    App->doublebuffer, App->qtEnableDepth,
@@ -308,6 +305,8 @@ void TumblerWindow::setupToggleButton(QHBox *toolBar, QSignalMapper *mapper,
 // Respond to change in zoom spin box
 void TumblerWindow::zoomChanged(int value)
 {
+  if (mTum->closing)
+    return;
   setFocus();
   mTum->zoom = value;
   setSlice(mTum);
@@ -342,6 +341,8 @@ void TumblerWindow::thresholdChanged(int which, int value, bool dragging)
 // Respond to change in size through spin boxes
 void TumblerWindow::sizeChanged(int which)
 {
+  if (mTum->closing)
+    return;
   setFocus();
   if (!which)
     mTum->nx = mSizeBoxes[0]->value();
@@ -587,6 +588,7 @@ void TumblerWindow::computeRotation(float x, float y, float z)
 void TumblerWindow::closeEvent ( QCloseEvent * e )
 {
   TumblerStruct *xtum = mTum;
+  xtum->closing = 1;
   ivwRemoveControl(xtum->vi, xtum->ctrl);
   imodDialogManager.remove((QWidget *)xtum->dialog);
   sliceFree(xtum->slice);
@@ -1255,6 +1257,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.22  2006/10/05 17:09:41  mast
+Converted help page
+
 Revision 4.21  2006/10/05 15:41:32  mast
 Provided for primary and second non-TIFF snapshot format
 
