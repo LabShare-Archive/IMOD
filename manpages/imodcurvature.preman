@@ -68,7 +68,7 @@ impair the display in the model view window, however.  An alternative is to
 encode the radius as 
 circular symbols; however, they will only have the right size at the
 particular zoom specified with the
-.B sy
+.B -sy
 option.
 
 .SS Options
