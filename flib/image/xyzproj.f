@@ -6,28 +6,8 @@ c       axis.  The block may be any arbitrary subset of the image file.
 c       
 c       See man page for details.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2006/05/17 00:09:15  mast
-c       Fixed scaling to avoid excessive amplification near edges; it now
-c       scales as if the block is padded with fill data on the sides.
-c       Added proper error exits.
-c
-c       Revision 3.3  2005/12/09 04:45:32  mast
-c       gfortran: .xor., continuation, or byte fixes
-c	
-c       Revision 3.2  2002/02/26 22:34:47  mast
-c       Had to decrease limray size to avoid exceeding stack limit on SGI; it
-c       only needs to be big enough to allow lots of images or very big images
-c	
-c       Revision 3.1  2002/01/28 16:14:22  mast
-c       Increased limit on number of projections and added check on limit.
-c       Added declarations for implicit none.
+c       $Id$
+c       Log at end of file
 c	
       implicit none
       integer limpix,limstack,limproj,limray
@@ -68,12 +48,12 @@ c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetTwoFloats,PipGetFloat
       integer*4 PipGetString,PipGetTwoIntegers,PipGetThreeFloats
-      integer*4 PipGetInOutFile
+      integer*4 PipGetInOutFile, PipGetBoolean
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  xyzproj
 c       
       integer numOptions
-      parameter (numOptions = 13)
+      parameter (numOptions = 14)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
@@ -81,7 +61,8 @@ c
      &    'yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@'//
      &    'angles:StartEndIncAngle:FT:@mode:ModeToOutput:I:@'//
      &    'width:WidthToOutput:I:@addmult:AddThenMultiply:FP:@'//
-     &    'fill:FillValue:F:@param:ParameterFile:PF:@help:usage:B:'
+     &    'fill:FillValue:F:@constant:ConstantScaling:B:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
       tiltstr = 0.
       tiltend = 0.
@@ -176,6 +157,7 @@ c
       if(xyz.eq.'x'.or.xyz.eq.'X')then          !tilt around X
         nxslice=nzblock
         nyslice=nyblock
+        nxout = nyblock
         nyout=nxblock
         lenload=nyblock
         load0=ix0
@@ -183,6 +165,7 @@ c
       elseif(xyz.eq.'y'.or.xyz.eq.'Y')then      !tilt around Y
         nxslice=nxblock
         nyslice=nzblock
+        nxout = nxblock
         nyout=nyblock
         lenload=nxblock
         load0=iy0
@@ -191,6 +174,7 @@ c
       elseif(xyz.eq.'z'.or.xyz.eq.'Z')then      !tilt around Z
         nxslice=nxblock
         nyslice=nyblock
+        nxout = nxblock
         nyout=nzblock
         lenload=0
         load0=iz0
@@ -199,7 +183,6 @@ c
         call exiterror('YOU MUST ENTER ONE OF X, Y, Z, x, y, or z FOR AXIS')
       endif
 c       
-      nxout=nxslice
       modeout=1
       if(modein.eq.2)modeout=2
       fill=dmean
@@ -209,7 +192,9 @@ c
         ierr = PipGetInteger('ModeToOutput', modeout)
         ierr = PipGetTwoFloats('AddThenMultiply', scaladd, scalfac)
         ierr = PipGetFloat('FillValue', fill)
-
+        ixr = 0
+        ierr = PipGetBoolean('ConstantScaling', ixr)
+        ifrayscale = 1 - ixr
       else
         write(*,'(1x,a,i5,a,$)')'Width of output image [/ for',
      &      nxout,']: '
@@ -477,3 +462,24 @@ c
       enddo
       return
       end
+
+c       
+c       $Log$
+c       Revision 3.5  2006/06/20 04:52:09  mast
+c       Converted to PIP, changed for changes in set_projection_rays
+c
+c       Revision 3.4  2006/05/17 00:09:15  mast
+c       Fixed scaling to avoid excessive amplification near edges; it now
+c       scales as if the block is padded with fill data on the sides.
+c       Added proper error exits.
+c
+c       Revision 3.3  2005/12/09 04:45:32  mast
+c       gfortran: .xor., continuation, or byte fixes
+c	
+c       Revision 3.2  2002/02/26 22:34:47  mast
+c       Had to decrease limray size to avoid exceeding stack limit on SGI; it
+c       only needs to be big enough to allow lots of images or very big images
+c	
+c       Revision 3.1  2002/01/28 16:14:22  mast
+c       Increased limit on number of projections and added check on limit.
+c       Added declarations for implicit none.
