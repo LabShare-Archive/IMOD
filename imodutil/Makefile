@@ -17,7 +17,7 @@ E = $(BINEXT)
 IILIBS    = $(LIMOD) $(LIIMOD) $(TIFFLIBS)
 
 PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
- imodcmopp$(E) rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
+ rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
  patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
  $(IMODWINCPU)
@@ -35,12 +35,8 @@ imodmesh$(E) : imodmesh.$(O)
 imodtrans$(E) : imodtrans.$(O)
 	$(CC) -o imodtrans imodtrans.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
-imodmop$(E) : imodmop.$(O) moplib.$(O)
-	$(CC) -o imodmop imodmop.$(O) moplib.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
-
-imodcmopp$(E) : imodcmopp.$(O) moplib.$(O)
-	$(CC) -o imodcmopp imodcmopp.$(O) moplib.$(O) \
-	$(LDFLAGS) $(IILIBS) $(CLIBS)
+imodmop$(E) : imodmop.$(O) 
+	$(CC) -o imodmop imodmop.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodauto$(E) : imodauto.$(O) 
 	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
@@ -132,6 +128,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.16  2006/09/19 22:24:47  mast
+#  Added a flag for imodwincpu
+#
 #  Revision 3.15  2006/09/12 15:01:36  mast
 #  imodmesh uses library
 #
