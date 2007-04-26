@@ -87,6 +87,16 @@ usage = Value to fill empty areas with (default is mean)
 tooltip = 
 manpage = 
 
+[Field = ConstantScaling]
+short = constant 
+type = B
+usage = Scale all projection sums by the same amount
+tooltip = 
+manpage = Scale all projection sums by the same amount, by dividing by the 
+thickness of the slab being projected.  The default is to
+divide each projection sum by the number of pixels along the projection ray.
+Constant scaling is more appropriate when projecting a largely empty volume.
+
 [Field = ParameterFile]
 short = param
 type = PF

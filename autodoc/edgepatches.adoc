@@ -72,6 +72,16 @@ tooltip =
 manpage = Starting and ending Z values to search for when adding a
 supermontage.  If this 
 
+[Field = DefaultRegionModel]
+short = model
+type = FN
+usage = Patch region model to use for an overlap zone if one is not found
+tooltip =
+manpage = Patch region model to use for an overlap zone if one is not found
+when initially setting up the Edge entries in the info file.  This option will
+have an effect only when adding a supermontage or processing a manually
+prepared info file for the first time.
+
 [Field = RunAll]
 short = all
 type = B
@@ -116,6 +126,17 @@ usage = Recompute the shifts between frames if already done
 tooltip =
 manpage = Recompute the shifts between frames for any that were already done.
 
+[Field = LongFraction]
+short = long
+type = F
+usage = Fraction of long dimension of the overlap zone to use for finding shift
+tooltip =
+manpage = Fraction of long dimension of the overlap zone to use for 
+finding the X/Y shift between the projections of the two pieces.  The default
+is 0.5.  When pieces are significantly skewed from each other, rather than
+arranged nearly horizontally or vertically, this fraction should be made
+higher, such as 1.0.
+
 [Field = PatchSizeXYZ]
 short = size
 type = IT
@@ -132,7 +153,7 @@ usage = Interval between patches in short, long, and Z dimension (default
 tooltip =
 manpage = Interval between patches in the short, long, and Z dimensions of
 overlap zones.  The program will use these intervals to determine how many
-patches to specify when running corrserach3d(1).  The defaults are 80,120,50.
+patches to specify when running Corrsearch3d(1).  The defaults are 80,120,50.
 
 [Field = ForceNumberInZ]
 short = force
@@ -154,16 +175,6 @@ redundant to limiting the region with a patch region model.  The border in Z
 is a default value that will be overriden by a Zlimits entry for an individual
 piece.  The default is 50,10.
 
-[Field = DefaultRegionModel]
-short = model
-type = FN
-usage = Patch region model to use for an overlap zone if one is not found
-tooltip =
-manpage = Patch region model to use for an overlap zone if one is not found
-when initially setting up the Edge entries in the info file.  This option will
-have an effect only when adding a supermontage or processing a manually
-prepared info file for the first time.
-
 [Field = KernelSigma]
 short = kernel
 type = F
@@ -174,13 +185,4 @@ Patches will be smoothed before correlating with 3x3x3 kernel (for sigma <
 1.5) or a 5x5x5 kernel (sigma >= 1.5) whose coefficients are
 proportional to a Gaussian with the given sigma centered on the central
 pixel.
-
-[Field = LongFraction]
-short = long
-type = F
-usage = Fraction of long dimension of the overlap zone to use for finding shift
-tooltip =
-manpage = Fraction of long dimension of the overlap zone to use for 
-finding the X/Y shift between the projections of the two pieces.  The default
-is 0.5.
 
