@@ -1458,6 +1458,8 @@ IrefImage *ivwGetImageRef(ImodView *vi)
   ref->ctrans.x = xtrans - xscale * vi->li->xmin * vi->xybin;
   ref->ctrans.y = ytrans - yscale * vi->li->ymin * vi->xybin;
   ref->ctrans.z = ztrans - zscale * vi->li->zmin * vi->zbin;
+  if (vi->image->mirrorFFT)
+    ref->ctrans.x += xscale * vi->image->nx / 2.;
 
   /* DNM 12/19/98: if using piece lists, need to subtract the minimum
      values as well */
@@ -2547,6 +2549,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.54  2007/04/12 00:26:35  mast
+Set time for fake image load on multi-time model
+
 Revision 4.53  2006/10/02 15:33:13  mast
 Fixed for > 2 Gpixel image
 
