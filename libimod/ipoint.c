@@ -16,6 +16,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2005/06/20 22:25:39  mast
+    Chnages for managing general storage
+
     Revision 3.7  2005/04/23 23:37:31  mast
     Documented functions
 
@@ -277,20 +280,30 @@ double imodPoint2DAngle(Ipoint *pt)
   return(angle);
 }
 
-/* Unused and too simple to be correct! */
-float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p)
+/*!
+ * Returns the {square} of the distance between point [p] and the line segment
+ * between [lp1] and [lp2].  In [tval], it returns the parameter specifying 
+ * the position along the segment of the point of closest approach (between 0
+ * at [lp1] and 1 at [lp2]).
+ */
+float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p,
+                               float *tval)
 {
-  float dist = 0.0f;
-  float a,b,c,l;
+  float a,b,c,t,d,e,f;
 
-  a = lp2->y - lp1->y;
-  b = lp1->x - lp2->x;
-  c = (-b * lp1->y) - (a +lp1->x);
-     
-  l = (a * p->x) + (b * p->y) + (c);
-  dist = (l * l) / ( (a*a) + (b*b));
-  dist = sqrt(dist);
-  return(dist);
+  t = 0.;
+  a = lp2->x - lp1->x;
+  b = lp2->y - lp1->y;
+  c = lp2->z - lp1->z;
+  if (a || b || c)
+    t = (a * (p->x - lp1->x) + b * (p->y - lp1->y) + c * (p->z - lp1->z)) /
+      (a * a + b * b + c * c);
+  t = B3DMAX(0., B3DMIN(1., t));
+  *tval = t;
+  d = a * t + lp1->x - p->x;
+  e = b * t + lp1->y - p->y;
+  f = c * t + lp1->z - p->z;
+  return(d *d + e * e + f * f);
 }
 
 /*!
