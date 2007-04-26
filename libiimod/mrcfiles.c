@@ -1324,7 +1324,7 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 /*!
  * Writes one plane of data from the buffer [buf] at the coordinate given by 
  * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
- * or Z.  Writes to the file with pointer [fin] according to the header in 
+ * or Z.  Writes to the file with pointer [fout] according to the header in 
  * [hdata] and swaps bytes if necessary.  Should handle planes > 4 GB on 64-bit
  * systems.  Returns -1 for errors.
  */
@@ -2131,6 +2131,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.30  2006/11/22 18:54:16  mast
+Eliminate a warning in VC6
+
 Revision 3.29  2006/09/28 21:15:01  mast
 Changes to work with > 2Gpix and > 4 Gpix images as much as possible
 
