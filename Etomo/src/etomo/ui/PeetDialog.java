@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/04/20 20:53:35  sueh
+ * <p> bug# 964 Added support for refFlagAllTom, lstFlagAllTom, ParticlePerCpu.
+ * <p>
  * <p> Revision 1.25  2007/04/19 22:05:13  sueh
  * <p> bug# 964 Added support for ltfThresholds.
  * <p>
@@ -251,6 +254,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   public void updateDisplay(final boolean paramFileSet) {
     ftfDirectory.setEditable(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
+    btnRun.setEnabled(paramFileSet);
   }
 
   public Container getContainer() {
@@ -675,6 +679,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(cbTiltRange.getActionCommand())) {
       updateDisplay();
     }
+    else if (actionCommand.equals(btnRun.getActionCommand())) {
+      manager.prmParser();
+    }
   }
 
   private void referenceFileAction() {
@@ -729,6 +736,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbReferenceFile.addActionListener(actionListener);
     ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
     cbTiltRange.addActionListener(actionListener);
+    btnRun.addActionListener(actionListener);
   }
 
   private class PDActionListener implements ActionListener {
