@@ -48,6 +48,10 @@ option in either case.  In addition, the differential scaling through the
 series of angles by Xyzproj(1) is controlled with the 
 .B -constant
 option.  Some experimentation may be needed to get reasonable results.
+.P 
+If you are modeling in an FFT, you can load the FFT into 3dmod(1) either
+non-mirrored or mirrored.  However, if you load it mirrored (the default),
+then be sure to model only in the right half of the FFT.
 .SS Options
 Imodmop uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
