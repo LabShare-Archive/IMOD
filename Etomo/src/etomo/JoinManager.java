@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.53  2007/04/09 19:30:06  sueh
+ * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
+ * <p>
  * <p> Revision 1.52  2007/03/26 23:30:18  sueh
  * <p> bug# 964 Moved some of the imodOpen functions to the parent class to be shared.
  * <p>
@@ -426,7 +429,7 @@ public final class JoinManager extends BaseManager {
       setMode();
     }
   }
-  
+
   public boolean setParamFile() {
     return loadedParamFile;
   }
@@ -1029,7 +1032,8 @@ public final class JoinManager extends BaseManager {
   }
 
   public void xfjointomo() {
-    XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial().is());
+    XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state
+        .getRefineTrial().is());
     joinDialog.getParameters(xfjointomoParam);
     try {
       threadNameA = processMgr.xfjointomo(xfjointomoParam);
@@ -1065,7 +1069,7 @@ public final class JoinManager extends BaseManager {
     param.setInputFile(inputFile);
     param.setOutputFile(outputFile);
     if (param.isValid()) {
-    xfmodel(param);
+      xfmodel(param);
     }
   }
 
@@ -1075,7 +1079,7 @@ public final class JoinManager extends BaseManager {
 
   private void xfmodel(XfmodelParam param) {
     if (debug) {
-      System.err.println("xfmodel:gapExist="+state.isGapsExist());
+      System.err.println("xfmodel:gapExist=" + state.isGapsExist());
     }
     if (state.isGapsExist()) {
       setNextProcess(AxisID.ONLY, ProcessName.REMAPMODEL.toString());
@@ -1264,7 +1268,8 @@ public final class JoinManager extends BaseManager {
   protected void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay) {
     if (debug) {
-      System.err.println("startNextProcess:axisID="+axisID+",nextProcess="+nextProcess);
+      System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
+          + nextProcess);
     }
     if (nextProcess.equals("startjoin")) {
       startjoin();
