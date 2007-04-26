@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2007/04/19 21:37:42  sueh
+ * <p> bug# 964 Added isDefaultNull() to tell if a defaulted value is null.
+ * <p>
  * <p> Revision 1.49  2007/04/13 21:48:36  sueh
  * <p> bug# 964 Added getDefaultedNumber().
  * <p>
@@ -543,7 +546,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean isValid(String errorTitle, String description, AxisID axisID) {
     return isValid(true, errorTitle, description, axisID);
   }
-  
+
   public boolean isValid(String errorTitle, String description) {
     return isValid(true, errorTitle, description, AxisID.ONLY);
   }
@@ -1018,6 +1021,10 @@ public abstract class ConstEtomoNumber implements Storable {
     return toString(getDefaultedValue());
   }
 
+  public Number getDefaultValue() {
+    return defaultValue;
+  }
+
   public int getInt() {
     validateReturnTypeInteger();
     return getValue().intValue();
@@ -1067,6 +1074,19 @@ public abstract class ConstEtomoNumber implements Storable {
   public ConstEtomoNumber setDefault(int defaultValue) {
     this.defaultValue = newNumber(defaultValue);
     return this;
+  }
+
+  public void setDefault(Integer defaultValue) {
+    if (defaultValue == null) {
+      this.defaultValue = newNumber();
+    }
+    else {
+      this.defaultValue = defaultValue;
+    }
+  }
+
+  public void resetDefault() {
+    defaultValue = newNumber();
   }
 
   public ConstEtomoNumber setDefault(boolean defaultValue) {
