@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/19 22:01:06  sueh
+ * <p> bug# 964 Added get/setParamters(MatlabParamFile)
+ * <p>
  * <p> Revision 1.2  2007/04/02 21:52:06  sueh
  * <p> bug# 964 Disabling initMotlFile column and button when PeetDialog.rbInitMotlFile
  * <p> is not selected.  Disabling tiltRange column when PeetDialog.cbTiltRange is not
@@ -61,15 +64,15 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2DPhi = new HeaderCell("Phi");
   private final HeaderCell header2DTheta = new HeaderCell("Theta");
   private final HeaderCell header2DPsi = new HeaderCell("Psi");
-  private final HeaderCell header3DPhiStart = new HeaderCell("Max",
+  private final HeaderCell header3DPhiMax = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPhiIncrement = new HeaderCell("Incr.",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaStart = new HeaderCell("Max",
+  private final HeaderCell header3DThetaMax = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaIncrement = new HeaderCell("Incr.",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiStart = new HeaderCell("Max",
+  private final HeaderCell header3DPsiMax = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell("Incr.",
       UIParameters.INSTANCE.getNumericWidth());
@@ -163,11 +166,11 @@ final class IterationTable implements Highlightable {
       header2DPhi.setToolTipText(tooltip);
       header2DTheta.setToolTipText(tooltip1);
       header2DPsi.setToolTipText(tooltip2);
-      header3DPhiStart.setToolTipText(tooltip);
+      header3DPhiMax.setToolTipText(tooltip);
       header3DPhiIncrement.setToolTipText(tooltip);
-      header3DThetaStart.setToolTipText(tooltip1);
+      header3DThetaMax.setToolTipText(tooltip1);
       header3DThetaIncrement.setToolTipText(tooltip1);
-      header3DPsiStart.setToolTipText(tooltip2);
+      header3DPsiMax.setToolTipText(tooltip2);
       header3DPsiIncrement.setToolTipText(tooltip2);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
           MatlabParamFile.SEARCH_RADIUS_KEY);
@@ -271,11 +274,11 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = 2;
     header3IterationNumber.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    header3DPhiStart.add(pnlTable, layout, constraints);
+    header3DPhiMax.add(pnlTable, layout, constraints);
     header3DPhiIncrement.add(pnlTable, layout, constraints);
-    header3DThetaStart.add(pnlTable, layout, constraints);
+    header3DThetaMax.add(pnlTable, layout, constraints);
     header3DThetaIncrement.add(pnlTable, layout, constraints);
-    header3DPsiStart.add(pnlTable, layout, constraints);
+    header3DPsiMax.add(pnlTable, layout, constraints);
     header3DPsiIncrement.add(pnlTable, layout, constraints);
     header3SearchRadius.add(pnlTable, layout, constraints);
     header3HiCutoff.add(pnlTable, layout, constraints);

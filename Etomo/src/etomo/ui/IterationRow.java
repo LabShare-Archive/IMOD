@@ -21,6 +21,9 @@ import etomo.storage.MatlabParamFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/19 21:59:32  sueh
+ * <p> bug# 964 Added getParameters(MatlabParamFile) and setParameters(MallabParamFile).
+ * <p>
  * <p> Revision 1.2  2007/04/02 21:50:05  sueh
  * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
  * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
@@ -34,11 +37,11 @@ final class IterationRow implements Highlightable{
   public static final String rcsid = "$Id$";
 
   private final HeaderCell number = new HeaderCell();
-  private final FieldCell dPhiStart =  FieldCell.getEditableInstance();
+  private final FieldCell dPhiMax =  FieldCell.getEditableInstance();
   private final FieldCell dPhiIncrement =  FieldCell.getEditableInstance();
-  private final FieldCell dThetaStart = FieldCell.getEditableInstance();
+  private final FieldCell dThetaMax = FieldCell.getEditableInstance();
   private final FieldCell dThetaIncrement =  FieldCell.getEditableInstance();
-  private final FieldCell dPsiStart =  FieldCell.getEditableInstance();
+  private final FieldCell dPsiMax =  FieldCell.getEditableInstance();
   private final FieldCell dPsiIncrement =  FieldCell.getEditableInstance();
   private final FieldCell searchRadius =  FieldCell.getEditableInstance();
   private final FieldCell hiCutoffCutoff= FieldCell.getEditableInstance();
@@ -71,11 +74,11 @@ final class IterationRow implements Highlightable{
     this.constraints = iterationRow.constraints;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
-    dPhiStart.setValue(iterationRow.dPhiStart.getValue());
+    dPhiMax.setValue(iterationRow.dPhiMax.getValue());
     dPhiIncrement.setValue(iterationRow.dPhiIncrement.getValue());
-    dThetaStart.setValue(iterationRow.dThetaStart.getValue());
+    dThetaMax.setValue(iterationRow.dThetaMax.getValue());
     dThetaIncrement.setValue(iterationRow.dThetaIncrement.getValue());
-    dPsiStart.setValue(iterationRow.dPsiStart.getValue());
+    dPsiMax.setValue(iterationRow.dPsiMax.getValue());
     dPsiIncrement.setValue(iterationRow.dPsiIncrement.getValue());
     searchRadius.setValue(iterationRow.searchRadius.getValue());
     hiCutoffCutoff.setValue(iterationRow.hiCutoffCutoff.getValue());
@@ -84,11 +87,11 @@ final class IterationRow implements Highlightable{
   }
   
   public void highlight(final boolean highlight) {
-    dPhiStart.setHighlight(highlight);
+    dPhiMax.setHighlight(highlight);
     dPhiIncrement.setHighlight(highlight);
-    dThetaStart.setHighlight(highlight);
+    dThetaMax.setHighlight(highlight);
     dThetaIncrement.setHighlight(highlight);
-    dPsiStart.setHighlight(highlight);
+    dPsiMax.setHighlight(highlight);
     dPsiIncrement.setHighlight(highlight);
     searchRadius.setHighlight(highlight);
     hiCutoffCutoff.setHighlight(highlight);
@@ -98,11 +101,11 @@ final class IterationRow implements Highlightable{
   
   void getParameters(final MatlabParamFile matlabParamFile) {
     MatlabParamFile.Iteration iteration = matlabParamFile.getIteration(index);
-    iteration.setDPhiStart(dPhiStart.getValue());
+    iteration.setDPhiEnd(dPhiMax.getValue());
     iteration.setDPhiIncrement(dPhiIncrement.getValue());
-    iteration.setDThetaStart(dThetaStart.getValue());
+    iteration.setDThetaEnd(dThetaMax.getValue());
     iteration.setDThetaIncrement(dThetaIncrement.getValue());
-    iteration.setDPsiStart(dPsiStart.getValue());
+    iteration.setDPsiEnd(dPsiMax.getValue());
     iteration.setDPsiIncrement(dPsiIncrement.getValue());
     iteration.setSearchRadius(searchRadius.getValue());
     iteration.setHiCutoffCutoff(hiCutoffCutoff.getValue());
@@ -112,11 +115,11 @@ final class IterationRow implements Highlightable{
   
   void setParameters(final MatlabParamFile matlabParamFile) {
     MatlabParamFile.Iteration iteration = matlabParamFile.getIteration(index);
-    dPhiStart.setValue(iteration.getDPhiStart());
+    dPhiMax.setValue(iteration.getDPhiEnd());
     dPhiIncrement.setValue(iteration.getDPhiIncrement());
-    dThetaStart.setValue(iteration.getDThetaStart());
+    dThetaMax.setValue(iteration.getDThetaEnd());
     dThetaIncrement.setValue(iteration.getDThetaIncrement());
-    dPsiStart.setValue(iteration.getDPsiStart());
+    dPsiMax.setValue(iteration.getDPsiEnd());
     dPsiIncrement.setValue(iteration.getDPsiIncrement());
     searchRadius.setValue(iteration.getSearchRadiusString());
     hiCutoffCutoff.setValue(iteration.getHiCutoffCutoff());
@@ -135,11 +138,11 @@ final class IterationRow implements Highlightable{
     number.add(panel,layout,constraints);
     btnHighlighter.add(panel, layout, constraints);
     constraints.weightx = 0.1;
-    dPhiStart.add(panel,layout,constraints);
+    dPhiMax.add(panel,layout,constraints);
     dPhiIncrement.add(panel,layout,constraints);
-    dThetaStart.add(panel,layout,constraints);
+    dThetaMax.add(panel,layout,constraints);
     dThetaIncrement.add(panel,layout,constraints);
-    dPsiStart.add(panel,layout,constraints);
+    dPsiMax.add(panel,layout,constraints);
     dPsiIncrement.add(panel,layout,constraints);
     searchRadius.add(panel,layout,constraints);
     hiCutoffCutoff.add(panel,layout,constraints);
