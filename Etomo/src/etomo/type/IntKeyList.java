@@ -32,6 +32,10 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/03/01 01:25:01  sueh
+ * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
+ * <p> in IntKeyList.
+ * <p>
  * <p> Revision 1.1  2007/02/05 23:27:39  sueh
  * <p> bug# 962 Storable, hashable array which may be lightly populated.
  * <p> </p>
@@ -121,10 +125,10 @@ public final class IntKeyList implements ConstIntKeyList {
     rowKey.adjustFirstLastKeys(key);
     list.put(buildKey(key), new Pair(key, value, etomoNumberType));
   }
-  
+
   public synchronized void put(int key, int value) {
     rowKey.adjustFirstLastKeys(key);
-    list.put(buildKey(key),new Pair(key,value,etomoNumberType));
+    list.put(buildKey(key), new Pair(key, value, etomoNumberType));
   }
 
   /**
@@ -163,7 +167,7 @@ public final class IntKeyList implements ConstIntKeyList {
       etomoNumber.set(pair.getValueString());
       return etomoNumber;
     }
-    etomoNumber=new EtomoNumber(etomoNumberType).set(pair.getValueNumber());
+    etomoNumber = new EtomoNumber(etomoNumberType).set(pair.getValueNumber());
     return etomoNumber;
   }
 
@@ -174,7 +178,7 @@ public final class IntKeyList implements ConstIntKeyList {
     remove(props, prepend);
     prepend = getPrepend(prepend);
     String group = prepend + ".";
-    rowKey.store(props,prepend);
+    rowKey.store(props, prepend);
     if (list.isEmpty()) {
       return;
     }
@@ -193,7 +197,7 @@ public final class IntKeyList implements ConstIntKeyList {
     }
     prepend = getPrepend(prepend);
     String group = prepend + ".";
-    rowKey.load(props,prepend);
+    rowKey.load(props, prepend);
     for (int i = getFirstKey(); i <= getLastKey(); i++) {
       String value = props.getProperty(group + String.valueOf(i));
       if (value != null) {
@@ -231,11 +235,11 @@ public final class IntKeyList implements ConstIntKeyList {
     prepend = getPrepend(prepend);
     String group = prepend + ".";
     RowKey oldRowKey = new RowKey(rowKey);
-    oldRowKey.load(props,prepend);
+    oldRowKey.load(props, prepend);
     for (int i = oldRowKey.getFirstKey(); i <= oldRowKey.getLastKey(); i++) {
       props.remove(group + String.valueOf(i));
     }
-    oldRowKey.remove(props,prepend);
+    oldRowKey.remove(props, prepend);
   }
 
   private final String getPrepend(String prepend) {
@@ -287,7 +291,7 @@ public final class IntKeyList implements ConstIntKeyList {
       }
       return value;
     }
-    
+
     public String nextString() {
       start();
       String value = null;
@@ -340,7 +344,7 @@ public final class IntKeyList implements ConstIntKeyList {
     private final String stringValue;
     private final Number number;
     private final EtomoNumber.Type numericType;
-    
+
     private Pair(int key, String value, EtomoNumber.Type etomoNumberType) {
       this.key = key;
       this.numericType = etomoNumberType;
@@ -353,17 +357,17 @@ public final class IntKeyList implements ConstIntKeyList {
         stringValue = null;
       }
     }
-    
-    private Pair(int key,int value,EtomoNumber.Type etomoNumberType) {
-      this(key,new Integer(value),etomoNumberType);
-    }
-    
-    private Pair(int key,ConstEtomoNumber value,EtomoNumber.Type etomoNumberType) {
-      this(key,value.getNumber(),etomoNumberType);
+
+    private Pair(int key, int value, EtomoNumber.Type etomoNumberType) {
+      this(key, new Integer(value), etomoNumberType);
     }
 
-    private Pair(int key, Number value,
+    private Pair(int key, ConstEtomoNumber value,
         EtomoNumber.Type etomoNumberType) {
+      this(key, value.getNumber(), etomoNumberType);
+    }
+
+    private Pair(int key, Number value, EtomoNumber.Type etomoNumberType) {
       this.key = key;
       this.numericType = etomoNumberType;
       if (etomoNumberType == null) {
@@ -428,11 +432,11 @@ public final class IntKeyList implements ConstIntKeyList {
       firstKey.setDisplayValue(DEFAULT_START_KEY);
       lastKey.setDisplayValue(DEFAULT_START_KEY);
     }
-    
+
     private RowKey(RowKey rowKey) {
       firstKey.set(rowKey.firstKey);
       lastKey.set(rowKey.lastKey);
-      startKey=rowKey.startKey;
+      startKey = rowKey.startKey;
     }
 
     void reset() {
@@ -483,17 +487,16 @@ public final class IntKeyList implements ConstIntKeyList {
       firstKey.store(props, prepend);
       lastKey.store(props, prepend);
     }
-    
+
     void load(Properties props, String prepend) {
       firstKey.load(props, prepend);
       lastKey.load(props, prepend);
     }
-    
-    void remove(Properties props,String prepend) {
-      firstKey.remove(props,prepend);
-      lastKey.remove(props,prepend);
+
+    void remove(Properties props, String prepend) {
+      firstKey.remove(props, prepend);
+      lastKey.remove(props, prepend);
     }
-    
-    
+
   }
 }
