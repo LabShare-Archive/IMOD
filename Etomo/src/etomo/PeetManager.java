@@ -2,9 +2,11 @@ package etomo;
 
 import java.io.File;
 
+import etomo.comscript.PrmParserParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
+import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParamFile;
 import etomo.storage.Storable;
@@ -37,6 +39,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/04/20 20:47:04  sueh
+ * <p> bug# 964 Fixed bug setParamFile():  don't run initializeUIParameters() if name is
+ * <p> empty.
+ * <p>
  * <p> Revision 1.12  2007/04/02 21:41:04  sueh
  * <p> bug# 964 Change PeetDialog.ltfOutput to lftFnOutput.
  * <p>
@@ -322,19 +328,36 @@ public class PeetManager extends BaseManager {
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
 
-  private void savePeetDialog() {
+  private boolean savePeetDialog() {
     if (peetDialog == null) {
-      return;
+      return false;
     }
     if (paramFile == null) {
       if (!setParamFile()) {
-        return;
+        return false;
       }
+    }
+    if (matlabParamFile == null) {
+      return false;
     }
     peetDialog.getParameters(metaData);
     peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
     peetDialog.getParameters(matlabParamFile);
     matlabParamFile.write();
+    return true;
+  }
+
+  public void prmParser() {
+    savePeetDialog();
+    PrmParserParam param = new PrmParserParam(matlabParamFile.getFile());
+    try {
+      String threadName = processMgr.prmParser(param);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to run " + ProcessName.PRMPARSER
+          + ", SystemProcessException.\n" + e.getMessage(), "Process Error");
+    }
   }
 }

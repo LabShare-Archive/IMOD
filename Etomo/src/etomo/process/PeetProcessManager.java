@@ -1,6 +1,9 @@
 package etomo.process;
 
 import etomo.PeetManager;
+import etomo.comscript.PrmParserParam;
+import etomo.type.AxisID;
+import etomo.type.ProcessName;
 
 /**
 * <p>Description: </p>
@@ -15,7 +18,10 @@ import etomo.PeetManager;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/19 21:53:04  sueh
+* <p> bug# 964 Process manager for PEET interface.
+* <p> </p>
 */
 public final class PeetProcessManager extends BaseProcessManager {
   public static  final String  rcsid =  "$Id$";
@@ -25,6 +31,12 @@ public final class PeetProcessManager extends BaseProcessManager {
   public PeetProcessManager(PeetManager manager) {
     super(manager);
     this.manager = manager;
+  }
+  
+  public String prmParser(PrmParserParam param) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommand(), AxisID.ONLY, null, ProcessName.PRMPARSER);
+    return backgroundProcess.getName();
   }
   
   protected void errorProcess(BackgroundProcess process) {
