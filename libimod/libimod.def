@@ -4,6 +4,7 @@ LIBRARY      "libimod"
 
 EXPORTS
 	imodPointIsEqual
+	imodPointLineSegDistance
 	istoreAddMinMax
 	imodContourGetName
 	AdocSetCurrent
