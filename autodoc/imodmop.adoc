@@ -1,0 +1,178 @@
+Version = 1.0
+Pip = 1
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending X index coordinates to extract
+tooltip = 
+manpage = Starting and ending X index coordinates to extract into the output
+volume (numbered from 0).
+The default is to produce an output volume the same size as the input.  The X
+and Y range of the output cannot be modified if the input is a Fourier
+transform.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y index coordinates to extract
+tooltip = 
+manpage = Starting and ending Y index coordinates to extract into the output
+volume (numbered from 0).
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending slices to extract (numbered from 0)
+tooltip = 
+manpage = Starting and ending Z slices to extract into the output
+volume (numbered from 0).
+
+[Field = InvertPaintedArea]
+short = invert
+type = B
+usage = Invert: paint outside model contours instead of inside
+tooltip = 
+manpage = Paint outside model contours instead of inside.  This is
+accomplished by painting inside the contours, then subtracting the painted
+volume from the original volume.  This option cannot be used when making
+colored data because the color is not defined outside of model objects.
+
+[Field = ReverseContrast]
+short = reverse
+type = B
+usage = Reverse contrast (subtract from file maximum) before painting
+tooltip = 
+manpage = Reverse the contrast by subtracting each value from the file maximum
+before painting.  The intensity range being operated on thus ranges from 0 to
+the original max minus the min.  For color input data, each channel is
+subtracted from 255.  FFT input data may not be reversed.
+
+[Field = Threshold]
+short = thresh
+type = F
+usage = Set values below threshold to 0
+tooltip = 
+manpage = Set values below the given threshold to zero.  If contrast is being
+reversed, the threshold will be converted to the appropriate value to use
+after the reversal, so a value in the original data can be used.
+
+[Field = ObjectsToDo]
+short = objects
+type = LI
+usage = Paint only for the given list of objects
+tooltip = 
+manpage = Paint only for the given list of objects.  The default is to do all
+closed contour objects, all scattered point objects if -2dscat or -3dscat is
+entered, and any open contour objects listed with -tube.
+
+[Field = 2DScatteredPoints]
+short = 2dscat
+type = B
+usage = Paint with scattered points treated as 2D circles
+tooltip = 
+manpage = Paint scattered point objects, but paint only a circle in the Z
+plane of each point.  This would be useful for 2D FFTs.
+
+[Field = 3DScatteredPoints]
+short = 3dscat
+type = B
+usage = Paint with scattered points treated as 3D spheres
+tooltip = 
+manpage = Paint scattered point objects with each point treated as a sphere.
+Options -2dscat and -3dscat are mutually exclusive.
+
+[Field = TubeObjects]
+short = tube
+type = LI
+usage = List of open contour objects to paint as tubes
+tooltip = 
+manpage = List of open contour objects for which to paint a cyclinder of
+a particular diameter around each contour.
+
+[Field = DiameterForTubes]
+short = diam
+type = F
+usage = Diameter for tubes (1 value, or 1 value per listed object)
+tooltip = 
+manpage = Diameter for open contour objects being painted as tubes.  Enter
+either 1 value, or 1 value per listed object.
+
+[Field = ColorOutput]
+short = color
+type = B
+usage = Produce RGB output colored by model object colors
+tooltip = 
+manpage = Produce RGB output colored by model object colors.  This option is
+available only with byte, integer, or floating point input.
+
+[Field = ScalingMinMax]
+short = scale
+type = FP
+usage = Minimum and maximum values for scaling to bytes
+tooltip = 
+manpage = Minimum and maximum values for scaling to bytes, when a color volume
+is being produced.  The default is to scale the min and max of the file to 
+0 and 255 for input data modes other than bytes, but to leave bytes unscaled.
+This entry should produce the same scaling as the -s option to 3dmod(1).
+
+[Field = ProjectTiltSeries]
+short = project
+type = FT
+usage = Produce projection series with given starting, ending, increment angles
+tooltip = 
+manpage = Produce projection series with given starting, ending, and increment
+angles.  Projection is done with xyzproj(1), then data are read back in and
+and scaled to bytes.  When color output is being produced, each painted color
+channel is output separately and projected separately, then read back in and
+combined into one RGB mode file.  Only byte, integer, or real data may be
+projected.
+
+[Field = AxisToTiltAround]
+short = axis
+type = CH
+usage = Axis to tilt around for projections (X, Y, or Z; default is Y)
+tooltip = 
+manpage =
+
+[Field = ConstantScaling]
+short = constant
+type = B
+usage = Use constant scaling in projections
+tooltip = 
+manpage = When projecting with Xyzproj(1), scale all projections by the same
+amount instead of dividing them by the number of pixels along the projection
+ray at the particular angle.  This will give more even intensities through the
+projection series for nearly spherical compact objects embedded in the black
+background.
+
+[Field = BlackAndWhite]
+short = bw
+type = IP
+usage = Black/white values for scaling projections to bytes
+tooltip = 
+manpage = Black/white values for scaling projections to bytes.  By default,
+the projections are scaled so that their min and max values map to 0 and 255.
+With this option, scaled values below the black level are set to 0, ones above
+the white level are set to 255, and values in between are remapped to 0 to
+255.  The result is similar to reading the default scaled data into 3dmod and 
+setting the black and white sliders to these values.
+
+[Field = TemporaryDirectory]
+short = tempdir
+type = CH
+usage = Directory for temporary files when projecting
+tooltip = 
+manpage =
+
+[Field = KeepTempFiles]
+short = keep
+type = B
+usage = Keep intermediate files when projecting
+tooltip = 
+manpage = Keep intermediate files when projecting.  2 or 6 intermediate
+files are produced, depending on whether color output is being generated.
+The temporary volume files are named imodmop.rec0.pid (and imodmop.rec1.pid 
+and imodmop.rec2.pid for green and blue channels of color output), where pid
+is the process ID.  The
+temporary projection files are named imodmop.xyz0.pid, etc.
