@@ -1,18 +1,13 @@
 /*   b3dutil.h   - utility functions for getting version and copyright, 
  *                      trimming program name
  *
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *   $Id$
+ *   Log at end
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #ifndef B3DUTIL_H
 #define B3DUTIL_H
@@ -23,6 +18,7 @@ Log at end
 
 #define B3DMIN(a,b) ((a) < (b) ? (a) : (b))
 #define B3DMAX(a,b) ((a) > (b) ? (a) : (b))
+#define B3DNINT(a) (int)floor((a) + 0.5)
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,6 +80,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.12  2006/09/28 21:13:23  mast
+Added huge seek routine
+
 Revision 1.11  2006/09/20 23:02:15  mast
 Added header usage function
 
