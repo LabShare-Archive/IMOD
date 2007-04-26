@@ -27,6 +27,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/04/19 21:55:15  sueh
+ * <p> bug# 964 Added support for flexible syntax, where an array string in the .prm file
+ * <p> can be either an array or a number.  Instead of handling this in MatlabParamFile,
+ * <p> will always store in the array, but the string that is writen to the .prm file will look
+ * <p> like a number if flexibleSyntax is turned on.
+ * <p>
  * <p> Revision 1.4  2007/04/13 20:19:21  sueh
  * <p> bug# 964 Added getRawString(int).
  * <p>
@@ -49,79 +55,51 @@ public final class ParsedList {
 
   private final Type type;
   private final ParsedElementList list = new ParsedElementList();
+  private final EtomoNumber.Type etomoNumberType;
+  private final boolean flexibleSyntax;
 
-  private EtomoNumber.Type etomoNumberType = null;
-  private Integer defaultValue = null;
+  /**
+   * No effect on ParsedList.  Used to create ParsedArray.
+   */
+  private final boolean compactDescriptor;
+
+  /**
+   * Place the entire array into parsed arrays and the individual elements into
+   * parsed numbers
+   */
+  private Integer[] defaultValueArray = null;
+
   private boolean valid = true;
-  private boolean flexibleSyntax = false;
   private boolean debug = false;
 
-  private ParsedList(Type type) {
-    this.type = type;
-  }
-
-  private ParsedList(Type type, EtomoNumber.Type etomoNumberType) {
-    this.type = type;
-    this.etomoNumberType = etomoNumberType;
-  }
-
   private ParsedList(Type type, EtomoNumber.Type etomoNumberType,
-      int defaultValue) {
+      boolean flexibleSyntax, boolean compactDescriptor) {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
-    this.defaultValue = new Integer(defaultValue);
+    this.flexibleSyntax = flexibleSyntax;
+    this.compactDescriptor = compactDescriptor;
   }
 
   public static ParsedList getNumericInstance() {
-    return new ParsedList(Type.NUMERIC, null);
+    return new ParsedList(Type.NUMERIC, null, false, false);
   }
 
   public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType);
-  }
-
-  public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType,
-      int defaultValue) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, defaultValue);
-  }
-
-  public static ParsedList getNumericInstance(ReadOnlyAttribute attribute) {
-    ParsedList instance = new ParsedList(Type.NUMERIC);
-    instance.parse(attribute);
-    return instance;
-  }
-
-  public static ParsedList getNumericInstance(ReadOnlyAttribute attribute,
-      EtomoNumber.Type etomoNumberType) {
-    ParsedList instance = new ParsedList(Type.NUMERIC, etomoNumberType);
-    instance.parse(attribute);
-    return instance;
-  }
-
-  public static ParsedList getNumericInstance(ReadOnlyAttribute attribute,
-      EtomoNumber.Type etomoNumberType, int defaultValue) {
-    ParsedList instance = new ParsedList(Type.NUMERIC, etomoNumberType,
-        defaultValue);
-    instance.parse(attribute);
-    return instance;
+    return new ParsedList(Type.NUMERIC, etomoNumberType, false, false);
   }
 
   public static ParsedList getFlexibleNumericInstance(
-      ReadOnlyAttribute attribute, EtomoNumber.Type etomoNumberType) {
-    ParsedList instance = new ParsedList(Type.NUMERIC, etomoNumberType);
-    instance.flexibleSyntax = true;
-    instance.parse(attribute);
-    return instance;
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false);
+  }
+
+  public static ParsedList getFlexibleCompactDescriptorInstance(
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, true);
   }
 
   public static ParsedList getStringInstance() {
-    return new ParsedList(Type.STRING);
-  }
-
-  public static ParsedList getStringInstance(ReadOnlyAttribute attribute) {
-    ParsedList instance = new ParsedList(Type.STRING);
-    instance.parse(attribute);
-    return instance;
+    return new ParsedList(Type.STRING, null, false, false);
   }
 
   /**
@@ -143,6 +121,13 @@ public final class ParsedList {
     return false;
   }
 
+  public void setDefaultValue(Integer[] defaultValueArray) {
+    this.defaultValueArray = defaultValueArray;
+    for (int i = 0; i < list.size(); i++) {
+      list.get(i).setDefaultValue(i, defaultValueArray);
+    }
+  }
+
   public int size() {
     return list.size();
   }
@@ -160,6 +145,8 @@ public final class ParsedList {
   }
 
   public void addElement(ParsedElement element) {
+    element.setDebug(debug);
+    element.setDefaultValue(list.size(), defaultValueArray);
     list.add(element);
   }
 
@@ -308,18 +295,17 @@ public final class ParsedList {
     if (type == Type.STRING) {
       element = new ParsedQuotedString();
     }
-    else if (flexibleSyntax) {
+    else if (flexibleSyntax || ParsedArray.isArray(token)) {
       //when flexibleSyntax is true, numeric elements are always ParsedArrays
       //because they can be parsed and written to look like ParsedNumbers when
       //they are empty or contain only one number
-      element = ParsedArray.getFlexibleInstance(etomoNumberType, defaultValue);
-    }
-    else if (ParsedArray.isArray(token)) {
-      element = new ParsedArray(etomoNumberType, defaultValue);
+      element = new ParsedArray(etomoNumberType, flexibleSyntax,false,
+          compactDescriptor);
     }
     else {
-      element = new ParsedNumber(etomoNumberType, defaultValue);
+      element = new ParsedNumber(etomoNumberType);
     }
+    element.setDefaultValue(list.size(), defaultValueArray);
     //parse the token
     token = element.parse(token, tokenizer);
     list.add(element);

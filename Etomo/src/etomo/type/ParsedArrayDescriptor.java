@@ -19,6 +19,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/04/19 21:42:42  sueh
+ * <p> bug# 964 Added boolean compact.  A compact instance ignores all the empty
+ * <p> numbers when writing to the .prm file.
+ * <p>
  * <p> Revision 1.5  2007/04/13 21:51:03  sueh
  * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
  * <p> must be returned with a getDefaulted... function to be accurate.
@@ -46,38 +50,25 @@ public final class ParsedArrayDescriptor extends ParsedElement {
 
   private final ParsedElementList descriptor = new ParsedElementList();
 
-  private EtomoNumber.Type etomoNumberType = null;
-  private Integer defaultValue = null;
-  private boolean valid = true;
+  private final EtomoNumber.Type etomoNumberType;
+
+  /**
+   * Use defaultValueArray to set each element's defaultValue when the defaultValueArray
+   * is available and contains an entry under the same index as the element.
+   */
+  private Integer[] defaultValueArray = null;
 
   /**
    * When compact is true, only place non-empty elements in the parsable string.
    */
-  private boolean compact = false;
+  private final boolean compact;
+
   private boolean debug = false;
+  private boolean valid = true;
 
-  public ParsedArrayDescriptor(EtomoNumber.Type etomoNumberType) {
-    this(etomoNumberType, null);
-  }
-
-  public static ParsedArrayDescriptor getCompactInstance(
-      EtomoNumber.Type etomoNumberType) {
-    ParsedArrayDescriptor instance = new ParsedArrayDescriptor(etomoNumberType);
-    instance.compact = true;
-    return instance;
-  }
-
-  ParsedArrayDescriptor(EtomoNumber.Type etomoNumberType, Integer defaultValue) {
+  ParsedArrayDescriptor(EtomoNumber.Type etomoNumberType, boolean compact) {
     this.etomoNumberType = etomoNumberType;
-    this.defaultValue = defaultValue;
-  }
-
-  public static ParsedArrayDescriptor getCompactInstance(
-      EtomoNumber.Type etomoNumberType, Integer defaultValue) {
-    ParsedArrayDescriptor instance = new ParsedArrayDescriptor(etomoNumberType,
-        defaultValue);
-    instance.compact = true;
-    return instance;
+    this.compact = compact;
   }
 
   public String toString() {
@@ -105,25 +96,34 @@ public final class ParsedArrayDescriptor extends ParsedElement {
   }
 
   /**
-   * Clear the array member variable, and add each element of the ParsedElement
-   * to the array.
-   * @param ParsedElement
+   * Clear the descriptor member variable, and add each element of the parsedArrayDescriptor
+   * to the descriptor.
+   * @param parsedArrayDescriptor
    */
-  public void setElement(ParsedElement elementArray) {
+  public void set(ParsedElement parsedArrayDescriptor) {
+    parsedArrayDescriptor.setDebug(debug);
+    parsedArrayDescriptor.setDefaultValue(0, defaultValueArray);
     descriptor.clear();
-    for (int i = 0; i < elementArray.size(); i++) {
-      descriptor.add(elementArray.getElement(i));
+    for (int i = 0; i < parsedArrayDescriptor.size(); i++) {
+      descriptor.add(parsedArrayDescriptor.getElement(i));
     }
   }
 
   public void setRawString(int index, String string) {
-    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
+    if (index < 0) {
+      return;
+    }
+    ParsedNumber element = new ParsedNumber(etomoNumberType);
+    element.setDebug(debug);
+    element.setDefaultValue(index, defaultValueArray);
     element.setRawString(string);
     descriptor.set(index, element);
   }
 
   public void setRawString(int index, float number) {
-    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
+    ParsedNumber element = new ParsedNumber(etomoNumberType);
+    element.setDebug(debug);
+    element.setDefaultValue(index, defaultValueArray);
     element.setRawString(number);
     descriptor.set(index, element);
   }
@@ -171,10 +171,6 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     return etomoNumberType;
   }
 
-  public Integer getDefaultValue() {
-    return defaultValue;
-  }
-
   public void setDebug(boolean debug) {
     this.debug = debug;
     for (int i = 0; i < descriptor.size(); i++) {
@@ -212,12 +208,63 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     return token;
   }
 
+  void removeElement(int index) {
+    descriptor.remove(index);
+  }
+
   boolean isCollection() {
+    return true;
+  }
+
+  boolean isDefaultedEmpty() {
+    for (int i = 0; i < descriptor.size(); i++) {
+      if (!descriptor.get(i).isDefaultedEmpty()) {
+        return false;
+      }
+    }
     return true;
   }
 
   String getParsableString() {
     return getString(true);
+  }
+
+  /**
+   * Return true when the array is empty or the array has 1 element and that
+   * element has parsed number syntax.
+   */
+  boolean hasParsedNumberSyntax() {
+    int size = descriptor.size();
+    if (size == 0) {
+      return true;
+    }
+    if (size == 1 && descriptor.get(0).hasParsedNumberSyntax()) {
+      return true;
+    }
+    //compact descriptor show only non-empty numbers
+    if (compact) {
+      int elementCount = 0;
+      for (int i = 0; i < size; i++) {
+        if (!descriptor.get(i).isDefaultedEmpty()) {
+          elementCount++;
+          if (elementCount > 1) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Sets defaultValueArray and calls setDefaultValue() for each element in the
+   * descriptor.
+   * @param numberIndex - not used by a collection
+   */
+  void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
+    for (int i = 0; i < descriptor.size(); i++) {
+      descriptor.get(i).setDefaultValue(i, defaultValueArray);
+    }
   }
 
   /**
@@ -230,7 +277,7 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     boolean emptyString = true;
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
-      if (!(compact && parsable) || !element.isEmpty()) {
+      if (!(compact && parsable) || !element.isDefaultedEmpty()) {
         if (!emptyString) {
           buffer.append(DIVIDER_SYMBOL.charValue());
         }
@@ -248,7 +295,9 @@ public final class ParsedArrayDescriptor extends ParsedElement {
 
   private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
     //parse a number
-    ParsedNumber element = new ParsedNumber(etomoNumberType, defaultValue);
+    ParsedNumber element = new ParsedNumber(etomoNumberType);
+    element.setDebug(debug);
+    element.setDefaultValue(descriptor.size(), defaultValueArray);
     token = element.parse(token, tokenizer);
     descriptor.add(element);
     return token;

@@ -42,6 +42,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/04/20 20:51:30  sueh
+ * <p> bug# 964 Added support for refFlagAllTom, lstFlagAllTom, ParticlePerCpu.
+ * <p>
  * <p> Revision 1.17  2007/04/19 21:37:05  sueh
  * <p> bug# 964 Added support for lstThresholds.  Added clear().  Simplified read so that
  * <p> is doesn't parse an empty autodoc.  Simplified write so that it doesn't read the
@@ -157,12 +160,17 @@ public final class MatlabParamFile {
   public static final int PARTICLE_PER_CPU_MAX = 50;
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
 
+  private static final Integer[] RELATIVE_ORIENT_DEFAULT_VALUE_ARRAY = new Integer[] {
+      new Integer(0), new Integer(0), new Integer(0) };
+  private static final Integer[] SEARCH_SPACE_DEFAULT_VALUE_ARRAY = new Integer[] {
+      null, null, new Integer(0) };
+
   private final ParsedNumber particlePerCpu = new ParsedNumber();
-  private final ParsedArray szVol = new ParsedArray();
+  private final ParsedArray szVol = ParsedArray.getInstance();
   private final ParsedQuotedString fnOutput = new ParsedQuotedString();
   private final ParsedNumber refFlagAllTom = new ParsedNumber();
   private final ParsedNumber edgeShift = new ParsedNumber();
-  private final ParsedArray lstThresholds = new ParsedArray();
+  private final ParsedArray lstThresholds = ParsedArray.getCompactInstance();
   private final ParsedNumber lstFlagAllTom = new ParsedNumber();
   private final ParsedNumber meanFill = new ParsedNumber();
   private final ParsedQuotedString alignedBaseName = new ParsedQuotedString();
@@ -170,7 +178,7 @@ public final class MatlabParamFile {
   private final List volumeList = new ArrayList();
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
-  private final ParsedArray reference = new ParsedArray();
+  private final ParsedArray reference = ParsedArray.getInstance();
   private final File file;
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -356,11 +364,11 @@ public final class MatlabParamFile {
   public void setMeanFill(final boolean meanFill) {
     this.meanFill.setRawString(meanFill);
   }
-  
+
   public void setRefFlagAllTom(final boolean input) {
     refFlagAllTom.setRawString(input);
   }
-  
+
   public void setLstFlagAllTom(final boolean input) {
     lstFlagAllTom.setRawString(input);
   }
@@ -372,11 +380,11 @@ public final class MatlabParamFile {
   public boolean isRefFlagAllTom() {
     return refFlagAllTom.getRawBoolean();
   }
-  
+
   public boolean isLstFlagAllTom() {
     return lstFlagAllTom.getRawBoolean();
   }
-  
+
   public String getAlignedBaseName() {
     return alignedBaseName.getRawString();
   }
@@ -432,6 +440,10 @@ public final class MatlabParamFile {
     return edgeShift.getRawString();
   }
 
+  public File getFile() {
+    return file;
+  }
+
   public void setSzVolX(String szVolX) {
     szVol.setRawString(SZ_VOL_X_INDEX, szVolX);
   }
@@ -472,7 +484,7 @@ public final class MatlabParamFile {
   public void setDebugLevel(Number input) {
     debugLevel.setRawString(input.toString());
   }
-  
+
   public void setParticlePerCPU(Number input) {
     particlePerCpu.setRawString(input.toString());
   }
@@ -480,7 +492,7 @@ public final class MatlabParamFile {
   public Number getDebugLevel() {
     return debugLevel.getRawNumber();
   }
-  
+
   public Number getParticlePerCPU() {
     return particlePerCpu.getRawNumber();
   }
@@ -503,8 +515,7 @@ public final class MatlabParamFile {
 
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
-    reference.setRawString(REFERENCE_PARTICLE_INDEX, referenceParticle
-        );
+    reference.setRawString(REFERENCE_PARTICLE_INDEX, referenceParticle);
   }
 
   public void setReferenceFile(final String referenceFile) {
@@ -559,7 +570,7 @@ public final class MatlabParamFile {
    * @return
    */
   public String getLstThresholdsStart() {
-    ParsedElement descriptor = lstThresholds.getDescriptor();
+    ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
     return descriptor.getRawString(LST_THRESHOLDS_START_INDEX);
   }
 
@@ -569,7 +580,7 @@ public final class MatlabParamFile {
    * @return
    */
   public String getLstThresholdsIncrement() {
-    ParsedElement descriptor = lstThresholds.getDescriptor();
+    ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
     return descriptor.getRawString(LST_THRESHOLDS_INCREMENT_INDEX);
   }
 
@@ -579,7 +590,7 @@ public final class MatlabParamFile {
    * @return
    */
   public String getLstThresholdsEnd() {
-    ParsedElement descriptor = lstThresholds.getDescriptor();
+    ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
     return descriptor.getRawString(LST_THRESHOLDS_END_INDEX);
   }
 
@@ -640,31 +651,34 @@ public final class MatlabParamFile {
     volumeList.clear();
     int size = 0;
     //relativeOrient
-    ParsedList relativeOrient = ParsedList.getNumericInstance(autodoc
-        .getAttribute(RELATIVE_ORIENT_KEY), EtomoNumber.Type.FLOAT, 0);
+    ParsedList relativeOrient = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
     size = Math.max(size, relativeOrient.size());
     //fnVolume
-    ParsedList fnVolume = ParsedList.getStringInstance(autodoc
-        .getAttribute(FN_VOLUME_KEY));
+    ParsedList fnVolume = ParsedList.getStringInstance();
+    fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
     size = Math.max(size, fnVolume.size());
     //fnModParticle
-    ParsedList fnModParticle = ParsedList.getStringInstance(autodoc
-        .getAttribute(FN_MOD_PARTICLE_KEY));
+    ParsedList fnModParticle = ParsedList.getStringInstance();
+    fnModParticle.parse(autodoc.getAttribute(FN_MOD_PARTICLE_KEY));
     size = Math.max(size, fnModParticle.size());
     //initMOTL
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
-      initMotlCode=null;
-      initMotlFile = ParsedList.getStringInstance(attribute);
+      initMotlCode = null;
+      initMotlFile = ParsedList.getStringInstance();
+      initMotlFile.parse(attribute);
       size = Math.max(size, initMotlFile.size());
     }
     else {
       initMotlCode = InitMotlCode.getInstance(attribute);
     }
     //tiltRange
-    ParsedList tiltRange = ParsedList.getNumericInstance(autodoc
-        .getAttribute(TILT_RANGE_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList tiltRange = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    tiltRange.parse(autodoc.getAttribute(TILT_RANGE_KEY));
     size = Math.max(size, tiltRange.size());
     if (tiltRange.size() == 0) {
       tiltRangeEmpty = true;
@@ -693,31 +707,34 @@ public final class MatlabParamFile {
     iterationList.clear();
     int size = 0;
     //dPhi
-    ParsedList dPhi = ParsedList.getNumericInstance(autodoc
-        .getAttribute(D_PHI_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList dPhi = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    dPhi.parse(autodoc.getAttribute(D_PHI_KEY));
     size = Math.max(size, dPhi.size());
     //dTheta
-    ParsedList dTheta = ParsedList.getNumericInstance(autodoc
-        .getAttribute(D_THETA_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList dTheta = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    dTheta.parse(autodoc.getAttribute(D_THETA_KEY));
     size = Math.max(size, dTheta.size());
     //dPsi
-    ParsedList dPsi = ParsedList.getNumericInstance(autodoc
-        .getAttribute(D_PSI_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList dPsi = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    dPsi.parse(autodoc.getAttribute(D_PSI_KEY));
     size = Math.max(size, dPsi.size());
     //searchRadius
-    ParsedList searchRadius = ParsedList.getNumericInstance(autodoc
-        .getAttribute(SEARCH_RADIUS_KEY));
+    ParsedList searchRadius = ParsedList.getNumericInstance();
+    searchRadius.parse(autodoc.getAttribute(SEARCH_RADIUS_KEY));
     size = Math.max(size, searchRadius.size());
     //lowCutoff
-    ParsedList lowCutoff = ParsedList.getFlexibleNumericInstance(autodoc
-        .getAttribute(LOW_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList lowCutoff = ParsedList
+        .getFlexibleNumericInstance(EtomoNumber.Type.FLOAT);
+    lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
     //hiCutoff
-    ParsedList hiCutoff = ParsedList.getFlexibleNumericInstance(autodoc
-        .getAttribute(HI_CUTOFF_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList hiCutoff = ParsedList
+        .getFlexibleNumericInstance(EtomoNumber.Type.FLOAT);
+    hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     size = Math.max(size, hiCutoff.size());
     //refThreshold
-    ParsedList refThreshold = ParsedList.getNumericInstance(autodoc
-        .getAttribute(REF_THRESHOLD_KEY), EtomoNumber.Type.FLOAT);
+    ParsedList refThreshold = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
     size = Math.max(size, refThreshold.size());
     //add elements to iterationList
     for (int i = 0; i < size; i++) {
@@ -789,8 +806,9 @@ public final class MatlabParamFile {
     }
     ParsedList tiltRange = ParsedList
         .getNumericInstance(EtomoNumber.Type.FLOAT);
-    ParsedList relativeOrient = ParsedList.getNumericInstance(
-        EtomoNumber.Type.FLOAT, 0);
+    ParsedList relativeOrient = ParsedList
+        .getNumericInstance(EtomoNumber.Type.FLOAT);
+    relativeOrient.setDefaultValue(RELATIVE_ORIENT_DEFAULT_VALUE_ARRAY);
     //build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -819,9 +837,15 @@ public final class MatlabParamFile {
    * @param valueMap
    */
   private void buildParsableIterationValues(final Map valueMap) {
-    ParsedList dPhi = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
-    ParsedList dTheta = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
-    ParsedList dPsi = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+    ParsedList dPhi = ParsedList
+        .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+    dPhi.setDefaultValue(SEARCH_SPACE_DEFAULT_VALUE_ARRAY);
+    ParsedList dTheta = ParsedList
+        .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+    dTheta.setDefaultValue(SEARCH_SPACE_DEFAULT_VALUE_ARRAY);
+    ParsedList dPsi = ParsedList
+        .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+    dPsi.setDefaultValue(SEARCH_SPACE_DEFAULT_VALUE_ARRAY);
     ParsedList searchRadius = ParsedList.getNumericInstance();
     ParsedList lowCutoff = ParsedList
         .getNumericInstance(EtomoNumber.Type.FLOAT);
@@ -1076,7 +1100,6 @@ public final class MatlabParamFile {
         return DEFAULT;
       }
       String value = attribute.getValue();
-      System.out.println("value="+value);
       if (value == null) {
         return DEFAULT;
       }
@@ -1143,10 +1166,10 @@ public final class MatlabParamFile {
     private static final int RELATIVE_ORIENT_X_INDEX = 0;
     private static final int RELATIVE_ORIENT_Y_INDEX = 1;
     private static final int RELATIVE_ORIENT_Z_INDEX = 2;
-    private final ParsedArray tiltRange = new ParsedArray(
-        EtomoNumber.Type.FLOAT);
-    private final ParsedArray relativeOrient = new ParsedArray(
-        EtomoNumber.Type.FLOAT, 0);
+    private final ParsedArray tiltRange = ParsedArray
+        .getInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedArray relativeOrient = ParsedArray
+        .getInstance(EtomoNumber.Type.FLOAT);
     private final ParsedQuotedString fnVolume = new ParsedQuotedString();
     private final ParsedQuotedString fnModParticle = new ParsedQuotedString();
     private final ParsedQuotedString initMotl = new ParsedQuotedString();
@@ -1248,11 +1271,11 @@ public final class MatlabParamFile {
     }
 
     private void setTiltRange(final ParsedElement tiltRange) {
-      this.tiltRange.setElement(tiltRange);
+      this.tiltRange.set(tiltRange);
     }
 
     private void setRelativeOrient(final ParsedElement relativeOrient) {
-      this.relativeOrient.setElement(relativeOrient);
+      this.relativeOrient.set(relativeOrient);
     }
   }
 
@@ -1274,25 +1297,28 @@ public final class MatlabParamFile {
 
     //search spaces
     private final ParsedArray dPhi = ParsedArray
-        .getCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray dTheta = ParsedArray
-        .getCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray dPsi = ParsedArray
-        .getCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
 
-    public void setDPhiStart(final String input) {
-      dPhi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX, input);
+    private Iteration() {
     }
 
-    public void setDThetaStart(final String input) {
+    public void setDPhiEnd(final String input) {
+      dPhi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX, SEARCH_SPACE_END_INDEX,
+          input);
+    }
+
+    public void setDThetaEnd(final String input) {
       dTheta.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX, input);
+          SEARCH_SPACE_END_INDEX, input);
     }
 
-    public void setDPsiStart(final String input) {
-      dPsi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX, input);
+    public void setDPsiEnd(final String input) {
+      dPsi.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX, SEARCH_SPACE_END_INDEX,
+          input);
     }
 
     public void setDPhiIncrement(final String input) {
@@ -1314,19 +1340,19 @@ public final class MatlabParamFile {
       this.searchRadius.setRawString(input);
     }
 
-    public String getDPhiStart() {
+    public String getDPhiEnd() {
       return dPhi.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX);
+          SEARCH_SPACE_END_INDEX);
     }
 
-    public String getDThetaStart() {
+    public String getDThetaEnd() {
       return dTheta.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX);
+          SEARCH_SPACE_END_INDEX);
     }
 
-    public String getDPsiStart() {
+    public String getDPsiEnd() {
       return dPsi.getRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX);
+          SEARCH_SPACE_END_INDEX);
     }
 
     public void setHiCutoffCutoff(String input) {
@@ -1385,32 +1411,32 @@ public final class MatlabParamFile {
     }
 
     private void setDPhi(final ParsedElement input) {
-      dPhi.setElement(input);
+      dPhi.set(input);
       moveSearchSpaceEndValue(dPhi);
     }
 
     private void setDTheta(final ParsedElement input) {
-      dTheta.setElement(input);
+      dTheta.set(input);
       moveSearchSpaceEndValue(dTheta);
     }
 
     private void setDPsi(final ParsedElement input) {
-      dPsi.setElement(input);
+      dPsi.set(input);
       moveSearchSpaceEndValue(dPsi);
     }
 
     private ParsedElement getDPhi() {
-      addSearchSpaceEndValue(dPhi);
+      addSearchSpaceStartValue(dPhi);
       return dPhi;
     }
 
     private ParsedElement getDTheta() {
-      addSearchSpaceEndValue(dTheta);
+      addSearchSpaceStartValue(dTheta);
       return dTheta;
     }
 
     private ParsedElement getDPsi() {
-      addSearchSpaceEndValue(dPsi);
+      addSearchSpaceStartValue(dPsi);
       return dPsi;
     }
 
@@ -1423,11 +1449,11 @@ public final class MatlabParamFile {
     }
 
     private void setLowCutoff(final ParsedElement input) {
-      lowCutoff.setElement(input);
+      lowCutoff.set(input);
     }
 
     private void setHiCutoff(final ParsedElement input) {
-      hiCutoff.setElement(input);
+      hiCutoff.set(input);
     }
 
     private void setLowCutoff(final String input) {
@@ -1472,15 +1498,15 @@ public final class MatlabParamFile {
     }
 
     /**
-     * The end value is always -1 times the start value.
+     * The start value is always -1 times the end value.
      * @param array
      */
-    private void addSearchSpaceEndValue(ParsedArray array) {
-      ParsedElement start = array.getElement(SEARCH_SPACE_DESCRIPTOR_INDEX,
-          SEARCH_SPACE_START_INDEX);
-      if (!start.isEmpty()) {
+    private void addSearchSpaceStartValue(ParsedArray array) {
+      ParsedElement end = array.getElement(SEARCH_SPACE_DESCRIPTOR_INDEX,
+          SEARCH_SPACE_END_INDEX);
+      if (!end.isEmpty()) {
         array.setRawString(SEARCH_SPACE_DESCRIPTOR_INDEX,
-            SEARCH_SPACE_END_INDEX, start.getRawNumber().floatValue() * -1);
+            SEARCH_SPACE_START_INDEX, end.getRawNumber().floatValue() * -1);
       }
     }
   }

@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/04/19 21:56:22  sueh
+ * <p> bug# 964 Added getRawString(int), moveElement(int,int), setRawString(float),
+ * <p> setRawString(int,float), setRawString(int,String), and setRawString(String,String).
+ * <p>
  * <p> Revision 1.6  2007/04/13 21:51:43  sueh
  * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
  * <p> must be returned with a getDefaulted... function to be accurate.
@@ -46,9 +50,8 @@ public final class ParsedNumber extends ParsedElement {
   public static final String rcsid = "$Id$";
 
   private final EtomoNumber rawNumber;
+  private final EtomoNumber.Type etomoNumberType;
 
-  private EtomoNumber.Type etomoNumberType = null;
-  private Integer defaultValue = null;
   private boolean valid = true;
   private boolean debug = false;
 
@@ -61,20 +64,12 @@ public final class ParsedNumber extends ParsedElement {
           + ParsedArrayDescriptor.DIVIDER_SYMBOL.toString());
 
   public ParsedNumber() {
-    this(null, null);
+    this(null);
   }
 
   public ParsedNumber(EtomoNumber.Type etomoNumberType) {
-    this(etomoNumberType, null);
-  }
-
-  ParsedNumber(EtomoNumber.Type etomoNumberType, Integer defaultValue) {
     this.etomoNumberType = etomoNumberType;
-    this.defaultValue = defaultValue;
     rawNumber = new EtomoNumber(etomoNumberType);
-    if (defaultValue != null) {
-      rawNumber.setDefault(defaultValue.intValue());
-    }
   }
 
   public void parse(ReadOnlyAttribute attribute) {
@@ -99,23 +94,23 @@ public final class ParsedNumber extends ParsedElement {
   public String toString() {
     return "[rawNumber:" + rawNumber + "]";
   }
-  
+
   public boolean getRawBoolean() {
     return rawNumber.getDefaultedBoolean();
   }
-  
+
   public Number getRawNumber() {
     return rawNumber.getDefaultedNumber();
   }
-  
+
   public String getRawString() {
     return rawNumber.toDefaultedString();
   }
-  
+
   public void clear() {
     rawNumber.reset();
   }
-  
+
   /**
    * return the raw number.  If the type is floating point or double, return it
    * as an int or long if there is no decimal value
@@ -125,21 +120,21 @@ public final class ParsedNumber extends ParsedElement {
       return "";
     }
     Number number = rawNumber.getDefaultedNumber();
-    if (etomoNumberType ==EtomoNumber.Type.FLOAT) {
+    if (etomoNumberType == EtomoNumber.Type.FLOAT) {
       float floatNumber = number.floatValue();
-      if (Math.round(floatNumber)==floatNumber) {
+      if (Math.round(floatNumber) == floatNumber) {
         return new Integer(number.intValue()).toString();
       }
     }
-    else if (etomoNumberType ==EtomoNumber.Type.DOUBLE) {
+    else if (etomoNumberType == EtomoNumber.Type.DOUBLE) {
       double doubleNumber = number.doubleValue();
-      if (Math.round(doubleNumber)==doubleNumber) {
+      if (Math.round(doubleNumber) == doubleNumber) {
         return new Long(number.longValue()).toString();
       }
     }
     return number.toString();
   }
-  
+
   public void setRawString(String number) {
     rawNumber.set(number);
     valid = rawNumber.isValid();
@@ -148,29 +143,29 @@ public final class ParsedNumber extends ParsedElement {
   public void setRawString(String number, String fieldDescription) {
     rawNumber.set(number);
     valid = rawNumber.isValid();
-    if (fieldDescription !=null) {
-      rawNumber.isValid("Entry Error",fieldDescription);
+    if (fieldDescription != null) {
+      rawNumber.isValid("Entry Error", fieldDescription);
     }
   }
-  
+
   public void setRawString(float number) {
     rawNumber.set(number);
   }
-  
-  public void setRawString(int index,float number) {
-    if (index!=0) {
+
+  public void setRawString(int index, float number) {
+    if (index != 0) {
       return;
     }
     rawNumber.set(number);
   }
-  
-  public void setRawString (int index ,String string){
-    if (index!=0) {
+
+  public void setRawString(int index, String string) {
+    if (index != 0) {
       return;
     }
     setRawString(string);
   }
-  
+
   public void setRawString(boolean bool) {
     rawNumber.set(bool);
   }
@@ -178,14 +173,14 @@ public final class ParsedNumber extends ParsedElement {
   public void setElement(ParsedElement element) {
     rawNumber.set(element.getRawString());
   }
-  
+
   public boolean isEmpty() {
     return rawNumber.isNull();
   }
-  
+
   public void moveElement(int fromIndex, int toIndex) {
   }
-  
+
   /**
    * When an index is passed, treat ParsedNumber as an array of 1
    */
@@ -195,7 +190,7 @@ public final class ParsedNumber extends ParsedElement {
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE;
   }
-  
+
   /**
    * When an index is passed, treat ParsedNumber as an array of 1
    */
@@ -204,6 +199,29 @@ public final class ParsedNumber extends ParsedElement {
       return getRawString();
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
+  }
+
+  /**
+   * Set defaultValue using defaultValueArray[numberIndex].
+   */
+  void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
+    if (defaultValueArray == null || numberIndex < 0
+        || defaultValueArray.length <= numberIndex) {
+      rawNumber.resetDefault();
+    }
+    else {
+      rawNumber.setDefault(defaultValueArray[numberIndex]);
+    }
+  }
+
+  void removeElement(int index) {
+    if (index == 0) {
+      rawNumber.reset();
+    }
+  }
+
+  boolean hasParsedNumberSyntax() {
+    return true;
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
@@ -236,11 +254,15 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.set(buffer.toString());
     return token;
   }
-  
+
   boolean isCollection() {
     return false;
   }
-  
+
+  boolean isDefaultedEmpty() {
+    return rawNumber.isDefaultedNull();
+  }
+
   void setDebug(boolean debug) {
     this.debug = debug;
   }

@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/04/19 21:46:10  sueh
+ * <p> bug# 964 Made EmptyParsedElement a singleton.  Added move and remove.
+ * <p>
  * <p> Revision 1.5  2007/04/13 21:51:25  sueh
  * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
  * <p> must be returned with a getDefaulted... function to be accurate.
@@ -124,6 +127,8 @@ final class ParsedElementList {
     public static final String rcsid = "$Id$";
 
     static final EmptyParsedElement INSTANCE = new EmptyParsedElement();
+    
+    private boolean debug = false;
 
     private EmptyParsedElement() {
     }
@@ -151,6 +156,7 @@ final class ParsedElementList {
     }
 
     public void setDebug(boolean debug) {
+      this.debug = debug;
     }
 
     public void moveElement(int fromIndex, int toIndex) {
@@ -162,9 +168,15 @@ final class ParsedElementList {
 
     public void setRawString(int index, float number) {
     }
+    
+    void setDefaultValue(int numberIndex,Integer[] defaultValueArray) {
+    }
 
     Token parse(Token token, PrimativeTokenizer tokenizer) {
       return null;
+    }
+    
+    void removeElement(int index) {
     }
 
     int size() {
@@ -174,9 +186,17 @@ final class ParsedElementList {
     public boolean isEmpty() {
       return true;
     }
+    
+    boolean isDefaultedEmpty() {
+      return true;
+    }
 
     String getParsableString() {
       return "";
+    }
+    
+    boolean hasParsedNumberSyntax() {
+      return true;
     }
 
     boolean isCollection() {

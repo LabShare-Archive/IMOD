@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/04/19 21:57:16  sueh
+ * <p> bug# 964 Added getRawString(int), moveElement(int,int), moveElement(int,int),
+ * <p> setRawString(int,float), and setRawString(int,String).
+ * <p>
  * <p> Revision 1.5  2007/04/13 21:51:53  sueh
  * <p> bug# 964 Not returning ConstEtomoNumber from ParsedElement, because it
  * <p> must be returned with a getDefaulted... function to be accurate.
@@ -192,13 +196,29 @@ public final class ParsedQuotedString extends ParsedElement {
     }
     return token;
   }
+  
+  boolean hasParsedNumberSyntax() {
+    return false;
+  }
 
   boolean isCollection() {
     return false;
   }
   
+  boolean isDefaultedEmpty() {
+    return isEmpty();
+  }
+  
+  void setDefaultValue(int numberIndex,Integer[] defaultValueArray) {}
+  
   void setDebug(boolean debug) {
     this.debug = debug;
+  }
+  
+  void removeElement(int index) {
+    if (index==0) {
+      rawString="";
+    }
   }
 
   int size() {
