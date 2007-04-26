@@ -49,9 +49,8 @@ series of angles by Xyzproj(1) is controlled with the
 .B -constant
 option.  Some experimentation may be needed to get reasonable results.
 .SS Options
-Imodmop uses the PIP package for input (see the manual page
-for pip(1)).  Options can be abbreviated to 2 letters or even 1 letter in most
-cases.  Options can be specified either as command line arguments (with the -)
+Imodmop uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -):
 INSERT OPTION TEXT HERE
 .TP
