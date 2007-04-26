@@ -35,7 +35,6 @@ float   imodPointDistance(Ipoint *pnt1, Ipoint *pnt2);
 float   imodPointDot(Ipoint *pnt1, Ipoint *pnt2);
 int     imodPointPlaneEdge(Ipoint *rpt, Iplane *plane, int planes,
 			   Ipoint *pt1, Ipoint *pt2);
-float   imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p);
 float   imodPointLineDistance(Ipoint *ln, Ipoint *p);
 double  imodPoint2DAngle(Ipoint *pt);
 
