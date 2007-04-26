@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/26/07: Rebuilt imodmop to incorporate ability to make a projection series
+(formerly done by  imodcmopp), handle all kinds of data including FFT's,
+allow control of output image size and image scaling, extract regions defined
+by scattered points and cylinders along open contours, and output either
+monochrome or color data.
+
+4/26/07: Added option to Xyzproj to keep the scaling constant at different
+tilt angles, instead of dividing by number of pixels along a projection ray.
+
+4/26/07: Made 3dmod set model image reference information correctly when 
+the image is a mirrored FFT, so model will display interchangeably between
+mirrored and non-mirrored FFT.
+
 4/23/07: Fixed ability of Fortran programs to read header of mode 16 files (In 
 3.9).
 
