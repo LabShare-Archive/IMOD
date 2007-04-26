@@ -15,6 +15,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2007/02/05 23:30:17  sueh
+ * <p> $bug# 962 Added xfjointomo, xftoxg, xfmodel, and remapmodel.
+ * <p> $
  * <p> $Revision 1.10  2006/10/24 23:24:08  sueh
  * <p> $bug# 947
  * <p> $
@@ -98,6 +101,7 @@ public class ProcessName {
   private static final String xftoxg = "xftoxg";
   private static final String xfmodel = "xfmodel";
   private static final String remapmodel = "remapmodel";
+  private static final String prmParser = "prmParser";
 
   private final String name;
 
@@ -147,6 +151,7 @@ public class ProcessName {
   public static final ProcessName XFTOXG = new ProcessName(xftoxg);
   public static final ProcessName XFMODEL = new ProcessName(xfmodel);
   public static final ProcessName REMAPMODEL = new ProcessName(remapmodel);
+  public static final ProcessName PRMPARSER = new ProcessName(prmParser);
 
   /**
    * Returns a string representation of the object.
@@ -295,6 +300,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(remapmodel) == 0) {
       return REMAPMODEL;
+    }
+    if (name.compareToIgnoreCase(prmParser) == 0) {
+      return PRMPARSER;
     }
     return null;
   }
