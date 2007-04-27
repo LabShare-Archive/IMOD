@@ -787,7 +787,9 @@ public abstract class BaseManager {
       message[1] = e.getMessage();
       UIHarness.INSTANCE.openMessageDialog(message,
           "Unable to execute command", axisID);
+      if (processResultDisplay!=null) {
       processResultDisplay.msgProcessFailedToStart();
+      }
       return;
     }
     //set param in parallel panel so it can do a resume
@@ -1166,6 +1168,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.79  2007/04/09 19:26:14  sueh
+ * <p> bug# 964 In saveParamFile, call setParamFile so that PeetManager.paramFile is
+ * <p> set.
+ * <p>
  * <p> Revision 1.78  2007/03/26 23:30:04  sueh
  * <p> bug# 964 Moved some of the imodOpen functions to the parent class to be shared.
  * <p>
