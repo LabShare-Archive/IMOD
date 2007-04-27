@@ -52,6 +52,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private StringBuffer machineList = null;
   private boolean valid = true;
   private ProcessName processName = null;
+  private boolean debug = true;
 
   public ProcesschunksParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
@@ -121,6 +122,15 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
       commandArray[i] = (String) command.get(i);
+    }
+    if (debug) {
+      for (int i = 0;i<commandArray.length;i++) {
+        if (i>0) {
+          System.err.print(" ");
+        }
+        System.err.print(commandArray[i]);
+      }
+      System.err.println();
     }
   }
 
@@ -322,6 +332,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2007/02/05 22:39:36  sueh
+ * <p> bug# 962 Changed getCommandMode to return CommandMode.
+ * <p>
  * <p> Revision 1.19  2006/12/02 04:32:45  sueh
  * <p> bug# 944 Added get/setProcessName
  * <p>
