@@ -2,7 +2,8 @@ package etomo;
 
 import java.io.File;
 
-import etomo.comscript.PrmParserParam;
+import etomo.comscript.PeetParserParam;
+import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
@@ -18,10 +19,12 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
+import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
+import etomo.ui.ParallelPanel;
 import etomo.ui.PeetDialog;
 import etomo.util.DatasetFiles;
 
@@ -39,6 +42,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/04/26 02:42:56  sueh
+ * <p> bug# 964 Added prmParser.
+ * <p>
  * <p> Revision 1.13  2007/04/20 20:47:04  sueh
  * <p> bug# 964 Fixed bug setParamFile():  don't run initializeUIParameters() if name is
  * <p> empty.
@@ -83,17 +89,39 @@ import etomo.util.DatasetFiles;
  * <p> bug# 964 Manager for the PEET interface.
  * <p> </p>
  */
-public class PeetManager extends BaseManager {
+public final class PeetManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
+
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final PeetMetaData metaData;
   private final PeetProcessManager processMgr;
+
   private PeetDialog peetDialog = null;
-  private MainPeetPanel mainPanel;
   private MatlabParamFile matlabParamFile = null;
+  private MainPeetPanel mainPanel;
+
+  PeetManager() {
+    this("");
+  }
+
+  PeetManager(String paramFileName) {
+    super();
+    this.metaData = new PeetMetaData();
+    createState();
+    processMgr = new PeetProcessManager(this);
+    initializeUIParameters(paramFileName, AXIS_ID);
+    if (loadedParamFile) {
+      loadMatlabAutodoc(false);
+    }
+    if (!EtomoDirector.getInstance().isHeadless()) {
+      openProcessingPanel();
+      mainPanel.setStatusBarText(paramFile, metaData);
+      openPeetDialog();
+    }
+  }
 
   public boolean canChangeParamFileName() {
     return !loadedParamFile;
@@ -107,7 +135,7 @@ public class PeetManager extends BaseManager {
     return metaData;
   }
 
-  public final BaseScreenState getBaseScreenState(AxisID axisID) {
+  public BaseScreenState getBaseScreenState(AxisID axisID) {
     return screenState;
   }
 
@@ -220,11 +248,31 @@ public class PeetManager extends BaseManager {
     savePeetDialog();
   }
 
-  void updateDialog(ProcessName processName, AxisID axisID) {
+  public void peetParser() {
+    savePeetDialog();
+    PeetParserParam param = new PeetParserParam(this, matlabParamFile.getFile());
+    try {
+      LogFile log = LogFile.getInstance(param.getLogFile());
+      try {
+        log.backup();
+      }
+      catch (LogFile.FileException e) {
+        e.printStackTrace();
+      }
+      String threadName = processMgr.peetParser(param);
+      setNextProcess(AxisID.ONLY, ProcessName.PROCESSCHUNKS.toString());
+      setThreadName(threadName, AxisID.ONLY);
+      mainPanel.startProgressBar("Running " + ProcessName.PEET_PARSER,
+          AxisID.ONLY, ProcessName.PEET_PARSER);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to run " + ProcessName.PEET_PARSER
+          + ", SystemProcessException.\n" + e.getMessage(), "Process Error");
+    }
   }
 
-  void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay) {
+  void updateDialog(ProcessName processName, AxisID axisID) {
   }
 
   void setMetaData(ImodManager imodManager) {
@@ -258,31 +306,21 @@ public class PeetManager extends BaseManager {
   void getProcessTrack(Storable[] storable, int index) {
   }
 
-  final Storable[] getStorables(int offset) {
+  Storable[] getStorables(int offset) {
     Storable[] storables = new Storable[2 + offset];
     int index = offset;
     storables[index++] = metaData;
     storables[index++] = screenState;
     return storables;
   }
-
-  PeetManager() {
-    this("");
-  }
-
-  PeetManager(String paramFileName) {
-    super();
-    this.metaData = new PeetMetaData();
-    createState();
-    processMgr = new PeetProcessManager(this);
-    initializeUIParameters(paramFileName, AXIS_ID);
-    if (loadedParamFile) {
-      loadMatlabAutodoc(false);
-    }
-    if (!EtomoDirector.getInstance().isHeadless()) {
-      openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData);
-      openPeetDialog();
+  
+  /**
+   * Start the next process specified by the nextProcess string
+   */
+  void startNextProcess(AxisID axisID, String nextProcess,
+      ProcessResultDisplay processResultDisplay) {
+    if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
+      processchunks();
     }
   }
 
@@ -348,16 +386,23 @@ public class PeetManager extends BaseManager {
     return true;
   }
 
-  public void prmParser() {
-    savePeetDialog();
-    PrmParserParam param = new PrmParserParam(matlabParamFile.getFile());
-    try {
-      String threadName = processMgr.prmParser(param);
+  /**
+   * Run processchunks.
+   * @param axisID
+   */
+  private void processchunks() {
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
+    if (peetDialog == null) {
+      return;
     }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog("Unable to run " + ProcessName.PRMPARSER
-          + ", SystemProcessException.\n" + e.getMessage(), "Process Error");
+    peetDialog.getParameters(param);
+    if (!parallelPanel.getParameters(param)) {
+      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      return;
     }
+    //param should never be set to resume
+    parallelPanel.resetResults();
+    processchunks(AxisID.ONLY, param, null);
   }
 }
