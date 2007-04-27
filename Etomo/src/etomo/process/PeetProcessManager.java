@@ -1,7 +1,7 @@
 package etomo.process;
 
 import etomo.PeetManager;
-import etomo.comscript.PrmParserParam;
+import etomo.comscript.PeetParserParam;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 
@@ -19,6 +19,9 @@ import etomo.type.ProcessName;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/04/26 02:43:34  sueh
+* <p> bug# 964 Added prmParser.
+* <p>
 * <p> Revision 1.1  2007/02/19 21:53:04  sueh
 * <p> bug# 964 Process manager for PEET interface.
 * <p> </p>
@@ -33,9 +36,9 @@ public final class PeetProcessManager extends BaseProcessManager {
     this.manager = manager;
   }
   
-  public String prmParser(PrmParserParam param) throws SystemProcessException {
+  public String peetParser(PeetParserParam param) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), AxisID.ONLY, null, ProcessName.PRMPARSER);
+        .getCommand(), AxisID.ONLY, null, ProcessName.PEET_PARSER);
     return backgroundProcess.getName();
   }
   
