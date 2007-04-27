@@ -45,6 +45,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/04/26 02:49:43  sueh
+ * <p> bug# 964 Added btnRun to action().
+ * <p>
  * <p> Revision 1.26  2007/04/20 20:53:35  sueh
  * <p> bug# 964 Added support for refFlagAllTom, lstFlagAllTom, ParticlePerCpu.
  * <p>
@@ -680,7 +683,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       updateDisplay();
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
-      manager.prmParser();
+      manager.peetParser();
     }
   }
 
