@@ -15,6 +15,8 @@ import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.PeetManager;
 import etomo.comscript.ParallelParam;
@@ -45,6 +47,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2007/04/27 23:39:59  sueh
+ * <p> bug# 964 Changed prmParser to peetParser.
+ * <p>
  * <p> Revision 1.27  2007/04/26 02:49:43  sueh
  * <p> bug# 964 Added btnRun to action().
  * <p>
@@ -136,11 +141,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   static final String DIRECTORY_LABEL = "Directory";
   static final String OUTPUT_LABEL = "Root name for output";
-
+  
   private static final String REFERENCE_PARTICLE_LABEL = "Particle #: ";
   private static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
   private static final String REFERENCE_FILE_LABEL = "Reference file: ";
-
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
 
   private final JPanel rootPanel = new JPanel();
@@ -151,7 +155,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final CheckBox cbTiltRange = new CheckBox(
       "Use tilt range for missing wedge compensation");
-  private final SpacedPanel pnlRunParametersBody = new SpacedPanel();
   private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
       REFERENCE_PARTICLE_LABEL);
   private final FileTextField ftfReferenceFile = FileTextField
@@ -205,11 +208,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("Use files",
       bgInitMotl);
-  private final PanelHeader phSetup;
-  private final PanelHeader phRunParameters;
-  private final VolumeTable volumeTable;
-  private final PeetManager manager;
-  private final AxisID axisID;
   private final ButtonGroup bgCcMode = new ButtonGroup();
   private final RadioButton rbCcModeNormalized = new RadioButton(
       "Local energy normalized cross correlation",
@@ -221,29 +219,34 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Debug level: ", new SpinnerNumberModel(
           MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
           MatlabParamFile.DEBUG_LEVEL_MAX, 1));
+  private final TabbedPane tabPane = new TabbedPane();
+  private final SpacedPanel pnlSetup = new SpacedPanel();
+  private final JPanel pnlRun = new JPanel();
   private final PanelHeader phRun;
+  private final PanelHeader phSetup;
+  private final VolumeTable volumeTable;
+  private final PeetManager manager;
+  private final AxisID axisID;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    //setup construction
     phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
+    phRun = PanelHeader.getAdvancedBasicInstance("Run", this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
-    //run parameters construction
-    phRunParameters = PanelHeader.getAdvancedBasicInstance("Run Parameters",
-        this, DIALOG_TYPE);
-    //run construction
-    phRun = PanelHeader.getInstance("Run", this, DIALOG_TYPE);
     iterationTable = IterationTable.getInstance(manager);
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new EtchedBorder("PEET").getBorder());
-    rootPanel.add(createSetupPanel());
-    rootPanel.add(createRunParametersPanel());
-    rootPanel.add(createRunPanel());
+    rootPanel.add(tabPane);
+    createSetupPanel();
+    createRunPanel();
+    tabPane.add("Setup",pnlSetup.getContainer());
+    tabPane.add("Run",pnlRun);
+    changeTab();
     setDefaults();
     updateDisplay();
-    updateAdvanceRunParameters(phRunParameters.isAdvanced());
+    updateAdvanceRunParameters(phRun.isAdvanced());
     setTooltipText();
   }
 
@@ -275,13 +278,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   public void getParameters(final PeetScreenState screenState) {
     phSetup.getState(screenState.getPeetSetupHeaderState());
-    phRunParameters.getState(screenState.getPeetRunParametersHeaderState());
     phRun.getState(screenState.getPeetRunHeaderState());
   }
 
   public void setParameters(final ConstPeetScreenState screenState) {
     phSetup.setState(screenState.getPeetSetupHeaderState());
-    phRunParameters.setState(screenState.getPeetRunParametersHeaderState());
     phRun.setState(screenState.getPeetRunHeaderState());
   }
 
@@ -421,10 +422,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     if (phSetup.equalsOpenClose(button)) {
       pnlSetupBody.setVisible(button.isExpanded());
     }
-    else if (phRunParameters.equalsOpenClose(button)) {
-      pnlRunParametersBody.setVisible(button.isExpanded());
-    }
-    else if (phRunParameters.equalsAdvancedBasic(button)) {
+    else if (phRun.equalsAdvancedBasic(button)) {
       updateAdvanceRunParameters(button.isExpanded());
     }
     else if (phRun.equalsOpenClose(button)) {
@@ -534,22 +532,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfLowCutoff.setText(MatlabParamFile.LOW_CUTOFF_DEFAULT);
   }
 
-  private Container createSetupPanel() {
-    //body
-    pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlSetupBody.add(ftfDirectory.getContainer());
-    pnlSetupBody.add(ltfFnOutput.getContainer());
-    pnlSetupBody.add(volumeTable.getContainer());
-    //main panel
-    SpacedPanel pnlSetup = new SpacedPanel();
-    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlSetup.setBorder(BorderFactory.createEtchedBorder());
-    pnlSetup.add(phSetup.getContainer());
-    pnlSetup.add(pnlSetupBody);
-    return pnlSetup.getContainer();
-  }
-
-  private Container createRunParametersPanel() {
+  private void createSetupPanel() {
     //volume reference
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
@@ -568,12 +551,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlReference.setBorder(new EtchedBorder("Reference").getBorder());
     pnlReference.add(pnlVolumeReference);
     pnlReference.add(pnlVolumeFile);
-    //szVol
-    SpacedPanel pnlSzVol = new SpacedPanel();
-    pnlSzVol.setBoxLayout(BoxLayout.X_AXIS);
-    pnlSzVol.add(ltfSzVolX.getContainer());
-    pnlSzVol.add(ltfSzVolY.getContainer());
-    pnlSzVol.add(ltfSzVolZ.getContainer());
     //init MOTL
     JPanel pnlInitMotl = new JPanel();
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
@@ -589,6 +566,36 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlTiltRange.add(Box.createRigidArea(FixedDim.x40_y0));
     ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     pnlTiltRange.add(ltfEdgeShift.getContainer());
+    //body
+    pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetupBody.add(ftfDirectory.getContainer());
+    pnlSetupBody.add(ltfFnOutput.getContainer());
+    pnlSetupBody.add(volumeTable.getContainer());
+    pnlSetupBody.add(pnlReference);
+    pnlSetupBody.add(pnlInitMotl);
+    pnlSetupBody.add(pnlTiltRange);
+    //main panel
+    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetup.setBorder(BorderFactory.createEtchedBorder());
+    pnlSetup.add(phSetup.getContainer());
+  }
+
+  private void createRunPanel() {
+    //szVol
+    SpacedPanel pnlSzVol = new SpacedPanel();
+    pnlSzVol.setBoxLayout(BoxLayout.X_AXIS);
+    pnlSzVol.add(ltfSzVolX.getContainer());
+    pnlSzVol.add(ltfSzVolY.getContainer());
+    pnlSzVol.add(ltfSzVolZ.getContainer());
+    //lstThresholds
+    SpacedPanel pnlLstThresholds = new SpacedPanel();
+    pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
+    pnlLstThresholds.setBorder(new EtchedBorder(
+        "Number of Particles in Averages").getBorder());
+    pnlLstThresholds.add(ltfLstThresholdsStart.getContainer());
+    pnlLstThresholds.add(ltfLstThresholdsIncrement.getContainer());
+    pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
+    pnlLstThresholds.add(ltfLstThresholdsAdditional.getContainer());
     //CCMode
     JPanel pnlCcMode = new JPanel();
     pnlCcMode.setLayout(new BoxLayout(pnlCcMode, BoxLayout.Y_AXIS));
@@ -610,50 +617,21 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlAdvanced.add(pnlAdvancedRight);
     //body
-    pnlRunParametersBody.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlRunParametersBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlRunParametersBody.add(pnlReference);
-    pnlRunParametersBody.add(pnlSzVol);
-    pnlRunParametersBody.add(pnlInitMotl);
-    pnlRunParametersBody.add(pnlTiltRange);
-    pnlRunParametersBody.add(pnlAdvanced);
-    //main panel
-    JPanel pnlRunParameters = new JPanel();
-    pnlRunParameters
-        .setLayout(new BoxLayout(pnlRunParameters, BoxLayout.Y_AXIS));
-    pnlRunParameters.setBorder(BorderFactory.createEtchedBorder());
-    pnlRunParameters.add(phRunParameters.getContainer());
-    pnlRunParameters.add(pnlRunParametersBody.getContainer());
-    return pnlRunParameters;
-  }
-
-  private Container createRunPanel() {
-    //lstThresholds
-    SpacedPanel pnlLstThresholds = new SpacedPanel();
-    pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
-    pnlLstThresholds.setBorder(new EtchedBorder(
-        "Number of Particles in Averages").getBorder());
-    pnlLstThresholds.add(ltfLstThresholdsStart.getContainer());
-    pnlLstThresholds.add(ltfLstThresholdsIncrement.getContainer());
-    pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
-    pnlLstThresholds.add(ltfLstThresholdsAdditional.getContainer());
-    //body
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunBody.add(iterationTable.getContainer());
+    pnlRunBody.add(pnlSzVol);
     pnlRunBody.add(cbRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
     pnlRunBody.add(cbLstFlagAllTom);
     pnlRunBody.add(lsParticlePerCPU);
+    pnlRunBody.add(pnlAdvanced);
     btnRun.setSize();
     pnlRunBody.add(btnRun);
     //main panel
-    JPanel pnlRun = new JPanel();
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
     pnlRun.add(phRun.getContainer());
-    pnlRun.add(pnlRunBody.getContainer());
-    return pnlRun;
   }
 
   private void action(ActionEvent action) {
@@ -685,6 +663,18 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       manager.peetParser();
     }
+  }
+  
+  private void changeTab() {
+    if (tabPane.getSelectedIndex()==0) {
+      pnlSetup.add(pnlSetupBody);
+      pnlRun.remove(pnlRunBody.getContainer());
+    }
+    else {
+      pnlRun.add(pnlRunBody.getContainer());
+      pnlSetup.remove(pnlSetupBody);
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
 
   private void referenceFileAction() {
@@ -740,9 +730,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
     cbTiltRange.addActionListener(actionListener);
     btnRun.addActionListener(actionListener);
+    tabPane.addChangeListener(new TabChangeListener(this));
   }
 
-  private class PDActionListener implements ActionListener {
+  private static final class PDActionListener implements ActionListener {
     private final PeetDialog peetDialog;
 
     private PDActionListener(final PeetDialog peetDialog) {
@@ -754,7 +745,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     }
   }
 
-  private class ReferenceFileActionListener implements ActionListener {
+  private static final class ReferenceFileActionListener implements ActionListener {
     private final PeetDialog peetDialog;
 
     private ReferenceFileActionListener(final PeetDialog peetDialog) {
@@ -763,6 +754,18 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
     public void actionPerformed(final ActionEvent event) {
       peetDialog.referenceFileAction();
+    }
+  }
+  
+  private static final class TabChangeListener implements ChangeListener {
+    private final PeetDialog peetDialog;
+
+    public TabChangeListener(final  PeetDialog peetDialog) {
+      this.peetDialog = peetDialog;
+    }
+
+    public void stateChanged(final ChangeEvent changeEvent) {
+      peetDialog.changeTab();
     }
   }
 }
