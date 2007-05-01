@@ -32,6 +32,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2007/03/30 23:52:55  sueh
+* <p> bug# 964 Added add(etomo.ui.TextField)
+* <p>
 * <p> Revision 1.15  2007/03/07 21:14:36  sueh
 * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
 * <p> because it is getting more complicated.
@@ -178,6 +181,10 @@ final class SpacedPanel {
     if (previousComponentWasSpaced) {
       previousComponentWasSpaced = false;
     }
+  }
+  
+  void remove(SpacedPanel panel) {
+    this.panel.remove(panel.getContainer());
   }
   
   final void add(Container container) {
