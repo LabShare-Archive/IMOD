@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/02/09 00:51:33  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.21  2006/07/20 17:20:46  sueh
  * <p> bug# 848 Made UIParameters a singleton.
  * <p>
@@ -96,7 +100,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
@@ -139,7 +142,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
     pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes, BoxLayout.Y_AXIS));
 
     //  Construct the binning spinner
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
+    SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
         integerModel);
     spinBinning

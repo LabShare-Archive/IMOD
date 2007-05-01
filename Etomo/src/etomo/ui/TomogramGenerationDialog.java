@@ -21,7 +21,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
@@ -61,6 +60,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.104  2007/03/31 03:02:53  sueh
+ * bug# 964 Changed PanelHeader.isAdvanceBasicExpanded to isAdvanced.
+ *
  * Revision 3.103  2007/03/21 19:47:15  sueh
  * bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * Added AutodocFactory to create Autodoc instances.
@@ -1332,7 +1334,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       newstHeader = PanelHeader.getInstance("Newstack", this, dialogType);
     }
     //initialization
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
+    SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ",
         integerModel);
     //buttonPanel

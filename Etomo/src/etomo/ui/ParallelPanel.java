@@ -10,7 +10,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.BaseManager;
@@ -105,7 +104,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //southPanel;
     southPanel.add(ltfCPUsSelected);
-    SpinnerModel model = new SpinnerNumberModel(
+    SpinnerNumberModel model = new SpinnerNumberModel(
         ProcesschunksParam.NICE_DEFAULT, ProcesschunksParam.NICE_FLOOR,
         ProcesschunksParam.NICE_CEILING, 1);
     lsNice = new LabeledSpinner("Nice: ", model);
@@ -481,6 +480,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2007/03/21 19:46:05  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.44  2007/03/15 21:47:29  sueh
  * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
  * <p> unless the Attribute needs to be modified.

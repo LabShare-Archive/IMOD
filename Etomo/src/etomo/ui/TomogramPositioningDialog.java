@@ -9,7 +9,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
@@ -36,6 +35,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2007/02/09 00:54:13  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.55  2007/02/05 23:45:57  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -371,7 +374,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     //  Construct the binning spinner
-    SpinnerModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
+    SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("   Binning ", integerModel);
     spinBinning
         .setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
