@@ -2,6 +2,9 @@ package etomo.ui;
 
 import java.awt.Component;
 
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
@@ -26,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/13 21:52:51  sueh
+ * <p> bug# 964 Added setValue(ParsedElement).
+ * <p>
  * <p> Revision 1.2  2007/04/09 21:22:34  sueh
  * <p> bug# 964 Added Number getValue().
  * <p>
@@ -38,8 +44,10 @@ final class Spinner {
 
   private SpinnerNumberModel model = new SpinnerNumberModel(1, 1, 1, 1);
   private JSpinner spinner = new JSpinner(model);
+  private JPanel panel = null;
+  private JLabel label = null;
 
-  Spinner(String label) {
+  private Spinner(String label, boolean labeled) {
     String name = Utilities.convertLabelToName(label);
     spinner.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
@@ -47,18 +55,43 @@ final class Spinner {
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
+    if (labeled) {
+      panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      this.label = new JLabel(label);
+      panel.add(this.label);
+      panel.add(spinner);
+    }
+  }
+
+  static Spinner getInstance(String name) {
+    return new Spinner(name, false);
+  }
+
+  static Spinner getLabeledInstance(String label) {
+    return new Spinner(label, true);
   }
 
   void setToolTipText(String text) {
-    spinner.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    String tooltip = TooltipFormatter.INSTANCE.format(text);
+    spinner.setToolTipText(tooltip);
+    if (label!=null) {
+      label.setToolTipText(tooltip);
+    }
   }
 
   Component getComponent() {
-    return spinner;
+    if (panel == null) {
+      return spinner;
+    }
+    return panel;
   }
 
   void setEnabled(boolean enabled) {
     spinner.setEnabled(enabled);
+    if (label!=null) {
+      label.setEnabled(enabled);
+    }
   }
 
   void setMax(int max) {
@@ -73,7 +106,7 @@ final class Spinner {
       spinner.setValue(value.getRawNumber());
     }
   }
-  
+
   void setValue(ConstEtomoNumber value) {
     if (value.isNull()) {
       spinner.setValue((Integer) model.getMinimum());
